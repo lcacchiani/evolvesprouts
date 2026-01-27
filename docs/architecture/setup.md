@@ -46,8 +46,8 @@ Apply the following trust policy to the `GitHubActionsRole` (replace
 
 If you do not see `GitHubActionsRole`, create it:
 
-1. **IAM → Roles → Create role** (tag it with `Organization: LX Software`
-   and `Project: Siu Tin Dei`)
+1. **IAM → Roles → Create role** (tag it with
+   `Organization: Evolve Sprouts`)
 2. **Trusted entity**: Web identity
 3. **Provider**: `token.actions.githubusercontent.com`
 4. **Audience**: `sts.amazonaws.com`
@@ -57,8 +57,8 @@ If you do not see `GitHubActionsRole`, create it:
 If the wizard asks for a GitHub organization, use the repo owner (org or user),
 for example `your-org` or `your-user`.
 
-For the OIDC provider itself, add the same tags:
-`Organization: LX Software`, `Project: Siu Tin Dei`.
+For the OIDC provider itself, add the same tag:
+`Organization: Evolve Sprouts`.
 
 ## GitHub Actions configuration
 
@@ -66,9 +66,8 @@ For the OIDC provider itself, add the same tags:
 
 - `AWS_ACCOUNT_ID`
 - `AWS_REGION`
-- `CDK_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
-- `CDK_BOOTSTRAP_QUALIFIER` (optional)
-- `CDK_PARAM_FILE` (e.g. `backend/infrastructure/params/production.json`)
+- `CFN_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
+- `CFN_PARAM_FILE` (e.g. `backend/infrastructure/params/production.json`)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`
@@ -87,11 +86,11 @@ For the OIDC provider itself, add the same tags:
 
 ### Secrets
 
-- `CDK_PARAM_GOOGLE_CLIENT_SECRET`
-- `CDK_PARAM_APPLE_PRIVATE_KEY`
-- `CDK_PARAM_MICROSOFT_CLIENT_SECRET`
-- `CDK_PARAM_PUBLIC_API_KEY_VALUE`
-- `CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
+- `CFN_PARAM_GOOGLE_CLIENT_SECRET`
+- `CFN_PARAM_APPLE_PRIVATE_KEY`
+- `CFN_PARAM_MICROSOFT_CLIENT_SECRET`
+- `CFN_PARAM_PUBLIC_API_KEY_VALUE`
+- `CFN_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
 - `AMPLIFY_API_KEY`
 - `ANDROID_KEYSTORE_BASE64`
 - `ANDROID_KEYSTORE_PASSWORD`
@@ -113,7 +112,7 @@ For the OIDC provider itself, add the same tags:
    `https://<cognito-domain>.auth.<region>.amazoncognito.com/oauth2/idpresponse`
 4. Copy:
    - **Client ID** → `GoogleClientId`
-   - **Client Secret** → `CDK_PARAM_GOOGLE_CLIENT_SECRET`
+   - **Client Secret** → `CFN_PARAM_GOOGLE_CLIENT_SECRET`
 
 ### Firebase (App Check + config)
 1. Go to **Firebase Console → Project Settings → General**.
@@ -143,7 +142,7 @@ For the OIDC provider itself, add the same tags:
    openssl genrsa -aes256 -out upload.key 2048
    openssl req -new -key upload.key -out upload.csr
    openssl x509 -req -days 10000 -in upload.csr -signkey upload.key -out upload.crt
-   openssl pkcs12 -export -out keystore.p12 -inkey upload.key -in upload.crt -name siutindei_release
+   openssl pkcs12 -export -out keystore.p12 -inkey upload.key -in upload.crt -name evolvesprouts_release
    ```
 2. Base64 encode the keystore for GitHub Secrets:
    ```bash
@@ -156,9 +155,10 @@ For the OIDC provider itself, add the same tags:
    - `ANDROID_KEYSTORE_BASE64` = contents of `keystore.base64`
    - `ANDROID_KEYSTORE_PASSWORD` = PKCS12 export password (set when running `openssl pkcs12 -export`)
    - `ANDROID_KEY_PASSWORD` = private key password (set when running `openssl genrsa -aes256`)
-   - `ANDROID_KEY_ALIAS` = alias (e.g., `siutindei_release`)
+   - `ANDROID_KEY_ALIAS` = alias (e.g., `evolvesprouts_release`)
 4. Set GitHub Variables:
-   - `ANDROID_PACKAGE_NAME` (from `apps/customer_app/android/app/build.gradle.kts`, `applicationId`)
+   - `ANDROID_PACKAGE_NAME` (from
+     `apps/evolvesprouts/android/app/build.gradle.kts`, `applicationId`)
    - `ANDROID_RELEASE_TRACK` (`internal`, `alpha`, `beta`, or `production`)
 5. Create a Play Console service account:
    - Google Cloud Console -> IAM & Admin -> Service Accounts -> Create
@@ -169,14 +169,14 @@ For the OIDC provider itself, add the same tags:
 
 ### Amplify API key (mobile public search)
 1. Use the same value as your backend `PublicApiKeyValue`
-   (`CDK_PARAM_PUBLIC_API_KEY_VALUE` secret).
+   (`CFN_PARAM_PUBLIC_API_KEY_VALUE` secret).
 2. Set GitHub Secret `AMPLIFY_API_KEY` to that value so the mobile app
    can call the public search endpoint.
 
 ### iOS (signing + TestFlight)
 1. Create an iOS App ID:
    - Apple Developer -> Certificates, Identifiers & Profiles -> Identifiers
-   - Create an App ID for your bundle (e.g., `com.lxsoftware.siutindei`)
+   - Create an App ID for your bundle (e.g., `com.evolvesprouts.evolvesprouts`)
    - Use this value as `IOS_BUNDLE_ID` and `FIREBASE_IOS_BUNDLE_ID`
 2. Find your Team ID:
    - Apple Developer -> Membership -> Team ID
@@ -217,7 +217,7 @@ For the OIDC provider itself, add the same tags:
    - **Tenant ID** → `MicrosoftTenantId`
    - **Client ID** → `MicrosoftClientId`
 4. Create a client secret:
-   - **Client Secret** → `CDK_PARAM_MICROSOFT_CLIENT_SECRET`
+   - **Client Secret** → `CFN_PARAM_MICROSOFT_CLIENT_SECRET`
 
 ### Apple (Sign in with Apple)
 1. Go to **Apple Developer → Certificates, Identifiers & Profiles**.
@@ -227,6 +227,7 @@ For the OIDC provider itself, add the same tags:
    - Team ID → `AppleTeamId` (CI uses `APPLE_TEAM_ID` to set this automatically)
 4. Create a **Sign In with Apple Key**:
    - **Key ID** → `AppleKeyId`
-   - Download `.p8` → `CDK_PARAM_APPLE_PRIVATE_KEY` (full contents)
-   - You can paste the key as multi-line; CI will escape newlines and CDK will
-     restore them automatically. A single-line value with `\n` escapes also works.
+   - Download `.p8` → `CFN_PARAM_APPLE_PRIVATE_KEY` (full contents)
+   - You can paste the key as multi-line; CI will escape newlines and the
+     deploy step will restore them automatically. A single-line value with `\n`
+     escapes also works.
