@@ -11,11 +11,10 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 from uuid import UUID
 
-from sqlalchemy import and_, or_
-from sqlalchemy.orm import Query, Session
+from sqlalchemy.orm import Query
 
 from app.errors import bad_request
 
@@ -115,9 +114,11 @@ def _pad_base64(value: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-@dataclass
+@dataclass(slots=True)
 class PaginatedResult(Generic[T]):
     """Result of a paginated query.
+
+    Uses slots=True for faster attribute access and lower memory usage.
 
     Attributes:
         items: List of items for the current page.

@@ -20,10 +20,14 @@ from __future__ import annotations
 class ApiError(Exception):
     """Exception representing an API error response.
 
+    Uses __slots__ for faster attribute access and lower memory usage.
+
     Attributes:
         status_code: HTTP status code for the error.
         message: Error message code (not user-facing text).
     """
+
+    __slots__ = ('status_code', 'message')
 
     def __init__(self, status_code: int, message: str) -> None:
         """Initialize an API error.

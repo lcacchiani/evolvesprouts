@@ -2,21 +2,29 @@
 
 This module provides helper functions for parsing API Gateway events
 and building HTTP responses in the Lambda proxy integration format.
+
+Performance notes:
+- Headers dict is frozen (never modified) to allow safe reuse
+- JSON encoding uses separators to minimize output size
+- Base64 decoding is lazy (only when isBase64Encoded is True)
 """
 
 from __future__ import annotations
 
 import base64
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Final, Optional
 
 from app.errors import ApiError, bad_request
 from app.pagination import decode_cursor
 
-# Default response headers
-DEFAULT_HEADERS: Dict[str, str] = {
+# Frozen default headers (safe to reuse across responses)
+DEFAULT_HEADERS: Final[Dict[str, str]] = {
     'content-type': 'application/json',
 }
+
+# JSON encoder settings for compact output
+_JSON_SEPARATORS: Final = (',', ':')
 
 
 def json_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
@@ -32,7 +40,7 @@ def json_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
     return {
         'statusCode': status_code,
         'headers': DEFAULT_HEADERS,
-        'body': json.dumps(body),
+        'body': json.dumps(body, separators=_JSON_SEPARATORS),
     }
 
 

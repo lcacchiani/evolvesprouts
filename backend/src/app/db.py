@@ -7,16 +7,24 @@ via RDS Proxy.
 Connection pooling is configured for Lambda environments with:
 - pool_pre_ping: Validates connections before use
 - Lambda-optimized pool settings when using IAM auth
+
+Performance optimizations:
+- Cached boto3 RDS client (reused across connections)
+- Cached IAM auth tokens with TTL (tokens valid for 15 min, cached for 10 min)
+- Cached AWS region lookup
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import time
 from contextlib import contextmanager
-from typing import Any, Generator, Optional
+from dataclasses import dataclass
+from typing import Any, Generator, Optional, Tuple
 
-import boto3
+# Note: boto3 is imported lazily in _get_region() and _get_rds_client()
+# to reduce cold start time when not using IAM auth
 import psycopg
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
@@ -32,9 +40,31 @@ Base = declarative_base()
 _ENGINE: Optional[Engine] = None
 _SESSION_FACTORY: Optional[sessionmaker] = None
 
+# Cached AWS resources (expensive to create)
+_RDS_CLIENT: Optional[Any] = None
+_CACHED_REGION: Optional[str] = None
+
 # Lambda-optimized pool settings
 LAMBDA_POOL_SIZE = 1
 LAMBDA_MAX_OVERFLOW = 0
+
+# IAM token cache settings (tokens valid 15 min, refresh at 10 min)
+_TOKEN_CACHE_TTL_SECONDS = 600  # 10 minutes
+
+
+@dataclass
+class _CachedToken:
+    """Cached IAM auth token with expiry tracking."""
+
+    __slots__ = ('token', 'expires_at', 'cache_key')
+
+    token: str
+    expires_at: float
+    cache_key: str
+
+
+# Token cache (keyed by host+username)
+_TOKEN_CACHE: Optional[_CachedToken] = None
 
 
 def _create_engine() -> Engine:
@@ -60,8 +90,8 @@ def _create_engine() -> Engine:
 def _create_iam_engine(config: AppConfig) -> Engine:
     """Create engine with IAM authentication for RDS Proxy.
 
-    Uses a custom connection creator that generates fresh IAM auth
-    tokens for each connection. Tokens are valid for 15 minutes.
+    Uses a custom connection creator with cached IAM auth tokens.
+    Tokens are cached for 10 minutes (they're valid for 15 minutes).
 
     Args:
         config: Application configuration with RDS Proxy settings.
@@ -78,25 +108,27 @@ def _create_iam_engine(config: AppConfig) -> Engine:
         raise internal_error('database_not_configured')
 
     region = _get_region()
-    logger.info(
-        'Configuring IAM auth for RDS Proxy: endpoint=%s db=%s user=%s',
-        config.db_proxy_endpoint,
-        config.db_name,
-        config.db_username,
-    )
-
-    def _connect() -> Any:
-        """Create a new database connection with fresh IAM token."""
-        token = _generate_token(
-            region,
+    if logger.isEnabledFor(logging.INFO):
+        logger.info(
+            'Configuring IAM auth for RDS Proxy: endpoint=%s db=%s user=%s',
             config.db_proxy_endpoint,
+            config.db_name,
             config.db_username,
         )
+
+    # Capture config values for closure (avoids repeated config lookups)
+    host = config.db_proxy_endpoint
+    username = config.db_username
+    dbname = config.db_name
+
+    def _connect() -> Any:
+        """Create a new database connection with cached IAM token."""
+        token = _get_cached_token(region, host, username)
         return psycopg.connect(
-            host=config.db_proxy_endpoint,
-            user=config.db_username,
+            host=host,
+            user=username,
             password=token,
-            dbname=config.db_name,
+            dbname=dbname,
             port=5432,
             sslmode='require',
         )
@@ -110,8 +142,45 @@ def _create_iam_engine(config: AppConfig) -> Engine:
     )
 
 
+def _get_cached_token(region: str, host: str, username: str) -> str:
+    """Get IAM auth token, using cache if valid.
+
+    Tokens are cached for 10 minutes to reduce AWS API calls.
+    IAM tokens are valid for 15 minutes, so 10-minute cache is safe.
+
+    Args:
+        region: AWS region.
+        host: RDS Proxy endpoint hostname.
+        username: Database username.
+
+    Returns:
+        IAM auth token (from cache or freshly generated).
+    """
+    global _TOKEN_CACHE
+
+    cache_key = f'{host}:{username}'
+    now = time.monotonic()
+
+    # Check if cached token is still valid
+    if (
+        _TOKEN_CACHE is not None
+        and _TOKEN_CACHE.cache_key == cache_key
+        and _TOKEN_CACHE.expires_at > now
+    ):
+        return _TOKEN_CACHE.token
+
+    # Generate new token
+    token = _generate_token(region, host, username)
+    _TOKEN_CACHE = _CachedToken(
+        token=token,
+        expires_at=now + _TOKEN_CACHE_TTL_SECONDS,
+        cache_key=cache_key,
+    )
+    return token
+
+
 def _get_region() -> str:
-    """Get AWS region from environment or boto3 session.
+    """Get AWS region from environment or boto3 session (cached).
 
     Returns:
         AWS region string.
@@ -119,17 +188,53 @@ def _get_region() -> str:
     Raises:
         ApiError: If region cannot be determined (500 internal_error).
     """
+    global _CACHED_REGION
+
+    if _CACHED_REGION is not None:
+        return _CACHED_REGION
+
     region = os.getenv('AWS_REGION') or os.getenv('AWS_DEFAULT_REGION')
     if region:
+        _CACHED_REGION = region
         return region
+
+    # Lazy import boto3 only when needed for region discovery
+    import boto3
+
     session = boto3.session.Session()
     if session.region_name:
+        _CACHED_REGION = session.region_name
         return session.region_name
+
     raise internal_error('aws_region_not_configured')
+
+
+def _get_rds_client(region: str) -> Any:
+    """Get cached boto3 RDS client.
+
+    boto3 clients are thread-safe and can be reused across invocations.
+
+    Args:
+        region: AWS region for the client.
+
+    Returns:
+        boto3 RDS client instance.
+    """
+    global _RDS_CLIENT
+
+    if _RDS_CLIENT is None:
+        # Lazy import boto3 only when creating client
+        import boto3
+
+        _RDS_CLIENT = boto3.client('rds', region_name=region)
+
+    return _RDS_CLIENT
 
 
 def _generate_token(region: str, host: str, username: str) -> str:
     """Generate IAM auth token for RDS/RDS Proxy connection.
+
+    Uses cached boto3 client to avoid client creation overhead.
 
     Args:
         region: AWS region.
@@ -139,7 +244,7 @@ def _generate_token(region: str, host: str, username: str) -> str:
     Returns:
         IAM auth token valid for 15 minutes.
     """
-    client = boto3.client('rds', region_name=region)
+    client = _get_rds_client(region)
     return client.generate_db_auth_token(
         DBHostname=host,
         Port=5432,
@@ -199,12 +304,15 @@ def get_session_factory() -> sessionmaker:
 
 
 def reset_engine() -> None:
-    """Reset engine and session factory. Useful for testing."""
-    global _ENGINE, _SESSION_FACTORY
+    """Reset engine, session factory, and all caches. Useful for testing."""
+    global _ENGINE, _SESSION_FACTORY, _RDS_CLIENT, _CACHED_REGION, _TOKEN_CACHE
     if _ENGINE is not None:
         _ENGINE.dispose()
     _ENGINE = None
     _SESSION_FACTORY = None
+    _RDS_CLIENT = None
+    _CACHED_REGION = None
+    _TOKEN_CACHE = None
 
 
 @contextmanager
