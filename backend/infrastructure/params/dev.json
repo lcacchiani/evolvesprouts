@@ -50,5 +50,13 @@
   {
     "ParameterKey": "AdminAuthorizerId",
     "ParameterValue": "change-me"
+  },
+  {
+    "ParameterKey": "PrivateSubnetIds",
+    "ParameterValue": "subnet-12345678,subnet-87654321"
+  },
+  {
+    "ParameterKey": "LambdaSecurityGroupIds",
+    "ParameterValue": "sg-12345678"
   }
 ]

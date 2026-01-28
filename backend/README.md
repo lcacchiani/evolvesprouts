@@ -25,5 +25,9 @@ and infrastructure templates.
 
 - Admin routes assume API Gateway JWT authorizer is configured.
 - Public events can optionally enforce an API key.
+- `admin_families` and `public_events` run inside a VPC with
+  `PrivateSubnetIds` and `LambdaSecurityGroupIds` from the template.
+- If VPC Lambdas must invoke other Lambdas, ensure the subnets have
+  NAT egress or add a Lambda VPC endpoint.
 - Update `backend/infrastructure/templates/backend-api.yaml` to match
   your deployment environment.
