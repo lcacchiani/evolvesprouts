@@ -3,8 +3,7 @@
 
 version: 2
 
-registries:
-  # No private registries needed for this project
+registries: {}
 
 updates:
   # Python dependencies (backend)
