@@ -1,33 +1,33 @@
 # Architecture Decisions
 
 This document captures the agreed architecture decisions for the
-Flutter mobile app, Next.js admin console, and AWS serverless backend.
+Flutter mobile app, React SPA web apps, and AWS serverless backend.
 
-## 1) Admin Web Router
+## 1) Web Apps (SPA)
 
-**Decision:** Use Next.js App Router (React Server Components).
+**Decision:** Use React SPAs built with Vite, React Router,
+TanStack Query, and Bootstrap 5.
 
 **Why:**
-- Modern Next.js architecture (RSC, streaming, Suspense).
-- Better performance and SSR defaults.
-- Improved DX (layouts, loading, error boundaries).
-- Best TypeScript support and forward compatibility.
+- Fast local dev and builds with Vite.
+- Client-side routing via React Router.
+- TanStack Query for caching and data fetching.
+- Bootstrap 5 for consistent, responsive styling.
 
 **Canonical structure:**
-- `apps/admin_web/src/app/...` with route groups and nested layouts.
+- `apps/admin_web/` and `apps/public_web/` as Vite React apps.
 
 ## 2) Infrastructure as Code
 
-**Decision:** AWS CDK (TypeScript) + CDK Pipelines.
+**Decision:** AWS CloudFormation templates.
 
 **Why:**
-- TypeScript-first IaC aligned with the frontend stack.
-- Full AWS construct coverage and strong integration.
-- Programmatic abstractions (loops, conditions, helpers).
-- Self-mutating pipelines with approval gates and rollbacks.
+- Native AWS IaC with JSON/YAML templates.
+- Auditable change sets for controlled rollouts.
+- Works cleanly with GitHub Actions deployments.
 
 **Canonical structure:**
-- `backend/infrastructure/` contains CDK app, stacks, and pipeline.
+- `backend/infrastructure/` contains CloudFormation templates and params.
 
 ## Database schema (Aurora PostgreSQL)
 
@@ -74,7 +74,7 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - Lambda entrypoint lives at `backend/lambda/activity_search/handler.py`.
 - Shared application code lives under `backend/src/app`.
 - Python dependencies are listed in `backend/requirements.txt`.
-- Database migrations and seed are executed during CDK deploy
+- Database migrations and seed are executed during CloudFormation deploy
   via a custom resource Lambda.
 
 ## Authentication
@@ -82,15 +82,15 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 **Decisions:**
 - Public activity search uses an API key; admin routes require Cognito.
 - Admin routes require membership in the `admin` group.
-- Admin group is created via CDK.
+- Admin group is created via CloudFormation templates.
 - Admin group membership can be managed via `/admin/users/{username}/groups`.
-- Admin bootstrap user can be created with CDK parameters.
+- Admin bootstrap user can be created with CloudFormation parameters.
 - Authentication is passwordless: email custom challenge (OTP + optional magic
   link) and federated sign-in via Google, Apple, and Microsoft (OIDC).
 - Public activity search also requires device attestation via a JWT validated
-  against a JWKS URL configured in CDK parameters.
-- Hosted UI uses OAuth code flow with callback/logout URLs supplied via CDK
-  parameters.
+  against a JWKS URL configured in CloudFormation parameters.
+- Hosted UI uses OAuth code flow with callback/logout URLs supplied via
+  CloudFormation parameters.
 - API Gateway method caching enabled for search responses (5-minute TTL).
 
 ## Flutter Amplify Configuration
@@ -119,12 +119,12 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 **Notes:**
 - CI uploads AAB to Play Console when service account secrets are set.
 - Android signing uses a keystore injected at build time in CI.
-- Android signing templates live in `apps/customer_app/android/`.
+- Android signing templates live in `apps/evolvesprouts_app/android/`.
 - CI uploads IPA to TestFlight when App Store API keys are set.
 - iOS signing uses Fastlane match with a private certificates repo.
-- Fastlane config lives in `apps/customer_app/ios/fastlane`.
+- Fastlane config lives in `apps/evolvesprouts_app/ios/fastlane`.
 - iOS export settings are templated at
-  `apps/customer_app/ios/ExportOptions.plist.template`
+  `apps/evolvesprouts_app/ios/ExportOptions.plist.template`
   and generated in CI.
 
 ## 5) Amplify Usage
@@ -133,9 +133,10 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 
 **Notes:**
 - Amplify SDKs are used for auth/API integration on client apps.
-- Infrastructure is provisioned via CDK for stronger control.
-- Admin web hosting is triggered via GitHub Actions using
-  `aws amplify start-job`.
+- Infrastructure is provisioned via CloudFormation templates for stronger
+  control.
+- Web app hosting is triggered via GitHub Actions using
+  `aws amplify start-job` when Amplify Hosting is used.
 - Promotions from staging to production are handled via the
   `amplify-promote` workflow.
 - The `amplify-promote` workflow uses the production environment to
@@ -164,7 +165,7 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 **Configuration (`.github/dependabot.yml`):**
 - GitHub Actions, npm, pip, and pub ecosystems covered.
 - Weekly schedule (Mondays) to reduce PR noise.
-- Dependencies grouped by category (AWS CDK, Firebase, database, etc.).
+- Dependencies grouped by category (AWS infrastructure, Firebase, database, etc.).
 - Major version updates ignored to require manual review.
 - PRs labeled by ecosystem (`dependencies`, `ci`, `backend`, `mobile`, `infrastructure`).
 
@@ -201,9 +202,8 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 **GitHub Variables**
 - `AWS_ACCOUNT_ID`
 - `AWS_REGION`
-- `CDK_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
-- `CDK_BOOTSTRAP_QUALIFIER` (optional)
-- `CDK_PARAM_FILE` (optional path to CDK parameter JSON)
+- `CFN_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
+- `CFN_PARAM_FILE` (optional path to CloudFormation parameters JSON)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`
@@ -222,11 +222,11 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 
 **GitHub Secrets**
 - `AMPLIFY_API_KEY` (mobile API key injected at build time)
-- `CDK_PARAM_GOOGLE_CLIENT_SECRET`
-- `CDK_PARAM_APPLE_PRIVATE_KEY`
-- `CDK_PARAM_MICROSOFT_CLIENT_SECRET`
-- `CDK_PARAM_PUBLIC_API_KEY_VALUE`
-- `CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
+- `CFN_PARAM_GOOGLE_CLIENT_SECRET`
+- `CFN_PARAM_APPLE_PRIVATE_KEY`
+- `CFN_PARAM_MICROSOFT_CLIENT_SECRET`
+- `CFN_PARAM_PUBLIC_API_KEY_VALUE`
+- `CFN_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
 - `APPSTORE_API_KEY_JSON` (recommended single JSON secret with issuer_id,
   key_id, private_key)
 - `GOOGLE_PLAY_SERVICE_ACCOUNT`
@@ -243,15 +243,15 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - `FASTLANE_USER`
 - `FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD`
 
-**CDK Parameters (via `CDK_PARAM_FILE`)**
+**CloudFormation Parameters (via `CFN_PARAM_FILE`)**
 - `PublicApiKeyValue` (API key required for public search)
 - `DeviceAttestationJwksUrl`, `DeviceAttestationIssuer`, `DeviceAttestationAudience`
 
 ## Next Steps
 
 1. Configure GitHub OIDC role in AWS and set org/repo variables.
-2. Initialize CDK project under `backend/infrastructure`.
-3. Bootstrap Next.js App Router admin app in `apps/admin_web`.
+2. Create CloudFormation templates under `backend/infrastructure`.
+3. Bootstrap React SPA web apps in `apps/admin_web` and `apps/public_web`.
 4. Configure Flutter release pipelines for AAB and iOS.
-5. Configure Amplify app ID and branch variables for admin hosting.
+5. Configure web app hosting and deployment variables.
 6. Configure Android keystore and iOS match credentials.

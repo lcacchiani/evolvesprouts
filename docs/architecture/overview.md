@@ -1,12 +1,12 @@
 # Architecture Overview
 
 This document describes the current architecture for the mobile app,
-admin console, and backend services.
+web apps, and backend services.
 
 ## High-level diagram
 
 ```
-Flutter Mobile / Next.js Admin
+Flutter Mobile + React SPAs (Admin + Public)
         |
         v
     Cognito (Auth)
@@ -31,10 +31,12 @@ Flutter Mobile / Next.js Admin
   and language.
 - Uses generated Dart API client from OpenAPI specs.
 - Device attestation uses Firebase App Check (Play Integrity / App Attest).
+- App name: `evolvesprouts_app`.
 
-### Admin console (Next.js App Router)
-- Admin users manage organizations, activities, schedules, and pricing.
-- Hosted on Amplify Hosting (release jobs triggered in CI).
+### Web apps (React SPA)
+- Two single-page apps: admin portal and public website.
+- Built with React + TypeScript, Vite, React Router, TanStack Query.
+- Styled with Bootstrap 5.
 
 ### Backend
 - API Gateway exposes REST endpoints (start with `GET /activities/search`).
@@ -47,8 +49,8 @@ Flutter Mobile / Next.js Admin
 - SQLAlchemy models map to Aurora PostgreSQL.
 - Alembic manages schema migrations, executed via a custom resource Lambda
   during deploy.
- - Cognito User Pool secures admin routes with passwordless email
-  challenges and federated sign-in (Google, Apple, Microsoft).
+- Cognito User Pool secures admin routes with passwordless email challenges
+  and federated sign-in (Google, Apple, Microsoft).
 
 ## Data model
 
@@ -74,10 +76,9 @@ All times are stored in UTC.
 ## CI/CD
 
 - GitHub Actions with OIDC for AWS access.
-- Deploy workflows for mobile, admin, backend, iOS.
-- CDK bootstrap workflow for initial environment setup.
+- Deploy workflows for mobile, web apps, backend, and iOS.
+- CloudFormation template deploys for infrastructure changes.
 - Lockfile checks for Flutter, Node, and iOS.
-- Amplify promotion workflow with gating (staging -> main).
 - Dependabot enabled for automated dependency updates (see below).
 
 ## Dependency Management
@@ -88,9 +89,10 @@ pull requests for dependency updates:
 | Ecosystem | Directory | Scope |
 |-----------|-----------|-------|
 | GitHub Actions | `/` | CI workflow action versions |
-| npm | `/backend/infrastructure` | CDK and TypeScript dependencies |
+| npm | `/apps/admin_web` | Admin web dependencies |
+| npm | `/apps/public_web` | Public web dependencies |
 | pip | `/backend` | Python Lambda dependencies |
-| pub | `/apps/customer_app` | Flutter/Dart dependencies |
+| pub | `/apps/evolvesprouts_app` | Flutter/Dart dependencies |
 
 **Configuration:**
 - Weekly updates (Mondays) to reduce PR noise.
@@ -107,7 +109,7 @@ pull requests for dependency updates:
 - Public activity search requires an API key supplied by the mobile app.
 - Public activity search requires device attestation tokens (JWKS-validated).
 - Admin routes require membership in the Cognito `admin` group.
-- Optional CDK parameters can bootstrap an initial admin user.
+- Optional CloudFormation parameters can bootstrap an initial admin user.
 - Public activities search uses an API key plus device attestation for access control.
 - Passwordless email sign-in uses Cognito custom auth triggers (define/create/verify).
 - Hosted UI enables Google, Apple, and Microsoft IdPs via OAuth.

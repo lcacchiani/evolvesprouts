@@ -51,7 +51,7 @@ sudo gem install fastlane
 ### 2.2 Navigate to iOS Directory
 
 ```bash
-cd apps/customer_app/ios
+cd apps/evolvesprouts_app/ios
 ```
 
 ### 2.3 Initialize Match
@@ -230,12 +230,13 @@ Go to **Settings** → **Secrets and variables** → **Actions** → **Variables
 Your app's bundle identifier.
 
 **How to get it:**
-1. Open `apps/customer_app/ios/Runner.xcodeproj` in Xcode
+1. Open `apps/evolvesprouts_app/ios/Runner.xcodeproj` in Xcode
 2. Select the **Runner** target
 3. Go to **Signing & Capabilities** tab
 4. Find **Bundle Identifier**
 
-**Or** check `apps/customer_app/ios/Runner.xcodeproj/project.pbxproj` and search for `PRODUCT_BUNDLE_IDENTIFIER`.
+**Or** check `apps/evolvesprouts_app/ios/Runner.xcodeproj/project.pbxproj`
+and search for `PRODUCT_BUNDLE_IDENTIFIER`.
 
 **Example:** `com.yourcompany.customerapp`
 
