@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::LanguageExtensions
 Description: Backend API scaffold for Montessori family platform.
 
 Parameters:
@@ -278,35 +279,18 @@ Resources:
       StageName: '$default'
       AutoDeploy: true
 
-  AuthLoginPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref AuthLoginFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub
-        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*
-        - ApiId: !Ref HttpApi
-
-  AdminFamiliesPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref AdminFamiliesFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub
-        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*
-        - ApiId: !Ref HttpApi
-
-  PublicEventsPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref PublicEventsFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub
-        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*
-        - ApiId: !Ref HttpApi
+  Fn::ForEach::LambdaPermissions:
+    - FunctionName
+    - [AuthLogin, AdminFamilies, PublicEvents]
+    - ${FunctionName}Permission:
+        Type: AWS::Lambda::Permission
+        Properties:
+          Action: lambda:InvokeFunction
+          FunctionName: !Ref ${FunctionName}Function
+          Principal: apigateway.amazonaws.com
+          SourceArn: !Sub
+            - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*
+            - ApiId: !Ref HttpApi
 
 Outputs:
   HttpApiEndpoint:

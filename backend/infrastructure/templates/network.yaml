@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::LanguageExtensions
 Description: VPC network for backend services.
 
 Parameters:
@@ -6,22 +7,14 @@ Parameters:
     Type: String
     Default: 10.0.0.0/16
     Description: CIDR for the VPC.
-  PublicSubnet1Cidr:
-    Type: String
-    Default: 10.0.0.0/24
-    Description: CIDR for public subnet 1.
-  PublicSubnet2Cidr:
-    Type: String
-    Default: 10.0.1.0/24
-    Description: CIDR for public subnet 2.
-  PrivateSubnet1Cidr:
-    Type: String
-    Default: 10.0.10.0/24
-    Description: CIDR for private subnet 1.
-  PrivateSubnet2Cidr:
-    Type: String
-    Default: 10.0.11.0/24
-    Description: CIDR for private subnet 2.
+  PublicSubnetCidrs:
+    Type: CommaDelimitedList
+    Default: 10.0.0.0/24,10.0.1.0/24
+    Description: CIDRs for public subnets.
+  PrivateSubnetCidrs:
+    Type: CommaDelimitedList
+    Default: 10.0.10.0/24,10.0.11.0/24
+    Description: CIDRs for private subnets.
 
 Resources:
   Vpc:
@@ -47,49 +40,33 @@ Resources:
       VpcId: !Ref Vpc
       InternetGatewayId: !Ref InternetGateway
 
-  PublicSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PublicSubnet1Cidr
-      AvailabilityZone: !Select [0, !GetAZs '']
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}-public-1'
+  Fn::ForEach::PublicSubnets:
+    - SubnetIndex
+    - [0, 1]
+    - PublicSubnet${SubnetIndex}:
+        Type: AWS::EC2::Subnet
+        Properties:
+          VpcId: !Ref Vpc
+          CidrBlock: !Select [${SubnetIndex}, !Ref PublicSubnetCidrs]
+          AvailabilityZone: !Select [${SubnetIndex}, !GetAZs '']
+          MapPublicIpOnLaunch: true
+          Tags:
+            - Key: Name
+              Value: !Sub '${AWS::StackName}-public-${SubnetIndex}'
 
-  PublicSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PublicSubnet2Cidr
-      AvailabilityZone: !Select [1, !GetAZs '']
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}-public-2'
-
-  PrivateSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PrivateSubnet1Cidr
-      AvailabilityZone: !Select [0, !GetAZs '']
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}-private-1'
-
-  PrivateSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PrivateSubnet2Cidr
-      AvailabilityZone: !Select [1, !GetAZs '']
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}-private-2'
+  Fn::ForEach::PrivateSubnets:
+    - SubnetIndex
+    - [0, 1]
+    - PrivateSubnet${SubnetIndex}:
+        Type: AWS::EC2::Subnet
+        Properties:
+          VpcId: !Ref Vpc
+          CidrBlock: !Select [${SubnetIndex}, !Ref PrivateSubnetCidrs]
+          AvailabilityZone: !Select [${SubnetIndex}, !GetAZs '']
+          MapPublicIpOnLaunch: false
+          Tags:
+            - Key: Name
+              Value: !Sub '${AWS::StackName}-private-${SubnetIndex}'
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -107,18 +84,6 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  PublicSubnet1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnet1
-      RouteTableId: !Ref PublicRouteTable
-
-  PublicSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnet2
-      RouteTableId: !Ref PublicRouteTable
-
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -127,17 +92,23 @@ Resources:
         - Key: Name
           Value: !Sub '${AWS::StackName}-private-rt'
 
-  PrivateSubnet1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnet1
-      RouteTableId: !Ref PrivateRouteTable
+  Fn::ForEach::PublicSubnetRouteAssociations:
+    - SubnetIndex
+    - [0, 1]
+    - PublicSubnet${SubnetIndex}RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+          SubnetId: !Ref PublicSubnet${SubnetIndex}
+          RouteTableId: !Ref PublicRouteTable
 
-  PrivateSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnet2
-      RouteTableId: !Ref PrivateRouteTable
+  Fn::ForEach::PrivateSubnetRouteAssociations:
+    - SubnetIndex
+    - [0, 1]
+    - PrivateSubnet${SubnetIndex}RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+          SubnetId: !Ref PrivateSubnet${SubnetIndex}
+          RouteTableId: !Ref PrivateRouteTable
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -183,44 +154,21 @@ Resources:
         - Key: Name
           Value: !Sub '${AWS::StackName}-endpoint-sg'
 
-  LambdaVpcEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.lambda'
-      PrivateDnsEnabled: true
-      VpcId: !Ref Vpc
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-      SecurityGroupIds:
-        - !Ref EndpointSecurityGroup
-
-  SecretsManagerVpcEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
-      PrivateDnsEnabled: true
-      VpcId: !Ref Vpc
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-      SecurityGroupIds:
-        - !Ref EndpointSecurityGroup
-
-  StsVpcEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
-      PrivateDnsEnabled: true
-      VpcId: !Ref Vpc
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-      SecurityGroupIds:
-        - !Ref EndpointSecurityGroup
+  Fn::ForEach::InterfaceEndpoints:
+    - ServiceName
+    - [lambda, secretsmanager, sts]
+    - ${ServiceName}VpcEndpoint:
+        Type: AWS::EC2::VPCEndpoint
+        Properties:
+          VpcEndpointType: Interface
+          ServiceName: !Sub 'com.amazonaws.${AWS::Region}.${ServiceName}'
+          PrivateDnsEnabled: true
+          VpcId: !Ref Vpc
+          SubnetIds:
+            - !Ref PrivateSubnet0
+            - !Ref PrivateSubnet1
+          SecurityGroupIds:
+            - !Ref EndpointSecurityGroup
 
 Outputs:
   VpcId:
@@ -228,10 +176,10 @@ Outputs:
     Value: !Ref Vpc
   PublicSubnetIds:
     Description: Comma-delimited public subnet ids.
-    Value: !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2]]
+    Value: !Join [',', [!Ref PublicSubnet0, !Ref PublicSubnet1]]
   PrivateSubnetIds:
     Description: Comma-delimited private subnet ids.
-    Value: !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2]]
+    Value: !Join [',', [!Ref PrivateSubnet0, !Ref PrivateSubnet1]]
   LambdaSecurityGroupId:
     Description: Lambda security group id.
     Value: !Ref LambdaSecurityGroup
@@ -243,10 +191,10 @@ Outputs:
     Value: !Ref EndpointSecurityGroup
   LambdaEndpointId:
     Description: Lambda VPC endpoint id.
-    Value: !Ref LambdaVpcEndpoint
+    Value: !Ref lambdaVpcEndpoint
   SecretsManagerEndpointId:
     Description: Secrets Manager VPC endpoint id.
-    Value: !Ref SecretsManagerVpcEndpoint
+    Value: !Ref secretsmanagerVpcEndpoint
   StsEndpointId:
     Description: STS VPC endpoint id.
-    Value: !Ref StsVpcEndpoint
+    Value: !Ref stsVpcEndpoint
