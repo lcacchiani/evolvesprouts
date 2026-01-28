@@ -32,25 +32,25 @@ TanStack Query, and Bootstrap 5.
 ## Database schema (Aurora PostgreSQL)
 
 **Decisions:**
-- District filter uses `locations.district` only.
-- Pricing is per location with `per_class`, `per_month`, or `per_sessions`.
-- Languages are session-specific (stored on schedule entries).
+- Family profiles are stored in `families` and `family_members`.
+- Training content lives in `content_items` and `training_modules`.
+- Goal tracking uses `goals` and `progress_entries`.
 - Times are stored in UTC.
 - DB changes are versioned with Alembic.
 - Lambda connections use RDS Proxy for connection pooling.
 - RDS Proxy uses IAM authentication; Lambda generates IAM tokens.
-- IAM DB roles `activities_app` (read) and `activities_admin` (write)
-  are created via migrations and granted `rds_iam`.
+- IAM DB roles for app read/write access are created via migrations and
+  granted `rds_iam`.
 - DB connections enforce TLS and use small pools tuned for Lambda.
 - Migrations Lambda uses password auth directly against the cluster endpoint.
 
 **Core tables:**
-- `organizations`
-- `locations`
-- `activities`
-- `activity_locations`
-- `activity_pricing`
-- `activity_schedule`
+- `families`
+- `family_members`
+- `content_items`
+- `training_modules`
+- `goals`
+- `progress_entries`
 
 **Migrations:**
 - Alembic config and migrations live in `backend/db/`.
@@ -60,18 +60,17 @@ TanStack Query, and Bootstrap 5.
 
 **Decisions:**
 - OpenAPI contracts live under `docs/api/`.
-- Activities search contract: `docs/api/activities-search.yaml`.
-- Search responses are cursor-paginated.
-- Cursor pagination uses schedule time and type for ordering.
-- Admin CRUD contract: `docs/api/admin.yaml`.
-- Admin list endpoints return next_cursor for pagination.
+- Public content and family progress endpoints are documented there.
+- List responses are cursor-paginated with stable sort keys.
+- Admin list endpoints return `next_cursor` for pagination.
 - API client generation is handled via generalized scripts in
   `scripts/codegen/`.
 
 ## Lambda Implementation
 
 **Decisions:**
-- Lambda entrypoint lives at `backend/lambda/activity_search/handler.py`.
+- Lambda entrypoints live under `backend/lambda/` for public and
+  authenticated APIs.
 - Shared application code lives under `backend/src/app`.
 - Python dependencies are listed in `backend/requirements.txt`.
 - Database migrations and seed are executed during CloudFormation deploy
@@ -80,18 +79,20 @@ TanStack Query, and Bootstrap 5.
 ## Authentication
 
 **Decisions:**
-- Public activity search uses an API key; admin routes require Cognito.
+- Public content endpoints can use an API key; family and admin routes
+  require Cognito.
 - Admin routes require membership in the `admin` group.
 - Admin group is created via CloudFormation templates.
 - Admin group membership can be managed via `/admin/users/{username}/groups`.
 - Admin bootstrap user can be created with CloudFormation parameters.
 - Authentication is passwordless: email custom challenge (OTP + optional magic
   link) and federated sign-in via Google, Apple, and Microsoft (OIDC).
-- Public activity search also requires device attestation via a JWT validated
+- Public endpoints can also require device attestation via a JWT validated
   against a JWKS URL configured in CloudFormation parameters.
 - Hosted UI uses OAuth code flow with callback/logout URLs supplied via
   CloudFormation parameters.
-- API Gateway method caching enabled for search responses (5-minute TTL).
+- API Gateway method caching enabled for public content responses
+  (5-minute TTL).
 
 ## Flutter Amplify Configuration
 
