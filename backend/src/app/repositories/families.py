@@ -1,4 +1,8 @@
-from typing import Dict, List, Optional, Tuple
+"""Family repository for database operations."""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
@@ -9,13 +13,24 @@ from app.pagination import (
     parse_cursor_datetime,
     parse_cursor_uuid,
 )
+from app.utils import isoformat
 
 
 def list_families(
     session: Session,
     limit: int,
-    cursor: Optional[Dict[str, str]],
+    cursor: Optional[Dict[str, Any]],
 ) -> Tuple[List[Dict[str, Optional[str]]], Optional[str]]:
+    """List families with cursor-based pagination.
+
+    Args:
+        session: SQLAlchemy database session.
+        limit: Maximum number of families to return.
+        cursor: Optional pagination cursor with 'created_at' and 'id'.
+
+    Returns:
+        Tuple of (list of serialized families, next cursor or None).
+    """
     query = session.query(Family)
     if cursor:
         cursor_time = parse_cursor_datetime(cursor.get('created_at'))
@@ -39,7 +54,7 @@ def list_families(
         last_item = items[limit - 1]
         next_cursor = encode_cursor(
             {
-                'created_at': _isoformat(last_item.created_at),
+                'created_at': isoformat(last_item.created_at),
                 'id': str(last_item.id),
             },
         )
@@ -48,16 +63,10 @@ def list_families(
 
 
 def _serialize_family(family: Family) -> Dict[str, Optional[str]]:
-    created_at = _isoformat(family.created_at)
+    """Serialize a Family model to a dictionary."""
     return {
         'id': str(family.id),
         'name': family.name,
         'primary_email': family.primary_email,
-        'created_at': created_at,
+        'created_at': isoformat(family.created_at),
     }
-
-
-def _isoformat(value) -> Optional[str]:
-    if not value:
-        return None
-    return value.isoformat()

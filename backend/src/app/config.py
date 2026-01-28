@@ -8,9 +8,18 @@ DEFAULT_ADMIN_GROUP = 'admin'
 DEFAULT_EVENTS_LIMIT = 100
 DEFAULT_FAMILIES_LIMIT = 200
 
+# Cached config instance (immutable, safe to cache across Lambda invocations)
+_CONFIG: Optional[AppConfig] = None
+
 
 @dataclass(frozen=True)
 class AppConfig:
+    """Application configuration loaded from environment variables.
+
+    This dataclass is immutable (frozen=True) and cached after first load
+    to avoid repeated environment variable lookups in Lambda handlers.
+    """
+
     database_url: Optional[str]
     db_proxy_endpoint: Optional[str]
     db_name: Optional[str]
@@ -25,10 +34,25 @@ class AppConfig:
     families_limit: int
 
 
-def load_config() -> AppConfig:
+def load_config(*, force_reload: bool = False) -> AppConfig:
+    """Load application configuration from environment variables.
+
+    Configuration is cached after first load for performance. Use
+    force_reload=True in tests to reload configuration.
+
+    Args:
+        force_reload: If True, bypass cache and reload from environment.
+
+    Returns:
+        Immutable AppConfig instance.
+    """
+    global _CONFIG
+    if _CONFIG is not None and not force_reload:
+        return _CONFIG
+
     events_limit = _get_int('EVENTS_LIMIT', DEFAULT_EVENTS_LIMIT)
     families_limit = _get_int('FAMILIES_LIMIT', DEFAULT_FAMILIES_LIMIT)
-    return AppConfig(
+    _CONFIG = AppConfig(
         database_url=os.getenv('DATABASE_URL'),
         db_proxy_endpoint=os.getenv('DB_PROXY_ENDPOINT'),
         db_name=os.getenv('DB_NAME'),
@@ -45,6 +69,13 @@ def load_config() -> AppConfig:
         events_limit=events_limit,
         families_limit=families_limit,
     )
+    return _CONFIG
+
+
+def clear_config_cache() -> None:
+    """Clear the cached configuration. Useful for testing."""
+    global _CONFIG
+    _CONFIG = None
 
 
 def _get_int(name: str, default: int) -> int:
