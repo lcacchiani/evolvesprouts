@@ -1,26 +1,32 @@
-import os
+"""Auth login Lambda handler."""
+
+from __future__ import annotations
+
 import sys
+from pathlib import Path
 from typing import Any, Dict
 
-BASE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..'),
-)
-SRC_DIR = os.path.join(BASE_DIR, 'src')
-if SRC_DIR not in sys.path:
-    sys.path.append(SRC_DIR)
+# Bootstrap: Add src directory to Python path
+_src_dir = str(Path(__file__).resolve().parents[2] / 'src')
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
-from app.errors import ApiError, internal_error
-from app.http import error_response, json_response, parse_body
+from app.handler import lambda_handler, success_response
+from app.http import parse_body
 from app.services.auth_service import build_login_url
 
 
+@lambda_handler()
 def handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
-    try:
-        payload = parse_body(event)
-        state = payload.get('state')
-        login_url = build_login_url(state)
-        return json_response(200, {'login_url': login_url})
-    except ApiError as exc:
-        return error_response(exc)
-    except Exception:
-        return error_response(internal_error())
+    """Generate Cognito hosted UI login URL.
+
+    Request Body (optional):
+        state: OAuth state parameter for CSRF protection.
+
+    Returns:
+        JSON response with login_url.
+    """
+    payload = parse_body(event)
+    state = payload.get('state')
+    login_url = build_login_url(state)
+    return success_response({'login_url': login_url})

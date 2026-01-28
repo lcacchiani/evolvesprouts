@@ -1,33 +1,39 @@
-import os
+"""Public events Lambda handler."""
+
+from __future__ import annotations
+
 import sys
+from pathlib import Path
 from typing import Any, Dict
 
-BASE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..'),
-)
-SRC_DIR = os.path.join(BASE_DIR, 'src')
-if SRC_DIR not in sys.path:
-    sys.path.append(SRC_DIR)
+# Bootstrap: Add src directory to Python path
+_src_dir = str(Path(__file__).resolve().parents[2] / 'src')
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 from app.auth import require_public_api_key
 from app.config import load_config
-from app.errors import ApiError, internal_error
-from app.http import error_response, json_response, parse_cursor, parse_limit
+from app.handler import lambda_handler, success_response
+from app.http import parse_cursor, parse_limit
 from app.services.events_service import get_public_events
 
 
+@lambda_handler()
 def handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
-    try:
-        require_public_api_key(event)
-        config = load_config()
-        limit = parse_limit(event, config.events_limit)
-        cursor = parse_cursor(event)
-        events, next_cursor = get_public_events(limit, cursor)
-        return json_response(
-            200,
-            {'events': events, 'next_cursor': next_cursor},
-        )
-    except ApiError as exc:
-        return error_response(exc)
-    except Exception:
-        return error_response(internal_error())
+    """List public events with pagination.
+
+    Optionally requires API key via X-Api-Key header.
+
+    Query Parameters:
+        limit: Maximum results to return (default from config).
+        cursor: Pagination cursor for next page.
+
+    Returns:
+        JSON response with events array and next_cursor.
+    """
+    require_public_api_key(event)
+    config = load_config()
+    limit = parse_limit(event, config.events_limit)
+    cursor = parse_cursor(event)
+    events, next_cursor = get_public_events(limit, cursor)
+    return success_response({'events': events, 'next_cursor': next_cursor})

@@ -1,4 +1,8 @@
-from typing import Dict, List, Optional, Tuple
+"""Event repository for database operations."""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
@@ -9,13 +13,24 @@ from app.pagination import (
     parse_cursor_datetime,
     parse_cursor_uuid,
 )
+from app.utils import isoformat
 
 
 def list_public_events(
     session: Session,
     limit: int,
-    cursor: Optional[Dict[str, str]],
+    cursor: Optional[Dict[str, Any]],
 ) -> Tuple[List[Dict[str, Optional[str]]], Optional[str]]:
+    """List public events with cursor-based pagination.
+
+    Args:
+        session: SQLAlchemy database session.
+        limit: Maximum number of events to return.
+        cursor: Optional pagination cursor with 'starts_at' and 'id'.
+
+    Returns:
+        Tuple of (list of serialized events, next cursor or None).
+    """
     query = session.query(Event).filter(Event.is_public.is_(True))
     if cursor:
         cursor_time = parse_cursor_datetime(cursor.get('starts_at'))
@@ -39,7 +54,7 @@ def list_public_events(
         last_item = items[limit - 1]
         next_cursor = encode_cursor(
             {
-                'starts_at': _isoformat(last_item.starts_at),
+                'starts_at': isoformat(last_item.starts_at),
                 'id': str(last_item.id),
             },
         )
@@ -48,19 +63,12 @@ def list_public_events(
 
 
 def _serialize_event(event: Event) -> Dict[str, Optional[str]]:
-    starts_at = _isoformat(event.starts_at)
-    ends_at = _isoformat(event.ends_at)
+    """Serialize an Event model to a dictionary."""
     return {
         'id': str(event.id),
         'title': event.title,
         'description': event.description,
         'location': event.location,
-        'starts_at': starts_at,
-        'ends_at': ends_at,
+        'starts_at': isoformat(event.starts_at),
+        'ends_at': isoformat(event.ends_at),
     }
-
-
-def _isoformat(value) -> Optional[str]:
-    if not value:
-        return None
-    return value.isoformat()
