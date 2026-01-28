@@ -151,7 +151,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApi
-      RouteKey: 'POST /auth/login'
+      RouteKey: 'POST /v1/auth/login'
       Target: !Join
         - /
         - - integrations
@@ -161,7 +161,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApi
-      RouteKey: 'GET /admin/families'
+      RouteKey: 'GET /v1/admin/families'
       AuthorizationType: JWT
       AuthorizerId: !Ref AdminAuthorizerId
       Target: !Join
@@ -173,7 +173,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApi
-      RouteKey: 'GET /events'
+      RouteKey: 'GET /v1/events'
       Target: !Join
         - /
         - - integrations

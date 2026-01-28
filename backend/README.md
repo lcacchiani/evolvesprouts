@@ -6,9 +6,9 @@ and infrastructure templates.
 
 ## Lambdas
 
-- `auth_login` -> `POST /auth/login`
-- `admin_families` -> `GET /admin/families`
-- `public_events` -> `GET /events`
+- `auth_login` -> `POST /v1/auth/login`
+- `admin_families` -> `GET /v1/admin/families`
+- `public_events` -> `GET /v1/events`
 
 ## Environment variables
 
