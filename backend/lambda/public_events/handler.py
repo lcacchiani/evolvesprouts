@@ -2,14 +2,9 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from typing import Any, Dict
 
-# Bootstrap: Add src directory to Python path
-_src_dir = str(Path(__file__).resolve().parents[2] / 'src')
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
+import _bootstrap  # noqa: F401
 
 from app.auth import require_public_api_key
 from app.config import load_config
