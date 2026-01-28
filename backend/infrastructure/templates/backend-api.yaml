@@ -64,7 +64,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub '${AWS::StackName}-auth-login'
-      Runtime: python3.11
+      Runtime: python3.13
       Handler: handler.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
@@ -80,7 +80,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub '${AWS::StackName}-admin-families'
-      Runtime: python3.11
+      Runtime: python3.13
       Handler: handler.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
@@ -96,7 +96,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub '${AWS::StackName}-public-events'
-      Runtime: python3.11
+      Runtime: python3.13
       Handler: handler.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
