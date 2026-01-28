@@ -48,12 +48,16 @@
     "ParameterValue": "proxy.example.amazonaws.com"
   },
   {
-    "ParameterKey": "DbSecretArn",
-    "ParameterValue": "arn:aws:secretsmanager:ap-southeast-1:1234:secret:db"
-  },
-  {
     "ParameterKey": "DatabaseName",
     "ParameterValue": "evolvesprouts"
+  },
+  {
+    "ParameterKey": "DbUsername",
+    "ParameterValue": "dbadmin"
+  },
+  {
+    "ParameterKey": "DbClusterResourceId",
+    "ParameterValue": "cluster-1234567890"
   },
   {
     "ParameterKey": "UserPoolId",
@@ -66,6 +70,10 @@
   {
     "ParameterKey": "AdminAuthorizerId",
     "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "CorsAllowedOrigins",
+    "ParameterValue": "*"
   },
   {
     "ParameterKey": "PrivateSubnetIds",

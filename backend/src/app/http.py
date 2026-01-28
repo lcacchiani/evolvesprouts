@@ -3,6 +3,7 @@ import json
 from typing import Any, Dict, Optional
 
 from app.errors import ApiError, bad_request
+from app.pagination import decode_cursor
 
 DEFAULT_HEADERS = {
     'content-type': 'application/json',
@@ -46,6 +47,11 @@ def get_query_param(
     if value is None:
         return default
     return value
+
+
+def parse_cursor(event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    raw_cursor = get_query_param(event, 'cursor')
+    return decode_cursor(raw_cursor)
 
 
 def parse_limit(

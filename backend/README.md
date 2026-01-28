@@ -15,11 +15,17 @@ configurable, but this repo assumes ap-southeast-1 for initial setup.
 - `admin_families` -> `GET /v1/admin/families`
 - `public_events` -> `GET /v1/events`
 
+## Pagination
+
+- Use `?limit=` and `?cursor=` query parameters.
+- Responses include `next_cursor` when more results are available.
+
 ## Environment variables
 
-- `DATABASE_URL`: PostgreSQL connection string.
-- `DATABASE_URL` is wired from RDS Proxy + Secrets Manager in the
-  API template, using dynamic references.
+- `DB_PROXY_ENDPOINT`: RDS Proxy hostname.
+- `DB_NAME`: Database name.
+- `DB_USERNAME`: Database username (IAM auth).
+- `DB_IAM_AUTH`: Set to `true` for IAM auth (default).
 - `COGNITO_DOMAIN`: Cognito hosted UI domain.
 - `COGNITO_CLIENT_ID`: Cognito app client id.
 - `COGNITO_REDIRECT_URI`: Hosted UI redirect URI.
@@ -35,6 +41,7 @@ configurable, but this repo assumes ap-southeast-1 for initial setup.
 - `admin_families` and `public_events` run inside a VPC with
   `PrivateSubnetIds` and `LambdaSecurityGroupIds` from the template.
 - This stack does not create NAT gateways. Use VPC endpoints only.
+- Database connections use IAM auth via RDS Proxy.
 - Update `backend/infrastructure/templates/backend-api.yaml` to match
   your deployment environment.
 
@@ -65,6 +72,8 @@ configurable, but this repo assumes ap-southeast-1 for initial setup.
 - `database.yaml` outputs:
   - `DbProxyEndpoint`
   - `DbSecretArn`
+  - `DbClusterResourceId`
+  - `DbUsername`
   - `DatabaseName`
 - `auth.yaml` outputs:
   - `UserPoolId`

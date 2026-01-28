@@ -65,6 +65,7 @@ Resources:
       DBClusterParameterGroupName: !Ref DbClusterParameterGroup
       VpcSecurityGroupIds:
         - !Ref DbSecurityGroupId
+      EnableIAMDatabaseAuthentication: true
       StorageEncrypted: true
       ServerlessV2ScalingConfiguration:
         MinCapacity: !Ref MinCapacity
@@ -114,7 +115,7 @@ Resources:
       Auth:
         - AuthScheme: SECRETS
           SecretArn: !Ref DbSecret
-          IAMAuth: DISABLED
+          IAMAuth: REQUIRED
       DBProxyName: !Sub '${AWS::StackName}-proxy'
       EngineFamily: POSTGRESQL
       RequireTLS: true
@@ -135,6 +136,9 @@ Outputs:
   DbClusterArn:
     Description: Aurora cluster arn.
     Value: !Ref DbCluster
+  DbClusterResourceId:
+    Description: Aurora cluster resource id for IAM auth.
+    Value: !GetAtt DbCluster.DbClusterResourceId
   DbClusterEndpoint:
     Description: Aurora writer endpoint.
     Value: !GetAtt DbCluster.Endpoint.Address
@@ -144,6 +148,9 @@ Outputs:
   DbSecretArn:
     Description: Secrets Manager ARN for database credentials.
     Value: !Ref DbSecret
+  DbUsername:
+    Description: Database username.
+    Value: !Ref MasterUsername
   DatabaseName:
     Description: Default database name.
     Value: !Ref DatabaseName

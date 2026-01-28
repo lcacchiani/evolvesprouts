@@ -12,6 +12,10 @@ DEFAULT_FAMILIES_LIMIT = 200
 @dataclass(frozen=True)
 class AppConfig:
     database_url: Optional[str]
+    db_proxy_endpoint: Optional[str]
+    db_name: Optional[str]
+    db_username: Optional[str]
+    db_iam_auth_enabled: bool
     admin_group: str
     cognito_domain: Optional[str]
     cognito_client_id: Optional[str]
@@ -26,6 +30,10 @@ def load_config() -> AppConfig:
     families_limit = _get_int('FAMILIES_LIMIT', DEFAULT_FAMILIES_LIMIT)
     return AppConfig(
         database_url=os.getenv('DATABASE_URL'),
+        db_proxy_endpoint=os.getenv('DB_PROXY_ENDPOINT'),
+        db_name=os.getenv('DB_NAME'),
+        db_username=os.getenv('DB_USERNAME'),
+        db_iam_auth_enabled=_get_bool('DB_IAM_AUTH', True),
         admin_group=os.getenv(
             'COGNITO_ADMIN_GROUP',
             DEFAULT_ADMIN_GROUP,
@@ -47,3 +55,15 @@ def _get_int(name: str, default: int) -> int:
         return int(raw_value)
     except ValueError:
         return default
+
+
+def _get_bool(name: str, default: bool) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    normalized = raw_value.strip().lower()
+    if normalized in {'true', '1', 'yes'}:
+        return True
+    if normalized in {'false', '0', 'no'}:
+        return False
+    return default

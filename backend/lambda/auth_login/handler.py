@@ -17,9 +17,8 @@ from app.services.auth_service import build_login_url
 def handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
     try:
         payload = parse_body(event)
-        redirect_uri = payload.get('redirect_uri')
         state = payload.get('state')
-        login_url = build_login_url(redirect_uri, state)
+        login_url = build_login_url(state)
         return json_response(200, {'login_url': login_url})
     except ApiError as exc:
         return error_response(exc)

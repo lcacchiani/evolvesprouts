@@ -1,9 +1,12 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from app.db import session_scope
 from app.repositories.families import list_families
 
 
-def get_families(limit: int) -> List[Dict[str, Optional[str]]]:
+def get_families(
+    limit: int,
+    cursor: Optional[Dict[str, str]],
+) -> Tuple[List[Dict[str, Optional[str]]], Optional[str]]:
     with session_scope() as session:
-        return list_families(session, limit)
+        return list_families(session, limit, cursor)
