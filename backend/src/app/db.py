@@ -21,7 +21,7 @@ import os
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Generator, Optional, Tuple
+from typing import Any, Generator, Optional
 
 # Note: boto3 is imported lazily in _get_region() and _get_rds_client()
 # to reduce cold start time when not using IAM auth
