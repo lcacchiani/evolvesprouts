@@ -31,7 +31,7 @@ Flutter Mobile + React SPAs (Admin + Public)
   and language.
 - Uses generated Dart API client from OpenAPI specs.
 - Device attestation uses Firebase App Check (Play Integrity / App Attest).
-- App name: `evolvesprouts`.
+- App name: `evolvesprouts_app`.
 
 ### Web apps (React SPA)
 - Two single-page apps: admin portal and public website.
@@ -92,7 +92,7 @@ pull requests for dependency updates:
 | npm | `/apps/admin_web` | Admin web dependencies |
 | npm | `/apps/public_web` | Public web dependencies |
 | pip | `/backend` | Python Lambda dependencies |
-| pub | `/apps/evolvesprouts` | Flutter/Dart dependencies |
+| pub | `/apps/evolvesprouts_app` | Flutter/Dart dependencies |
 
 **Configuration:**
 - Weekly updates (Mondays) to reduce PR noise.

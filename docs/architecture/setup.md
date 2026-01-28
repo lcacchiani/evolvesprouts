@@ -142,7 +142,7 @@ For the OIDC provider itself, add the same tag:
    openssl genrsa -aes256 -out upload.key 2048
    openssl req -new -key upload.key -out upload.csr
    openssl x509 -req -days 10000 -in upload.csr -signkey upload.key -out upload.crt
-   openssl pkcs12 -export -out keystore.p12 -inkey upload.key -in upload.crt -name evolvesprouts_release
+   openssl pkcs12 -export -out keystore.p12 -inkey upload.key -in upload.crt -name evolvesprouts_app_release
    ```
 2. Base64 encode the keystore for GitHub Secrets:
    ```bash
@@ -155,10 +155,10 @@ For the OIDC provider itself, add the same tag:
    - `ANDROID_KEYSTORE_BASE64` = contents of `keystore.base64`
    - `ANDROID_KEYSTORE_PASSWORD` = PKCS12 export password (set when running `openssl pkcs12 -export`)
    - `ANDROID_KEY_PASSWORD` = private key password (set when running `openssl genrsa -aes256`)
-   - `ANDROID_KEY_ALIAS` = alias (e.g., `evolvesprouts_release`)
+   - `ANDROID_KEY_ALIAS` = alias (e.g., `evolvesprouts_app_release`)
 4. Set GitHub Variables:
    - `ANDROID_PACKAGE_NAME` (from
-     `apps/evolvesprouts/android/app/build.gradle.kts`, `applicationId`)
+     `apps/evolvesprouts_app/android/app/build.gradle.kts`, `applicationId`)
    - `ANDROID_RELEASE_TRACK` (`internal`, `alpha`, `beta`, or `production`)
 5. Create a Play Console service account:
    - Google Cloud Console -> IAM & Admin -> Service Accounts -> Create
@@ -176,7 +176,8 @@ For the OIDC provider itself, add the same tag:
 ### iOS (signing + TestFlight)
 1. Create an iOS App ID:
    - Apple Developer -> Certificates, Identifiers & Profiles -> Identifiers
-   - Create an App ID for your bundle (e.g., `com.evolvesprouts.evolvesprouts`)
+   - Create an App ID for your bundle
+     (e.g., `com.evolvesprouts.evolvesprouts_app`)
    - Use this value as `IOS_BUNDLE_ID` and `FIREBASE_IOS_BUNDLE_ID`
 2. Find your Team ID:
    - Apple Developer -> Membership -> Team ID

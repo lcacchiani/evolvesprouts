@@ -14,7 +14,7 @@ repo root
 │   ├── flutter_ui/         # Flutter widgets
 │   └── react_ui/          # React components (Storybook)
 ├── apps/
-│   ├── evolvesprouts/      # Flutter mobile
+│   ├── evolvesprouts_app/  # Flutter mobile
 │   ├── admin_web/          # React SPA (Vite)
 │   │   ├── index.html
 │   │   ├── public/

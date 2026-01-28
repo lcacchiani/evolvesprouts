@@ -119,12 +119,12 @@ TanStack Query, and Bootstrap 5.
 **Notes:**
 - CI uploads AAB to Play Console when service account secrets are set.
 - Android signing uses a keystore injected at build time in CI.
-- Android signing templates live in `apps/evolvesprouts/android/`.
+- Android signing templates live in `apps/evolvesprouts_app/android/`.
 - CI uploads IPA to TestFlight when App Store API keys are set.
 - iOS signing uses Fastlane match with a private certificates repo.
-- Fastlane config lives in `apps/evolvesprouts/ios/fastlane`.
+- Fastlane config lives in `apps/evolvesprouts_app/ios/fastlane`.
 - iOS export settings are templated at
-  `apps/evolvesprouts/ios/ExportOptions.plist.template`
+  `apps/evolvesprouts_app/ios/ExportOptions.plist.template`
   and generated in CI.
 
 ## 5) Amplify Usage
