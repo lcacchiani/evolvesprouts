@@ -4,6 +4,11 @@ This folder contains the backend scaffolding for the Montessori family
 training platform. It includes shared Python modules, Lambda handlers,
 and infrastructure templates.
 
+## Region
+
+Deploy the stacks in `ap-southeast-1` by default. The region is
+configurable, but this repo assumes ap-southeast-1 for initial setup.
+
 ## Lambdas
 
 - `auth_login` -> `POST /v1/auth/login`
@@ -31,3 +36,44 @@ and infrastructure templates.
   NAT egress or add a Lambda VPC endpoint.
 - Update `backend/infrastructure/templates/backend-api.yaml` to match
   your deployment environment.
+
+## Infrastructure templates
+
+- `network.yaml`: VPC, subnets, NAT, and Lambda VPC endpoint.
+- `database.yaml`: Aurora PostgreSQL 16 Serverless v2 + RDS Proxy.
+- `auth.yaml`: Cognito User Pool, client, hosted UI, admin group.
+- `artifacts.yaml`: S3 bucket for Lambda deployment packages.
+- `backend-api.yaml`: API Gateway + Lambda functions.
+
+## Deployment order (suggested)
+
+1. `network.yaml`
+2. `auth.yaml`
+3. `database.yaml`
+4. `artifacts.yaml`
+5. `backend-api.yaml`
+
+## Outputs to wire between stacks
+
+- `network.yaml` outputs:
+  - `VpcId`
+  - `PrivateSubnetIds`
+  - `LambdaSecurityGroupId`
+  - `DbSecurityGroupId`
+- `database.yaml` outputs:
+  - `DbProxyEndpoint`
+  - `DbSecretArn`
+  - `DatabaseName`
+- `auth.yaml` outputs:
+  - `UserPoolId`
+  - `UserPoolClientId`
+  - `CognitoDomain`
+- `artifacts.yaml` outputs:
+  - `ArtifactsBucketName`
+
+## Additional AWS resources to consider
+
+- S3 bucket for Lambda artifacts (the API stack expects one).
+- NAT gateway or VPC endpoints for other AWS services if Lambdas need
+  outbound access without public egress.
+- Custom domain + ACM certificate for API Gateway if required.

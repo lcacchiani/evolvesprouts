@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Aurora PostgreSQL 16 and RDS Proxy.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC id for database resources.
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnet ids for database resources.
+  DbSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group id for the database.
+  DatabaseName:
+    Type: String
+    Default: evolvesprouts
+    Description: Default database name.
+  MasterUsername:
+    Type: String
+    Default: dbadmin
+    Description: Database master username.
+  AuroraEngineVersion:
+    Type: String
+    Default: '16.1'
+    Description: Aurora PostgreSQL engine version.
+  MinCapacity:
+    Type: Number
+    Default: 0.5
+    Description: Serverless v2 min capacity.
+  MaxCapacity:
+    Type: Number
+    Default: 4
+    Description: Serverless v2 max capacity.
+
+Resources:
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnets for Aurora.
+      SubnetIds: !Ref PrivateSubnetIds
+
+  DbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub '${AWS::StackName}-db-secret'
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username":"${MasterUsername}"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludeCharacters: '"@'
+
+  DbClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: Aurora PostgreSQL 16 parameter group.
+      Family: aurora-postgresql16
+
+  DbCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: !Ref AuroraEngineVersion
+      DatabaseName: !Ref DatabaseName
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      DBClusterParameterGroupName: !Ref DbClusterParameterGroup
+      VpcSecurityGroupIds:
+        - !Ref DbSecurityGroupId
+      StorageEncrypted: true
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref MinCapacity
+        MaxCapacity: !Ref MaxCapacity
+      MasterUsername: !Join
+        - ''
+        - - '{{resolve:secretsmanager:'
+          - !Ref DbSecret
+          - ':SecretString:username}}'
+      MasterUserPassword: !Join
+        - ''
+        - - '{{resolve:secretsmanager:'
+          - !Ref DbSecret
+          - ':SecretString:password}}'
+
+  DbInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DbCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: false
+
+  DbProxyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DbProxySecrets
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref DbSecret
+
+  DbProxy:
+    Type: AWS::RDS::DBProxy
+    Properties:
+      Auth:
+        - AuthScheme: SECRETS
+          SecretArn: !Ref DbSecret
+          IAMAuth: DISABLED
+      DBProxyName: !Sub '${AWS::StackName}-proxy'
+      EngineFamily: POSTGRESQL
+      RequireTLS: true
+      RoleArn: !GetAtt DbProxyRole.Arn
+      VpcSubnetIds: !Ref PrivateSubnetIds
+      VpcSecurityGroupIds:
+        - !Ref DbSecurityGroupId
+
+  DbProxyTargetGroup:
+    Type: AWS::RDS::DBProxyTargetGroup
+    Properties:
+      DBProxyName: !Ref DbProxy
+      TargetGroupName: default
+      DBClusterIdentifiers:
+        - !Ref DbCluster
+
+Outputs:
+  DbClusterArn:
+    Description: Aurora cluster arn.
+    Value: !Ref DbCluster
+  DbClusterEndpoint:
+    Description: Aurora writer endpoint.
+    Value: !GetAtt DbCluster.Endpoint.Address
+  DbProxyEndpoint:
+    Description: RDS Proxy endpoint.
+    Value: !GetAtt DbProxy.Endpoint
+  DbSecretArn:
+    Description: Secrets Manager ARN for database credentials.
+    Value: !Ref DbSecret
+  DatabaseName:
+    Description: Default database name.
+    Value: !Ref DatabaseName

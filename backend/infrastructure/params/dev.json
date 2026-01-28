@@ -48,8 +48,16 @@
     "ParameterValue": "200"
   },
   {
+    "ParameterKey": "UserPoolId",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "UserPoolClientId",
+    "ParameterValue": ""
+  },
+  {
     "ParameterKey": "AdminAuthorizerId",
-    "ParameterValue": "change-me"
+    "ParameterValue": ""
   },
   {
     "ParameterKey": "PrivateSubnetIds",
