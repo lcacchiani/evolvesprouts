@@ -14,9 +14,15 @@ Parameters:
   PublicEventsCodeKey:
     Type: String
     Description: S3 key for public events Lambda zip.
-  DatabaseUrl:
+  DbProxyEndpoint:
     Type: String
-    Description: Database URL for Aurora PostgreSQL.
+    Description: RDS Proxy endpoint hostname.
+  DbSecretArn:
+    Type: String
+    Description: Secrets Manager arn with db username/password.
+  DatabaseName:
+    Type: String
+    Description: Database name.
   PublicApiKey:
     Type: String
     Default: ''
@@ -123,7 +129,20 @@ Resources:
         S3Key: !Ref AdminFamiliesCodeKey
       Environment:
         Variables:
-          DATABASE_URL: !Ref DatabaseUrl
+          DATABASE_URL: !Sub
+            - postgresql://${DbUser}:${DbPass}@${ProxyEndpoint}:5432/${DbName}
+            - DbUser: !Join
+                - ''
+                - - '{{resolve:secretsmanager:'
+                  - !Ref DbSecretArn
+                  - ':SecretString:username}}'
+              DbPass: !Join
+                - ''
+                - - '{{resolve:secretsmanager:'
+                  - !Ref DbSecretArn
+                  - ':SecretString:password}}'
+              ProxyEndpoint: !Ref DbProxyEndpoint
+              DbName: !Ref DatabaseName
           COGNITO_ADMIN_GROUP: !Ref AdminGroup
           FAMILIES_LIMIT: !Ref FamiliesLimit
       VpcConfig:
@@ -142,7 +161,20 @@ Resources:
         S3Key: !Ref PublicEventsCodeKey
       Environment:
         Variables:
-          DATABASE_URL: !Ref DatabaseUrl
+          DATABASE_URL: !Sub
+            - postgresql://${DbUser}:${DbPass}@${ProxyEndpoint}:5432/${DbName}
+            - DbUser: !Join
+                - ''
+                - - '{{resolve:secretsmanager:'
+                  - !Ref DbSecretArn
+                  - ':SecretString:username}}'
+              DbPass: !Join
+                - ''
+                - - '{{resolve:secretsmanager:'
+                  - !Ref DbSecretArn
+                  - ':SecretString:password}}'
+              ProxyEndpoint: !Ref DbProxyEndpoint
+              DbName: !Ref DatabaseName
           PUBLIC_API_KEY: !Ref PublicApiKey
           EVENTS_LIMIT: !Ref EventsLimit
       VpcConfig:

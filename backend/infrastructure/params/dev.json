@@ -16,10 +16,6 @@
     "ParameterValue": "lambdas/public_events.zip"
   },
   {
-    "ParameterKey": "DatabaseUrl",
-    "ParameterValue": "postgresql://user:pass@host:5432/dbname"
-  },
-  {
     "ParameterKey": "PublicApiKey",
     "ParameterValue": ""
   },
@@ -46,6 +42,18 @@
   {
     "ParameterKey": "FamiliesLimit",
     "ParameterValue": "200"
+  },
+  {
+    "ParameterKey": "DbProxyEndpoint",
+    "ParameterValue": "proxy.example.amazonaws.com"
+  },
+  {
+    "ParameterKey": "DbSecretArn",
+    "ParameterValue": "arn:aws:secretsmanager:ap-southeast-1:1234:secret:db"
+  },
+  {
+    "ParameterKey": "DatabaseName",
+    "ParameterValue": "evolvesprouts"
   },
   {
     "ParameterKey": "UserPoolId",

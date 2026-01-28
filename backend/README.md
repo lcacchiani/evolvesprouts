@@ -18,6 +18,8 @@ configurable, but this repo assumes ap-southeast-1 for initial setup.
 ## Environment variables
 
 - `DATABASE_URL`: PostgreSQL connection string.
+- `DATABASE_URL` is wired from RDS Proxy + Secrets Manager in the
+  API template, using dynamic references.
 - `COGNITO_DOMAIN`: Cognito hosted UI domain.
 - `COGNITO_CLIENT_ID`: Cognito app client id.
 - `COGNITO_REDIRECT_URI`: Hosted UI redirect URI.
@@ -32,14 +34,14 @@ configurable, but this repo assumes ap-southeast-1 for initial setup.
 - Public events can optionally enforce an API key.
 - `admin_families` and `public_events` run inside a VPC with
   `PrivateSubnetIds` and `LambdaSecurityGroupIds` from the template.
-- If VPC Lambdas must invoke other Lambdas, ensure the subnets have
-  NAT egress or add a Lambda VPC endpoint.
+- This stack does not create NAT gateways. Use VPC endpoints only.
 - Update `backend/infrastructure/templates/backend-api.yaml` to match
   your deployment environment.
 
 ## Infrastructure templates
 
-- `network.yaml`: VPC, subnets, NAT, and Lambda VPC endpoint.
+- `network.yaml`: VPC, subnets, and VPC endpoints (no NAT). Includes
+  Lambda, Secrets Manager, and STS endpoints.
 - `database.yaml`: Aurora PostgreSQL 16 Serverless v2 + RDS Proxy.
 - `auth.yaml`: Cognito User Pool, client, hosted UI, admin group.
 - `artifacts.yaml`: S3 bucket for Lambda deployment packages.
@@ -74,6 +76,5 @@ configurable, but this repo assumes ap-southeast-1 for initial setup.
 ## Additional AWS resources to consider
 
 - S3 bucket for Lambda artifacts (the API stack expects one).
-- NAT gateway or VPC endpoints for other AWS services if Lambdas need
-  outbound access without public egress.
+- Additional VPC endpoints if Lambdas need other AWS services.
 - Custom domain + ACM certificate for API Gateway if required.

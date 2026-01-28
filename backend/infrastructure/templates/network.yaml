@@ -22,16 +22,6 @@ Parameters:
     Type: String
     Default: 10.0.11.0/24
     Description: CIDR for private subnet 2.
-  EnableNatGateway:
-    Type: String
-    Default: 'true'
-    AllowedValues:
-      - 'true'
-      - 'false'
-    Description: Create NAT gateway for private egress.
-
-Conditions:
-  UseNatGateway: !Equals [!Ref EnableNatGateway, 'true']
 
 Resources:
   Vpc:
@@ -129,22 +119,6 @@ Resources:
       SubnetId: !Ref PublicSubnet2
       RouteTableId: !Ref PublicRouteTable
 
-  NatEip:
-    Type: AWS::EC2::EIP
-    Condition: UseNatGateway
-    Properties:
-      Domain: vpc
-
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Condition: UseNatGateway
-    Properties:
-      AllocationId: !GetAtt NatEip.AllocationId
-      SubnetId: !Ref PublicSubnet1
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}-nat'
-
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -152,14 +126,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-private-rt'
-
-  PrivateRoute:
-    Type: AWS::EC2::Route
-    Condition: UseNatGateway
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
 
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -230,6 +196,32 @@ Resources:
       SecurityGroupIds:
         - !Ref EndpointSecurityGroup
 
+  SecretsManagerVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
+      PrivateDnsEnabled: true
+      VpcId: !Ref Vpc
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !Ref EndpointSecurityGroup
+
+  StsVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
+      PrivateDnsEnabled: true
+      VpcId: !Ref Vpc
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !Ref EndpointSecurityGroup
+
 Outputs:
   VpcId:
     Description: VPC id.
@@ -252,3 +244,9 @@ Outputs:
   LambdaEndpointId:
     Description: Lambda VPC endpoint id.
     Value: !Ref LambdaVpcEndpoint
+  SecretsManagerEndpointId:
+    Description: Secrets Manager VPC endpoint id.
+    Value: !Ref SecretsManagerVpcEndpoint
+  StsEndpointId:
+    Description: STS VPC endpoint id.
+    Value: !Ref StsVpcEndpoint
