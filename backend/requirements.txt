@@ -2,13 +2,13 @@
 # Update versions carefully - test thoroughly before deploying
 
 # Database ORM
-SQLAlchemy>=2.0.46,<3.0.0
+SQLAlchemy==2.0.46
 
 # AWS SDK
-boto3>=1.42.36,<2.0.0
+boto3==1.42.36
 
 # PostgreSQL adapter (psycopg3)
-psycopg[binary]>=3.3.2,<4.0.0
+psycopg[binary]==3.3.2
 
 # Development dependencies (optional, uncomment for local development)
 # pytest>=8.0.0,<9.0.0
