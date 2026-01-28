@@ -1,0 +1,54 @@
+[
+  {
+    "ParameterKey": "LambdaCodeBucket",
+    "ParameterValue": "change-me"
+  },
+  {
+    "ParameterKey": "AuthLoginCodeKey",
+    "ParameterValue": "lambdas/auth_login.zip"
+  },
+  {
+    "ParameterKey": "AdminFamiliesCodeKey",
+    "ParameterValue": "lambdas/admin_families.zip"
+  },
+  {
+    "ParameterKey": "PublicEventsCodeKey",
+    "ParameterValue": "lambdas/public_events.zip"
+  },
+  {
+    "ParameterKey": "DatabaseUrl",
+    "ParameterValue": "postgresql://user:pass@host:5432/dbname"
+  },
+  {
+    "ParameterKey": "PublicApiKey",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "CognitoDomain",
+    "ParameterValue": "auth.example.com"
+  },
+  {
+    "ParameterKey": "CognitoClientId",
+    "ParameterValue": "change-me"
+  },
+  {
+    "ParameterKey": "CognitoRedirectUri",
+    "ParameterValue": "https://app.example.com/auth/callback"
+  },
+  {
+    "ParameterKey": "AdminGroup",
+    "ParameterValue": "admin"
+  },
+  {
+    "ParameterKey": "EventsLimit",
+    "ParameterValue": "100"
+  },
+  {
+    "ParameterKey": "FamiliesLimit",
+    "ParameterValue": "200"
+  },
+  {
+    "ParameterKey": "AdminAuthorizerId",
+    "ParameterValue": "change-me"
+  }
+]

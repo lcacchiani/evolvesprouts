@@ -1,0 +1,224 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Backend API scaffold for Montessori family platform.
+
+Parameters:
+  LambdaCodeBucket:
+    Type: String
+    Description: S3 bucket with Lambda deployment artifacts.
+  AuthLoginCodeKey:
+    Type: String
+    Description: S3 key for auth login Lambda zip.
+  AdminFamiliesCodeKey:
+    Type: String
+    Description: S3 key for admin families Lambda zip.
+  PublicEventsCodeKey:
+    Type: String
+    Description: S3 key for public events Lambda zip.
+  DatabaseUrl:
+    Type: String
+    Description: Database URL for Aurora PostgreSQL.
+  PublicApiKey:
+    Type: String
+    Default: ''
+    Description: Optional API key for public endpoints.
+  CognitoDomain:
+    Type: String
+    Description: Cognito hosted UI domain.
+  CognitoClientId:
+    Type: String
+    Description: Cognito app client id.
+  CognitoRedirectUri:
+    Type: String
+    Description: Redirect URI for hosted UI.
+  AdminGroup:
+    Type: String
+    Default: admin
+    Description: Cognito admin group name.
+  EventsLimit:
+    Type: Number
+    Default: 100
+    Description: Default page size for events.
+  FamiliesLimit:
+    Type: Number
+    Default: 200
+    Description: Default page size for families.
+  AdminAuthorizerId:
+    Type: String
+    Description: HttpApi JWT authorizer id for admin routes.
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  AuthLoginFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-auth-login'
+      Runtime: python3.11
+      Handler: handler.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref AuthLoginCodeKey
+      Environment:
+        Variables:
+          COGNITO_DOMAIN: !Ref CognitoDomain
+          COGNITO_CLIENT_ID: !Ref CognitoClientId
+          COGNITO_REDIRECT_URI: !Ref CognitoRedirectUri
+
+  AdminFamiliesFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-admin-families'
+      Runtime: python3.11
+      Handler: handler.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref AdminFamiliesCodeKey
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          COGNITO_ADMIN_GROUP: !Ref AdminGroup
+          FAMILIES_LIMIT: !Ref FamiliesLimit
+
+  PublicEventsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-public-events'
+      Runtime: python3.11
+      Handler: handler.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref PublicEventsCodeKey
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PUBLIC_API_KEY: !Ref PublicApiKey
+          EVENTS_LIMIT: !Ref EventsLimit
+
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub '${AWS::StackName}-http'
+      ProtocolType: HTTP
+
+  AuthLoginIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/
+          functions/${LambdaArn}/invocations
+        - LambdaArn: !GetAtt AuthLoginFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  AdminFamiliesIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/
+          functions/${LambdaArn}/invocations
+        - LambdaArn: !GetAtt AdminFamiliesFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  PublicEventsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/
+          functions/${LambdaArn}/invocations
+        - LambdaArn: !GetAtt PublicEventsFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  AuthLoginRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /auth/login'
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref AuthLoginIntegration
+
+  AdminFamiliesRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /admin/families'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref AdminAuthorizerId
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref AdminFamiliesIntegration
+
+  PublicEventsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /events'
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref PublicEventsIntegration
+
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: '$default'
+      AutoDeploy: true
+
+  AuthLoginPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AuthLoginFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub
+        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*
+        - ApiId: !Ref HttpApi
+
+  AdminFamiliesPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AdminFamiliesFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub
+        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*
+        - ApiId: !Ref HttpApi
+
+  PublicEventsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PublicEventsFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub
+        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*
+        - ApiId: !Ref HttpApi
+
+Outputs:
+  HttpApiEndpoint:
+    Description: HTTP API base URL.
+    Value: !Sub
+      - https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com
+      - ApiId: !Ref HttpApi
