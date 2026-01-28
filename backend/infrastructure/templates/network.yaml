@@ -1,0 +1,200 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::LanguageExtensions
+Description: VPC network for backend services.
+
+Parameters:
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR for the VPC.
+  PublicSubnetCidrs:
+    Type: CommaDelimitedList
+    Default: 10.0.0.0/24,10.0.1.0/24
+    Description: CIDRs for public subnets.
+  PrivateSubnetCidrs:
+    Type: CommaDelimitedList
+    Default: 10.0.10.0/24,10.0.11.0/24
+    Description: CIDRs for private subnets.
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-vpc'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-igw'
+
+  VpcGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  Fn::ForEach::PublicSubnets:
+    - SubnetIndex
+    - [0, 1]
+    - PublicSubnet${SubnetIndex}:
+        Type: AWS::EC2::Subnet
+        Properties:
+          VpcId: !Ref Vpc
+          CidrBlock: !Select [${SubnetIndex}, !Ref PublicSubnetCidrs]
+          AvailabilityZone: !Select [${SubnetIndex}, !GetAZs '']
+          MapPublicIpOnLaunch: true
+          Tags:
+            - Key: Name
+              Value: !Sub '${AWS::StackName}-public-${SubnetIndex}'
+
+  Fn::ForEach::PrivateSubnets:
+    - SubnetIndex
+    - [0, 1]
+    - PrivateSubnet${SubnetIndex}:
+        Type: AWS::EC2::Subnet
+        Properties:
+          VpcId: !Ref Vpc
+          CidrBlock: !Select [${SubnetIndex}, !Ref PrivateSubnetCidrs]
+          AvailabilityZone: !Select [${SubnetIndex}, !GetAZs '']
+          MapPublicIpOnLaunch: false
+          Tags:
+            - Key: Name
+              Value: !Sub '${AWS::StackName}-private-${SubnetIndex}'
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-rt'
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VpcGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-private-rt'
+
+  Fn::ForEach::PublicSubnetRouteAssociations:
+    - SubnetIndex
+    - [0, 1]
+    - PublicSubnet${SubnetIndex}RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+          SubnetId: !Ref PublicSubnet${SubnetIndex}
+          RouteTableId: !Ref PublicRouteTable
+
+  Fn::ForEach::PrivateSubnetRouteAssociations:
+    - SubnetIndex
+    - [0, 1]
+    - PrivateSubnet${SubnetIndex}RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+          SubnetId: !Ref PrivateSubnet${SubnetIndex}
+          RouteTableId: !Ref PrivateRouteTable
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Lambda security group.
+      VpcId: !Ref Vpc
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-lambda-sg'
+
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Database access from Lambda.
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref DbSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-db-sg'
+
+  EndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Interface endpoint access from Lambda.
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-endpoint-sg'
+
+  Fn::ForEach::InterfaceEndpoints:
+    - ServiceName
+    - [lambda, secretsmanager, sts]
+    - ${ServiceName}VpcEndpoint:
+        Type: AWS::EC2::VPCEndpoint
+        Properties:
+          VpcEndpointType: Interface
+          ServiceName: !Sub 'com.amazonaws.${AWS::Region}.${ServiceName}'
+          PrivateDnsEnabled: true
+          VpcId: !Ref Vpc
+          SubnetIds:
+            - !Ref PrivateSubnet0
+            - !Ref PrivateSubnet1
+          SecurityGroupIds:
+            - !Ref EndpointSecurityGroup
+
+Outputs:
+  VpcId:
+    Description: VPC id.
+    Value: !Ref Vpc
+  PublicSubnetIds:
+    Description: Comma-delimited public subnet ids.
+    Value: !Join [',', [!Ref PublicSubnet0, !Ref PublicSubnet1]]
+  PrivateSubnetIds:
+    Description: Comma-delimited private subnet ids.
+    Value: !Join [',', [!Ref PrivateSubnet0, !Ref PrivateSubnet1]]
+  LambdaSecurityGroupId:
+    Description: Lambda security group id.
+    Value: !Ref LambdaSecurityGroup
+  DbSecurityGroupId:
+    Description: Database security group id.
+    Value: !Ref DbSecurityGroup
+  EndpointSecurityGroupId:
+    Description: Endpoint security group id.
+    Value: !Ref EndpointSecurityGroup
+  LambdaEndpointId:
+    Description: Lambda VPC endpoint id.
+    Value: !Ref lambdaVpcEndpoint
+  SecretsManagerEndpointId:
+    Description: Secrets Manager VPC endpoint id.
+    Value: !Ref secretsmanagerVpcEndpoint
+  StsEndpointId:
+    Description: STS VPC endpoint id.
+    Value: !Ref stsVpcEndpoint

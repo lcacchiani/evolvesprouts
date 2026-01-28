@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cognito User Pool and Hosted UI.
+
+Parameters:
+  UserPoolName:
+    Type: String
+    Default: montessori-families
+    Description: Cognito User Pool name.
+  HostedUiDomainPrefix:
+    Type: String
+    Default: montessori-families
+    Description: Hosted UI domain prefix.
+  AdminGroupName:
+    Type: String
+    Default: admin
+    Description: Admin group name.
+  CallbackUrls:
+    Type: CommaDelimitedList
+    Description: OAuth callback URLs.
+  LogoutUrls:
+    Type: CommaDelimitedList
+    Description: OAuth logout URLs.
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Ref UserPoolName
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: OFF
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub '${UserPoolName}-client'
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - COGNITO
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+        - email
+        - profile
+      CallbackURLs: !Ref CallbackUrls
+      LogoutURLs: !Ref LogoutUrls
+      PreventUserExistenceErrors: ENABLED
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref HostedUiDomainPrefix
+      UserPoolId: !Ref UserPool
+
+  AdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: !Ref AdminGroupName
+      UserPoolId: !Ref UserPool
+
+Outputs:
+  UserPoolId:
+    Description: Cognito User Pool id.
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: Cognito app client id.
+    Value: !Ref UserPoolClient
+  CognitoDomain:
+    Description: Hosted UI domain.
+    Value: !Sub
+      - ${Prefix}.auth.${AWS::Region}.amazoncognito.com
+      - Prefix: !Ref HostedUiDomainPrefix
+  UserPoolIssuer:
+    Description: JWT issuer for API authorizers.
+    Value: !Sub
+      - https://cognito-idp.${AWS::Region}.amazonaws.com/${PoolId}
+      - PoolId: !Ref UserPool
+  AdminGroupName:
+    Description: Admin group name.
+    Value: !Ref AdminGroupName

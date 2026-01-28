@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "VpcCidr",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "PublicSubnetCidrs",
+    "ParameterValue": "10.0.0.0/24,10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "PrivateSubnetCidrs",
+    "ParameterValue": "10.0.10.0/24,10.0.11.0/24"
+  }
+]

@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for Lambda artifacts.
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: ''
+    Description: Optional bucket name.
+
+Conditions:
+  HasBucketName: !Not [!Equals [!Ref BucketName, '']]
+
+Resources:
+  ArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !If [HasBucketName, !Ref BucketName, !Ref 'AWS::NoValue']
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+Outputs:
+  ArtifactsBucketName:
+    Description: S3 bucket for Lambda artifacts.
+    Value: !Ref ArtifactsBucket

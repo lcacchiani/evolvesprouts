@@ -1,6 +1,9 @@
 # Evolve Sprouts
 
-This repository contains the Evolve Sprouts apps and backend services.
+This repository contains the Evolve Sprouts apps and backend services
+for Montessori family training in Hong Kong. The platform includes
+public pages and a personal area where families track progress toward
+their goals.
 
 - Flutter mobile app: `apps/evolvesprouts_app`
 - Web apps: two React SPAs (admin and public) built with Vite,

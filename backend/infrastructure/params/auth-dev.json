@@ -1,0 +1,22 @@
+[
+  {
+    "ParameterKey": "UserPoolName",
+    "ParameterValue": "montessori-families"
+  },
+  {
+    "ParameterKey": "HostedUiDomainPrefix",
+    "ParameterValue": "montessori-families"
+  },
+  {
+    "ParameterKey": "AdminGroupName",
+    "ParameterValue": "admin"
+  },
+  {
+    "ParameterKey": "CallbackUrls",
+    "ParameterValue": "https://app.example.com/auth/callback"
+  },
+  {
+    "ParameterKey": "LogoutUrls",
+    "ParameterValue": "https://app.example.com/logout"
+  }
+]

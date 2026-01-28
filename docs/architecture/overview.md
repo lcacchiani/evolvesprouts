@@ -1,7 +1,7 @@
 # Architecture Overview
 
-This document describes the current architecture for the mobile app,
-web apps, and backend services.
+This document describes the current architecture for the Montessori
+family training mobile app, web apps, and backend services.
 
 ## High-level diagram
 
@@ -27,21 +27,24 @@ Flutter Mobile + React SPAs (Admin + Public)
 ## Components
 
 ### Mobile app (Flutter)
-- Users browse activities and filter by age, district, price, time/day,
-  and language.
+- Families access Montessori training content and set goals.
+- A signed-in area lets families track progress toward their goals.
+- Public pages provide program info and resources without sign-in.
 - Uses generated Dart API client from OpenAPI specs.
 - Device attestation uses Firebase App Check (Play Integrity / App Attest).
 - App name: `evolvesprouts_app`.
 
 ### Web apps (React SPA)
 - Two single-page apps: admin portal and public website.
+- Public site covers Montessori program info and resources.
+- Admin portal manages content, goals, and family onboarding.
 - Built with React + TypeScript, Vite, React Router, TanStack Query.
 - Styled with Bootstrap 5.
 
 ### Backend
-- API Gateway exposes REST endpoints (start with `GET /activities/search`).
-- Admin CRUD routes under `/admin/*` for organizations, locations, activities,
-  pricing, and schedules.
+- API Gateway exposes REST endpoints for public content and
+  authenticated family progress tracking.
+- Admin CRUD routes under `/admin/*` for content, goals, and programs.
 - Admin user group assignment available at `/admin/users/{username}/groups`.
 - Admin list endpoints support cursor pagination.
 - Lambda functions in `backend/lambda/` call into shared code in
@@ -55,12 +58,12 @@ Flutter Mobile + React SPAs (Admin + Public)
 ## Data model
 
 Key entities:
-- `organizations`
-- `locations` (district used for filtering)
-- `activities`
-- `activity_locations`
-- `activity_pricing` (per-class, per-month, per-sessions)
-- `activity_schedule` (weekly, monthly, date-specific; languages per session)
+- `families`
+- `family_members`
+- `goals`
+- `progress_entries`
+- `content_items`
+- `training_modules`
 
 All times are stored in UTC.
 
@@ -71,7 +74,7 @@ All times are stored in UTC.
 - Alembic migrations live under `backend/db/`.
 - Seed data stored in `backend/db/seed/seed_data.sql`.
 - Migrations run via a custom resource Lambda using password auth.
-- Application traffic uses IAM auth via the proxy and the `activities_app` role.
+- Application traffic uses IAM auth via the proxy and least-privilege roles.
 
 ## CI/CD
 
@@ -106,11 +109,9 @@ pull requests for dependency updates:
 - IAM auth for RDS Proxy, TLS enforced on DB connections.
 - Secrets stored in GitHub Secrets or AWS Secrets Manager.
 - Admin API routes require Cognito authentication.
-- Public activity search requires an API key supplied by the mobile app.
-- Public activity search requires device attestation tokens (JWKS-validated).
+- Public content endpoints can require an API key and device attestation.
 - Admin routes require membership in the Cognito `admin` group.
 - Optional CloudFormation parameters can bootstrap an initial admin user.
-- Public activities search uses an API key plus device attestation for access control.
 - Passwordless email sign-in uses Cognito custom auth triggers (define/create/verify).
 - Hosted UI enables Google, Apple, and Microsoft IdPs via OAuth.
 
@@ -124,12 +125,12 @@ pull requests for dependency updates:
 
 ## Caching
 
-- API Gateway method caching enabled for search queries (5-minute TTL).
-- Cache keys include all search query parameters.
+- API Gateway method caching enabled for public content (5-minute TTL).
+- Cache keys include relevant query parameters.
 - Client-side caching with stale-while-revalidate in Flutter (planned).
 
 ## Next steps
 
 1. Wire API Gateway responses to pagination cursor logic.
-2. Implement admin CRUD APIs.
-3. Add search caching layer (Redis or API caching).
+2. Implement admin CRUD APIs for content and goals.
+3. Add caching layer (Redis or API caching).
