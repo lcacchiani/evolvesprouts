@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./generated/figma-tokens.css";
 
 @layer base {
   :root {

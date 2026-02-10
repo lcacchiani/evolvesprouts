@@ -36,6 +36,13 @@ jobs:
         run: npm ci
         working-directory: apps/public_www
 
+      - name: Pull Figma tokens
+        run: npm run figma:pull
+        working-directory: apps/public_www
+        env:
+          FIGMA_ACCESS_TOKEN: ${{ secrets.FIGMA_ACCESS_TOKEN }}
+          FIGMA_FILE_KEY: ${{ vars.PUBLIC_WWW_FIGMA_FILE_KEY }}
+
       - name: Restore Next.js build cache
         uses: actions/cache@v5
         with:

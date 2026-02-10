@@ -104,7 +104,14 @@ jobs:
       - name: Run Python tests
         run: |
           shopt -s globstar nullglob
-          tests=(tests/test_*.py tests/**/*.py backend/**/test_*.py backend/**/tests/*.py backend/**/tests/**/*.py)
+          tests=(
+            tests/test_*.py
+            tests/**/test_*.py
+            tests/**/*_test.py
+            backend/**/test_*.py
+            backend/**/tests/test_*.py
+            backend/**/tests/**/*_test.py
+          )
           if [ "${#tests[@]}" -eq 0 ]; then
             echo "No Python tests found"
             exit 0
