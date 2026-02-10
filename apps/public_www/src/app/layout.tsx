@@ -7,8 +7,8 @@ export const metadata: Metadata = {
   title: 'Evolve Sprouts',
   description: 'Evolve Sprouts public website.',
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
   },
   robots: {
     index: true,
