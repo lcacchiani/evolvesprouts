@@ -128,6 +128,36 @@ jobs:
             return response.json();
           }
 
+          function wait(ms) {
+            return new Promise((resolve) => {
+              setTimeout(resolve, ms);
+            });
+          }
+
+          async function getImageUrlForNode(fileKey, nodeId, accessToken) {
+            const endpoint = `https://api.figma.com/v1/images/${fileKey}?ids=${encodeURIComponent(nodeId)}&format=png&scale=2`;
+            const retryMs = [500, 1000, 2000, 4000];
+            let lastError = null;
+            for (const [index, delay] of retryMs.entries()) {
+              try {
+                const payload = await getJson(endpoint, accessToken);
+                return payload.images?.[nodeId] ?? '';
+              } catch (error) {
+                lastError = error;
+                const message = String(error?.message ?? '');
+                const isRetryable =
+                  message.includes('Figma request failed (500)') ||
+                  message.includes('Figma request failed (429)');
+                const isLastAttempt = index === retryMs.length - 1;
+                if (!isRetryable || isLastAttempt) {
+                  break;
+                }
+                await wait(delay);
+              }
+            }
+            throw lastError;
+          }
+
           function findByName(root, name) {
             const queue = [root];
             while (queue.length > 0) {
@@ -202,20 +232,15 @@ jobs:
               'utf8',
             );
 
-            const sectionIds = desktopSections.map((section) => section.id);
-            if (mobileNode?.id) {
-              sectionIds.push(mobileNode.id);
-            }
             const accessToken = await resolveAccessToken();
-            const idsParam = sectionIds.map(encodeURIComponent).join(',');
-            const imagesPayload = await getJson(
-              `https://api.figma.com/v1/images/${figmaFileKey}?ids=${idsParam}&format=png&scale=2`,
-              accessToken,
-            );
 
             const manifest = [];
             for (const section of desktopSections) {
-              const imageUrl = imagesPayload.images?.[section.id];
+              const imageUrl = await getImageUrlForNode(
+                figmaFileKey,
+                section.id,
+                accessToken,
+              );
               if (!imageUrl) {
                 continue;
               }
@@ -239,7 +264,11 @@ jobs:
             }
 
             if (mobileNode?.id) {
-              const mobileImageUrl = imagesPayload.images?.[mobileNode.id];
+              const mobileImageUrl = await getImageUrlForNode(
+                figmaFileKey,
+                mobileNode.id,
+                accessToken,
+              );
               if (mobileImageUrl) {
                 const imageResponse = await fetch(mobileImageUrl);
                 if (!imageResponse.ok) {
