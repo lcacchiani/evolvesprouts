@@ -6,6 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const APP_ROOT = path.resolve(__dirname, '..', '..');
 const FIGMA_FILES_DIR = path.join(APP_ROOT, 'figma', 'files');
+const DEFAULT_FIGMA_OAUTH_TOKEN_URL =
+  'https://api.figma.com/v1/oauth/token';
 
 function getEnv(name) {
   return process.env[name]?.trim() ?? '';
@@ -46,17 +48,104 @@ async function fetchFigmaJson(endpoint, accessToken) {
   return response.json();
 }
 
+function getMissingOAuthEnvVars(config) {
+  return Object.entries(config)
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+}
+
+async function fetchOAuthAccessToken({
+  tokenUrl,
+  clientId,
+  clientSecret,
+  refreshToken,
+}) {
+  const tokenBody = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: clientId,
+    client_secret: clientSecret,
+    refresh_token: refreshToken,
+  });
+
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: tokenBody.toString(),
+  });
+
+  const responseText = await response.text();
+  const snippet = responseText.slice(0, 500);
+  if (!response.ok) {
+    throw new Error(
+      `Figma OAuth token request failed (${response.status}) at ${tokenUrl}: ${snippet}`,
+    );
+  }
+
+  let responseJson = {};
+  try {
+    responseJson = JSON.parse(responseText);
+  } catch (_error) {
+    throw new Error(
+      `Figma OAuth token response is not valid JSON: ${snippet}`,
+    );
+  }
+
+  const accessToken = responseJson.access_token?.trim?.() ?? '';
+  if (!accessToken) {
+    throw new Error(
+      `Figma OAuth token response is missing access_token: ${snippet}`,
+    );
+  }
+
+  return accessToken;
+}
+
+async function resolveFigmaAccessToken() {
+  const directAccessToken = getEnv('FIGMA_OAUTH_ACCESS_TOKEN');
+  if (directAccessToken) {
+    return directAccessToken;
+  }
+
+  const oauthConfig = {
+    FIGMA_OAUTH_CLIENT_ID: getEnv('FIGMA_OAUTH_CLIENT_ID'),
+    FIGMA_OAUTH_CLIENT_SECRET: getEnv('FIGMA_OAUTH_CLIENT_SECRET'),
+    FIGMA_OAUTH_REFRESH_TOKEN: getEnv('FIGMA_OAUTH_REFRESH_TOKEN'),
+  };
+  const configuredCount = Object.values(oauthConfig).filter(Boolean).length;
+  if (configuredCount === 0) {
+    return '';
+  }
+
+  if (configuredCount < Object.keys(oauthConfig).length) {
+    const missingNames = getMissingOAuthEnvVars(oauthConfig);
+    throw new Error(
+      `Incomplete Figma OAuth configuration. Missing: ${missingNames.join(', ')}`,
+    );
+  }
+
+  const tokenUrl =
+    getEnv('FIGMA_OAUTH_TOKEN_URL') || DEFAULT_FIGMA_OAUTH_TOKEN_URL;
+  return fetchOAuthAccessToken({
+    tokenUrl,
+    clientId: oauthConfig.FIGMA_OAUTH_CLIENT_ID,
+    clientSecret: oauthConfig.FIGMA_OAUTH_CLIENT_SECRET,
+    refreshToken: oauthConfig.FIGMA_OAUTH_REFRESH_TOKEN,
+  });
+}
+
 async function main() {
   await ensureDirectory(FIGMA_FILES_DIR);
 
-  const accessToken = getEnv('FIGMA_ACCESS_TOKEN');
+  const accessToken = await resolveFigmaAccessToken();
   const fileKey = getEnv('FIGMA_FILE_KEY');
   const fileInfoPath = path.join(FIGMA_FILES_DIR, 'file.json');
   const variablesPath = path.join(FIGMA_FILES_DIR, 'variables.local.json');
 
   if (!accessToken || !fileKey) {
     console.log(
-      'Skipping Figma pull: FIGMA_ACCESS_TOKEN or FIGMA_FILE_KEY is missing.',
+      'Skipping Figma pull: set FIGMA_FILE_KEY and OAuth env vars.',
     );
     await ensureJsonIfMissing(fileInfoPath, {
       meta: {
