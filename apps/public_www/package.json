@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "figma:pull": "node ./scripts/figma/pull-figma-tokens.mjs",
+    "figma:build": "node ./scripts/figma/build-figma-artifacts.mjs",
+    "figma:sync": "npm run figma:pull && npm run figma:build",
+    "build": "npm run figma:build && next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0 ."
   },
