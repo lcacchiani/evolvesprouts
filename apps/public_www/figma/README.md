@@ -21,6 +21,37 @@ token pipeline.
     - `tokens.normalized.json`
   - Generated JSON files are ignored from git by default.
 
+## Manual GitHub dispatch for homepage implementation
+
+If your Figma plan only supports `file_content:read`, you can still ship
+the homepage quickly without direct variable sync.
+
+Use this folder layout for handoff assets committed to GitHub:
+
+- `figma/dispatch/homepage/spec.md`
+  - Source-of-truth for text copy, spacing, typography, colors, and
+    responsive behavior.
+- `figma/dispatch/homepage/desktop.png`
+  - Full desktop screenshot export from Figma.
+- `figma/dispatch/homepage/mobile.png`
+  - Full mobile screenshot export from Figma.
+- `figma/dispatch/homepage/assets/*`
+  - Exported SVG/PNG logos, icons, and illustration assets used on the
+    homepage.
+- Optional token export:
+  - `figma/mdm/exports/tokens.json`
+
+Implementation workflow:
+
+1. Export screenshots and assets from Figma.
+2. Fill in `figma/dispatch/homepage/spec.md`.
+3. Commit and push the dispatch package to your branch.
+4. Ask the coding agent to implement `apps/public_www/src/app/page.tsx`
+   from the dispatch files.
+
+This path avoids any dependency on `file_variables:read` and works from
+GitHub-only inputs.
+
 ## Build outputs
 
 `npm run figma:build` writes CSS custom properties used by the site to:
