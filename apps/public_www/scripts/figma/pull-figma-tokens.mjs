@@ -33,7 +33,7 @@ async function ensureJsonIfMissing(filePath, fallback) {
 async function fetchFigmaJson(endpoint, accessToken) {
   const response = await fetch(endpoint, {
     headers: {
-      'X-Figma-Token': accessToken,
+      Authorization: `Bearer ${accessToken}`,
     },
   });
 
