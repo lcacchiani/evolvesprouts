@@ -8,6 +8,8 @@ on:
   schedule:
     # Run security scans weekly on Mondays at 8:00 UTC
     - cron: '0 8 * * 1'
+  repository_dispatch:
+    types: [security]
   workflow_dispatch:
 
 permissions:

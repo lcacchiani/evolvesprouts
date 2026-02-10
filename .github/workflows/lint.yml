@@ -1,6 +1,8 @@
 name: Lint
 
 on:
+  repository_dispatch:
+    types: [lint]
   workflow_dispatch:
   pull_request:
     paths:

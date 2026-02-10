@@ -1,6 +1,8 @@
 name: Amplify Promote
 
 on:
+  repository_dispatch:
+    types: [amplify-promote]
   workflow_dispatch:
     inputs:
       source_branch:
