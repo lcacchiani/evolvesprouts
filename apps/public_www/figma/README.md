@@ -19,6 +19,7 @@ token pipeline.
   - Normalized artifacts produced for the website build.
   - Output file:
     - `tokens.normalized.json`
+  - Generated JSON files are ignored from git by default.
 
 ## Build outputs
 
