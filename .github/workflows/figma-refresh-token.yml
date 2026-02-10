@@ -44,7 +44,7 @@ jobs:
           PORT="${CALLBACK_PORT:-3845}"
           REDIRECT_URI="http://localhost:${PORT}/callback"
           STATE="$(openssl rand -hex 16)"
-          SCOPE="files:read,file_variables:read"
+          SCOPE="file_content:read"
 
           AUTH_URL="https://www.figma.com/oauth?client_id=${CLIENT_ID}&redirect_uri=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${REDIRECT_URI}', safe=''))")&scope=${SCOPE}&state=${STATE}&response_type=code"
 
