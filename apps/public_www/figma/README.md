@@ -82,7 +82,7 @@ Construct the authorization URL by replacing `YOUR_CLIENT_ID` with your
 Figma OAuth app's Client ID:
 
 ```
-https://www.figma.com/oauth?client_id=YOUR_CLIENT_ID&redirect_uri=http%3A%2F%2Flocalhost%3A3845%2Fcallback&scope=file_content:read,file_variables:read&state=1&response_type=code
+https://www.figma.com/oauth?client_id=YOUR_CLIENT_ID&redirect_uri=http%3A%2F%2Flocalhost%3A3845%2Fcallback&scope=file_content:read&state=1&response_type=code
 ```
 
 > **Tip:** If you have already run the workflow once (even if it
@@ -148,7 +148,8 @@ settings to match (e.g. `http://localhost:9999/callback`).
 
 **Step 3 — Authorize in Figma**
 
-Click **Allow** to grant `file_content:read` and `file_variables:read` access.
+Click **Allow** to grant `file_content:read` access. If `file_variables:read` is also
+available, enable it to allow pulling Figma local variables.
 
 **Step 4 — Copy the refresh token**
 

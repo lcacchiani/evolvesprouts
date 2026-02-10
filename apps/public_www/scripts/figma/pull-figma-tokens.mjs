@@ -185,10 +185,10 @@ async function main() {
       error.message?.includes('403');
     if (isScopeError) {
       console.warn(
-        'Warning: could not fetch variables (missing file_variables:read scope).',
+        'Warning: could not fetch variables (requires file_variables:read scope).',
       );
       console.warn(
-        'Re-authorize with both file_content:read and file_variables:read scopes.',
+        'Skipping variables — build will proceed with file metadata and MDM exports only.',
       );
       await ensureJsonIfMissing(variablesPath, {
         meta: {
