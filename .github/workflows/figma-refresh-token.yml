@@ -1,0 +1,199 @@
+name: Generate Figma OAuth Refresh Token
+
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: 'Which phase to run'
+        required: true
+        default: 'get_auth_url'
+        type: choice
+        options:
+          - get_auth_url
+          - exchange_code
+      authorization_code:
+        description: 'Figma authorization code (required for exchange_code step)'
+        required: false
+        type: string
+      callback_port:
+        description: 'Port used in the callback URL (must match Figma app settings)'
+        required: false
+        default: '3845'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  get-auth-url:
+    if: ${{ inputs.step == 'get_auth_url' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate secrets
+        run: |
+          if [ -z "$CLIENT_ID" ]; then
+            echo '::error::FIGMA_OAUTH_CLIENT_ID secret is not set.'
+            echo 'Add it under Settings > Secrets and variables > Actions.'
+            exit 1
+          fi
+        env:
+          CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
+
+      - name: Generate authorization URL
+        run: |
+          PORT="${CALLBACK_PORT:-3845}"
+          REDIRECT_URI="http://localhost:${PORT}/callback"
+          STATE="$(openssl rand -hex 16)"
+          SCOPE="files:read,file_variables:read"
+
+          AUTH_URL="https://www.figma.com/oauth?client_id=${CLIENT_ID}&redirect_uri=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${REDIRECT_URI}', safe=''))")&scope=${SCOPE}&state=${STATE}&response_type=code"
+
+          {
+            echo '## Figma OAuth — Step 1: Authorize'
+            echo ''
+            echo '### Open this URL in your browser'
+            echo ''
+            echo "\`\`\`"
+            echo "${AUTH_URL}"
+            echo "\`\`\`"
+            echo ''
+            echo '### What happens next'
+            echo ''
+            echo '1. Click **Allow** on the Figma authorization page.'
+            echo "2. Your browser will redirect to \`${REDIRECT_URI}?code=XXXXX&state=...\`"
+            echo '3. The page **will not load** (no local server is running) — that is expected.'
+            echo '4. **Copy the \`code\` value** from the browser address bar.'
+            echo '   - It is the part between \`?code=\` and \`&state=\`.'
+            echo ''
+            echo '### Then come back here and run Step 2'
+            echo ''
+            echo '1. Go to **Actions** > **Generate Figma OAuth Refresh Token** > **Run workflow**.'
+            echo '2. Set **step** to \`exchange_code\`.'
+            echo '3. Paste the code into the **authorization_code** field.'
+            echo '4. Click **Run workflow**.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo ''
+          echo '=========================================='
+          echo 'Authorization URL generated.'
+          echo 'See the workflow run summary for the URL and next steps.'
+          echo '=========================================='
+        env:
+          CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
+          CALLBACK_PORT: ${{ inputs.callback_port }}
+
+  exchange-code:
+    if: ${{ inputs.step == 'exchange_code' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate inputs and secrets
+        run: |
+          ERRORS=0
+
+          if [ -z "$CLIENT_ID" ]; then
+            echo '::error::FIGMA_OAUTH_CLIENT_ID secret is not set.'
+            ERRORS=1
+          fi
+          if [ -z "$CLIENT_SECRET" ]; then
+            echo '::error::FIGMA_OAUTH_CLIENT_SECRET secret is not set.'
+            ERRORS=1
+          fi
+          if [ -z "$AUTH_CODE" ]; then
+            echo '::error::authorization_code input is required for exchange_code step.'
+            ERRORS=1
+          fi
+
+          if [ "$ERRORS" -eq 1 ]; then
+            exit 1
+          fi
+        env:
+          CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.FIGMA_OAUTH_CLIENT_SECRET }}
+          AUTH_CODE: ${{ inputs.authorization_code }}
+
+      - name: Exchange authorization code for tokens
+        id: exchange
+        run: |
+          PORT="${CALLBACK_PORT:-3845}"
+          REDIRECT_URI="http://localhost:${PORT}/callback"
+          TOKEN_URL="https://api.figma.com/v1/oauth/token"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${TOKEN_URL}" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "client_id=${CLIENT_ID}" \
+            -d "client_secret=${CLIENT_SECRET}" \
+            -d "redirect_uri=${REDIRECT_URI}" \
+            -d "code=${AUTH_CODE}" \
+            -d "grant_type=authorization_code")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Token exchange failed with HTTP ${HTTP_CODE}"
+            echo "Response: ${BODY}"
+            exit 1
+          fi
+
+          REFRESH_TOKEN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('refresh_token',''))")
+          ACCESS_TOKEN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))")
+          EXPIRES_IN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('expires_in','?'))")
+          USER_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('user_id',''))")
+
+          if [ -z "$REFRESH_TOKEN" ]; then
+            echo "::error::No refresh_token in response"
+            echo "Response: ${BODY}"
+            exit 1
+          fi
+
+          # Mask tokens in logs.
+          echo "::add-mask::${REFRESH_TOKEN}"
+          if [ -n "$ACCESS_TOKEN" ]; then
+            echo "::add-mask::${ACCESS_TOKEN}"
+          fi
+
+          echo "refresh_token=${REFRESH_TOKEN}" >> "$GITHUB_OUTPUT"
+          echo "expires_in=${EXPIRES_IN}" >> "$GITHUB_OUTPUT"
+          echo "user_id=${USER_ID}" >> "$GITHUB_OUTPUT"
+        env:
+          CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.FIGMA_OAUTH_CLIENT_SECRET }}
+          AUTH_CODE: ${{ inputs.authorization_code }}
+          CALLBACK_PORT: ${{ inputs.callback_port }}
+
+      - name: Store refresh token as secret
+        run: |
+          echo "${REFRESH_TOKEN}" | gh secret set FIGMA_OAUTH_REFRESH_TOKEN
+          echo 'FIGMA_OAUTH_REFRESH_TOKEN secret has been updated.'
+        env:
+          REFRESH_TOKEN: ${{ steps.exchange.outputs.refresh_token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish result summary
+        if: always()
+        run: |
+          {
+            echo '## Figma OAuth — Step 2: Token Exchange'
+            echo ''
+            if [ -n "$REFRESH_TOKEN" ]; then
+              echo '**Status: Success**'
+              echo ''
+              echo 'The \`FIGMA_OAUTH_REFRESH_TOKEN\` repository secret has been created/updated automatically.'
+              echo ''
+              echo '| Detail | Value |'
+              echo '|--------|-------|'
+              echo "| Figma user ID | \`${USER_ID:-n/a}\` |"
+              echo "| Access token expires in | ${EXPIRES_IN:-?}s |"
+              echo ''
+              echo 'If automatic secret storage failed (permissions), copy the refresh token from the masked output above and add it manually:'
+              echo ''
+              echo '1. Go to **Settings** > **Secrets and variables** > **Actions**.'
+              echo '2. Create or update `FIGMA_OAUTH_REFRESH_TOKEN`.'
+            else
+              echo '**Status: Failed** — see error details above.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          REFRESH_TOKEN: ${{ steps.exchange.outputs.refresh_token }}
+          EXPIRES_IN: ${{ steps.exchange.outputs.expires_in }}
+          USER_ID: ${{ steps.exchange.outputs.user_id }}
