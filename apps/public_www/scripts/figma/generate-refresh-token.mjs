@@ -29,8 +29,8 @@ import { randomBytes } from 'node:crypto';
 import { URL, URLSearchParams } from 'node:url';
 
 const FIGMA_AUTHORIZATION_URL = 'https://www.figma.com/oauth';
-const FIGMA_TOKEN_URL = 'https://www.figma.com/api/oauth/token';
-const SCOPES = 'file_content:read';
+const FIGMA_TOKEN_URL = 'https://api.figma.com/v1/oauth/token';
+const SCOPES = 'file_content:read,file_variables:read';
 
 function getRequiredEnv(name) {
   const value = process.env[name]?.trim() ?? '';
