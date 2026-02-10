@@ -13,7 +13,7 @@ Provide these parameters when deploying `evolvesprouts-crm-web`:
 
 - `CrmWebDomainName`: `crm.evolvesprouts.com`
 - `CrmWebCertificateArn`: ACM certificate ARN (us-east-1)
-- `WafWebAclArn`: WAF ACL ARN from `evolvesprouts-waf`
+- `WafWebAclArn`: existing CloudFront WAF ACL ARN (us-east-1)
 
 ## Build and deploy
 

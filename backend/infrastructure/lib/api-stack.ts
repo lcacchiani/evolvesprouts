@@ -82,8 +82,7 @@ export class ApiStack extends cdk.Stack {
   public constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    cdk.Tags.of(this).add("Organization", "LX Software");
-    cdk.Tags.of(this).add("Project", "Evolve Sprouts");
+    cdk.Tags.of(this).add("Organization", "Evolve Sprouts");
 
     const resourcePrefix = "evolvesprouts";
     const name = (suffix: string) => `${resourcePrefix}-${suffix}`;

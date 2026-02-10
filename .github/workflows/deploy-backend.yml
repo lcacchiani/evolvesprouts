@@ -12,7 +12,6 @@ on:
           - 'all stacks'
           - 'crm web'
           - 'public www'
-          - 'waf (us-east-1)'
   push:
     branches:
       - main
@@ -49,12 +48,7 @@ jobs:
           INPUT_CDK_STACKS: ${{ github.event.inputs.cdk_stacks || vars.CDK_STACKS || 'all stacks' }}
           INPUT_AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
-          CDK_STACKS="$INPUT_CDK_STACKS"
-          if [ "$CDK_STACKS" = "waf (us-east-1)" ]; then
-            echo "region=us-east-1" >> "$GITHUB_OUTPUT"
-          else
-            echo "region=$INPUT_AWS_REGION" >> "$GITHUB_OUTPUT"
-          fi
+          echo "region=$INPUT_AWS_REGION" >> "$GITHUB_OUTPUT"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -93,8 +87,6 @@ jobs:
             CDK_STACKS="evolvesprouts-crm-web"
           elif [ "${CDK_STACKS:-}" = "public www" ]; then
             CDK_STACKS="evolvesprouts-public-www"
-          elif [ "${CDK_STACKS:-}" = "waf (us-east-1)" ]; then
-            CDK_STACKS="evolvesprouts-waf"
           fi
 
           PARAM_ARGS=()
