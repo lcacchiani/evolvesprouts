@@ -254,8 +254,8 @@ def upgrade() -> None:
     op.create_index("geo_areas_code_idx", "geographic_areas", ["code"])
 
     # Grant permissions
-    op.execute("GRANT SELECT ON geographic_areas TO siutindei_app;")
-    op.execute("GRANT SELECT, INSERT, UPDATE ON geographic_areas TO siutindei_admin;")
+    op.execute("GRANT SELECT ON geographic_areas TO evolvesprouts_app;")
+    op.execute("GRANT SELECT, INSERT, UPDATE ON geographic_areas TO evolvesprouts_admin;")
 
     # 2. Seed data
     seed = _build_seed_data()

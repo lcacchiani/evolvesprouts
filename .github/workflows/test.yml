@@ -33,7 +33,7 @@ jobs:
         run: |
           set -e
           shopt -s globstar nullglob
-          for dir in apps/siutindei_app packages/flutter_ui packages/api_client_dart; do
+          for dir in apps/evolvesprouts_app packages/flutter_ui packages/api_client_dart; do
             if [ -f "$dir/pubspec.yaml" ]; then
               test_files=($dir/test/**/*_test.dart)
               if [ "${#test_files[@]}" -eq 0 ]; then
@@ -62,7 +62,7 @@ jobs:
       - name: Run Node tests
         run: |
           set -e
-          for dir in apps/admin_web packages/react_ui packages/api_client_ts; do
+          for dir in apps/crm_web apps/public_www packages/react_ui packages/api_client_ts; do
             if [ -f "$dir/package.json" ]; then
               echo "Testing Node in $dir"
               if [ -f "$dir/package-lock.json" ]; then

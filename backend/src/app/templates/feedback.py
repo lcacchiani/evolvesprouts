@@ -6,10 +6,10 @@ from typing import Iterable, Optional
 
 from app.templates.types import EmailContent
 
-NEW_FEEDBACK_SUBJECT = "[Siu Tin Dei] [{ticket_id}] New Feedback: {organization_name}"
+NEW_FEEDBACK_SUBJECT = "[Evolve Sprouts] [{ticket_id}] New Feedback: {organization_name}"
 
 NEW_FEEDBACK_TEXT = """
-[Siu Tin Dei] Organization Feedback [{ticket_id}]
+[Evolve Sprouts] Organization Feedback [{ticket_id}]
 
 A user has submitted feedback for an organization.
 
@@ -33,7 +33,7 @@ NEW_FEEDBACK_HTML = """
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 style="margin: 0 0 10px 0; color: #1a1a1a;">[Siu Tin Dei] Organization Feedback</h2>
+        <h2 style="margin: 0 0 10px 0; color: #1a1a1a;">[Evolve Sprouts] Organization Feedback</h2>
         <p style="margin: 0; font-size: 14px; color: #666;">
             Ticket ID: <strong style="font-family: monospace;">{ticket_id}</strong>
         </p>
@@ -101,7 +101,7 @@ NEW_FEEDBACK_HTML = """
     <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
 
     <p style="font-size: 12px; color: #666; margin: 0;">
-        This is an automated message from Siu Tin Dei. Please do not reply directly to this email.
+        This is an automated message from Evolve Sprouts. Please do not reply directly to this email.
     </p>
 </body>
 </html>

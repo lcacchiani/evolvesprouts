@@ -26,20 +26,20 @@ Ticket submissions are processed asynchronously using SNS + SQS messaging. This 
 
 ## Components
 
-### SNS Topic: `lxsoftware-siutindei-manager-request-events`
+### SNS Topic: `evolvesprouts-manager-request-events`
 
 - Receives ticket events from the API
 - Fans out to subscribed SQS queue
 - Message attributes enable filtering by `event_type`
 
-### SQS Queue: `lxsoftware-siutindei-manager-request-queue`
+### SQS Queue: `evolvesprouts-manager-request-queue`
 
 - Subscribes to SNS topic
 - 60 second visibility timeout (6x Lambda timeout)
 - 3 retry attempts before DLQ
 - SQS-managed encryption
 
-### Dead Letter Queue: `lxsoftware-siutindei-manager-request-dlq`
+### Dead Letter Queue: `evolvesprouts-manager-request-dlq`
 
 - Receives messages that fail processing 3 times
 - 14 day retention for debugging

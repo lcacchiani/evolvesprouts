@@ -173,9 +173,9 @@ def upgrade() -> None:
     )
 
     # Grant permissions to the app and admin users
-    op.execute("GRANT SELECT, INSERT ON organization_suggestions TO siutindei_app;")
+    op.execute("GRANT SELECT, INSERT ON organization_suggestions TO evolvesprouts_app;")
     op.execute(
-        "GRANT SELECT, INSERT, UPDATE ON organization_suggestions TO siutindei_admin;"
+        "GRANT SELECT, INSERT, UPDATE ON organization_suggestions TO evolvesprouts_admin;"
     )
 
     # Add audit trigger for this table

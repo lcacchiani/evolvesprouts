@@ -15,8 +15,9 @@ import { STANDARD_LOG_RETENTION } from "./constructs";
  * Usage:
  *   cdk deploy WafStack --region us-east-1
  *
- * Then deploy AdminWebStack with the WAF ARN:
- *   cdk deploy AdminWebStack --parameters WafWebAclArn=<output from WafStack>
+ * Then deploy web stacks with the WAF ARN:
+ *   cdk deploy evolvesprouts-crm-web --parameters WafWebAclArn=<WafWebAclArn>
+ *   cdk deploy evolvesprouts-public-www --parameters WafWebAclArn=<WafWebAclArn>
  */
 export class WafStack extends cdk.Stack {
   public readonly webAcl: wafv2.CfnWebACL;
@@ -25,10 +26,9 @@ export class WafStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    cdk.Tags.of(this).add("Organization", "LX Software");
-    cdk.Tags.of(this).add("Project", "Siu Tin Dei");
+    cdk.Tags.of(this).add("Project", "Evolve Sprouts");
 
-    const resourcePrefix = "lxsoftware-siutindei";
+    const resourcePrefix = "evolvesprouts";
     const name = (suffix: string) => `${resourcePrefix}-${suffix}`;
 
     // -------------------------------------------------------------------------
@@ -44,7 +44,7 @@ export class WafStack extends cdk.Stack {
         sampledRequestsEnabled: true,
       },
       name: name("cloudfront-waf"),
-      description: "WAF WebACL for CloudFront distributions - admin web",
+      description: "WAF WebACL for CloudFront distributions",
       rules: [
         // AWS Managed Common Rule Set - protects against common web exploits
         // Includes protection against OWASP Top 10 vulnerabilities

@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "apps/siutindei_app/**"
+      - "apps/evolvesprouts_app/**"
       - "packages/flutter_ui/**"
       - "packages/api_client_dart/**"
       - "packages/models_shared/**"
@@ -44,9 +44,9 @@ jobs:
             echo "Skipping Android signing (missing secrets)"
             exit 0
           fi
-          mkdir -p apps/siutindei_app/android/app
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > apps/siutindei_app/android/app/keystore.p12
-          chmod 600 apps/siutindei_app/android/app/keystore.p12
+          mkdir -p apps/evolvesprouts_app/android/app
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > apps/evolvesprouts_app/android/app/keystore.p12
+          chmod 600 apps/evolvesprouts_app/android/app/keystore.p12
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -55,7 +55,7 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-        working-directory: apps/siutindei_app
+        working-directory: apps/evolvesprouts_app
 
       - name: Build release AAB
         run: |
@@ -67,12 +67,12 @@ jobs:
             --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }} \
             --dart-define=FIREBASE_STORAGE_BUCKET=${{ vars.FIREBASE_STORAGE_BUCKET }} \
             --dart-define=FIREBASE_APP_CHECK_DEBUG=${{ vars.FIREBASE_APP_CHECK_DEBUG }}
-        working-directory: apps/siutindei_app
+        working-directory: apps/evolvesprouts_app
 
       - name: Check Play Store upload prerequisites
         id: playstore
         run: |
-          if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT" ] || [ -z "$ANDROID_PACKAGE_NAME" ] || [ -z "$ANDROID_RELEASE_TRACK" ]; then
+          if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT" ] || [ -z "$ANDROID_RELEASE_TRACK" ]; then
             echo "Skipping Play Store upload (missing config)"
             echo "should_upload=false" >> "$GITHUB_OUTPUT"
             exit 0
@@ -85,7 +85,6 @@ jobs:
           echo "should_upload=true" >> "$GITHUB_OUTPUT"
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
-          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
           ANDROID_RELEASE_TRACK: ${{ vars.ANDROID_RELEASE_TRACK }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -97,8 +96,8 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
-          packageName: ${{ vars.ANDROID_PACKAGE_NAME }}
-          releaseFiles: apps/siutindei_app/build/app/outputs/bundle/release/app-release.aab
+          packageName: com.evolvesprouts
+          releaseFiles: apps/evolvesprouts_app/build/app/outputs/bundle/release/app-release.aab
           track: ${{ vars.ANDROID_RELEASE_TRACK }}
 
       - name: Deploy mobile artifacts

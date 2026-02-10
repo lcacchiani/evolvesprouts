@@ -231,8 +231,8 @@ def upgrade() -> None:
         """)
 
     # Grant permissions to the app and admin users
-    op.execute("GRANT SELECT, INSERT ON audit_log TO siutindei_app;")
-    op.execute("GRANT SELECT, INSERT ON audit_log TO siutindei_admin;")
+    op.execute("GRANT SELECT, INSERT ON audit_log TO evolvesprouts_app;")
+    op.execute("GRANT SELECT, INSERT ON audit_log TO evolvesprouts_admin;")
 
 
 def downgrade() -> None:

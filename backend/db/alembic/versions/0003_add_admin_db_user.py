@@ -19,29 +19,29 @@ def upgrade() -> None:
         """
         DO $$
         BEGIN
-          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'siutindei_admin') THEN
-            CREATE ROLE siutindei_admin LOGIN;
+          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'evolvesprouts_admin') THEN
+            CREATE ROLE evolvesprouts_admin LOGIN;
           END IF;
         END
         $$;
         """
     )
-    op.execute("GRANT rds_iam TO siutindei_admin;")
+    op.execute("GRANT rds_iam TO evolvesprouts_admin;")
     op.execute(
         """
         DO $$
         BEGIN
-          EXECUTE format('GRANT CONNECT ON DATABASE %I TO siutindei_admin', current_database());
+          EXECUTE format('GRANT CONNECT ON DATABASE %I TO evolvesprouts_admin', current_database());
         END
         $$;
         """
     )
-    op.execute("GRANT USAGE ON SCHEMA public TO siutindei_admin;")
+    op.execute("GRANT USAGE ON SCHEMA public TO evolvesprouts_admin;")
     op.execute(
-        "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO siutindei_admin;"
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO evolvesprouts_admin;"
     )
     op.execute(
-        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO siutindei_admin;"
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO evolvesprouts_admin;"
     )
 
 
@@ -51,13 +51,13 @@ def downgrade() -> None:
         """
         DO $$
         BEGIN
-          IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'siutindei_admin') THEN
-            EXECUTE format('REVOKE CONNECT ON DATABASE %I FROM siutindei_admin', current_database());
-            REVOKE USAGE ON SCHEMA public FROM siutindei_admin;
-            REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public FROM siutindei_admin;
-            ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT, INSERT, UPDATE, DELETE ON TABLES FROM siutindei_admin;
-            REVOKE rds_iam FROM siutindei_admin;
-            DROP ROLE siutindei_admin;
+          IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'evolvesprouts_admin') THEN
+            EXECUTE format('REVOKE CONNECT ON DATABASE %I FROM evolvesprouts_admin', current_database());
+            REVOKE USAGE ON SCHEMA public FROM evolvesprouts_admin;
+            REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public FROM evolvesprouts_admin;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT, INSERT, UPDATE, DELETE ON TABLES FROM evolvesprouts_admin;
+            REVOKE rds_iam FROM evolvesprouts_admin;
+            DROP ROLE evolvesprouts_admin;
           END IF;
         END
         $$;

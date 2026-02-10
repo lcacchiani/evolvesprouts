@@ -218,14 +218,14 @@ def upgrade() -> None:
         postgresql_using="gin",
     )
 
-    op.execute("GRANT SELECT ON feedback_labels TO siutindei_app;")
+    op.execute("GRANT SELECT ON feedback_labels TO evolvesprouts_app;")
     op.execute(
-        "GRANT SELECT, INSERT, UPDATE, DELETE " "ON feedback_labels TO siutindei_admin;"
+        "GRANT SELECT, INSERT, UPDATE, DELETE " "ON feedback_labels TO evolvesprouts_admin;"
     )
-    op.execute("GRANT SELECT ON organization_feedback TO siutindei_app;")
+    op.execute("GRANT SELECT ON organization_feedback TO evolvesprouts_app;")
     op.execute(
         "GRANT SELECT, INSERT, UPDATE, DELETE "
-        "ON organization_feedback TO siutindei_admin;"
+        "ON organization_feedback TO evolvesprouts_admin;"
     )
 
     op.execute(

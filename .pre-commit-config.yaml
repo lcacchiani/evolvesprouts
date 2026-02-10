@@ -56,9 +56,9 @@ repos:
     hooks:
       - id: flutter-analyze
         name: Flutter Analyze
-        entry: bash -c 'cd apps/siutindei_app && flutter analyze --no-fatal-infos || true'
+        entry: bash -c 'cd apps/evolvesprouts_app && flutter analyze --no-fatal-infos || true'
         language: system
-        files: ^apps/siutindei_app/.*\.dart$
+        files: ^apps/evolvesprouts_app/.*\.dart$
         pass_filenames: false
 
 # Configuration for specific tools

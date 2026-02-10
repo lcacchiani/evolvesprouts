@@ -80,9 +80,9 @@ export class DatabaseConstruct extends Construct {
   public readonly proxy: rds.IDatabaseProxy;
   /** The database credentials secret. */
   public readonly secret: secretsmanager.ISecret;
-  /** App database user secret (siutindei_app). */
+  /** App database user secret (evolvesprouts_app). */
   public readonly appUserSecret: secretsmanager.ISecret;
-  /** Admin database user secret (siutindei_admin). */
+  /** Admin database user secret (evolvesprouts_admin). */
   public readonly adminUserSecret: secretsmanager.ISecret;
   /** Security group for the database cluster. */
   public readonly dbSecurityGroup: ec2.ISecurityGroup;
@@ -295,7 +295,7 @@ export class DatabaseConstruct extends Construct {
             secretName: name("db-app-user-credentials"),
             generateSecretString: {
               secretStringTemplate: JSON.stringify({
-                username: "siutindei_app",
+                username: "evolvesprouts_app",
               }),
               generateStringKey: "password",
               excludePunctuation: true,
@@ -333,7 +333,7 @@ export class DatabaseConstruct extends Construct {
             secretName: name("db-admin-user-credentials"),
             generateSecretString: {
               secretStringTemplate: JSON.stringify({
-                username: "siutindei_admin",
+                username: "evolvesprouts_admin",
               }),
               generateStringKey: "password",
               excludePunctuation: true,
@@ -380,7 +380,7 @@ export class DatabaseConstruct extends Construct {
         // Standard 90-day retention for database logs
         cloudwatchLogsRetention: STANDARD_LOG_RETENTION,
         credentials: rds.Credentials.fromSecret(dbCredentialsSecret),
-        defaultDatabaseName: props.databaseName ?? "siutindei",
+        defaultDatabaseName: props.databaseName ?? "evolvesprouts",
         // IMPORTANT: iamAuthentication must be false on the cluster to allow
         // password-based connections for migrations. IAM auth is handled by
         // RDS Proxy for Lambda app connections. Setting this to true causes

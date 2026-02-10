@@ -64,10 +64,10 @@ def upgrade() -> None:
         ["name"],
     )
 
-    op.execute("GRANT SELECT ON activity_categories TO siutindei_app;")
+    op.execute("GRANT SELECT ON activity_categories TO evolvesprouts_app;")
     op.execute(
         "GRANT SELECT, INSERT, UPDATE, DELETE ON activity_categories "
-        "TO siutindei_admin;"
+        "TO evolvesprouts_admin;"
     )
 
     op.execute("""

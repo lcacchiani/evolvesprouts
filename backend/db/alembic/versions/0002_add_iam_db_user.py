@@ -19,27 +19,27 @@ def upgrade() -> None:
         """
         DO $$
         BEGIN
-          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'siutindei_app') THEN
-            CREATE ROLE siutindei_app LOGIN;
+          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'evolvesprouts_app') THEN
+            CREATE ROLE evolvesprouts_app LOGIN;
           END IF;
         END
         $$;
         """
     )
-    op.execute("GRANT rds_iam TO siutindei_app;")
+    op.execute("GRANT rds_iam TO evolvesprouts_app;")
     op.execute(
         """
         DO $$
         BEGIN
-          EXECUTE format('GRANT CONNECT ON DATABASE %I TO siutindei_app', current_database());
+          EXECUTE format('GRANT CONNECT ON DATABASE %I TO evolvesprouts_app', current_database());
         END
         $$;
         """
     )
-    op.execute("GRANT USAGE ON SCHEMA public TO siutindei_app;")
-    op.execute("GRANT SELECT ON ALL TABLES IN SCHEMA public TO siutindei_app;")
+    op.execute("GRANT USAGE ON SCHEMA public TO evolvesprouts_app;")
+    op.execute("GRANT SELECT ON ALL TABLES IN SCHEMA public TO evolvesprouts_app;")
     op.execute(
-        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO siutindei_app;"
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO evolvesprouts_app;"
     )
     op.execute("GRANT rds_iam TO CURRENT_USER;")
 
@@ -50,13 +50,13 @@ def downgrade() -> None:
         """
         DO $$
         BEGIN
-          IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'siutindei_app') THEN
-            EXECUTE format('REVOKE CONNECT ON DATABASE %I FROM siutindei_app', current_database());
-            REVOKE USAGE ON SCHEMA public FROM siutindei_app;
-            REVOKE SELECT ON ALL TABLES IN SCHEMA public FROM siutindei_app;
-            ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM siutindei_app;
-            REVOKE rds_iam FROM siutindei_app;
-            DROP ROLE siutindei_app;
+          IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'evolvesprouts_app') THEN
+            EXECUTE format('REVOKE CONNECT ON DATABASE %I FROM evolvesprouts_app', current_database());
+            REVOKE USAGE ON SCHEMA public FROM evolvesprouts_app;
+            REVOKE SELECT ON ALL TABLES IN SCHEMA public FROM evolvesprouts_app;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM evolvesprouts_app;
+            REVOKE rds_iam FROM evolvesprouts_app;
+            DROP ROLE evolvesprouts_app;
           END IF;
         END
         $$;

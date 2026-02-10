@@ -110,7 +110,7 @@ pull requests for dependency updates:
 | GitHub Actions | `/` | CI workflow action versions |
 | npm | `/backend/infrastructure` | CDK and TypeScript dependencies |
 | pip | `/backend` | Python Lambda dependencies |
-| pub | `/apps/siutindei_app` | Flutter/Dart dependencies |
+| pub | `/apps/evolvesprouts_app` | Flutter/Dart dependencies |
 
 **Configuration:**
 - Weekly updates (Mondays) to reduce PR noise.

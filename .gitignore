@@ -16,8 +16,8 @@ eggs/
 .eggs/
 lib/
 lib64/
-!apps/admin_web/src/lib/
-!apps/admin_web/src/lib/**
+!apps/crm_web/src/lib/
+!apps/crm_web/src/lib/**
 parts/
 sdist/
 var/
@@ -192,12 +192,14 @@ cython_debug/
 
 # Node
 node_modules/
-apps/admin_web/.next/
-apps/admin_web/out/
+apps/crm_web/.next/
+apps/crm_web/out/
+apps/public_www/.next/
+apps/public_www/out/
 
 # Playwright
-apps/admin_web/playwright-report/
-apps/admin_web/test-results/
+apps/crm_web/playwright-report/
+apps/crm_web/test-results/
 
 # TypeScript build info
 *.tsbuildinfo
@@ -213,8 +215,8 @@ backend/.lambda-build/
 !backend/infrastructure/lib/**
 !backend/infrastructure/bin/
 !backend/infrastructure/bin/**
-!apps/siutindei_app/lib/
-!apps/siutindei_app/lib/**
+!apps/evolvesprouts_app/lib/
+!apps/evolvesprouts_app/lib/**
 
 # Ruff stuff:
 .ruff_cache/
@@ -235,23 +237,23 @@ backend/.lambda-build/
 .flutter-plugins-dependencies
 .packages
 .fvm/
-apps/siutindei_app/android/local.properties
-apps/siutindei_app/android/app/src/main/java/io/flutter/plugins/
-apps/siutindei_app/ios/Flutter/Generated.xcconfig
-apps/siutindei_app/ios/Flutter/flutter_export_environment.sh
-apps/siutindei_app/ios/Flutter/ephemeral/
-apps/siutindei_app/ios/Runner/GeneratedPluginRegistrant.h
-apps/siutindei_app/ios/Runner/GeneratedPluginRegistrant.m
+apps/evolvesprouts_app/android/local.properties
+apps/evolvesprouts_app/android/app/src/main/java/io/flutter/plugins/
+apps/evolvesprouts_app/ios/Flutter/Generated.xcconfig
+apps/evolvesprouts_app/ios/Flutter/flutter_export_environment.sh
+apps/evolvesprouts_app/ios/Flutter/ephemeral/
+apps/evolvesprouts_app/ios/Runner/GeneratedPluginRegistrant.h
+apps/evolvesprouts_app/ios/Runner/GeneratedPluginRegistrant.m
 
 # Flutter signing artifacts
-apps/siutindei_app/android/key.properties
-apps/siutindei_app/android/keystore.jks
-apps/siutindei_app/android/keystore.jks*
-apps/siutindei_app/android/keystore.p12
-apps/siutindei_app/android/keystore.p12*
-apps/siutindei_app/android/app/keystore.jks
-apps/siutindei_app/android/app/keystore.p12
-apps/siutindei_app/ios/ExportOptions.plist
+apps/evolvesprouts_app/android/key.properties
+apps/evolvesprouts_app/android/keystore.jks
+apps/evolvesprouts_app/android/keystore.jks*
+apps/evolvesprouts_app/android/keystore.p12
+apps/evolvesprouts_app/android/keystore.p12*
+apps/evolvesprouts_app/android/app/keystore.jks
+apps/evolvesprouts_app/android/app/keystore.p12
+apps/evolvesprouts_app/ios/ExportOptions.plist
 
 # Marimo
 marimo/_static/

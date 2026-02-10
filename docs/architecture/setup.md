@@ -47,7 +47,7 @@ Apply the following trust policy to the `GitHubActionsRole` (replace
 If you do not see `GitHubActionsRole`, create it:
 
 1. **IAM → Roles → Create role** (tag it with `Organization: LX Software`
-   and `Project: Siu Tin Dei`)
+   and `Project: Evolve Sprouts`)
 2. **Trusted entity**: Web identity
 3. **Provider**: `token.actions.githubusercontent.com`
 4. **Audience**: `sts.amazonaws.com`
@@ -58,7 +58,7 @@ If the wizard asks for a GitHub organization, use the repo owner (org or user),
 for example `your-org` or `your-user`.
 
 For the OIDC provider itself, add the same tags:
-`Organization: LX Software`, `Project: Siu Tin Dei`.
+`Organization: LX Software`, `Project: Evolve Sprouts`.
 
 ## GitHub Actions configuration
 
@@ -178,7 +178,7 @@ existing secrets when possible.
    openssl genrsa -aes256 -out upload.key 2048
    openssl req -new -key upload.key -out upload.csr
    openssl x509 -req -days 10000 -in upload.csr -signkey upload.key -out upload.crt
-   openssl pkcs12 -export -out keystore.p12 -inkey upload.key -in upload.crt -name siutindei_release
+   openssl pkcs12 -export -out keystore.p12 -inkey upload.key -in upload.crt -name evolvesprouts_release
    ```
 2. Base64 encode the keystore for GitHub Secrets:
    ```bash
@@ -191,9 +191,9 @@ existing secrets when possible.
    - `ANDROID_KEYSTORE_BASE64` = contents of `keystore.base64`
    - `ANDROID_KEYSTORE_PASSWORD` = PKCS12 export password (set when running `openssl pkcs12 -export`)
    - `ANDROID_KEY_PASSWORD` = private key password (set when running `openssl genrsa -aes256`)
-   - `ANDROID_KEY_ALIAS` = alias (e.g., `siutindei_release`)
+   - `ANDROID_KEY_ALIAS` = alias (e.g., `evolvesprouts_release`)
 4. Set GitHub Variables:
-  - `ANDROID_PACKAGE_NAME` (from `apps/siutindei_app/android/app/build.gradle.kts`, `applicationId`)
+  - `ANDROID_PACKAGE_NAME` (from `apps/evolvesprouts_app/android/app/build.gradle.kts`, `applicationId`)
    - `ANDROID_RELEASE_TRACK` (`internal`, `alpha`, `beta`, or `production`)
 5. Create a Play Console service account:
    - Google Cloud Console -> IAM & Admin -> Service Accounts -> Create
@@ -211,7 +211,7 @@ existing secrets when possible.
 ### iOS (signing + TestFlight)
 1. Create an iOS App ID:
    - Apple Developer -> Certificates, Identifiers & Profiles -> Identifiers
-   - Create an App ID for your bundle (e.g., `com.lxsoftware.siutindei`)
+   - Create an App ID for your bundle (e.g., `com.evolvesprouts`)
    - Use this value as `IOS_BUNDLE_ID` and `FIREBASE_IOS_BUNDLE_ID`
 2. Find your Team ID:
    - Apple Developer -> Membership -> Team ID

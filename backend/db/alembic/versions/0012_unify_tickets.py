@@ -180,8 +180,8 @@ def upgrade() -> None:
     op.create_index("tickets_type_status_idx", "tickets", ["ticket_type", "status"])
 
     # Grant permissions
-    op.execute("GRANT SELECT, INSERT ON tickets TO siutindei_app;")
-    op.execute("GRANT SELECT, INSERT, UPDATE ON tickets TO siutindei_admin;")
+    op.execute("GRANT SELECT, INSERT ON tickets TO evolvesprouts_app;")
+    op.execute("GRANT SELECT, INSERT, UPDATE ON tickets TO evolvesprouts_admin;")
 
     # Add audit trigger
     op.execute("""
@@ -431,13 +431,13 @@ def downgrade() -> None:
     """)
 
     # Grant permissions on old tables
-    op.execute("GRANT SELECT, INSERT ON organization_access_requests TO siutindei_app;")
+    op.execute("GRANT SELECT, INSERT ON organization_access_requests TO evolvesprouts_app;")
     op.execute(
-        "GRANT SELECT, INSERT, UPDATE ON organization_access_requests TO siutindei_admin;"
+        "GRANT SELECT, INSERT, UPDATE ON organization_access_requests TO evolvesprouts_admin;"
     )
-    op.execute("GRANT SELECT, INSERT ON organization_suggestions TO siutindei_app;")
+    op.execute("GRANT SELECT, INSERT ON organization_suggestions TO evolvesprouts_app;")
     op.execute(
-        "GRANT SELECT, INSERT, UPDATE ON organization_suggestions TO siutindei_admin;"
+        "GRANT SELECT, INSERT, UPDATE ON organization_suggestions TO evolvesprouts_admin;"
     )
 
     # Drop the unified tickets table
