@@ -1,6 +1,11 @@
 name: Export Figma Homepage Artifact
 
 on:
+  push:
+    branches:
+      - cursor/public-website-design-9b60
+    paths:
+      - '.github/workflows/figma-export-homepage-artifact.yml'
   workflow_dispatch:
     inputs:
       node_id:
