@@ -26,28 +26,6 @@ new PublicWwwStack(app, "evolvesprouts-public-www", {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
   },
-  environmentName: "production",
-  domainParameterName: "PublicWwwDomainName",
-  certificateParameterName: "PublicWwwCertificateArn",
-  bucketNamePrefix: "evolvesprouts-public-www",
-  loggingBucketNamePrefix: "evolvesprouts-public-www-logs",
-  synthesizer: bootstrapQualifier
-    ? new cdk.DefaultStackSynthesizer({ qualifier: bootstrapQualifier })
-    : undefined,
-});
-
-new PublicWwwStack(app, "evolvesprouts-public-www-staging", {
-  description: "Evolve Sprouts Public Website (Staging)",
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
-  },
-  environmentName: "staging",
-  domainParameterName: "PublicWwwStagingDomainName",
-  certificateParameterName: "PublicWwwStagingCertificateArn",
-  bucketNamePrefix: "evolvesprouts-pwww-stg",
-  loggingBucketNamePrefix: "evolvesprouts-pwww-stg-logs",
-  applyNoIndexResponseHeader: true,
   synthesizer: bootstrapQualifier
     ? new cdk.DefaultStackSynthesizer({ qualifier: bootstrapQualifier })
     : undefined,

@@ -4,8 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 APP_DIR="$ROOT_DIR/apps/public_www"
 BUILD_DIR="$APP_DIR/out"
-TARGET_STACK_NAME="${PUBLIC_WWW_STACK_NAME:-evolvesprouts-public-www}"
-SOURCE_STACK_NAME="${PUBLIC_WWW_SOURCE_STACK_NAME:-evolvesprouts-public-www-staging}"
+STACK_NAME="${PUBLIC_WWW_STACK_NAME:-evolvesprouts-public-www}"
+SOURCE_STACK_NAME="${PUBLIC_WWW_SOURCE_STACK_NAME:-$STACK_NAME}"
+DEPLOY_ENVIRONMENT="${PUBLIC_WWW_ENVIRONMENT:-production}"
 RELEASE_ID="${PUBLIC_WWW_RELEASE_ID:-}"
 PROMOTE_RELEASE_ID="${PUBLIC_WWW_PROMOTE_RELEASE_ID:-}"
 
@@ -26,6 +27,22 @@ function require_stack_output() {
   fi
 
   echo "$value"
+}
+
+function get_environment_outputs() {
+  local environment_name="$1"
+  if [ "$environment_name" = "production" ]; then
+    echo "PublicWwwBucketName PublicWwwDistributionId"
+    return
+  fi
+  if [ "$environment_name" = "staging" ]; then
+    echo "PublicWwwStagingBucketName PublicWwwStagingDistributionId"
+    return
+  fi
+
+  echo "Unsupported PUBLIC_WWW_ENVIRONMENT: '$environment_name'"
+  echo "Allowed values: production, staging"
+  exit 1
 }
 
 function validate_release_id() {
@@ -52,12 +69,12 @@ if [ -n "$PROMOTE_RELEASE_ID" ]; then
 
   SOURCE_BUCKET_NAME="$(require_stack_output \
     "$SOURCE_STACK_NAME" \
-    "PublicWwwBucketName")"
+    "PublicWwwStagingBucketName")"
   TARGET_BUCKET_NAME="$(require_stack_output \
-    "$TARGET_STACK_NAME" \
+    "$STACK_NAME" \
     "PublicWwwBucketName")"
   TARGET_DISTRIBUTION_ID="$(require_stack_output \
-    "$TARGET_STACK_NAME" \
+    "$STACK_NAME" \
     "PublicWwwDistributionId")"
 
   KEY_COUNT="$(aws s3api list-objects-v2 \
@@ -90,12 +107,13 @@ if [ ! -d "$BUILD_DIR" ]; then
   exit 1
 fi
 
+read -r TARGET_BUCKET_OUTPUT_KEY TARGET_DISTRIBUTION_OUTPUT_KEY <<< "$(get_environment_outputs "$DEPLOY_ENVIRONMENT")"
 TARGET_BUCKET_NAME="$(require_stack_output \
-  "$TARGET_STACK_NAME" \
-  "PublicWwwBucketName")"
+  "$STACK_NAME" \
+  "$TARGET_BUCKET_OUTPUT_KEY")"
 TARGET_DISTRIBUTION_ID="$(require_stack_output \
-  "$TARGET_STACK_NAME" \
-  "PublicWwwDistributionId")"
+  "$STACK_NAME" \
+  "$TARGET_DISTRIBUTION_OUTPUT_KEY")"
 
 echo "Syncing Public WWW to s3://$TARGET_BUCKET_NAME"
 aws s3 sync \

@@ -50,7 +50,6 @@ jobs:
             exit 1
           fi
         env:
-          PUBLIC_WWW_SOURCE_STACK_NAME: evolvesprouts-public-www-staging
           PUBLIC_WWW_STACK_NAME: evolvesprouts-public-www
           PUBLIC_WWW_PROMOTE_RELEASE_ID: ${{ inputs.release_id }}
 
@@ -60,8 +59,9 @@ jobs:
             echo '## Public Website promotion'
             echo ''
             echo "- Release ID: \`${RELEASE_ID}\`"
-            echo '- Source stack: `evolvesprouts-public-www-staging`'
-            echo '- Target stack: `evolvesprouts-public-www`'
+            echo '- Source environment: `staging`'
+            echo '- Target environment: `production`'
+            echo '- Stack: `evolvesprouts-public-www`'
             echo '- Production URL: `https://www.evolvesprouts.com`'
           } >> "$GITHUB_STEP_SUMMARY"
         env:

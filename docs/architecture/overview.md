@@ -38,7 +38,8 @@ Flutter Mobile / Next.js Admin
 
 ### Public website (Next.js static export)
 - Public marketing site in `apps/public_www`.
-- Hosted on S3 + CloudFront with separate staging and production stacks.
+- Hosted on S3 + CloudFront in one stack with separate staging and
+  production assets.
 - Deploys to staging first, then promotes immutable release artifacts to
   production.
 

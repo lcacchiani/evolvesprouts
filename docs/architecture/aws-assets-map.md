@@ -15,22 +15,24 @@ The same CDK app also defines static website stacks:
 
 - `evolvesprouts-crm-web` (`backend/infrastructure/lib/crm-web-stack.ts`)
 - `evolvesprouts-public-www` (`backend/infrastructure/lib/public-www-stack.ts`)
-- `evolvesprouts-public-www-staging`
-  (`backend/infrastructure/lib/public-www-stack.ts`)
 
-### Public WWW stack variants
+### Public WWW environments in one stack
 
-| Stack Name | Domain Parameter | Certificate Parameter | Notes |
-|-----------|------------------|-----------------------|-------|
-| `evolvesprouts-public-www` | `PublicWwwDomainName` | `PublicWwwCertificateArn` | Production website |
-| `evolvesprouts-public-www-staging` | `PublicWwwStagingDomainName` | `PublicWwwStagingCertificateArn` | Staging website with `X-Robots-Tag: noindex, nofollow, noarchive` |
+| Stack Name | Environment | Domain Parameter | Certificate Parameter | Notes |
+|-----------|-------------|------------------|-----------------------|-------|
+| `evolvesprouts-public-www` | Production | `PublicWwwDomainName` | `PublicWwwCertificateArn` | Production website |
+| `evolvesprouts-public-www` | Staging | `PublicWwwStagingDomainName` | `PublicWwwStagingCertificateArn` | Staging website with `X-Robots-Tag: noindex, nofollow, noarchive` |
 
-Both stacks output:
+The stack outputs:
 
 - `PublicWwwBucketName`
 - `PublicWwwDistributionId`
 - `PublicWwwDistributionDomain`
 - `PublicWwwLoggingBucketName`
+- `PublicWwwStagingBucketName`
+- `PublicWwwStagingDistributionId`
+- `PublicWwwStagingDistributionDomain`
+- `PublicWwwStagingLoggingBucketName`
 
 ---
 

@@ -194,10 +194,10 @@ Lambdas or NAT Gateway.
 - Supports deterministic rollback by re-promoting a previous release ID.
 
 **Notes:**
-- Staging stack: `evolvesprouts-public-www-staging`
-  (`www-staging.evolvesprouts.com`)
-- Production stack: `evolvesprouts-public-www`
-  (`www.evolvesprouts.com`)
+- Public Website stack: `evolvesprouts-public-www`
+- Staging URL: `www-staging.evolvesprouts.com`
+- Production URL: `www.evolvesprouts.com`
+- The stack owns separate staging and production S3 + CloudFront assets.
 - Pushes to `main` deploy to staging and store artifact snapshots under
   `releases/<release_id>/`.
 - Manual promotion copies `releases/<release_id>/` from staging bucket to

@@ -4,12 +4,14 @@
 
 ## Environment model
 
-Public WWW uses two CloudFront + S3 stacks:
+Public WWW uses a single CloudFormation stack:
 
-- **Production** stack: `evolvesprouts-public-www`
-  - URL: `https://www.evolvesprouts.com`
-- **Staging** stack: `evolvesprouts-public-www-staging`
-  - URL: `https://www-staging.evolvesprouts.com`
+- **Public Website stack**: `evolvesprouts-public-www`
+
+Inside the stack, production and staging use separate S3 + CloudFront assets:
+
+- Production URL: `https://www.evolvesprouts.com`
+- Staging URL: `https://www-staging.evolvesprouts.com`
 
 The release process is **staging first**:
 
@@ -45,7 +47,8 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 Workflow: `.github/workflows/deploy-public-www.yml`
 
 - Trigger: push to `main` for `apps/public_www/**` or `scripts/**`
-- Target stack: `evolvesprouts-public-www-staging`
+- Target stack: `evolvesprouts-public-www`
+- Target environment: `staging`
 - Release ID: `github.sha`
 - Behavior:
   - deploy current artifact to staging root
@@ -59,7 +62,7 @@ Workflow: `.github/workflows/promote-public-www.yml`
 - Trigger: manual (`workflow_dispatch`)
 - Required input: `release_id` from staging deploy
 - Behavior:
-  - copy `releases/<release_id>/` from staging bucket to production root
+  - copy `releases/<release_id>/` from staging assets to production root
   - invalidate production CloudFront
 
 ### Rollback
@@ -75,16 +78,17 @@ npm run figma:build
 npm run build
 ```
 
-From repo root, deploy to production stack:
+From repo root, deploy to production assets in the Public Website stack:
 
 ```bash
 bash scripts/deploy/deploy-public-www.sh
 ```
 
-Deploy to staging stack and persist an immutable release snapshot:
+Deploy to staging assets and persist an immutable release snapshot:
 
 ```bash
-PUBLIC_WWW_STACK_NAME=evolvesprouts-public-www-staging \
+PUBLIC_WWW_STACK_NAME=evolvesprouts-public-www \
+PUBLIC_WWW_ENVIRONMENT=staging \
 PUBLIC_WWW_RELEASE_ID=$(git rev-parse HEAD) \
 bash scripts/deploy/deploy-public-www.sh
 ```
@@ -92,7 +96,6 @@ bash scripts/deploy/deploy-public-www.sh
 Promote a release from staging to production:
 
 ```bash
-PUBLIC_WWW_SOURCE_STACK_NAME=evolvesprouts-public-www-staging \
 PUBLIC_WWW_STACK_NAME=evolvesprouts-public-www \
 PUBLIC_WWW_PROMOTE_RELEASE_ID=<release_id> \
 bash scripts/deploy/deploy-public-www.sh

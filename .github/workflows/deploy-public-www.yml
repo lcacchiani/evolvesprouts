@@ -72,7 +72,8 @@ jobs:
             echo 'Deploy script not found: scripts/deploy/deploy-public-www.sh'
           fi
         env:
-          PUBLIC_WWW_STACK_NAME: evolvesprouts-public-www-staging
+          PUBLIC_WWW_STACK_NAME: evolvesprouts-public-www
+          PUBLIC_WWW_ENVIRONMENT: staging
           PUBLIC_WWW_RELEASE_ID: ${{ github.sha }}
 
       - name: Publish staging release summary
@@ -80,7 +81,8 @@ jobs:
           {
             echo '## Public Website staging deploy'
             echo ''
-            echo "- Stack: \`evolvesprouts-public-www-staging\`"
+            echo "- Stack: \`evolvesprouts-public-www\`"
+            echo '- Target environment: `staging`'
             echo "- Release ID: \`${GITHUB_SHA}\`"
             echo '- Staging URL: `https://www-staging.evolvesprouts.com`'
           } >> "$GITHUB_STEP_SUMMARY"
