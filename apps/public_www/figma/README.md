@@ -7,7 +7,7 @@ token pipeline.
 
 - `files/`
   - Raw Figma API payloads produced by:
-    - `npm run figma:pull`
+    - `npm run figma:pull` (OAuth 2.0 authenticated)
   - Expected files:
     - `file.json`
     - `variables.local.json`
@@ -29,3 +29,9 @@ token pipeline.
 
 `src/app/globals.css` imports this generated file so token updates from
 Figma flow through the website build.
+
+For `figma:pull`, set `FIGMA_FILE_KEY` and either:
+
+- `FIGMA_OAUTH_ACCESS_TOKEN`, or
+- `FIGMA_OAUTH_CLIENT_ID`, `FIGMA_OAUTH_CLIENT_SECRET`, and
+  `FIGMA_OAUTH_REFRESH_TOKEN`.

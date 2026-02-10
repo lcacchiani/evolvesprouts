@@ -129,8 +129,19 @@ bash scripts/deploy/deploy-public-www.sh
 
 The staging deploy workflow runs `npm run figma:pull` before `npm run build`.
 `npm run build` then runs `figma:build` to generate CSS tokens.
-If `FIGMA_ACCESS_TOKEN` or `FIGMA_FILE_KEY` is unavailable, pull is skipped
-and build falls back to local artifacts safely.
+If `FIGMA_FILE_KEY` or OAuth credentials are unavailable, pull is skipped and
+build falls back to local artifacts safely.
+
+The deploy workflow reads these GitHub values for OAuth 2.0 auth:
+
+- Secrets:
+  - `FIGMA_OAUTH_ACCESS_TOKEN` (optional direct token)
+  - `FIGMA_OAUTH_CLIENT_ID`
+  - `FIGMA_OAUTH_CLIENT_SECRET`
+  - `FIGMA_OAUTH_REFRESH_TOKEN`
+- Variables:
+  - `PUBLIC_WWW_FIGMA_FILE_KEY`
+  - `PUBLIC_WWW_FIGMA_OAUTH_TOKEN_URL` (optional override)
 
 ## SEO behavior
 
