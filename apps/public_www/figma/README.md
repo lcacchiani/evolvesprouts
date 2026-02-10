@@ -148,7 +148,8 @@ settings to match (e.g. `http://localhost:9999/callback`).
 
 **Step 3 — Authorize in Figma**
 
-Click **Allow** to grant `file_content:read` access.
+Click **Allow** to grant `file_content:read` access. If `file_variables:read` is also
+available, enable it to allow pulling Figma local variables.
 
 **Step 4 — Copy the refresh token**
 

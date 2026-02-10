@@ -165,19 +165,41 @@ async function main() {
   const fileEndpoint = baseEndpoint;
   const variablesEndpoint = `${baseEndpoint}/variables/local`;
 
-  const [fileJson, variablesJson] = await Promise.all([
-    fetchFigmaJson(fileEndpoint, accessToken),
-    fetchFigmaJson(variablesEndpoint, accessToken),
-  ]);
+  const fileJson = await fetchFigmaJson(fileEndpoint, accessToken);
+  await writeJson(fileInfoPath, fileJson);
+  console.log('Pulled Figma file metadata into figma/files/.');
 
-  await Promise.all([
-    writeJson(fileInfoPath, fileJson),
-    writeJson(variablesPath, variablesJson),
-  ]);
-
-  console.log(
-    'Pulled Figma file metadata and local variables into figma/files/.',
-  );
+  // The variables endpoint requires the file_variables:read OAuth scope.
+  // If the token lacks this scope, log a warning and write a placeholder
+  // so the build can still proceed with file metadata alone.
+  try {
+    const variablesJson = await fetchFigmaJson(
+      variablesEndpoint,
+      accessToken,
+    );
+    await writeJson(variablesPath, variablesJson);
+    console.log('Pulled Figma local variables into figma/files/.');
+  } catch (error) {
+    const isScopeError =
+      error.message?.includes('scope') ||
+      error.message?.includes('403');
+    if (isScopeError) {
+      console.warn(
+        'Warning: could not fetch variables (requires file_variables:read scope).',
+      );
+      console.warn(
+        'Skipping variables — build will proceed with file metadata and MDM exports only.',
+      );
+      await ensureJsonIfMissing(variablesPath, {
+        meta: {
+          variableCollections: {},
+          variables: {},
+        },
+      });
+    } else {
+      throw error;
+    }
+  }
 }
 
 main().catch((error) => {
