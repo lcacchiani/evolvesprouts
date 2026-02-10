@@ -6,6 +6,13 @@ backend. It is based on the SQLAlchemy models and Alembic migrations.
 Alembic migrations live in `backend/db/alembic/versions/`.
 Seed data lives in `backend/db/seed/seed_data.sql`.
 
+## Seed data assessment note (2026-02-10)
+
+This refactor updated naming and role identifiers (for example,
+`evolvesprouts_app` and `evolvesprouts_admin`) but did not introduce table or
+column shape changes, enum changes, or FK changes. Existing
+`backend/db/seed/seed_data.sql` remains compatible with the schema.
+
 ## Extensions and enums
 
 - Extension: `pgcrypto` (used by `gen_random_uuid()` defaults).
