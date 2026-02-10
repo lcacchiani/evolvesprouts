@@ -2,6 +2,17 @@
 
 Use `production.json` as a template for CDK parameters.
 
+## Public website parameters
+
+`production.json` now includes both production and staging parameters for the
+public website stacks:
+
+- `PublicWwwDomainName`
+- `PublicWwwCertificateArn`
+- `PublicWwwStagingDomainName`
+- `PublicWwwStagingCertificateArn`
+- `WafWebAclArn`
+
 ## Local deploy
 
 ```bash

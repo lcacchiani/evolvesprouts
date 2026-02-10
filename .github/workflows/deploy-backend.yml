@@ -12,6 +12,7 @@ on:
           - 'all stacks'
           - 'crm web'
           - 'public www'
+          - 'public www staging'
   push:
     branches:
       - main
@@ -82,11 +83,13 @@ jobs:
           npm run build --if-present
 
           if [ "${CDK_STACKS:-}" = "all stacks" ]; then
-            CDK_STACKS="evolvesprouts-crm-web evolvesprouts-public-www"
+            CDK_STACKS="evolvesprouts-crm-web evolvesprouts-public-www evolvesprouts-public-www-staging"
           elif [ "${CDK_STACKS:-}" = "crm web" ]; then
             CDK_STACKS="evolvesprouts-crm-web"
           elif [ "${CDK_STACKS:-}" = "public www" ]; then
             CDK_STACKS="evolvesprouts-public-www"
+          elif [ "${CDK_STACKS:-}" = "public www staging" ]; then
+            CDK_STACKS="evolvesprouts-public-www-staging"
           fi
 
           PARAM_ARGS=()
@@ -123,8 +126,14 @@ jobs:
           stack_set = set(os.environ.get("STACKS", "").split())
           crm_stack = "evolvesprouts-crm-web"
           public_stack = "evolvesprouts-public-www"
+          public_staging_stack = "evolvesprouts-public-www-staging"
           crm_params = {"CrmWebDomainName", "CrmWebCertificateArn", "WafWebAclArn"}
           public_params = {"PublicWwwDomainName", "PublicWwwCertificateArn", "WafWebAclArn"}
+          public_staging_params = {
+              "PublicWwwStagingDomainName",
+              "PublicWwwStagingCertificateArn",
+              "WafWebAclArn",
+          }
 
           for key, value in params.items():
               value_str = ""
@@ -138,6 +147,8 @@ jobs:
                   targets.append(crm_stack)
               if key in public_params:
                   targets.append(public_stack)
+              if key in public_staging_params:
+                  targets.append(public_staging_stack)
 
               if not targets:
                   continue

@@ -5,31 +5,44 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 
+export interface PublicWwwStackProps extends cdk.StackProps {
+  readonly environmentName: "production" | "staging";
+  readonly domainParameterName: string;
+  readonly certificateParameterName: string;
+  readonly bucketNamePrefix: string;
+  readonly loggingBucketNamePrefix: string;
+  readonly applyNoIndexResponseHeader?: boolean;
+}
+
 export class PublicWwwStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
   public readonly loggingBucket: s3.Bucket;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: PublicWwwStackProps) {
     super(scope, id, props);
+
+    const isStaging = props.environmentName === "staging";
 
     cdk.Tags.of(this).add("Organization", "Evolve Sprouts");
     cdk.Tags.of(this).add("Project", "Public Website");
+    cdk.Tags.of(this).add("Environment", props.environmentName);
 
-    const resourcePrefix = "evolvesprouts";
-    const name = (suffix: string) => `${resourcePrefix}-${suffix}`;
-
-    const domainName = new cdk.CfnParameter(this, "PublicWwwDomainName", {
+    const domainName = new cdk.CfnParameter(this, props.domainParameterName, {
       type: "String",
-      description: "Custom domain for public website (CloudFront alias).",
+      description: isStaging
+        ? "Custom domain for staging public website (CloudFront alias)."
+        : "Custom domain for production public website (CloudFront alias).",
     });
 
     const certificateArn = new cdk.CfnParameter(
       this,
-      "PublicWwwCertificateArn",
+      props.certificateParameterName,
       {
         type: "String",
-        description: "ACM certificate ARN for public website domain.",
+        description: isStaging
+          ? "ACM certificate ARN for staging public website domain."
+          : "ACM certificate ARN for production public website domain.",
       },
     );
 
@@ -49,7 +62,7 @@ export class PublicWwwStack extends cdk.Stack {
     });
 
     const loggingBucketName = [
-      name("public-www-logs"),
+      props.loggingBucketNamePrefix,
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
@@ -83,8 +96,28 @@ export class PublicWwwStack extends cdk.Stack {
       ],
     });
 
+    const noIndexResponseHeadersPolicy = props.applyNoIndexResponseHeader
+      ? new cloudfront.ResponseHeadersPolicy(
+          this,
+          "PublicWwwNoIndexResponseHeadersPolicy",
+          {
+            comment:
+              "Prevent indexing for staging public website distribution.",
+            customHeadersBehavior: {
+              customHeaders: [
+                {
+                  header: "X-Robots-Tag",
+                  value: "noindex, nofollow, noarchive",
+                  override: true,
+                },
+              ],
+            },
+          },
+        )
+      : undefined;
+
     const bucketName = [
-      name("public-www"),
+      props.bucketNamePrefix,
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
@@ -136,6 +169,7 @@ export class PublicWwwStack extends cdk.Stack {
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          responseHeadersPolicy: noIndexResponseHeadersPolicy,
         },
       },
     );
