@@ -1,6 +1,8 @@
 name: Deploy CRM Web
 
 on:
+  repository_dispatch:
+    types: [deploy-crm-web]
   workflow_dispatch:
   push:
     branches:

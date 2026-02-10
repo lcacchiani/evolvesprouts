@@ -1,6 +1,8 @@
 name: Deploy Backend
 
 on:
+  repository_dispatch:
+    types: [deploy-backend]
   workflow_dispatch:
     inputs:
       cdk_stacks:

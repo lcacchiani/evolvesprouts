@@ -1,6 +1,8 @@
 name: Deploy Public Website Staging
 
 on:
+  repository_dispatch:
+    types: [deploy-public-www]
   workflow_dispatch:
   push:
     branches:

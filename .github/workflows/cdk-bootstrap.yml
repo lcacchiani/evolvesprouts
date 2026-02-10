@@ -1,6 +1,8 @@
 name: CDK Bootstrap
 
 on:
+  repository_dispatch:
+    types: [cdk-bootstrap]
   workflow_dispatch:
 
 permissions:

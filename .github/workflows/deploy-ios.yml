@@ -1,6 +1,8 @@
 name: Deploy iOS
 
 on:
+  repository_dispatch:
+    types: [deploy-ios]
   workflow_dispatch:
 
 permissions:

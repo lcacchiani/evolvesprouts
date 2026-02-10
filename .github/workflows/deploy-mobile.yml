@@ -1,6 +1,8 @@
 name: Deploy Mobile App
 
 on:
+  repository_dispatch:
+    types: [deploy-mobile]
   workflow_dispatch:
   push:
     branches:

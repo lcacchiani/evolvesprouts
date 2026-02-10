@@ -1,6 +1,8 @@
 name: Check Lockfiles
 
 on:
+  repository_dispatch:
+    types: [check-lockfiles]
   workflow_dispatch:
   pull_request:
   push:

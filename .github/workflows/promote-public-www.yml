@@ -1,6 +1,8 @@
 name: Promote Public Website Release
 
 on:
+  repository_dispatch:
+    types: [promote-public-www]
   workflow_dispatch:
     inputs:
       promotion_mode:
