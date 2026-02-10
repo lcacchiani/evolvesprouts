@@ -14,7 +14,8 @@ Provide these parameters when deploying `evolvesprouts-public-www`:
 
 - `PublicWwwDomainName`: `www.evolvesprouts.com`
 - `PublicWwwCertificateArn`: ACM certificate ARN (us-east-1)
-- `WafWebAclArn`: existing CloudFront WAF ACL ARN (us-east-1)
+- `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1). Set to an
+  empty string to deploy without WAF.
 
 ## Build and deploy
 

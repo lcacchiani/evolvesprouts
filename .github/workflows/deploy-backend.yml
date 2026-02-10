@@ -127,10 +127,10 @@ jobs:
           public_params = {"PublicWwwDomainName", "PublicWwwCertificateArn", "WafWebAclArn"}
 
           for key, value in params.items():
-              if value is None:
-                  continue
-              value_str = str(value).strip()
-              if not value_str:
+              value_str = ""
+              if value is not None:
+                  value_str = str(value).strip()
+              if key != "WafWebAclArn" and not value_str:
                   continue
 
               targets = []

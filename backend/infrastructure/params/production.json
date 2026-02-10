@@ -31,7 +31,7 @@
   "CrmWebCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/ea553e5a-e7af-43ba-bdd4-d46e2f8458aa",
   "PublicWwwDomainName": "www.evolvesprouts.com",
   "PublicWwwCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/ea553e5a-e7af-43ba-bdd4-d46e2f8458aa",
-  "WafWebAclArn": "arn:aws:wafv2:us-east-1:588024549699:global/webacl/evolvesprouts-cloudfront-waf/100ec25a-0688-43fc-bc1f-6bb531af0355",
+  "WafWebAclArn": "",
   "ApiCustomDomainName": "api.evolvesprouts.com",
   "ApiCustomDomainCertificateArn": "arn:aws:acm:ap-southeast-1:588024549699:certificate/af726e1f-444b-47e6-906e-ce9e0925bde4",
   "NominatimUserAgent": "EvolveSproutsCrmWeb/1.0 (https://crm.evolvesprouts.com)",
