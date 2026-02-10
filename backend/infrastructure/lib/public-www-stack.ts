@@ -35,10 +35,17 @@ export class PublicWwwStack extends cdk.Stack {
 
     const wafWebAclArn = new cdk.CfnParameter(this, "WafWebAclArn", {
       type: "String",
+      default: "",
       description:
         "WAF WebACL ARN for CloudFront protection (must be from us-east-1).",
-      allowedPattern: "^arn:aws:wafv2:us-east-1:[0-9]+:global/webacl/.+$",
-      constraintDescription: "Must be a valid WAF WebACL ARN from us-east-1.",
+      allowedPattern: "^$|arn:aws:wafv2:us-east-1:[0-9]+:global/webacl/.+$",
+      constraintDescription:
+        "Must be empty or a valid WAF WebACL ARN from us-east-1.",
+    });
+    const hasWafWebAclArn = new cdk.CfnCondition(this, "HasWafWebAclArn", {
+      expression: cdk.Fn.conditionNot(
+        cdk.Fn.conditionEquals(wafWebAclArn.valueAsString, ""),
+      ),
     });
 
     const loggingBucketName = [
@@ -119,7 +126,6 @@ export class PublicWwwStack extends cdk.Stack {
         defaultRootObject: "index.html",
         domainNames: [domainName.valueAsString],
         certificate,
-        webAclId: wafWebAclArn.valueAsString,
         enableLogging: true,
         logBucket: this.loggingBucket,
         logFilePrefix: "cloudfront-access-logs/",
@@ -132,6 +138,16 @@ export class PublicWwwStack extends cdk.Stack {
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         },
       },
+    );
+    const cfnDistribution =
+      this.distribution.node.defaultChild as cloudfront.CfnDistribution;
+    cfnDistribution.addPropertyOverride(
+      "DistributionConfig.WebACLId",
+      cdk.Fn.conditionIf(
+        hasWafWebAclArn.logicalId,
+        wafWebAclArn.valueAsString,
+        cdk.Aws.NO_VALUE,
+      ),
     );
 
     new cdk.CfnOutput(this, "PublicWwwBucketName", {
