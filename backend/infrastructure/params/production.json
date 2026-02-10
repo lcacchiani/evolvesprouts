@@ -31,6 +31,8 @@
   "CrmWebCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
   "PublicWwwDomainName": "www.evolvesprouts.com",
   "PublicWwwCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
+  "PublicWwwStagingDomainName": "www-staging.evolvesprouts.com",
+  "PublicWwwStagingCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
   "WafWebAclArn": "",
   "ApiCustomDomainName": "api.evolvesprouts.com",
   "ApiCustomDomainCertificateArn": "arn:aws:acm:ap-southeast-1:588024549699:certificate/af726e1f-444b-47e6-906e-ce9e0925bde4",

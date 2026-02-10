@@ -1,4 +1,4 @@
-name: Deploy Public WWW
+name: Deploy Public Website Staging
 
 on:
   workflow_dispatch:
@@ -14,13 +14,13 @@ permissions:
   id-token: write
 
 concurrency:
-  group: deploy-public-www
+  group: deploy-public-www-staging
   cancel-in-progress: false
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: production
+    environment: staging
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -71,3 +71,18 @@ jobs:
           else
             echo 'Deploy script not found: scripts/deploy/deploy-public-www.sh'
           fi
+        env:
+          PUBLIC_WWW_STACK_NAME: evolvesprouts-public-www
+          PUBLIC_WWW_ENVIRONMENT: staging
+          PUBLIC_WWW_RELEASE_ID: ${{ github.sha }}
+
+      - name: Publish staging release summary
+        run: |
+          {
+            echo '## Public Website staging deploy'
+            echo ''
+            echo "- Stack: \`evolvesprouts-public-www\`"
+            echo '- Target environment: `staging`'
+            echo "- Release ID: \`${GITHUB_SHA}\`"
+            echo '- Staging URL: `https://www-staging.evolvesprouts.com`'
+          } >> "$GITHUB_STEP_SUMMARY"

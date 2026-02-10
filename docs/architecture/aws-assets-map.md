@@ -1,10 +1,38 @@
 # AWS Assets Map - Backend Deploy
 
-This document maps all AWS resources created by the `backend-deploy` workflow (`.github/workflows/deploy-backend.yml`).
+This document maps all AWS resources created by the `backend-deploy` workflow
+(`.github/workflows/deploy-backend.yml`).
 
-**Stack Name:** `evolvesprouts`  
+**Primary API Stack Name:** `evolvesprouts`  
 **CDK App:** `backend/infrastructure/bin/app.ts`  
 **Stack Definition:** `backend/infrastructure/lib/api-stack.ts`
+
+---
+
+## Frontend static website stacks (S3 + CloudFront)
+
+The same CDK app also defines static website stacks:
+
+- `evolvesprouts-crm-web` (`backend/infrastructure/lib/crm-web-stack.ts`)
+- `evolvesprouts-public-www` (`backend/infrastructure/lib/public-www-stack.ts`)
+
+### Public WWW environments in one stack
+
+| Stack Name | Environment | Domain Parameter | Certificate Parameter | Notes |
+|-----------|-------------|------------------|-----------------------|-------|
+| `evolvesprouts-public-www` | Production | `PublicWwwDomainName` | `PublicWwwCertificateArn` | Production website |
+| `evolvesprouts-public-www` | Staging | `PublicWwwStagingDomainName` | `PublicWwwStagingCertificateArn` | Staging website with `X-Robots-Tag: noindex, nofollow, noarchive` |
+
+The stack outputs:
+
+- `PublicWwwBucketName`
+- `PublicWwwDistributionId`
+- `PublicWwwDistributionDomain`
+- `PublicWwwLoggingBucketName`
+- `PublicWwwStagingBucketName`
+- `PublicWwwStagingDistributionId`
+- `PublicWwwStagingDistributionDomain`
+- `PublicWwwStagingLoggingBucketName`
 
 ---
 

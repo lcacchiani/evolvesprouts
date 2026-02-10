@@ -36,6 +36,13 @@ Flutter Mobile / Next.js Admin
 - Admin users manage organizations, activities, schedules, and pricing.
 - Hosted on Amplify Hosting (release jobs triggered in CI).
 
+### Public website (Next.js static export)
+- Public marketing site in `apps/public_www`.
+- Hosted on S3 + CloudFront in one stack with separate staging and
+  production assets.
+- Deploys to staging first, then promotes immutable release artifacts to
+  production.
+
 ### Backend
 - API Gateway exposes REST endpoints for public search, admin CRUD,
   manager CRUD, and user self-service operations.
@@ -96,6 +103,8 @@ See [`docs/architecture/database-schema.md`](database-schema.md) for full table 
 - CDK bootstrap workflow for initial environment setup.
 - Lockfile checks for Flutter, Node, and iOS.
 - Amplify promotion workflow with gating (staging -> main).
+- Public website promotion workflow with immutable artifact promotion
+  (staging -> production).
 - Dependabot enabled for automated dependency updates (see below).
 - Infrastructure tests validate CDK templates for new and imported
   database resources.

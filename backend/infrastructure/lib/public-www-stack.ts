@@ -5,10 +5,31 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 
+interface WebsiteEnvironmentConfig {
+  readonly idPrefix: "PublicWww" | "PublicWwwStaging";
+  readonly environmentLabel: "production" | "staging";
+  readonly domainName: string;
+  readonly certificateArn: string;
+  readonly bucketNamePrefix: string;
+  readonly loggingBucketNamePrefix: string;
+  readonly addNoIndexHeader: boolean;
+  readonly hasWafWebAclArn: cdk.CfnCondition;
+  readonly wafWebAclArn: cdk.CfnParameter;
+}
+
+interface WebsiteEnvironmentResources {
+  readonly bucket: s3.Bucket;
+  readonly distribution: cloudfront.Distribution;
+  readonly loggingBucket: s3.Bucket;
+}
+
 export class PublicWwwStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
   public readonly loggingBucket: s3.Bucket;
+  public readonly stagingBucket: s3.Bucket;
+  public readonly stagingDistribution: cloudfront.Distribution;
+  public readonly stagingLoggingBucket: s3.Bucket;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -16,20 +37,35 @@ export class PublicWwwStack extends cdk.Stack {
     cdk.Tags.of(this).add("Organization", "Evolve Sprouts");
     cdk.Tags.of(this).add("Project", "Public Website");
 
-    const resourcePrefix = "evolvesprouts";
-    const name = (suffix: string) => `${resourcePrefix}-${suffix}`;
-
-    const domainName = new cdk.CfnParameter(this, "PublicWwwDomainName", {
+    const productionDomainName = new cdk.CfnParameter(this, "PublicWwwDomainName", {
       type: "String",
-      description: "Custom domain for public website (CloudFront alias).",
+      description: "Custom domain for production public website (CloudFront alias).",
     });
 
-    const certificateArn = new cdk.CfnParameter(
+    const productionCertificateArn = new cdk.CfnParameter(
       this,
       "PublicWwwCertificateArn",
       {
         type: "String",
-        description: "ACM certificate ARN for public website domain.",
+        description: "ACM certificate ARN for production public website domain.",
+      },
+    );
+
+    const stagingDomainName = new cdk.CfnParameter(
+      this,
+      "PublicWwwStagingDomainName",
+      {
+        type: "String",
+        description: "Custom domain for staging public website (CloudFront alias).",
+      },
+    );
+
+    const stagingCertificateArn = new cdk.CfnParameter(
+      this,
+      "PublicWwwStagingCertificateArn",
+      {
+        type: "String",
+        description: "ACM certificate ARN for staging public website domain.",
       },
     );
 
@@ -48,107 +84,35 @@ export class PublicWwwStack extends cdk.Stack {
       ),
     });
 
-    const loggingBucketName = [
-      name("public-www-logs"),
-      cdk.Aws.ACCOUNT_ID,
-      cdk.Aws.REGION,
-    ].join("-");
-
-    this.loggingBucket = new s3.Bucket(this, "PublicWwwLoggingBucket", {
-      bucketName: loggingBucketName,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
-      versioned: true,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      lifecycleRules: [
-        {
-          id: "ExpireOldLogs",
-          enabled: true,
-          expiration: cdk.Duration.days(90),
-          noncurrentVersionExpiration: cdk.Duration.days(30),
-        },
-      ],
-      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
+    const productionResources = this.createWebsiteEnvironment({
+      idPrefix: "PublicWww",
+      environmentLabel: "production",
+      domainName: productionDomainName.valueAsString,
+      certificateArn: productionCertificateArn.valueAsString,
+      bucketNamePrefix: "evolvesprouts-public-www",
+      loggingBucketNamePrefix: "evolvesprouts-public-www-logs",
+      addNoIndexHeader: false,
+      hasWafWebAclArn,
+      wafWebAclArn,
     });
+    this.bucket = productionResources.bucket;
+    this.distribution = productionResources.distribution;
+    this.loggingBucket = productionResources.loggingBucket;
 
-    const loggingBucketCfn = this.loggingBucket.node.defaultChild as s3.CfnBucket;
-    loggingBucketCfn.addMetadata("checkov", {
-      skip: [
-        {
-          id: "CKV_AWS_18",
-          comment:
-            "Logging bucket cannot have self-logging without recursion.",
-        },
-      ],
+    const stagingResources = this.createWebsiteEnvironment({
+      idPrefix: "PublicWwwStaging",
+      environmentLabel: "staging",
+      domainName: stagingDomainName.valueAsString,
+      certificateArn: stagingCertificateArn.valueAsString,
+      bucketNamePrefix: "evolvesprouts-staging-www",
+      loggingBucketNamePrefix: "evolvesprouts-staging-www-logs",
+      addNoIndexHeader: true,
+      hasWafWebAclArn,
+      wafWebAclArn,
     });
-
-    const bucketName = [
-      name("public-www"),
-      cdk.Aws.ACCOUNT_ID,
-      cdk.Aws.REGION,
-    ].join("-");
-
-    this.bucket = new s3.Bucket(this, "PublicWwwBucket", {
-      bucketName,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
-      versioned: true,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      serverAccessLogsBucket: this.loggingBucket,
-      serverAccessLogsPrefix: "s3-access-logs/",
-    });
-
-    const originAccessIdentity = new cloudfront.OriginAccessIdentity(
-      this,
-      "PublicWwwOai",
-      {
-        comment: "OAI for public website CloudFront distribution.",
-      },
-    );
-    this.bucket.grantRead(originAccessIdentity);
-
-    const certificate = acm.Certificate.fromCertificateArn(
-      this,
-      "PublicWwwCertificate",
-      certificateArn.valueAsString,
-    );
-
-    const origin = origins.S3BucketOrigin.withOriginAccessIdentity(this.bucket, {
-      originAccessIdentity,
-    });
-
-    this.distribution = new cloudfront.Distribution(
-      this,
-      "PublicWwwDistribution",
-      {
-        defaultRootObject: "index.html",
-        domainNames: [domainName.valueAsString],
-        certificate,
-        enableLogging: true,
-        logBucket: this.loggingBucket,
-        logFilePrefix: "cloudfront-access-logs/",
-        logIncludesCookies: false,
-        defaultBehavior: {
-          origin,
-          viewerProtocolPolicy:
-            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        },
-      },
-    );
-    const cfnDistribution =
-      this.distribution.node.defaultChild as cloudfront.CfnDistribution;
-    cfnDistribution.addPropertyOverride(
-      "DistributionConfig.WebACLId",
-      cdk.Fn.conditionIf(
-        hasWafWebAclArn.logicalId,
-        wafWebAclArn.valueAsString,
-        cdk.Aws.NO_VALUE,
-      ),
-    );
+    this.stagingBucket = stagingResources.bucket;
+    this.stagingDistribution = stagingResources.distribution;
+    this.stagingLoggingBucket = stagingResources.loggingBucket;
 
     new cdk.CfnOutput(this, "PublicWwwBucketName", {
       value: this.bucket.bucketName,
@@ -166,5 +130,153 @@ export class PublicWwwStack extends cdk.Stack {
       value: this.loggingBucket.bucketName,
       description: "S3 bucket for CloudFront and S3 access logs",
     });
+
+    new cdk.CfnOutput(this, "PublicWwwStagingBucketName", {
+      value: this.stagingBucket.bucketName,
+    });
+
+    new cdk.CfnOutput(this, "PublicWwwStagingDistributionId", {
+      value: this.stagingDistribution.distributionId,
+    });
+
+    new cdk.CfnOutput(this, "PublicWwwStagingDistributionDomain", {
+      value: this.stagingDistribution.distributionDomainName,
+    });
+
+    new cdk.CfnOutput(this, "PublicWwwStagingLoggingBucketName", {
+      value: this.stagingLoggingBucket.bucketName,
+      description: "S3 bucket for staging CloudFront and S3 access logs",
+    });
+  }
+
+  private createWebsiteEnvironment(
+    config: WebsiteEnvironmentConfig,
+  ): WebsiteEnvironmentResources {
+    const loggingBucketName = [
+      config.loggingBucketNamePrefix,
+      cdk.Aws.ACCOUNT_ID,
+      cdk.Aws.REGION,
+    ].join("-");
+
+    const loggingBucket = new s3.Bucket(this, `${config.idPrefix}LoggingBucket`, {
+      bucketName: loggingBucketName,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      lifecycleRules: [
+        {
+          id: "ExpireOldLogs",
+          enabled: true,
+          expiration: cdk.Duration.days(90),
+          noncurrentVersionExpiration: cdk.Duration.days(30),
+        },
+      ],
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
+    });
+
+    const loggingBucketCfn = loggingBucket.node.defaultChild as s3.CfnBucket;
+    loggingBucketCfn.addMetadata("checkov", {
+      skip: [
+        {
+          id: "CKV_AWS_18",
+          comment:
+            "Logging bucket cannot have self-logging without recursion.",
+        },
+      ],
+    });
+
+    const bucketName = [
+      config.bucketNamePrefix,
+      cdk.Aws.ACCOUNT_ID,
+      cdk.Aws.REGION,
+    ].join("-");
+    const bucket = new s3.Bucket(this, `${config.idPrefix}Bucket`, {
+      bucketName,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      serverAccessLogsBucket: loggingBucket,
+      serverAccessLogsPrefix: "s3-access-logs/",
+    });
+
+    const originAccessIdentity = new cloudfront.OriginAccessIdentity(
+      this,
+      `${config.idPrefix}Oai`,
+      {
+        comment: `OAI for ${config.environmentLabel} public website CloudFront distribution.`,
+      },
+    );
+    bucket.grantRead(originAccessIdentity);
+
+    const certificate = acm.Certificate.fromCertificateArn(
+      this,
+      `${config.idPrefix}Certificate`,
+      config.certificateArn,
+    );
+
+    const origin = origins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
+      originAccessIdentity,
+    });
+
+    const noIndexResponseHeadersPolicy = config.addNoIndexHeader
+      ? new cloudfront.ResponseHeadersPolicy(
+          this,
+          `${config.idPrefix}NoIndexResponseHeadersPolicy`,
+          {
+            comment:
+              "Prevent indexing for staging public website distribution.",
+            customHeadersBehavior: {
+              customHeaders: [
+                {
+                  header: "X-Robots-Tag",
+                  value: "noindex, nofollow, noarchive",
+                  override: true,
+                },
+              ],
+            },
+          },
+        )
+      : undefined;
+
+    const distribution = new cloudfront.Distribution(
+      this,
+      `${config.idPrefix}Distribution`,
+      {
+        defaultRootObject: "index.html",
+        domainNames: [config.domainName],
+        certificate,
+        enableLogging: true,
+        logBucket: loggingBucket,
+        logFilePrefix: "cloudfront-access-logs/",
+        logIncludesCookies: false,
+        defaultBehavior: {
+          origin,
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          responseHeadersPolicy: noIndexResponseHeadersPolicy,
+        },
+      },
+    );
+    const cfnDistribution = distribution.node.defaultChild as cloudfront.CfnDistribution;
+    cfnDistribution.addPropertyOverride(
+      "DistributionConfig.WebACLId",
+      cdk.Fn.conditionIf(
+        config.hasWafWebAclArn.logicalId,
+        config.wafWebAclArn.valueAsString,
+        cdk.Aws.NO_VALUE,
+      ),
+    );
+
+    return {
+      bucket,
+      distribution,
+      loggingBucket,
+    };
   }
 }

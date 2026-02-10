@@ -69,6 +69,11 @@ For the OIDC provider itself, add the same tags:
 - `CDK_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (e.g. `backend/infrastructure/params/production.json`)
+  - For Public WWW deploys, include:
+    - `PublicWwwDomainName`
+    - `PublicWwwCertificateArn`
+    - `PublicWwwStagingDomainName`
+    - `PublicWwwStagingCertificateArn`
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`

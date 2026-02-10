@@ -183,7 +183,28 @@ Lambdas or NAT Gateway.
 - The `amplify-promote` workflow uses the production environment to
   support GitHub approval gates.
 
-## 6) Lockfile Enforcement
+## 6) Public Website Release Promotion (S3 + CloudFront)
+
+**Decision:** Use immutable artifact promotion from staging to production for
+`apps/public_www`.
+
+**Why:**
+- Guarantees production receives the exact artifact validated on staging.
+- Avoids drift between staging verification and production rollout.
+- Supports deterministic rollback by re-promoting a previous release ID.
+
+**Notes:**
+- Public Website stack: `evolvesprouts-public-www`
+- Staging URL: `www-staging.evolvesprouts.com`
+- Production URL: `www.evolvesprouts.com`
+- The stack owns separate staging and production S3 + CloudFront assets.
+- Pushes to `main` deploy to staging and store artifact snapshots under
+  `releases/<release_id>/`.
+- Manual promotion copies `releases/<release_id>/` from staging bucket to
+  production bucket root and invalidates production CloudFront.
+- Staging adds `X-Robots-Tag: noindex, nofollow, noarchive` at CloudFront.
+
+## 7) Lockfile Enforcement
 
 **Decision:** Lockfiles are required and validated in CI.
 
@@ -193,7 +214,7 @@ Lambdas or NAT Gateway.
 - iOS: `Podfile.lock`
 - CI workflow: `.github/workflows/check-lockfiles.yml`
 
-## 7) Dependency Updates
+## 8) Dependency Updates
 
 **Decision:** Use Dependabot for automated dependency updates.
 
@@ -215,7 +236,7 @@ Lambdas or NAT Gateway.
 - `@dependabot ignore this major version` - Stop updates for this major version.
 - `@dependabot ignore this dependency` - Stop all updates for this dependency.
 
-## 8) GitHub Rulesets
+## 9) GitHub Rulesets
 
 **Decision:** Protect `main` branch and release tags with GitHub rulesets.
 
