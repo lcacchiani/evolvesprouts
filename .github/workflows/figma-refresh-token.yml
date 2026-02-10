@@ -7,8 +7,8 @@ name: Generate Figma OAuth Refresh Token
 #   3. Copy the `code` from the redirect URL in your browser address bar.
 #   4. Trigger this workflow with the code pasted into authorization_code.
 #
-# The workflow exchanges the code immediately and stores the refresh
-# token as a repository secret.
+# The workflow exchanges the code and prints the refresh token in the
+# run summary. Copy it and add it as a repository secret manually.
 
 on:
   workflow_dispatch:
@@ -88,7 +88,6 @@ jobs:
               err_body = exc.read().decode()[:500]
               print(f"::error::Token exchange failed (HTTP {exc.code}): {err_body}")
 
-              # Write debug info for the summary step
               with open(os.environ["GITHUB_OUTPUT"], "a") as f:
                   f.write("exchange_ok=false\n")
                   f.write(f"error_detail=HTTP {exc.code}: {err_body}\n")
@@ -106,8 +105,9 @@ jobs:
                   f.write("exchange_ok=false\n")
               sys.exit(1)
 
-          # Mask tokens in logs
-          print(f"::add-mask::{refresh_token}")
+          # Mask the access token in logs (short-lived, not needed).
+          # The refresh token is written to the summary for manual copying
+          # and is NOT masked so it remains readable there.
           if access_token:
               print(f"::add-mask::{access_token}")
 
@@ -121,22 +121,14 @@ jobs:
           print("Token exchange successful!")
           print(f"  user_id    : {user_id}")
           print(f"  expires_in : {expires_in}s")
+          print()
+          print("See the run Summary tab for the refresh token.")
           PYEOF
         env:
           CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.FIGMA_OAUTH_CLIENT_SECRET }}
           AUTH_CODE: ${{ inputs.authorization_code }}
           CALLBACK_PORT: ${{ inputs.callback_port }}
-
-      - name: Store refresh token as secret
-        if: ${{ steps.exchange.outputs.exchange_ok == 'true' }}
-        run: |
-          echo "${REFRESH_TOKEN}" | gh secret set FIGMA_OAUTH_REFRESH_TOKEN --repo "${GITHUB_REPOSITORY}"
-          echo 'FIGMA_OAUTH_REFRESH_TOKEN secret has been updated.'
-        env:
-          REFRESH_TOKEN: ${{ steps.exchange.outputs.refresh_token }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Publish result summary
         if: always()
@@ -153,15 +145,23 @@ jobs:
             if [ "$EXCHANGE_OK" = "true" ]; then
               echo '### Status: Success'
               echo ''
-              echo 'The \`FIGMA_OAUTH_REFRESH_TOKEN\` repository secret has been created/updated automatically.'
-              echo ''
               echo '| Detail | Value |'
               echo '|--------|-------|'
               echo "| Figma user ID | \`${USER_ID:-n/a}\` |"
               echo "| Access token expires in | ${EXPIRES_IN:-?}s |"
               echo ''
-              echo 'If automatic secret storage failed (permissions), add the secret manually'
-              echo 'under **Settings > Secrets and variables > Actions**.'
+              echo '### Refresh Token'
+              echo ''
+              echo 'Copy this value and add it as a repository secret named'
+              echo '\`FIGMA_OAUTH_REFRESH_TOKEN\` under **Settings > Secrets and'
+              echo 'variables > Actions**:'
+              echo ''
+              echo "\`\`\`"
+              echo "${REFRESH_TOKEN}"
+              echo "\`\`\`"
+              echo ''
+              echo '> **Note:** Delete this workflow run after copying the token'
+              echo '> to avoid leaving it visible in the summary.'
             else
               echo '### Status: Failed'
               echo ''
@@ -206,5 +206,6 @@ jobs:
           CALLBACK_PORT: ${{ inputs.callback_port }}
           EXCHANGE_OK: ${{ steps.exchange.outputs.exchange_ok }}
           ERROR_DETAIL: ${{ steps.exchange.outputs.error_detail }}
+          REFRESH_TOKEN: ${{ steps.exchange.outputs.refresh_token }}
           EXPIRES_IN: ${{ steps.exchange.outputs.expires_in }}
           USER_ID: ${{ steps.exchange.outputs.user_id }}
