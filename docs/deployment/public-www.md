@@ -60,7 +60,10 @@ Workflow: `.github/workflows/deploy-public-www.yml`
 Workflow: `.github/workflows/promote-public-www.yml`
 
 - Trigger: manual (`workflow_dispatch`)
-- Required input: `release_id` from staging deploy
+- Inputs:
+  - `promotion_mode=latest_staging` to promote the most recent staging build
+  - `promotion_mode=release_id` with `release_id=<id>` to promote a specific
+    staging release
 - Behavior:
   - copy `releases/<release_id>/` from staging assets to production root
   - invalidate production CloudFront
@@ -98,6 +101,21 @@ Promote a release from staging to production:
 ```bash
 PUBLIC_WWW_STACK_NAME=evolvesprouts-public-www \
 PUBLIC_WWW_PROMOTE_RELEASE_ID=<release_id> \
+bash scripts/deploy/deploy-public-www.sh
+```
+
+Promote the latest staged release (runner equivalent of
+`promotion_mode=latest_staging`):
+
+```bash
+STAGING_BUCKET="$(aws cloudformation describe-stacks \
+  --stack-name evolvesprouts-public-www \
+  --query "Stacks[0].Outputs[?OutputKey=='PublicWwwStagingBucketName'].OutputValue" \
+  --output text)"
+LATEST_RELEASE_ID="$(aws s3 cp \
+  "s3://$STAGING_BUCKET/releases/latest-release-id.txt" - | tr -d '\r\n')"
+PUBLIC_WWW_STACK_NAME=evolvesprouts-public-www \
+PUBLIC_WWW_PROMOTE_RELEASE_ID="$LATEST_RELEASE_ID" \
 bash scripts/deploy/deploy-public-www.sh
 ```
 

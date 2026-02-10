@@ -200,8 +200,12 @@ Lambdas or NAT Gateway.
 - The stack owns separate staging and production S3 + CloudFront assets.
 - Pushes to `main` deploy to staging and store artifact snapshots under
   `releases/<release_id>/`.
+- Staging deploys update `releases/latest-release-id.txt` to track the most
+  recent validated staging build.
 - Manual promotion copies `releases/<release_id>/` from staging bucket to
   production bucket root and invalidates production CloudFront.
+- Promotion workflow supports either an explicit `release_id` or
+  `latest_staging` mode.
 - Staging adds `X-Robots-Tag: noindex, nofollow, noarchive` at CloudFront.
 
 ## 7) Lockfile Enforcement

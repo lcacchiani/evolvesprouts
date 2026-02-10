@@ -3,9 +3,17 @@ name: Promote Public Website Release
 on:
   workflow_dispatch:
     inputs:
-      release_id:
-        description: 'Staging release ID (usually commit SHA)'
+      promotion_mode:
+        description: 'Release selection mode'
         required: true
+        default: 'latest_staging'
+        type: choice
+        options:
+          - latest_staging
+          - release_id
+      release_id:
+        description: 'Required when promotion_mode=release_id'
+        required: false
         type: string
 
 permissions:
@@ -41,6 +49,47 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-session-name: GitHubActions-${{ github.run_id }}
 
+      - name: Resolve release ID
+        id: resolve_release
+        run: |
+          if [ "$PROMOTION_MODE" = "release_id" ]; then
+            if [ -z "$INPUT_RELEASE_ID" ]; then
+              echo 'release_id is required when promotion_mode=release_id'
+              exit 1
+            fi
+            SELECTED_RELEASE_ID="$INPUT_RELEASE_ID"
+          elif [ "$PROMOTION_MODE" = "latest_staging" ]; then
+            STAGING_BUCKET="$(aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query "Stacks[0].Outputs[?OutputKey=='PublicWwwStagingBucketName'].OutputValue" \
+              --output text)"
+            if [ -z "$STAGING_BUCKET" ] || [ "$STAGING_BUCKET" = "None" ]; then
+              echo 'Staging bucket output not found on Public Website stack'
+              exit 1
+            fi
+
+            MARKER_FILE="$(mktemp)"
+            aws s3 cp \
+              "s3://$STAGING_BUCKET/releases/latest-release-id.txt" \
+              "$MARKER_FILE"
+            SELECTED_RELEASE_ID="$(tr -d '\r\n' < "$MARKER_FILE")"
+            rm -f "$MARKER_FILE"
+
+            if [ -z "$SELECTED_RELEASE_ID" ]; then
+              echo 'Latest staging release marker is empty'
+              exit 1
+            fi
+          else
+            echo "Unsupported promotion_mode: $PROMOTION_MODE"
+            exit 1
+          fi
+
+          echo "release_id=$SELECTED_RELEASE_ID" >> "$GITHUB_OUTPUT"
+        env:
+          PROMOTION_MODE: ${{ inputs.promotion_mode }}
+          INPUT_RELEASE_ID: ${{ inputs.release_id }}
+          STACK_NAME: evolvesprouts-public-www
+
       - name: Promote release artifact to production
         run: |
           if [ -f 'scripts/deploy/deploy-public-www.sh' ]; then
@@ -51,13 +100,14 @@ jobs:
           fi
         env:
           PUBLIC_WWW_STACK_NAME: evolvesprouts-public-www
-          PUBLIC_WWW_PROMOTE_RELEASE_ID: ${{ inputs.release_id }}
+          PUBLIC_WWW_PROMOTE_RELEASE_ID: ${{ steps.resolve_release.outputs.release_id }}
 
       - name: Publish promotion summary
         run: |
           {
             echo '## Public Website promotion'
             echo ''
+            echo "- Promotion mode: \`${PROMOTION_MODE}\`"
             echo "- Release ID: \`${RELEASE_ID}\`"
             echo '- Source environment: `staging`'
             echo '- Target environment: `production`'
@@ -65,4 +115,5 @@ jobs:
             echo '- Production URL: `https://www.evolvesprouts.com`'
           } >> "$GITHUB_STEP_SUMMARY"
         env:
-          RELEASE_ID: ${{ inputs.release_id }}
+          PROMOTION_MODE: ${{ inputs.promotion_mode }}
+          RELEASE_ID: ${{ steps.resolve_release.outputs.release_id }}

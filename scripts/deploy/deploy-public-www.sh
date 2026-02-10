@@ -129,6 +129,16 @@ if [ -n "$RELEASE_ID" ]; then
     "$BUILD_DIR" \
     "s3://$TARGET_BUCKET_NAME/releases/$RELEASE_ID/" \
     --delete
+
+  if [ "$DEPLOY_ENVIRONMENT" = "staging" ]; then
+    echo "Updating staging latest release marker: $RELEASE_ID"
+    MARKER_FILE="$(mktemp)"
+    printf "%s\n" "$RELEASE_ID" > "$MARKER_FILE"
+    aws s3 cp \
+      "$MARKER_FILE" \
+      "s3://$TARGET_BUCKET_NAME/releases/latest-release-id.txt"
+    rm -f "$MARKER_FILE"
+  fi
 fi
 
 invalidate_distribution "$TARGET_DISTRIBUTION_ID"
