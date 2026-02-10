@@ -1,4 +1,4 @@
-name: Promote Public WWW Release
+name: Promote Public Website Release
 
 on:
   workflow_dispatch:
@@ -57,7 +57,7 @@ jobs:
       - name: Publish promotion summary
         run: |
           {
-            echo '## Public WWW promotion'
+            echo '## Public Website promotion'
             echo ''
             echo "- Release ID: \`${RELEASE_ID}\`"
             echo '- Source stack: `evolvesprouts-public-www-staging`'

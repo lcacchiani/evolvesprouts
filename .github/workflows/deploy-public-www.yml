@@ -1,4 +1,4 @@
-name: Deploy Public WWW Staging
+name: Deploy Public Website Staging
 
 on:
   workflow_dispatch:
@@ -78,7 +78,7 @@ jobs:
       - name: Publish staging release summary
         run: |
           {
-            echo '## Public WWW staging deploy'
+            echo '## Public Website staging deploy'
             echo ''
             echo "- Stack: \`evolvesprouts-public-www-staging\`"
             echo "- Release ID: \`${GITHUB_SHA}\`"
