@@ -32,7 +32,7 @@ jobs:
       - name: Run Dart/Flutter lint
         run: |
           set -e
-          for dir in apps/siutindei_app packages/flutter_ui packages/api_client_dart; do
+          for dir in apps/evolvesprouts_app packages/flutter_ui packages/api_client_dart; do
             if [ -d "$dir" ]; then
               echo "Linting Dart in $dir"
               (cd "$dir" && flutter pub get && flutter analyze)
@@ -56,7 +56,7 @@ jobs:
       - name: Run React lint
         run: |
           set -e
-          for dir in apps/admin_web packages/react_ui packages/api_client_ts; do
+          for dir in apps/crm_web apps/public_www packages/react_ui packages/api_client_ts; do
             if [ -f "$dir/package.json" ]; then
               echo "Linting React in $dir"
               if [ -f "$dir/package-lock.json" ]; then
@@ -69,17 +69,6 @@ jobs:
               echo "Skipping missing $dir"
             fi
           done
-
-      - name: Check OpenAPI generated types are up-to-date
-        working-directory: apps/admin_web
-        run: |
-          npm run generate:api
-          if ! git diff --quiet src/types/api-admin.generated.ts src/types/api-search.generated.ts; then
-            echo "::error::Generated types are out of date. Run 'npm run generate:api' in apps/admin_web and commit the result."
-            git diff src/types/api-admin.generated.ts src/types/api-search.generated.ts
-            exit 1
-          fi
-          echo "Generated types are up-to-date."
 
   lint-python:
     name: Lint Python

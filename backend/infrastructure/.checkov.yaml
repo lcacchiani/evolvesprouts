@@ -37,7 +37,8 @@ skip-check:
   - CKV_AWS_56  # Restrict public buckets
 
   # S3 bucket access logging - ONLY affects logging buckets
-  # AdminWebLoggingBucket and OrganizationImagesLogBucket are logging
+  # CrmWebLoggingBucket, PublicWwwLoggingBucket, and OrganizationImagesLogBucket
+  # are logging
   # destination buckets. Enabling access logging on them would create
   # an infinite loop. This is standard AWS practice.
   - CKV_AWS_18  # Access logging enabled

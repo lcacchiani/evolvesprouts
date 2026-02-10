@@ -1,13 +1,13 @@
 # Cloudflare Optimization Guide
 
-This document outlines Cloudflare optimization strategies for the Siu Tin Dei project, using a hybrid AWS + Cloudflare architecture. Cloudflare acts as an edge layer in front of your existing AWS infrastructure.
+This document outlines Cloudflare optimization strategies for the Evolve Sprouts project, using a hybrid AWS + Cloudflare architecture. Cloudflare acts as an edge layer in front of your existing AWS infrastructure.
 
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
 - [DNS and Proxy Setup](#dns-and-proxy-setup)
 - [API Optimization](#api-optimization)
-- [Admin Web Optimization](#admin-web-optimization)
+- [CRM Web Optimization](#crm-web-optimization)
 - [Image Optimization](#image-optimization)
 - [Security Enhancements](#security-enhancements)
 - [Performance Optimizations](#performance-optimizations)
@@ -94,7 +94,7 @@ Cloudflare acts as an edge layer, proxying traffic to your existing AWS services
 ```hcl
 # Terraform Cloudflare configuration
 resource "cloudflare_zone" "main" {
-  zone = "siutindei.lx-software.com"
+  zone = "evolvesprouts.lx-software.com"
 }
 
 # API subdomain - proxied through Cloudflare to API Gateway
@@ -166,7 +166,7 @@ const apiCertificate = acm.Certificate.fromCertificateArn(
 
 // Add custom domain to API Gateway
 const apiDomainName = new apigateway.DomainName(this, "ApiDomainName", {
-  domainName: "api.siutindei.lx-software.com",
+  domainName: "api.evolvesprouts.lx-software.com",
   certificate: apiCertificate,
   endpointType: apigateway.EndpointType.REGIONAL,  // Required for Cloudflare proxy
   securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
@@ -201,7 +201,7 @@ resource "cloudflare_ruleset" "transform_api" {
     action_parameters {
       host_header = "your-api-gateway-id.execute-api.region.amazonaws.com"
     }
-    expression  = "(http.host eq \"api.siutindei.lx-software.com\")"
+    expression  = "(http.host eq \"api.evolvesprouts.lx-software.com\")"
     description = "Set Host header for API Gateway"
     enabled     = true
   }
@@ -220,7 +220,7 @@ resource "cloudflare_ruleset" "transform_admin" {
     action_parameters {
       host_header = "your-cloudfront-distribution.cloudfront.net"
     }
-    expression  = "(http.host eq \"admin.siutindei.lx-software.com\")"
+    expression  = "(http.host eq \"admin.evolvesprouts.lx-software.com\")"
     description = "Set Host header for CloudFront"
     enabled     = true
   }
@@ -384,7 +384,7 @@ resource "cloudflare_tiered_cache" "api" {
 
 ---
 
-## Admin Web Optimization
+## CRM Web Optimization
 
 ### Page Rules and Cache Configuration
 
@@ -412,7 +412,7 @@ resource "cloudflare_ruleset" "cache_admin" {
         default = 31536000
       }
     }
-    expression  = "(http.host eq \"admin.siutindei.lx-software.com\") and (http.request.uri.path contains \"/_next/static/\")"
+    expression  = "(http.host eq \"admin.evolvesprouts.lx-software.com\") and (http.request.uri.path contains \"/_next/static/\")"
     description = "Cache static assets aggressively"
     enabled     = true
   }
@@ -430,7 +430,7 @@ resource "cloudflare_ruleset" "cache_admin" {
         default = 0  # Always revalidate
       }
     }
-    expression  = "(http.host eq \"admin.siutindei.lx-software.com\") and (http.request.uri.path matches \".*\\.html$\" or http.request.uri.path eq \"/\" or http.request.uri.path matches \".*/\")"
+    expression  = "(http.host eq \"admin.evolvesprouts.lx-software.com\") and (http.request.uri.path matches \".*\\.html$\" or http.request.uri.path eq \"/\" or http.request.uri.path matches \".*/\")"
     description = "Cache HTML with short TTL"
     enabled     = true
   }
@@ -494,7 +494,7 @@ Use Cloudflare's Image Resizing to serve optimized images on-the-fly:
 
 ```typescript
 // Frontend helper for image optimization
-// apps/admin_web/src/lib/image-utils.ts
+// apps/crm_web/src/lib/image-utils.ts
 
 interface ImageOptions {
   width?: number;
@@ -519,13 +519,13 @@ export function getOptimizedImageUrl(
   ].filter(Boolean).join(',');
   
   // If the image is already on our domain, use Image Resizing
-  if (originalUrl.startsWith('https://images.siutindei.lx-software.com/')) {
-    const path = originalUrl.replace('https://images.siutindei.lx-software.com', '');
-    return `https://images.siutindei.lx-software.com/cdn-cgi/image/${params}${path}`;
+  if (originalUrl.startsWith('https://images.evolvesprouts.lx-software.com/')) {
+    const path = originalUrl.replace('https://images.evolvesprouts.lx-software.com', '');
+    return `https://images.evolvesprouts.lx-software.com/cdn-cgi/image/${params}${path}`;
   }
   
   // For external images, proxy through our domain
-  return `https://images.siutindei.lx-software.com/cdn-cgi/image/${params}/${encodeURIComponent(originalUrl)}`;
+  return `https://images.evolvesprouts.lx-software.com/cdn-cgi/image/${params}/${encodeURIComponent(originalUrl)}`;
 }
 
 // Usage examples:
@@ -556,7 +556,7 @@ resource "cloudflare_ruleset" "cache_images" {
         default = 86400  # 1 day
       }
     }
-    expression  = "(http.host eq \"images.siutindei.lx-software.com\")"
+    expression  = "(http.host eq \"images.evolvesprouts.lx-software.com\")"
     description = "Cache images aggressively"
     enabled     = true
   }
@@ -575,7 +575,7 @@ Cloudflare WAF supplements your existing AWS WAF:
 resource "cloudflare_ruleset" "waf" {
   zone_id     = cloudflare_zone.main.id
   name        = "WAF Ruleset"
-  description = "WAF rules for Siu Tin Dei"
+  description = "WAF rules for Evolve Sprouts"
   kind        = "zone"
   phase       = "http_request_firewall_managed"
   
@@ -752,7 +752,7 @@ resource "cloudflare_ruleset" "security_headers" {
         value     = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
       }
     }
-    expression  = "(http.host eq \"admin.siutindei.lx-software.com\")"
+    expression  = "(http.host eq \"admin.evolvesprouts.lx-software.com\")"
     description = "Add security headers to admin web"
     enabled     = true
   }
@@ -773,7 +773,7 @@ resource "cloudflare_ruleset" "security_headers" {
         # Only for non-search endpoints
       }
     }
-    expression  = "(http.host eq \"api.siutindei.lx-software.com\") and not (http.request.uri.path eq \"/v1/activities/search\")"
+    expression  = "(http.host eq \"api.evolvesprouts.lx-software.com\") and not (http.request.uri.path eq \"/v1/activities/search\")"
     description = "Add security headers to API"
     enabled     = true
   }
@@ -860,9 +860,9 @@ export default {
     
     // Inject preconnect hints
     const hints = `
-    <link rel="preconnect" href="https://api.siutindei.lx-software.com" crossorigin>
-    <link rel="dns-prefetch" href="https://api.siutindei.lx-software.com">
-    <link rel="preconnect" href="https://images.siutindei.lx-software.com" crossorigin>
+    <link rel="preconnect" href="https://api.evolvesprouts.lx-software.com" crossorigin>
+    <link rel="dns-prefetch" href="https://api.evolvesprouts.lx-software.com">
+    <link rel="preconnect" href="https://images.evolvesprouts.lx-software.com" crossorigin>
     `;
     
     const modifiedHtml = html.replace('</head>', `${hints}</head>`);
@@ -870,8 +870,8 @@ export default {
     // Add Link header for Early Hints
     const newHeaders = new Headers(response.headers);
     newHeaders.set('Link', [
-      '<https://api.siutindei.lx-software.com>; rel=preconnect; crossorigin',
-      '<https://images.siutindei.lx-software.com>; rel=preconnect; crossorigin',
+      '<https://api.evolvesprouts.lx-software.com>; rel=preconnect; crossorigin',
+      '<https://images.evolvesprouts.lx-software.com>; rel=preconnect; crossorigin',
     ].join(', '));
     
     return new Response(modifiedHtml, {
@@ -925,7 +925,7 @@ resource "cloudflare_load_balancer_monitor" "api" {
 
 resource "cloudflare_load_balancer" "api" {
   zone_id          = cloudflare_zone.main.id
-  name             = "api.siutindei.lx-software.com"
+  name             = "api.evolvesprouts.lx-software.com"
   fallback_pool_id = cloudflare_load_balancer_pool.api_primary.id
   default_pool_ids = [cloudflare_load_balancer_pool.api_primary.id]
   
@@ -990,10 +990,10 @@ By offloading traffic to Cloudflare edge:
 **Verification:**
 ```bash
 # Check DNS is resolving through Cloudflare
-dig api.siutindei.lx-software.com
+dig api.evolvesprouts.lx-software.com
 
 # Check Cloudflare headers in response
-curl -I https://api.siutindei.lx-software.com/health
+curl -I https://api.evolvesprouts.lx-software.com/health
 # Should see: cf-ray header
 ```
 
@@ -1008,7 +1008,7 @@ curl -I https://api.siutindei.lx-software.com/health
 **Verification:**
 ```bash
 # Check cache status
-curl -I "https://api.siutindei.lx-software.com/v1/activities/search?limit=10"
+curl -I "https://api.evolvesprouts.lx-software.com/v1/activities/search?limit=10"
 # Should see: cf-cache-status: HIT (on second request)
 ```
 

@@ -14,7 +14,7 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - Best TypeScript support and forward compatibility.
 
 **Canonical structure:**
-- `apps/admin_web/src/app/...` with route groups and nested layouts.
+- `apps/crm_web/src/app/...` with route groups and nested layouts.
 
 ## 2) Infrastructure as Code
 
@@ -161,12 +161,12 @@ Lambdas or NAT Gateway.
 **Notes:**
 - CI uploads AAB to Play Console when service account secrets are set.
 - Android signing uses a keystore injected at build time in CI.
-- Android signing templates live in `apps/siutindei_app/android/`.
+- Android signing templates live in `apps/evolvesprouts_app/android/`.
 - CI uploads IPA to TestFlight when App Store API keys are set.
 - iOS signing uses Fastlane match with a private certificates repo.
-- Fastlane config lives in `apps/siutindei_app/ios/fastlane`.
+- Fastlane config lives in `apps/evolvesprouts_app/ios/fastlane`.
 - iOS export settings are templated at
-  `apps/siutindei_app/ios/ExportOptions.plist.template`
+  `apps/evolvesprouts_app/ios/ExportOptions.plist.template`
   and generated in CI.
 
 ## 5) Amplify Usage

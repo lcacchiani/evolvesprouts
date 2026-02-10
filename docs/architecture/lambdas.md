@@ -31,7 +31,7 @@ their primary responsibilities.
   (filtered by ownership), user self-service (tickets), Cognito user
   management, audit logs, media upload, admin import/export, and address
   autocomplete (Nominatim via the AWS/HTTP proxy)
-- DB access: RDS Proxy with IAM auth (`siutindei_admin`)
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - Environment:
   - `SES_SENDER_EMAIL`
   - `SES_TEMPLATE_REQUEST_DECISION` (optional)
@@ -149,7 +149,7 @@ their primary responsibilities.
 - Purpose: process async ticket submissions from the SNS topic. Stores
   the ticket in the `tickets` table (idempotent via `ticket_id`) and
   sends a notification email to support/admin.
-- DB access: RDS Proxy with IAM auth (`siutindei_admin`)
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: SES send email
 - Environment:

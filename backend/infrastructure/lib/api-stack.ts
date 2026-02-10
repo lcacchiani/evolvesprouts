@@ -82,10 +82,9 @@ export class ApiStack extends cdk.Stack {
   public constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    cdk.Tags.of(this).add("Organization", "LX Software");
-    cdk.Tags.of(this).add("Project", "Siu Tin Dei");
+    cdk.Tags.of(this).add("Organization", "Evolve Sprouts");
 
-    const resourcePrefix = "lxsoftware-siutindei";
+    const resourcePrefix = "evolvesprouts";
     const name = (suffix: string) => `${resourcePrefix}-${suffix}`;
     const existingDbCredentialsSecretName =
       process.env.EXISTING_DB_CREDENTIALS_SECRET_NAME;
@@ -284,7 +283,7 @@ export class ApiStack extends cdk.Stack {
       vpc,
       minCapacity: 0.5,
       maxCapacity: 2,
-      databaseName: "siutindei",
+      databaseName: "evolvesprouts",
       dbCredentialsSecretName: existingDbCredentialsSecretName,
       dbCredentialsSecretArn: existingDbCredentialsSecretArn,
       dbCredentialsSecretKmsKeyArn: existingDbCredentialsSecretKmsKeyArn,
@@ -544,7 +543,7 @@ export class ApiStack extends cdk.Stack {
         type: "String",
         default: "",
         description:
-          "Optional custom domain for the API (e.g., siutindei-api.lx-software.com). " +
+          "Optional custom domain for the API (e.g., evolvesprouts-api.lx-software.com). " +
           "Leave empty to use the default API Gateway URL.",
       }
     );
@@ -1140,15 +1139,15 @@ export class ApiStack extends cdk.Stack {
       handler: "lambda/search/handler.lambda_handler",
       environment: {
         DATABASE_SECRET_ARN: database.appUserSecret.secretArn,
-        DATABASE_NAME: "siutindei",
-        DATABASE_USERNAME: "siutindei_app",
+        DATABASE_NAME: "evolvesprouts",
+        DATABASE_USERNAME: "evolvesprouts_app",
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
         CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
       },
     });
     database.grantAppUserSecretRead(searchFunction);
-    database.grantConnect(searchFunction, "siutindei_app");
+    database.grantConnect(searchFunction, "evolvesprouts_app");
 
     // Admin function
     const managerGroupName = "manager";
@@ -1156,8 +1155,8 @@ export class ApiStack extends cdk.Stack {
       handler: "lambda/admin/handler.lambda_handler",
       environment: {
         DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
-        DATABASE_NAME: "siutindei",
-        DATABASE_USERNAME: "siutindei_admin",
+        DATABASE_NAME: "evolvesprouts",
+        DATABASE_USERNAME: "evolvesprouts_admin",
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
         ADMIN_GROUP: adminGroupName,
@@ -1176,7 +1175,7 @@ export class ApiStack extends cdk.Stack {
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
-    database.grantConnect(adminFunction, "siutindei_admin");
+    database.grantConnect(adminFunction, "evolvesprouts_admin");
     organizationImagesBucket.grantReadWrite(adminFunction);
     adminImportExportBucket.grantReadWrite(adminFunction);
 
@@ -1313,8 +1312,8 @@ export class ApiStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(10),
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
-          DATABASE_NAME: "siutindei",
-          DATABASE_USERNAME: "siutindei_admin",
+          DATABASE_NAME: "evolvesprouts",
+          DATABASE_USERNAME: "evolvesprouts_admin",
           DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
           DATABASE_IAM_AUTH: "true",
           SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
@@ -1325,7 +1324,7 @@ export class ApiStack extends cdk.Stack {
 
     // Grant database access to processor
     database.grantAdminUserSecretRead(managerRequestProcessor);
-    database.grantConnect(managerRequestProcessor, "siutindei_admin");
+    database.grantConnect(managerRequestProcessor, "evolvesprouts_admin");
 
     // Grant SES permissions to processor
     managerRequestProcessor.addToRolePolicy(
@@ -1371,7 +1370,7 @@ export class ApiStack extends cdk.Stack {
       extraCopyPaths: ["db"],
       environment: {
         DATABASE_SECRET_ARN: database.secret?.secretArn ?? "",
-        DATABASE_NAME: "siutindei",
+        DATABASE_NAME: "evolvesprouts",
         DATABASE_USERNAME: "postgres",
         DATABASE_IAM_AUTH: "false",
         DATABASE_HOST: database.cluster.clusterEndpoint.hostname,
@@ -1605,16 +1604,16 @@ export class ApiStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       environment: {
         DATABASE_SECRET_ARN: database.secret?.secretArn ?? "",
-        DATABASE_NAME: "siutindei",
+        DATABASE_NAME: "evolvesprouts",
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
-        DATABASE_USERNAME: "siutindei_app",
+        DATABASE_USERNAME: "evolvesprouts_app",
         ENVIRONMENT: "production",
         APP_VERSION: "1.0.0",
       },
     });
     database.grantSecretRead(healthFunction);
-    database.grantConnect(healthFunction, "siutindei_app");
+    database.grantConnect(healthFunction, "evolvesprouts_app");
 
     // ---------------------------------------------------------------------
     // API Gateway
@@ -2490,8 +2489,8 @@ function resolveCorsAllowedOrigins(scope: Construct): string[] {
     "ionic://localhost",
     "http://localhost",
     "http://localhost:3000",
-    "https://siutindei.lx-software.com",
-    "https://siutindei-api.lx-software.com",
+    "https://evolvesprouts.lx-software.com",
+    "https://evolvesprouts-api.lx-software.com",
   ];
   const contextOrigins = normalizeCorsOrigins(
     scope.node.tryGetContext("corsAllowedOrigins")

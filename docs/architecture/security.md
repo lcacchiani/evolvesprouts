@@ -1,6 +1,6 @@
 # Security Guidelines
 
-This document outlines security best practices and requirements for the Siu Tin Dei project. All contributors must follow these guidelines.
+This document outlines security best practices and requirements for the Evolve Sprouts project. All contributors must follow these guidelines.
 
 ## Table of Contents
 
@@ -215,8 +215,8 @@ return {"error": "Internal server error"}  # Generic response to client
 - Always use SSL: `sslmode=require`
 - Prefer IAM authentication for RDS Proxy
 - Use separate database users for different access levels:
-  - `siutindei_app` - read-only for search
-  - `siutindei_admin` - read-write for admin
+  - `evolvesprouts_app` - read-only for search
+  - `evolvesprouts_admin` - read-write for admin
 - If importing an existing Secrets Manager credential secret encrypted
   with a customer-managed KMS key, ensure Lambda roles can decrypt it
   (set `EXISTING_DB_CREDENTIALS_SECRET_KMS_KEY_ARN` or use auto-detect).

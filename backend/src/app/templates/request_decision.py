@@ -7,14 +7,14 @@ from typing import Optional
 from app.templates.types import EmailContent
 
 DECISION_APPROVED_SUBJECT = (
-    "[Siu Tin Dei] [{ticket_id}] Your Access Request Has Been Approved"
+    "[Evolve Sprouts] [{ticket_id}] Your Access Request Has Been Approved"
 )
 DECISION_REJECTED_SUBJECT = (
-    "[Siu Tin Dei] [{ticket_id}] Your Access Request Has Been Declined"
+    "[Evolve Sprouts] [{ticket_id}] Your Access Request Has Been Declined"
 )
 
 DECISION_TEXT = """
-[Siu Tin Dei] Access Request Update [{ticket_id}]
+[Evolve Sprouts] Access Request Update [{ticket_id}]
 
 Your organization access request has been reviewed.
 
@@ -38,7 +38,7 @@ DECISION_HTML = """
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 style="margin: 0 0 10px 0; color: #1a1a1a;">[Siu Tin Dei] Access Request Update</h2>
+        <h2 style="margin: 0 0 10px 0; color: #1a1a1a;">[Evolve Sprouts] Access Request Update</h2>
         <p style="margin: 0; font-size: 14px; color: #666;">
             Ticket ID: <strong style="font-family: monospace;">{ticket_id}</strong>
         </p>

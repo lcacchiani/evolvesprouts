@@ -13,7 +13,7 @@ from .utils import _psycopg_connect
 
 logger = get_logger(__name__)
 
-_ALLOWED_PROXY_USERS = {"siutindei_app", "siutindei_admin"}
+_ALLOWED_PROXY_USERS = {"evolvesprouts_app", "evolvesprouts_admin"}
 
 
 def _sync_proxy_user_passwords(database_url: str) -> None:

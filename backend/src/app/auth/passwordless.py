@@ -38,7 +38,7 @@ def send_sign_in_email(email: str, code: str) -> None:
     base_url = os.getenv("LOGIN_LINK_BASE_URL", "")
     login_link = _build_login_link(base_url, email, code)
 
-    subject = "Your Siu Tin Dei sign-in link"
+    subject = "Your Evolve Sprouts sign-in link"
     lines = [
         "Use the code below to finish signing in:",
         "",

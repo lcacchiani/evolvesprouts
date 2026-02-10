@@ -231,7 +231,7 @@ Your app's package name (application ID).
 
 **How to get it:**
 
-Check `apps/siutindei_app/android/app/build.gradle.kts`:
+Check `apps/evolvesprouts_app/android/app/build.gradle.kts`:
 ```kotlin
 defaultConfig {
     applicationId = "com.yourcompany.customerapp"
@@ -239,7 +239,7 @@ defaultConfig {
 }
 ```
 
-**Example:** `com.lxsoftware.siutindei`
+**Example:** `com.evolvesprouts`
 
 ---
 
@@ -283,7 +283,7 @@ Before automated uploads work, you must manually upload the first AAB.
 ### 6.1 Build AAB Locally
 
 ```bash
-cd apps/siutindei_app
+cd apps/evolvesprouts_app
 
 # Install dependencies
 flutter pub get
@@ -320,7 +320,7 @@ After this initial upload, the GitHub Actions workflow can upload subsequent bui
 ### Via Push to Main
 
 The workflow automatically triggers on pushes to `main` that modify:
-- `apps/siutindei_app/**`
+- `apps/evolvesprouts_app/**`
 - `packages/flutter_ui/**`
 - `packages/api_client_dart/**`
 - `packages/models_shared/**`
@@ -392,7 +392,7 @@ For testing release builds locally:
 ### 1. Create Local Key Properties
 
 ```bash
-cd apps/siutindei_app/android
+cd apps/evolvesprouts_app/android
 cp key.properties.example key.properties
 ```
 
@@ -408,13 +408,13 @@ storeFile=keystore.p12
 ### 3. Copy Keystore
 
 ```bash
-cp /path/to/release-keystore.p12 apps/siutindei_app/android/app/keystore.p12
+cp /path/to/release-keystore.p12 apps/evolvesprouts_app/android/app/keystore.p12
 ```
 
 ### 4. Build Locally
 
 ```bash
-cd apps/siutindei_app
+cd apps/evolvesprouts_app
 flutter build appbundle --release
 ```
 

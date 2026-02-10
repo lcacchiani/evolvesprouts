@@ -2,7 +2,7 @@
 
 This document maps all AWS resources created by the `backend-deploy` workflow (`.github/workflows/deploy-backend.yml`).
 
-**Stack Name:** `lxsoftware-siutindei`  
+**Stack Name:** `evolvesprouts`  
 **CDK App:** `backend/infrastructure/bin/app.ts`  
 **Stack Definition:** `backend/infrastructure/lib/api-stack.ts`
 
@@ -29,10 +29,10 @@ Created once per account/region when `cdk bootstrap` runs. Not part of the main 
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| S3 Bucket | `OrganizationImagesBucket` | `lxsoftware-siutindei-org-media-{account}-{region}` | Public bucket for organization images |
-| S3 Bucket | `OrganizationImagesLogBucket` | `lxsoftware-siutindei-org-media-logs-{account}-{region}` | Access logs for org media bucket |
-| S3 Bucket | `AdminImportExportBucket` | `lxsoftware-siutindei-org-imprt-{account}-{region}` | Admin import/export JSON storage |
-| S3 Bucket | `AdminImportExportLogBucket` | `lxsoftware-siutindei-org-imprt-logs-{account}-{region}` | Access logs for admin import/export bucket |
+| S3 Bucket | `OrganizationImagesBucket` | `evolvesprouts-org-media-{account}-{region}` | Public bucket for organization images |
+| S3 Bucket | `OrganizationImagesLogBucket` | `evolvesprouts-org-media-logs-{account}-{region}` | Access logs for org media bucket |
+| S3 Bucket | `AdminImportExportBucket` | `evolvesprouts-org-imprt-{account}-{region}` | Admin import/export JSON storage |
+| S3 Bucket | `AdminImportExportLogBucket` | `evolvesprouts-org-imprt-logs-{account}-{region}` | Access logs for admin import/export bucket |
 
 ---
 
@@ -44,7 +44,7 @@ Created once per account/region when `cdk bootstrap` runs. Not part of the main 
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| VPC | `SiutindeiVpc` | `lxsoftware-siutindei-vpc` | 2 AZs, no NAT Gateway |
+| VPC | `SiutindeiVpc` | `evolvesprouts-vpc` | 2 AZs, no NAT Gateway |
 | Internet Gateway | `SiutindeiVpcIGW*` | Auto-generated | Attached to VPC |
 | Public Subnet | `SiutindeiVpcPublicSubnet*` | Auto-generated | 2 subnets (1 per AZ) |
 | Private Subnet | `SiutindeiVpcPrivateSubnet*` | Auto-generated | 2 isolated subnets (1 per AZ) |
@@ -61,10 +61,10 @@ Created once per account/region when `cdk bootstrap` runs. Not part of the main 
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| Security Group | `LambdaSecurityGroup` | `lxsoftware-siutindei-lambda-sg` | For Lambda functions (RETAIN policy) |
-| Security Group | `MigrationSecurityGroup` | `lxsoftware-siutindei-migration-sg` | For migration Lambda (RETAIN policy) |
-| Security Group | `DatabaseSecurityGroup` | `lxsoftware-siutindei-db-sg` | For Aurora cluster |
-| Security Group | `ProxySecurityGroup` | `lxsoftware-siutindei-proxy-sg` | For RDS Proxy |
+| Security Group | `LambdaSecurityGroup` | `evolvesprouts-lambda-sg` | For Lambda functions (RETAIN policy) |
+| Security Group | `MigrationSecurityGroup` | `evolvesprouts-migration-sg` | For migration Lambda (RETAIN policy) |
+| Security Group | `DatabaseSecurityGroup` | `evolvesprouts-db-sg` | For Aurora cluster |
+| Security Group | `ProxySecurityGroup` | `evolvesprouts-proxy-sg` | For RDS Proxy |
 
 **Security Group Rules (managed automatically unless existing SGs are used):**
 
@@ -107,7 +107,7 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| Secret | `DBCredentialsSecret` | `lxsoftware-siutindei-database-credentials` | Auto-generates password for `postgres` user |
+| Secret | `DBCredentialsSecret` | `evolvesprouts-database-credentials` | Auto-generates password for `postgres` user |
 
 ### KMS
 
@@ -125,8 +125,8 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
 | DB Subnet Group | `ClusterSubnets*` | Auto-generated | Private subnets for DB |
-| DB Cluster | `Cluster*` | `lxsoftware-siutindei-db-cluster` | Aurora Serverless v2, PostgreSQL 16.4 |
-| DB Instance | `Cluster*Instance*` | `lxsoftware-siutindei-db-writer` | Writer instance (serverless v2) |
+| DB Cluster | `Cluster*` | `evolvesprouts-db-cluster` | Aurora Serverless v2, PostgreSQL 16.4 |
+| DB Instance | `Cluster*Instance*` | `evolvesprouts-db-writer` | Writer instance (serverless v2) |
 | IAM Role | `DatabaseMonitoringRole` | Auto-generated | Enhanced monitoring role |
 | DB Parameter Group | `ClusterParameterGroup*` | Auto-generated | PostgreSQL parameters |
 | DB Cluster Parameter Group | `ClusterParameterGroup*` | Auto-generated | Cluster-level parameters |
@@ -135,7 +135,7 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 - Engine: Aurora PostgreSQL 16.4
 - Min Capacity: 0.5 ACU
 - Max Capacity: 2 ACU
-- Database Name: `siutindei`
+- Database Name: `evolvesprouts`
 - IAM Authentication: Enabled (if `applyImmutableSettings=true`)
 - Storage Encryption: Enabled (if `applyImmutableSettings=true`)
 - CloudWatch Logs: `postgresql` export enabled
@@ -147,7 +147,7 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| DB Proxy | `Proxy*` | `lxsoftware-siutindei-db-proxy` | IAM auth enabled, TLS required |
+| DB Proxy | `Proxy*` | `evolvesprouts-db-proxy` | IAM auth enabled, TLS required |
 | DB Proxy Target Group | `ProxyTargetGroup*` | Auto-generated | Targets Aurora cluster |
 | DB Proxy Target | `ProxyTarget*` | Auto-generated | Links proxy to cluster |
 
@@ -159,7 +159,7 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| User Pool | `SiutindeiUserPool` | `lxsoftware-siutindei-user-pool` | Email sign-in, auto-verify enabled |
+| User Pool | `SiutindeiUserPool` | `evolvesprouts-user-pool` | Email sign-in, auto-verify enabled |
 | User Pool Domain | `SiutindeiUserPoolDomain` | `{CognitoDomainPrefix}.auth.{region}.amazoncognito.com` | Domain prefix from parameter |
 | User Pool Client | `SiutindeiUserPoolClient` | Auto-generated | OAuth client (no secret) |
 | User Pool Group | `AdminGroup` | `admin` | Admin group |
@@ -250,19 +250,19 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `SiutindeiSearchFunction` | Read DB secret, connect to RDS Proxy as `siutindei_app` |
-| `SiutindeiAdminFunction` | Read DB secret, connect to RDS Proxy as `siutindei_admin`, invoke `AwsApiProxyFunction`, SNS publish to manager request topic, SES send email, S3 read/write for org media and admin import/export |
+| `SiutindeiSearchFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
+| `SiutindeiAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to manager request topic, SES send email, S3 read/write for org media and admin import/export |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`) |
 | `SiutindeiMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
-| `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `siutindei_app` |
+| `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
 | `AuthCreateChallengeFunction` | SES `SendEmail`, `SendRawEmail` for the configured email address |
 | `AdminBootstrapFunction` | Cognito `AdminCreateUser`, `AdminUpdateUserAttributes`, `AdminSetUserPassword`, `AdminAddUserToGroup`, CloudFormation invoke permission |
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
-| `ManagerRequestProcessor` | Read DB secret, connect to RDS Proxy as `siutindei_admin`, SES send email |
+| `ManagerRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
 
 **Lambda Log Groups:**
 - Explicitly created by CDK with KMS encryption
-- Naming: `/aws/lambda/{function-name}` (e.g., `/aws/lambda/lxsoftware-siutindei-SiutindeiSearchFunction`)
+- Naming: `/aws/lambda/{function-name}` (e.g., `/aws/lambda/evolvesprouts-SiutindeiSearchFunction`)
 - 90-day retention policy
 
 ---
@@ -273,12 +273,12 @@ For each function above, the following resources are created:
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| REST API | `SiutindeiApi` | `lxsoftware-siutindei-api` | Regional REST API |
+| REST API | `SiutindeiApi` | `evolvesprouts-api` | Regional REST API |
 | Deployment | `SiutindeiApiDeployment*` | Auto-generated | Deployment for `prod` stage |
 | Stage | `SiutindeiApiDeploymentStageprod*` | `prod` | Production stage |
 
 **Stage Configuration:**
-- Access Logging: Enabled (to `lxsoftware-siutindei-api-access-logs` - must exist)
+- Access Logging: Enabled (to `evolvesprouts-api-access-logs` - must exist)
 - Access Log Format: JSON with standard fields
 - Logging Level: INFO
 - Data Trace: Disabled
@@ -340,8 +340,8 @@ read error status codes instead of silently blocking them.
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| API Key | `MobileSearchApiKey` | `lxsoftware-siutindei-mobile-search-key` | Value from `PublicApiKeyValue` parameter |
-| Usage Plan | `MobileSearchUsagePlan` | `lxsoftware-siutindei-mobile-search-plan` | Linked to API key and `prod` stage |
+| API Key | `MobileSearchApiKey` | `evolvesprouts-mobile-search-key` | Value from `PublicApiKeyValue` parameter |
+| Usage Plan | `MobileSearchUsagePlan` | `evolvesprouts-mobile-search-plan` | Linked to API key and `prod` stage |
 
 ### API Gateway IAM Roles
 
@@ -355,7 +355,7 @@ read error status codes instead of silently blocking them.
 |--------------|------------|-------|
 | Account | `ApiGatewayAccount` | Configures CloudWatch role for API Gateway |
 
-**Note:** The access log group `lxsoftware-siutindei-api-access-logs` is **imported** (not created by CDK). It must exist before deployment.
+**Note:** The access log group `evolvesprouts-api-access-logs` is **imported** (not created by CDK). It must exist before deployment.
 
 ---
 
@@ -472,14 +472,14 @@ read error status codes instead of silently blocking them.
 
 ## Resource Naming Convention
 
-All resources use the prefix: **`lxsoftware-siutindei-`**
+All resources use the prefix: **`evolvesprouts-`**
 
 Examples:
-- VPC: `lxsoftware-siutindei-vpc`
-- Security Group: `lxsoftware-siutindei-lambda-sg`
-- Database Cluster: `lxsoftware-siutindei-db-cluster`
-- User Pool: `lxsoftware-siutindei-user-pool`
-- API: `lxsoftware-siutindei-api`
+- VPC: `evolvesprouts-vpc`
+- Security Group: `evolvesprouts-lambda-sg`
+- Database Cluster: `evolvesprouts-db-cluster`
+- User Pool: `evolvesprouts-user-pool`
+- API: `evolvesprouts-api`
 
 ---
 
@@ -488,7 +488,7 @@ Examples:
 The stack applies two tags at the stack level:
 
 - `Organization= LX Software`
-- `Project= Siu Tin Dei`
+- `Project= Evolve Sprouts`
 
 These tags are inherited by **all taggable resources** created in this
 stack, including implicit resources created by CDK (subnets, route
