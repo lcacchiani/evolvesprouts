@@ -30,10 +30,9 @@ jobs:
   exchange-code:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate inputs and secrets
+      - name: Validate secrets
         run: |
           ERRORS=0
-
           if [ -z "$CLIENT_ID" ]; then
             echo '::error::FIGMA_OAUTH_CLIENT_ID secret is not set.'
             ERRORS=1
@@ -42,66 +41,87 @@ jobs:
             echo '::error::FIGMA_OAUTH_CLIENT_SECRET secret is not set.'
             ERRORS=1
           fi
-          if [ -z "$AUTH_CODE" ]; then
-            echo '::error::authorization_code input is required.'
-            ERRORS=1
-          fi
-
-          if [ "$ERRORS" -eq 1 ]; then
-            exit 1
-          fi
+          if [ "$ERRORS" -eq 1 ]; then exit 1; fi
         env:
           CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.FIGMA_OAUTH_CLIENT_SECRET }}
-          AUTH_CODE: ${{ inputs.authorization_code }}
 
       - name: Exchange authorization code for tokens
         id: exchange
         run: |
-          PORT="${CALLBACK_PORT:-3845}"
-          REDIRECT_URI="http://localhost:${PORT}/callback"
-          TOKEN_URL="https://api.figma.com/v1/oauth/token"
+          python3 << 'PYEOF'
+          import json, os, sys, urllib.request, urllib.parse
 
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${TOKEN_URL}" \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            --data-urlencode "client_id=${CLIENT_ID}" \
-            --data-urlencode "client_secret=${CLIENT_SECRET}" \
-            --data-urlencode "redirect_uri=${REDIRECT_URI}" \
-            --data-urlencode "code=${AUTH_CODE}" \
-            --data-urlencode "grant_type=authorization_code")
+          client_id     = os.environ["CLIENT_ID"]
+          client_secret = os.environ["CLIENT_SECRET"]
+          auth_code     = os.environ["AUTH_CODE"].strip()
+          port          = os.environ.get("CALLBACK_PORT", "3845").strip()
+          redirect_uri  = f"http://localhost:{port}/callback"
 
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
+          # --- Debug (no secrets) ---
+          print(f"redirect_uri : {redirect_uri}")
+          print(f"code length  : {len(auth_code)}")
+          print(f"code prefix  : {auth_code[:8]}...")
+          print(f"client_id len: {len(client_id)}")
+          print()
 
-          if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "exchange_ok=false" >> "$GITHUB_OUTPUT"
-            echo "error_status=${HTTP_CODE}" >> "$GITHUB_OUTPUT"
-            echo "error_body=${BODY}" >> "$GITHUB_OUTPUT"
-            echo "::error::Token exchange failed with HTTP ${HTTP_CODE}: ${BODY}"
-            exit 1
-          fi
+          # --- Try the exchange ---
+          body = urllib.parse.urlencode({
+              "client_id":     client_id,
+              "client_secret": client_secret,
+              "redirect_uri":  redirect_uri,
+              "code":          auth_code,
+              "grant_type":    "authorization_code",
+          }).encode()
 
-          REFRESH_TOKEN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('refresh_token',''))")
-          ACCESS_TOKEN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))")
-          EXPIRES_IN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('expires_in','?'))")
-          USER_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('user_id',''))")
+          req = urllib.request.Request(
+              "https://api.figma.com/v1/oauth/token",
+              data=body,
+              headers={"Content-Type": "application/x-www-form-urlencoded"},
+              method="POST",
+          )
 
-          if [ -z "$REFRESH_TOKEN" ]; then
-            echo "exchange_ok=false" >> "$GITHUB_OUTPUT"
-            echo "::error::No refresh_token in response: ${BODY}"
-            exit 1
-          fi
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  data = json.loads(resp.read().decode())
+          except urllib.error.HTTPError as exc:
+              err_body = exc.read().decode()[:500]
+              print(f"::error::Token exchange failed (HTTP {exc.code}): {err_body}")
 
-          # Mask tokens in logs.
-          echo "::add-mask::${REFRESH_TOKEN}"
-          if [ -n "$ACCESS_TOKEN" ]; then
-            echo "::add-mask::${ACCESS_TOKEN}"
-          fi
+              # Write debug info for the summary step
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("exchange_ok=false\n")
+                  f.write(f"error_detail=HTTP {exc.code}: {err_body}\n")
 
-          echo "exchange_ok=true" >> "$GITHUB_OUTPUT"
-          echo "refresh_token=${REFRESH_TOKEN}" >> "$GITHUB_OUTPUT"
-          echo "expires_in=${EXPIRES_IN}" >> "$GITHUB_OUTPUT"
-          echo "user_id=${USER_ID}" >> "$GITHUB_OUTPUT"
+              sys.exit(1)
+
+          refresh_token = data.get("refresh_token", "")
+          access_token  = data.get("access_token", "")
+          expires_in    = data.get("expires_in", "?")
+          user_id       = data.get("user_id", "")
+
+          if not refresh_token:
+              print(f"::error::No refresh_token in response: {json.dumps(data)[:500]}")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("exchange_ok=false\n")
+              sys.exit(1)
+
+          # Mask tokens in logs
+          print(f"::add-mask::{refresh_token}")
+          if access_token:
+              print(f"::add-mask::{access_token}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"exchange_ok=true\n")
+              f.write(f"refresh_token={refresh_token}\n")
+              f.write(f"expires_in={expires_in}\n")
+              f.write(f"user_id={user_id}\n")
+
+          print()
+          print("Token exchange successful!")
+          print(f"  user_id    : {user_id}")
+          print(f"  expires_in : {expires_in}s")
+          PYEOF
         env:
           CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.FIGMA_OAUTH_CLIENT_SECRET }}
@@ -144,23 +164,29 @@ jobs:
             else
               echo '### Status: Failed'
               echo ''
-              echo 'The authorization code may have expired before the runner started.'
-              echo 'Figma codes are short-lived — you need to authorize and trigger the'
-              echo 'workflow quickly.'
+              echo "Error: \`${ERROR_DETAIL:-unknown}\`"
+              echo ''
+              echo '### Debugging checklist'
+              echo ''
+              echo '1. **Callback URL match** — verify the Figma app callback URL is'
+              echo "   exactly \`${REDIRECT_URI}\` (no trailing slash, no https)."
+              echo '2. **Code copied correctly** — copy only the value between'
+              echo '   \`?code=\` and \`&state=\` from the browser address bar.'
+              echo '3. **Code not reused** — each code can only be exchanged once.'
+              echo '   Re-open the authorization URL below to get a fresh code.'
+              echo '4. **Code not expired** — authorize and trigger the workflow'
+              echo '   within a few minutes.'
               echo ''
               echo '### How to retry'
               echo ''
-              echo '**Tip:** Open both tabs side-by-side before you start:'
-              echo '- Tab 1: The authorization URL below'
-              echo '- Tab 2: **Actions > Generate Figma OAuth Refresh Token > Run workflow**'
-              echo ''
-              echo '1. Open the authorization URL below in **Tab 1**.'
+              echo '1. Open the authorization URL below in your browser.'
               echo '2. Click **Allow** on the Figma page.'
               echo "3. Figma redirects to \`${REDIRECT_URI}?code=XXXXX&state=...\`"
               echo '   The page will not load — that is expected.'
               echo '4. Copy the \`code\` value from the address bar'
               echo '   (between \`?code=\` and \`&state=\`).'
-              echo '5. Switch to **Tab 2**, paste the code, and click **Run workflow**.'
+              echo '5. Go to **Actions > Generate Figma OAuth Refresh Token > Run workflow**,'
+              echo '   paste the code, and click **Run workflow**.'
             fi
 
             echo ''
@@ -178,5 +204,6 @@ jobs:
           CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
           CALLBACK_PORT: ${{ inputs.callback_port }}
           EXCHANGE_OK: ${{ steps.exchange.outputs.exchange_ok }}
+          ERROR_DETAIL: ${{ steps.exchange.outputs.error_detail }}
           EXPIRES_IN: ${{ steps.exchange.outputs.expires_in }}
           USER_ID: ${{ steps.exchange.outputs.user_id }}
