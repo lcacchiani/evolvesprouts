@@ -58,7 +58,7 @@ jobs:
           TARGET_NODE_ID: ${{ inputs.node_id }}
         run: |
           node <<'NODE'
-          import { writeFile } from 'node:fs/promises';
+          import { mkdir, writeFile } from 'node:fs/promises';
           import path from 'node:path';
 
           function getEnv(name) {
@@ -171,6 +171,8 @@ jobs:
 
             const accessToken = await resolveAccessToken();
             const outputDir = path.join('figma', 'files');
+            const assetsDir = path.join(outputDir, 'exported-assets');
+            await mkdir(assetsDir, { recursive: true });
 
             const nodeJson = await getJson(
               `https://api.figma.com/v1/files/${fileKey}/nodes?ids=${encodeURIComponent(nodeId)}`,
@@ -220,6 +222,40 @@ jobs:
             const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
             await writeFile(path.join(outputDir, 'homepage-image.png'), imageBuffer);
 
+            const extraNodeIds = [
+              '0:1234',
+              '0:1241',
+              '0:1336',
+              '0:1340',
+              '0:1344',
+              '0:1349',
+              '0:1354',
+            ];
+            const idsParam = extraNodeIds.map(encodeURIComponent).join(',');
+            const extraImagesJson = await getJson(
+              `https://api.figma.com/v1/images/${fileKey}?ids=${idsParam}&format=png&scale=2`,
+              accessToken,
+            );
+
+            for (const assetNodeId of extraNodeIds) {
+              const url = extraImagesJson.images?.[assetNodeId];
+              if (!url) {
+                console.warn(`No image URL returned for node ${assetNodeId}.`);
+                continue;
+              }
+
+              const assetResponse = await fetch(url);
+              if (!assetResponse.ok) {
+                const body = await assetResponse.text();
+                throw new Error(
+                  `Failed to download asset ${assetNodeId} (${assetResponse.status}): ${body.slice(0, 500)}`,
+                );
+              }
+              const assetBuffer = Buffer.from(await assetResponse.arrayBuffer());
+              const safeId = assetNodeId.replaceAll(':', '-');
+              await writeFile(path.join(assetsDir, `${safeId}.png`), assetBuffer);
+            }
+
             console.log(`Exported node ${nodeId} into figma/files/.`);
           }
 
@@ -236,3 +272,4 @@ jobs:
             apps/public_www/figma/files/homepage-node.json
             apps/public_www/figma/files/homepage-text.json
             apps/public_www/figma/files/homepage-image.png
+            apps/public_www/figma/files/exported-assets/*.png
