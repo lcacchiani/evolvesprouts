@@ -6,6 +6,10 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Evolve Sprouts',
   description: 'Evolve Sprouts public website.',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+  },
   robots: {
     index: true,
     follow: true,
