@@ -73,39 +73,43 @@ This approach keeps your client secret and refresh token inside GitHub
 and never exposes them locally. The only manual step is authorizing in
 a browser.
 
-**Phase 1 — Get the authorization URL**
+**Preparation — open two tabs side by side:**
 
-1. Go to **Actions** > **Generate Figma OAuth Refresh Token**.
-2. Click **Run workflow**.
-3. Set **step** to `get_auth_url`.
-4. Click **Run workflow**.
-5. Open the completed run and check the **Summary** tab — it contains
-   the Figma authorization URL.
+- **Tab 1:** The Figma authorization URL (see below).
+- **Tab 2:** **Actions > Generate Figma OAuth Refresh Token > Run workflow**.
 
-**Phase 2 — Authorize and copy the code**
+Construct the authorization URL by replacing `YOUR_CLIENT_ID` with your
+Figma OAuth app's Client ID:
 
-1. Open the authorization URL in your browser.
+```
+https://www.figma.com/oauth?client_id=YOUR_CLIENT_ID&redirect_uri=http%3A%2F%2Flocalhost%3A3845%2Fcallback&scope=file_content:read&state=1&response_type=code
+```
+
+> **Tip:** If you have already run the workflow once (even if it
+> failed), check the run's **Summary** tab — it contains a ready-made
+> authorization URL with your Client ID filled in.
+
+**Steps:**
+
+1. Open the authorization URL in **Tab 1**.
 2. Click **Allow** on the Figma consent page.
-3. Figma redirects to `http://localhost:3845/callback?code=XXXXX&state=...`.
+3. Figma redirects to
+   `http://localhost:3845/callback?code=XXXXX&state=...`.
    The page will **not load** (no local server is running) — that is
    expected.
 4. Copy the `code` value from the browser address bar (the string
    between `?code=` and `&state=`).
-
-**Phase 3 — Exchange the code**
-
-1. Go to **Actions** > **Generate Figma OAuth Refresh Token** >
-   **Run workflow**.
-2. Set **step** to `exchange_code`.
-3. Paste the code into **authorization_code**.
-4. Click **Run workflow**.
-5. The workflow exchanges the code for a refresh token and automatically
-   stores it as the `FIGMA_OAUTH_REFRESH_TOKEN` repository secret.
+5. Switch to **Tab 2**. Paste the code into the **authorization_code**
+   field and click **Run workflow** immediately.
+6. The workflow exchanges the code and automatically stores
+   `FIGMA_OAUTH_REFRESH_TOKEN` as a repository secret.
 
 Check the run **Summary** tab for confirmation.
 
-> **Note:** The authorization code is short-lived (a few minutes). If
-> the exchange fails with `invalid_grant`, re-run from Phase 1.
+> **Important:** Figma authorization codes expire quickly. Have Tab 2
+> ready to go *before* you authorize so you can paste the code and
+> trigger the workflow within seconds. If you see `invalid_grant`,
+> re-open the authorization URL in Tab 1 and try again.
 
 ---
 
