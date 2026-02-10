@@ -131,11 +131,12 @@ jobs:
       - name: Store refresh token as secret
         if: ${{ steps.exchange.outputs.exchange_ok == 'true' }}
         run: |
-          echo "${REFRESH_TOKEN}" | gh secret set FIGMA_OAUTH_REFRESH_TOKEN
+          echo "${REFRESH_TOKEN}" | gh secret set FIGMA_OAUTH_REFRESH_TOKEN --repo "${GITHUB_REPOSITORY}"
           echo 'FIGMA_OAUTH_REFRESH_TOKEN secret has been updated.'
         env:
           REFRESH_TOKEN: ${{ steps.exchange.outputs.refresh_token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Publish result summary
         if: always()
