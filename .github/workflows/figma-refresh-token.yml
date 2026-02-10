@@ -67,10 +67,17 @@ jobs:
             echo ''
             echo '### Then come back here and run Step 2'
             echo ''
+            echo '> **Important:** The authorization code expires in a few minutes.'
+            echo '> Have the **Run workflow** form open and ready before you authorize'
+            echo '> so you can paste the code and trigger the exchange quickly.'
+            echo ''
             echo '1. Go to **Actions** > **Generate Figma OAuth Refresh Token** > **Run workflow**.'
             echo '2. Set **step** to \`exchange_code\`.'
             echo '3. Paste the code into the **authorization_code** field.'
             echo '4. Click **Run workflow**.'
+            echo ''
+            echo 'If you get \`invalid_grant\`, the code has expired. Re-open the'
+            echo 'authorization URL above (it is still valid) and try again faster.'
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo ''
@@ -116,15 +123,15 @@ jobs:
         run: |
           PORT="${CALLBACK_PORT:-3845}"
           REDIRECT_URI="http://localhost:${PORT}/callback"
-          TOKEN_URL="https://api.figma.com/v1/oauth/token"
+          TOKEN_URL="https://www.figma.com/api/oauth/token"
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${TOKEN_URL}" \
             -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "client_id=${CLIENT_ID}" \
-            -d "client_secret=${CLIENT_SECRET}" \
-            -d "redirect_uri=${REDIRECT_URI}" \
-            -d "code=${AUTH_CODE}" \
-            -d "grant_type=authorization_code")
+            --data-urlencode "client_id=${CLIENT_ID}" \
+            --data-urlencode "client_secret=${CLIENT_SECRET}" \
+            --data-urlencode "redirect_uri=${REDIRECT_URI}" \
+            --data-urlencode "code=${AUTH_CODE}" \
+            --data-urlencode "grant_type=authorization_code")
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | sed '$d')
