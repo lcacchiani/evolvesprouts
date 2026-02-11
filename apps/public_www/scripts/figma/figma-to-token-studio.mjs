@@ -6,9 +6,10 @@
  * compatible JSON files under figma/token-studio/.
  *
  * Works on Figma Professional plans — does NOT require the Variables
- * API (Enterprise-only). Instead it extracts tokens from:
- *   - Published styles (color, text, effect) embedded in the file response
- *   - Document node tree (fills, strokes, effects, typography, layout)
+ * API (Enterprise-only). Extracts tokens exclusively from published
+ * styles (color, text, effect) found in the file response. Raw node
+ * properties (spacing, border radius, stroke weight, opacity) are
+ * intentionally ignored — those are rendering artifacts, not tokens.
  *
  * Output files:
  *   figma/token-studio/global.json    — primitive design values
@@ -239,70 +240,11 @@ function extractFromNodeTree(node, styleMap, collected) {
     }
   }
 
-  // Extract auto-layout properties (spacing, padding, border radius)
-  if (node.layoutMode && (node.layoutMode === 'HORIZONTAL' || node.layoutMode === 'VERTICAL')) {
-    if (node.itemSpacing !== undefined && node.itemSpacing > 0) {
-      const key = `${node.itemSpacing}`;
-      if (!collected.spacingValues.has(key)) {
-        collected.spacingValues.set(key, node.itemSpacing);
-      }
-    }
-    if (node.paddingTop !== undefined && node.paddingTop > 0) {
-      collected.spacingValues.set(`${node.paddingTop}`, node.paddingTop);
-    }
-    if (node.paddingRight !== undefined && node.paddingRight > 0) {
-      collected.spacingValues.set(`${node.paddingRight}`, node.paddingRight);
-    }
-    if (node.paddingBottom !== undefined && node.paddingBottom > 0) {
-      collected.spacingValues.set(`${node.paddingBottom}`, node.paddingBottom);
-    }
-    if (node.paddingLeft !== undefined && node.paddingLeft > 0) {
-      collected.spacingValues.set(`${node.paddingLeft}`, node.paddingLeft);
-    }
-  }
-
-  // Extract border radius
-  if (node.cornerRadius !== undefined && node.cornerRadius > 0) {
-    const key = `${node.cornerRadius}`;
-    if (!collected.borderRadiusValues.has(key)) {
-      collected.borderRadiusValues.set(key, node.cornerRadius);
-    }
-  }
-  if (Array.isArray(node.rectangleCornerRadii)) {
-    for (const r of node.rectangleCornerRadii) {
-      if (r > 0) {
-        collected.borderRadiusValues.set(`${r}`, r);
-      }
-    }
-  }
-
-  // Extract border width from strokes
-  if (node.strokeWeight !== undefined && node.strokeWeight > 0) {
-    collected.borderWidthValues.set(`${node.strokeWeight}`, node.strokeWeight);
-  }
-
-  // Extract opacity
-  if (node.opacity !== undefined && node.opacity < 1 && node.opacity > 0) {
-    const rounded = parseFloat(node.opacity.toFixed(2));
-    const pct = Math.round(rounded * 100);
-    collected.opacityValues.set(`${pct}`, rounded);
-  }
-
-  // Also collect fills/strokes from nodes without explicit styles
-  // (useful for one-off colors used in the design)
-  if (!node.styles?.fill && Array.isArray(node.fills)) {
-    for (const fill of node.fills) {
-      if (fill.type === 'SOLID' && fill.color && fill.visible !== false) {
-        const hex = figmaColorToHex(fill.color);
-        if (hex && !collected.looseFillColors.has(hex)) {
-          collected.looseFillColors.set(hex, {
-            hex,
-            nodeName: node.name ?? '',
-          });
-        }
-      }
-    }
-  }
+  // NOTE: We intentionally do NOT scrape raw node properties (spacing,
+  // border radius, border width, opacity, unstyled fills) from the
+  // document tree. Those values are rendering artifacts from individual
+  // shapes and icons — not intentional design tokens. Only published
+  // styles are extracted as tokens.
 
   // Recurse into children
   if (Array.isArray(node.children)) {
@@ -534,79 +476,6 @@ function buildEffectTokens(effectStyleMap) {
   return tokens;
 }
 
-function buildSpacingTokens(spacingValues) {
-  const values = [...spacingValues.values()].sort((a, b) => a - b);
-  const tokens = {};
-
-  // Create named scale from sorted unique values
-  const scaleNames = [
-    '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl',
-    '4xl', '5xl', '6xl', '7xl', '8xl', '9xl', '10xl',
-  ];
-
-  values.forEach((value, index) => {
-    const name = index < scaleNames.length ? scaleNames[index] : `${value}`;
-    tokens[name] = {
-      value: `${value}`,
-      type: 'spacing',
-    };
-  });
-
-  return tokens;
-}
-
-function buildBorderRadiusTokens(radiusValues) {
-  const values = [...radiusValues.values()].sort((a, b) => a - b);
-  const tokens = {};
-
-  const scaleNames = [
-    'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', 'full',
-  ];
-
-  values.forEach((value, index) => {
-    const name = index < scaleNames.length ? scaleNames[index] : `${value}`;
-    tokens[name] = {
-      value: `${value}`,
-      type: 'borderRadius',
-    };
-  });
-
-  return tokens;
-}
-
-function buildBorderWidthTokens(widthValues) {
-  const values = [...widthValues.values()].sort((a, b) => a - b);
-  const tokens = {};
-
-  const scaleNames = ['thin', 'default', 'thick', 'heavy'];
-
-  values.forEach((value, index) => {
-    const name = index < scaleNames.length ? scaleNames[index] : `${value}`;
-    tokens[name] = {
-      value: `${value}`,
-      type: 'borderWidth',
-    };
-  });
-
-  return tokens;
-}
-
-function buildOpacityTokens(opacityValues) {
-  const entries = [...opacityValues.entries()].sort(
-    (a, b) => a[1] - b[1],
-  );
-  const tokens = {};
-
-  for (const [pct, value] of entries) {
-    tokens[pct] = {
-      value: `${value}`,
-      type: 'opacity',
-    };
-  }
-
-  return tokens;
-}
-
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -643,11 +512,6 @@ async function main() {
     textStyles: new Map(),
     effectStyles: new Map(),
     gridStyles: new Map(),
-    spacingValues: new Map(),
-    borderRadiusValues: new Map(),
-    borderWidthValues: new Map(),
-    opacityValues: new Map(),
-    looseFillColors: new Map(),
   };
 
   const document = figmaFile.document ?? figmaFile;
@@ -656,41 +520,15 @@ async function main() {
   console.log(`Extracted ${collected.colors.size} color style(s).`);
   console.log(`Extracted ${collected.textStyles.size} text style(s).`);
   console.log(`Extracted ${collected.effectStyles.size} effect style(s).`);
-  console.log(
-    `Extracted ${collected.spacingValues.size} unique spacing value(s).`,
-  );
-  console.log(
-    `Extracted ${collected.borderRadiusValues.size} unique border-radius value(s).`,
-  );
-  console.log(
-    `Extracted ${collected.borderWidthValues.size} unique border-width value(s).`,
-  );
-  console.log(
-    `Extracted ${collected.opacityValues.size} unique opacity value(s).`,
-  );
-  console.log(
-    `Found ${collected.looseFillColors.size} additional unstiled fill color(s).`,
-  );
+  console.log(`Extracted ${collected.gridStyles.size} grid style(s).`);
 
-  // Build global tokens
+  // Build global tokens from published styles only
   const colorTokens = buildColorTokens(collected.colors);
   const typographyResult = buildTypographyTokens(collected.textStyles);
   const effectTokens = buildEffectTokens(collected.effectStyles);
-  const spacingTokens = buildSpacingTokens(collected.spacingValues);
-  const borderRadiusTokens = buildBorderRadiusTokens(
-    collected.borderRadiusValues,
-  );
-  const borderWidthTokens = buildBorderWidthTokens(
-    collected.borderWidthValues,
-  );
-  const opacityTokens = buildOpacityTokens(collected.opacityValues);
 
   const globalTokens = {
     colors: colorTokens,
-    spacing: spacingTokens,
-    borderRadius: borderRadiusTokens,
-    borderWidth: borderWidthTokens,
-    opacity: opacityTokens,
     fontFamilies: typographyResult.fontFamilies,
     fontWeights: typographyResult.fontWeights,
     fontSizes: typographyResult.fontSizes,
