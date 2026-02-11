@@ -1,6 +1,9 @@
 import type { CSSProperties } from 'react';
-import Link from 'next/link';
 
+import { BackgroundGlow } from '@/components/background-glow';
+import { SectionCtaLink } from '@/components/section-cta-link';
+import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionShell } from '@/components/section-shell';
 import type { WhyJoiningContent } from '@/content';
 import enContent from '@/content/en.json';
 
@@ -211,15 +214,13 @@ function CardArtwork({
 
   return (
     <>
-      <div
-        aria-hidden='true'
-        className='absolute -right-20 -top-20 h-56 w-56 rounded-full blur-3xl'
-        style={{ backgroundColor: edgeGlow }}
+      <BackgroundGlow
+        className='-right-20 -top-20 h-56 w-56 blur-3xl'
+        background={edgeGlow}
       />
-      <div
-        aria-hidden='true'
-        className='absolute -left-14 bottom-[-70px] h-56 w-56 rounded-full blur-3xl'
-        style={{ backgroundColor: accentGlow }}
+      <BackgroundGlow
+        className='-left-14 bottom-[-70px] h-56 w-56 blur-3xl'
+        background={accentGlow}
       />
       <div
         aria-hidden='true'
@@ -364,10 +365,10 @@ export function WhyJoining({ content }: WhyJoiningProps) {
   const benefitCards = getBenefitCards(content);
 
   return (
-    <section
-      aria-label={sectionTitle}
-      data-figma-node='Why Joining Our Courses'
-      className='relative isolate w-full overflow-hidden px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-24'
+    <SectionShell
+      ariaLabel={sectionTitle}
+      dataFigmaNode='Why Joining Our Courses'
+      className='relative isolate overflow-hidden'
       style={{ backgroundColor: SECTION_BG }}
     >
       <div
@@ -381,34 +382,36 @@ export function WhyJoining({ content }: WhyJoiningProps) {
 
       <div className='relative mx-auto w-full max-w-[1520px]'>
         <div className='mx-auto max-w-[1000px] text-center'>
-          <span
-            className='inline-flex h-[46px] items-center justify-center gap-2 rounded-full border px-4 sm:px-5'
+          <SectionEyebrowChip
+            label={sectionEyebrow}
+            labelStyle={sectionEyebrowStyle}
+            className='h-[46px] justify-center px-4 sm:px-5'
             style={{
               backgroundColor: WHITE,
               borderColor: '#FF9D59',
             }}
-          >
-            <span
-              aria-hidden='true'
-              className='relative inline-flex h-[23px] w-[31px] items-center justify-center'
-            >
+            icon={
               <span
-                className='absolute left-0 top-[6px] h-[10px] w-[10px] rounded-full'
-                style={{
-                  backgroundColor: 'var(--figma-colors-frame-2147235242, #174879)',
-                }}
-              />
-              <span
-                className='absolute right-0 top-[6px] h-[10px] w-[10px] rounded-full'
-                style={{ backgroundColor: '#B31D1F' }}
-              />
-              <span
-                className='absolute bottom-0 left-1/2 h-[10px] w-[10px] -translate-x-1/2 rounded-full'
-                style={{ backgroundColor: '#5D9D49' }}
-              />
-            </span>
-            <span style={sectionEyebrowStyle}>{sectionEyebrow}</span>
-          </span>
+                aria-hidden='true'
+                className='relative inline-flex h-[23px] w-[31px] items-center justify-center'
+              >
+                <span
+                  className='absolute left-0 top-[6px] h-[10px] w-[10px] rounded-full'
+                  style={{
+                    backgroundColor: 'var(--figma-colors-frame-2147235242, #174879)',
+                  }}
+                />
+                <span
+                  className='absolute right-0 top-[6px] h-[10px] w-[10px] rounded-full'
+                  style={{ backgroundColor: '#B31D1F' }}
+                />
+                <span
+                  className='absolute bottom-0 left-1/2 h-[10px] w-[10px] -translate-x-1/2 rounded-full'
+                  style={{ backgroundColor: '#5D9D49' }}
+                />
+              </span>
+            }
+          />
 
           <h2 className='mt-6 text-balance' style={sectionTitleStyle}>
             {sectionTitle}
@@ -464,9 +467,9 @@ export function WhyJoining({ content }: WhyJoiningProps) {
         </ul>
 
         <div className='mt-10 flex justify-center sm:mt-12 lg:mt-14'>
-          <Link
+          <SectionCtaLink
             href={ctaHref}
-            className='inline-flex h-[62px] w-full max-w-[488px] items-center justify-center gap-2 rounded-[8px] px-5 text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 sm:h-[70px] sm:px-7 lg:h-[78px]'
+            className='h-[62px] w-full max-w-[488px] gap-2 rounded-[8px] px-5 focus-visible:outline-black/40 sm:h-[70px] sm:px-7 lg:h-[78px]'
             style={ctaStyle}
           >
             <span>{ctaLabel}</span>
@@ -485,9 +488,9 @@ export function WhyJoining({ content }: WhyJoiningProps) {
                 strokeLinejoin='round'
               />
             </svg>
-          </Link>
+          </SectionCtaLink>
         </div>
       </div>
-    </section>
+    </SectionShell>
   );
 }

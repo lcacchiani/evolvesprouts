@@ -1,5 +1,8 @@
 import type { CSSProperties } from 'react';
 
+import { BackgroundGlow } from '@/components/background-glow';
+import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionShell } from '@/components/section-shell';
 import type { RealStoriesContent } from '@/content';
 
 interface RealStoriesProps {
@@ -321,40 +324,39 @@ export function RealStories({ content }: RealStoriesProps) {
   const nextButtonLabel = story?.nextButtonLabel ?? badgeLabel;
 
   return (
-    <section
-      aria-label={content.title}
-      data-figma-node='Real Stories'
-      className='relative isolate w-full overflow-hidden px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-24'
+    <SectionShell
+      ariaLabel={content.title}
+      dataFigmaNode='Real Stories'
+      className='relative isolate overflow-hidden'
       style={{ backgroundColor: SECTION_BG }}
     >
       <div
         aria-hidden='true'
         className='pointer-events-none absolute inset-x-0 top-0 h-[76%] overflow-hidden opacity-25'
       >
-        <div
-          className='absolute left-1/2 top-[-30rem] h-[84rem] w-[110rem] -translate-x-1/2 rounded-full blur-3xl'
-          style={{
-            background:
-              'radial-gradient(circle at 50% 58%, rgba(23, 72, 121, 0.72) 0%, rgba(179, 29, 31, 0.35) 36%, rgba(93, 157, 73, 0.24) 58%, rgba(255, 255, 255, 0) 82%)',
-          }}
+        <BackgroundGlow
+          className='left-1/2 top-[-30rem] h-[84rem] w-[110rem] -translate-x-1/2 blur-3xl'
+          background='radial-gradient(circle at 50% 58%, rgba(23, 72, 121, 0.72) 0%, rgba(179, 29, 31, 0.35) 36%, rgba(93, 157, 73, 0.24) 58%, rgba(255, 255, 255, 0) 82%)'
         />
       </div>
 
       <div className='relative mx-auto w-full max-w-[1488px]'>
         <div className='flex flex-col items-center gap-6 lg:gap-8'>
           <div className='flex w-full flex-col items-center justify-between gap-4 sm:flex-row'>
-            <div
-              className='inline-flex items-center gap-2 rounded-full border px-4 py-2.5'
+            <SectionEyebrowChip
+              label={badgeLabel}
+              labelStyle={badgeTextStyle}
+              className='px-4 py-2.5'
               style={{
                 borderColor: BADGE_BORDER,
                 backgroundColor: 'rgba(255, 255, 255, 0.64)',
               }}
-            >
-              <span className='inline-flex h-[31px] w-[31px] items-center justify-center'>
-                <BadgeMark className='h-[31px] w-[31px]' />
-              </span>
-              <span style={badgeTextStyle}>{badgeLabel}</span>
-            </div>
+              icon={
+                <span className='inline-flex h-[31px] w-[31px] items-center justify-center'>
+                  <BadgeMark className='h-[31px] w-[31px]' />
+                </span>
+              }
+            />
 
             <div className='flex items-center gap-[14px] sm:gap-[21px]'>
               <button
@@ -394,13 +396,9 @@ export function RealStories({ content }: RealStoriesProps) {
             className='relative isolate overflow-hidden rounded-[28px] p-7 sm:p-10 lg:min-h-[608px] lg:rounded-[32px]'
             style={{ backgroundColor: CARD_BG }}
           >
-            <div
-              aria-hidden='true'
-              className='absolute inset-x-[-26%] bottom-[-30%] h-[72%] rounded-full blur-[90px]'
-              style={{
-                background:
-                  'radial-gradient(circle at 50% 50%, rgba(231, 108, 61, 0.32), rgba(179, 29, 31, 0.3) 36%, rgba(23, 72, 121, 0.25) 64%, rgba(18, 18, 17, 0) 100%)',
-              }}
+            <BackgroundGlow
+              className='inset-x-[-26%] bottom-[-30%] h-[72%] blur-[90px]'
+              background='radial-gradient(circle at 50% 50%, rgba(231, 108, 61, 0.32), rgba(179, 29, 31, 0.3) 36%, rgba(23, 72, 121, 0.25) 64%, rgba(18, 18, 17, 0) 100%)'
             />
             <div
               aria-hidden='true'
@@ -476,6 +474,6 @@ export function RealStories({ content }: RealStoriesProps) {
           </div>
         </div>
       </div>
-    </section>
+    </SectionShell>
   );
 }

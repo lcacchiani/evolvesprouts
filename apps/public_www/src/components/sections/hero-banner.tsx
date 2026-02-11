@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
+import { BackgroundGlow } from '@/components/background-glow';
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import type { HeroContent } from '@/content';
 
 interface HeroBannerProps {
@@ -88,14 +90,10 @@ export function HeroBanner({ content }: HeroBannerProps) {
       className='relative isolate w-full overflow-hidden px-4 pb-14 pt-12 sm:px-6 sm:pb-16 sm:pt-16 lg:min-h-[841px] lg:px-8 lg:pb-20 lg:pt-20'
       style={{ backgroundColor: HERO_BACKGROUND }}
     >
-      <div
-        aria-hidden='true'
-        className='pointer-events-none absolute -left-40 top-1/2 hidden h-[48rem] w-[36rem] -translate-y-1/2 rounded-full blur-3xl xl:block'
-        style={{
-          background:
-            'radial-gradient(circle at 50% 50%, rgba(23, 72, 121, 0.34), rgba(231, 108, 61, 0.22) 48%, rgba(178, 221, 164, 0.18) 78%, rgba(255, 255, 255, 0) 100%)',
-          opacity: 0.5,
-        }}
+      <BackgroundGlow
+        className='-left-40 top-1/2 hidden h-[48rem] w-[36rem] -translate-y-1/2 blur-3xl xl:block'
+        background='radial-gradient(circle at 50% 50%, rgba(23, 72, 121, 0.34), rgba(231, 108, 61, 0.22) 48%, rgba(178, 221, 164, 0.18) 78%, rgba(255, 255, 255, 0) 100%)'
+        opacity={0.5}
       />
 
       <div className='mx-auto grid w-full max-w-[1735px] items-center gap-10 lg:grid-cols-[minmax(0,622px)_minmax(0,764px)] lg:justify-between lg:gap-14'>
@@ -107,13 +105,13 @@ export function HeroBanner({ content }: HeroBannerProps) {
             </p>
           </div>
 
-          <a
+          <SectionCtaAnchor
             href='#courses'
-            className='inline-flex h-[64px] w-full max-w-[491px] items-center justify-center rounded-[10px] px-5 text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 sm:h-[72px] sm:px-7 lg:h-[81px]'
+            className='h-[64px] w-full max-w-[491px] rounded-[10px] px-5 focus-visible:outline-black/40 sm:h-[72px] sm:px-7 lg:h-[81px]'
             style={ctaStyle}
           >
             {content.cta}
-          </a>
+          </SectionCtaAnchor>
         </div>
 
         <div className='relative mx-auto w-full max-w-[764px] lg:mx-0 lg:justify-self-end'>
@@ -167,11 +165,14 @@ export function HeroBanner({ content }: HeroBannerProps) {
               />
               <div className='absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-white/20' />
               <div className='absolute inset-[9%] rounded-[28px] border border-white/15 bg-white/5' />
-              <div
-                className='absolute -left-[11%] bottom-[12%] h-[36%] w-[44%] rounded-full blur-3xl'
-                style={{ backgroundColor: 'rgba(249, 138, 91, 0.27)' }}
+              <BackgroundGlow
+                className='-left-[11%] bottom-[12%] h-[36%] w-[44%] blur-3xl'
+                background='rgba(249, 138, 91, 0.27)'
               />
-              <div className='absolute -right-[8%] top-[38%] h-[30%] w-[42%] rounded-full bg-white/10 blur-3xl' />
+              <BackgroundGlow
+                className='-right-[8%] top-[38%] h-[30%] w-[42%] blur-3xl'
+                background='rgba(255, 255, 255, 0.1)'
+              />
             </div>
 
             <div className='absolute left-[8%] top-[7%] z-20 rounded-2xl bg-black/40 px-4 py-3 text-white backdrop-blur-sm sm:px-5 sm:py-4'>

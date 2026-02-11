@@ -41,6 +41,57 @@ const ctaStyle = {
   lineHeight: 'var(--figma-lineheights-book-now, 100%)',
 };
 
+const LANGUAGE_ARIA_LABEL = 'Selected language: English';
+const BOOK_NOW_LABEL = 'Book Now';
+
+function LanguageChevronIcon() {
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 20 20'
+      className='h-5 w-5'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <path
+        d='M5 8L10 13L15 8'
+        stroke='var(--figma-colors-join-our-sprouts-squad-community, #333333)'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  );
+}
+
+function LanguageSelectorButton({ className }: { className: string }) {
+  return (
+    <button
+      type='button'
+      className={className}
+      aria-label={LANGUAGE_ARIA_LABEL}
+    >
+      <Image
+        src='/flags/gb.png'
+        alt='United Kingdom flag'
+        width={30}
+        height={30}
+        className='h-[30px] w-[30px] rounded-full object-cover'
+      />
+      <span style={localeStyle}>Eng</span>
+      <LanguageChevronIcon />
+    </button>
+  );
+}
+
+function BookNowButton({ className }: { className: string }) {
+  return (
+    <Link href='#courses' className={className} style={ctaStyle}>
+      {BOOK_NOW_LABEL}
+    </Link>
+  );
+}
+
 export function Navbar({ content }: NavbarProps) {
   const links = Object.entries(content.links);
 
@@ -77,43 +128,12 @@ export function Navbar({ content }: NavbarProps) {
         </ul>
 
         <div className='hidden items-center gap-3 lg:flex'>
-          <button
-            type='button'
+          <LanguageSelectorButton
             className='inline-flex h-[30px] items-center gap-[9px] px-[6px]'
-            aria-label='Selected language: English'
-          >
-            <Image
-              src='/flags/gb.png'
-              alt='United Kingdom flag'
-              width={30}
-              height={30}
-              className='h-[30px] w-[30px] rounded-full object-cover'
-            />
-            <span style={localeStyle}>Eng</span>
-            <svg
-              aria-hidden='true'
-              viewBox='0 0 20 20'
-              className='h-5 w-5'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <path
-                d='M5 8L10 13L15 8'
-                stroke='var(--figma-colors-join-our-sprouts-squad-community, #333333)'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
-          </button>
-
-          <Link
-            href='#courses'
+          />
+          <BookNowButton
             className='inline-flex h-[56px] items-center justify-center rounded-[10px] px-6 text-center transition-opacity hover:opacity-95'
-            style={ctaStyle}
-          >
-            Book Now
-          </Link>
+          />
         </div>
 
         <details className='relative lg:hidden'>
@@ -157,43 +177,12 @@ export function Navbar({ content }: NavbarProps) {
             </ul>
 
             <div className='mt-4 space-y-3 border-t border-black/10 pt-4'>
-              <button
-                type='button'
+              <LanguageSelectorButton
                 className='inline-flex h-[30px] w-full items-center justify-center gap-[9px] px-[6px]'
-                aria-label='Selected language: English'
-              >
-                <Image
-                  src='/flags/gb.png'
-                  alt='United Kingdom flag'
-                  width={30}
-                  height={30}
-                  className='h-[30px] w-[30px] rounded-full object-cover'
-                />
-                <span style={localeStyle}>Eng</span>
-                <svg
-                  aria-hidden='true'
-                  viewBox='0 0 20 20'
-                  className='h-5 w-5'
-                  fill='none'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path
-                    d='M5 8L10 13L15 8'
-                    stroke='var(--figma-colors-join-our-sprouts-squad-community, #333333)'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                </svg>
-              </button>
-
-              <Link
-                href='#courses'
+              />
+              <BookNowButton
                 className='inline-flex h-[56px] w-full items-center justify-center rounded-[10px] px-6 text-center'
-                style={ctaStyle}
-              >
-                Book Now
-              </Link>
+              />
             </div>
           </div>
         </details>
