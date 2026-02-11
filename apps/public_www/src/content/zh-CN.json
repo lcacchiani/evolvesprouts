@@ -57,9 +57,21 @@
     "items": []
   },
   "realStories": {
-    "title": "真实故事",
-    "description": "听听家长和学生的心声。",
-    "items": []
+    "title": "来自香港家长的真实故事",
+    "description": "",
+    "items": [
+      {
+        "badgeLabel": "家长见证",
+        "organization": "Evolve Sprouts",
+        "cardLocation": "中国香港",
+        "quote": "Ida太棒了，她帮助我理解如何以蒙特梭利的方式布置家里，同时不打乱我原有的风格。",
+        "author": "Mary Lo",
+        "role": "两孩妈妈",
+        "metaLocation": "来自香港",
+        "previousButtonLabel": "上一条见证",
+        "nextButtonLabel": "下一条见证"
+      }
+    ]
   },
   "footer": {
     "brand": "Evolve Sprouts",
