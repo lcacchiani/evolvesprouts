@@ -87,38 +87,38 @@
     "eyebrow": "Course Highlights",
     "title": "Why Joining Our Courses",
     "description": "Transform Your Auntie into a Montessori-Guided Child Development Partner!",
-    "ctaLabel": "Get Started - Train Auntie Today",
-    "ctaHref": "#courses",
+    "ctaLabel": "Get Started—Train Auntie Today",
+    "ctaHref": "/training-courses",
     "supportChipLabel": "Connect Now",
     "items": [
       {
         "id": "age-specific",
         "title": "Age-Specific Strategies",
-        "description": ""
-      },
-      {
-        "id": "guaranteed-confidence",
-        "title": "Guaranteed Confidence",
-        "description": ""
+        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
       },
       {
         "id": "small-group-learning",
         "title": "Small Group Learning",
-        "description": ""
+        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
       },
       {
         "id": "montessori-positive-discipline",
         "title": "Montessori + Positive Discipline",
-        "description": ""
+        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
       },
       {
         "id": "ongoing-support",
         "title": "1-Year Ongoing Support",
-        "description": ""
+        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
       },
       {
         "id": "ready-to-use-tools",
         "title": "Ready-to-Use Tools",
+        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
+      },
+      {
+        "id": "guaranteed-confidence",
+        "title": "Guaranteed Confidence",
         "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
       }
     ]

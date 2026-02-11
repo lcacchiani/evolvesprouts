@@ -18,8 +18,8 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
       <main className='min-h-screen'>
         <HeroBanner content={content.hero} />
         <CourseModule content={content.courseModule} />
-        <FreeResources content={content.freeResources} />
         <WhyJoining content={content.whyJoining} />
+        <FreeResources content={content.freeResources} />
         <RealStories content={content.realStories} />
       </main>
       <Footer content={content.footer} />
