@@ -17,7 +17,7 @@ const NAV_TEXT_COLOR =
 const NAV_ACTIVE_TEXT = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const CTA_BACKGROUND = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
-const WWW2_LOGO_SRC = '/images/www2-logo.svg';
+const WWW2_LOGO_SRC = '/images/evolvesprouts-logo.svg';
 
 const linkStyle = {
   backgroundColor: NAV_PILL_BACKGROUND,

@@ -6,7 +6,7 @@
   },
   "navbar": {
     "brand": "Evolve Sprouts",
-    "logoSrc": "/images/www2-logo.svg",
+    "logoSrc": "/images/evolvesprouts-logo.svg",
     "menuItems": [
       { "label": "Home", "href": "/" },
       {
