@@ -115,6 +115,28 @@
         "metaLocation": "From Hong Kong",
         "previousButtonLabel": "Previous testimonial",
         "nextButtonLabel": "Next testimonial"
+      },
+      {
+        "badgeLabel": "Testimonials",
+        "organization": "Evolve Sprouts",
+        "cardLocation": "Kowloon, Hong Kong",
+        "quote": "I loved how practical the sessions were. We changed our play area in one weekend, and bedtime has become calmer for everyone.",
+        "author": "Anita Wong",
+        "role": "Mom of 1",
+        "metaLocation": "From Kowloon",
+        "previousButtonLabel": "Previous testimonial",
+        "nextButtonLabel": "Next testimonial"
+      },
+      {
+        "badgeLabel": "Testimonials",
+        "organization": "Evolve Sprouts",
+        "cardLocation": "New Territories, Hong Kong",
+        "quote": "Our helper and I now use the same routines, and my son is much more independent with daily tasks.",
+        "author": "Kelvin Cheung",
+        "role": "Dad of 1",
+        "metaLocation": "From New Territories",
+        "previousButtonLabel": "Previous testimonial",
+        "nextButtonLabel": "Next testimonial"
       }
     ]
   },

@@ -1,4 +1,6 @@
-import type { CSSProperties } from 'react';
+'use client';
+
+import { useMemo, useState, type CSSProperties } from 'react';
 
 import { BackgroundGlow } from '@/components/background-glow';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
@@ -128,24 +130,24 @@ function getCandidate(
   return undefined;
 }
 
-function normalizePrimaryStory(items: unknown): NormalizedStory | null {
-  if (!Array.isArray(items) || items.length === 0) {
-    return null;
-  }
-
-  const firstItem = items[0];
-  if (typeof firstItem === 'string') {
-    const quote = getStringValue(firstItem);
+function normalizeStory(item: unknown): NormalizedStory | null {
+  if (typeof item === 'string') {
+    const quote = getStringValue(item);
     return quote ? { quote } : null;
   }
 
-  if (typeof firstItem !== 'object' || firstItem === null) {
+  if (typeof item !== 'object' || item === null) {
     return null;
   }
 
-  const record = firstItem as Record<string, unknown>;
+  const record = item as Record<string, unknown>;
   const story: NormalizedStory = {
-    badgeLabel: getCandidate(record, ['badgeLabel', 'badge', 'eyebrow', 'label']),
+    badgeLabel: getCandidate(record, [
+      'badgeLabel',
+      'badge',
+      'eyebrow',
+      'label',
+    ]),
     quote: getCandidate(record, [
       'quote',
       'testimonial',
@@ -171,6 +173,24 @@ function normalizePrimaryStory(items: unknown): NormalizedStory | null {
   };
 
   return Object.values(story).some(Boolean) ? story : null;
+}
+
+function normalizeStories(items: unknown): NormalizedStory[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((item) => normalizeStory(item))
+    .filter((item): item is NormalizedStory => item !== null);
+}
+
+function getWrappedIndex(index: number, total: number): number {
+  if (total <= 0) {
+    return 0;
+  }
+
+  return ((index % total) + total) % total;
 }
 
 function BadgeMark({ className }: { className?: string }) {
@@ -309,7 +329,16 @@ function ParentIcon() {
 }
 
 export function RealStories({ content }: RealStoriesProps) {
-  const story = normalizePrimaryStory(content.items);
+  const stories = useMemo(
+    () => normalizeStories(content.items),
+    [content.items],
+  );
+  const storyCount = stories.length;
+  const [activeStoryIndex, setActiveStoryIndex] = useState(0);
+  const story =
+    storyCount > 0
+      ? stories[getWrappedIndex(activeStoryIndex, storyCount)]
+      : null;
   const normalizedDescription = content.description.trim();
   const fallbackQuote = normalizedDescription || content.title;
   const quoteText = story?.quote ?? fallbackQuote;
@@ -322,6 +351,27 @@ export function RealStories({ content }: RealStoriesProps) {
   const badgeLabel = story?.badgeLabel ?? content.title;
   const previousButtonLabel = story?.previousButtonLabel ?? badgeLabel;
   const nextButtonLabel = story?.nextButtonLabel ?? badgeLabel;
+  const hasMultipleStories = storyCount > 1;
+
+  function goToPreviousStory() {
+    if (!hasMultipleStories) {
+      return;
+    }
+
+    setActiveStoryIndex((previousIndex) =>
+      getWrappedIndex(previousIndex - 1, storyCount),
+    );
+  }
+
+  function goToNextStory() {
+    if (!hasMultipleStories) {
+      return;
+    }
+
+    setActiveStoryIndex((previousIndex) =>
+      getWrappedIndex(previousIndex + 1, storyCount),
+    );
+  }
 
   return (
     <SectionShell
@@ -361,7 +411,8 @@ export function RealStories({ content }: RealStoriesProps) {
             <div className='flex items-center gap-[14px] sm:gap-[21px]'>
               <button
                 type='button'
-                disabled
+                onClick={goToPreviousStory}
+                disabled={!hasMultipleStories}
                 aria-label={previousButtonLabel}
                 className='inline-flex h-[72px] w-[72px] items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-100 sm:h-[85px] sm:w-[86px]'
                 style={{ backgroundColor: CONTROL_BG }}
@@ -370,7 +421,8 @@ export function RealStories({ content }: RealStoriesProps) {
               </button>
               <button
                 type='button'
-                disabled
+                onClick={goToNextStory}
+                disabled={!hasMultipleStories}
                 aria-label={nextButtonLabel}
                 className='inline-flex h-[72px] w-[72px] items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-100 sm:h-[85px] sm:w-[86px]'
                 style={{ backgroundColor: CONTROL_BG }}
