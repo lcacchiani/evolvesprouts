@@ -6,10 +6,17 @@
  * compatible JSON files under figma/token-studio/.
  *
  * Works on Figma Professional plans — does NOT require the Variables
- * API (Enterprise-only). Extracts tokens exclusively from published
- * styles (color, text, effect) found in the file response. Raw node
- * properties (spacing, border radius, stroke weight, opacity) are
- * intentionally ignored — those are rendering artifacts, not tokens.
+ * API (Enterprise-only). Extracts tokens from two sources:
+ *
+ *   1. Published styles (color, text, effect) — preferred, clean names.
+ *   2. Direct node values — fills from FRAME/RECTANGLE/ELLIPSE/TEXT/
+ *      COMPONENT/INSTANCE nodes, text properties from TEXT nodes,
+ *      effects from visible nodes. Used when published styles don't
+ *      cover the design. VECTOR/LINE/BOOLEAN nodes are skipped to
+ *      avoid icon/illustration noise.
+ *
+ * When FIGMA_TOKEN_ROOT_NODE is set, extraction is scoped to that
+ * frame only — preventing cross-contamination from imported libraries.
  *
  * Output files:
  *   figma/token-studio/global.json    — primitive design values
@@ -240,18 +247,347 @@ function extractFromNodeTree(node, styleMap, collected) {
     }
   }
 
-  // NOTE: We intentionally do NOT scrape raw node properties (spacing,
-  // border radius, border width, opacity, unstyled fills) from the
-  // document tree. Those values are rendering artifacts from individual
-  // shapes and icons — not intentional design tokens. Only published
-  // styles are extracted as tokens.
-
   // Recurse into children
   if (Array.isArray(node.children)) {
     for (const child of node.children) {
       extractFromNodeTree(child, styleMap, collected);
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Direct value extraction (for designs without published styles)
+// ---------------------------------------------------------------------------
+
+/**
+ * Node types that represent meaningful design elements.
+ * VECTOR, LINE, STAR, REGULAR_POLYGON, BOOLEAN_OPERATION are excluded
+ * because they are typically icon/illustration internals.
+ */
+const DESIGN_NODE_TYPES = new Set([
+  'FRAME',
+  'RECTANGLE',
+  'ELLIPSE',
+  'TEXT',
+  'COMPONENT',
+  'COMPONENT_SET',
+  'INSTANCE',
+  'GROUP',
+  'SECTION',
+]);
+
+/**
+ * Walks the node tree and extracts direct values (fills, text props,
+ * effects) from meaningful design nodes. Skips invisible nodes and
+ * icon/vector internals.
+ */
+function extractDirectValues(node, collected, parentPath) {
+  if (!node || typeof node !== 'object') {
+    return;
+  }
+
+  // Skip invisible nodes
+  if (node.visible === false) {
+    return;
+  }
+
+  const nodeType = node.type ?? '';
+  const nodeName = node.name ?? '';
+  const currentPath = parentPath ? `${parentPath}/${nodeName}` : nodeName;
+
+  // Only extract from meaningful design node types
+  if (DESIGN_NODE_TYPES.has(nodeType)) {
+    // Extract fill colors
+    if (Array.isArray(node.fills)) {
+      for (const fill of node.fills) {
+        if (fill.type === 'SOLID' && fill.color && fill.visible !== false) {
+          const hex = figmaColorToHex(fill.color);
+          if (hex) {
+            // Use hex as dedup key, store the first node name as label
+            if (!collected.directColors.has(hex)) {
+              collected.directColors.set(hex, {
+                hex,
+                opacity: fill.opacity,
+                nodeName,
+                nodePath: currentPath,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Extract text properties from TEXT nodes
+    if (nodeType === 'TEXT' && node.style) {
+      const style = node.style;
+      const key = [
+        style.fontFamily ?? '',
+        style.fontWeight ?? '',
+        style.fontSize ?? '',
+        style.lineHeightPx ?? '',
+      ].join('|');
+
+      if (key && !collected.directTextStyles.has(key)) {
+        collected.directTextStyles.set(key, {
+          fontFamily: style.fontFamily ?? null,
+          fontWeight: style.fontWeight ?? null,
+          fontSize: style.fontSize ?? null,
+          lineHeightPx: style.lineHeightPx ?? null,
+          lineHeightPercent: style.lineHeightPercent ?? null,
+          lineHeightPercentFontSize:
+            style.lineHeightPercentFontSize ?? null,
+          lineHeightUnit: style.lineHeightUnit ?? null,
+          letterSpacing: style.letterSpacing ?? null,
+          paragraphSpacing: style.paragraphSpacing ?? null,
+          textCase: style.textCase ?? null,
+          textDecoration: style.textDecoration ?? null,
+          nodeName,
+          nodePath: currentPath,
+        });
+      }
+    }
+
+    // Extract effects (shadows, blurs)
+    if (Array.isArray(node.effects) && node.effects.length > 0) {
+      const visibleEffects = node.effects.filter(
+        (e) => e.visible !== false,
+      );
+      if (visibleEffects.length > 0) {
+        // Dedup by serialized effect values
+        const key = JSON.stringify(
+          visibleEffects.map((e) => ({
+            type: e.type,
+            color: e.color,
+            offset: e.offset,
+            radius: e.radius,
+            spread: e.spread,
+          })),
+        );
+
+        if (!collected.directEffects.has(key)) {
+          collected.directEffects.set(key, {
+            effects: visibleEffects,
+            nodeName,
+            nodePath: currentPath,
+          });
+        }
+      }
+    }
+  }
+
+  // Recurse — but skip into VECTOR/BOOLEAN children (icon internals)
+  if (
+    Array.isArray(node.children) &&
+    nodeType !== 'VECTOR' &&
+    nodeType !== 'BOOLEAN_OPERATION'
+  ) {
+    for (const child of node.children) {
+      extractDirectValues(child, collected, currentPath);
+    }
+  }
+}
+
+/**
+ * Converts direct colors into Token Studio tokens.
+ * Names are derived from the node name where the color was first seen.
+ */
+function buildDirectColorTokens(directColors) {
+  const tokens = {};
+  const slugCounts = new Map();
+
+  for (const [hex, data] of directColors) {
+    let slug = sanitizeName(data.nodeName);
+    if (!slug) {
+      slug = `color-${hex.slice(1).toLowerCase()}`;
+    }
+
+    // Deduplicate slugs
+    const count = slugCounts.get(slug) ?? 0;
+    slugCounts.set(slug, count + 1);
+    const uniqueSlug = count > 0 ? `${slug}-${count + 1}` : slug;
+
+    const token = {
+      value: data.hex,
+      type: 'color',
+    };
+
+    if (
+      data.opacity !== undefined &&
+      data.opacity !== null &&
+      data.opacity < 1
+    ) {
+      token.value = figmaColorToRgba({
+        r: parseInt(data.hex.slice(1, 3), 16) / 255,
+        g: parseInt(data.hex.slice(3, 5), 16) / 255,
+        b: parseInt(data.hex.slice(5, 7), 16) / 255,
+        a: data.opacity,
+      });
+    }
+
+    tokens[uniqueSlug] = token;
+  }
+
+  return tokens;
+}
+
+/**
+ * Converts direct text styles into Token Studio tokens.
+ * Names are derived from the text node name.
+ */
+function buildDirectTypographyTokens(directTextStyles) {
+  const fontFamilies = {};
+  const fontWeights = {};
+  const fontSizes = {};
+  const lineHeights = {};
+  const letterSpacings = {};
+  const typography = {};
+
+  const seenFamilies = new Set();
+  const seenWeights = new Set();
+  const seenSizes = new Set();
+  const slugCounts = new Map();
+
+  for (const [, data] of directTextStyles) {
+    let slug = sanitizeName(data.nodeName);
+    if (!slug) {
+      slug = `text-${data.fontSize ?? 'unknown'}`;
+    }
+
+    const count = slugCounts.get(slug) ?? 0;
+    slugCounts.set(slug, count + 1);
+    const uniqueSlug = count > 0 ? `${slug}-${count + 1}` : slug;
+
+    if (data.fontFamily && !seenFamilies.has(data.fontFamily)) {
+      seenFamilies.add(data.fontFamily);
+      const familyKey = sanitizeName(data.fontFamily);
+      fontFamilies[familyKey] = {
+        value: data.fontFamily,
+        type: 'fontFamilies',
+      };
+    }
+
+    if (data.fontWeight !== null && !seenWeights.has(data.fontWeight)) {
+      seenWeights.add(data.fontWeight);
+      fontWeights[`${data.fontWeight}`] = {
+        value: `${data.fontWeight}`,
+        type: 'fontWeights',
+      };
+    }
+
+    if (data.fontSize !== null && !seenSizes.has(data.fontSize)) {
+      seenSizes.add(data.fontSize);
+      fontSizes[`${data.fontSize}`] = {
+        value: `${data.fontSize}`,
+        type: 'fontSizes',
+      };
+    }
+
+    let lineHeightValue = null;
+    if (data.lineHeightUnit === 'PIXELS' && data.lineHeightPx !== null) {
+      lineHeightValue = `${data.lineHeightPx}`;
+    } else if (
+      data.lineHeightUnit === 'FONT_SIZE_%' &&
+      data.lineHeightPercentFontSize !== null
+    ) {
+      lineHeightValue = `${data.lineHeightPercentFontSize}%`;
+    } else if (data.lineHeightPercent !== null) {
+      lineHeightValue = `${data.lineHeightPercent}%`;
+    }
+
+    if (lineHeightValue !== null) {
+      lineHeights[uniqueSlug] = {
+        value: lineHeightValue,
+        type: 'lineHeights',
+      };
+    }
+
+    if (data.letterSpacing !== null && data.letterSpacing !== 0) {
+      letterSpacings[uniqueSlug] = {
+        value: `${data.letterSpacing}`,
+        type: 'letterSpacing',
+      };
+    }
+
+    const compositeValue = {};
+    if (data.fontFamily) {
+      const familyKey = sanitizeName(data.fontFamily);
+      compositeValue.fontFamily = `{fontFamilies.${familyKey}}`;
+    }
+    if (data.fontWeight !== null) {
+      compositeValue.fontWeight = `{fontWeights.${data.fontWeight}}`;
+    }
+    if (data.fontSize !== null) {
+      compositeValue.fontSize = `{fontSizes.${data.fontSize}}`;
+    }
+    if (lineHeightValue !== null) {
+      compositeValue.lineHeight = `{lineHeights.${uniqueSlug}}`;
+    }
+    if (data.letterSpacing !== null && data.letterSpacing !== 0) {
+      compositeValue.letterSpacing = `{letterSpacing.${uniqueSlug}}`;
+    }
+
+    typography[uniqueSlug] = {
+      value: compositeValue,
+      type: 'typography',
+    };
+  }
+
+  return {
+    fontFamilies,
+    fontWeights,
+    fontSizes,
+    lineHeights,
+    letterSpacing: letterSpacings,
+    typography,
+  };
+}
+
+/**
+ * Converts direct effects into Token Studio tokens.
+ */
+function buildDirectEffectTokens(directEffects) {
+  const tokens = {};
+  const slugCounts = new Map();
+
+  for (const [, data] of directEffects) {
+    let slug = sanitizeName(data.nodeName);
+    if (!slug) {
+      slug = 'shadow';
+    }
+
+    const count = slugCounts.get(slug) ?? 0;
+    slugCounts.set(slug, count + 1);
+    const uniqueSlug = count > 0 ? `${slug}-${count + 1}` : slug;
+
+    const shadowValues = [];
+    for (const effect of data.effects) {
+      if (
+        (effect.type === 'DROP_SHADOW' || effect.type === 'INNER_SHADOW') &&
+        effect.visible !== false
+      ) {
+        const color = effect.color
+          ? figmaColorToRgba(effect.color)
+          : 'rgba(0, 0, 0, 0.25)';
+        shadowValues.push({
+          color,
+          type: effect.type === 'INNER_SHADOW' ? 'innerShadow' : 'dropShadow',
+          x: `${effect.offset?.x ?? 0}`,
+          y: `${effect.offset?.y ?? 0}`,
+          blur: `${effect.radius ?? 0}`,
+          spread: `${effect.spread ?? 0}`,
+        });
+      }
+    }
+
+    if (shadowValues.length > 0) {
+      tokens[uniqueSlug] = {
+        value: shadowValues.length === 1 ? shadowValues[0] : shadowValues,
+        type: 'boxShadow',
+      };
+    }
+  }
+
+  return tokens;
 }
 
 // ---------------------------------------------------------------------------
@@ -624,6 +960,7 @@ async function main() {
     }
   }
 
+  // --- Pass 1: published styles ---
   const collected = {
     colors: new Map(),
     textStyles: new Map(),
@@ -633,26 +970,82 @@ async function main() {
 
   extractFromNodeTree(extractionRoot, styleMap, collected);
 
-  console.log(`Extracted ${collected.colors.size} color style(s).`);
-  console.log(`Extracted ${collected.textStyles.size} text style(s).`);
-  console.log(`Extracted ${collected.effectStyles.size} effect style(s).`);
-  console.log(`Extracted ${collected.gridStyles.size} grid style(s).`);
+  console.log('');
+  console.log('Published styles:');
+  console.log(`  ${collected.colors.size} color style(s)`);
+  console.log(`  ${collected.textStyles.size} text style(s)`);
+  console.log(`  ${collected.effectStyles.size} effect style(s)`);
+  console.log(`  ${collected.gridStyles.size} grid style(s)`);
 
-  // Build global tokens from published styles only
-  const colorTokens = buildColorTokens(collected.colors);
-  const typographyResult = buildTypographyTokens(collected.textStyles);
-  const effectTokens = buildEffectTokens(collected.effectStyles);
+  // --- Pass 2: direct node values (fills, text, effects) ---
+  const directCollected = {
+    directColors: new Map(),
+    directTextStyles: new Map(),
+    directEffects: new Map(),
+  };
+
+  extractDirectValues(extractionRoot, directCollected, '');
+
+  console.log('');
+  console.log('Direct values (from node properties):');
+  console.log(`  ${directCollected.directColors.size} unique fill color(s)`);
+  console.log(`  ${directCollected.directTextStyles.size} unique text style(s)`);
+  console.log(`  ${directCollected.directEffects.size} unique effect(s)`);
+
+  // --- Build tokens: published styles take priority ---
+  const styleColorTokens = buildColorTokens(collected.colors);
+  const styleTypography = buildTypographyTokens(collected.textStyles);
+  const styleEffectTokens = buildEffectTokens(collected.effectStyles);
+
+  const directColorTokens = buildDirectColorTokens(
+    directCollected.directColors,
+  );
+  const directTypography = buildDirectTypographyTokens(
+    directCollected.directTextStyles,
+  );
+  const directEffectTokens = buildDirectEffectTokens(
+    directCollected.directEffects,
+  );
+
+  // Merge: published styles first, direct values fill gaps.
+  // Published style tokens use style names; direct tokens use node names.
+  const mergedColors = { ...directColorTokens, ...styleColorTokens };
+  const mergedFontFamilies = {
+    ...directTypography.fontFamilies,
+    ...styleTypography.fontFamilies,
+  };
+  const mergedFontWeights = {
+    ...directTypography.fontWeights,
+    ...styleTypography.fontWeights,
+  };
+  const mergedFontSizes = {
+    ...directTypography.fontSizes,
+    ...styleTypography.fontSizes,
+  };
+  const mergedLineHeights = {
+    ...directTypography.lineHeights,
+    ...styleTypography.lineHeights,
+  };
+  const mergedLetterSpacing = {
+    ...directTypography.letterSpacing,
+    ...styleTypography.letterSpacing,
+  };
+  const mergedTypography = {
+    ...directTypography.typography,
+    ...styleTypography.typography,
+  };
+  const mergedEffects = { ...directEffectTokens, ...styleEffectTokens };
 
   const globalTokens = {
-    colors: colorTokens,
-    fontFamilies: typographyResult.fontFamilies,
-    fontWeights: typographyResult.fontWeights,
-    fontSizes: typographyResult.fontSizes,
-    lineHeights: typographyResult.lineHeights,
-    letterSpacing: typographyResult.letterSpacing,
-    paragraphSpacing: typographyResult.paragraphSpacing,
-    typography: typographyResult.typography,
-    boxShadow: effectTokens,
+    colors: mergedColors,
+    fontFamilies: mergedFontFamilies,
+    fontWeights: mergedFontWeights,
+    fontSizes: mergedFontSizes,
+    lineHeights: mergedLineHeights,
+    letterSpacing: mergedLetterSpacing,
+    paragraphSpacing: styleTypography.paragraphSpacing ?? {},
+    typography: mergedTypography,
+    boxShadow: mergedEffects,
   };
 
   // Remove empty top-level groups for cleanliness
