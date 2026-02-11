@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import Image from 'next/image';
 
 import type { HeroContent } from '@/content';
 
@@ -25,6 +26,8 @@ const ACCENT_BLUE = '#548CC4';
 const ACCENT_GREEN_LIGHT = '#A8CB44';
 const ACCENT_GREEN = '#5D9D49';
 const ACCENT_ORANGE = '#F98A5B';
+const HERO_IMAGE_DESKTOP_SRC = '/images/hero/hero-banner-main.jpg';
+const HERO_IMAGE_MOBILE_SRC = '/images/hero/hero-banner-mobile.jpg';
 
 const headlineStyle: CSSProperties = {
   color: HEADLINE_COLOR,
@@ -74,8 +77,7 @@ const audienceBodyStyle: CSSProperties = {
 
 const visualMediaStyle: CSSProperties = {
   boxShadow: VISUAL_SHADOW,
-  background:
-    'radial-gradient(90% 64% at 50% 20%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 60%), linear-gradient(165deg, var(--figma-colors-frame-2147235242, #174879) 8%, #1C3542 52%, #0E2431 100%)',
+  backgroundColor: 'var(--figma-colors-frame-2147235242, #174879)',
 };
 
 export function HeroBanner({ content }: HeroBannerProps) {
@@ -144,9 +146,26 @@ export function HeroBanner({ content }: HeroBannerProps) {
 
             <div
               aria-hidden='true'
-              className='absolute inset-x-[5%] bottom-0 top-0 rounded-[32px]'
+              className='absolute inset-x-[5%] bottom-0 top-0 overflow-hidden rounded-[32px]'
               style={visualMediaStyle}
             >
+              <Image
+                src={HERO_IMAGE_MOBILE_SRC}
+                alt=''
+                fill
+                priority
+                sizes='(max-width: 1023px) 88vw'
+                className='object-cover object-center lg:hidden'
+              />
+              <Image
+                src={HERO_IMAGE_DESKTOP_SRC}
+                alt=''
+                fill
+                priority
+                sizes='(min-width: 1024px) 720px'
+                className='hidden object-cover object-center lg:block'
+              />
+              <div className='absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-white/20' />
               <div className='absolute inset-[9%] rounded-[28px] border border-white/15 bg-white/5' />
               <div
                 className='absolute -left-[11%] bottom-[12%] h-[36%] w-[44%] rounded-full blur-3xl'
