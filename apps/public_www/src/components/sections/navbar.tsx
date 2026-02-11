@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -206,9 +206,11 @@ export function Navbar({ content }: NavbarProps) {
     >
       <nav className='mx-auto flex w-full max-w-[1465px] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:min-h-[115px] lg:px-8 lg:py-0'>
         <Link href='/' className='shrink-0'>
-          <img
+          <Image
             src={logoSrc}
             alt={content.brand}
+            width={220}
+            height={44}
             className='h-[38px] w-auto sm:h-[44px]'
           />
         </Link>
