@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "locale": "zh-HK",
+    "direction": "ltr",
+    "label": "繁體中文"
+  },
+  "navbar": {
+    "brand": "Evolve Sprouts",
+    "links": {
+      "courses": "課程",
+      "resources": "免費資源",
+      "about": "關於我們",
+      "contact": "聯絡我們"
+    }
+  },
+  "hero": {
+    "headline": "改變孩子的學習之旅",
+    "subheadline": "為年輕學習者量身打造的專家課程。",
+    "cta": "立即開始"
+  },
+  "courseModule": {
+    "title": "我們的課程",
+    "description": "探索我們精心設計的課程系列。",
+    "items": []
+  },
+  "freeResources": {
+    "title": "免費資源",
+    "description": "訪問我們的免費學習資料庫。",
+    "items": []
+  },
+  "whyJoining": {
+    "title": "為什麼加入我們的課程",
+    "description": "了解與我們一起學習的好處。",
+    "items": []
+  },
+  "realStories": {
+    "title": "真實故事",
+    "description": "聽聽家長和學生的心聲。",
+    "items": []
+  },
+  "footer": {
+    "brand": "Evolve Sprouts",
+    "copyright": "© 2026 Evolve Sprouts. 版權所有。",
+    "links": {
+      "privacy": "私隱政策",
+      "terms": "服務條款"
+    }
+  }
+}

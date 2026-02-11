@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "locale": "en",
+    "direction": "ltr",
+    "label": "English"
+  },
+  "navbar": {
+    "brand": "Evolve Sprouts",
+    "links": {
+      "courses": "Courses",
+      "resources": "Free Resources",
+      "about": "About Us",
+      "contact": "Contact"
+    }
+  },
+  "hero": {
+    "headline": "Transform Your Child's Learning Journey",
+    "subheadline": "Expert-led courses designed for young learners.",
+    "cta": "Get Started"
+  },
+  "courseModule": {
+    "title": "Our Courses",
+    "description": "Explore our range of expertly crafted courses.",
+    "items": []
+  },
+  "freeResources": {
+    "title": "Free Resources",
+    "description": "Access our library of free learning materials.",
+    "items": []
+  },
+  "whyJoining": {
+    "title": "Why Joining Our Courses",
+    "description": "Discover the benefits of learning with us.",
+    "items": []
+  },
+  "realStories": {
+    "title": "Real Stories",
+    "description": "Hear from parents and students.",
+    "items": []
+  },
+  "footer": {
+    "brand": "Evolve Sprouts",
+    "copyright": "© 2026 Evolve Sprouts. All rights reserved.",
+    "links": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
+  }
+}

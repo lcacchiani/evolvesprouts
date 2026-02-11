@@ -112,12 +112,20 @@ jobs:
         run: npm run figma:build:studio
         working-directory: apps/public_www
 
+      - name: Scaffold new components (idempotent)
+        run: npm run figma:scaffold
+        working-directory: apps/public_www
+        env:
+          FIGMA_TOKEN_ROOT_NODE: ${{ vars.PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE }}
+
       - name: Check for changes
         id: changes
         run: |
           git diff --quiet -- \
             apps/public_www/figma/token-studio/ \
             apps/public_www/src/app/generated/figma-tokens.css \
+            apps/public_www/src/components/sections/ \
+            apps/public_www/src/content/ \
           && echo "has_changes=false" >> "$GITHUB_OUTPUT" \
           || echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
@@ -132,7 +140,9 @@ jobs:
 
           git add \
             apps/public_www/figma/token-studio/ \
-            apps/public_www/src/app/generated/figma-tokens.css
+            apps/public_www/src/app/generated/figma-tokens.css \
+            apps/public_www/src/components/sections/ \
+            apps/public_www/src/content/
 
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
           git commit -m "chore(tokens): sync Figma design tokens — ${TIMESTAMP}
@@ -173,6 +183,8 @@ jobs:
             echo '- `apps/public_www/figma/token-studio/semantic.json`'
             echo '- `apps/public_www/figma/token-studio/component.json`'
             echo '- `apps/public_www/src/app/generated/figma-tokens.css`'
+            echo '- `apps/public_www/src/components/sections/*.tsx` (new only)'
+            echo '- `apps/public_www/src/content/*.json` (new keys only)'
           } >> "$GITHUB_STEP_SUMMARY"
         env:
           HAS_CHANGES: ${{ steps.changes.outputs.has_changes }}

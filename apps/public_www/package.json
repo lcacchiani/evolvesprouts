@@ -6,11 +6,11 @@
     "dev": "next dev",
     "figma:auth": "node ./scripts/figma/generate-refresh-token.mjs",
     "figma:pull": "node ./scripts/figma/pull-figma-tokens.mjs",
-    "figma:build": "node ./scripts/figma/build-figma-artifacts.mjs",
-    "figma:sync": "npm run figma:pull && npm run figma:build",
     "figma:tokenize": "node ./scripts/figma/figma-to-token-studio.mjs",
     "figma:build:studio": "node ./scripts/figma/build-from-token-studio.mjs",
+    "figma:scaffold": "node ./scripts/figma/scaffold-components.mjs",
     "figma:studio-sync": "npm run figma:pull && npm run figma:tokenize && npm run figma:build:studio",
+    "figma:full-sync": "npm run figma:studio-sync && npm run figma:scaffold",
     "build": "npm run figma:build:studio && next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0 ."
