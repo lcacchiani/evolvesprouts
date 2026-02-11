@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import Link from 'next/link';
 
+import { BackgroundGlow } from '@/components/background-glow';
 import type { CourseModuleContent } from '@/content';
 
 interface CourseModuleProps {
@@ -220,13 +221,9 @@ export function CourseModule({ content }: CourseModuleProps) {
       className='relative isolate w-full overflow-hidden px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-24'
       style={{ backgroundColor: SECTION_BG }}
     >
-      <div
-        aria-hidden='true'
-        className='pointer-events-none absolute left-1/2 top-1/2 h-[58rem] w-[58rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-60 blur-3xl'
-        style={{
-          background:
-            'radial-gradient(circle at 50% 50%, rgba(237, 98, 46, 0.11) 0%, rgba(23, 72, 121, 0.1) 42%, rgba(255, 255, 255, 0) 78%)',
-        }}
+      <BackgroundGlow
+        className='left-1/2 top-1/2 h-[58rem] w-[58rem] -translate-x-1/2 -translate-y-1/2 opacity-60 blur-3xl'
+        background='radial-gradient(circle at 50% 50%, rgba(237, 98, 46, 0.11) 0%, rgba(23, 72, 121, 0.1) 42%, rgba(255, 255, 255, 0) 78%)'
       />
 
       <div className='relative mx-auto w-full max-w-[1585px]'>
@@ -320,20 +317,17 @@ export function CourseModule({ content }: CourseModuleProps) {
                         'linear-gradient(180deg, #FFFFFF 0%, rgba(248, 248, 248, 0.94) 100%)',
                     }}
                   >
-                    <div
-                      aria-hidden='true'
-                      className='absolute -right-14 top-12 h-44 w-44 rounded-full blur-3xl'
-                      style={{
-                        backgroundColor:
-                          index === 1
-                            ? 'rgba(23, 72, 121, 0.12)'
-                            : 'rgba(237, 98, 46, 0.12)',
-                      }}
+                    <BackgroundGlow
+                      className='-right-14 top-12 h-44 w-44 blur-3xl'
+                      background={
+                        index === 1
+                          ? 'rgba(23, 72, 121, 0.12)'
+                          : 'rgba(237, 98, 46, 0.12)'
+                      }
                     />
-                    <div
-                      aria-hidden='true'
-                      className='absolute -left-12 bottom-12 h-36 w-36 rounded-full blur-3xl'
-                      style={{ backgroundColor: 'rgba(93, 157, 73, 0.16)' }}
+                    <BackgroundGlow
+                      className='-left-12 bottom-12 h-36 w-36 blur-3xl'
+                      background='rgba(93, 157, 73, 0.16)'
                     />
 
                     <div className='relative z-10 flex h-full flex-col items-center text-center'>

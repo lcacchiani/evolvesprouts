@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import Link from 'next/link';
 
+import { BackgroundGlow } from '@/components/background-glow';
 import type { WhyJoiningContent } from '@/content';
 import enContent from '@/content/en.json';
 
@@ -211,15 +212,13 @@ function CardArtwork({
 
   return (
     <>
-      <div
-        aria-hidden='true'
-        className='absolute -right-20 -top-20 h-56 w-56 rounded-full blur-3xl'
-        style={{ backgroundColor: edgeGlow }}
+      <BackgroundGlow
+        className='-right-20 -top-20 h-56 w-56 blur-3xl'
+        background={edgeGlow}
       />
-      <div
-        aria-hidden='true'
-        className='absolute -left-14 bottom-[-70px] h-56 w-56 rounded-full blur-3xl'
-        style={{ backgroundColor: accentGlow }}
+      <BackgroundGlow
+        className='-left-14 bottom-[-70px] h-56 w-56 blur-3xl'
+        background={accentGlow}
       />
       <div
         aria-hidden='true'

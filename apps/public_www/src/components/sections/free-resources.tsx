@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 
+import { BackgroundGlow } from '@/components/background-glow';
 import type { FreeResourcesContent } from '@/content';
 
 interface FreeResourcesProps {
@@ -279,15 +280,13 @@ export function FreeResources({ content }: FreeResourcesProps) {
                     'linear-gradient(128deg, rgba(23, 72, 121, 0.18) 0%, rgba(248, 248, 248, 0.65) 47%, rgba(231, 108, 61, 0.28) 100%)',
                 }}
               />
-              <div
-                aria-hidden='true'
-                className='absolute -left-12 top-[14%] h-44 w-44 rounded-full blur-3xl sm:h-56 sm:w-56'
-                style={{ backgroundColor: 'rgba(93, 157, 73, 0.24)' }}
+              <BackgroundGlow
+                className='-left-12 top-[14%] h-44 w-44 blur-3xl sm:h-56 sm:w-56'
+                background='rgba(93, 157, 73, 0.24)'
               />
-              <div
-                aria-hidden='true'
-                className='absolute -right-10 bottom-[8%] h-44 w-44 rounded-full blur-3xl sm:h-56 sm:w-56'
-                style={{ backgroundColor: 'rgba(231, 108, 61, 0.28)' }}
+              <BackgroundGlow
+                className='-right-10 bottom-[8%] h-44 w-44 blur-3xl sm:h-56 sm:w-56'
+                background='rgba(231, 108, 61, 0.28)'
               />
               <div
                 aria-hidden='true'
@@ -320,10 +319,9 @@ export function FreeResources({ content }: FreeResourcesProps) {
                     '0px 22px 60px -36px rgba(28, 53, 66, 0.38)',
                 }}
               >
-                <div
-                  aria-hidden='true'
-                  className='pointer-events-none absolute -top-20 right-0 h-36 w-36 rounded-full blur-3xl'
-                  style={{ backgroundColor: 'rgba(23, 72, 121, 0.14)' }}
+                <BackgroundGlow
+                  className='-top-20 right-0 h-36 w-36 blur-3xl'
+                  background='rgba(23, 72, 121, 0.14)'
                 />
 
                 <h3 className='max-w-[366px] text-balance' style={cardTitleStyle}>

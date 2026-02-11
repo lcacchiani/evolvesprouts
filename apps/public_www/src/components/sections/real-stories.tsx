@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 
+import { BackgroundGlow } from '@/components/background-glow';
 import type { RealStoriesContent } from '@/content';
 
 interface RealStoriesProps {
@@ -331,12 +332,9 @@ export function RealStories({ content }: RealStoriesProps) {
         aria-hidden='true'
         className='pointer-events-none absolute inset-x-0 top-0 h-[76%] overflow-hidden opacity-25'
       >
-        <div
-          className='absolute left-1/2 top-[-30rem] h-[84rem] w-[110rem] -translate-x-1/2 rounded-full blur-3xl'
-          style={{
-            background:
-              'radial-gradient(circle at 50% 58%, rgba(23, 72, 121, 0.72) 0%, rgba(179, 29, 31, 0.35) 36%, rgba(93, 157, 73, 0.24) 58%, rgba(255, 255, 255, 0) 82%)',
-          }}
+        <BackgroundGlow
+          className='left-1/2 top-[-30rem] h-[84rem] w-[110rem] -translate-x-1/2 blur-3xl'
+          background='radial-gradient(circle at 50% 58%, rgba(23, 72, 121, 0.72) 0%, rgba(179, 29, 31, 0.35) 36%, rgba(93, 157, 73, 0.24) 58%, rgba(255, 255, 255, 0) 82%)'
         />
       </div>
 
@@ -394,13 +392,9 @@ export function RealStories({ content }: RealStoriesProps) {
             className='relative isolate overflow-hidden rounded-[28px] p-7 sm:p-10 lg:min-h-[608px] lg:rounded-[32px]'
             style={{ backgroundColor: CARD_BG }}
           >
-            <div
-              aria-hidden='true'
-              className='absolute inset-x-[-26%] bottom-[-30%] h-[72%] rounded-full blur-[90px]'
-              style={{
-                background:
-                  'radial-gradient(circle at 50% 50%, rgba(231, 108, 61, 0.32), rgba(179, 29, 31, 0.3) 36%, rgba(23, 72, 121, 0.25) 64%, rgba(18, 18, 17, 0) 100%)',
-              }}
+            <BackgroundGlow
+              className='inset-x-[-26%] bottom-[-30%] h-[72%] blur-[90px]'
+              background='radial-gradient(circle at 50% 50%, rgba(231, 108, 61, 0.32), rgba(179, 29, 31, 0.3) 36%, rgba(23, 72, 121, 0.25) 64%, rgba(18, 18, 17, 0) 100%)'
             />
             <div
               aria-hidden='true'
