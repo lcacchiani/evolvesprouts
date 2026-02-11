@@ -1,0 +1,177 @@
+name: Figma Token Studio Sync
+
+# Pulls the latest Figma file data, extracts design tokens into
+# Token Studio format, builds CSS custom properties, and commits
+# any changes back to the repository.
+#
+# Triggers:
+#   - Manual (workflow_dispatch)
+#   - Scheduled (weekly, Monday 06:00 UTC)
+#   - Push to main when token-studio source files change
+#
+# Required secrets:
+#   FIGMA_OAUTH_CLIENT_ID
+#   FIGMA_OAUTH_CLIENT_SECRET
+#   FIGMA_OAUTH_REFRESH_TOKEN
+#
+# Required variables:
+#   PUBLIC_WWW_FIGMA_FILE_KEY
+
+on:
+  repository_dispatch:
+    types: [figma-token-studio-sync]
+  workflow_dispatch:
+    inputs:
+      commit_changes:
+        description: 'Commit updated tokens back to the branch'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+  schedule:
+    - cron: '0 6 * * 1'  # Monday 06:00 UTC
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/public_www/figma/token-studio/**'
+      - 'apps/public_www/scripts/figma/figma-to-token-studio.mjs'
+      - 'apps/public_www/scripts/figma/build-from-token-studio.mjs'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: figma-token-studio-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync-tokens:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: apps/public_www/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/public_www
+
+      - name: Validate Figma credentials
+        run: |
+          ERRORS=0
+          if [ -z "$FIGMA_OAUTH_CLIENT_ID" ]; then
+            echo '::error::FIGMA_OAUTH_CLIENT_ID secret is not set.'
+            ERRORS=1
+          fi
+          if [ -z "$FIGMA_OAUTH_CLIENT_SECRET" ]; then
+            echo '::error::FIGMA_OAUTH_CLIENT_SECRET secret is not set.'
+            ERRORS=1
+          fi
+          if [ -z "$FIGMA_OAUTH_REFRESH_TOKEN" ]; then
+            echo '::error::FIGMA_OAUTH_REFRESH_TOKEN secret is not set.'
+            ERRORS=1
+          fi
+          if [ -z "$FIGMA_FILE_KEY" ]; then
+            echo '::error::PUBLIC_WWW_FIGMA_FILE_KEY variable is not set.'
+            ERRORS=1
+          fi
+          if [ "$ERRORS" -eq 1 ]; then exit 1; fi
+          echo 'All Figma credentials are present.'
+        env:
+          FIGMA_OAUTH_CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
+          FIGMA_OAUTH_CLIENT_SECRET: ${{ secrets.FIGMA_OAUTH_CLIENT_SECRET }}
+          FIGMA_OAUTH_REFRESH_TOKEN: ${{ secrets.FIGMA_OAUTH_REFRESH_TOKEN }}
+          FIGMA_FILE_KEY: ${{ vars.PUBLIC_WWW_FIGMA_FILE_KEY }}
+
+      - name: Pull Figma file data
+        run: npm run figma:pull
+        working-directory: apps/public_www
+        env:
+          FIGMA_OAUTH_CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
+          FIGMA_OAUTH_CLIENT_SECRET: ${{ secrets.FIGMA_OAUTH_CLIENT_SECRET }}
+          FIGMA_OAUTH_REFRESH_TOKEN: ${{ secrets.FIGMA_OAUTH_REFRESH_TOKEN }}
+          FIGMA_OAUTH_TOKEN_URL: ${{ vars.PUBLIC_WWW_FIGMA_OAUTH_TOKEN_URL }}
+          FIGMA_FILE_KEY: ${{ vars.PUBLIC_WWW_FIGMA_FILE_KEY }}
+
+      - name: Tokenize Figma data to Token Studio format
+        run: npm run figma:tokenize
+        working-directory: apps/public_www
+
+      - name: Build CSS from Token Studio tokens
+        run: npm run figma:build:studio
+        working-directory: apps/public_www
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet -- \
+            apps/public_www/figma/token-studio/ \
+            apps/public_www/src/app/generated/figma-tokens.css \
+          && echo "has_changes=false" >> "$GITHUB_OUTPUT" \
+          || echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push token updates
+        if: >-
+          steps.changes.outputs.has_changes == 'true'
+          && (github.event_name != 'workflow_dispatch'
+              || inputs.commit_changes == 'true')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            apps/public_www/figma/token-studio/ \
+            apps/public_www/src/app/generated/figma-tokens.css
+
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          git commit -m "chore(tokens): sync Figma design tokens — ${TIMESTAMP}
+
+          Automated Token Studio sync from Figma file.
+          Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          git push
+
+      - name: Publish summary
+        if: always()
+        run: |
+          {
+            echo '## Figma Token Studio Sync'
+            echo ''
+
+            if [ "$HAS_CHANGES" = "true" ]; then
+              echo '### Status: Tokens updated'
+              echo ''
+              echo 'New design tokens were extracted from Figma and committed.'
+              echo ''
+              echo '| Detail | Value |'
+              echo '|--------|-------|'
+              echo "| Branch | \`${GITHUB_REF_NAME}\` |"
+              echo "| Commit | \`$(git rev-parse --short HEAD)\` |"
+              echo "| Figma file key | \`${FIGMA_FILE_KEY}\` |"
+            else
+              echo '### Status: No changes'
+              echo ''
+              echo 'Figma tokens are already up to date — nothing to commit.'
+            fi
+
+            echo ''
+            echo '---'
+            echo ''
+            echo '**Files checked:**'
+            echo '- `apps/public_www/figma/token-studio/global.json`'
+            echo '- `apps/public_www/figma/token-studio/semantic.json`'
+            echo '- `apps/public_www/figma/token-studio/component.json`'
+            echo '- `apps/public_www/src/app/generated/figma-tokens.css`'
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          HAS_CHANGES: ${{ steps.changes.outputs.has_changes }}
+          FIGMA_FILE_KEY: ${{ vars.PUBLIC_WWW_FIGMA_FILE_KEY }}
