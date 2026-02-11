@@ -1,4 +1,12 @@
-import type { CSSProperties } from 'react';
+'use client';
+
+import {
+  Fragment,
+  type CSSProperties,
+  type ReactNode,
+  useMemo,
+  useState,
+} from 'react';
 
 import { BackgroundGlow } from '@/components/background-glow';
 import { SectionCtaLink } from '@/components/section-cta-link';
@@ -17,6 +25,7 @@ interface ModuleStep {
   title: string;
   week: string;
   icon: ModuleIconVariant;
+  activity?: string;
 }
 
 const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
@@ -36,12 +45,21 @@ const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const CTA_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
 const TIMELINE_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const MUTED_STEP_TEXT = 'var(--figma-colors-03, #DDDDDD)';
 const BRAND_BLUE = 'var(--figma-colors-frame-2147235242, #174879)';
 const BADGE_SHADOW =
   'var(--figma-boxshadow-ellipse-1966-2, 0px 2.2361302375793457px 5.217637062072754px 0px rgba(0, 0, 0, 0.32))';
 const ICON_SHADOW =
   'var(--figma-boxshadow-ellipse-1966-3, 0px 10.664373397827148px 24.8835391998291px 0px rgba(0, 0, 0, 0.32))';
+const CONTROL_BG = 'var(--figma-colors-desktop, #FFFFFF)';
+const CONTROL_BORDER = 'rgba(23, 72, 121, 0.28)';
+const CONTROL_TEXT = 'var(--figma-colors-frame-2147235242, #174879)';
+const DOT_INACTIVE = 'rgba(23, 72, 121, 0.2)';
+
+const CARD_BACKGROUNDS = [
+  'linear-gradient(180deg, rgba(255, 243, 224, 0.95) 0%, #FFFFFF 100%)',
+  'linear-gradient(180deg, rgba(255, 232, 238, 0.95) 0%, #FFFFFF 100%)',
+  'linear-gradient(180deg, rgba(227, 240, 255, 0.95) 0%, #FFFFFF 100%)',
+];
 
 const eyebrowTextStyle: CSSProperties = {
   color: HEADING_COLOR,
@@ -109,6 +127,21 @@ const ctaStyle: CSSProperties = {
   fontSize: 'clamp(1.05rem, 2.4vw, var(--figma-fontsizes-28, 28px))',
   fontWeight: 'var(--figma-fontweights-600, 600)',
   lineHeight: 'var(--figma-fontsizes-28, 28px)',
+};
+
+const activityStyle: CSSProperties = {
+  color: BODY_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  fontSize: 'clamp(1rem, 2vw, 22px)',
+  fontWeight: 'var(--figma-fontweights-400, 400)',
+  lineHeight: '1.6',
+};
+
+const controlButtonStyle: CSSProperties = {
+  backgroundColor: CONTROL_BG,
+  borderColor: CONTROL_BORDER,
+  color: CONTROL_TEXT,
+  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
 };
 
 function ModuleGlyph({ variant }: { variant: ModuleIconVariant }) {
@@ -205,15 +238,67 @@ function isModuleIconVariant(value: string): value is ModuleIconVariant {
   );
 }
 
+function renderMultilineText(value: string): ReactNode {
+  const lines = value.split('\n');
+  if (lines.length === 1) {
+    return value;
+  }
+
+  return lines.map((line, index) => (
+    <Fragment key={`${line}-${index}`}>
+      {line}
+      {index < lines.length - 1 && <br />}
+    </Fragment>
+  ));
+}
+
 export function CourseModule({ content }: CourseModuleProps) {
-  const moduleSteps: ModuleStep[] = content.modules.map((module, index) => ({
-    step: module.step,
-    title: module.title,
-    week: module.week,
-    icon: isModuleIconVariant(module.icon)
-      ? module.icon
-      : DEFAULT_STEP_ICONS[index] ?? 'foundation',
-  }));
+  const moduleSteps: ModuleStep[] = useMemo(
+    () =>
+      content.modules.map((module, index) => ({
+        step: module.step,
+        title: module.title,
+        week: module.week,
+        activity: module.activity,
+        icon: isModuleIconVariant(module.icon)
+          ? module.icon
+          : DEFAULT_STEP_ICONS[index] ?? 'foundation',
+      })),
+    [content.modules],
+  );
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  function goToSlide(index: number) {
+    if (moduleSteps.length === 0) {
+      return;
+    }
+
+    setActiveSlide(index);
+  }
+
+  function handlePreviousSlide() {
+    if (moduleSteps.length === 0) {
+      return;
+    }
+
+    setActiveSlide((currentSlide) =>
+      currentSlide === 0 ? moduleSteps.length - 1 : currentSlide - 1,
+    );
+  }
+
+  function handleNextSlide() {
+    if (moduleSteps.length === 0) {
+      return;
+    }
+
+    setActiveSlide((currentSlide) =>
+      currentSlide === moduleSteps.length - 1 ? 0 : currentSlide + 1,
+    );
+  }
+
+  const computedCtaLabel = content.ctaLabel.trim().endsWith('>')
+    ? content.ctaLabel.trim()
+    : `${content.ctaLabel} >`;
 
   return (
     <SectionShell
@@ -242,63 +327,28 @@ export function CourseModule({ content }: CourseModuleProps) {
           />
 
           <h2 className='mt-6 text-balance' style={titleStyle}>
-            {content.title}
+            {renderMultilineText(content.title)}
           </h2>
         </div>
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>
-          <div
-            aria-hidden='true'
-            className='absolute left-[16%] right-[16%] top-[26px] hidden h-[4px] rounded-full lg:block'
-            style={{ backgroundColor: TIMELINE_COLOR }}
-          />
-
-          <ul className='relative grid gap-7 lg:grid-cols-3 lg:gap-8'>
+          <div className='overflow-hidden'>
+            <ul
+              className='flex transition-transform duration-500 ease-out'
+              style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+            >
             {moduleSteps.map((module, index) => {
-              const stepTextColor =
-                index === moduleSteps.length - 1
-                  ? MUTED_STEP_TEXT
-                  : 'var(--figma-colors-desktop, #FFFFFF)';
               const titleStyleByIndex =
                 index === 1 ? moduleTitleSecondaryStyle : moduleTitlePrimaryStyle;
               const weekStyleByIndex =
                 index === 1 ? moduleWeekSecondaryStyle : moduleWeekPrimaryStyle;
 
               return (
-                <li key={module.step} className='relative pl-16 lg:pl-0 lg:pt-10'>
-                  {index !== moduleSteps.length - 1 && (
-                    <span
-                      aria-hidden='true'
-                      className='absolute bottom-[-22px] left-[26px] top-[74px] w-[2px] lg:hidden'
-                      style={{ backgroundColor: TIMELINE_COLOR }}
-                    />
-                  )}
-
-                  <span
-                    className='absolute left-0 top-5 z-10 inline-flex h-[53px] w-[53px] items-center justify-center rounded-full lg:left-1/2 lg:top-0 lg:-translate-x-1/2'
-                    style={{
-                      backgroundColor: HEADING_COLOR,
-                      boxShadow: BADGE_SHADOW,
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: stepTextColor,
-                        fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-                        fontSize: 'var(--figma-fontsizes-20, 20px)',
-                        fontWeight: 'var(--figma-fontweights-800, 800)',
-                        lineHeight: 'var(--figma-fontsizes-20, 20px)',
-                      }}
-                    >
-                      {module.step}
-                    </span>
-                  </span>
-
+                <li key={module.step} className='w-full shrink-0 px-1 sm:px-2'>
                   <article
-                    className='relative h-full min-h-[305px] overflow-hidden rounded-[32px] border border-black/5 px-5 py-8 sm:px-7 lg:min-h-[700px] lg:rounded-[42px] lg:px-9 lg:py-10'
+                    className='relative h-full min-h-[420px] overflow-hidden rounded-[32px] border border-black/5 px-5 py-8 sm:min-h-[480px] sm:px-7 lg:min-h-[560px] lg:rounded-[42px] lg:px-9 lg:py-10'
                     style={{
-                      background:
-                        'linear-gradient(180deg, #FFFFFF 0%, rgba(248, 248, 248, 0.94) 100%)',
+                      background: CARD_BACKGROUNDS[index % CARD_BACKGROUNDS.length],
                     }}
                   >
                     <BackgroundGlow
@@ -314,9 +364,35 @@ export function CourseModule({ content }: CourseModuleProps) {
                       background='rgba(93, 157, 73, 0.16)'
                     />
 
-                    <div className='relative z-10 flex h-full flex-col items-center text-center'>
+                    <span
+                      className='absolute right-6 top-6 z-20 inline-flex h-[53px] w-[53px] items-center justify-center rounded-full'
+                      style={{
+                        backgroundColor: HEADING_COLOR,
+                        boxShadow: BADGE_SHADOW,
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: 'var(--figma-colors-desktop, #FFFFFF)',
+                          fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+                          fontSize: 'var(--figma-fontsizes-20, 20px)',
+                          fontWeight: 'var(--figma-fontweights-800, 800)',
+                          lineHeight: 'var(--figma-fontsizes-20, 20px)',
+                        }}
+                      >
+                        {module.step}
+                      </span>
+                    </span>
+
+                    <div className='relative z-10 flex h-full flex-col text-center'>
                       <div
-                        className='mt-4 inline-flex items-center justify-center rounded-full lg:mt-6'
+                        aria-hidden='true'
+                        className='absolute left-[8%] right-[8%] top-[58%] h-[2px] rounded-full'
+                        style={{ backgroundColor: TIMELINE_COLOR }}
+                      />
+
+                      <div
+                        className='mx-auto mt-4 inline-flex items-center justify-center rounded-full lg:mt-6'
                         style={{
                           width: 'clamp(120px, 18vw, 162px)',
                           height: 'clamp(120px, 18vw, 162px)',
@@ -341,6 +417,14 @@ export function CourseModule({ content }: CourseModuleProps) {
                         <p className='mt-2' style={weekStyleByIndex}>
                           {module.week}
                         </p>
+                        {module.activity && (
+                          <p
+                            className='mx-auto mt-5 max-w-[760px] text-balance'
+                            style={activityStyle}
+                          >
+                            {module.activity}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -353,7 +437,53 @@ export function CourseModule({ content }: CourseModuleProps) {
                 </li>
               );
             })}
-          </ul>
+            </ul>
+          </div>
+
+          {moduleSteps.length > 1 && (
+            <div className='mt-8 flex items-center justify-center gap-3'>
+              <button
+                type='button'
+                aria-label='Previous module'
+                onClick={handlePreviousSlide}
+                className='inline-flex h-11 w-11 items-center justify-center rounded-full border text-2xl transition-colors duration-200 hover:border-[#174879] hover:bg-[#174879] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174879]'
+                style={controlButtonStyle}
+              >
+                {'<'}
+              </button>
+
+              <div className='flex items-center gap-2'>
+                {moduleSteps.map((module, index) => (
+                  <button
+                    key={`${module.step}-dot`}
+                    type='button'
+                    aria-label={`Show module ${index + 1}`}
+                    onClick={() => {
+                      goToSlide(index);
+                    }}
+                    className='h-2.5 rounded-full transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174879]'
+                    style={{
+                      width: index === activeSlide ? '30px' : '10px',
+                      backgroundColor:
+                        index === activeSlide
+                          ? CONTROL_TEXT
+                          : DOT_INACTIVE,
+                    }}
+                  />
+                ))}
+              </div>
+
+              <button
+                type='button'
+                aria-label='Next module'
+                onClick={handleNextSlide}
+                className='inline-flex h-11 w-11 items-center justify-center rounded-full border text-2xl transition-colors duration-200 hover:border-[#174879] hover:bg-[#174879] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174879]'
+                style={controlButtonStyle}
+              >
+                {'>'}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className='mx-auto mt-12 max-w-[760px] text-center lg:mt-16'>
@@ -368,7 +498,7 @@ export function CourseModule({ content }: CourseModuleProps) {
             className='mt-8 h-[62px] w-full max-w-[491px] rounded-[10px] px-5 focus-visible:outline-black/30 sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
             style={ctaStyle}
           >
-            {content.ctaLabel}
+            {computedCtaLabel}
           </SectionCtaLink>
         </div>
       </div>

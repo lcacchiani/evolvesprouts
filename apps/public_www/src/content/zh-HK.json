@@ -33,28 +33,31 @@
   },
   "courseModule": {
     "eyebrow": "賦能教育",
-    "title": "我們的課程",
-    "description": "探索我們精心設計的課程系列。",
+    "title": "由 Ida 設計的最佳姨姨培訓課程",
+    "description": "把姨姨培訓成以蒙特梭利為導向的幼兒發展夥伴！",
     "ctaLabel": "立即開始 - 今天就培訓姨姨",
-    "ctaHref": "#resources",
+    "ctaHref": "/training-courses",
     "modules": [
       {
         "step": "01",
         "title": "第1模組",
         "week": "第01-04週",
-        "icon": "foundation"
+        "icon": "foundation",
+        "activity": "以工作坊開始，之後安排家長電話交流、1對1課程，並以實戰挑戰作結。"
       },
       {
         "step": "02",
         "title": "第2模組",
         "week": "第05-08週",
-        "icon": "coaching"
+        "icon": "coaching",
+        "activity": "以工作坊開始，之後安排家長電話交流、1對1課程，並以實戰挑戰作結。"
       },
       {
         "step": "03",
         "title": "第3模組",
         "week": "第09-12週",
-        "icon": "practice"
+        "icon": "practice",
+        "activity": "以工作坊開始，之後安排家長電話交流、1對1課程，並以實戰挑戰作結。"
       }
     ],
     "items": []
