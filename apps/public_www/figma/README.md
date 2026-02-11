@@ -11,6 +11,14 @@ token pipeline.
   - Expected files:
     - `file.json`
     - `variables.local.json`
+- `token-studio/`
+  - Token Studio compatible design tokens (W3C Design Tokens format).
+  - `$metadata.json` — token set ordering
+  - `$themes.json` — theme definitions (Light, Dark)
+  - `global.json` — primitive tokens extracted from Figma (colors,
+    typography, spacing, effects, border radius, opacity)
+  - `semantic.json` — semantic alias tokens (manually curated)
+  - `component.json` — component-specific tokens (manually curated)
 - `mdm/exports/`
   - Design-token exports produced by a Figma MDM flow.
   - Default input file:
@@ -21,20 +29,148 @@ token pipeline.
     - `tokens.normalized.json`
   - Generated JSON files are ignored from git by default.
 
+## Cursor MCP integration
+
+The project includes a Figma MCP (Model Context Protocol) server
+configuration at `.cursor/mcp.json`. This allows Cursor to read your
+Figma file directly when you paste a Figma frame URL into the editor.
+
+### Setup
+
+1. Generate a **Figma Personal Access Token** (PAT):
+   - Go to [Figma Account Settings](https://www.figma.com/settings)
+   - Scroll to **Personal access tokens**
+   - Click **Generate new token**
+   - Copy the token value
+
+2. Add the token to Cursor:
+   - **Local development:** Add `FIGMA_API_KEY=your-token` to your
+     environment (e.g. shell profile or `.env` in the workspace root)
+   - **Cloud Agents:** Add `FIGMA_API_KEY` as a secret in the Cursor
+     Dashboard under Cloud Agents > Secrets
+
+3. Restart Cursor. The Framelink Figma MCP server will appear in the
+   MCP servers list and respond to Figma URL queries.
+
+### Usage in Cursor
+
+Once configured, you can:
+- Paste a Figma frame/page URL and ask Cursor to inspect the design
+- Ask Cursor to extract specific design properties from a frame
+- Use the MCP data together with `npm run figma:tokenize` to populate
+  Token Studio tokens
+
+## Token Studio workflow
+
+This is the recommended workflow for extracting and using design tokens
+from your Figma file. It works on **Figma Professional** plans (does
+not require Enterprise-only Variables API).
+
+### Pipeline overview
+
+```
+Figma File
+    │
+    └─── npm run figma:pull ──→ figma/files/file.json
+                                     │
+                                     ▼
+                         npm run figma:tokenize
+                                     │
+                         Extracts from file styles & node tree:
+                         • Color styles → colors.*
+                         • Text styles → fontFamilies.*, fontSizes.*, etc.
+                         • Effect styles → boxShadow.*
+                         • Layout props → spacing.*, borderRadius.*
+                                     │
+                                     ▼
+                         figma/token-studio/global.json
+                         figma/token-studio/semantic.json (preserved)
+                         figma/token-studio/component.json (preserved)
+                                     │
+                                     ▼
+                         npm run figma:build:studio
+                                     │
+                         Resolves aliases, generates:
+                         • figma/mdm/artifacts/tokens.normalized.json
+                         • src/app/generated/figma-tokens.css
+```
+
+### Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run figma:pull` | Pull raw Figma API data into `figma/files/`. Requires OAuth credentials. |
+| `npm run figma:tokenize` | Convert Figma file data into Token Studio JSON under `figma/token-studio/`. |
+| `npm run figma:build:studio` | Build CSS custom properties from Token Studio tokens. |
+| `npm run figma:studio-sync` | Run the full pipeline: pull → tokenize → build. |
+| `npm run figma:auth` | Generate a Figma OAuth refresh token (interactive). |
+
+### Token file details
+
+**`global.json`** — auto-generated from Figma, overwritten on each
+`figma:tokenize` run. Contains primitive design values:
+
+```json
+{
+  "colors": {
+    "primary": {
+      "500": { "value": "#FF6B35", "type": "color" }
+    }
+  },
+  "spacing": {
+    "sm": { "value": "8", "type": "spacing" }
+  },
+  "fontFamilies": {
+    "Inter": { "value": "Inter", "type": "fontFamilies" }
+  }
+}
+```
+
+**`semantic.json`** — manually curated aliases that reference global
+tokens. Preserved across `figma:tokenize` runs:
+
+```json
+{
+  "fg": {
+    "default": { "value": "{colors.neutral.900}", "type": "color" }
+  },
+  "bg": {
+    "accent": { "value": "{colors.primary.50}", "type": "color" }
+  }
+}
+```
+
+**`component.json`** — component-specific tokens. Starts empty,
+grows as components are built. Also preserved across runs.
+
 ## Build outputs
 
-`npm run figma:build` writes CSS custom properties used by the site to:
+`npm run figma:build:studio` writes CSS custom properties to:
 
 - `src/app/generated/figma-tokens.css`
 
-`src/app/globals.css` imports this generated file so token updates from
-Figma flow through the website build.
+`src/app/globals.css` imports this generated file so token updates
+from Figma flow through the website build.
+
+## Legacy MDM workflow
+
+The original MDM-based pipeline is still available:
+
+| Command | Description |
+|---------|-------------|
+| `npm run figma:build` | Build from MDM exports or Figma Variables API. |
+| `npm run figma:sync` | Pull + build using the legacy flow. |
+
+## Authentication
 
 For `figma:pull`, set `FIGMA_FILE_KEY` and either:
 
 - `FIGMA_OAUTH_ACCESS_TOKEN`, or
 - `FIGMA_OAUTH_CLIENT_ID`, `FIGMA_OAUTH_CLIENT_SECRET`, and
   `FIGMA_OAUTH_REFRESH_TOKEN`.
+
+For the MCP connector, set `FIGMA_API_KEY` (Figma Personal Access
+Token).
 
 ## Generating a Figma OAuth refresh token
 
@@ -187,3 +323,5 @@ And set `PUBLIC_WWW_FIGMA_FILE_KEY` as a repository variable.
 | Token exchange fails with 401 | Verify your client ID and secret are correct. |
 | Refresh token stops working | Figma refresh tokens can be revoked if the app is modified. Re-generate one using either option above. |
 | `gh secret set` fails (Actions) | `GITHUB_TOKEN` may lack permission to write secrets. Copy the token from the masked log output and add the secret manually. |
+| `figma:tokenize` finds 0 styles | Ensure your Figma file uses published styles (not just local fills). Publish styles via the Figma UI. |
+| MCP server not connecting | Verify `FIGMA_API_KEY` is set and the PAT has not expired. Restart Cursor after adding the key. |
