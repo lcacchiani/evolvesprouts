@@ -1,0 +1,27 @@
+import type { WhyJoiningContent } from '@/content';
+
+interface WhyJoiningProps {
+  content: WhyJoiningContent;
+}
+
+export function WhyJoining({ content }: WhyJoiningProps) {
+  return (
+    <section
+      aria-label={content.title}
+      data-figma-node="Why Joining Our Courses"
+      className="w-full px-4 py-12 sm:px-6 lg:px-8"
+    >
+      <div className="mx-auto max-w-7xl">
+        <h2 className="text-2xl font-bold sm:text-3xl lg:text-4xl">
+          {content.title}
+        </h2>
+        {content.description && (
+          <p className="mt-4 text-base text-slate-600 sm:text-lg">
+            {content.description}
+          </p>
+        )}
+        {/* TODO: Implement benefits section from Figma design */}
+      </div>
+    </section>
+  );
+}

@@ -4,6 +4,13 @@ import {
   getContent,
   isValidLocale,
 } from '@/content';
+import { Navbar } from '@/components/sections/navbar';
+import { HeroBanner } from '@/components/sections/hero-banner';
+import { CourseModule } from '@/components/sections/course-module';
+import { FreeResources } from '@/components/sections/free-resources';
+import { WhyJoining } from '@/components/sections/why-joining';
+import { RealStories } from '@/components/sections/real-stories';
+import { Footer } from '@/components/sections/footer';
 
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.map((locale) => ({ locale }));
@@ -19,24 +26,16 @@ export default async function HomePage({
   const content = getContent(validLocale);
 
   return (
-    <main className='min-h-screen'>
-      {/* Page sections — import and compose here.
-          After running figma:scaffold, add section components:
-
-          import { Navbar } from '@/components/sections/navbar';
-          import { HeroBanner } from '@/components/sections/hero-banner';
-
-          <Navbar content={content.navbar} />
-          <HeroBanner content={content.hero} />
-      */}
-      <div className='flex items-center justify-center py-24'>
-        <div className='text-center'>
-          <h1 className='text-4xl font-bold'>{content.hero.headline}</h1>
-          <p className='mt-4 text-lg text-slate-600'>
-            {content.hero.subheadline}
-          </p>
-        </div>
-      </div>
-    </main>
+    <>
+      <Navbar content={content.navbar} />
+      <main className='min-h-screen'>
+        <HeroBanner content={content.hero} />
+        <CourseModule content={content.courseModule} />
+        <FreeResources content={content.freeResources} />
+        <WhyJoining content={content.whyJoining} />
+        <RealStories content={content.realStories} />
+      </main>
+      <Footer content={content.footer} />
+    </>
   );
 }
