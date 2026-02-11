@@ -67,14 +67,16 @@
     "mediaBadgeLabel": "我们的资源",
     "title": "温和育儿免费资源",
     "description": "访问我们的免费学习资料库。",
-    "cardTitle": "免费指南：温和地说“不”",
-    "cardDescription": "无需内疚也能设定界限...",
-    "ctaLabel": "《温和说“不”》PDF",
+    "cardTitle": "Free Guide: 4 Simple Ways to Teach Patience to Young Children",
+    "cardDescription": "Gentle Strategies for Busy Parents",
+    "mediaTitleLine1": "Teach Patience",
+    "mediaTitleLine2": "to Young Children",
+    "ctaLabel": "Get 4 Ways to Teach Patience",
     "ctaHref": "#resources",
     "items": [
-      "语气最关键",
-      "少即是多",
-      "用共情来跟进"
+      "The “First…Then” Trick: Links waiting to a clear, concrete action.",
+      "Make Time Visible: Use a visual timer for results.",
+      "Stay Consistent: Set 2-3 non-negotiable waits daily."
     ]
   },
   "whyJoining": {

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
+import Image from 'next/image';
 
-import { BackgroundGlow } from '@/components/background-glow';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
@@ -16,6 +16,7 @@ const HEADING_COLOR =
 const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 const PANEL_BG = 'var(--figma-colors-frame-2147235252, #F8F8F8)';
 const MEDIA_BG = 'var(--figma-colors-rectangle-240648654, #D9D9D9)';
+const RESOURCE_IMAGE_SRC = '/images/family.png';
 const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const CTA_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
 const BORDER_COLOR = '#EECAB0';
@@ -80,12 +81,19 @@ const ctaStyle: CSSProperties = {
   lineHeight: 'var(--figma-fontsizes-26, 26px)',
 };
 
-const mediaCaptionTitleStyle: CSSProperties = {
-  color: HEADING_COLOR,
+const mediaBadgeTextStyle: CSSProperties = {
+  color: BODY_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  fontWeight: 'var(--figma-fontweights-600, 600)',
+};
+
+const mediaOverlayTitleStyle: CSSProperties = {
+  color: CTA_TEXT,
   fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(1.1rem, 2.2vw, var(--figma-fontsizes-30, 30px))',
+  fontSize: 'clamp(1.5rem, 3.4vw, var(--figma-fontsizes-41, 41px))',
   fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight: '1.2',
+  lineHeight: '1.12',
+  textShadow: '0px 10px 22px rgba(0, 0, 0, 0.36)',
 };
 
 function readOptionalText(value: unknown): string | null {
@@ -175,24 +183,18 @@ function DownloadIcon() {
   );
 }
 
-function DecorativeMark() {
+function PlayIcon() {
   return (
     <svg
       aria-hidden='true'
-      viewBox='0 0 128 128'
-      className='h-[160px] w-[160px] lg:h-[205px] lg:w-[205px]'
+      viewBox='0 0 32 32'
+      className='h-6 w-6'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
-      <circle cx='64' cy='64' r='54' fill='rgba(231, 108, 61, 0.17)' />
-      <circle cx='38' cy='57' r='14' fill='rgba(179, 29, 31, 0.28)' />
-      <circle cx='88' cy='47' r='14' fill='rgba(93, 157, 73, 0.28)' />
-      <circle cx='64' cy='87' r='16' fill='rgba(168, 203, 68, 0.3)' />
       <path
-        d='M33 104C46 90 58 84 76 78C87 75 96 71 105 63'
-        stroke='rgba(23, 72, 121, 0.28)'
-        strokeWidth='10'
-        strokeLinecap='round'
+        d='M12 9.8L23 16L12 22.2V9.8Z'
+        fill='#174879'
       />
     </svg>
   );
@@ -216,6 +218,13 @@ export function FreeResources({ content }: FreeResourcesProps) {
   const ctaHref =
     readOptionalText(customContent.ctaHref) ?? '#resources';
   const checklistItems = resolveChecklistItems(content.items);
+  const mediaTitleLine1 =
+    readOptionalText(customContent.mediaTitleLine1) ??
+    'Teach Patience';
+  const mediaTitleLine2 =
+    readOptionalText(customContent.mediaTitleLine2) ??
+    'to Young Children';
+  const mediaAltText = `${mediaTitleLine1} ${mediaTitleLine2}`;
 
   return (
     <SectionShell
@@ -239,49 +248,7 @@ export function FreeResources({ content }: FreeResourcesProps) {
         </div>
 
         <div className='mt-10 overflow-hidden rounded-[14px] border border-black/5 sm:mt-12 lg:mt-14'>
-          <div className='grid lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)]'>
-            <div
-              className='relative min-h-[280px] overflow-hidden sm:min-h-[370px] lg:min-h-[587px]'
-              style={{ backgroundColor: MEDIA_BG }}
-            >
-              <div
-                aria-hidden='true'
-                className='absolute inset-0'
-                style={{
-                  background:
-                    'linear-gradient(128deg, rgba(23, 72, 121, 0.18) 0%, rgba(248, 248, 248, 0.65) 47%, rgba(231, 108, 61, 0.28) 100%)',
-                }}
-              />
-              <BackgroundGlow
-                className='-left-12 top-[14%] h-44 w-44 blur-3xl sm:h-56 sm:w-56'
-                background='rgba(93, 157, 73, 0.24)'
-              />
-              <BackgroundGlow
-                className='-right-10 bottom-[8%] h-44 w-44 blur-3xl sm:h-56 sm:w-56'
-                background='rgba(231, 108, 61, 0.28)'
-              />
-              <div
-                aria-hidden='true'
-                className='absolute inset-[6%] rounded-[14px] border border-white/35 bg-white/12 backdrop-blur-[1.5px]'
-              />
-
-              <div className='absolute bottom-4 left-4 right-4 rounded-xl border border-white/40 bg-white/70 p-4 shadow-[0px_12px_28px_-18px_rgba(0,0,0,0.35)] backdrop-blur sm:bottom-6 sm:left-6 sm:right-auto sm:w-[78%] sm:p-5 lg:w-[70%]'>
-                <p
-                  className='text-sm uppercase tracking-[0.11em]'
-                  style={{
-                    color: BODY_COLOR,
-                    fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-                    fontWeight: 'var(--figma-fontweights-600, 600)',
-                  }}
-                >
-                  {mediaBadgeLabel}
-                </p>
-                <p className='mt-2 text-balance' style={mediaCaptionTitleStyle}>
-                  {content.title}
-                </p>
-              </div>
-            </div>
-
+          <div className='grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)]'>
             <div className='relative p-4 sm:p-6 lg:p-[35px]'>
               <article
                 className='relative isolate flex h-full min-h-[370px] flex-col overflow-hidden rounded-lg p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
@@ -291,11 +258,6 @@ export function FreeResources({ content }: FreeResourcesProps) {
                     '0px 22px 60px -36px rgba(28, 53, 66, 0.38)',
                 }}
               >
-                <BackgroundGlow
-                  className='-top-20 right-0 h-36 w-36 blur-3xl'
-                  background='rgba(23, 72, 121, 0.14)'
-                />
-
                 <h3 className='max-w-[366px] text-balance' style={cardTitleStyle}>
                   {cardTitle}
                 </h3>
@@ -325,11 +287,53 @@ export function FreeResources({ content }: FreeResourcesProps) {
                   <DownloadIcon />
                   <span className='whitespace-nowrap'>{ctaLabel}</span>
                 </SectionCtaAnchor>
-
-                <div className='pointer-events-none absolute -bottom-16 -right-14 opacity-55'>
-                  <DecorativeMark />
-                </div>
               </article>
+            </div>
+
+            <div
+              className='relative min-h-[280px] overflow-hidden sm:min-h-[370px] lg:min-h-[587px]'
+              style={{ backgroundColor: MEDIA_BG }}
+            >
+              <Image
+                src={RESOURCE_IMAGE_SRC}
+                alt={mediaAltText}
+                fill
+                className='object-cover'
+                sizes='(min-width: 1024px) 58vw, 100vw'
+              />
+              <div
+                aria-hidden='true'
+                className='absolute inset-0'
+                style={{
+                  background:
+                    'linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.06) 34%, rgba(0,0,0,0.52) 100%)',
+                }}
+              />
+
+              <div className='absolute left-4 top-4 rounded-full border border-white/70 bg-white/85 px-4 py-2 shadow-sm sm:left-6 sm:top-6'>
+                <p
+                  className='text-sm uppercase tracking-[0.11em]'
+                  style={mediaBadgeTextStyle}
+                >
+                  {mediaBadgeLabel}
+                </p>
+              </div>
+
+              <div className='absolute bottom-5 left-4 right-4 sm:bottom-8 sm:left-6 sm:right-6'>
+                <p className='text-balance' style={mediaOverlayTitleStyle}>
+                  {mediaTitleLine1}
+                </p>
+                <p className='text-balance' style={mediaOverlayTitleStyle}>
+                  {mediaTitleLine2}
+                </p>
+              </div>
+
+              <div
+                aria-hidden='true'
+                className='absolute left-1/2 top-1/2 flex h-[66px] w-[66px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#174879]/15 bg-white/88 shadow-[0px_18px_38px_-20px_rgba(0,0,0,0.6)] backdrop-blur'
+              >
+                <PlayIcon />
+              </div>
             </div>
           </div>
         </div>
