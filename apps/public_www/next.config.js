@@ -4,13 +4,6 @@ const nextConfig = {
   trailingSlash: true,
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'www2.evolvesprouts.com',
-        pathname: '/wp-content/uploads/**',
-      },
-    ],
   },
 };
 

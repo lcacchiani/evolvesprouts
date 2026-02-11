@@ -6,7 +6,7 @@
   },
   "navbar": {
     "brand": "Evolve Sprouts",
-    "logoSrc": "https://www2.evolvesprouts.com/wp-content/uploads/2025/12/logo.svg",
+    "logoSrc": "/images/www2-logo.svg",
     "menuItems": [
       { "label": "Home", "href": "/" },
       {
