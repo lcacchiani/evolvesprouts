@@ -102,9 +102,21 @@
     ]
   },
   "realStories": {
-    "title": "Real Stories",
-    "description": "Hear from parents and students.",
-    "items": []
+    "title": "Real Stories from Parents in Hong Kong",
+    "description": "",
+    "items": [
+      {
+        "badgeLabel": "Testimonials",
+        "organization": "Evolve Sprouts",
+        "cardLocation": "Hong Kong, China",
+        "quote": "Ida was fantastic, she helped me understand how I could set up my home in a Montessori way without disrupting my style.",
+        "author": "Mary Lo",
+        "role": "Mom of 2",
+        "metaLocation": "From Hong Kong",
+        "previousButtonLabel": "Previous testimonial",
+        "nextButtonLabel": "Next testimonial"
+      }
+    ]
   },
   "footer": {
     "brand": "Evolve Sprouts",
