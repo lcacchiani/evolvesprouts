@@ -4,7 +4,6 @@ import {
   Fragment,
   type CSSProperties,
   type ReactNode,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -268,17 +267,6 @@ export function CourseModule({ content }: CourseModuleProps) {
     [content.modules],
   );
   const [activeSlide, setActiveSlide] = useState(0);
-
-  useEffect(() => {
-    if (moduleSteps.length === 0) {
-      setActiveSlide(0);
-      return;
-    }
-
-    if (activeSlide > moduleSteps.length - 1) {
-      setActiveSlide(moduleSteps.length - 1);
-    }
-  }, [activeSlide, moduleSteps.length]);
 
   function goToSlide(index: number) {
     if (moduleSteps.length === 0) {
