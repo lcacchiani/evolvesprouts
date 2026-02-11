@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import type { FooterContent } from '@/content';
@@ -10,13 +11,24 @@ interface FooterProps {
 /*  Design-token constants (from figma-tokens.css)                    */
 /* ------------------------------------------------------------------ */
 
+/** Main footer background — #FFEEE3 peach */
 const FOOTER_BG =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
+
+/** Dark text for headings — #333333 */
 const HEADING_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
+
+/** Secondary text for links — #4A4A4A */
 const LINK_COLOR = 'var(--figma-colors-home, #4A4A4A)';
+
+/** CTA button orange — #ED622E */
 const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
+
+/** White text on CTA — #FFFFFF */
 const CTA_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
+
+/** Brand navy blue — #174879 */
 const BRAND_COLOR =
   'var(--figma-colors-frame-2147235242, #174879)';
 
@@ -24,6 +36,10 @@ const BRAND_COLOR =
 /*  Typography style objects (mapped to figma typography tokens)       */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Hero heading — Poppins 700, 77px / 107 line-height, 0.77 letter-spacing
+ * Token: --figma-typography-join-our-sprouts-squad-community
+ */
 const headingStyle: React.CSSProperties = {
   fontFamily:
     'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
@@ -33,14 +49,25 @@ const headingStyle: React.CSSProperties = {
   color: HEADING_COLOR,
 };
 
+/**
+ * CTA button — Lato 600, 28px / 28 line-height
+ * Token: --figma-typography-sign-up-to-our-monthly-newsletter
+ */
 const ctaStyle: React.CSSProperties = {
   backgroundColor: CTA_BG,
   color: CTA_TEXT,
   fontFamily:
     'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  fontSize: 'var(--figma-fontsizes-28, 28px)',
   fontWeight: 'var(--figma-fontweights-600, 600)' as string,
+  lineHeight:
+    'var(--figma-lineheights-sign-up-to-our-monthly-newsletter, 100%)',
 };
 
+/**
+ * Column title — Urbanist 600, 24px / 28 line-height, -0.5 letter-spacing
+ * Token: --figma-typography-quick-links
+ */
 const columnTitleStyle: React.CSSProperties = {
   fontFamily:
     'var(--figma-fontfamilies-urbanist, Urbanist), sans-serif',
@@ -52,6 +79,10 @@ const columnTitleStyle: React.CSSProperties = {
   color: HEADING_COLOR,
 };
 
+/**
+ * Link text — Lato 400, 18px / 28 line-height, 0.5 letter-spacing
+ * Token: --figma-typography-home
+ */
 const linkStyle: React.CSSProperties = {
   fontFamily:
     'var(--figma-fontfamilies-lato, Lato), sans-serif',
@@ -62,6 +93,10 @@ const linkStyle: React.CSSProperties = {
   color: LINK_COLOR,
 };
 
+/**
+ * Copyright — Poppins 500, 16px / 28 line-height
+ * Token: --figma-typography-2025-evolvesprouts
+ */
 const copyrightStyle: React.CSSProperties = {
   fontFamily:
     'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
@@ -73,7 +108,7 @@ const copyrightStyle: React.CSSProperties = {
 };
 
 /* ------------------------------------------------------------------ */
-/*  Social-media icon SVGs (inline to avoid extra asset deps)         */
+/*  Social-media icon SVGs (16×16, matching Figma icon frames)        */
 /* ------------------------------------------------------------------ */
 
 const socialIcons: Record<string, React.ReactNode> = {
@@ -131,7 +166,11 @@ const socialIcons: Record<string, React.ReactNode> = {
 /*  Sub-components                                                    */
 /* ------------------------------------------------------------------ */
 
-/** Renders a single footer link column (Quick Links, Services, etc.) */
+/**
+ * Renders a single footer link column.
+ * Matches Figma "Frame 1000007078/79/81/80" — vertical layout,
+ * 17px item spacing, title with 16px bottom padding.
+ */
 function FooterColumn({
   title,
   items,
@@ -142,11 +181,9 @@ function FooterColumn({
   hasSocialIcons?: boolean;
 }) {
   return (
-    <div className='flex flex-col gap-[17px]'>
-      <h3
-        className='pb-4'
-        style={columnTitleStyle}
-      >
+    <div className='flex w-full max-w-[223px] flex-col gap-[17px]'>
+      {/* Column title — pb-4 matches the 16px bottom padding in Figma */}
+      <h3 className='pb-4' style={columnTitleStyle}>
         {title}
       </h3>
       <ul className='flex flex-col gap-[17px]'>
@@ -154,8 +191,12 @@ function FooterColumn({
           <li key={item.label}>
             <Link
               href={item.href}
-              className='inline-flex items-center gap-[14px] transition-opacity hover:opacity-70'
-              style={linkStyle}
+              className='inline-flex items-center transition-opacity hover:opacity-70'
+              style={{
+                ...linkStyle,
+                /* Social links use 14px icon-text gap, regular links 8px */
+                gap: hasSocialIcons ? '14px' : '8px',
+              }}
               {...(item.href.startsWith('http')
                 ? { target: '_blank', rel: 'noopener noreferrer' }
                 : {})}
@@ -181,6 +222,25 @@ function FooterColumn({
 /*  Main Footer component                                             */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Footer component matching the Figma design spec (footer.json).
+ *
+ * Layout hierarchy (Figma → HTML):
+ *   footer GROUP (1920×1483)
+ *     └ Frame 2147235259 (fill: #FFEEE3)
+ *         ├ "Background Image" FRAME (1920×859)
+ *         │   ├ "7 2" RECTANGLE — background photo (1490×836)
+ *         │   ├ "Scrim" RECTANGLE — overlay (1920×859)
+ *         │   ├ Heading TEXT (847×214)
+ *         │   ├ Small logo GROUP (240×246)
+ *         │   └ CTA button FRAME (500×82)
+ *         ├ Quick Links column (223×269)
+ *         ├ Services column (223×179)
+ *         ├ About Us column (223×179)
+ *         ├ Connect on column (223×224)
+ *         ├ Large logo FRAME (470×482)
+ *         └ Copyright TEXT (172×28)
+ */
 export function Footer({ content }: FooterProps) {
   return (
     <footer
@@ -188,88 +248,126 @@ export function Footer({ content }: FooterProps) {
       className='w-full'
       style={{ backgroundColor: FOOTER_BG }}
     >
-      {/* ---- CTA / Community Section ---- */}
-      <section
-        className='relative w-full overflow-hidden px-4 pb-12 pt-16 sm:px-6 sm:pb-16 sm:pt-20 lg:px-8 lg:pb-20 lg:pt-28'
-        aria-label={content.communityHeading}
-      >
-        <div className='mx-auto flex max-w-7xl flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between'>
-          {/* Heading */}
-          <h2
-            className='max-w-[640px] text-4xl leading-tight sm:text-5xl lg:text-[77px] lg:leading-[107px]'
-            style={headingStyle}
-          >
-            {content.communityHeading}
-          </h2>
+      {/* ============================================================ */}
+      {/* HERO / CTA SECTION                                           */}
+      {/* Matches "Background Image" frame: 1920×859, fill #FFEEE3     */}
+      {/* Contains: bg photo → scrim → heading + small logo + CTA      */}
+      {/* ============================================================ */}
+      <section className='relative w-full overflow-hidden'>
+        {/* Aspect-ratio wrapper: 859/1920 ≈ 44.7% — preserves Figma proportions */}
+        <div className='relative w-full pb-[60%] sm:pb-[50%] lg:pb-[44.7%]'>
+          {/* Background image (1490×836 in Figma, named "7 2") */}
+          {/* Replace /images/footer-bg.svg with the real photo when available */}
+          <Image
+            src='/images/footer-bg.svg'
+            alt=''
+            fill
+            className='object-cover object-center'
+            priority={false}
+          />
 
-          {/* Brand mark (text logo fallback — no image asset) */}
-          <div className='hidden lg:block'>
-            <span
-              className='text-4xl font-semibold tracking-tight'
-              style={{
-                fontFamily:
-                  'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-                color: BRAND_COLOR,
-              }}
-            >
-              {content.brand}
-            </span>
+          {/* Scrim overlay (1920×859 in Figma) — semi-transparent warm wash */}
+          <div
+            className='absolute inset-0 z-[1]'
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(255,238,227,0.3) 0%, rgba(255,238,227,0.75) 100%)',
+            }}
+          />
+
+          {/* Content overlay — heading, small logo, CTA */}
+          <div className='absolute inset-0 z-[2] flex flex-col justify-center px-4 sm:px-6 lg:px-8'>
+            <div className='mx-auto w-full max-w-[1465px]'>
+              {/* Row: heading (left) + small logo (right) */}
+              <div className='flex items-center justify-between gap-6'>
+                {/* Heading — 847×214 in Figma, Poppins 77px bold */}
+                <h2
+                  className='max-w-[500px] text-3xl leading-tight sm:max-w-[650px] sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight lg:max-w-[847px] lg:text-[77px] lg:leading-[107px]'
+                  style={headingStyle}
+                >
+                  {content.communityHeading}
+                </h2>
+
+                {/* Small Evolve Sprouts logo — 240×246 in Figma */}
+                {/* Replace with exported logo asset when available */}
+                <div className='hidden shrink-0 lg:block'>
+                  <Image
+                    src='/images/evolve-sprouts-logo.svg'
+                    alt={content.brand}
+                    width={240}
+                    height={246}
+                    className='h-auto w-[160px] xl:w-[240px]'
+                  />
+                </div>
+              </div>
+
+              {/* CTA button — 500×82 in Figma, #ED622E rounded-lg */}
+              <div className='mt-6 sm:mt-8 lg:mt-10'>
+                <Link
+                  href='/newsletter'
+                  className='inline-flex h-[52px] items-center justify-center rounded-lg px-5 transition-opacity hover:opacity-90 sm:h-[64px] sm:px-6 sm:text-xl lg:h-[82px] lg:w-[500px] lg:px-6'
+                  style={ctaStyle}
+                >
+                  {content.newsletterCta}
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Newsletter CTA button */}
-        <div className='mx-auto mt-8 max-w-7xl sm:mt-10 lg:mt-12'>
-          <Link
-            href='/newsletter'
-            className='inline-flex h-[60px] items-center justify-center rounded-lg px-6 text-lg font-semibold transition-opacity hover:opacity-90 sm:h-[72px] sm:px-8 sm:text-xl lg:h-[82px] lg:px-10 lg:text-[28px]'
-            style={ctaStyle}
-          >
-            {content.newsletterCta}
-          </Link>
+      {/* ============================================================ */}
+      {/* LINK COLUMNS + LARGE LOGO                                    */}
+      {/* Figma: 4 columns (223px each) on left, large logo (470×482)  */}
+      {/* on right, all positioned below the hero section.             */}
+      {/* ============================================================ */}
+      <section className='w-full px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16'>
+        <div className='mx-auto flex max-w-[1465px] flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-6'>
+          {/* Link columns — 4 columns, each max 223px wide */}
+          <div className='grid flex-1 grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6'>
+            <FooterColumn
+              title={content.quickLinks.title}
+              items={content.quickLinks.items}
+            />
+            <FooterColumn
+              title={content.services.title}
+              items={content.services.items}
+            />
+            <FooterColumn
+              title={content.aboutUs.title}
+              items={content.aboutUs.items}
+            />
+            <FooterColumn
+              title={content.connectOn.title}
+              items={content.connectOn.items}
+              hasSocialIcons
+            />
+          </div>
+
+          {/* Large Evolve Sprouts logo — 470×482 in Figma */}
+          {/* Replace with exported logo asset when available */}
+          <div className='flex justify-center lg:shrink-0 lg:justify-end'>
+            <Image
+              src='/images/evolve-sprouts-logo-large.svg'
+              alt={content.brand}
+              width={470}
+              height={482}
+              className='h-auto w-[240px] sm:w-[300px] lg:w-[380px] xl:w-[470px]'
+            />
+          </div>
         </div>
       </section>
 
-      {/* ---- Link columns ---- */}
-      <section className='w-full px-4 pb-12 pt-4 sm:px-6 lg:px-8 lg:pb-16'>
-        <div className='mx-auto grid max-w-7xl grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8'>
-          <FooterColumn
-            title={content.quickLinks.title}
-            items={content.quickLinks.items}
-          />
-          <FooterColumn
-            title={content.services.title}
-            items={content.services.items}
-          />
-          <FooterColumn
-            title={content.aboutUs.title}
-            items={content.aboutUs.items}
-          />
-          <FooterColumn
-            title={content.connectOn.title}
-            items={content.connectOn.items}
-            hasSocialIcons
-          />
-        </div>
-      </section>
-
-      {/* ---- Bottom bar: brand + copyright ---- */}
-      <section className='w-full border-t border-black/5 px-4 py-8 sm:px-6 lg:px-8'>
-        <div className='mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row'>
-          <Link
-            href='/'
-            className='text-2xl font-semibold tracking-tight transition-opacity hover:opacity-80 lg:text-[37px]'
-            style={{
-              fontFamily:
-                'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-              color: BRAND_COLOR,
-            }}
-          >
-            {content.brand}
-          </Link>
-
+      {/* ============================================================ */}
+      {/* COPYRIGHT BAR                                                */}
+      {/* Matches: "© 2025 Evolvesprouts" TEXT (172×28)                */}
+      {/* Poppins 500 / 16px / 28 line-height / #333333               */}
+      {/* ============================================================ */}
+      <div className='w-full px-4 pb-8 sm:px-6 lg:px-8'>
+        <div className='mx-auto max-w-[1465px]'>
           <p style={copyrightStyle}>{content.copyright}</p>
         </div>
-      </section>
+      </div>
     </footer>
   );
 }
