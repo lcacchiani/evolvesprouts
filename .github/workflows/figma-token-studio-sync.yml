@@ -105,6 +105,8 @@ jobs:
       - name: Tokenize Figma data to Token Studio format
         run: npm run figma:tokenize
         working-directory: apps/public_www
+        env:
+          FIGMA_TOKEN_ROOT_NODE: ${{ vars.PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE }}
 
       - name: Build CSS from Token Studio tokens
         run: npm run figma:build:studio
