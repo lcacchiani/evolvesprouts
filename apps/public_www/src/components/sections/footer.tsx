@@ -1,3 +1,4 @@
+import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -7,117 +8,76 @@ interface FooterProps {
   content: FooterContent;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Design-token constants (from figma-tokens.css)                    */
-/* ------------------------------------------------------------------ */
+interface FooterLinkItem {
+  label: string;
+  href: string;
+  icon?: string;
+}
 
-/** Main footer background — #FFEEE3 peach */
-const FOOTER_BG =
+const FOOTER_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
-
-/** Dark text for headings — #333333 */
-const HEADING_COLOR =
+const HEADING_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
+const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
+const CTA_BACKGROUND = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
+const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
 
-/** Secondary text for links — #4A4A4A */
-const LINK_COLOR = 'var(--figma-colors-home, #4A4A4A)';
-
-/** CTA button orange — #ED622E */
-const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
-
-/** White text on CTA — #FFFFFF */
-const CTA_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
-
-/** Brand navy blue — #174879 */
-const BRAND_COLOR =
-  'var(--figma-colors-frame-2147235242, #174879)';
-
-/* ------------------------------------------------------------------ */
-/*  Typography style objects (mapped to figma typography tokens)       */
-/* ------------------------------------------------------------------ */
-
-/**
- * Hero heading — Poppins 700, 77px / 107 line-height, 0.77 letter-spacing
- * Token: --figma-typography-join-our-sprouts-squad-community
- */
-const headingStyle: React.CSSProperties = {
-  fontFamily:
-    'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 'var(--figma-fontweights-700, 700)' as string,
+const headingStyle: CSSProperties = {
+  color: HEADING_TEXT_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+  fontWeight: 'var(--figma-fontweights-700, 700)',
   letterSpacing:
-    'var(--figma-letterspacing-join-our-sprouts-squad-community, 0.77px)',
-  color: HEADING_COLOR,
+    'calc(var(--figma-letterspacing-join-our-sprouts-squad-community, 0.77) * 1px)',
 };
 
-/**
- * CTA button — Lato 600, 28px / 28 line-height
- * Token: --figma-typography-sign-up-to-our-monthly-newsletter
- */
-const ctaStyle: React.CSSProperties = {
-  backgroundColor: CTA_BG,
-  color: CTA_TEXT,
-  fontFamily:
-    'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-28, 28px)',
-  fontWeight: 'var(--figma-fontweights-600, 600)' as string,
+const ctaStyle: CSSProperties = {
+  backgroundColor: CTA_BACKGROUND,
+  color: CTA_TEXT_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  fontWeight: 'var(--figma-fontweights-600, 600)',
   lineHeight:
     'var(--figma-lineheights-sign-up-to-our-monthly-newsletter, 100%)',
 };
 
-/**
- * Column title — Urbanist 600, 24px / 28 line-height, -0.5 letter-spacing
- * Token: --figma-typography-quick-links
- */
-const columnTitleStyle: React.CSSProperties = {
-  fontFamily:
-    'var(--figma-fontfamilies-urbanist, Urbanist), sans-serif',
+const columnTitleStyle: CSSProperties = {
+  color: HEADING_TEXT_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-urbanist, Urbanist), sans-serif',
   fontSize: 'var(--figma-fontsizes-24, 24px)',
-  fontWeight: 'var(--figma-fontweights-600, 600)' as string,
-  lineHeight: 'var(--figma-lineheights-quick-links, 28px)',
+  fontWeight: 'var(--figma-fontweights-600, 600)',
+  lineHeight: 'calc(var(--figma-lineheights-quick-links, 28) * 1px)',
   letterSpacing:
-    'var(--figma-letterspacing-quick-links, -0.5px)',
-  color: HEADING_COLOR,
+    'calc(var(--figma-letterspacing-quick-links, -0.5) * 1px)',
 };
 
-/**
- * Link text — Lato 400, 18px / 28 line-height, 0.5 letter-spacing
- * Token: --figma-typography-home
- */
-const linkStyle: React.CSSProperties = {
-  fontFamily:
-    'var(--figma-fontfamilies-lato, Lato), sans-serif',
+const linkStyle: CSSProperties = {
+  color: BODY_TEXT_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-400, 400)' as string,
-  lineHeight: 'var(--figma-lineheights-home, 28px)',
-  letterSpacing: 'var(--figma-letterspacing-home, 0.5px)',
-  color: LINK_COLOR,
+  fontWeight: 'var(--figma-fontweights-400, 400)',
+  lineHeight: 'calc(var(--figma-lineheights-home, 28) * 1px)',
+  letterSpacing: 'calc(var(--figma-letterspacing-home, 0.5) * 1px)',
 };
 
-/**
- * Copyright — Poppins 500, 16px / 28 line-height
- * Token: --figma-typography-2025-evolvesprouts
- */
-const copyrightStyle: React.CSSProperties = {
-  fontFamily:
-    'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+const copyrightStyle: CSSProperties = {
+  color: HEADING_TEXT_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
   fontSize: 'var(--figma-fontsizes-16, 16px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)' as string,
+  fontWeight: 'var(--figma-fontweights-500, 500)',
   lineHeight:
-    'var(--figma-lineheights-2025-evolvesprouts, 28px)',
-  color: HEADING_COLOR,
+    'calc(var(--figma-lineheights-2025-evolvesprouts, 28) * 1px)',
 };
 
-/* ------------------------------------------------------------------ */
-/*  Social-media icon SVGs (16×16, matching Figma icon frames)        */
-/* ------------------------------------------------------------------ */
+const scrimStyle: CSSProperties = {
+  background:
+    'linear-gradient(180deg, rgba(255, 238, 227, 0.22) 0%, var(--figma-colors-frame-2147235259, #FFEEE3) 100%)',
+};
 
-const socialIcons: Record<string, React.ReactNode> = {
+const socialIcons: Record<string, ReactNode> = {
   facebook: (
     <svg
       aria-hidden='true'
-      width='16'
-      height='16'
       viewBox='0 0 16 16'
+      className='h-4 w-4'
       fill='currentColor'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -127,9 +87,8 @@ const socialIcons: Record<string, React.ReactNode> = {
   linkedin: (
     <svg
       aria-hidden='true'
-      width='16'
-      height='16'
       viewBox='0 0 16 16'
+      className='h-4 w-4'
       fill='currentColor'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -139,9 +98,8 @@ const socialIcons: Record<string, React.ReactNode> = {
   instagram: (
     <svg
       aria-hidden='true'
-      width='18'
-      height='18'
       viewBox='0 0 18 18'
+      className='h-[18px] w-[18px]'
       fill='currentColor'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -151,9 +109,8 @@ const socialIcons: Record<string, React.ReactNode> = {
   tiktok: (
     <svg
       aria-hidden='true'
-      width='16'
-      height='16'
       viewBox='0 0 16 16'
+      className='h-4 w-4'
       fill='currentColor'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -162,169 +119,106 @@ const socialIcons: Record<string, React.ReactNode> = {
   ),
 };
 
-/* ------------------------------------------------------------------ */
-/*  Sub-components                                                    */
-/* ------------------------------------------------------------------ */
-
-/**
- * Renders a single footer link column.
- * Matches Figma "Frame 1000007078/79/81/80" — vertical layout,
- * 17px item spacing, title with 16px bottom padding.
- */
 function FooterColumn({
   title,
   items,
   hasSocialIcons = false,
 }: {
   title: string;
-  items: { label: string; href: string; icon?: string }[];
+  items: FooterLinkItem[];
   hasSocialIcons?: boolean;
 }) {
   return (
-    <div className='flex w-full max-w-[223px] flex-col gap-[17px]'>
-      {/* Column title — pb-4 matches the 16px bottom padding in Figma */}
+    <section className='w-full max-w-[223px]'>
       <h3 className='pb-4' style={columnTitleStyle}>
         {title}
       </h3>
       <ul className='flex flex-col gap-[17px]'>
-        {items.map((item) => (
-          <li key={item.label}>
-            <Link
-              href={item.href}
-              className='inline-flex items-center transition-opacity hover:opacity-70'
-              style={{
-                ...linkStyle,
-                /* Social links use 14px icon-text gap, regular links 8px */
-                gap: hasSocialIcons ? '14px' : '8px',
-              }}
-              {...(item.href.startsWith('http')
-                ? { target: '_blank', rel: 'noopener noreferrer' }
-                : {})}
-            >
-              {hasSocialIcons && item.icon && socialIcons[item.icon] && (
-                <span
-                  className='flex shrink-0 items-center justify-center'
-                  style={{ color: LINK_COLOR }}
-                >
-                  {socialIcons[item.icon]}
-                </span>
-              )}
-              {item.label}
-            </Link>
-          </li>
-        ))}
+        {items.map((item) => {
+          const icon = item.icon ? socialIcons[item.icon] : null;
+          const isExternal = item.href.startsWith('http');
+
+          return (
+            <li key={`${title}-${item.label}`}>
+              <Link
+                href={item.href}
+                className='inline-flex items-center transition-opacity hover:opacity-70'
+                style={{
+                  ...linkStyle,
+                  gap: hasSocialIcons ? '14px' : '8px',
+                }}
+                {...(isExternal
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
+              >
+                {hasSocialIcons && icon ? (
+                  <span className='shrink-0' style={{ color: BODY_TEXT_COLOR }}>
+                    {icon}
+                  </span>
+                ) : null}
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
-    </div>
+    </section>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Main Footer component                                             */
-/* ------------------------------------------------------------------ */
-
-/**
- * Footer component matching the Figma design spec (footer.json).
- *
- * Layout hierarchy (Figma → HTML):
- *   footer GROUP (1920×1483)
- *     └ Frame 2147235259 (fill: #FFEEE3)
- *         ├ "Background Image" FRAME (1920×859)
- *         │   ├ "7 2" RECTANGLE — background photo (1490×836)
- *         │   ├ "Scrim" RECTANGLE — overlay (1920×859)
- *         │   ├ Heading TEXT (847×214)
- *         │   ├ Small logo GROUP (240×246)
- *         │   └ CTA button FRAME (500×82)
- *         ├ Quick Links column (223×269)
- *         ├ Services column (223×179)
- *         ├ About Us column (223×179)
- *         ├ Connect on column (223×224)
- *         ├ Large logo FRAME (470×482)
- *         └ Copyright TEXT (172×28)
- */
 export function Footer({ content }: FooterProps) {
+  const newsletterLink =
+    content.aboutUs.items.find((item) =>
+      item.href.includes('newsletter'),
+    )?.href ?? '/newsletter';
+
   return (
     <footer
       data-figma-node='footer'
       className='w-full'
-      style={{ backgroundColor: FOOTER_BG }}
+      style={{ backgroundColor: FOOTER_BACKGROUND }}
     >
-      {/* ============================================================ */}
-      {/* HERO / CTA SECTION                                           */}
-      {/* Matches "Background Image" frame: 1920×859, fill #FFEEE3     */}
-      {/* Contains: bg photo → scrim → heading + small logo + CTA      */}
-      {/* ============================================================ */}
-      <section className='relative w-full overflow-hidden'>
-        {/* Aspect-ratio wrapper: 859/1920 ≈ 44.7% — preserves Figma proportions */}
-        <div className='relative w-full pb-[60%] sm:pb-[50%] lg:pb-[44.7%]'>
-          {/* Background image (1490×836 in Figma, named "7 2") */}
-          {/* Replace /images/footer-bg.svg with the real photo when available */}
-          <Image
-            src='/images/footer-bg.svg'
-            alt=''
-            fill
-            className='object-cover object-center'
-            priority={false}
-          />
+      <section className='relative isolate overflow-hidden'>
+        <Image
+          src='/images/footer-bg.svg'
+          alt=''
+          fill
+          sizes='100vw'
+          className='object-cover object-center'
+        />
+        <div className='absolute inset-0' style={scrimStyle} />
 
-          {/* Scrim overlay (1920×859 in Figma) — semi-transparent warm wash */}
-          <div
-            className='absolute inset-0 z-[1]'
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(255,238,227,0.3) 0%, rgba(255,238,227,0.75) 100%)',
-            }}
-          />
+        <div className='relative z-10 mx-auto flex min-h-[460px] w-full max-w-[1465px] flex-col justify-center gap-8 px-4 py-14 sm:min-h-[560px] sm:px-6 sm:py-20 lg:min-h-[859px] lg:gap-10 lg:px-8'>
+          <div className='flex flex-col gap-7 lg:flex-row lg:items-start lg:justify-between lg:gap-8'>
+            <h2
+              className='max-w-[847px] text-[clamp(2rem,6vw,77px)] leading-[1.15] lg:leading-[calc(var(--figma-lineheights-join-our-sprouts-squad-community,107)*1px)]'
+              style={headingStyle}
+            >
+              {content.communityHeading}
+            </h2>
 
-          {/* Content overlay — heading, small logo, CTA */}
-          <div className='absolute inset-0 z-[2] flex flex-col justify-center px-4 sm:px-6 lg:px-8'>
-            <div className='mx-auto w-full max-w-[1465px]'>
-              {/* Row: heading (left) + small logo (right) */}
-              <div className='flex items-center justify-between gap-6'>
-                {/* Heading — 847×214 in Figma, Poppins 77px bold */}
-                <h2
-                  className='max-w-[500px] text-3xl leading-tight sm:max-w-[650px] sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight lg:max-w-[847px] lg:text-[77px] lg:leading-[107px]'
-                  style={headingStyle}
-                >
-                  {content.communityHeading}
-                </h2>
-
-                {/* Small Evolve Sprouts logo — 240×246 in Figma */}
-                {/* Replace with exported logo asset when available */}
-                <div className='hidden shrink-0 lg:block'>
-                  <Image
-                    src='/images/evolve-sprouts-logo.svg'
-                    alt={content.brand}
-                    width={240}
-                    height={246}
-                    className='h-auto w-[160px] xl:w-[240px]'
-                  />
-                </div>
-              </div>
-
-              {/* CTA button — 500×82 in Figma, #ED622E rounded-lg */}
-              <div className='mt-6 sm:mt-8 lg:mt-10'>
-                <Link
-                  href='/newsletter'
-                  className='inline-flex h-[52px] items-center justify-center rounded-lg px-5 transition-opacity hover:opacity-90 sm:h-[64px] sm:px-6 sm:text-xl lg:h-[82px] lg:w-[500px] lg:px-6'
-                  style={ctaStyle}
-                >
-                  {content.newsletterCta}
-                </Link>
-              </div>
-            </div>
+            <Image
+              src='/images/evolve-sprouts-logo.svg'
+              alt={content.brand}
+              width={240}
+              height={246}
+              className='h-auto w-[96px] shrink-0 sm:w-[128px] lg:w-[240px]'
+            />
           </div>
+
+          <Link
+            href={newsletterLink}
+            className='inline-flex h-14 w-full max-w-[500px] items-center justify-center rounded-lg px-5 text-center text-lg transition-opacity hover:opacity-90 sm:h-[68px] sm:text-2xl lg:h-[82px] lg:text-[28px]'
+            style={ctaStyle}
+          >
+            {content.newsletterCta}
+          </Link>
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* LINK COLUMNS + LARGE LOGO                                    */}
-      {/* Figma: 4 columns (223px each) on left, large logo (470×482)  */}
-      {/* on right, all positioned below the hero section.             */}
-      {/* ============================================================ */}
-      <section className='w-full px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16'>
-        <div className='mx-auto flex max-w-[1465px] flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-6'>
-          {/* Link columns — 4 columns, each max 223px wide */}
-          <div className='grid flex-1 grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6'>
+      <section className='w-full px-4 pb-8 pt-10 sm:px-6 sm:pb-10 sm:pt-12 lg:px-8 lg:pb-12 lg:pt-16'>
+        <div className='mx-auto grid w-full max-w-[1465px] gap-12 xl:grid-cols-[minmax(0,1fr)_470px] xl:items-start xl:gap-8'>
+          <div className='grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 xl:grid-cols-4 xl:gap-x-6 xl:gap-y-10'>
             <FooterColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
@@ -344,27 +238,20 @@ export function Footer({ content }: FooterProps) {
             />
           </div>
 
-          {/* Large Evolve Sprouts logo — 470×482 in Figma */}
-          {/* Replace with exported logo asset when available */}
-          <div className='flex justify-center lg:shrink-0 lg:justify-end'>
+          <div className='justify-self-center xl:justify-self-end'>
             <Image
               src='/images/evolve-sprouts-logo-large.svg'
               alt={content.brand}
               width={470}
               height={482}
-              className='h-auto w-[240px] sm:w-[300px] lg:w-[380px] xl:w-[470px]'
+              className='h-auto w-[220px] sm:w-[280px] lg:w-[360px] xl:w-[470px]'
             />
           </div>
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* COPYRIGHT BAR                                                */}
-      {/* Matches: "© 2025 Evolvesprouts" TEXT (172×28)                */}
-      {/* Poppins 500 / 16px / 28 line-height / #333333               */}
-      {/* ============================================================ */}
       <div className='w-full px-4 pb-8 sm:px-6 lg:px-8'>
-        <div className='mx-auto max-w-[1465px]'>
+        <div className='mx-auto w-full max-w-[1465px]'>
           <p style={copyrightStyle}>{content.copyright}</p>
         </div>
       </div>
