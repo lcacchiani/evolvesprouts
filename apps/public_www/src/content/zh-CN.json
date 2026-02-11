@@ -33,28 +33,31 @@
   },
   "courseModule": {
     "eyebrow": "赋能教育",
-    "title": "我们的课程",
-    "description": "探索我们精心设计的课程系列。",
+    "title": "由 Ida 设计的最佳阿姨培训课程",
+    "description": "把您的阿姨培养成蒙特梭利导向的儿童发展伙伴！",
     "ctaLabel": "立即开始 - 今天就培训阿姨",
-    "ctaHref": "#resources",
+    "ctaHref": "/training-courses",
     "modules": [
       {
         "step": "01",
         "title": "第1模块",
         "week": "第01-04周",
-        "icon": "foundation"
+        "icon": "foundation",
+        "activity": "以工作坊开始，随后进行家长电话沟通、1对1课程，并以实战挑战收尾。"
       },
       {
         "step": "02",
         "title": "第2模块",
         "week": "第05-08周",
-        "icon": "coaching"
+        "icon": "coaching",
+        "activity": "以工作坊开始，随后进行家长电话沟通、1对1课程，并以实战挑战收尾。"
       },
       {
         "step": "03",
         "title": "第3模块",
         "week": "第09-12周",
-        "icon": "practice"
+        "icon": "practice",
+        "activity": "以工作坊开始，随后进行家长电话沟通、1对1课程，并以实战挑战收尾。"
       }
     ],
     "items": []

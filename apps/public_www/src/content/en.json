@@ -37,28 +37,31 @@
   },
   "courseModule": {
     "eyebrow": "Empowering Education",
-    "title": "Our Courses",
-    "description": "Explore our range of expertly crafted courses.",
+    "title": "Best Auntie Training\nCourse Designed by Ida",
+    "description": "Transform Your Auntie into a Montessori-Guided Child Development Partner!",
     "ctaLabel": "Get Started - Train Auntie Today",
-    "ctaHref": "#resources",
+    "ctaHref": "/training-courses",
     "modules": [
       {
         "step": "01",
         "title": "1st Module",
         "week": "Week 01-04",
-        "icon": "foundation"
+        "icon": "foundation",
+        "activity": "Starting with a workshop, followed by a parent call, a 1:1 session, and ending with a practical challenge."
       },
       {
         "step": "02",
         "title": "2nd Module",
         "week": "Week 05-08",
-        "icon": "coaching"
+        "icon": "coaching",
+        "activity": "Starting with a workshop, followed by a parent call, a 1:1 session, and ending with a practical challenge."
       },
       {
         "step": "03",
         "title": "3rd Module",
         "week": "Week 09-12",
-        "icon": "practice"
+        "icon": "practice",
+        "activity": "Starting with a workshop, followed by a parent call, a 1:1 session, and ending with a practical challenge."
       }
     ],
     "items": []
