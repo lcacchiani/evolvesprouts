@@ -19,8 +19,31 @@
     "cta": "Get Started"
   },
   "courseModule": {
+    "eyebrow": "Empowering Education",
     "title": "Our Courses",
     "description": "Explore our range of expertly crafted courses.",
+    "ctaLabel": "Get Started - Train Auntie Today",
+    "ctaHref": "#resources",
+    "modules": [
+      {
+        "step": "01",
+        "title": "1st Module",
+        "week": "Week 01-04",
+        "icon": "foundation"
+      },
+      {
+        "step": "02",
+        "title": "2nd Module",
+        "week": "Week 05-08",
+        "icon": "coaching"
+      },
+      {
+        "step": "03",
+        "title": "3rd Module",
+        "week": "Week 09-12",
+        "icon": "practice"
+      }
+    ],
     "items": []
   },
   "freeResources": {

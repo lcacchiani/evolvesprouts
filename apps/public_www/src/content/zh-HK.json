@@ -19,8 +19,31 @@
     "cta": "立即開始"
   },
   "courseModule": {
+    "eyebrow": "賦能教育",
     "title": "我們的課程",
     "description": "探索我們精心設計的課程系列。",
+    "ctaLabel": "立即開始 - 今天就培訓姨姨",
+    "ctaHref": "#resources",
+    "modules": [
+      {
+        "step": "01",
+        "title": "第1模組",
+        "week": "第01-04週",
+        "icon": "foundation"
+      },
+      {
+        "step": "02",
+        "title": "第2模組",
+        "week": "第05-08週",
+        "icon": "coaching"
+      },
+      {
+        "step": "03",
+        "title": "第3模組",
+        "week": "第09-12週",
+        "icon": "practice"
+      }
+    ],
     "items": []
   },
   "freeResources": {
