@@ -35,19 +35,28 @@ The project includes a Figma MCP (Model Context Protocol) server
 configuration at `.cursor/mcp.json`. This allows Cursor to read your
 Figma file directly when you paste a Figma frame URL into the editor.
 
+The MCP server uses **OAuth2 authentication** — the same credentials
+used by the `figma:pull` pipeline. A launcher script
+(`scripts/figma/launch-figma-mcp.mjs`) exchanges the refresh token
+for a short-lived access token and then spawns the Framelink MCP
+server with it.
+
 ### Setup
 
-1. Generate a **Figma Personal Access Token** (PAT):
-   - Go to [Figma Account Settings](https://www.figma.com/settings)
-   - Scroll to **Personal access tokens**
-   - Click **Generate new token**
-   - Copy the token value
+1. Ensure you have valid OAuth2 credentials (see
+   [Generating a Figma OAuth refresh token](#generating-a-figma-oauth-refresh-token)
+   below if you haven't done this yet).
 
-2. Add the token to Cursor:
-   - **Local development:** Add `FIGMA_API_KEY=your-token` to your
-     environment (e.g. shell profile or `.env` in the workspace root)
-   - **Cloud Agents:** Add `FIGMA_API_KEY` as a secret in the Cursor
-     Dashboard under Cloud Agents > Secrets
+2. Add the OAuth2 credentials to Cursor:
+   - **Local development:** Add these to your `.env` file or shell
+     profile:
+     ```bash
+     FIGMA_OAUTH_CLIENT_ID=your-client-id
+     FIGMA_OAUTH_CLIENT_SECRET=your-client-secret
+     FIGMA_OAUTH_REFRESH_TOKEN=your-refresh-token
+     ```
+   - **Cloud Agents:** Add all three as secrets in the Cursor
+     Dashboard under Cloud Agents > Secrets.
 
 3. Restart Cursor. The Framelink Figma MCP server will appear in the
    MCP servers list and respond to Figma URL queries.
@@ -169,8 +178,10 @@ For `figma:pull`, set `FIGMA_FILE_KEY` and either:
 - `FIGMA_OAUTH_CLIENT_ID`, `FIGMA_OAUTH_CLIENT_SECRET`, and
   `FIGMA_OAUTH_REFRESH_TOKEN`.
 
-For the MCP connector, set `FIGMA_API_KEY` (Figma Personal Access
-Token).
+For the MCP connector, the same OAuth2 credentials are used
+(`FIGMA_OAUTH_CLIENT_ID`, `FIGMA_OAUTH_CLIENT_SECRET`,
+`FIGMA_OAUTH_REFRESH_TOKEN`). The launcher script mints a short-lived
+access token automatically.
 
 ## Generating a Figma OAuth refresh token
 
@@ -324,4 +335,4 @@ And set `PUBLIC_WWW_FIGMA_FILE_KEY` as a repository variable.
 | Refresh token stops working | Figma refresh tokens can be revoked if the app is modified. Re-generate one using either option above. |
 | `gh secret set` fails (Actions) | `GITHUB_TOKEN` may lack permission to write secrets. Copy the token from the masked log output and add the secret manually. |
 | `figma:tokenize` finds 0 styles | Ensure your Figma file uses published styles (not just local fills). Publish styles via the Figma UI. |
-| MCP server not connecting | Verify `FIGMA_API_KEY` is set and the PAT has not expired. Restart Cursor after adding the key. |
+| MCP server not connecting | Verify `FIGMA_OAUTH_CLIENT_ID`, `FIGMA_OAUTH_CLIENT_SECRET`, and `FIGMA_OAUTH_REFRESH_TOKEN` are set. Check Cursor's MCP server logs for OAuth errors. Restart Cursor after changing env vars. |

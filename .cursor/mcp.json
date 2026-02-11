@@ -1,14 +1,14 @@
 {
   "mcpServers": {
     "Framelink Figma MCP": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "figma-developer-mcp",
-        "--stdio"
+        "apps/public_www/scripts/figma/launch-figma-mcp.mjs"
       ],
       "env": {
-        "FIGMA_API_KEY": "${FIGMA_API_KEY}"
+        "FIGMA_OAUTH_CLIENT_ID": "${FIGMA_OAUTH_CLIENT_ID}",
+        "FIGMA_OAUTH_CLIENT_SECRET": "${FIGMA_OAUTH_CLIENT_SECRET}",
+        "FIGMA_OAUTH_REFRESH_TOKEN": "${FIGMA_OAUTH_REFRESH_TOKEN}"
       }
     }
   }
