@@ -77,7 +77,6 @@ Rollback uses the same promotion workflow by promoting a previous `release_id`.
 ```bash
 cd apps/public_www
 npm ci
-npm run figma:build
 npm run build
 ```
 
@@ -121,26 +120,32 @@ bash scripts/deploy/deploy-public-www.sh
 
 ## Figma token sync in CI/CD
 
-`public_www` includes Figma token scaffolding:
+`public_www` uses the Token Studio pipeline for design tokens:
 
-- `figma/files/` stores raw Figma API payloads
-- `figma/mdm/exports/` stores token files produced by Figma MDM
-- `figma/mdm/artifacts/` stores normalized artifacts
+- `figma/token-studio/` stores Token Studio design tokens (tracked in git)
+- `figma/files/` stores raw Figma API payloads (gitignored)
 
-The staging deploy workflow runs `npm run figma:pull` before `npm run build`.
-`npm run build` then runs `figma:build` to generate CSS tokens.
-If `FIGMA_FILE_KEY` or OAuth credentials are unavailable, pull is skipped and
-build falls back to local artifacts safely.
+The staging deploy workflow runs `npm run figma:pull` and
+`npm run figma:tokenize` before `npm run build`.
+`npm run build` runs `figma:build:studio` to generate CSS custom
+properties from Token Studio tokens, then `next build` to produce
+the static site.
+
+If `FIGMA_FILE_KEY` or OAuth credentials are unavailable, pull is
+skipped and build uses the committed Token Studio tokens.
+
+For the full Figma pipeline architecture, see
+[docs/architecture/public-www-figma-pipeline.md](../architecture/public-www-figma-pipeline.md).
 
 The deploy workflow reads these GitHub values for OAuth 2.0 auth:
 
 - Secrets:
-  - `FIGMA_OAUTH_ACCESS_TOKEN` (optional direct token)
   - `FIGMA_OAUTH_CLIENT_ID`
   - `FIGMA_OAUTH_CLIENT_SECRET`
   - `FIGMA_OAUTH_REFRESH_TOKEN`
 - Variables:
   - `PUBLIC_WWW_FIGMA_FILE_KEY`
+  - `PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE` (scopes extraction to a frame)
   - `PUBLIC_WWW_FIGMA_OAUTH_TOKEN_URL` (optional override)
 
 ## SEO behavior

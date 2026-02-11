@@ -38,22 +38,10 @@ jobs:
         run: npm ci
         working-directory: apps/public_www
 
-      - name: Pull Figma tokens
-        run: npm run figma:pull
-        working-directory: apps/public_www
-        env:
-          FIGMA_OAUTH_ACCESS_TOKEN: ${{ secrets.FIGMA_OAUTH_ACCESS_TOKEN }}
-          FIGMA_OAUTH_CLIENT_ID: ${{ secrets.FIGMA_OAUTH_CLIENT_ID }}
-          FIGMA_OAUTH_CLIENT_SECRET: ${{ secrets.FIGMA_OAUTH_CLIENT_SECRET }}
-          FIGMA_OAUTH_REFRESH_TOKEN: ${{ secrets.FIGMA_OAUTH_REFRESH_TOKEN }}
-          FIGMA_OAUTH_TOKEN_URL: ${{ vars.PUBLIC_WWW_FIGMA_OAUTH_TOKEN_URL }}
-          FIGMA_FILE_KEY: ${{ vars.PUBLIC_WWW_FIGMA_FILE_KEY }}
-
-      - name: Tokenize Figma data to Token Studio format
-        run: npm run figma:tokenize
-        working-directory: apps/public_www
-        env:
-          FIGMA_TOKEN_ROOT_NODE: ${{ vars.PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE }}
+      # Figma tokens are already committed to git by the
+      # figma-token-studio-sync workflow. npm run build runs
+      # figma:build:studio to generate CSS from the committed
+      # Token Studio JSON — no Figma API call needed at deploy time.
 
       - name: Restore Next.js build cache
         uses: actions/cache@v5
