@@ -477,6 +477,68 @@ function buildEffectTokens(effectStyleMap) {
 }
 
 // ---------------------------------------------------------------------------
+// Node finder — locate a specific frame/component by name or ID
+// ---------------------------------------------------------------------------
+
+/**
+ * Searches the document tree for a node matching the given name or ID.
+ * Returns the first match found (depth-first).
+ */
+function findNode(node, nameOrId) {
+  if (!node || typeof node !== 'object') {
+    return null;
+  }
+
+  // Match by node ID (e.g. "123:456")
+  if (node.id === nameOrId) {
+    return node;
+  }
+
+  // Match by name (case-insensitive)
+  if (
+    node.name &&
+    node.name.toLowerCase() === nameOrId.toLowerCase()
+  ) {
+    return node;
+  }
+
+  if (Array.isArray(node.children)) {
+    for (const child of node.children) {
+      const found = findNode(child, nameOrId);
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Lists all top-level frames across all pages for diagnostic output.
+ */
+function listTopLevelFrames(document) {
+  const frames = [];
+  const pages = document.children ?? [];
+
+  for (const page of pages) {
+    const pageName = page.name ?? '(unnamed page)';
+    const pageChildren = page.children ?? [];
+
+    for (const frame of pageChildren) {
+      frames.push({
+        id: frame.id,
+        name: frame.name ?? '(unnamed)',
+        type: frame.type ?? 'UNKNOWN',
+        page: pageName,
+      });
+    }
+  }
+
+  return frames;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -507,6 +569,61 @@ async function main() {
   const styleMap = buildStyleMap(figmaFile);
   console.log(`Found ${styleMap.size} published style(s) in file metadata.`);
 
+  // Determine the root node to extract from.
+  // If FIGMA_TOKEN_ROOT_NODE is set, scope extraction to that frame only.
+  // This prevents picking up styles from imported libraries (e.g. Material
+  // Design kits) that live elsewhere in the file.
+  const rootNodeSpec = (process.env.FIGMA_TOKEN_ROOT_NODE ?? '').trim();
+  const document = figmaFile.document ?? figmaFile;
+  let extractionRoot = document;
+
+  if (rootNodeSpec) {
+    const found = findNode(document, rootNodeSpec);
+    if (!found) {
+      console.error(
+        `Error: could not find node "${rootNodeSpec}" in the Figma file.`,
+      );
+      console.error('');
+      console.error('Available top-level frames:');
+      const frames = listTopLevelFrames(document);
+      for (const frame of frames) {
+        console.error(
+          `  [${frame.type}] "${frame.name}" (id: ${frame.id}) — page: ${frame.page}`,
+        );
+      }
+      console.error('');
+      console.error(
+        'Set FIGMA_TOKEN_ROOT_NODE to one of the names or IDs above.',
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    extractionRoot = found;
+    console.log(
+      `Scoped extraction to: "${found.name}" (id: ${found.id}, type: ${found.type})`,
+    );
+  } else {
+    console.log(
+      'No FIGMA_TOKEN_ROOT_NODE set — extracting from entire document.',
+    );
+    console.log(
+      'Tip: set FIGMA_TOKEN_ROOT_NODE to a frame name or ID to scope extraction.',
+    );
+
+    const frames = listTopLevelFrames(document);
+    if (frames.length > 0) {
+      console.log('');
+      console.log('Available top-level frames:');
+      for (const frame of frames) {
+        console.log(
+          `  [${frame.type}] "${frame.name}" (id: ${frame.id}) — page: ${frame.page}`,
+        );
+      }
+      console.log('');
+    }
+  }
+
   const collected = {
     colors: new Map(),
     textStyles: new Map(),
@@ -514,8 +631,7 @@ async function main() {
     gridStyles: new Map(),
   };
 
-  const document = figmaFile.document ?? figmaFile;
-  extractFromNodeTree(document, styleMap, collected);
+  extractFromNodeTree(extractionRoot, styleMap, collected);
 
   console.log(`Extracted ${collected.colors.size} color style(s).`);
   console.log(`Extracted ${collected.textStyles.size} text style(s).`);
