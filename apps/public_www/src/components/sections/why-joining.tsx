@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import Image from 'next/image';
 
 import { SectionCtaLink } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
@@ -17,6 +18,8 @@ interface BenefitCard {
   title: string;
   tone: BenefitCardTone;
   imageSrc: string;
+  imageWidth: number;
+  imageHeight: number;
   imageClassName: string;
   description?: string;
 }
@@ -25,6 +28,8 @@ interface BenefitCardMeta {
   id: string;
   tone: BenefitCardTone;
   imageSrc: string;
+  imageWidth: number;
+  imageHeight: number;
   imageClassName: string;
 }
 
@@ -44,36 +49,48 @@ const benefitCardMeta: BenefitCardMeta[] = [
     id: 'age-specific',
     tone: 'gold',
     imageSrc: '/images/why-joining/courseimg1.png',
+    imageWidth: 344,
+    imageHeight: 309,
     imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
   },
   {
     id: 'small-group-learning',
     tone: 'blue',
     imageSrc: '/images/why-joining/courseimg2.png',
+    imageWidth: 433,
+    imageHeight: 424,
     imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
   },
   {
     id: 'montessori-positive-discipline',
     tone: 'gold',
     imageSrc: '/images/why-joining/courseimg3.png',
+    imageWidth: 282,
+    imageHeight: 335,
     imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
   },
   {
     id: 'ongoing-support',
     tone: 'gold',
     imageSrc: '/images/why-joining/courseimg4.png',
+    imageWidth: 308,
+    imageHeight: 323,
     imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
   },
   {
     id: 'ready-to-use-tools',
     tone: 'blue',
     imageSrc: '/images/why-joining/courseimg5.png',
+    imageWidth: 472,
+    imageHeight: 457,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
   },
   {
     id: 'guaranteed-confidence',
     tone: 'gold',
     imageSrc: '/images/why-joining/courseimg6.png',
+    imageWidth: 433,
+    imageHeight: 443,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
   },
 ];
@@ -290,10 +307,12 @@ export function WhyJoining({ content }: WhyJoiningProps) {
                     aria-hidden='true'
                     className='pointer-events-none absolute bottom-0 right-0 z-0'
                   >
-                    <img
+                    <Image
                       src={card.imageSrc}
                       alt=''
-                      loading='lazy'
+                      width={card.imageWidth}
+                      height={card.imageHeight}
+                      sizes='(max-width: 640px) 240px, (max-width: 1024px) 300px, 340px'
                       className={`${card.imageClassName} w-auto max-w-none`}
                     />
                   </div>
