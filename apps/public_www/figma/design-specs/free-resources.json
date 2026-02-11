@@ -1,0 +1,2083 @@
+{
+  "name": "Free Resources",
+  "type": "GROUP",
+  "width": 1464,
+  "height": 848,
+  "children": [
+    {
+      "name": "Frame 2147235261",
+      "type": "FRAME",
+      "width": 189,
+      "height": 46,
+      "strokes": [
+        "#EECAB0"
+      ],
+      "strokeWeight": 1,
+      "cornerRadius": 58.72620391845703,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "itemSpacing": 8,
+        "primaryAxisAlign": "CENTER",
+        "counterAxisAlign": "CENTER",
+        "padding": {
+          "top": 11.745241165161133,
+          "right": 17,
+          "bottom": 11.745241165161133,
+          "left": 17
+        }
+      },
+      "children": [
+        {
+          "name": "Frame 2085664960",
+          "type": "FRAME",
+          "width": 31,
+          "height": 23,
+          "children": [
+            {
+              "name": "evolve-sprouts 2",
+              "type": "FRAME",
+              "width": 31,
+              "height": 31,
+              "children": [
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 0,
+                  "height": 1,
+                  "fills": [
+                    "#1C3542"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 1,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#2A7834"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#2A7834"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 1,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 1,
+                  "fills": [
+                    "#E76C3D"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#E76C3D"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 2,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 2,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 2,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 2,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 2,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 3,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 1,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 1,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 2,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 1,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 2,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 1,
+                  "fills": [
+                    "#F5F6F5"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 2,
+                  "fills": [
+                    "#E76C3D"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 3,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 3,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 3,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 3,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 3,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 3,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 9,
+                  "height": 9,
+                  "fills": [
+                    "#E76C3D"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 11,
+                  "height": 9,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 30,
+                  "height": 18,
+                  "fills": [
+                    "#174879"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Our Resources",
+          "type": "TEXT",
+          "width": 116,
+          "height": 18,
+          "fills": [
+            "#333333"
+          ],
+          "text": {
+            "content": "Our Resources",
+            "fontFamily": "Lato",
+            "fontSize": 18,
+            "fontWeight": 500,
+            "lineHeight": 18,
+            "textAlign": "left",
+            "color": "#333333"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Free Resources for Gentle Parenting",
+      "type": "TEXT",
+      "width": 745,
+      "height": 140,
+      "fills": [
+        "#333333"
+      ],
+      "text": {
+        "content": "Free Resources \nfor Gentle Parenting",
+        "fontFamily": "Poppins",
+        "fontSize": 55,
+        "fontWeight": 700,
+        "lineHeight": 70,
+        "textAlign": "center",
+        "color": "#333333"
+      }
+    },
+    {
+      "name": "Frame 2147235250",
+      "type": "FRAME",
+      "width": 1464,
+      "height": 587,
+      "cornerRadius": 14,
+      "children": [
+        {
+          "name": "Rectangle 240648654",
+          "type": "RECTANGLE",
+          "width": 968,
+          "height": 587,
+          "fills": [
+            "#D9D9D9"
+          ],
+          "cornerRadius": 14
+        },
+        {
+          "name": "image 3787",
+          "type": "RECTANGLE",
+          "width": 971,
+          "height": 624
+        },
+        {
+          "name": "image 3788",
+          "type": "RECTANGLE",
+          "width": 1518,
+          "height": 1012,
+          "effects": [
+            {
+              "type": "blur",
+              "radius": 0
+            }
+          ]
+        },
+        {
+          "name": "Frame 2085664964",
+          "type": "FRAME",
+          "width": 530,
+          "height": 516,
+          "cornerRadius": 6,
+          "children": [
+            {
+              "name": "Frame 2147235252",
+              "type": "FRAME",
+              "width": 530,
+              "height": 516,
+              "fills": [
+                "#F8F8F8"
+              ],
+              "cornerRadius": 8,
+              "children": [
+                {
+                  "name": "Free Guide: The Gentle “No”",
+                  "type": "TEXT",
+                  "width": 366,
+                  "height": 100,
+                  "fills": [
+                    "#333333"
+                  ],
+                  "text": {
+                    "content": "Free Guide: The Gentle “No”",
+                    "fontFamily": "Poppins",
+                    "fontSize": 41,
+                    "fontWeight": 600,
+                    "lineHeight": 50,
+                    "letterSpacing": 0.41000000000000003,
+                    "textAlign": "left",
+                    "color": "#333333"
+                  }
+                },
+                {
+                  "name": "Set Boundaries Without Guilt...",
+                  "type": "TEXT",
+                  "width": 390,
+                  "height": 41,
+                  "fills": [
+                    "#4A4A4A"
+                  ],
+                  "text": {
+                    "content": "Set Boundaries Without Guilt...",
+                    "fontFamily": "Lato",
+                    "fontSize": 28,
+                    "fontWeight": 400,
+                    "lineHeight": 41,
+                    "letterSpacing": 0.28,
+                    "textAlign": "left",
+                    "color": "#4A4A4A"
+                  }
+                },
+                {
+                  "name": "Frame 2147235256",
+                  "type": "FRAME",
+                  "width": 207,
+                  "height": 132,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "itemSpacing": 24
+                  },
+                  "children": [
+                    {
+                      "name": "Frame 2147235253",
+                      "type": "FRAME",
+                      "width": 233,
+                      "height": 28,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "itemSpacing": 8,
+                        "counterAxisAlign": "CENTER"
+                      },
+                      "children": [
+                        {
+                          "name": "Frame",
+                          "type": "FRAME",
+                          "width": 28,
+                          "height": 28,
+                          "childCount": 2
+                        },
+                        {
+                          "name": "Tone is everything",
+                          "type": "TEXT",
+                          "width": 197,
+                          "height": 24,
+                          "fills": [
+                            "#4A4A4A"
+                          ],
+                          "text": {
+                            "content": "Tone is everything",
+                            "fontFamily": "Lato",
+                            "fontSize": 24,
+                            "fontWeight": 400,
+                            "lineHeight": 24,
+                            "letterSpacing": 0.33599999427795413,
+                            "textAlign": "left",
+                            "color": "#4A4A4A"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Frame 2147235254",
+                      "type": "FRAME",
+                      "width": 168,
+                      "height": 28,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "itemSpacing": 8,
+                        "counterAxisAlign": "CENTER"
+                      },
+                      "children": [
+                        {
+                          "name": "Frame",
+                          "type": "FRAME",
+                          "width": 28,
+                          "height": 28,
+                          "childCount": 2
+                        },
+                        {
+                          "name": "Less is more",
+                          "type": "TEXT",
+                          "width": 132,
+                          "height": 24,
+                          "fills": [
+                            "#4A4A4A"
+                          ],
+                          "text": {
+                            "content": "Less is more",
+                            "fontFamily": "Lato",
+                            "fontSize": 24,
+                            "fontWeight": 400,
+                            "lineHeight": 24,
+                            "letterSpacing": 0.33599999427795413,
+                            "textAlign": "left",
+                            "color": "#4A4A4A"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Frame 2147235255",
+                      "type": "FRAME",
+                      "width": 207,
+                      "height": 28,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "itemSpacing": 8,
+                        "counterAxisAlign": "CENTER"
+                      },
+                      "children": [
+                        {
+                          "name": "Frame",
+                          "type": "FRAME",
+                          "width": 28,
+                          "height": 28,
+                          "childCount": 2
+                        },
+                        {
+                          "name": "Follow up with empathy",
+                          "type": "TEXT",
+                          "width": 260,
+                          "height": 24,
+                          "fills": [
+                            "#4A4A4A"
+                          ],
+                          "text": {
+                            "content": "Follow up with empathy",
+                            "fontFamily": "Lato",
+                            "fontSize": 24,
+                            "fontWeight": 400,
+                            "lineHeight": 24,
+                            "letterSpacing": 0.33599999427795413,
+                            "textAlign": "left",
+                            "color": "#4A4A4A"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Frame 2147235222",
+                  "type": "FRAME",
+                  "width": 327,
+                  "height": 67,
+                  "fills": [
+                    "#E76C3D",
+                    "#ED622E"
+                  ],
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "itemSpacing": 11.745241165161133,
+                    "primaryAxisAlign": "CENTER",
+                    "counterAxisAlign": "CENTER",
+                    "padding": {
+                      "top": 20,
+                      "right": 26,
+                      "bottom": 20,
+                      "left": 26
+                    }
+                  },
+                  "children": [
+                    {
+                      "name": "lucide/download",
+                      "type": "FRAME",
+                      "width": 28,
+                      "height": 28,
+                      "children": [
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 21,
+                          "height": 21,
+                          "strokes": [
+                            "#FFFFFF"
+                          ],
+                          "strokeWeight": 2.4000000953674316
+                        }
+                      ]
+                    },
+                    {
+                      "name": "The Gentle 'No' PDF",
+                      "type": "TEXT",
+                      "width": 235,
+                      "height": 26,
+                      "fills": [
+                        "#FFFFFF"
+                      ],
+                      "text": {
+                        "content": "The Gentle 'No' PDF",
+                        "fontFamily": "Lato",
+                        "fontSize": 26,
+                        "fontWeight": 600,
+                        "lineHeight": 26,
+                        "textAlign": "left",
+                        "color": "#FFFFFF"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "Group 2085664959",
+                  "type": "GROUP",
+                  "width": 318,
+                  "height": 327,
+                  "opacity": 0.6,
+                  "children": [
+                    {
+                      "name": "evolve-sprouts 2",
+                      "type": "FRAME",
+                      "width": 318,
+                      "height": 327,
+                      "children": [
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 3,
+                          "height": 15,
+                          "fills": [
+                            "#1C3542"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 15,
+                          "height": 7,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 8,
+                          "height": 22,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 10,
+                          "height": 19,
+                          "fills": [
+                            "#135227"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 10,
+                          "height": 19,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 11,
+                          "height": 18,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 12,
+                          "height": 16,
+                          "fills": [
+                            "#135227"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 11,
+                          "height": 21,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 12,
+                          "height": 19,
+                          "fills": [
+                            "#2A7834"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 21,
+                          "height": 12,
+                          "fills": [
+                            "#2A7834"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 15,
+                          "height": 18,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 12,
+                          "height": 20,
+                          "fills": [
+                            "#A8CB44"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 22,
+                          "height": 12,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 14,
+                          "height": 15,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 14,
+                          "height": 19,
+                          "fills": [
+                            "#A8CB44"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 13,
+                          "height": 20,
+                          "fills": [
+                            "#135227"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 22,
+                          "height": 12,
+                          "fills": [
+                            "#135227"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 20,
+                          "height": 14,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 15,
+                          "height": 20,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 15,
+                          "height": 15,
+                          "fills": [
+                            "#E76C3D"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 12,
+                          "height": 24,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 23,
+                          "height": 12,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 24,
+                          "height": 13,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 25,
+                          "height": 12,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 25,
+                          "height": 12,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 26,
+                          "height": 12,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 24,
+                          "height": 13,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 24,
+                          "height": 13,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 15,
+                          "height": 24,
+                          "fills": [
+                            "#E76C3D"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 23,
+                          "height": 15,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 24,
+                          "height": 14,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 16,
+                          "height": 22,
+                          "fills": [
+                            "#A8CB44"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 15,
+                          "height": 23,
+                          "fills": [
+                            "#A8CB44"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 16,
+                          "height": 23,
+                          "fills": [
+                            "#A8CB44"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 27,
+                          "height": 13,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 16,
+                          "height": 24,
+                          "fills": [
+                            "#135227"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 16,
+                          "height": 24,
+                          "fills": [
+                            "#135227"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 15,
+                          "height": 26,
+                          "fills": [
+                            "#135227"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 29,
+                          "height": 15,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 29,
+                          "height": 15,
+                          "fills": [
+                            "#A8CB44"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 29,
+                          "height": 16,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 17,
+                          "height": 26,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 32,
+                          "height": 15,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 31,
+                          "height": 18,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 16,
+                          "height": 7,
+                          "fills": [
+                            "#F5F6F5"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 30,
+                          "height": 18,
+                          "fills": [
+                            "#E76C3D"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 20,
+                          "height": 31,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 22,
+                          "height": 31,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 25,
+                          "height": 28,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 23,
+                          "height": 32,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 27,
+                          "height": 27,
+                          "fills": [
+                            "#A8CB44"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 23,
+                          "height": 31,
+                          "fills": [
+                            "#5D9D49"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 92,
+                          "height": 92,
+                          "fills": [
+                            "#E76C3D"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 112,
+                          "height": 96,
+                          "fills": [
+                            "#B31D1F"
+                          ]
+                        },
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "width": 310,
+                          "height": 185,
+                          "fills": [
+                            "#174879"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Rectangle 240648653",
+                      "type": "RECTANGLE",
+                      "width": 325,
+                      "height": 321
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Group 2085664958",
+          "type": "GROUP",
+          "width": 118,
+          "height": 121,
+          "children": [
+            {
+              "name": "evolve-sprouts 2",
+              "type": "FRAME",
+              "width": 118,
+              "height": 121,
+              "children": [
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 1,
+                  "fills": [
+                    "#000000"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 1,
+                  "fills": [
+                    "#000000"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 1,
+                  "fills": [
+                    "#000000"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 4,
+                  "fills": [
+                    "#1C3542"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 5,
+                  "fills": [
+                    "#1C3542"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 1,
+                  "fills": [
+                    "#070914"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 3,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 3,
+                  "height": 8,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 1,
+                  "height": 5,
+                  "fills": [
+                    "#081123"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 3,
+                  "fills": [
+                    "#000000"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 3
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 2,
+                  "height": 6,
+                  "fills": [
+                    "#081123"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 6
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 6,
+                  "fills": [
+                    "#000000"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 6,
+                  "fills": [
+                    "#081123"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 6,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 7,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 7,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 7,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 6,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 7,
+                  "height": 6,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 8,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 7,
+                  "fills": [
+                    "#2A7834"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 8,
+                  "height": 4,
+                  "fills": [
+                    "#2A7834"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 7,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 6
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 7,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 8,
+                  "height": 4,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 7,
+                  "height": 6,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 5,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 7,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 7,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 6,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 6,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 8,
+                  "height": 5,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 7,
+                  "height": 5,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 7,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 6,
+                  "fills": [
+                    "#E76C3D"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 4,
+                  "height": 9,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 8,
+                  "height": 5,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 9,
+                  "height": 5,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 9,
+                  "height": 4,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 9,
+                  "height": 4,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 10,
+                  "height": 4,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 9,
+                  "height": 5,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 9,
+                  "height": 5,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 9,
+                  "fills": [
+                    "#E76C3D"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 8,
+                  "height": 5,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 9,
+                  "height": 5,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 8,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 5,
+                  "height": 9,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 8,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 10,
+                  "height": 5,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 6
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 9,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 9,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 10,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 7,
+                  "height": 6,
+                  "fills": [
+                    "#135227"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 11,
+                  "height": 5,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 11,
+                  "height": 6,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 11,
+                  "height": 6,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 10,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 12,
+                  "height": 6,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 11,
+                  "height": 7,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 6,
+                  "height": 3,
+                  "fills": [
+                    "#F5F6F5"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 11,
+                  "height": 7,
+                  "fills": [
+                    "#E76C3D"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 7,
+                  "height": 11,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 8,
+                  "height": 12,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 9,
+                  "height": 10,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 8,
+                  "height": 12,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 10,
+                  "height": 10,
+                  "fills": [
+                    "#A8CB44"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 8,
+                  "height": 11,
+                  "fills": [
+                    "#5D9D49"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 34,
+                  "height": 34,
+                  "fills": [
+                    "#E76C3D"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 41,
+                  "height": 35,
+                  "fills": [
+                    "#B31D1F"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 68,
+                  "height": 18,
+                  "fills": [
+                    "#174879"
+                  ]
+                },
+                {
+                  "name": "Vector",
+                  "type": "VECTOR",
+                  "width": 115,
+                  "height": 68,
+                  "fills": [
+                    "#174879"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Rectangle 240648653",
+              "type": "RECTANGLE",
+              "width": 120,
+              "height": 119,
+              "fills": [
+                "#FFFFFF"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "figmaNodeId": "0:2130",
+  "extractedAt": "2026-02-11T08:00:49.227Z"
+}

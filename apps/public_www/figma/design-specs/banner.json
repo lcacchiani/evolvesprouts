@@ -1,0 +1,836 @@
+{
+  "name": "banner",
+  "type": "GROUP",
+  "width": 1735,
+  "height": 841,
+  "children": [
+    {
+      "name": "Frame 2085664959",
+      "type": "FRAME",
+      "width": 574,
+      "height": 762,
+      "opacity": 0.5,
+      "children": [
+        {
+          "name": "evolve-sprouts 2",
+          "type": "FRAME",
+          "width": 1070,
+          "height": 1098,
+          "children": [
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 10,
+              "height": 50,
+              "fills": [
+                "#1C3542"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 50,
+              "height": 25,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 27,
+              "height": 72,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 35,
+              "height": 63,
+              "fills": [
+                "#135227"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 34,
+              "height": 64,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 35,
+              "height": 61,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 40,
+              "height": 55,
+              "fills": [
+                "#135227"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 36,
+              "height": 71,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 41,
+              "height": 64,
+              "fills": [
+                "#2A7834"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 70,
+              "height": 40,
+              "fills": [
+                "#2A7834"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 50,
+              "height": 62,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 40,
+              "height": 67,
+              "fills": [
+                "#A8CB44"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 73,
+              "height": 39,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 48,
+              "height": 49,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 47,
+              "height": 65,
+              "fills": [
+                "#A8CB44"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 45,
+              "height": 67,
+              "fills": [
+                "#135227"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 74,
+              "height": 41,
+              "fills": [
+                "#135227"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 68,
+              "height": 49,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 51,
+              "height": 66,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 50,
+              "height": 50,
+              "fills": [
+                "#E76C3D"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 40,
+              "height": 80,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 76,
+              "height": 41,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 80,
+              "height": 42,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 85,
+              "height": 39,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 83,
+              "height": 40,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 87,
+              "height": 40,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 81,
+              "height": 45,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 80,
+              "height": 43,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 49,
+              "height": 80,
+              "fills": [
+                "#E76C3D"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 77,
+              "height": 49,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 82,
+              "height": 46,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 54,
+              "height": 73,
+              "fills": [
+                "#A8CB44"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 50,
+              "height": 78,
+              "fills": [
+                "#A8CB44"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 52,
+              "height": 77,
+              "fills": [
+                "#A8CB44"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 90,
+              "height": 44,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 54,
+              "height": 82,
+              "fills": [
+                "#135227"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 54,
+              "height": 82,
+              "fills": [
+                "#135227"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 51,
+              "height": 89,
+              "fills": [
+                "#135227"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 99,
+              "height": 49,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 97,
+              "height": 52,
+              "fills": [
+                "#A8CB44"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 98,
+              "height": 52,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 58,
+              "height": 87,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 108,
+              "height": 51,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 104,
+              "height": 62,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 55,
+              "height": 23,
+              "fills": [
+                "#F5F6F5"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 102,
+              "height": 62,
+              "fills": [
+                "#E76C3D"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 67,
+              "height": 104,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 72,
+              "height": 105,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 83,
+              "height": 93,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 76,
+              "height": 106,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 92,
+              "height": 89,
+              "fills": [
+                "#A8CB44"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 77,
+              "height": 104,
+              "fills": [
+                "#5D9D49"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 308,
+              "height": 308,
+              "fills": [
+                "#E76C3D"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 377,
+              "height": 322,
+              "fills": [
+                "#B31D1F"
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 1042,
+              "height": 622,
+              "fills": [
+                "#174879"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Rectangle 240648653",
+          "type": "RECTANGLE",
+          "width": 1093,
+          "height": 1080
+        }
+      ]
+    },
+    {
+      "name": "Frame 2147235326",
+      "type": "FRAME",
+      "width": 622,
+      "height": 660,
+      "layout": {
+        "mode": "VERTICAL",
+        "itemSpacing": 49
+      },
+      "children": [
+        {
+          "name": "Frame 2147235325",
+          "type": "FRAME",
+          "width": 622,
+          "height": 530,
+          "layout": {
+            "mode": "VERTICAL",
+            "itemSpacing": 36
+          },
+          "children": [
+            {
+              "name": "Transform Auntie Into Your Child’s Montessori Ally",
+              "type": "TEXT",
+              "width": 622,
+              "height": 366,
+              "fills": [
+                "#333333"
+              ],
+              "text": {
+                "content": "Transform Auntie Into Your Child’s Montessori Ally",
+                "fontFamily": "Urbanist",
+                "fontSize": 77,
+                "fontWeight": 800,
+                "lineHeight": 95,
+                "textAlign": "left",
+                "color": "#333333"
+              }
+            },
+            {
+              "name": "Foster independence, joy, and confidence— with training that turns screen time into meaningful play.",
+              "type": "TEXT",
+              "width": 573,
+              "height": 128,
+              "fills": [
+                "#4A4A4A"
+              ],
+              "text": {
+                "content": "Foster independence, joy, and confidence—\nwith training that turns screen time into meaningful play.",
+                "fontFamily": "Lato",
+                "fontSize": 25.83224868774414,
+                "fontWeight": 400,
+                "lineHeight": 44.130088806152344,
+                "letterSpacing": 0.2583224868774414,
+                "textAlign": "left",
+                "color": "#4A4A4A"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Frame 2147235225",
+          "type": "FRAME",
+          "width": 491,
+          "height": 81,
+          "fills": [
+            "#ED622E"
+          ],
+          "cornerRadius": 9.7305269241333,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "itemSpacing": 14.28592300415039,
+            "primaryAxisAlign": "CENTER",
+            "counterAxisAlign": "CENTER",
+            "padding": {
+              "top": 24.326316833496094,
+              "right": 29.19158172607422,
+              "bottom": 24.326316833496094,
+              "left": 29.19158172607422
+            }
+          },
+          "children": [
+            {
+              "name": "Get Started—Train Auntie Today",
+              "type": "TEXT",
+              "width": 392,
+              "height": 28,
+              "fills": [
+                "#FFFFFF"
+              ],
+              "text": {
+                "content": "Get Started—Train Auntie Today",
+                "fontFamily": "Lato",
+                "fontSize": 28,
+                "fontWeight": 600,
+                "lineHeight": 28,
+                "textAlign": "left",
+                "color": "#FFFFFF"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Group 2085665019",
+      "type": "GROUP",
+      "width": 764,
+      "height": 841,
+      "children": [
+        {
+          "name": "Frame 2147235227",
+          "type": "FRAME",
+          "width": 157,
+          "height": 42,
+          "layout": {
+            "mode": "VERTICAL",
+            "itemSpacing": 6
+          },
+          "children": [
+            {
+              "name": "1.5k Auntie",
+              "type": "TEXT",
+              "width": 157,
+              "height": 18,
+              "fills": [
+                "#FFFFFF"
+              ],
+              "text": {
+                "content": "1.5k Auntie",
+                "fontFamily": "Urbanist",
+                "fontSize": 18,
+                "fontWeight": 600,
+                "lineHeight": 18,
+                "textAlign": "left",
+                "color": "#FFFFFF"
+              }
+            },
+            {
+              "name": "Enjoy our programs",
+              "type": "TEXT",
+              "width": 157,
+              "height": 18,
+              "fills": [
+                "#FFFFFF"
+              ],
+              "text": {
+                "content": "Enjoy our programs",
+                "fontFamily": "Urbanist",
+                "fontSize": 18,
+                "fontWeight": 400,
+                "lineHeight": 18,
+                "textAlign": "left",
+                "color": "#FFFFFF"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Frame 2147235228",
+          "type": "FRAME",
+          "width": 720,
+          "height": 219,
+          "fills": [
+            "#B2DDA4"
+          ],
+          "cornerRadius": 32,
+          "children": [
+            {
+              "name": "Frame 2147235230",
+              "type": "FRAME",
+              "width": 283,
+              "height": 219,
+              "fills": [
+                "#FFA988"
+              ],
+              "cornerRadius": 32
+            }
+          ]
+        },
+        {
+          "name": "Frame 2147235230",
+          "type": "FRAME",
+          "width": 348,
+          "height": 219,
+          "fills": [
+            "#F6DECD"
+          ],
+          "cornerRadius": 32
+        },
+        {
+          "name": "Frame 2147235229",
+          "type": "FRAME",
+          "width": 720,
+          "height": 219,
+          "fills": [
+            "#F6DECD"
+          ],
+          "cornerRadius": 32,
+          "children": [
+            {
+              "name": "Frame 2147235230",
+              "type": "FRAME",
+              "width": 283,
+              "height": 219,
+              "fills": [
+                "#F6DECD"
+              ],
+              "cornerRadius": 32
+            }
+          ]
+        },
+        {
+          "name": "Vector",
+          "type": "VECTOR",
+          "width": 80,
+          "height": 74,
+          "strokes": [
+            "#548CC4"
+          ],
+          "strokeWeight": 7,
+          "opacity": 0.8
+        },
+        {
+          "name": "Frame 2147235288",
+          "type": "FRAME",
+          "width": 720,
+          "height": 841,
+          "children": [
+            {
+              "name": "freepik__enhance__86742 1",
+              "type": "RECTANGLE",
+              "width": 1222,
+              "height": 814,
+              "effects": [
+                {
+                  "type": "drop-shadow",
+                  "color": "rgba(0, 0, 0, 0.1)",
+                  "offset": {
+                    "x": -22,
+                    "y": 24
+                  },
+                  "blur": 77,
+                  "spread": 0
+                }
+              ]
+            },
+            {
+              "name": "Vector",
+              "type": "VECTOR",
+              "width": 60,
+              "height": 58,
+              "strokes": [
+                "#F98A5B"
+              ],
+              "strokeWeight": 6
+            }
+          ]
+        },
+        {
+          "name": "Vector 2",
+          "type": "VECTOR",
+          "width": 63,
+          "height": 13,
+          "strokes": [
+            "#548CC4"
+          ],
+          "strokeWeight": 5.94442081451416
+        },
+        {
+          "name": "Vector 3",
+          "type": "VECTOR",
+          "width": 40,
+          "height": 51,
+          "strokes": [
+            "#548CC4"
+          ],
+          "strokeWeight": 5.94442081451416
+        },
+        {
+          "name": "Vector 4",
+          "type": "VECTOR",
+          "width": 14,
+          "height": 46,
+          "strokes": [
+            "#548CC4"
+          ],
+          "strokeWeight": 5.94442081451416
+        },
+        {
+          "name": "Ellipse 946",
+          "type": "VECTOR",
+          "width": 47,
+          "height": 46,
+          "fills": [
+            "#A8CB44"
+          ]
+        },
+        {
+          "name": "Ellipse 947",
+          "type": "VECTOR",
+          "width": 48,
+          "height": 45,
+          "fills": [
+            "#5D9D49"
+          ]
+        }
+      ]
+    }
+  ],
+  "figmaNodeId": "0:2566",
+  "extractedAt": "2026-02-11T08:00:49.230Z"
+}
