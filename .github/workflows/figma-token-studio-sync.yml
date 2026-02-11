@@ -118,11 +118,18 @@ jobs:
         env:
           FIGMA_TOKEN_ROOT_NODE: ${{ vars.PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE }}
 
+      - name: Extract design specs for cloud agents
+        run: npm run figma:specs
+        working-directory: apps/public_www
+        env:
+          FIGMA_TOKEN_ROOT_NODE: ${{ vars.PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE }}
+
       - name: Check for changes
         id: changes
         run: |
           git diff --quiet -- \
             apps/public_www/figma/token-studio/ \
+            apps/public_www/figma/design-specs/ \
             apps/public_www/src/app/generated/figma-tokens.css \
             apps/public_www/src/components/sections/ \
             apps/public_www/src/content/ \
@@ -140,6 +147,7 @@ jobs:
 
           git add \
             apps/public_www/figma/token-studio/ \
+            apps/public_www/figma/design-specs/ \
             apps/public_www/src/app/generated/figma-tokens.css \
             apps/public_www/src/components/sections/ \
             apps/public_www/src/content/

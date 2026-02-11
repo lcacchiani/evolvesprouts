@@ -7,6 +7,7 @@ token pipeline. For the full architecture documentation, see
 ## Directory structure
 
 - `files/` — Raw Figma API payloads (gitignored JSON files)
+- `design-specs/` — Structured design data per section (tracked in git, for cloud agents)
 - `token-studio/` — Token Studio design tokens (tracked in git)
   - `$metadata.json` — token set ordering
   - `$themes.json` — theme definitions (Light, Dark)
@@ -36,8 +37,9 @@ FIGMA_TOKEN_ROOT_NODE=Desktop npm run figma:scaffold
 | `figma:tokenize` | Extract tokens → Token Studio JSON |
 | `figma:build:studio` | Build CSS from Token Studio tokens |
 | `figma:scaffold` | Scaffold new section components (idempotent) |
+| `figma:specs` | Extract design specs for cloud agents |
 | `figma:studio-sync` | pull → tokenize → build |
-| `figma:full-sync` | pull → tokenize → build → scaffold |
+| `figma:full-sync` | pull → tokenize → build → scaffold → specs |
 
 ## Authentication
 
