@@ -115,6 +115,28 @@
         "metaLocation": "來自香港",
         "previousButtonLabel": "上一則見證",
         "nextButtonLabel": "下一則見證"
+      },
+      {
+        "badgeLabel": "家長見證",
+        "organization": "Evolve Sprouts",
+        "cardLocation": "香港九龍",
+        "quote": "我很喜歡課程的實用性。我們在一個週末就重新整理了遊戲區，連睡前流程都變得更平和。",
+        "author": "Anita Wong",
+        "role": "一孩媽媽",
+        "metaLocation": "來自九龍",
+        "previousButtonLabel": "上一則見證",
+        "nextButtonLabel": "下一則見證"
+      },
+      {
+        "badgeLabel": "家長見證",
+        "organization": "Evolve Sprouts",
+        "cardLocation": "香港新界",
+        "quote": "我和家傭現在會用同一套日常流程，兒子在日常小事上變得更獨立。",
+        "author": "Kelvin Cheung",
+        "role": "一孩爸爸",
+        "metaLocation": "來自新界",
+        "previousButtonLabel": "上一則見證",
+        "nextButtonLabel": "下一則見證"
       }
     ]
   },

@@ -115,6 +115,28 @@
         "metaLocation": "来自香港",
         "previousButtonLabel": "上一条见证",
         "nextButtonLabel": "下一条见证"
+      },
+      {
+        "badgeLabel": "家长见证",
+        "organization": "Evolve Sprouts",
+        "cardLocation": "香港九龙",
+        "quote": "我很喜欢课程的实用性。我们只用了一个周末就调整好了游戏区，连睡前流程都变得更平和。",
+        "author": "Anita Wong",
+        "role": "一孩妈妈",
+        "metaLocation": "来自九龙",
+        "previousButtonLabel": "上一条见证",
+        "nextButtonLabel": "下一条见证"
+      },
+      {
+        "badgeLabel": "家长见证",
+        "organization": "Evolve Sprouts",
+        "cardLocation": "香港新界",
+        "quote": "我和家里的阿姨现在会使用同一套日常流程，儿子在日常小事上变得更独立。",
+        "author": "Kelvin Cheung",
+        "role": "一孩爸爸",
+        "metaLocation": "来自新界",
+        "previousButtonLabel": "上一条见证",
+        "nextButtonLabel": "下一条见证"
       }
     ]
   },
