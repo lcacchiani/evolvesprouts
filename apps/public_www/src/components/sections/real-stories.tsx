@@ -401,11 +401,6 @@ export function RealStories({ content }: RealStoriesProps) {
                 borderColor: BADGE_BORDER,
                 backgroundColor: 'rgba(255, 255, 255, 0.64)',
               }}
-              icon={
-                <span className='inline-flex h-[31px] w-[31px] items-center justify-center'>
-                  <BadgeMark className='h-[31px] w-[31px]' />
-                </span>
-              }
             />
 
             <div className='flex items-center gap-[14px] sm:gap-[21px]'>

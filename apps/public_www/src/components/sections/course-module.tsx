@@ -239,26 +239,6 @@ export function CourseModule({ content }: CourseModuleProps) {
               borderColor: '#EECAB0',
               backdropFilter: 'blur(14px)',
             }}
-            icon={
-              <span
-                aria-hidden='true'
-                className='relative inline-flex h-[31px] w-[31px] items-center justify-center rounded-full'
-                style={{ backgroundColor: 'rgba(23, 72, 121, 0.14)' }}
-              >
-                <span
-                  className='absolute left-[7px] top-[8px] h-[8px] w-[8px] rounded-full'
-                  style={{ backgroundColor: BRAND_BLUE }}
-                />
-                <span
-                  className='absolute right-[7px] top-[8px] h-[8px] w-[8px] rounded-full'
-                  style={{ backgroundColor: '#B31D1F' }}
-                />
-                <span
-                  className='absolute bottom-[7px] left-1/2 h-[8px] w-[8px] -translate-x-1/2 rounded-full'
-                  style={{ backgroundColor: '#5D9D49' }}
-                />
-              </span>
-            }
           />
 
           <h2 className='mt-6 text-balance' style={titleStyle}>
