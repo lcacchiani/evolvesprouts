@@ -40,6 +40,43 @@
   },
   "footer": {
     "brand": "Evolve Sprouts",
+    "communityHeading": "Join our Sprouts Squad community!",
+    "newsletterCta": "Sign Up to Our Monthly Newsletter",
+    "quickLinks": {
+      "title": "Quick Links",
+      "items": [
+        { "label": "Home", "href": "/" },
+        { "label": "About us", "href": "/about" },
+        { "label": "Events", "href": "/events" },
+        { "label": "Contact us", "href": "/contact" },
+        { "label": "Book Now", "href": "/book" }
+      ]
+    },
+    "services": {
+      "title": "Services",
+      "items": [
+        { "label": "My Best Auntie", "href": "/services/my-best-auntie" },
+        { "label": "Workshops", "href": "/services/workshops" },
+        { "label": "Resources", "href": "/resources" }
+      ]
+    },
+    "aboutUs": {
+      "title": "About Us",
+      "items": [
+        { "label": "Who We Are", "href": "/about" },
+        { "label": "Newsletter", "href": "/newsletter" },
+        { "label": "Privacy Policy", "href": "/privacy" }
+      ]
+    },
+    "connectOn": {
+      "title": "Connect on",
+      "items": [
+        { "label": "Facebook", "href": "https://facebook.com", "icon": "facebook" },
+        { "label": "Linkedin", "href": "https://linkedin.com", "icon": "linkedin" },
+        { "label": "Instagram", "href": "https://instagram.com", "icon": "instagram" },
+        { "label": "Tiktok", "href": "https://tiktok.com", "icon": "tiktok" }
+      ]
+    },
     "copyright": "© 2026 Evolve Sprouts. All rights reserved.",
     "links": {
       "privacy": "Privacy Policy",

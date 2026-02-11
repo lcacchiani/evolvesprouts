@@ -40,6 +40,43 @@
   },
   "footer": {
     "brand": "Evolve Sprouts",
+    "communityHeading": "加入我們的 Sprouts Squad 社區！",
+    "newsletterCta": "訂閱我們的每月通訊",
+    "quickLinks": {
+      "title": "快速連結",
+      "items": [
+        { "label": "首頁", "href": "/" },
+        { "label": "關於我們", "href": "/about" },
+        { "label": "活動", "href": "/events" },
+        { "label": "聯絡我們", "href": "/contact" },
+        { "label": "立即預約", "href": "/book" }
+      ]
+    },
+    "services": {
+      "title": "服務",
+      "items": [
+        { "label": "我的好阿姨", "href": "/services/my-best-auntie" },
+        { "label": "工作坊", "href": "/services/workshops" },
+        { "label": "資源", "href": "/resources" }
+      ]
+    },
+    "aboutUs": {
+      "title": "關於我們",
+      "items": [
+        { "label": "我們是誰", "href": "/about" },
+        { "label": "通訊", "href": "/newsletter" },
+        { "label": "私隱政策", "href": "/privacy" }
+      ]
+    },
+    "connectOn": {
+      "title": "關注我們",
+      "items": [
+        { "label": "Facebook", "href": "https://facebook.com", "icon": "facebook" },
+        { "label": "Linkedin", "href": "https://linkedin.com", "icon": "linkedin" },
+        { "label": "Instagram", "href": "https://instagram.com", "icon": "instagram" },
+        { "label": "Tiktok", "href": "https://tiktok.com", "icon": "tiktok" }
+      ]
+    },
     "copyright": "© 2026 Evolve Sprouts. 版權所有。",
     "links": {
       "privacy": "私隱政策",
