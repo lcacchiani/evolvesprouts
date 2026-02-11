@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="470" height="482" viewBox="0 0 470 482" fill="none">
+  <!-- Large Evolve Sprouts mascot placeholder using brand colors -->
+  <!-- Matches "evolve-sprouts 1" in Figma (470×482) -->
+  <!-- Body base -->
+  <ellipse cx="235" cy="310" rx="166" ry="141" fill="#174879"/>
+  <!-- Face/head -->
+  <ellipse cx="235" cy="252" rx="133" ry="133" fill="#E76C3D"/>
+  <!-- Head crest -->
+  <ellipse cx="235" cy="164" rx="82" ry="70" fill="#B31D1F"/>
+  <!-- Sprout leaves -->
+  <path d="M235 38 C255 77, 303 97, 313 68 C323 38, 273 29, 235 38Z" fill="#5D9D49"/>
+  <path d="M235 38 C215 77, 167 97, 157 68 C147 38, 197 29, 235 38Z" fill="#A8CB44"/>
+  <path d="M235 15 C245 48, 284 68, 290 42 C296 17, 254 9, 235 15Z" fill="#135227"/>
+  <path d="M235 15 C225 48, 186 68, 180 42 C174 17, 216 9, 235 15Z" fill="#2A7834"/>
+  <!-- Stem -->
+  <rect x="231" y="8" width="8" height="43" rx="4" fill="#2A7834"/>
+  <!-- Eyes -->
+  <circle cx="196" cy="242" r="16" fill="#FFFFFF"/>
+  <circle cx="274" cy="242" r="16" fill="#FFFFFF"/>
+  <circle cx="200" cy="240" r="8" fill="#1C3542"/>
+  <circle cx="278" cy="240" r="8" fill="#1C3542"/>
+  <circle cx="202" cy="238" r="3" fill="#FFFFFF"/>
+  <circle cx="280" cy="238" r="3" fill="#FFFFFF"/>
+  <!-- Beak/smile -->
+  <path d="M215 282 Q235 308 255 282" stroke="#B31D1F" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Cheeks -->
+  <circle cx="180" cy="268" r="12" fill="#FFBA89" opacity="0.5"/>
+  <circle cx="290" cy="268" r="12" fill="#FFBA89" opacity="0.5"/>
+  <!-- Feet -->
+  <ellipse cx="185" cy="440" rx="39" ry="16" fill="#E76C3D"/>
+  <ellipse cx="285" cy="440" rx="39" ry="16" fill="#E76C3D"/>
+  <!-- Legs -->
+  <rect x="178" y="400" width="14" height="45" rx="7" fill="#1C3542"/>
+  <rect x="278" y="400" width="14" height="45" rx="7" fill="#1C3542"/>
+  <!-- Wing accents -->
+  <ellipse cx="107" cy="310" rx="49" ry="78" transform="rotate(-15 107 310)" fill="#135227" opacity="0.7"/>
+  <ellipse cx="363" cy="310" rx="49" ry="78" transform="rotate(15 363 310)" fill="#135227" opacity="0.7"/>
+  <!-- Wing highlights -->
+  <ellipse cx="115" cy="300" rx="30" ry="50" transform="rotate(-15 115 300)" fill="#5D9D49" opacity="0.5"/>
+  <ellipse cx="355" cy="300" rx="30" ry="50" transform="rotate(15 355 300)" fill="#5D9D49" opacity="0.5"/>
+  <!-- Belly pattern -->
+  <ellipse cx="235" cy="330" rx="60" ry="50" fill="#F5F6F5" opacity="0.2"/>
+  <!-- Text wordmark below mascot -->
+  <text x="235" y="475" text-anchor="middle" font-family="Poppins, sans-serif" font-size="28" font-weight="700" fill="#174879">evolve sprouts</text>
+</svg>
