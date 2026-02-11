@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react';
 
-import { BackgroundGlow } from '@/components/background-glow';
 import { SectionCtaLink } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
@@ -12,26 +11,21 @@ interface WhyJoiningProps {
 }
 
 type BenefitCardTone = 'gold' | 'blue';
-type BenefitCardArt =
-  | 'age'
-  | 'confidence'
-  | 'group'
-  | 'montessori'
-  | 'support'
-  | 'tools';
 
 interface BenefitCard {
   id: string;
   title: string;
   tone: BenefitCardTone;
-  art: BenefitCardArt;
+  imageSrc: string;
+  imageClassName: string;
   description?: string;
 }
 
 interface BenefitCardMeta {
   id: string;
   tone: BenefitCardTone;
-  art: BenefitCardArt;
+  imageSrc: string;
+  imageClassName: string;
 }
 
 const SECTION_BG = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
@@ -42,8 +36,6 @@ const GOLD_CARD = 'var(--figma-colors-frame-2147235239, #AE7B1B)';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
 const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
-const DARK_SCRIM =
-  'var(--figma-colors-rectangle-240648659, rgba(0, 0, 0, 0.7))';
 
 const fallbackWhyJoiningCopy = enContent.whyJoining;
 
@@ -51,32 +43,38 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'age-specific',
     tone: 'gold',
-    art: 'age',
-  },
-  {
-    id: 'guaranteed-confidence',
-    tone: 'blue',
-    art: 'confidence',
+    imageSrc: '/images/why-joining/courseimg1.png',
+    imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
   },
   {
     id: 'small-group-learning',
     tone: 'blue',
-    art: 'group',
+    imageSrc: '/images/why-joining/courseimg2.png',
+    imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
   },
   {
     id: 'montessori-positive-discipline',
     tone: 'gold',
-    art: 'montessori',
+    imageSrc: '/images/why-joining/courseimg3.png',
+    imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
   },
   {
     id: 'ongoing-support',
-    tone: 'blue',
-    art: 'support',
+    tone: 'gold',
+    imageSrc: '/images/why-joining/courseimg4.png',
+    imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
   },
   {
     id: 'ready-to-use-tools',
+    tone: 'blue',
+    imageSrc: '/images/why-joining/courseimg5.png',
+    imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
+  },
+  {
+    id: 'guaranteed-confidence',
     tone: 'gold',
-    art: 'tools',
+    imageSrc: '/images/why-joining/courseimg6.png',
+    imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
   },
 ];
 
@@ -196,160 +194,30 @@ function BenefitIcon() {
   );
 }
 
-function CardArtwork({
-  tone,
-  art,
-  supportChipLabel,
-}: {
-  tone: BenefitCardTone;
-  art: BenefitCardArt;
-  supportChipLabel: string;
-}) {
-  const edgeGlow =
-    tone === 'gold' ? 'rgba(255, 216, 189, 0.36)' : 'rgba(191, 217, 239, 0.3)';
-  const innerGlow =
-    tone === 'gold' ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.14)';
-  const accentGlow =
-    tone === 'gold' ? 'rgba(231, 108, 61, 0.26)' : 'rgba(168, 203, 68, 0.24)';
-
+function DecorativeCardArrow() {
   return (
-    <>
-      <BackgroundGlow
-        className='-right-20 -top-20 h-56 w-56 blur-3xl'
-        background={edgeGlow}
-      />
-      <BackgroundGlow
-        className='-left-14 bottom-[-70px] h-56 w-56 blur-3xl'
-        background={accentGlow}
-      />
-      <div
-        aria-hidden='true'
-        className='absolute bottom-[-72px] right-3 h-[240px] w-[240px] rounded-[42px] border border-white/25 bg-white/10'
-        style={{ transform: 'rotate(17deg)' }}
-      />
-
-      {art === 'age' && (
-        <div
+    <span
+      aria-hidden='true'
+      className='pointer-events-none absolute bottom-5 left-5 z-10 inline-flex h-[54px] w-[54px] items-center justify-center rounded-full bg-white/15 ring-1 ring-white/35 transition-all duration-300 lg:bottom-7 lg:left-7 lg:group-hover:h-[70px] lg:group-hover:w-[70px]'
+    >
+      <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#ED622E] shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
+        <svg
           aria-hidden='true'
-          className='absolute bottom-[-36px] right-0 h-[245px] w-[220px] rounded-[34px] border border-white/20'
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.04) 100%)',
-            transform: 'rotate(-9deg)',
-          }}
-        />
-      )}
-
-      {art === 'confidence' && (
-        <>
-          <div
-            aria-hidden='true'
-            className='absolute bottom-[-58px] left-[-30px] h-[240px] w-[210px] rounded-[34px] border border-white/25'
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%)',
-              transform: 'rotate(8deg)',
-            }}
+          viewBox='0 0 20 20'
+          className='h-4 w-4'
+          fill='none'
+          xmlns='http://www.w3.org/2000/svg'
+        >
+          <path
+            d='M7 4L13 10L7 16'
+            stroke={WHITE}
+            strokeWidth='2.2'
+            strokeLinecap='round'
+            strokeLinejoin='round'
           />
-          <div
-            aria-hidden='true'
-            className='absolute bottom-7 right-8 h-[90px] w-[90px] rounded-full border border-white/30'
-            style={{ backgroundColor: innerGlow }}
-          />
-        </>
-      )}
-
-      {art === 'group' && (
-        <>
-          <div
-            aria-hidden='true'
-            className='absolute bottom-[-80px] right-[-20px] h-[260px] w-[280px] rounded-[54px] border border-white/25'
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.03) 100%)',
-              transform: 'rotate(-7deg)',
-            }}
-          />
-          <div
-            aria-hidden='true'
-            className='absolute bottom-8 left-8 h-[80px] w-[160px] rounded-full border border-white/25'
-            style={{ backgroundColor: innerGlow }}
-          />
-        </>
-      )}
-
-      {art === 'montessori' && (
-        <>
-          <div
-            aria-hidden='true'
-            className='absolute bottom-[-68px] left-[-8px] h-[252px] w-[230px] rounded-[40px] border border-white/20'
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.04) 100%)',
-              transform: 'rotate(-10deg)',
-            }}
-          />
-          <div
-            aria-hidden='true'
-            className='absolute bottom-7 right-10 h-[66px] w-[66px] rounded-full border border-white/30'
-            style={{ backgroundColor: innerGlow }}
-          />
-        </>
-      )}
-
-      {art === 'support' && (
-        <>
-          <div
-            aria-hidden='true'
-            className='absolute bottom-[24px] left-[18px] h-[154px] w-[146px] rounded-[24px] border border-white/25'
-            style={{
-              backgroundColor: 'rgba(255, 238, 227, 0.18)',
-              backdropFilter: 'blur(2px)',
-            }}
-          />
-          <div
-            aria-hidden='true'
-            className='absolute bottom-[6px] right-3 h-[190px] w-[165px] rounded-[26px] border border-white/25 bg-white/10'
-          />
-          <div
-            aria-hidden='true'
-            className='absolute bottom-[120px] left-[52px] rounded-[6px] px-3 py-1'
-            style={{ backgroundColor: CTA_BG }}
-          >
-            <span
-              style={{
-                color: WHITE,
-                fontFamily:
-                  'var(--figma-fontfamilies-plus-jakarta-sans, Plus Jakarta Sans), sans-serif',
-                fontSize: 'var(--figma-fontsizes-11, 11px)',
-                fontWeight: 'var(--figma-fontweights-500, 500)',
-                lineHeight: 'var(--figma-lineheights-connect-now, 100%)',
-              }}
-            >
-              {supportChipLabel}
-            </span>
-          </div>
-        </>
-      )}
-
-      {art === 'tools' && (
-        <>
-          <div
-            aria-hidden='true'
-            className='absolute inset-0'
-            style={{
-              background:
-                'linear-gradient(170deg, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0.35) 100%)',
-            }}
-          />
-          <div
-            aria-hidden='true'
-            className='absolute inset-0 rounded-[28px]'
-            style={{ backgroundColor: DARK_SCRIM, opacity: 0.2 }}
-          />
-        </>
-      )}
-    </>
+        </svg>
+      </span>
+    </span>
   );
 }
 
@@ -360,8 +228,6 @@ export function WhyJoining({ content }: WhyJoiningProps) {
   const sectionEyebrow = content.eyebrow || fallbackWhyJoiningCopy.eyebrow;
   const ctaLabel = content.ctaLabel || fallbackWhyJoiningCopy.ctaLabel;
   const ctaHref = content.ctaHref || fallbackWhyJoiningCopy.ctaHref;
-  const supportChipLabel =
-    content.supportChipLabel || fallbackWhyJoiningCopy.supportChipLabel;
   const benefitCards = getBenefitCards(content);
 
   return (
@@ -413,14 +279,25 @@ export function WhyJoining({ content }: WhyJoiningProps) {
             return (
               <li key={card.id}>
                 <article
-                  className='relative isolate flex min-h-[320px] overflow-hidden rounded-[28px] p-5 sm:min-h-[380px] sm:p-7 lg:min-h-[457px] lg:p-8'
+                  className='group relative isolate flex min-h-[320px] overflow-hidden rounded-[28px] p-5 sm:min-h-[380px] sm:p-7 lg:min-h-[457px] lg:p-8'
                   style={{ backgroundColor: cardBg }}
                 >
-                  <CardArtwork
-                    tone={card.tone}
-                    art={card.art}
-                    supportChipLabel={supportChipLabel}
+                  <div
+                    aria-hidden='true'
+                    className='pointer-events-none absolute inset-0 z-[1] bg-black/0 transition-all duration-300 lg:group-hover:bg-black/70 lg:group-hover:backdrop-blur-[4px]'
                   />
+                  <div
+                    aria-hidden='true'
+                    className='pointer-events-none absolute bottom-0 right-0 z-0'
+                  >
+                    <img
+                      src={card.imageSrc}
+                      alt=''
+                      loading='lazy'
+                      className={`${card.imageClassName} w-auto max-w-none`}
+                    />
+                  </div>
+                  <DecorativeCardArrow />
 
                   <div className='relative z-10 flex h-full w-full flex-col'>
                     <span className='inline-flex h-[54px] w-[54px] items-center justify-center rounded-full bg-white'>
@@ -433,7 +310,10 @@ export function WhyJoining({ content }: WhyJoiningProps) {
                       </h3>
 
                       {card.description && (
-                        <p className='max-w-[34ch]' style={cardDescriptionStyle}>
+                        <p
+                          className='max-w-[34ch] opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100'
+                          style={cardDescriptionStyle}
+                        >
                           {card.description}
                         </p>
                       )}
