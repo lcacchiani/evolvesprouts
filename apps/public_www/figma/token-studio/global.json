@@ -1,1 +1,54 @@
-{}
+{
+  "colors": {
+    "material-theme": {
+      "sys": {
+        "light": {
+          "on-surface": {
+            "value": "#1B1C17",
+            "type": "color",
+            "description": "surface / on-surface\n\nRegular text:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass\n\nLarge text:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass\n\nIcons:\nLevel AA - ✅ Pass\n"
+          }
+        }
+      }
+    }
+  },
+  "fontFamilies": {
+    "Roboto": {
+      "value": "Roboto",
+      "type": "fontFamilies"
+    }
+  },
+  "fontWeights": {
+    "500": {
+      "value": "500",
+      "type": "fontWeights"
+    }
+  },
+  "fontSizes": {
+    "14": {
+      "value": "14",
+      "type": "fontSizes"
+    }
+  },
+  "lineHeights": {
+    "android-text-styles.body-medium.semibold": {
+      "value": "20",
+      "type": "lineHeights"
+    }
+  },
+  "typography": {
+    "android-text-styles": {
+      "body-medium": {
+        "semibold": {
+          "value": {
+            "fontFamily": "{fontFamilies.Roboto}",
+            "fontWeight": "{fontWeights.500}",
+            "fontSize": "{fontSizes.14}",
+            "lineHeight": "{lineHeights.android-text-styles.body-medium.semibold}"
+          },
+          "type": "typography"
+        }
+      }
+    }
+  }
+}
