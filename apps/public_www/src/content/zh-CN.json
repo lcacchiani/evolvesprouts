@@ -52,9 +52,44 @@
     "items": []
   },
   "whyJoining": {
+    "eyebrow": "课程亮点",
     "title": "为什么加入我们的课程",
-    "description": "了解与我们一起学习的好处。",
-    "items": []
+    "description": "将您的阿姨培养成遵循蒙特梭利理念的儿童成长伙伴！",
+    "ctaLabel": "立即开始 - 今天就培训阿姨",
+    "ctaHref": "#courses",
+    "supportChipLabel": "立即联系",
+    "items": [
+      {
+        "id": "age-specific",
+        "title": "按年龄定制策略",
+        "description": ""
+      },
+      {
+        "id": "guaranteed-confidence",
+        "title": "信心保障",
+        "description": ""
+      },
+      {
+        "id": "small-group-learning",
+        "title": "小组学习",
+        "description": ""
+      },
+      {
+        "id": "montessori-positive-discipline",
+        "title": "蒙特梭利 + 正向纪律",
+        "description": ""
+      },
+      {
+        "id": "ongoing-support",
+        "title": "1年持续支持",
+        "description": ""
+      },
+      {
+        "id": "ready-to-use-tools",
+        "title": "即用工具",
+        "description": "为真实生活挑战提供话术、练习手册和疑难排解指南。"
+      }
+    ]
   },
   "realStories": {
     "title": "真实故事",
