@@ -10,8 +10,12 @@ interface NormalizedStory {
   quote?: string;
   author?: string;
   role?: string;
-  location?: string;
+  cardLocation?: string;
+  metaLocation?: string;
   organization?: string;
+  badgeLabel?: string;
+  previousButtonLabel?: string;
+  nextButtonLabel?: string;
 }
 
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
@@ -138,6 +142,7 @@ function normalizePrimaryStory(items: unknown): NormalizedStory | null {
 
   const record = firstItem as Record<string, unknown>;
   const story: NormalizedStory = {
+    badgeLabel: getCandidate(record, ['badgeLabel', 'badge', 'eyebrow', 'label']),
     quote: getCandidate(record, [
       'quote',
       'testimonial',
@@ -147,8 +152,19 @@ function normalizePrimaryStory(items: unknown): NormalizedStory | null {
     ]),
     author: getCandidate(record, ['author', 'name', 'parentName']),
     role: getCandidate(record, ['role', 'subtitle', 'title']),
-    location: getCandidate(record, ['location', 'city', 'country', 'from']),
+    cardLocation: getCandidate(record, ['cardLocation', 'location', 'city', 'country']),
+    metaLocation: getCandidate(record, ['metaLocation', 'from', 'location', 'city']),
     organization: getCandidate(record, ['organization', 'company', 'brand']),
+    previousButtonLabel: getCandidate(record, [
+      'previousButtonLabel',
+      'previousAriaLabel',
+      'previousLabel',
+    ]),
+    nextButtonLabel: getCandidate(record, [
+      'nextButtonLabel',
+      'nextAriaLabel',
+      'nextLabel',
+    ]),
   };
 
   return Object.values(story).some(Boolean) ? story : null;
@@ -296,8 +312,13 @@ export function RealStories({ content }: RealStoriesProps) {
   const quoteText = story?.quote ?? fallbackQuote;
   const introText = story?.quote ? normalizedDescription : '';
   const showMeta =
-    Boolean(story?.author) || Boolean(story?.role) || Boolean(story?.location);
+    Boolean(story?.author) ||
+    Boolean(story?.role) ||
+    Boolean(story?.metaLocation);
   const cardLabel = story?.organization ?? content.title;
+  const badgeLabel = story?.badgeLabel ?? content.title;
+  const previousButtonLabel = story?.previousButtonLabel ?? badgeLabel;
+  const nextButtonLabel = story?.nextButtonLabel ?? badgeLabel;
 
   return (
     <section
@@ -332,14 +353,14 @@ export function RealStories({ content }: RealStoriesProps) {
               <span className='inline-flex h-[31px] w-[31px] items-center justify-center'>
                 <BadgeMark className='h-[31px] w-[31px]' />
               </span>
-              <span style={badgeTextStyle}>Testimonials</span>
+              <span style={badgeTextStyle}>{badgeLabel}</span>
             </div>
 
             <div className='flex items-center gap-[14px] sm:gap-[21px]'>
               <button
                 type='button'
                 disabled
-                aria-label='Previous testimonial'
+                aria-label={previousButtonLabel}
                 className='inline-flex h-[72px] w-[72px] items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-100 sm:h-[85px] sm:w-[86px]'
                 style={{ backgroundColor: CONTROL_BG }}
               >
@@ -348,7 +369,7 @@ export function RealStories({ content }: RealStoriesProps) {
               <button
                 type='button'
                 disabled
-                aria-label='Next testimonial'
+                aria-label={nextButtonLabel}
                 className='inline-flex h-[72px] w-[72px] items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-100 sm:h-[85px] sm:w-[86px]'
                 style={{ backgroundColor: CONTROL_BG }}
               >
@@ -394,13 +415,13 @@ export function RealStories({ content }: RealStoriesProps) {
                 {cardLabel}
               </p>
 
-              {story?.location && (
+              {story?.cardLocation && (
                 <p className='mt-3 inline-flex items-center gap-2' style={cardLocationStyle}>
                   <LocationPin
                     color='var(--figma-colors-desktop, #FFFFFF)'
                     className='h-[18px] w-[18px]'
                   />
-                  {story.location}
+                  {story.cardLocation}
                 </p>
               )}
             </div>
@@ -439,13 +460,13 @@ export function RealStories({ content }: RealStoriesProps) {
                         {story.role}
                       </p>
                     )}
-                    {story?.location && (
+                    {story?.metaLocation && (
                       <p
                         className='mt-1 inline-flex items-center gap-2'
                         style={metaTextStyle}
                       >
                         <LocationPin color={TEXT_SECONDARY} className='h-[18px] w-[18px]' />
-                        {story.location}
+                        {story.metaLocation}
                       </p>
                     )}
                   </div>
