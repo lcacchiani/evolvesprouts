@@ -48,7 +48,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'age-specific',
     tone: 'gold',
-    imageSrc: '/images/why-joining/courseimg1.png',
+    imageSrc: '/images/why-joining/course-card-1.png',
     imageWidth: 344,
     imageHeight: 309,
     imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
@@ -56,7 +56,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'small-group-learning',
     tone: 'blue',
-    imageSrc: '/images/why-joining/courseimg2.png',
+    imageSrc: '/images/why-joining/course-card-2.png',
     imageWidth: 433,
     imageHeight: 424,
     imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
@@ -64,7 +64,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'montessori-positive-discipline',
     tone: 'gold',
-    imageSrc: '/images/why-joining/courseimg3.png',
+    imageSrc: '/images/why-joining/course-card-3.png',
     imageWidth: 282,
     imageHeight: 335,
     imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
@@ -72,7 +72,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'ongoing-support',
     tone: 'gold',
-    imageSrc: '/images/why-joining/courseimg4.png',
+    imageSrc: '/images/why-joining/course-card-4.png',
     imageWidth: 308,
     imageHeight: 323,
     imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
@@ -80,7 +80,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'ready-to-use-tools',
     tone: 'blue',
-    imageSrc: '/images/why-joining/courseimg5.png',
+    imageSrc: '/images/why-joining/course-card-5.png',
     imageWidth: 472,
     imageHeight: 457,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
@@ -88,7 +88,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'guaranteed-confidence',
     tone: 'gold',
-    imageSrc: '/images/why-joining/courseimg6.png',
+    imageSrc: '/images/why-joining/course-card-6.png',
     imageWidth: 433,
     imageHeight: 443,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
