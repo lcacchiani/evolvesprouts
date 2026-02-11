@@ -1,1 +1,789 @@
-{}
+{
+  "colors": {
+    "Desktop": {
+      "value": "#FFFFFF",
+      "type": "color"
+    },
+    "Frame-2147235259": {
+      "value": "#FFEEE3",
+      "type": "color"
+    },
+    "Join-our-Sprouts-Squad-community": {
+      "value": "#333333",
+      "type": "color"
+    },
+    "Frame-2147235222": {
+      "value": "rgba(231, 108, 61, 0)",
+      "type": "color"
+    },
+    "Frame-2147235222-2": {
+      "value": "#ED622E",
+      "type": "color"
+    },
+    "Home": {
+      "value": "#4A4A4A",
+      "type": "color"
+    },
+    "Frame-1000007814": {
+      "value": "#1F1F1F",
+      "type": "color"
+    },
+    "Frame-2147224783": {
+      "value": "#121211",
+      "type": "color"
+    },
+    "Frame-2147235267": {
+      "value": "#F6DECD",
+      "type": "color"
+    },
+    "Rectangle-240648655": {
+      "value": "#FFBA89",
+      "type": "color"
+    },
+    "Ellipse-1964": {
+      "value": "#FFD8BD",
+      "type": "color"
+    },
+    "Frame-2147235252": {
+      "value": "#F8F8F8",
+      "type": "color"
+    },
+    "Frame-2147235239": {
+      "value": "#AE7B1B",
+      "type": "color"
+    },
+    "Frame-2147235242": {
+      "value": "#174879",
+      "type": "color"
+    },
+    "Rectangle-240648659": {
+      "value": "rgba(0, 0, 0, 0.7)",
+      "type": "color"
+    },
+    "Rectangle-240648654": {
+      "value": "#D9D9D9",
+      "type": "color"
+    },
+    "Week-01-04": {
+      "value": "#313131",
+      "type": "color"
+    },
+    "03": {
+      "value": "#DDDDDD",
+      "type": "color"
+    },
+    "Frame-2147235228": {
+      "value": "#B2DDA4",
+      "type": "color"
+    },
+    "Frame-2147235230": {
+      "value": "#FFA988",
+      "type": "color"
+    }
+  },
+  "fontFamilies": {
+    "Poppins": {
+      "value": "Poppins",
+      "type": "fontFamilies"
+    },
+    "Lato": {
+      "value": "Lato",
+      "type": "fontFamilies"
+    },
+    "Urbanist": {
+      "value": "Urbanist",
+      "type": "fontFamilies"
+    },
+    "Plus-Jakarta-Sans": {
+      "value": "Plus Jakarta Sans",
+      "type": "fontFamilies"
+    }
+  },
+  "fontWeights": {
+    "300": {
+      "value": "300",
+      "type": "fontWeights"
+    },
+    "400": {
+      "value": "400",
+      "type": "fontWeights"
+    },
+    "500": {
+      "value": "500",
+      "type": "fontWeights"
+    },
+    "600": {
+      "value": "600",
+      "type": "fontWeights"
+    },
+    "700": {
+      "value": "700",
+      "type": "fontWeights"
+    },
+    "800": {
+      "value": "800",
+      "type": "fontWeights"
+    }
+  },
+  "fontSizes": {
+    "11": {
+      "value": "11",
+      "type": "fontSizes"
+    },
+    "14": {
+      "value": "14",
+      "type": "fontSizes"
+    },
+    "16": {
+      "value": "16",
+      "type": "fontSizes"
+    },
+    "18": {
+      "value": "18",
+      "type": "fontSizes"
+    },
+    "20": {
+      "value": "20",
+      "type": "fontSizes"
+    },
+    "22": {
+      "value": "22",
+      "type": "fontSizes"
+    },
+    "24": {
+      "value": "24",
+      "type": "fontSizes"
+    },
+    "26": {
+      "value": "26",
+      "type": "fontSizes"
+    },
+    "28": {
+      "value": "28",
+      "type": "fontSizes"
+    },
+    "30": {
+      "value": "30",
+      "type": "fontSizes"
+    },
+    "32": {
+      "value": "32",
+      "type": "fontSizes"
+    },
+    "37": {
+      "value": "37",
+      "type": "fontSizes"
+    },
+    "41": {
+      "value": "41",
+      "type": "fontSizes"
+    },
+    "55": {
+      "value": "55",
+      "type": "fontSizes"
+    },
+    "77": {
+      "value": "77",
+      "type": "fontSizes"
+    },
+    "25.83224868774414": {
+      "value": "25.83224868774414",
+      "type": "fontSizes"
+    }
+  },
+  "lineHeights": {
+    "Join-our-Sprouts-Squad-community": {
+      "value": "107",
+      "type": "lineHeights"
+    },
+    "Sign-Up-to-Our-Monthly-Newsletter": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Quick-Links": {
+      "value": "28",
+      "type": "lineHeights"
+    },
+    "Home": {
+      "value": "28",
+      "type": "lineHeights"
+    },
+    "2025-Evolvesprouts": {
+      "value": "28",
+      "type": "lineHeights"
+    },
+    "Testimonials": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Real-Stories-from-Parents-in-Hong-Kong": {
+      "value": "70",
+      "type": "lineHeights"
+    },
+    "Evolve-Sprouts": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Hong-Kong-China": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Ida-was-fantastic-she-helped-me-understand-how-I-could-set-up-my-home-in-a-Montessori-way-without-disrupting-my-style": {
+      "value": "64",
+      "type": "lineHeights"
+    },
+    "Mary-Lo": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Mom-of-2": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Teach-Patience": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Free-Guide-4-Simple-Ways-to-Teach-Patience-to-Young-Children": {
+      "value": "50",
+      "type": "lineHeights"
+    },
+    "Gentle-Strategies-for-Busy-Parents": {
+      "value": "41",
+      "type": "lineHeights"
+    },
+    "The-FirstThen-Trick": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Links-waiting-to-a-clear-concrete-action": {
+      "value": "28",
+      "type": "lineHeights"
+    },
+    "Get-4-Ways-to-Teach-Patience": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Age-Specific-Strategies": {
+      "value": "50",
+      "type": "lineHeights"
+    },
+    "Connect-Now": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Hello-how-can-we-support-you": {
+      "value": "20",
+      "type": "lineHeights"
+    },
+    "Scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges": {
+      "value": "36",
+      "type": "lineHeights"
+    },
+    "Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner": {
+      "value": "50",
+      "type": "lineHeights"
+    },
+    "1st-Module": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Week-01-04": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "01": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner-2": {
+      "value": "46",
+      "type": "lineHeights"
+    },
+    "2nd-Module": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Week-05-08": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Transform-Auntie-Into-Your-Childs-Montessori-Ally": {
+      "value": "95",
+      "type": "lineHeights"
+    },
+    "Foster-independence-joy-and-confidence-with-training-that-turns-screen-time-into-meaningful-play": {
+      "value": "44.130088806152344",
+      "type": "lineHeights"
+    },
+    "1.5k-Auntie": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Enjoy-our-programs": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Home-2": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Eng": {
+      "value": "100%",
+      "type": "lineHeights"
+    },
+    "Book-Now": {
+      "value": "100%",
+      "type": "lineHeights"
+    }
+  },
+  "letterSpacing": {
+    "Join-our-Sprouts-Squad-community": {
+      "value": "0.77",
+      "type": "letterSpacing"
+    },
+    "Quick-Links": {
+      "value": "-0.5",
+      "type": "letterSpacing"
+    },
+    "Home": {
+      "value": "0.5",
+      "type": "letterSpacing"
+    },
+    "Hong-Kong-China": {
+      "value": "0.5",
+      "type": "letterSpacing"
+    },
+    "Ida-was-fantastic-she-helped-me-understand-how-I-could-set-up-my-home-in-a-Montessori-way-without-disrupting-my-style": {
+      "value": "0.37",
+      "type": "letterSpacing"
+    },
+    "Mom-of-2": {
+      "value": "0.5",
+      "type": "letterSpacing"
+    },
+    "Teach-Patience": {
+      "value": "0.27999999523162844",
+      "type": "letterSpacing"
+    },
+    "Free-Guide-4-Simple-Ways-to-Teach-Patience-to-Young-Children": {
+      "value": "0.41000000000000003",
+      "type": "letterSpacing"
+    },
+    "Gentle-Strategies-for-Busy-Parents": {
+      "value": "0.28",
+      "type": "letterSpacing"
+    },
+    "The-FirstThen-Trick": {
+      "value": "0.33599999427795413",
+      "type": "letterSpacing"
+    },
+    "Age-Specific-Strategies": {
+      "value": "0.37",
+      "type": "letterSpacing"
+    },
+    "Scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges": {
+      "value": "0.3079999947547913",
+      "type": "letterSpacing"
+    },
+    "Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner": {
+      "value": "0.28",
+      "type": "letterSpacing"
+    },
+    "Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner-2": {
+      "value": "0.3",
+      "type": "letterSpacing"
+    },
+    "Foster-independence-joy-and-confidence-with-training-that-turns-screen-time-into-meaningful-play": {
+      "value": "0.2583224868774414",
+      "type": "letterSpacing"
+    }
+  },
+  "typography": {
+    "Join-our-Sprouts-Squad-community": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.700}",
+        "fontSize": "{fontSizes.77}",
+        "lineHeight": "{lineHeights.Join-our-Sprouts-Squad-community}",
+        "letterSpacing": "{letterSpacing.Join-our-Sprouts-Squad-community}"
+      },
+      "type": "typography"
+    },
+    "Sign-Up-to-Our-Monthly-Newsletter": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.28}",
+        "lineHeight": "{lineHeights.Sign-Up-to-Our-Monthly-Newsletter}"
+      },
+      "type": "typography"
+    },
+    "Quick-Links": {
+      "value": {
+        "fontFamily": "{fontFamilies.Urbanist}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.24}",
+        "lineHeight": "{lineHeights.Quick-Links}",
+        "letterSpacing": "{letterSpacing.Quick-Links}"
+      },
+      "type": "typography"
+    },
+    "Home": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.18}",
+        "lineHeight": "{lineHeights.Home}",
+        "letterSpacing": "{letterSpacing.Home}"
+      },
+      "type": "typography"
+    },
+    "2025-Evolvesprouts": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.16}",
+        "lineHeight": "{lineHeights.2025-Evolvesprouts}"
+      },
+      "type": "typography"
+    },
+    "Testimonials": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.18}",
+        "lineHeight": "{lineHeights.Testimonials}"
+      },
+      "type": "typography"
+    },
+    "Real-Stories-from-Parents-in-Hong-Kong": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.700}",
+        "fontSize": "{fontSizes.55}",
+        "lineHeight": "{lineHeights.Real-Stories-from-Parents-in-Hong-Kong}"
+      },
+      "type": "typography"
+    },
+    "Evolve-Sprouts": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.37}",
+        "lineHeight": "{lineHeights.Evolve-Sprouts}"
+      },
+      "type": "typography"
+    },
+    "Hong-Kong-China": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.300}",
+        "fontSize": "{fontSizes.18}",
+        "lineHeight": "{lineHeights.Hong-Kong-China}",
+        "letterSpacing": "{letterSpacing.Hong-Kong-China}"
+      },
+      "type": "typography"
+    },
+    "Ida-was-fantastic-she-helped-me-understand-how-I-could-set-up-my-home-in-a-Montessori-way-without-disrupting-my-style": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.37}",
+        "lineHeight": "{lineHeights.Ida-was-fantastic-she-helped-me-understand-how-I-could-set-up-my-home-in-a-Montessori-way-without-disrupting-my-style}",
+        "letterSpacing": "{letterSpacing.Ida-was-fantastic-she-helped-me-understand-how-I-could-set-up-my-home-in-a-Montessori-way-without-disrupting-my-style}"
+      },
+      "type": "typography"
+    },
+    "Mary-Lo": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.700}",
+        "fontSize": "{fontSizes.32}",
+        "lineHeight": "{lineHeights.Mary-Lo}"
+      },
+      "type": "typography"
+    },
+    "Mom-of-2": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.26}",
+        "lineHeight": "{lineHeights.Mom-of-2}",
+        "letterSpacing": "{letterSpacing.Mom-of-2}"
+      },
+      "type": "typography"
+    },
+    "Teach-Patience": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.20}",
+        "lineHeight": "{lineHeights.Teach-Patience}",
+        "letterSpacing": "{letterSpacing.Teach-Patience}"
+      },
+      "type": "typography"
+    },
+    "Free-Guide-4-Simple-Ways-to-Teach-Patience-to-Young-Children": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.41}",
+        "lineHeight": "{lineHeights.Free-Guide-4-Simple-Ways-to-Teach-Patience-to-Young-Children}",
+        "letterSpacing": "{letterSpacing.Free-Guide-4-Simple-Ways-to-Teach-Patience-to-Young-Children}"
+      },
+      "type": "typography"
+    },
+    "Gentle-Strategies-for-Busy-Parents": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.28}",
+        "lineHeight": "{lineHeights.Gentle-Strategies-for-Busy-Parents}",
+        "letterSpacing": "{letterSpacing.Gentle-Strategies-for-Busy-Parents}"
+      },
+      "type": "typography"
+    },
+    "The-FirstThen-Trick": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.24}",
+        "lineHeight": "{lineHeights.The-FirstThen-Trick}",
+        "letterSpacing": "{letterSpacing.The-FirstThen-Trick}"
+      },
+      "type": "typography"
+    },
+    "Links-waiting-to-a-clear-concrete-action": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.20}",
+        "lineHeight": "{lineHeights.Links-waiting-to-a-clear-concrete-action}"
+      },
+      "type": "typography"
+    },
+    "Get-4-Ways-to-Teach-Patience": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.26}",
+        "lineHeight": "{lineHeights.Get-4-Ways-to-Teach-Patience}"
+      },
+      "type": "typography"
+    },
+    "Age-Specific-Strategies": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.37}",
+        "lineHeight": "{lineHeights.Age-Specific-Strategies}",
+        "letterSpacing": "{letterSpacing.Age-Specific-Strategies}"
+      },
+      "type": "typography"
+    },
+    "Connect-Now": {
+      "value": {
+        "fontFamily": "{fontFamilies.Plus-Jakarta-Sans}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.11}",
+        "lineHeight": "{lineHeights.Connect-Now}"
+      },
+      "type": "typography"
+    },
+    "Hello-how-can-we-support-you": {
+      "value": {
+        "fontFamily": "{fontFamilies.Poppins}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.14}",
+        "lineHeight": "{lineHeights.Hello-how-can-we-support-you}"
+      },
+      "type": "typography"
+    },
+    "Scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.22}",
+        "lineHeight": "{lineHeights.Scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges}",
+        "letterSpacing": "{letterSpacing.Scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges}"
+      },
+      "type": "typography"
+    },
+    "Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.28}",
+        "lineHeight": "{lineHeights.Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner}",
+        "letterSpacing": "{letterSpacing.Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner}"
+      },
+      "type": "typography"
+    },
+    "1st-Module": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.22}",
+        "lineHeight": "{lineHeights.1st-Module}"
+      },
+      "type": "typography"
+    },
+    "Week-01-04": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.700}",
+        "fontSize": "{fontSizes.28}",
+        "lineHeight": "{lineHeights.Week-01-04}"
+      },
+      "type": "typography"
+    },
+    "01": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.800}",
+        "fontSize": "{fontSizes.20}",
+        "lineHeight": "{lineHeights.01}"
+      },
+      "type": "typography"
+    },
+    "Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner-2": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.30}",
+        "lineHeight": "{lineHeights.Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner-2}",
+        "letterSpacing": "{letterSpacing.Transform-Your-Auntie-into-a-Montessori-Guided-Child-Development-Partner-2}"
+      },
+      "type": "typography"
+    },
+    "2nd-Module": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.20}",
+        "lineHeight": "{lineHeights.2nd-Module}"
+      },
+      "type": "typography"
+    },
+    "Week-05-08": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.700}",
+        "fontSize": "{fontSizes.26}",
+        "lineHeight": "{lineHeights.Week-05-08}"
+      },
+      "type": "typography"
+    },
+    "Transform-Auntie-Into-Your-Childs-Montessori-Ally": {
+      "value": {
+        "fontFamily": "{fontFamilies.Urbanist}",
+        "fontWeight": "{fontWeights.800}",
+        "fontSize": "{fontSizes.77}",
+        "lineHeight": "{lineHeights.Transform-Auntie-Into-Your-Childs-Montessori-Ally}"
+      },
+      "type": "typography"
+    },
+    "Foster-independence-joy-and-confidence-with-training-that-turns-screen-time-into-meaningful-play": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.25.83224868774414}",
+        "lineHeight": "{lineHeights.Foster-independence-joy-and-confidence-with-training-that-turns-screen-time-into-meaningful-play}",
+        "letterSpacing": "{letterSpacing.Foster-independence-joy-and-confidence-with-training-that-turns-screen-time-into-meaningful-play}"
+      },
+      "type": "typography"
+    },
+    "1.5k-Auntie": {
+      "value": {
+        "fontFamily": "{fontFamilies.Urbanist}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.18}",
+        "lineHeight": "{lineHeights.1.5k-Auntie}"
+      },
+      "type": "typography"
+    },
+    "Enjoy-our-programs": {
+      "value": {
+        "fontFamily": "{fontFamilies.Urbanist}",
+        "fontWeight": "{fontWeights.400}",
+        "fontSize": "{fontSizes.18}",
+        "lineHeight": "{lineHeights.Enjoy-our-programs}"
+      },
+      "type": "typography"
+    },
+    "Home-2": {
+      "value": {
+        "fontFamily": "{fontFamilies.Lato}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.18}",
+        "lineHeight": "{lineHeights.Home-2}"
+      },
+      "type": "typography"
+    },
+    "Eng": {
+      "value": {
+        "fontFamily": "{fontFamilies.Urbanist}",
+        "fontWeight": "{fontWeights.500}",
+        "fontSize": "{fontSizes.20}",
+        "lineHeight": "{lineHeights.Eng}"
+      },
+      "type": "typography"
+    },
+    "Book-Now": {
+      "value": {
+        "fontFamily": "{fontFamilies.Plus-Jakarta-Sans}",
+        "fontWeight": "{fontWeights.600}",
+        "fontSize": "{fontSizes.22}",
+        "lineHeight": "{lineHeights.Book-Now}"
+      },
+      "type": "typography"
+    }
+  },
+  "boxShadow": {
+    "Ellipse-1966": {
+      "value": {
+        "color": "rgba(0, 0, 0, 0.32)",
+        "type": "dropShadow",
+        "x": "0",
+        "y": "4.809527397155762",
+        "blur": "11.222230911254883",
+        "spread": "0"
+      },
+      "type": "boxShadow"
+    },
+    "Ellipse-1966-2": {
+      "value": {
+        "color": "rgba(0, 0, 0, 0.32)",
+        "type": "dropShadow",
+        "x": "0",
+        "y": "2.2361302375793457",
+        "blur": "5.217637062072754",
+        "spread": "0"
+      },
+      "type": "boxShadow"
+    },
+    "Ellipse-1966-3": {
+      "value": {
+        "color": "rgba(0, 0, 0, 0.32)",
+        "type": "dropShadow",
+        "x": "0",
+        "y": "10.664373397827148",
+        "blur": "24.8835391998291",
+        "spread": "0"
+      },
+      "type": "boxShadow"
+    },
+    "freepik__enhance__86742-1": {
+      "value": {
+        "color": "rgba(0, 0, 0, 0.1)",
+        "type": "dropShadow",
+        "x": "-22",
+        "y": "24",
+        "blur": "77",
+        "spread": "0"
+      },
+      "type": "boxShadow"
+    }
+  }
+}

@@ -45,5 +45,15 @@
       "privacy": "私隱政策",
       "terms": "服務條款"
     }
+  },
+  "whyJoiningOurCourses": {
+    "title": "Why Joining Our Courses",
+    "description": "",
+    "items": []
+  },
+  "banner": {
+    "title": "banner",
+    "description": "",
+    "items": []
   }
 }
