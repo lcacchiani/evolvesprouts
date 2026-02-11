@@ -47,9 +47,19 @@
     "items": []
   },
   "freeResources": {
-    "title": "Free Resources",
+    "eyebrow": "Our Resources",
+    "mediaBadgeLabel": "Our Resources",
+    "title": "Free Resources for Gentle Parenting",
     "description": "Access our library of free learning materials.",
-    "items": []
+    "cardTitle": "Free Guide: The Gentle \"No\"",
+    "cardDescription": "Set Boundaries Without Guilt...",
+    "ctaLabel": "The Gentle 'No' PDF",
+    "ctaHref": "#resources",
+    "items": [
+      "Tone is everything",
+      "Less is more",
+      "Follow up with empathy"
+    ]
   },
   "whyJoining": {
     "title": "Why Joining Our Courses",
