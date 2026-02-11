@@ -1,311 +1,47 @@
 # Figma token pipeline for `public_www`
 
-This directory stores input and output files used by the public website
-token pipeline.
+This directory stores input and output files used by the Figma design
+token pipeline. For the full architecture documentation, see
+[docs/architecture/public-www-figma-pipeline.md](../../../docs/architecture/public-www-figma-pipeline.md).
 
 ## Directory structure
 
-- `files/`
-  - Raw Figma API payloads produced by:
-    - `npm run figma:pull` (OAuth 2.0 authenticated)
-  - Expected files:
-    - `file.json`
-    - `variables.local.json`
-- `token-studio/`
-  - Token Studio compatible design tokens (W3C Design Tokens format).
+- `files/` — Raw Figma API payloads (gitignored JSON files)
+- `token-studio/` — Token Studio design tokens (tracked in git)
   - `$metadata.json` — token set ordering
   - `$themes.json` — theme definitions (Light, Dark)
-  - `global.json` — primitive tokens extracted from Figma (colors,
-    typography, spacing, effects, border radius, opacity)
-  - `semantic.json` — semantic alias tokens (manually curated)
-  - `component.json` — component-specific tokens (manually curated)
-- `mdm/exports/`
-  - Design-token exports produced by a Figma MDM flow.
-  - Default input file:
-    - `tokens.json`
-- `mdm/artifacts/`
-  - Normalized artifacts produced for the website build.
-  - Output file:
-    - `tokens.normalized.json`
-  - Generated JSON files are ignored from git by default.
+  - `global.json` — primitive tokens (overwritten on each sync)
+  - `semantic.json` — semantic aliases (hand-edited, preserved)
+  - `component.json` — component tokens (hand-edited, preserved)
 
-## Cursor MCP integration
+## Quick start
 
-The project includes a Figma MCP (Model Context Protocol) server
-configuration at `.cursor/mcp.json`. This allows Cursor to read your
-Figma file directly when you paste a Figma frame URL into the editor.
+```bash
+# Full pipeline: pull Figma data → extract tokens → build CSS → scaffold components
+FIGMA_TOKEN_ROOT_NODE=Desktop npm run figma:full-sync
 
-The MCP server uses **OAuth2 authentication** — the same credentials
-used by the `figma:pull` pipeline. A launcher script
-(`scripts/figma/launch-figma-mcp.mjs`) exchanges the refresh token
-for a short-lived access token and then spawns the Framelink MCP
-server with it.
+# Just tokens (no scaffolding)
+npm run figma:studio-sync
 
-### Setup
-
-1. Ensure you have valid OAuth2 credentials (see
-   [Generating a Figma OAuth refresh token](#generating-a-figma-oauth-refresh-token)
-   below if you haven't done this yet).
-
-2. Add the OAuth2 credentials to Cursor:
-   - **Local development:** Add these to your `.env` file or shell
-     profile:
-     ```bash
-     FIGMA_OAUTH_CLIENT_ID=your-client-id
-     FIGMA_OAUTH_CLIENT_SECRET=your-client-secret
-     FIGMA_OAUTH_REFRESH_TOKEN=your-refresh-token
-     ```
-   - **Cloud Agents:** Add all three as secrets in the Cursor
-     Dashboard under Cloud Agents > Secrets.
-
-3. Restart Cursor. The Framelink Figma MCP server will appear in the
-   MCP servers list and respond to Figma URL queries.
-
-### Usage in Cursor
-
-Once configured, you can:
-- Paste a Figma frame/page URL and ask Cursor to inspect the design
-- Ask Cursor to extract specific design properties from a frame
-- Use the MCP data together with `npm run figma:tokenize` to populate
-  Token Studio tokens
-
-## Token Studio workflow
-
-This is the recommended workflow for extracting and using design tokens
-from your Figma file. It works on **Figma Professional** plans (does
-not require Enterprise-only Variables API).
-
-### Pipeline overview
-
-```
-Figma File
-    │
-    └─── npm run figma:pull ──→ figma/files/file.json
-                                     │
-                                     ▼
-                         npm run figma:tokenize
-                                     │
-                         Extracts from file styles & node tree:
-                         • Color styles → colors.*
-                         • Text styles → fontFamilies.*, fontSizes.*, etc.
-                         • Effect styles → boxShadow.*
-                         • Layout props → spacing.*, borderRadius.*
-                                     │
-                                     ▼
-                         figma/token-studio/global.json
-                         figma/token-studio/semantic.json (preserved)
-                         figma/token-studio/component.json (preserved)
-                                     │
-                                     ▼
-                         npm run figma:build:studio
-                                     │
-                         Resolves aliases, generates:
-                         • figma/mdm/artifacts/tokens.normalized.json
-                         • src/app/generated/figma-tokens.css
+# Just scaffold new components from existing Figma data
+FIGMA_TOKEN_ROOT_NODE=Desktop npm run figma:scaffold
 ```
 
-### Scripts
+## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run figma:pull` | Pull raw Figma API data into `figma/files/`. Requires OAuth credentials. |
-| `npm run figma:tokenize` | Convert Figma file data into Token Studio JSON under `figma/token-studio/`. |
-| `npm run figma:build:studio` | Build CSS custom properties from Token Studio tokens. |
-| `npm run figma:studio-sync` | Run the full pipeline: pull → tokenize → build. |
-| `npm run figma:auth` | Generate a Figma OAuth refresh token (interactive). |
-
-### Token file details
-
-**`global.json`** — auto-generated from Figma, overwritten on each
-`figma:tokenize` run. Contains primitive design values:
-
-```json
-{
-  "colors": {
-    "primary": {
-      "500": { "value": "#FF6B35", "type": "color" }
-    }
-  },
-  "spacing": {
-    "sm": { "value": "8", "type": "spacing" }
-  },
-  "fontFamilies": {
-    "Inter": { "value": "Inter", "type": "fontFamilies" }
-  }
-}
-```
-
-**`semantic.json`** — manually curated aliases that reference global
-tokens. Preserved across `figma:tokenize` runs:
-
-```json
-{
-  "fg": {
-    "default": { "value": "{colors.neutral.900}", "type": "color" }
-  },
-  "bg": {
-    "accent": { "value": "{colors.primary.50}", "type": "color" }
-  }
-}
-```
-
-**`component.json`** — component-specific tokens. Starts empty,
-grows as components are built. Also preserved across runs.
-
-## Build outputs
-
-`npm run figma:build:studio` writes CSS custom properties to:
-
-- `src/app/generated/figma-tokens.css`
-
-`src/app/globals.css` imports this generated file so token updates
-from Figma flow through the website build.
-
-## Legacy MDM workflow
-
-The original MDM-based pipeline is still available:
-
-| Command | Description |
-|---------|-------------|
-| `npm run figma:build` | Build from MDM exports or Figma Variables API. |
-| `npm run figma:sync` | Pull + build using the legacy flow. |
+| `figma:auth` | Generate OAuth refresh token (interactive) |
+| `figma:pull` | Pull Figma file data via OAuth2 API |
+| `figma:tokenize` | Extract tokens → Token Studio JSON |
+| `figma:build:studio` | Build CSS from Token Studio tokens |
+| `figma:scaffold` | Scaffold new section components (idempotent) |
+| `figma:studio-sync` | pull → tokenize → build |
+| `figma:full-sync` | pull → tokenize → build → scaffold |
 
 ## Authentication
 
-For `figma:pull`, set `FIGMA_FILE_KEY` and either:
-
-- `FIGMA_OAUTH_ACCESS_TOKEN`, or
-- `FIGMA_OAUTH_CLIENT_ID`, `FIGMA_OAUTH_CLIENT_SECRET`, and
-  `FIGMA_OAUTH_REFRESH_TOKEN`.
-
-For the MCP connector, the same OAuth2 credentials are used
-(`FIGMA_OAUTH_CLIENT_ID`, `FIGMA_OAUTH_CLIENT_SECRET`,
-`FIGMA_OAUTH_REFRESH_TOKEN`). The launcher script mints a short-lived
-access token automatically.
-
-## Generating a Figma OAuth refresh token
-
-The refresh token is a long-lived credential that allows the pipeline to
-mint short-lived access tokens automatically.
-
-There are two ways to generate one:
-
-- **Option A** — [GitHub Actions workflow](#option-a--github-actions-workflow)
-  (recommended; secrets never leave GitHub).
-- **Option B** — [Local script](#option-b--local-script)
-  (fully automated; requires Node.js locally).
-
-Both options require a **Figma OAuth 2.0 app** — see
-[Prerequisites](#prerequisites) first.
-
-### Prerequisites
-
-You need a **Figma OAuth 2.0 app**. If you do not have one yet:
-
-1. Go to [Figma Developer Settings](https://www.figma.com/developers/apps).
-2. Click **Create a new app**.
-3. Fill in the app name (e.g. `EvolveSpouts Token Sync`).
-4. Under **Callback URL**, add: `http://localhost:3845/callback`
-   (or a different port if you plan to customize it).
-5. Save the app and note the **Client ID** and **Client secret**.
-6. Add `FIGMA_OAUTH_CLIENT_ID` and `FIGMA_OAUTH_CLIENT_SECRET` as
-   GitHub repository secrets under **Settings > Secrets and variables >
-   Actions**.
-
----
-
-### Option A — GitHub Actions workflow
-
-This approach keeps your client secret and refresh token inside GitHub
-and never exposes them locally. The only manual step is authorizing in
-a browser.
-
-**Preparation — open two tabs side by side:**
-
-- **Tab 1:** The Figma authorization URL (see below).
-- **Tab 2:** **Actions > Generate Figma OAuth Refresh Token > Run workflow**.
-
-Construct the authorization URL by replacing `YOUR_CLIENT_ID` with your
-Figma OAuth app's Client ID:
-
-```
-https://www.figma.com/oauth?client_id=YOUR_CLIENT_ID&redirect_uri=http%3A%2F%2Flocalhost%3A3845%2Fcallback&scope=file_content:read&state=1&response_type=code
-```
-
-> **Tip:** If you have already run the workflow once (even if it
-> failed), check the run's **Summary** tab — it contains a ready-made
-> authorization URL with your Client ID filled in.
-
-**Steps:**
-
-1. Open the authorization URL in **Tab 1**.
-2. Click **Allow** on the Figma consent page.
-3. Figma redirects to
-   `http://localhost:3845/callback?code=XXXXX&state=...`.
-   The page will **not load** (no local server is running) — that is
-   expected.
-4. Copy the `code` value from the browser address bar (the string
-   between `?code=` and `&state=`).
-5. Switch to **Tab 2**. Paste the code into the **authorization_code**
-   field and click **Run workflow** immediately.
-6. The workflow exchanges the code and automatically stores
-   `FIGMA_OAUTH_REFRESH_TOKEN` as a repository secret.
-
-Check the run **Summary** tab for confirmation.
-
-> **Important:** Figma authorization codes expire quickly. Have Tab 2
-> ready to go *before* you authorize so you can paste the code and
-> trigger the workflow within seconds. If you see `invalid_grant`,
-> re-open the authorization URL in Tab 1 and try again.
-
----
-
-### Option B — Local script
-
-This runs the full OAuth flow on your machine using a temporary local
-HTTP server.
-
-**Step 1 — Set environment variables**
-
-```bash
-export FIGMA_OAUTH_CLIENT_ID="your-client-id"
-export FIGMA_OAUTH_CLIENT_SECRET="your-client-secret"
-```
-
-**Step 2 — Run the auth script**
-
-From the `apps/public_www` directory:
-
-```bash
-npm run figma:auth
-```
-
-This starts a temporary local server on port 3845 and opens your browser
-to the Figma authorization page. If the browser does not open
-automatically, copy the URL printed in the terminal.
-
-To use a different port, set `FIGMA_OAUTH_PORT`:
-
-```bash
-FIGMA_OAUTH_PORT=9999 npm run figma:auth
-```
-
-If you change the port, update the callback URL in your Figma app
-settings to match (e.g. `http://localhost:9999/callback`).
-
-**Step 3 — Authorize in Figma**
-
-Click **Allow** to grant `file_content:read` access. If `file_variables:read` is also
-available, enable it to allow pulling Figma local variables.
-
-**Step 4 — Copy the refresh token**
-
-The script exchanges the code and prints the
-`FIGMA_OAUTH_REFRESH_TOKEN` in the terminal. Copy this value.
-
-**Step 5 — Store the token**
-
-For local development, add it to your `.env` file:
+For API scripts (`figma:pull`, `figma:studio-sync`, `figma:full-sync`):
 
 ```bash
 FIGMA_OAUTH_CLIENT_ID=your-client-id
@@ -314,25 +50,31 @@ FIGMA_OAUTH_REFRESH_TOKEN=your-refresh-token
 FIGMA_FILE_KEY=your-figma-file-key
 ```
 
-For CI/CD, add these as repository secrets:
+For MCP (Cursor integration), the same OAuth2 credentials are used.
 
-- `FIGMA_OAUTH_CLIENT_ID`
-- `FIGMA_OAUTH_CLIENT_SECRET`
-- `FIGMA_OAUTH_REFRESH_TOKEN`
+## Scoping extraction
 
-And set `PUBLIC_WWW_FIGMA_FILE_KEY` as a repository variable.
+Set `FIGMA_TOKEN_ROOT_NODE` to a frame name or node ID to extract
+tokens and scaffold components from a specific Figma frame only:
 
----
+```bash
+FIGMA_TOKEN_ROOT_NODE=Desktop npm run figma:tokenize
+```
 
-### Troubleshooting
+## Generating a Figma OAuth refresh token
 
-| Problem | Solution |
-|---------|----------|
-| Port already in use | Set `FIGMA_OAUTH_PORT` (local) or `callback_port` (Actions) to a different port and update the Figma app callback URL. |
-| Browser does not open | Copy the URL from the terminal (local) or workflow summary (Actions) and open it manually. |
-| `invalid_grant` error | The authorization code expired. Re-run from the authorization step. |
-| Token exchange fails with 401 | Verify your client ID and secret are correct. |
-| Refresh token stops working | Figma refresh tokens can be revoked if the app is modified. Re-generate one using either option above. |
-| `gh secret set` fails (Actions) | `GITHUB_TOKEN` may lack permission to write secrets. Copy the token from the masked log output and add the secret manually. |
-| `figma:tokenize` finds 0 styles | Ensure your Figma file uses published styles (not just local fills). Publish styles via the Figma UI. |
-| MCP server not connecting | Verify `FIGMA_OAUTH_CLIENT_ID`, `FIGMA_OAUTH_CLIENT_SECRET`, and `FIGMA_OAUTH_REFRESH_TOKEN` are set. Check Cursor's MCP server logs for OAuth errors. Restart Cursor after changing env vars. |
+### Option A — GitHub Actions workflow (recommended)
+
+1. Construct the authorization URL (see workflow summary for a ready-made URL).
+2. Open it in your browser and click **Allow**.
+3. Copy the `code` from the redirect URL.
+4. Trigger the **Generate Figma OAuth Refresh Token** workflow with the code.
+5. The workflow prints the refresh token in the run summary.
+
+### Option B — Local script
+
+```bash
+FIGMA_OAUTH_CLIENT_ID=xxx FIGMA_OAUTH_CLIENT_SECRET=yyy npm run figma:auth
+```
+
+Follow the prompts to authorize and receive the refresh token.
