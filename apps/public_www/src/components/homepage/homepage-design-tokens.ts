@@ -22,7 +22,7 @@ export const HOMEPAGE_MOBILE_DIMENSIONS = {
 
 export const HOMEPAGE_COLORS = {
   baseBackground: '#FFEFE3',
-  darkBackground: '#121212',
+  canvasBackground: '#FFFFFF',
 } as const;
 
 const NODE_IMAGE_BASE_PATH = '/images/homepage/nodes';

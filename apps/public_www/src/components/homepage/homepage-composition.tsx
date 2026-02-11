@@ -15,28 +15,16 @@ import {
 
 export function HomepageComposition() {
   return (
-    <main className='bg-[#FFEFE3] text-slate-900'>
+    <main className='bg-white text-slate-900'>
       <div className='mx-auto max-w-[1920px]'>
         <div className='lg:hidden'>
-          <NavbarNode mode='stacked' sectionClassName='bg-[#121212]' />
-          <BannerNode mode='stacked' sectionClassName='-mt-px bg-[#121212]' />
-          <CourseModuleNode
-            mode='stacked'
-            sectionClassName='-mt-px bg-[#121212]'
-          />
-          <FreeResourcesNode
-            mode='stacked'
-            sectionClassName='-mt-px bg-[#121212]'
-          />
+          <NavbarNode mode='stacked' />
+          <BannerNode mode='stacked' sectionClassName='-mt-px' />
+          <CourseModuleNode mode='stacked' sectionClassName='-mt-px' />
+          <FreeResourcesNode mode='stacked' sectionClassName='-mt-px' />
           <WhyJoiningOurCoursesNode mode='stacked' sectionClassName='-mt-px' />
-          <FreeResourcesSecondaryNode
-            mode='stacked'
-            sectionClassName='-mt-px bg-[#121212]'
-          />
-          <RealStoriesNode
-            mode='stacked'
-            sectionClassName='-mt-px bg-[#121212]'
-          />
+          <FreeResourcesSecondaryNode mode='stacked' sectionClassName='-mt-px' />
+          <RealStoriesNode mode='stacked' sectionClassName='-mt-px' />
           <FooterNode mode='stacked' sectionClassName='-mt-px' />
         </div>
 
@@ -44,7 +32,7 @@ export function HomepageComposition() {
           className='relative hidden w-full overflow-hidden lg:block'
           style={{
             aspectRatio: `${HOMEPAGE_DESKTOP_DIMENSIONS.width} / ${HOMEPAGE_DESKTOP_DIMENSIONS.height}`,
-            backgroundColor: HOMEPAGE_COLORS.darkBackground,
+            backgroundColor: HOMEPAGE_COLORS.canvasBackground,
           }}
         >
           <NavbarNode />
