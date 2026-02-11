@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import Link from 'next/link';
 
 import type { WhyJoiningContent } from '@/content';
+import enContent from '@/content/en.json';
 
 interface WhyJoiningProps {
   content: WhyJoiningContent;
@@ -24,6 +25,12 @@ interface BenefitCard {
   description?: string;
 }
 
+interface BenefitCardMeta {
+  id: string;
+  tone: BenefitCardTone;
+  art: BenefitCardArt;
+}
+
 const SECTION_BG = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const HEADING_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
@@ -32,9 +39,43 @@ const GOLD_CARD = 'var(--figma-colors-frame-2147235239, #AE7B1B)';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
 const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
-const DARK_SCRIM = 'var(--figma-colors-rectangle-240648659, rgba(0, 0, 0, 0.7))';
-const SECTION_EYEBROW = 'Course Highlights';
-const SECTION_CTA = 'Get Started - Train Auntie Today';
+const DARK_SCRIM =
+  'var(--figma-colors-rectangle-240648659, rgba(0, 0, 0, 0.7))';
+
+const fallbackWhyJoiningCopy = enContent.whyJoining;
+
+const benefitCardMeta: BenefitCardMeta[] = [
+  {
+    id: 'age-specific',
+    tone: 'gold',
+    art: 'age',
+  },
+  {
+    id: 'guaranteed-confidence',
+    tone: 'blue',
+    art: 'confidence',
+  },
+  {
+    id: 'small-group-learning',
+    tone: 'blue',
+    art: 'group',
+  },
+  {
+    id: 'montessori-positive-discipline',
+    tone: 'gold',
+    art: 'montessori',
+  },
+  {
+    id: 'ongoing-support',
+    tone: 'blue',
+    art: 'support',
+  },
+  {
+    id: 'ready-to-use-tools',
+    tone: 'gold',
+    art: 'tools',
+  },
+];
 
 const sectionEyebrowStyle: CSSProperties = {
   color: HEADING_COLOR,
@@ -94,46 +135,30 @@ const ctaStyle: CSSProperties = {
   lineHeight: 'var(--figma-fontsizes-28, 28px)',
 };
 
-const benefitCards: BenefitCard[] = [
-  {
-    id: 'age-specific',
-    title: 'Age-Specific Strategies',
-    tone: 'gold',
-    art: 'age',
-  },
-  {
-    id: 'guaranteed-confidence',
-    title: 'Guaranteed Confidence',
-    tone: 'blue',
-    art: 'confidence',
-  },
-  {
-    id: 'small-group-learning',
-    title: 'Small Group Learning',
-    tone: 'blue',
-    art: 'group',
-  },
-  {
-    id: 'montessori-positive-discipline',
-    title: 'Montessori + Positive Discipline',
-    tone: 'gold',
-    art: 'montessori',
-  },
-  {
-    id: 'ongoing-support',
-    title: '1-Year Ongoing Support',
-    tone: 'blue',
-    art: 'support',
-  },
-  {
-    id: 'ready-to-use-tools',
-    title: 'Ready-to-Use Tools',
-    description:
-      'Scripts, workbooks, and troubleshooting guides for real-life challenges.',
-    tone: 'gold',
-    art: 'tools',
-  },
-];
+function getBenefitCards(content: WhyJoiningContent): BenefitCard[] {
+  const activeItems =
+    content.items.length > 0 ? content.items : fallbackWhyJoiningCopy.items;
+  const itemById = new Map(activeItems.map((item) => [item.id, item]));
+
+  return benefitCardMeta
+    .map((meta) => {
+      const cardCopy = itemById.get(meta.id);
+      if (!cardCopy) {
+        return null;
+      }
+
+      const descriptionText =
+        typeof cardCopy.description === 'string'
+          ? cardCopy.description.trim()
+          : '';
+      return {
+        ...meta,
+        title: cardCopy.title,
+        description: descriptionText ? descriptionText : undefined,
+      };
+    })
+    .filter((card): card is BenefitCard => card !== null);
+}
 
 function BenefitIcon() {
   return (
@@ -162,9 +187,11 @@ function BenefitIcon() {
 function CardArtwork({
   tone,
   art,
+  supportChipLabel,
 }: {
   tone: BenefitCardTone;
   art: BenefitCardArt;
+  supportChipLabel: string;
 }) {
   const edgeGlow =
     tone === 'gold' ? 'rgba(255, 216, 189, 0.36)' : 'rgba(191, 217, 239, 0.3)';
@@ -289,7 +316,7 @@ function CardArtwork({
                 lineHeight: 'var(--figma-lineheights-connect-now, 100%)',
               }}
             >
-              Connect Now
+              {supportChipLabel}
             </span>
           </div>
         </>
@@ -317,9 +344,19 @@ function CardArtwork({
 }
 
 export function WhyJoining({ content }: WhyJoiningProps) {
+  const sectionTitle = content.title || fallbackWhyJoiningCopy.title;
+  const sectionDescription =
+    content.description || fallbackWhyJoiningCopy.description;
+  const sectionEyebrow = content.eyebrow || fallbackWhyJoiningCopy.eyebrow;
+  const ctaLabel = content.ctaLabel || fallbackWhyJoiningCopy.ctaLabel;
+  const ctaHref = content.ctaHref || fallbackWhyJoiningCopy.ctaHref;
+  const supportChipLabel =
+    content.supportChipLabel || fallbackWhyJoiningCopy.supportChipLabel;
+  const benefitCards = getBenefitCards(content);
+
   return (
     <section
-      aria-label={content.title}
+      aria-label={sectionTitle}
       data-figma-node='Why Joining Our Courses'
       className='relative isolate w-full overflow-hidden px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-24'
       style={{ backgroundColor: SECTION_BG }}
@@ -361,16 +398,19 @@ export function WhyJoining({ content }: WhyJoiningProps) {
                 style={{ backgroundColor: '#5D9D49' }}
               />
             </span>
-            <span style={sectionEyebrowStyle}>{SECTION_EYEBROW}</span>
+            <span style={sectionEyebrowStyle}>{sectionEyebrow}</span>
           </span>
 
           <h2 className='mt-6 text-balance' style={sectionTitleStyle}>
-            {content.title}
+            {sectionTitle}
           </h2>
 
-          {content.description && (
-            <p className='mx-auto mt-5 max-w-[920px] text-balance' style={sectionDescriptionStyle}>
-              {content.description}
+          {sectionDescription && (
+            <p
+              className='mx-auto mt-5 max-w-[920px] text-balance'
+              style={sectionDescriptionStyle}
+            >
+              {sectionDescription}
             </p>
           )}
         </div>
@@ -385,7 +425,11 @@ export function WhyJoining({ content }: WhyJoiningProps) {
                   className='relative isolate flex min-h-[320px] overflow-hidden rounded-[28px] p-5 sm:min-h-[380px] sm:p-7 lg:min-h-[457px] lg:p-8'
                   style={{ backgroundColor: cardBg }}
                 >
-                  <CardArtwork tone={card.tone} art={card.art} />
+                  <CardArtwork
+                    tone={card.tone}
+                    art={card.art}
+                    supportChipLabel={supportChipLabel}
+                  />
 
                   <div className='relative z-10 flex h-full w-full flex-col'>
                     <span className='inline-flex h-[54px] w-[54px] items-center justify-center rounded-full bg-white'>
@@ -412,11 +456,11 @@ export function WhyJoining({ content }: WhyJoiningProps) {
 
         <div className='mt-10 flex justify-center sm:mt-12 lg:mt-14'>
           <Link
-            href='#courses'
+            href={ctaHref}
             className='inline-flex h-[62px] w-full max-w-[488px] items-center justify-center gap-2 rounded-[8px] px-5 text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 sm:h-[70px] sm:px-7 lg:h-[78px]'
             style={ctaStyle}
           >
-            <span>{SECTION_CTA}</span>
+            <span>{ctaLabel}</span>
             <svg
               aria-hidden='true'
               viewBox='0 0 20 20'
