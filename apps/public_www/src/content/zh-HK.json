@@ -47,9 +47,19 @@
     "items": []
   },
   "freeResources": {
-    "title": "免費資源",
+    "eyebrow": "我們的資源",
+    "mediaBadgeLabel": "我們的資源",
+    "title": "溫和育兒免費資源",
     "description": "訪問我們的免費學習資料庫。",
-    "items": []
+    "cardTitle": "免費指南：溫和地說「不」",
+    "cardDescription": "無需內疚也能設下界線...",
+    "ctaLabel": "《溫和說「不」》PDF",
+    "ctaHref": "#resources",
+    "items": [
+      "語氣最關鍵",
+      "少即是多",
+      "以同理心跟進"
+    ]
   },
   "whyJoining": {
     "title": "為什麼加入我們的課程",
