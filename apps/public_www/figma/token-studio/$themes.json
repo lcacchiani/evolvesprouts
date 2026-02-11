@@ -1,0 +1,22 @@
+[
+  {
+    "id": "light",
+    "name": "Light",
+    "selectedTokenSets": {
+      "global": "source",
+      "semantic": "enabled",
+      "component": "enabled"
+    },
+    "$figmaStyleReferences": {}
+  },
+  {
+    "id": "dark",
+    "name": "Dark",
+    "selectedTokenSets": {
+      "global": "source",
+      "semantic": "enabled",
+      "component": "enabled"
+    },
+    "$figmaStyleReferences": {}
+  }
+]
