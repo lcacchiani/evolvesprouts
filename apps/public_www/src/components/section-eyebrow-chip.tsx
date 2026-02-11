@@ -1,19 +1,20 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties } from 'react';
+import Image from 'next/image';
 
 interface SectionEyebrowChipProps {
   label: string;
   labelStyle?: CSSProperties;
-  icon: ReactNode;
   className?: string;
   style?: CSSProperties;
 }
 
 const BASE_CHIP_CLASSNAME = 'inline-flex items-center gap-2 rounded-full border';
+const CHIP_LOGO_SRC = '/images/evolvesprouts-logo.svg';
+const CHIP_LOGO_SIZE = 31;
 
 export function SectionEyebrowChip({
   label,
   labelStyle,
-  icon,
   className,
   style,
 }: SectionEyebrowChipProps) {
@@ -23,7 +24,13 @@ export function SectionEyebrowChip({
 
   return (
     <div className={chipClassName} style={style}>
-      {icon}
+      <Image
+        src={CHIP_LOGO_SRC}
+        alt=''
+        width={CHIP_LOGO_SIZE}
+        height={CHIP_LOGO_SIZE}
+        className='h-[31px] w-[31px] shrink-0'
+      />
       <span style={labelStyle}>{label}</span>
     </div>
   );

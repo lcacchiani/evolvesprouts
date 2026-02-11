@@ -390,27 +390,6 @@ export function WhyJoining({ content }: WhyJoiningProps) {
               backgroundColor: WHITE,
               borderColor: '#FF9D59',
             }}
-            icon={
-              <span
-                aria-hidden='true'
-                className='relative inline-flex h-[23px] w-[31px] items-center justify-center'
-              >
-                <span
-                  className='absolute left-0 top-[6px] h-[10px] w-[10px] rounded-full'
-                  style={{
-                    backgroundColor: 'var(--figma-colors-frame-2147235242, #174879)',
-                  }}
-                />
-                <span
-                  className='absolute right-0 top-[6px] h-[10px] w-[10px] rounded-full'
-                  style={{ backgroundColor: '#B31D1F' }}
-                />
-                <span
-                  className='absolute bottom-0 left-1/2 h-[10px] w-[10px] -translate-x-1/2 rounded-full'
-                  style={{ backgroundColor: '#5D9D49' }}
-                />
-              </span>
-            }
           />
 
           <h2 className='mt-6 text-balance' style={sectionTitleStyle}>

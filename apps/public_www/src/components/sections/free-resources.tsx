@@ -18,11 +18,8 @@ const PANEL_BG = 'var(--figma-colors-frame-2147235252, #F8F8F8)';
 const MEDIA_BG = 'var(--figma-colors-rectangle-240648654, #D9D9D9)';
 const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const CTA_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
-const BRAND_BLUE = 'var(--figma-colors-frame-2147235242, #174879)';
 const BORDER_COLOR = '#EECAB0';
-const RED_ACCENT = '#B31D1F';
 const GREEN_ACCENT = '#5D9D49';
-const GREEN_LIGHT_ACCENT = '#A8CB44';
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_COLOR,
@@ -131,32 +128,6 @@ function resolveChecklistItems(items: unknown): string[] {
     .slice(0, 3);
 }
 
-function EyebrowGlyph() {
-  return (
-    <span
-      aria-hidden='true'
-      className='relative inline-flex h-[23px] w-[31px] items-center justify-center'
-    >
-      <span
-        className='absolute left-[2px] top-[7px] block h-[9px] w-[9px] rounded-full'
-        style={{ backgroundColor: BRAND_BLUE }}
-      />
-      <span
-        className='absolute right-[2px] top-[7px] block h-[9px] w-[9px] rounded-full'
-        style={{ backgroundColor: RED_ACCENT }}
-      />
-      <span
-        className='absolute bottom-[1px] left-1/2 block h-[10px] w-[10px] -translate-x-1/2 rounded-full'
-        style={{ backgroundColor: GREEN_ACCENT }}
-      />
-      <span
-        className='absolute left-[10px] top-[1px] block h-[6px] w-[10px] rounded-full'
-        style={{ backgroundColor: GREEN_LIGHT_ACCENT }}
-      />
-    </span>
-  );
-}
-
 function ChecklistIcon() {
   return (
     <svg
@@ -258,7 +229,6 @@ export function FreeResources({ content }: FreeResourcesProps) {
           <SectionEyebrowChip
             label={eyebrowLabel}
             labelStyle={eyebrowStyle}
-            icon={<EyebrowGlyph />}
             className='px-4 py-[11px] sm:px-5'
             style={{ borderColor: BORDER_COLOR }}
           />
