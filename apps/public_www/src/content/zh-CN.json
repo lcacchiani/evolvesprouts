@@ -6,11 +6,24 @@
   },
   "navbar": {
     "brand": "Evolve Sprouts",
-    "links": {
-      "courses": "课程",
-      "resources": "免费资源",
-      "about": "关于我们",
-      "contact": "联系我们"
+    "logoSrc": "/images/evolvesprouts-logo.svg",
+    "menuItems": [
+      { "label": "Home", "href": "/" },
+      {
+        "label": "Training Courses",
+        "href": "/training-courses",
+        "children": [
+          { "label": "Auntie Training", "href": "/training-courses" },
+          { "label": "Montessori Training", "href": "#" }
+        ]
+      },
+      { "label": "About Us", "href": "/about-us" },
+      { "label": "Events", "href": "/events" },
+      { "label": "Contact Us", "href": "/contact-us" }
+    ],
+    "bookNow": {
+      "label": "Book Now",
+      "href": "/training-courses"
     }
   },
   "hero": {
