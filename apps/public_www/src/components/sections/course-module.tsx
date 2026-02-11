@@ -16,27 +16,10 @@ interface ModuleStep {
   icon: ModuleIconVariant;
 }
 
-const EYEBROW_TEXT = 'Empowering Education';
-
-const MODULE_STEPS: ModuleStep[] = [
-  {
-    step: '01',
-    title: '1st Module',
-    week: 'Week 01-04',
-    icon: 'foundation',
-  },
-  {
-    step: '02',
-    title: '2nd Module',
-    week: 'Week 05-08',
-    icon: 'coaching',
-  },
-  {
-    step: '03',
-    title: '3rd Module',
-    week: 'Week 09-12',
-    icon: 'practice',
-  },
+const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
+  'foundation',
+  'coaching',
+  'practice',
 ];
 
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
@@ -213,7 +196,22 @@ function ModuleGlyph({ variant }: { variant: ModuleIconVariant }) {
   );
 }
 
+function isModuleIconVariant(value: string): value is ModuleIconVariant {
+  return (
+    value === 'foundation' || value === 'coaching' || value === 'practice'
+  );
+}
+
 export function CourseModule({ content }: CourseModuleProps) {
+  const moduleSteps: ModuleStep[] = content.modules.map((module, index) => ({
+    step: module.step,
+    title: module.title,
+    week: module.week,
+    icon: isModuleIconVariant(module.icon)
+      ? module.icon
+      : DEFAULT_STEP_ICONS[index] ?? 'foundation',
+  }));
+
   return (
     <section
       id='courses'
@@ -259,7 +257,7 @@ export function CourseModule({ content }: CourseModuleProps) {
                 style={{ backgroundColor: '#5D9D49' }}
               />
             </span>
-            <span style={eyebrowTextStyle}>{EYEBROW_TEXT}</span>
+            <span style={eyebrowTextStyle}>{content.eyebrow}</span>
           </div>
 
           <h2 className='mt-6 text-balance' style={titleStyle}>
@@ -275,9 +273,9 @@ export function CourseModule({ content }: CourseModuleProps) {
           />
 
           <ul className='relative grid gap-7 lg:grid-cols-3 lg:gap-8'>
-            {MODULE_STEPS.map((module, index) => {
+            {moduleSteps.map((module, index) => {
               const stepTextColor =
-                index === MODULE_STEPS.length - 1
+                index === moduleSteps.length - 1
                   ? MUTED_STEP_TEXT
                   : 'var(--figma-colors-desktop, #FFFFFF)';
               const titleStyleByIndex =
@@ -287,7 +285,7 @@ export function CourseModule({ content }: CourseModuleProps) {
 
               return (
                 <li key={module.step} className='relative pl-16 lg:pl-0 lg:pt-10'>
-                  {index !== MODULE_STEPS.length - 1 && (
+                  {index !== moduleSteps.length - 1 && (
                     <span
                       aria-hidden='true'
                       className='absolute bottom-[-22px] left-[26px] top-[74px] w-[2px] lg:hidden'
@@ -388,11 +386,11 @@ export function CourseModule({ content }: CourseModuleProps) {
           )}
 
           <Link
-            href='#resources'
+            href={content.ctaHref}
             className='mt-8 inline-flex h-[62px] w-full max-w-[491px] items-center justify-center rounded-[10px] px-5 text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/30 sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
             style={ctaStyle}
           >
-            Get Started - Train Auntie Today
+            {content.ctaLabel}
           </Link>
         </div>
       </div>
