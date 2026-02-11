@@ -22,8 +22,11 @@ Figma Design File
     ├── figma:build:studio → src/app/generated/figma-tokens.css
     │                         (CSS custom properties)
     │
-    └── figma:scaffold ──→ src/components/sections/<name>.tsx (new only)
-                            src/content/*.json (new keys only)
+    ├── figma:scaffold ──→ src/components/sections/<name>.tsx (new only)
+    │                       src/content/*.json (new keys only)
+    │
+    └── figma:specs ─────→ figma/design-specs/<name>.json
+                            (structured design data for cloud agents)
 ```
 
 ## Key principles
@@ -57,12 +60,15 @@ apps/public_www/
 │   │   ├── global.json           # ← overwritten on each sync
 │   │   ├── semantic.json         # ← hand-edited, preserved
 │   │   └── component.json        # ← hand-edited, preserved
+│   ├── design-specs/             # Structured design data (tracked)
+│   │   └── <section>.json        # ← overwritten on each sync
 │   └── README.md
 ├── scripts/figma/
 │   ├── pull-figma-tokens.mjs     # Fetch Figma file via OAuth2 API
 │   ├── figma-to-token-studio.mjs # Extract tokens from file.json
 │   ├── build-from-token-studio.mjs # Generate CSS from tokens
 │   ├── scaffold-components.mjs   # Scaffold new section components
+│   ├── extract-design-specs.mjs  # Extract design specs for cloud agents
 │   ├── generate-refresh-token.mjs # OAuth refresh token generator
 │   └── launch-figma-mcp.mjs     # MCP server launcher (OAuth2)
 ├── src/
@@ -98,6 +104,7 @@ apps/public_www/
 | `figma/token-studio/semantic.json` | **Preserved** — hand-curated aliases |
 | `figma/token-studio/component.json` | **Preserved** — hand-curated |
 | `src/app/generated/figma-tokens.css` | **Overwritten** — always from tokens |
+| `figma/design-specs/*.json` | **Overwritten** — always from Figma |
 | `src/components/sections/*.tsx` | **Preserved** — scaffolded once, then owned by developer |
 | `src/content/*.json` | **Preserved** — new keys appended, existing keys untouched |
 | `src/app/[locale]/page.tsx` | **Never touched** — always hand-edited |
@@ -111,8 +118,9 @@ apps/public_www/
 | `figma:tokenize` | Extract design tokens → Token Studio JSON |
 | `figma:build:studio` | Build CSS custom properties from tokens |
 | `figma:scaffold` | Scaffold new section components (idempotent) |
+| `figma:specs` | Extract design specs for cloud agents |
 | `figma:studio-sync` | pull → tokenize → build |
-| `figma:full-sync` | pull → tokenize → build → scaffold |
+| `figma:full-sync` | pull → tokenize → build → scaffold → specs |
 | `build` | build:studio → next build |
 
 ## Token extraction
@@ -207,6 +215,42 @@ Commits only if tokens, components, or content keys changed.
 Runs: on push to main affecting `apps/public_www/`.
 
 Pipeline: `pull → tokenize → build → next build → deploy`
+
+## Implementing components via Cursor cloud agents
+
+Cloud agents cannot use the MCP server (it requires a local process)
+and `figma/files/file.json` is gitignored. Instead, the pipeline
+generates committed **design spec** files that any agent can read.
+
+### Design specs
+
+`figma/design-specs/<section>.json` contains the structured visual
+properties for each section: colors, fonts, layout, dimensions,
+effects, and text content — extracted directly from the Figma node
+tree.
+
+These files are **overwritten on each sync** (they are generated,
+not hand-edited).
+
+### Cloud agent workflow
+
+To implement a section component, open a Cursor cloud agent task
+with a prompt like:
+
+> Implement the hero-banner component at
+> `apps/public_www/src/components/sections/hero-banner.tsx`.
+> Read the design spec at
+> `apps/public_www/figma/design-specs/banner.json` for the visual
+> design (colors, fonts, layout, dimensions). Read
+> `apps/public_www/src/content/en.json` (hero section) for text
+> content. Use CSS custom properties from
+> `apps/public_www/src/app/generated/figma-tokens.css` where
+> available, and Tailwind for layout. Make it responsive
+> (mobile-first).
+
+The agent reads the committed spec file, sees the exact design
+properties from Figma, and implements the component without
+needing Figma API access.
 
 ## Cursor MCP integration
 
