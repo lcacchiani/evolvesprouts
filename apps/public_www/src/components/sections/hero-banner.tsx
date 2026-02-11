@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { BackgroundGlow } from '@/components/background-glow';
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import type { HeroContent } from '@/content';
 
 interface HeroBannerProps {
@@ -104,13 +105,13 @@ export function HeroBanner({ content }: HeroBannerProps) {
             </p>
           </div>
 
-          <a
+          <SectionCtaAnchor
             href='#courses'
-            className='inline-flex h-[64px] w-full max-w-[491px] items-center justify-center rounded-[10px] px-5 text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 sm:h-[72px] sm:px-7 lg:h-[81px]'
+            className='h-[64px] w-full max-w-[491px] rounded-[10px] px-5 focus-visible:outline-black/40 sm:h-[72px] sm:px-7 lg:h-[81px]'
             style={ctaStyle}
           >
             {content.cta}
-          </a>
+          </SectionCtaAnchor>
         </div>
 
         <div className='relative mx-auto w-full max-w-[764px] lg:mx-0 lg:justify-self-end'>

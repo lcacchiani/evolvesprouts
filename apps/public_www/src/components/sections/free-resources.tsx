@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 
 import { BackgroundGlow } from '@/components/background-glow';
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { FreeResourcesContent } from '@/content';
@@ -346,14 +347,14 @@ export function FreeResources({ content }: FreeResourcesProps) {
                   </ul>
                 )}
 
-                <a
+                <SectionCtaAnchor
                   href={ctaHref}
-                  className='mt-auto inline-flex h-[58px] w-full max-w-[327px] items-center justify-center gap-[11px] rounded-lg px-5 text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/35 sm:h-[67px] sm:px-6'
+                  className='mt-auto h-[58px] w-full max-w-[327px] gap-[11px] rounded-lg px-5 focus-visible:outline-black/35 sm:h-[67px] sm:px-6'
                   style={ctaStyle}
                 >
                   <DownloadIcon />
                   <span className='whitespace-nowrap'>{ctaLabel}</span>
-                </a>
+                </SectionCtaAnchor>
 
                 <div className='pointer-events-none absolute -bottom-16 -right-14 opacity-55'>
                   <DecorativeMark />

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
-import Link from 'next/link';
 
 import { BackgroundGlow } from '@/components/background-glow';
+import { SectionCtaLink } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { WhyJoiningContent } from '@/content';
@@ -467,9 +467,9 @@ export function WhyJoining({ content }: WhyJoiningProps) {
         </ul>
 
         <div className='mt-10 flex justify-center sm:mt-12 lg:mt-14'>
-          <Link
+          <SectionCtaLink
             href={ctaHref}
-            className='inline-flex h-[62px] w-full max-w-[488px] items-center justify-center gap-2 rounded-[8px] px-5 text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 sm:h-[70px] sm:px-7 lg:h-[78px]'
+            className='h-[62px] w-full max-w-[488px] gap-2 rounded-[8px] px-5 focus-visible:outline-black/40 sm:h-[70px] sm:px-7 lg:h-[78px]'
             style={ctaStyle}
           >
             <span>{ctaLabel}</span>
@@ -488,7 +488,7 @@ export function WhyJoining({ content }: WhyJoiningProps) {
                 strokeLinejoin='round'
               />
             </svg>
-          </Link>
+          </SectionCtaLink>
         </div>
       </div>
     </SectionShell>

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
-import Link from 'next/link';
 
 import { BackgroundGlow } from '@/components/background-glow';
+import { SectionCtaLink } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { CourseModuleContent } from '@/content';
@@ -383,13 +383,13 @@ export function CourseModule({ content }: CourseModuleProps) {
             </p>
           )}
 
-          <Link
+          <SectionCtaLink
             href={content.ctaHref}
-            className='mt-8 inline-flex h-[62px] w-full max-w-[491px] items-center justify-center rounded-[10px] px-5 text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/30 sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
+            className='mt-8 h-[62px] w-full max-w-[491px] rounded-[10px] px-5 focus-visible:outline-black/30 sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
             style={ctaStyle}
           >
             {content.ctaLabel}
-          </Link>
+          </SectionCtaLink>
         </div>
       </div>
     </SectionShell>
