@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "Framelink Figma MCP": {
+      "command": "node",
+      "args": [
+        "apps/public_www/scripts/figma/launch-figma-mcp.mjs"
+      ],
+      "env": {
+        "FIGMA_OAUTH_CLIENT_ID": "${FIGMA_OAUTH_CLIENT_ID}",
+        "FIGMA_OAUTH_CLIENT_SECRET": "${FIGMA_OAUTH_CLIENT_SECRET}",
+        "FIGMA_OAUTH_REFRESH_TOKEN": "${FIGMA_OAUTH_REFRESH_TOKEN}"
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "colors": {
+    "white": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Pure white"
+    },
+    "black": {
+      "value": "#000000",
+      "type": "color",
+      "description": "Pure black"
+    }
+  },
+  "spacing": {},
+  "borderRadius": {},
+  "borderWidth": {},
+  "opacity": {},
+  "fontFamilies": {},
+  "fontWeights": {},
+  "fontSizes": {},
+  "lineHeights": {},
+  "letterSpacing": {},
+  "paragraphSpacing": {},
+  "boxShadow": {}
+}
