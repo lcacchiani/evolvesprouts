@@ -71,14 +71,16 @@
     "mediaBadgeLabel": "Our Resources",
     "title": "Free Resources for Gentle Parenting",
     "description": "Access our library of free learning materials.",
-    "cardTitle": "Free Guide: The Gentle \"No\"",
-    "cardDescription": "Set Boundaries Without Guilt...",
-    "ctaLabel": "The Gentle 'No' PDF",
+    "cardTitle": "Free Guide: 4 Simple Ways to Teach Patience to Young Children",
+    "cardDescription": "Gentle Strategies for Busy Parents",
+    "mediaTitleLine1": "Teach Patience",
+    "mediaTitleLine2": "to Young Children",
+    "ctaLabel": "Get 4 Ways to Teach Patience",
     "ctaHref": "#resources",
     "items": [
-      "Tone is everything",
-      "Less is more",
-      "Follow up with empathy"
+      "The “First…Then” Trick: Links waiting to a clear, concrete action.",
+      "Make Time Visible: Use a visual timer for results.",
+      "Stay Consistent: Set 2-3 non-negotiable waits daily."
     ]
   },
   "whyJoining": {
