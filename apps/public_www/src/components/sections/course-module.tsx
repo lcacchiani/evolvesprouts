@@ -2,6 +2,8 @@ import type { CSSProperties } from 'react';
 import Link from 'next/link';
 
 import { BackgroundGlow } from '@/components/background-glow';
+import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionShell } from '@/components/section-shell';
 import type { CourseModuleContent } from '@/content';
 
 interface CourseModuleProps {
@@ -214,11 +216,11 @@ export function CourseModule({ content }: CourseModuleProps) {
   }));
 
   return (
-    <section
+    <SectionShell
       id='courses'
-      aria-label={content.title}
-      data-figma-node='Course module'
-      className='relative isolate w-full overflow-hidden px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-24'
+      ariaLabel={content.title}
+      dataFigmaNode='Course module'
+      className='relative isolate overflow-hidden'
       style={{ backgroundColor: SECTION_BG }}
     >
       <BackgroundGlow
@@ -228,34 +230,36 @@ export function CourseModule({ content }: CourseModuleProps) {
 
       <div className='relative mx-auto w-full max-w-[1585px]'>
         <div className='mx-auto max-w-[760px] text-center'>
-          <div
-            className='inline-flex items-center gap-2 rounded-full border px-4 py-2.5 sm:px-5'
+          <SectionEyebrowChip
+            label={content.eyebrow}
+            labelStyle={eyebrowTextStyle}
+            className='px-4 py-2.5 sm:px-5'
             style={{
               backgroundColor: 'var(--figma-colors-desktop, #FFFFFF)',
               borderColor: '#EECAB0',
               backdropFilter: 'blur(14px)',
             }}
-          >
-            <span
-              aria-hidden='true'
-              className='relative inline-flex h-[31px] w-[31px] items-center justify-center rounded-full'
-              style={{ backgroundColor: 'rgba(23, 72, 121, 0.14)' }}
-            >
+            icon={
               <span
-                className='absolute left-[7px] top-[8px] h-[8px] w-[8px] rounded-full'
-                style={{ backgroundColor: BRAND_BLUE }}
-              />
-              <span
-                className='absolute right-[7px] top-[8px] h-[8px] w-[8px] rounded-full'
-                style={{ backgroundColor: '#B31D1F' }}
-              />
-              <span
-                className='absolute bottom-[7px] left-1/2 h-[8px] w-[8px] -translate-x-1/2 rounded-full'
-                style={{ backgroundColor: '#5D9D49' }}
-              />
-            </span>
-            <span style={eyebrowTextStyle}>{content.eyebrow}</span>
-          </div>
+                aria-hidden='true'
+                className='relative inline-flex h-[31px] w-[31px] items-center justify-center rounded-full'
+                style={{ backgroundColor: 'rgba(23, 72, 121, 0.14)' }}
+              >
+                <span
+                  className='absolute left-[7px] top-[8px] h-[8px] w-[8px] rounded-full'
+                  style={{ backgroundColor: BRAND_BLUE }}
+                />
+                <span
+                  className='absolute right-[7px] top-[8px] h-[8px] w-[8px] rounded-full'
+                  style={{ backgroundColor: '#B31D1F' }}
+                />
+                <span
+                  className='absolute bottom-[7px] left-1/2 h-[8px] w-[8px] -translate-x-1/2 rounded-full'
+                  style={{ backgroundColor: '#5D9D49' }}
+                />
+              </span>
+            }
+          />
 
           <h2 className='mt-6 text-balance' style={titleStyle}>
             {content.title}
@@ -388,6 +392,6 @@ export function CourseModule({ content }: CourseModuleProps) {
           </Link>
         </div>
       </div>
-    </section>
+    </SectionShell>
   );
 }

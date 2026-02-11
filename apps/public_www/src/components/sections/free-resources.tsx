@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
 
 import { BackgroundGlow } from '@/components/background-glow';
+import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionShell } from '@/components/section-shell';
 import type { FreeResourcesContent } from '@/content';
 
 interface FreeResourcesProps {
@@ -244,22 +246,21 @@ export function FreeResources({ content }: FreeResourcesProps) {
   const checklistItems = resolveChecklistItems(content.items);
 
   return (
-    <section
+    <SectionShell
       id='resources'
-      aria-label={content.title}
-      data-figma-node='Free Resources'
-      className='w-full px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-24'
+      ariaLabel={content.title}
+      dataFigmaNode='Free Resources'
       style={{ backgroundColor: SECTION_BG }}
     >
       <div className='mx-auto w-full max-w-[1464px]'>
         <div className='mx-auto max-w-[760px] text-center'>
-          <div
-            className='inline-flex items-center gap-2 rounded-full border px-4 py-[11px] sm:px-5'
+          <SectionEyebrowChip
+            label={eyebrowLabel}
+            labelStyle={eyebrowStyle}
+            icon={<EyebrowGlyph />}
+            className='px-4 py-[11px] sm:px-5'
             style={{ borderColor: BORDER_COLOR }}
-          >
-            <EyebrowGlyph />
-            <span style={eyebrowStyle}>{eyebrowLabel}</span>
-          </div>
+          />
 
           <h2 className='mt-6 text-balance' style={sectionTitleStyle}>
             {content.title}
@@ -362,6 +363,6 @@ export function FreeResources({ content }: FreeResourcesProps) {
           </div>
         </div>
       </div>
-    </section>
+    </SectionShell>
   );
 }

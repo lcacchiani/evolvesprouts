@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
 
 import { BackgroundGlow } from '@/components/background-glow';
+import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionShell } from '@/components/section-shell';
 import type { RealStoriesContent } from '@/content';
 
 interface RealStoriesProps {
@@ -322,10 +324,10 @@ export function RealStories({ content }: RealStoriesProps) {
   const nextButtonLabel = story?.nextButtonLabel ?? badgeLabel;
 
   return (
-    <section
-      aria-label={content.title}
-      data-figma-node='Real Stories'
-      className='relative isolate w-full overflow-hidden px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-24'
+    <SectionShell
+      ariaLabel={content.title}
+      dataFigmaNode='Real Stories'
+      className='relative isolate overflow-hidden'
       style={{ backgroundColor: SECTION_BG }}
     >
       <div
@@ -341,18 +343,20 @@ export function RealStories({ content }: RealStoriesProps) {
       <div className='relative mx-auto w-full max-w-[1488px]'>
         <div className='flex flex-col items-center gap-6 lg:gap-8'>
           <div className='flex w-full flex-col items-center justify-between gap-4 sm:flex-row'>
-            <div
-              className='inline-flex items-center gap-2 rounded-full border px-4 py-2.5'
+            <SectionEyebrowChip
+              label={badgeLabel}
+              labelStyle={badgeTextStyle}
+              className='px-4 py-2.5'
               style={{
                 borderColor: BADGE_BORDER,
                 backgroundColor: 'rgba(255, 255, 255, 0.64)',
               }}
-            >
-              <span className='inline-flex h-[31px] w-[31px] items-center justify-center'>
-                <BadgeMark className='h-[31px] w-[31px]' />
-              </span>
-              <span style={badgeTextStyle}>{badgeLabel}</span>
-            </div>
+              icon={
+                <span className='inline-flex h-[31px] w-[31px] items-center justify-center'>
+                  <BadgeMark className='h-[31px] w-[31px]' />
+                </span>
+              }
+            />
 
             <div className='flex items-center gap-[14px] sm:gap-[21px]'>
               <button
@@ -470,6 +474,6 @@ export function RealStories({ content }: RealStoriesProps) {
           </div>
         </div>
       </div>
-    </section>
+    </SectionShell>
   );
 }
