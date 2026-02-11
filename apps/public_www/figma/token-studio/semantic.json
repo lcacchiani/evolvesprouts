@@ -1,16 +1,1 @@
-{
-  "fg": {
-    "default": {
-      "value": "{colors.black}",
-      "type": "color",
-      "description": "Default foreground color"
-    }
-  },
-  "bg": {
-    "default": {
-      "value": "{colors.white}",
-      "type": "color",
-      "description": "Default background color"
-    }
-  }
-}
+{}
