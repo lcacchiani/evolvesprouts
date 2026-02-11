@@ -124,15 +124,17 @@ jobs:
         env:
           FIGMA_TOKEN_ROOT_NODE: ${{ vars.PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE }}
 
-      - name: Check for changes
+      - name: Stage and check for changes
         id: changes
         run: |
-          git diff --quiet -- \
+          git add \
             apps/public_www/figma/token-studio/ \
             apps/public_www/figma/design-specs/ \
             apps/public_www/src/app/generated/figma-tokens.css \
             apps/public_www/src/components/sections/ \
-            apps/public_www/src/content/ \
+            apps/public_www/src/content/
+
+          git diff --cached --quiet \
           && echo "has_changes=false" >> "$GITHUB_OUTPUT" \
           || echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
@@ -144,13 +146,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add \
-            apps/public_www/figma/token-studio/ \
-            apps/public_www/figma/design-specs/ \
-            apps/public_www/src/app/generated/figma-tokens.css \
-            apps/public_www/src/components/sections/ \
-            apps/public_www/src/content/
 
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
           git commit -m "chore(tokens): sync Figma design tokens — ${TIMESTAMP}
