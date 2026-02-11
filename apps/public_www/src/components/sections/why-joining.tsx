@@ -139,25 +139,34 @@ function getBenefitCards(content: WhyJoiningContent): BenefitCard[] {
   const activeItems =
     content.items.length > 0 ? content.items : fallbackWhyJoiningCopy.items;
   const itemById = new Map(activeItems.map((item) => [item.id, item]));
+  const cards: BenefitCard[] = [];
 
-  return benefitCardMeta
-    .map((meta) => {
-      const cardCopy = itemById.get(meta.id);
-      if (!cardCopy) {
-        return null;
-      }
+  for (const meta of benefitCardMeta) {
+    const cardCopy = itemById.get(meta.id);
+    if (!cardCopy) {
+      continue;
+    }
 
-      const descriptionText =
-        typeof cardCopy.description === 'string'
-          ? cardCopy.description.trim()
-          : '';
-      return {
+    const descriptionText =
+      typeof cardCopy.description === 'string'
+        ? cardCopy.description.trim()
+        : '';
+
+    if (descriptionText) {
+      cards.push({
         ...meta,
         title: cardCopy.title,
-        description: descriptionText ? descriptionText : undefined,
-      };
-    })
-    .filter((card): card is BenefitCard => card !== null);
+        description: descriptionText,
+      });
+    } else {
+      cards.push({
+        ...meta,
+        title: cardCopy.title,
+      });
+    }
+  }
+
+  return cards;
 }
 
 function BenefitIcon() {
