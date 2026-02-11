@@ -62,9 +62,44 @@
     ]
   },
   "whyJoining": {
+    "eyebrow": "課程亮點",
     "title": "為什麼加入我們的課程",
-    "description": "了解與我們一起學習的好處。",
-    "items": []
+    "description": "把姨姨培訓成以蒙特梭利為導向的幼兒發展夥伴！",
+    "ctaLabel": "立即開始 - 今天就培訓姨姨",
+    "ctaHref": "#courses",
+    "supportChipLabel": "立即聯絡",
+    "items": [
+      {
+        "id": "age-specific",
+        "title": "按年齡制定策略",
+        "description": ""
+      },
+      {
+        "id": "guaranteed-confidence",
+        "title": "信心保證",
+        "description": ""
+      },
+      {
+        "id": "small-group-learning",
+        "title": "小組學習",
+        "description": ""
+      },
+      {
+        "id": "montessori-positive-discipline",
+        "title": "蒙特梭利 + 正向管教",
+        "description": ""
+      },
+      {
+        "id": "ongoing-support",
+        "title": "1年持續支援",
+        "description": ""
+      },
+      {
+        "id": "ready-to-use-tools",
+        "title": "即用工具",
+        "description": "為真實生活挑戰提供話術、工作簿和疑難排解指南。"
+      }
+    ]
   },
   "realStories": {
     "title": "真實故事",
