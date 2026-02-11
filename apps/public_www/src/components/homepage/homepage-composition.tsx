@@ -1,9 +1,6 @@
-import Image from 'next/image';
-
 import {
   HOMEPAGE_COLORS,
   HOMEPAGE_DESKTOP_DIMENSIONS,
-  HOMEPAGE_MOBILE_FULL_IMAGE,
 } from './homepage-design-tokens';
 import {
   BannerNode,
@@ -21,15 +18,26 @@ export function HomepageComposition() {
     <main className='bg-[#FFEFE3] text-slate-900'>
       <div className='mx-auto max-w-[1920px]'>
         <div className='lg:hidden'>
-          <Image
-            src={HOMEPAGE_MOBILE_FULL_IMAGE.src}
-            alt='Evolve Sprouts homepage mobile composition'
-            width={HOMEPAGE_MOBILE_FULL_IMAGE.width}
-            height={HOMEPAGE_MOBILE_FULL_IMAGE.height}
-            className='h-auto w-full'
-            priority
-            sizes='100vw'
+          <NavbarNode mode='stacked' sectionClassName='bg-[#121212]' />
+          <BannerNode mode='stacked' sectionClassName='-mt-px bg-[#121212]' />
+          <CourseModuleNode
+            mode='stacked'
+            sectionClassName='-mt-px bg-[#121212]'
           />
+          <FreeResourcesNode
+            mode='stacked'
+            sectionClassName='-mt-px bg-[#121212]'
+          />
+          <WhyJoiningOurCoursesNode mode='stacked' sectionClassName='-mt-px' />
+          <FreeResourcesSecondaryNode
+            mode='stacked'
+            sectionClassName='-mt-px bg-[#121212]'
+          />
+          <RealStoriesNode
+            mode='stacked'
+            sectionClassName='-mt-px bg-[#121212]'
+          />
+          <FooterNode mode='stacked' sectionClassName='-mt-px' />
         </div>
 
         <div

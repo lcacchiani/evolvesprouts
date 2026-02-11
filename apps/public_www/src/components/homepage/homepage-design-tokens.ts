@@ -122,9 +122,3 @@ export const FOOTER_NODE: HomepageNodeFrame = {
   imageWidth: 3840,
   imageHeight: 2966,
 };
-
-export const HOMEPAGE_MOBILE_FULL_IMAGE = {
-  src: `${NODE_IMAGE_BASE_PATH}/mobile-full.png`,
-  width: 787,
-  height: 16384,
-} as const;
