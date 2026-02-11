@@ -1,5 +1,5 @@
-import { HomepageComposition } from '@/components/homepage/homepage-composition';
+import { redirect } from 'next/navigation';
 
-export default function HomePage() {
-  return <HomepageComposition />;
+export default function RootPage() {
+  redirect('/en');
 }
