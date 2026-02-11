@@ -18,6 +18,10 @@
     "subheadline": "Expert-led courses designed for young learners.",
     "cta": "Get Started"
   },
+  "whatsappContact": {
+    "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
+    "ariaLabel": "Contact us on WhatsApp"
+  },
   "courseModule": {
     "eyebrow": "Empowering Education",
     "title": "Our Courses",
