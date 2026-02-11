@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import type { ReactNode } from 'react';
 
+import { WhatsappContactButton } from '@/components/whatsapp-contact-button';
+import { DEFAULT_LOCALE, getContent } from '@/content';
 import './globals.css';
 
 const stagingBadgeScript = `
@@ -38,6 +40,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+const whatsappContact = getContent(DEFAULT_LOCALE).whatsappContact;
+
 export default function RootLayout({
   children,
 }: {
@@ -56,6 +60,10 @@ export default function RootLayout({
           {stagingBadgeScript}
         </Script>
         {children}
+        <WhatsappContactButton
+          href={whatsappContact.href}
+          ariaLabel={whatsappContact.ariaLabel}
+        />
       </body>
     </html>
   );
