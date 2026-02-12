@@ -14,6 +14,16 @@ interface FooterLinkItem {
   icon?: string;
 }
 
+function resolveCurrentYearCopyright(value: string): string {
+  const currentYear = String(new Date().getFullYear());
+  if (/\b\d{4}\b/.test(value)) {
+    return value.replace(/\b\d{4}\b/, currentYear);
+  }
+
+  const normalizedValue = value.replace(/^©\s*/, '').trim();
+  return `© ${currentYear} ${normalizedValue}`;
+}
+
 const FOOTER_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const HEADING_TEXT_COLOR =
@@ -159,7 +169,7 @@ function AccordionChevronIcon() {
     <svg
       aria-hidden='true'
       viewBox='0 0 18 10'
-      className='h-[9px] w-[17px] shrink-0 transition-transform duration-200 group-open:rotate-180'
+      className='h-[9px] w-[17px] shrink-0 transition-transform duration-300 group-open:rotate-180'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -178,25 +188,33 @@ function FooterMobileAccordion({
   title,
   items,
   hasSocialIcons = false,
+  hasTopBorder = true,
 }: {
   title: string;
   items: FooterLinkItem[];
   hasSocialIcons?: boolean;
+  hasTopBorder?: boolean;
 }) {
   return (
-    <details className='group border-t border-black/15 py-5'>
+    <details className={`group ${hasTopBorder ? 'border-t border-black/15' : ''} py-5`}>
       <summary className='flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden'>
         <span style={columnTitleStyle}>{title}</span>
         <AccordionChevronIcon />
       </summary>
-      <div className='pt-3'>
-        <FooterColumnLinks items={items} hasSocialIcons={hasSocialIcons} />
+      <div
+        className='grid grid-rows-[0fr] overflow-hidden opacity-0 transition-[grid-template-rows,opacity] duration-300 ease-out group-open:grid-rows-[1fr] group-open:opacity-100'
+      >
+        <div className='min-h-0 pt-3'>
+          <FooterColumnLinks items={items} hasSocialIcons={hasSocialIcons} />
+        </div>
       </div>
     </details>
   );
 }
 
 export function Footer({ content }: FooterProps) {
+  const copyrightText = resolveCurrentYearCopyright(content.copyright);
+
   return (
     <footer
       data-figma-node='footer'
@@ -239,14 +257,15 @@ export function Footer({ content }: FooterProps) {
               <Image
                 src='/images/footer-icon.webp'
                 alt={content.brand}
-                width={120}
-                height={120}
-                className='h-auto w-[92px]'
+                width={400}
+                height={400}
+                className='h-auto w-[400px] max-w-full'
               />
             </div>
             <FooterMobileAccordion
               title={content.quickLinks.title}
               items={content.quickLinks.items}
+              hasTopBorder={false}
             />
             <FooterMobileAccordion
               title={content.services.title}
@@ -266,8 +285,8 @@ export function Footer({ content }: FooterProps) {
       </section>
 
       <div className='w-full px-4 pb-8 sm:px-6 lg:px-8'>
-        <div className='mx-auto w-full max-w-[1465px]'>
-          <p style={copyrightStyle}>{content.copyright}</p>
+        <div className='mx-auto w-full max-w-[1465px] text-center'>
+          <p style={copyrightStyle}>{copyrightText}</p>
         </div>
       </div>
     </footer>

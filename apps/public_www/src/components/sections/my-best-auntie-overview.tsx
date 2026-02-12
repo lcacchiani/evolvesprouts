@@ -327,15 +327,6 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
       className='relative isolate overflow-hidden'
       style={{ backgroundColor: SECTION_BG }}
     >
-      <div
-        aria-hidden='true'
-        className='pointer-events-none absolute inset-0'
-        style={{
-          background:
-            'radial-gradient(circle at 20% 18%, rgba(247, 198, 0, 0.14) 0%, rgba(247, 198, 0, 0) 43%), radial-gradient(circle at 78% 24%, rgba(69, 146, 222, 0.15) 0%, rgba(69, 146, 222, 0) 50%), radial-gradient(circle at 50% 86%, rgba(231, 108, 61, 0.12) 0%, rgba(231, 108, 61, 0) 52%)',
-        }}
-      />
-
       <div className='relative mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[760px] text-center'>
           <SectionEyebrowChip
