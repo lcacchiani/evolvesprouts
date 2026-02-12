@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
+import { readOptionalText } from '@/content/content-field-utils';
 import type { FreeResourcesContent } from '@/content';
 
 interface FreeResourcesProps {
@@ -96,19 +97,6 @@ const mediaOverlayTitleStyle: CSSProperties = {
   textShadow: '0px 10px 22px rgba(0, 0, 0, 0.36)',
 };
 
-function readOptionalText(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const trimmedValue = value.trim();
-  if (!trimmedValue) {
-    return null;
-  }
-
-  return trimmedValue;
-}
-
 function resolveChecklistItems(items: unknown): string[] {
   if (!Array.isArray(items)) {
     return [];
@@ -130,9 +118,9 @@ function resolveChecklistItems(items: unknown): string[] {
         );
       }
 
-      return null;
+      return undefined;
     })
-    .filter((item): item is string => item !== null)
+    .filter((item): item is string => item !== undefined)
     .slice(0, 3);
 }
 

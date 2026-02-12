@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "audit:assets": "node ./scripts/audit-assets.mjs",
     "figma:auth": "node ./scripts/figma/generate-refresh-token.mjs",
     "figma:pull": "node ./scripts/figma/pull-figma-tokens.mjs",
     "figma:tokenize": "node ./scripts/figma/figma-to-token-studio.mjs",
