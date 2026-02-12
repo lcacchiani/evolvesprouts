@@ -14,7 +14,7 @@ export default function NotFoundPage() {
         tabIndex={-1}
         className='mx-auto flex min-h-[58vh] w-full max-w-[1465px] items-center px-4 py-16 sm:px-6 lg:px-8'
       >
-        <Whoops />
+        <Whoops content={content.whoops} />
       </main>
       <Footer content={content.footer} />
     </>

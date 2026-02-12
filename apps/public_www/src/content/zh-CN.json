@@ -211,6 +211,11 @@
     "ctaLabel": "订阅我们的每月通讯",
     "ctaHref": "/contact-us"
   },
+  "whoops": {
+    "code": "404",
+    "title": "页面未找到",
+    "description": "抱歉，您输入的页面键无效。"
+  },
   "footer": {
     "brand": "Evolve Sprouts",
     "communityHeading": "加入我们的 Sprouts Squad 社区！",

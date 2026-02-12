@@ -211,6 +211,11 @@
     "ctaLabel": "Sign Up to Our Monthly Newsletter",
     "ctaHref": "/contact-us"
   },
+  "whoops": {
+    "code": "404",
+    "title": "Page not found",
+    "description": "Sorry, the page key you entered is invalid."
+  },
   "footer": {
     "brand": "Evolve Sprouts",
     "communityHeading": "Join our Sprouts Squad community!",
