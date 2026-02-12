@@ -24,6 +24,30 @@
     "bookNow": {
       "label": "Book Now",
       "href": "/training-courses"
+    },
+    "languageSelector": {
+      "menuAriaLabel": "Select language",
+      "selectedLanguageAriaPrefix": "Selected language",
+      "options": [
+        {
+          "locale": "en",
+          "label": "English",
+          "shortLabel": "Eng",
+          "flagSrc": "/flags/gb.png"
+        },
+        {
+          "locale": "zh-CN",
+          "label": "Chinese (Simplified)",
+          "shortLabel": "SC",
+          "flagSrc": "/flags/cn.png"
+        },
+        {
+          "locale": "zh-HK",
+          "label": "Chinese (Traditional)",
+          "shortLabel": "TC",
+          "flagSrc": "/flags/hk.png"
+        }
+      ]
     }
   },
   "hero": {
