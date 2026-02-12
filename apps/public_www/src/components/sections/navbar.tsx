@@ -153,10 +153,6 @@ function normalizePath(path: string): string {
 
 function localizePath(path: string, locale: Locale): string {
   const basePath = normalizePath(path);
-  if (locale === DEFAULT_LOCALE) {
-    return basePath;
-  }
-
   return basePath === '/' ? `/${locale}` : `/${locale}${basePath}`;
 }
 

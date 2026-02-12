@@ -55,6 +55,10 @@
     "subheadline": "Foster independence, joy, and confidence - with training that turns screen time into meaningful play.",
     "cta": "Get Started - Train Auntie Today"
   },
+  "whatsappContact": {
+    "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
+    "ariaLabel": "通过 WhatsApp 联系我们"
+  },
   "courseModule": {
     "eyebrow": "赋能教育",
     "title": "由 Ida 设计的最佳阿姨培训课程",

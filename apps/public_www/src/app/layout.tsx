@@ -1,10 +1,42 @@
+import { Lato, Plus_Jakarta_Sans, Poppins, Urbanist } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import type { ReactNode } from 'react';
 
-import { WhatsappContactButton } from '@/components/whatsapp-contact-button';
-import { DEFAULT_LOCALE, getContent } from '@/content';
+import { SITE_ORIGIN } from '@/lib/seo';
 import './globals.css';
+
+const lato = Lato({
+  subsets: ['latin'],
+  variable: '--font-lato',
+  weight: ['300', '400', '500', '600', '700', '800'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+});
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  variable: '--font-poppins',
+  weight: ['400', '500', '600', '700', '800'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+});
+
+const urbanist = Urbanist({
+  subsets: ['latin'],
+  variable: '--font-urbanist',
+  weight: ['400', '500', '600', '700', '800'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta-sans',
+  weight: ['400', '500', '600', '700', '800'],
+  style: ['normal'],
+  display: 'swap',
+});
 
 const stagingBadgeScript = `
 (function showStagingBadge() {
@@ -13,6 +45,15 @@ const stagingBadgeScript = `
   if (!isStagingHost) {
     return;
   }
+
+  var robotsMeta = document.querySelector('meta[name="robots"]');
+  if (!robotsMeta) {
+    robotsMeta = document.createElement('meta');
+    robotsMeta.setAttribute('name', 'robots');
+    document.head.appendChild(robotsMeta);
+  }
+  robotsMeta.setAttribute('content', 'noindex, nofollow, noarchive');
+
   var badge = document.getElementById('environment-badge');
   if (badge) {
     badge.classList.remove('hidden');
@@ -21,26 +62,19 @@ const stagingBadgeScript = `
 `;
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_ORIGIN),
   title: 'Evolve Sprouts',
   description: 'Evolve Sprouts public website.',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
-
-const whatsappContact = getContent(DEFAULT_LOCALE).whatsappContact;
 
 export default function RootLayout({
   children,
@@ -48,7 +82,11 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang='en'>
+    <html
+      lang='en'
+      suppressHydrationWarning
+      className={`${lato.variable} ${poppins.variable} ${urbanist.variable} ${plusJakartaSans.variable}`}
+    >
       <body className='antialiased'>
         <div
           id='environment-badge'
@@ -60,10 +98,6 @@ export default function RootLayout({
           {stagingBadgeScript}
         </Script>
         {children}
-        <WhatsappContactButton
-          href={whatsappContact.href}
-          ariaLabel={whatsappContact.ariaLabel}
-        />
       </body>
     </html>
   );

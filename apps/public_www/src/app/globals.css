@@ -1,12 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Plus+Jakarta+Sans:wght@200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'tailwindcss';
 @import './generated/figma-tokens.css';
 
 @layer base {
   :root {
     color-scheme: light;
-    --site-primary-font: var(--figma-fontfamilies-lato, Lato), sans-serif;
-    --site-heading-font: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    --figma-fontfamilies-lato: var(--font-lato);
+    --figma-fontfamilies-poppins: var(--font-poppins);
+    --figma-fontfamilies-urbanist: var(--font-urbanist);
+    --figma-fontfamilies-plus-jakarta-sans: var(--font-plus-jakarta-sans);
+    --site-primary-font:
+      var(--figma-fontfamilies-lato, var(--font-lato)), sans-serif;
+    --site-heading-font:
+      var(--figma-fontfamilies-poppins, var(--font-poppins)), sans-serif;
     --site-primary-text: var(--figma-colors-home, #4A4A4A);
     --site-heading-text:
       var(--figma-colors-join-our-sprouts-squad-community, #333333);
@@ -65,6 +70,35 @@
   textarea {
     touch-action: manipulation;
     font: inherit;
+  }
+}
+
+@layer components {
+  .es-section-heading {
+    color: var(--site-heading-text);
+    font-family: var(--site-heading-font);
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .es-section-eyebrow {
+    color: var(--site-heading-text);
+    font-family: var(--site-primary-font);
+    font-size: var(--figma-fontsizes-18, 18px);
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .es-section-body {
+    color: var(--site-primary-text);
+    font-family: var(--site-primary-font);
+  }
+
+  .es-cta-primary {
+    background-color: var(--figma-colors-frame-2147235222-2, #ED622E);
+    color: var(--figma-colors-desktop, #FFFFFF);
+    font-family: var(--site-primary-font);
+    font-weight: 600;
   }
 }
 

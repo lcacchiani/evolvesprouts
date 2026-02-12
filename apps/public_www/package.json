@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "audit:assets": "node ./scripts/audit-assets.mjs",
+    "validate:content": "node ./scripts/validate-content.mjs",
     "figma:auth": "node ./scripts/figma/generate-refresh-token.mjs",
     "figma:pull": "node ./scripts/figma/pull-figma-tokens.mjs",
     "figma:tokenize": "node ./scripts/figma/figma-to-token-studio.mjs",
@@ -13,7 +14,7 @@
     "figma:specs": "node ./scripts/figma/extract-design-specs.mjs",
     "figma:studio-sync": "npm run figma:pull && npm run figma:tokenize && npm run figma:build:studio",
     "figma:full-sync": "npm run figma:studio-sync && npm run figma:scaffold && npm run figma:specs",
-    "build": "npm run figma:build:studio && next build",
+    "build": "npm run validate:content && npm run figma:build:studio && next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0 ."
   },
