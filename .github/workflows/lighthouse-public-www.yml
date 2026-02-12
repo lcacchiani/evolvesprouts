@@ -1,4 +1,4 @@
-name: Lighthouse Public Website runner
+name: Lighthouse Public Website
 
 on:
   pull_request:
