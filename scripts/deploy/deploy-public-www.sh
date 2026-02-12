@@ -78,6 +78,30 @@ function invalidate_distribution() {
   fi
 }
 
+function optimize_images_for_deploy() {
+  local optimize_flag="${PUBLIC_WWW_OPTIMIZE_IMAGES:-true}"
+  if [ "$optimize_flag" != "true" ]; then
+    echo "Skipping image optimization (PUBLIC_WWW_OPTIMIZE_IMAGES=$optimize_flag)"
+    return
+  fi
+
+  if [ ! -f "$APP_DIR/package.json" ]; then
+    echo "Skipping image optimization (package.json not found at $APP_DIR)"
+    return
+  fi
+
+  echo "Optimizing images before deployment sync"
+  (
+    cd "$APP_DIR"
+    npm run images:optimize
+  )
+
+  if [ -d "$APP_DIR/public" ]; then
+    echo "Refreshing exported static assets from public/"
+    cp -a "$APP_DIR/public/." "$BUILD_DIR/"
+  fi
+}
+
 function sync_site_artifacts() {
   local source_dir="$1"
   local destination_uri="$2"
@@ -160,6 +184,8 @@ if [ ! -d "$BUILD_DIR" ]; then
   echo "Run: (cd apps/public_www && npm run build)"
   exit 1
 fi
+
+optimize_images_for_deploy
 
 read -r TARGET_BUCKET_OUTPUT_KEY TARGET_DISTRIBUTION_OUTPUT_KEY <<< "$(get_environment_outputs "$DEPLOY_ENVIRONMENT")"
 TARGET_BUCKET_NAME="$(require_stack_output \
