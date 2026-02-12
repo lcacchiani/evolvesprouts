@@ -1,4 +1,4 @@
-export function NotFoundContent() {
+export function Whoops() {
   return (
     <main
       id='main-content'
