@@ -1,9 +1,9 @@
-import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
+import { ContactUsPageSections } from '@/components/contact-us';
 import {
-  buildPlaceholderPageMetadata,
   getMenuLabel,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { buildLocalizedMetadata } from '@/lib/seo';
 
 interface ContactUsPageProps {
   params: Promise<{ locale: string }>;
@@ -12,17 +12,18 @@ interface ContactUsPageProps {
 export async function generateMetadata({ params }: ContactUsPageProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const title = getMenuLabel(content, '/contact-us', 'Contact Us');
+  const description = content.contactUs.contactUsForm.description;
 
-  return buildPlaceholderPageMetadata({
+  return buildLocalizedMetadata({
     locale,
     path: '/contact-us',
     title,
+    description,
   });
 }
 
 export default async function ContactUsPage({ params }: ContactUsPageProps) {
   const { content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, '/contact-us', 'Contact Us');
 
-  return <EmptyPagePlaceholder title={title} />;
+  return <ContactUsPageSections content={content} />;
 }
