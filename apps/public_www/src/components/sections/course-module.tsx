@@ -8,7 +8,6 @@ import {
   useState,
 } from 'react';
 
-import { BackgroundGlow } from '@/components/background-glow';
 import { SectionCtaLink } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
@@ -28,6 +27,13 @@ interface ModuleStep {
   activity?: string;
 }
 
+interface ModuleTone {
+  cardBackground: string;
+  countColor: string;
+  countLine: string;
+  iconGlow: string;
+}
+
 const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
   'foundation',
   'coaching',
@@ -39,26 +45,32 @@ const HEADING_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 const WEEK_COLOR = 'var(--figma-colors-week-01-04, #313131)';
-const CARD_BG = 'var(--figma-colors-frame-2147235252, #F8F8F8)';
-const ICON_SURFACE = 'var(--figma-colors-rectangle-240648654, #D9D9D9)';
 const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const CTA_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
-const TIMELINE_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const BRAND_BLUE = 'var(--figma-colors-frame-2147235242, #174879)';
-const BADGE_SHADOW =
-  'var(--figma-boxshadow-ellipse-1966-2, 0px 2.2361302375793457px 5.217637062072754px 0px rgba(0, 0, 0, 0.32))';
-const ICON_SHADOW =
-  'var(--figma-boxshadow-ellipse-1966-3, 0px 10.664373397827148px 24.8835391998291px 0px rgba(0, 0, 0, 0.32))';
-const CONTROL_BG = 'var(--figma-colors-desktop, #FFFFFF)';
-const CONTROL_BORDER = 'rgba(23, 72, 121, 0.28)';
-const CONTROL_TEXT = 'var(--figma-colors-frame-2147235242, #174879)';
-const DOT_INACTIVE = 'rgba(23, 72, 121, 0.2)';
 
-const CARD_BACKGROUNDS = [
-  'linear-gradient(180deg, rgba(255, 243, 224, 0.95) 0%, #FFFFFF 100%)',
-  'linear-gradient(180deg, rgba(255, 232, 238, 0.95) 0%, #FFFFFF 100%)',
-  'linear-gradient(180deg, rgba(227, 240, 255, 0.95) 0%, #FFFFFF 100%)',
+const MODULE_TONES: readonly ModuleTone[] = [
+  {
+    cardBackground: 'linear-gradient(180deg, #FFF3E0 0%, #FFFFFF 100%)',
+    countColor: '#D7AB0A',
+    countLine:
+      'linear-gradient(to top, #F7C600 0%, rgba(247, 198, 0, 0.66) 50%, rgba(247, 198, 0, 0) 100%)',
+    iconGlow: 'rgba(247, 198, 0, 0.25)',
+  },
+  {
+    cardBackground: 'linear-gradient(180deg, #FFE9EE 0%, #FFFFFF 100%)',
+    countColor: '#E3181B',
+    countLine:
+      'linear-gradient(to top, #E3181B 0%, rgba(227, 24, 27, 0.6) 50%, rgba(227, 24, 27, 0) 100%)',
+    iconGlow: 'rgba(227, 24, 27, 0.22)',
+  },
+  {
+    cardBackground: 'linear-gradient(180deg, #E3F0FF 0%, #FFFFFF 100%)',
+    countColor: '#4592DE',
+    countLine:
+      'linear-gradient(to top, #4592DE 0%, rgba(69, 146, 222, 0.62) 50%, rgba(69, 146, 222, 0) 100%)',
+    iconGlow: 'rgba(69, 146, 222, 0.24)',
+  },
 ];
 
 const eyebrowTextStyle: CSSProperties = {
@@ -74,38 +86,23 @@ const titleStyle: CSSProperties = {
   fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
   fontSize: 'clamp(2.2rem, 6vw, var(--figma-fontsizes-55, 55px))',
   fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight: 'clamp(3rem, 7vw, 70px)',
+  lineHeight: 'clamp(2.95rem, 7vw, 70px)',
 };
 
-const moduleTitlePrimaryStyle: CSSProperties = {
+const moduleTitleStyle: CSSProperties = {
   color: HEADING_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-22, 22px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
+  fontSize: 'clamp(1.1rem, 2vw, 22px)',
+  fontWeight: '500',
   lineHeight: '1.2',
+  letterSpacing: '0.3px',
 };
 
-const moduleTitleSecondaryStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-20, 20px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: '1.2',
-};
-
-const moduleWeekPrimaryStyle: CSSProperties = {
+const moduleWeekStyle: CSSProperties = {
   color: WEEK_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-28, 28px)',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight: '1.2',
-};
-
-const moduleWeekSecondaryStyle: CSSProperties = {
-  color: WEEK_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-26, 26px)',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
+  fontSize: 'clamp(1.15rem, 2.2vw, 28px)',
+  fontWeight: '700',
   lineHeight: '1.2',
 };
 
@@ -125,32 +122,38 @@ const ctaStyle: CSSProperties = {
   color: CTA_TEXT,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontSize: 'clamp(1.05rem, 2.4vw, var(--figma-fontsizes-28, 28px))',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
+  fontWeight: '600',
   lineHeight: 'var(--figma-fontsizes-28, 28px)',
 };
 
 const activityStyle: CSSProperties = {
   color: BODY_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1rem, 2vw, 22px)',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight: '1.6',
+  fontSize: 'clamp(0.875rem, 2vw, 16px)',
+  fontWeight: '400',
+  lineHeight: '1.45',
 };
 
-const controlButtonStyle: CSSProperties = {
-  backgroundColor: CONTROL_BG,
-  borderColor: CONTROL_BORDER,
-  color: CONTROL_TEXT,
+const countTextStyle: CSSProperties = {
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  fontSize: '20px',
+  fontWeight: '700',
+  lineHeight: '1',
 };
 
-function ModuleGlyph({ variant }: { variant: ModuleIconVariant }) {
+function ModuleGlyph({
+  variant,
+  className = 'h-[52px] w-[52px]',
+}: {
+  variant: ModuleIconVariant;
+  className?: string;
+}) {
   if (variant === 'foundation') {
     return (
       <svg
         aria-hidden='true'
         viewBox='0 0 84 84'
-        className='h-[52px] w-[52px]'
+        className={className}
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
       >
@@ -186,7 +189,7 @@ function ModuleGlyph({ variant }: { variant: ModuleIconVariant }) {
       <svg
         aria-hidden='true'
         viewBox='0 0 84 84'
-        className='h-[52px] w-[52px]'
+        className={className}
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
       >
@@ -211,7 +214,7 @@ function ModuleGlyph({ variant }: { variant: ModuleIconVariant }) {
     <svg
       aria-hidden='true'
       viewBox='0 0 84 84'
-      className='h-[52px] w-[52px]'
+      className={className}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -252,6 +255,69 @@ function renderMultilineText(value: string): ReactNode {
   ));
 }
 
+function getModuleTone(index: number): ModuleTone {
+  return MODULE_TONES[index % MODULE_TONES.length];
+}
+
+function CourseModuleCard({
+  module,
+  index,
+  showFullActivity,
+}: {
+  module: ModuleStep;
+  index: number;
+  showFullActivity: boolean;
+}) {
+  const tone = getModuleTone(index);
+
+  return (
+    <article
+      className='group relative flex min-h-[450px] flex-col overflow-hidden rounded-[32px] border border-black/5 px-4 pb-6 pt-6 sm:min-h-[520px] sm:px-6 lg:min-h-[560px]'
+      style={{ background: tone.cardBackground }}
+    >
+      <div
+        aria-hidden='true'
+        className='pointer-events-none absolute -right-8 top-10 h-36 w-36 rounded-full blur-3xl'
+        style={{ backgroundColor: tone.iconGlow }}
+      />
+      <div className='relative flex flex-1 flex-col items-center text-center'>
+        <span className='inline-flex h-[84px] w-[84px] items-center justify-center rounded-full bg-white/90 shadow-[0_8px_24px_rgba(0,0,0,0.2)]'>
+          <ModuleGlyph variant={module.icon} className='h-[44px] w-[44px]' />
+        </span>
+        <h3 className='mt-5' style={moduleTitleStyle}>
+          {module.title}
+        </h3>
+        <p className='mt-2' style={moduleWeekStyle}>
+          {module.week}
+        </p>
+        {module.activity && (
+          <p
+            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 ${showFullActivity ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}`}
+            style={activityStyle}
+          >
+            {module.activity}
+          </p>
+        )}
+        <div className='mt-auto flex flex-col items-center gap-4 pt-6'>
+          <span className='relative inline-flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#333333] shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
+            <span
+              aria-hidden='true'
+              className='pointer-events-none absolute -top-[70px] left-1/2 h-[70px] w-2 -translate-x-1/2 rounded-full'
+              style={{ background: tone.countLine }}
+            />
+            <span style={{ ...countTextStyle, color: tone.countColor }}>
+              {module.step}
+            </span>
+          </span>
+          <span className='inline-flex h-[64px] w-[64px] items-center justify-center rounded-full bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.22)]'>
+            <ModuleGlyph variant={module.icon} className='h-[34px] w-[34px]' />
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export function CourseModule({ content }: CourseModuleProps) {
   const moduleSteps: ModuleStep[] = useMemo(
     () =>
@@ -267,14 +333,6 @@ export function CourseModule({ content }: CourseModuleProps) {
     [content.modules],
   );
   const [activeSlide, setActiveSlide] = useState(0);
-
-  function goToSlide(index: number) {
-    if (moduleSteps.length === 0) {
-      return;
-    }
-
-    setActiveSlide(index);
-  }
 
   function handlePreviousSlide() {
     if (moduleSteps.length === 0) {
@@ -296,9 +354,7 @@ export function CourseModule({ content }: CourseModuleProps) {
     );
   }
 
-  const computedCtaLabel = content.ctaLabel.trim().endsWith('>')
-    ? content.ctaLabel.trim()
-    : `${content.ctaLabel} >`;
+  const computedCtaLabel = content.ctaLabel.trim().replace(/\s*>$/, '');
 
   return (
     <SectionShell
@@ -308,12 +364,16 @@ export function CourseModule({ content }: CourseModuleProps) {
       className='relative isolate overflow-hidden'
       style={{ backgroundColor: SECTION_BG }}
     >
-      <BackgroundGlow
-        className='left-1/2 top-1/2 h-[58rem] w-[58rem] -translate-x-1/2 -translate-y-1/2 opacity-60 blur-3xl'
-        background='radial-gradient(circle at 50% 50%, rgba(237, 98, 46, 0.11) 0%, rgba(23, 72, 121, 0.1) 42%, rgba(255, 255, 255, 0) 78%)'
+      <div
+        aria-hidden='true'
+        className='pointer-events-none absolute inset-0'
+        style={{
+          background:
+            'radial-gradient(circle at 20% 18%, rgba(247, 198, 0, 0.14) 0%, rgba(247, 198, 0, 0) 43%), radial-gradient(circle at 78% 24%, rgba(69, 146, 222, 0.15) 0%, rgba(69, 146, 222, 0) 50%), radial-gradient(circle at 50% 86%, rgba(231, 108, 61, 0.12) 0%, rgba(231, 108, 61, 0) 52%)',
+        }}
       />
 
-      <div className='relative mx-auto w-full max-w-[1585px]'>
+      <div className='relative mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[760px] text-center'>
           <SectionEyebrowChip
             label={content.eyebrow}
@@ -332,158 +392,87 @@ export function CourseModule({ content }: CourseModuleProps) {
         </div>
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>
-          <div className='overflow-hidden'>
-            <ul
-              className='flex transition-transform duration-500 ease-out'
-              style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+          <div
+            aria-hidden='true'
+            className='pointer-events-none absolute left-2 right-2 top-[58%] hidden lg:block'
+          >
+            <svg
+              viewBox='0 0 1320 36'
+              className='h-10 w-full'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+              preserveAspectRatio='none'
             >
-            {moduleSteps.map((module, index) => {
-              const titleStyleByIndex =
-                index === 1 ? moduleTitleSecondaryStyle : moduleTitlePrimaryStyle;
-              const weekStyleByIndex =
-                index === 1 ? moduleWeekSecondaryStyle : moduleWeekPrimaryStyle;
-
-              return (
-                <li key={module.step} className='w-full shrink-0 px-1 sm:px-2'>
-                  <article
-                    className='relative h-full min-h-[420px] overflow-hidden rounded-[32px] border border-black/5 px-5 py-8 sm:min-h-[480px] sm:px-7 lg:min-h-[560px] lg:rounded-[42px] lg:px-9 lg:py-10'
-                    style={{
-                      background: CARD_BACKGROUNDS[index % CARD_BACKGROUNDS.length],
-                    }}
-                  >
-                    <BackgroundGlow
-                      className='-right-14 top-12 h-44 w-44 blur-3xl'
-                      background={
-                        index === 1
-                          ? 'rgba(23, 72, 121, 0.12)'
-                          : 'rgba(237, 98, 46, 0.12)'
-                      }
-                    />
-                    <BackgroundGlow
-                      className='-left-12 bottom-12 h-36 w-36 blur-3xl'
-                      background='rgba(93, 157, 73, 0.16)'
-                    />
-
-                    <span
-                      className='absolute right-6 top-6 z-20 inline-flex h-[53px] w-[53px] items-center justify-center rounded-full'
-                      style={{
-                        backgroundColor: HEADING_COLOR,
-                        boxShadow: BADGE_SHADOW,
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: 'var(--figma-colors-desktop, #FFFFFF)',
-                          fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-                          fontSize: 'var(--figma-fontsizes-20, 20px)',
-                          fontWeight: 'var(--figma-fontweights-800, 800)',
-                          lineHeight: 'var(--figma-fontsizes-20, 20px)',
-                        }}
-                      >
-                        {module.step}
-                      </span>
-                    </span>
-
-                    <div className='relative z-10 flex h-full flex-col text-center'>
-                      <div
-                        aria-hidden='true'
-                        className='absolute left-[8%] right-[8%] top-[58%] h-[2px] rounded-full'
-                        style={{ backgroundColor: TIMELINE_COLOR }}
-                      />
-
-                      <div
-                        className='mx-auto mt-4 inline-flex items-center justify-center rounded-full lg:mt-6'
-                        style={{
-                          width: 'clamp(120px, 18vw, 162px)',
-                          height: 'clamp(120px, 18vw, 162px)',
-                          backgroundColor: ICON_SURFACE,
-                          boxShadow: ICON_SHADOW,
-                        }}
-                      >
-                        <div
-                          className='inline-flex items-center justify-center rounded-full'
-                          style={{
-                            width: 'clamp(102px, 16vw, 140px)',
-                            height: 'clamp(102px, 16vw, 140px)',
-                            backgroundColor: ICON_SURFACE,
-                          }}
-                        >
-                          <ModuleGlyph variant={module.icon} />
-                        </div>
-                      </div>
-
-                      <div className='mt-auto pb-2'>
-                        <h3 style={titleStyleByIndex}>{module.title}</h3>
-                        <p className='mt-2' style={weekStyleByIndex}>
-                          {module.week}
-                        </p>
-                        {module.activity && (
-                          <p
-                            className='mx-auto mt-5 max-w-[760px] text-balance'
-                            style={activityStyle}
-                          >
-                            {module.activity}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div
-                      aria-hidden='true'
-                      className='absolute inset-x-[10%] bottom-0 h-[2px] rounded-full'
-                      style={{ backgroundColor: CARD_BG }}
-                    />
-                  </article>
-                </li>
-              );
-            })}
-            </ul>
+              <path
+                d='M0 18C110 0 220 0 330 18C440 36 550 36 660 18C770 0 880 0 990 18C1100 36 1210 36 1320 18'
+                stroke='rgba(51, 51, 51, 0.35)'
+                strokeWidth='2'
+                strokeLinecap='round'
+              />
+            </svg>
           </div>
-
-          {moduleSteps.length > 1 && (
-            <div className='mt-8 flex items-center justify-center gap-3'>
-              <button
-                type='button'
-                aria-label='Previous module'
-                onClick={handlePreviousSlide}
-                className='inline-flex h-11 w-11 items-center justify-center rounded-full border text-2xl transition-colors duration-200 hover:border-[#174879] hover:bg-[#174879] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174879]'
-                style={controlButtonStyle}
+          <ul className='hidden gap-6 lg:grid lg:grid-cols-3'>
+            {moduleSteps.map((module, index) => (
+              <li key={module.step}>
+                <CourseModuleCard
+                  module={module}
+                  index={index}
+                  showFullActivity={false}
+                />
+              </li>
+            ))}
+          </ul>
+          <div className='lg:hidden'>
+            <div className='overflow-hidden'>
+              <ul
+                className='flex transition-transform duration-500 ease-out'
+                style={{ transform: `translateX(-${activeSlide * 100}%)` }}
               >
-                {'<'}
-              </button>
-
-              <div className='flex items-center gap-2'>
                 {moduleSteps.map((module, index) => (
-                  <button
-                    key={`${module.step}-dot`}
-                    type='button'
-                    aria-label={`Show module ${index + 1}`}
-                    onClick={() => {
-                      goToSlide(index);
-                    }}
-                    className='h-2.5 rounded-full transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174879]'
-                    style={{
-                      width: index === activeSlide ? '30px' : '10px',
-                      backgroundColor:
-                        index === activeSlide
-                          ? CONTROL_TEXT
-                          : DOT_INACTIVE,
-                    }}
-                  />
+                  <li key={module.step} className='w-full shrink-0 px-1'>
+                    <CourseModuleCard
+                      module={module}
+                      index={index}
+                      showFullActivity
+                    />
+                  </li>
                 ))}
-              </div>
-
-              <button
-                type='button'
-                aria-label='Next module'
-                onClick={handleNextSlide}
-                className='inline-flex h-11 w-11 items-center justify-center rounded-full border text-2xl transition-colors duration-200 hover:border-[#174879] hover:bg-[#174879] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174879]'
-                style={controlButtonStyle}
-              >
-                {'>'}
-              </button>
+              </ul>
             </div>
-          )}
+
+            {moduleSteps.length > 1 && (
+              <div className='mt-6 flex items-center justify-center gap-5'>
+                <button
+                  type='button'
+                  aria-label='Previous module'
+                  onClick={handlePreviousSlide}
+                  className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-xl text-[#333333] shadow-[0_2px_8px_rgba(0,0,0,0.2)] transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                >
+                  {'<'}
+                </button>
+                <p
+                  style={{
+                    color: '#333333',
+                    fontFamily:
+                      'var(--figma-fontfamilies-lato, Lato), sans-serif',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    lineHeight: '1',
+                  }}
+                >
+                  {activeSlide + 1}/{moduleSteps.length}
+                </p>
+                <button
+                  type='button'
+                  aria-label='Next module'
+                  onClick={handleNextSlide}
+                  className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-xl text-[#333333] shadow-[0_2px_8px_rgba(0,0,0,0.2)] transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                >
+                  {'>'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className='mx-auto mt-12 max-w-[760px] text-center lg:mt-16'>
@@ -498,7 +487,10 @@ export function CourseModule({ content }: CourseModuleProps) {
             className='mt-8 h-[62px] w-full max-w-[491px] rounded-[10px] px-5 focus-visible:outline-black/30 sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
             style={ctaStyle}
           >
-            {computedCtaLabel}
+            <span>{computedCtaLabel}</span>
+            <span aria-hidden='true' className='pl-2'>
+              {'>'}
+            </span>
           </SectionCtaLink>
         </div>
       </div>
