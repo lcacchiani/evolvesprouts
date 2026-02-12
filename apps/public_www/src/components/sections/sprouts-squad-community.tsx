@@ -2,10 +2,11 @@ import type { CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import type { FooterContent } from '@/content';
+import { SectionShell } from '@/components/section-shell';
+import type { SproutsSquadCommunityContent } from '@/content';
 
 interface SproutsSquadCommunityProps {
-  content: FooterContent;
+  content: SproutsSquadCommunityContent;
 }
 
 const SECTION_BACKGROUND =
@@ -35,12 +36,12 @@ const ctaStyle: CSSProperties = {
 export function SproutsSquadCommunity({
   content,
 }: SproutsSquadCommunityProps) {
-  const newsletterLink = '/contact-us';
-
   return (
-    <section
-      data-figma-node='sprouts-squad-community'
-      className='relative isolate overflow-hidden'
+    <SectionShell
+      id='sprouts-squad-community'
+      ariaLabel={content.heading}
+      dataFigmaNode='sprouts-squad-community'
+      className='relative isolate overflow-hidden !px-0 !py-0'
       style={{ backgroundColor: SECTION_BACKGROUND }}
     >
       <Image
@@ -71,17 +72,17 @@ export function SproutsSquadCommunity({
           className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px]'
           style={headingStyle}
         >
-          {content.communityHeading}
+          {content.heading}
         </h2>
 
         <Link
-          href={newsletterLink}
+          href={content.ctaHref}
           className='inline-flex h-14 w-full max-w-[500px] items-center justify-center rounded-[10px] px-5 text-center text-base transition-opacity hover:opacity-90 sm:h-[62px] sm:text-lg lg:h-[74px] lg:max-w-[410px] lg:text-[26px]'
           style={ctaStyle}
         >
-          {content.newsletterCta}
+          {content.ctaLabel}
         </Link>
       </div>
-    </section>
+    </SectionShell>
   );
 }

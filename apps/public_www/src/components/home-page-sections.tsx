@@ -22,7 +22,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
         <CourseHighlights content={content.courseHighlights} />
         <Resources content={content.resources} />
         <Testimonials content={content.testimonials} />
-        <SproutsSquadCommunity content={content.footer} />
+        <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
       </main>
       <Footer content={content.footer} />
     </>
