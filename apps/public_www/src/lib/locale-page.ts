@@ -1,5 +1,6 @@
+import { notFound } from 'next/navigation';
+
 import {
-  DEFAULT_LOCALE,
   getContent,
   isValidLocale,
   type Locale,
@@ -16,10 +17,13 @@ export async function resolveLocalePageContext(
   params: Promise<{ locale: string }>,
 ): Promise<LocalePageContext> {
   const { locale } = await params;
-  const validLocale: Locale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
+  if (!isValidLocale(locale)) {
+    notFound();
+  }
+
   return {
-    locale: validLocale,
-    content: getContent(validLocale),
+    locale,
+    content: getContent(locale),
   };
 }
 
