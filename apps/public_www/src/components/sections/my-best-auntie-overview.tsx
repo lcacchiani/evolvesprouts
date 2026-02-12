@@ -403,7 +403,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
           <SectionCtaLink
             href={content.ctaHref}
-            className='mt-8 h-[62px] w-full max-w-[491px] rounded-[10px] px-5 focus-visible:outline-black/30 sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
+            className='mt-8 h-[62px] w-full max-w-[491px] rounded-[10px] px-5 es-focus-ring-soft sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
             style={ctaStyle}
           >
             <span>{computedCtaLabel}</span>

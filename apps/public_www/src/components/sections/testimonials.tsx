@@ -45,6 +45,8 @@ const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 const SWIPE_THRESHOLD_PX = 48;
+const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
+  'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
 
 const badgeTextStyle: CSSProperties = {
   color: TEXT_PRIMARY,
@@ -483,7 +485,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                 type='button'
                 onClick={goToPreviousStory}
                 aria-label={previousButtonLabel}
-                className='inline-flex h-[60px] w-[60px] items-center justify-center rounded-full transition-opacity hover:opacity-90 sm:h-[70px] sm:w-[70px]'
+                className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
                 style={{
                   backgroundColor: CONTROL_BG,
                   boxShadow: CONTROL_SHADOW,
@@ -495,7 +497,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                 type='button'
                 onClick={goToNextStory}
                 aria-label={nextButtonLabel}
-                className='inline-flex h-[60px] w-[60px] items-center justify-center rounded-full transition-opacity hover:opacity-90 sm:h-[70px] sm:w-[70px]'
+                className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
                 style={{
                   backgroundColor: CONTROL_BG,
                   boxShadow: CONTROL_SHADOW,

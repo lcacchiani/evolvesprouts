@@ -100,7 +100,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
             </p>
             <SectionCtaLink
               href='/training-courses'
-              className='mt-6 h-[55px] rounded-[10px] px-[34px] focus-visible:outline-black/40'
+              className='mt-6 h-[55px] rounded-[10px] px-[34px]'
               style={ctaStyle}
             >
               {content.cta}

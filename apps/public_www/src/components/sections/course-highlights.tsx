@@ -311,7 +311,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
           <SectionCtaLink
             href={ctaHref}
-            className='h-[62px] w-full max-w-[488px] gap-2 rounded-[8px] px-5 focus-visible:outline-black/40 sm:h-[70px] sm:px-7 lg:h-[78px]'
+            className='h-[62px] w-full max-w-[488px] gap-2 rounded-[8px] px-5 sm:h-[70px] sm:px-7 lg:h-[78px]'
             style={ctaStyle}
           >
             <span>{ctaLabel}</span>

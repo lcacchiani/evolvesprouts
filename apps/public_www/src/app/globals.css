@@ -100,6 +100,90 @@
     font-family: var(--site-primary-font);
     font-weight: 600;
   }
+
+  .es-focus-ring {
+    outline: none;
+    --es-focus-ring-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .es-focus-ring:focus-visible {
+    outline: 2px solid var(--es-focus-ring-color);
+    outline-offset: 2px;
+  }
+
+  .es-focus-ring-soft {
+    --es-focus-ring-color: rgba(0, 0, 0, 0.3);
+  }
+
+  .es-focus-ring-medium {
+    --es-focus-ring-color: rgba(0, 0, 0, 0.35);
+  }
+
+  .es-cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: opacity 200ms ease;
+  }
+
+  .es-cta-button:hover {
+    opacity: 0.9;
+  }
+
+  .es-nav-pill {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    border-radius: 58.73px;
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+
+  .es-nav-submenu-link {
+    display: inline-flex;
+    min-height: 40px;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    border-radius: 6px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .es-nav-language-option {
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: background-color 150ms ease;
+  }
+
+  .es-nav-language-option:hover {
+    background-color: #FFF0E5;
+  }
+
+  .es-nav-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: #333333;
+  }
+
+  .es-testimonial-control-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    transition: opacity 200ms ease;
+  }
+
+  .es-testimonial-control-button:hover {
+    opacity: 0.9;
+  }
 }
 
 @layer utilities {

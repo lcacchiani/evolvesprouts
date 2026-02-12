@@ -32,6 +32,28 @@ const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
 const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const NAV_TOP_LEVEL_LINK_CLASSNAME =
+  'es-focus-ring es-nav-pill justify-center transition-colors';
+const NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME =
+  `${NAV_TOP_LEVEL_LINK_CLASSNAME} pr-10`;
+const NAV_SUBMENU_LINK_CLASSNAME =
+  'es-focus-ring es-nav-submenu-link';
+const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
+  'es-focus-ring es-nav-pill flex-1';
+const NAV_MOBILE_TOGGLE_BUTTON_CLASSNAME =
+  'es-focus-ring es-nav-pill h-[42px] min-w-[42px] justify-center px-0';
+const NAV_MOBILE_PRIMARY_ACTION_CLASSNAME =
+  'es-focus-ring es-nav-pill w-full justify-between transition-colors';
+const NAV_MOBILE_BOOK_BUTTON_CLASSNAME =
+  'es-focus-ring es-nav-pill w-full justify-center text-center transition-colors';
+const NAV_LANGUAGE_OPTION_CLASSNAME =
+  'es-focus-ring es-nav-language-option';
+const NAV_DESKTOP_BOOK_BUTTON_CLASSNAME =
+  'es-cta-button h-[56px] rounded-[10px] px-[27px] hover:opacity-95';
+const NAV_OPEN_MENU_BUTTON_CLASSNAME =
+  'es-focus-ring es-nav-icon-button h-11 w-11 rounded-xl lg:hidden';
+const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
+  'es-focus-ring es-nav-icon-button h-10 w-10 rounded-full';
 
 const linkStyle = {
   backgroundColor: NAV_PILL_BACKGROUND,
@@ -459,7 +481,7 @@ function LanguageSelectorButton({
               <Link
                 role='menuitem'
                 href={localizePath(currentPathname, option.locale)}
-                className='inline-flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-[#FFF0E5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                className={NAV_LANGUAGE_OPTION_CLASSNAME}
                 onClick={() => {
                   setIsMenuOpen(false);
                 }}
@@ -591,7 +613,7 @@ function DesktopMenuItem({
           item={item}
           isActive={itemIsActive}
           locale={locale}
-          className='inline-flex min-h-[42px] items-center justify-center rounded-[58.73px] px-[17px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+          className={NAV_TOP_LEVEL_LINK_CLASSNAME}
         />
       </li>
     );
@@ -603,7 +625,7 @@ function DesktopMenuItem({
         item={item}
         isActive={itemIsActive}
         locale={locale}
-        className='inline-flex min-h-[42px] items-center justify-center rounded-[58.73px] px-[17px] pr-10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+        className={NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME}
       />
       <span
         aria-hidden='true'
@@ -616,7 +638,7 @@ function DesktopMenuItem({
         currentPath={currentPath}
         locale={locale}
         listClassName='invisible absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 opacity-0 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
-        linkClassName='inline-flex min-h-[40px] w-full items-center justify-start rounded-[6px] px-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+        linkClassName={NAV_SUBMENU_LINK_CLASSNAME}
       />
     </li>
   );
@@ -668,7 +690,7 @@ function MobileMenuItem({
       <div className='flex items-center gap-2'>
         <Link
           href={localizeHref(item.href, locale)}
-          className='inline-flex min-h-[42px] flex-1 items-center rounded-[58.73px] px-[17px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+          className={NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME}
           onClick={onNavigate}
           style={getTopLinkStyle(itemIsActive)}
         >
@@ -682,7 +704,7 @@ function MobileMenuItem({
             }}
             aria-expanded={isExpanded}
             aria-label={`Toggle ${item.label} submenu`}
-            className='inline-flex h-[42px] min-w-[42px] items-center justify-center rounded-[58.73px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+            className={NAV_MOBILE_TOGGLE_BUTTON_CLASSNAME}
             style={getTopLinkStyle(itemIsActive)}
           >
             <MobileChevronIcon isExpanded={isExpanded} />
@@ -696,7 +718,7 @@ function MobileMenuItem({
           locale={locale}
           onNavigate={onNavigate}
           listClassName={`overflow-hidden pl-4 transition-all duration-300 ${isExpanded ? 'max-h-[480px] space-y-2 pt-1 opacity-100' : 'max-h-0 space-y-0 pt-0 opacity-0'}`}
-          linkClassName='inline-flex min-h-[40px] w-full items-center justify-start rounded-[6px] px-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+          linkClassName={NAV_SUBMENU_LINK_CLASSNAME}
         />
       )}
     </li>
@@ -907,7 +929,7 @@ export function Navbar({ content }: NavbarProps) {
             <BookNowButton
               href={localizedBookNowHref}
               label={content.bookNow.label}
-              className='inline-flex h-[56px] items-center justify-center rounded-[10px] px-[27px] text-center transition-opacity hover:opacity-95'
+              className={NAV_DESKTOP_BOOK_BUTTON_CLASSNAME}
             />
           </div>
 
@@ -919,7 +941,7 @@ export function Navbar({ content }: NavbarProps) {
             aria-haspopup='dialog'
             aria-label='Open navigation menu'
             onClick={openMobileMenu}
-            className='inline-flex h-11 w-11 items-center justify-center rounded-xl bg-transparent text-[#333333] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 lg:hidden'
+            className={NAV_OPEN_MENU_BUTTON_CLASSNAME}
           >
             <span className='sr-only'>Open navigation menu</span>
             <HamburgerIcon />
@@ -963,7 +985,7 @@ export function Navbar({ content }: NavbarProps) {
                 type='button'
                 aria-label='Close navigation menu'
                 onClick={closeMobileMenu}
-                className='inline-flex h-10 w-10 items-center justify-center rounded-full bg-transparent text-[#333333] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                className={NAV_CLOSE_MENU_BUTTON_CLASSNAME}
               >
                 <CloseIcon />
               </button>
@@ -982,7 +1004,7 @@ export function Navbar({ content }: NavbarProps) {
                   currentPathname={pathname}
                   languageSelector={languageSelector}
                   menuAlign='left'
-                  className='inline-flex min-h-[42px] w-full items-center justify-between rounded-[58.73px] px-[17px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                  className={NAV_MOBILE_PRIMARY_ACTION_CLASSNAME}
                   buttonStyle={getTopLinkStyle(false)}
                   isBorderlessMenu
                 />
@@ -990,7 +1012,7 @@ export function Navbar({ content }: NavbarProps) {
                   href={localizedBookNowHref}
                   label={content.bookNow.label}
                   onClick={closeMobileMenu}
-                  className='inline-flex min-h-[42px] w-full items-center justify-center rounded-[58.73px] px-[17px] text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                  className={NAV_MOBILE_BOOK_BUTTON_CLASSNAME}
                   style={getTopLinkStyle(false)}
                 />
               </div>
