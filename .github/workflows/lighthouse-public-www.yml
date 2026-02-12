@@ -1,4 +1,4 @@
-name: Lighthouse Public WWW
+name: Lighthouse Public Website
 
 on:
   pull_request:
