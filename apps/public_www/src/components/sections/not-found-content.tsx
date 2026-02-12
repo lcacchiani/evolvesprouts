@@ -1,4 +1,4 @@
-export function NotFoundSection() {
+export function NotFoundContent() {
   return (
     <main
       id='main-content'
