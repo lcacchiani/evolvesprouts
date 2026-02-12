@@ -12,6 +12,10 @@ import {
 
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
+import {
+  readCandidateText,
+  readOptionalText,
+} from '@/content/content-field-utils';
 import type { RealStoriesContent } from '@/content';
 
 interface RealStoriesProps {
@@ -96,32 +100,9 @@ const metaTextStyle: CSSProperties = {
   letterSpacing: 'var(--figma-letterspacing-mom-of-2, 0.5px)',
 };
 
-function getStringValue(value: unknown): string | undefined {
-  if (typeof value !== 'string') {
-    return undefined;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : undefined;
-}
-
-function getCandidate(
-  record: Record<string, unknown>,
-  keys: string[],
-): string | undefined {
-  for (const key of keys) {
-    const value = getStringValue(record[key]);
-    if (value) {
-      return value;
-    }
-  }
-
-  return undefined;
-}
-
 function normalizeStory(item: unknown): NormalizedStory | null {
   if (typeof item === 'string') {
-    const quote = getStringValue(item);
+    const quote = readOptionalText(item);
     return quote ? { quote } : null;
   }
 
@@ -131,46 +112,51 @@ function normalizeStory(item: unknown): NormalizedStory | null {
 
   const record = item as Record<string, unknown>;
   const story: NormalizedStory = {
-    badgeLabel: getCandidate(record, ['badgeLabel', 'badge', 'eyebrow', 'label']),
-    quote: getCandidate(record, [
+    badgeLabel: readCandidateText(record, [
+      'badgeLabel',
+      'badge',
+      'eyebrow',
+      'label',
+    ]),
+    quote: readCandidateText(record, [
       'quote',
       'testimonial',
       'text',
       'description',
       'content',
     ]),
-    author: getCandidate(record, ['author', 'name', 'parentName']),
-    role: getCandidate(record, ['role', 'subtitle', 'title']),
-    metaLocation: getCandidate(record, [
+    author: readCandidateText(record, ['author', 'name', 'parentName']),
+    role: readCandidateText(record, ['role', 'subtitle', 'title']),
+    metaLocation: readCandidateText(record, [
       'metaLocation',
       'from',
       'location',
       'city',
     ]),
-    previousButtonLabel: getCandidate(record, [
+    previousButtonLabel: readCandidateText(record, [
       'previousButtonLabel',
       'previousAriaLabel',
       'previousLabel',
     ]),
-    nextButtonLabel: getCandidate(record, [
+    nextButtonLabel: readCandidateText(record, [
       'nextButtonLabel',
       'nextAriaLabel',
       'nextLabel',
     ]),
-    mainImageSrc: getCandidate(record, [
+    mainImageSrc: readCandidateText(record, [
       'mainImageSrc',
       'slideImageSrc',
       'imageSrc',
       'image',
     ]),
-    mainImageAlt: getCandidate(record, ['mainImageAlt', 'imageAlt']),
-    avatarImageSrc: getCandidate(record, [
+    mainImageAlt: readCandidateText(record, ['mainImageAlt', 'imageAlt']),
+    avatarImageSrc: readCandidateText(record, [
       'avatarImageSrc',
       'authorImageSrc',
       'userImageSrc',
       'avatar',
     ]),
-    avatarImageAlt: getCandidate(record, [
+    avatarImageAlt: readCandidateText(record, [
       'avatarImageAlt',
       'authorImageAlt',
       'userImageAlt',

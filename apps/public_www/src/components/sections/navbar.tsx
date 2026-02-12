@@ -10,6 +10,9 @@ interface NavbarProps {
   content: NavbarContent;
 }
 
+type MenuItem = NavbarContent['menuItems'][number];
+type SubmenuItem = NonNullable<MenuItem['children']>[number];
+
 const NAV_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const NAV_PILL_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const NAV_TEXT_COLOR =
@@ -192,6 +195,159 @@ function BookNowButton({
   );
 }
 
+interface TopLevelMenuLinkProps {
+  item: MenuItem;
+  isActive: boolean;
+  className: string;
+}
+
+function TopLevelMenuLink({
+  item,
+  isActive,
+  className,
+}: TopLevelMenuLinkProps) {
+  return (
+    <Link href={item.href} className={className} style={getTopLinkStyle(isActive)}>
+      {item.label}
+    </Link>
+  );
+}
+
+interface SubmenuLinksProps {
+  items: readonly SubmenuItem[];
+  currentPath: string;
+  listClassName: string;
+  linkClassName: string;
+}
+
+function SubmenuLinks({
+  items,
+  currentPath,
+  listClassName,
+  linkClassName,
+}: SubmenuLinksProps) {
+  return (
+    <ul className={listClassName}>
+      {items.map((item) => (
+        <li key={item.label}>
+          <Link
+            href={item.href}
+            className={linkClassName}
+            style={getSubmenuLinkStyle(isHrefActive(currentPath, item.href))}
+          >
+            {item.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function DesktopMenuItem({
+  item,
+  currentPath,
+}: {
+  item: MenuItem;
+  currentPath: string;
+}) {
+  const itemIsActive = isMenuItemActive(currentPath, item);
+
+  if (!item.children) {
+    return (
+      <li>
+        <TopLevelMenuLink
+          item={item}
+          isActive={itemIsActive}
+          className='inline-flex h-[41px] items-center justify-center rounded-full px-4 transition-transform hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+        />
+      </li>
+    );
+  }
+
+  return (
+    <li className='group relative'>
+      <TopLevelMenuLink
+        item={item}
+        isActive={itemIsActive}
+        className='inline-flex h-[41px] items-center justify-center rounded-full px-4 pr-8 transition-transform hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+      />
+      <span
+        aria-hidden='true'
+        className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-black/70'
+      >
+        v
+      </span>
+      <SubmenuLinks
+        items={item.children}
+        currentPath={currentPath}
+        listClassName='invisible absolute left-0 top-[calc(100%+0.5rem)] z-50 min-w-[230px] space-y-2 rounded-2xl border border-black/10 bg-white p-3 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
+        linkClassName='inline-flex h-[38px] w-full items-center justify-start rounded-full px-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+      />
+    </li>
+  );
+}
+
+function DesktopMenuItems({
+  items,
+  currentPath,
+}: {
+  items: readonly MenuItem[];
+  currentPath: string;
+}) {
+  return (
+    <ul className='hidden flex-1 items-center justify-center gap-1.5 lg:flex'>
+      {items.map((item) => (
+        <DesktopMenuItem key={item.label} item={item} currentPath={currentPath} />
+      ))}
+    </ul>
+  );
+}
+
+function MobileMenuItem({
+  item,
+  currentPath,
+}: {
+  item: MenuItem;
+  currentPath: string;
+}) {
+  const itemIsActive = isMenuItemActive(currentPath, item);
+
+  return (
+    <li className='space-y-2'>
+      <TopLevelMenuLink
+        item={item}
+        isActive={itemIsActive}
+        className='inline-flex h-[41px] w-full items-center justify-center rounded-full px-4'
+      />
+
+      {item.children && (
+        <SubmenuLinks
+          items={item.children}
+          currentPath={currentPath}
+          listClassName='space-y-2 pl-3'
+          linkClassName='inline-flex h-[38px] w-full items-center justify-center rounded-full px-4'
+        />
+      )}
+    </li>
+  );
+}
+
+function MobileMenuItems({
+  items,
+  currentPath,
+}: {
+  items: readonly MenuItem[];
+  currentPath: string;
+}) {
+  return (
+    <ul className='space-y-2'>
+      {items.map((item) => (
+        <MobileMenuItem key={item.label} item={item} currentPath={currentPath} />
+      ))}
+    </ul>
+  );
+}
+
 export function Navbar({ content }: NavbarProps) {
   const pathname = usePathname() ?? '/';
   const currentPath = normalizePath(pathname);
@@ -214,58 +370,7 @@ export function Navbar({ content }: NavbarProps) {
           />
         </Link>
 
-        <ul className='hidden flex-1 items-center justify-center gap-1.5 lg:flex'>
-          {content.menuItems.map((item) => {
-            const itemIsActive = isMenuItemActive(currentPath, item);
-
-            if (!item.children) {
-              return (
-                <li key={item.label}>
-                  <Link
-                    href={item.href}
-                    className='inline-flex h-[41px] items-center justify-center rounded-full px-4 transition-transform hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
-                    style={getTopLinkStyle(itemIsActive)}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            }
-
-            return (
-              <li key={item.label} className='group relative'>
-                <Link
-                  href={item.href}
-                  className='inline-flex h-[41px] items-center justify-center rounded-full px-4 pr-8 transition-transform hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
-                  style={getTopLinkStyle(itemIsActive)}
-                >
-                  {item.label}
-                </Link>
-                <span
-                  aria-hidden='true'
-                  className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-black/70'
-                >
-                  v
-                </span>
-                <ul className='invisible absolute left-0 top-[calc(100%+0.5rem)] z-50 min-w-[230px] space-y-2 rounded-2xl border border-black/10 bg-white p-3 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'>
-                  {item.children.map((child) => (
-                    <li key={child.label}>
-                      <Link
-                        href={child.href}
-                        className='inline-flex h-[38px] w-full items-center justify-start rounded-full px-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
-                        style={getSubmenuLinkStyle(
-                          isHrefActive(currentPath, child.href),
-                        )}
-                      >
-                        {child.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            );
-          })}
-        </ul>
+        <DesktopMenuItems items={content.menuItems} currentPath={currentPath} />
 
         <div className='hidden items-center gap-3 lg:flex'>
           <LanguageSelectorButton
@@ -304,41 +409,7 @@ export function Navbar({ content }: NavbarProps) {
             className='absolute inset-x-0 top-[calc(100%+0.5rem)] z-50 rounded-2xl border border-black/10 p-4 shadow-xl'
             style={{ backgroundColor: NAV_BACKGROUND }}
           >
-            <ul className='space-y-2'>
-              {content.menuItems.map((item) => {
-                const itemIsActive = isMenuItemActive(currentPath, item);
-
-                return (
-                  <li key={item.label} className='space-y-2'>
-                    <Link
-                      href={item.href}
-                      className='inline-flex h-[41px] w-full items-center justify-center rounded-full px-4'
-                      style={getTopLinkStyle(itemIsActive)}
-                    >
-                      {item.label}
-                    </Link>
-
-                    {item.children && (
-                      <ul className='space-y-2 pl-3'>
-                        {item.children.map((child) => (
-                          <li key={child.label}>
-                            <Link
-                              href={child.href}
-                              className='inline-flex h-[38px] w-full items-center justify-center rounded-full px-4'
-                              style={getSubmenuLinkStyle(
-                                isHrefActive(currentPath, child.href),
-                              )}
-                            >
-                              {child.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+            <MobileMenuItems items={content.menuItems} currentPath={currentPath} />
 
             <div className='mt-4 space-y-3 border-t border-black/10 pt-4'>
               <LanguageSelectorButton

@@ -38,6 +38,10 @@ jobs:
         run: npm ci
         working-directory: apps/public_www
 
+      - name: Audit public website assets
+        run: npm run audit:assets
+        working-directory: apps/public_www
+
       # Figma tokens are already committed to git by the
       # figma-token-studio-sync workflow. npm run build runs
       # figma:build:studio to generate CSS from the committed
