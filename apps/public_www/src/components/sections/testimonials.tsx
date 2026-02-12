@@ -25,14 +25,8 @@ interface NormalizedStory {
   quote?: string;
   author?: string;
   role?: string;
-  metaLocation?: string;
-  badgeLabel?: string;
-  previousButtonLabel?: string;
-  nextButtonLabel?: string;
   mainImageSrc?: string;
-  mainImageAlt?: string;
   avatarImageSrc?: string;
-  avatarImageAlt?: string;
 }
 
 const TEXT_PRIMARY =
@@ -45,6 +39,7 @@ const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 const SWIPE_THRESHOLD_PX = 48;
+const QUOTE_ICON_SRC = '/images/orange-quote.png';
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
 
@@ -112,12 +107,6 @@ function normalizeStory(item: unknown): NormalizedStory | null {
 
   const record = item as Record<string, unknown>;
   const story: NormalizedStory = {
-    badgeLabel: readCandidateText(record, [
-      'badgeLabel',
-      'badge',
-      'eyebrow',
-      'label',
-    ]),
     quote: readCandidateText(record, [
       'quote',
       'testimonial',
@@ -127,39 +116,17 @@ function normalizeStory(item: unknown): NormalizedStory | null {
     ]),
     author: readCandidateText(record, ['author', 'name', 'parentName']),
     role: readCandidateText(record, ['role', 'subtitle', 'title']),
-    metaLocation: readCandidateText(record, [
-      'metaLocation',
-      'from',
-      'location',
-      'city',
-    ]),
-    previousButtonLabel: readCandidateText(record, [
-      'previousButtonLabel',
-      'previousAriaLabel',
-      'previousLabel',
-    ]),
-    nextButtonLabel: readCandidateText(record, [
-      'nextButtonLabel',
-      'nextAriaLabel',
-      'nextLabel',
-    ]),
     mainImageSrc: readCandidateText(record, [
       'mainImageSrc',
       'slideImageSrc',
       'imageSrc',
       'image',
     ]),
-    mainImageAlt: readCandidateText(record, ['mainImageAlt', 'imageAlt']),
     avatarImageSrc: readCandidateText(record, [
       'avatarImageSrc',
       'authorImageSrc',
       'userImageSrc',
       'avatar',
-    ]),
-    avatarImageAlt: readCandidateText(record, [
-      'avatarImageAlt',
-      'authorImageAlt',
-      'userImageAlt',
     ]),
   };
 
@@ -206,27 +173,6 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   );
 }
 
-function QuoteIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 43 32'
-      className='h-8 w-11 sm:h-10 sm:w-12'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M18.8 0H6.1L0 12.2V32H19.3V12.2H9.4L13.6 4.1H18.8V0Z'
-        fill='#E76C3D'
-      />
-      <path
-        d='M42.7 0H30.1L24 12.2V32H43.3V12.2H33.4L37.6 4.1H42.7V0Z'
-        fill='#E76C3D'
-      />
-    </svg>
-  );
-}
-
 function ParentIcon() {
   return (
     <svg
@@ -266,14 +212,28 @@ export function Testimonials({ content }: TestimonialsProps) {
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
   const activeIndex = getWrappedIndex(activeStoryIndex, storiesToRender.length);
-  const activeStory = storiesToRender[activeIndex];
   const hasMultipleStories = storiesToRender.length > 1;
-  const badgeLabel = activeStory?.badgeLabel ?? content.title;
+  const testimonialsRecord = content as Record<string, unknown>;
+  const badgeLabel =
+    readCandidateText(testimonialsRecord, [
+      'badgeLabel',
+      'badge',
+      'eyebrow',
+      'label',
+    ]) ?? content.title;
   const descriptionText = content.description.trim();
   const previousButtonLabel =
-    activeStory?.previousButtonLabel ?? 'Previous testimonial';
+    readCandidateText(testimonialsRecord, [
+      'previousButtonLabel',
+      'previousAriaLabel',
+      'previousLabel',
+    ]) ?? 'Previous testimonial';
   const nextButtonLabel =
-    activeStory?.nextButtonLabel ?? 'Next testimonial';
+    readCandidateText(testimonialsRecord, [
+      'nextButtonLabel',
+      'nextAriaLabel',
+      'nextLabel',
+    ]) ?? 'Next testimonial';
 
   function goToPreviousStory() {
     if (!hasMultipleStories) {
@@ -335,17 +295,8 @@ export function Testimonials({ content }: TestimonialsProps) {
     <SectionShell
       ariaLabel={content.title}
       dataFigmaNode='Testimonials'
-      className='relative isolate overflow-hidden'
+      className='relative isolate overflow-hidden bg-white'
     >
-      <div
-        aria-hidden='true'
-        className='pointer-events-none absolute left-1/2 top-0 h-[540px] w-[980px] -translate-x-1/2'
-        style={{
-          background:
-            'radial-gradient(circle at center, rgba(231,108,61,0.12) 0%, rgba(231,108,61,0) 64%)',
-        }}
-      />
-
       <div className='relative mx-auto w-full max-w-[1488px]'>
         <div className='mx-auto max-w-[760px] text-center'>
           <SectionEyebrowChip
@@ -385,10 +336,7 @@ export function Testimonials({ content }: TestimonialsProps) {
             >
               {storiesToRender.map((story, index) => {
                 const quoteText = story.quote ?? content.title;
-                const showMeta =
-                  Boolean(story.author) ||
-                  Boolean(story.role) ||
-                  Boolean(story.metaLocation);
+                const showMeta = Boolean(story.author) || Boolean(story.role);
 
                 return (
                   <article
@@ -400,10 +348,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                         {story.mainImageSrc ? (
                           <Image
                             src={story.mainImageSrc}
-                            alt={
-                              story.mainImageAlt ??
-                              `${story.author ?? 'Parent'} testimonial image`
-                            }
+                            alt={`${story.author ?? 'Parent'} testimonial image`}
                             fill
                             sizes='(min-width: 1024px) 500px, 100vw'
                             className='object-cover'
@@ -420,11 +365,16 @@ export function Testimonials({ content }: TestimonialsProps) {
                       </div>
 
                       <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
-                        <div className='flex items-start gap-3 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
-                          <span className='shrink-0 pt-1'>
-                            <QuoteIcon />
-                          </span>
-                          <p className='text-balance' style={quoteTextStyle}>
+                        <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
+                          <Image
+                            src={QUOTE_ICON_SRC}
+                            alt=''
+                            aria-hidden='true'
+                            width={43}
+                            height={43}
+                            className='h-9 w-9 sm:h-11 sm:w-11'
+                          />
+                          <p className='w-full text-balance' style={quoteTextStyle}>
                             {quoteText}
                           </p>
                         </div>
@@ -434,10 +384,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                             {story.avatarImageSrc ? (
                               <Image
                                 src={story.avatarImageSrc}
-                                alt={
-                                  story.avatarImageAlt ??
-                                  `${story.author ?? 'Parent'} avatar`
-                                }
+                                alt={`${story.author ?? 'Parent'} avatar`}
                                 width={100}
                                 height={100}
                                 className='h-[82px] w-[71px] shrink-0 rounded-[16px] object-cover sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
@@ -461,11 +408,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                                   style={metaTextStyle}
                                 >
                                   {story.role}
-                                </p>
-                              )}
-                              {story.metaLocation && (
-                                <p className='mt-1 max-w-[190px]' style={metaTextStyle}>
-                                  {story.metaLocation}
                                 </p>
                               )}
                             </div>

@@ -71,7 +71,7 @@ export function DeferredTestimonials({ content }: DeferredTestimonialsProps) {
         <SectionShell
           ariaLabel={content.title}
           dataFigmaNode='Testimonials'
-          className='relative isolate overflow-hidden'
+          className='relative isolate overflow-hidden bg-white'
         >
           <div className='mx-auto w-full max-w-[1488px]'>
             <div className='mx-auto max-w-[760px] text-center'>
@@ -79,7 +79,7 @@ export function DeferredTestimonials({ content }: DeferredTestimonialsProps) {
                 {content.title}
               </h2>
             </div>
-            <div className='mt-10 h-[420px] rounded-[30px] border border-[#EFD7C7] bg-white/75 lg:mt-14 lg:h-[540px]' />
+            <div className='mt-10 h-[420px] rounded-[30px] border border-[#EFD7C7] bg-white lg:mt-14 lg:h-[540px]' />
           </div>
         </SectionShell>
       )}
