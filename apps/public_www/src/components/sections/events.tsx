@@ -38,20 +38,11 @@ interface EventCardData {
   timestamp: number | null;
 }
 
-interface FetchRequestConfig {
-  url: string;
-  method: 'GET' | 'POST';
-  filterParam: string;
-  action?: string;
-  nonce?: string;
-}
-
 const SECTION_BACKGROUND = '#FFFFFF';
 const HEADING_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 
-const DEFAULT_FILTER_PARAM = 'filter';
 const DEFAULT_SORT_OPTIONS: readonly SortOption[] = [
   { value: 'latest', label: 'Latest Events' },
   { value: 'oldest', label: 'Older Events' },
@@ -205,28 +196,6 @@ function resolveSortOptions(content: EventsContent): readonly SortOption[] {
   return normalizedOptions;
 }
 
-function resolveRequestConfig(
-  content: EventsContent,
-): FetchRequestConfig | null {
-  const url = readOptionalText(content.apiUrl);
-  if (!url) {
-    return null;
-  }
-
-  const methodText = readOptionalText(content.apiMethod)?.toUpperCase() ?? 'GET';
-  const method = methodText === 'POST' ? 'POST' : 'GET';
-  const filterParam = readOptionalText(content.apiFilterParam) ??
-    DEFAULT_FILTER_PARAM;
-
-  return {
-    url,
-    method,
-    filterParam,
-    action: readOptionalText(content.apiAction),
-    nonce: readOptionalText(content.apiNonce),
-  };
-}
-
 async function parseResponsePayload(response: Response): Promise<unknown> {
   const rawText = await response.text();
   const normalizedText = rawText.trim();
@@ -243,39 +212,10 @@ async function parseResponsePayload(response: Response): Promise<unknown> {
 }
 
 async function fetchEventsPayload(
-  requestConfig: FetchRequestConfig,
-  selectedFilter: string,
+  apiUrl: string,
   signal: AbortSignal,
 ): Promise<unknown> {
-  if (requestConfig.method === 'POST') {
-    const formData = new URLSearchParams();
-    if (requestConfig.action) {
-      formData.set('action', requestConfig.action);
-    }
-    formData.set(requestConfig.filterParam, selectedFilter);
-    if (requestConfig.nonce) {
-      formData.set('nonce', requestConfig.nonce);
-    }
-
-    const response = await fetch(requestConfig.url, {
-      method: 'POST',
-      body: formData,
-      signal,
-      headers: {
-        Accept: 'application/json',
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Events API request failed: ${response.status}`);
-    }
-
-    return parseResponsePayload(response);
-  }
-
-  const url = new URL(requestConfig.url, window.location.origin);
-  url.searchParams.set(requestConfig.filterParam, selectedFilter);
-
-  const response = await fetch(url.toString(), {
+  const response = await fetch(apiUrl, {
     method: 'GET',
     signal,
     headers: {
@@ -594,9 +534,9 @@ export function Events({ content }: EventsProps) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const requestConfig = resolveRequestConfig(content);
+    const apiUrl = readOptionalText(content.apiUrl);
 
-    if (!requestConfig) {
+    if (!apiUrl) {
       setEvents([]);
       setHasRequestError(true);
       setIsLoading(false);
@@ -608,7 +548,7 @@ export function Events({ content }: EventsProps) {
     setIsLoading(true);
     setHasRequestError(false);
 
-    fetchEventsPayload(requestConfig, activeFilter, controller.signal)
+    fetchEventsPayload(apiUrl, controller.signal)
       .then((payload) => {
         const normalizedEvents = normalizeEvents(payload, content);
         setEvents(normalizedEvents);
@@ -630,7 +570,7 @@ export function Events({ content }: EventsProps) {
     return () => {
       controller.abort();
     };
-  }, [activeFilter, content]);
+  }, [content]);
 
   const visibleEvents = useMemo(() => {
     return sortEvents(events, activeFilter);
