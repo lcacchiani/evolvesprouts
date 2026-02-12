@@ -27,6 +27,12 @@ export type CourseHighlightsContent = SiteContent['courseHighlights'];
 export type TestimonialsContent = SiteContent['testimonials'];
 export type ContactUsContent = SiteContent['contactUs'];
 export type EventsContent = SiteContent['events'];
+export type AboutUsPageContent = SiteContent['aboutUsPage'];
+export type IdaContent = AboutUsPageContent['ida'];
+export type MyHistoryContent = AboutUsPageContent['myHistory'];
+export type MyJourneyContent = AboutUsPageContent['myJourney'];
+export type WhyUsContent = AboutUsPageContent['whyUs'];
+export type FaqContent = AboutUsPageContent['faq'];
 export type SproutsSquadCommunityContent =
   SiteContent['sproutsSquadCommunity'];
 export type FooterContent = SiteContent['footer'];
