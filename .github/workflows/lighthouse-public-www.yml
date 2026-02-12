@@ -1,16 +1,6 @@
 name: Lighthouse Public Website
 
 on:
-  pull_request:
-    paths:
-      - 'apps/public_www/**'
-      - '.github/workflows/lighthouse-public-www.yml'
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/public_www/**'
-      - '.github/workflows/lighthouse-public-www.yml'
   workflow_dispatch:
 
 permissions:

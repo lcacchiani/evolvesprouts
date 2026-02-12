@@ -19,7 +19,7 @@ interface NavbarProps {
 type MenuItem = NavbarContent['menuItems'][number];
 type SubmenuItem = NonNullable<MenuItem['children']>[number];
 
-const NAV_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
+const NAV_BACKGROUND = '#fff';
 const NAV_PILL_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const NAV_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
@@ -39,14 +39,6 @@ const linkStyle = {
   fontSize: 'var(--figma-fontsizes-18, 18px)',
   fontWeight: 'var(--figma-fontweights-600, 600)',
   lineHeight: 'var(--figma-lineheights-home-2, 100%)',
-};
-
-const localeStyle = {
-  color: NAV_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-urbanist, Urbanist), sans-serif',
-  fontSize: 'var(--figma-fontsizes-20, 20px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: 'var(--figma-lineheights-eng, 100%)',
 };
 
 const ctaStyle = {
@@ -449,7 +441,6 @@ function LanguageSelectorButton({
           height={30}
           className='h-[30px] w-[30px] rounded-full object-cover'
         />
-        <span style={localeStyle}>{activeOption.shortLabel}</span>
         <span className='sr-only'>
           {`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
         </span>
@@ -609,15 +600,15 @@ function DesktopMenuItem({
       />
       <span
         aria-hidden='true'
-        className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-black/70 transition-transform group-hover:rotate-180'
+        className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-transform group-hover:rotate-180 group-focus-within:rotate-180'
       >
-        v
+        <LanguageChevronIcon />
       </span>
       <SubmenuLinks
         items={item.children}
         currentPath={currentPath}
         locale={locale}
-        listClassName='invisible absolute left-0 top-[calc(100%+4px)] z-50 w-[192px] space-y-[3px] rounded-none bg-transparent p-0 opacity-0 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
+        listClassName='invisible absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 opacity-0 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
         linkClassName='inline-flex min-h-[40px] w-full items-center justify-start rounded-[6px] px-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
       />
     </li>
@@ -846,8 +837,8 @@ export function Navbar({ content }: NavbarProps) {
               src={logoSrc}
               alt={content.brand}
               width={150}
-              height={44}
-              className='h-[34px] w-auto sm:h-[40px] lg:h-[44px]'
+              height={150}
+              className='h-[150px] w-[150px] bg-[#fff] object-contain'
             />
           </Link>
 
@@ -920,9 +911,9 @@ export function Navbar({ content }: NavbarProps) {
                 <Image
                   src={logoSrc}
                   alt={content.brand}
-                  width={120}
-                  height={36}
-                  className='h-[34px] w-auto'
+                  width={150}
+                  height={150}
+                  className='h-[150px] w-[150px] bg-[#fff] object-contain'
                 />
               </Link>
               <button
