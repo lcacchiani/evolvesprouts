@@ -1,4 +1,4 @@
-import { ContactUsPageSections } from '@/components/contact-us-page-sections';
+import { ContactUsPageSections } from '@/components/contact-us';
 import {
   getMenuLabel,
   resolveLocalePageContext,
