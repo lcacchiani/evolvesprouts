@@ -22,8 +22,8 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
         <CourseHighlights content={content.courseHighlights} />
         <Resources content={content.resources} />
         <Testimonials content={content.testimonials} />
+        <SproutsSquadCommunity content={content.footer} />
       </main>
-      <SproutsSquadCommunity content={content.footer} />
       <Footer content={content.footer} />
     </>
   );
