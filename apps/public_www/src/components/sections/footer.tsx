@@ -52,9 +52,9 @@ const columnTitleStyle: CSSProperties = {
 const linkStyle: CSSProperties = {
   color: BODY_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
+  fontSize: 'var(--figma-fontsizes-16, 16px)',
   fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight: 'calc(var(--figma-lineheights-home, 28) * 1px)',
+  lineHeight: 'calc(var(--figma-lineheights-home, 26) * 1px)',
   letterSpacing: 'calc(var(--figma-letterspacing-home, 0.5) * 1px)',
 };
 
@@ -114,7 +114,47 @@ const socialIcons: Record<string, ReactNode> = {
   ),
 };
 
-function FooterColumn({
+function FooterColumnLinks({
+  items,
+  hasSocialIcons = false,
+}: {
+  items: FooterLinkItem[];
+  hasSocialIcons?: boolean;
+}) {
+  return (
+    <ul className='flex flex-col gap-[8px]'>
+      {items.map((item) => {
+        const icon = item.icon ? socialIcons[item.icon] : null;
+        const isExternal = item.href.startsWith('http');
+
+        return (
+          <li key={`${item.label}-${item.href}`}>
+            <Link
+              href={item.href}
+              className='inline-flex items-center transition-opacity hover:opacity-70'
+              style={{
+                ...linkStyle,
+                gap: hasSocialIcons ? '12px' : '8px',
+              }}
+              {...(isExternal
+                ? { target: '_blank', rel: 'noopener noreferrer' }
+                : {})}
+            >
+              {hasSocialIcons && icon ? (
+                <span className='shrink-0' style={{ color: BODY_TEXT_COLOR }}>
+                  {icon}
+                </span>
+              ) : null}
+              <span>{item.label}</span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function FooterDesktopColumn({
   title,
   items,
   hasSocialIcons = false,
@@ -128,36 +168,50 @@ function FooterColumn({
       <h3 className='pb-4' style={columnTitleStyle}>
         {title}
       </h3>
-      <ul className='flex flex-col gap-[17px]'>
-        {items.map((item) => {
-          const icon = item.icon ? socialIcons[item.icon] : null;
-          const isExternal = item.href.startsWith('http');
-
-          return (
-            <li key={`${title}-${item.label}`}>
-              <Link
-                href={item.href}
-                className='inline-flex items-center transition-opacity hover:opacity-70'
-                style={{
-                  ...linkStyle,
-                  gap: hasSocialIcons ? '14px' : '8px',
-                }}
-                {...(isExternal
-                  ? { target: '_blank', rel: 'noopener noreferrer' }
-                  : {})}
-              >
-                {hasSocialIcons && icon ? (
-                  <span className='shrink-0' style={{ color: BODY_TEXT_COLOR }}>
-                    {icon}
-                  </span>
-                ) : null}
-                <span>{item.label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <FooterColumnLinks items={items} hasSocialIcons={hasSocialIcons} />
     </section>
+  );
+}
+
+function AccordionChevronIcon() {
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 18 10'
+      className='h-[9px] w-[17px] shrink-0 transition-transform duration-200 group-open:rotate-180'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <path
+        d='M2 1.5L9 8L16 1.5'
+        stroke='rgba(51,51,51,0.9)'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  );
+}
+
+function FooterMobileAccordion({
+  title,
+  items,
+  hasSocialIcons = false,
+}: {
+  title: string;
+  items: FooterLinkItem[];
+  hasSocialIcons?: boolean;
+}) {
+  return (
+    <details className='group border-t border-black/15 py-5'>
+      <summary className='flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden'>
+        <span style={columnTitleStyle}>{title}</span>
+        <AccordionChevronIcon />
+      </summary>
+      <div className='pt-3'>
+        <FooterColumnLinks items={items} hasSocialIcons={hasSocialIcons} />
+      </div>
+    </details>
   );
 }
 
@@ -178,10 +232,25 @@ export function Footer({ content }: FooterProps) {
           sizes='100vw'
           className='object-cover object-top'
         />
+        <div
+          aria-hidden='true'
+          className='pointer-events-none absolute inset-0'
+          style={{
+            background:
+              'radial-gradient(circle at center top, rgba(255,255,255,0) 15%, rgba(255,238,227,0.74) 68%)',
+          }}
+        />
 
-        <div className='relative z-10 mx-auto flex min-h-[460px] w-full max-w-[1465px] flex-col justify-center gap-8 px-4 py-14 sm:min-h-[560px] sm:px-6 sm:py-20 lg:min-h-[780px] lg:gap-10 lg:px-8'>
+        <div className='relative z-10 mx-auto flex min-h-[420px] w-full max-w-[1465px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
+          <Image
+            src='/images/evolvesprouts-logo.svg'
+            alt=''
+            width={120}
+            height={120}
+            className='h-auto w-[82px] sm:w-[96px] lg:w-[118px]'
+          />
           <h2
-            className='max-w-[847px] text-[clamp(2rem,6vw,77px)] leading-[1.15] lg:leading-[calc(var(--figma-lineheights-join-our-sprouts-squad-community,107)*1px)]'
+            className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12]'
             style={headingStyle}
           >
             {content.communityHeading}
@@ -189,7 +258,7 @@ export function Footer({ content }: FooterProps) {
 
           <Link
             href={newsletterLink}
-            className='inline-flex h-14 w-full max-w-[500px] items-center justify-center rounded-lg px-5 text-center text-lg transition-opacity hover:opacity-90 sm:h-[68px] sm:text-2xl lg:h-[82px] lg:text-[28px]'
+            className='inline-flex h-14 w-full max-w-[500px] items-center justify-center rounded-[10px] px-5 text-center text-base transition-opacity hover:opacity-90 sm:h-[62px] sm:text-lg lg:h-[74px] lg:max-w-[410px] lg:text-[26px]'
             style={ctaStyle}
           >
             {content.newsletterCta}
@@ -197,14 +266,14 @@ export function Footer({ content }: FooterProps) {
         </div>
       </section>
 
-      <section className='w-full px-4 pb-8 pt-10 sm:px-6 sm:pb-10 sm:pt-12 lg:px-8 lg:pb-12 lg:pt-16'>
+      <section className='w-full px-4 pb-8 pt-9 sm:px-6 sm:pb-10 sm:pt-11 lg:px-8 lg:pb-12 lg:pt-16'>
         <div className='mx-auto w-full max-w-[1465px]'>
-          <div className='grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-5 lg:items-start lg:gap-x-6 lg:gap-y-10'>
-            <FooterColumn
+          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-5 lg:items-start lg:gap-x-6 lg:gap-y-10'>
+            <FooterDesktopColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
             />
-            <FooterColumn
+            <FooterDesktopColumn
               title={content.services.title}
               items={content.services.items}
             />
@@ -217,11 +286,40 @@ export function Footer({ content }: FooterProps) {
                 className='h-auto w-[88px] sm:w-[96px] lg:w-[120px]'
               />
             </div>
-            <FooterColumn
+            <FooterDesktopColumn
               title={content.aboutUs.title}
               items={content.aboutUs.items}
             />
-            <FooterColumn
+            <FooterDesktopColumn
+              title={content.connectOn.title}
+              items={content.connectOn.items}
+              hasSocialIcons
+            />
+          </div>
+
+          <div className='sm:hidden'>
+            <div className='mb-7 flex justify-center'>
+              <Image
+                src='/images/evolvesprouts-logo.svg'
+                alt={content.brand}
+                width={120}
+                height={120}
+                className='h-auto w-[92px]'
+              />
+            </div>
+            <FooterMobileAccordion
+              title={content.quickLinks.title}
+              items={content.quickLinks.items}
+            />
+            <FooterMobileAccordion
+              title={content.services.title}
+              items={content.services.items}
+            />
+            <FooterMobileAccordion
+              title={content.aboutUs.title}
+              items={content.aboutUs.items}
+            />
+            <FooterMobileAccordion
               title={content.connectOn.title}
               items={content.connectOn.items}
               hasSocialIcons
