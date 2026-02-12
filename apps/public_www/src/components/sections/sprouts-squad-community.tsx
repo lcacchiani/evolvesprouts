@@ -13,7 +13,7 @@ const SECTION_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const HEADING_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const CTA_BACKGROUND = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
+const CTA_BACKGROUND = '#C84A16';
 const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
 
 const headingStyle: CSSProperties = {

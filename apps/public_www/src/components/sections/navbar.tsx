@@ -23,9 +23,9 @@ const NAV_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const NAV_PILL_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const NAV_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const NAV_ACTIVE_TEXT = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
+const NAV_ACTIVE_TEXT = '#C84A16';
 const NAV_ACTIVE_BACKGROUND = '#F2A975';
-const CTA_BACKGROUND = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
+const CTA_BACKGROUND = '#C84A16';
 const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';

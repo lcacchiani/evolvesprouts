@@ -95,7 +95,7 @@
   }
 
   .es-cta-primary {
-    background-color: var(--figma-colors-frame-2147235222-2, #ED622E);
+    background-color: #C84A16;
     color: var(--figma-colors-desktop, #FFFFFF);
     font-family: var(--site-primary-font);
     font-weight: 600;

@@ -102,6 +102,8 @@ export function HeroBanner({ content }: HeroBannerProps) {
             width={764}
             height={841}
             priority
+            fetchPriority='high'
+            sizes='(max-width: 640px) 92vw, (max-width: 1024px) 70vw, 764px'
             className='h-auto w-full'
           />
         </div>
