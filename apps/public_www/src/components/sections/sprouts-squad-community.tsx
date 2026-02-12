@@ -77,7 +77,7 @@ export function SproutsSquadCommunity({
 
         <Link
           href={content.ctaHref}
-          className='inline-flex h-14 w-full max-w-[500px] items-center justify-center rounded-[10px] px-5 text-center text-base transition-opacity hover:opacity-90 sm:h-[62px] sm:text-lg lg:h-[74px] lg:max-w-[410px] lg:text-[26px]'
+          className='es-cta-button h-14 w-full max-w-[500px] rounded-[10px] px-5 text-base sm:h-[62px] sm:text-lg lg:h-[74px] lg:max-w-[410px] lg:text-[26px]'
           style={ctaStyle}
         >
           {content.ctaLabel}

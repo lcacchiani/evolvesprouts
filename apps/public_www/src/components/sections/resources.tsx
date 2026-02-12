@@ -317,7 +317,7 @@ export function Resources({ content }: ResourcesProps) {
 
                   <SectionCtaAnchor
                     href={ctaHref}
-                    className='mt-auto h-[58px] w-full max-w-[360px] rounded-[10px] px-5 focus-visible:outline-black/35 sm:h-[67px] sm:px-6'
+                    className='mt-auto h-[58px] w-full max-w-[360px] rounded-[10px] px-5 es-focus-ring-medium sm:h-[67px] sm:px-6'
                     style={ctaStyle}
                   >
                     <span className='whitespace-nowrap'>{ctaLabel}</span>
