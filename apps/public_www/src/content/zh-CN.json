@@ -247,6 +247,11 @@
       }
     ]
   },
+  "sproutsSquadCommunity": {
+    "heading": "加入我们的 Sprouts Squad 社区！",
+    "ctaLabel": "订阅我们的每月通讯",
+    "ctaHref": "/contact-us"
+  },
   "footer": {
     "brand": "Evolve Sprouts",
     "communityHeading": "加入我们的 Sprouts Squad 社区！",

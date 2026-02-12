@@ -247,6 +247,11 @@
       }
     ]
   },
+  "sproutsSquadCommunity": {
+    "heading": "Join our Sprouts Squad community!",
+    "ctaLabel": "Sign Up to Our Monthly Newsletter",
+    "ctaHref": "/contact-us"
+  },
   "footer": {
     "brand": "Evolve Sprouts",
     "communityHeading": "Join our Sprouts Squad community!",

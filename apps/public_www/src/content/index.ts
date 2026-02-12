@@ -25,6 +25,8 @@ export type MyBestAuntieOverviewContent = SiteContent['myBestAuntieOverview'];
 export type ResourcesContent = SiteContent['resources'];
 export type CourseHighlightsContent = SiteContent['courseHighlights'];
 export type TestimonialsContent = SiteContent['testimonials'];
+export type SproutsSquadCommunityContent =
+  SiteContent['sproutsSquadCommunity'];
 export type FooterContent = SiteContent['footer'];
 
 const contentMap = {
