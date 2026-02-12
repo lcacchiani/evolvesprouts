@@ -114,10 +114,10 @@ const sectionTitleStyle: CSSProperties = {
 const sectionDescriptionStyle: CSSProperties = {
   color: BODY_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.05rem, 2.4vw, var(--figma-fontsizes-28, 28px))',
+  fontSize: 'clamp(1rem, 2.2vw, var(--figma-fontsizes-28, 28px))',
   fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight:
-    'clamp(1.75rem, 3.2vw, calc(var(--figma-lineheights-transform-your-auntie-into-a-montessori-guided-child-development-partner, 50) * 1px))',
+  fontStyle: 'italic',
+  lineHeight: 'clamp(1.5rem, 3vw, 50px)',
   letterSpacing:
     'calc(var(--figma-letterspacing-transform-your-auntie-into-a-montessori-guided-child-development-partner, 0.28) * 1px)',
 };
@@ -278,25 +278,16 @@ export function WhyJoining({ content }: WhyJoiningProps) {
           <h2 className='mt-6 text-balance' style={sectionTitleStyle}>
             {sectionTitle}
           </h2>
-
-          {sectionDescription && (
-            <p
-              className='mx-auto mt-5 max-w-[920px] text-balance'
-              style={sectionDescriptionStyle}
-            >
-              {sectionDescription}
-            </p>
-          )}
         </div>
 
-        <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3'>
+        <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 2xl:grid-cols-3'>
           {benefitCards.map((card) => {
             const cardBg = card.tone === 'gold' ? GOLD_CARD : BLUE_CARD;
 
             return (
               <li key={card.id}>
                 <article
-                  className='group relative isolate flex min-h-[320px] overflow-hidden rounded-[28px] p-5 sm:min-h-[380px] sm:p-7 lg:min-h-[457px] lg:p-8'
+                  className='group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[380px] sm:p-7 lg:min-h-[457px] lg:p-8'
                   style={{ backgroundColor: cardBg }}
                 >
                   <div
@@ -344,7 +335,18 @@ export function WhyJoining({ content }: WhyJoiningProps) {
           })}
         </ul>
 
-        <div className='mt-10 flex justify-center sm:mt-12 lg:mt-14'>
+        {sectionDescription && (
+          <div className='mt-9 text-center sm:mt-11 lg:mt-12'>
+            <p
+              className='mx-auto max-w-[780px] text-balance'
+              style={sectionDescriptionStyle}
+            >
+              {sectionDescription}
+            </p>
+          </div>
+        )}
+
+        <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
           <SectionCtaLink
             href={ctaHref}
             className='h-[62px] w-full max-w-[488px] gap-2 rounded-[8px] px-5 focus-visible:outline-black/40 sm:h-[70px] sm:px-7 lg:h-[78px]'
