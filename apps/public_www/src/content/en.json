@@ -278,6 +278,34 @@
       ]
     }
   },
+  "events": {
+    "apiUrl": "https://www2.evolvesprouts.com/wp-admin/admin-ajax.php",
+    "apiMethod": "POST",
+    "apiAction": "new_filter_events_api",
+    "apiFilterParam": "filter",
+    "apiNonce": "",
+    "eyebrow": "Top Events",
+    "title": "Upcoming Events",
+    "description": "Discover upcoming Montessori-based training events designed to empower nannies with modern child development skills.",
+    "scheduledHeading": "Scheduled Events",
+    "sortAriaLabel": "Sort events by",
+    "sortOptions": [
+      { "value": "latest", "label": "Latest Events" },
+      { "value": "oldest", "label": "Older Events" },
+      { "value": "fully_booked", "label": "Fully Booked" }
+    ],
+    "loadingLabel": "Loading events...",
+    "emptyStateLabel": "No scheduled events for now",
+    "errorLabel": "Unable to load events right now. Please check back soon.",
+    "card": {
+      "dateLabel": "Date",
+      "timeLabel": "Time",
+      "locationLabel": "Location",
+      "emptyLocationLabel": "Location details will be announced soon.",
+      "ctaLabel": "Reserve your spot",
+      "fullyBookedLabel": "Fully booked"
+    }
+  },
   "sproutsSquadCommunity": {
     "heading": "Join our Sprouts Squad community!",
     "ctaLabel": "Sign Up to Our Monthly Newsletter",

@@ -278,6 +278,34 @@
       ]
     }
   },
+  "events": {
+    "apiUrl": "https://www2.evolvesprouts.com/wp-admin/admin-ajax.php",
+    "apiMethod": "POST",
+    "apiAction": "new_filter_events_api",
+    "apiFilterParam": "filter",
+    "apiNonce": "",
+    "eyebrow": "精选活动",
+    "title": "即将举办的活动",
+    "description": "探索即将举行的蒙特梭利培训活动，帮助阿姨掌握现代儿童发展技能。",
+    "scheduledHeading": "已排期活动",
+    "sortAriaLabel": "按条件排序活动",
+    "sortOptions": [
+      { "value": "latest", "label": "最新活动" },
+      { "value": "oldest", "label": "较早活动" },
+      { "value": "fully_booked", "label": "已满额" }
+    ],
+    "loadingLabel": "正在加载活动...",
+    "emptyStateLabel": "暂无已排期活动",
+    "errorLabel": "暂时无法加载活动，请稍后再试。",
+    "card": {
+      "dateLabel": "日期",
+      "timeLabel": "时间",
+      "locationLabel": "地点",
+      "emptyLocationLabel": "地点详情将稍后公布。",
+      "ctaLabel": "立即预订",
+      "fullyBookedLabel": "已满额"
+    }
+  },
   "sproutsSquadCommunity": {
     "heading": "加入我们的 Sprouts Squad 社区！",
     "ctaLabel": "订阅我们的每月通讯",
