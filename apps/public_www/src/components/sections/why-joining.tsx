@@ -280,14 +280,14 @@ export function WhyJoining({ content }: WhyJoiningProps) {
           </h2>
         </div>
 
-        <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 2xl:grid-cols-3'>
+        <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3'>
           {benefitCards.map((card) => {
             const cardBg = card.tone === 'gold' ? GOLD_CARD : BLUE_CARD;
 
             return (
               <li key={card.id}>
                 <article
-                  className='group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[380px] sm:p-7 lg:min-h-[457px] lg:p-8'
+                  className='group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8'
                   style={{ backgroundColor: cardBg }}
                 >
                   <div

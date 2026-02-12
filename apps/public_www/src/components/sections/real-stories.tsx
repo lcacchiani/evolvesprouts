@@ -38,7 +38,6 @@ const TEXT_PRIMARY =
 const TEXT_SECONDARY = 'var(--figma-colors-home, #4A4A4A)';
 const CONTROL_BG = '#FFFFFF';
 const CONTROL_ICON = '#3D3E3D';
-const DIVIDER_COLOR = 'rgba(31, 31, 31, 0.2)';
 const BADGE_BORDER = '#EECAB0';
 const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
@@ -372,7 +371,7 @@ export function RealStories({ content }: RealStoriesProps) {
                       </div>
 
                       <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
-                        <div className='flex items-start gap-3 sm:gap-5'>
+                        <div className='flex items-start gap-3 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
                           <span className='shrink-0 pt-1'>
                             <QuoteIcon />
                           </span>
@@ -382,14 +381,7 @@ export function RealStories({ content }: RealStoriesProps) {
                         </div>
 
                         {showMeta && (
-                          <>
-                            <div
-                              aria-hidden='true'
-                              className='mt-8 h-px w-full'
-                              style={{ backgroundColor: DIVIDER_COLOR }}
-                            />
-
-                            <div className='mt-8 flex items-start gap-4 sm:gap-6'>
+                          <div className='mt-6 flex items-start gap-4 sm:mt-8 sm:gap-6'>
                               {story.avatarImageSrc ? (
                                 <Image
                                   src={story.avatarImageSrc}
@@ -397,13 +389,13 @@ export function RealStories({ content }: RealStoriesProps) {
                                     story.avatarImageAlt ??
                                     `${story.author ?? 'Parent'} avatar`
                                   }
-                                  width={123}
-                                  height={123}
-                                  className='h-[90px] w-[90px] shrink-0 rounded-[18px] object-cover sm:h-[123px] sm:w-[123px]'
+                                  width={100}
+                                  height={100}
+                                  className='h-[82px] w-[71px] shrink-0 rounded-[16px] object-cover sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
                                 />
                               ) : (
                                 <span
-                                  className='inline-flex h-[90px] w-[90px] shrink-0 items-center justify-center rounded-[18px] sm:h-[123px] sm:w-[123px]'
+                                  className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-[16px] sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
                                   style={{ backgroundColor: PROFILE_CARD_BG }}
                                 >
                                   <ParentIcon />
@@ -416,20 +408,19 @@ export function RealStories({ content }: RealStoriesProps) {
                                 )}
                                 {story.role && (
                                   <p
-                                    className={story.author ? 'mt-1' : ''}
+                                    className={`max-w-[190px] ${story.author ? 'mt-1' : ''}`}
                                     style={metaTextStyle}
                                   >
                                     {story.role}
                                   </p>
                                 )}
                                 {story.metaLocation && (
-                                  <p className='mt-1' style={metaTextStyle}>
+                                  <p className='mt-1 max-w-[190px]' style={metaTextStyle}>
                                     {story.metaLocation}
                                   </p>
                                 )}
                               </div>
-                            </div>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
