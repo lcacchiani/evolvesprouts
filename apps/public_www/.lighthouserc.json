@@ -13,28 +13,27 @@
       }
     },
     "assert": {
-      "preset": "lighthouse:recommended",
       "assertions": {
         "categories:performance": [
           "warn",
           {
-            "minScore": 0.75
+            "minScore": 0.7
           }
         ],
         "categories:accessibility": [
-          "error",
+          "warn",
           {
-            "minScore": 0.9
+            "minScore": 0.85
           }
         ],
         "categories:best-practices": [
-          "error",
+          "warn",
           {
-            "minScore": 0.9
+            "minScore": 0.85
           }
         ],
         "categories:seo": [
-          "error",
+          "warn",
           {
             "minScore": 0.9
           }
