@@ -162,3 +162,6 @@ The deploy workflow reads these GitHub values for OAuth 2.0 auth:
 `public_www` intentionally does **not** use SPA fallback rewrites. CloudFront
 returns normal 404 responses for unknown routes, which preserves crawler
 semantics for indexing.
+
+For branded not-found UX on static export, CloudFront custom error responses
+map S3 403/404 origin misses to `/404.html` while preserving HTTP 404 status.

@@ -66,6 +66,8 @@ function invalidate_distribution() {
       --paths \
         "/" \
         "/index.html" \
+        "/404*" \
+        "/_not-found*" \
         "/en*" \
         "/zh-CN*" \
         "/zh-HK*" \

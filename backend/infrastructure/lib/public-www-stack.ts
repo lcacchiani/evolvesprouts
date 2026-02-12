@@ -309,6 +309,20 @@ function handler(event) {
         logBucket: loggingBucket,
         logFilePrefix: "cloudfront-access-logs/",
         logIncludesCookies: false,
+        errorResponses: [
+          {
+            httpStatus: 403,
+            responseHttpStatus: 404,
+            responsePagePath: "/404.html",
+            ttl: cdk.Duration.minutes(1),
+          },
+          {
+            httpStatus: 404,
+            responseHttpStatus: 404,
+            responsePagePath: "/404.html",
+            ttl: cdk.Duration.minutes(1),
+          },
+        ],
         defaultBehavior: {
           origin,
           viewerProtocolPolicy:
