@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
   security-events: write
   actions: read
 
@@ -170,7 +171,7 @@ jobs:
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   # SAST with Semgrep
   semgrep:
