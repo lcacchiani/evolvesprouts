@@ -1,7 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { type CSSProperties, useMemo, useState } from 'react';
+import {
+  type CSSProperties,
+  type TouchEvent,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
@@ -38,6 +44,7 @@ const BADGE_BORDER = '#EECAB0';
 const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
+const SWIPE_THRESHOLD_PX = 48;
 
 const badgeTextStyle: CSSProperties = {
   color: TEXT_PRIMARY,
@@ -255,6 +262,7 @@ export function RealStories({ content }: RealStoriesProps) {
       ? stories
       : [{ quote: content.title } satisfies NormalizedStory];
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
+  const touchStartXRef = useRef<number | null>(null);
   const activeIndex = getWrappedIndex(activeStoryIndex, storiesToRender.length);
   const activeStory = storiesToRender[activeIndex];
   const hasMultipleStories = storiesToRender.length > 1;
@@ -283,6 +291,42 @@ export function RealStories({ content }: RealStoriesProps) {
     setActiveStoryIndex((currentIndex) =>
       getWrappedIndex(currentIndex + 1, storiesToRender.length),
     );
+  }
+
+  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
+    if (!hasMultipleStories) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    touchStartXRef.current = touch ? touch.clientX : null;
+  }
+
+  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (!hasMultipleStories || touchStartXRef.current === null) {
+      touchStartXRef.current = null;
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    if (!touch) {
+      touchStartXRef.current = null;
+      return;
+    }
+
+    const deltaX = touch.clientX - touchStartXRef.current;
+    touchStartXRef.current = null;
+
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) {
+      return;
+    }
+
+    if (deltaX > 0) {
+      goToPreviousStory();
+      return;
+    }
+
+    goToNextStory();
   }
 
   return (
@@ -324,7 +368,15 @@ export function RealStories({ content }: RealStoriesProps) {
         </div>
 
         <div className='relative mt-10 overflow-hidden rounded-[30px] border border-[#EFD7C7] bg-white shadow-[0_28px_70px_rgba(18,18,17,0.08)] lg:mt-14'>
-          <div className='overflow-hidden' aria-live='polite'>
+          <div
+            className='overflow-hidden'
+            aria-live='polite'
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={() => {
+              touchStartXRef.current = null;
+            }}
+          >
             <div
               className='flex transition-transform duration-500 ease-out'
               style={{ transform: `translateX(-${activeIndex * 100}%)` }}
