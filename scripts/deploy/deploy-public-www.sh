@@ -60,30 +60,65 @@ function validate_release_id() {
 function invalidate_distribution() {
   local distribution_id="$1"
   if [ -n "$distribution_id" ] && [ "$distribution_id" != "None" ]; then
+    local -a invalidation_paths=(
+      "/"
+      "/index.html"
+      "/404.html"
+      "/404/index.html"
+      "/_not-found/index.html"
+      "/en*"
+      "/zh-CN*"
+      "/zh-HK*"
+      "/about-us*"
+      "/about*"
+      "/book*"
+      "/contact-us*"
+      "/contact*"
+      "/events*"
+      "/newsletter*"
+      "/privacy*"
+      "/resources*"
+      "/services*"
+      "/training-courses*"
+      "/robots.txt"
+      "/sitemap.xml"
+    )
+    local max_attempts=5
+    local retry_delay_seconds=20
+    local attempt=1
+
     echo "Invalidating CloudFront distribution $distribution_id"
-    aws cloudfront create-invalidation \
-      --distribution-id "$distribution_id" \
-      --paths \
-        "/" \
-        "/index.html" \
-        "/404*" \
-        "/_not-found*" \
-        "/en*" \
-        "/zh-CN*" \
-        "/zh-HK*" \
-        "/about-us*" \
-        "/about*" \
-        "/book*" \
-        "/contact-us*" \
-        "/contact*" \
-        "/events*" \
-        "/newsletter*" \
-        "/privacy*" \
-        "/resources*" \
-        "/services*" \
-        "/training-courses*" \
-        "/robots.txt" \
-        "/sitemap.xml"
+    while [ "$attempt" -le "$max_attempts" ]; do
+      local invalidation_output
+      invalidation_output="$(mktemp)"
+      if aws cloudfront create-invalidation \
+        --distribution-id "$distribution_id" \
+        --paths "${invalidation_paths[@]}" \
+        >"$invalidation_output" 2>&1; then
+        cat "$invalidation_output"
+        rm -f "$invalidation_output"
+        return
+      fi
+
+      local invalidation_error
+      invalidation_error="$(<"$invalidation_output")"
+      rm -f "$invalidation_output"
+
+      if [[ "$invalidation_error" == *"TooManyInvalidationsInProgress"* ]] && \
+        [ "$attempt" -lt "$max_attempts" ]; then
+        echo "CloudFront invalidation queue is full (attempt $attempt/$max_attempts)."
+        echo "Retrying in ${retry_delay_seconds}s..."
+        sleep "$retry_delay_seconds"
+        attempt=$((attempt + 1))
+        continue
+      fi
+
+      echo "$invalidation_error"
+      return 1
+    done
+
+    echo "CloudFront invalidation failed after $max_attempts attempts."
+    return 1
   fi
 }
 
