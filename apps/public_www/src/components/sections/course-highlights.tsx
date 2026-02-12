@@ -11,12 +11,9 @@ interface CourseHighlightsProps {
   content: CourseHighlightsContent;
 }
 
-type BenefitCardTone = 'gold' | 'blue';
-
 interface BenefitCard {
   id: string;
   title: string;
-  tone: BenefitCardTone;
   imageSrc: string;
   imageWidth: number;
   imageHeight: number;
@@ -26,7 +23,6 @@ interface BenefitCard {
 
 interface BenefitCardMeta {
   id: string;
-  tone: BenefitCardTone;
   imageSrc: string;
   imageWidth: number;
   imageHeight: number;
@@ -46,7 +42,6 @@ const fallbackCourseHighlightsCopy = enContent.courseHighlights;
 const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'age-specific',
-    tone: 'gold',
     imageSrc: '/images/course-highlights/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
@@ -54,7 +49,6 @@ const benefitCardMeta: BenefitCardMeta[] = [
   },
   {
     id: 'small-group-learning',
-    tone: 'blue',
     imageSrc: '/images/course-highlights/course-card-2.webp',
     imageWidth: 433,
     imageHeight: 424,
@@ -62,7 +56,6 @@ const benefitCardMeta: BenefitCardMeta[] = [
   },
   {
     id: 'montessori-positive-discipline',
-    tone: 'gold',
     imageSrc: '/images/course-highlights/course-card-3.webp',
     imageWidth: 282,
     imageHeight: 335,
@@ -70,7 +63,6 @@ const benefitCardMeta: BenefitCardMeta[] = [
   },
   {
     id: 'ongoing-support',
-    tone: 'gold',
     imageSrc: '/images/course-highlights/course-card-4.webp',
     imageWidth: 308,
     imageHeight: 323,
@@ -78,7 +70,6 @@ const benefitCardMeta: BenefitCardMeta[] = [
   },
   {
     id: 'ready-to-use-tools',
-    tone: 'blue',
     imageSrc: '/images/course-highlights/course-card-5.webp',
     imageWidth: 472,
     imageHeight: 457,
@@ -86,7 +77,6 @@ const benefitCardMeta: BenefitCardMeta[] = [
   },
   {
     id: 'guaranteed-confidence',
-    tone: 'gold',
     imageSrc: '/images/course-highlights/course-card-6.webp',
     imageWidth: 433,
     imageHeight: 443,
@@ -186,30 +176,6 @@ function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
   return cards;
 }
 
-function BenefitIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 32 32'
-      className='h-[31px] w-[31px]'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M16 4.75L19.95 12.74L28.77 14.02L22.38 20.25L23.89 29.03L16 24.88L8.11 29.03L9.62 20.25L3.23 14.02L12.05 12.74L16 4.75Z'
-        stroke='var(--figma-colors-frame-1000007814, #1F1F1F)'
-        strokeWidth='2'
-      />
-      <circle
-        cx='16'
-        cy='16'
-        r='2.5'
-        fill='var(--figma-colors-frame-1000007814, #1F1F1F)'
-      />
-    </svg>
-  );
-}
-
 function DecorativeCardArrow() {
   return (
     <span
@@ -281,8 +247,8 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         </div>
 
         <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3'>
-          {benefitCards.map((card) => {
-            const cardBg = card.tone === 'gold' ? GOLD_CARD : BLUE_CARD;
+          {benefitCards.map((card, index) => {
+            const cardBg = index % 2 === 0 ? GOLD_CARD : BLUE_CARD;
 
             return (
               <li key={card.id}>
@@ -310,10 +276,6 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                   <DecorativeCardArrow />
 
                   <div className='relative z-10 flex h-full w-full flex-col'>
-                    <span className='inline-flex h-[54px] w-[54px] items-center justify-center rounded-full bg-white'>
-                      <BenefitIcon />
-                    </span>
-
                     <div className='mt-auto space-y-4'>
                       <h3 className='max-w-[12ch] text-balance' style={cardTitleStyle}>
                         {card.title}
