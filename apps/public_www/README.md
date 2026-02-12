@@ -11,6 +11,7 @@
 - `npm run images:optimize` — generate optimized `.webp` images from
   `public/images/**/*.png`.
 - `npm run build` — validate content, build Figma CSS tokens, and build the app.
+- `npm run lighthouse:ci` — run Lighthouse CI against the static export.
 
 ## Figma token scaffolding
 

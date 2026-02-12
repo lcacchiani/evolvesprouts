@@ -1,0 +1,55 @@
+name: Lighthouse Public WWW
+
+on:
+  pull_request:
+    paths:
+      - 'apps/public_www/**'
+      - '.github/workflows/lighthouse-public-www.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/public_www/**'
+      - '.github/workflows/lighthouse-public-www.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    name: Lighthouse audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: apps/public_www/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/public_www
+        run: npm ci
+
+      - name: Build static website
+        working-directory: apps/public_www
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        working-directory: apps/public_www
+        run: npm run lighthouse:ci
+
+      - name: Upload Lighthouse artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-public-www-results
+          path: apps/public_www/.lighthouseci
+          if-no-files-found: warn
