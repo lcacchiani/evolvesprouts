@@ -3,10 +3,10 @@ import { Fragment, type CSSProperties, type ReactNode } from 'react';
 import { SectionCtaLink } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
-import type { CourseModuleContent } from '@/content';
+import type { MyBestAuntieOverviewContent } from '@/content';
 
-interface CourseModuleProps {
-  content: CourseModuleContent;
+interface MyBestAuntieOverviewProps {
+  content: MyBestAuntieOverviewContent;
 }
 
 type ModuleIconVariant = 'foundation' | 'coaching' | 'practice';
@@ -247,7 +247,7 @@ function getModuleTone(index: number): ModuleTone {
   return MODULE_TONES[index % MODULE_TONES.length];
 }
 
-function CourseModuleCard({
+function MyBestAuntieOverviewCard({
   module,
   index,
   showFullActivity,
@@ -306,7 +306,7 @@ function CourseModuleCard({
   );
 }
 
-export function CourseModule({ content }: CourseModuleProps) {
+export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
   const moduleSteps: ModuleStep[] = content.modules.map((module, index) => ({
     step: module.step,
     title: module.title,
@@ -323,7 +323,7 @@ export function CourseModule({ content }: CourseModuleProps) {
     <SectionShell
       id='courses'
       ariaLabel={content.title}
-      dataFigmaNode='Course module'
+      dataFigmaNode='My Best Auntie Overview'
       className='relative isolate overflow-hidden'
       style={{ backgroundColor: SECTION_BG }}
     >
@@ -377,7 +377,7 @@ export function CourseModule({ content }: CourseModuleProps) {
           <ul className='hidden gap-6 lg:grid lg:grid-cols-3'>
             {moduleSteps.map((module, index) => (
               <li key={module.step}>
-                <CourseModuleCard
+                <MyBestAuntieOverviewCard
                   module={module}
                   index={index}
                   showFullActivity={false}
@@ -392,7 +392,7 @@ export function CourseModule({ content }: CourseModuleProps) {
                   key={module.step}
                   className='w-[88%] shrink-0 snap-center sm:w-[72%]'
                 >
-                  <CourseModuleCard
+                  <MyBestAuntieOverviewCard
                     module={module}
                     index={index}
                     showFullActivity

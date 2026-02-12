@@ -84,7 +84,7 @@ apps/public_www/
 │   ├── components/sections/      # Section components (hand-edited)
 │   │   ├── navbar.tsx
 │   │   ├── hero-banner.tsx
-│   │   ├── course-module.tsx
+│   │   ├── my-best-auntie-overview.tsx
 │   │   ├── resources.tsx
 │   │   ├── course-highlights.tsx
 │   │   ├── testimonials.tsx
