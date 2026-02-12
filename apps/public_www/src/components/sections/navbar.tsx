@@ -64,7 +64,20 @@ interface LanguageOption {
   flagSrc: string;
 }
 
-const LANGUAGE_OPTIONS: readonly LanguageOption[] = [
+interface LanguageSelectorContent {
+  menuAriaLabel: string;
+  selectedLanguageAriaPrefix: string;
+  options: readonly LanguageOption[];
+}
+
+interface RawLanguageOption {
+  locale: string;
+  label: string;
+  shortLabel: string;
+  flagSrc: string;
+}
+
+const DEFAULT_LANGUAGE_OPTIONS: readonly LanguageOption[] = [
   {
     locale: 'en',
     label: 'English',
@@ -84,6 +97,9 @@ const LANGUAGE_OPTIONS: readonly LanguageOption[] = [
     flagSrc: '/flags/hk.png',
   },
 ];
+
+const DEFAULT_LANGUAGE_MENU_ARIA_LABEL = 'Select language';
+const DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX = 'Selected language';
 
 function isLocale(value: string): value is Locale {
   return SUPPORTED_LOCALES.includes(value as Locale);
@@ -171,6 +187,52 @@ function localizeHref(href: string, locale: Locale): string {
     queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
 
   return `${localizePath(pathnameValue || '/', locale)}${queryValue}${hashValue}`;
+}
+
+function resolveLanguageSelectorContent(
+  content: NavbarContent,
+): LanguageSelectorContent {
+  const selector = (content as NavbarContent & {
+    languageSelector?: {
+      menuAriaLabel?: string;
+      selectedLanguageAriaPrefix?: string;
+      options?: RawLanguageOption[];
+    };
+  }).languageSelector;
+
+  const normalizedOptions = (selector?.options ?? [])
+    .map((option) => {
+      if (!isLocale(option.locale)) {
+        return null;
+      }
+
+      const label = option.label?.trim();
+      const shortLabel = option.shortLabel?.trim();
+      const flagSrc = option.flagSrc?.trim();
+      if (!label || !shortLabel || !flagSrc) {
+        return null;
+      }
+
+      return {
+        locale: option.locale,
+        label,
+        shortLabel,
+        flagSrc,
+      } as LanguageOption;
+    })
+    .filter((option): option is LanguageOption => option !== null);
+
+  return {
+    menuAriaLabel:
+      selector?.menuAriaLabel?.trim() || DEFAULT_LANGUAGE_MENU_ARIA_LABEL,
+    selectedLanguageAriaPrefix:
+      selector?.selectedLanguageAriaPrefix?.trim() ||
+      DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX,
+    options:
+      normalizedOptions.length > 0
+        ? normalizedOptions
+        : DEFAULT_LANGUAGE_OPTIONS,
+  };
 }
 
 function isHrefActive(currentPath: string, href: string): boolean {
@@ -306,6 +368,7 @@ interface LanguageSelectorButtonProps {
   className: string;
   currentLocale: Locale;
   currentPathname: string;
+  languageSelector: LanguageSelectorContent;
   menuAlign?: 'left' | 'right';
 }
 
@@ -313,13 +376,14 @@ function LanguageSelectorButton({
   className,
   currentLocale,
   currentPathname,
+  languageSelector,
   menuAlign = 'right',
 }: LanguageSelectorButtonProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const activeOption =
-    LANGUAGE_OPTIONS.find((option) => option.locale === currentLocale) ??
-    LANGUAGE_OPTIONS[0];
+    languageSelector.options.find((option) => option.locale === currentLocale) ??
+    languageSelector.options[0];
 
   useEffect(() => {
     if (!isMenuOpen) {
@@ -361,7 +425,7 @@ function LanguageSelectorButton({
         className={className}
         aria-expanded={isMenuOpen}
         aria-haspopup='menu'
-        aria-label={`Selected language: ${activeOption.label}`}
+        aria-label={`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
         onClick={() => {
           setIsMenuOpen((open) => !open);
         }}
@@ -378,10 +442,10 @@ function LanguageSelectorButton({
       </button>
       <ul
         role='menu'
-        aria-label='Select language'
+        aria-label={languageSelector.menuAriaLabel}
         className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[230px] space-y-1 rounded-xl border border-black/10 bg-white p-2 shadow-xl transition ${isMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}
       >
-        {LANGUAGE_OPTIONS.map((option) => {
+        {languageSelector.options.map((option) => {
           const isCurrent = option.locale === currentLocale;
           return (
             <li key={option.locale}>
@@ -663,6 +727,7 @@ export function Navbar({ content }: NavbarProps) {
   const logoSrc = content.logoSrc || LOGO_SRC;
   const localizedHomeHref = localizePath('/', currentLocale);
   const localizedBookNowHref = localizeHref(content.bookNow.href, currentLocale);
+  const languageSelector = resolveLanguageSelectorContent(content);
   const [mobileMenuOpenForPath, setMobileMenuOpenForPath] = useState<
     string | null
   >(null);
@@ -726,6 +791,7 @@ export function Navbar({ content }: NavbarProps) {
               key={`desktop-language-${pathname}`}
               currentLocale={currentLocale}
               currentPathname={pathname}
+              languageSelector={languageSelector}
               className='inline-flex h-[30px] items-center gap-[9px] px-[6px]'
             />
             <BookNowButton
@@ -807,6 +873,7 @@ export function Navbar({ content }: NavbarProps) {
                 key={`mobile-language-${pathname}`}
                 currentLocale={currentLocale}
                 currentPathname={pathname}
+                languageSelector={languageSelector}
                 menuAlign='left'
                 className='inline-flex h-[36px] w-full items-center gap-[9px] px-[6px]'
               />
