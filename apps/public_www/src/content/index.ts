@@ -23,7 +23,7 @@ export type NavbarContent = SiteContent['navbar'];
 export type HeroContent = SiteContent['hero'];
 export type CourseModuleContent = SiteContent['courseModule'];
 export type ResourcesContent = SiteContent['resources'];
-export type WhyJoiningContent = SiteContent['whyJoining'];
+export type CourseHighlightsContent = SiteContent['courseHighlights'];
 export type TestimonialsContent = SiteContent['testimonials'];
 export type FooterContent = SiteContent['footer'];
 

@@ -86,7 +86,7 @@ apps/public_www/
 │   │   ├── hero-banner.tsx
 │   │   ├── course-module.tsx
 │   │   ├── resources.tsx
-│   │   ├── why-joining.tsx
+│   │   ├── course-highlights.tsx
 │   │   ├── testimonials.tsx
 │   │   ├── sprouts-squad-community.tsx
 │   │   └── footer.tsx

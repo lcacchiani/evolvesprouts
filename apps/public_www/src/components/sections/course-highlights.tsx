@@ -4,11 +4,11 @@ import Image from 'next/image';
 import { SectionCtaLink } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
-import type { WhyJoiningContent } from '@/content';
+import type { CourseHighlightsContent } from '@/content';
 import enContent from '@/content/en.json';
 
-interface WhyJoiningProps {
-  content: WhyJoiningContent;
+interface CourseHighlightsProps {
+  content: CourseHighlightsContent;
 }
 
 type BenefitCardTone = 'gold' | 'blue';
@@ -41,13 +41,13 @@ const GOLD_CARD = 'var(--figma-colors-frame-2147235239, #AE7B1B)';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
 
-const fallbackWhyJoiningCopy = enContent.whyJoining;
+const fallbackCourseHighlightsCopy = enContent.courseHighlights;
 
 const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'age-specific',
     tone: 'gold',
-    imageSrc: '/images/why-joining/course-card-1.webp',
+    imageSrc: '/images/course-highlights/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
     imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
@@ -55,7 +55,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'small-group-learning',
     tone: 'blue',
-    imageSrc: '/images/why-joining/course-card-2.webp',
+    imageSrc: '/images/course-highlights/course-card-2.webp',
     imageWidth: 433,
     imageHeight: 424,
     imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
@@ -63,7 +63,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'montessori-positive-discipline',
     tone: 'gold',
-    imageSrc: '/images/why-joining/course-card-3.webp',
+    imageSrc: '/images/course-highlights/course-card-3.webp',
     imageWidth: 282,
     imageHeight: 335,
     imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
@@ -71,7 +71,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'ongoing-support',
     tone: 'gold',
-    imageSrc: '/images/why-joining/course-card-4.webp',
+    imageSrc: '/images/course-highlights/course-card-4.webp',
     imageWidth: 308,
     imageHeight: 323,
     imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
@@ -79,7 +79,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'ready-to-use-tools',
     tone: 'blue',
-    imageSrc: '/images/why-joining/course-card-5.webp',
+    imageSrc: '/images/course-highlights/course-card-5.webp',
     imageWidth: 472,
     imageHeight: 457,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
@@ -87,7 +87,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'guaranteed-confidence',
     tone: 'gold',
-    imageSrc: '/images/why-joining/course-card-6.webp',
+    imageSrc: '/images/course-highlights/course-card-6.webp',
     imageWidth: 433,
     imageHeight: 443,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
@@ -150,9 +150,11 @@ const ctaStyle: CSSProperties = {
   lineHeight: 'var(--figma-fontsizes-28, 28px)',
 };
 
-function getBenefitCards(content: WhyJoiningContent): BenefitCard[] {
+function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
   const activeItems =
-    content.items.length > 0 ? content.items : fallbackWhyJoiningCopy.items;
+    content.items.length > 0
+      ? content.items
+      : fallbackCourseHighlightsCopy.items;
   const itemById = new Map(activeItems.map((item) => [item.id, item]));
   const cards: BenefitCard[] = [];
 
@@ -235,19 +237,20 @@ function DecorativeCardArrow() {
   );
 }
 
-export function WhyJoining({ content }: WhyJoiningProps) {
-  const sectionTitle = content.title || fallbackWhyJoiningCopy.title;
+export function CourseHighlights({ content }: CourseHighlightsProps) {
+  const sectionTitle = content.title || fallbackCourseHighlightsCopy.title;
   const sectionDescription =
-    content.description || fallbackWhyJoiningCopy.description;
-  const sectionEyebrow = content.eyebrow || fallbackWhyJoiningCopy.eyebrow;
-  const ctaLabel = content.ctaLabel || fallbackWhyJoiningCopy.ctaLabel;
-  const ctaHref = content.ctaHref || fallbackWhyJoiningCopy.ctaHref;
+    content.description || fallbackCourseHighlightsCopy.description;
+  const sectionEyebrow =
+    content.eyebrow || fallbackCourseHighlightsCopy.eyebrow;
+  const ctaLabel = content.ctaLabel || fallbackCourseHighlightsCopy.ctaLabel;
+  const ctaHref = content.ctaHref || fallbackCourseHighlightsCopy.ctaHref;
   const benefitCards = getBenefitCards(content);
 
   return (
     <SectionShell
       ariaLabel={sectionTitle}
-      dataFigmaNode='Why Joining Our Courses'
+      dataFigmaNode='Course Highlights'
       className='relative isolate overflow-hidden'
       style={{ backgroundColor: SECTION_BG }}
     >
