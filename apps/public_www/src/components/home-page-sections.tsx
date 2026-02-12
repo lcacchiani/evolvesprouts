@@ -1,4 +1,5 @@
 import type { SiteContent } from '@/content';
+import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import { Footer } from '@/components/sections/footer';
 import { CourseModule } from '@/components/sections/course-module';
 import { HeroBanner } from '@/components/sections/hero-banner';
@@ -22,6 +23,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
         <Resources content={content.resources} />
         <Testimonials content={content.testimonials} />
       </main>
+      <SproutsSquadCommunity content={content.footer} />
       <Footer content={content.footer} />
     </>
   );
