@@ -19,7 +19,7 @@ interface NavbarProps {
 type MenuItem = NavbarContent['menuItems'][number];
 type SubmenuItem = NonNullable<MenuItem['children']>[number];
 
-const NAV_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
+const NAV_BACKGROUND = '#fff';
 const NAV_PILL_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const NAV_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
@@ -846,8 +846,8 @@ export function Navbar({ content }: NavbarProps) {
               src={logoSrc}
               alt={content.brand}
               width={150}
-              height={44}
-              className='h-[34px] w-auto sm:h-[40px] lg:h-[44px]'
+              height={150}
+              className='h-[150px] w-[150px] bg-[#fff] object-contain'
             />
           </Link>
 
@@ -920,9 +920,9 @@ export function Navbar({ content }: NavbarProps) {
                 <Image
                   src={logoSrc}
                   alt={content.brand}
-                  width={120}
-                  height={36}
-                  className='h-[34px] w-auto'
+                  width={150}
+                  height={150}
+                  className='h-[150px] w-[150px] bg-[#fff] object-contain'
                 />
               </Link>
               <button
