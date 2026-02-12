@@ -226,7 +226,7 @@ export function Footer({ content }: FooterProps) {
     >
       <section className='relative isolate overflow-hidden'>
         <Image
-          src='/images/footer-community-bg.png'
+          src='/images/footer-community-bg.webp'
           alt=''
           fill
           sizes='100vw'
@@ -243,7 +243,7 @@ export function Footer({ content }: FooterProps) {
 
         <div className='relative z-10 mx-auto flex min-h-[420px] w-full max-w-[1465px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
           <Image
-            src='/images/community-badge.png'
+            src='/images/community-badge.webp'
             alt=''
             width={241}
             height={247}
@@ -279,7 +279,7 @@ export function Footer({ content }: FooterProps) {
             />
             <div className='flex justify-start sm:justify-center lg:justify-center lg:pt-2'>
               <Image
-                src='/images/footer-icon.png'
+                src='/images/footer-icon.webp'
                 alt={content.brand}
                 width={120}
                 height={120}
@@ -300,7 +300,7 @@ export function Footer({ content }: FooterProps) {
           <div className='sm:hidden'>
             <div className='mb-7 flex justify-center'>
               <Image
-                src='/images/footer-icon.png'
+                src='/images/footer-icon.webp'
                 alt={content.brand}
                 width={120}
                 height={120}

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { LocaleDocumentAttributes } from '@/components/locale-document-attributes';
+import { WhatsappContactButton } from '@/components/whatsapp-contact-button';
 import {
   SUPPORTED_LOCALES,
   DEFAULT_LOCALE,
@@ -16,25 +18,6 @@ export function generateStaticParams() {
   return SUPPORTED_LOCALES.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  const validLocale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
-  const content = getContent(validLocale);
-
-  return {
-    title: content.navbar.brand,
-    alternates: {
-      languages: Object.fromEntries(
-        SUPPORTED_LOCALES.map((loc) => [loc, `/${loc}`]),
-      ),
-    },
-  };
-}
-
 export default async function LocaleLayout({
   children,
   params,
@@ -42,11 +25,16 @@ export default async function LocaleLayout({
   const { locale } = await params;
   const validLocale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
   const content = getContent(validLocale);
-  const direction = content.meta.direction ?? 'ltr';
+  const direction = content.meta.direction === 'rtl' ? 'rtl' : 'ltr';
 
   return (
-    <div lang={validLocale} dir={direction}>
+    <div data-locale={validLocale} dir={direction}>
+      <LocaleDocumentAttributes locale={validLocale} direction={direction} />
       {children}
+      <WhatsappContactButton
+        href={content.whatsappContact.href}
+        ariaLabel={content.whatsappContact.ariaLabel}
+      />
     </div>
   );
 }

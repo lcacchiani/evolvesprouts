@@ -55,6 +55,10 @@
     "subheadline": "Foster independence, joy, and confidence - with training that turns screen time into meaningful play.",
     "cta": "Get Started - Train Auntie Today"
   },
+  "whatsappContact": {
+    "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
+    "ariaLabel": "通过 WhatsApp 联系我们"
+  },
   "courseModule": {
     "eyebrow": "赋能教育",
     "title": "由 Ida 设计的最佳阿姨培训课程",
@@ -153,9 +157,9 @@
         "author": "Mary Lo",
         "role": "两孩妈妈",
         "metaLocation": "来自香港",
-        "mainImageSrc": "/images/testimonials/story-1-main.png",
+        "mainImageSrc": "/images/testimonials/story-1-main.webp",
         "mainImageAlt": "Mary Lo 见证",
-        "avatarImageSrc": "/images/testimonials/story-1-avatar.png",
+        "avatarImageSrc": "/images/testimonials/story-1-avatar.webp",
         "avatarImageAlt": "Mary Lo 头像",
         "previousButtonLabel": "上一条见证",
         "nextButtonLabel": "下一条见证"
@@ -166,9 +170,9 @@
         "author": "Yen",
         "role": "一孩妈妈",
         "metaLocation": "来自香港",
-        "mainImageSrc": "/images/testimonials/story-2-main.png",
+        "mainImageSrc": "/images/testimonials/story-2-main.webp",
         "mainImageAlt": "Yen 见证",
-        "avatarImageSrc": "/images/testimonials/story-2-avatar.png",
+        "avatarImageSrc": "/images/testimonials/story-2-avatar.webp",
         "avatarImageAlt": "Yen 头像",
         "previousButtonLabel": "上一条见证",
         "nextButtonLabel": "下一条见证"
@@ -179,9 +183,9 @@
         "author": "Sarah",
         "role": "一孩妈妈",
         "metaLocation": "来自香港",
-        "mainImageSrc": "/images/testimonials/story-3-main.png",
+        "mainImageSrc": "/images/testimonials/story-3-main.webp",
         "mainImageAlt": "Sarah 见证",
-        "avatarImageSrc": "/images/testimonials/story-3-avatar.png",
+        "avatarImageSrc": "/images/testimonials/story-3-avatar.webp",
         "avatarImageAlt": "Sarah 头像",
         "previousButtonLabel": "上一条见证",
         "nextButtonLabel": "下一条见证"
@@ -192,9 +196,9 @@
         "author": "Gabriella",
         "role": "三孩妈妈",
         "metaLocation": "香港",
-        "mainImageSrc": "/images/testimonials/story-4-main.png",
+        "mainImageSrc": "/images/testimonials/story-4-main.webp",
         "mainImageAlt": "Gabriella 见证",
-        "avatarImageSrc": "/images/testimonials/story-4-avatar.png",
+        "avatarImageSrc": "/images/testimonials/story-4-avatar.webp",
         "avatarImageAlt": "Gabriella 头像",
         "previousButtonLabel": "上一条见证",
         "nextButtonLabel": "下一条见证"
@@ -214,7 +218,7 @@
         "author": "Emma",
         "role": "一孩妈妈",
         "metaLocation": "香港",
-        "mainImageSrc": "/images/testimonials/story-6-main.png",
+        "mainImageSrc": "/images/testimonials/story-6-main.webp",
         "mainImageAlt": "Emma 见证",
         "previousButtonLabel": "上一条见证",
         "nextButtonLabel": "下一条见证"
@@ -225,7 +229,7 @@
         "author": "Joyce",
         "role": "一孩妈妈",
         "metaLocation": "香港",
-        "mainImageSrc": "/images/testimonials/story-7-main.png",
+        "mainImageSrc": "/images/testimonials/story-7-main.webp",
         "mainImageAlt": "Joyce 见证",
         "previousButtonLabel": "上一条见证",
         "nextButtonLabel": "下一条见证"
@@ -236,7 +240,7 @@
         "author": "Mira",
         "role": "一孩妈妈",
         "metaLocation": "香港",
-        "mainImageSrc": "/images/testimonials/story-8-main.png",
+        "mainImageSrc": "/images/testimonials/story-8-main.webp",
         "mainImageAlt": "Mira 见证",
         "previousButtonLabel": "上一条见证",
         "nextButtonLabel": "下一条见证"

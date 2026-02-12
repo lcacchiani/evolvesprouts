@@ -222,25 +222,53 @@ export class PublicWwwStack extends cdk.Stack {
       originAccessIdentity,
     });
 
-    const noIndexResponseHeadersPolicy = config.addNoIndexHeader
-      ? new cloudfront.ResponseHeadersPolicy(
-          this,
-          `${config.idPrefix}NoIndexResponseHeadersPolicy`,
-          {
-            comment:
-              "Prevent indexing for staging public website distribution.",
-            customHeadersBehavior: {
-              customHeaders: [
-                {
-                  header: "X-Robots-Tag",
-                  value: "noindex, nofollow, noarchive",
-                  override: true,
-                },
-              ],
-            },
+    const customHeaders: cloudfront.ResponseCustomHeader[] = [];
+    if (config.addNoIndexHeader) {
+      customHeaders.push({
+        header: "X-Robots-Tag",
+        value: "noindex, nofollow, noarchive",
+        override: true,
+      });
+    }
+
+    const responseHeadersPolicy = new cloudfront.ResponseHeadersPolicy(
+      this,
+      `${config.idPrefix}ResponseHeadersPolicy`,
+      {
+        comment: `Security headers for ${config.environmentLabel} public website distribution.`,
+        customHeadersBehavior:
+          customHeaders.length > 0
+            ? {
+                customHeaders,
+              }
+            : undefined,
+        securityHeadersBehavior: {
+          contentTypeOptions: {
+            override: true,
           },
-        )
-      : undefined;
+          frameOptions: {
+            frameOption: cloudfront.HeadersFrameOption.DENY,
+            override: true,
+          },
+          referrerPolicy: {
+            referrerPolicy:
+              cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+            override: true,
+          },
+          strictTransportSecurity: {
+            accessControlMaxAge: cdk.Duration.days(365),
+            includeSubdomains: true,
+            preload: true,
+            override: true,
+          },
+          xssProtection: {
+            protection: true,
+            modeBlock: true,
+            override: true,
+          },
+        },
+      },
+    );
 
     const distribution = new cloudfront.Distribution(
       this,
@@ -249,6 +277,8 @@ export class PublicWwwStack extends cdk.Stack {
         defaultRootObject: "index.html",
         domainNames: [config.domainName],
         certificate,
+        minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+        httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
         enableLogging: true,
         logBucket: loggingBucket,
         logFilePrefix: "cloudfront-access-logs/",
@@ -259,7 +289,7 @@ export class PublicWwwStack extends cdk.Stack {
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-          responseHeadersPolicy: noIndexResponseHeadersPolicy,
+          responseHeadersPolicy,
         },
       },
     );

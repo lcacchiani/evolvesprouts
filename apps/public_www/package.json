@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "audit:assets": "node ./scripts/audit-assets.mjs",
+    "images:optimize": "node ./scripts/optimize-images.mjs",
+    "validate:content": "node ./scripts/validate-content.mjs",
     "figma:auth": "node ./scripts/figma/generate-refresh-token.mjs",
     "figma:pull": "node ./scripts/figma/pull-figma-tokens.mjs",
     "figma:tokenize": "node ./scripts/figma/figma-to-token-studio.mjs",
@@ -13,7 +15,8 @@
     "figma:specs": "node ./scripts/figma/extract-design-specs.mjs",
     "figma:studio-sync": "npm run figma:pull && npm run figma:tokenize && npm run figma:build:studio",
     "figma:full-sync": "npm run figma:studio-sync && npm run figma:scaffold && npm run figma:specs",
-    "build": "npm run figma:build:studio && next build",
+    "build": "npm run validate:content && npm run figma:build:studio && next build",
+    "lighthouse:ci": "lhci autorun --config=.lighthouserc.json",
     "start": "next start",
     "lint": "eslint --max-warnings=0 ."
   },
@@ -23,6 +26,7 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^25.2.2",
     "@types/react": "^19.2.13",
@@ -30,6 +34,7 @@
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
     "postcss": "^8.5.6",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
   }

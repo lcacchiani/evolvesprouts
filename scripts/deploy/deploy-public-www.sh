@@ -9,6 +9,9 @@ SOURCE_STACK_NAME="${PUBLIC_WWW_SOURCE_STACK_NAME:-$STACK_NAME}"
 DEPLOY_ENVIRONMENT="${PUBLIC_WWW_ENVIRONMENT:-production}"
 RELEASE_ID="${PUBLIC_WWW_RELEASE_ID:-}"
 PROMOTE_RELEASE_ID="${PUBLIC_WWW_PROMOTE_RELEASE_ID:-}"
+ASSET_CACHE_CONTROL="public, max-age=31536000, immutable"
+DOCUMENT_CACHE_CONTROL="public, max-age=300, must-revalidate"
+NO_STORE_CACHE_CONTROL="no-store, max-age=0"
 
 function require_stack_output() {
   local stack_name="$1"
@@ -60,8 +63,83 @@ function invalidate_distribution() {
     echo "Invalidating CloudFront distribution $distribution_id"
     aws cloudfront create-invalidation \
       --distribution-id "$distribution_id" \
-      --paths "/*"
+      --paths \
+        "/" \
+        "/index.html" \
+        "/en*" \
+        "/zh-CN*" \
+        "/zh-HK*" \
+        "/about-us*" \
+        "/contact-us*" \
+        "/events*" \
+        "/training-courses*" \
+        "/robots.txt" \
+        "/sitemap.xml"
   fi
+}
+
+function optimize_images_for_deploy() {
+  local optimize_flag="${PUBLIC_WWW_OPTIMIZE_IMAGES:-true}"
+  if [ "$optimize_flag" != "true" ]; then
+    echo "Skipping image optimization (PUBLIC_WWW_OPTIMIZE_IMAGES=$optimize_flag)"
+    return
+  fi
+
+  if [ ! -f "$APP_DIR/package.json" ]; then
+    echo "Skipping image optimization (package.json not found at $APP_DIR)"
+    return
+  fi
+
+  echo "Optimizing images before deployment sync"
+  (
+    cd "$APP_DIR"
+    npm run images:optimize
+  )
+
+  if [ -d "$APP_DIR/public" ]; then
+    echo "Refreshing exported static assets from public/"
+    cp -a "$APP_DIR/public/." "$BUILD_DIR/"
+  fi
+}
+
+function sync_site_artifacts() {
+  local source_dir="$1"
+  local destination_uri="$2"
+
+  if [ -d "$source_dir/_next/static" ]; then
+    aws s3 sync \
+      "$source_dir/_next/static" \
+      "$destination_uri/_next/static" \
+      --cache-control "$ASSET_CACHE_CONTROL" \
+      --delete
+  fi
+
+  aws s3 sync \
+    "$source_dir" \
+    "$destination_uri" \
+    --exclude "_next/static/*" \
+    --exclude "releases/*" \
+    --cache-control "$DOCUMENT_CACHE_CONTROL" \
+    --delete
+}
+
+function enforce_staging_robots_txt() {
+  local bucket_name="$1"
+  local robots_file
+
+  robots_file="$(mktemp)"
+  cat > "$robots_file" <<EOF
+User-agent: *
+Disallow: /
+EOF
+
+  aws s3 cp \
+    "$robots_file" \
+    "s3://$bucket_name/robots.txt" \
+    --content-type "text/plain; charset=utf-8" \
+    --cache-control "$NO_STORE_CACHE_CONTROL"
+
+  rm -f "$robots_file"
 }
 
 if [ -n "$PROMOTE_RELEASE_ID" ]; then
@@ -107,6 +185,8 @@ if [ ! -d "$BUILD_DIR" ]; then
   exit 1
 fi
 
+optimize_images_for_deploy
+
 read -r TARGET_BUCKET_OUTPUT_KEY TARGET_DISTRIBUTION_OUTPUT_KEY <<< "$(get_environment_outputs "$DEPLOY_ENVIRONMENT")"
 TARGET_BUCKET_NAME="$(require_stack_output \
   "$STACK_NAME" \
@@ -116,19 +196,12 @@ TARGET_DISTRIBUTION_ID="$(require_stack_output \
   "$TARGET_DISTRIBUTION_OUTPUT_KEY")"
 
 echo "Syncing Public WWW to s3://$TARGET_BUCKET_NAME"
-aws s3 sync \
-  "$BUILD_DIR" \
-  "s3://$TARGET_BUCKET_NAME" \
-  --exclude "releases/*" \
-  --delete
+sync_site_artifacts "$BUILD_DIR" "s3://$TARGET_BUCKET_NAME"
 
 if [ -n "$RELEASE_ID" ]; then
   validate_release_id "$RELEASE_ID"
   echo "Saving immutable release at releases/$RELEASE_ID/"
-  aws s3 sync \
-    "$BUILD_DIR" \
-    "s3://$TARGET_BUCKET_NAME/releases/$RELEASE_ID/" \
-    --delete
+  sync_site_artifacts "$BUILD_DIR" "s3://$TARGET_BUCKET_NAME/releases/$RELEASE_ID"
 
   if [ "$DEPLOY_ENVIRONMENT" = "staging" ]; then
     echo "Updating staging latest release marker: $RELEASE_ID"
@@ -139,6 +212,11 @@ if [ -n "$RELEASE_ID" ]; then
       "s3://$TARGET_BUCKET_NAME/releases/latest-release-id.txt"
     rm -f "$MARKER_FILE"
   fi
+fi
+
+if [ "$DEPLOY_ENVIRONMENT" = "staging" ]; then
+  echo "Applying staging robots.txt deny-all policy"
+  enforce_staging_robots_txt "$TARGET_BUCKET_NAME"
 fi
 
 invalidate_distribution "$TARGET_DISTRIBUTION_ID"

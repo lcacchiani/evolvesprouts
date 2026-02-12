@@ -1,12 +1,4 @@
-'use client';
-
-import {
-  Fragment,
-  type CSSProperties,
-  type ReactNode,
-  useMemo,
-  useState,
-} from 'react';
+import { Fragment, type CSSProperties, type ReactNode } from 'react';
 
 import { SectionCtaLink } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
@@ -45,8 +37,6 @@ const HEADING_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 const WEEK_COLOR = 'var(--figma-colors-week-01-04, #313131)';
-const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
-const CTA_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
 const BRAND_BLUE = 'var(--figma-colors-frame-2147235242, #174879)';
 
 const MODULE_TONES: readonly ModuleTone[] = [
@@ -118,8 +108,6 @@ const descriptionStyle: CSSProperties = {
 };
 
 const ctaStyle: CSSProperties = {
-  backgroundColor: CTA_BG,
-  color: CTA_TEXT,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontSize: 'clamp(1.05rem, 2.4vw, var(--figma-fontsizes-28, 28px))',
   fontWeight: '600',
@@ -319,40 +307,15 @@ function CourseModuleCard({
 }
 
 export function CourseModule({ content }: CourseModuleProps) {
-  const moduleSteps: ModuleStep[] = useMemo(
-    () =>
-      content.modules.map((module, index) => ({
-        step: module.step,
-        title: module.title,
-        week: module.week,
-        activity: module.activity,
-        icon: isModuleIconVariant(module.icon)
-          ? module.icon
-          : DEFAULT_STEP_ICONS[index] ?? 'foundation',
-      })),
-    [content.modules],
-  );
-  const [activeSlide, setActiveSlide] = useState(0);
-
-  function handlePreviousSlide() {
-    if (moduleSteps.length === 0) {
-      return;
-    }
-
-    setActiveSlide((currentSlide) =>
-      currentSlide === 0 ? moduleSteps.length - 1 : currentSlide - 1,
-    );
-  }
-
-  function handleNextSlide() {
-    if (moduleSteps.length === 0) {
-      return;
-    }
-
-    setActiveSlide((currentSlide) =>
-      currentSlide === moduleSteps.length - 1 ? 0 : currentSlide + 1,
-    );
-  }
+  const moduleSteps: ModuleStep[] = content.modules.map((module, index) => ({
+    step: module.step,
+    title: module.title,
+    week: module.week,
+    activity: module.activity,
+    icon: isModuleIconVariant(module.icon)
+      ? module.icon
+      : DEFAULT_STEP_ICONS[index] ?? 'foundation',
+  }));
 
   const computedCtaLabel = content.ctaLabel.trim().replace(/\s*>$/, '');
 
@@ -423,55 +386,20 @@ export function CourseModule({ content }: CourseModuleProps) {
             ))}
           </ul>
           <div className='lg:hidden'>
-            <div className='overflow-hidden'>
-              <ul
-                className='flex transition-transform duration-500 ease-out'
-                style={{ transform: `translateX(-${activeSlide * 100}%)` }}
-              >
-                {moduleSteps.map((module, index) => (
-                  <li key={module.step} className='w-full shrink-0 px-1'>
-                    <CourseModuleCard
-                      module={module}
-                      index={index}
-                      showFullActivity
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {moduleSteps.length > 1 && (
-              <div className='mt-6 flex items-center justify-center gap-5'>
-                <button
-                  type='button'
-                  aria-label='Previous module'
-                  onClick={handlePreviousSlide}
-                  className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-xl text-[#333333] shadow-[0_2px_8px_rgba(0,0,0,0.2)] transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+            <ul className='scrollbar-hide -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2'>
+              {moduleSteps.map((module, index) => (
+                <li
+                  key={module.step}
+                  className='w-[88%] shrink-0 snap-center sm:w-[72%]'
                 >
-                  {'<'}
-                </button>
-                <p
-                  style={{
-                    color: '#333333',
-                    fontFamily:
-                      'var(--figma-fontfamilies-lato, Lato), sans-serif',
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    lineHeight: '1',
-                  }}
-                >
-                  {activeSlide + 1}/{moduleSteps.length}
-                </p>
-                <button
-                  type='button'
-                  aria-label='Next module'
-                  onClick={handleNextSlide}
-                  className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-xl text-[#333333] shadow-[0_2px_8px_rgba(0,0,0,0.2)] transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
-                >
-                  {'>'}
-                </button>
-              </div>
-            )}
+                  <CourseModuleCard
+                    module={module}
+                    index={index}
+                    showFullActivity
+                  />
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 

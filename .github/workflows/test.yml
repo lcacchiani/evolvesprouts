@@ -18,6 +18,31 @@ on:
       - "backend/**"
 
 jobs:
+  test-public-www:
+    name: Verify Public Website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+          cache: npm
+          cache-dependency-path: apps/public_www/package-lock.json
+
+      - name: Validate Public Website
+        working-directory: apps/public_www
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: |
+          npm ci
+          npm run validate:content
+          npm run lint
+          npm run audit:assets
+          npm run build
+
   test-flutter:
     name: Test Flutter
     runs-on: ubuntu-latest

@@ -27,19 +27,22 @@ export type WhyJoiningContent = SiteContent['whyJoining'];
 export type RealStoriesContent = SiteContent['realStories'];
 export type FooterContent = SiteContent['footer'];
 
-const contentMap: Record<Locale, SiteContent> = {
+const contentMap = {
   en: enContent,
-  'zh-CN': zhCNContent as SiteContent,
-  'zh-HK': zhHKContent as SiteContent,
-};
+  'zh-CN': zhCNContent,
+  'zh-HK': zhHKContent,
+} satisfies Record<Locale, SiteContent>;
 
 /**
  * Returns the full content object for a given locale.
  * Falls back to English if the locale is not found.
  */
 export function getContent(locale: string): SiteContent {
-  const key = locale as Locale;
-  return contentMap[key] ?? contentMap[DEFAULT_LOCALE];
+  if (isValidLocale(locale)) {
+    return contentMap[locale];
+  }
+
+  return contentMap[DEFAULT_LOCALE];
 }
 
 /**
