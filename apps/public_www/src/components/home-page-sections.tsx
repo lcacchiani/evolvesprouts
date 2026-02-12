@@ -4,7 +4,7 @@ import { CourseModule } from '@/components/sections/course-module';
 import { FreeResources } from '@/components/sections/free-resources';
 import { HeroBanner } from '@/components/sections/hero-banner';
 import { Navbar } from '@/components/sections/navbar';
-import { RealStories } from '@/components/sections/real-stories';
+import { Testimonials } from '@/components/sections/testimonials';
 import { WhyJoining } from '@/components/sections/why-joining';
 
 interface HomePageSectionsProps {
@@ -20,7 +20,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
         <CourseModule content={content.courseModule} />
         <WhyJoining content={content.whyJoining} />
         <FreeResources content={content.freeResources} />
-        <RealStories content={content.realStories} />
+        <Testimonials content={content.testimonials} />
       </main>
       <Footer content={content.footer} />
     </>

@@ -87,7 +87,7 @@ apps/public_www/
 │   │   ├── course-module.tsx
 │   │   ├── free-resources.tsx
 │   │   ├── why-joining.tsx
-│   │   ├── real-stories.tsx
+│   │   ├── testimonials.tsx
 │   │   └── footer.tsx
 │   └── content/                  # i18n content (hand-edited)
 │       ├── en.json

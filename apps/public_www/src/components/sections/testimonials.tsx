@@ -15,10 +15,10 @@ import {
   readCandidateText,
   readOptionalText,
 } from '@/content/content-field-utils';
-import type { RealStoriesContent } from '@/content';
+import type { TestimonialsContent } from '@/content';
 
-interface RealStoriesProps {
-  content: RealStoriesContent;
+interface TestimonialsProps {
+  content: TestimonialsContent;
 }
 
 interface NormalizedStory {
@@ -255,7 +255,7 @@ function ParentIcon() {
   );
 }
 
-export function RealStories({ content }: RealStoriesProps) {
+export function Testimonials({ content }: TestimonialsProps) {
   const stories = useMemo(() => normalizeStories(content.items), [content.items]);
   const storiesToRender =
     stories.length > 0
@@ -332,7 +332,7 @@ export function RealStories({ content }: RealStoriesProps) {
   return (
     <SectionShell
       ariaLabel={content.title}
-      dataFigmaNode='Real Stories'
+      dataFigmaNode='Testimonials'
       className='relative isolate overflow-hidden'
     >
       <div

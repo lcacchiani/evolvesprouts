@@ -24,7 +24,7 @@ export type HeroContent = SiteContent['hero'];
 export type CourseModuleContent = SiteContent['courseModule'];
 export type FreeResourcesContent = SiteContent['freeResources'];
 export type WhyJoiningContent = SiteContent['whyJoining'];
-export type RealStoriesContent = SiteContent['realStories'];
+export type TestimonialsContent = SiteContent['testimonials'];
 export type FooterContent = SiteContent['footer'];
 
 const contentMap = {
