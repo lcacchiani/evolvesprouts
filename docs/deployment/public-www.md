@@ -53,6 +53,8 @@ Workflow: `.github/workflows/deploy-public-www.yml`
 - Behavior:
   - deploy current artifact to staging root
   - store immutable snapshot in `releases/<release_id>/`
+  - preserve existing `_next/static` hashed assets to avoid stale HTML
+    requesting deleted chunks
   - invalidate staging CloudFront
 
 ### Promote to production (manual)
@@ -66,6 +68,8 @@ Workflow: `.github/workflows/promote-public-www.yml`
     staging release
 - Behavior:
   - copy `releases/<release_id>/` from staging assets to production root
+  - preserve existing `_next/static` hashed assets to avoid stale HTML
+    requesting deleted chunks
   - invalidate production CloudFront
 
 ### Rollback

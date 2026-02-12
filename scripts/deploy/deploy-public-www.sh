@@ -117,12 +117,31 @@ function sync_site_artifacts() {
     aws s3 sync \
       "$source_dir/_next/static" \
       "$destination_uri/_next/static" \
-      --cache-control "$ASSET_CACHE_CONTROL" \
-      --delete
+      --cache-control "$ASSET_CACHE_CONTROL"
   fi
 
   aws s3 sync \
     "$source_dir" \
+    "$destination_uri" \
+    --exclude "_next/static/*" \
+    --exclude "releases/*" \
+    --cache-control "$DOCUMENT_CACHE_CONTROL" \
+    --delete
+}
+
+function sync_release_artifacts() {
+  local source_uri="$1"
+  local destination_uri="$2"
+
+  if aws s3 ls "$source_uri/_next/static/" >/dev/null 2>&1; then
+    aws s3 sync \
+      "$source_uri/_next/static" \
+      "$destination_uri/_next/static" \
+      --cache-control "$ASSET_CACHE_CONTROL"
+  fi
+
+  aws s3 sync \
+    "$source_uri" \
     "$destination_uri" \
     --exclude "_next/static/*" \
     --exclude "releases/*" \
@@ -176,11 +195,9 @@ if [ -n "$PROMOTE_RELEASE_ID" ]; then
   fi
 
   echo "Promoting release '$PROMOTE_RELEASE_ID' from staging to production"
-  aws s3 sync \
-    "s3://$SOURCE_BUCKET_NAME/releases/$PROMOTE_RELEASE_ID/" \
-    "s3://$TARGET_BUCKET_NAME" \
-    --exclude "releases/*" \
-    --delete
+  sync_release_artifacts \
+    "s3://$SOURCE_BUCKET_NAME/releases/$PROMOTE_RELEASE_ID" \
+    "s3://$TARGET_BUCKET_NAME"
 
   invalidate_distribution "$TARGET_DISTRIBUTION_ID"
   exit 0
