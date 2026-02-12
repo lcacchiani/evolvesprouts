@@ -609,15 +609,15 @@ function DesktopMenuItem({
       />
       <span
         aria-hidden='true'
-        className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-black/70 transition-transform group-hover:rotate-180'
+        className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-transform group-hover:rotate-180 group-focus-within:rotate-180'
       >
-        v
+        <LanguageChevronIcon />
       </span>
       <SubmenuLinks
         items={item.children}
         currentPath={currentPath}
         locale={locale}
-        listClassName='invisible absolute left-0 top-[calc(100%+4px)] z-50 w-[192px] space-y-[3px] rounded-none bg-transparent p-0 opacity-0 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
+        listClassName='invisible absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 opacity-0 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
         linkClassName='inline-flex min-h-[40px] w-full items-center justify-start rounded-[6px] px-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
       />
     </li>
