@@ -1,9 +1,9 @@
 import type { SiteContent } from '@/content';
 import { Footer } from '@/components/sections/footer';
 import { CourseModule } from '@/components/sections/course-module';
-import { FreeResources } from '@/components/sections/free-resources';
 import { HeroBanner } from '@/components/sections/hero-banner';
 import { Navbar } from '@/components/sections/navbar';
+import { Resources } from '@/components/sections/resources';
 import { Testimonials } from '@/components/sections/testimonials';
 import { WhyJoining } from '@/components/sections/why-joining';
 
@@ -19,7 +19,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
         <HeroBanner content={content.hero} />
         <CourseModule content={content.courseModule} />
         <WhyJoining content={content.whyJoining} />
-        <FreeResources content={content.freeResources} />
+        <Resources content={content.resources} />
         <Testimonials content={content.testimonials} />
       </main>
       <Footer content={content.footer} />

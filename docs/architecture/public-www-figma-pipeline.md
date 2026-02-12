@@ -85,7 +85,7 @@ apps/public_www/
 │   │   ├── navbar.tsx
 │   │   ├── hero-banner.tsx
 │   │   ├── course-module.tsx
-│   │   ├── free-resources.tsx
+│   │   ├── resources.tsx
 │   │   ├── why-joining.tsx
 │   │   ├── testimonials.tsx
 │   │   └── footer.tsx
