@@ -67,11 +67,6 @@ const copyrightStyle: CSSProperties = {
     'calc(var(--figma-lineheights-2025-evolvesprouts, 28) * 1px)',
 };
 
-const scrimStyle: CSSProperties = {
-  background:
-    'linear-gradient(180deg, rgba(255, 238, 227, 0.22) 0%, var(--figma-colors-frame-2147235259, #FFEEE3) 100%)',
-};
-
 const socialIcons: Record<string, ReactNode> = {
   facebook: (
     <svg
@@ -167,10 +162,7 @@ function FooterColumn({
 }
 
 export function Footer({ content }: FooterProps) {
-  const newsletterLink =
-    content.aboutUs.items.find((item) =>
-      item.href.includes('newsletter'),
-    )?.href ?? '/newsletter';
+  const newsletterLink = '/contact-us';
 
   return (
     <footer
@@ -180,31 +172,20 @@ export function Footer({ content }: FooterProps) {
     >
       <section className='relative isolate overflow-hidden'>
         <Image
-          src='/images/footer-bg.svg'
+          src='/images/footer-community-bg.png'
           alt=''
           fill
           sizes='100vw'
-          className='object-cover object-center'
+          className='object-cover object-top'
         />
-        <div className='absolute inset-0' style={scrimStyle} />
 
-        <div className='relative z-10 mx-auto flex min-h-[460px] w-full max-w-[1465px] flex-col justify-center gap-8 px-4 py-14 sm:min-h-[560px] sm:px-6 sm:py-20 lg:min-h-[859px] lg:gap-10 lg:px-8'>
-          <div className='flex flex-col gap-7 lg:flex-row lg:items-start lg:justify-between lg:gap-8'>
-            <h2
-              className='max-w-[847px] text-[clamp(2rem,6vw,77px)] leading-[1.15] lg:leading-[calc(var(--figma-lineheights-join-our-sprouts-squad-community,107)*1px)]'
-              style={headingStyle}
-            >
-              {content.communityHeading}
-            </h2>
-
-            <Image
-              src='/images/evolve-sprouts-logo.svg'
-              alt={content.brand}
-              width={240}
-              height={246}
-              className='h-auto w-[96px] shrink-0 sm:w-[128px] lg:w-[240px]'
-            />
-          </div>
+        <div className='relative z-10 mx-auto flex min-h-[460px] w-full max-w-[1465px] flex-col justify-center gap-8 px-4 py-14 sm:min-h-[560px] sm:px-6 sm:py-20 lg:min-h-[780px] lg:gap-10 lg:px-8'>
+          <h2
+            className='max-w-[847px] text-[clamp(2rem,6vw,77px)] leading-[1.15] lg:leading-[calc(var(--figma-lineheights-join-our-sprouts-squad-community,107)*1px)]'
+            style={headingStyle}
+          >
+            {content.communityHeading}
+          </h2>
 
           <Link
             href={newsletterLink}
@@ -217,8 +198,8 @@ export function Footer({ content }: FooterProps) {
       </section>
 
       <section className='w-full px-4 pb-8 pt-10 sm:px-6 sm:pb-10 sm:pt-12 lg:px-8 lg:pb-12 lg:pt-16'>
-        <div className='mx-auto grid w-full max-w-[1465px] gap-12 xl:grid-cols-[minmax(0,1fr)_470px] xl:items-start xl:gap-8'>
-          <div className='grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 xl:grid-cols-4 xl:gap-x-6 xl:gap-y-10'>
+        <div className='mx-auto w-full max-w-[1465px]'>
+          <div className='grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-5 lg:items-start lg:gap-x-6 lg:gap-y-10'>
             <FooterColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
@@ -227,6 +208,15 @@ export function Footer({ content }: FooterProps) {
               title={content.services.title}
               items={content.services.items}
             />
+            <div className='flex justify-start sm:justify-center lg:justify-center lg:pt-2'>
+              <Image
+                src='/images/evolvesprouts-logo.svg'
+                alt={content.brand}
+                width={120}
+                height={120}
+                className='h-auto w-[88px] sm:w-[96px] lg:w-[120px]'
+              />
+            </div>
             <FooterColumn
               title={content.aboutUs.title}
               items={content.aboutUs.items}
@@ -235,16 +225,6 @@ export function Footer({ content }: FooterProps) {
               title={content.connectOn.title}
               items={content.connectOn.items}
               hasSocialIcons
-            />
-          </div>
-
-          <div className='justify-self-center xl:justify-self-end'>
-            <Image
-              src='/images/evolve-sprouts-logo-large.svg'
-              alt={content.brand}
-              width={470}
-              height={482}
-              className='h-auto w-[220px] sm:w-[280px] lg:w-[360px] xl:w-[470px]'
             />
           </div>
         </div>
