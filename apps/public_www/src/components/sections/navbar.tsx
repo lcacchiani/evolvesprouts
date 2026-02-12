@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import {
   DEFAULT_LOCALE,
@@ -29,6 +29,7 @@ const CTA_BACKGROUND = '#C84A16';
 const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
+const MOBILE_MENU_TRANSITION_MS = 300;
 const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -332,16 +333,13 @@ function HamburgerIcon() {
   return (
     <svg
       aria-hidden='true'
-      viewBox='0 0 24 24'
-      className='h-5 w-5'
-      fill='none'
+      viewBox='0 0 448 512'
+      className='h-4 w-4'
+      fill='currentColor'
       xmlns='http://www.w3.org/2000/svg'
     >
       <path
-        d='M4 7H20M4 12H20M4 17H20'
-        stroke={NAV_TEXT_COLOR}
-        strokeWidth='2'
-        strokeLinecap='round'
+        d='M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z'
       />
     </svg>
   );
@@ -351,16 +349,13 @@ function CloseIcon() {
   return (
     <svg
       aria-hidden='true'
-      viewBox='0 0 24 24'
-      className='h-5 w-5'
-      fill='none'
+      viewBox='0 0 16 16'
+      className='h-[18px] w-[18px]'
+      fill='currentColor'
       xmlns='http://www.w3.org/2000/svg'
     >
       <path
-        d='M6 6L18 18M18 6L6 18'
-        stroke={NAV_TEXT_COLOR}
-        strokeWidth='2'
-        strokeLinecap='round'
+        d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'
       />
     </svg>
   );
@@ -372,6 +367,8 @@ interface LanguageSelectorButtonProps {
   currentPathname: string;
   languageSelector: LanguageSelectorContent;
   menuAlign?: 'left' | 'right';
+  buttonStyle?: Record<string, string | number>;
+  isBorderlessMenu?: boolean;
 }
 
 function LanguageSelectorButton({
@@ -380,6 +377,8 @@ function LanguageSelectorButton({
   currentPathname,
   languageSelector,
   menuAlign = 'right',
+  buttonStyle,
+  isBorderlessMenu = false,
 }: LanguageSelectorButtonProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -426,6 +425,7 @@ function LanguageSelectorButton({
       <button
         type='button'
         className={className}
+        style={buttonStyle}
         aria-controls={languageMenuId}
         aria-expanded={isMenuOpen}
         aria-haspopup='menu'
@@ -450,7 +450,7 @@ function LanguageSelectorButton({
         id={languageMenuId}
         role='menu'
         aria-label={languageSelector.menuAriaLabel}
-        className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[230px] space-y-1 rounded-xl border border-black/10 bg-white p-2 shadow-xl transition ${isMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}
+        className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[230px] space-y-1 rounded-xl bg-white p-2 shadow-xl transition ${isBorderlessMenu ? '' : 'border border-black/10'} ${isMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}
       >
         {languageSelector.options.map((option) => {
           const isCurrent = option.locale === currentLocale;
@@ -494,14 +494,21 @@ function BookNowButton({
   href,
   label,
   onClick,
+  style,
 }: {
   className: string;
   href: string;
   label: string;
   onClick?: () => void;
+  style?: Record<string, string | number>;
 }) {
   return (
-    <Link href={href} className={className} style={ctaStyle} onClick={onClick}>
+    <Link
+      href={href}
+      className={className}
+      style={style ?? ctaStyle}
+      onClick={onClick}
+    >
       {label}
     </Link>
   );
@@ -657,19 +664,13 @@ function MobileMenuItem({
   }, [itemIsActive]);
 
   return (
-    <li className='rounded-xl border border-black/10 bg-white/35 px-3 py-2'>
+    <li className='space-y-2'>
       <div className='flex items-center gap-2'>
         <Link
           href={localizeHref(item.href, locale)}
-          className='inline-flex min-h-[40px] flex-1 items-center'
+          className='inline-flex min-h-[42px] flex-1 items-center rounded-[58.73px] px-[17px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
           onClick={onNavigate}
-          style={{
-            color: itemIsActive ? NAV_ACTIVE_TEXT : NAV_TEXT_COLOR,
-            fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-            fontSize: '18px',
-            fontWeight: 500,
-            lineHeight: '22px',
-          }}
+          style={getTopLinkStyle(itemIsActive)}
         >
           {item.label}
         </Link>
@@ -681,7 +682,8 @@ function MobileMenuItem({
             }}
             aria-expanded={isExpanded}
             aria-label={`Toggle ${item.label} submenu`}
-            className='inline-flex h-8 w-8 items-center justify-center rounded-full text-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+            className='inline-flex h-[42px] min-w-[42px] items-center justify-center rounded-[58.73px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+            style={getTopLinkStyle(itemIsActive)}
           >
             <MobileChevronIcon isExpanded={isExpanded} />
           </button>
@@ -693,8 +695,8 @@ function MobileMenuItem({
           currentPath={currentPath}
           locale={locale}
           onNavigate={onNavigate}
-          listClassName={`overflow-hidden pl-4 transition-all ${isExpanded ? 'mt-2 max-h-[480px] space-y-2 opacity-100' : 'max-h-0 space-y-0 opacity-0'}`}
-          linkClassName='inline-flex min-h-[36px] w-full items-center rounded-md px-2'
+          listClassName={`overflow-hidden pl-4 transition-all duration-300 ${isExpanded ? 'max-h-[480px] space-y-2 pt-1 opacity-100' : 'max-h-0 space-y-0 pt-0 opacity-0'}`}
+          linkClassName='inline-flex min-h-[40px] w-full items-center justify-start rounded-[6px] px-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
         />
       )}
     </li>
@@ -735,17 +737,63 @@ export function Navbar({ content }: NavbarProps) {
   const localizedHomeHref = localizePath('/', currentLocale);
   const localizedBookNowHref = localizeHref(content.bookNow.href, currentLocale);
   const languageSelector = resolveLanguageSelectorContent(content);
-  const [mobileMenuOpenForPath, setMobileMenuOpenForPath] = useState<
-    string | null
-  >(null);
-  const isMobileMenuOpen = mobileMenuOpenForPath === pathname;
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuRendered, setIsMobileMenuRendered] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileNavigationDrawerRef = useRef<HTMLElement | null>(null);
+  const openMenuFrameRef = useRef<number | null>(null);
+  const closeMenuTimeoutRef = useRef<number | null>(null);
   const wasMobileMenuOpenRef = useRef(false);
 
+  const clearMobileMenuOpenFrame = useCallback(() => {
+    if (openMenuFrameRef.current === null) {
+      return;
+    }
+
+    window.cancelAnimationFrame(openMenuFrameRef.current);
+    openMenuFrameRef.current = null;
+  }, []);
+
+  const clearMobileMenuCloseTimeout = useCallback(() => {
+    if (closeMenuTimeoutRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(closeMenuTimeoutRef.current);
+    closeMenuTimeoutRef.current = null;
+  }, []);
+
+  const openMobileMenu = useCallback(() => {
+    clearMobileMenuOpenFrame();
+    clearMobileMenuCloseTimeout();
+    setIsMobileMenuRendered(true);
+
+    openMenuFrameRef.current = window.requestAnimationFrame(() => {
+      setIsMobileMenuOpen(true);
+      openMenuFrameRef.current = null;
+    });
+  }, [clearMobileMenuCloseTimeout, clearMobileMenuOpenFrame]);
+
+  const closeMobileMenu = useCallback(() => {
+    clearMobileMenuOpenFrame();
+    setIsMobileMenuOpen(false);
+    clearMobileMenuCloseTimeout();
+    closeMenuTimeoutRef.current = window.setTimeout(() => {
+      setIsMobileMenuRendered(false);
+      closeMenuTimeoutRef.current = null;
+    }, MOBILE_MENU_TRANSITION_MS);
+  }, [clearMobileMenuCloseTimeout, clearMobileMenuOpenFrame]);
+
   useEffect(() => {
-    if (!isMobileMenuOpen) {
+    return () => {
+      clearMobileMenuOpenFrame();
+      clearMobileMenuCloseTimeout();
+    };
+  }, [clearMobileMenuCloseTimeout, clearMobileMenuOpenFrame]);
+
+  useEffect(() => {
+    if (!isMobileMenuRendered) {
       return;
     }
 
@@ -754,7 +802,7 @@ export function Navbar({ content }: NavbarProps) {
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuRendered]);
 
   useEffect(() => {
     if (!isMobileMenuOpen) {
@@ -765,7 +813,7 @@ export function Navbar({ content }: NavbarProps) {
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setMobileMenuOpenForPath(null);
+        closeMobileMenu();
         return;
       }
 
@@ -810,10 +858,10 @@ export function Navbar({ content }: NavbarProps) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isMobileMenuOpen]);
+  }, [closeMobileMenu, isMobileMenuOpen]);
 
   useEffect(() => {
-    if (isMobileMenuOpen) {
+    if (isMobileMenuRendered) {
       wasMobileMenuOpenRef.current = true;
       return;
     }
@@ -822,7 +870,7 @@ export function Navbar({ content }: NavbarProps) {
       mobileMenuButtonRef.current?.focus();
       wasMobileMenuOpenRef.current = false;
     }
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuRendered]);
 
   return (
     <>
@@ -870,26 +918,22 @@ export function Navbar({ content }: NavbarProps) {
             aria-expanded={isMobileMenuOpen}
             aria-haspopup='dialog'
             aria-label='Open navigation menu'
-            onClick={() => {
-              setMobileMenuOpenForPath(pathname);
-            }}
-            className='inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 lg:hidden'
+            onClick={openMobileMenu}
+            className='inline-flex h-11 w-11 items-center justify-center rounded-xl bg-transparent text-[#333333] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 lg:hidden'
           >
             <span className='sr-only'>Open navigation menu</span>
             <HamburgerIcon />
           </button>
         </nav>
       </header>
-      {isMobileMenuOpen && (
+      {isMobileMenuRendered && (
         <div className='fixed inset-0 z-[60] lg:hidden'>
           <button
             type='button'
             tabIndex={-1}
             aria-label='Close navigation menu'
-            className='absolute inset-0 bg-black/35'
-            onClick={() => {
-              setMobileMenuOpenForPath(null);
-            }}
+            className={`absolute inset-0 bg-black/35 transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+            onClick={closeMobileMenu}
           />
           <aside
             id='mobile-navigation-drawer'
@@ -897,16 +941,14 @@ export function Navbar({ content }: NavbarProps) {
             role='dialog'
             aria-modal='true'
             aria-label='Mobile navigation menu'
-            className={`absolute inset-y-0 right-0 ${MOBILE_PANEL_WIDTH_CLASS} flex flex-col border-l border-black/10 shadow-2xl`}
+            className={`absolute inset-y-0 right-0 ${MOBILE_PANEL_WIDTH_CLASS} flex flex-col shadow-2xl transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
             style={{ backgroundColor: NAV_BACKGROUND }}
           >
-            <div className='flex items-center justify-between border-b border-black/10 px-4 py-4'>
+            <div className='flex items-center justify-between px-4 py-4'>
               <Link
                 href={localizedHomeHref}
                 className='shrink-0'
-                onClick={() => {
-                  setMobileMenuOpenForPath(null);
-                }}
+                onClick={closeMobileMenu}
               >
                 <Image
                   src={logoSrc}
@@ -920,10 +962,8 @@ export function Navbar({ content }: NavbarProps) {
                 ref={mobileMenuCloseButtonRef}
                 type='button'
                 aria-label='Close navigation menu'
-                onClick={() => {
-                  setMobileMenuOpenForPath(null);
-                }}
-                className='inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                onClick={closeMobileMenu}
+                className='inline-flex h-10 w-10 items-center justify-center rounded-full bg-transparent text-[#333333] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
               >
                 <CloseIcon />
               </button>
@@ -933,26 +973,25 @@ export function Navbar({ content }: NavbarProps) {
                 items={content.menuItems}
                 currentPath={currentPath}
                 locale={currentLocale}
-                onNavigate={() => {
-                  setMobileMenuOpenForPath(null);
-                }}
+                onNavigate={closeMobileMenu}
               />
-              <div className='mt-6 space-y-4 border-t border-black/10 pt-4'>
+              <div className='mt-6 space-y-4 pt-4'>
                 <LanguageSelectorButton
                   key={`mobile-language-${pathname}`}
                   currentLocale={currentLocale}
                   currentPathname={pathname}
                   languageSelector={languageSelector}
                   menuAlign='left'
-                  className='inline-flex h-[36px] w-full items-center gap-[9px] px-[6px]'
+                  className='inline-flex min-h-[42px] w-full items-center justify-between rounded-[58.73px] px-[17px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                  buttonStyle={getTopLinkStyle(false)}
+                  isBorderlessMenu
                 />
                 <BookNowButton
                   href={localizedBookNowHref}
                   label={content.bookNow.label}
-                  onClick={() => {
-                    setMobileMenuOpenForPath(null);
-                  }}
-                  className='inline-flex h-[56px] w-full items-center justify-center rounded-[10px] px-6 text-center'
+                  onClick={closeMobileMenu}
+                  className='inline-flex min-h-[42px] w-full items-center justify-center rounded-[58.73px] px-[17px] text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+                  style={getTopLinkStyle(false)}
                 />
               </div>
             </div>
