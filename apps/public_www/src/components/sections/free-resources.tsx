@@ -273,25 +273,25 @@ export function FreeResources({ content }: FreeResourcesProps) {
 
         <div className='mt-10 sm:mt-12 lg:mt-14'>
           <div className='overflow-hidden rounded-[18px] bg-[linear-gradient(145deg,#F6D6BE_0%,#FBE7D8_100%)] p-[2px]'>
-            <div className='grid overflow-hidden rounded-[16px] border border-black/5 bg-white lg:grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)]'>
+            <div className='grid overflow-hidden rounded-[16px] border border-black/5 bg-white lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'>
               <div className='relative p-4 sm:p-6 lg:p-[35px]'>
-              <article
-                className='relative isolate flex h-full min-h-[370px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
-                style={{
-                  backgroundColor: PANEL_BG,
-                  boxShadow:
-                    '0px 22px 60px -36px rgba(28, 53, 66, 0.38)',
-                }}
-              >
-                <h3 className='max-w-[366px] text-balance' style={cardTitleStyle}>
-                  {cardTitle}
-                </h3>
+                <article
+                  className='relative isolate flex h-full min-h-[370px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
+                  style={{
+                    backgroundColor: PANEL_BG,
+                    boxShadow:
+                      '0px 22px 60px -36px rgba(28, 53, 66, 0.38)',
+                  }}
+                >
+                  <h3 className='max-w-[366px] text-balance' style={cardTitleStyle}>
+                    {cardTitle}
+                  </h3>
 
-                {cardDescription && (
-                  <p className='mt-4 max-w-[420px] text-balance' style={cardBodyStyle}>
-                    {cardDescription}
-                  </p>
-                )}
+                  {cardDescription && (
+                    <p className='mt-4 max-w-[420px] text-balance' style={cardBodyStyle}>
+                      {cardDescription}
+                    </p>
+                  )}
 
                   {checklistItems.length > 0 && (
                     <ul className='mt-7 space-y-3 sm:mt-8'>
@@ -364,7 +364,7 @@ export function FreeResources({ content }: FreeResourcesProps) {
 
                 <div
                   aria-hidden='true'
-                  className='absolute right-6 top-1/2 z-10 flex h-[72px] w-[72px] -translate-y-1/2 items-center justify-center rounded-full border border-[#174879]/10 bg-white/92 shadow-[0px_18px_38px_-20px_rgba(0,0,0,0.6)] backdrop-blur max-lg:left-1/2 max-lg:right-auto max-lg:-translate-x-1/2'
+                  className='absolute right-[30px] top-[44%] z-10 flex h-[72px] w-[72px] -translate-y-1/2 items-center justify-center rounded-full border border-[#174879]/10 bg-white/92 shadow-[0px_18px_38px_-20px_rgba(0,0,0,0.6)] backdrop-blur max-lg:left-1/2 max-lg:right-auto max-lg:top-1/2 max-lg:-translate-x-1/2'
                 >
                   <PlayIcon />
                 </div>

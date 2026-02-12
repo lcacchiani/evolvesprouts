@@ -164,7 +164,7 @@ function FooterDesktopColumn({
   hasSocialIcons?: boolean;
 }) {
   return (
-    <section className='w-full max-w-[223px]'>
+    <section className='w-full max-w-[223px] lg:pt-[70px]'>
       <h3 className='pb-4' style={columnTitleStyle}>
         {title}
       </h3>
@@ -250,7 +250,7 @@ export function Footer({ content }: FooterProps) {
             className='h-auto w-[82px] sm:w-[96px] lg:w-[118px]'
           />
           <h2
-            className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12]'
+            className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px]'
             style={headingStyle}
           >
             {content.communityHeading}
