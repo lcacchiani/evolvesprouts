@@ -15,9 +15,7 @@ const HEADLINE_COLOR =
 const HEADLINE_HIGHLIGHT =
   'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const SUBHEADLINE_COLOR = 'var(--figma-colors-home, #4A4A4A)';
-const CTA_BACKGROUND = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
-const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
-const HERO_IMAGE_SRC = '/images/hero/child-hero.png';
+const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
 const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
 const HERO_DECORATION =
   'radial-gradient(circle at 10% 22%, rgba(231, 108, 61, 0.18) 0%, rgba(231, 108, 61, 0) 44%), radial-gradient(circle at 84% 30%, rgba(93, 157, 73, 0.12) 0%, rgba(93, 157, 73, 0) 52%), radial-gradient(circle at 92% 88%, rgba(23, 72, 121, 0.1) 0%, rgba(23, 72, 121, 0) 46%)';
@@ -41,8 +39,6 @@ const subheadlineStyle: CSSProperties = {
 };
 
 const ctaStyle: CSSProperties = {
-  backgroundColor: CTA_BACKGROUND,
-  color: CTA_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontWeight: '600',
   fontSize: '18px',

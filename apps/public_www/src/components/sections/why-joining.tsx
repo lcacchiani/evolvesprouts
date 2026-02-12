@@ -40,7 +40,6 @@ const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 const GOLD_CARD = 'var(--figma-colors-frame-2147235239, #AE7B1B)';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
-const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
 
 const fallbackWhyJoiningCopy = enContent.whyJoining;
 
@@ -48,7 +47,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'age-specific',
     tone: 'gold',
-    imageSrc: '/images/why-joining/course-card-1.png',
+    imageSrc: '/images/why-joining/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
     imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
@@ -56,7 +55,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'small-group-learning',
     tone: 'blue',
-    imageSrc: '/images/why-joining/course-card-2.png',
+    imageSrc: '/images/why-joining/course-card-2.webp',
     imageWidth: 433,
     imageHeight: 424,
     imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
@@ -64,7 +63,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'montessori-positive-discipline',
     tone: 'gold',
-    imageSrc: '/images/why-joining/course-card-3.png',
+    imageSrc: '/images/why-joining/course-card-3.webp',
     imageWidth: 282,
     imageHeight: 335,
     imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
@@ -72,7 +71,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'ongoing-support',
     tone: 'gold',
-    imageSrc: '/images/why-joining/course-card-4.png',
+    imageSrc: '/images/why-joining/course-card-4.webp',
     imageWidth: 308,
     imageHeight: 323,
     imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
@@ -80,7 +79,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'ready-to-use-tools',
     tone: 'blue',
-    imageSrc: '/images/why-joining/course-card-5.png',
+    imageSrc: '/images/why-joining/course-card-5.webp',
     imageWidth: 472,
     imageHeight: 457,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
@@ -88,7 +87,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
   {
     id: 'guaranteed-confidence',
     tone: 'gold',
-    imageSrc: '/images/why-joining/course-card-6.png',
+    imageSrc: '/images/why-joining/course-card-6.webp',
     imageWidth: 433,
     imageHeight: 443,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
@@ -145,8 +144,6 @@ const cardDescriptionStyle: CSSProperties = {
 };
 
 const ctaStyle: CSSProperties = {
-  backgroundColor: CTA_BG,
-  color: WHITE,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontSize: 'clamp(1.05rem, 2.3vw, var(--figma-fontsizes-28, 28px))',
   fontWeight: 'var(--figma-fontweights-600, 600)',

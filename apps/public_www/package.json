@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "audit:assets": "node ./scripts/audit-assets.mjs",
+    "images:optimize": "node ./scripts/optimize-images.mjs",
     "validate:content": "node ./scripts/validate-content.mjs",
     "figma:auth": "node ./scripts/figma/generate-refresh-token.mjs",
     "figma:pull": "node ./scripts/figma/pull-figma-tokens.mjs",
@@ -31,6 +32,7 @@
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
     "postcss": "^8.5.6",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
   }

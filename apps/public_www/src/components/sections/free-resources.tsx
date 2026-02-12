@@ -22,9 +22,7 @@ const HEADING_COLOR =
 const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 const PANEL_BG = 'var(--figma-colors-frame-2147235252, #F8F8F8)';
 const MEDIA_BG = 'var(--figma-colors-rectangle-240648654, #D9D9D9)';
-const RESOURCE_IMAGE_SRC = '/images/family.png';
-const CTA_BG = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
-const CTA_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
+const RESOURCE_IMAGE_SRC = '/images/family.webp';
 const BORDER_COLOR = '#EECAB0';
 const GREEN_ACCENT = '#5D9D49';
 
@@ -88,8 +86,6 @@ const checklistDescriptionStyle: CSSProperties = {
 };
 
 const ctaStyle: CSSProperties = {
-  backgroundColor: CTA_BG,
-  color: CTA_TEXT,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontSize: 'clamp(1.05rem, 2.8vw, var(--figma-fontsizes-26, 26px))',
   fontWeight: 'var(--figma-fontweights-600, 600)',

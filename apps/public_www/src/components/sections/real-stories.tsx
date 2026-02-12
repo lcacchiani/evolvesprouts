@@ -1,11 +1,5 @@
-'use client';
-
 import Image from 'next/image';
-import {
-  useMemo,
-  useState,
-  type CSSProperties,
-} from 'react';
+import { type CSSProperties } from 'react';
 
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
@@ -25,8 +19,6 @@ interface NormalizedStory {
   role?: string;
   metaLocation?: string;
   badgeLabel?: string;
-  previousButtonLabel?: string;
-  nextButtonLabel?: string;
   mainImageSrc?: string;
   mainImageAlt?: string;
   avatarImageSrc?: string;
@@ -36,12 +28,9 @@ interface NormalizedStory {
 const TEXT_PRIMARY =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const TEXT_SECONDARY = 'var(--figma-colors-home, #4A4A4A)';
-const CONTROL_BG = '#FFFFFF';
-const CONTROL_ICON = '#3D3E3D';
 const BADGE_BORDER = '#EECAB0';
 const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
-const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 
 const badgeTextStyle: CSSProperties = {
   color: TEXT_PRIMARY,
@@ -128,16 +117,6 @@ function normalizeStory(item: unknown): NormalizedStory | null {
       'location',
       'city',
     ]),
-    previousButtonLabel: readCandidateText(record, [
-      'previousButtonLabel',
-      'previousAriaLabel',
-      'previousLabel',
-    ]),
-    nextButtonLabel: readCandidateText(record, [
-      'nextButtonLabel',
-      'nextAriaLabel',
-      'nextLabel',
-    ]),
     mainImageSrc: readCandidateText(record, [
       'mainImageSrc',
       'slideImageSrc',
@@ -169,36 +148,6 @@ function normalizeStories(items: unknown): NormalizedStory[] {
   return items
     .map((item) => normalizeStory(item))
     .filter((item): item is NormalizedStory => item !== null);
-}
-
-function getWrappedIndex(index: number, total: number): number {
-  if (total <= 0) {
-    return 0;
-  }
-
-  return ((index % total) + total) % total;
-}
-
-function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
-  const rotationClass = direction === 'left' ? 'rotate-180' : '';
-
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 24 24'
-      className={`h-8 w-8 ${rotationClass}`}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M8 4L16 12L8 20'
-        stroke={CONTROL_ICON}
-        strokeWidth='2.4'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  );
 }
 
 function QuoteIcon() {
@@ -253,42 +202,13 @@ function ParentIcon() {
 }
 
 export function RealStories({ content }: RealStoriesProps) {
-  const stories = useMemo(() => normalizeStories(content.items), [content.items]);
-  const storyCount = stories.length;
-  const [activeStoryIndex, setActiveStoryIndex] = useState(0);
+  const stories = normalizeStories(content.items);
   const storiesToRender =
-    storyCount > 0
+    stories.length > 0
       ? stories
       : [{ quote: content.title } satisfies NormalizedStory];
-  const activeIndex = getWrappedIndex(activeStoryIndex, storiesToRender.length);
-  const activeStory = storiesToRender[activeIndex];
-  const hasMultipleStories = storiesToRender.length > 1;
-  const badgeLabel = activeStory?.badgeLabel ?? content.title;
+  const badgeLabel = storiesToRender[0]?.badgeLabel ?? content.title;
   const descriptionText = content.description.trim();
-  const previousButtonLabel =
-    activeStory?.previousButtonLabel ?? 'Previous testimonial';
-  const nextButtonLabel =
-    activeStory?.nextButtonLabel ?? 'Next testimonial';
-
-  function goToPreviousStory() {
-    if (!hasMultipleStories) {
-      return;
-    }
-
-    setActiveStoryIndex((currentIndex) =>
-      getWrappedIndex(currentIndex - 1, storiesToRender.length),
-    );
-  }
-
-  function goToNextStory() {
-    if (!hasMultipleStories) {
-      return;
-    }
-
-    setActiveStoryIndex((currentIndex) =>
-      getWrappedIndex(currentIndex + 1, storiesToRender.length),
-    );
-  }
 
   return (
     <SectionShell
@@ -328,136 +248,98 @@ export function RealStories({ content }: RealStoriesProps) {
           )}
         </div>
 
-        <div className='relative mt-10 overflow-hidden rounded-[30px] border border-[#EFD7C7] bg-white shadow-[0_28px_70px_rgba(18,18,17,0.08)] lg:mt-14'>
-          <div className='overflow-hidden' aria-live='polite'>
-            <div
-              className='flex transition-transform duration-500 ease-out'
-              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
-            >
-              {storiesToRender.map((story, index) => {
-                const quoteText = story.quote ?? content.title;
-                const showMeta =
-                  Boolean(story.author) ||
-                  Boolean(story.role) ||
-                  Boolean(story.metaLocation);
+        <div className='mt-10 space-y-6 lg:mt-14'>
+          {storiesToRender.map((story, index) => {
+            const quoteText = story.quote ?? content.title;
+            const showMeta =
+              Boolean(story.author) ||
+              Boolean(story.role) ||
+              Boolean(story.metaLocation);
 
-                return (
-                  <article
-                    key={`${story.author ?? 'story'}-${index}`}
-                    className='min-w-full'
-                  >
-                    <div className='grid lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)]'>
-                      <div className='relative min-h-[260px] bg-[#F5DFCF] sm:min-h-[360px] lg:min-h-[540px]'>
-                        {story.mainImageSrc ? (
+            return (
+              <article
+                key={`${story.author ?? 'story'}-${index}`}
+                className='overflow-hidden rounded-[30px] border border-[#EFD7C7] bg-white shadow-[0_28px_70px_rgba(18,18,17,0.08)]'
+              >
+                <div className='grid lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)]'>
+                  <div className='relative min-h-[260px] bg-[#F5DFCF] sm:min-h-[360px] lg:min-h-[540px]'>
+                    {story.mainImageSrc ? (
+                      <Image
+                        src={story.mainImageSrc}
+                        alt={
+                          story.mainImageAlt ??
+                          `${story.author ?? 'Parent'} testimonial image`
+                        }
+                        fill
+                        sizes='(min-width: 1024px) 500px, 100vw'
+                        className='object-cover'
+                        priority={index === 0}
+                      />
+                    ) : (
+                      <div
+                        className='flex h-full min-h-[260px] items-center justify-center sm:min-h-[360px] lg:min-h-[540px]'
+                        style={{ backgroundColor: IMAGE_FALLBACK_BG }}
+                      >
+                        <ParentIcon />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
+                    <div className='flex items-start gap-3 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
+                      <span className='shrink-0 pt-1'>
+                        <QuoteIcon />
+                      </span>
+                      <p className='text-balance' style={quoteTextStyle}>
+                        {quoteText}
+                      </p>
+                    </div>
+
+                    {showMeta && (
+                      <div className='mt-6 flex items-start gap-4 sm:mt-8 sm:gap-6'>
+                        {story.avatarImageSrc ? (
                           <Image
-                            src={story.mainImageSrc}
+                            src={story.avatarImageSrc}
                             alt={
-                              story.mainImageAlt ??
-                              `${story.author ?? 'Parent'} testimonial image`
+                              story.avatarImageAlt ??
+                              `${story.author ?? 'Parent'} avatar`
                             }
-                            fill
-                            sizes='(min-width: 1024px) 500px, 100vw'
-                            className='object-cover'
-                            priority={index === 0}
+                            width={100}
+                            height={100}
+                            className='h-[82px] w-[71px] shrink-0 rounded-[16px] object-cover sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
                           />
                         ) : (
-                          <div
-                            className='flex h-full min-h-[260px] items-center justify-center sm:min-h-[360px] lg:min-h-[540px]'
-                            style={{ backgroundColor: IMAGE_FALLBACK_BG }}
+                          <span
+                            className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-[16px] sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
+                            style={{ backgroundColor: PROFILE_CARD_BG }}
                           >
                             <ParentIcon />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
-                        <div className='flex items-start gap-3 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
-                          <span className='shrink-0 pt-1'>
-                            <QuoteIcon />
                           </span>
-                          <p className='text-balance' style={quoteTextStyle}>
-                            {quoteText}
-                          </p>
-                        </div>
-
-                        {showMeta && (
-                          <div className='mt-6 flex items-start gap-4 sm:mt-8 sm:gap-6'>
-                              {story.avatarImageSrc ? (
-                                <Image
-                                  src={story.avatarImageSrc}
-                                  alt={
-                                    story.avatarImageAlt ??
-                                    `${story.author ?? 'Parent'} avatar`
-                                  }
-                                  width={100}
-                                  height={100}
-                                  className='h-[82px] w-[71px] shrink-0 rounded-[16px] object-cover sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
-                                />
-                              ) : (
-                                <span
-                                  className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-[16px] sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
-                                  style={{ backgroundColor: PROFILE_CARD_BG }}
-                                >
-                                  <ParentIcon />
-                                </span>
-                              )}
-
-                              <div className='min-w-0'>
-                                {story.author && (
-                                  <p style={authorStyle}>{story.author}</p>
-                                )}
-                                {story.role && (
-                                  <p
-                                    className={`max-w-[190px] ${story.author ? 'mt-1' : ''}`}
-                                    style={metaTextStyle}
-                                  >
-                                    {story.role}
-                                  </p>
-                                )}
-                                {story.metaLocation && (
-                                  <p className='mt-1 max-w-[190px]' style={metaTextStyle}>
-                                    {story.metaLocation}
-                                  </p>
-                                )}
-                              </div>
-                          </div>
                         )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
 
-          {hasMultipleStories && (
-            <div className='flex items-center justify-center gap-[14px] px-6 pb-6 pt-5 sm:gap-[18px] sm:px-9 lg:absolute lg:bottom-8 lg:right-8 lg:gap-[14px] lg:p-0'>
-              <button
-                type='button'
-                onClick={goToPreviousStory}
-                aria-label={previousButtonLabel}
-                className='inline-flex h-[60px] w-[60px] items-center justify-center rounded-full transition-opacity hover:opacity-90 sm:h-[70px] sm:w-[70px]'
-                style={{
-                  backgroundColor: CONTROL_BG,
-                  boxShadow: CONTROL_SHADOW,
-                }}
-              >
-                <ChevronIcon direction='left' />
-              </button>
-              <button
-                type='button'
-                onClick={goToNextStory}
-                aria-label={nextButtonLabel}
-                className='inline-flex h-[60px] w-[60px] items-center justify-center rounded-full transition-opacity hover:opacity-90 sm:h-[70px] sm:w-[70px]'
-                style={{
-                  backgroundColor: CONTROL_BG,
-                  boxShadow: CONTROL_SHADOW,
-                }}
-              >
-                <ChevronIcon direction='right' />
-              </button>
-            </div>
-          )}
+                        <div className='min-w-0'>
+                          {story.author && <p style={authorStyle}>{story.author}</p>}
+                          {story.role && (
+                            <p
+                              className={`max-w-[190px] ${story.author ? 'mt-1' : ''}`}
+                              style={metaTextStyle}
+                            >
+                              {story.role}
+                            </p>
+                          )}
+                          {story.metaLocation && (
+                            <p className='mt-1 max-w-[190px]' style={metaTextStyle}>
+                              {story.metaLocation}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </SectionShell>
