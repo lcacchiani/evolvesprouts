@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import Link from 'next/link';
 
 const BASE_SECTION_CTA_CLASSNAME =
-  'inline-flex items-center justify-center text-center transition-transform duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';
+  'inline-flex items-center justify-center text-center transition-opacity duration-200 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';
 
 interface SectionCtaProps {
   href: string;
