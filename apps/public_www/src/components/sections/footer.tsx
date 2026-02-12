@@ -19,25 +19,6 @@ const FOOTER_BACKGROUND =
 const HEADING_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
-const CTA_BACKGROUND = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
-const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
-
-const headingStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-join-our-sprouts-squad-community, 0.77) * 1px)',
-};
-
-const ctaStyle: CSSProperties = {
-  backgroundColor: CTA_BACKGROUND,
-  color: CTA_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight:
-    'var(--figma-lineheights-sign-up-to-our-monthly-newsletter, 100%)',
-};
 
 const columnTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -216,56 +197,12 @@ function FooterMobileAccordion({
 }
 
 export function Footer({ content }: FooterProps) {
-  const newsletterLink = '/contact-us';
-
   return (
     <footer
       data-figma-node='footer'
       className='w-full'
       style={{ backgroundColor: FOOTER_BACKGROUND }}
     >
-      <section className='relative isolate overflow-hidden'>
-        <Image
-          src='/images/footer-community-bg.webp'
-          alt=''
-          fill
-          sizes='100vw'
-          className='object-cover object-top'
-        />
-        <div
-          aria-hidden='true'
-          className='pointer-events-none absolute inset-0'
-          style={{
-            background:
-              'radial-gradient(circle at center top, rgba(255,255,255,0) 15%, rgba(255,238,227,0.74) 68%)',
-          }}
-        />
-
-        <div className='relative z-10 mx-auto flex min-h-[420px] w-full max-w-[1465px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
-          <Image
-            src='/images/community-badge.webp'
-            alt=''
-            width={241}
-            height={247}
-            className='h-auto w-[82px] sm:w-[96px] lg:w-[118px]'
-          />
-          <h2
-            className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px]'
-            style={headingStyle}
-          >
-            {content.communityHeading}
-          </h2>
-
-          <Link
-            href={newsletterLink}
-            className='inline-flex h-14 w-full max-w-[500px] items-center justify-center rounded-[10px] px-5 text-center text-base transition-opacity hover:opacity-90 sm:h-[62px] sm:text-lg lg:h-[74px] lg:max-w-[410px] lg:text-[26px]'
-            style={ctaStyle}
-          >
-            {content.newsletterCta}
-          </Link>
-        </div>
-      </section>
-
       <section className='w-full px-4 pb-8 pt-9 sm:px-6 sm:pb-10 sm:pt-11 lg:px-8 lg:pb-12 lg:pt-16'>
         <div className='mx-auto w-full max-w-[1465px]'>
           <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-5 lg:items-start lg:gap-x-6 lg:gap-y-10'>

@@ -84,10 +84,11 @@ apps/public_www/
 │   ├── components/sections/      # Section components (hand-edited)
 │   │   ├── navbar.tsx
 │   │   ├── hero-banner.tsx
-│   │   ├── course-module.tsx
-│   │   ├── free-resources.tsx
-│   │   ├── why-joining.tsx
-│   │   ├── real-stories.tsx
+│   │   ├── my-best-auntie-overview.tsx
+│   │   ├── resources.tsx
+│   │   ├── course-highlights.tsx
+│   │   ├── testimonials.tsx
+│   │   ├── sprouts-squad-community.tsx
 │   │   └── footer.tsx
 │   └── content/                  # i18n content (hand-edited)
 │       ├── en.json

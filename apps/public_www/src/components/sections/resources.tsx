@@ -5,10 +5,10 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import { readOptionalText } from '@/content/content-field-utils';
-import type { FreeResourcesContent } from '@/content';
+import type { ResourcesContent } from '@/content';
 
-interface FreeResourcesProps {
-  content: FreeResourcesContent;
+interface ResourcesProps {
+  content: ResourcesContent;
 }
 
 interface ChecklistEntry {
@@ -223,7 +223,7 @@ function PlayIcon() {
   );
 }
 
-export function FreeResources({ content }: FreeResourcesProps) {
+export function Resources({ content }: ResourcesProps) {
   const customContent = content as Record<string, unknown>;
   const eyebrowLabel =
     readOptionalText(customContent.eyebrow) ?? content.title;
@@ -250,7 +250,7 @@ export function FreeResources({ content }: FreeResourcesProps) {
     <SectionShell
       id='resources'
       ariaLabel={content.title}
-      dataFigmaNode='Free Resources'
+      dataFigmaNode='Resources'
       style={{ backgroundColor: SECTION_BG }}
     >
       <div className='mx-auto w-full max-w-[1464px]'>

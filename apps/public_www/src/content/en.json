@@ -59,7 +59,7 @@
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
     "ariaLabel": "Contact us on WhatsApp"
   },
-  "courseModule": {
+  "myBestAuntieOverview": {
     "eyebrow": "Empowering Education",
     "title": "Best Auntie Training\nCourse Designed by Ida",
     "description": "Transform Your Auntie into a Montessori-Guided Child Development Partner!",
@@ -90,7 +90,7 @@
     ],
     "items": []
   },
-  "freeResources": {
+  "resources": {
     "eyebrow": "Our Resources",
     "mediaBadgeLabel": "Our Resources",
     "title": "Free Resources for Gentle Parenting",
@@ -107,7 +107,7 @@
       "Stay Consistent: Set 2-3 non-negotiable waits daily."
     ]
   },
-  "whyJoining": {
+  "courseHighlights": {
     "eyebrow": "Course Highlights",
     "title": "Why Joining Our Courses",
     "description": "Transform Your Auntie into a Montessori-Guided Child Development Partner!",
@@ -147,7 +147,7 @@
       }
     ]
   },
-  "realStories": {
+  "testimonials": {
     "title": "Real Stories from Parents in Hong Kong",
     "description": "",
     "items": [
@@ -292,7 +292,7 @@
       "terms": "Terms of Service"
     }
   },
-  "whyJoiningOurCourses": {
+  "courseHighlightsOurCourses": {
     "title": "Why Joining Our Courses",
     "description": "",
     "items": []

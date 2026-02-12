@@ -21,10 +21,10 @@ export type SiteContent = typeof enContent;
  */
 export type NavbarContent = SiteContent['navbar'];
 export type HeroContent = SiteContent['hero'];
-export type CourseModuleContent = SiteContent['courseModule'];
-export type FreeResourcesContent = SiteContent['freeResources'];
-export type WhyJoiningContent = SiteContent['whyJoining'];
-export type RealStoriesContent = SiteContent['realStories'];
+export type MyBestAuntieOverviewContent = SiteContent['myBestAuntieOverview'];
+export type ResourcesContent = SiteContent['resources'];
+export type CourseHighlightsContent = SiteContent['courseHighlights'];
+export type TestimonialsContent = SiteContent['testimonials'];
 export type FooterContent = SiteContent['footer'];
 
 const contentMap = {
