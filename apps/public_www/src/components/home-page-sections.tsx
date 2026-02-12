@@ -6,7 +6,7 @@ import { HeroBanner } from '@/components/sections/hero-banner';
 import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overview';
 import { Navbar } from '@/components/sections/navbar';
 import { Resources } from '@/components/sections/resources';
-import { Testimonials } from '@/components/sections/testimonials';
+import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 
 interface HomePageSectionsProps {
   content: SiteContent;
@@ -21,7 +21,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
         <MyBestAuntieOverview content={content.myBestAuntieOverview} />
         <CourseHighlights content={content.courseHighlights} />
         <Resources content={content.resources} />
-        <Testimonials content={content.testimonials} />
+        <DeferredTestimonials content={content.testimonials} />
         <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
       </main>
       <Footer content={content.footer} />

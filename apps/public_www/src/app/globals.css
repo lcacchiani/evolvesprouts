@@ -8,6 +8,8 @@
     --figma-fontfamilies-poppins: var(--font-poppins);
     --figma-fontfamilies-urbanist: var(--font-urbanist);
     --figma-fontfamilies-plus-jakarta-sans: var(--font-plus-jakarta-sans);
+    --figma-colors-frame-2147235222-2: #c84a16;
+    --figma-colors-frame-2147235239: #9e6d12;
     --site-primary-font:
       var(--figma-fontfamilies-lato, var(--font-lato)), sans-serif;
     --site-heading-font:
