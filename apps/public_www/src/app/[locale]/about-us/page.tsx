@@ -12,7 +12,7 @@ interface AboutUsPageProps {
 export async function generateMetadata({ params }: AboutUsPageProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const title = getMenuLabel(content, '/about-us', 'About Us');
-  const description = content.aboutUsPage.ida.subtitle;
+  const description = content.ida.subtitle;
 
   return buildLocalizedMetadata({
     locale,

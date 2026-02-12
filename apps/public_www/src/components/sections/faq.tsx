@@ -11,15 +11,15 @@ interface FaqProps {
   content: FaqContent;
 }
 
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-interface FaqCategory {
+interface FaqLabel {
   id: string;
   label: string;
-  items: FaqItem[];
+}
+
+interface FaqQuestion {
+  question: string;
+  answer: string;
+  labelIds: string[];
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
@@ -67,34 +67,31 @@ function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
 }
 
-function getFaqMatches(
-  categories: FaqCategory[],
+function getVisibleQuestions(
+  questions: FaqQuestion[],
+  activeLabelId: string,
   normalizedQuery: string,
-): FaqCategory[] {
-  if (!normalizedQuery) {
-    return categories;
-  }
+): FaqQuestion[] {
+  return questions.filter((entry) => {
+    const queryMatch =
+      normalizedQuery === '' ||
+      entry.question.toLowerCase().includes(normalizedQuery) ||
+      entry.answer.toLowerCase().includes(normalizedQuery);
 
-  return categories
-    .map((category) => {
-      const items = category.items.filter((item) => {
-        const question = item.question.toLowerCase();
-        const answer = item.answer.toLowerCase();
-        return (
-          question.includes(normalizedQuery) || answer.includes(normalizedQuery)
-        );
-      });
+    if (!queryMatch) {
+      return false;
+    }
 
-      if (items.length === 0) {
-        return null;
-      }
+    if (normalizedQuery !== '') {
+      return true;
+    }
 
-      return {
-        ...category,
-        items,
-      };
-    })
-    .filter((category): category is FaqCategory => category !== null);
+    if (activeLabelId === '') {
+      return true;
+    }
+
+    return entry.labelIds.includes(activeLabelId);
+  });
 }
 
 function FaqChevronIcon() {
@@ -117,12 +114,36 @@ function FaqChevronIcon() {
   );
 }
 
-function FaqItems({ items }: { items: FaqItem[] }) {
+function FaqItems({
+  items,
+  labelsById,
+}: {
+  items: FaqQuestion[];
+  labelsById: Map<string, FaqLabel>;
+}) {
   return (
     <ul className='space-y-3'>
       {items.map((item, index) => (
         <li key={`${item.question}-${index}`}>
           <details className='group rounded-2xl border border-[#E9D2BF] bg-[#FFF9F4] px-5 py-4 sm:px-6'>
+            {item.labelIds.length > 0 && (
+              <ul className='mb-3 flex flex-wrap gap-1.5'>
+                {item.labelIds.map((labelId) => {
+                  const matchedLabel = labelsById.get(labelId);
+                  if (!matchedLabel) {
+                    return null;
+                  }
+
+                  return (
+                    <li key={`${item.question}-${labelId}`}>
+                      <span className='inline-flex rounded-full border border-[#E9D2BF] bg-white px-2.5 py-1 text-xs font-semibold text-[#5A5A5A]'>
+                        {matchedLabel.label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             <summary className='flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden'>
               <h3 style={questionStyle}>{item.question}</h3>
               <FaqChevronIcon />
@@ -138,28 +159,21 @@ function FaqItems({ items }: { items: FaqItem[] }) {
 }
 
 export function Faq({ content }: FaqProps) {
-  const categories = content.categories;
-  const firstCategoryId = categories[0]?.id ?? '';
-  const [activeCategoryId, setActiveCategoryId] = useState(firstCategoryId);
+  const labels = content.labels;
+  const questions = content.questions;
+  const firstLabelId = labels[0]?.id ?? '';
+  const [activeLabelId, setActiveLabelId] = useState(firstLabelId);
   const [searchValue, setSearchValue] = useState('');
 
   const normalizedQuery = normalizeQuery(searchValue);
 
-  const normalizedCategories = useMemo(() => {
-    if (normalizedQuery) {
-      return getFaqMatches(categories, normalizedQuery);
-    }
+  const labelsById = useMemo(() => {
+    return new Map(labels.map((entry) => [entry.id, entry]));
+  }, [labels]);
 
-    const activeCategory = categories.find(
-      (category) => category.id === activeCategoryId,
-    );
-
-    if (!activeCategory) {
-      return [];
-    }
-
-    return [activeCategory];
-  }, [activeCategoryId, categories, normalizedQuery]);
+  const visibleQuestions = useMemo(() => {
+    return getVisibleQuestions(questions, activeLabelId, normalizedQuery);
+  }, [questions, activeLabelId, normalizedQuery]);
 
   return (
     <SectionShell
@@ -200,15 +214,15 @@ export function Faq({ content }: FaqProps) {
 
         <div className='mt-6 overflow-x-auto pb-1 scrollbar-hide'>
           <div className='flex min-w-max gap-2'>
-            {categories.map((category) => {
-              const isActive = activeCategoryId === category.id;
+            {labels.map((entry) => {
+              const isActive = activeLabelId === entry.id;
 
               return (
                 <button
-                  key={category.id}
+                  key={entry.id}
                   type='button'
                   onClick={() => {
-                    setActiveCategoryId(category.id);
+                    setActiveLabelId(entry.id);
                   }}
                   className='es-focus-ring rounded-full px-4 py-2.5 text-sm font-semibold sm:text-base'
                   style={{
@@ -218,7 +232,7 @@ export function Faq({ content }: FaqProps) {
                     color: isActive ? ACTIVE_TAB_TEXT : INACTIVE_TAB_TEXT,
                   }}
                 >
-                  {category.label}
+                  {entry.label}
                 </button>
               );
             })}
@@ -226,21 +240,12 @@ export function Faq({ content }: FaqProps) {
         </div>
 
         <div className='mt-6 space-y-5'>
-          {normalizedCategories.length === 0 ? (
+          {visibleQuestions.length === 0 ? (
             <p className='rounded-2xl border border-[#E9D2BF] bg-[#FFF9F4] px-5 py-6 text-center' style={answerStyle}>
               {content.emptySearchResultsLabel}
             </p>
           ) : (
-            normalizedCategories.map((category) => (
-              <section key={category.id} aria-label={category.label}>
-                {normalizedQuery && (
-                  <h3 className='mb-3 text-lg font-semibold sm:text-xl'>
-                    {category.label}
-                  </h3>
-                )}
-                <FaqItems items={category.items} />
-              </section>
-            ))
+            <FaqItems items={visibleQuestions} labelsById={labelsById} />
           )}
         </div>
       </div>
