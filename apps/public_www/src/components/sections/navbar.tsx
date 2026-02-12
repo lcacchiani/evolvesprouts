@@ -41,14 +41,6 @@ const linkStyle = {
   lineHeight: 'var(--figma-lineheights-home-2, 100%)',
 };
 
-const localeStyle = {
-  color: NAV_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-urbanist, Urbanist), sans-serif',
-  fontSize: 'var(--figma-fontsizes-20, 20px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: 'var(--figma-lineheights-eng, 100%)',
-};
-
 const ctaStyle = {
   backgroundColor: CTA_BACKGROUND,
   color: CTA_TEXT_COLOR,
@@ -449,7 +441,6 @@ function LanguageSelectorButton({
           height={30}
           className='h-[30px] w-[30px] rounded-full object-cover'
         />
-        <span style={localeStyle}>{activeOption.shortLabel}</span>
         <span className='sr-only'>
           {`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
         </span>
