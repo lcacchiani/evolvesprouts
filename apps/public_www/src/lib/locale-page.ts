@@ -32,6 +32,28 @@ export function getMenuLabel(
   return match?.label ?? fallbackLabel;
 }
 
+export function getFooterLinkLabel(
+  content: SiteContent,
+  href: string,
+  fallbackLabel: string,
+): string {
+  const sections = [
+    content.footer.quickLinks.items,
+    content.footer.services.items,
+    content.footer.aboutUs.items,
+    content.footer.connectOn.items,
+  ];
+
+  for (const items of sections) {
+    const match = items.find((item) => item.href === href);
+    if (match?.label) {
+      return match.label;
+    }
+  }
+
+  return fallbackLabel;
+}
+
 interface PlaceholderMetadataOptions {
   locale: Locale;
   path: string;

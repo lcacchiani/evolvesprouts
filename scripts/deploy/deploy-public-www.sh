@@ -70,8 +70,15 @@ function invalidate_distribution() {
         "/zh-CN*" \
         "/zh-HK*" \
         "/about-us*" \
+        "/about*" \
+        "/book*" \
         "/contact-us*" \
+        "/contact*" \
         "/events*" \
+        "/newsletter*" \
+        "/privacy*" \
+        "/resources*" \
+        "/services*" \
         "/training-courses*" \
         "/robots.txt" \
         "/sitemap.xml"

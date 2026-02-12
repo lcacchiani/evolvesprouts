@@ -221,6 +221,32 @@ export class PublicWwwStack extends cdk.Stack {
     const origin = origins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
       originAccessIdentity,
     });
+    const pathRewriteFunction = new cloudfront.Function(
+      this,
+      `${config.idPrefix}PathRewriteFunction`,
+      {
+        comment:
+          "Rewrite extensionless and trailing-slash paths to index.html for static export.",
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
+        code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+
+  if (uri.endsWith('/')) {
+    request.uri = uri + 'index.html';
+    return request;
+  }
+
+  if (uri.indexOf('.') === -1) {
+    request.uri = uri + '/index.html';
+  }
+
+  return request;
+}
+`),
+      },
+    );
 
     const customHeaders: cloudfront.ResponseCustomHeader[] = [];
     if (config.addNoIndexHeader) {
@@ -290,6 +316,12 @@ export class PublicWwwStack extends cdk.Stack {
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
           responseHeadersPolicy,
+          functionAssociations: [
+            {
+              function: pathRewriteFunction,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
         },
       },
     );

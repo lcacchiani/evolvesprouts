@@ -11,6 +11,10 @@ const INDEXED_ROUTE_PATHS = [
   '/about-us',
   '/events',
   '/contact-us',
+  '/newsletter',
+  '/privacy',
+  '/services/my-best-auntie',
+  '/services/workshops',
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
