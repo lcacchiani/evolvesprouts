@@ -231,26 +231,26 @@
       "title": "Quick Links",
       "items": [
         { "label": "Home", "href": "/" },
-        { "label": "About us", "href": "/about" },
+        { "label": "About Us", "href": "/about-us" },
         { "label": "Events", "href": "/events" },
-        { "label": "Contact us", "href": "/contact" },
-        { "label": "Book Now", "href": "/book" }
+        { "label": "Contact Us", "href": "/contact-us" },
+        { "label": "Book Now", "href": "#" }
       ]
     },
     "services": {
       "title": "Services",
       "items": [
-        { "label": "My Best Auntie", "href": "/services/my-best-auntie" },
-        { "label": "Workshops", "href": "/services/workshops" },
-        { "label": "Resources", "href": "/resources" }
+        { "label": "My Best Auntie", "href": "#" },
+        { "label": "Workshops", "href": "#" },
+        { "label": "Resources", "href": "#" }
       ]
     },
     "aboutUs": {
       "title": "About Us",
       "items": [
-        { "label": "Who We Are", "href": "/about" },
-        { "label": "Newsletter", "href": "/newsletter" },
-        { "label": "Privacy Policy", "href": "/privacy" }
+        { "label": "Who We Are", "href": "#" },
+        { "label": "Newsletter", "href": "#" },
+        { "label": "Privacy Policy", "href": "#" }
       ]
     },
     "connectOn": {
