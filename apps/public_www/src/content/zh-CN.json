@@ -206,6 +206,78 @@
       }
     ]
   },
+  "contactUs": {
+    "contactUsForm": {
+      "eyebrow": "联系我们",
+      "title": "让我们一起成长！",
+      "description": "你好！无论你想了解蒙特梭利理念、咨询我们的工作坊或培训课程，还是想分享关于儿童发展的想法，我们都非常欢迎。",
+      "emailLabel": "邮件联系 @",
+      "emailAddress": "ida@evolvesrpouts.com",
+      "promiseTitle": "我承诺…",
+      "promises": [
+        "24-48 小时内回复（没有机器人——由我这个真正热爱儿童发展的真人亲自回复）。",
+        "认真倾听、庆祝你的每一步成长，并一起把挑战转化为机会。"
+      ],
+      "quickFormEyebrow": "快速表单",
+      "quickFormTitle": "给我们发一条快速消息",
+      "quickFormDescription": "想用“漂流瓶”方式留言？填写下方联系表单，我们会像小芽发芽一样尽快回复你。",
+      "firstNameLabel": "名字",
+      "emailFieldLabel": "邮箱地址",
+      "phoneLabel": "电话号码",
+      "messageLabel": "你的留言",
+      "messagePlaceholder": "你的留言",
+      "messageMaxLength": 180,
+      "submitLabel": "发送留言！",
+      "subject": "网站联系表单",
+      "requiredHint": "* 必填项"
+    },
+    "reachOut": {
+      "eyebrow": "为什么找我们",
+      "title": "为什么联系我们？",
+      "items": [
+        {
+          "title": "合作共创",
+          "description": "与我们合作开展工作坊、培训课程或免费讲座。"
+        },
+        {
+          "title": "提出问题",
+          "description": "在育儿路上卡住了？需要帮助或实用技巧？欢迎联系我们。"
+        },
+        {
+          "title": "分享反馈",
+          "description": "我们怎样才能把 Evolve Sprouts 做得更好？你的想法很重要。"
+        },
+        {
+          "title": "打个招呼",
+          "description": "因为有意义的对话，往往从一句简单的“你好”开始。"
+        }
+      ]
+    },
+    "connect": {
+      "eyebrow": "立即联系",
+      "title": "如何联系",
+      "cards": [
+        {
+          "title": "邮件联系：",
+          "description": "欢迎发邮件至",
+          "ctaLabel": "ida@evolvesrpouts.com",
+          "ctaHref": "mailto:ida@evolvesrpouts.com"
+        },
+        {
+          "title": "社交互动：",
+          "description": "通过这个二维码在 WhatsApp 联系我们，一起获取灵感。",
+          "ctaLabel": "打开 WhatsApp",
+          "ctaHref": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+        },
+        {
+          "title": "快速表单：",
+          "description": "想用“漂流瓶”方式留言？填写下方联系表单，我们会像小芽发芽一样尽快回复你。",
+          "ctaLabel": "立即填写",
+          "ctaHref": "#contact-form"
+        }
+      ]
+    }
+  },
   "sproutsSquadCommunity": {
     "heading": "加入我们的 Sprouts Squad 社区！",
     "ctaLabel": "订阅我们的每月通讯",

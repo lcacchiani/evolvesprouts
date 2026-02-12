@@ -206,6 +206,78 @@
       }
     ]
   },
+  "contactUs": {
+    "contactUsForm": {
+      "eyebrow": "聯絡我們",
+      "title": "讓我們一起成長！",
+      "description": "你好！無論你想了解蒙特梭利理念、查詢我們的工作坊或培訓課程，還是想分享有關兒童發展的想法，我們都非常歡迎。",
+      "emailLabel": "郵件聯絡 @",
+      "emailAddress": "ida@evolvesrpouts.com",
+      "promiseTitle": "我承諾…",
+      "promises": [
+        "24-48 小時內回覆（沒有機器人——由我這位真正熱愛兒童發展的真人親自回覆）。",
+        "認真傾聽、慶祝你的每一步成長，並一起把挑戰轉化為機會。"
+      ],
+      "quickFormEyebrow": "快速表單",
+      "quickFormTitle": "給我們發一條快速訊息",
+      "quickFormDescription": "想用「漂流瓶」方式留言？填寫下方聯絡表單，我們會像小芽發芽一樣盡快回覆你。",
+      "firstNameLabel": "名字",
+      "emailFieldLabel": "電郵地址",
+      "phoneLabel": "電話號碼",
+      "messageLabel": "你的留言",
+      "messagePlaceholder": "你的留言",
+      "messageMaxLength": 180,
+      "submitLabel": "送出留言！",
+      "subject": "網站聯絡表單",
+      "requiredHint": "* 必填欄位"
+    },
+    "reachOut": {
+      "eyebrow": "為什麼找我們",
+      "title": "為什麼聯絡我們？",
+      "items": [
+        {
+          "title": "合作共創",
+          "description": "與我們合作開展工作坊、培訓課程或免費講座。"
+        },
+        {
+          "title": "提出問題",
+          "description": "在育兒路上卡住了？需要幫助或實用技巧？歡迎聯絡我們。"
+        },
+        {
+          "title": "分享回饋",
+          "description": "我們怎樣才能把 Evolve Sprouts 做得更好？你的想法很重要。"
+        },
+        {
+          "title": "打個招呼",
+          "description": "因為有意義的對話，往往從一句簡單的「你好」開始。"
+        }
+      ]
+    },
+    "connect": {
+      "eyebrow": "立即聯絡",
+      "title": "如何聯絡",
+      "cards": [
+        {
+          "title": "郵件聯絡：",
+          "description": "歡迎發郵件至",
+          "ctaLabel": "ida@evolvesrpouts.com",
+          "ctaHref": "mailto:ida@evolvesrpouts.com"
+        },
+        {
+          "title": "社交互動：",
+          "description": "透過這個二維碼在 WhatsApp 聯絡我們，一起獲取靈感。",
+          "ctaLabel": "打開 WhatsApp",
+          "ctaHref": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+        },
+        {
+          "title": "快速表單：",
+          "description": "想用「漂流瓶」方式留言？填寫下方聯絡表單，我們會像小芽發芽一樣盡快回覆你。",
+          "ctaLabel": "立即填寫",
+          "ctaHref": "#contact-form"
+        }
+      ]
+    }
+  },
   "sproutsSquadCommunity": {
     "heading": "加入我們的 Sprouts Squad 社區！",
     "ctaLabel": "訂閱我們的每月通訊",

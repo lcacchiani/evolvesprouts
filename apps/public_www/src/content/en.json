@@ -206,6 +206,78 @@
       }
     ]
   },
+  "contactUs": {
+    "contactUsForm": {
+      "eyebrow": "Contact Us",
+      "title": "Let’s Grow Together!",
+      "description": "Hi there! Whether you’re curious about Montessori philosophy, have a question about our workshops or training courses, or just want to share ideas about child development — we are all ears.",
+      "emailLabel": "Email Us @",
+      "emailAddress": "ida@evolvesrpouts.com",
+      "promiseTitle": "I Promise…",
+      "promises": [
+        "To reply within 24-48 hours (no bots here — just me, a real human who loves child development!).",
+        "To listen deeply, celebrate your wins, and help turn challenges into growth opportunities."
+      ],
+      "quickFormEyebrow": "Quick Form",
+      "quickFormTitle": "Send us a quick message",
+      "quickFormDescription": "Prefer a message in a bottle? Use the contact form below and we’ll respond faster than a sprout grows.",
+      "firstNameLabel": "First Name",
+      "emailFieldLabel": "Email Address",
+      "phoneLabel": "Phone Number",
+      "messageLabel": "Your message",
+      "messagePlaceholder": "Your message",
+      "messageMaxLength": 180,
+      "submitLabel": "Launch the Message!",
+      "subject": "Website Contact Form",
+      "requiredHint": "* Required fields"
+    },
+    "reachOut": {
+      "eyebrow": "Why Us",
+      "title": "Why Reach Out?",
+      "items": [
+        {
+          "title": "Collaborate",
+          "description": "Partner with us for workshops, training courses, or free talks."
+        },
+        {
+          "title": "Ask Questions",
+          "description": "Stuck on your parenting journey? Need help or practical tips? Let’s connect."
+        },
+        {
+          "title": "Share Feedback",
+          "description": "How can we make Evolve Sprouts better for you? Your thoughts matter."
+        },
+        {
+          "title": "Just Say Hello",
+          "description": "Because meaningful conversations can start with a simple \"hey\"."
+        }
+      ]
+    },
+    "connect": {
+      "eyebrow": "Connect Now",
+      "title": "How to Connect",
+      "cards": [
+        {
+          "title": "Email Me:",
+          "description": "Drop a line at",
+          "ctaLabel": "ida@evolvesrpouts.com",
+          "ctaHref": "mailto:ida@evolvesrpouts.com"
+        },
+        {
+          "title": "Social Vibes:",
+          "description": "WhatsApp, using this QR code — let’s get inspired together!",
+          "ctaLabel": "Open WhatsApp",
+          "ctaHref": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+        },
+        {
+          "title": "Quick Form:",
+          "description": "Prefer a message in a bottle? Use the contact form below and we’ll respond faster than a sprout grows.",
+          "ctaLabel": "Fill Up Now",
+          "ctaHref": "#contact-form"
+        }
+      ]
+    }
+  },
   "sproutsSquadCommunity": {
     "heading": "Join our Sprouts Squad community!",
     "ctaLabel": "Sign Up to Our Monthly Newsletter",
