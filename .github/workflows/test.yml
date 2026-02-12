@@ -19,7 +19,7 @@ on:
 
 jobs:
   test-public-www:
-    name: Verify Public WWW
+    name: Verify Public Website
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -32,7 +32,7 @@ jobs:
           cache: npm
           cache-dependency-path: apps/public_www/package-lock.json
 
-      - name: Validate Public WWW
+      - name: Validate Public Website
         working-directory: apps/public_www
         env:
           NEXT_TELEMETRY_DISABLED: "1"
