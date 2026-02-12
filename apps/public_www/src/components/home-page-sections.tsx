@@ -16,7 +16,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
   return (
     <>
       <Navbar content={content.navbar} />
-      <main className='min-h-screen'>
+      <main id='main-content' tabIndex={-1} className='min-h-screen'>
         <HeroBanner content={content.hero} />
         <MyBestAuntieOverview content={content.myBestAuntieOverview} />
         <CourseHighlights content={content.courseHighlights} />

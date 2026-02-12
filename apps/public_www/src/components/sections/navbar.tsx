@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import {
   DEFAULT_LOCALE,
@@ -29,6 +29,8 @@ const CTA_BACKGROUND = 'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
+const FOCUSABLE_ELEMENT_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const linkStyle = {
   backgroundColor: NAV_PILL_BACKGROUND,
@@ -162,6 +164,18 @@ function isExternalHref(href: string): boolean {
     href.startsWith('mailto:') ||
     href.startsWith('tel:')
   );
+}
+
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENT_SELECTOR),
+  ).filter((element) => {
+    if (element.hasAttribute('disabled')) {
+      return false;
+    }
+
+    return element.getAttribute('aria-hidden') !== 'true';
+  });
 }
 
 function localizeHref(href: string, locale: Locale): string {
@@ -377,6 +391,7 @@ function LanguageSelectorButton({
 }: LanguageSelectorButtonProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const languageMenuId = useId();
   const activeOption =
     languageSelector.options.find((option) => option.locale === currentLocale) ??
     languageSelector.options[0];
@@ -419,24 +434,29 @@ function LanguageSelectorButton({
       <button
         type='button'
         className={className}
+        aria-controls={languageMenuId}
         aria-expanded={isMenuOpen}
         aria-haspopup='menu'
-        aria-label={`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
         onClick={() => {
           setIsMenuOpen((open) => !open);
         }}
       >
         <Image
           src={activeOption.flagSrc}
-          alt={`${activeOption.label} flag`}
+          alt=''
+          aria-hidden='true'
           width={30}
           height={30}
           className='h-[30px] w-[30px] rounded-full object-cover'
         />
         <span style={localeStyle}>{activeOption.shortLabel}</span>
+        <span className='sr-only'>
+          {`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
+        </span>
         <LanguageChevronIcon isOpen={isMenuOpen} />
       </button>
       <ul
+        id={languageMenuId}
         role='menu'
         aria-label={languageSelector.menuAriaLabel}
         className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[230px] space-y-1 rounded-xl border border-black/10 bg-white p-2 shadow-xl transition ${isMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}
@@ -728,6 +748,10 @@ export function Navbar({ content }: NavbarProps) {
     string | null
   >(null);
   const isMobileMenuOpen = mobileMenuOpenForPath === pathname;
+  const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const mobileMenuCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+  const mobileNavigationDrawerRef = useRef<HTMLElement | null>(null);
+  const wasMobileMenuOpenRef = useRef(false);
 
   useEffect(() => {
     if (!isMobileMenuOpen) {
@@ -746,16 +770,67 @@ export function Navbar({ content }: NavbarProps) {
       return;
     }
 
-    function handleEscape(event: KeyboardEvent) {
+    mobileMenuCloseButtonRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setMobileMenuOpenForPath(null);
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const drawerElement = mobileNavigationDrawerRef.current;
+      if (!drawerElement) {
+        return;
+      }
+
+      const focusableElements = getFocusableElements(drawerElement);
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey) {
+        if (
+          activeElement === firstElement ||
+          !drawerElement.contains(activeElement)
+        ) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+
+        return;
+      }
+
+      if (activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
       }
     }
 
-    window.addEventListener('keydown', handleEscape);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('keydown', handleKeyDown);
     };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      wasMobileMenuOpenRef.current = true;
+      return;
+    }
+
+    if (wasMobileMenuOpenRef.current) {
+      mobileMenuButtonRef.current?.focus();
+      wasMobileMenuOpenRef.current = false;
+    }
   }, [isMobileMenuOpen]);
 
   return (
@@ -798,9 +873,11 @@ export function Navbar({ content }: NavbarProps) {
           </div>
 
           <button
+            ref={mobileMenuButtonRef}
             type='button'
             aria-controls='mobile-navigation-drawer'
             aria-expanded={isMobileMenuOpen}
+            aria-haspopup='dialog'
             aria-label='Open navigation menu'
             onClick={() => {
               setMobileMenuOpenForPath(pathname);
@@ -812,79 +889,85 @@ export function Navbar({ content }: NavbarProps) {
           </button>
         </nav>
       </header>
-      <div
-        className={`fixed inset-0 z-[60] transition lg:hidden ${isMobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
-      >
-        <button
-          type='button'
-          aria-label='Close navigation menu backdrop'
-          className={`absolute inset-0 bg-black/35 transition-opacity ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
-          onClick={() => {
-            setMobileMenuOpenForPath(null);
-          }}
-        />
-        <aside
-          id='mobile-navigation-drawer'
-          className={`absolute inset-y-0 right-0 ${MOBILE_PANEL_WIDTH_CLASS} flex flex-col border-l border-black/10 shadow-2xl transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
-          style={{ backgroundColor: NAV_BACKGROUND }}
-        >
-          <div className='flex items-center justify-between border-b border-black/10 px-4 py-4'>
-            <Link
-              href={localizedHomeHref}
-              className='shrink-0'
-              onClick={() => {
-                setMobileMenuOpenForPath(null);
-              }}
-            >
-              <Image
-                src={logoSrc}
-                alt={content.brand}
-                width={120}
-                height={36}
-                className='h-[34px] w-auto'
-              />
-            </Link>
-            <button
-              type='button'
-              aria-label='Close navigation menu'
-              onClick={() => {
-                setMobileMenuOpenForPath(null);
-              }}
-              className='inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
-            >
-              <CloseIcon />
-            </button>
-          </div>
-          <div className='flex-1 overflow-y-auto p-4'>
-            <MobileMenuItems
-              items={content.menuItems}
-              currentPath={currentPath}
-              locale={currentLocale}
-              onNavigate={() => {
-                setMobileMenuOpenForPath(null);
-              }}
-            />
-            <div className='mt-6 space-y-4 border-t border-black/10 pt-4'>
-              <LanguageSelectorButton
-                key={`mobile-language-${pathname}`}
-                currentLocale={currentLocale}
-                currentPathname={pathname}
-                languageSelector={languageSelector}
-                menuAlign='left'
-                className='inline-flex h-[36px] w-full items-center gap-[9px] px-[6px]'
-              />
-              <BookNowButton
-                href={localizedBookNowHref}
-                label={content.bookNow.label}
+      {isMobileMenuOpen && (
+        <div className='fixed inset-0 z-[60] lg:hidden'>
+          <button
+            type='button'
+            tabIndex={-1}
+            aria-label='Close navigation menu'
+            className='absolute inset-0 bg-black/35'
+            onClick={() => {
+              setMobileMenuOpenForPath(null);
+            }}
+          />
+          <aside
+            id='mobile-navigation-drawer'
+            ref={mobileNavigationDrawerRef}
+            role='dialog'
+            aria-modal='true'
+            aria-label='Mobile navigation menu'
+            className={`absolute inset-y-0 right-0 ${MOBILE_PANEL_WIDTH_CLASS} flex flex-col border-l border-black/10 shadow-2xl`}
+            style={{ backgroundColor: NAV_BACKGROUND }}
+          >
+            <div className='flex items-center justify-between border-b border-black/10 px-4 py-4'>
+              <Link
+                href={localizedHomeHref}
+                className='shrink-0'
                 onClick={() => {
                   setMobileMenuOpenForPath(null);
                 }}
-                className='inline-flex h-[56px] w-full items-center justify-center rounded-[10px] px-6 text-center'
-              />
+              >
+                <Image
+                  src={logoSrc}
+                  alt={content.brand}
+                  width={120}
+                  height={36}
+                  className='h-[34px] w-auto'
+                />
+              </Link>
+              <button
+                ref={mobileMenuCloseButtonRef}
+                type='button'
+                aria-label='Close navigation menu'
+                onClick={() => {
+                  setMobileMenuOpenForPath(null);
+                }}
+                className='inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40'
+              >
+                <CloseIcon />
+              </button>
             </div>
-          </div>
-        </aside>
-      </div>
+            <div className='flex-1 overflow-y-auto p-4'>
+              <MobileMenuItems
+                items={content.menuItems}
+                currentPath={currentPath}
+                locale={currentLocale}
+                onNavigate={() => {
+                  setMobileMenuOpenForPath(null);
+                }}
+              />
+              <div className='mt-6 space-y-4 border-t border-black/10 pt-4'>
+                <LanguageSelectorButton
+                  key={`mobile-language-${pathname}`}
+                  currentLocale={currentLocale}
+                  currentPathname={pathname}
+                  languageSelector={languageSelector}
+                  menuAlign='left'
+                  className='inline-flex h-[36px] w-full items-center gap-[9px] px-[6px]'
+                />
+                <BookNowButton
+                  href={localizedBookNowHref}
+                  label={content.bookNow.label}
+                  onClick={() => {
+                    setMobileMenuOpenForPath(null);
+                  }}
+                  className='inline-flex h-[56px] w-full items-center justify-center rounded-[10px] px-6 text-center'
+                />
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
     </>
   );
 }
