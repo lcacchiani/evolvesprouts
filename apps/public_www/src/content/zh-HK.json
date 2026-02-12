@@ -149,100 +149,60 @@
   "testimonials": {
     "title": "來自香港家長的真實故事",
     "description": "",
+    "badgeLabel": "家長見證",
+    "previousButtonLabel": "上一則見證",
+    "nextButtonLabel": "下一則見證",
     "items": [
       {
-        "badgeLabel": "家長見證",
         "quote": "1) Ida 非常出色，她幫助我了解如何以蒙特梭利方式佈置家居，同時不會打亂我原有的風格。",
         "author": "Mary Lo",
         "role": "兩孩媽媽",
-        "metaLocation": "來自香港",
         "mainImageSrc": "/images/testimonials/story-1-main.webp",
-        "mainImageAlt": "Mary Lo 見證",
-        "avatarImageSrc": "/images/testimonials/story-1-avatar.webp",
-        "avatarImageAlt": "Mary Lo 頭像",
-        "previousButtonLabel": "上一則見證",
-        "nextButtonLabel": "下一則見證"
+        "avatarImageSrc": "/images/testimonials/story-1-avatar.webp"
       },
       {
-        "badgeLabel": "家長見證",
         "quote": "參加這個幼兒健康飲食課程對我和幾位媽媽朋友來說是非常有收穫的體驗！Ida 對兒童發展與幸福的熱誠真的很感染人，而她在蒙特梭利理念上的專業，讓這些策略既實用又容易執行。課程後我更有信心，也很受啟發，去為孩子建立健康又愉快的用餐日常。謝謝你，Ida!!",
         "author": "Yen",
         "role": "一孩媽媽",
-        "metaLocation": "來自香港",
         "mainImageSrc": "/images/testimonials/story-2-main.webp",
-        "mainImageAlt": "Yen 見證",
-        "avatarImageSrc": "/images/testimonials/story-2-avatar.webp",
-        "avatarImageAlt": "Yen 頭像",
-        "previousButtonLabel": "上一則見證",
-        "nextButtonLabel": "下一則見證"
+        "avatarImageSrc": "/images/testimonials/story-2-avatar.webp"
       },
       {
-        "badgeLabel": "家長見證",
         "quote": "非常感謝你把 Jenelyn 帶到另一個層次 🤣🤣🤣 我看得到她參加課程後的進步。老實說，這並不容易，但我確實看到了她的改變 🙏🏻🙏🏻🙏🏻真的非常感謝！",
         "author": "Sarah",
         "role": "一孩媽媽",
-        "metaLocation": "來自香港",
         "mainImageSrc": "/images/testimonials/story-3-main.webp",
-        "mainImageAlt": "Sarah 見證",
-        "avatarImageSrc": "/images/testimonials/story-3-avatar.webp",
-        "avatarImageAlt": "Sarah 頭像",
-        "previousButtonLabel": "上一則見證",
-        "nextButtonLabel": "下一則見證"
+        "avatarImageSrc": "/images/testimonials/story-3-avatar.webp"
       },
       {
-        "badgeLabel": "家長見證",
         "quote": "我的姨姨們回來時非常興奮和有動力！我已經看到 Lizel 在用語上更有意識，處理幼兒情緒爆發的方法也更好（如果我們希望孩子說話有禮貌，就要先由我們示範並實踐！）",
         "author": "Gabriella",
         "role": "三孩媽媽",
-        "metaLocation": "香港",
         "mainImageSrc": "/images/testimonials/story-4-main.webp",
-        "mainImageAlt": "Gabriella 見證",
-        "avatarImageSrc": "/images/testimonials/story-4-avatar.webp",
-        "avatarImageAlt": "Gabriella 頭像",
-        "previousButtonLabel": "上一則見證",
-        "nextButtonLabel": "下一則見證"
+        "avatarImageSrc": "/images/testimonials/story-4-avatar.webp"
       },
       {
-        "badgeLabel": "家長見證",
         "quote": "這個講座談到如何幫助寶寶建立健康的飲食關係，並為寶寶與照顧者創造良好的用餐體驗。我很正面地想嘗試這些新方法，和寶寶一起建立更多有意義的用餐時光 ❤️",
         "author": "Yana",
-        "role": "一孩媽媽",
-        "metaLocation": "香港",
-        "previousButtonLabel": "上一則見證",
-        "nextButtonLabel": "下一則見證"
+        "role": "一孩媽媽"
       },
       {
-        "badgeLabel": "家長見證",
         "quote": "Hello Ida，我們的姨姨 Cristine 最近完成了你們的 0-12 個月先導課程！非常感謝這個很棒的課程。這讓她有很多很好的點子，而我們也一直在實踐！課程筆記也非常有幫助，讓我們家長也能一起學習（我們是新手爸媽，所以每天都在上課！）",
         "author": "Emma",
         "role": "一孩媽媽",
-        "metaLocation": "香港",
-        "mainImageSrc": "/images/testimonials/story-6-main.webp",
-        "mainImageAlt": "Emma 見證",
-        "previousButtonLabel": "上一則見證",
-        "nextButtonLabel": "下一則見證"
+        "mainImageSrc": "/images/testimonials/story-6-main.webp"
       },
       {
-        "badgeLabel": "家長見證",
         "quote": "謝謝你，Ida，這堂課真的很有幫助，我們真的看到了 Emely 的改變！",
         "author": "Joyce",
         "role": "一孩媽媽",
-        "metaLocation": "香港",
-        "mainImageSrc": "/images/testimonials/story-7-main.webp",
-        "mainImageAlt": "Joyce 見證",
-        "previousButtonLabel": "上一則見證",
-        "nextButtonLabel": "下一則見證"
+        "mainImageSrc": "/images/testimonials/story-7-main.webp"
       },
       {
-        "badgeLabel": "家長見證",
         "quote": "你好！我的姨姨參加課程後，帶回了很多貼地的理解，知道怎樣培養一個獨立而平靜的幼兒。我也曾在專業層面和 Ida 合作，一起設計過一場關於培養獨立且具直覺飲食能力孩子的工作坊，兩次經驗都非常好。很推薦！（我的姨姨本人也很喜歡這個體驗，因為幾乎沒有其他地方能讓她們彼此交流，並就如何育兒和與僱主溝通去提問，所以這對我們來說真的很好！）",
         "author": "Mira",
         "role": "一孩媽媽",
-        "metaLocation": "香港",
-        "mainImageSrc": "/images/testimonials/story-8-main.webp",
-        "mainImageAlt": "Mira 見證",
-        "previousButtonLabel": "上一則見證",
-        "nextButtonLabel": "下一則見證"
+        "mainImageSrc": "/images/testimonials/story-8-main.webp"
       }
     ]
   },

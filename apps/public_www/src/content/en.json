@@ -149,100 +149,60 @@
   "testimonials": {
     "title": "Real Stories from Parents in Hong Kong",
     "description": "",
+    "badgeLabel": "Testimonials",
+    "previousButtonLabel": "Previous testimonial",
+    "nextButtonLabel": "Next testimonial",
     "items": [
       {
-        "badgeLabel": "Testimonials",
         "quote": "1) Ida was fantastic, she helped me understand how I could set up my home in a Montessori way without disrupting my style.",
         "author": "Mary Lo",
         "role": "Mom of 2",
-        "metaLocation": "From Hong kong",
         "mainImageSrc": "/images/testimonials/story-1-main.webp",
-        "mainImageAlt": "Mary Lo testimonial",
-        "avatarImageSrc": "/images/testimonials/story-1-avatar.webp",
-        "avatarImageAlt": "Mary Lo avatar",
-        "previousButtonLabel": "Previous testimonial",
-        "nextButtonLabel": "Next testimonial"
+        "avatarImageSrc": "/images/testimonials/story-1-avatar.webp"
       },
       {
-        "badgeLabel": "Testimonials",
         "quote": "Taking part in the toddler healthy eating course was such a rewarding experience for me and my fellow mom friends! Ida's passion for child development and happiness truly shone through, and her expertise in Montessori principles made the strategies practical and easy to implement. I left feeling confident and inspired to create healthy, enjoyable mealtime routines for my child. Thank you, Ida!!",
         "author": "Yen",
         "role": "Mom of 1",
-        "metaLocation": "From Hong kong",
         "mainImageSrc": "/images/testimonials/story-2-main.webp",
-        "mainImageAlt": "Yen testimonial",
-        "avatarImageSrc": "/images/testimonials/story-2-avatar.webp",
-        "avatarImageAlt": "Yen avatar",
-        "previousButtonLabel": "Previous testimonial",
-        "nextButtonLabel": "Next testimonial"
+        "avatarImageSrc": "/images/testimonials/story-2-avatar.webp"
       },
       {
-        "badgeLabel": "Testimonials",
         "quote": "Thank you so much for bringing jenelyn to another level 🤣🤣🤣 I can see her improvement after joining the course. To be honest, that isn’t easy but I see her changes 🙏🏻🙏🏻🙏🏻thanks so much!",
         "author": "Sarah",
         "role": "Mom of 1",
-        "metaLocation": "From Hong kong",
         "mainImageSrc": "/images/testimonials/story-3-main.webp",
-        "mainImageAlt": "Sarah testimonial",
-        "avatarImageSrc": "/images/testimonials/story-3-avatar.webp",
-        "avatarImageAlt": "Sarah avatar",
-        "previousButtonLabel": "Previous testimonial",
-        "nextButtonLabel": "Next testimonial"
+        "avatarImageSrc": "/images/testimonials/story-3-avatar.webp"
       },
       {
-        "badgeLabel": "Testimonials",
         "quote": "My aunties came back very excited and motivated! I’m already seeing more awareness of the language Lizel is using as well as approach to toddler outbursts (if we want kids to use polite language, we must demonstrate & utilise it ourselves!)",
         "author": "Gabriella",
         "role": "Mum of 3",
-        "metaLocation": "Hong Kong",
         "mainImageSrc": "/images/testimonials/story-4-main.webp",
-        "mainImageAlt": "Gabriella testimonial",
-        "avatarImageSrc": "/images/testimonials/story-4-avatar.webp",
-        "avatarImageAlt": "Gabriella avatar",
-        "previousButtonLabel": "Previous testimonial",
-        "nextButtonLabel": "Next testimonial"
+        "avatarImageSrc": "/images/testimonials/story-4-avatar.webp"
       },
       {
-        "badgeLabel": "Testimonials",
         "quote": "The seminar talks about how to support our baby to build a healthy relationship with food, and to create a good experience with mealtime for both baby and the caregiver. I feel positive to try these new ways to build many meaningful dining experience with my baby ❤️",
         "author": "Yana",
-        "role": "Mum of 1",
-        "metaLocation": "Hong Kong",
-        "previousButtonLabel": "Previous testimonial",
-        "nextButtonLabel": "Next testimonial"
+        "role": "Mum of 1"
       },
       {
-        "badgeLabel": "Testimonials",
         "quote": "Hello Ida, my auntie Cristine recently completed your pilot programme for 0-12 month! Thank you so much for this wonderful course. It's given her lots of fantastic ideas which we've been implementing! The course notes were very helpful, as it allowed us parents to learn things too (we're first time parents so every day is a school day!)",
         "author": "Emma",
         "role": "Mum of 1",
-        "metaLocation": "Hong Kong",
-        "mainImageSrc": "/images/testimonials/story-6-main.webp",
-        "mainImageAlt": "Emma testimonial",
-        "previousButtonLabel": "Previous testimonial",
-        "nextButtonLabel": "Next testimonial"
+        "mainImageSrc": "/images/testimonials/story-6-main.webp"
       },
       {
-        "badgeLabel": "Testimonials",
         "quote": "Thanks Ida for the class, we can really see the changes from Emely!",
         "author": "Joyce",
         "role": "Mum of 1",
-        "metaLocation": "Hong Kong",
-        "mainImageSrc": "/images/testimonials/story-7-main.webp",
-        "mainImageAlt": "Joyce testimonial",
-        "previousButtonLabel": "Previous testimonial",
-        "nextButtonLabel": "Next testimonial"
+        "mainImageSrc": "/images/testimonials/story-7-main.webp"
       },
       {
-        "badgeLabel": "Testimonials",
         "quote": "Hi! My auntie attended the course and came back with real life understanding of how to raise an independent calm toddler. I have also worked with Ida on a professional level creating a workshop we've created together on raising independent intuitive eaters and both experiences have been great. Would recommend! (My auntie herself loved the experience too, there is no other place for them to connect and ask questions about how to raise children and communicate with their employers so this was really great for us!)",
         "author": "Mira",
         "role": "Mum of 1",
-        "metaLocation": "Hong Kong",
-        "mainImageSrc": "/images/testimonials/story-8-main.webp",
-        "mainImageAlt": "Mira testimonial",
-        "previousButtonLabel": "Previous testimonial",
-        "nextButtonLabel": "Next testimonial"
+        "mainImageSrc": "/images/testimonials/story-8-main.webp"
       }
     ]
   },

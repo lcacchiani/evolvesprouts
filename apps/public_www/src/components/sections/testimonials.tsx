@@ -25,14 +25,8 @@ interface NormalizedStory {
   quote?: string;
   author?: string;
   role?: string;
-  metaLocation?: string;
-  badgeLabel?: string;
-  previousButtonLabel?: string;
-  nextButtonLabel?: string;
   mainImageSrc?: string;
-  mainImageAlt?: string;
   avatarImageSrc?: string;
-  avatarImageAlt?: string;
 }
 
 const TEXT_PRIMARY =
@@ -113,12 +107,6 @@ function normalizeStory(item: unknown): NormalizedStory | null {
 
   const record = item as Record<string, unknown>;
   const story: NormalizedStory = {
-    badgeLabel: readCandidateText(record, [
-      'badgeLabel',
-      'badge',
-      'eyebrow',
-      'label',
-    ]),
     quote: readCandidateText(record, [
       'quote',
       'testimonial',
@@ -128,39 +116,17 @@ function normalizeStory(item: unknown): NormalizedStory | null {
     ]),
     author: readCandidateText(record, ['author', 'name', 'parentName']),
     role: readCandidateText(record, ['role', 'subtitle', 'title']),
-    metaLocation: readCandidateText(record, [
-      'metaLocation',
-      'from',
-      'location',
-      'city',
-    ]),
-    previousButtonLabel: readCandidateText(record, [
-      'previousButtonLabel',
-      'previousAriaLabel',
-      'previousLabel',
-    ]),
-    nextButtonLabel: readCandidateText(record, [
-      'nextButtonLabel',
-      'nextAriaLabel',
-      'nextLabel',
-    ]),
     mainImageSrc: readCandidateText(record, [
       'mainImageSrc',
       'slideImageSrc',
       'imageSrc',
       'image',
     ]),
-    mainImageAlt: readCandidateText(record, ['mainImageAlt', 'imageAlt']),
     avatarImageSrc: readCandidateText(record, [
       'avatarImageSrc',
       'authorImageSrc',
       'userImageSrc',
       'avatar',
-    ]),
-    avatarImageAlt: readCandidateText(record, [
-      'avatarImageAlt',
-      'authorImageAlt',
-      'userImageAlt',
     ]),
   };
 
@@ -246,14 +212,28 @@ export function Testimonials({ content }: TestimonialsProps) {
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
   const activeIndex = getWrappedIndex(activeStoryIndex, storiesToRender.length);
-  const activeStory = storiesToRender[activeIndex];
   const hasMultipleStories = storiesToRender.length > 1;
-  const badgeLabel = activeStory?.badgeLabel ?? content.title;
+  const testimonialsRecord = content as Record<string, unknown>;
+  const badgeLabel =
+    readCandidateText(testimonialsRecord, [
+      'badgeLabel',
+      'badge',
+      'eyebrow',
+      'label',
+    ]) ?? content.title;
   const descriptionText = content.description.trim();
   const previousButtonLabel =
-    activeStory?.previousButtonLabel ?? 'Previous testimonial';
+    readCandidateText(testimonialsRecord, [
+      'previousButtonLabel',
+      'previousAriaLabel',
+      'previousLabel',
+    ]) ?? 'Previous testimonial';
   const nextButtonLabel =
-    activeStory?.nextButtonLabel ?? 'Next testimonial';
+    readCandidateText(testimonialsRecord, [
+      'nextButtonLabel',
+      'nextAriaLabel',
+      'nextLabel',
+    ]) ?? 'Next testimonial';
 
   function goToPreviousStory() {
     if (!hasMultipleStories) {
@@ -356,10 +336,7 @@ export function Testimonials({ content }: TestimonialsProps) {
             >
               {storiesToRender.map((story, index) => {
                 const quoteText = story.quote ?? content.title;
-                const showMeta =
-                  Boolean(story.author) ||
-                  Boolean(story.role) ||
-                  Boolean(story.metaLocation);
+                const showMeta = Boolean(story.author) || Boolean(story.role);
 
                 return (
                   <article
@@ -371,10 +348,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                         {story.mainImageSrc ? (
                           <Image
                             src={story.mainImageSrc}
-                            alt={
-                              story.mainImageAlt ??
-                              `${story.author ?? 'Parent'} testimonial image`
-                            }
+                            alt={`${story.author ?? 'Parent'} testimonial image`}
                             fill
                             sizes='(min-width: 1024px) 500px, 100vw'
                             className='object-cover'
@@ -410,10 +384,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                             {story.avatarImageSrc ? (
                               <Image
                                 src={story.avatarImageSrc}
-                                alt={
-                                  story.avatarImageAlt ??
-                                  `${story.author ?? 'Parent'} avatar`
-                                }
+                                alt={`${story.author ?? 'Parent'} avatar`}
                                 width={100}
                                 height={100}
                                 className='h-[82px] w-[71px] shrink-0 rounded-[16px] object-cover sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
@@ -437,11 +408,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                                   style={metaTextStyle}
                                 >
                                   {story.role}
-                                </p>
-                              )}
-                              {story.metaLocation && (
-                                <p className='mt-1 max-w-[190px]' style={metaTextStyle}>
-                                  {story.metaLocation}
                                 </p>
                               )}
                             </div>
