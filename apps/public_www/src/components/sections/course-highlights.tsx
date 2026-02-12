@@ -37,7 +37,7 @@ const SECTION_BG = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const HEADING_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
-const GOLD_CARD = 'var(--figma-colors-frame-2147235239, #AE7B1B)';
+const GOLD_CARD = '#9E6D12';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
 

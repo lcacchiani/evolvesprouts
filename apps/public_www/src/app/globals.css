@@ -8,8 +8,6 @@
     --figma-fontfamilies-poppins: var(--font-poppins);
     --figma-fontfamilies-urbanist: var(--font-urbanist);
     --figma-fontfamilies-plus-jakarta-sans: var(--font-plus-jakarta-sans);
-    --figma-colors-frame-2147235222-2: #c84a16;
-    --figma-colors-frame-2147235239: #9e6d12;
     --site-primary-font:
       var(--figma-fontfamilies-lato, var(--font-lato)), sans-serif;
     --site-heading-font:
@@ -97,7 +95,7 @@
   }
 
   .es-cta-primary {
-    background-color: var(--figma-colors-frame-2147235222-2, #ED622E);
+    background-color: #C84A16;
     color: var(--figma-colors-desktop, #FFFFFF);
     font-family: var(--site-primary-font);
     font-weight: 600;
