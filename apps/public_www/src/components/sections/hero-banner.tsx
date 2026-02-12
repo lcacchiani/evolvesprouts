@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
 import Image from 'next/image';
 
-import { SectionCtaLink } from '@/components/section-cta-link';
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import type { HeroContent } from '@/content';
 
 interface HeroBannerProps {
@@ -98,13 +98,13 @@ export function HeroBanner({ content }: HeroBannerProps) {
             <p className='mt-4 max-w-[610px] sm:mt-6' style={subheadlineStyle}>
               {content.subheadline}
             </p>
-            <SectionCtaLink
+            <SectionCtaAnchor
               href='/training-courses'
               className='mt-6 h-[55px] rounded-[10px] px-[34px]'
               style={ctaStyle}
             >
               {content.cta}
-            </SectionCtaLink>
+            </SectionCtaAnchor>
           </div>
         </div>
         <div className='mx-auto w-full max-w-[764px] lg:ml-auto lg:mr-0'>

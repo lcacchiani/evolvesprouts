@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
-import { SectionCtaLink } from '@/components/section-cta-link';
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { CourseHighlightsContent } from '@/content';
@@ -309,28 +309,13 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         )}
 
         <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
-          <SectionCtaLink
+          <SectionCtaAnchor
             href={ctaHref}
             className='h-[62px] w-full max-w-[488px] gap-2 rounded-[8px] px-5 sm:h-[70px] sm:px-7 lg:h-[78px]'
             style={ctaStyle}
           >
-            <span>{ctaLabel}</span>
-            <svg
-              aria-hidden='true'
-              viewBox='0 0 20 20'
-              className='h-5 w-5 shrink-0'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <path
-                d='M7 4L13 10L7 16'
-                stroke={WHITE}
-                strokeWidth='2.2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
-          </SectionCtaLink>
+            {ctaLabel}
+          </SectionCtaAnchor>
         </div>
       </div>
     </SectionShell>
