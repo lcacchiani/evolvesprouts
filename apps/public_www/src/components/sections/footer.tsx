@@ -19,6 +19,16 @@ interface FooterLinkItem {
   icon?: string;
 }
 
+function resolveCurrentYearCopyright(value: string): string {
+  const currentYear = String(new Date().getFullYear());
+  if (/\b\d{4}\b/.test(value)) {
+    return value.replace(/\b\d{4}\b/, currentYear);
+  }
+
+  const normalizedValue = value.replace(/^©\s*/, '').trim();
+  return `© ${currentYear} ${normalizedValue}`;
+}
+
 const FOOTER_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const HEADING_TEXT_COLOR =
@@ -222,6 +232,8 @@ function FooterMobileAccordion({
 }
 
 export function Footer({ content }: FooterProps) {
+  const copyrightText = resolveCurrentYearCopyright(content.copyright);
+
   return (
     <footer
       data-figma-node='footer'
@@ -292,8 +304,8 @@ export function Footer({ content }: FooterProps) {
       </section>
 
       <div className='w-full px-4 pb-8 sm:px-6 lg:px-8'>
-        <div className='mx-auto w-full max-w-[1465px]'>
-          <p style={copyrightStyle}>{content.copyright}</p>
+        <div className='mx-auto w-full max-w-[1465px] text-center'>
+          <p style={copyrightStyle}>{copyrightText}</p>
         </div>
       </div>
     </footer>
