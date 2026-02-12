@@ -35,8 +35,12 @@ export function DeferredTestimonials({ content }: DeferredTestimonialsProps) {
     }
 
     if (!('IntersectionObserver' in window)) {
-      setShouldLoad(true);
-      return;
+      const timeoutId = setTimeout(() => {
+        setShouldLoad(true);
+      }, 0);
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
 
     const observer = new IntersectionObserver(
