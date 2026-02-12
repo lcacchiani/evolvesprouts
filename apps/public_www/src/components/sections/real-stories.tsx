@@ -2,10 +2,7 @@
 
 import Image from 'next/image';
 import {
-  useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
 } from 'react';
@@ -39,14 +36,13 @@ interface NormalizedStory {
 const TEXT_PRIMARY =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const TEXT_SECONDARY = 'var(--figma-colors-home, #4A4A4A)';
-const CONTROL_BG = 'var(--figma-colors-frame-1000007814, #1F1F1F)';
-const CONTROL_ICON = 'var(--figma-colors-rectangle-240648655, #FFBA89)';
+const CONTROL_BG = '#FFFFFF';
+const CONTROL_ICON = '#3D3E3D';
 const DIVIDER_COLOR = 'rgba(31, 31, 31, 0.2)';
 const BADGE_BORDER = '#EECAB0';
 const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
-const FADE_DURATION_MS = 1000;
-const HALF_FADE_DURATION_MS = FADE_DURATION_MS / 2;
+const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 
 const badgeTextStyle: CSSProperties = {
   color: TEXT_PRIMARY,
@@ -77,9 +73,9 @@ const descriptionTextStyle: CSSProperties = {
 const quoteTextStyle: CSSProperties = {
   color: TEXT_PRIMARY,
   fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(1.3rem, 2.5vw, 2rem)',
+  fontSize: 'clamp(1.25rem, 2.3vw, 28px)',
   fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: '1.6',
+  lineHeight: '1.7',
   letterSpacing: '0.01em',
 };
 
@@ -198,7 +194,7 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
       <path
         d='M8 4L16 12L8 20'
         stroke={CONTROL_ICON}
-        strokeWidth='2.8'
+        strokeWidth='2.4'
         strokeLinecap='round'
         strokeLinejoin='round'
       />
@@ -261,69 +257,38 @@ export function RealStories({ content }: RealStoriesProps) {
   const stories = useMemo(() => normalizeStories(content.items), [content.items]);
   const storyCount = stories.length;
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
-  const [isFadingOut, setIsFadingOut] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const fadeOutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fadeInTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const story =
+  const storiesToRender =
     storyCount > 0
-      ? stories[getWrappedIndex(activeStoryIndex, storyCount)]
-      : null;
-  const hasMultipleStories = storyCount > 1;
-  const badgeLabel = story?.badgeLabel ?? content.title;
-  const quoteText = story?.quote ?? content.title;
+      ? stories
+      : [{ quote: content.title } satisfies NormalizedStory];
+  const activeIndex = getWrappedIndex(activeStoryIndex, storiesToRender.length);
+  const activeStory = storiesToRender[activeIndex];
+  const hasMultipleStories = storiesToRender.length > 1;
+  const badgeLabel = activeStory?.badgeLabel ?? content.title;
   const descriptionText = content.description.trim();
-  const previousButtonLabel = story?.previousButtonLabel ?? badgeLabel;
-  const nextButtonLabel = story?.nextButtonLabel ?? badgeLabel;
-  const showMeta =
-    Boolean(story?.author) ||
-    Boolean(story?.role) ||
-    Boolean(story?.metaLocation);
+  const previousButtonLabel =
+    activeStory?.previousButtonLabel ?? 'Previous testimonial';
+  const nextButtonLabel =
+    activeStory?.nextButtonLabel ?? 'Next testimonial';
 
-  const clearTimers = useCallback(() => {
-    if (fadeOutTimerRef.current) {
-      clearTimeout(fadeOutTimerRef.current);
-      fadeOutTimerRef.current = null;
-    }
-
-    if (fadeInTimerRef.current) {
-      clearTimeout(fadeInTimerRef.current);
-      fadeInTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      clearTimers();
-    };
-  }, [clearTimers]);
-
-  function transitionToStory(nextIndex: number) {
-    if (!hasMultipleStories || isTransitioning) {
+  function goToPreviousStory() {
+    if (!hasMultipleStories) {
       return;
     }
 
-    clearTimers();
-    setIsTransitioning(true);
-    setIsFadingOut(true);
-
-    fadeOutTimerRef.current = setTimeout(() => {
-      setActiveStoryIndex(getWrappedIndex(nextIndex, storyCount));
-      setIsFadingOut(false);
-
-      fadeInTimerRef.current = setTimeout(() => {
-        setIsTransitioning(false);
-      }, HALF_FADE_DURATION_MS);
-    }, HALF_FADE_DURATION_MS);
-  }
-
-  function goToPreviousStory() {
-    transitionToStory(activeStoryIndex - 1);
+    setActiveStoryIndex((currentIndex) =>
+      getWrappedIndex(currentIndex - 1, storiesToRender.length),
+    );
   }
 
   function goToNextStory() {
-    transitionToStory(activeStoryIndex + 1);
+    if (!hasMultipleStories) {
+      return;
+    }
+
+    setActiveStoryIndex((currentIndex) =>
+      getWrappedIndex(currentIndex + 1, storiesToRender.length),
+    );
   }
 
   return (
@@ -332,145 +297,176 @@ export function RealStories({ content }: RealStoriesProps) {
       dataFigmaNode='Real Stories'
       className='relative isolate overflow-hidden'
     >
-      <div className='relative mx-auto w-full max-w-[1488px]'>
-        <div className='flex flex-col items-center gap-6 lg:gap-8'>
-          <div className='flex w-full flex-col items-center justify-between gap-4 sm:flex-row'>
-            <SectionEyebrowChip
-              label={badgeLabel}
-              labelStyle={badgeTextStyle}
-              className='px-4 py-2.5'
-              style={{
-                borderColor: BADGE_BORDER,
-                backgroundColor: 'rgba(255, 255, 255, 0.64)',
-              }}
-            />
+      <div
+        aria-hidden='true'
+        className='pointer-events-none absolute left-1/2 top-0 h-[540px] w-[980px] -translate-x-1/2'
+        style={{
+          background:
+            'radial-gradient(circle at center, rgba(231,108,61,0.12) 0%, rgba(231,108,61,0) 64%)',
+        }}
+      />
 
-            <div className='flex items-center gap-[14px] sm:gap-[21px]'>
+      <div className='relative mx-auto w-full max-w-[1488px]'>
+        <div className='mx-auto max-w-[760px] text-center'>
+          <SectionEyebrowChip
+            label={badgeLabel}
+            labelStyle={badgeTextStyle}
+            className='px-4 py-2.5'
+            style={{
+              borderColor: BADGE_BORDER,
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            }}
+          />
+
+          <h2 className='mt-6 text-balance' style={headingStyle}>
+            {content.title}
+          </h2>
+
+          {descriptionText && (
+            <p className='mt-3' style={descriptionTextStyle}>
+              {descriptionText}
+            </p>
+          )}
+        </div>
+
+        <div className='relative mt-10 overflow-hidden rounded-[30px] border border-[#EFD7C7] bg-white shadow-[0_28px_70px_rgba(18,18,17,0.08)] lg:mt-14'>
+          <div className='overflow-hidden' aria-live='polite'>
+            <div
+              className='flex transition-transform duration-500 ease-out'
+              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            >
+              {storiesToRender.map((story, index) => {
+                const quoteText = story.quote ?? content.title;
+                const showMeta =
+                  Boolean(story.author) ||
+                  Boolean(story.role) ||
+                  Boolean(story.metaLocation);
+
+                return (
+                  <article
+                    key={`${story.author ?? 'story'}-${index}`}
+                    className='min-w-full'
+                  >
+                    <div className='grid lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)]'>
+                      <div className='relative min-h-[260px] bg-[#F5DFCF] sm:min-h-[360px] lg:min-h-[540px]'>
+                        {story.mainImageSrc ? (
+                          <Image
+                            src={story.mainImageSrc}
+                            alt={
+                              story.mainImageAlt ??
+                              `${story.author ?? 'Parent'} testimonial image`
+                            }
+                            fill
+                            sizes='(min-width: 1024px) 500px, 100vw'
+                            className='object-cover'
+                            priority={index === 0}
+                          />
+                        ) : (
+                          <div
+                            className='flex h-full min-h-[260px] items-center justify-center sm:min-h-[360px] lg:min-h-[540px]'
+                            style={{ backgroundColor: IMAGE_FALLBACK_BG }}
+                          >
+                            <ParentIcon />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
+                        <div className='flex items-start gap-3 sm:gap-5'>
+                          <span className='shrink-0 pt-1'>
+                            <QuoteIcon />
+                          </span>
+                          <p className='text-balance' style={quoteTextStyle}>
+                            {quoteText}
+                          </p>
+                        </div>
+
+                        {showMeta && (
+                          <>
+                            <div
+                              aria-hidden='true'
+                              className='mt-8 h-px w-full'
+                              style={{ backgroundColor: DIVIDER_COLOR }}
+                            />
+
+                            <div className='mt-8 flex items-start gap-4 sm:gap-6'>
+                              {story.avatarImageSrc ? (
+                                <Image
+                                  src={story.avatarImageSrc}
+                                  alt={
+                                    story.avatarImageAlt ??
+                                    `${story.author ?? 'Parent'} avatar`
+                                  }
+                                  width={123}
+                                  height={123}
+                                  className='h-[90px] w-[90px] shrink-0 rounded-[18px] object-cover sm:h-[123px] sm:w-[123px]'
+                                />
+                              ) : (
+                                <span
+                                  className='inline-flex h-[90px] w-[90px] shrink-0 items-center justify-center rounded-[18px] sm:h-[123px] sm:w-[123px]'
+                                  style={{ backgroundColor: PROFILE_CARD_BG }}
+                                >
+                                  <ParentIcon />
+                                </span>
+                              )}
+
+                              <div className='min-w-0'>
+                                {story.author && (
+                                  <p style={authorStyle}>{story.author}</p>
+                                )}
+                                {story.role && (
+                                  <p
+                                    className={story.author ? 'mt-1' : ''}
+                                    style={metaTextStyle}
+                                  >
+                                    {story.role}
+                                  </p>
+                                )}
+                                {story.metaLocation && (
+                                  <p className='mt-1' style={metaTextStyle}>
+                                    {story.metaLocation}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+
+          {hasMultipleStories && (
+            <div className='flex items-center justify-center gap-[14px] px-6 pb-6 pt-5 sm:gap-[18px] sm:px-9 lg:absolute lg:bottom-8 lg:right-8 lg:gap-[14px] lg:p-0'>
               <button
                 type='button'
                 onClick={goToPreviousStory}
-                disabled={!hasMultipleStories || isTransitioning}
                 aria-label={previousButtonLabel}
-                className='inline-flex h-[72px] w-[72px] items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-100 sm:h-[85px] sm:w-[86px]'
-                style={{ backgroundColor: CONTROL_BG }}
+                className='inline-flex h-[60px] w-[60px] items-center justify-center rounded-full transition-opacity hover:opacity-90 sm:h-[70px] sm:w-[70px]'
+                style={{
+                  backgroundColor: CONTROL_BG,
+                  boxShadow: CONTROL_SHADOW,
+                }}
               >
                 <ChevronIcon direction='left' />
               </button>
               <button
                 type='button'
                 onClick={goToNextStory}
-                disabled={!hasMultipleStories || isTransitioning}
                 aria-label={nextButtonLabel}
-                className='inline-flex h-[72px] w-[72px] items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-100 sm:h-[85px] sm:w-[86px]'
-                style={{ backgroundColor: CONTROL_BG }}
+                className='inline-flex h-[60px] w-[60px] items-center justify-center rounded-full transition-opacity hover:opacity-90 sm:h-[70px] sm:w-[70px]'
+                style={{
+                  backgroundColor: CONTROL_BG,
+                  boxShadow: CONTROL_SHADOW,
+                }}
               >
                 <ChevronIcon direction='right' />
               </button>
             </div>
-          </div>
-
-          <h2 className='max-w-[760px] text-balance text-center' style={headingStyle}>
-            {content.title}
-          </h2>
-
-          {descriptionText && (
-            <p className='max-w-[760px] text-center' style={descriptionTextStyle}>
-              {descriptionText}
-            </p>
           )}
-        </div>
-
-        <div className='mt-10 overflow-hidden rounded-[30px] border border-[#EFD7C7] bg-white shadow-[0_28px_70px_rgba(18,18,17,0.08)] lg:mt-14'>
-          <div
-            aria-live='polite'
-            className='transition-opacity'
-            style={{
-              opacity: isFadingOut ? 0 : 1,
-              transitionDuration: `${HALF_FADE_DURATION_MS}ms`,
-            }}
-          >
-            <div className='grid lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)]'>
-              <div className='relative min-h-[260px] bg-[#F5DFCF] sm:min-h-[360px] lg:min-h-[540px]'>
-                {story?.mainImageSrc ? (
-                  <Image
-                    src={story.mainImageSrc}
-                    alt={
-                      story.mainImageAlt ??
-                      `${story.author ?? 'Parent'} testimonial image`
-                    }
-                    fill
-                    sizes='(min-width: 1024px) 560px, 100vw'
-                    className='object-cover'
-                    priority={activeStoryIndex === 0}
-                  />
-                ) : (
-                  <div
-                    className='flex h-full min-h-[260px] items-center justify-center sm:min-h-[360px] lg:min-h-[540px]'
-                    style={{ backgroundColor: IMAGE_FALLBACK_BG }}
-                  >
-                    <ParentIcon />
-                  </div>
-                )}
-              </div>
-
-              <div className='flex flex-col p-6 sm:p-9 lg:p-12'>
-                <div className='flex items-start gap-3 sm:gap-5'>
-                  <span className='shrink-0 pt-1'>
-                    <QuoteIcon />
-                  </span>
-                  <p className='text-balance' style={quoteTextStyle}>
-                    {quoteText}
-                  </p>
-                </div>
-
-                {showMeta && (
-                  <>
-                    <div
-                      aria-hidden='true'
-                      className='mt-8 h-px w-full'
-                      style={{ backgroundColor: DIVIDER_COLOR }}
-                    />
-
-                    <div className='mt-8 flex items-start gap-4 sm:gap-6'>
-                      {story?.avatarImageSrc ? (
-                        <Image
-                          src={story.avatarImageSrc}
-                          alt={
-                            story.avatarImageAlt ??
-                            `${story.author ?? 'Parent'} avatar`
-                          }
-                          width={123}
-                          height={123}
-                          className='h-[90px] w-[90px] shrink-0 rounded-[18px] object-cover sm:h-[123px] sm:w-[123px]'
-                        />
-                      ) : (
-                        <span
-                          className='inline-flex h-[90px] w-[90px] shrink-0 items-center justify-center rounded-[18px] sm:h-[123px] sm:w-[123px]'
-                          style={{ backgroundColor: PROFILE_CARD_BG }}
-                        >
-                          <ParentIcon />
-                        </span>
-                      )}
-
-                      <div className='min-w-0'>
-                        {story?.author && <p style={authorStyle}>{story.author}</p>}
-                        {story?.role && (
-                          <p className={story.author ? 'mt-1' : ''} style={metaTextStyle}>
-                            {story.role}
-                          </p>
-                        )}
-                        {story?.metaLocation && (
-                          <p className='mt-1' style={metaTextStyle}>
-                            {story.metaLocation}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </SectionShell>
