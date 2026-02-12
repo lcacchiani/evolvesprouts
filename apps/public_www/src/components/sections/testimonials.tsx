@@ -45,6 +45,7 @@ const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 const SWIPE_THRESHOLD_PX = 48;
+const QUOTE_ICON_SRC = '/images/orange-quote.png';
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
 
@@ -206,27 +207,6 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   );
 }
 
-function QuoteIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 43 32'
-      className='h-8 w-11 sm:h-10 sm:w-12'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M18.8 0H6.1L0 12.2V32H19.3V12.2H9.4L13.6 4.1H18.8V0Z'
-        fill='#E76C3D'
-      />
-      <path
-        d='M42.7 0H30.1L24 12.2V32H43.3V12.2H33.4L37.6 4.1H42.7V0Z'
-        fill='#E76C3D'
-      />
-    </svg>
-  );
-}
-
 function ParentIcon() {
   return (
     <svg
@@ -335,17 +315,8 @@ export function Testimonials({ content }: TestimonialsProps) {
     <SectionShell
       ariaLabel={content.title}
       dataFigmaNode='Testimonials'
-      className='relative isolate overflow-hidden'
+      className='relative isolate overflow-hidden bg-white'
     >
-      <div
-        aria-hidden='true'
-        className='pointer-events-none absolute left-1/2 top-0 h-[540px] w-[980px] -translate-x-1/2'
-        style={{
-          background:
-            'radial-gradient(circle at center, rgba(231,108,61,0.12) 0%, rgba(231,108,61,0) 64%)',
-        }}
-      />
-
       <div className='relative mx-auto w-full max-w-[1488px]'>
         <div className='mx-auto max-w-[760px] text-center'>
           <SectionEyebrowChip
@@ -420,11 +391,16 @@ export function Testimonials({ content }: TestimonialsProps) {
                       </div>
 
                       <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
-                        <div className='flex items-start gap-3 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
-                          <span className='shrink-0 pt-1'>
-                            <QuoteIcon />
-                          </span>
-                          <p className='text-balance' style={quoteTextStyle}>
+                        <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
+                          <Image
+                            src={QUOTE_ICON_SRC}
+                            alt=''
+                            aria-hidden='true'
+                            width={43}
+                            height={43}
+                            className='h-9 w-9 sm:h-11 sm:w-11'
+                          />
+                          <p className='w-full text-balance' style={quoteTextStyle}>
                             {quoteText}
                           </p>
                         </div>
