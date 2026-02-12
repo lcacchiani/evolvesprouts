@@ -40,7 +40,7 @@ export function SproutsSquadCommunity({
     <SectionShell
       id='sprouts-squad-community'
       ariaLabel={content.heading}
-      data-figma-node='sprouts-squad-community'
+      dataFigmaNode='sprouts-squad-community'
       className='relative isolate overflow-hidden !px-0 !py-0'
       style={{ backgroundColor: SECTION_BACKGROUND }}
     >
