@@ -3,6 +3,8 @@ import type { MetadataRoute } from 'next';
 import { SUPPORTED_LOCALES } from '@/content';
 import { SITE_ORIGIN, localizePath } from '@/lib/seo';
 
+export const dynamic = 'force-static';
+
 const INDEXED_ROUTE_PATHS = [
   '/',
   '/training-courses',
