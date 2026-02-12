@@ -1,4 +1,9 @@
-import type { CSSProperties, ReactNode } from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  useId,
+  useState,
+} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -154,12 +159,12 @@ function FooterDesktopColumn({
   );
 }
 
-function AccordionChevronIcon() {
+function AccordionChevronIcon({ isOpen }: { isOpen: boolean }) {
   return (
     <svg
       aria-hidden='true'
       viewBox='0 0 18 10'
-      className='h-[9px] w-[17px] shrink-0 transition-transform duration-200 group-open:rotate-180'
+      className={`h-[9px] w-[17px] shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -178,21 +183,41 @@ function FooterMobileAccordion({
   title,
   items,
   hasSocialIcons = false,
+  hasTopBorder = true,
 }: {
   title: string;
   items: FooterLinkItem[];
   hasSocialIcons?: boolean;
+  hasTopBorder?: boolean;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const panelId = useId();
+
   return (
-    <details className='group border-t border-black/15 py-5'>
-      <summary className='flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden'>
+    <section
+      className={`${hasTopBorder ? 'border-t border-black/15' : ''} py-5`}
+    >
+      <button
+        type='button'
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        onClick={() => {
+          setIsOpen((value) => !value);
+        }}
+        className='flex w-full cursor-pointer list-none items-center justify-between text-left'
+      >
         <span style={columnTitleStyle}>{title}</span>
-        <AccordionChevronIcon />
-      </summary>
-      <div className='pt-3'>
-        <FooterColumnLinks items={items} hasSocialIcons={hasSocialIcons} />
+        <AccordionChevronIcon isOpen={isOpen} />
+      </button>
+      <div
+        id={panelId}
+        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div className='min-h-0 pt-3'>
+          <FooterColumnLinks items={items} hasSocialIcons={hasSocialIcons} />
+        </div>
       </div>
-    </details>
+    </section>
   );
 }
 
@@ -239,14 +264,15 @@ export function Footer({ content }: FooterProps) {
               <Image
                 src='/images/footer-icon.webp'
                 alt={content.brand}
-                width={120}
-                height={120}
-                className='h-auto w-[92px]'
+                width={400}
+                height={400}
+                className='h-auto w-[400px] max-w-full'
               />
             </div>
             <FooterMobileAccordion
               title={content.quickLinks.title}
               items={content.quickLinks.items}
+              hasTopBorder={false}
             />
             <FooterMobileAccordion
               title={content.services.title}
