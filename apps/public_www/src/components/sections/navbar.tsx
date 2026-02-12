@@ -828,7 +828,7 @@ export function Navbar({ content }: NavbarProps) {
     <>
       <header
         data-figma-node='navbar'
-        className='w-full border-b border-black/5'
+        className='w-full'
         style={{ backgroundColor: NAV_BACKGROUND }}
       >
         <nav className='mx-auto flex w-full max-w-[1465px] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:min-h-[115px] lg:px-8 lg:py-0'>
