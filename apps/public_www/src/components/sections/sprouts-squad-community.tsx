@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionShell } from '@/components/section-shell';
 import type { SproutsSquadCommunityContent } from '@/content';
 
@@ -13,8 +13,6 @@ const SECTION_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const HEADING_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const CTA_BACKGROUND = '#C84A16';
-const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
 
 const headingStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -25,8 +23,6 @@ const headingStyle: CSSProperties = {
 };
 
 const ctaStyle: CSSProperties = {
-  backgroundColor: CTA_BACKGROUND,
-  color: CTA_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontWeight: 'var(--figma-fontweights-600, 600)',
   lineHeight:
@@ -75,13 +71,13 @@ export function SproutsSquadCommunity({
           {content.heading}
         </h2>
 
-        <Link
+        <SectionCtaAnchor
           href={content.ctaHref}
-          className='es-cta-button h-14 w-full max-w-[500px] rounded-[10px] px-5 text-base sm:h-[62px] sm:text-lg lg:h-[74px] lg:max-w-[410px] lg:text-[26px]'
+          className='h-14 w-full max-w-[500px] rounded-[10px] px-5 text-base sm:h-[62px] sm:text-lg lg:h-[74px] lg:max-w-[410px] lg:text-[26px]'
           style={ctaStyle}
         >
           {content.ctaLabel}
-        </Link>
+        </SectionCtaAnchor>
       </div>
     </SectionShell>
   );

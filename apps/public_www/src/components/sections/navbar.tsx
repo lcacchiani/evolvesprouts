@@ -3,8 +3,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -25,8 +33,6 @@ const NAV_TEXT_COLOR =
   'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const NAV_ACTIVE_TEXT = '#C84A16';
 const NAV_ACTIVE_BACKGROUND = '#F2A975';
-const CTA_BACKGROUND = '#C84A16';
-const CTA_TEXT_COLOR = 'var(--figma-colors-desktop, #FFFFFF)';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
@@ -45,11 +51,11 @@ const NAV_MOBILE_TOGGLE_BUTTON_CLASSNAME =
 const NAV_MOBILE_PRIMARY_ACTION_CLASSNAME =
   'es-focus-ring es-nav-pill w-full justify-between transition-colors';
 const NAV_MOBILE_BOOK_BUTTON_CLASSNAME =
-  'es-focus-ring es-nav-pill w-full justify-center text-center transition-colors';
+  'w-full rounded-[10px] px-4';
 const NAV_LANGUAGE_OPTION_CLASSNAME =
   'es-focus-ring es-nav-language-option';
 const NAV_DESKTOP_BOOK_BUTTON_CLASSNAME =
-  'es-cta-button h-[56px] rounded-[10px] px-[27px] hover:opacity-95';
+  'h-[56px] rounded-[10px] px-[27px]';
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
   'es-focus-ring es-nav-icon-button h-11 w-11 rounded-xl lg:hidden';
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
@@ -65,8 +71,6 @@ const linkStyle = {
 };
 
 const ctaStyle = {
-  backgroundColor: CTA_BACKGROUND,
-  color: CTA_TEXT_COLOR,
   fontFamily:
     'var(--figma-fontfamilies-plus-jakarta-sans, Plus Jakarta Sans), sans-serif',
   fontSize: 'var(--figma-fontsizes-22, 22px)',
@@ -516,23 +520,23 @@ function BookNowButton({
   href,
   label,
   onClick,
-  style,
+  style = ctaStyle,
 }: {
   className: string;
   href: string;
   label: string;
   onClick?: () => void;
-  style?: Record<string, string | number>;
+  style?: CSSProperties;
 }) {
   return (
-    <Link
+    <SectionCtaAnchor
       href={href}
       className={className}
-      style={style ?? ctaStyle}
+      style={style}
       onClick={onClick}
     >
       {label}
-    </Link>
+    </SectionCtaAnchor>
   );
 }
 
@@ -1013,7 +1017,6 @@ export function Navbar({ content }: NavbarProps) {
                   label={content.bookNow.label}
                   onClick={closeMobileMenu}
                   className={NAV_MOBILE_BOOK_BUTTON_CLASSNAME}
-                  style={getTopLinkStyle(false)}
                 />
               </div>
             </div>

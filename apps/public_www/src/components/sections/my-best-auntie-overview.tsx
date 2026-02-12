@@ -1,6 +1,6 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
 
-import { SectionCtaLink } from '@/components/section-cta-link';
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieOverviewContent } from '@/content';
@@ -401,16 +401,13 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
             </p>
           )}
 
-          <SectionCtaLink
+          <SectionCtaAnchor
             href={content.ctaHref}
             className='mt-8 h-[62px] w-full max-w-[491px] rounded-[10px] px-5 es-focus-ring-soft sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
             style={ctaStyle}
           >
-            <span>{computedCtaLabel}</span>
-            <span aria-hidden='true' className='pl-2'>
-              {'>'}
-            </span>
-          </SectionCtaLink>
+            {computedCtaLabel}
+          </SectionCtaAnchor>
         </div>
       </div>
     </SectionShell>
