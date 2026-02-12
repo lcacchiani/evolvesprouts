@@ -1,11 +1,6 @@
-import {
-  SUPPORTED_LOCALES,
-  DEFAULT_LOCALE,
-  getContent,
-  isValidLocale,
-  type Locale,
-} from '@/content';
+import { SUPPORTED_LOCALES } from '@/content';
 import { HomePageSections } from '@/components/home-page-sections';
+import { resolveLocalePageContext } from '@/lib/locale-page';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
 export function generateStaticParams() {
@@ -17,12 +12,10 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  const validLocale: Locale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
-  const content = getContent(validLocale);
+  const { locale, content } = await resolveLocalePageContext(params);
 
   return buildLocalizedMetadata({
-    locale: validLocale,
+    locale,
     path: '/',
     title: content.navbar.brand,
     description: content.hero.subheadline,
@@ -34,9 +27,7 @@ export default async function HomePage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  const validLocale: Locale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
-  const content = getContent(validLocale);
+  const { content } = await resolveLocalePageContext(params);
 
   return <HomePageSections content={content} />;
 }
