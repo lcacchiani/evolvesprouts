@@ -1,7 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
@@ -288,13 +295,7 @@ export function RealStories({ content }: RealStoriesProps) {
     Boolean(story?.role) ||
     Boolean(story?.metaLocation);
 
-  useEffect(() => {
-    return () => {
-      clearTimers();
-    };
-  }, []);
-
-  function clearTimers() {
+  const clearTimers = useCallback(() => {
     if (fadeOutTimerRef.current) {
       clearTimeout(fadeOutTimerRef.current);
       fadeOutTimerRef.current = null;
@@ -304,7 +305,13 @@ export function RealStories({ content }: RealStoriesProps) {
       clearTimeout(fadeInTimerRef.current);
       fadeInTimerRef.current = null;
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearTimers();
+    };
+  }, [clearTimers]);
 
   function transitionToStory(nextIndex: number) {
     if (!hasMultipleStories || isTransitioning) {
