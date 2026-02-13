@@ -7,11 +7,9 @@ export const dynamic = 'force-static';
 
 const INDEXED_ROUTE_PATHS = [
   '/',
-  '/training-courses',
   '/about-us',
   '/events',
   '/contact-us',
-  '/newsletter',
   '/privacy',
   '/services/my-best-auntie-training-course',
   '/services/workshops',

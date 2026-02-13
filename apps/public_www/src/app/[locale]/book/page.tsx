@@ -7,5 +7,5 @@ import {
 
 export default async function BookAliasPage({ params }: LocaleRouteProps) {
   const locale = await resolveLocaleFromParams(params);
-  redirect(`/${locale}/training-courses`);
+  redirect(`/${locale}/services/my-best-auntie-training-course`);
 }

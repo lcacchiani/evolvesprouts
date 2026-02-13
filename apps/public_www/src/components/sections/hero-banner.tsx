@@ -99,7 +99,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
               {content.subheadline}
             </p>
             <SectionCtaAnchor
-              href='/training-courses'
+              href='/services/my-best-auntie-training-course'
               className='mt-6 h-[55px] rounded-[10px] px-[34px]'
               style={ctaStyle}
             >
