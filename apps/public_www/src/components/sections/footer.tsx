@@ -232,7 +232,7 @@ export function Footer({ content }: FooterProps) {
             />
             <div className='flex justify-start sm:justify-center lg:justify-center lg:pt-2'>
               <Image
-                src='/images/footer-icon.webp'
+                src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
                 width={120}
                 height={120}
@@ -253,7 +253,7 @@ export function Footer({ content }: FooterProps) {
           <div className='sm:hidden'>
             <div className='mb-7 flex justify-center'>
               <Image
-                src='/images/footer-icon.webp'
+                src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
                 width={400}
                 height={400}
