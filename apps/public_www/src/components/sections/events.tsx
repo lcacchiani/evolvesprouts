@@ -229,6 +229,33 @@ async function fetchEventsPayload(
   return parseResponsePayload(response);
 }
 
+function resolveRuntimeEventsApiUrl(configuredApiUrl: string): string {
+  if (typeof window === 'undefined') {
+    return configuredApiUrl;
+  }
+
+  try {
+    const resolvedUrl = new URL(configuredApiUrl, window.location.origin);
+    const isConfiguredAsAbsolute = /^https?:\/\//i.test(configuredApiUrl);
+    if (!isConfiguredAsAbsolute) {
+      return `${resolvedUrl.pathname}${resolvedUrl.search}`;
+    }
+
+    const isWebsiteHost = window.location.hostname.endsWith('evolvesprouts.com');
+    const isPrimaryApiHost = resolvedUrl.hostname === 'api.evolvesprouts.com';
+
+    // Public WWW is statically hosted; avoid browser cross-origin CORS errors
+    // by using same-origin URL paths for known API hostnames.
+    if (isWebsiteHost && isPrimaryApiHost) {
+      return `${resolvedUrl.pathname}${resolvedUrl.search}`;
+    }
+  } catch {
+    return configuredApiUrl;
+  }
+
+  return configuredApiUrl;
+}
+
 function findEventsArray(payload: unknown, depth = 0): unknown[] {
   if (depth > 6) {
     return [];
@@ -534,9 +561,9 @@ export function Events({ content }: EventsProps) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const apiUrl = readOptionalText(content.apiUrl);
+    const configuredApiUrl = readOptionalText(content.apiUrl);
 
-    if (!apiUrl) {
+    if (!configuredApiUrl) {
       setEvents([]);
       setHasRequestError(true);
       setIsLoading(false);
@@ -544,6 +571,8 @@ export function Events({ content }: EventsProps) {
         controller.abort();
       };
     }
+
+    const apiUrl = resolveRuntimeEventsApiUrl(configuredApiUrl);
 
     setIsLoading(true);
     setHasRequestError(false);
