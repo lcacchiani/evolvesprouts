@@ -262,7 +262,7 @@ function MyBestAuntieOverviewCard({
 
   return (
     <article
-      className='group relative flex min-h-[450px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:min-h-[520px] sm:px-6 lg:min-h-[560px]'
+      className='group relative flex min-h-[450px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:min-h-[520px] sm:px-6 md:min-h-[480px] lg:min-h-[560px]'
       style={{ background: tone.cardBackground }}
     >
       <div
@@ -282,14 +282,14 @@ function MyBestAuntieOverviewCard({
         </p>
         {module.activity && (
           <p
-            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 ${showFullActivity ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}`}
+            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 ${showFullActivity ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
             style={activityStyle}
           >
             {module.activity}
           </p>
         )}
         <div className='mt-auto flex flex-col items-center gap-4 pt-6'>
-          <span className='relative inline-flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#333333] shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
+          <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#333333] shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
             <span
               aria-hidden='true'
               className='pointer-events-none absolute -top-[70px] left-1/2 h-[70px] w-2 -translate-x-1/2 rounded-full'
@@ -354,7 +354,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
         </div>
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>
-          <ul className='hidden gap-6 lg:grid lg:grid-cols-3'>
+          <ul className='hidden gap-6 md:grid md:grid-cols-3'>
             {moduleSteps.map((module, index) => (
               <li key={module.step}>
                 <MyBestAuntieOverviewCard
@@ -367,11 +367,11 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           </ul>
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute bottom-[109px] left-0 right-0 z-10 hidden lg:block'
+            className='pointer-events-none absolute bottom-[89px] left-0 right-0 z-10 hidden md:block'
           >
             <svg
               viewBox='0 0 100 10'
-              className='h-10 w-full'
+              className='h-20 w-full'
               fill='none'
               xmlns='http://www.w3.org/2000/svg'
               preserveAspectRatio='none'
@@ -380,21 +380,20 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 <linearGradient
                   id='wave-connector-fade'
                   gradientUnits='userSpaceOnUse'
-                  x1='0'
+                  x1='16.67'
                   y1='5'
-                  x2='100'
+                  x2='105'
                   y2='5'
                 >
-                  <stop offset='0%' stopColor='#333333' stopOpacity='0' />
                   <stop
-                    offset='3%'
+                    offset='0%'
                     stopColor='#333333'
-                    stopOpacity='0.28'
+                    stopOpacity='0.35'
                   />
                   <stop
-                    offset='85%'
+                    offset='76%'
                     stopColor='#333333'
-                    stopOpacity='0.28'
+                    stopOpacity='0.35'
                   />
                   <stop
                     offset='100%'
@@ -404,7 +403,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 </linearGradient>
               </defs>
               <path
-                d='M0,3 C5,3 12,4.4 16.67,5 S28,7 33.33,7 S44,5 50,5 S61,3 66.67,3 S78,5 83.33,5 S95,7 105,7'
+                d='M16.67,5 C22,5 25,9 33.33,9 S44,5 50,5 S58,1 66.67,1 S78,5 83.33,5 S92,9 105,9'
                 stroke='url(#wave-connector-fade)'
                 strokeWidth='2'
                 strokeLinecap='round'
@@ -412,7 +411,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
               />
             </svg>
           </div>
-          <div className='lg:hidden'>
+          <div className='md:hidden'>
             <ul className='scrollbar-hide -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2'>
               {moduleSteps.map((module, index) => (
                 <li
