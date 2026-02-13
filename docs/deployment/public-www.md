@@ -41,8 +41,7 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1)
 
 `PublicWwwApiProxyDomainName` is provided by the backend deploy workflow from
-GitHub variable `API_DOMAIN_NAME` (set this to `api.evolvesprouts.com`).
-If the variable is empty, CI falls back to `api.evolvesprouts.com`.
+GitHub variable `API_DOMAIN_NAME`. This variable is required for CI deploys.
 
 For local CDK deploys, you can override it explicitly:
 

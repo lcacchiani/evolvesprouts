@@ -93,10 +93,11 @@ jobs:
 
           PARAM_ARGS=()
           if [[ " $CDK_STACKS " == *" evolvesprouts-public-www "* ]]; then
-            API_PROXY_DOMAIN="${API_DOMAIN_NAME:-api.evolvesprouts.com}"
+            API_PROXY_DOMAIN="${API_DOMAIN_NAME:-}"
             API_PROXY_DOMAIN="${API_PROXY_DOMAIN//[$'\r\n\t ']/}"
             if [ -z "$API_PROXY_DOMAIN" ]; then
-              API_PROXY_DOMAIN="api.evolvesprouts.com"
+              echo "API_DOMAIN_NAME variable is required to set PublicWwwApiProxyDomainName"
+              exit 1
             fi
             PARAM_ARGS+=(
               --parameters
