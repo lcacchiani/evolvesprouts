@@ -1,22 +1,17 @@
 'use client';
 
+import Image from 'next/image';
 import type { CSSProperties } from 'react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import {
   MyBestAuntieBookingModal,
   MyBestAuntieThankYouModal,
   type ReservationSummary,
 } from '@/components/sections/my-best-auntie-booking-modal';
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
-import {
-  BODY_TEXT_COLOR,
-  DEFAULT_SECTION_EYEBROW_STYLE,
-  HEADING_TEXT_COLOR,
-} from '@/lib/design-tokens';
-import { formatCurrencyHkd } from '@/lib/format';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface MyBestAuntieBookingProps {
   locale: Locale;
@@ -24,12 +19,6 @@ interface MyBestAuntieBookingProps {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
-const eyebrowStyle: CSSProperties = {
-  ...DEFAULT_SECTION_EYEBROW_STYLE,
-  fontSize: '18px',
-  fontWeight: 500,
-  lineHeight: 1,
-};
 
 const headingStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -45,6 +34,17 @@ const bodyStyle: CSSProperties = {
   lineHeight: 1.55,
 };
 
+const inactiveSelectorCardStyle: CSSProperties = {
+  backgroundColor: '#FFFFFF',
+  border: '1px solid #EED5C1',
+};
+
+const activeSelectorCardStyle: CSSProperties = {
+  backgroundColor: '#FFD4B5',
+  border: '2px solid #E76C3D',
+  boxShadow: '0 0 14px rgba(231, 108, 61, 0.5)',
+};
+
 export function MyBestAuntieBooking({
   locale,
   content,
@@ -54,13 +54,26 @@ export function MyBestAuntieBooking({
   const [reservationSummary, setReservationSummary] =
     useState<ReservationSummary | null>(null);
 
-  const lowestPackagePrice = useMemo(() => {
-    const prices = content.paymentModal.packageOptions.map((item) => item.price);
-    if (prices.length === 0) {
-      return 0;
-    }
-    return Math.min(...prices);
-  }, [content.paymentModal.packageOptions]);
+  const ageOptions = content.ageOptions ?? [];
+  const dateOptions =
+    content.dateOptions.length > 0
+      ? content.dateOptions
+      : content.paymentModal.monthOptions.map((option) => ({
+          id: option.id,
+          label: option.label,
+          availabilityLabel: content.availabilityLabel,
+        }));
+
+  const [selectedAgeId, setSelectedAgeId] = useState(ageOptions[0]?.id ?? '');
+  const [selectedDateId, setSelectedDateId] = useState(dateOptions[0]?.id ?? '');
+
+  const selectedAgeOption =
+    ageOptions.find((option) => option.id === selectedAgeId) ?? ageOptions[0];
+  const selectedDateOption =
+    dateOptions.find((option) => option.id === selectedDateId) ?? dateOptions[0];
+
+  const modalMonthId =
+    selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
 
   return (
     <>
@@ -71,101 +84,140 @@ export function MyBestAuntieBooking({
         style={{ backgroundColor: SECTION_BACKGROUND }}
       >
         <div className='mx-auto w-full max-w-[1465px]'>
-          <div className='grid gap-7 rounded-[30px] border border-[#EED5C1] bg-[#FFF8F2] p-5 sm:p-7 lg:grid-cols-[1fr_420px] lg:gap-8 lg:p-9'>
-            <section className='space-y-5'>
-              <SectionEyebrowChip
-                label={content.eyebrow}
-                labelStyle={eyebrowStyle}
-                className='px-4 py-2.5 sm:px-5'
-                style={{ borderColor: '#EECAB0', backgroundColor: '#FFFFFF' }}
-              />
+          <div className='grid gap-8 lg:grid-cols-[1fr_470px] lg:items-start'>
+            <section className='space-y-5 lg:pr-8'>
+              <p className='text-sm font-semibold uppercase tracking-[0.14em] text-[#C84A16]'>
+                {content.eyebrow}
+              </p>
               <h1
                 className='text-[clamp(2rem,5.6vw,3.3rem)]'
                 style={headingStyle}
               >
                 {content.title}
               </h1>
-              <p className='max-w-[58ch] text-[clamp(1rem,2vw,1.2rem)]' style={bodyStyle}>
+              <p
+                className='max-w-[58ch] text-[clamp(1rem,2vw,1.2rem)]'
+                style={bodyStyle}
+              >
                 {content.description}
               </p>
 
-              <div className='rounded-2xl border border-[#EECAB0] bg-white px-5 py-4 sm:px-6'>
+              <div className='space-y-1 pt-3'>
                 <p className='text-sm font-semibold text-[#5A5A5A]'>
                   {content.scheduleLabel}
                 </p>
                 <p className='mt-2 text-[clamp(1.2rem,2.6vw,1.8rem)] font-semibold text-[#333333]'>
-                  {content.scheduleDate}
+                  {selectedDateOption?.label ?? content.scheduleDate}
                 </p>
                 <p className='mt-1 text-[#4A4A4A]'>{content.scheduleTime}</p>
-                <p className='mt-3 inline-flex rounded-full bg-[#FFF1E6] px-3 py-1 text-sm font-semibold text-[#C84A16]'>
-                  {content.availabilityLabel}
-                </p>
               </div>
             </section>
 
-            <aside className='rounded-2xl border border-[#EECAB0] bg-white p-5 sm:p-6'>
-              <ul className='space-y-4'>
-                <li className='rounded-xl border border-[#EECAB0] bg-[#FFF9F4] px-4 py-3'>
-                  <h2 className='text-base font-semibold text-[#333333]'>
-                    {content.summary.pricingTitle}
-                  </h2>
-                  <p className='mt-2 text-sm text-[#5A5A5A]'>
-                    {content.summary.startingFromLabel}
-                  </p>
-                  <p className='text-[1.6rem] font-semibold text-[#333333]'>
-                    {formatCurrencyHkd(lowestPackagePrice)}
-                  </p>
-                  <p className='mt-1 text-xs text-[#666463]'>
-                    {content.summary.refundHint}
-                  </p>
-                </li>
+            <aside className='rounded-[22px] border border-[#EED5C1] bg-[#FFF8F2] p-5 sm:p-6'>
+              <h2 className='text-[1.6rem] font-semibold text-[#333333]'>
+                {content.eyebrow}
+              </h2>
 
-                <li className='rounded-xl border border-[#EECAB0] bg-[#FFF9F4] px-4 py-3'>
-                  <h2 className='text-base font-semibold text-[#333333]'>
-                    {content.summary.locationTitle}
-                  </h2>
-                  <p className='mt-2 font-semibold text-[#333333]'>
-                    {content.summary.locationName}
-                  </p>
-                  <p className='mt-1 text-sm text-[#4A4A4A]'>
-                    {content.summary.locationAddress}
-                  </p>
-                  <a
-                    href={content.summary.directionHref}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='mt-2 inline-flex text-sm font-semibold text-[#C84A16] underline underline-offset-2'
-                  >
-                    {content.summary.directionLabel}
-                  </a>
-                </li>
+              <div className='mt-6'>
+                <h3 className='text-sm font-semibold text-[#5A5A5A]'>
+                  {content.ageSelectorLabel}
+                </h3>
+                <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+                  {ageOptions.map((option) => {
+                    const isSelected = option.id === selectedAgeId;
 
-                <li className='rounded-xl border border-[#EECAB0] bg-[#FFF9F4] px-4 py-3'>
-                  <h2 className='text-base font-semibold text-[#333333]'>
-                    {content.summary.reservationTitle}
-                  </h2>
-                  <p className='mt-2 text-sm text-[#4A4A4A]'>
-                    {content.summary.reservationDescription}
-                  </p>
-                </li>
-              </ul>
+                    return (
+                      <button
+                        key={option.id}
+                        type='button'
+                        aria-pressed={isSelected}
+                        onClick={() => {
+                          setSelectedAgeId(option.id);
+                        }}
+                        className='es-focus-ring rounded-[14px] px-3 py-3'
+                        style={
+                          isSelected
+                            ? activeSelectorCardStyle
+                            : inactiveSelectorCardStyle
+                        }
+                      >
+                        <div className='flex items-center justify-between gap-2'>
+                          <Image
+                            src={option.iconSrc}
+                            alt=''
+                            width={30}
+                            height={30}
+                            className='h-[30px] w-[30px]'
+                            aria-hidden='true'
+                          />
+                          <span className='text-lg font-semibold text-[#333333]'>
+                            {option.label}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className='mt-7'>
+                <h3 className='text-sm font-semibold text-[#5A5A5A]'>
+                  {content.dateSelectorLabel}
+                </h3>
+                <div className='mt-3 flex gap-3 overflow-x-auto pb-1'>
+                  {dateOptions.map((option) => {
+                    const isSelected = option.id === selectedDateId;
+
+                    return (
+                      <button
+                        key={option.id}
+                        type='button'
+                        aria-pressed={isSelected}
+                        onClick={() => {
+                          setSelectedDateId(option.id);
+                        }}
+                        className='es-focus-ring min-w-[168px] rounded-[14px] px-4 py-3 text-left'
+                        style={
+                          isSelected
+                            ? activeSelectorCardStyle
+                            : inactiveSelectorCardStyle
+                        }
+                      >
+                        <div className='flex items-center justify-between gap-3'>
+                          <Image
+                            src={
+                              isSelected
+                                ? '/images/my-best-auntie-booking/calendar-orange.png'
+                                : '/images/my-best-auntie-booking/calendar-dark.png'
+                            }
+                            alt=''
+                            width={24}
+                            height={24}
+                            className='h-6 w-6'
+                            aria-hidden='true'
+                          />
+                          <p className='text-base font-semibold text-[#333333]'>
+                            {option.label}
+                          </p>
+                        </div>
+                        <p className='mt-2 text-center text-sm text-[#C71B1B]'>
+                          {option.availabilityLabel}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <button
                 type='button'
                 onClick={() => {
                   setIsPaymentModalOpen(true);
                 }}
-                className='es-focus-ring es-cta-button es-cta-primary mt-5 h-[58px] w-full rounded-[10px] px-5 text-base font-semibold'
+                className='es-focus-ring es-cta-button es-cta-primary mt-7 h-[58px] w-full rounded-[10px] px-5 text-base font-semibold'
               >
                 {content.confirmAndPayLabel}
               </button>
-
-              <a
-                href={content.learnMoreHref}
-                className='es-focus-ring mt-3 inline-flex h-11 w-full items-center justify-center rounded-[10px] border border-[#C84A16] bg-white px-4 text-sm font-semibold text-[#C84A16]'
-              >
-                {content.learnMoreLabel}
-              </a>
             </aside>
           </div>
         </div>
@@ -174,6 +226,8 @@ export function MyBestAuntieBooking({
       {isPaymentModalOpen && (
         <MyBestAuntieBookingModal
           content={content.paymentModal}
+          initialMonthId={modalMonthId}
+          selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}
