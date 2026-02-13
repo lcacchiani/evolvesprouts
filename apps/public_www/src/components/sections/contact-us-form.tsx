@@ -28,6 +28,7 @@ const FORM_DECORATIVE_BLUE_LINE =
   'url("/images/contact-us/vector-blue-line.png")';
 const FORM_DECORATIVE_GREEN_WEDGE =
   'url("/images/contact-us/green-wedge.png")';
+const MESSAGE_MAX_LENGTH = 5000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const formLabelStyle: CSSProperties = {
@@ -79,7 +80,6 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
   });
   const [isEmailTouched, setIsEmailTouched] = useState(false);
 
-  const maxMessageLength = content.messageMaxLength;
   const hasEmailError = isEmailTouched && !isValidEmail(formState.email);
 
   function updateField(field: keyof FormState, value: string) {
@@ -227,7 +227,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               <textarea
                 required
                 rows={6}
-                maxLength={maxMessageLength}
+                maxLength={MESSAGE_MAX_LENGTH}
                 value={formState.message}
                 onChange={(event) => {
                   updateField('message', event.target.value);
