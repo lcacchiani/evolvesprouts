@@ -233,6 +233,11 @@ function handler(event) {
   var request = event.request;
   var uri = request.uri;
 
+  // Never rewrite Next.js static asset requests.
+  if (uri.startsWith('/_next/')) {
+    return request;
+  }
+
   if (uri.endsWith('/')) {
     request.uri = uri + 'index.html';
     return request;
