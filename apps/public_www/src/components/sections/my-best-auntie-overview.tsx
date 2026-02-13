@@ -367,7 +367,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           </ul>
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute bottom-[89px] left-0 right-0 z-10 hidden md:block'
+            className='pointer-events-none absolute bottom-[97px] left-0 right-0 z-10 md:bottom-[89px]'
           >
             <svg
               viewBox='0 0 100 10'
@@ -387,17 +387,17 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 >
                   <stop
                     offset='0%'
-                    stopColor='#333333'
+                    stopColor={HEADING_COLOR}
                     stopOpacity='0.35'
                   />
                   <stop
                     offset='76%'
-                    stopColor='#333333'
+                    stopColor={HEADING_COLOR}
                     stopOpacity='0.35'
                   />
                   <stop
                     offset='100%'
-                    stopColor='#333333'
+                    stopColor={HEADING_COLOR}
                     stopOpacity='0'
                   />
                 </linearGradient>
@@ -405,7 +405,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
               <path
                 d='M16.67,5 C22,5 25,9 33.33,9 S44,5 50,5 S58,1 66.67,1 S78,5 83.33,5 S92,9 105,9'
                 stroke='url(#wave-connector-fade)'
-                strokeWidth='2'
+                strokeWidth='3.5'
                 strokeLinecap='round'
                 vectorEffect='non-scaling-stroke'
               />
