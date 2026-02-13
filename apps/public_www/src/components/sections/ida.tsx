@@ -52,20 +52,8 @@ export function Ida({ content }: IdaProps) {
       style={{ backgroundColor: SECTION_BACKGROUND }}
       className='overflow-hidden'
     >
-      <div className='mx-auto grid w-full max-w-[1465px] items-center gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-10'>
-        <div className='mx-auto w-full max-w-[680px]'>
-          <Image
-            src='/images/about-us/ida-degregorio-evolvesprouts.webp'
-            alt='Ida DeGregorio from Evolve Sprouts'
-            width={1112}
-            height={840}
-            sizes='(min-width: 1024px) 45vw, 100vw'
-            priority
-            className='h-auto w-full'
-          />
-        </div>
-
-        <div>
+      <div className='mx-auto grid w-full max-w-[1465px] items-center gap-7 lg:grid-cols-2 lg:gap-10'>
+        <div className='order-1 relative z-10 lg:order-2 lg:pl-8 xl:pl-[110px]'>
           <h1 style={titleStyle}>{content.title}</h1>
           <p className='mt-4 max-w-[760px]' style={subtitleStyle}>
             {content.subtitle}
@@ -80,6 +68,20 @@ export function Ida({ content }: IdaProps) {
           >
             {content.ctaLabel}
           </SectionCtaAnchor>
+        </div>
+
+        <div className='order-2 lg:order-1'>
+          <div className='w-full lg:ml-[-100px] lg:mr-[-50px] lg:w-[700px] xl:ml-[-180px] xl:mr-[-200px] xl:w-[1111px]'>
+            <Image
+              src='/images/about-us/ida-degregorio-evolvesprouts.webp'
+              alt='Ida De Gregorio from Evolve Sprouts'
+              width={1112}
+              height={840}
+              sizes='(min-width: 1280px) 1111px, (min-width: 1024px) 700px, 100vw'
+              priority
+              className='h-auto w-full'
+            />
+          </div>
         </div>
       </div>
     </SectionShell>
