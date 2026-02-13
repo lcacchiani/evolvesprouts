@@ -180,10 +180,11 @@ function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
 
 function DecorativeCardArrow({ title }: { title: string }) {
   return (
-    <summary
-      className='absolute bottom-5 left-5 z-10 inline-flex h-[54px] w-[54px] cursor-pointer list-none items-center justify-center rounded-full bg-white/15 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 [&::-webkit-details-marker]:hidden lg:bottom-7 lg:left-7 lg:group-hover:h-[70px] lg:group-hover:w-[70px] group-open:h-[70px] group-open:w-[70px]'
+    <button
+      type='button'
+      aria-label={`Show details for ${title}`}
+      className='absolute bottom-5 left-5 z-10 inline-flex h-[54px] w-[54px] appearance-none items-center justify-center rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 lg:group-hover:h-[70px] lg:group-hover:w-[70px] lg:group-focus-within:h-[70px] lg:group-focus-within:w-[70px]'
     >
-      <span className='sr-only'>{`Toggle details for ${title}`}</span>
       <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#ED622E] shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
         <svg
           aria-hidden='true'
@@ -201,7 +202,7 @@ function DecorativeCardArrow({ title }: { title: string }) {
           />
         </svg>
       </span>
-    </summary>
+    </button>
   );
 }
 
@@ -261,14 +262,13 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
             return (
               <li key={card.id}>
-                <details
+                <article
                   className='group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8'
                   style={{ backgroundColor: cardBg }}
                 >
-                  <DecorativeCardArrow title={card.title} />
                   <div
                     aria-hidden='true'
-                    className='pointer-events-none absolute inset-0 z-[1] bg-black/0 transition-all duration-300 lg:group-hover:bg-black/70 lg:group-hover:backdrop-blur-[4px] group-open:bg-black/70 group-open:backdrop-blur-[4px]'
+                    className='pointer-events-none absolute inset-0 z-[1] bg-black/0 transition-all duration-300 lg:group-hover:bg-black/70 lg:group-hover:backdrop-blur-[4px] lg:group-focus-within:bg-black/70 lg:group-focus-within:backdrop-blur-[4px]'
                   />
                   <div
                     aria-hidden='true'
@@ -283,6 +283,8 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                       className={`${card.imageClassName} w-auto max-w-none`}
                     />
                   </div>
+                  <DecorativeCardArrow title={card.title} />
+
                   <div className='relative z-10 flex h-full w-full flex-col'>
                     <div className='mt-auto space-y-4'>
                       <h3 className='max-w-[12ch] text-balance' style={cardTitleStyle}>
@@ -291,7 +293,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
                       {card.description && (
                         <p
-                          className='max-w-[34ch] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-open:opacity-100'
+                          className='max-w-[34ch] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100'
                           style={cardDescriptionStyle}
                         >
                           {card.description}
@@ -299,7 +301,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                       )}
                     </div>
                   </div>
-                </details>
+                </article>
               </li>
             );
           })}
