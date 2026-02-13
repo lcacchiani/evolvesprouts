@@ -46,8 +46,6 @@ const NAV_SUBMENU_LINK_CLASSNAME =
   'es-focus-ring es-nav-submenu-link';
 const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
   'es-focus-ring es-nav-pill flex-1';
-const NAV_MOBILE_TOGGLE_BUTTON_CLASSNAME =
-  'es-focus-ring es-nav-pill h-[42px] min-w-[42px] justify-center px-0';
 const NAV_MOBILE_PRIMARY_ACTION_CLASSNAME =
   'es-focus-ring es-nav-pill w-full justify-between transition-colors';
 const NAV_MOBILE_BOOK_BUTTON_CLASSNAME =
@@ -571,6 +569,7 @@ interface SubmenuLinksProps {
   linkClassName: string;
   locale: Locale;
   onNavigate?: () => void;
+  id?: string;
 }
 
 function SubmenuLinks({
@@ -580,9 +579,10 @@ function SubmenuLinks({
   linkClassName,
   locale,
   onNavigate,
+  id,
 }: SubmenuLinksProps) {
   return (
-    <ul className={listClassName}>
+    <ul id={id} className={listClassName}>
       {items.map((item) => (
         <li key={item.label}>
           <Link
@@ -609,6 +609,44 @@ function DesktopMenuItem({
   locale: Locale;
 }) {
   const itemIsActive = isMenuItemActive(currentPath, item);
+  const hasChildren = Boolean(item.children);
+
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(itemIsActive);
+  const submenuListId = useId();
+  const submenuWrapperRef = useRef<HTMLLIElement | null>(null);
+
+  useEffect(() => {
+    if (!hasChildren || !isSubmenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (!submenuWrapperRef.current?.contains(target)) {
+        setIsSubmenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsSubmenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [hasChildren, isSubmenuOpen]);
 
   if (!item.children) {
     return (
@@ -624,16 +662,23 @@ function DesktopMenuItem({
   }
 
   return (
-    <li className='group relative'>
-      <TopLevelMenuLink
-        item={item}
-        isActive={itemIsActive}
-        locale={locale}
+    <li ref={submenuWrapperRef} className='relative'>
+      <button
+        type='button'
         className={NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME}
-      />
+        style={getTopLinkStyle(itemIsActive)}
+        aria-expanded={isSubmenuOpen}
+        aria-controls={submenuListId}
+        aria-label={`Toggle ${item.label} submenu`}
+        onClick={() => {
+          setIsSubmenuOpen((value) => !value);
+        }}
+      >
+        {item.label}
+      </button>
       <span
         aria-hidden='true'
-        className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-transform group-hover:rotate-180 group-focus-within:rotate-180'
+        className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-transform ${isSubmenuOpen ? 'rotate-180' : ''}`}
       >
         <LanguageChevronIcon />
       </span>
@@ -641,7 +686,11 @@ function DesktopMenuItem({
         items={item.children}
         currentPath={currentPath}
         locale={locale}
-        listClassName='invisible absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 opacity-0 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
+        onNavigate={() => {
+          setIsSubmenuOpen(false);
+        }}
+        id={submenuListId}
+        listClassName={`absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition ${isSubmenuOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}
         linkClassName={NAV_SUBMENU_LINK_CLASSNAME}
       />
     </li>
@@ -691,7 +740,21 @@ function MobileMenuItem({
 
   return (
     <li className='space-y-2'>
-      <div className='flex items-center gap-2'>
+      {item.children ? (
+        <button
+          type='button'
+          onClick={() => {
+            setIsExpanded((value) => !value);
+          }}
+          aria-expanded={isExpanded}
+          aria-label={`Toggle ${item.label} submenu`}
+          className={NAV_MOBILE_PRIMARY_ACTION_CLASSNAME}
+          style={getTopLinkStyle(itemIsActive)}
+        >
+          <span>{item.label}</span>
+          <MobileChevronIcon isExpanded={isExpanded} />
+        </button>
+      ) : (
         <Link
           href={localizeHref(item.href, locale)}
           className={NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME}
@@ -700,21 +763,7 @@ function MobileMenuItem({
         >
           {item.label}
         </Link>
-        {item.children && (
-          <button
-            type='button'
-            onClick={() => {
-              setIsExpanded((value) => !value);
-            }}
-            aria-expanded={isExpanded}
-            aria-label={`Toggle ${item.label} submenu`}
-            className={NAV_MOBILE_TOGGLE_BUTTON_CLASSNAME}
-            style={getTopLinkStyle(itemIsActive)}
-          >
-            <MobileChevronIcon isExpanded={isExpanded} />
-          </button>
-        )}
-      </div>
+      )}
       {item.children && (
         <SubmenuLinks
           items={item.children}

@@ -66,6 +66,7 @@ function invalidate_distribution() {
       "/404.html"
       "/404/index.html"
       "/_not-found/index.html"
+      "/_next/static/*"
       "/en*"
       "/zh-CN*"
       "/zh-HK*"

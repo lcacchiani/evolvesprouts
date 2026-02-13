@@ -92,6 +92,19 @@ jobs:
           fi
 
           PARAM_ARGS=()
+          if [[ " $CDK_STACKS " == *" evolvesprouts-public-www "* ]]; then
+            API_PROXY_DOMAIN="${API_DOMAIN_NAME:-}"
+            API_PROXY_DOMAIN="${API_PROXY_DOMAIN//[$'\r\n\t ']/}"
+            if [ -z "$API_PROXY_DOMAIN" ]; then
+              echo "API_DOMAIN_NAME variable is required to set PublicWwwApiProxyDomainName"
+              exit 1
+            fi
+            PARAM_ARGS+=(
+              --parameters
+              "evolvesprouts-public-www:PublicWwwApiProxyDomainName=$API_PROXY_DOMAIN"
+            )
+          fi
+
           resolve_param_file() {
             local path="$1"
             if [ -z "$path" ]; then
@@ -171,3 +184,4 @@ jobs:
           CDK_STACKS: ${{ github.event.inputs.cdk_stacks || vars.CDK_STACKS || 'all stacks' }}
           CDK_PARAM_FILE: ${{ vars.CDK_PARAM_FILE }}
           CDK_BOOTSTRAP_QUALIFIER: ${{ vars.CDK_BOOTSTRAP_QUALIFIER }}
+          API_DOMAIN_NAME: ${{ vars.API_DOMAIN_NAME }}

@@ -89,6 +89,154 @@
       }
     ]
   },
+  "myBestAuntieBooking": {
+    "eyebrow": "预订席位",
+    "title": "我的最佳阿姨培训课程",
+    "description": "一步完成席位预留与付款确认，流程清晰安心。",
+    "availabilityLabel": "仅剩 30 个名额！",
+    "scheduleLabel": "下一期课程",
+    "scheduleDate": "2026年4月",
+    "scheduleTime": "12:00 pm - 2:00 pm",
+    "confirmAndPayLabel": "确认并付款！",
+    "learnMoreLabel": "了解更多课程内容",
+    "learnMoreHref": "/training-courses",
+    "summary": {
+      "pricingTitle": "价格",
+      "totalAmountLabel": "总金额",
+      "startingFromLabel": "起步价",
+      "refundHint": "开课前 7 天可全额退款。",
+      "locationTitle": "地点",
+      "locationName": "Goldwin Heights",
+      "locationAddress": "香港半山西摩道 2 号",
+      "directionLabel": "查看路线",
+      "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
+      "reservationTitle": "报名信息",
+      "reservationDescription": "请在付款弹窗中填写简短报名信息。"
+    },
+    "paymentModal": {
+      "closeLabel": "关闭",
+      "thankYouLead": "感谢你的关注！",
+      "title": "我的最佳阿姨培训课程。",
+      "courseScheduleTitle": "课程安排",
+      "monthLabel": "月份",
+      "monthOptions": [
+        { "id": "apr-2026", "label": "2026年4月" },
+        { "id": "may-2026", "label": "2026年5月" },
+        { "id": "jun-2026", "label": "2026年6月" }
+      ],
+      "parts": [
+        {
+          "label": "第 01 部分",
+          "dateByMonth": {
+            "apr-2026": "4月08日 @ 12:00 pm - 2:00 pm",
+            "may-2026": "5月08日 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "6月08日 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "以家长沟通开场，随后安排 1 对 1 指导。"
+        },
+        {
+          "label": "第 02 部分",
+          "dateByMonth": {
+            "apr-2026": "4月15日 @ 12:00 pm - 2:00 pm",
+            "may-2026": "5月15日 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "6月15日 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "通过情景演练掌握可落地的日常照护沟通。"
+        },
+        {
+          "label": "第 03 部分",
+          "dateByMonth": {
+            "apr-2026": "4月22日 @ 12:00 pm - 2:00 pm",
+            "may-2026": "5月22日 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "6月22日 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "课程行动计划复盘，帮助把方法稳定应用到家中。"
+        }
+      ],
+      "packageLabel": "套餐",
+      "packageOptions": [
+        {
+          "id": "standard",
+          "label": "标准套餐",
+          "description": "6 小时互动培训 + 配套练习手册支持。",
+          "price": 9000
+        },
+        {
+          "id": "elite",
+          "label": "精英套餐",
+          "description": "培训 + 手册支持 + 课后阿姨复盘指导。",
+          "price": 18000
+        }
+      ],
+      "pricingTitle": "价格",
+      "totalAmountLabel": "总金额",
+      "refundHint": "开课前 7 天可全额退款。",
+      "locationTitle": "地点",
+      "locationName": "Goldwin Heights",
+      "locationAddress": "香港半山西摩道 2 号",
+      "directionLabel": "查看路线",
+      "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
+      "reservationTitle": "报名信息",
+      "reservationDescription": "请填写你的信息，我们会通过邮箱发送付款确认。",
+      "fullNameLabel": "姓名",
+      "emailLabel": "邮箱",
+      "phoneLabel": "电话号码",
+      "paymentMethodLabel": "付款方式",
+      "paymentMethodValue": "通过 FPS 二维码付款",
+      "discountCodeLabel": "优惠码",
+      "discountCodePlaceholder": "输入优惠码",
+      "applyDiscountLabel": "应用",
+      "invalidDiscountLabel": "优惠码无效",
+      "discountAppliedLabel": "优惠已应用",
+      "submitLabel": "提交报名",
+      "qrLabel": "FPS 二维码",
+      "copyright": "© 2026 Evolve Sprouts",
+      "discountCodes": [
+        { "code": "SPROUTS10", "type": "percent", "value": 10 },
+        { "code": "AUNTIE1000", "type": "amount", "value": 1000 }
+      ]
+    },
+    "thankYouModal": {
+      "closeLabel": "关闭",
+      "title": "我们将尽快为你确认付款。",
+      "subtitle": "付款确认已发送至",
+      "successLabel": "谢谢你！",
+      "courseLabel": "我的最佳阿姨培训课程。",
+      "transactionDateLabel": "交易日期",
+      "paymentMethodLabel": "付款方式",
+      "totalLabel": "总计",
+      "printLabel": "打印",
+      "backHomeLabel": "返回首页",
+      "noEmailFallback": "你的邮箱地址"
+    }
+  },
+  "myBestAuntieDescription": {
+    "eyebrow": "课程亮点",
+    "title": "你将在我的最佳阿姨培训课程中获得什么？",
+    "items": [
+      {
+        "icon": "live-training",
+        "title": "现场培训",
+        "description": "6 小时互动式小组实操学习，围绕真实家庭场景开展训练。",
+        "ctaLabel": "为什么选择我们",
+        "ctaHref": "/about-us"
+      },
+      {
+        "icon": "auntie-review",
+        "title": "课后阿姨复盘",
+        "description": "通过课后评估与反馈，持续优化技能并提升执行信心。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/contact-us"
+      },
+      {
+        "icon": "workbook",
+        "title": "练习手册",
+        "description": "提供可直接使用的话术、流程与工具，帮助每日照护落地执行。",
+        "ctaLabel": "关于手册",
+        "ctaHref": "/resources"
+      }
+    ]
+  },
   "resources": {
     "eyebrow": "我们的资源",
     "mediaBadgeLabel": "我们的资源",

@@ -7,6 +7,8 @@ import {
 } from '@/content';
 
 export const SITE_ORIGIN = 'https://www.evolvesprouts.com';
+const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
+const PAGE_TITLE_SEPARATOR = ' - ';
 
 function normalizeBasePath(path: string): string {
   const trimmed = path.trim();
@@ -51,6 +53,24 @@ interface LocalizedMetadataOptions {
   description: string;
 }
 
+function buildPageTitle(title: string, path: string): string {
+  const normalizedTitle = title.trim();
+  if (normalizedTitle === '') {
+    return SITE_TITLE_SUFFIX;
+  }
+
+  if (normalizeBasePath(path) === '/') {
+    return normalizedTitle;
+  }
+
+  const fullSuffix = `${PAGE_TITLE_SEPARATOR}${SITE_TITLE_SUFFIX}`;
+  if (normalizedTitle.endsWith(fullSuffix)) {
+    return normalizedTitle;
+  }
+
+  return `${normalizedTitle}${fullSuffix}`;
+}
+
 export function buildLocalizedMetadata({
   locale,
   path,
@@ -58,7 +78,7 @@ export function buildLocalizedMetadata({
   description,
 }: LocalizedMetadataOptions): Metadata {
   return {
-    title,
+    title: buildPageTitle(title, path),
     description,
     alternates: {
       canonical: localizePath(path, locale),

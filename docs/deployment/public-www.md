@@ -40,6 +40,17 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 - `PublicWwwStagingCertificateArn`: ACM certificate ARN for staging
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1)
 
+`PublicWwwApiProxyDomainName` is provided by the backend deploy workflow from
+GitHub variable `API_DOMAIN_NAME`. This variable is required for CI deploys.
+
+For local CDK deploys, you can override it explicitly:
+
+```bash
+cd backend/infrastructure
+npx cdk deploy --require-approval never \
+  --parameters evolvesprouts-public-www:PublicWwwApiProxyDomainName=api.evolvesprouts.com
+```
+
 ## CI/CD workflows
 
 ### Deploy to staging (automatic)
@@ -55,7 +66,8 @@ Workflow: `.github/workflows/deploy-public-www.yml`
   - store immutable snapshot in `releases/<release_id>/`
   - preserve existing `_next/static` hashed assets to avoid stale HTML
     requesting deleted chunks
-  - invalidate staging CloudFront
+  - invalidate staging CloudFront (including `/_next/static/*` to clear
+    stale asset error responses)
 
 ### Promote to production (manual)
 
@@ -70,7 +82,8 @@ Workflow: `.github/workflows/promote-public-www.yml`
   - copy `releases/<release_id>/` from staging assets to production root
   - preserve existing `_next/static` hashed assets to avoid stale HTML
     requesting deleted chunks
-  - invalidate production CloudFront
+  - invalidate production CloudFront (including `/_next/static/*` to clear
+    stale asset error responses)
 
 ### Rollback
 
@@ -162,6 +175,11 @@ The deploy workflow reads these GitHub values for OAuth 2.0 auth:
 `public_www` intentionally does **not** use SPA fallback rewrites. CloudFront
 returns normal 404 responses for unknown routes, which preserves crawler
 semantics for indexing.
+
+CloudFront includes an explicit `api/*` behavior that proxies requests to
+`PublicWwwApiProxyDomainName` and rewrites `/api/<path>` to `/<path>` at the
+origin. This allows browser calls to API resources via same-origin URLs such
+as `/api/v1/...` or `/api/crm/v1/...` without cross-origin CORS errors.
 
 For branded not-found UX on static export, CloudFront custom error responses
 map S3 403/404 origin misses to `/404.html` while preserving HTTP 404 status.
