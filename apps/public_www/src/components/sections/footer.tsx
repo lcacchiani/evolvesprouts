@@ -236,7 +236,7 @@ export function Footer({ content }: FooterProps) {
                 alt={content.brand}
                 width={360}
                 height={360}
-                className='h-auto w-[264px] sm:w-[288px] lg:w-[360px]'
+                className='h-auto w-[264px] lg:w-[360px]'
               />
             </div>
             <FooterDesktopColumn
