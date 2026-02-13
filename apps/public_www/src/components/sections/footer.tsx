@@ -221,16 +221,16 @@ export function Footer({ content }: FooterProps) {
     >
       <section className='w-full px-4 pb-8 pt-9 sm:px-6 sm:pb-10 sm:pt-11 lg:px-8 lg:pb-12 lg:pt-16'>
         <div className='mx-auto w-full max-w-[1465px]'>
-          <div className='mb-7 hidden justify-center sm:flex'>
+          <div className='mb-7 hidden justify-center sm:flex lg:hidden'>
             <Image
               src='/images/evolvesprouts-logo.svg'
               alt={content.brand}
-              width={1200}
-              height={1200}
-              className='h-auto w-[1200px] max-w-full'
+              width={700}
+              height={700}
+              className='h-auto w-[700px] max-w-full'
             />
           </div>
-          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
+          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_360px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
             <FooterDesktopColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
@@ -239,6 +239,15 @@ export function Footer({ content }: FooterProps) {
               title={content.services.title}
               items={content.services.items}
             />
+            <div className='hidden justify-center lg:flex lg:pt-2'>
+              <Image
+                src='/images/evolvesprouts-logo.svg'
+                alt={content.brand}
+                width={360}
+                height={360}
+                className='h-auto w-[264px] lg:w-[360px]'
+              />
+            </div>
             <FooterDesktopColumn
               title={content.aboutUs.title}
               items={content.aboutUs.items}
