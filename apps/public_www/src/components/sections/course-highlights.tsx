@@ -178,11 +178,12 @@ function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
   return cards;
 }
 
-function DecorativeCardArrow() {
+function DecorativeCardArrow({ title }: { title: string }) {
   return (
-    <span
-      aria-hidden='true'
-      className='pointer-events-none absolute bottom-5 left-5 z-10 inline-flex h-[54px] w-[54px] items-center justify-center rounded-full bg-white/15 ring-1 ring-white/35 transition-all duration-300 lg:bottom-7 lg:left-7 lg:group-hover:h-[70px] lg:group-hover:w-[70px]'
+    <button
+      type='button'
+      aria-label={`Show details for ${title}`}
+      className='absolute bottom-5 left-5 z-10 inline-flex h-[54px] w-[54px] appearance-none items-center justify-center rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 lg:group-hover:h-[70px] lg:group-hover:w-[70px] lg:group-focus-within:h-[70px] lg:group-focus-within:w-[70px]'
     >
       <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#ED622E] shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
         <svg
@@ -201,7 +202,7 @@ function DecorativeCardArrow() {
           />
         </svg>
       </span>
-    </span>
+    </button>
   );
 }
 
@@ -267,7 +268,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                 >
                   <div
                     aria-hidden='true'
-                    className='pointer-events-none absolute inset-0 z-[1] bg-black/0 transition-all duration-300 lg:group-hover:bg-black/70 lg:group-hover:backdrop-blur-[4px]'
+                    className='pointer-events-none absolute inset-0 z-[1] bg-black/0 transition-all duration-300 lg:group-hover:bg-black/70 lg:group-hover:backdrop-blur-[4px] lg:group-focus-within:bg-black/70 lg:group-focus-within:backdrop-blur-[4px]'
                   />
                   <div
                     aria-hidden='true'
@@ -282,7 +283,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                       className={`${card.imageClassName} w-auto max-w-none`}
                     />
                   </div>
-                  <DecorativeCardArrow />
+                  <DecorativeCardArrow title={card.title} />
 
                   <div className='relative z-10 flex h-full w-full flex-col'>
                     <div className='mt-auto space-y-4'>
@@ -292,7 +293,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
                       {card.description && (
                         <p
-                          className='max-w-[34ch] opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100'
+                          className='max-w-[34ch] opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100'
                           style={cardDescriptionStyle}
                         >
                           {card.description}
