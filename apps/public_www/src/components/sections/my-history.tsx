@@ -50,7 +50,13 @@ export function MyHistory({ content }: MyHistoryProps) {
       id='my-history'
       ariaLabel={content.title}
       dataFigmaNode='my-history'
-      style={{ backgroundColor: SECTION_BACKGROUND }}
+      style={{
+        backgroundColor: SECTION_BACKGROUND,
+        backgroundImage: 'url("/images/about-us/my-history-bg-img.png")',
+        backgroundPosition: 'left top',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '100% 100%',
+      }}
     >
       <div className='mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-12'>
         <div>
@@ -72,26 +78,14 @@ export function MyHistory({ content }: MyHistoryProps) {
         </div>
 
         <div>
-          <div className='relative isolate overflow-hidden rounded-[30px] border border-[#EBCFB5] bg-[linear-gradient(170deg,#FFF7ED_0%,#FFEEE3_100%)] p-8 sm:p-10'>
-            <div
-              aria-hidden='true'
-              className='absolute -top-10 right-8 h-28 w-28 rounded-full bg-[#F2A975]/35 blur-2xl'
-            />
-            <div
-              aria-hidden='true'
-              className='absolute -bottom-10 left-10 h-32 w-32 rounded-full bg-[#5D9D49]/25 blur-2xl'
-            />
-            <div className='relative z-10 flex min-h-[280px] items-end justify-between rounded-[22px] border border-white/70 bg-white/75 p-6 shadow-[0_20px_40px_-28px_rgba(0,0,0,0.5)] sm:min-h-[330px]'>
-              <Image
-                src='/images/evolvesprouts-logo.svg'
-                alt=''
-                width={66}
-                height={66}
-                className='h-[66px] w-[66px] rounded-full bg-white p-1'
-              />
-              <div className='h-[145px] w-[145px] rounded-full border border-dashed border-[#D2A07A] bg-[#FFF6EF]' />
-            </div>
-          </div>
+          <Image
+            src='/images/about-us/ida-dregregorio-evolvesprouts-2.webp'
+            alt='A brief history image from Evolve Sprouts'
+            width={925}
+            height={780}
+            sizes='(min-width: 1280px) 651px, (min-width: 1024px) 44vw, 100vw'
+            className='h-auto w-full max-w-[651px] lg:ml-auto'
+          />
         </div>
       </div>
     </SectionShell>
