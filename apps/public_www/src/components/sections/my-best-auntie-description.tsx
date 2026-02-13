@@ -14,6 +14,8 @@ interface MyBestAuntieDescriptionProps {
 }
 
 const SECTION_BACKGROUND = '#F8F8F8';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_SIZE = '900px auto';
 const CARD_BACKGROUND = '#FFFFFF';
 const CARD_SHADOW =
   '0 8px 8px rgba(50, 50, 71, 0.08), 0 8px 16px rgba(50, 50, 71, 0.06)';
@@ -180,7 +182,14 @@ export function MyBestAuntieDescription({
       id='my-best-auntie-description'
       ariaLabel={content.title}
       dataFigmaNode='courseHiglit_sec'
-      style={{ backgroundColor: SECTION_BACKGROUND }}
+      className='relative isolate overflow-hidden'
+      style={{
+        backgroundColor: SECTION_BACKGROUND,
+        backgroundImage: SECTION_BACKGROUND_IMAGE,
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: SECTION_BACKGROUND_SIZE,
+      }}
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[920px] text-center'>
