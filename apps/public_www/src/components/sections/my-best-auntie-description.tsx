@@ -133,12 +133,14 @@ export function MyBestAuntieDescription({
   }, [hasMultipleCards]);
 
   useEffect(() => {
-    updateCarouselControls();
-
     const carouselElement = carouselRef.current;
     if (!carouselElement) {
       return;
     }
+
+    const frameId = window.requestAnimationFrame(() => {
+      updateCarouselControls();
+    });
 
     function handleScroll() {
       updateCarouselControls();
@@ -148,6 +150,7 @@ export function MyBestAuntieDescription({
     window.addEventListener('resize', handleScroll);
 
     return () => {
+      window.cancelAnimationFrame(frameId);
       carouselElement.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
