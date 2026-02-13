@@ -18,6 +18,7 @@ export interface ReservationSummary {
   attendeeName: string;
   attendeeEmail: string;
   attendeePhone: string;
+  childAgeGroup: string;
   packageLabel: string;
   monthLabel: string;
   paymentMethod: string;
@@ -27,6 +28,8 @@ export interface ReservationSummary {
 
 interface MyBestAuntieBookingModalProps {
   content: MyBestAuntieBookingContent['paymentModal'];
+  initialMonthId?: string;
+  selectedAgeGroupLabel?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -166,12 +169,20 @@ function DiscountBadge({ label }: { label: string }) {
 
 export function MyBestAuntieBookingModal({
   content,
+  initialMonthId,
+  selectedAgeGroupLabel = '',
   onClose,
   onSubmitReservation,
 }: MyBestAuntieBookingModalProps) {
   const firstMonthId = content.monthOptions[0]?.id ?? '';
   const firstPackageId = content.packageOptions[0]?.id ?? '';
-  const [selectedMonthId, setSelectedMonthId] = useState(firstMonthId);
+  const resolvedMonthId = content.monthOptions.some(
+    (option) => option.id === initialMonthId,
+  )
+    ? (initialMonthId ?? firstMonthId)
+    : firstMonthId;
+
+  const [selectedMonthId, setSelectedMonthId] = useState(resolvedMonthId);
   const [selectedPackageId, setSelectedPackageId] = useState(firstPackageId);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -241,6 +252,7 @@ export function MyBestAuntieBookingModal({
       attendeeName: fullName,
       attendeeEmail: email,
       attendeePhone: phone,
+      childAgeGroup: selectedAgeGroupLabel,
       packageLabel: selectedPackage.label,
       monthLabel: selectedMonth.label,
       paymentMethod: content.paymentMethodValue,
@@ -394,6 +406,17 @@ export function MyBestAuntieBookingModal({
               <p className='mt-1 text-sm text-[#4A4A4A]'>
                 {content.reservationDescription}
               </p>
+
+              {selectedAgeGroupLabel && (
+                <div className='mt-3 rounded-xl border border-[#ECD8C7] bg-white px-4 py-3'>
+                  <p className='text-sm text-[#5A5A5A]'>
+                    {content.selectedAgeGroupLabel}
+                  </p>
+                  <p className='font-semibold text-[#333333]'>
+                    {selectedAgeGroupLabel}
+                  </p>
+                </div>
+              )}
 
               <form className='mt-4 space-y-3' onSubmit={handleSubmit}>
                 <label className='block'>

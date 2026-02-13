@@ -97,6 +97,42 @@
     "scheduleLabel": "下一期課程",
     "scheduleDate": "2026年4月",
     "scheduleTime": "12:00 pm - 2:00 pm",
+    "ageSelectorLabel": "你小朋友的年齡組別是？",
+    "ageOptions": [
+      {
+        "id": "0-1",
+        "label": "0-1",
+        "iconSrc": "/images/face-one.png"
+      },
+      {
+        "id": "1-3",
+        "label": "1-3",
+        "iconSrc": "/images/face-two.png"
+      },
+      {
+        "id": "3-6",
+        "label": "3-6",
+        "iconSrc": "/images/face-three.png"
+      }
+    ],
+    "dateSelectorLabel": "選擇可用日期",
+    "dateOptions": [
+      {
+        "id": "apr-2026",
+        "label": "2026年4月",
+        "availabilityLabel": "剩餘 30 個名額"
+      },
+      {
+        "id": "may-2026",
+        "label": "2026年5月",
+        "availabilityLabel": "剩餘 18 個名額"
+      },
+      {
+        "id": "jun-2026",
+        "label": "2026年6月",
+        "availabilityLabel": "剩餘 12 個名額"
+      }
+    ],
     "confirmAndPayLabel": "確認並付款！",
     "learnMoreLabel": "了解更多課程內容",
     "learnMoreHref": "/services/my-best-auntie-training-course",
@@ -178,6 +214,7 @@
       "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
       "reservationTitle": "報名資料",
       "reservationDescription": "請填寫你的資料，我們會以電郵發送付款確認。",
+      "selectedAgeGroupLabel": "小朋友年齡組別",
       "fullNameLabel": "姓名",
       "emailLabel": "電郵",
       "phoneLabel": "電話號碼",
