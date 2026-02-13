@@ -178,29 +178,31 @@ export function MyBestAuntieBooking({
         </div>
       </SectionShell>
 
-      <MyBestAuntieBookingModal
-        content={content.paymentModal}
-        isOpen={isPaymentModalOpen}
-        onClose={() => {
-          setIsPaymentModalOpen(false);
-        }}
-        onSubmitReservation={(summary) => {
-          setReservationSummary(summary);
-          setIsPaymentModalOpen(false);
-          setIsThankYouModalOpen(true);
-        }}
-      />
+      {isPaymentModalOpen && (
+        <MyBestAuntieBookingModal
+          content={content.paymentModal}
+          onClose={() => {
+            setIsPaymentModalOpen(false);
+          }}
+          onSubmitReservation={(summary) => {
+            setReservationSummary(summary);
+            setIsPaymentModalOpen(false);
+            setIsThankYouModalOpen(true);
+          }}
+        />
+      )}
 
-      <MyBestAuntieThankYouModal
-        locale={locale}
-        content={content.thankYouModal}
-        isOpen={isThankYouModalOpen}
-        summary={reservationSummary}
-        homeHref={`/${locale}`}
-        onClose={() => {
-          setIsThankYouModalOpen(false);
-        }}
-      />
+      {isThankYouModalOpen && (
+        <MyBestAuntieThankYouModal
+          locale={locale}
+          content={content.thankYouModal}
+          summary={reservationSummary}
+          homeHref={`/${locale}`}
+          onClose={() => {
+            setIsThankYouModalOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }

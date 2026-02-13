@@ -25,7 +25,6 @@ export interface ReservationSummary {
 
 interface MyBestAuntieBookingModalProps {
   content: MyBestAuntieBookingContent['paymentModal'];
-  isOpen: boolean;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -33,7 +32,6 @@ interface MyBestAuntieBookingModalProps {
 interface MyBestAuntieThankYouModalProps {
   locale: Locale;
   content: MyBestAuntieBookingContent['thankYouModal'];
-  isOpen: boolean;
   summary: ReservationSummary | null;
   homeHref: string;
   onClose: () => void;
@@ -177,7 +175,6 @@ function DiscountBadge({ label }: { label: string }) {
 
 export function MyBestAuntieBookingModal({
   content,
-  isOpen,
   onClose,
   onSubmitReservation,
 }: MyBestAuntieBookingModalProps) {
@@ -193,22 +190,6 @@ export function MyBestAuntieBookingModal({
   const [discountError, setDiscountError] = useState('');
 
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    setSelectedMonthId(firstMonthId);
-    setSelectedPackageId(firstPackageId);
-    setDiscountCode('');
-    setDiscountRule(null);
-    setDiscountError('');
-  }, [firstMonthId, firstPackageId, isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -224,7 +205,7 @@ export function MyBestAuntieBookingModal({
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
   const selectedMonth =
     content.monthOptions.find((option) => option.id === selectedMonthId) ??
@@ -244,10 +225,6 @@ export function MyBestAuntieBookingModal({
       description: part.description,
     }));
   }, [content.parts, selectedMonth?.id]);
-
-  if (!isOpen) {
-    return null;
-  }
 
   function handleApplyDiscount() {
     const normalizedCode = discountCode.trim().toUpperCase();
@@ -539,16 +516,11 @@ export function MyBestAuntieBookingModal({
 export function MyBestAuntieThankYouModal({
   locale,
   content,
-  isOpen,
   summary,
   homeHref,
   onClose,
 }: MyBestAuntieThankYouModalProps) {
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -564,11 +536,7 @@ export function MyBestAuntieThankYouModal({
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) {
-    return null;
-  }
+  }, [onClose]);
 
   const transactionDate = resolveLocalizedDate(locale);
 
