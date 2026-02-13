@@ -271,6 +271,8 @@ Lambdas or NAT Gateway.
 - `CDK_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (optional path to CDK parameter JSON)
+- `API_DOMAIN_NAME` (used to set `PublicWwwApiProxyDomainName` for
+  `evolvesprouts-public-www`)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`

@@ -74,6 +74,8 @@ For the OIDC provider itself, add the same tags:
     - `PublicWwwCertificateArn`
     - `PublicWwwStagingDomainName`
     - `PublicWwwStagingCertificateArn`
+- `API_DOMAIN_NAME` (used by `deploy-backend.yml` to set
+  `PublicWwwApiProxyDomainName`; set to `api.evolvesprouts.com`)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`

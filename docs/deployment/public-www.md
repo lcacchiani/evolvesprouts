@@ -38,9 +38,19 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 - `PublicWwwCertificateArn`: ACM certificate ARN for production
 - `PublicWwwStagingDomainName`: `www-staging.evolvesprouts.com`
 - `PublicWwwStagingCertificateArn`: ACM certificate ARN for staging
-- `PublicWwwApiProxyDomainName`: upstream API domain for same-origin proxy
-  (default: `api.evolvesprouts.com`)
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1)
+
+`PublicWwwApiProxyDomainName` is provided by the backend deploy workflow from
+GitHub variable `API_DOMAIN_NAME` (set this to `api.evolvesprouts.com`).
+If the variable is empty, CI falls back to `api.evolvesprouts.com`.
+
+For local CDK deploys, you can override it explicitly:
+
+```bash
+cd backend/infrastructure
+npx cdk deploy --require-approval never \
+  --parameters evolvesprouts-public-www:PublicWwwApiProxyDomainName=api.evolvesprouts.com
+```
 
 ## CI/CD workflows
 
