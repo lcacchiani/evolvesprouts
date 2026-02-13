@@ -52,7 +52,7 @@ export function MyHistory({ content }: MyHistoryProps) {
       dataFigmaNode='my-history'
       style={{
         backgroundColor: SECTION_BACKGROUND,
-        backgroundImage: 'url("/images/about-us/my-history-bg-img.png")',
+        backgroundImage: 'url("/images/my-history-bg-img.png")',
         backgroundPosition: 'left top',
         backgroundRepeat: 'no-repeat',
         backgroundSize: '100% 100%',

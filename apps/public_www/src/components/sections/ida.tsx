@@ -73,7 +73,7 @@ export function Ida({ content }: IdaProps) {
         <div className='order-2 lg:order-1'>
           <div className='w-full lg:ml-[-100px] lg:mr-[-50px] lg:w-[700px] xl:ml-[-180px] xl:mr-[-200px] xl:w-[1111px]'>
             <Image
-              src='/images/about-us/ida-degregorio-evolvesprouts.webp'
+              src='/images/about-us/ida-degregorio-evolvesprouts-1.webp'
               alt='Ida De Gregorio from Evolve Sprouts'
               width={1112}
               height={840}

@@ -16,9 +16,9 @@ const HEADLINE_HIGHLIGHT =
 const SUBHEADLINE_COLOR = BODY_TEXT_COLOR;
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
 const HERO_LEFT_FRAME_BACKGROUND_LARGE =
-  '/images/hero/tree-background-large.png';
+  '/images/tree-background-large.png';
 const HERO_LEFT_FRAME_BACKGROUND_SMALL =
-  '/images/hero/tree-background-small.png';
+  '/images/tree-background-small.png';
 const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
 
 const headlineStyle: CSSProperties = {
