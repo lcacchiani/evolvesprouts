@@ -32,7 +32,7 @@ interface BenefitCardMeta {
 
 const SECTION_BG = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
-const SECTION_BACKGROUND_SIZE = '1000px auto';
+const SECTION_BACKGROUND_SIZE = '900px auto';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const GOLD_CARD = '#9E6D12';
