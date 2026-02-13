@@ -3,10 +3,17 @@ import { notFound } from 'next/navigation';
 import {
   getContent,
   isValidLocale,
+  SUPPORTED_LOCALES,
   type Locale,
   type SiteContent,
 } from '@/content';
 import { buildLocalizedMetadata } from '@/lib/seo';
+
+export type LocaleRouteParams = Promise<{ locale: string }>;
+
+export interface LocaleRouteProps {
+  params: LocaleRouteParams;
+}
 
 export interface LocalePageContext {
   locale: Locale;
@@ -14,7 +21,7 @@ export interface LocalePageContext {
 }
 
 export async function resolveLocalePageContext(
-  params: Promise<{ locale: string }>,
+  params: LocaleRouteParams,
 ): Promise<LocalePageContext> {
   const { locale } = await params;
   if (!isValidLocale(locale)) {
@@ -25,6 +32,17 @@ export async function resolveLocalePageContext(
     locale,
     content: getContent(locale),
   };
+}
+
+export async function resolveLocaleFromParams(
+  params: LocaleRouteParams,
+): Promise<Locale> {
+  const { locale } = await resolveLocalePageContext(params);
+  return locale;
+}
+
+export function generateLocaleStaticParams() {
+  return SUPPORTED_LOCALES.map((locale) => ({ locale }));
 }
 
 export function getMenuLabel(
@@ -64,6 +82,18 @@ interface PlaceholderMetadataOptions {
   title: string;
 }
 
+type LinkLabelResolver = (
+  content: SiteContent,
+  href: string,
+  fallbackLabel: string,
+) => string;
+
+interface PlaceholderPageOptions {
+  path: string;
+  fallbackTitle: string;
+  labelResolver: LinkLabelResolver;
+}
+
 export function buildPlaceholderPageMetadata({
   locale,
   path,
@@ -74,5 +104,27 @@ export function buildPlaceholderPageMetadata({
     path,
     title,
     description: `${title} — Evolve Sprouts`,
+  });
+}
+
+export async function resolvePlaceholderPageTitle(
+  params: LocaleRouteParams,
+  { path, fallbackTitle, labelResolver }: PlaceholderPageOptions,
+): Promise<string> {
+  const { content } = await resolveLocalePageContext(params);
+  return labelResolver(content, path, fallbackTitle);
+}
+
+export async function buildPlaceholderMetadataFromParams(
+  params: LocaleRouteParams,
+  { path, fallbackTitle, labelResolver }: PlaceholderPageOptions,
+) {
+  const { locale, content } = await resolveLocalePageContext(params);
+  const title = labelResolver(content, path, fallbackTitle);
+
+  return buildPlaceholderPageMetadata({
+    locale,
+    path,
+    title,
   });
 }

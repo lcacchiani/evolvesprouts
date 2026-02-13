@@ -1,28 +1,26 @@
 import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
 import {
-  buildPlaceholderPageMetadata,
+  buildPlaceholderMetadataFromParams,
   getFooterLinkLabel,
-  resolveLocalePageContext,
+  type LocaleRouteProps,
+  resolvePlaceholderPageTitle,
 } from '@/lib/locale-page';
 
-interface WorkshopsPageProps {
-  params: Promise<{ locale: string }>;
+const WORKSHOPS_PLACEHOLDER_OPTIONS = {
+  path: '/services/workshops',
+  fallbackTitle: 'Workshops',
+  labelResolver: getFooterLinkLabel,
+} as const;
+
+export async function generateMetadata({ params }: LocaleRouteProps) {
+  return buildPlaceholderMetadataFromParams(params, WORKSHOPS_PLACEHOLDER_OPTIONS);
 }
 
-export async function generateMetadata({ params }: WorkshopsPageProps) {
-  const { locale, content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(content, '/services/workshops', 'Workshops');
-
-  return buildPlaceholderPageMetadata({
-    locale,
-    path: '/services/workshops',
-    title,
-  });
-}
-
-export default async function WorkshopsPage({ params }: WorkshopsPageProps) {
-  const { content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(content, '/services/workshops', 'Workshops');
+export default async function WorkshopsPage({ params }: LocaleRouteProps) {
+  const title = await resolvePlaceholderPageTitle(
+    params,
+    WORKSHOPS_PLACEHOLDER_OPTIONS,
+  );
 
   return <EmptyPagePlaceholder title={title} />;
 }

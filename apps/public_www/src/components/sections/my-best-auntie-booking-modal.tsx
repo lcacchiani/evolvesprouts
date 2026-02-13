@@ -5,12 +5,14 @@ import {
   type CSSProperties,
   type FormEvent,
   type ReactNode,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
 
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { formatCurrencyHkd } from '@/lib/format';
+import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 
 export interface ReservationSummary {
   attendeeName: string;
@@ -41,9 +43,6 @@ type DiscountRule = MyBestAuntieBookingContent['paymentModal']['discountCodes'][
 
 const MODAL_PANEL_BACKGROUND = '#FFFFFF';
 const MODAL_OVERLAY_BACKGROUND = 'rgba(16, 14, 11, 0.6)';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 const CHROME_BACKGROUND = '#FFF7F1';
 const CHROME_BORDER = '#EECAB0';
 
@@ -60,14 +59,6 @@ const bodyStyle: CSSProperties = {
   fontWeight: 400,
   lineHeight: 1.5,
 };
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-HK', {
-    style: 'currency',
-    currency: 'HKD',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function applyDiscount(basePrice: number, rule: DiscountRule | null): number {
   if (!rule) {
@@ -189,23 +180,7 @@ export function MyBestAuntieBookingModal({
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
 
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    }
-
-    window.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, [onClose]);
+  useModalLockBody({ onEscape: onClose });
 
   const selectedMonth =
     content.monthOptions.find((option) => option.id === selectedMonthId) ??
@@ -368,7 +343,7 @@ export function MyBestAuntieBookingModal({
                         <div className='flex items-center justify-between gap-3'>
                           <p className='font-semibold text-[#333333]'>{option.label}</p>
                           <p className='font-semibold text-[#333333]'>
-                            {formatCurrency(option.price)}
+                            {formatCurrencyHkd(option.price)}
                           </p>
                         </div>
                         <p className='mt-1 text-sm text-[#4A4A4A]'>
@@ -390,7 +365,7 @@ export function MyBestAuntieBookingModal({
               <div className='mt-3 rounded-xl border border-[#ECD8C7] bg-white px-4 py-3'>
                 <p className='text-sm text-[#5A5A5A]'>{content.totalAmountLabel}</p>
                 <p className='mt-1 text-[1.6rem] font-semibold text-[#333333]'>
-                  {formatCurrency(totalAmount)}
+                  {formatCurrencyHkd(totalAmount)}
                 </p>
                 <p className='mt-1 text-xs text-[#5A5A5A]'>{content.refundHint}</p>
               </div>
@@ -528,23 +503,7 @@ export function MyBestAuntieThankYouModal({
   homeHref,
   onClose,
 }: MyBestAuntieThankYouModalProps) {
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    }
-
-    window.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, [onClose]);
+  useModalLockBody({ onEscape: onClose });
 
   const transactionDate = resolveLocalizedDate(locale);
 
@@ -584,7 +543,7 @@ export function MyBestAuntieThankYouModal({
             </div>
             <div class="row">
               <span>${escapeHtml(content.totalLabel)}</span>
-              <strong>${escapeHtml(formatCurrency(summary.totalAmount))}</strong>
+              <strong>${escapeHtml(formatCurrencyHkd(summary.totalAmount))}</strong>
             </div>
           </div>
         </body>
@@ -647,7 +606,7 @@ export function MyBestAuntieThankYouModal({
               <div className='flex items-center justify-between gap-2'>
                 <dt className='text-[#5A5A5A]'>{content.totalLabel}</dt>
                 <dd className='font-semibold text-[#333333]'>
-                  {formatCurrency(summary?.totalAmount ?? 0)}
+                  {formatCurrencyHkd(summary?.totalAmount ?? 0)}
                 </dd>
               </div>
             </dl>

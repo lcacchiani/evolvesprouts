@@ -1,10 +1,9 @@
 import type { SiteContent } from '@/content';
-import { Footer } from '@/components/sections/footer';
+import { PageLayout } from '@/components/page-layout';
 import { Faq } from '@/components/sections/faq';
 import { Ida } from '@/components/sections/ida';
 import { MyHistory } from '@/components/sections/my-history';
 import { MyJourney } from '@/components/sections/my-journey';
-import { Navbar } from '@/components/sections/navbar';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import { WhyUs } from '@/components/sections/why-us';
 
@@ -14,17 +13,16 @@ interface AboutUsProps {
 
 export function AboutUs({ content }: AboutUsProps) {
   return (
-    <>
-      <Navbar content={content.navbar} />
-      <main id='main-content' tabIndex={-1} className='min-h-screen'>
-        <Ida content={content.ida} />
-        <MyHistory content={content.myHistory} />
-        <MyJourney content={content.myJourney} />
-        <WhyUs content={content.whyUs} />
-        <Faq content={content.faq} />
-        <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
-      </main>
-      <Footer content={content.footer} />
-    </>
+    <PageLayout
+      navbarContent={content.navbar}
+      footerContent={content.footer}
+    >
+      <Ida content={content.ida} />
+      <MyHistory content={content.myHistory} />
+      <MyJourney content={content.myJourney} />
+      <WhyUs content={content.whyUs} />
+      <Faq content={content.faq} />
+      <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
+    </PageLayout>
   );
 }

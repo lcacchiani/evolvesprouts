@@ -4,6 +4,7 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieOverviewContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface MyBestAuntieOverviewProps {
   content: MyBestAuntieOverviewContent;
@@ -33,9 +34,8 @@ const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
 ];
 
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
-const HEADING_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
+const HEADING_COLOR = HEADING_TEXT_COLOR;
+const BODY_COLOR = BODY_TEXT_COLOR;
 const WEEK_COLOR = 'var(--figma-colors-week-01-04, #313131)';
 const BRAND_BLUE = 'var(--figma-colors-frame-2147235242, #174879)';
 

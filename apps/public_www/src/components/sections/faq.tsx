@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface FaqProps {
   content: FaqContent;
@@ -23,9 +24,6 @@ interface FaqQuestion {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 const ACTIVE_TAB_BACKGROUND = '#C84A16';
 const ACTIVE_TAB_TEXT = '#FFFFFF';
 const INACTIVE_TAB_BACKGROUND = '#FFF4EC';

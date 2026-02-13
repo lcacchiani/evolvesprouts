@@ -6,6 +6,11 @@ import { useMemo, useState } from 'react';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
+import {
+  BODY_TEXT_COLOR,
+  DEFAULT_SECTION_EYEBROW_STYLE,
+  HEADING_TEXT_COLOR,
+} from '@/lib/design-tokens';
 
 interface ContactUsFormProps {
   content: ContactUsContent['contactUsForm'];
@@ -19,18 +24,9 @@ interface FormState {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
-const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 const FORM_PANEL_BACKGROUND = 'linear-gradient(155deg, #FFF7F0 0%, #FFFFFF 100%)';
 
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: '1',
-};
+const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 const formLabelStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,

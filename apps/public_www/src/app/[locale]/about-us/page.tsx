@@ -1,15 +1,12 @@
 import { AboutUs } from '@/components/about-us';
 import {
   getMenuLabel,
+  type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
-interface AboutUsPageProps {
-  params: Promise<{ locale: string }>;
-}
-
-export async function generateMetadata({ params }: AboutUsPageProps) {
+export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const title = getMenuLabel(content, '/about-us', 'About Us');
   const description = content.ida.subtitle;
@@ -22,7 +19,7 @@ export async function generateMetadata({ params }: AboutUsPageProps) {
   });
 }
 
-export default async function AboutUsPage({ params }: AboutUsPageProps) {
+export default async function AboutUsPage({ params }: LocaleRouteProps) {
   const { content } = await resolveLocalePageContext(params);
 
   return <AboutUs content={content} />;

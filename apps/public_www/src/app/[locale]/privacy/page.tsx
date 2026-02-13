@@ -1,28 +1,26 @@
 import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
 import {
-  buildPlaceholderPageMetadata,
+  buildPlaceholderMetadataFromParams,
   getFooterLinkLabel,
-  resolveLocalePageContext,
+  type LocaleRouteProps,
+  resolvePlaceholderPageTitle,
 } from '@/lib/locale-page';
 
-interface PrivacyPageProps {
-  params: Promise<{ locale: string }>;
+const PRIVACY_PLACEHOLDER_OPTIONS = {
+  path: '/privacy',
+  fallbackTitle: 'Privacy Policy',
+  labelResolver: getFooterLinkLabel,
+} as const;
+
+export async function generateMetadata({ params }: LocaleRouteProps) {
+  return buildPlaceholderMetadataFromParams(params, PRIVACY_PLACEHOLDER_OPTIONS);
 }
 
-export async function generateMetadata({ params }: PrivacyPageProps) {
-  const { locale, content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(content, '/privacy', 'Privacy Policy');
-
-  return buildPlaceholderPageMetadata({
-    locale,
-    path: '/privacy',
-    title,
-  });
-}
-
-export default async function PrivacyPage({ params }: PrivacyPageProps) {
-  const { content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(content, '/privacy', 'Privacy Policy');
+export default async function PrivacyPage({ params }: LocaleRouteProps) {
+  const title = await resolvePlaceholderPageTitle(
+    params,
+    PRIVACY_PLACEHOLDER_OPTIONS,
+  );
 
   return <EmptyPagePlaceholder title={title} />;
 }

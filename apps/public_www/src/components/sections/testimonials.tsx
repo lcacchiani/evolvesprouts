@@ -16,6 +16,7 @@ import {
   readOptionalText,
 } from '@/content/content-field-utils';
 import type { TestimonialsContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface TestimonialsProps {
   content: TestimonialsContent;
@@ -29,9 +30,8 @@ interface NormalizedStory {
   avatarImageSrc?: string;
 }
 
-const TEXT_PRIMARY =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const TEXT_SECONDARY = 'var(--figma-colors-home, #4A4A4A)';
+const TEXT_PRIMARY = HEADING_TEXT_COLOR;
+const TEXT_SECONDARY = BODY_TEXT_COLOR;
 const CONTROL_BG = '#FFFFFF';
 const CONTROL_ICON = '#3D3E3D';
 const BADGE_BORDER = '#EECAB0';

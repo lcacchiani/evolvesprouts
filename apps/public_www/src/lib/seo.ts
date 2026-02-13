@@ -5,34 +5,21 @@ import {
   SUPPORTED_LOCALES,
   type Locale,
 } from '@/content';
+import {
+  localizePath as localizeLocalizedPath,
+  normalizeLocalizedPath,
+} from '@/lib/locale-routing';
 
 export const SITE_ORIGIN = 'https://www.evolvesprouts.com';
 const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
 const PAGE_TITLE_SEPARATOR = ' - ';
 
-function normalizeBasePath(path: string): string {
-  const trimmed = path.trim();
-  if (trimmed === '' || trimmed === '/') {
-    return '/';
-  }
-
-  const withLeadingSlash = trimmed.startsWith('/')
-    ? trimmed
-    : `/${trimmed}`;
-  return withLeadingSlash.replace(/\/+$/, '') || '/';
-}
-
 export function localizePath(path: string, locale: Locale): string {
-  const basePath = normalizeBasePath(path);
-  if (basePath === '/') {
-    return `/${locale}`;
-  }
-
-  return `/${locale}${basePath}`;
+  return localizeLocalizedPath(path, locale);
 }
 
 export function buildLocaleAlternates(path: string): Record<string, string> {
-  const normalizedPath = normalizeBasePath(path);
+  const normalizedPath = normalizeLocalizedPath(path);
   const languages = Object.fromEntries(
     SUPPORTED_LOCALES.map((locale) => [
       locale,
@@ -59,7 +46,7 @@ function buildPageTitle(title: string, path: string): string {
     return SITE_TITLE_SUFFIX;
   }
 
-  if (normalizeBasePath(path) === '/') {
+  if (normalizeLocalizedPath(path) === '/') {
     return normalizedTitle;
   }
 

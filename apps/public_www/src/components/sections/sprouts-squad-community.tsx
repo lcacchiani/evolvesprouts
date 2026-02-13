@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionShell } from '@/components/section-shell';
 import type { SproutsSquadCommunityContent } from '@/content';
+import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface SproutsSquadCommunityProps {
   content: SproutsSquadCommunityContent;
@@ -11,8 +12,6 @@ interface SproutsSquadCommunityProps {
 
 const SECTION_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
 
 const headingStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,

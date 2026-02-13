@@ -11,7 +11,7 @@
       { "label": "Home", "href": "/" },
       {
         "label": "Training Courses",
-        "href": "/training-courses",
+        "href": "/services/my-best-auntie-training-course",
         "children": [
           { "label": "Auntie Training", "href": "/services/my-best-auntie-training-course" },
           { "label": "Montessori Training", "href": "#" }
@@ -23,7 +23,7 @@
     ],
     "bookNow": {
       "label": "Book Now",
-      "href": "/training-courses"
+      "href": "/services/my-best-auntie-training-course"
     },
     "languageSelector": {
       "menuAriaLabel": "選擇語言",
@@ -64,7 +64,7 @@
     "title": "由 Ida 設計的最佳姨姨培訓課程",
     "description": "把姨姨培訓成以蒙特梭利為導向的幼兒發展夥伴！",
     "ctaLabel": "立即開始 - 今天就培訓姨姨",
-    "ctaHref": "/training-courses",
+    "ctaHref": "/services/my-best-auntie-training-course",
     "modules": [
       {
         "step": "01",
@@ -99,7 +99,7 @@
     "scheduleTime": "12:00 pm - 2:00 pm",
     "confirmAndPayLabel": "確認並付款！",
     "learnMoreLabel": "了解更多課程內容",
-    "learnMoreHref": "/training-courses",
+    "learnMoreHref": "/services/my-best-auntie-training-course",
     "summary": {
       "pricingTitle": "收費",
       "totalAmountLabel": "總金額",
@@ -259,7 +259,7 @@
     "title": "為什麼加入我們的課程",
     "description": "把姨姨培訓成以蒙特梭利為導向的幼兒發展夥伴！",
     "ctaLabel": "立即開始—今天就培訓姨姨",
-    "ctaHref": "/training-courses",
+    "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "立即聯絡",
     "items": [
       {
@@ -679,7 +679,7 @@
       "title": "關於我們",
       "items": [
         { "label": "我們是誰", "href": "/about" },
-        { "label": "通訊", "href": "/newsletter" },
+        { "label": "通訊", "href": "#" },
         { "label": "私隱政策", "href": "/privacy" }
       ]
     },
