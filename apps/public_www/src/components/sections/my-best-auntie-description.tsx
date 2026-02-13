@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
@@ -14,6 +14,8 @@ interface MyBestAuntieDescriptionProps {
 }
 
 const SECTION_BACKGROUND = '#F8F8F8';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_SIZE = '900px auto';
 const CARD_BACKGROUND = '#FFFFFF';
 const CARD_SHADOW =
   '0 8px 8px rgba(50, 50, 71, 0.08), 0 8px 16px rgba(50, 50, 71, 0.06)';
@@ -23,6 +25,8 @@ const CARD_ICON_FALLBACK =
 const CONTROL_BG = '#FFFFFF';
 const CONTROL_ICON = '#3D3E3D';
 const CONTROL_SHADOW = '0 1px 14px rgba(0, 0, 0, 0.08)';
+const CONTROL_BG_DISABLED = '#E9E9E9';
+const CONTROL_ICON_DISABLED = '#6B6B6B';
 
 const iconByKey: Record<string, string> = {
   'live-training':
@@ -71,8 +75,15 @@ const ctaStyle: CSSProperties = {
   lineHeight: 1,
 };
 
-function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+function ArrowIcon({
+  direction,
+  isDisabled,
+}: {
+  direction: 'left' | 'right';
+  isDisabled: boolean;
+}) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
+  const strokeColor = isDisabled ? CONTROL_ICON_DISABLED : CONTROL_ICON;
 
   return (
     <svg
@@ -84,7 +95,7 @@ function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
     >
       <path
         d='M8 4L16 12L8 20'
-        stroke={CONTROL_ICON}
+        stroke={strokeColor}
         strokeWidth='2.4'
         strokeLinecap='round'
         strokeLinejoin='round'
@@ -104,10 +115,55 @@ export function MyBestAuntieDescription({
   const carouselRef = useRef<HTMLDivElement>(null);
   const cards = content.items.slice(0, 6);
   const hasMultipleCards = cards.length > 1;
+  const [canScrollPrevious, setCanScrollPrevious] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(hasMultipleCards);
+
+  const updateCarouselControls = useCallback(() => {
+    const carouselElement = carouselRef.current;
+    if (!carouselElement || !hasMultipleCards) {
+      setCanScrollPrevious(false);
+      setCanScrollNext(false);
+      return;
+    }
+
+    const maxScrollLeft = carouselElement.scrollWidth - carouselElement.clientWidth;
+    const threshold = 2;
+    setCanScrollPrevious(carouselElement.scrollLeft > threshold);
+    setCanScrollNext(carouselElement.scrollLeft < maxScrollLeft - threshold);
+  }, [hasMultipleCards]);
+
+  useEffect(() => {
+    updateCarouselControls();
+
+    const carouselElement = carouselRef.current;
+    if (!carouselElement) {
+      return;
+    }
+
+    function handleScroll() {
+      updateCarouselControls();
+    }
+
+    carouselElement.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      carouselElement.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [cards.length, updateCarouselControls]);
 
   const scrollCarousel = useCallback((direction: 'previous' | 'next') => {
     const carouselElement = carouselRef.current;
     if (!carouselElement) {
+      return;
+    }
+
+    if (direction === 'previous' && !canScrollPrevious) {
+      return;
+    }
+
+    if (direction === 'next' && !canScrollNext) {
       return;
     }
 
@@ -118,14 +174,21 @@ export function MyBestAuntieDescription({
       left: movement,
       behavior: 'smooth',
     });
-  }, []);
+  }, [canScrollNext, canScrollPrevious]);
 
   return (
     <SectionShell
       id='my-best-auntie-description'
       ariaLabel={content.title}
       dataFigmaNode='courseHiglit_sec'
-      style={{ backgroundColor: SECTION_BACKGROUND }}
+      className='relative isolate overflow-hidden'
+      style={{
+        backgroundColor: SECTION_BACKGROUND,
+        backgroundImage: SECTION_BACKGROUND_IMAGE,
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: SECTION_BACKGROUND_SIZE,
+      }}
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[920px] text-center'>
@@ -151,10 +214,14 @@ export function MyBestAuntieDescription({
                 scrollCarousel('previous');
               }}
               aria-label='Previous highlight cards'
-              className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
-              style={{ backgroundColor: CONTROL_BG, boxShadow: CONTROL_SHADOW }}
+              disabled={!canScrollPrevious}
+              className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full disabled:cursor-not-allowed sm:h-[68px] sm:w-[68px]'
+              style={{
+                backgroundColor: canScrollPrevious ? CONTROL_BG : CONTROL_BG_DISABLED,
+                boxShadow: CONTROL_SHADOW,
+              }}
             >
-              <ArrowIcon direction='left' />
+              <ArrowIcon direction='left' isDisabled={!canScrollPrevious} />
             </button>
             <button
               type='button'
@@ -162,10 +229,14 @@ export function MyBestAuntieDescription({
                 scrollCarousel('next');
               }}
               aria-label='Next highlight cards'
-              className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
-              style={{ backgroundColor: CONTROL_BG, boxShadow: CONTROL_SHADOW }}
+              disabled={!canScrollNext}
+              className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full disabled:cursor-not-allowed sm:h-[68px] sm:w-[68px]'
+              style={{
+                backgroundColor: canScrollNext ? CONTROL_BG : CONTROL_BG_DISABLED,
+                boxShadow: CONTROL_SHADOW,
+              }}
             >
-              <ArrowIcon direction='right' />
+              <ArrowIcon direction='right' isDisabled={!canScrollNext} />
             </button>
           </div>
         )}
