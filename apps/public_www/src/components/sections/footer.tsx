@@ -221,7 +221,7 @@ export function Footer({ content }: FooterProps) {
     >
       <section className='w-full px-4 pb-8 pt-9 sm:px-6 sm:pb-10 sm:pt-11 lg:px-8 lg:pb-12 lg:pt-16'>
         <div className='mx-auto w-full max-w-[1465px]'>
-          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-5 lg:items-start lg:gap-x-6 lg:gap-y-10'>
+          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_360px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
             <FooterDesktopColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
@@ -234,9 +234,9 @@ export function Footer({ content }: FooterProps) {
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
-                width={120}
-                height={120}
-                className='h-auto w-[88px] sm:w-[96px] lg:w-[120px]'
+                width={360}
+                height={360}
+                className='h-auto w-[264px] sm:w-[288px] lg:w-[360px]'
               />
             </div>
             <FooterDesktopColumn
@@ -255,9 +255,9 @@ export function Footer({ content }: FooterProps) {
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
-                width={400}
-                height={400}
-                className='h-auto w-[400px] max-w-full'
+                width={1200}
+                height={1200}
+                className='h-auto w-[1200px] max-w-full'
               />
             </div>
             <FooterMobileAccordion
