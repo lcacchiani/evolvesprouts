@@ -11,6 +11,12 @@ import {
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import {
+  BODY_TEXT_COLOR,
+  DEFAULT_SECTION_EYEBROW_STYLE,
+  HEADING_TEXT_COLOR,
+} from '@/lib/design-tokens';
+import { formatCurrencyHkd } from '@/lib/format';
 
 interface MyBestAuntieBookingProps {
   locale: Locale;
@@ -18,13 +24,8 @@ interface MyBestAuntieBookingProps {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
-
 const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  ...DEFAULT_SECTION_EYEBROW_STYLE,
   fontSize: '18px',
   fontWeight: 500,
   lineHeight: 1,
@@ -43,14 +44,6 @@ const bodyStyle: CSSProperties = {
   fontWeight: 400,
   lineHeight: 1.55,
 };
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-HK', {
-    style: 'currency',
-    currency: 'HKD',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 export function MyBestAuntieBooking({
   locale,
@@ -120,7 +113,7 @@ export function MyBestAuntieBooking({
                     {content.summary.startingFromLabel}
                   </p>
                   <p className='text-[1.6rem] font-semibold text-[#333333]'>
-                    {formatCurrency(lowestPackagePrice)}
+                    {formatCurrencyHkd(lowestPackagePrice)}
                   </p>
                   <p className='mt-1 text-xs text-[#666463]'>
                     {content.summary.refundHint}

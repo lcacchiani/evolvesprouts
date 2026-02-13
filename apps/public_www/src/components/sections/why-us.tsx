@@ -4,15 +4,13 @@ import Image from 'next/image';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { WhyUsContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface WhyUsProps {
   content: WhyUsContent;
 }
 
 const SECTION_BACKGROUND = '#F7F2E1';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,

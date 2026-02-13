@@ -4,15 +4,13 @@ import Image from 'next/image';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionShell } from '@/components/section-shell';
 import type { IdaContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface IdaProps {
   content: IdaContent;
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 
 const titleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,

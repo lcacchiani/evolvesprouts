@@ -6,6 +6,7 @@ import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { CourseHighlightsContent } from '@/content';
 import enContent from '@/content/en.json';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface CourseHighlightsProps {
   content: CourseHighlightsContent;
@@ -30,9 +31,8 @@ interface BenefitCardMeta {
 }
 
 const SECTION_BG = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const HEADING_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
+const HEADING_COLOR = HEADING_TEXT_COLOR;
+const BODY_COLOR = BODY_TEXT_COLOR;
 const GOLD_CARD = '#9E6D12';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';

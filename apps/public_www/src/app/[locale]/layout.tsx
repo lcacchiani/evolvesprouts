@@ -1,17 +1,19 @@
 import type { ReactNode } from 'react';
 
-import { LocaleDocumentAttributes } from '@/components/locale-document-attributes';
 import { WhatsappContactButton } from '@/components/whatsapp-contact-button';
-import { SUPPORTED_LOCALES } from '@/content';
-import { resolveLocalePageContext } from '@/lib/locale-page';
+import {
+  generateLocaleStaticParams,
+  type LocaleRouteParams,
+  resolveLocalePageContext,
+} from '@/lib/locale-page';
 
 interface LocaleLayoutProps {
   children: ReactNode;
-  params: Promise<{ locale: string }>;
+  params: LocaleRouteParams;
 }
 
 export function generateStaticParams() {
-  return SUPPORTED_LOCALES.map((locale) => ({ locale }));
+  return generateLocaleStaticParams();
 }
 
 export default async function LocaleLayout({
@@ -23,7 +25,6 @@ export default async function LocaleLayout({
 
   return (
     <div data-locale={locale} dir={direction}>
-      <LocaleDocumentAttributes locale={locale} direction={direction} />
       {children}
       <WhatsappContactButton
         href={content.whatsappContact.href}

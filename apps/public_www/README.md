@@ -7,6 +7,7 @@
 - `npm run dev` — run local development server.
 - `npm run validate:content` — validate locale content contract.
 - `npm run lint` — run ESLint.
+- `npm run test` — run unit tests (Vitest + Testing Library).
 - `npm run audit:assets` — detect missing/unused static assets.
 - `npm run images:optimize` — generate optimized `.webp` images from
   `public/images/**/*.png`.

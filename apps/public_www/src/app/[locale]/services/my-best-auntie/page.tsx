@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation';
 
-interface LegacyMyBestAuntiePageProps {
-  params: Promise<{ locale: string }>;
-}
+import {
+  type LocaleRouteProps,
+  resolveLocaleFromParams,
+} from '@/lib/locale-page';
 
 export default async function LegacyMyBestAuntiePage({
   params,
-}: LegacyMyBestAuntiePageProps) {
-  const { locale } = await params;
+}: LocaleRouteProps) {
+  const locale = await resolveLocaleFromParams(params);
   redirect(`/${locale}/services/my-best-auntie-training-course`);
 }

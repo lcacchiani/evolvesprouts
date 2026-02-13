@@ -3,6 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import type { FooterContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { isHttpHref } from '@/lib/url-utils';
 
 interface FooterProps {
   content: FooterContent;
@@ -26,10 +28,6 @@ function resolveCurrentYearCopyright(value: string): string {
 
 const FOOTER_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
-
 const columnTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-urbanist, Urbanist), sans-serif',
@@ -116,7 +114,7 @@ function FooterColumnLinks({
     <ul className='flex flex-col gap-[8px]'>
       {items.map((item) => {
         const icon = item.icon ? socialIcons[item.icon] : null;
-        const isExternal = item.href.startsWith('http');
+        const isExternal = isHttpHref(item.href);
 
         return (
           <li key={`${item.label}-${item.href}`}>

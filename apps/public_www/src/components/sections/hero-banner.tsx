@@ -3,17 +3,17 @@ import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import type { HeroContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface HeroBannerProps {
   content: HeroContent;
 }
 
 const HERO_BACKGROUND = '#fff';
-const HEADLINE_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
+const HEADLINE_COLOR = HEADING_TEXT_COLOR;
 const HEADLINE_HIGHLIGHT =
   'var(--figma-colors-frame-2147235222-2, #ED622E)';
-const SUBHEADLINE_COLOR = 'var(--figma-colors-home, #4A4A4A)';
+const SUBHEADLINE_COLOR = BODY_TEXT_COLOR;
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
 const HERO_LEFT_FRAME_BACKGROUND_LARGE =
   '/images/hero/tree-background-large.png';

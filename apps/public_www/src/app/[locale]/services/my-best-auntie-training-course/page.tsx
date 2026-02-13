@@ -1,15 +1,12 @@
 import { MyBestAuntie } from '@/components/my-best-auntie';
 import {
   getFooterLinkLabel,
+  type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
-interface MyBestAuntiePageProps {
-  params: Promise<{ locale: string }>;
-}
-
-export async function generateMetadata({ params }: MyBestAuntiePageProps) {
+export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const title = getFooterLinkLabel(
     content,
@@ -28,7 +25,7 @@ export async function generateMetadata({ params }: MyBestAuntiePageProps) {
 
 export default async function MyBestAuntiePage({
   params,
-}: MyBestAuntiePageProps) {
+}: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
 
   return <MyBestAuntie locale={locale} content={content} />;

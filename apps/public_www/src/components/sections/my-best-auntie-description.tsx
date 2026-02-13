@@ -3,15 +3,13 @@ import type { CSSProperties } from 'react';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieDescriptionContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface MyBestAuntieDescriptionProps {
   content: MyBestAuntieDescriptionContent;
 }
 
 const SECTION_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_TEXT_COLOR = 'var(--figma-colors-home, #4A4A4A)';
 const CARD_BACKGROUND = '#FFFFFF';
 
 const eyebrowStyle: CSSProperties = {

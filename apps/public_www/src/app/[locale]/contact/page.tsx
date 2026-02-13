@@ -1,14 +1,13 @@
 import { redirect } from 'next/navigation';
 
-import { resolveLocalePageContext } from '@/lib/locale-page';
-
-interface ContactAliasPageProps {
-  params: Promise<{ locale: string }>;
-}
+import {
+  type LocaleRouteProps,
+  resolveLocaleFromParams,
+} from '@/lib/locale-page';
 
 export default async function ContactAliasPage({
   params,
-}: ContactAliasPageProps) {
-  const { locale } = await resolveLocalePageContext(params);
+}: LocaleRouteProps) {
+  const locale = await resolveLocaleFromParams(params);
   redirect(`/${locale}/contact-us`);
 }

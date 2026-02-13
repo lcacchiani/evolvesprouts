@@ -3,22 +3,17 @@ import type { CSSProperties } from 'react';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
+import {
+  DEFAULT_SECTION_EYEBROW_STYLE,
+  HEADING_TEXT_COLOR,
+} from '@/lib/design-tokens';
 
 interface ReachOutProps {
   content: ContactUsContent['reachOut'];
 }
 
 const SECTION_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: '1',
-};
+const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 function ReachOutGlyph({ index }: { index: number }) {
   const colorMap = ['#C84A16', '#174879', '#9E6D12', '#5D9D49'] as const;

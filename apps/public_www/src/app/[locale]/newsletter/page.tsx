@@ -1,28 +1,29 @@
 import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
 import {
-  buildPlaceholderPageMetadata,
+  buildPlaceholderMetadataFromParams,
   getFooterLinkLabel,
-  resolveLocalePageContext,
+  type LocaleRouteProps,
+  resolvePlaceholderPageTitle,
 } from '@/lib/locale-page';
 
-interface NewsletterPageProps {
-  params: Promise<{ locale: string }>;
+const NEWSLETTER_PLACEHOLDER_OPTIONS = {
+  path: '/newsletter',
+  fallbackTitle: 'Newsletter',
+  labelResolver: getFooterLinkLabel,
+} as const;
+
+export async function generateMetadata({ params }: LocaleRouteProps) {
+  return buildPlaceholderMetadataFromParams(
+    params,
+    NEWSLETTER_PLACEHOLDER_OPTIONS,
+  );
 }
 
-export async function generateMetadata({ params }: NewsletterPageProps) {
-  const { locale, content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(content, '/newsletter', 'Newsletter');
-
-  return buildPlaceholderPageMetadata({
-    locale,
-    path: '/newsletter',
-    title,
-  });
-}
-
-export default async function NewsletterPage({ params }: NewsletterPageProps) {
-  const { content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(content, '/newsletter', 'Newsletter');
+export default async function NewsletterPage({ params }: LocaleRouteProps) {
+  const title = await resolvePlaceholderPageTitle(
+    params,
+    NEWSLETTER_PLACEHOLDER_OPTIONS,
+  );
 
   return <EmptyPagePlaceholder title={title} />;
 }

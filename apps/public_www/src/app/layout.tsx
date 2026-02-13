@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import type { ReactNode } from 'react';
 
+import { buildLocaleDocumentAttributesScript } from '@/lib/locale-document';
 import { SITE_ORIGIN } from '@/lib/seo';
 import './globals.css';
 
@@ -61,6 +62,8 @@ const stagingBadgeScript = `
 })();
 `;
 
+const localeDocumentAttributesScript = buildLocaleDocumentAttributesScript();
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: 'Evolve Sprouts',
@@ -102,6 +105,9 @@ export default function RootLayout({
         </div>
         <Script id='show-staging-badge' strategy='beforeInteractive'>
           {stagingBadgeScript}
+        </Script>
+        <Script id='set-locale-document-attributes' strategy='beforeInteractive'>
+          {localeDocumentAttributesScript}
         </Script>
         {children}
       </body>

@@ -3,6 +3,9 @@ import type {
   CSSProperties,
   ReactNode,
 } from 'react';
+import Link from 'next/link';
+
+import { isExternalHref } from '@/lib/url-utils';
 
 const BASE_SECTION_CTA_CLASSNAME =
   'es-cta-primary es-cta-button es-focus-ring gap-2';
@@ -53,15 +56,25 @@ export function SectionCtaAnchor({
   children,
   ...anchorProps
 }: SectionCtaProps) {
+  const sharedProps = {
+    className: buildClassName(className),
+    style,
+    ...anchorProps,
+  };
+
+  if (isExternalHref(href) || href.startsWith('#')) {
+    return (
+      <a href={href} {...sharedProps}>
+        <span>{children}</span>
+        <CtaChevronIcon />
+      </a>
+    );
+  }
+
   return (
-    <a
-      href={href}
-      className={buildClassName(className)}
-      style={style}
-      {...anchorProps}
-    >
+    <Link href={href} {...sharedProps}>
       <span>{children}</span>
       <CtaChevronIcon />
-    </a>
+    </Link>
   );
 }

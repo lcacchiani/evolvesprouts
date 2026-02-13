@@ -14,11 +14,24 @@ import {
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import {
-  DEFAULT_LOCALE,
-  SUPPORTED_LOCALES,
+  CloseIcon,
+  HamburgerIcon,
+  LanguageChevronIcon,
+  MobileChevronIcon,
+} from '@/components/sections/navbar-icons';
+import {
   type Locale,
   type NavbarContent,
 } from '@/content';
+import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
+import {
+  getLocaleFromPath,
+  isSupportedLocale,
+  localizeHref,
+  localizePath,
+  normalizeLocalizedPath,
+} from '@/lib/locale-routing';
 
 interface NavbarProps {
   content: NavbarContent;
@@ -29,8 +42,7 @@ type SubmenuItem = NonNullable<MenuItem['children']>[number];
 
 const NAV_BACKGROUND = '#fff';
 const NAV_PILL_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
-const NAV_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
+const NAV_TEXT_COLOR = HEADING_TEXT_COLOR;
 const NAV_ACTIVE_TEXT = '#C84A16';
 const NAV_ACTIVE_BACKGROUND = '#F2A975';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
@@ -120,69 +132,6 @@ const DEFAULT_LANGUAGE_OPTIONS: readonly LanguageOption[] = [
 const DEFAULT_LANGUAGE_MENU_ARIA_LABEL = 'Select language';
 const DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX = 'Selected language';
 
-function isLocale(value: string): value is Locale {
-  return SUPPORTED_LOCALES.includes(value as Locale);
-}
-
-function sanitizePath(path: string): string {
-  let value = path.trim();
-
-  if (value === '' || value === '#') {
-    return value || '/';
-  }
-
-  if (/^https?:\/\//i.test(value)) {
-    try {
-      value = new URL(value).pathname;
-    } catch {
-      return value;
-    }
-  }
-
-  value = value.split('#')[0] ?? value;
-  value = value.split('?')[0] ?? value;
-
-  if (!value.startsWith('/')) {
-    value = `/${value}`;
-  }
-
-  return value.replace(/\/+$/, '') || '/';
-}
-
-function getLocaleFromPath(path: string): Locale {
-  const segments = sanitizePath(path).split('/').filter(Boolean);
-  if (segments.length > 0 && isLocale(segments[0])) {
-    return segments[0];
-  }
-
-  return DEFAULT_LOCALE;
-}
-
-function normalizePath(path: string): string {
-  let value = sanitizePath(path);
-  const segments = value.split('/').filter(Boolean);
-
-  if (segments.length > 0 && isLocale(segments[0])) {
-    const localizedValue = `/${segments.slice(1).join('/')}`;
-    value = localizedValue === '/' ? '/' : localizedValue;
-  }
-
-  return value || '/';
-}
-
-function localizePath(path: string, locale: Locale): string {
-  const basePath = normalizePath(path);
-  return basePath === '/' ? `/${locale}` : `/${locale}${basePath}`;
-}
-
-function isExternalHref(href: string): boolean {
-  return (
-    /^https?:\/\//i.test(href) ||
-    href.startsWith('mailto:') ||
-    href.startsWith('tel:')
-  );
-}
-
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(
     container.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENT_SELECTOR),
@@ -193,27 +142,6 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
 
     return element.getAttribute('aria-hidden') !== 'true';
   });
-}
-
-function localizeHref(href: string, locale: Locale): string {
-  const value = href.trim();
-  if (value === '' || value === '#') {
-    return value || '/';
-  }
-
-  if (isExternalHref(value)) {
-    return value;
-  }
-
-  const hashIndex = value.indexOf('#');
-  const hashValue = hashIndex >= 0 ? value.slice(hashIndex) : '';
-  const withoutHash = hashIndex >= 0 ? value.slice(0, hashIndex) : value;
-  const queryIndex = withoutHash.indexOf('?');
-  const queryValue = queryIndex >= 0 ? withoutHash.slice(queryIndex) : '';
-  const pathnameValue =
-    queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
-
-  return `${localizePath(pathnameValue || '/', locale)}${queryValue}${hashValue}`;
 }
 
 function resolveLanguageSelectorContent(
@@ -229,7 +157,7 @@ function resolveLanguageSelectorContent(
 
   const normalizedOptions = (selector?.options ?? [])
     .map((option) => {
-      if (!isLocale(option.locale)) {
+      if (!isSupportedLocale(option.locale)) {
         return null;
       }
 
@@ -263,7 +191,7 @@ function resolveLanguageSelectorContent(
 }
 
 function isHrefActive(currentPath: string, href: string): boolean {
-  const targetPath = normalizePath(href);
+  const targetPath = normalizeLocalizedPath(href);
 
   if (targetPath === '#') {
     return false;
@@ -313,78 +241,6 @@ function getSubmenuLinkStyle(isActive: boolean) {
   };
 }
 
-function LanguageChevronIcon({ isOpen = false }: { isOpen?: boolean }) {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 20 20'
-      className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M5 8L10 13L15 8'
-        stroke='var(--figma-colors-join-our-sprouts-squad-community, #333333)'
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  );
-}
-
-function MobileChevronIcon({ isExpanded }: { isExpanded: boolean }) {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 16 16'
-      className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M4 6L8 10L12 6'
-        stroke='currentColor'
-        strokeWidth='1.8'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  );
-}
-
-function HamburgerIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 448 512'
-      className='h-4 w-4'
-      fill='currentColor'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z'
-      />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 16 16'
-      className='h-[18px] w-[18px]'
-      fill='currentColor'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'
-      />
-    </svg>
-  );
-}
-
 interface LanguageSelectorButtonProps {
   className: string;
   currentLocale: Locale;
@@ -407,42 +263,36 @@ function LanguageSelectorButton({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const languageMenuId = useId();
+  const closeMenu = useCallback(() => {
+    setIsMenuOpen(false);
+  }, []);
   const activeOption =
     languageSelector.options.find((option) => option.locale === currentLocale) ??
     languageSelector.options[0];
+
+  useOutsideClickClose({
+    ref: wrapperRef,
+    onOutsideClick: closeMenu,
+    isActive: isMenuOpen,
+  });
 
   useEffect(() => {
     if (!isMenuOpen) {
       return;
     }
 
-    function handlePointerDown(event: MouseEvent | TouchEvent) {
-      const target = event.target;
-      if (!(target instanceof Node)) {
-        return;
-      }
-
-      if (!wrapperRef.current?.contains(target)) {
-        setIsMenuOpen(false);
-      }
-    }
-
     function handleEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setIsMenuOpen(false);
+        closeMenu();
       }
     }
 
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('touchstart', handlePointerDown);
     window.addEventListener('keydown', handleEscape);
 
     return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('touchstart', handlePointerDown);
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [isMenuOpen]);
+  }, [closeMenu, isMenuOpen]);
 
   return (
     <div ref={wrapperRef} className='relative'>
@@ -486,7 +336,7 @@ function LanguageSelectorButton({
                 href={localizePath(currentPathname, option.locale)}
                 className={NAV_LANGUAGE_OPTION_CLASSNAME}
                 onClick={() => {
-                  setIsMenuOpen(false);
+                  closeMenu();
                 }}
                 tabIndex={isMenuOpen ? undefined : -1}
                 style={{
@@ -623,39 +473,33 @@ function DesktopMenuItem({
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
   const submenuListId = useId();
   const submenuWrapperRef = useRef<HTMLLIElement | null>(null);
+  const closeSubmenu = useCallback(() => {
+    setIsSubmenuOpen(false);
+  }, []);
+
+  useOutsideClickClose({
+    ref: submenuWrapperRef,
+    onOutsideClick: closeSubmenu,
+    isActive: hasChildren && isSubmenuOpen,
+  });
 
   useEffect(() => {
     if (!hasChildren || !isSubmenuOpen) {
       return;
     }
 
-    function handlePointerDown(event: MouseEvent | TouchEvent) {
-      const target = event.target;
-      if (!(target instanceof Node)) {
-        return;
-      }
-
-      if (!submenuWrapperRef.current?.contains(target)) {
-        setIsSubmenuOpen(false);
-      }
-    }
-
     function handleEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setIsSubmenuOpen(false);
+        closeSubmenu();
       }
     }
 
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('touchstart', handlePointerDown);
     window.addEventListener('keydown', handleEscape);
 
     return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('touchstart', handlePointerDown);
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [hasChildren, isSubmenuOpen]);
+  }, [closeSubmenu, hasChildren, isSubmenuOpen]);
 
   if (!item.children) {
     return (
@@ -678,7 +522,7 @@ function DesktopMenuItem({
         setIsSubmenuOpen(true);
       }}
       onMouseLeave={() => {
-        setIsSubmenuOpen(false);
+        closeSubmenu();
       }}
     >
       <button
@@ -705,7 +549,7 @@ function DesktopMenuItem({
         currentPath={currentPath}
         locale={locale}
         onNavigate={() => {
-          setIsSubmenuOpen(false);
+          closeSubmenu();
         }}
         id={submenuListId}
         isOpen={isSubmenuOpen}
@@ -825,7 +669,7 @@ function MobileMenuItems({
 
 export function Navbar({ content }: NavbarProps) {
   const pathname = usePathname() ?? '/';
-  const currentPath = normalizePath(pathname);
+  const currentPath = normalizeLocalizedPath(pathname);
   const currentLocale = getLocaleFromPath(pathname);
   const logoSrc = content.logoSrc || LOGO_SRC;
   const localizedHomeHref = localizePath('/', currentLocale);

@@ -6,6 +6,7 @@ import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import { readOptionalText } from '@/content/content-field-utils';
 import type { ResourcesContent } from '@/content';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface ResourcesProps {
   content: ResourcesContent;
@@ -17,9 +18,8 @@ interface ChecklistEntry {
 }
 
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
-const HEADING_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-const BODY_COLOR = 'var(--figma-colors-home, #4A4A4A)';
+const HEADING_COLOR = HEADING_TEXT_COLOR;
+const BODY_COLOR = BODY_TEXT_COLOR;
 const PANEL_BG = 'var(--figma-colors-frame-2147235252, #F8F8F8)';
 const MEDIA_BG = 'var(--figma-colors-rectangle-240648654, #D9D9D9)';
 const RESOURCE_IMAGE_SRC = '/images/family.webp';

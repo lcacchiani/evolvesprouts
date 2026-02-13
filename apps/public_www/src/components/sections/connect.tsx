@@ -4,22 +4,15 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
+import { DEFAULT_SECTION_EYEBROW_STYLE, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { isHttpHref } from '@/lib/url-utils';
 
 interface ConnectProps {
   content: ContactUsContent['connect'];
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
-const HEADING_TEXT_COLOR =
-  'var(--figma-colors-join-our-sprouts-squad-community, #333333)';
-
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: '1',
-};
+const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 const cardTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -35,10 +28,6 @@ const ctaStyle: CSSProperties = {
   fontSize: '18px',
   lineHeight: '1',
 };
-
-function isExternalLink(href: string): boolean {
-  return /^https?:\/\//i.test(href);
-}
 
 function ConnectGlyph({ index }: { index: number }) {
   const iconColor = ['#174879', '#5D9D49', '#C84A16'][index % 3];
@@ -101,7 +90,7 @@ export function Connect({ content }: ConnectProps) {
                   href={card.ctaHref}
                   className='mt-auto h-12 w-full rounded-[10px] px-4 text-base sm:h-[52px]'
                   style={ctaStyle}
-                  {...(isExternalLink(card.ctaHref)
+                  {...(isHttpHref(card.ctaHref)
                     ? { target: '_blank', rel: 'noopener noreferrer' }
                     : {})}
                 >

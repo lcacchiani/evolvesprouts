@@ -1,30 +1,31 @@
 import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
 import {
-  buildPlaceholderPageMetadata,
+  buildPlaceholderMetadataFromParams,
   getMenuLabel,
-  resolveLocalePageContext,
+  type LocaleRouteProps,
+  resolvePlaceholderPageTitle,
 } from '@/lib/locale-page';
 
-interface TrainingCoursesPageProps {
-  params: Promise<{ locale: string }>;
-}
+const TRAINING_COURSES_PLACEHOLDER_OPTIONS = {
+  path: '/training-courses',
+  fallbackTitle: 'Training Courses',
+  labelResolver: getMenuLabel,
+} as const;
 
-export async function generateMetadata({ params }: TrainingCoursesPageProps) {
-  const { locale, content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, '/training-courses', 'Training Courses');
-
-  return buildPlaceholderPageMetadata({
-    locale,
-    path: '/training-courses',
-    title,
-  });
+export async function generateMetadata({ params }: LocaleRouteProps) {
+  return buildPlaceholderMetadataFromParams(
+    params,
+    TRAINING_COURSES_PLACEHOLDER_OPTIONS,
+  );
 }
 
 export default async function TrainingCoursesPage({
   params,
-}: TrainingCoursesPageProps) {
-  const { content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, '/training-courses', 'Training Courses');
+}: LocaleRouteProps) {
+  const title = await resolvePlaceholderPageTitle(
+    params,
+    TRAINING_COURSES_PLACEHOLDER_OPTIONS,
+  );
 
   return <EmptyPagePlaceholder title={title} />;
 }
