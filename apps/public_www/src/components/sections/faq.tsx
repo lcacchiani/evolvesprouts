@@ -6,15 +6,10 @@ import { useMemo, useState } from 'react';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface FaqProps {
   content: FaqContent;
-}
-
-interface FaqLabel {
-  id: string;
-  label: string;
 }
 
 interface FaqQuestion {
@@ -24,9 +19,9 @@ interface FaqQuestion {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
-const ACTIVE_TAB_BACKGROUND = '#C84A16';
-const ACTIVE_TAB_TEXT = '#FFFFFF';
-const INACTIVE_TAB_BACKGROUND = '#FFF4EC';
+const ACTIVE_TAB_BACKGROUND = '#F2A975';
+const ACTIVE_TAB_TEXT = '#333333';
+const INACTIVE_TAB_BACKGROUND = '#F7F2E1';
 const INACTIVE_TAB_TEXT = '#5A5A5A';
 
 const eyebrowStyle: CSSProperties = {
@@ -49,16 +44,16 @@ const questionStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
   fontWeight: 600,
-  lineHeight: '1.35',
-  fontSize: 'clamp(1.05rem, 1.75vw, 22px)',
+  lineHeight: '1.42',
+  fontSize: 'clamp(1.1rem, 1.7vw, 28px)',
 };
 
 const answerStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
+  color: '#4A4A4A',
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontWeight: 400,
   lineHeight: '1.6',
-  fontSize: 'clamp(1rem, 1.45vw, 19px)',
+  fontSize: 'clamp(1rem, 1.3vw, 20px)',
 };
 
 function normalizeQuery(value: string): string {
@@ -92,64 +87,48 @@ function getVisibleQuestions(
   });
 }
 
-function FaqChevronIcon() {
+function FaqLensIcon() {
   return (
     <svg
       aria-hidden='true'
-      viewBox='0 0 16 16'
-      className='h-4 w-4 shrink-0 transition-transform duration-300 group-open:rotate-180'
+      viewBox='0 0 20 20'
+      className='h-5 w-5 shrink-0'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
-      <path
-        d='M4 6L8 10L12 6'
-        stroke='rgba(51,51,51,0.9)'
-        strokeWidth='1.8'
+      <circle
+        cx='8.5'
+        cy='8.5'
+        r='5.8'
+        stroke='currentColor'
+        strokeWidth='1.9'
+      />
+      <line
+        x1='12.7'
+        y1='12.7'
+        x2='17.1'
+        y2='17.1'
+        stroke='currentColor'
+        strokeWidth='1.9'
         strokeLinecap='round'
-        strokeLinejoin='round'
       />
     </svg>
   );
 }
 
-function FaqItems({
-  items,
-  labelsById,
-}: {
-  items: FaqQuestion[];
-  labelsById: Map<string, FaqLabel>;
-}) {
+function FaqItems({ items }: { items: FaqQuestion[] }) {
   return (
-    <ul className='space-y-3'>
+    <ul className='grid grid-cols-1 gap-5 md:grid-cols-2'>
       {items.map((item, index) => (
-        <li key={`${item.question}-${index}`}>
-          <details className='group rounded-2xl border border-[#E9D2BF] bg-[#FFF9F4] px-5 py-4 sm:px-6'>
-            {item.labelIds.length > 0 && (
-              <ul className='mb-3 flex flex-wrap gap-1.5'>
-                {item.labelIds.map((labelId) => {
-                  const matchedLabel = labelsById.get(labelId);
-                  if (!matchedLabel) {
-                    return null;
-                  }
-
-                  return (
-                    <li key={`${item.question}-${labelId}`}>
-                      <span className='inline-flex rounded-full border border-[#E9D2BF] bg-white px-2.5 py-1 text-xs font-semibold text-[#5A5A5A]'>
-                        {matchedLabel.label}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            <summary className='flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden'>
-              <h3 style={questionStyle}>{item.question}</h3>
-              <FaqChevronIcon />
-            </summary>
-            <p className='mt-3 whitespace-pre-line' style={answerStyle}>
-              {item.answer}
-            </p>
-          </details>
+        <li key={`${item.question}-${index}`} className='h-full'>
+          <article className='flex h-full flex-col rounded-[24px] bg-[#F8F8F8] px-6 py-7 sm:px-8 sm:py-8'>
+            <h3 style={questionStyle}>{item.question}</h3>
+            <div className='mt-5 border-l-[4.1px] border-l-[#13522799] pl-5 sm:pl-6'>
+              <p className='whitespace-pre-line' style={answerStyle}>
+                {item.answer}
+              </p>
+            </div>
+          </article>
         </li>
       ))}
     </ul>
@@ -164,10 +143,6 @@ export function Faq({ content }: FaqProps) {
   const [searchValue, setSearchValue] = useState('');
 
   const normalizedQuery = normalizeQuery(searchValue);
-
-  const labelsById = useMemo(() => {
-    return new Map(labels.map((entry) => [entry.id, entry]));
-  }, [labels]);
 
   const visibleQuestions = useMemo(() => {
     return getVisibleQuestions(questions, activeLabelId, normalizedQuery);
@@ -193,21 +168,25 @@ export function Faq({ content }: FaqProps) {
           </h2>
         </div>
 
-        <div className='mx-auto mt-8 max-w-[980px] rounded-[18px] border border-[#E9D2BF] bg-[#FFF9F4] px-4 py-3 sm:px-5'>
-          <label htmlFor='faq-search' className='sr-only'>
-            {content.searchPlaceholder}
-          </label>
-          <input
-            id='faq-search'
-            type='text'
-            value={searchValue}
-            onChange={(event) => {
-              setSearchValue(event.target.value);
-            }}
-            placeholder={content.searchPlaceholder}
-            className='es-focus-ring w-full bg-transparent text-base outline-none'
-            style={answerStyle}
-          />
+        <div className='mx-auto mt-8 max-w-[980px] rounded-[58px] border border-[#EECAB0] bg-[#FFFDF8] px-4 py-[13px] sm:px-6 sm:py-4'>
+          <div className='relative'>
+            <label htmlFor='faq-search' className='sr-only'>
+              {content.searchPlaceholder}
+            </label>
+            <span className='pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[#333333]'>
+              <FaqLensIcon />
+            </span>
+            <input
+              id='faq-search'
+              type='text'
+              value={searchValue}
+              onChange={(event) => {
+                setSearchValue(event.target.value);
+              }}
+              placeholder={content.searchPlaceholder}
+              className='es-focus-ring w-full bg-transparent pl-8 text-[18px] font-semibold tracking-[0.5px] text-[#6A6A6A] outline-none placeholder:text-[#8A8A8A] sm:pl-9 sm:text-[22px]'
+            />
+          </div>
         </div>
 
         <div className='mt-6 overflow-x-auto pb-1 scrollbar-hide'>
@@ -222,7 +201,7 @@ export function Faq({ content }: FaqProps) {
                   onClick={() => {
                     setActiveLabelId(entry.id);
                   }}
-                  className='es-focus-ring rounded-full px-4 py-2.5 text-sm font-semibold sm:text-base'
+                  className='es-focus-ring rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
                   style={{
                     backgroundColor: isActive
                       ? ACTIVE_TAB_BACKGROUND
@@ -237,13 +216,13 @@ export function Faq({ content }: FaqProps) {
           </div>
         </div>
 
-        <div className='mt-6 space-y-5'>
+        <div className='mt-10'>
           {visibleQuestions.length === 0 ? (
             <p className='rounded-2xl border border-[#E9D2BF] bg-[#FFF9F4] px-5 py-6 text-center' style={answerStyle}>
               {content.emptySearchResultsLabel}
             </p>
           ) : (
-            <FaqItems items={visibleQuestions} labelsById={labelsById} />
+            <FaqItems items={visibleQuestions} />
           )}
         </div>
       </div>
