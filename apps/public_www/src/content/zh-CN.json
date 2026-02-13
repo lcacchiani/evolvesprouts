@@ -216,24 +216,45 @@
     "items": [
       {
         "icon": "live-training",
-        "title": "现场培训",
-        "description": "6 小时互动式小组实操学习，围绕真实家庭场景开展训练。",
-        "ctaLabel": "为什么选择我们",
+        "title": "现场实战训练",
+        "description": "通过真实幼儿场景的角色演练，帮助阿姨学会更平稳、清晰地处理日常挑战。",
+        "ctaLabel": "查看培训形式",
         "ctaHref": "/about-us"
       },
       {
         "icon": "auntie-review",
         "title": "课后阿姨复盘",
-        "description": "通过课后评估与反馈，持续优化技能并提升执行信心。",
-        "ctaLabel": "了解更多",
+        "description": "通过课后复盘和重点调整，持续优化执行方式，让照护节奏更稳定。",
+        "ctaLabel": "了解复盘流程",
         "ctaHref": "/contact-us"
       },
       {
         "icon": "workbook",
-        "title": "练习手册",
-        "description": "提供可直接使用的话术、流程与工具，帮助每日照护落地执行。",
-        "ctaLabel": "关于手册",
+        "title": "家庭流程练习手册",
+        "description": "提供可直接使用的清单、话术和日常流程模板，帮助阿姨快速上手。",
+        "ctaLabel": "预览教材",
         "ctaHref": "/resources"
+      },
+      {
+        "icon": "live-training",
+        "title": "居家环境设置指南",
+        "description": "一步步建立清晰的玩耍、睡眠和过渡区域，让孩子日常配合更顺畅。",
+        "ctaLabel": "查看环境建议",
+        "ctaHref": "/resources"
+      },
+      {
+        "icon": "workbook",
+        "title": "沟通话术工具包",
+        "description": "覆盖过渡时刻、边界设置与情绪引导的实用话术，帮助阿姨更有方向。",
+        "ctaLabel": "查看话术示例",
+        "ctaHref": "/resources"
+      },
+      {
+        "icon": "auntie-review",
+        "title": "信心强化教练支持",
+        "description": "通过短周期跟进，协助阿姨持续优化落地执行，让好习惯真正坚持。",
+        "ctaLabel": "咨询教练支持",
+        "ctaHref": "/contact-us"
       }
     ]
   },

@@ -1,4 +1,8 @@
+'use client';
+
 import type { CSSProperties } from 'react';
+import { useCallback, useRef } from 'react';
+import Image from 'next/image';
 
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
@@ -9,8 +13,24 @@ interface MyBestAuntieDescriptionProps {
   content: MyBestAuntieDescriptionContent;
 }
 
-const SECTION_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
+const SECTION_BACKGROUND = '#F8F8F8';
 const CARD_BACKGROUND = '#FFFFFF';
+const CARD_SHADOW =
+  '0 8px 8px rgba(50, 50, 71, 0.08), 0 8px 16px rgba(50, 50, 71, 0.06)';
+const CTA_COLOR = '#ED622E';
+const CARD_ICON_FALLBACK =
+  '/images/my-best-auntie-highlights/highlight-icon-live-training.png';
+const CONTROL_BG = '#FFFFFF';
+const CONTROL_ICON = '#3D3E3D';
+const CONTROL_SHADOW = '0 1px 14px rgba(0, 0, 0, 0.08)';
+
+const iconByKey: Record<string, string> = {
+  'live-training':
+    '/images/my-best-auntie-highlights/highlight-icon-live-training.png',
+  'auntie-review':
+    '/images/my-best-auntie-highlights/highlight-icon-auntie-review.png',
+  workbook: '/images/my-best-auntie-highlights/highlight-icon-workbook.png',
+};
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -27,43 +47,79 @@ const titleStyle: CSSProperties = {
   lineHeight: 1.15,
 };
 
+const cardTitleStyle: CSSProperties = {
+  color: HEADING_TEXT_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+  fontSize: '24px',
+  fontWeight: 600,
+  lineHeight: '30px',
+};
+
 const descriptionStyle: CSSProperties = {
   color: BODY_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  fontSize: '18px',
   fontWeight: 400,
-  lineHeight: 1.55,
+  lineHeight: '30px',
 };
 
-function cardTone(index: number): string {
-  if (index % 3 === 0) {
-    return '#FFF7F0';
-  }
+const ctaStyle: CSSProperties = {
+  color: CTA_COLOR,
+  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  fontSize: '18px',
+  fontWeight: 600,
+  lineHeight: 1,
+};
 
-  if (index % 3 === 1) {
-    return '#FFF3E7';
-  }
+function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+  const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
-  return '#FFF8F4';
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 24 24'
+      className={`h-7 w-7 ${rotationClass}`}
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <path
+        d='M8 4L16 12L8 20'
+        stroke={CONTROL_ICON}
+        strokeWidth='2.4'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  );
 }
 
-function iconSymbol(icon: string): string {
-  const normalized = icon.trim().toLowerCase();
-  if (normalized.includes('live')) {
-    return 'LT';
-  }
-  if (normalized.includes('review')) {
-    return 'AR';
-  }
-  if (normalized.includes('workbook')) {
-    return 'WB';
-  }
-
-  return 'ES';
+function readIconSrc(icon: string): string {
+  const normalizedKey = icon.trim().toLowerCase();
+  return iconByKey[normalizedKey] ?? CARD_ICON_FALLBACK;
 }
 
 export function MyBestAuntieDescription({
   content,
 }: MyBestAuntieDescriptionProps) {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const cards = content.items.slice(0, 6);
+  const hasMultipleCards = cards.length > 1;
+
+  const scrollCarousel = useCallback((direction: 'previous' | 'next') => {
+    const carouselElement = carouselRef.current;
+    if (!carouselElement) {
+      return;
+    }
+
+    const shiftBy = carouselElement.clientWidth;
+    const movement = direction === 'next' ? shiftBy : -shiftBy;
+
+    carouselElement.scrollBy({
+      left: movement,
+      behavior: 'smooth',
+    });
+  }, []);
+
   return (
     <SectionShell
       id='my-best-auntie-description'
@@ -77,7 +133,7 @@ export function MyBestAuntieDescription({
             label={content.eyebrow}
             labelStyle={eyebrowStyle}
             className='px-4 py-2.5 sm:px-5'
-            style={{ borderColor: '#EECAB0', backgroundColor: '#FFFFFF' }}
+            style={{ borderColor: '#EECAB0', backgroundColor: '#FFFDF9' }}
           />
           <h2
             className='mt-6 text-[clamp(2rem,5.6vw,3.2rem)]'
@@ -87,42 +143,85 @@ export function MyBestAuntieDescription({
           </h2>
         </div>
 
-        <ul className='mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3'>
-          {content.items.map((item, index) => (
-            <li key={`${item.title}-${index}`}>
-              <article
-                className='group h-full rounded-[24px] border border-[#E7D0BC] p-5 transition-transform duration-200 hover:-translate-y-1 sm:p-6'
-                style={{
-                  backgroundColor: CARD_BACKGROUND,
-                  boxShadow: '0 20px 45px -40px rgba(0, 0, 0, 0.4)',
-                }}
+        {hasMultipleCards && (
+          <div className='mt-8 flex justify-end gap-3'>
+            <button
+              type='button'
+              onClick={() => {
+                scrollCarousel('previous');
+              }}
+              aria-label='Previous highlight cards'
+              className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
+              style={{ backgroundColor: CONTROL_BG, boxShadow: CONTROL_SHADOW }}
+            >
+              <ArrowIcon direction='left' />
+            </button>
+            <button
+              type='button'
+              onClick={() => {
+                scrollCarousel('next');
+              }}
+              aria-label='Next highlight cards'
+              className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
+              style={{ backgroundColor: CONTROL_BG, boxShadow: CONTROL_SHADOW }}
+            >
+              <ArrowIcon direction='right' />
+            </button>
+          </div>
+        )}
+
+        <div
+          ref={carouselRef}
+          className='scrollbar-hide -mx-1 mt-6 overflow-x-auto px-1 pb-2 scroll-smooth'
+          role='region'
+          aria-label={`${content.title} slider`}
+        >
+          <ul className='flex gap-5 sm:gap-6'>
+            {cards.map((item, index) => (
+              <li
+                key={`${item.title}-${index}`}
+                className='w-[88%] shrink-0 sm:w-[48%] lg:w-[32%]'
               >
-                <div
-                  className='inline-flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold'
+                <article
+                  className='flex h-full min-h-[520px] flex-col rounded-[32px] p-6 sm:p-8'
                   style={{
-                    backgroundColor: cardTone(index),
-                    color: '#C84A16',
-                    border: '1px solid #EECAB0',
+                    backgroundColor: CARD_BACKGROUND,
+                    boxShadow: CARD_SHADOW,
                   }}
                 >
-                  {iconSymbol(item.icon)}
-                </div>
-                <h3 className='mt-4 text-[1.4rem] font-semibold text-[#333333]'>
-                  {item.title}
-                </h3>
-                <p className='mt-3 text-base text-[#4A4A4A]' style={descriptionStyle}>
-                  {item.description}
-                </p>
-                <a
-                  href={item.ctaHref}
-                  className='mt-5 inline-flex text-sm font-semibold text-[#C84A16] underline underline-offset-2'
-                >
-                  {item.ctaLabel}
-                </a>
-              </article>
-            </li>
-          ))}
-        </ul>
+                  <div className='inline-flex h-[100px] w-[100px] items-center justify-center rounded-full bg-[#F8F8F8]'>
+                    <Image
+                      src={readIconSrc(item.icon)}
+                      alt=''
+                      aria-hidden='true'
+                      width={50}
+                      height={50}
+                      className='h-[50px] w-[50px] object-contain'
+                    />
+                  </div>
+                  <h3 className='mt-6' style={cardTitleStyle}>
+                    {item.title}
+                  </h3>
+                  <p className='mt-3' style={descriptionStyle}>
+                    {item.description}
+                  </p>
+                  <div className='mt-auto pt-8'>
+                    <a
+                      href={item.ctaHref}
+                      className='inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] border px-6 text-center transition-colors duration-200 hover:bg-[#ED622E] hover:text-white'
+                      style={{
+                        ...ctaStyle,
+                        borderColor: CTA_COLOR,
+                      }}
+                    >
+                      {item.ctaLabel}
+                    </a>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </SectionShell>
   );
