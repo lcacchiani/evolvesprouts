@@ -13,7 +13,7 @@ const INDEXED_ROUTE_PATHS = [
   '/contact-us',
   '/newsletter',
   '/privacy',
-  '/services/my-best-auntie',
+  '/services/my-best-auntie-training-course',
   '/services/workshops',
 ] as const;
 

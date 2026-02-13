@@ -474,7 +474,8 @@ function LanguageSelectorButton({
         id={languageMenuId}
         role='menu'
         aria-label={languageSelector.menuAriaLabel}
-        className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[230px] space-y-1 rounded-xl bg-white p-2 shadow-xl transition ${isBorderlessMenu ? '' : 'border border-black/10'} ${isMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}
+        aria-hidden={!isMenuOpen}
+        className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[230px] space-y-1 rounded-xl bg-white p-2 shadow-xl transition-opacity duration-200 ease-out ${isBorderlessMenu ? '' : 'border border-black/10'} ${isMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
       >
         {languageSelector.options.map((option) => {
           const isCurrent = option.locale === currentLocale;
@@ -487,6 +488,7 @@ function LanguageSelectorButton({
                 onClick={() => {
                   setIsMenuOpen(false);
                 }}
+                tabIndex={isMenuOpen ? undefined : -1}
                 style={{
                   color: isCurrent ? NAV_ACTIVE_TEXT : NAV_TEXT_COLOR,
                   fontFamily:
@@ -570,6 +572,7 @@ interface SubmenuLinksProps {
   locale: Locale;
   onNavigate?: () => void;
   id?: string;
+  isOpen?: boolean;
 }
 
 function SubmenuLinks({
@@ -580,9 +583,14 @@ function SubmenuLinks({
   locale,
   onNavigate,
   id,
+  isOpen,
 }: SubmenuLinksProps) {
   return (
-    <ul id={id} className={listClassName}>
+    <ul
+      id={id}
+      className={listClassName}
+      aria-hidden={isOpen === false ? true : undefined}
+    >
       {items.map((item) => (
         <li key={item.label}>
           <Link
@@ -590,6 +598,7 @@ function SubmenuLinks({
             className={linkClassName}
             style={getSubmenuLinkStyle(isHrefActive(currentPath, item.href))}
             onClick={onNavigate}
+            tabIndex={isOpen === false ? -1 : undefined}
           >
             {item.label}
           </Link>
@@ -611,7 +620,7 @@ function DesktopMenuItem({
   const itemIsActive = isMenuItemActive(currentPath, item);
   const hasChildren = Boolean(item.children);
 
-  const [isSubmenuOpen, setIsSubmenuOpen] = useState(itemIsActive);
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
   const submenuListId = useId();
   const submenuWrapperRef = useRef<HTMLLIElement | null>(null);
 
@@ -662,7 +671,16 @@ function DesktopMenuItem({
   }
 
   return (
-    <li ref={submenuWrapperRef} className='relative'>
+    <li
+      ref={submenuWrapperRef}
+      className='relative'
+      onMouseEnter={() => {
+        setIsSubmenuOpen(true);
+      }}
+      onMouseLeave={() => {
+        setIsSubmenuOpen(false);
+      }}
+    >
       <button
         type='button'
         className={NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME}
@@ -690,7 +708,8 @@ function DesktopMenuItem({
           setIsSubmenuOpen(false);
         }}
         id={submenuListId}
-        listClassName={`absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition ${isSubmenuOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}
+        isOpen={isSubmenuOpen}
+        listClassName={`absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition-opacity duration-200 ease-out ${isSubmenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
         linkClassName={NAV_SUBMENU_LINK_CLASSNAME}
       />
     </li>
