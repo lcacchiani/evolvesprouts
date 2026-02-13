@@ -12,6 +12,8 @@ interface ConnectProps {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_SIZE = '900px auto';
 const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 const cardTitleStyle: CSSProperties = {
@@ -62,7 +64,14 @@ export function Connect({ content }: ConnectProps) {
       id='connect'
       ariaLabel={content.title}
       dataFigmaNode='connect'
-      style={{ backgroundColor: SECTION_BACKGROUND }}
+      className='relative isolate overflow-hidden bg-white'
+      style={{
+        backgroundColor: SECTION_BACKGROUND,
+        backgroundImage: SECTION_BACKGROUND_IMAGE,
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: SECTION_BACKGROUND_SIZE,
+      }}
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[840px] text-center'>
