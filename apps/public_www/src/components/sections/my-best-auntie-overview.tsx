@@ -384,11 +384,11 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                   gradientUnits='userSpaceOnUse'
                   x1='16.67'
                   y1='5'
-                  x2='105'
+                  x2='97'
                   y2='5'
                 >
                   <stop offset='0%' stopColor={HEADING_COLOR} />
-                  <stop offset='76%' stopColor={HEADING_COLOR} />
+                  <stop offset='83%' stopColor={HEADING_COLOR} />
                   <stop
                     offset='100%'
                     stopColor={HEADING_COLOR}
@@ -397,7 +397,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 </linearGradient>
               </defs>
               <path
-                d='M16.67,5 C22,7 28,9 33.33,9 S44.5,7 50,5 S61,1 66.67,1 S78,3 83.33,5 S100,9 105,9'
+                d='M16.67,5 C22,7 28,9 33.33,9 S44.5,7 50,5 S61,1 66.67,1 S78,3 83.33,5 S93,8 97,8'
                 stroke='url(#wave-fade-lg)'
                 strokeWidth='3.5'
                 strokeLinecap='round'
@@ -439,11 +439,11 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                         gradientUnits='userSpaceOnUse'
                         x1='16.67'
                         y1='5'
-                        x2='105'
+                        x2='97'
                         y2='5'
                       >
                         <stop offset='0%' stopColor={HEADING_COLOR} />
-                        <stop offset='76%' stopColor={HEADING_COLOR} />
+                        <stop offset='83%' stopColor={HEADING_COLOR} />
                         <stop
                           offset='100%'
                           stopColor={HEADING_COLOR}
@@ -452,7 +452,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                       </linearGradient>
                     </defs>
                     <path
-                      d='M16.67,5 C22,7 28,9 33.33,9 S44.5,7 50,5 S61,1 66.67,1 S78,3 83.33,5 S100,9 105,9'
+                      d='M16.67,5 C22,7 28,9 33.33,9 S44.5,7 50,5 S61,1 66.67,1 S78,3 83.33,5 S93,8 97,8'
                       stroke='url(#wave-fade-sm)'
                       strokeWidth='3.5'
                       strokeLinecap='round'
