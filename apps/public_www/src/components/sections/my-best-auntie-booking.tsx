@@ -187,8 +187,8 @@ export function MyBestAuntieBooking({
                           <Image
                             src={
                               isSelected
-                                ? '/images/my-best-auntie-booking/calendar-orange.png'
-                                : '/images/my-best-auntie-booking/calendar-dark.png'
+                                ? '/images/calendar-orange.png'
+                                : '/images/calendar-dark.png'
                             }
                             alt=''
                             width={24}
