@@ -11,8 +11,8 @@ interface DeferredTestimonialsProps {
 }
 
 const PRELOAD_ROOT_MARGIN = '500px 0px';
-const TREE_TOP_BACKGROUND = 'url("/images/tree-background.png")';
-const TREE_TOP_BACKGROUND_SIZE = '900px auto';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_SIZE = '900px auto';
 
 const LazyTestimonials = dynamic(
   () =>
@@ -75,10 +75,10 @@ export function DeferredTestimonials({ content }: DeferredTestimonialsProps) {
           dataFigmaNode='Testimonials'
           className='relative isolate overflow-hidden bg-white'
           style={{
-            backgroundImage: TREE_TOP_BACKGROUND,
+            backgroundImage: SECTION_BACKGROUND_IMAGE,
             backgroundPosition: 'center top',
             backgroundRepeat: 'no-repeat',
-            backgroundSize: TREE_TOP_BACKGROUND_SIZE,
+            backgroundSize: SECTION_BACKGROUND_SIZE,
           }}
         >
           <div className='mx-auto w-full max-w-[1488px]'>

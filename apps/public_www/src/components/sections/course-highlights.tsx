@@ -31,8 +31,8 @@ interface BenefitCardMeta {
 }
 
 const SECTION_BG = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const TREE_TOP_BACKGROUND = 'url("/images/tree-background.png")';
-const TREE_TOP_BACKGROUND_SIZE = '1000px auto';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_SIZE = '1000px auto';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const GOLD_CARD = '#9E6D12';
@@ -222,10 +222,10 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
       className='relative isolate overflow-hidden'
       style={{
         backgroundColor: SECTION_BG,
-        backgroundImage: TREE_TOP_BACKGROUND,
+        backgroundImage: SECTION_BACKGROUND_IMAGE,
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
-        backgroundSize: TREE_TOP_BACKGROUND_SIZE,
+        backgroundSize: SECTION_BACKGROUND_SIZE,
       }}
     >
       <div

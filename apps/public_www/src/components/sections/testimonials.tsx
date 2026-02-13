@@ -40,8 +40,8 @@ const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 const SWIPE_THRESHOLD_PX = 48;
 const QUOTE_ICON_SRC = '/images/orange-quote.png';
-const TREE_TOP_BACKGROUND = 'url("/images/tree-background.png")';
-const TREE_TOP_BACKGROUND_SIZE = '900px auto';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_SIZE = '900px auto';
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
 
@@ -299,10 +299,10 @@ export function Testimonials({ content }: TestimonialsProps) {
       dataFigmaNode='Testimonials'
       className='relative isolate overflow-hidden bg-white'
       style={{
-        backgroundImage: TREE_TOP_BACKGROUND,
+        backgroundImage: SECTION_BACKGROUND_IMAGE,
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
-        backgroundSize: TREE_TOP_BACKGROUND_SIZE,
+        backgroundSize: SECTION_BACKGROUND_SIZE,
       }}
     >
       <div className='relative mx-auto w-full max-w-[1488px]'>
