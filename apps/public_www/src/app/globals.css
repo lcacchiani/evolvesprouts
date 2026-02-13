@@ -138,6 +138,7 @@
     border-radius: 58.73px;
     padding-left: 17px;
     padding-right: 17px;
+    transition: background-color 150ms ease, color 150ms ease;
   }
 
   .es-nav-submenu-link {
@@ -149,6 +150,25 @@
     border-radius: 6px;
     padding-left: 12px;
     padding-right: 12px;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  @media (hover: hover) {
+    .es-nav-pill:hover {
+      background-color: #F2A975 !important;
+      color: var(
+        --figma-colors-join-our-sprouts-squad-community,
+        #333333
+      ) !important;
+    }
+
+    .es-nav-submenu-link:hover {
+      background-color: #F2A975 !important;
+      color: var(
+        --figma-colors-join-our-sprouts-squad-community,
+        #333333
+      ) !important;
+    }
   }
 
   .es-nav-language-option {
