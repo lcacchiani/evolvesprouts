@@ -115,13 +115,12 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
     >
       <div className='mx-auto grid w-full max-w-[1465px] gap-10 lg:grid-cols-2 lg:gap-9'>
         <section
-          className='relative flex h-full items-center overflow-hidden rounded-[28px] border border-[#E7D1BF] px-6 py-8 sm:px-8 lg:px-10'
+          className='relative flex h-full items-center overflow-hidden px-6 py-8 sm:px-8 lg:px-10'
           style={{
             backgroundImage: LEFT_PANEL_BACKGROUND_IMAGE,
             backgroundPosition: 'left center',
             backgroundRepeat: 'no-repeat',
             backgroundSize: 'contain',
-            backgroundColor: '#FFF7F0',
           }}
         >
           <div className='space-y-6'>
