@@ -302,6 +302,199 @@
       "fullyBookedLabel": "Fully booked"
     }
   },
+  "ida": {
+    "title": "Hello, fellow parents!",
+    "subtitle": "My name is Ida, founder of Evolve Sprouts-and above all, a mum navigating the same joys and challenges you are.",
+    "description": "I am a mother to two bright sparks: Mia, my spirited 5-year-old, and Eva, our miracle.",
+    "ctaLabel": "Let's connect!",
+    "ctaHref": "/contact-us"
+  },
+  "myHistory": {
+    "eyebrow": "My History",
+    "title": "A Brief History: From Passion to Purpose",
+    "subtitle": "Like many of you, my path has not been linear.",
+    "description": "I started my career in media and communication, working in hospitality across the UK and Hong Kong. Four years ago, I made a leap of faith and left my corporate role to pursue my deepest passion: reimagining education."
+  },
+  "myJourney": {
+    "eyebrow": "My Journey",
+    "title": "My Montessori Journey: A Parent's Transformation",
+    "cards": [
+      {
+        "tag": "Humans Capable",
+        "description": "Seeing my children blossom into curious, confident little humans-capable of pouring their own water, resolving conflicts with kindness, and embracing mistakes as part of learning-opened my eyes. But this journey was not without struggles."
+      },
+      {
+        "tag": "Montessori",
+        "description": "My true Montessori journey began at home. As a mother to Mia and Eva, I witnessed something extraordinary: respect, independence, and child-led learning did not just shape their growth-they transformed mine."
+      }
+    ]
+  },
+  "whyUs": {
+    "eyebrow": "Why Us",
+    "title": "Why Evolve Sprouts Exists: You're Not Alone",
+    "introTitle": "But here's what I learned:",
+    "introItems": [
+      "Doing things differently is hard.",
+      "It is hard to drown out the noise of comparison.",
+      "It is hard to trust your instincts when the world says: Hurry up.",
+      "It is hard to create calm in Hong Kong's relentless pace."
+    ],
+    "communityText": "That is why Evolve Sprouts is not just about workshops-it is about building a community for parents like you and me.",
+    "pillars": [
+      {
+        "title": "Training Course for your Auntie",
+        "description": "Ensure your children grow up with your values and principles by training your auntie with our specialised course for Hong Kong families."
+      },
+      {
+        "title": "Practical Tools",
+        "description": "From small-space Montessori setups to real-life scripts for difficult moments, you will leave with clear actions you can apply immediately."
+      },
+      {
+        "title": "Emotional Support",
+        "description": "A safe and non-judgmental space to share struggles, ask questions, and feel seen."
+      },
+      {
+        "title": "Shared Learning",
+        "description": "Stories and strategies from families walking this same path-messy moments and all."
+      }
+    ]
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Everything You Need to Know",
+    "searchPlaceholder": "Ask a question",
+    "emptySearchResultsLabel": "No matching questions found. Please try another keyword.",
+    "labels": [
+      { "id": "general", "label": "General Questions" },
+      { "id": "discipline", "label": "Montessori Discipline" },
+      { "id": "support", "label": "Support & Resources" },
+      { "id": "pricing", "label": "Packages & Pricing" },
+      { "id": "trust", "label": "Trust & Guarantees" },
+      { "id": "enrolment", "label": "Enrolment" }
+    ],
+    "questions": [
+      {
+        "question": "We live in a small apartment. Will this still work?",
+        "answer": "Yes. Most Hong Kong families do, and so do I. We specialise in small-space Montessori setups, shared rooms, and practical routines that do not require expensive materials or furniture.",
+        "labelIds": ["general"]
+      },
+      {
+        "question": "Do I need to follow Montessori perfectly to work with you?",
+        "answer": "No. This is Montessori-informed, not Montessori-dogmatic. We focus on principles that improve daily life: independence, respect, consistency, and emotional regulation-adapted to modern Hong Kong homes and caregiving realities.",
+        "labelIds": ["general"]
+      },
+      {
+        "question": "Who is Evolve Sprouts for?",
+        "answer": "Evolve Sprouts supports families in Hong Kong with children aged 0-6, especially those working with helpers or navigating busy city life.",
+        "labelIds": ["general"]
+      },
+      {
+        "question": "How is Montessori relevant for infants and toddlers at home?",
+        "answer": "Montessori is not just for classrooms. We teach aunties to create child-friendly home environments and practical routines that build independence from infancy.",
+        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+      },
+      {
+        "question": "What is the difference between positive discipline and regular discipline?",
+        "answer": "Traditional discipline often relies on rewards and punishments. Positive discipline focuses on understanding behaviour, setting clear boundaries, and coaching children toward self-regulation.",
+        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+      },
+      {
+        "question": "Are these strategies culturally appropriate for Hong Kong families?",
+        "answer": "Yes. We adapt Montessori principles to local lifestyles, including small homes, busy schedules, and helper-supported caregiving.",
+        "labelIds": ["general"]
+      },
+      {
+        "question": "Will this make my child too soft or less competitive?",
+        "answer": "Children raised with independence, emotional regulation, and responsibility often become more confident, focused, and resilient-not less capable.",
+        "labelIds": ["discipline"]
+      },
+      {
+        "question": "My child has tantrums, hits, or refuses to listen. Can Montessori help?",
+        "answer": "Yes, but not with quick fixes. We review environment, adult responses, routines, and developmental expectations, then give practical steps you can apply consistently.",
+        "labelIds": ["discipline"]
+      },
+      {
+        "question": "Does Montessori mean no discipline or letting children do anything?",
+        "answer": "No. Montessori discipline means clear limits, consistent routines, and calm leadership. Children thrive when freedom is paired with structure.",
+        "labelIds": ["discipline"]
+      },
+      {
+        "question": "Will I get practical tools or just theory?",
+        "answer": "You will get practical tools, including routines, behaviour scripts, environment checklists, and reflection sheets. We always turn principles into action.",
+        "labelIds": ["support"]
+      },
+      {
+        "question": "What if parents and helpers disagree on discipline?",
+        "answer": "This is very common. We align adults first so children receive consistent messages, expectations, and routines.",
+        "labelIds": ["support"]
+      },
+      {
+        "question": "My helper does not speak English fluently. Is that a problem?",
+        "answer": "No. Our method uses clear language, repetition, demonstrations, and visual guidance. The goal is understanding and consistency.",
+        "labelIds": ["support"]
+      },
+      {
+        "question": "Do you work directly with helpers?",
+        "answer": "Yes. We provide helper-friendly coaching, practical scripts, and routines aligned with family values.",
+        "labelIds": ["support"]
+      },
+      {
+        "question": "What services do you offer?",
+        "answer": "We offer consultation sessions, auntie training, home setup guidance, and parent support services tailored for families in Hong Kong.",
+        "labelIds": ["pricing"]
+      },
+      {
+        "question": "Do you offer packages or bundles?",
+        "answer": "Yes. Some families choose bundled support for deeper change. We recommend options after understanding your family needs.",
+        "labelIds": ["pricing"]
+      },
+      {
+        "question": "Why is this priced higher than a one-off parenting talk?",
+        "answer": "Because this is personalised and implementation-focused. You are paying for real-life observation, tailored guidance, and ongoing support-not just motivation.",
+        "labelIds": ["pricing"]
+      },
+      {
+        "question": "Is this just a one-time session or ongoing support?",
+        "answer": "Both options are available. Some families need a reset plan, while others benefit from longer support as children grow.",
+        "labelIds": ["pricing"]
+      },
+      {
+        "question": "Do you guarantee results?",
+        "answer": "Children are not machines, so no ethical professional guarantees instant perfection. What we do guarantee is clear guidance, practical strategy, and honest support.",
+        "labelIds": ["trust"]
+      },
+      {
+        "question": "Is this backed by evidence?",
+        "answer": "Our work is informed by Montessori principles, child development research, and years of practical application with Hong Kong families and helpers.",
+        "labelIds": ["trust"]
+      },
+      {
+        "question": "What makes Evolve Sprouts different from other parenting coaches?",
+        "answer": "We combine Montessori-informed guidance with deep understanding of Hong Kong family-helper dynamics. Our approach is practical, respectful, and non-judgmental.",
+        "labelIds": ["trust"]
+      },
+      {
+        "question": "Is this suitable for international families in Hong Kong?",
+        "answer": "Yes. We regularly support multicultural families navigating different expectations around discipline, education, and caregiving.",
+        "labelIds": ["enrolment"]
+      },
+      {
+        "question": "What if I am not sure which service I need?",
+        "answer": "That is normal. Reach out and we will help you choose the best starting point with no pressure.",
+        "labelIds": ["enrolment"]
+      },
+      {
+        "question": "How do I get started?",
+        "answer": "Start with a consultation or contact us directly. We will guide you to the most suitable service for your family.",
+        "labelIds": ["enrolment"]
+      },
+      {
+        "question": "Have not found what you need?",
+        "answer": "Get in touch-we are happy to help. Contact us through the Contact Us page.",
+        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+      }
+    ]
+  },
   "sproutsSquadCommunity": {
     "heading": "Join our Sprouts Squad community!",
     "ctaLabel": "Sign Up to Our Monthly Newsletter",

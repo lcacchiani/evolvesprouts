@@ -1,9 +1,9 @@
-import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
+import { AboutUs } from '@/components/about-us';
 import {
-  buildPlaceholderPageMetadata,
   getMenuLabel,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { buildLocalizedMetadata } from '@/lib/seo';
 
 interface AboutUsPageProps {
   params: Promise<{ locale: string }>;
@@ -12,17 +12,18 @@ interface AboutUsPageProps {
 export async function generateMetadata({ params }: AboutUsPageProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const title = getMenuLabel(content, '/about-us', 'About Us');
+  const description = content.ida.subtitle;
 
-  return buildPlaceholderPageMetadata({
+  return buildLocalizedMetadata({
     locale,
     path: '/about-us',
     title,
+    description,
   });
 }
 
 export default async function AboutUsPage({ params }: AboutUsPageProps) {
   const { content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, '/about-us', 'About Us');
 
-  return <EmptyPagePlaceholder title={title} />;
+  return <AboutUs content={content} />;
 }
