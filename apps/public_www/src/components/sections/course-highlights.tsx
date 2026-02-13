@@ -223,9 +223,10 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
       style={{
         backgroundColor: SECTION_BG,
         backgroundImage: SECTION_BACKGROUND_IMAGE,
-        backgroundPosition: 'center top',
+        backgroundPosition: 'center -400px',
         backgroundRepeat: 'no-repeat',
         backgroundSize: SECTION_BACKGROUND_SIZE,
+        backgroundBlendMode: 'difference',
       }}
     >
       <div
