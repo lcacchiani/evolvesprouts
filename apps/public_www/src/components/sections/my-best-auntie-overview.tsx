@@ -262,7 +262,7 @@ function MyBestAuntieOverviewCard({
 
   return (
     <article
-      className='group relative flex min-h-[450px] flex-col overflow-hidden rounded-[32px] border border-black/5 px-4 pb-6 pt-6 sm:min-h-[520px] sm:px-6 lg:min-h-[560px]'
+      className='group relative flex min-h-[450px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:min-h-[520px] sm:px-6 lg:min-h-[560px]'
       style={{ background: tone.cardBackground }}
     >
       <div
@@ -354,25 +354,6 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
         </div>
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>
-          <div
-            aria-hidden='true'
-            className='pointer-events-none absolute left-2 right-2 top-[58%] hidden lg:block'
-          >
-            <svg
-              viewBox='0 0 1320 36'
-              className='h-10 w-full'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-              preserveAspectRatio='none'
-            >
-              <path
-                d='M0 18C110 0 220 0 330 18C440 36 550 36 660 18C770 0 880 0 990 18C1100 36 1210 36 1320 18'
-                stroke='rgba(51, 51, 51, 0.35)'
-                strokeWidth='2'
-                strokeLinecap='round'
-              />
-            </svg>
-          </div>
           <ul className='hidden gap-6 lg:grid lg:grid-cols-3'>
             {moduleSteps.map((module, index) => (
               <li key={module.step}>
@@ -384,6 +365,53 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
               </li>
             ))}
           </ul>
+          <div
+            aria-hidden='true'
+            className='pointer-events-none absolute bottom-[109px] left-0 right-0 z-10 hidden lg:block'
+          >
+            <svg
+              viewBox='0 0 100 10'
+              className='h-10 w-full'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+              preserveAspectRatio='none'
+            >
+              <defs>
+                <linearGradient
+                  id='wave-connector-fade'
+                  gradientUnits='userSpaceOnUse'
+                  x1='0'
+                  y1='5'
+                  x2='100'
+                  y2='5'
+                >
+                  <stop offset='0%' stopColor='#333333' stopOpacity='0' />
+                  <stop
+                    offset='3%'
+                    stopColor='#333333'
+                    stopOpacity='0.28'
+                  />
+                  <stop
+                    offset='85%'
+                    stopColor='#333333'
+                    stopOpacity='0.28'
+                  />
+                  <stop
+                    offset='100%'
+                    stopColor='#333333'
+                    stopOpacity='0'
+                  />
+                </linearGradient>
+              </defs>
+              <path
+                d='M0,3 C5,3 12,4.4 16.67,5 S28,7 33.33,7 S44,5 50,5 S61,3 66.67,3 S78,5 83.33,5 S95,7 105,7'
+                stroke='url(#wave-connector-fade)'
+                strokeWidth='2'
+                strokeLinecap='round'
+                vectorEffect='non-scaling-stroke'
+              />
+            </svg>
+          </div>
           <div className='lg:hidden'>
             <ul className='scrollbar-hide -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2'>
               {moduleSteps.map((module, index) => (
