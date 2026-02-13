@@ -33,19 +33,19 @@
           "locale": "en",
           "label": "英文",
           "shortLabel": "EN",
-          "flagSrc": "/flags/gb.png"
+          "flagSrc": "/images/flags/gb.png"
         },
         {
           "locale": "zh-CN",
           "label": "簡體中文",
           "shortLabel": "簡",
-          "flagSrc": "/flags/cn.png"
+          "flagSrc": "/images/flags/cn.png"
         },
         {
           "locale": "zh-HK",
           "label": "繁體中文",
           "shortLabel": "繁",
-          "flagSrc": "/flags/hk.png"
+          "flagSrc": "/images/flags/hk.png"
         }
       ]
     }
