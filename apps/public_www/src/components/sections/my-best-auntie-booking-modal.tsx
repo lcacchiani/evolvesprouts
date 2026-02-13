@@ -219,11 +219,19 @@ export function MyBestAuntieBookingModal({
   }, [discountRule, selectedPackage?.price]);
 
   const activePartRows = useMemo(() => {
-    return content.parts.map((part) => ({
-      label: part.label,
-      date: part.dateByMonth[selectedMonth?.id ?? ''] ?? '',
-      description: part.description,
-    }));
+    const activeMonthId = selectedMonth?.id ?? '';
+
+    return content.parts.map((part) => {
+      const matchedDateEntry = Object.entries(part.dateByMonth).find(
+        ([monthId]) => monthId === activeMonthId,
+      );
+
+      return {
+        label: part.label,
+        date: matchedDateEntry?.[1] ?? '',
+        description: part.description,
+      };
+    });
   }, [content.parts, selectedMonth?.id]);
 
   function handleApplyDiscount() {
