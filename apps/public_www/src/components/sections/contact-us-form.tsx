@@ -115,7 +115,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
     >
       <div className='mx-auto grid w-full max-w-[1465px] gap-10 lg:grid-cols-2 lg:gap-9'>
         <section
-          className='relative flex h-full items-center overflow-hidden px-6 py-8 sm:px-8 lg:px-10'
+          className='relative flex h-full items-start overflow-hidden px-6 py-8 sm:px-8 lg:px-10 lg:pt-[25%]'
           style={{
             backgroundImage: LEFT_PANEL_BACKGROUND_IMAGE,
             backgroundPosition: 'left center',
@@ -133,17 +133,17 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
 
         <section
           id='contact-form'
-          className='relative overflow-hidden rounded-[28px] border border-[#E7D1BF] p-5 shadow-[0_28px_60px_-45px_rgba(17,17,17,0.58)] sm:p-7 lg:p-8'
+          className='relative overflow-visible rounded-[28px] border border-[#E7D1BF] p-5 shadow-[0_28px_60px_-45px_rgba(17,17,17,0.58)] sm:p-7 lg:p-8'
           style={{ background: FORM_PANEL_BACKGROUND }}
         >
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute left-[58px] top-0 h-[30px] w-[36px] bg-contain bg-center bg-no-repeat'
+            className='pointer-events-none absolute left-[58px] top-0 z-20 h-[30px] w-[36px] -translate-y-1/2 bg-contain bg-center bg-no-repeat'
             style={{ backgroundImage: FORM_DECORATIVE_GREEN_WEDGE }}
           />
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute right-0 top-[130px] h-[36px] w-[33px] translate-x-[-8px] bg-contain bg-center bg-no-repeat sm:translate-x-[10px]'
+            className='pointer-events-none absolute right-0 top-[130px] z-20 h-[36px] w-[33px] translate-x-1/2 bg-contain bg-center bg-no-repeat'
             style={{ backgroundImage: FORM_DECORATIVE_BLUE_LINE }}
           />
 
