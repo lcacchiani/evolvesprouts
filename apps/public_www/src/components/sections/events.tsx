@@ -244,10 +244,10 @@ function resolveRuntimeEventsApiUrl(configuredApiUrl: string): string {
     const isWebsiteHost = window.location.hostname.endsWith('evolvesprouts.com');
     const isPrimaryApiHost = resolvedUrl.hostname === 'api.evolvesprouts.com';
 
-    // Public WWW is statically hosted; avoid browser cross-origin CORS errors
-    // by using same-origin URL paths for known API hostnames.
+    // Public WWW is statically hosted; route known API hostnames through
+    // same-origin /api/* CloudFront proxy behavior.
     if (isWebsiteHost && isPrimaryApiHost) {
-      return `${resolvedUrl.pathname}${resolvedUrl.search}`;
+      return `/api${resolvedUrl.pathname}${resolvedUrl.search}`;
     }
   } catch {
     return configuredApiUrl;
