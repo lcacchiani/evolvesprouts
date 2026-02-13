@@ -374,7 +374,6 @@
       "phoneLabel": "電話號碼",
       "messageLabel": "你的留言",
       "messagePlaceholder": "你的留言",
-      "messageMaxLength": 180,
       "submitLabel": "送出留言！",
       "subject": "網站聯絡表單",
       "requiredHint": "* 必填欄位"
