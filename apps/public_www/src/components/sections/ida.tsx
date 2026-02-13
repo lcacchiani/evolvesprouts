@@ -52,8 +52,20 @@ export function Ida({ content }: IdaProps) {
       style={{ backgroundColor: SECTION_BACKGROUND }}
       className='overflow-hidden'
     >
-      <div className='mx-auto grid w-full max-w-[1465px] items-center gap-7 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10'>
-        <div className='order-2 lg:order-1'>
+      <div className='mx-auto grid w-full max-w-[1465px] items-center gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-10'>
+        <div className='mx-auto w-full max-w-[680px]'>
+          <Image
+            src='/images/about-us/ida-degregorio-evolvesprouts.webp'
+            alt='Ida DeGregorio from Evolve Sprouts'
+            width={1112}
+            height={840}
+            sizes='(min-width: 1024px) 45vw, 100vw'
+            priority
+            className='h-auto w-full'
+          />
+        </div>
+
+        <div>
           <h1 style={titleStyle}>{content.title}</h1>
           <p className='mt-4 max-w-[760px]' style={subtitleStyle}>
             {content.subtitle}
@@ -68,38 +80,6 @@ export function Ida({ content }: IdaProps) {
           >
             {content.ctaLabel}
           </SectionCtaAnchor>
-        </div>
-
-        <div className='order-1 lg:order-2'>
-          <div className='relative isolate mx-auto min-h-[320px] max-w-[680px] overflow-hidden rounded-[34px] border border-[#F2D8C4] bg-[linear-gradient(170deg,#FFEBDD_0%,#FFF8F2_100%)] p-5 sm:min-h-[380px] sm:p-6 lg:min-h-[430px] lg:p-8'>
-            <div
-              aria-hidden='true'
-              className='absolute -left-20 -top-20 h-48 w-48 rounded-full bg-[#F1BD99]/45 blur-3xl'
-            />
-            <div
-              aria-hidden='true'
-              className='absolute -bottom-16 -right-12 h-56 w-56 rounded-full bg-[#A8D6A2]/40 blur-3xl'
-            />
-
-            <div className='relative z-10 flex h-full flex-col justify-between'>
-              <div className='flex items-center justify-between'>
-                <div className='h-9 w-40 rounded-full border border-[#EECAB0] bg-white/80' />
-                <Image
-                  src='/images/evolvesprouts-logo.svg'
-                  alt=''
-                  width={52}
-                  height={52}
-                  className='h-[52px] w-[52px] rounded-full bg-white p-1'
-                />
-              </div>
-
-              <div className='grid gap-3 sm:grid-cols-3'>
-                <div className='h-20 rounded-2xl bg-white/85 shadow-[0_14px_32px_-26px_rgba(0,0,0,0.55)]' />
-                <div className='h-20 rounded-2xl bg-white/85 shadow-[0_14px_32px_-26px_rgba(0,0,0,0.55)]' />
-                <div className='h-20 rounded-2xl bg-white/85 shadow-[0_14px_32px_-26px_rgba(0,0,0,0.55)]' />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </SectionShell>
