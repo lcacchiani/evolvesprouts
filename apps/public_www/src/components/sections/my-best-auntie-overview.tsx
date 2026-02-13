@@ -354,6 +354,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
         </div>
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>
+          {/* Desktop / tablet grid (md+) */}
           <ul className='hidden gap-6 md:grid md:grid-cols-3'>
             {moduleSteps.map((module, index) => (
               <li key={module.step}>
@@ -365,9 +366,10 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
               </li>
             ))}
           </ul>
+          {/* Wave connector — desktop (static overlay on the grid) */}
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute bottom-[97px] left-0 right-0 z-10 md:bottom-[89px]'
+            className='pointer-events-none absolute bottom-[89px] left-0 right-0 z-10 hidden md:block'
           >
             <svg
               viewBox='0 0 100 10'
@@ -378,23 +380,15 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
             >
               <defs>
                 <linearGradient
-                  id='wave-connector-fade'
+                  id='wave-fade-lg'
                   gradientUnits='userSpaceOnUse'
                   x1='16.67'
                   y1='5'
                   x2='105'
                   y2='5'
                 >
-                  <stop
-                    offset='0%'
-                    stopColor={HEADING_COLOR}
-                    stopOpacity='0.35'
-                  />
-                  <stop
-                    offset='76%'
-                    stopColor={HEADING_COLOR}
-                    stopOpacity='0.35'
-                  />
+                  <stop offset='0%' stopColor={HEADING_COLOR} />
+                  <stop offset='76%' stopColor={HEADING_COLOR} />
                   <stop
                     offset='100%'
                     stopColor={HEADING_COLOR}
@@ -403,29 +397,71 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 </linearGradient>
               </defs>
               <path
-                d='M16.67,5 C22,5 25,9 33.33,9 S44,5 50,5 S58,1 66.67,1 S78,5 83.33,5 S92,9 105,9'
-                stroke='url(#wave-connector-fade)'
+                d='M16.67,5 C22,7 28,9 33.33,9 S44.5,7 50,5 S61,1 66.67,1 S78,3 83.33,5 S100,9 105,9'
+                stroke='url(#wave-fade-lg)'
                 strokeWidth='3.5'
                 strokeLinecap='round'
                 vectorEffect='non-scaling-stroke'
               />
             </svg>
           </div>
-          <div className='md:hidden'>
-            <ul className='scrollbar-hide -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2'>
-              {moduleSteps.map((module, index) => (
+          {/* Mobile carousel (< md) with wave scrolling alongside cards */}
+          <div className='-mx-1 md:hidden'>
+            <div className='scrollbar-hide snap-x snap-mandatory overflow-x-auto px-1 pb-2'>
+              <ul className='relative inline-flex gap-4'>
+                {moduleSteps.map((module, index) => (
+                  <li
+                    key={module.step}
+                    className='w-[80vw] shrink-0 snap-center sm:w-[66vw]'
+                  >
+                    <MyBestAuntieOverviewCard
+                      module={module}
+                      index={index}
+                      showFullActivity
+                    />
+                  </li>
+                ))}
+                {/* Wave connector — mobile (scrolls with the cards) */}
                 <li
-                  key={module.step}
-                  className='w-[88%] shrink-0 snap-center sm:w-[72%]'
+                  aria-hidden='true'
+                  className='pointer-events-none absolute bottom-[89px] left-0 right-0 z-10'
                 >
-                  <MyBestAuntieOverviewCard
-                    module={module}
-                    index={index}
-                    showFullActivity
-                  />
+                  <svg
+                    viewBox='0 0 100 10'
+                    className='h-20 w-full'
+                    fill='none'
+                    xmlns='http://www.w3.org/2000/svg'
+                    preserveAspectRatio='none'
+                  >
+                    <defs>
+                      <linearGradient
+                        id='wave-fade-sm'
+                        gradientUnits='userSpaceOnUse'
+                        x1='16.67'
+                        y1='5'
+                        x2='105'
+                        y2='5'
+                      >
+                        <stop offset='0%' stopColor={HEADING_COLOR} />
+                        <stop offset='76%' stopColor={HEADING_COLOR} />
+                        <stop
+                          offset='100%'
+                          stopColor={HEADING_COLOR}
+                          stopOpacity='0'
+                        />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d='M16.67,5 C22,7 28,9 33.33,9 S44.5,7 50,5 S61,1 66.67,1 S78,3 83.33,5 S100,9 105,9'
+                      stroke='url(#wave-fade-sm)'
+                      strokeWidth='3.5'
+                      strokeLinecap='round'
+                      vectorEffect='non-scaling-stroke'
+                    />
+                  </svg>
                 </li>
-              ))}
-            </ul>
+              </ul>
+            </div>
           </div>
         </div>
 
