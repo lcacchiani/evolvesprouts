@@ -1,35 +1,12 @@
-import { MyBestAuntie } from '@/components/my-best-auntie';
-import {
-  getFooterLinkLabel,
-  resolveLocalePageContext,
-} from '@/lib/locale-page';
-import { buildLocalizedMetadata } from '@/lib/seo';
+import { redirect } from 'next/navigation';
 
-interface MyBestAuntiePageProps {
+interface LegacyMyBestAuntiePageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata({ params }: MyBestAuntiePageProps) {
-  const { locale, content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(
-    content,
-    '/services/my-best-auntie',
-    'My Best Auntie',
-  );
-  const description = content.myBestAuntieBooking.description;
-
-  return buildLocalizedMetadata({
-    locale,
-    path: '/services/my-best-auntie',
-    title,
-    description,
-  });
-}
-
-export default async function MyBestAuntiePage({
+export default async function LegacyMyBestAuntiePage({
   params,
-}: MyBestAuntiePageProps) {
-  const { locale, content } = await resolveLocalePageContext(params);
-
-  return <MyBestAuntie locale={locale} content={content} />;
+}: LegacyMyBestAuntiePageProps) {
+  const { locale } = await params;
+  redirect(`/${locale}/services/my-best-auntie-training-course`);
 }

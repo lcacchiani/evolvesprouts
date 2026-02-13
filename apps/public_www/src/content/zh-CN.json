@@ -13,7 +13,7 @@
         "label": "Training Courses",
         "href": "/training-courses",
         "children": [
-          { "label": "Auntie Training", "href": "/services/my-best-auntie" },
+          { "label": "Auntie Training", "href": "/services/my-best-auntie-training-course" },
           { "label": "Montessori Training", "href": "#" }
         ]
       },
@@ -670,7 +670,7 @@
     "services": {
       "title": "服务",
       "items": [
-        { "label": "我的好阿姨", "href": "/services/my-best-auntie" },
+        { "label": "我的好阿姨", "href": "/services/my-best-auntie-training-course" },
         { "label": "工作坊", "href": "/services/workshops" },
         { "label": "资源", "href": "/resources" }
       ]
