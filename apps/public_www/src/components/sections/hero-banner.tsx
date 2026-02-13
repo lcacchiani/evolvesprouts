@@ -15,7 +15,7 @@ const HEADLINE_HIGHLIGHT =
   'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const SUBHEADLINE_COLOR = BODY_TEXT_COLOR;
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
-const HERO_LEFT_FRAME_BACKGROUND = '/images/tree-background.png';
+const HERO_FRAME_BACKGROUND = '/images/tree-background.png';
 const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
 
 const headlineStyle: CSSProperties = {
@@ -74,22 +74,16 @@ export function HeroBanner({ content }: HeroBannerProps) {
       className='relative w-full overflow-hidden px-4 pb-10 pt-8 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8 lg:pb-16 lg:pt-0'
       style={{ backgroundColor: HERO_BACKGROUND }}
     >
-      <div className='relative mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-6'>
+      <div
+        aria-hidden='true'
+        className='pointer-events-none absolute inset-0 bg-left-top bg-no-repeat'
+        style={{
+          backgroundImage: `url(${HERO_FRAME_BACKGROUND})`,
+          backgroundSize: '1000px auto',
+        }}
+      />
+      <div className='relative z-10 mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-6'>
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8 lg:pt-[70px]'>
-          <div
-            aria-hidden='true'
-            className='pointer-events-none absolute inset-0 bg-left-top bg-no-repeat bg-[length:290px_auto] lg:hidden'
-            style={{
-              backgroundImage: `url(${HERO_LEFT_FRAME_BACKGROUND})`,
-            }}
-          />
-          <div
-            aria-hidden='true'
-            className='pointer-events-none absolute inset-0 hidden bg-left-top bg-no-repeat bg-[length:350px_auto] lg:block'
-            style={{
-              backgroundImage: `url(${HERO_LEFT_FRAME_BACKGROUND})`,
-            }}
-          />
           <div className='relative z-10'>
             <h1 style={headlineStyle}>{renderHeadline(content.headline)}</h1>
             <p className='mt-4 max-w-[610px] sm:mt-6' style={subheadlineStyle}>
