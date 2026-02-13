@@ -265,7 +265,7 @@ function LanguageSelectorButton({
   const languageMenuId = useId();
   const closeMenu = useCallback(() => {
     setIsMenuOpen(false);
-  }, []);
+  }, [setIsMenuOpen]);
   const activeOption =
     languageSelector.options.find((option) => option.locale === currentLocale) ??
     languageSelector.options[0];
@@ -475,7 +475,7 @@ function DesktopMenuItem({
   const submenuWrapperRef = useRef<HTMLLIElement | null>(null);
   const closeSubmenu = useCallback(() => {
     setIsSubmenuOpen(false);
-  }, []);
+  }, [setIsSubmenuOpen]);
 
   useOutsideClickClose({
     ref: submenuWrapperRef,
