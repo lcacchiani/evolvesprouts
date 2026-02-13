@@ -293,7 +293,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
                       {card.description && (
                         <p
-                          className='max-w-[34ch] opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100'
+                          className='max-w-[34ch] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100'
                           style={cardDescriptionStyle}
                         >
                           {card.description}
