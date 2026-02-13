@@ -22,6 +22,9 @@ export type SiteContent = typeof enContent;
 export type NavbarContent = SiteContent['navbar'];
 export type HeroContent = SiteContent['hero'];
 export type MyBestAuntieOverviewContent = SiteContent['myBestAuntieOverview'];
+export type MyBestAuntieBookingContent = SiteContent['myBestAuntieBooking'];
+export type MyBestAuntieDescriptionContent =
+  SiteContent['myBestAuntieDescription'];
 export type ResourcesContent = SiteContent['resources'];
 export type CourseHighlightsContent = SiteContent['courseHighlights'];
 export type TestimonialsContent = SiteContent['testimonials'];

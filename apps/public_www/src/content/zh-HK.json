@@ -89,6 +89,154 @@
       }
     ]
   },
+  "myBestAuntieBooking": {
+    "eyebrow": "預約名額",
+    "title": "我的最佳姨姨培訓課程",
+    "description": "一個流程完成預留名額與付款確認，清楚又安心。",
+    "availabilityLabel": "只剩 30 個名額！",
+    "scheduleLabel": "下一期課程",
+    "scheduleDate": "2026年4月",
+    "scheduleTime": "12:00 pm - 2:00 pm",
+    "confirmAndPayLabel": "確認並付款！",
+    "learnMoreLabel": "了解更多課程內容",
+    "learnMoreHref": "/training-courses",
+    "summary": {
+      "pricingTitle": "收費",
+      "totalAmountLabel": "總金額",
+      "startingFromLabel": "起步價",
+      "refundHint": "開課前 7 天可全額退款。",
+      "locationTitle": "地點",
+      "locationName": "Goldwin Heights",
+      "locationAddress": "香港半山西摩道 2 號",
+      "directionLabel": "查看路線",
+      "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
+      "reservationTitle": "報名資料",
+      "reservationDescription": "請在付款彈窗中填寫簡短報名資料。"
+    },
+    "paymentModal": {
+      "closeLabel": "關閉",
+      "thankYouLead": "多謝你的關注！",
+      "title": "我的最佳姨姨培訓課程。",
+      "courseScheduleTitle": "課程安排",
+      "monthLabel": "月份",
+      "monthOptions": [
+        { "id": "apr-2026", "label": "2026年4月" },
+        { "id": "may-2026", "label": "2026年5月" },
+        { "id": "jun-2026", "label": "2026年6月" }
+      ],
+      "parts": [
+        {
+          "label": "第 01 部分",
+          "dateByMonth": {
+            "apr-2026": "4月08日 @ 12:00 pm - 2:00 pm",
+            "may-2026": "5月08日 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "6月08日 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "先以家長溝通開始，再安排 1 對 1 指導。"
+        },
+        {
+          "label": "第 02 部分",
+          "dateByMonth": {
+            "apr-2026": "4月15日 @ 12:00 pm - 2:00 pm",
+            "may-2026": "5月15日 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "6月15日 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "透過情境演練掌握可落地的日常照顧與溝通方法。"
+        },
+        {
+          "label": "第 03 部分",
+          "dateByMonth": {
+            "apr-2026": "4月22日 @ 12:00 pm - 2:00 pm",
+            "may-2026": "5月22日 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "6月22日 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "課程行動計劃回顧，幫助方法在家中穩定實踐。"
+        }
+      ],
+      "packageLabel": "方案",
+      "packageOptions": [
+        {
+          "id": "standard",
+          "label": "標準方案",
+          "description": "6 小時互動培訓 + 配套工作簿支援。",
+          "price": 9000
+        },
+        {
+          "id": "elite",
+          "label": "精英方案",
+          "description": "培訓 + 工作簿支援 + 課後姨姨復盤指導。",
+          "price": 18000
+        }
+      ],
+      "pricingTitle": "收費",
+      "totalAmountLabel": "總金額",
+      "refundHint": "開課前 7 天可全額退款。",
+      "locationTitle": "地點",
+      "locationName": "Goldwin Heights",
+      "locationAddress": "香港半山西摩道 2 號",
+      "directionLabel": "查看路線",
+      "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
+      "reservationTitle": "報名資料",
+      "reservationDescription": "請填寫你的資料，我們會以電郵發送付款確認。",
+      "fullNameLabel": "姓名",
+      "emailLabel": "電郵",
+      "phoneLabel": "電話號碼",
+      "paymentMethodLabel": "付款方式",
+      "paymentMethodValue": "以 FPS 二維碼付款",
+      "discountCodeLabel": "優惠碼",
+      "discountCodePlaceholder": "輸入優惠碼",
+      "applyDiscountLabel": "套用",
+      "invalidDiscountLabel": "優惠碼無效",
+      "discountAppliedLabel": "優惠已套用",
+      "submitLabel": "提交報名",
+      "qrLabel": "FPS 二維碼",
+      "copyright": "© 2026 Evolve Sprouts",
+      "discountCodes": [
+        { "code": "SPROUTS10", "type": "percent", "value": 10 },
+        { "code": "AUNTIE1000", "type": "amount", "value": 1000 }
+      ]
+    },
+    "thankYouModal": {
+      "closeLabel": "關閉",
+      "title": "我們會盡快為你確認付款。",
+      "subtitle": "付款確認已發送到",
+      "successLabel": "多謝你！",
+      "courseLabel": "我的最佳姨姨培訓課程。",
+      "transactionDateLabel": "交易日期",
+      "paymentMethodLabel": "付款方式",
+      "totalLabel": "總計",
+      "printLabel": "列印",
+      "backHomeLabel": "返回首頁",
+      "noEmailFallback": "你的電郵地址"
+    }
+  },
+  "myBestAuntieDescription": {
+    "eyebrow": "課程亮點",
+    "title": "你會在我的最佳姨姨培訓課程中獲得甚麼？",
+    "items": [
+      {
+        "icon": "live-training",
+        "title": "現場培訓",
+        "description": "6 小時互動小組實操，圍繞真實家庭情境進行訓練。",
+        "ctaLabel": "為何選擇我們",
+        "ctaHref": "/about-us"
+      },
+      {
+        "icon": "auntie-review",
+        "title": "課後姨姨復盤",
+        "description": "透過課後評估與回饋，持續優化技巧並提升執行信心。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/contact-us"
+      },
+      {
+        "icon": "workbook",
+        "title": "工作簿",
+        "description": "提供可直接應用的話術、流程與工具，支援日常照顧落地。",
+        "ctaLabel": "關於工作簿",
+        "ctaHref": "/resources"
+      }
+    ]
+  },
   "resources": {
     "eyebrow": "我們的資源",
     "mediaBadgeLabel": "我們的資源",

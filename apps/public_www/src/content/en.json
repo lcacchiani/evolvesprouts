@@ -89,6 +89,154 @@
       }
     ]
   },
+  "myBestAuntieBooking": {
+    "eyebrow": "Book Your Spot",
+    "title": "My Best Auntie Training Course",
+    "description": "Reserve your seat and complete payment securely in one flow.",
+    "availabilityLabel": "30 Spots Left!",
+    "scheduleLabel": "Next Cohort",
+    "scheduleDate": "Apr, 2026",
+    "scheduleTime": "12:00 pm - 2:00 pm",
+    "confirmAndPayLabel": "Confirm and Pay!",
+    "learnMoreLabel": "Learn More About Course",
+    "learnMoreHref": "/training-courses",
+    "summary": {
+      "pricingTitle": "Pricing",
+      "totalAmountLabel": "Total Amount",
+      "startingFromLabel": "Starting from",
+      "refundHint": "Full refund up to 7 days prior.",
+      "locationTitle": "Location",
+      "locationName": "Goldwin Heights",
+      "locationAddress": "2 Seymour Road, Mid-Levels, Hong Kong",
+      "directionLabel": "Get Direction",
+      "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
+      "reservationTitle": "Reservation",
+      "reservationDescription": "Complete the short reservation form in the payment modal."
+    },
+    "paymentModal": {
+      "closeLabel": "Close",
+      "thankYouLead": "Thanks for your interest!",
+      "title": "My Best Auntie Training Course.",
+      "courseScheduleTitle": "Course Schedule",
+      "monthLabel": "Month",
+      "monthOptions": [
+        { "id": "apr-2026", "label": "Apr, 2026" },
+        { "id": "may-2026", "label": "May, 2026" },
+        { "id": "jun-2026", "label": "Jun, 2026" }
+      ],
+      "parts": [
+        {
+          "label": "Part 01",
+          "dateByMonth": {
+            "apr-2026": "Apr 08 @ 12:00 pm - 2:00 pm",
+            "may-2026": "May 08 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "Jun 08 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "Starting with a parent call, followed by a 1:1 session."
+        },
+        {
+          "label": "Part 02",
+          "dateByMonth": {
+            "apr-2026": "Apr 15 @ 12:00 pm - 2:00 pm",
+            "may-2026": "May 15 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "Jun 15 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "Hands-on role play for practical routines and communication."
+        },
+        {
+          "label": "Part 03",
+          "dateByMonth": {
+            "apr-2026": "Apr 22 @ 12:00 pm - 2:00 pm",
+            "may-2026": "May 22 @ 12:00 pm - 2:00 pm",
+            "jun-2026": "Jun 22 @ 12:00 pm - 2:00 pm"
+          },
+          "description": "Action plan check-in to apply strategies at home with confidence."
+        }
+      ],
+      "packageLabel": "Package",
+      "packageOptions": [
+        {
+          "id": "standard",
+          "label": "Standard Package",
+          "description": "6-hour interactive training plus workbook support.",
+          "price": 9000
+        },
+        {
+          "id": "elite",
+          "label": "Elite Package",
+          "description": "Training, workbook support, and post-course auntie review.",
+          "price": 18000
+        }
+      ],
+      "pricingTitle": "Pricing",
+      "totalAmountLabel": "Total Amount",
+      "refundHint": "Full refund up to 7 days prior.",
+      "locationTitle": "Location",
+      "locationName": "Goldwin Heights",
+      "locationAddress": "2 Seymour Road, Mid-Levels, Hong Kong",
+      "directionLabel": "Get Direction",
+      "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
+      "reservationTitle": "Reservation",
+      "reservationDescription": "Please complete your details. We will send payment confirmation by email.",
+      "fullNameLabel": "Full Name",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone Number",
+      "paymentMethodLabel": "Payment Method",
+      "paymentMethodValue": "Pay via FPS QR",
+      "discountCodeLabel": "Discount code",
+      "discountCodePlaceholder": "Enter code",
+      "applyDiscountLabel": "Apply",
+      "invalidDiscountLabel": "Invalid discount code",
+      "discountAppliedLabel": "Discount applied",
+      "submitLabel": "Submit Reservation",
+      "qrLabel": "FPS QR",
+      "copyright": "© 2026 Evolve Sprouts",
+      "discountCodes": [
+        { "code": "SPROUTS10", "type": "percent", "value": 10 },
+        { "code": "AUNTIE1000", "type": "amount", "value": 1000 }
+      ]
+    },
+    "thankYouModal": {
+      "closeLabel": "Close",
+      "title": "We are Going to Confirm Your Payment Shortly.",
+      "subtitle": "The payment confirmation has been sent to",
+      "successLabel": "Thank You!",
+      "courseLabel": "My Best Auntie Training Course.",
+      "transactionDateLabel": "Transaction Date",
+      "paymentMethodLabel": "Payment Method",
+      "totalLabel": "Total",
+      "printLabel": "Print",
+      "backHomeLabel": "Back To Home",
+      "noEmailFallback": "your email address"
+    }
+  },
+  "myBestAuntieDescription": {
+    "eyebrow": "Course Highlights",
+    "title": "What Do You Get in the My Best Auntie Training Course?",
+    "items": [
+      {
+        "icon": "live-training",
+        "title": "Live Training",
+        "description": "6-hour interactive training with small-group, hands-on learning for real family scenarios.",
+        "ctaLabel": "Why Choosing Us",
+        "ctaHref": "/about-us"
+      },
+      {
+        "icon": "auntie-review",
+        "title": "Post-Course Auntie Review",
+        "description": "A practical follow-up review to refine skills, troubleshoot challenges, and build confidence.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/contact-us"
+      },
+      {
+        "icon": "workbook",
+        "title": "Workbook",
+        "description": "Take-home workbook with scripts, routines, and implementation tools for daily caregiving.",
+        "ctaLabel": "About Workbook",
+        "ctaHref": "/resources"
+      }
+    ]
+  },
   "resources": {
     "eyebrow": "Our Resources",
     "mediaBadgeLabel": "Our Resources",

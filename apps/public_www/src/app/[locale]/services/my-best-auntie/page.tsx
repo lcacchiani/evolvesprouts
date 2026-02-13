@@ -1,9 +1,9 @@
-import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
+import { MyBestAuntie } from '@/components/my-best-auntie';
 import {
-  buildPlaceholderPageMetadata,
   getFooterLinkLabel,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { buildLocalizedMetadata } from '@/lib/seo';
 
 interface MyBestAuntiePageProps {
   params: Promise<{ locale: string }>;
@@ -16,23 +16,20 @@ export async function generateMetadata({ params }: MyBestAuntiePageProps) {
     '/services/my-best-auntie',
     'My Best Auntie',
   );
+  const description = content.myBestAuntieBooking.description;
 
-  return buildPlaceholderPageMetadata({
+  return buildLocalizedMetadata({
     locale,
     path: '/services/my-best-auntie',
     title,
+    description,
   });
 }
 
 export default async function MyBestAuntiePage({
   params,
 }: MyBestAuntiePageProps) {
-  const { content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(
-    content,
-    '/services/my-best-auntie',
-    'My Best Auntie',
-  );
+  const { locale, content } = await resolveLocalePageContext(params);
 
-  return <EmptyPagePlaceholder title={title} />;
+  return <MyBestAuntie locale={locale} content={content} />;
 }
