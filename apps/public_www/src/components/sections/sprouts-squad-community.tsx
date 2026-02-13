@@ -57,7 +57,7 @@ export function SproutsSquadCommunity({
 
       <div className='relative z-10 mx-auto flex min-h-[420px] w-full max-w-[1465px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
         <Image
-          src='/images/community-badge.webp'
+          src='/images/tree-background.png'
           alt=''
           width={241}
           height={247}
