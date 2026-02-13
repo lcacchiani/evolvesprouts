@@ -216,24 +216,45 @@
     "items": [
       {
         "icon": "live-training",
-        "title": "現場培訓",
-        "description": "6 小時互動小組實操，圍繞真實家庭情境進行訓練。",
-        "ctaLabel": "為何選擇我們",
+        "title": "現場實戰訓練",
+        "description": "以真實幼兒情境進行角色練習，讓姨姨學會更平靜、清晰地回應日常挑戰。",
+        "ctaLabel": "查看培訓形式",
         "ctaHref": "/about-us"
       },
       {
         "icon": "auntie-review",
         "title": "課後姨姨復盤",
-        "description": "透過課後評估與回饋，持續優化技巧並提升執行信心。",
-        "ctaLabel": "了解更多",
+        "description": "透過課後回顧與重點調整，持續優化執行方式，讓照顧節奏更穩定。",
+        "ctaLabel": "了解復盤流程",
         "ctaHref": "/contact-us"
       },
       {
         "icon": "workbook",
-        "title": "工作簿",
-        "description": "提供可直接應用的話術、流程與工具，支援日常照顧落地。",
-        "ctaLabel": "關於工作簿",
+        "title": "家庭流程工作簿",
+        "description": "提供可直接套用的檢查表、話術與日常流程範本，方便姨姨即學即用。",
+        "ctaLabel": "預覽教材",
         "ctaHref": "/resources"
+      },
+      {
+        "icon": "live-training",
+        "title": "居家環境設定指引",
+        "description": "一步一步教你建立清晰的玩樂、睡眠與轉換區域，提升孩子日常配合度。",
+        "ctaLabel": "查看環境建議",
+        "ctaHref": "/resources"
+      },
+      {
+        "icon": "workbook",
+        "title": "溝通話術工具包",
+        "description": "涵蓋過渡時刻、界線設定與情緒引導的實用話術，幫助姨姨更有方向。",
+        "ctaLabel": "查看話術示例",
+        "ctaHref": "/resources"
+      },
+      {
+        "icon": "auntie-review",
+        "title": "信心加強教練支援",
+        "description": "透過短頻快跟進，協助姨姨持續修正與落地，讓好習慣真正維持下去。",
+        "ctaLabel": "查詢教練支援",
+        "ctaHref": "/contact-us"
       }
     ]
   },

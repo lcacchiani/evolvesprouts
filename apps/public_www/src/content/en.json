@@ -216,24 +216,45 @@
     "items": [
       {
         "icon": "live-training",
-        "title": "Live Training",
-        "description": "6-hour interactive training with small-group, hands-on learning for real family scenarios.",
-        "ctaLabel": "Why Choosing Us",
+        "title": "Live Practice Training",
+        "description": "Interactive sessions where aunties role-play common toddler moments and practice calm, Montessori-aligned responses.",
+        "ctaLabel": "See Training Format",
         "ctaHref": "/about-us"
       },
       {
         "icon": "auntie-review",
         "title": "Post-Course Auntie Review",
-        "description": "A practical follow-up review to refine skills, troubleshoot challenges, and build confidence.",
-        "ctaLabel": "Learn More",
+        "description": "A structured follow-up review to refine techniques, troubleshoot daily friction points, and reinforce consistency.",
+        "ctaLabel": "How Review Works",
         "ctaHref": "/contact-us"
       },
       {
         "icon": "workbook",
-        "title": "Workbook",
-        "description": "Take-home workbook with scripts, routines, and implementation tools for daily caregiving.",
-        "ctaLabel": "About Workbook",
+        "title": "Family Routine Workbook",
+        "description": "Ready-to-use checklists, scripts, and routine templates that make daily caregiving easier to run at home.",
+        "ctaLabel": "Preview Materials",
         "ctaHref": "/resources"
+      },
+      {
+        "icon": "live-training",
+        "title": "Home Setup Walkthrough",
+        "description": "A practical home setup guide that helps aunties prepare clear play, sleep, and transition spaces for better flow.",
+        "ctaLabel": "View Setup Tips",
+        "ctaHref": "/resources"
+      },
+      {
+        "icon": "workbook",
+        "title": "Communication Scripts Toolkit",
+        "description": "Simple scripts for transitions, boundaries, and emotional coaching so aunties can respond with clarity and confidence.",
+        "ctaLabel": "See Script Samples",
+        "ctaHref": "/resources"
+      },
+      {
+        "icon": "auntie-review",
+        "title": "Confidence Booster Coaching",
+        "description": "Focused coaching touchpoints that keep implementation on track and help aunties stay steady as children grow.",
+        "ctaLabel": "Ask About Coaching",
+        "ctaHref": "/contact-us"
       }
     ]
   },
