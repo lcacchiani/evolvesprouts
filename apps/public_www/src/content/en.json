@@ -374,7 +374,7 @@
       "phoneLabel": "Phone Number",
       "messageLabel": "Your message",
       "messagePlaceholder": "Your message",
-      "messageMaxLength": 180,
+      "messageMaxLength": 5000,
       "submitLabel": "Launch the Message!",
       "subject": "Website Contact Form",
       "requiredHint": "* Required fields"

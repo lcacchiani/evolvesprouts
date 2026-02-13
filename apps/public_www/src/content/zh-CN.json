@@ -374,7 +374,7 @@
       "phoneLabel": "电话号码",
       "messageLabel": "你的留言",
       "messagePlaceholder": "你的留言",
-      "messageMaxLength": 180,
+      "messageMaxLength": 5000,
       "submitLabel": "发送留言！",
       "subject": "网站联系表单",
       "requiredHint": "* 必填项"
