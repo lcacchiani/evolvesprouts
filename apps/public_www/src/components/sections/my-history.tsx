@@ -79,7 +79,7 @@ export function MyHistory({ content }: MyHistoryProps) {
 
         <div>
           <Image
-            src='/images/about-us/ida-dregregorio-evolvesprouts-2.webp'
+            src='/images/about-us/ida-degregorio-evolvesprouts-2.webp'
             alt='A brief history image from Evolve Sprouts'
             width={925}
             height={780}
