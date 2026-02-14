@@ -19,9 +19,13 @@ require_literal() {
   local path="$1"
   local literal="$2"
   local message="$3"
-  if ! rg --fixed-strings --quiet -- "$literal" "$path"; then
-    fail "${message} (file: ${path})"
+  if command -v rg >/dev/null 2>&1; then
+    rg --fixed-strings --quiet -- "$literal" "$path" || fail "${message} (file: ${path})"
+    return
   fi
+
+  # Keep CI portable on runners where ripgrep is unavailable.
+  grep --fixed-strings --quiet -- "$literal" "$path" || fail "${message} (file: ${path})"
 }
 
 require_file ".cursorrules"
