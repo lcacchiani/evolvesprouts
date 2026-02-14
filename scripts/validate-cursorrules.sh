@@ -36,12 +36,16 @@ require_file ".cursor/rules/00_mandatory_cursorrules.mdc"
 require_literal ".cursorrules" "## Scope and applicability (MANDATORY)" "Missing mandatory scope section"
 require_literal ".cursorrules" "## Workflow (MANDATORY)" "Missing mandatory workflow section"
 require_literal ".cursorrules" "Wait for explicit user approval." "Missing explicit user approval guardrail"
+require_literal ".cursorrules" "Treat all write operations as implementation and blocked before approval." "Missing strict pre-approval write-operation guardrail"
+require_literal ".cursorrules" "If implementation scope changes after approval, stop and request renewed" "Missing re-approval-on-scope-change guardrail"
 require_literal ".cursorrules" "## Documentation freshness (MANDATORY after code changes)" "Missing documentation freshness section"
 
 require_literal "AGENTS.md" 'Read `@.cursorrules` before any analysis, plan, command, or code edit.' "Missing AGENTS bootstrap requirement"
 require_literal "AGENTS.md" 'Treat the rules in `.cursorrules` as mandatory for the full session.' "Missing AGENTS mandatory-application requirement"
+require_literal "AGENTS.md" "Do not perform implementation actions until explicit user approval is received" "Missing AGENTS strict approval guardrail"
 
 require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" "alwaysApply: true" "Cursor always-apply flag is not present"
 require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" 'Do not continue with implementation if `@.cursorrules` has not been applied.' "Missing Cursor hard-stop requirement"
+require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" "Do not perform implementation actions until explicit user approval is" "Missing Cursor strict approval guardrail"
 
 echo ".cursorrules compliance checks passed."
