@@ -76,6 +76,12 @@ export function MyBestAuntieBooking({
 
   const modalMonthId =
     selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
+  const firstCoursePart = content.paymentModal.parts[0];
+  const nextCohortDate =
+    firstCoursePart?.dateByMonth[selectedDateOption?.id ?? ''] ??
+    firstCoursePart?.dateByMonth[content.paymentModal.monthOptions[0]?.id ?? ''] ??
+    selectedDateOption?.label ??
+    content.scheduleDate;
 
   useEffect(() => {
     const selectedDateCard = dateCardRefs.current[selectedDateId];
@@ -116,9 +122,6 @@ export function MyBestAuntieBooking({
         <div className='mx-auto w-full max-w-[1465px]'>
           <div className='grid min-w-0 gap-8 lg:grid-cols-[1fr_470px] lg:items-start'>
             <section className='space-y-5 lg:pr-8'>
-              <p className='text-sm font-semibold uppercase tracking-[0.14em] text-[#C84A16]'>
-                {content.eyebrow}
-              </p>
               <h1
                 className='text-[clamp(2rem,5.6vw,3.3rem)]'
                 style={headingStyle}
@@ -133,17 +136,17 @@ export function MyBestAuntieBooking({
               </p>
 
               <div className='space-y-1 pt-3'>
-                <p className='text-sm font-semibold text-[#5A5A5A]'>
+                <p className='text-base font-semibold uppercase tracking-[0.08em] text-[#C84A16]'>
                   {content.scheduleLabel}
                 </p>
-                <p className='mt-2 text-[clamp(1.2rem,2.6vw,1.8rem)] font-semibold text-[#333333]'>
-                  {selectedDateOption?.label ?? content.scheduleDate}
+                <p className='mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-bold text-[#222222]'>
+                  {nextCohortDate}
                 </p>
                 <p className='mt-1 text-[#4A4A4A]'>{content.scheduleTime}</p>
               </div>
             </section>
 
-            <aside className='min-w-0 rounded-[22px] border border-[#EED5C1] bg-[#FFF8F2] p-5 sm:p-6'>
+            <aside className='min-w-0'>
               <h2 className='text-[1.6rem] font-semibold text-[#333333]'>
                 {content.eyebrow}
               </h2>
@@ -152,7 +155,7 @@ export function MyBestAuntieBooking({
                 <h3 className='text-sm font-semibold text-[#5A5A5A]'>
                   {content.ageSelectorLabel}
                 </h3>
-                <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+                <div className='mt-3 flex min-w-0 gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
                   {ageOptions.map((option) => {
                     const isSelected = option.id === selectedAgeId;
 
@@ -164,23 +167,23 @@ export function MyBestAuntieBooking({
                         onClick={() => {
                           setSelectedAgeId(option.id);
                         }}
-                        className='es-focus-ring rounded-[14px] px-3 py-3'
+                        className='es-focus-ring w-[168px] shrink-0 rounded-[14px] px-4 py-3 text-left'
                         style={
                           isSelected
                             ? activeSelectorCardStyle
                             : inactiveSelectorCardStyle
                         }
                       >
-                        <div className='flex items-center justify-between gap-2'>
+                        <div className='flex items-center justify-between gap-3'>
                           <Image
                             src={option.iconSrc}
                             alt=''
-                            width={30}
-                            height={30}
-                            className='h-[30px] w-[30px]'
+                            width={24}
+                            height={24}
+                            className='h-6 w-6'
                             aria-hidden='true'
                           />
-                          <span className='text-lg font-semibold text-[#333333]'>
+                          <span className='text-base font-semibold text-[#333333]'>
                             {option.label}
                           </span>
                         </div>
