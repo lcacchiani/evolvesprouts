@@ -413,7 +413,7 @@ export function MyBestAuntieBookingModal({
             aria-hidden='true'
           />
 
-          <div className='relative z-10 flex flex-col gap-8 border-b border-black/10 pb-9 lg:flex-row lg:gap-10 lg:pb-[72px]'>
+          <div className='relative z-10 flex flex-col gap-8 pb-9 lg:flex-row lg:gap-10 lg:pb-[72px]'>
             <div className='w-full lg:w-[calc(50%-20px)]'>
               <p className='text-[20px] leading-7 text-[#333333]'>
                 {content.thankYouLead}
@@ -1006,9 +1006,9 @@ export function MyBestAuntieThankYouModal({
             </div>
           </section>
 
-          <div className='border-t border-black/10 pt-6 lg:mt-[70px]'>
+          <div className='pt-6 lg:mt-[70px]'>
             <p className='text-center text-[16px] font-medium leading-7 text-[#333333]'>
-              © {new Date().getFullYear()} Evolve Sprouts
+              {new Date().getFullYear()} Evolve Sprouts
             </p>
           </div>
         </div>
