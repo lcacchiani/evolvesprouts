@@ -271,8 +271,8 @@ Lambdas or NAT Gateway.
 - `CDK_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (optional path to CDK parameter JSON)
-- `API_DOMAIN_NAME` (used to set `PublicWwwApiProxyDomainName` for
-  `evolvesprouts-public-www`)
+- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (Public WWW CRM API base URL without
+  scheme, for example `api.evolvesprouts.com/www`)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`
@@ -296,6 +296,7 @@ Lambdas or NAT Gateway.
 - `CDK_PARAM_MICROSOFT_CLIENT_SECRET`
 - `CDK_PARAM_PUBLIC_API_KEY_VALUE`
 - `CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
+- `NEXT_PUBLIC_WWW_CRM_API_KEY` (Public WWW browser API key)
 - `APPSTORE_API_KEY_JSON` (recommended single JSON secret with issuer_id,
   key_id, private_key)
 - `GOOGLE_PLAY_SERVICE_ACCOUNT`

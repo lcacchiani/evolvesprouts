@@ -18,7 +18,6 @@ import {
   fetchEventsPayload,
   normalizeEvents,
   resolveEventsApiUrl,
-  resolveRuntimeEventsApiUrl,
   resolveSortOptions,
   sortEvents,
 } from '@/lib/events-data';
@@ -194,12 +193,10 @@ export function Events({ content }: EventsProps) {
       };
     }
 
-    const apiUrl = resolveRuntimeEventsApiUrl(configuredApiUrl);
-
     setIsLoading(true);
     setHasRequestError(false);
 
-    fetchEventsPayload(apiUrl, normalizedApiKey, controller.signal)
+    fetchEventsPayload(configuredApiUrl, normalizedApiKey, controller.signal)
       .then((payload) => {
         const normalizedEvents = normalizeEvents(payload, content);
         setEvents(normalizedEvents);

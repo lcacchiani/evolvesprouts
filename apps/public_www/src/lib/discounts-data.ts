@@ -128,7 +128,15 @@ export function buildDiscountsApiUrl(crmApiBaseUrl: string): string {
     return '';
   }
 
-  return `${normalizedBaseUrl.replace(/\/+$/, '')}${DISCOUNTS_API_PATH}`;
+  const hostAndPath = normalizedBaseUrl
+    .replace(/^https?:\/\//i, '')
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '');
+  if (!hostAndPath) {
+    return '';
+  }
+
+  return `https://${hostAndPath}${DISCOUNTS_API_PATH}`;
 }
 
 async function parseResponsePayload(response: Response): Promise<unknown> {
@@ -170,29 +178,4 @@ export async function fetchDiscountRules(
 
   const payload = await parseResponsePayload(response);
   return normalizeDiscountsPayload(payload);
-}
-
-export function resolveRuntimeDiscountsApiUrl(configuredApiUrl: string): string {
-  if (typeof window === 'undefined') {
-    return configuredApiUrl;
-  }
-
-  try {
-    const resolvedUrl = new URL(configuredApiUrl, window.location.origin);
-    const isConfiguredAsAbsolute = /^https?:\/\//i.test(configuredApiUrl);
-    if (!isConfiguredAsAbsolute) {
-      return `${resolvedUrl.pathname}${resolvedUrl.search}`;
-    }
-
-    const isWebsiteHost = window.location.hostname.endsWith('evolvesprouts.com');
-    const isPrimaryApiHost = resolvedUrl.hostname === 'api.evolvesprouts.com';
-
-    if (isWebsiteHost && isPrimaryApiHost) {
-      return `/api${resolvedUrl.pathname}${resolvedUrl.search}`;
-    }
-  } catch {
-    return configuredApiUrl;
-  }
-
-  return configuredApiUrl;
 }

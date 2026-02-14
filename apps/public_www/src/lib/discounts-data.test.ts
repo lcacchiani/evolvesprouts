@@ -14,7 +14,10 @@ afterEach(() => {
 
 describe('discounts-data', () => {
   it('builds the discounts endpoint from CRM API base URL', () => {
-    expect(buildDiscountsApiUrl('https://api.evolvesprouts.com/www')).toBe(
+    expect(buildDiscountsApiUrl('api.evolvesprouts.com/www')).toBe(
+      'https://api.evolvesprouts.com/www/v1/discounts',
+    );
+    expect(buildDiscountsApiUrl('api.evolvesprouts.com/www/')).toBe(
       'https://api.evolvesprouts.com/www/v1/discounts',
     );
     expect(buildDiscountsApiUrl('https://api.evolvesprouts.com/www/')).toBe(

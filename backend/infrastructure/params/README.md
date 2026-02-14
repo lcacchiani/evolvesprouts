@@ -13,10 +13,6 @@ public website stacks:
 - `PublicWwwStagingCertificateArn`
 - `WafWebAclArn`
 
-`PublicWwwApiProxyDomainName` is injected by CI from GitHub variable
-`API_DOMAIN_NAME` in `.github/workflows/deploy-backend.yml`. For local deploys,
-you can pass it manually via `--parameters`.
-
 ## Local deploy
 
 ```bash

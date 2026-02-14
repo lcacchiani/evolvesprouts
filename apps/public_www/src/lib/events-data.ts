@@ -158,7 +158,15 @@ function buildEventsApiUrl(crmApiBaseUrl: string): string {
     return '';
   }
 
-  return `${normalizedBaseUrl.replace(/\/+$/, '')}${EVENTS_API_PATH}`;
+  const hostAndPath = normalizedBaseUrl
+    .replace(/^https?:\/\//i, '')
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '');
+  if (!hostAndPath) {
+    return '';
+  }
+
+  return `https://${hostAndPath}${EVENTS_API_PATH}`;
 }
 
 function normalizeLocationLabel(value: string | undefined): string | undefined {
@@ -248,31 +256,6 @@ export function resolveEventsApiUrl(
   }
 
   return fallbackApiUrl;
-}
-
-export function resolveRuntimeEventsApiUrl(configuredApiUrl: string): string {
-  if (typeof window === 'undefined') {
-    return configuredApiUrl;
-  }
-
-  try {
-    const resolvedUrl = new URL(configuredApiUrl, window.location.origin);
-    const isConfiguredAsAbsolute = /^https?:\/\//i.test(configuredApiUrl);
-    if (!isConfiguredAsAbsolute) {
-      return `${resolvedUrl.pathname}${resolvedUrl.search}`;
-    }
-
-    const isWebsiteHost = window.location.hostname.endsWith('evolvesprouts.com');
-    const isPrimaryApiHost = resolvedUrl.hostname === 'api.evolvesprouts.com';
-
-    if (isWebsiteHost && isPrimaryApiHost) {
-      return `/api${resolvedUrl.pathname}${resolvedUrl.search}`;
-    }
-  } catch {
-    return configuredApiUrl;
-  }
-
-  return configuredApiUrl;
 }
 
 function findEventsArray(payload: unknown, depth = 0): unknown[] {

@@ -18,7 +18,6 @@ import {
   type DiscountRule,
   fetchDiscountRules,
   normalizeStaticDiscountRules,
-  resolveRuntimeDiscountsApiUrl,
 } from '@/lib/discounts-data';
 import { formatCurrencyHkd } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
@@ -287,11 +286,9 @@ export function MyBestAuntieBookingModal({
       };
     }
 
-    const apiUrl = resolveRuntimeDiscountsApiUrl(discountApiUrl);
-
     setIsDiscountRulesLoading(true);
 
-    fetchDiscountRules(apiUrl, normalizedApiKey, controller.signal)
+    fetchDiscountRules(discountApiUrl, normalizedApiKey, controller.signal)
       .then((remoteRules) => {
         if (remoteRules.length > 0) {
           setDiscountRules(remoteRules);

@@ -10,7 +10,6 @@ interface WebsiteEnvironmentConfig {
   readonly environmentLabel: "production" | "staging";
   readonly domainName: string;
   readonly certificateArn: string;
-  readonly apiProxyDomainName: string;
   readonly bucketNamePrefix: string;
   readonly loggingBucketNamePrefix: string;
   readonly addNoIndexHeader: boolean;
@@ -69,16 +68,6 @@ export class PublicWwwStack extends cdk.Stack {
         description: "ACM certificate ARN for staging public website domain.",
       },
     );
-    const apiProxyDomainName = new cdk.CfnParameter(
-      this,
-      "PublicWwwApiProxyDomainName",
-      {
-        type: "String",
-        default: "api.evolvesprouts.com",
-        description:
-          "Upstream API domain used for same-origin /api/* proxy routing.",
-      },
-    );
 
     const wafWebAclArn = new cdk.CfnParameter(this, "WafWebAclArn", {
       type: "String",
@@ -100,7 +89,6 @@ export class PublicWwwStack extends cdk.Stack {
       environmentLabel: "production",
       domainName: productionDomainName.valueAsString,
       certificateArn: productionCertificateArn.valueAsString,
-      apiProxyDomainName: apiProxyDomainName.valueAsString,
       bucketNamePrefix: "evolvesprouts-public-www",
       loggingBucketNamePrefix: "evolvesprouts-public-www-logs",
       addNoIndexHeader: false,
@@ -116,7 +104,6 @@ export class PublicWwwStack extends cdk.Stack {
       environmentLabel: "staging",
       domainName: stagingDomainName.valueAsString,
       certificateArn: stagingCertificateArn.valueAsString,
-      apiProxyDomainName: apiProxyDomainName.valueAsString,
       bucketNamePrefix: "evolvesprouts-staging-www",
       loggingBucketNamePrefix: "evolvesprouts-staging-www-logs",
       addNoIndexHeader: true,
@@ -234,9 +221,6 @@ export class PublicWwwStack extends cdk.Stack {
     const origin = origins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
       originAccessIdentity,
     });
-    const apiOrigin = new origins.HttpOrigin(config.apiProxyDomainName, {
-      protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
-    });
     const pathRewriteFunction = new cloudfront.Function(
       this,
       `${config.idPrefix}PathRewriteFunction`,
@@ -261,32 +245,6 @@ function handler(event) {
 
   if (uri.indexOf('.') === -1) {
     request.uri = uri + '/index.html';
-  }
-
-  return request;
-}
-`),
-      },
-    );
-    const apiPathRewriteFunction = new cloudfront.Function(
-      this,
-      `${config.idPrefix}ApiPathRewriteFunction`,
-      {
-        comment:
-          "Rewrite /api/* requests to api.evolvesprouts.com root paths.",
-        runtime: cloudfront.FunctionRuntime.JS_2_0,
-        code: cloudfront.FunctionCode.fromInline(`
-function handler(event) {
-  var request = event.request;
-  var uri = request.uri || '/';
-
-  if (uri.startsWith('/api/')) {
-    request.uri = uri.substring(4);
-    return request;
-  }
-
-  if (uri === '/api') {
-    request.uri = '/';
   }
 
   return request;
@@ -383,23 +341,6 @@ function handler(event) {
               eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
             },
           ],
-        },
-        additionalBehaviors: {
-          "api/*": {
-            origin: apiOrigin,
-            viewerProtocolPolicy:
-              cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-            allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-            cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-            originRequestPolicy:
-              cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-            functionAssociations: [
-              {
-                function: apiPathRewriteFunction,
-                eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-              },
-            ],
-          },
         },
       },
     );

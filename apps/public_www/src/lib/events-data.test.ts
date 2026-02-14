@@ -16,7 +16,13 @@ describe('events-data', () => {
   it('resolves CRM events endpoint from base URL', () => {
     expect(
       resolveEventsApiUrl(
-        'https://api.evolvesprouts.com/www',
+        'api.evolvesprouts.com/www',
+        'https://fallback.example.com/events',
+      ),
+    ).toBe('https://api.evolvesprouts.com/www/v1/calendar/events');
+    expect(
+      resolveEventsApiUrl(
+        'api.evolvesprouts.com/www/',
         'https://fallback.example.com/events',
       ),
     ).toBe('https://api.evolvesprouts.com/www/v1/calendar/events');
