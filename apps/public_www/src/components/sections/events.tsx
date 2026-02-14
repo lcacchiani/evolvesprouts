@@ -4,15 +4,10 @@ import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { EventsContent } from '@/content';
 import { createCrmApiClient } from '@/lib/crm-api-client';
-import {
-  BODY_TEXT_COLOR,
-  DEFAULT_SECTION_EYEBROW_STYLE,
-  HEADING_TEXT_COLOR,
-} from '@/lib/design-tokens';
+import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import {
   type EventCardData,
   fetchEventsPayload,
@@ -26,8 +21,6 @@ interface EventsProps {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
-
-const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 const titleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -233,13 +226,7 @@ export function Events({ content }: EventsProps) {
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[920px] text-center'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
-            className='px-4 py-[11px] sm:px-5'
-            style={{ borderColor: '#EECAB0' }}
-          />
-          <h1 className='mt-6 text-balance' style={titleStyle}>
+          <h1 className='text-balance' style={titleStyle}>
             {content.title}
           </h1>
           <p className='mt-4 text-balance' style={descriptionStyle}>
