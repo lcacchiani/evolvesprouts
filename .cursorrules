@@ -54,11 +54,19 @@ repo root
    - questions to validate assumptions
 3. Wait for explicit user approval.
 4. Execute only after approval.
-5. Validate with focused checks/tests for touched areas.
-6. For any Python change, run:
+   - Treat all write operations as implementation and blocked before approval.
+   - Implementation includes file create/edit/delete, dependency changes,
+     migrations, generated artifacts, and git write operations
+     (`git add`, `git commit`, `git push`).
+   - Read-only analysis steps (search, file reads, planning) are allowed before
+     approval.
+5. If implementation scope changes after approval, stop and request renewed
+   explicit user approval.
+6. Validate with focused checks/tests for touched areas.
+7. For any Python change, run:
    `pre-commit run ruff-format --all-files`
    before committing.
-7. Keep the repository AI-rule contract validation passing:
+8. Keep the repository AI-rule contract validation passing:
    `bash scripts/validate-cursorrules.sh`
 
 ## Architecture decisions (repository baseline)

@@ -16,6 +16,13 @@ agents).
 
 Do not begin implementation work until `.cursorrules` has been loaded and
 applied.
+Do not perform implementation actions until explicit user approval is received
+for the current task.
+Treat all write operations as implementation actions, including file
+create/edit/delete, dependency changes, migrations, generated artifacts, and
+git write operations (`git add`, `git commit`, `git push`).
+If implementation scope changes after approval, pause and request renewed
+explicit user approval before continuing.
 
 ## Repository-enforced guardrail
 
