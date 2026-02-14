@@ -77,9 +77,19 @@ export function MyBestAuntieBooking({
   const modalMonthId =
     selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
   const firstCoursePart = content.paymentModal.parts[0];
+  const selectedMonthEntry = firstCoursePart
+    ? Object.entries(firstCoursePart.dateByMonth).find(
+        ([monthId]) => monthId === selectedDateOption?.id,
+      )
+    : undefined;
+  const fallbackMonthEntry = firstCoursePart
+    ? Object.entries(firstCoursePart.dateByMonth).find(
+        ([monthId]) => monthId === content.paymentModal.monthOptions[0]?.id,
+      )
+    : undefined;
   const nextCohortDate =
-    firstCoursePart?.dateByMonth[selectedDateOption?.id ?? ''] ??
-    firstCoursePart?.dateByMonth[content.paymentModal.monthOptions[0]?.id ?? ''] ??
+    selectedMonthEntry?.[1] ??
+    fallbackMonthEntry?.[1] ??
     selectedDateOption?.label ??
     content.scheduleDate;
 
