@@ -34,10 +34,10 @@ require_literal ".cursorrules" "## Workflow (MANDATORY)" "Missing mandatory work
 require_literal ".cursorrules" "Wait for explicit user approval." "Missing explicit user approval guardrail"
 require_literal ".cursorrules" "## Documentation freshness (MANDATORY after code changes)" "Missing documentation freshness section"
 
-require_literal "AGENTS.md" "Read `@.cursorrules` before any analysis, plan, command, or code edit." "Missing AGENTS bootstrap requirement"
-require_literal "AGENTS.md" "Treat the rules in `.cursorrules` as mandatory for the full session." "Missing AGENTS mandatory-application requirement"
+require_literal "AGENTS.md" 'Read `@.cursorrules` before any analysis, plan, command, or code edit.' "Missing AGENTS bootstrap requirement"
+require_literal "AGENTS.md" 'Treat the rules in `.cursorrules` as mandatory for the full session.' "Missing AGENTS mandatory-application requirement"
 
 require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" "alwaysApply: true" "Cursor always-apply flag is not present"
-require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" "Do not continue with implementation if `@.cursorrules` has not been applied." "Missing Cursor hard-stop requirement"
+require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" 'Do not continue with implementation if `@.cursorrules` has not been applied.' "Missing Cursor hard-stop requirement"
 
 echo ".cursorrules compliance checks passed."
