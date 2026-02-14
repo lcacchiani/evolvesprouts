@@ -1,0 +1,192 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import {
+  CRM_GET_CACHE_TTL_MS,
+  buildCrmApiUrl,
+  clearCrmApiGetCacheForTests,
+  createCrmApiClient,
+} from '@/lib/crm-api-client';
+
+afterEach(() => {
+  clearCrmApiGetCacheForTests();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
+
+describe('crm-api-client', () => {
+  it('builds endpoint URLs from base URL and endpoint path', () => {
+    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www', '/v1/discounts')).toBe(
+      'https://api.evolvesprouts.com/www/v1/discounts',
+    );
+    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www/', 'v1/discounts')).toBe(
+      'https://api.evolvesprouts.com/www/v1/discounts',
+    );
+    expect(buildCrmApiUrl('api.evolvesprouts.com/www', '/v1/discounts')).toBe('');
+    expect(buildCrmApiUrl('   ', '/v1/discounts')).toBe('');
+  });
+
+  it('returns null when base URL or API key is invalid', () => {
+    expect(
+      createCrmApiClient({
+        baseUrl: 'api.evolvesprouts.com/www',
+        apiKey: 'public-key',
+      }),
+    ).toBeNull();
+    expect(
+      createCrmApiClient({
+        baseUrl: 'https://api.evolvesprouts.com/www',
+        apiKey: '   ',
+      }),
+    ).toBeNull();
+  });
+
+  it('sends GET requests with expected headers', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ status: 'success' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const client = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'public-key',
+    });
+    if (!client) {
+      throw new Error('Expected CRM API client to be configured');
+    }
+
+    await client.request({
+      endpointPath: '/v1/discounts',
+      method: 'GET',
+      signal: new AbortController().signal,
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.evolvesprouts.com/www/v1/discounts',
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({
+          Accept: 'application/json',
+          'x-api-key': 'public-key',
+        }),
+      }),
+    );
+  });
+
+  it('caches GET responses for five minutes', async () => {
+    expect(CRM_GET_CACHE_TTL_MS).toBe(5 * 60 * 1000);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+
+    const fetchSpy = vi.fn();
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: ['first'] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: ['second'] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const client = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'public-key',
+    });
+    if (!client) {
+      throw new Error('Expected CRM API client to be configured');
+    }
+
+    const firstResponse = await client.request({
+      endpointPath: '/v1/calendar/events',
+      method: 'GET',
+    });
+    vi.setSystemTime(new Date('2026-01-01T00:04:59.000Z'));
+    const cachedResponse = await client.request({
+      endpointPath: '/v1/calendar/events',
+      method: 'GET',
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(cachedResponse).toEqual(firstResponse);
+
+    vi.setSystemTime(new Date('2026-01-01T00:05:00.001Z'));
+    const refreshedResponse = await client.request({
+      endpointPath: '/v1/calendar/events',
+      method: 'GET',
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(refreshedResponse).toEqual({ data: ['second'] });
+  });
+
+  it('sends JSON bodies for POST and PUT requests', async () => {
+    const fetchSpy = vi.fn();
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const client = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'public-key',
+    });
+    if (!client) {
+      throw new Error('Expected CRM API client to be configured');
+    }
+
+    await client.request({
+      endpointPath: '/v1/test-endpoint',
+      method: 'POST',
+      body: { name: 'sprout' },
+    });
+    await client.request({
+      endpointPath: '/v1/test-endpoint',
+      method: 'PUT',
+      body: { status: 'updated' },
+    });
+
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://api.evolvesprouts.com/www/v1/test-endpoint',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ name: 'sprout' }),
+        headers: expect.objectContaining({
+          Accept: 'application/json',
+          'x-api-key': 'public-key',
+          'Content-Type': 'application/json',
+        }),
+      }),
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      2,
+      'https://api.evolvesprouts.com/www/v1/test-endpoint',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ status: 'updated' }),
+        headers: expect.objectContaining({
+          Accept: 'application/json',
+          'x-api-key': 'public-key',
+          'Content-Type': 'application/json',
+        }),
+      }),
+    );
+  });
+});

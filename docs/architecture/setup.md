@@ -74,8 +74,7 @@ For the OIDC provider itself, add the same tags:
     - `PublicWwwCertificateArn`
     - `PublicWwwStagingDomainName`
     - `PublicWwwStagingCertificateArn`
-- `API_DOMAIN_NAME` (required for Public WWW deploys; used by
-  `deploy-backend.yml` to set `PublicWwwApiProxyDomainName`)
+- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (for Public WWW builds)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`
@@ -99,6 +98,7 @@ For the OIDC provider itself, add the same tags:
 - `CDK_PARAM_MICROSOFT_CLIENT_SECRET`
 - `CDK_PARAM_PUBLIC_API_KEY_VALUE`
 - `CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
+- `NEXT_PUBLIC_WWW_CRM_API_KEY` (Public WWW browser API key)
 - `AMPLIFY_API_KEY`
 - `ANDROID_KEYSTORE_BASE64`
 - `ANDROID_KEYSTORE_PASSWORD`

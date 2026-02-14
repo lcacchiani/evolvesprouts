@@ -3,6 +3,7 @@ import {
   readCandidateText,
   readOptionalText,
 } from '@/content/content-field-utils';
+import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
 import { isHttpHref } from '@/lib/url-utils';
 
 export interface SortOption {
@@ -11,6 +12,8 @@ export interface SortOption {
 }
 
 type EventStatus = 'open' | 'fully_booked';
+
+export const EVENTS_API_PATH = '/v1/calendar/events';
 
 export interface EventCardData {
   id: string;
@@ -26,6 +29,21 @@ export interface EventCardData {
   status: EventStatus;
   timestamp: number | null;
 }
+
+const UTC_MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
 
 const DEFAULT_SORT_OPTIONS: readonly SortOption[] = [
   { value: 'latest', label: 'Latest Events' },
@@ -64,6 +82,98 @@ function parseTimestamp(value: string | undefined): number | null {
   return parsedTimestamp;
 }
 
+function formatUtcDateLabel(isoDateTime: string): string {
+  const date = new Date(isoDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const monthName = UTC_MONTH_NAMES[date.getUTCMonth()] ?? '';
+  const year = date.getUTCFullYear();
+
+  return `${day} ${monthName} ${year}`;
+}
+
+function formatUtcTimeLabel(isoDateTime: string): string {
+  const date = new Date(isoDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const rawHours = date.getUTCHours();
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const period = rawHours >= 12 ? 'PM' : 'AM';
+  const hours = rawHours % 12 || 12;
+
+  return `${hours}:${minutes} ${period}`;
+}
+
+function resolveDateTimeDetails(record: Record<string, unknown>): {
+  dateLabel?: string;
+  timeLabel?: string;
+  timestamp: number | null;
+} {
+  const dateEntries = Array.isArray(record.dates) ? record.dates : [];
+  const firstDateRecord = dateEntries
+    .map((entry) => toRecord(entry))
+    .find((entry): entry is Record<string, unknown> => entry !== null);
+
+  if (!firstDateRecord) {
+    return { timestamp: null };
+  }
+
+  const startDateTime = readCandidateText(firstDateRecord, [
+    'start_datetime',
+    'startDateTime',
+    'start',
+  ]);
+  const endDateTime = readCandidateText(firstDateRecord, [
+    'end_datetime',
+    'endDateTime',
+    'end',
+  ]);
+
+  if (!startDateTime) {
+    return { timestamp: null };
+  }
+
+  const dateLabel = formatUtcDateLabel(startDateTime);
+  const startTimeLabel = formatUtcTimeLabel(startDateTime);
+  const endTimeLabel = endDateTime ? formatUtcTimeLabel(endDateTime) : '';
+  const timeLabel =
+    startTimeLabel && endTimeLabel
+      ? `${startTimeLabel} - ${endTimeLabel}`
+      : startTimeLabel;
+
+  return {
+    dateLabel: dateLabel || undefined,
+    timeLabel: timeLabel || undefined,
+    timestamp: parseTimestamp(startDateTime),
+  };
+}
+
+function buildEventsApiUrl(crmApiBaseUrl: string): string {
+  return buildCrmApiUrl(crmApiBaseUrl, EVENTS_API_PATH);
+}
+
+function normalizeLocationLabel(value: string | undefined): string | undefined {
+  const normalizedValue = readOptionalText(value)?.toLowerCase();
+  if (!normalizedValue) {
+    return undefined;
+  }
+
+  if (normalizedValue === 'virtual') {
+    return 'Virtual';
+  }
+
+  if (normalizedValue === 'physical') {
+    return 'In-person';
+  }
+
+  return normalizedValue;
+}
+
 export function resolveSortOptions(content: EventsContent): readonly SortOption[] {
   const normalizedOptions = content.sortOptions
     .map((option) => {
@@ -84,62 +194,21 @@ export function resolveSortOptions(content: EventsContent): readonly SortOption[
   return normalizedOptions;
 }
 
-async function parseResponsePayload(response: Response): Promise<unknown> {
-  const rawText = await response.text();
-  const normalizedText = rawText.trim();
-
-  if (!normalizedText) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(normalizedText) as unknown;
-  } catch {
-    return normalizedText;
-  }
-}
-
 export async function fetchEventsPayload(
-  apiUrl: string,
+  crmApiClient: CrmApiClient,
   signal: AbortSignal,
 ): Promise<unknown> {
-  const response = await fetch(apiUrl, {
+  return crmApiClient.request({
+    endpointPath: EVENTS_API_PATH,
     method: 'GET',
     signal,
-    headers: {
-      Accept: 'application/json',
-    },
   });
-  if (!response.ok) {
-    throw new Error(`Events API request failed: ${response.status}`);
-  }
-
-  return parseResponsePayload(response);
 }
 
-export function resolveRuntimeEventsApiUrl(configuredApiUrl: string): string {
-  if (typeof window === 'undefined') {
-    return configuredApiUrl;
-  }
-
-  try {
-    const resolvedUrl = new URL(configuredApiUrl, window.location.origin);
-    const isConfiguredAsAbsolute = /^https?:\/\//i.test(configuredApiUrl);
-    if (!isConfiguredAsAbsolute) {
-      return `${resolvedUrl.pathname}${resolvedUrl.search}`;
-    }
-
-    const isWebsiteHost = window.location.hostname.endsWith('evolvesprouts.com');
-    const isPrimaryApiHost = resolvedUrl.hostname === 'api.evolvesprouts.com';
-
-    if (isWebsiteHost && isPrimaryApiHost) {
-      return `/api${resolvedUrl.pathname}${resolvedUrl.search}`;
-    }
-  } catch {
-    return configuredApiUrl;
-  }
-
-  return configuredApiUrl;
+export function resolveEventsApiUrl(
+  crmApiBaseUrl: string,
+): string {
+  return buildEventsApiUrl(crmApiBaseUrl);
 }
 
 function findEventsArray(payload: unknown, depth = 0): unknown[] {
@@ -177,12 +246,16 @@ function findEventsArray(payload: unknown, depth = 0): unknown[] {
 
 function readTagList(record: Record<string, unknown>): string[] {
   const tagKeys = ['tags', 'chips', 'categories'];
+  const tags: string[] = [];
+  const seenTags = new Set<string>();
 
   for (const key of tagKeys) {
     const value = record[key];
+    const collectedTags: string[] = [];
 
     if (Array.isArray(value)) {
-      const tags = value
+      collectedTags.push(
+        ...value
         .map((item) => {
           if (typeof item === 'string') {
             return readOptionalText(item);
@@ -194,25 +267,37 @@ function readTagList(record: Record<string, unknown>): string[] {
 
           return readCandidateText(itemRecord, ['label', 'title', 'name']);
         })
-        .filter((item): item is string => Boolean(item));
-
-      if (tags.length > 0) {
-        return tags;
-      }
+        .filter((item): item is string => Boolean(item)),
+      );
     }
 
     if (typeof value === 'string') {
-      const tags = value
+      collectedTags.push(
+        ...value
         .split(',')
         .map((entry) => entry.trim())
-        .filter(Boolean);
-      if (tags.length > 0) {
-        return tags;
+        .filter((entry): entry is string => Boolean(entry)),
+      );
+    }
+
+    const valueRecord = toRecord(value);
+    if (valueRecord) {
+      collectedTags.push(
+        ...Object.values(valueRecord)
+          .map((entry) => (typeof entry === 'string' ? readOptionalText(entry) : ''))
+          .filter((entry): entry is string => Boolean(entry)),
+      );
+    }
+
+    for (const tag of collectedTags) {
+      if (!seenTags.has(tag)) {
+        seenTags.add(tag);
+        tags.push(tag);
       }
     }
   }
 
-  return [];
+  return tags;
 }
 
 function resolveEventStatus(record: Record<string, unknown>): EventStatus {
@@ -240,6 +325,10 @@ function resolveEventStatus(record: Record<string, unknown>): EventStatus {
     }
   }
 
+  if (record.is_fully_booked === true) {
+    return 'fully_booked';
+  }
+
   return 'open';
 }
 
@@ -258,6 +347,7 @@ function normalizeEventCard(
     return null;
   }
 
+  const dateTimeDetails = resolveDateTimeDetails(record);
   const summary = readCandidateText(record, [
     'summary',
     'description',
@@ -272,14 +362,14 @@ function normalizeEventCard(
     'eventDate',
     'startDateLabel',
     'dateDisplay',
-  ]);
+  ]) ?? dateTimeDetails.dateLabel;
   const timeLabel = readCandidateText(record, [
     'timeLabel',
     'time',
     'eventTime',
     'startTimeLabel',
     'timeDisplay',
-  ]);
+  ]) ?? dateTimeDetails.timeLabel;
 
   const timestamp =
     parseTimestamp(
@@ -290,16 +380,18 @@ function normalizeEventCard(
         'startDate',
         'dateIso',
       ]),
-    ) ?? parseTimestamp(dateLabel);
+    ) ??
+    dateTimeDetails.timestamp ??
+    parseTimestamp(dateLabel);
 
-  const locationName = readCandidateText(record, [
-    'locationName',
-    'venue',
-    'location',
-  ]);
+  const locationName =
+    readCandidateText(record, [
+      'locationName',
+      'venue',
+      'address',
+    ]) ?? normalizeLocationLabel(readOptionalText(record.location));
   const locationAddress = readCandidateText(record, [
     'locationAddress',
-    'address',
     'venueAddress',
   ]);
 
@@ -313,6 +405,7 @@ function normalizeEventCard(
       'href',
       'url',
       'link',
+      'address_url',
     ]),
   );
   const ctaLabel =
@@ -331,7 +424,10 @@ function normalizeEventCard(
     dateLabel,
     timeLabel,
     locationName,
-    locationAddress,
+    locationAddress:
+      locationAddress && locationAddress !== locationName
+        ? locationAddress
+        : undefined,
     ctaHref,
     ctaLabel,
     tags,

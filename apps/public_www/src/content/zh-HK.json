@@ -484,7 +484,6 @@
     }
   },
   "events": {
-    "apiUrl": "https://api.evolvesprouts.com/crm/v1/public/events",
     "eyebrow": "精選活動",
     "title": "即將舉辦的活動",
     "description": "探索即將舉行的蒙特梭利培訓活動，幫助姨姨掌握現代幼兒發展技能。",

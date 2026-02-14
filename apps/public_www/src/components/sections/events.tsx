@@ -7,7 +7,7 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { EventsContent } from '@/content';
-import { readOptionalText } from '@/content/content-field-utils';
+import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   BODY_TEXT_COLOR,
   DEFAULT_SECTION_EYEBROW_STYLE,
@@ -17,7 +17,6 @@ import {
   type EventCardData,
   fetchEventsPayload,
   normalizeEvents,
-  resolveRuntimeEventsApiUrl,
   resolveSortOptions,
   sortEvents,
 } from '@/lib/events-data';
@@ -178,9 +177,14 @@ export function Events({ content }: EventsProps) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const configuredApiUrl = readOptionalText(content.apiUrl);
+    const crmApiBaseUrl = process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '';
+    const crmApiKey = process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '';
+    const crmApiClient = createCrmApiClient({
+      baseUrl: crmApiBaseUrl,
+      apiKey: crmApiKey,
+    });
 
-    if (!configuredApiUrl) {
+    if (!crmApiClient) {
       setEvents([]);
       setHasRequestError(true);
       setIsLoading(false);
@@ -189,12 +193,10 @@ export function Events({ content }: EventsProps) {
       };
     }
 
-    const apiUrl = resolveRuntimeEventsApiUrl(configuredApiUrl);
-
     setIsLoading(true);
     setHasRequestError(false);
 
-    fetchEventsPayload(apiUrl, controller.signal)
+    fetchEventsPayload(crmApiClient, controller.signal)
       .then((payload) => {
         const normalizedEvents = normalizeEvents(payload, content);
         setEvents(normalizedEvents);

@@ -315,8 +315,9 @@ For each function above, the following resources are created:
 - Cache TTL: 5 minutes for `/v1/activities/search/GET`
 
 **CORS Configuration:**
-- Allowed Origins: From `CORS_ALLOWED_ORIGINS` env var or context, defaults to `capacitor://localhost`, `ionic://localhost`, `http://localhost`
-- Allowed Methods: `GET`, `OPTIONS`
+- Allowed Origins: From `CORS_ALLOWED_ORIGINS` env var or context, and always includes `https://www.evolvesprouts.com` plus `https://www-staging.evolvesprouts.com`
+- Default Origins (when no env/context is set): `https://www.evolvesprouts.com`, `https://www-staging.evolvesprouts.com`, `capacitor://localhost`, `ionic://localhost`, `http://localhost`, `http://localhost:3000`, `https://evolvesprouts.lx-software.com`, `https://evolvesprouts-api.lx-software.com`
+- Allowed Methods: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`
 
 ### API Gateway Resources and Methods
 

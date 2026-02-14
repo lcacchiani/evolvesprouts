@@ -40,16 +40,10 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 - `PublicWwwStagingCertificateArn`: ACM certificate ARN for staging
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1)
 
-`PublicWwwApiProxyDomainName` is provided by the backend deploy workflow from
-GitHub variable `API_DOMAIN_NAME`. This variable is required for CI deploys.
+Public WWW CRM API configuration is provided at build time via:
 
-For local CDK deploys, you can override it explicitly:
-
-```bash
-cd backend/infrastructure
-npx cdk deploy --require-approval never \
-  --parameters evolvesprouts-public-www:PublicWwwApiProxyDomainName=api.evolvesprouts.com
-```
+- GitHub variable `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
+- GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
 
 ## CI/CD workflows
 
@@ -175,11 +169,6 @@ The deploy workflow reads these GitHub values for OAuth 2.0 auth:
 `public_www` intentionally does **not** use SPA fallback rewrites. CloudFront
 returns normal 404 responses for unknown routes, which preserves crawler
 semantics for indexing.
-
-CloudFront includes an explicit `api/*` behavior that proxies requests to
-`PublicWwwApiProxyDomainName` and rewrites `/api/<path>` to `/<path>` at the
-origin. This allows browser calls to API resources via same-origin URLs such
-as `/api/v1/...` or `/api/crm/v1/...` without cross-origin CORS errors.
 
 For branded not-found UX on static export, CloudFront custom error responses
 map S3 403/404 origin misses to `/404.html` while preserving HTTP 404 status.

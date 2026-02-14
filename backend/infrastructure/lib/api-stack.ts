@@ -2482,9 +2482,15 @@ export class ApiStack extends cdk.Stack {
   }
 }
 
+const REQUIRED_PUBLIC_WEB_CORS_ORIGINS = [
+  "https://www.evolvesprouts.com",
+  "https://www-staging.evolvesprouts.com",
+];
+
 // CORS origins must be concrete at synth time for preflight generation.
 function resolveCorsAllowedOrigins(scope: Construct): string[] {
   const defaultOrigins = [
+    ...REQUIRED_PUBLIC_WEB_CORS_ORIGINS,
     "capacitor://localhost",
     "ionic://localhost",
     "http://localhost",
@@ -2496,13 +2502,21 @@ function resolveCorsAllowedOrigins(scope: Construct): string[] {
     scope.node.tryGetContext("corsAllowedOrigins")
   );
   if (contextOrigins.length > 0) {
-    return contextOrigins;
+    return ensureRequiredCorsOrigins(contextOrigins);
   }
   const envOrigins = normalizeCorsOrigins(process.env.CORS_ALLOWED_ORIGINS);
   if (envOrigins.length > 0) {
-    return envOrigins;
+    return ensureRequiredCorsOrigins(envOrigins);
   }
-  return defaultOrigins;
+  return ensureRequiredCorsOrigins(defaultOrigins);
+}
+
+function ensureRequiredCorsOrigins(origins: string[]): string[] {
+  // Keep public website origins first because API Gateway default 4xx/5xx
+  // gateway responses use corsAllowedOrigins[0] for Access-Control-Allow-Origin.
+  return Array.from(
+    new Set([...REQUIRED_PUBLIC_WEB_CORS_ORIGINS, ...origins].map((origin) => origin.trim()))
+  ).filter((origin) => origin.length > 0);
 }
 
 function normalizeCorsOrigins(value: unknown): string[] {
