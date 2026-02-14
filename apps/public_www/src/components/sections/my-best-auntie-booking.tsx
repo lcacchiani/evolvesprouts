@@ -66,8 +66,6 @@ export function MyBestAuntieBooking({
 
   const [selectedAgeId, setSelectedAgeId] = useState(ageOptions[0]?.id ?? '');
   const [selectedDateId, setSelectedDateId] = useState(dateOptions[0]?.id ?? '');
-  const [canScrollDatePrev, setCanScrollDatePrev] = useState(false);
-  const [canScrollDateNext, setCanScrollDateNext] = useState(false);
   const dateCarouselRef = useRef<HTMLDivElement | null>(null);
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -78,47 +76,6 @@ export function MyBestAuntieBooking({
 
   const modalMonthId =
     selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
-
-  function syncDateCarouselControls() {
-    const carouselElement = dateCarouselRef.current;
-
-    if (!carouselElement) {
-      setCanScrollDatePrev(false);
-      setCanScrollDateNext(false);
-      return;
-    }
-
-    const canScrollPrev = carouselElement.scrollLeft > 4;
-    const canScrollNext =
-      carouselElement.scrollLeft + carouselElement.clientWidth <
-      carouselElement.scrollWidth - 4;
-
-    setCanScrollDatePrev(canScrollPrev);
-    setCanScrollDateNext(canScrollNext);
-  }
-
-  useEffect(() => {
-    const carouselElement = dateCarouselRef.current;
-    if (!carouselElement) {
-      return;
-    }
-
-    syncDateCarouselControls();
-
-    function handleDateCarouselScroll() {
-      syncDateCarouselControls();
-    }
-
-    carouselElement.addEventListener('scroll', handleDateCarouselScroll, {
-      passive: true,
-    });
-    window.addEventListener('resize', syncDateCarouselControls);
-
-    return () => {
-      carouselElement.removeEventListener('scroll', handleDateCarouselScroll);
-      window.removeEventListener('resize', syncDateCarouselControls);
-    };
-  }, [dateOptions.length]);
 
   useEffect(() => {
     const selectedDateCard = dateCardRefs.current[selectedDateId];
@@ -303,8 +260,7 @@ export function MyBestAuntieBooking({
                           handleDateCarouselNavigation('prev');
                         }}
                         aria-label='Scroll dates left'
-                        disabled={!canScrollDatePrev}
-                        className='es-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EED5C1] bg-white text-[#333333] disabled:cursor-not-allowed disabled:opacity-45'
+                        className='es-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EED5C1] bg-white text-[#333333]'
                       >
                         <span aria-hidden='true'>&larr;</span>
                       </button>
@@ -314,8 +270,7 @@ export function MyBestAuntieBooking({
                           handleDateCarouselNavigation('next');
                         }}
                         aria-label='Scroll dates right'
-                        disabled={!canScrollDateNext}
-                        className='es-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EED5C1] bg-white text-[#333333] disabled:cursor-not-allowed disabled:opacity-45'
+                        className='es-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EED5C1] bg-white text-[#333333]'
                       >
                         <span aria-hidden='true'>&rarr;</span>
                       </button>
