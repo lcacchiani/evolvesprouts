@@ -6,12 +6,20 @@ import {
   type CSSProperties,
   type FormEvent,
   type ReactNode,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
 
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  buildDiscountsApiUrl,
+  type DiscountRule,
+  fetchDiscountRules,
+  normalizeStaticDiscountRules,
+  resolveRuntimeDiscountsApiUrl,
+} from '@/lib/discounts-data';
 import { formatCurrencyHkd } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 
@@ -47,7 +55,6 @@ interface MyBestAuntieThankYouModalProps {
   onClose: () => void;
 }
 
-type DiscountRule = MyBestAuntieBookingContent['paymentModal']['discountCodes'][number];
 type CoursePartRow = {
   label: string;
   date: string;
@@ -234,6 +241,13 @@ export function MyBestAuntieBookingModal({
   onClose,
   onSubmitReservation,
 }: MyBestAuntieBookingModalProps) {
+  const fallbackDiscountRules = useMemo(
+    () => normalizeStaticDiscountRules(content.discountCodes),
+    [content.discountCodes],
+  );
+  const crmApiKey = process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '';
+  const crmApiBaseUrl = process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '';
+
   const firstMonthId = content.monthOptions[0]?.id ?? '';
   const firstPackageId = content.packageOptions[0]?.id ?? '';
   const resolvedMonthId = content.monthOptions.some(
@@ -248,10 +262,61 @@ export function MyBestAuntieBookingModal({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [discountCode, setDiscountCode] = useState('');
+  const [discountRules, setDiscountRules] =
+    useState<DiscountRule[]>(fallbackDiscountRules);
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
+  const [isDiscountRulesLoading, setIsDiscountRulesLoading] = useState(false);
 
   useModalLockBody({ onEscape: onClose });
+
+  useEffect(() => {
+    setDiscountRules(fallbackDiscountRules);
+  }, [fallbackDiscountRules]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const normalizedApiKey = crmApiKey.trim();
+    const discountApiUrl = buildDiscountsApiUrl(crmApiBaseUrl);
+
+    if (!normalizedApiKey || !discountApiUrl) {
+      setDiscountRules(fallbackDiscountRules);
+      setIsDiscountRulesLoading(false);
+      return () => {
+        controller.abort();
+      };
+    }
+
+    const apiUrl = resolveRuntimeDiscountsApiUrl(discountApiUrl);
+
+    setIsDiscountRulesLoading(true);
+
+    fetchDiscountRules(apiUrl, normalizedApiKey, controller.signal)
+      .then((remoteRules) => {
+        if (remoteRules.length > 0) {
+          setDiscountRules(remoteRules);
+          return;
+        }
+
+        setDiscountRules(fallbackDiscountRules);
+      })
+      .catch((error) => {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+
+        setDiscountRules(fallbackDiscountRules);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsDiscountRulesLoading(false);
+        }
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [crmApiBaseUrl, crmApiKey, fallbackDiscountRules]);
 
   const selectedMonth =
     content.monthOptions.find((option) => option.id === selectedMonthId) ??
@@ -292,7 +357,7 @@ export function MyBestAuntieBookingModal({
       return;
     }
 
-    const matchedRule = content.discountCodes.find(
+    const matchedRule = discountRules.find(
       (entry) => entry.code.toUpperCase() === normalizedCode,
     );
 
@@ -657,7 +722,8 @@ export function MyBestAuntieBookingModal({
                     <button
                       type='button'
                       onClick={handleApplyDiscount}
-                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] px-4 text-sm font-semibold text-[#C84A16]'
+                      disabled={isDiscountRulesLoading}
+                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] px-4 text-sm font-semibold text-[#C84A16] disabled:cursor-not-allowed disabled:opacity-60'
                     >
                       {content.applyDiscountLabel}
                     </button>
