@@ -154,19 +154,11 @@ function resolveDateTimeDetails(record: Record<string, unknown>): {
 
 function buildEventsApiUrl(crmApiBaseUrl: string): string {
   const normalizedBaseUrl = crmApiBaseUrl.trim();
-  if (!normalizedBaseUrl) {
+  if (!normalizedBaseUrl || !/^https:\/\//i.test(normalizedBaseUrl)) {
     return '';
   }
 
-  const hostAndPath = normalizedBaseUrl
-    .replace(/^https?:\/\//i, '')
-    .replace(/^\/+/, '')
-    .replace(/\/+$/, '');
-  if (!hostAndPath) {
-    return '';
-  }
-
-  return `https://${hostAndPath}${EVENTS_API_PATH}`;
+  return `${normalizedBaseUrl.replace(/\/+$/, '')}${EVENTS_API_PATH}`;
 }
 
 function normalizeLocationLabel(value: string | undefined): string | undefined {

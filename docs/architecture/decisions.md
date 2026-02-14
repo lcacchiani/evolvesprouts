@@ -271,8 +271,8 @@ Lambdas or NAT Gateway.
 - `CDK_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (optional path to CDK parameter JSON)
-- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (Public WWW CRM API base URL without
-  scheme)
+- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (Public WWW CRM API base URL with
+  scheme, including `https://`)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`

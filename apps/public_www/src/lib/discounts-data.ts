@@ -124,19 +124,11 @@ export function normalizeDiscountsPayload(payload: unknown): DiscountRule[] {
 
 export function buildDiscountsApiUrl(crmApiBaseUrl: string): string {
   const normalizedBaseUrl = crmApiBaseUrl.trim();
-  if (!normalizedBaseUrl) {
+  if (!normalizedBaseUrl || !/^https:\/\//i.test(normalizedBaseUrl)) {
     return '';
   }
 
-  const hostAndPath = normalizedBaseUrl
-    .replace(/^https?:\/\//i, '')
-    .replace(/^\/+/, '')
-    .replace(/\/+$/, '');
-  if (!hostAndPath) {
-    return '';
-  }
-
-  return `https://${hostAndPath}${DISCOUNTS_API_PATH}`;
+  return `${normalizedBaseUrl.replace(/\/+$/, '')}${DISCOUNTS_API_PATH}`;
 }
 
 async function parseResponsePayload(response: Response): Promise<unknown> {

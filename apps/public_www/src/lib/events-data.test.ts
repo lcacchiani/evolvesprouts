@@ -14,15 +14,13 @@ afterEach(() => {
 
 describe('events-data', () => {
   it('resolves CRM events endpoint from base URL', () => {
-    expect(resolveEventsApiUrl('api.evolvesprouts.com/www')).toBe(
-      'https://api.evolvesprouts.com/www/v1/calendar/events',
-    );
-    expect(resolveEventsApiUrl('api.evolvesprouts.com/www/')).toBe(
+    expect(resolveEventsApiUrl('https://api.evolvesprouts.com/www')).toBe(
       'https://api.evolvesprouts.com/www/v1/calendar/events',
     );
     expect(resolveEventsApiUrl('https://api.evolvesprouts.com/www/')).toBe(
       'https://api.evolvesprouts.com/www/v1/calendar/events',
     );
+    expect(resolveEventsApiUrl('api.evolvesprouts.com/www/')).toBe('');
     expect(resolveEventsApiUrl('   ')).toBe('');
   });
 
