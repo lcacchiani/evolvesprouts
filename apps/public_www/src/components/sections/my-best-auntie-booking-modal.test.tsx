@@ -74,6 +74,27 @@ describe('my-best-auntie booking modals footer content', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('does not render the month/package selector box in booking modal', () => {
+    render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(
+      screen.queryByRole('heading', { name: bookingModalContent.monthLabel }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: bookingModalContent.packageLabel }),
+    ).not.toBeInTheDocument();
+
+    for (const option of bookingModalContent.packageOptions) {
+      expect(screen.queryByText(option.description)).not.toBeInTheDocument();
+    }
+  });
+
   it('does not render booking modal copyright footer section', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
