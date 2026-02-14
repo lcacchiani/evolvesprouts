@@ -1,415 +1,205 @@
-# Cursor rules for Flutter mobile app and AWS Lambda backend
+# Cursor rules for Evolve Sprouts repository
 # Sources:
-# - rules/flutter-development-guidelines-cursorrules-prompt-file
-# - rules/python-projects-guide-cursorrules-prompt-file
-# - rules/react-redux-typescript-cursorrules-prompt-file
-# - rules/nextjs-react-tailwind-cursorrules-prompt-file
+# - Internal repo architecture/docs
+# - Flutter, Python, React/TypeScript, and Next.js guidance
 
-### Constraints (MANDATORY)
-- Never proceed with new files if similar functionality exists.
-- If the plan changes, re-submit for approval.
-- Use simple future tense for planning, not present tense (e.g., "I will
-  modify..." not "I am modifying...").
-- S3 bucket names must be 63 characters or less. When composing bucket
-  names, shorten suffixes or truncate to stay within the limit.
+## Scope and applicability (MANDATORY)
 
-### Workflow (MANDATORY)
-1. **Analyze:** Understand the user request.
-2. **Plan:** Create a detailed plan (output directly in chat) outlining:
-   - Files to be modified/created
-   - Functions/components to be changed
-   - Potential edge cases
-   - Ask questions to validate requirements and uncover hidden assumptions
-3. **Approval:** Wait for user approval.
-4. **Execute:** Implement the changes only after approval.
-5. **Python formatting:** Run `pre-commit run ruff-format --all-files`
-   before any Python commit.
+- These rules apply to ALL executions in this repository, including:
+  analysis, planning, implementation, refactors, tests, docs, and git ops.
+- Use path-aware rules:
+  - If a change touches `backend/**`, backend + security + docs rules apply.
+  - If a change touches `apps/evolvesprouts_app/**`, Flutter rules apply.
+  - If a change touches `apps/crm_web/**` or `apps/public_www/**`,
+    web rules apply.
+  - If a change touches multiple areas, satisfy all relevant sections.
+- If two rules conflict, follow the more specific rule for the changed path.
 
-### Flutter development guidelines
-### Repository structure
+## Repository structure (current)
+
 repo root
-├── packages/
-│   ├── api_client_dart/    # Dart API client
-│   ├── api_client_ts/      # TypeScript API client
-│   ├── models_shared/      # Shared schemas (OpenAPI/Protobuf)
-│   ├── flutter_ui/         # Flutter widgets
-│   └── react_ui/          # React components (Storybook)
-├── apps/
-│   ├── evolvesprouts_app/       # Flutter mobile
-│   └── crm_web/          # React/Next.js app
-│       ├── src/
-│       │   ├── app/         # App Router
-│       │   │   ├── (auth)/
-│       │   │   │   ├── login/
-│       │   │   │   │   └── page.tsx
-│       │   │   │   └── layout.tsx
-│       │   │   ├── admin/
-│       │   │   │   ├── dashboard/
-│       │   │   │   │   └── page.tsx
-│       │   │   │   ├── users/
-│       │   │   │   │   ├── page.tsx
-│       │   │   │   │   ├── [id]/
-│       │   │   │   │   │   └── page.tsx
-│       │   │   │   │   └── new/
-│       │   │   │   │       └── page.tsx
-│       │   │   │   ├── analytics/
-│       │   │   │   │   └── page.tsx
-│       │   │   │   └── layout.tsx
-│       │   │   ├── api/
-│       │   │   │   ├── admin/
-│       │   │   │   │   └── route.ts
-│       │   │   │   └── webhook/
-│       │   │   │       └── route.ts
-│       │   │   ├── layout.tsx
-│       │   │   ├── page.tsx
-│       │   │   └── middleware.ts
-│       │   ├── components/
-│       │   └── lib/
-│       ├── public/
-│       ├── next.config.js
-│       └── package.json
-├── backend/
-│   ├── api_gateway/
-│   ├── lambda_functions/
-│   └── infrastructure/
-│       ├── lib/
-│       ├── bin/
-│       ├── test/
-│       ├── cdk.json
-│       ├── package.json
-│       └── tsconfig.json
-├── scripts/
-│   ├── codegen/           # Generates both Dart and TS clients
-│   └── deploy/
-└── docs/
-    └── api/               # OpenAPI specs
+|-- apps/
+|   |-- evolvesprouts_app/    # Flutter mobile app
+|   |-- crm_web/              # Next.js admin shell
+|   `-- public_www/           # Next.js public website
+|-- backend/
+|   |-- db/                   # Alembic + seed SQL
+|   |-- infrastructure/       # AWS CDK stacks (TypeScript)
+|   |-- lambda/               # Lambda handlers
+|   |-- src/app/              # Shared Python app code
+|   `-- requirements.txt
+|-- docs/
+|   |-- api/                  # OpenAPI specs
+|   `-- architecture/         # Architecture docs
+|-- scripts/
+`-- tests/
 
-### Architecture decisions
-- Admin console uses Next.js App Router under apps/crm_web/src/app.
-- Infrastructure as Code uses AWS CDK (TypeScript) + CDK Pipelines.
-- CI/CD uses GitHub OIDC with IAM roles (no long-lived keys).
-- Mobile distribution uses Android AAB (Play Store) and iOS TestFlight/App Store Connect.
-- Admin web hosting uses Amplify Hosting release jobs triggered in CI.
-- Android signing uses CI-injected keystore; iOS signing uses Fastlane match.
-- Amplify staging-to-prod promotions use a gated workflow.
-- Lockfiles are required and validated in CI.
-- iOS export options are templated and generated in CI.
-- Aurora uses Alembic migrations in backend/db.
-- Lambda entrypoints live in backend/lambda and import backend/src.
-- Lambda functions connect via RDS Proxy.
-- RDS Proxy uses IAM auth with generated tokens.
-- DB connections enforce TLS and Lambda-tuned pool settings.
-- Migrations use password auth against the cluster endpoint.
-- Admin routes use Cognito auth; public search requires API key + device attestation.
-- Cognito PrivateLink is blocked by ManagedLogin; use the AWS/HTTP proxy instead.
-- AWS/HTTP proxy Lambda runs outside VPC with allow-listed actions/URLs.
-- In-VPC Lambdas call Cognito via `app.services.aws_proxy.invoke()`.
-- In-VPC Lambdas call external HTTP APIs via `app.services.aws_proxy.http_invoke()`.
-- Never call boto3 cognito-idp directly from in-VPC Lambdas; always use the proxy.
-- Search responses use cursor pagination.
-- Flutter uses Amplify config passed via dart-define.
-- API Gateway caching enabled for search.
-- Admin CRUD routes exist under /admin and require admin group membership.
-- Database roles include activities_app (read) and activities_admin (write).
-- Admin group is created by CDK.
-- Cursor pagination orders by schedule timing.
-- Admin group membership can be managed via /admin/users/{username}/groups.
-- Admin list endpoints are cursor paginated.
-- Optional CDK parameters bootstrap an admin user.
-- Auth is passwordless with email OTP/magic link and federated Google/Apple/Microsoft.
+## Constraints (MANDATORY)
 
-### Database change requirements (MANDATORY)
-- **ALEMBIC MIGRATION REVISION IDs MUST BE <= 32 CHARACTERS**
-  - Format: NNNN_short_description (e.g., "0010_add_audit_logging")
-  - ALWAYS count characters before creating: `echo -n "revision_id" | wc -c`
-  - Use abbreviations: "org" not "organization", "req" not "request", etc.
-  - Examples of valid IDs: "0011_add_org_suggestions" (24 chars), "0010_add_audit_logging" (22 chars)
-  - NEVER exceed 32 characters - migrations WILL FAIL
+- Never proceed with new files if similar functionality already exists.
+- If the approved plan changes, re-submit the updated plan for approval.
+- Use simple future tense in plans:
+  - Good: "I will modify..."
+  - Avoid: "I am modifying..."
+- S3 bucket names must be 63 characters or less.
+- Never hardcode secrets, API keys, passwords, or tokens.
 
-### Seed data assessment (MANDATORY for ANY database change)
-- **Every** database change (migration, new table, column add/rename/drop,
-  constraint change, enum change, default change) MUST include a seed-data
-  assessment before the work is considered complete.
-- Seed data location: backend/db/seed/seed_data.sql
-- Assessment checklist — answer ALL of these for every DB change:
-  1. **Compatibility**: Will the existing seed SQL still execute without errors
-     after this migration? (Check column names, types, NOT NULL, FKs, enums,
-     CHECK constraints.)
-  2. **New required columns**: Does the migration add a NOT NULL column or a
-     column with a CHECK constraint?  If yes, UPDATE seed_data.sql to supply
-     valid values for that column.
-  3. **Renamed / dropped columns**: Does the migration rename or remove a
-     column?  If yes, UPDATE seed_data.sql to match the new schema.
-  4. **New tables**: Does the migration create a new table?  If yes, EVALUATE
-     whether seed rows are needed for local development and testing, and ADD
-     them if so.
-  5. **Enum / allowed-value changes**: Does the migration add or remove enum
-     values or change CHECK constraints?  If yes, VERIFY that all seed rows
-     still use allowed values.
-  6. **FK / cascade changes**: Does the migration alter foreign-key
-     relationships or cascade rules?  If yes, VERIFY that the insert order
-     and referenced IDs in seed_data.sql are still valid.
-- After updating seed_data.sql, mentally (or actually) run the full sequence:
-  `alembic upgrade head` → `psql -f seed_data.sql` to confirm no errors.
-- If the assessment concludes "no seed changes needed", add a brief comment
-  in the PR/commit explaining why (e.g., "Seed assessment: new nullable
-  column with DEFAULT — existing seed rows unaffected").
+## Workflow (MANDATORY)
 
-### Endpoint registration and documentation requirements (MANDATORY)
-- Every time you add a new API endpoint (Lambda handler route), you MUST:
-  1. Register the route in the API Gateway CDK stack (backend/infrastructure/lib/api-stack.ts)
-     - Add the resource and method with the correct Lambda integration
-     - Configure the appropriate authorizer (adminAuthorizer, managerAuthorizer, userAuthorizer, deviceAttestationAuthorizer, or IAM)
-     - Set apiKeyRequired if the endpoint needs an API key
-  2. Update the OpenAPI documentation (docs/api/admin.yaml or docs/api/search.yaml)
-     - Add the path with all HTTP methods, parameters, request body, and response schemas
-     - Add any new component schemas referenced by the endpoint
-     - Document authentication requirements
-  3. Update the Lambda catalog (docs/architecture/lambdas.md)
-     - If a new Lambda function is created, add its entry with function name, handler path, trigger, purpose, DB access, and VPC config
-     - If an existing Lambda gains new routes, update its description
-- NEVER merge a PR that adds an endpoint without all three updates completed
-- API Gateway route paths must exactly match the paths handled in the Lambda code
-- Documentation paths must exactly match the API Gateway registered paths
+1. Analyze the user request and relevant repository context.
+2. Plan in chat before editing code. The plan must include:
+   - files to modify/create
+   - functions/components/modules to change
+   - edge cases and risks
+   - questions to validate assumptions
+3. Wait for explicit user approval.
+4. Execute only after approval.
+5. Validate with focused checks/tests for touched areas.
+6. For any Python change, run:
+   `pre-commit run ruff-format --all-files`
+   before committing.
 
-### Documentation freshness requirements (MANDATORY)
-- After ANY code change, ensure the relevant documentation is still accurate.
-- API endpoint details (paths, methods, parameters, schemas) belong ONLY in
-  the OpenAPI specs (docs/api/*.yaml). NEVER duplicate endpoint details in
-  architecture docs; link to the OpenAPI spec instead.
-- When modifying code, check and update as applicable:
-  - docs/api/*.yaml — if API endpoints, parameters, or schemas change
-  - docs/architecture/lambdas.md — if Lambda functions are added, removed, or reconfigured
-  - docs/architecture/database-schema.md — if database tables or columns change
-  - docs/architecture/aws-assets-map.md — if AWS resources, IAM permissions, or CDK outputs change
-  - docs/architecture/overview.md — if high-level architecture or component relationships change
-  - docs/architecture/decisions.md — if architectural decisions or patterns change
-  - docs/architecture/security.md — if security practices or configurations change
-  - docs/architecture/aws-messaging.md — if messaging (SNS/SQS) architecture changes
-  - docs/architecture/audit-logging.md — if audit logging behavior changes
-  - .cursorrules — if development rules or conventions change
-- Architecture docs describe DESIGN, PATTERNS, and DECISIONS — not endpoint specifics.
-- The single source of truth for endpoints is the OpenAPI spec.
-- When in doubt, update the docs. Stale documentation is worse than no documentation.
+## Architecture decisions (repository baseline)
 
-### E2E testing requirements (MANDATORY)
-- When UI or API changes affect crm_web flows, UPDATE Playwright e2e tests
-  and fixtures under apps/crm_web/e2e to match required fields, labels,
-  and endpoints.
-- Keep e2e mock responses aligned with current OpenAPI schemas and recent UI
-  behavior; no shipping UI changes without corresponding e2e updates.
+- Admin web app uses Next.js App Router under `apps/crm_web/src/app`.
+- Public website uses Next.js static export in `apps/public_www`.
+- Infrastructure as Code uses AWS CDK (TypeScript) in
+  `backend/infrastructure`.
+- Lambda handlers are under `backend/lambda/**` and shared backend code is
+  under `backend/src/app/**`.
+- Aurora PostgreSQL schema is managed by Alembic in `backend/db`.
+- In-VPC Lambda database access is through RDS Proxy with IAM auth.
+- In-VPC Lambda calls to Cognito/external HTTP must go through
+  `app.services.aws_proxy.invoke()` or `http_invoke()`.
+- API endpoint contracts are documented only in `docs/api/*.yaml`.
 
-### Security requirements (MANDATORY - see docs/architecture/security.md)
-- NEVER hardcode secrets, API keys, passwords, or tokens in source code.
-- NEVER log PII (emails, names) without masking. Use mask_email() and mask_pii() from app.utils.logging.
-- NEVER use print() in production code. Always use structured logging with get_logger().
-- NEVER use random module for security tokens. Always use secrets module.
-- NEVER use Cors.ALL_ORIGINS in production. Restrict to specific allowed origins.
-- ALWAYS use noEcho: true for CDK parameters containing secrets.
-- ALWAYS use fail-closed mode (ATTESTATION_FAIL_CLOSED=true) in production.
-- ALWAYS validate and sanitize user input before processing.
-- ALWAYS use SSL for database connections (sslmode=require).
+## Backend and API rules (MANDATORY for backend changes)
 
-### Code style and structure
-- Write concise and efficient source code.
-- Strive for source code that is easy to read and maintain, and provide accurate examples.
-- Avoid duplication of code: modularise widgets and functions into reusable components.
-- Use descriptive variable names: use names with auxiliary verbs such as isLoading, hasError.
-- Python files must not exceed 500 lines.
+- Register new API routes in:
+  `backend/infrastructure/lib/api-stack.ts`
+- Keep API Gateway route paths exactly aligned with Lambda handlers.
+- For every new or changed endpoint:
+  1. Update API Gateway route wiring in CDK.
+  2. Update OpenAPI in `docs/api/admin.yaml` or `docs/api/search.yaml`.
+  3. Update Lambda catalog in `docs/architecture/lambdas.md`.
+- Do not merge endpoint work without all three updates.
+- Do not call boto3 `cognito-idp` directly from in-VPC Lambdas.
+  Use the AWS proxy service helpers instead.
 
-### Directory structure under /lib.
-- /lib/models/: data models and type definitions (Models)
-- /lib/viewmodels/: state management and business logic (ViewModel)
-- /lib/views/widgets/: reusable widgets (View)
-- /lib/views/screens/: per-screen widgets (View)
-- /lib/services/: service classes for API calls and data access
-- /lib/utils/: helper functions and constants
+## Database change rules (MANDATORY for schema changes)
 
-### Naming conventions
-- Directories and files: use snakeCase (e.g. auth_wizard.dart).
-- UpperCamelCase: use for class names/enumerations/typedefs/type parameters, etc.
-- LowerCamelCase: used for variables/functions/class members (properties, methods), etc.
-- lowercase_with_underscores (snakeCase): for files/directories/packages/libraries, etc.
+- Alembic revision IDs must be <= 32 characters.
+  - Format: `NNNN_short_description`
+  - Example: `0010_add_audit_logging`
+  - Validate length with:
+    `echo -n "revision_id" | wc -c`
+- Seed-data assessment is required for EVERY DB change.
+  Seed file: `backend/db/seed/seed_data.sql`
+- Checklist (must answer all):
+  1. Compatibility with existing seed SQL.
+  2. New NOT NULL/CHECK-constrained columns handled in seed data.
+  3. Renamed/dropped columns reflected in seed data.
+  4. New tables evaluated for seed rows.
+  5. Enum/allowed-value changes validated in seed rows.
+  6. FK/cascade changes validated for insert order and references.
+- Confirm migration + seed sequence mentally or in practice:
+  `alembic upgrade head` then `psql -f seed_data.sql`
+- If no seed update is needed, add a brief commit/PR note explaining why.
 
-### Import.
-- Place imports starting with dart: first (use lowercase_with_underscores for the import prefix).
-- Next, import third-party packages (package:).
-- Finally, import relative paths and files in the project.
+## Documentation freshness (MANDATORY after code changes)
 
-### Using Dart.
-- Take advantage of type safety: use static typing in all code and utilise type inference wherever possible.
+- Keep relevant docs updated with code changes:
+  - `docs/api/*.yaml` for endpoint/schema/auth changes
+  - `docs/architecture/lambdas.md` for Lambda inventory/behavior changes
+  - `docs/architecture/database-schema.md` for table/column changes
+  - `docs/architecture/aws-assets-map.md` for AWS/IAM/CDK output changes
+  - `docs/architecture/overview.md` for high-level architecture changes
+  - `docs/architecture/decisions.md` for architectural pattern changes
+  - `docs/architecture/security.md` for security model changes
+  - `docs/architecture/aws-messaging.md` for SNS/SQS pattern changes
+  - `docs/architecture/audit-logging.md` for audit behavior changes
+  - `.cursorrules` when project conventions change
+- Architecture docs describe design and decisions.
+  Endpoint specifics belong only in OpenAPI specs.
 
-### UI and styling.
-- Use Material widgets.
-- Unify theming: use ThemeData to apply consistent styles.
+## Web testing requirements (MANDATORY for web behavior changes)
 
-### Performance optimisation.
-- Prefer StatelessWidget when state is not required.
-- Make use of const constructors: if widgets are immutable, use const to optimise builds.
+- Applies to `apps/crm_web` and `apps/public_www`.
+- When UI/API changes alter web behavior, update existing tests and fixtures
+  in the app's current testing framework.
+- If coverage is missing, add focused tests in the app's existing toolchain.
+- Do not require Playwright unless it is already in use for the touched app
+  or explicitly requested.
+- Keep mock responses aligned with `docs/api/*.yaml` and current UI behavior.
 
-### State management.
-- Use riverpod to implement efficient state management.
-- Manage state within the ViewModel and link it to the View.
+## Security requirements (MANDATORY)
 
-### Software architecture
-Use MVVM (Model View ViewModel).
+- Never log unmasked PII.
+  Use `mask_email()` and `mask_pii()` from `app.utils.logging`.
+- Never use `print()` in production code.
+  Use structured logging with `get_logger()`.
+- Never use `random` for security tokens; use `secrets`.
+- Never use `Cors.ALL_ORIGINS` in production.
+- Always use `noEcho: true` for secret CDK parameters.
+- Always use fail-closed attestation in production
+  (`ATTESTATION_FAIL_CLOSED=true`).
+- Always validate and sanitize user input.
+- Always enforce SSL for DB connections (`sslmode=require`).
 
-### Key rules.
-- To improve code readability, lines should not exceed 80 characters in length.
-- Use braces {} for all flow control structures (if, for, while, etc.).
-- Use comment-outs proactively to help understand and maintain code.
-- Use single quotes, avoid the use of double quotes and use consistent string literals to improve readability.
+## General code style
 
-### React rules (react-redux-typescript-cursorrules-prompt-file)
-// React + Redux + TypeScript .cursorrules
+- Write concise, readable, and maintainable code.
+- Avoid duplication; prefer reusable components/functions.
+- Use descriptive names (for example, `isLoading`, `hasError`).
+- Keep Python files under 500 lines.
 
-// Prefer functional components with hooks
+## Flutter rules (apply to `apps/evolvesprouts_app/**`)
 
-const preferFunctionalComponents = true;
+- Use MVVM-style separation where practical:
+  - `lib/models/`
+  - `lib/viewmodels/`
+  - `lib/views/widgets/`
+  - `lib/views/screens/`
+  - `lib/services/`
+  - `lib/utils/`
+- Prefer `StatelessWidget` when state is not needed.
+- Use `const` constructors for immutable widgets.
+- Use Riverpod for state management patterns in this app.
+- Use Material widgets and consistent `ThemeData`.
+- Naming:
+  - files/directories: snake_case
+  - classes/types: UpperCamelCase
+  - variables/methods: lowerCamelCase
+- Import order:
+  1. `dart:*`
+  2. third-party `package:*`
+  3. project-relative imports
 
-// Use TypeScript for type safety
+## Next.js and TypeScript rules
 
-const useTypeScript = true;
+### Applies to `apps/crm_web/**` and `apps/public_www/**`
 
-// Redux best practices
+- Use TypeScript for app code.
+- Prefer functional components and declarative composition.
+- Prefer server components by default; minimize `use client`.
+- Use `src/app` for routes and `src/components` for shared components.
+- Favor named exports for reusable components.
+- Use descriptive, intention-revealing names.
+- Keep Tailwind usage consistent and mobile-first.
+- For simple pure helpers, use the `function` keyword.
 
-const reduxBestPractices = [
-  "Use Redux Toolkit for efficient Redux development",
-  "Implement slice pattern for organizing Redux code",
-  "Utilize createAsyncThunk for handling async actions",
-  "Use selectors for accessing state in components",
-];
+## React/Redux guidance (when Redux is used)
 
-// Folder structure
+- Use Redux Toolkit patterns (`createSlice`, `createAsyncThunk`).
+- Use typed hooks for dispatch/selectors.
+- Keep selectors in one place and reuse them.
+- Add robust async error handling and user-safe error states.
 
-const folderStructure = `
-src/
-  components/
-  features/
-  store/
-    slices/
-    hooks.ts
-    store.ts
-  types/
-  utils/
-`;
+## Python project guidance (apply to `backend/**` and `tests/**`)
 
-// Additional instructions
-
-const additionalInstructions = `
-1. Use React.FC for functional components with props
-2. Implement strict TypeScript checks
-3. Use Redux hooks (useSelector, useDispatch) in components
-4. Create reusable typed hooks for Redux operations
-5. Implement proper error handling in async operations
-6. Use Redux DevTools for debugging
-7. Follow Redux style guide for naming conventions
-`;
-
-### Next.js rules (nextjs-react-tailwind-cursorrules-prompt-file)
-- You are an expert in TypeScript, Node.js, Next.js App Router, React, Shadcn UI, and Tailwind and Framer Motion.
-
-- Code Style and Structure
-
-  - Write concise, technical TypeScript code with accurate examples.
-  - Use functional and declarative programming patterns; avoid classes.
-  - Prefer iteration and modularization over code duplication.
-  - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
-  - Structure files: exported component, subcomponents, helpers, static content, types.
-
-- Naming Conventions
-
-  - All components should go in src/components and be named like new-component.tsx
-  - Use lowercase with dashes for directories (e.g., components/auth-wizard).
-  - Favor named exports for components.
-
-- TypeScript Usage
-
-  - Use TypeScript for all code; prefer interfaces over types.
-  - Avoid enums; use maps instead.
-  - Use functional components with TypeScript interfaces.
-
-- Syntax and Formatting
-
-  - Use the "function" keyword for pure functions.
-  - Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
-  - Use declarative JSX.
-
-- UI and Styling
-
-  - Use Shadcn UI, and Tailwind for components and styling.
-  - Implement responsive design with Tailwind CSS; use a mobile-first approach.
-
-- Performance Optimization
-
-  - Minimize 'use client', 'useEffect', and 'setState'; favor React Server Components (RSC).
-  - Wrap client components in Suspense with fallback.
-  - Use dynamic loading for non-critical components.
-  - Optimize images: use WebP format, include size data, implement lazy loading.
-
-- Key Conventions
-
-  - Use 'nuqs' for URL search parameter state management.
-  - Optimize Web Vitals (LCP, CLS, FID).
-  - Limit 'use client':
-    - Favor server components and Next.js SSR.
-    - Use only for Web API access in small components.
-    - Avoid for data fetching or state management.
-  - Follow Next.js docs for Data Fetching, Rendering, and Routing.
-  - While creating placeholder images as a part of your seed data, use https://placekitten.com/
-  - Place both the /app and /components folders under a /src directory. This organization offers several benefits:
-    - It helps maintain a clean and organized project structure.
-    - It allows for easier navigation and management of components and pages.
-    - It adheres to common industry standards, making it easier for other developers to understand and contribute to the project.
-    - It provides a clear separation between application logic (in /src/app) and UI components (in /src/components), improving code readability and reusability.
-    - It simplifies the process of creating new pages and components, as you can easily find the corresponding files in the /src directory.
-    - It makes the project more modular and easier to scale as the application grows.
-    - It adheres to the principle of separation of concerns, where different aspects of the application are handled by different directories.
-
-## Components Organization
-
-Within the /src/components folder, consider organizing components by type or feature:
-
-By Type: Group components like forms, buttons, layout elements, etc.
-
-By Feature: For larger applications, group components related to specific features or domains
-
-For example:
-
-  /src/components
-  ├── /ui
-  │   ├── /Button
-  │   ├── /Modal
-  │   └── /Card
-  ├── /forms
-  │   ├── /TextField
-  │   └── /Select
-  └── /layout
-      ├── /Navbar
-      └── /Footer
-
-- Private Components: For components used only within specific pages, you can create a _components folder within the relevant /app subdirectory.
-
-- Shared Components: The /src/components folder should contain reusable components used across multiple pages or features.
-
-- Modular Approach: As your project grows, consider adopting a more modular structure, where each feature or domain has its own folder containing components, hooks, and utilities specific to that feature.
-
-### Python projects guide
-You are an AI assistant specialized in Python development. Your approach emphasizes:
-
-1. Clear project structure with separate directories for source code, tests, docs, and config.
-2. Modular design with distinct files for models, services, controllers, and utilities.
-3. Configuration management using environment variables.
-4. Robust error handling and logging, including context capture.
-5. Comprehensive testing with pytest.
-6. Detailed documentation using docstrings and README files.
-7. Dependency management via https://github.com/astral-sh/rye and virtual environments.
-8. Code style consistency using Ruff.
-9. CI/CD implementation with GitHub Actions.
-10. AI-friendly coding practices:
-   - Descriptive variable and function names
-   - Type hints
-   - Detailed comments for complex logic
-   - Rich error context for debugging
-
-You provide code snippets and explanations tailored to these principles, optimizing for clarity and AI-assisted development.
+- Keep modules focused and composable (models/services/controllers/utils).
+- Use type hints and clear function signatures.
+- Use robust error handling with contextual logging.
+- Use pytest for tests.
+- Keep docstrings and README/docs aligned with behavior.
+- Use Ruff-based formatting/lint workflows configured by the repo.
