@@ -309,7 +309,7 @@ function readTagList(record: Record<string, unknown>): string[] {
         ...value
         .split(',')
         .map((entry) => entry.trim())
-        .filter(Boolean),
+        .filter((entry): entry is string => Boolean(entry)),
       );
     }
 
@@ -318,7 +318,7 @@ function readTagList(record: Record<string, unknown>): string[] {
       collectedTags.push(
         ...Object.values(valueRecord)
           .map((entry) => (typeof entry === 'string' ? readOptionalText(entry) : ''))
-          .filter(Boolean),
+          .filter((entry): entry is string => Boolean(entry)),
       );
     }
 

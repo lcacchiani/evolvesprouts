@@ -71,6 +71,7 @@ describe('discounts-data', () => {
     const staticRules = [
       { code: ' SPROUTS10 ', type: 'percent', value: 10 },
       { code: '', type: 'amount', value: 1000 },
+      { code: 'BADTYPE', type: 'bogus', value: 100 },
     ] as const;
 
     expect(normalizeStaticDiscountRules(staticRules)).toEqual([

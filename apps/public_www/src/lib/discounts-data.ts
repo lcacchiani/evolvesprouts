@@ -8,9 +8,9 @@ export interface DiscountRule {
 }
 
 interface StaticDiscountRule {
-  code: string;
-  type: 'percent' | 'amount';
-  value: number;
+  code: unknown;
+  type: unknown;
+  value: unknown;
 }
 
 export const DISCOUNTS_API_PATH = '/v1/discounts';
@@ -91,14 +91,21 @@ export function normalizeStaticDiscountRules(
   return rules
     .map((rule) => {
       const code = readRequiredText(rule.code);
-      if (!code || !Number.isFinite(rule.value)) {
+      const amount = readNumericAmount(rule.value);
+      const discountType = rule.type;
+
+      if (
+        !code ||
+        amount === null ||
+        (discountType !== 'percent' && discountType !== 'amount')
+      ) {
         return null;
       }
 
       return {
         code,
-        type: rule.type,
-        value: rule.value,
+        type: discountType,
+        value: amount,
       } satisfies DiscountRule;
     })
     .filter((rule): rule is DiscountRule => rule !== null);
