@@ -647,17 +647,6 @@ export function MyBestAuntieBookingModal({
                   {content.reservationDescription}
                 </p>
 
-                {selectedAgeGroupLabel && (
-                  <div className='relative z-10 mt-3 rounded-[12px] border border-[#CAD6E5] bg-white px-4 py-3'>
-                    <p className='text-sm text-[#5A5A5A]'>
-                      {content.selectedAgeGroupLabel}
-                    </p>
-                    <p className='font-semibold text-[#333333]'>
-                      {selectedAgeGroupLabel}
-                    </p>
-                  </div>
-                )}
-
                 <form className='relative z-10 mt-4 space-y-3' onSubmit={handleSubmit}>
                   <label className='block'>
                     <span className='mb-1 block text-sm font-semibold text-[#333333]'>
@@ -736,15 +725,6 @@ export function MyBestAuntieBookingModal({
                       {discountError}
                     </p>
                   )}
-
-                  <div className='rounded-[12px] border border-[#CAD6E5] bg-white px-4 py-3'>
-                    <p className='text-sm text-[#5A5A5A]'>
-                      {content.paymentMethodLabel}
-                    </p>
-                    <p className='font-semibold text-[#333333]'>
-                      {content.paymentMethodValue}
-                    </p>
-                  </div>
 
                   <div className='rounded-[14px] border border-[#CAD6E5] bg-[#F1F6FC] p-4'>
                     <QrPlaceholder label={content.qrLabel} />
