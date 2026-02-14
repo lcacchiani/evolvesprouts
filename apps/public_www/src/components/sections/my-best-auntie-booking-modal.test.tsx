@@ -52,6 +52,28 @@ const reservationSummary: ReservationSummary = {
 };
 
 describe('my-best-auntie booking modals footer content', () => {
+  it('hides child age group and payment method in booking modal', () => {
+    render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        selectedAgeGroupLabel='18-24 months'
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(
+      screen.queryByText(bookingModalContent.selectedAgeGroupLabel),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('18-24 months')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(bookingModalContent.paymentMethodLabel),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(bookingModalContent.paymentMethodValue),
+    ).not.toBeInTheDocument();
+  });
+
   it('does not render booking modal copyright footer section', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
