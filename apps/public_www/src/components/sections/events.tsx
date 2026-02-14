@@ -17,6 +17,7 @@ import {
   type EventCardData,
   fetchEventsPayload,
   normalizeEvents,
+  resolveEventsApiUrl,
   resolveRuntimeEventsApiUrl,
   resolveSortOptions,
   sortEvents,
@@ -178,9 +179,13 @@ export function Events({ content }: EventsProps) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const configuredApiUrl = readOptionalText(content.apiUrl);
+    const fallbackApiUrl = readOptionalText(content.apiUrl) ?? '';
+    const crmApiBaseUrl = process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '';
+    const crmApiKey = process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '';
+    const configuredApiUrl = resolveEventsApiUrl(crmApiBaseUrl, fallbackApiUrl);
+    const normalizedApiKey = crmApiKey.trim();
 
-    if (!configuredApiUrl) {
+    if (!configuredApiUrl || !normalizedApiKey) {
       setEvents([]);
       setHasRequestError(true);
       setIsLoading(false);
@@ -194,7 +199,7 @@ export function Events({ content }: EventsProps) {
     setIsLoading(true);
     setHasRequestError(false);
 
-    fetchEventsPayload(apiUrl, controller.signal)
+    fetchEventsPayload(apiUrl, normalizedApiKey, controller.signal)
       .then((payload) => {
         const normalizedEvents = normalizeEvents(payload, content);
         setEvents(normalizedEvents);
@@ -216,7 +221,7 @@ export function Events({ content }: EventsProps) {
     return () => {
       controller.abort();
     };
-  }, [content]);
+  }, [content, content.apiUrl]);
 
   const visibleEvents = useMemo(() => {
     return sortEvents(events, activeFilter);
