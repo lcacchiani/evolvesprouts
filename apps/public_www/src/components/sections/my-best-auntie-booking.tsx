@@ -317,6 +317,8 @@ export function MyBestAuntieBooking({
           content={content.paymentModal}
           initialMonthId={modalMonthId}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
+          learnMoreLabel={content.learnMoreLabel}
+          learnMoreHref={content.learnMoreHref}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}
