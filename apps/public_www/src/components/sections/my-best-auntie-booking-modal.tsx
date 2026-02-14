@@ -12,9 +12,9 @@ import {
 } from 'react';
 
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import { createCrmApiClient } from '@/lib/crm-api-client';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import {
-  buildDiscountsApiUrl,
   type DiscountRule,
   fetchDiscountRules,
   normalizeStaticDiscountRules,
@@ -275,10 +275,12 @@ export function MyBestAuntieBookingModal({
 
   useEffect(() => {
     const controller = new AbortController();
-    const normalizedApiKey = crmApiKey.trim();
-    const discountApiUrl = buildDiscountsApiUrl(crmApiBaseUrl);
+    const crmApiClient = createCrmApiClient({
+      baseUrl: crmApiBaseUrl,
+      apiKey: crmApiKey,
+    });
 
-    if (!normalizedApiKey || !discountApiUrl) {
+    if (!crmApiClient) {
       setDiscountRules(fallbackDiscountRules);
       setIsDiscountRulesLoading(false);
       return () => {
@@ -288,7 +290,7 @@ export function MyBestAuntieBookingModal({
 
     setIsDiscountRulesLoading(true);
 
-    fetchDiscountRules(discountApiUrl, normalizedApiKey, controller.signal)
+    fetchDiscountRules(crmApiClient, controller.signal)
       .then((remoteRules) => {
         if (remoteRules.length > 0) {
           setDiscountRules(remoteRules);

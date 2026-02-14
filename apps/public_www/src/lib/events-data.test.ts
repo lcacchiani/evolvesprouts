@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import enContent from '@/content/en.json';
+import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   fetchEventsPayload,
   normalizeEvents,
@@ -133,10 +134,16 @@ describe('events-data', () => {
       ),
     );
     vi.stubGlobal('fetch', fetchSpy);
+    const crmApiClient = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'public-crm-key',
+    });
+    if (!crmApiClient) {
+      throw new Error('Expected CRM API client configuration to be valid');
+    }
 
     const payload = await fetchEventsPayload(
-      'https://api.evolvesprouts.com/www/v1/calendar/events',
-      'public-crm-key',
+      crmApiClient,
       new AbortController().signal,
     );
 
@@ -156,13 +163,12 @@ describe('events-data', () => {
     });
   });
 
-  it('throws if events API key is missing', async () => {
-    await expect(
-      fetchEventsPayload(
-        'https://api.evolvesprouts.com/www/v1/calendar/events',
-        '   ',
-        new AbortController().signal,
-      ),
-    ).rejects.toThrow('Events API key is missing');
+  it('rejects invalid CRM API client configuration', () => {
+    expect(
+      createCrmApiClient({
+        baseUrl: 'https://api.evolvesprouts.com/www',
+        apiKey: '   ',
+      }),
+    ).toBeNull();
   });
 });

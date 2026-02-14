@@ -3,6 +3,7 @@ import {
   readCandidateText,
   readOptionalText,
 } from '@/content/content-field-utils';
+import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
 import { isHttpHref } from '@/lib/url-utils';
 
 export interface SortOption {
@@ -153,12 +154,7 @@ function resolveDateTimeDetails(record: Record<string, unknown>): {
 }
 
 function buildEventsApiUrl(crmApiBaseUrl: string): string {
-  const normalizedBaseUrl = crmApiBaseUrl.trim();
-  if (!normalizedBaseUrl || !/^https:\/\//i.test(normalizedBaseUrl)) {
-    return '';
-  }
-
-  return `${normalizedBaseUrl.replace(/\/+$/, '')}${EVENTS_API_PATH}`;
+  return buildCrmApiUrl(crmApiBaseUrl, EVENTS_API_PATH);
 }
 
 function normalizeLocationLabel(value: string | undefined): string | undefined {
@@ -198,44 +194,15 @@ export function resolveSortOptions(content: EventsContent): readonly SortOption[
   return normalizedOptions;
 }
 
-async function parseResponsePayload(response: Response): Promise<unknown> {
-  const rawText = await response.text();
-  const normalizedText = rawText.trim();
-
-  if (!normalizedText) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(normalizedText) as unknown;
-  } catch {
-    return normalizedText;
-  }
-}
-
 export async function fetchEventsPayload(
-  apiUrl: string,
-  apiKey: string,
+  crmApiClient: CrmApiClient,
   signal: AbortSignal,
 ): Promise<unknown> {
-  const normalizedApiKey = apiKey.trim();
-  if (!normalizedApiKey) {
-    throw new Error('Events API key is missing');
-  }
-
-  const response = await fetch(apiUrl, {
+  return crmApiClient.request({
+    endpointPath: EVENTS_API_PATH,
     method: 'GET',
     signal,
-    headers: {
-      Accept: 'application/json',
-      'x-api-key': normalizedApiKey,
-    },
   });
-  if (!response.ok) {
-    throw new Error(`Events API request failed: ${response.status}`);
-  }
-
-  return parseResponsePayload(response);
 }
 
 export function resolveEventsApiUrl(

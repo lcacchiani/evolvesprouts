@@ -1,3 +1,5 @@
+import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
+
 export interface DiscountRule {
   code: string;
   type: 'percent' | 'amount';
@@ -130,51 +132,17 @@ export function normalizeDiscountsPayload(payload: unknown): DiscountRule[] {
 }
 
 export function buildDiscountsApiUrl(crmApiBaseUrl: string): string {
-  const normalizedBaseUrl = crmApiBaseUrl.trim();
-  if (!normalizedBaseUrl || !/^https:\/\//i.test(normalizedBaseUrl)) {
-    return '';
-  }
-
-  return `${normalizedBaseUrl.replace(/\/+$/, '')}${DISCOUNTS_API_PATH}`;
-}
-
-async function parseResponsePayload(response: Response): Promise<unknown> {
-  const rawText = await response.text();
-  const normalizedText = rawText.trim();
-
-  if (!normalizedText) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(normalizedText) as unknown;
-  } catch {
-    return normalizedText;
-  }
+  return buildCrmApiUrl(crmApiBaseUrl, DISCOUNTS_API_PATH);
 }
 
 export async function fetchDiscountRules(
-  apiUrl: string,
-  apiKey: string,
+  crmApiClient: CrmApiClient,
   signal: AbortSignal,
 ): Promise<DiscountRule[]> {
-  if (!apiKey.trim()) {
-    throw new Error('Discounts API key is missing');
-  }
-
-  const response = await fetch(apiUrl, {
+  const payload = await crmApiClient.request({
+    endpointPath: DISCOUNTS_API_PATH,
     method: 'GET',
     signal,
-    headers: {
-      Accept: 'application/json',
-      'x-api-key': apiKey.trim(),
-    },
   });
-
-  if (!response.ok) {
-    throw new Error(`Discounts API request failed: ${response.status}`);
-  }
-
-  const payload = await parseResponsePayload(response);
   return normalizeDiscountsPayload(payload);
 }

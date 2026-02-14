@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   buildDiscountsApiUrl,
   fetchDiscountRules,
@@ -106,10 +107,16 @@ describe('discounts-data', () => {
     );
 
     vi.stubGlobal('fetch', fetchSpy);
+    const crmApiClient = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'secret-api-key',
+    });
+    if (!crmApiClient) {
+      throw new Error('Expected CRM API client configuration to be valid');
+    }
 
     const rules = await fetchDiscountRules(
-      'https://api.evolvesprouts.com/www/v1/discounts',
-      'secret-api-key',
+      crmApiClient,
       new AbortController().signal,
     );
 
@@ -135,13 +142,12 @@ describe('discounts-data', () => {
     ]);
   });
 
-  it('throws when the API key is missing', async () => {
-    await expect(
-      fetchDiscountRules(
-        'https://api.evolvesprouts.com/www/v1/discounts',
-        '   ',
-        new AbortController().signal,
-      ),
-    ).rejects.toThrow('Discounts API key is missing');
+  it('rejects invalid CRM API client configuration', () => {
+    expect(
+      createCrmApiClient({
+        baseUrl: 'https://api.evolvesprouts.com/www',
+        apiKey: '   ',
+      }),
+    ).toBeNull();
   });
 });
