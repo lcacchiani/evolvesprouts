@@ -45,6 +45,12 @@ const activeSelectorCardStyle: CSSProperties = {
   boxShadow: '0 0 14px rgba(231, 108, 61, 0.5)',
 };
 
+const inactiveAgeSelectorCardStyle: CSSProperties = {
+  backgroundColor: '#EFF3F6',
+  border: '1px solid #E1E6EC',
+  boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.08)',
+};
+
 export function MyBestAuntieBooking({
   locale,
   content,
@@ -177,11 +183,11 @@ export function MyBestAuntieBooking({
                         onClick={() => {
                           setSelectedAgeId(option.id);
                         }}
-                        className='es-focus-ring w-[168px] shrink-0 rounded-[14px] px-4 py-3 text-left'
+                        className='es-focus-ring h-[60px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left'
                         style={
                           isSelected
                             ? activeSelectorCardStyle
-                            : inactiveSelectorCardStyle
+                            : inactiveAgeSelectorCardStyle
                         }
                       >
                         <div className='flex items-center justify-between gap-3'>
