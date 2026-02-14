@@ -21,7 +21,7 @@ const CARD_SHADOW =
   '0 8px 8px rgba(50, 50, 71, 0.08), 0 8px 16px rgba(50, 50, 71, 0.06)';
 const CTA_COLOR = '#ED622E';
 const CARD_ICON_FALLBACK =
-  '/images/highlight-icon-live-training.png';
+  '/images/training.svg';
 const CONTROL_BG = '#FFFFFF';
 const CONTROL_ICON = '#3D3E3D';
 const CONTROL_SHADOW = '0 1px 14px rgba(0, 0, 0, 0.08)';
@@ -29,9 +29,9 @@ const CONTROL_BG_DISABLED = '#E9E9E9';
 const CONTROL_ICON_DISABLED = '#6B6B6B';
 
 const iconByKey: Record<string, string> = {
-  'live-training': '/images/highlight-icon-live-training.png',
-  'auntie-review': '/images/highlight-icon-auntie-review.png',
-  workbook: '/images/highlight-icon-workbook.png',
+  'live-training': '/images/training.svg',
+  'auntie-review': '/images/review.svg',
+  workbook: '/images/workbook.svg',
 };
 
 const eyebrowStyle: CSSProperties = {
