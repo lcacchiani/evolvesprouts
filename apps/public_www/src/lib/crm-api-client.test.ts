@@ -128,14 +128,19 @@ describe('crm-api-client', () => {
   });
 
   it('sends JSON bodies for POST and PUT requests', async () => {
-    const fetchSpy = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ status: 'ok' }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }),
-      );
+    const fetchSpy = vi.fn();
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
     vi.stubGlobal('fetch', fetchSpy);
 
     const client = createCrmApiClient({
