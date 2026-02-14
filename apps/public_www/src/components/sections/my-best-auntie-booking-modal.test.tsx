@@ -52,7 +52,7 @@ const reservationSummary: ReservationSummary = {
 };
 
 describe('my-best-auntie booking modals footer content', () => {
-  it('renders booking modal footer text without copyright sign', () => {
+  it('does not render booking modal copyright footer section', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
@@ -61,12 +61,12 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
-    expect(screen.getByText('2026 Evolve Sprouts')).toBeInTheDocument();
+    expect(screen.queryByText('2026 Evolve Sprouts')).not.toBeInTheDocument();
     expect(screen.queryByText(/©/u)).not.toBeInTheDocument();
     expect(container.innerHTML).not.toContain('border-b border-black/10');
   });
 
-  it('renders thank-you footer text without divider class and copyright sign', () => {
+  it('does not render thank-you modal copyright footer section', () => {
     const { container } = render(
       <MyBestAuntieThankYouModal
         locale='en'
@@ -78,8 +78,8 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     expect(
-      screen.getByText(`${new Date().getFullYear()} Evolve Sprouts`),
-    ).toBeInTheDocument();
+      screen.queryByText(`${new Date().getFullYear()} Evolve Sprouts`),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/©/u)).not.toBeInTheDocument();
     expect(container.innerHTML).not.toContain('border-t border-black/10');
   });

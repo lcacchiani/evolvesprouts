@@ -764,11 +764,6 @@ export function MyBestAuntieBookingModal({
             </div>
           </div>
 
-          <div className='pt-4'>
-            <p className='text-center text-[16px] font-medium leading-7 text-[#333333]'>
-              {content.copyright}
-            </p>
-          </div>
         </div>
       </section>
     </ModalOverlay>
@@ -1006,11 +1001,6 @@ export function MyBestAuntieThankYouModal({
             </div>
           </section>
 
-          <div className='pt-6 lg:mt-[70px]'>
-            <p className='text-center text-[16px] font-medium leading-7 text-[#333333]'>
-              {new Date().getFullYear()} Evolve Sprouts
-            </p>
-          </div>
         </div>
       </section>
     </ModalOverlay>
