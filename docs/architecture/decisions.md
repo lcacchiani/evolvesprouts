@@ -253,6 +253,8 @@ Lambdas or NAT Gateway.
 **Branch protection for `main`:**
 - Require pull request with at least 1 approval.
 - Require `lint` and `test` status checks to pass.
+- The `lint` workflow includes `.cursorrules` contract validation via
+  `scripts/validate-cursorrules.sh`.
 - Require branches to be up to date before merging.
 - Block force pushes and deletions.
 

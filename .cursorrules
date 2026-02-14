@@ -58,6 +58,8 @@ repo root
 6. For any Python change, run:
    `pre-commit run ruff-format --all-files`
    before committing.
+7. Keep the repository AI-rule contract validation passing:
+   `bash scripts/validate-cursorrules.sh`
 
 ## Architecture decisions (repository baseline)
 

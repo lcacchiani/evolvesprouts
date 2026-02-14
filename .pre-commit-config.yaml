@@ -41,6 +41,16 @@ repos:
       - id: check-merge-conflict
       - id: detect-private-key
 
+  # Repository-level .cursorrules enforcement
+  - repo: local
+    hooks:
+      - id: validate-cursorrules-contract
+        name: Validate .cursorrules contract
+        entry: bash scripts/validate-cursorrules.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
   # TypeScript/JavaScript linting
   - repo: local
     hooks:
