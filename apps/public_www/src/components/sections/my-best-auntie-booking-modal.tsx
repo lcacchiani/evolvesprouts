@@ -62,8 +62,6 @@ type CoursePartRow = {
 
 const MODAL_PANEL_BACKGROUND = '#FFFFFF';
 const MODAL_OVERLAY_BACKGROUND = 'rgba(16, 14, 11, 0.6)';
-const CHROME_BACKGROUND = '#FFF7F1';
-const CHROME_BORDER = '#EECAB0';
 const PART_CHIP_ICON_PATHS = [
   '/images/my-best-auntie-booking/box-1.png',
   '/images/my-best-auntie-booking/box-2.png',
@@ -255,8 +253,8 @@ export function MyBestAuntieBookingModal({
     ? (initialMonthId ?? firstMonthId)
     : firstMonthId;
 
-  const [selectedMonthId, setSelectedMonthId] = useState(resolvedMonthId);
-  const [selectedPackageId, setSelectedPackageId] = useState(firstPackageId);
+  const [selectedMonthId] = useState(resolvedMonthId);
+  const [selectedPackageId] = useState(firstPackageId);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -424,70 +422,6 @@ export function MyBestAuntieBookingModal({
               >
                 {content.title}
               </h2>
-
-              <section className='mt-7 rounded-[14px] border border-[#ECD8C7] bg-[#FFF9F4] p-4 sm:p-5'>
-                <h3 className='text-[20px] font-semibold text-[#333333]'>
-                  {content.monthLabel}
-                </h3>
-                <div className='mt-3 flex flex-wrap gap-2'>
-                  {content.monthOptions.map((option) => {
-                    const isActive = option.id === selectedMonthId;
-                    return (
-                      <button
-                        key={option.id}
-                        type='button'
-                        onClick={() => {
-                          setSelectedMonthId(option.id);
-                        }}
-                        className='es-focus-ring rounded-full px-4 py-2 text-[15px] font-semibold'
-                        style={{
-                          backgroundColor: isActive ? '#C84A16' : CHROME_BACKGROUND,
-                          color: isActive ? '#FFFFFF' : '#333333',
-                          border: `1px solid ${CHROME_BORDER}`,
-                        }}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <h3 className='mt-5 text-[20px] font-semibold text-[#333333]'>
-                  {content.packageLabel}
-                </h3>
-                <ul className='mt-3 space-y-2'>
-                  {content.packageOptions.map((option) => {
-                    const isActive = option.id === selectedPackageId;
-                    return (
-                      <li key={option.id}>
-                        <button
-                          type='button'
-                          onClick={() => {
-                            setSelectedPackageId(option.id);
-                          }}
-                          className='es-focus-ring w-full rounded-[12px] px-4 py-3 text-left'
-                          style={{
-                            border: `1px solid ${isActive ? '#C84A16' : CHROME_BORDER}`,
-                            backgroundColor: isActive ? '#FFF0E5' : '#FFFFFF',
-                          }}
-                        >
-                          <div className='flex items-center justify-between gap-3'>
-                            <p className='font-semibold text-[#333333]'>
-                              {option.label}
-                            </p>
-                            <p className='font-semibold text-[#333333]'>
-                              {formatCurrencyHkd(option.price)}
-                            </p>
-                          </div>
-                          <p className='mt-1 text-sm text-[#4A4A4A]'>
-                            {option.description}
-                          </p>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
 
               <section className='mt-8'>
                 <h3 className='text-[30px] font-bold leading-none text-[#333333]'>
