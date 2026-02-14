@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   MyBestAuntieBookingModal,
@@ -66,6 +66,8 @@ export function MyBestAuntieBooking({
 
   const [selectedAgeId, setSelectedAgeId] = useState(ageOptions[0]?.id ?? '');
   const [selectedDateId, setSelectedDateId] = useState(dateOptions[0]?.id ?? '');
+  const dateCarouselRef = useRef<HTMLDivElement | null>(null);
+  const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const selectedAgeOption =
     ageOptions.find((option) => option.id === selectedAgeId) ?? ageOptions[0];
@@ -74,6 +76,34 @@ export function MyBestAuntieBooking({
 
   const modalMonthId =
     selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
+
+  useEffect(() => {
+    const selectedDateCard = dateCardRefs.current[selectedDateId];
+    if (!selectedDateCard) {
+      return;
+    }
+
+    selectedDateCard.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
+  }, [selectedDateId]);
+
+  function handleDateCarouselNavigation(direction: 'prev' | 'next') {
+    const carouselElement = dateCarouselRef.current;
+    if (!carouselElement) {
+      return;
+    }
+
+    const step = Math.max(180, Math.round(carouselElement.clientWidth * 0.8));
+    const leftOffset = direction === 'prev' ? -step : step;
+
+    carouselElement.scrollBy({
+      left: leftOffset,
+      behavior: 'smooth',
+    });
+  }
 
   return (
     <>
@@ -84,7 +114,7 @@ export function MyBestAuntieBooking({
         style={{ backgroundColor: SECTION_BACKGROUND }}
       >
         <div className='mx-auto w-full max-w-[1465px]'>
-          <div className='grid gap-8 lg:grid-cols-[1fr_470px] lg:items-start'>
+          <div className='grid min-w-0 gap-8 lg:grid-cols-[1fr_470px] lg:items-start'>
             <section className='space-y-5 lg:pr-8'>
               <p className='text-sm font-semibold uppercase tracking-[0.14em] text-[#C84A16]'>
                 {content.eyebrow}
@@ -113,7 +143,7 @@ export function MyBestAuntieBooking({
               </div>
             </section>
 
-            <aside className='rounded-[22px] border border-[#EED5C1] bg-[#FFF8F2] p-5 sm:p-6'>
+            <aside className='min-w-0 rounded-[22px] border border-[#EED5C1] bg-[#FFF8F2] p-5 sm:p-6'>
               <h2 className='text-[1.6rem] font-semibold text-[#333333]'>
                 {content.eyebrow}
               </h2>
@@ -164,48 +194,88 @@ export function MyBestAuntieBooking({
                 <h3 className='text-sm font-semibold text-[#5A5A5A]'>
                   {content.dateSelectorLabel}
                 </h3>
-                <div className='mt-3 flex gap-3 overflow-x-auto pb-1'>
-                  {dateOptions.map((option) => {
-                    const isSelected = option.id === selectedDateId;
+                <div className='mt-3 min-w-0'>
+                  <div
+                    role='region'
+                    aria-roledescription='carousel'
+                    aria-label={content.dateSelectorLabel}
+                    className='w-full min-w-0 overflow-hidden'
+                  >
+                    <div
+                      ref={dateCarouselRef}
+                      className='flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+                    >
+                      {dateOptions.map((option) => {
+                        const isSelected = option.id === selectedDateId;
 
-                    return (
-                      <button
-                        key={option.id}
-                        type='button'
-                        aria-pressed={isSelected}
-                        onClick={() => {
-                          setSelectedDateId(option.id);
-                        }}
-                        className='es-focus-ring min-w-[168px] rounded-[14px] px-4 py-3 text-left'
-                        style={
-                          isSelected
-                            ? activeSelectorCardStyle
-                            : inactiveSelectorCardStyle
-                        }
-                      >
-                        <div className='flex items-center justify-between gap-3'>
-                          <Image
-                            src={
+                        return (
+                          <button
+                            key={option.id}
+                            ref={(element) => {
+                              dateCardRefs.current[option.id] = element;
+                            }}
+                            type='button'
+                            aria-pressed={isSelected}
+                            onClick={() => {
+                              setSelectedDateId(option.id);
+                            }}
+                            className='es-focus-ring w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left'
+                            style={
                               isSelected
-                                ? '/images/calendar-orange.png'
-                                : '/images/calendar-dark.png'
+                                ? activeSelectorCardStyle
+                                : inactiveSelectorCardStyle
                             }
-                            alt=''
-                            width={24}
-                            height={24}
-                            className='h-6 w-6'
-                            aria-hidden='true'
-                          />
-                          <p className='text-base font-semibold text-[#333333]'>
-                            {option.label}
-                          </p>
-                        </div>
-                        <p className='mt-2 text-center text-sm text-[#C71B1B]'>
-                          {option.availabilityLabel}
-                        </p>
+                          >
+                            <div className='flex items-center justify-between gap-3'>
+                              <Image
+                                src={
+                                  isSelected
+                                    ? '/images/calendar-orange.png'
+                                    : '/images/calendar-dark.png'
+                                }
+                                alt=''
+                                width={24}
+                                height={24}
+                                className='h-6 w-6'
+                                aria-hidden='true'
+                              />
+                              <p className='text-base font-semibold text-[#333333]'>
+                                {option.label}
+                              </p>
+                            </div>
+                            <p className='mt-2 text-center text-sm text-[#C71B1B]'>
+                              {option.availabilityLabel}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {dateOptions.length > 1 && (
+                    <div className='mt-2 flex items-center justify-end gap-2'>
+                      <button
+                        type='button'
+                        onClick={() => {
+                          handleDateCarouselNavigation('prev');
+                        }}
+                        aria-label='Scroll dates left'
+                        className='es-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EED5C1] bg-white text-[#333333]'
+                      >
+                        <span aria-hidden='true'>&larr;</span>
                       </button>
-                    );
-                  })}
+                      <button
+                        type='button'
+                        onClick={() => {
+                          handleDateCarouselNavigation('next');
+                        }}
+                        aria-label='Scroll dates right'
+                        className='es-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EED5C1] bg-white text-[#333333]'
+                      >
+                        <span aria-hidden='true'>&rarr;</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
