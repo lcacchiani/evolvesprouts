@@ -1,0 +1,15 @@
+---
+description: Always load and apply repository cursorrules
+alwaysApply: true
+---
+
+Before doing any work in this repository, read `@.cursorrules` and execute its
+requirements.
+
+Minimum behavior for every task:
+
+1. Load `@.cursorrules` before analysis, planning, commands, or edits.
+2. Follow all mandatory and path-specific sections in that file.
+3. Re-load `@.cursorrules` if it is modified during the session.
+
+Do not continue with implementation if `@.cursorrules` has not been applied.
