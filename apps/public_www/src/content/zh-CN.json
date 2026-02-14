@@ -102,17 +102,17 @@
       {
         "id": "0-1",
         "label": "0-1",
-        "iconSrc": "/images/face-one.png"
+        "iconSrc": "/images/baby.png"
       },
       {
         "id": "1-3",
         "label": "1-3",
-        "iconSrc": "/images/face-two.png"
+        "iconSrc": "/images/toddler.png"
       },
       {
         "id": "3-6",
         "label": "3-6",
-        "iconSrc": "/images/face-three.png"
+        "iconSrc": "/images/kid.png"
       }
     ],
     "dateSelectorLabel": "选择可用日期",
