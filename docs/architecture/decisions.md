@@ -272,7 +272,7 @@ Lambdas or NAT Gateway.
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (optional path to CDK parameter JSON)
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (Public WWW CRM API base URL without
-  scheme, for example `api.evolvesprouts.com/www`)
+  scheme)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`

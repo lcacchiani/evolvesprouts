@@ -14,27 +14,16 @@ afterEach(() => {
 
 describe('events-data', () => {
   it('resolves CRM events endpoint from base URL', () => {
-    expect(
-      resolveEventsApiUrl(
-        'api.evolvesprouts.com/www',
-        'https://fallback.example.com/events',
-      ),
-    ).toBe('https://api.evolvesprouts.com/www/v1/calendar/events');
-    expect(
-      resolveEventsApiUrl(
-        'api.evolvesprouts.com/www/',
-        'https://fallback.example.com/events',
-      ),
-    ).toBe('https://api.evolvesprouts.com/www/v1/calendar/events');
-    expect(
-      resolveEventsApiUrl(
-        'https://api.evolvesprouts.com/www/',
-        'https://fallback.example.com/events',
-      ),
-    ).toBe('https://api.evolvesprouts.com/www/v1/calendar/events');
-    expect(
-      resolveEventsApiUrl('   ', 'https://fallback.example.com/events'),
-    ).toBe('https://fallback.example.com/events');
+    expect(resolveEventsApiUrl('api.evolvesprouts.com/www')).toBe(
+      'https://api.evolvesprouts.com/www/v1/calendar/events',
+    );
+    expect(resolveEventsApiUrl('api.evolvesprouts.com/www/')).toBe(
+      'https://api.evolvesprouts.com/www/v1/calendar/events',
+    );
+    expect(resolveEventsApiUrl('https://api.evolvesprouts.com/www/')).toBe(
+      'https://api.evolvesprouts.com/www/v1/calendar/events',
+    );
+    expect(resolveEventsApiUrl('   ')).toBe('');
   });
 
   it('normalizes calendar events payload from CRM API', () => {

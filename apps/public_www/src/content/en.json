@@ -484,7 +484,6 @@
     }
   },
   "events": {
-    "apiUrl": "https://api.evolvesprouts.com/www/v1/calendar/events",
     "eyebrow": "Top Events",
     "title": "Upcoming Events",
     "description": "Discover upcoming Montessori-based training events designed to empower nannies with modern child development skills.",

@@ -48,7 +48,7 @@ npm run dev
 
 To enable public website CRM API calls (including My Best Auntie discount code lookup), set:
 
-- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (for example `api.evolvesprouts.com/www`, without `https://`)
+- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (without `https://`)
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
 
 ## Build

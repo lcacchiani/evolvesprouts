@@ -42,8 +42,7 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 
 Public WWW CRM API configuration is provided at build time via:
 
-- GitHub variable `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (without `https://`,
-  for example `api.evolvesprouts.com/www`)
+- GitHub variable `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (without `https://`)
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
 
 ## CI/CD workflows

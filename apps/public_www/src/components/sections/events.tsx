@@ -7,7 +7,6 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { EventsContent } from '@/content';
-import { readOptionalText } from '@/content/content-field-utils';
 import {
   BODY_TEXT_COLOR,
   DEFAULT_SECTION_EYEBROW_STYLE,
@@ -178,10 +177,9 @@ export function Events({ content }: EventsProps) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const fallbackApiUrl = readOptionalText(content.apiUrl) ?? '';
     const crmApiBaseUrl = process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '';
     const crmApiKey = process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '';
-    const configuredApiUrl = resolveEventsApiUrl(crmApiBaseUrl, fallbackApiUrl);
+    const configuredApiUrl = resolveEventsApiUrl(crmApiBaseUrl);
     const normalizedApiKey = crmApiKey.trim();
 
     if (!configuredApiUrl || !normalizedApiKey) {
@@ -218,7 +216,7 @@ export function Events({ content }: EventsProps) {
     return () => {
       controller.abort();
     };
-  }, [content, content.apiUrl]);
+  }, [content]);
 
   const visibleEvents = useMemo(() => {
     return sortEvents(events, activeFilter);

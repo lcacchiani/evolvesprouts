@@ -248,14 +248,8 @@ export async function fetchEventsPayload(
 
 export function resolveEventsApiUrl(
   crmApiBaseUrl: string,
-  fallbackApiUrl: string,
 ): string {
-  const configuredApiUrl = buildEventsApiUrl(crmApiBaseUrl);
-  if (configuredApiUrl) {
-    return configuredApiUrl;
-  }
-
-  return fallbackApiUrl;
+  return buildEventsApiUrl(crmApiBaseUrl);
 }
 
 function findEventsArray(payload: unknown, depth = 0): unknown[] {

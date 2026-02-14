@@ -484,7 +484,6 @@
     }
   },
   "events": {
-    "apiUrl": "https://api.evolvesprouts.com/www/v1/calendar/events",
     "eyebrow": "精选活动",
     "title": "即将举办的活动",
     "description": "探索即将举行的蒙特梭利培训活动，帮助阿姨掌握现代儿童发展技能。",
