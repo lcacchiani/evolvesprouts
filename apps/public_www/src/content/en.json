@@ -227,7 +227,6 @@
       "discountAppliedLabel": "Discount applied",
       "submitLabel": "Submit Reservation",
       "qrLabel": "FPS QR",
-      "copyright": "© 2026 Evolve Sprouts",
       "discountCodes": [
         { "code": "SPROUTS10", "type": "percent", "value": 10 },
         { "code": "AUNTIE1000", "type": "amount", "value": 1000 }
