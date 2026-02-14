@@ -227,7 +227,6 @@
       "discountAppliedLabel": "优惠已应用",
       "submitLabel": "提交报名",
       "qrLabel": "FPS 二维码",
-      "copyright": "2026 Evolve Sprouts",
       "discountCodes": [
         { "code": "SPROUTS10", "type": "percent", "value": 10 },
         { "code": "AUNTIE1000", "type": "amount", "value": 1000 }
