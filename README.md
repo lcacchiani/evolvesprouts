@@ -11,6 +11,12 @@ repository also includes:
 
 - `AGENTS.md` for agent frameworks that auto-discover `AGENTS.md`
 - `.cursor/rules/00_mandatory_cursorrules.mdc` for Cursor rule auto-apply
+- `scripts/validate-cursorrules.sh` for CI and pre-commit enforcement
+
+Prompt-level instruction precedence is controlled by each agent runtime and
+cannot be changed from repository files alone. This repository enforces its AI
+rule contract by failing automation when mandatory `.cursorrules` anchors are
+removed or weakened.
 
 ## Setup
 

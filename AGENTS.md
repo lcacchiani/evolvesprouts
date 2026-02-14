@@ -16,3 +16,10 @@ agents).
 
 Do not begin implementation work until `.cursorrules` has been loaded and
 applied.
+
+## Repository-enforced guardrail
+
+The repository enforces a `.cursorrules` contract via
+`scripts/validate-cursorrules.sh` (wired into pre-commit and CI lint checks).
+This does not alter runtime prompt precedence, but it blocks merges when
+mandatory `.cursorrules` integration anchors are removed or weakened.

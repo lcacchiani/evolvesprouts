@@ -32,7 +32,7 @@ These workflows must pass before merging to `main`:
 
 | Check | Workflow | Purpose |
 |-------|----------|---------|
-| `lint` | `.github/workflows/lint.yml` | Code style and linting |
+| `lint` | `.github/workflows/lint.yml` | Code style, linting, and `.cursorrules` contract enforcement |
 | `test` | `.github/workflows/test.yml` | Unit and integration tests |
 
 ---
@@ -128,6 +128,10 @@ The verification checks:
 - Required status checks are configured
 - Force push protection is enabled
 - Deletion protection is enabled
+
+The `lint` workflow includes a dedicated `.cursorrules` contract validation
+job (`scripts/validate-cursorrules.sh`). If mandatory rule anchors are removed,
+the lint status fails and merge is blocked by branch protection.
 
 ---
 

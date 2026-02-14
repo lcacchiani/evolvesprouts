@@ -9,6 +9,12 @@ on:
       - "apps/**"
       - "packages/**"
       - "backend/**"
+      - ".cursorrules"
+      - "AGENTS.md"
+      - ".cursor/rules/**"
+      - "scripts/validate-cursorrules.sh"
+      - ".pre-commit-config.yaml"
+      - ".github/workflows/lint.yml"
   push:
     branches:
       - main
@@ -16,8 +22,24 @@ on:
       - "apps/**"
       - "packages/**"
       - "backend/**"
+      - ".cursorrules"
+      - "AGENTS.md"
+      - ".cursor/rules/**"
+      - "scripts/validate-cursorrules.sh"
+      - ".pre-commit-config.yaml"
+      - ".github/workflows/lint.yml"
 
 jobs:
+  enforce-cursorrules:
+    name: Enforce Cursor Rules Contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate .cursorrules contract
+        run: bash scripts/validate-cursorrules.sh
+
   lint-dart:
     name: Lint Dart
     runs-on: ubuntu-latest
