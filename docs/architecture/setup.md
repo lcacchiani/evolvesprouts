@@ -74,8 +74,7 @@ For the OIDC provider itself, add the same tags:
     - `PublicWwwCertificateArn`
     - `PublicWwwStagingDomainName`
     - `PublicWwwStagingCertificateArn`
-- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (for Public WWW builds; include
-  `https://`)
+- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (for Public WWW builds)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`
