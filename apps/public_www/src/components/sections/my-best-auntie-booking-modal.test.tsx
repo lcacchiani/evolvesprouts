@@ -185,6 +185,28 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.innerHTML).not.toContain('border-b border-black/10');
   });
 
+  it('renders unicode direction arrow in link and keeps matching location dividers', () => {
+    const { container } = render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    const directionLink = screen.getByRole('link', {
+      name: bookingModalContent.directionLabel,
+    });
+
+    expect(directionLink).toHaveAttribute('href', bookingModalContent.directionHref);
+    expect(directionLink.textContent).toContain('↗');
+    expect(directionLink.textContent).toContain(bookingModalContent.directionLabel);
+    expect(
+      container.querySelector('img[src*="/images/my-best-auntie-booking/direction-mark.png"]'),
+    ).toBeNull();
+    expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(2);
+  });
+
   it('does not render thank-you modal copyright footer section', () => {
     const { container } = render(
       <MyBestAuntieThankYouModal
