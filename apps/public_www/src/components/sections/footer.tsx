@@ -2,9 +2,10 @@ import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { ExternalLinkIcon } from '@/components/external-link-icon';
 import type { FooterContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
-import { isHttpHref } from '@/lib/url-utils';
+import { isExternalHref, isHttpHref } from '@/lib/url-utils';
 
 interface FooterProps {
   content: FooterContent;
@@ -114,7 +115,8 @@ function FooterColumnLinks({
     <ul className='flex flex-col gap-[8px]'>
       {items.map((item) => {
         const icon = item.icon ? socialIcons[item.icon] : null;
-        const isExternal = isHttpHref(item.href);
+        const isExternal = isExternalHref(item.href);
+        const opensInNewTab = isHttpHref(item.href);
 
         return (
           <li key={`${item.label}-${item.href}`}>
@@ -125,7 +127,7 @@ function FooterColumnLinks({
                 ...linkStyle,
                 gap: hasSocialIcons ? '12px' : '8px',
               }}
-              {...(isExternal
+              {...(opensInNewTab
                 ? { target: '_blank', rel: 'noopener noreferrer' }
                 : {})}
             >
@@ -135,6 +137,7 @@ function FooterColumnLinks({
                 </span>
               ) : null}
               <span>{item.label}</span>
+              {isExternal ? <ExternalLinkIcon className='h-[14px] w-[14px] shrink-0' /> : null}
             </Link>
           </li>
         );

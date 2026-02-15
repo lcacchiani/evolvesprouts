@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react';
 
+import { ExternalLinkIcon } from '@/components/external-link-icon';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
@@ -520,7 +521,7 @@ export function MyBestAuntieBookingModal({
                   <div className='mt-4 flex items-start gap-4'>
                     <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#F3E3D8]'>
                       <Image
-                        src='/images/my-best-auntie-booking/price-card.png'
+                        src='/images/my-best-auntie-booking/credit-card.svg'
                         alt=''
                         width={46}
                         height={46}
@@ -548,7 +549,7 @@ export function MyBestAuntieBookingModal({
                   <div className='mt-4 flex items-start gap-4'>
                     <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#F3E3D8]'>
                       <Image
-                        src='/images/my-best-auntie-booking/location.png'
+                        src='/images/my-best-auntie-booking/target.svg'
                         alt=''
                         width={46}
                         height={46}
@@ -568,13 +569,8 @@ export function MyBestAuntieBookingModal({
                         rel='noopener noreferrer'
                         className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none text-[#333333] underline underline-offset-4'
                       >
-                        <span
-                          aria-hidden='true'
-                          className='text-[22px] leading-none'
-                        >
-                          ↗
-                        </span>
                         <span>{content.directionLabel}</span>
+                        <ExternalLinkIcon className='h-[18px] w-[18px] shrink-0' />
                       </a>
                     </div>
                   </div>

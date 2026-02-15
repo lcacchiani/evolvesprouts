@@ -5,6 +5,7 @@ import type {
 } from 'react';
 import Link from 'next/link';
 
+import { ExternalLinkIcon } from '@/components/external-link-icon';
 import { isExternalHref } from '@/lib/url-utils';
 
 const BASE_SECTION_CTA_CLASSNAME =
@@ -56,17 +57,18 @@ export function SectionCtaAnchor({
   children,
   ...anchorProps
 }: SectionCtaProps) {
+  const isExternalLink = isExternalHref(href);
   const sharedProps = {
     className: buildClassName(className),
     style,
     ...anchorProps,
   };
 
-  if (isExternalHref(href) || href.startsWith('#')) {
+  if (isExternalLink || href.startsWith('#')) {
     return (
       <a href={href} {...sharedProps}>
         <span>{children}</span>
-        <CtaChevronIcon />
+        {isExternalLink ? <ExternalLinkIcon className='h-5 w-5 shrink-0' /> : <CtaChevronIcon />}
       </a>
     );
   }
