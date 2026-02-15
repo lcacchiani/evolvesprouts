@@ -122,7 +122,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelectorAll('span[style*="/images/cubes.svg"]')).toHaveLength(3);
   });
 
-  it('renders uniform 25px html timeline segments with 25px content gap', () => {
+  it('renders overlapping rounded timeline segments and 10px gap connectors', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
@@ -134,13 +134,30 @@ describe('my-best-auntie booking modals footer content', () => {
     const timelineSegments = container.querySelectorAll(
       'span[data-course-part-line="segment"]',
     );
+    const gapConnectors = container.querySelectorAll(
+      'span[data-course-part-line="gap-connector"]',
+    );
     expect(timelineSegments).toHaveLength(3);
+    expect(gapConnectors).toHaveLength(3);
     expect(
       container.querySelectorAll('span[data-course-part-line="connector"]'),
     ).toHaveLength(0);
 
-    for (const segment of timelineSegments) {
-      expect(segment.getAttribute('style')).toContain('width: 25px');
+    for (const [index, segment] of Array.from(timelineSegments).entries()) {
+      const style = segment.getAttribute('style');
+      expect(style).toContain('width: 25px');
+      expect(style).toContain('border-top-left-radius: 999px');
+      expect(style).toContain('border-top-right-radius: 999px');
+      expect(style).toContain(`z-index: ${index + 1}`);
+      if (index > 0) {
+        expect(style).toContain('top: -12px');
+      }
+    }
+
+    for (const connector of gapConnectors) {
+      const style = connector.getAttribute('style');
+      expect(style).toContain('width: 25px');
+      expect(style).toContain('height: 10px');
     }
 
     const firstPartItem = screen.getByText(bookingModalContent.parts[0].label).closest('li');

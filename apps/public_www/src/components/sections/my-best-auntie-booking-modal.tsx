@@ -81,6 +81,9 @@ const PART_CHIP_TONES = [
 const PART_ROW_GAP_REM = 2.5;
 const PART_TIMELINE_LINE_WIDTH_PX = 25;
 const PART_TIMELINE_CONTENT_GAP_PX = 25;
+const PART_TIMELINE_SEGMENT_OVERLAP_PX = 12;
+const PART_TIMELINE_GAP_CONNECTOR_HEIGHT_PX = 10;
+const PART_TIMELINE_GAP_CONNECTOR_TOP_PX = 8;
 const PART_TIMELINE_LANE_WIDTH_PX =
   PART_TIMELINE_LINE_WIDTH_PX + PART_TIMELINE_CONTENT_GAP_PX;
 
@@ -215,12 +218,28 @@ function getPartLineColor(index: number): string {
 }
 
 function getPartLineStyle(index: number, isLastItem: boolean): CSSProperties {
+  const rowGapHeight = isLastItem ? '' : ` + ${PART_ROW_GAP_REM}rem`;
+  const overlapHeight = index === 0 ? '' : ` + ${PART_TIMELINE_SEGMENT_OVERLAP_PX}px`;
+
   return {
+    top: `${index === 0 ? 0 : -PART_TIMELINE_SEGMENT_OVERLAP_PX}px`,
     width: `${PART_TIMELINE_LINE_WIDTH_PX}px`,
-    height: isLastItem ? '100%' : `calc(100% + ${PART_ROW_GAP_REM}rem)`,
+    height: `calc(100%${rowGapHeight}${overlapHeight})`,
     backgroundColor: getPartLineColor(index),
-    borderTopLeftRadius: index === 0 ? '999px' : '0',
-    borderTopRightRadius: index === 0 ? '999px' : '0',
+    borderTopLeftRadius: '999px',
+    borderTopRightRadius: '999px',
+    zIndex: index + 1,
+  };
+}
+
+function getPartGapConnectorStyle(index: number): CSSProperties {
+  return {
+    left: `${PART_TIMELINE_LINE_WIDTH_PX}px`,
+    top: `${PART_TIMELINE_GAP_CONNECTOR_TOP_PX}px`,
+    width: `${PART_TIMELINE_CONTENT_GAP_PX}px`,
+    height: `${PART_TIMELINE_GAP_CONNECTOR_HEIGHT_PX}px`,
+    backgroundColor: getPartLineColor(index),
+    zIndex: index + 1,
   };
 }
 
@@ -463,11 +482,16 @@ export function MyBestAuntieBookingModal({
                       >
                         <span
                           data-course-part-line='segment'
-                          className='absolute left-0 top-0'
+                          className='absolute left-0'
                           style={getPartLineStyle(
                             index,
                             index === activePartRows.length - 1,
                           )}
+                        />
+                        <span
+                          data-course-part-line='gap-connector'
+                          className='absolute'
+                          style={getPartGapConnectorStyle(index)}
                         />
                       </span>
                       <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:justify-between sm:gap-4'>
