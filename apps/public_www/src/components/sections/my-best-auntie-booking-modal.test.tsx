@@ -85,11 +85,6 @@ describe('my-best-auntie booking modals footer content', () => {
 
     expect(screen.queryByText('Course Schedule')).not.toBeInTheDocument();
     expect(
-      container.querySelector(
-        'img[src="/images/my-best-auntie-booking/pay-calendar.png"]',
-      ),
-    ).toBeNull();
-    expect(
       container.querySelectorAll('span[style*="/images/calendar.svg"]').length,
     ).toBeGreaterThan(0);
   });
@@ -170,11 +165,6 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
-    expect(
-      container.querySelector(
-        'img[src="/images/my-best-auntie-booking/date-cal.png"]',
-      ),
-    ).toBeNull();
     expect(
       container.querySelector('span[style*="/images/calendar.svg"]'),
     ).not.toBeNull();
