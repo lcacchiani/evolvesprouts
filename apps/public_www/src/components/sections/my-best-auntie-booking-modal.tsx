@@ -82,8 +82,9 @@ const PART_ROW_GAP_REM = 2.5;
 const PART_TIMELINE_LINE_WIDTH_PX = 25;
 const PART_TIMELINE_CONTENT_GAP_PX = 25;
 const PART_TIMELINE_SEGMENT_OVERLAP_PX = 12;
+const PART_TIMELINE_SEGMENT_WHITE_GAP_PX = 5;
 const PART_TIMELINE_GAP_CONNECTOR_HEIGHT_PX = 10;
-const PART_TIMELINE_GAP_CONNECTOR_TOP_PX = 8;
+const PART_TIMELINE_ITEM_PADDING_BOTTOM_PX = 100;
 const PART_TIMELINE_LANE_WIDTH_PX =
   PART_TIMELINE_LINE_WIDTH_PX + PART_TIMELINE_CONTENT_GAP_PX;
 
@@ -228,14 +229,16 @@ function getPartLineStyle(index: number, isLastItem: boolean): CSSProperties {
     backgroundColor: getPartLineColor(index),
     borderTopLeftRadius: '999px',
     borderTopRightRadius: '999px',
+    boxShadow:
+      index === 0
+        ? 'none'
+        : `0 -${PART_TIMELINE_SEGMENT_WHITE_GAP_PX}px 0 0 #FFFFFF`,
     zIndex: index + 1,
   };
 }
 
 function getPartGapConnectorStyle(index: number): CSSProperties {
   return {
-    left: `${PART_TIMELINE_LINE_WIDTH_PX}px`,
-    top: `${PART_TIMELINE_GAP_CONNECTOR_TOP_PX}px`,
     width: `${PART_TIMELINE_CONTENT_GAP_PX}px`,
     height: `${PART_TIMELINE_GAP_CONNECTOR_HEIGHT_PX}px`,
     backgroundColor: getPartLineColor(index),
@@ -474,7 +477,10 @@ export function MyBestAuntieBookingModal({
                     <li
                       key={part.label}
                       className='relative'
-                      style={{ paddingLeft: `${PART_TIMELINE_LANE_WIDTH_PX}px` }}
+                      style={{
+                        paddingLeft: `${PART_TIMELINE_LANE_WIDTH_PX}px`,
+                        paddingBottom: `${PART_TIMELINE_ITEM_PADDING_BOTTOM_PX}px`,
+                      }}
                     >
                       <span
                         className='pointer-events-none absolute left-0 top-0 h-full'
@@ -488,13 +494,14 @@ export function MyBestAuntieBookingModal({
                             index === activePartRows.length - 1,
                           )}
                         />
-                        <span
-                          data-course-part-line='gap-connector'
-                          className='absolute'
-                          style={getPartGapConnectorStyle(index)}
-                        />
                       </span>
                       <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:justify-between sm:gap-4'>
+                        <span
+                          data-course-part-line='gap-connector'
+                          className='pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2'
+                          style={getPartGapConnectorStyle(index)}
+                          aria-hidden='true'
+                        />
                         <span
                           className='inline-flex items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
                           style={getPartChipTone(index)}

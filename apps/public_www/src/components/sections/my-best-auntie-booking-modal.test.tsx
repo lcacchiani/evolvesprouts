@@ -151,17 +151,23 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(style).toContain(`z-index: ${index + 1}`);
       if (index > 0) {
         expect(style).toContain('top: -12px');
+        expect(style).toContain('box-shadow: 0 -5px 0 0 #FFFFFF');
       }
     }
 
     for (const connector of gapConnectors) {
       const style = connector.getAttribute('style');
+      const className = connector.getAttribute('class');
       expect(style).toContain('width: 25px');
       expect(style).toContain('height: 10px');
+      expect(className).toContain('top-1/2');
+      expect(className).toContain('-translate-y-1/2');
+      expect(className).toContain('-left-[25px]');
     }
 
     const firstPartItem = screen.getByText(bookingModalContent.parts[0].label).closest('li');
     expect(firstPartItem?.getAttribute('style')).toContain('padding-left: 50px');
+    expect(firstPartItem?.getAttribute('style')).toContain('padding-bottom: 100px');
     expect(firstPartItem?.querySelector('img')).toBeNull();
   });
 
