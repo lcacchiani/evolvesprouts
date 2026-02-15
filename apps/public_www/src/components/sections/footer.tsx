@@ -136,7 +136,9 @@ function FooterColumnLinks({
                   {icon}
                 </span>
               ) : null}
-              <span>{item.label}</span>
+              <span className={isExternal ? 'underline underline-offset-4' : undefined}>
+                {item.label}
+              </span>
               {isExternal ? <ExternalLinkIcon className='h-[14px] w-[14px] shrink-0' /> : null}
             </Link>
           </li>

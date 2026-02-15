@@ -574,9 +574,11 @@ export function MyBestAuntieBookingModal({
                         href={content.directionHref}
                         target='_blank'
                         rel='noopener noreferrer'
-                        className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none text-[#333333] underline underline-offset-4'
+                        className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none text-[#333333]'
                       >
-                        <span>{content.directionLabel}</span>
+                        <span className='underline underline-offset-4'>
+                          {content.directionLabel}
+                        </span>
                         <ExternalLinkIcon className='h-[18px] w-[18px] shrink-0' />
                       </a>
                     </div>
