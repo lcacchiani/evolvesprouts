@@ -305,7 +305,6 @@ export function MyBestAuntieBookingModal({
   const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
-  const [isDiscountRulesLoading, setIsDiscountRulesLoading] = useState(false);
 
   useModalLockBody({ onEscape: onClose });
 
@@ -322,8 +321,6 @@ export function MyBestAuntieBookingModal({
       };
     }
 
-    setIsDiscountRulesLoading(true);
-
     fetchDiscountRules(crmApiClient, controller.signal)
       .then((remoteRules) => {
         setDiscountRules(remoteRules);
@@ -334,11 +331,6 @@ export function MyBestAuntieBookingModal({
         }
 
         setDiscountRules([]);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsDiscountRulesLoading(false);
-        }
       });
 
     return () => {
@@ -685,8 +677,7 @@ export function MyBestAuntieBookingModal({
                     <button
                       type='button'
                       onClick={handleApplyDiscount}
-                      disabled={isDiscountRulesLoading}
-                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] px-4 text-sm font-semibold text-[#C84A16] disabled:cursor-not-allowed disabled:opacity-60'
+                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] px-4 text-sm font-semibold text-[#C84A16]'
                     >
                       {content.applyDiscountLabel}
                     </button>
