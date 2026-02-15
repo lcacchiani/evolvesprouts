@@ -122,6 +122,27 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelectorAll('span[style*="/images/cubes.svg"]')).toHaveLength(3);
   });
 
+  it('renders multicolour html timeline and removes legacy timeline png assets', () => {
+    const { container } = render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(container.querySelectorAll('span[data-course-part-line="bar"]')).toHaveLength(3);
+    expect(container.querySelectorAll('span[data-course-part-line="connector"]')).toHaveLength(2);
+
+    const firstPartItem = screen.getByText(bookingModalContent.parts[0].label).closest('li');
+    expect(firstPartItem?.querySelector('img')).toBeNull();
+
+    const connectorStyle = container
+      .querySelector('span[data-course-part-line="connector"]')
+      ?.getAttribute('style');
+    expect(connectorStyle).toContain('linear-gradient');
+  });
+
   it('does not render booking modal copyright footer section', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
