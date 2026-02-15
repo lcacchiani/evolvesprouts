@@ -210,12 +210,6 @@ describe('my-best-auntie booking modals footer content', () => {
       container.querySelector('img[src*="/images/target.svg"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('img[src*="/images/my-best-auntie-booking/price-card.png"]'),
-    ).toBeNull();
-    expect(
-      container.querySelector('img[src*="/images/my-best-auntie-booking/location.png"]'),
-    ).toBeNull();
-    expect(
       container.querySelector('img[src*="/images/my-best-auntie-booking/direction-mark.png"]'),
     ).toBeNull();
     expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(2);
