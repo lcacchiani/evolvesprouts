@@ -64,11 +64,6 @@ const MODAL_PANEL_BACKGROUND = '#FFFFFF';
 const MODAL_OVERLAY_BACKGROUND = 'rgba(16, 14, 11, 0.6)';
 const PART_CHIP_ICON_MASK_PATH = '/images/cubes.svg';
 const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
-const PART_LINE_PATHS = [
-  '/images/my-best-auntie-booking/pay-part-1-line.png',
-  '/images/my-best-auntie-booking/pay-part-2-line.png',
-  '/images/my-best-auntie-booking/pay-part-3-line.png',
-] as const;
 const PART_CHIP_TONES = [
   {
     backgroundColor: '#99BDE2',
@@ -83,6 +78,7 @@ const PART_CHIP_TONES = [
     color: '#6B5400',
   },
 ] as const;
+const PART_ROW_GAP_REM = 2.5;
 
 const headingStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -202,15 +198,25 @@ function DiscountBadge({ label }: { label: string }) {
   );
 }
 
-function getPartLinePath(index: number): string {
-  return PART_LINE_PATHS[index] ?? PART_LINE_PATHS[2];
-}
-
 function getPartChipTone(index: number): CSSProperties {
   const tone = PART_CHIP_TONES[index] ?? PART_CHIP_TONES[2];
   return {
     backgroundColor: tone.backgroundColor,
     color: tone.color,
+  };
+}
+
+function getPartLineColor(index: number): string {
+  return (PART_CHIP_TONES[index] ?? PART_CHIP_TONES[2]).backgroundColor;
+}
+
+function getPartConnectorStyle(index: number): CSSProperties {
+  const currentColor = getPartLineColor(index);
+  const nextColor = getPartLineColor(index + 1);
+
+  return {
+    height: `calc(100% + ${PART_ROW_GAP_REM}rem)`,
+    background: `linear-gradient(180deg, ${currentColor} 0%, ${currentColor} 48%, ${nextColor} 100%)`,
   };
 }
 
@@ -443,14 +449,23 @@ export function MyBestAuntieBookingModal({
                 <ul className='space-y-10'>
                   {activePartRows.map((part, index) => (
                     <li key={part.label} className='relative pl-[34px]'>
-                      <Image
-                        src={getPartLinePath(index)}
-                        alt=''
-                        width={58}
-                        height={225}
-                        className='pointer-events-none absolute left-0 top-0 h-[225px] w-[58px]'
+                      <span
+                        className='pointer-events-none absolute left-0 top-0 h-full w-[58px]'
                         aria-hidden='true'
-                      />
+                      >
+                        {index < activePartRows.length - 1 && (
+                          <span
+                            data-course-part-line='connector'
+                            className='absolute left-1/2 top-[28px] w-[6px] -translate-x-1/2 rounded-full'
+                            style={getPartConnectorStyle(index)}
+                          />
+                        )}
+                        <span
+                          data-course-part-line='bar'
+                          className='absolute left-1/2 top-0 h-[56px] w-[16px] -translate-x-1/2 rounded-b-[10px] rounded-t-full'
+                          style={{ backgroundColor: getPartLineColor(index) }}
+                        />
+                      </span>
                       <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:justify-between sm:gap-4'>
                         <span
                           className='inline-flex items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
