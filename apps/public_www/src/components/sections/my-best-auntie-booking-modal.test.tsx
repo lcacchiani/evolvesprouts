@@ -74,6 +74,26 @@ describe('my-best-auntie booking modals footer content', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('does not render course schedule heading and uses shared calendar icon in booking modal', () => {
+    const { container } = render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(screen.queryByText('Course Schedule')).not.toBeInTheDocument();
+    expect(
+      container.querySelector(
+        'img[src="/images/my-best-auntie-booking/pay-calendar.png"]',
+      ),
+    ).toBeNull();
+    expect(
+      container.querySelectorAll('img[src="/images/calendar-dark.png"]').length,
+    ).toBeGreaterThan(0);
+  });
+
   it('does not render the month/package selector box in booking modal', () => {
     render(
       <MyBestAuntieBookingModal
@@ -125,5 +145,26 @@ describe('my-best-auntie booking modals footer content', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText(/©/u)).not.toBeInTheDocument();
     expect(container.innerHTML).not.toContain('border-t border-black/10');
+  });
+
+  it('uses shared calendar icon in thank-you modal summary chip', () => {
+    const { container } = render(
+      <MyBestAuntieThankYouModal
+        locale='en'
+        content={thankYouModalContent}
+        summary={reservationSummary}
+        homeHref='/en'
+        onClose={() => {}}
+      />,
+    );
+
+    expect(
+      container.querySelector(
+        'img[src="/images/my-best-auntie-booking/date-cal.png"]',
+      ),
+    ).toBeNull();
+    expect(
+      container.querySelector('img[src="/images/calendar-dark.png"]'),
+    ).not.toBeNull();
   });
 });
