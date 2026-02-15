@@ -317,8 +317,6 @@ export function MyBestAuntieBookingModal({
     });
 
     if (!crmApiClient) {
-      setDiscountRules([]);
-      setIsDiscountRulesLoading(false);
       return () => {
         controller.abort();
       };
