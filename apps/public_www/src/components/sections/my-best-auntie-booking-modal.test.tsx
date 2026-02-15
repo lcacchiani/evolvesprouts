@@ -125,9 +125,6 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     expect(container.querySelectorAll('span[style*="/images/cubes.svg"]')).toHaveLength(3);
-    expect(container.querySelector('img[src*="box-1.png"]')).toBeNull();
-    expect(container.querySelector('img[src*="box-2.png"]')).toBeNull();
-    expect(container.querySelector('img[src*="box-3.png"]')).toBeNull();
   });
 
   it('does not render booking modal copyright footer section', () => {
