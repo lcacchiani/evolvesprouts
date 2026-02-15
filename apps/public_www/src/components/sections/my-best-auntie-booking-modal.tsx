@@ -424,10 +424,7 @@ export function MyBestAuntieBookingModal({
               </h2>
 
               <section className='mt-8'>
-                <h3 className='text-[30px] font-bold leading-none text-[#333333]'>
-                  {content.courseScheduleTitle}
-                </h3>
-                <ul className='mt-5 space-y-10'>
+                <ul className='space-y-10'>
                   {activePartRows.map((part, index) => (
                     <li key={part.label} className='relative pl-[34px]'>
                       <Image
@@ -458,7 +455,7 @@ export function MyBestAuntieBookingModal({
                         <div className='max-w-[340px]'>
                           <div className='flex items-center gap-2'>
                             <Image
-                              src='/images/my-best-auntie-booking/pay-calendar.png'
+                              src='/images/calendar-dark.png'
                               alt=''
                               width={24}
                               height={24}
@@ -825,7 +822,7 @@ export function MyBestAuntieThankYouModal({
                   <div className='mt-4 flex flex-wrap gap-2'>
                     <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium text-[#5B617F]'>
                       <Image
-                        src='/images/my-best-auntie-booking/date-cal.png'
+                        src='/images/calendar-dark.png'
                         alt=''
                         width={24}
                         height={24}
