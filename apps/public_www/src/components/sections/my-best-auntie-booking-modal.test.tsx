@@ -85,12 +85,7 @@ describe('my-best-auntie booking modals footer content', () => {
 
     expect(screen.queryByText('Course Schedule')).not.toBeInTheDocument();
     expect(
-      container.querySelector(
-        'img[src="/images/my-best-auntie-booking/pay-calendar.png"]',
-      ),
-    ).toBeNull();
-    expect(
-      container.querySelectorAll('img[src="/images/calendar-dark.png"]').length,
+      container.querySelectorAll('span[style*="/images/calendar.svg"]').length,
     ).toBeGreaterThan(0);
   });
 
@@ -113,6 +108,18 @@ describe('my-best-auntie booking modals footer content', () => {
     for (const option of bookingModalContent.packageOptions) {
       expect(screen.queryByText(option.description)).not.toBeInTheDocument();
     }
+  });
+
+  it('uses cubes.svg mask icon for all course part chips', () => {
+    const { container } = render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(container.querySelectorAll('span[style*="/images/cubes.svg"]')).toHaveLength(3);
   });
 
   it('does not render booking modal copyright footer section', () => {
@@ -159,12 +166,7 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     expect(
-      container.querySelector(
-        'img[src="/images/my-best-auntie-booking/date-cal.png"]',
-      ),
-    ).toBeNull();
-    expect(
-      container.querySelector('img[src="/images/calendar-dark.png"]'),
+      container.querySelector('span[style*="/images/calendar.svg"]'),
     ).not.toBeNull();
   });
 });
