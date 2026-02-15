@@ -19,14 +19,15 @@ export function ExternalLinkIcon({
       {...svgProps}
     >
       <path
-        d='M5 11L11 5'
-        stroke='currentColor'
+        d='M1.5 10.5H7.5L11 7'
+        stroke='#333333'
         strokeWidth='1.8'
         strokeLinecap='round'
+        strokeLinejoin='round'
       />
       <path
-        d='M6.5 5H11V9.5'
-        stroke='currentColor'
+        d='M7 5H11V9'
+        stroke='#333333'
         strokeWidth='1.8'
         strokeLinecap='round'
         strokeLinejoin='round'
