@@ -225,11 +225,7 @@
       "invalidDiscountLabel": "Invalid discount code",
       "discountAppliedLabel": "Discount applied",
       "submitLabel": "Submit Reservation",
-      "qrLabel": "FPS QR",
-      "discountCodes": [
-        { "code": "SPROUTS10", "type": "percent", "value": 10 },
-        { "code": "AUNTIE1000", "type": "amount", "value": 1000 }
-      ]
+      "qrLabel": "FPS QR"
     },
     "thankYouModal": {
       "closeLabel": "Close",

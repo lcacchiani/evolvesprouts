@@ -225,11 +225,7 @@
       "invalidDiscountLabel": "優惠碼無效",
       "discountAppliedLabel": "優惠已套用",
       "submitLabel": "提交報名",
-      "qrLabel": "FPS 二維碼",
-      "discountCodes": [
-        { "code": "SPROUTS10", "type": "percent", "value": 10 },
-        { "code": "AUNTIE1000", "type": "amount", "value": 1000 }
-      ]
+      "qrLabel": "FPS 二維碼"
     },
     "thankYouModal": {
       "closeLabel": "關閉",

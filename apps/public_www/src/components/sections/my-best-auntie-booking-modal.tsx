@@ -17,7 +17,6 @@ import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import {
   type DiscountRule,
   fetchDiscountRules,
-  normalizeStaticDiscountRules,
 } from '@/lib/discounts-data';
 import { formatCurrencyHkd } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
@@ -286,10 +285,6 @@ export function MyBestAuntieBookingModal({
   onClose,
   onSubmitReservation,
 }: MyBestAuntieBookingModalProps) {
-  const fallbackDiscountRules = useMemo(
-    () => normalizeStaticDiscountRules(content.discountCodes),
-    [content.discountCodes],
-  );
   const crmApiKey = process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '';
   const crmApiBaseUrl = process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '';
 
@@ -307,17 +302,11 @@ export function MyBestAuntieBookingModal({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [discountCode, setDiscountCode] = useState('');
-  const [discountRules, setDiscountRules] =
-    useState<DiscountRule[]>(fallbackDiscountRules);
+  const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
-  const [isDiscountRulesLoading, setIsDiscountRulesLoading] = useState(false);
 
   useModalLockBody({ onEscape: onClose });
-
-  useEffect(() => {
-    setDiscountRules(fallbackDiscountRules);
-  }, [fallbackDiscountRules]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -327,41 +316,27 @@ export function MyBestAuntieBookingModal({
     });
 
     if (!crmApiClient) {
-      setDiscountRules(fallbackDiscountRules);
-      setIsDiscountRulesLoading(false);
       return () => {
         controller.abort();
       };
     }
 
-    setIsDiscountRulesLoading(true);
-
     fetchDiscountRules(crmApiClient, controller.signal)
       .then((remoteRules) => {
-        if (remoteRules.length > 0) {
-          setDiscountRules(remoteRules);
-          return;
-        }
-
-        setDiscountRules(fallbackDiscountRules);
+        setDiscountRules(remoteRules);
       })
       .catch((error) => {
         if (error instanceof Error && error.name === 'AbortError') {
           return;
         }
 
-        setDiscountRules(fallbackDiscountRules);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsDiscountRulesLoading(false);
-        }
+        setDiscountRules([]);
       });
 
     return () => {
       controller.abort();
     };
-  }, [crmApiBaseUrl, crmApiKey, fallbackDiscountRules]);
+  }, [crmApiBaseUrl, crmApiKey]);
 
   const selectedMonth =
     content.monthOptions.find((option) => option.id === selectedMonthId) ??
@@ -566,7 +541,7 @@ export function MyBestAuntieBookingModal({
                   </div>
                 </div>
 
-                <div className='pt-8'>
+                <div className='border-b border-black/15 pb-8 pt-8'>
                   <h3 className='text-[28px] font-bold leading-none text-[#333333]'>
                     {content.locationTitle}
                   </h3>
@@ -593,14 +568,13 @@ export function MyBestAuntieBookingModal({
                         rel='noopener noreferrer'
                         className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none text-[#333333] underline underline-offset-4'
                       >
-                        <Image
-                          src='/images/my-best-auntie-booking/direction-mark.png'
-                          alt=''
-                          width={24}
-                          height={24}
+                        <span
                           aria-hidden='true'
-                        />
-                        {content.directionLabel}
+                          className='text-[22px] leading-none'
+                        >
+                          ↗
+                        </span>
+                        <span>{content.directionLabel}</span>
                       </a>
                     </div>
                   </div>
@@ -703,8 +677,7 @@ export function MyBestAuntieBookingModal({
                     <button
                       type='button'
                       onClick={handleApplyDiscount}
-                      disabled={isDiscountRulesLoading}
-                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] px-4 text-sm font-semibold text-[#C84A16] disabled:cursor-not-allowed disabled:opacity-60'
+                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] px-4 text-sm font-semibold text-[#C84A16]'
                     >
                       {content.applyDiscountLabel}
                     </button>
