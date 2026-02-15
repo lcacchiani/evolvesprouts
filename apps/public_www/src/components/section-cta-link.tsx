@@ -67,7 +67,9 @@ export function SectionCtaAnchor({
   if (isExternalLink || href.startsWith('#')) {
     return (
       <a href={href} {...sharedProps}>
-        <span>{children}</span>
+        <span className={isExternalLink ? 'underline underline-offset-4' : undefined}>
+          {children}
+        </span>
         {isExternalLink ? <ExternalLinkIcon className='h-5 w-5 shrink-0' /> : <CtaChevronIcon />}
       </a>
     );
