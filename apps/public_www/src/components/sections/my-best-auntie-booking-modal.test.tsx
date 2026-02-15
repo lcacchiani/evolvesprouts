@@ -115,6 +115,21 @@ describe('my-best-auntie booking modals footer content', () => {
     }
   });
 
+  it('uses cubes.svg mask icon for all course part chips', () => {
+    const { container } = render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(container.querySelectorAll('span[style*="/images/cubes.svg"]')).toHaveLength(3);
+    expect(container.querySelector('img[src*="box-1.png"]')).toBeNull();
+    expect(container.querySelector('img[src*="box-2.png"]')).toBeNull();
+    expect(container.querySelector('img[src*="box-3.png"]')).toBeNull();
+  });
+
   it('does not render booking modal copyright footer section', () => {
     const { container } = render(
       <MyBestAuntieBookingModal

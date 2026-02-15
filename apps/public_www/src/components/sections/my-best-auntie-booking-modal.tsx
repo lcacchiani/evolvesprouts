@@ -62,11 +62,7 @@ type CoursePartRow = {
 
 const MODAL_PANEL_BACKGROUND = '#FFFFFF';
 const MODAL_OVERLAY_BACKGROUND = 'rgba(16, 14, 11, 0.6)';
-const PART_CHIP_ICON_PATHS = [
-  '/images/my-best-auntie-booking/box-1.png',
-  '/images/my-best-auntie-booking/box-2.png',
-  '/images/my-best-auntie-booking/box-3.png',
-] as const;
+const PART_CHIP_ICON_MASK_PATH = '/images/cubes.svg';
 const PART_LINE_PATHS = [
   '/images/my-best-auntie-booking/pay-part-1-line.png',
   '/images/my-best-auntie-booking/pay-part-2-line.png',
@@ -205,10 +201,6 @@ function DiscountBadge({ label }: { label: string }) {
   );
 }
 
-function getPartChipIconPath(index: number): string {
-  return PART_CHIP_ICON_PATHS[index] ?? PART_CHIP_ICON_PATHS[2];
-}
-
 function getPartLinePath(index: number): string {
   return PART_LINE_PATHS[index] ?? PART_LINE_PATHS[2];
 }
@@ -220,6 +212,18 @@ function getPartChipTone(index: number): CSSProperties {
     color: tone.color,
   };
 }
+
+const partChipIconMaskStyle: CSSProperties = {
+  backgroundColor: 'currentColor',
+  WebkitMaskImage: `url(${PART_CHIP_ICON_MASK_PATH})`,
+  maskImage: `url(${PART_CHIP_ICON_MASK_PATH})`,
+  WebkitMaskRepeat: 'no-repeat',
+  maskRepeat: 'no-repeat',
+  WebkitMaskPosition: 'center',
+  maskPosition: 'center',
+  WebkitMaskSize: 'contain',
+  maskSize: 'contain',
+};
 
 function extractTimeRangeFromPartDate(partDate: string): string {
   const rawSegments = partDate.split('@');
@@ -440,11 +444,9 @@ export function MyBestAuntieBookingModal({
                           className='inline-flex items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
                           style={getPartChipTone(index)}
                         >
-                          <Image
-                            src={getPartChipIconPath(index)}
-                            alt=''
-                            width={30}
-                            height={30}
+                          <span
+                            className='h-[30px] w-[30px] shrink-0'
+                            style={partChipIconMaskStyle}
                             aria-hidden='true'
                           />
                           <span className='text-[18px] font-semibold leading-none'>
