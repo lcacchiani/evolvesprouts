@@ -185,7 +185,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.innerHTML).not.toContain('border-b border-black/10');
   });
 
-  it('renders unicode direction arrow in link and keeps matching location dividers', () => {
+  it('renders shared external link icon and updated booking icons', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
@@ -199,8 +199,16 @@ describe('my-best-auntie booking modals footer content', () => {
     });
 
     expect(directionLink).toHaveAttribute('href', bookingModalContent.directionHref);
-    expect(directionLink.textContent).toContain('↗');
-    expect(directionLink.textContent).toContain(bookingModalContent.directionLabel);
+    expect(directionLink).toHaveTextContent(bookingModalContent.directionLabel);
+    expect(
+      directionLink.querySelector('svg[data-external-link-icon="true"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('img[src*="/images/credit-card.svg"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('img[src*="/images/target.svg"]'),
+    ).not.toBeNull();
     expect(
       container.querySelector('img[src*="/images/my-best-auntie-booking/direction-mark.png"]'),
     ).toBeNull();
