@@ -134,9 +134,8 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelectorAll('span[data-course-part-line="bar"]')).toHaveLength(3);
     expect(container.querySelectorAll('span[data-course-part-line="connector"]')).toHaveLength(2);
 
-    expect(container.querySelector('img[src*="pay-part-1-line.png"]')).toBeNull();
-    expect(container.querySelector('img[src*="pay-part-2-line.png"]')).toBeNull();
-    expect(container.querySelector('img[src*="pay-part-3-line.png"]')).toBeNull();
+    const firstPartItem = screen.getByText(bookingModalContent.parts[0].label).closest('li');
+    expect(firstPartItem?.querySelector('img')).toBeNull();
 
     const connectorStyle = container
       .querySelector('span[data-course-part-line="connector"]')
