@@ -63,6 +63,7 @@ type CoursePartRow = {
 const MODAL_PANEL_BACKGROUND = '#FFFFFF';
 const MODAL_OVERLAY_BACKGROUND = 'rgba(16, 14, 11, 0.6)';
 const PART_CHIP_ICON_MASK_PATH = '/images/cubes.svg';
+const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
 const PART_LINE_PATHS = [
   '/images/my-best-auntie-booking/pay-part-1-line.png',
   '/images/my-best-auntie-booking/pay-part-2-line.png',
@@ -213,17 +214,28 @@ function getPartChipTone(index: number): CSSProperties {
   };
 }
 
-const partChipIconMaskStyle: CSSProperties = {
-  backgroundColor: 'currentColor',
-  WebkitMaskImage: `url(${PART_CHIP_ICON_MASK_PATH})`,
-  maskImage: `url(${PART_CHIP_ICON_MASK_PATH})`,
-  WebkitMaskRepeat: 'no-repeat',
-  maskRepeat: 'no-repeat',
-  WebkitMaskPosition: 'center',
-  maskPosition: 'center',
-  WebkitMaskSize: 'contain',
-  maskSize: 'contain',
-};
+function createMaskIconStyle(iconPath: string, color: string): CSSProperties {
+  return {
+    backgroundColor: color,
+    WebkitMaskImage: `url(${iconPath})`,
+    maskImage: `url(${iconPath})`,
+    WebkitMaskRepeat: 'no-repeat',
+    maskRepeat: 'no-repeat',
+    WebkitMaskPosition: 'center',
+    maskPosition: 'center',
+    WebkitMaskSize: 'contain',
+    maskSize: 'contain',
+  };
+}
+
+const partChipIconMaskStyle = createMaskIconStyle(
+  PART_CHIP_ICON_MASK_PATH,
+  'currentColor',
+);
+const darkCalendarIconMaskStyle = createMaskIconStyle(
+  CALENDAR_ICON_MASK_PATH,
+  '#333333',
+);
 
 function extractTimeRangeFromPartDate(partDate: string): string {
   const rawSegments = partDate.split('@');
@@ -456,11 +468,9 @@ export function MyBestAuntieBookingModal({
 
                         <div className='max-w-[340px]'>
                           <div className='flex items-center gap-2'>
-                            <Image
-                              src='/images/calendar-dark.png'
-                              alt=''
-                              width={24}
-                              height={24}
+                            <span
+                              className='h-6 w-6 shrink-0'
+                              style={darkCalendarIconMaskStyle}
                               aria-hidden='true'
                             />
                             <p className='text-[17px] font-semibold leading-6 text-[#333333]'>
@@ -823,11 +833,9 @@ export function MyBestAuntieThankYouModal({
                   </h4>
                   <div className='mt-4 flex flex-wrap gap-2'>
                     <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium text-[#5B617F]'>
-                      <Image
-                        src='/images/calendar-dark.png'
-                        alt=''
-                        width={24}
-                        height={24}
+                      <span
+                        className='h-6 w-6 shrink-0'
+                        style={darkCalendarIconMaskStyle}
                         aria-hidden='true'
                       />
                       {summary?.scheduleDateLabel ?? summary?.monthLabel ?? ''}

@@ -90,7 +90,7 @@ describe('my-best-auntie booking modals footer content', () => {
       ),
     ).toBeNull();
     expect(
-      container.querySelectorAll('img[src="/images/calendar-dark.png"]').length,
+      container.querySelectorAll('span[style*="/images/calendar.svg"]').length,
     ).toBeGreaterThan(0);
   });
 
@@ -176,7 +176,7 @@ describe('my-best-auntie booking modals footer content', () => {
       ),
     ).toBeNull();
     expect(
-      container.querySelector('img[src="/images/calendar-dark.png"]'),
+      container.querySelector('span[style*="/images/calendar.svg"]'),
     ).not.toBeNull();
   });
 });

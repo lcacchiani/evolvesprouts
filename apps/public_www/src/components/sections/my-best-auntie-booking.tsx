@@ -19,6 +19,7 @@ interface MyBestAuntieBookingProps {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
+const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
 
 const headingStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -50,6 +51,29 @@ const inactiveAgeSelectorCardStyle: CSSProperties = {
   border: '1px solid #E1E6EC',
   boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.08)',
 };
+
+function createMaskIconStyle(iconPath: string, color: string): CSSProperties {
+  return {
+    backgroundColor: color,
+    WebkitMaskImage: `url(${iconPath})`,
+    maskImage: `url(${iconPath})`,
+    WebkitMaskRepeat: 'no-repeat',
+    maskRepeat: 'no-repeat',
+    WebkitMaskPosition: 'center',
+    maskPosition: 'center',
+    WebkitMaskSize: 'contain',
+    maskSize: 'contain',
+  };
+}
+
+const activeDateSelectorCalendarIconStyle = createMaskIconStyle(
+  CALENDAR_ICON_MASK_PATH,
+  '#E76C3D',
+);
+const inactiveDateSelectorCalendarIconStyle = createMaskIconStyle(
+  CALENDAR_ICON_MASK_PATH,
+  '#333333',
+);
 
 export function MyBestAuntieBooking({
   locale,
@@ -246,16 +270,13 @@ export function MyBestAuntieBooking({
                             }
                           >
                             <div className='flex items-center justify-between gap-3'>
-                              <Image
-                                src={
+                              <span
+                                className='h-6 w-6 shrink-0'
+                                style={
                                   isSelected
-                                    ? '/images/calendar-orange.png'
-                                    : '/images/calendar-dark.png'
+                                    ? activeDateSelectorCalendarIconStyle
+                                    : inactiveDateSelectorCalendarIconStyle
                                 }
-                                alt=''
-                                width={24}
-                                height={24}
-                                className='h-6 w-6'
                                 aria-hidden='true'
                               />
                               <p className='text-base font-semibold text-[#333333]'>
