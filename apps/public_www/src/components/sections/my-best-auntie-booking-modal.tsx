@@ -521,7 +521,7 @@ export function MyBestAuntieBookingModal({
                   <div className='mt-4 flex items-start gap-4'>
                     <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#F3E3D8]'>
                       <Image
-                        src='/images/my-best-auntie-booking/credit-card.svg'
+                        src='/images/credit-card.svg'
                         alt=''
                         width={46}
                         height={46}
@@ -549,7 +549,7 @@ export function MyBestAuntieBookingModal({
                   <div className='mt-4 flex items-start gap-4'>
                     <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#F3E3D8]'>
                       <Image
-                        src='/images/my-best-auntie-booking/target.svg'
+                        src='/images/target.svg'
                         alt=''
                         width={46}
                         height={46}
