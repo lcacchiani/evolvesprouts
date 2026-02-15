@@ -64,6 +64,9 @@ const MODAL_PANEL_BACKGROUND = '#FFFFFF';
 const MODAL_OVERLAY_BACKGROUND = 'rgba(16, 14, 11, 0.6)';
 const PART_CHIP_ICON_MASK_PATH = '/images/cubes.svg';
 const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
+const CREDIT_CARD_ICON_MASK_PATH = '/images/credit-card.svg';
+const TARGET_ICON_MASK_PATH = '/images/target.svg';
+const BOOKING_HIGHLIGHT_ICON_COLOR = '#B31D1F';
 const PART_CHIP_TONES = [
   {
     backgroundColor: '#99BDE2',
@@ -267,6 +270,14 @@ const partChipIconMaskStyle = createMaskIconStyle(
 const darkCalendarIconMaskStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
   '#333333',
+);
+const redCreditCardIconMaskStyle = createMaskIconStyle(
+  CREDIT_CARD_ICON_MASK_PATH,
+  BOOKING_HIGHLIGHT_ICON_COLOR,
+);
+const redTargetIconMaskStyle = createMaskIconStyle(
+  TARGET_ICON_MASK_PATH,
+  BOOKING_HIGHLIGHT_ICON_COLOR,
 );
 
 function extractTimeRangeFromPartDate(partDate: string): string {
@@ -520,11 +531,9 @@ export function MyBestAuntieBookingModal({
                   </h3>
                   <div className='mt-4 flex items-start gap-4'>
                     <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#F3E3D8]'>
-                      <Image
-                        src='/images/credit-card.svg'
-                        alt=''
-                        width={46}
-                        height={46}
+                      <span
+                        className='h-[46px] w-[46px] shrink-0'
+                        style={redCreditCardIconMaskStyle}
                         aria-hidden='true'
                       />
                     </span>
@@ -548,11 +557,9 @@ export function MyBestAuntieBookingModal({
                   </h3>
                   <div className='mt-4 flex items-start gap-4'>
                     <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#F3E3D8]'>
-                      <Image
-                        src='/images/target.svg'
-                        alt=''
-                        width={46}
-                        height={46}
+                      <span
+                        className='h-[46px] w-[46px] shrink-0'
+                        style={redTargetIconMaskStyle}
                         aria-hidden='true'
                       />
                     </span>

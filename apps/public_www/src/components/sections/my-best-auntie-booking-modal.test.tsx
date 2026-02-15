@@ -204,10 +204,10 @@ describe('my-best-auntie booking modals footer content', () => {
       directionLink.querySelector('svg[data-external-link-icon="true"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('img[src*="/images/credit-card.svg"]'),
+      container.querySelector('span[style*="/images/credit-card.svg"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('img[src*="/images/target.svg"]'),
+      container.querySelector('span[style*="/images/target.svg"]'),
     ).not.toBeNull();
     expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(2);
   });
