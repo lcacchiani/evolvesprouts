@@ -122,7 +122,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelectorAll('span[style*="/images/cubes.svg"]')).toHaveLength(3);
   });
 
-  it('renders multicolour html timeline and removes legacy timeline png assets', () => {
+  it('renders uniform 25px html timeline segments with 25px content gap', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
@@ -131,16 +131,21 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
-    expect(container.querySelectorAll('span[data-course-part-line="bar"]')).toHaveLength(3);
-    expect(container.querySelectorAll('span[data-course-part-line="connector"]')).toHaveLength(2);
+    const timelineSegments = container.querySelectorAll(
+      'span[data-course-part-line="segment"]',
+    );
+    expect(timelineSegments).toHaveLength(3);
+    expect(
+      container.querySelectorAll('span[data-course-part-line="connector"]'),
+    ).toHaveLength(0);
+
+    for (const segment of timelineSegments) {
+      expect(segment.getAttribute('style')).toContain('width: 25px');
+    }
 
     const firstPartItem = screen.getByText(bookingModalContent.parts[0].label).closest('li');
+    expect(firstPartItem?.getAttribute('style')).toContain('padding-left: 50px');
     expect(firstPartItem?.querySelector('img')).toBeNull();
-
-    const connectorStyle = container
-      .querySelector('span[data-course-part-line="connector"]')
-      ?.getAttribute('style');
-    expect(connectorStyle).toContain('linear-gradient');
   });
 
   it('does not render booking modal copyright footer section', () => {
