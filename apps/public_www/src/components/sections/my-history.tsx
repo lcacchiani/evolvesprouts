@@ -10,7 +10,14 @@ interface MyHistoryProps {
   content: MyHistoryContent;
 }
 
-const SECTION_BACKGROUND = '#F7F2E1';
+const SECTION_BACKGROUND = '#F8F8F8';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
+const SECTION_BACKGROUND_POSITION = 'center -900px';
+const SECTION_BACKGROUND_SIZE = '2000px auto';
+const SECTION_BACKGROUND_FILTER =
+  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
+const SECTION_BACKGROUND_MASK_IMAGE =
+  'linear-gradient(to bottom, black 5%, transparent 15%)';
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -50,13 +57,18 @@ export function MyHistory({ content }: MyHistoryProps) {
       id='my-history'
       ariaLabel={content.title}
       dataFigmaNode='my-history'
-      style={{
-        backgroundColor: SECTION_BACKGROUND,
-        backgroundImage: 'url("/images/evolvesprouts-logo.svg")',
-        backgroundPosition: 'left top',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: '100% 100%',
-      }}
+      className='es-section-bg-overlay'
+      style={
+        {
+          backgroundColor: SECTION_BACKGROUND,
+          ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
+          ['--es-section-bg-position' as string]: SECTION_BACKGROUND_POSITION,
+          ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
+          ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
+          ['--es-section-bg-mask-image' as string]:
+            SECTION_BACKGROUND_MASK_IMAGE,
+        } as CSSProperties
+      }
     >
       <div className='mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-12'>
         <div>
