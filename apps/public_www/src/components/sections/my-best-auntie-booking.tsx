@@ -160,8 +160,8 @@ export function MyBestAuntieBooking({
         style={{ backgroundColor: SECTION_BACKGROUND }}
       >
         <div className='mx-auto w-full max-w-[1465px]'>
-          <div className='grid min-w-0 gap-8 lg:grid-cols-[1fr_470px] lg:items-start'>
-            <section className='space-y-5 lg:pr-8'>
+          <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>
+            <section className='space-y-5 max-w-[620px] lg:pr-8'>
               <h1
                 className='text-[clamp(2rem,5.6vw,3.3rem)]'
                 style={headingStyle}
@@ -186,7 +186,7 @@ export function MyBestAuntieBooking({
               </div>
             </section>
 
-            <aside className='min-w-0'>
+            <aside className='mx-auto w-full min-w-0 max-w-[764px] lg:ml-auto lg:mr-0'>
               <h2 className='text-[1.6rem] font-semibold text-[#333333]'>
                 {content.eyebrow}
               </h2>
