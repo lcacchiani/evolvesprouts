@@ -96,7 +96,7 @@ const FPS_GENERATOR_SCRIPT_SOURCE =
   'https://crm.evolvesprouts.com/static/fps-generator.js';
 const FPS_QR_CODE_SCRIPT_SOURCE =
   'https://crm.evolvesprouts.com/static/fps-qr-code.js';
-const FPS_LOGO_SOURCE = 'https://fps.hkicl.com.hk/images/fps/fps_color.svg';
+const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
 const FPS_MERCHANT_NAME = 'Ida De Gregorio';
 const FPS_MOBILE_NUMBER = '85297942094';
 const FPS_QR_CODE_SIZE_PX = 128;
@@ -370,8 +370,13 @@ function FpsQrCode({ amount, qrLabel }: { amount: number; qrLabel: string }) {
 
   return (
     <div className='mx-auto flex w-full max-w-[320px] items-center justify-center gap-4 rounded-[14px] border border-[#CAD6E5] bg-white p-3 text-center'>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={FPS_LOGO_SOURCE} alt='FPS' className='h-auto w-[92px] shrink-0' />
+      <Image
+        src={FPS_LOGO_SOURCE}
+        alt='FPS'
+        width={92}
+        height={86}
+        className='h-auto w-[92px] shrink-0'
+      />
       <div className='mx-auto w-[128px] rounded-[10px] bg-white p-1'>
         <div
           ref={qrCodeContainerRef}
