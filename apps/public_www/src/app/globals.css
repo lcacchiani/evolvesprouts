@@ -204,6 +204,31 @@
   .es-testimonial-control-button:hover {
     opacity: 0.9;
   }
+
+  .es-my-best-auntie-overview {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .es-my-best-auntie-overview::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-position: center -150px;
+    background-repeat: no-repeat;
+    background-size: 900px auto;
+    filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+  }
 }
 
 @layer utilities {

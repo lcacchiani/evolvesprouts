@@ -34,8 +34,6 @@ const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
 ];
 
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_SIZE = '900px auto';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const WEEK_COLOR = 'var(--figma-colors-week-01-04, #313131)';
@@ -326,16 +324,12 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
       id='courses'
       ariaLabel={content.title}
       dataFigmaNode='My Best Auntie Overview'
-      className='relative isolate overflow-hidden'
+      className='es-my-best-auntie-overview'
       style={{
         backgroundColor: SECTION_BG,
-        backgroundImage: SECTION_BACKGROUND_IMAGE,
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: SECTION_BACKGROUND_SIZE,
       }}
     >
-      <div className='relative mx-auto w-full max-w-[1465px]'>
+      <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[760px] text-center'>
           <SectionEyebrowChip
             label={content.eyebrow}
