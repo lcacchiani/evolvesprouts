@@ -489,7 +489,7 @@ function DesktopMenuItem({
 
       setIsSubmenuOpen(false);
     },
-    [],
+    [setIsSubmenuOpen],
   );
 
   useOutsideClickClose({
