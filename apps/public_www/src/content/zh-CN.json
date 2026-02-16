@@ -257,8 +257,7 @@
       "termsAgreementLabel": "我同意此",
       "termsLinkLabel": "条款与细则",
       "termsHref": "/terms",
-      "submitLabel": "提交报名",
-      "qrLabel": "FPS 二维码"
+      "submitLabel": "提交报名"
     },
     "thankYouModal": {
       "closeLabel": "关闭",

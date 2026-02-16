@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import QRCode from 'qrcode';
 import {
   type CSSProperties,
   type FormEvent,
@@ -92,10 +93,7 @@ const PART_TIMELINE_ITEM_PADDING_BOTTOM_PX = 100;
 const PART_TIMELINE_LANE_WIDTH_PX =
   PART_TIMELINE_LINE_WIDTH_PX + PART_TIMELINE_CONTENT_GAP_PX;
 const REQUIRED_ASTERISK_COLOR = '#C84A16';
-const FPS_GENERATOR_SCRIPT_SOURCE =
-  'https://crm.evolvesprouts.com/static/fps-generator.js';
-const FPS_QR_CODE_SCRIPT_SOURCE =
-  'https://crm.evolvesprouts.com/static/fps-qr-code.js';
+const FPS_GENERATOR_SCRIPT_SOURCE = '/scripts/fps-generator.js';
 const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
 const FPS_MERCHANT_NAME = 'Ida De Gregorio';
 const FPS_MOBILE_NUMBER = '85297942094';
@@ -132,27 +130,9 @@ interface FpsConstructor {
   new (): FpsInstance;
 }
 
-interface QrCodeConstructor {
-  new (
-    target: HTMLElement | string,
-    options: {
-      text: string;
-      width: number;
-      height: number;
-      colorDark: string;
-      colorLight: string;
-      correctLevel: unknown;
-    },
-  ): unknown;
-  CorrectLevel: {
-    H: unknown;
-  };
-}
-
 declare global {
   interface Window {
     FPS?: FpsConstructor;
-    QRCode?: QrCodeConstructor;
   }
 }
 
@@ -199,10 +179,6 @@ function isExternalScriptLoaded(source: string): boolean {
 
   if (source === FPS_GENERATOR_SCRIPT_SOURCE) {
     return typeof window.FPS === 'function';
-  }
-
-  if (source === FPS_QR_CODE_SCRIPT_SOURCE) {
-    return typeof window.QRCode === 'function';
   }
 
   return false;
@@ -311,30 +287,18 @@ function CloseButton({ label, onClose }: { label: string; onClose: () => void })
   );
 }
 
-function FpsQrCode({ amount, qrLabel }: { amount: number; qrLabel: string }) {
+function FpsQrCode({ amount }: { amount: number }) {
+  const [qrCodeImageDataUrl, setQrCodeImageDataUrl] = useState('');
   const qrCodeContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
-    const qrCodeContainer = qrCodeContainerRef.current;
-    if (!qrCodeContainer) {
-      return;
-    }
+    setQrCodeImageDataUrl('');
 
-    qrCodeContainer.innerHTML = '';
-
-    void Promise.all([
-      loadExternalScript(FPS_GENERATOR_SCRIPT_SOURCE),
-      loadExternalScript(FPS_QR_CODE_SCRIPT_SOURCE),
-    ])
-      .then(() => {
-        if (isCancelled) {
-          return;
-        }
-
+    void loadExternalScript(FPS_GENERATOR_SCRIPT_SOURCE)
+      .then(async () => {
         const Fps = window.FPS;
-        const QrCode = window.QRCode;
-        if (!Fps || !QrCode || !qrCodeContainer) {
+        if (!Fps) {
           return;
         }
 
@@ -345,22 +309,26 @@ function FpsQrCode({ amount, qrLabel }: { amount: number; qrLabel: string }) {
         fpsPayloadGenerator.setDynamic();
 
         const payloadResult = fpsPayloadGenerator.generate();
-        if (payloadResult.isError() || !payloadResult.data) {
+        if (payloadResult.isError() || !payloadResult.data || isCancelled) {
           return;
         }
 
-        qrCodeContainer.innerHTML = '';
-        new QrCode(qrCodeContainer, {
-          text: payloadResult.data,
+        const imageDataUrl = await QRCode.toDataURL(payloadResult.data, {
           width: FPS_QR_CODE_SIZE_PX,
-          height: FPS_QR_CODE_SIZE_PX,
-          colorDark: '#000',
-          colorLight: '#fff',
-          correctLevel: QrCode.CorrectLevel.H,
+          margin: 0,
+          errorCorrectionLevel: 'H',
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF',
+          },
         });
+
+        if (!isCancelled) {
+          setQrCodeImageDataUrl(imageDataUrl);
+        }
       })
       .catch(() => {
-        // The QR container remains blank when the external script cannot be loaded.
+        // The QR container remains blank when the payload cannot be generated.
       });
 
     return () => {
@@ -369,7 +337,10 @@ function FpsQrCode({ amount, qrLabel }: { amount: number; qrLabel: string }) {
   }, [amount]);
 
   return (
-    <div className='mx-auto flex w-full max-w-[320px] items-center justify-center gap-4 rounded-[14px] border border-[#CAD6E5] bg-white p-3 text-center'>
+    <div
+      ref={qrCodeContainerRef}
+      className='flex w-full items-center justify-between gap-4 rounded-[14px] border border-[#CAD6E5] bg-white p-3 text-center'
+    >
       <Image
         src={FPS_LOGO_SOURCE}
         alt='FPS'
@@ -377,12 +348,18 @@ function FpsQrCode({ amount, qrLabel }: { amount: number; qrLabel: string }) {
         height={86}
         className='h-auto w-[92px] shrink-0'
       />
-      <div className='mx-auto w-[128px] rounded-[10px] bg-white p-1'>
-        <div
-          ref={qrCodeContainerRef}
-          aria-label={qrLabel}
-          className='mx-auto h-[128px] w-[128px] rounded-[8px] border border-[#E2E8F0] bg-white'
-        />
+      <div
+        aria-label='FPS payment QR code'
+        className='flex h-[128px] w-[128px] shrink-0 items-center justify-center rounded-[8px] border border-[#E2E8F0] bg-white'
+      >
+        {qrCodeImageDataUrl && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={qrCodeImageDataUrl}
+            alt='FPS payment QR code'
+            className='h-[128px] w-[128px]'
+          />
+        )}
       </div>
     </div>
   );
@@ -947,7 +924,7 @@ export function MyBestAuntieBookingModal({
                     className='space-y-2 rounded-[12px] border border-[#D9E2EE] bg-white p-4'
                   >
                     <div className='flex items-center justify-between text-sm font-semibold text-[#4A4A4A]'>
-                      <span>Original Price</span>
+                      <span>Price</span>
                       <span>{formatCurrencyHkd(originalAmount)}</span>
                     </div>
                     {hasDiscount && (
@@ -964,14 +941,8 @@ export function MyBestAuntieBookingModal({
                     )}
                   </div>
 
-                  <div data-booking-fps-block='true' className='p-4'>
-                    <FpsQrCode amount={totalAmount} qrLabel={content.qrLabel} />
-                    <p className='mt-3 text-center text-xs font-semibold uppercase tracking-[0.08em] text-[#5B617F]'>
-                      {content.qrLabel}
-                    </p>
-                    <p className='mt-3 text-center text-[20px] font-semibold leading-none text-[#333333]'>
-                      {formatCurrencyHkd(totalAmount)}
-                    </p>
+                  <div data-booking-fps-block='true' className='w-full p-4'>
+                    <FpsQrCode amount={totalAmount} />
                   </div>
 
                   <div data-booking-acknowledgements='true' className='space-y-2'>
