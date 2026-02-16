@@ -43,4 +43,20 @@ describe('useModalLockBody', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(onEscape).not.toHaveBeenCalled();
   });
+
+  it('keeps body locked until all active locks are released', () => {
+    document.body.style.overflow = 'visible';
+    const onEscape = vi.fn();
+
+    const first = render(<HookHarness onEscape={onEscape} />);
+    const second = render(<HookHarness onEscape={onEscape} />);
+
+    expect(document.body.style.overflow).toBe('hidden');
+
+    first.unmount();
+    expect(document.body.style.overflow).toBe('hidden');
+
+    second.unmount();
+    expect(document.body.style.overflow).toBe('visible');
+  });
 });

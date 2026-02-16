@@ -5,15 +5,18 @@ import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
 import { DEFAULT_SECTION_EYEBROW_STYLE, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { buildSectionBackgroundStyle } from '@/lib/section-backgrounds';
 import { isHttpHref } from '@/lib/url-utils';
 
 interface ConnectProps {
   content: ContactUsContent['connect'];
 }
 
-const SECTION_BACKGROUND = '#FFFFFF';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_SIZE = '900px auto';
+const SECTION_STYLE = buildSectionBackgroundStyle({
+  backgroundColor: '#FFFFFF',
+  position: 'center top',
+  size: '900px auto',
+});
 const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 const cardTitleStyle: CSSProperties = {
@@ -65,13 +68,7 @@ export function Connect({ content }: ConnectProps) {
       ariaLabel={content.title}
       dataFigmaNode='connect'
       className='relative isolate overflow-hidden bg-white'
-      style={{
-        backgroundColor: SECTION_BACKGROUND,
-        backgroundImage: SECTION_BACKGROUND_IMAGE,
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: SECTION_BACKGROUND_SIZE,
-      }}
+      style={SECTION_STYLE}
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[840px] text-center'>

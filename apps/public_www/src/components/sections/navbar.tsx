@@ -7,7 +7,6 @@ import {
   type CSSProperties,
   useCallback,
   useEffect,
-  useId,
   useRef,
   useState,
 } from 'react';
@@ -16,18 +15,21 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import {
   CloseIcon,
   HamburgerIcon,
-  LanguageChevronIcon,
   MobileChevronIcon,
 } from '@/components/sections/navbar-icons';
+import {
+  LanguageSelectorButton,
+  resolveLanguageSelectorContent,
+} from '@/components/sections/navbar/language-selector';
 import {
   type Locale,
   type NavbarContent,
 } from '@/content';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 import {
   getLocaleFromPath,
-  isSupportedLocale,
   localizeHref,
   localizePath,
   normalizeLocalizedPath,
@@ -62,8 +64,6 @@ const NAV_MOBILE_PRIMARY_ACTION_CLASSNAME =
   'es-focus-ring es-nav-pill w-full justify-between transition-colors';
 const NAV_MOBILE_BOOK_BUTTON_CLASSNAME =
   'w-full rounded-[10px] px-4';
-const NAV_LANGUAGE_OPTION_CLASSNAME =
-  'es-focus-ring es-nav-language-option';
 const NAV_DESKTOP_BOOK_BUTTON_CLASSNAME =
   'h-[56px] rounded-[10px] px-[27px]';
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
@@ -81,56 +81,11 @@ const linkStyle = {
 };
 
 const ctaStyle = {
-  fontFamily:
-    'var(--figma-fontfamilies-plus-jakarta-sans, Plus Jakarta Sans), sans-serif',
+  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
   fontSize: 'var(--figma-fontsizes-22, 22px)',
   fontWeight: 'var(--figma-fontweights-600, 600)',
   lineHeight: 'var(--figma-lineheights-book-now, 100%)',
 };
-
-interface LanguageOption {
-  locale: Locale;
-  label: string;
-  shortLabel: string;
-  flagSrc: string;
-}
-
-interface LanguageSelectorContent {
-  menuAriaLabel: string;
-  selectedLanguageAriaPrefix: string;
-  options: readonly LanguageOption[];
-}
-
-interface RawLanguageOption {
-  locale: string;
-  label: string;
-  shortLabel: string;
-  flagSrc: string;
-}
-
-const DEFAULT_LANGUAGE_OPTIONS: readonly LanguageOption[] = [
-  {
-    locale: 'en',
-    label: 'English',
-    shortLabel: 'Eng',
-    flagSrc: '/images/flags/gb.png',
-  },
-  {
-    locale: 'zh-CN',
-    label: 'Chinese (Simplified)',
-    shortLabel: 'SC',
-    flagSrc: '/images/flags/cn.png',
-  },
-  {
-    locale: 'zh-HK',
-    label: 'Chinese (Traditional)',
-    shortLabel: 'TC',
-    flagSrc: '/images/flags/hk.png',
-  },
-];
-
-const DEFAULT_LANGUAGE_MENU_ARIA_LABEL = 'Select language';
-const DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX = 'Selected language';
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -142,52 +97,6 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
 
     return element.getAttribute('aria-hidden') !== 'true';
   });
-}
-
-function resolveLanguageSelectorContent(
-  content: NavbarContent,
-): LanguageSelectorContent {
-  const selector = (content as NavbarContent & {
-    languageSelector?: {
-      menuAriaLabel?: string;
-      selectedLanguageAriaPrefix?: string;
-      options?: RawLanguageOption[];
-    };
-  }).languageSelector;
-
-  const normalizedOptions = (selector?.options ?? [])
-    .map((option) => {
-      if (!isSupportedLocale(option.locale)) {
-        return null;
-      }
-
-      const label = option.label?.trim();
-      const shortLabel = option.shortLabel?.trim();
-      const flagSrc = option.flagSrc?.trim();
-      if (!label || !shortLabel || !flagSrc) {
-        return null;
-      }
-
-      return {
-        locale: option.locale,
-        label,
-        shortLabel,
-        flagSrc,
-      } as LanguageOption;
-    })
-    .filter((option): option is LanguageOption => option !== null);
-
-  return {
-    menuAriaLabel:
-      selector?.menuAriaLabel?.trim() || DEFAULT_LANGUAGE_MENU_ARIA_LABEL,
-    selectedLanguageAriaPrefix:
-      selector?.selectedLanguageAriaPrefix?.trim() ||
-      DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX,
-    options:
-      normalizedOptions.length > 0
-        ? normalizedOptions
-        : DEFAULT_LANGUAGE_OPTIONS,
-  };
 }
 
 function isHrefActive(currentPath: string, href: string): boolean {
@@ -239,130 +148,6 @@ function getSubmenuLinkStyle(isActive: boolean) {
     fontSize: 'var(--figma-fontsizes-16, 16px)',
     fontWeight: 500,
   };
-}
-
-interface LanguageSelectorButtonProps {
-  className: string;
-  currentLocale: Locale;
-  currentPathname: string;
-  languageSelector: LanguageSelectorContent;
-  menuAlign?: 'left' | 'right';
-  buttonStyle?: Record<string, string | number>;
-  isBorderlessMenu?: boolean;
-}
-
-function LanguageSelectorButton({
-  className,
-  currentLocale,
-  currentPathname,
-  languageSelector,
-  menuAlign = 'right',
-  buttonStyle,
-  isBorderlessMenu = false,
-}: LanguageSelectorButtonProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const languageMenuId = useId();
-  const closeMenu = useCallback(() => {
-    setIsMenuOpen(false);
-  }, [setIsMenuOpen]);
-  const activeOption =
-    languageSelector.options.find((option) => option.locale === currentLocale) ??
-    languageSelector.options[0];
-
-  useOutsideClickClose({
-    ref: wrapperRef,
-    onOutsideClick: closeMenu,
-    isActive: isMenuOpen,
-  });
-
-  useEffect(() => {
-    if (!isMenuOpen) {
-      return;
-    }
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        closeMenu();
-      }
-    }
-
-    window.addEventListener('keydown', handleEscape);
-
-    return () => {
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, [closeMenu, isMenuOpen]);
-
-  return (
-    <div ref={wrapperRef} className='relative'>
-      <button
-        type='button'
-        className={className}
-        style={buttonStyle}
-        aria-controls={languageMenuId}
-        aria-expanded={isMenuOpen}
-        aria-haspopup='menu'
-        onClick={() => {
-          setIsMenuOpen((open) => !open);
-        }}
-      >
-        <Image
-          src={activeOption.flagSrc}
-          alt=''
-          aria-hidden='true'
-          width={30}
-          height={30}
-          className='h-[30px] w-[30px] rounded-full object-cover'
-        />
-        <span className='sr-only'>
-          {`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
-        </span>
-        <LanguageChevronIcon isOpen={isMenuOpen} />
-      </button>
-      <ul
-        id={languageMenuId}
-        role='menu'
-        aria-label={languageSelector.menuAriaLabel}
-        aria-hidden={!isMenuOpen}
-        className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[230px] space-y-1 rounded-xl bg-white p-2 shadow-xl transition-opacity duration-200 ease-out ${isBorderlessMenu ? '' : 'border border-black/10'} ${isMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
-      >
-        {languageSelector.options.map((option) => {
-          const isCurrent = option.locale === currentLocale;
-          return (
-            <li key={option.locale}>
-              <Link
-                role='menuitem'
-                href={localizePath(currentPathname, option.locale)}
-                className={NAV_LANGUAGE_OPTION_CLASSNAME}
-                onClick={() => {
-                  closeMenu();
-                }}
-                tabIndex={isMenuOpen ? undefined : -1}
-                style={{
-                  color: isCurrent ? NAV_ACTIVE_TEXT : NAV_TEXT_COLOR,
-                  fontFamily:
-                    'var(--figma-fontfamilies-lato, Lato), sans-serif',
-                  fontSize: '16px',
-                  fontWeight: isCurrent ? 700 : 500,
-                  lineHeight: '1.25',
-                }}
-              >
-                <Image
-                  src={option.flagSrc}
-                  alt={`${option.label} flag`}
-                  width={22}
-                  height={22}
-                  className='h-[22px] w-[22px] rounded-full object-cover'
-                />
-                <span>{option.label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
 }
 
 function BookNowButton({
@@ -739,24 +524,17 @@ export function Navbar({ content }: NavbarProps) {
     }, MOBILE_MENU_TRANSITION_MS);
   }, [clearMobileMenuCloseTimeout, clearMobileMenuOpenFrame]);
 
+  useModalLockBody({
+    isActive: isMobileMenuRendered,
+    onEscape: closeMobileMenu,
+  });
+
   useEffect(() => {
     return () => {
       clearMobileMenuOpenFrame();
       clearMobileMenuCloseTimeout();
     };
   }, [clearMobileMenuCloseTimeout, clearMobileMenuOpenFrame]);
-
-  useEffect(() => {
-    if (!isMobileMenuRendered) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isMobileMenuRendered]);
 
   useEffect(() => {
     if (!isMobileMenuOpen) {
@@ -766,11 +544,6 @@ export function Navbar({ content }: NavbarProps) {
     mobileMenuCloseButtonRef.current?.focus();
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        closeMobileMenu();
-        return;
-      }
-
       if (event.key !== 'Tab') {
         return;
       }
@@ -812,7 +585,7 @@ export function Navbar({ content }: NavbarProps) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [closeMobileMenu, isMobileMenuOpen]);
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     if (isMobileMenuRendered) {

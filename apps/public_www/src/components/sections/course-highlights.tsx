@@ -7,6 +7,10 @@ import { SectionShell } from '@/components/section-shell';
 import type { CourseHighlightsContent } from '@/content';
 import enContent from '@/content/en.json';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  buildSectionBackgroundOverlayStyle,
+  LOGO_OVERLAY_DEEP,
+} from '@/lib/section-backgrounds';
 
 interface CourseHighlightsProps {
   content: CourseHighlightsContent;
@@ -30,14 +34,10 @@ interface BenefitCardMeta {
   imageClassName: string;
 }
 
-const SECTION_BG = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_POSITION = 'center -900px';
-const SECTION_BACKGROUND_SIZE = '2000px auto';
-const SECTION_BACKGROUND_FILTER =
-  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
-const SECTION_BACKGROUND_MASK_IMAGE =
-  'linear-gradient(to bottom, black 5%, transparent 15%)';
+const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
+  ...LOGO_OVERLAY_DEEP,
+  backgroundColor: 'var(--figma-colors-frame-2147235259, #FFEEE3)',
+});
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const GOLD_CARD = '#9E6D12';
@@ -175,17 +175,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
       ariaLabel={sectionTitle}
       dataFigmaNode='Course Highlights'
       className='es-section-bg-overlay'
-      style={
-        {
-          backgroundColor: SECTION_BG,
-          ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
-          ['--es-section-bg-position' as string]: SECTION_BACKGROUND_POSITION,
-          ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
-          ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
-          ['--es-section-bg-mask-image' as string]:
-            SECTION_BACKGROUND_MASK_IMAGE,
-        } as CSSProperties
-      }
+      style={SECTION_STYLE}
     >
       <div
         aria-hidden='true'

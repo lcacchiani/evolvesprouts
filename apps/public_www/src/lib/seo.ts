@@ -11,6 +11,7 @@ import {
 } from '@/lib/locale-routing';
 
 export const SITE_ORIGIN = 'https://www.evolvesprouts.com';
+export const DEFAULT_SOCIAL_IMAGE = '/images/evolvesprouts-logo.svg';
 const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
 const PAGE_TITLE_SEPARATOR = ' - ';
 
@@ -64,12 +65,35 @@ export function buildLocalizedMetadata({
   title,
   description,
 }: LocalizedMetadataOptions): Metadata {
+  const localizedPath = localizePath(path, locale);
+  const pageTitle = buildPageTitle(title, path);
+
   return {
-    title: buildPageTitle(title, path),
+    title: pageTitle,
     description,
     alternates: {
-      canonical: localizePath(path, locale),
+      canonical: localizedPath,
       languages: buildLocaleAlternates(path),
+    },
+    openGraph: {
+      title: pageTitle,
+      description,
+      url: localizedPath,
+      siteName: SITE_TITLE_SUFFIX,
+      type: 'website',
+      locale,
+      images: [
+        {
+          url: DEFAULT_SOCIAL_IMAGE,
+          alt: SITE_TITLE_SUFFIX,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: pageTitle,
+      description,
+      images: [DEFAULT_SOCIAL_IMAGE],
     },
     robots: {
       index: true,

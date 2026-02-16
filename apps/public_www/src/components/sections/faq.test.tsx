@@ -20,6 +20,10 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/zh-CN/about-us',
+}));
+
 describe('Faq section', () => {
   it('uses the testimonials background image and overlay properties', () => {
     const { container } = render(<Faq content={enContent.faq} />);
@@ -81,7 +85,7 @@ describe('Faq section', () => {
     const contactCta = within(card as HTMLElement).getByRole('link', {
       name: 'Contact Us',
     });
-    expect(contactCta).toHaveAttribute('href', '/contact-us');
+    expect(contactCta).toHaveAttribute('href', '/zh-CN/contact-us');
     expect(contactCta.className).toContain('es-cta-primary');
   });
 

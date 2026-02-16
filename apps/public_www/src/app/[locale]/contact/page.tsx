@@ -5,6 +5,8 @@ import {
   resolveLocaleFromParams,
 } from '@/lib/locale-page';
 
+export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
+
 export default async function ContactAliasPage({
   params,
 }: LocaleRouteProps) {

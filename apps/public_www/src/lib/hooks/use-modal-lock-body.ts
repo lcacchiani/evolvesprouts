@@ -1,23 +1,59 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface UseModalLockBodyOptions {
   isActive?: boolean;
   onEscape: () => void;
 }
 
+const BODY_LOCK_TOKEN_PREFIX = 'modal-lock-';
+const activeBodyLockTokens = new Set<string>();
+let lockSequence = 0;
+let previousBodyOverflow = '';
+
+function lockBodyScroll(token: string) {
+  if (typeof document === 'undefined' || activeBodyLockTokens.has(token)) {
+    return;
+  }
+
+  if (activeBodyLockTokens.size === 0) {
+    previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+
+  activeBodyLockTokens.add(token);
+}
+
+function unlockBodyScroll(token: string) {
+  if (typeof document === 'undefined' || !activeBodyLockTokens.has(token)) {
+    return;
+  }
+
+  activeBodyLockTokens.delete(token);
+  if (activeBodyLockTokens.size === 0) {
+    document.body.style.overflow = previousBodyOverflow;
+    previousBodyOverflow = '';
+  }
+}
+
 export function useModalLockBody({
   isActive = true,
   onEscape,
 }: UseModalLockBodyOptions) {
+  const lockTokenRef = useRef('');
+  if (lockTokenRef.current === '') {
+    lockSequence += 1;
+    lockTokenRef.current = `${BODY_LOCK_TOKEN_PREFIX}${lockSequence}`;
+  }
+
   useEffect(() => {
     if (!isActive) {
       return;
     }
 
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const lockToken = lockTokenRef.current;
+    lockBodyScroll(lockToken);
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -28,7 +64,7 @@ export function useModalLockBody({
     window.addEventListener('keydown', handleEscape);
 
     return () => {
-      document.body.style.overflow = originalOverflow;
+      unlockBodyScroll(lockToken);
       window.removeEventListener('keydown', handleEscape);
     };
   }, [isActive, onEscape]);

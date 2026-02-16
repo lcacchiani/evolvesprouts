@@ -17,6 +17,10 @@ import {
 } from '@/content/content-field-utils';
 import type { TestimonialsContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  buildSectionBackgroundOverlayStyle,
+  LOGO_OVERLAY_TOP,
+} from '@/lib/section-backgrounds';
 
 interface TestimonialsProps {
   content: TestimonialsContent;
@@ -38,14 +42,10 @@ const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 const SWIPE_THRESHOLD_PX = 48;
-const SECTION_BG = '#FFFFFF';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_POSITION = 'center -150px';
-const SECTION_BACKGROUND_SIZE = '900px auto';
-const SECTION_BACKGROUND_FILTER =
-  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
-const SECTION_BACKGROUND_MASK_IMAGE =
-  'linear-gradient(to bottom, black 18%, transparent 20%)';
+const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
+  ...LOGO_OVERLAY_TOP,
+  backgroundColor: '#FFFFFF',
+});
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
 
@@ -303,17 +303,7 @@ export function Testimonials({ content }: TestimonialsProps) {
       ariaLabel={content.title}
       dataFigmaNode='Testimonials'
       className='es-section-bg-overlay'
-      style={
-        {
-          backgroundColor: SECTION_BG,
-          ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
-          ['--es-section-bg-position' as string]: SECTION_BACKGROUND_POSITION,
-          ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
-          ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
-          ['--es-section-bg-mask-image' as string]:
-            SECTION_BACKGROUND_MASK_IMAGE,
-        } as CSSProperties
-      }
+      style={SECTION_STYLE}
     >
       <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
         <div className='mx-auto max-w-[760px] text-center'>

@@ -6,7 +6,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionShell } from '@/components/section-shell';
 import type { EventsContent } from '@/content';
-import { createCrmApiClient } from '@/lib/crm-api-client';
+import {
+  createPublicCrmApiClient,
+  isAbortRequestError,
+} from '@/lib/crm-api-client';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import {
   type EventCardData,
@@ -220,12 +223,7 @@ export function Events({ content }: EventsProps) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const crmApiBaseUrl = process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '';
-    const crmApiKey = process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '';
-    const crmApiClient = createCrmApiClient({
-      baseUrl: crmApiBaseUrl,
-      apiKey: crmApiKey,
-    });
+    const crmApiClient = createPublicCrmApiClient();
 
     if (!crmApiClient) {
       setEvents([]);
@@ -245,7 +243,7 @@ export function Events({ content }: EventsProps) {
         setEvents(normalizedEvents);
       })
       .catch((error) => {
-        if (error instanceof Error && error.name === 'AbortError') {
+        if (isAbortRequestError(error)) {
           return;
         }
 

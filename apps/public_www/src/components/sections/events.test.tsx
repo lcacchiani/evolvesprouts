@@ -4,16 +4,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Events } from '@/components/sections/events';
 import enContent from '@/content/en.json';
 import {
-  createCrmApiClient,
+  createPublicCrmApiClient,
   type CrmApiClient,
 } from '@/lib/crm-api-client';
 
 vi.mock('@/lib/crm-api-client', () => ({
-  createCrmApiClient: vi.fn(),
+  createPublicCrmApiClient: vi.fn(),
+  isAbortRequestError: (error: unknown) =>
+    error instanceof Error && error.name === 'AbortError',
 }));
 
 describe('Events section', () => {
-  const mockedCreateCrmApiClient = vi.mocked(createCrmApiClient);
+  const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 
   beforeEach(() => {
     mockedCreateCrmApiClient.mockReset();
