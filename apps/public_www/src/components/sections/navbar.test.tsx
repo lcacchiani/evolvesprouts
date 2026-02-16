@@ -11,7 +11,14 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next/image', () => ({
   default: function MockImage(props: ComponentProps<'img'>) {
-    return <img {...props} />;
+    return (
+      <div
+        data-next-image-src={
+          typeof props.src === 'string' ? props.src : 'non-string-src'
+        }
+        data-next-image-alt={props.alt ?? ''}
+      />
+    );
   },
 }));
 
