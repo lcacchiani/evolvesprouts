@@ -606,7 +606,7 @@ export function MyBestAuntieBookingModal({
             </div>
 
             <div className='w-full lg:w-[calc(50%-20px)]'>
-              <section className='relative overflow-hidden rounded-[14px] border border-[#D0E4F4] bg-[#F8F8F8] px-5 py-7 shadow-[0_8px_8px_rgba(49,86,153,0.08),0_8px_16px_rgba(49,86,153,0.06)] sm:px-7'>
+              <section className='relative overflow-hidden rounded-[14px] border border-[#D0E4F4] bg-[#F8F8F8] px-5 py-7 sm:px-7'>
                 <Image
                   src='/images/my-best-auntie-booking/small-tree-form.png'
                   alt=''
