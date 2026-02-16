@@ -107,7 +107,12 @@ export function MyBestAuntieBooking({
   const firstCoursePart = content.paymentModal.parts[0];
   const firstMonthId =
     content.paymentModal.monthOptions[0]?.id ?? dateOptions[0]?.id ?? '';
-  const firstCohortDate = firstCoursePart?.dateByMonth[firstMonthId];
+  const firstMonthEntry = firstCoursePart
+    ? Object.entries(firstCoursePart.dateByMonth).find(
+        ([monthId]) => monthId === firstMonthId,
+      )
+    : undefined;
+  const firstCohortDate = firstMonthEntry?.[1];
   const nextCohortDate =
     firstCohortDate ??
     dateOptions[0]?.label ??
