@@ -15,7 +15,7 @@ const HEADLINE_HIGHLIGHT =
   'var(--figma-colors-frame-2147235222-2, #ED622E)';
 const SUBHEADLINE_COLOR = BODY_TEXT_COLOR;
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
-const HERO_FRAME_BACKGROUND = '/images/tree-background.png';
+const HERO_FRAME_BACKGROUND = '/images/evolvesprouts-logo.svg';
 const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
 
 const headlineStyle: CSSProperties = {
