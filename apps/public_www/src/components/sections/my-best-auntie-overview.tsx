@@ -350,11 +350,10 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowTextStyle}
-            className='px-4 py-2.5 sm:px-5'
+            className='px-4 py-2.5'
             style={{
-              backgroundColor: 'var(--figma-colors-desktop, #FFFFFF)',
               borderColor: '#EECAB0',
-              backdropFilter: 'blur(14px)',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
             }}
           />
 

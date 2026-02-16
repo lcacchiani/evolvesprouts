@@ -196,8 +196,11 @@ export function MyBestAuntieDescription({
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowStyle}
-            className='px-4 py-2.5 sm:px-5'
-            style={{ borderColor: '#EECAB0', backgroundColor: '#FFFDF9' }}
+            className='px-4 py-2.5'
+            style={{
+              borderColor: '#EECAB0',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            }}
           />
           <h2
             className='mt-6 text-[clamp(2rem,5.6vw,3.2rem)]'

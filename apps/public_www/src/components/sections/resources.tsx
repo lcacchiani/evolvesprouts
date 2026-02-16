@@ -23,7 +23,6 @@ const BODY_COLOR = BODY_TEXT_COLOR;
 const PANEL_BG = 'var(--figma-colors-frame-2147235252, #F8F8F8)';
 const MEDIA_BG = 'var(--figma-colors-rectangle-240648654, #D9D9D9)';
 const RESOURCE_IMAGE_SRC = '/images/family.webp';
-const BORDER_COLOR = '#EECAB0';
 const GREEN_ACCENT = '#5D9D49';
 
 const eyebrowStyle: CSSProperties = {
@@ -258,8 +257,11 @@ export function Resources({ content }: ResourcesProps) {
           <SectionEyebrowChip
             label={eyebrowLabel}
             labelStyle={eyebrowStyle}
-            className='px-4 py-[11px] sm:px-5'
-            style={{ borderColor: BORDER_COLOR }}
+            className='px-4 py-2.5'
+            style={{
+              borderColor: '#EECAB0',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            }}
           />
 
           <h2 className='mt-6 text-balance' style={sectionTitleStyle}>

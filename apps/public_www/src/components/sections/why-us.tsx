@@ -73,8 +73,11 @@ export function WhyUs({ content }: WhyUsProps) {
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowStyle}
-            className='px-4 py-[11px] sm:px-5'
-            style={{ borderColor: '#EECAB0', backgroundColor: '#FFFDF9' }}
+            className='px-4 py-2.5'
+            style={{
+              borderColor: '#EECAB0',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            }}
           />
           <h2 className='mt-6' style={titleStyle}>
             {content.title}
