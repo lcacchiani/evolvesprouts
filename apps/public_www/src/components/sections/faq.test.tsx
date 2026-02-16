@@ -84,4 +84,38 @@ describe('Faq section', () => {
     expect(contactCta).toHaveAttribute('href', '/contact-us');
     expect(contactCta.className).toContain('es-cta-primary');
   });
+
+  it('uses navbar pill colors for category buttons and a grey search input', () => {
+    render(<Faq content={enContent.faq} />);
+
+    const firstLabel = enContent.faq.labels[0];
+    const secondLabel = enContent.faq.labels[1];
+    if (!firstLabel || !secondLabel) {
+      throw new Error('Expected at least two FAQ labels in content fixture');
+    }
+
+    const activeLabelButton = screen.getByRole('button', {
+      name: firstLabel.label,
+    });
+    const inactiveLabelButton = screen.getByRole('button', {
+      name: secondLabel.label,
+    });
+
+    expect(activeLabelButton.className).toContain('es-nav-pill');
+    expect(inactiveLabelButton.className).toContain('es-nav-pill');
+    expect(activeLabelButton).toHaveStyle({
+      backgroundColor: 'rgb(242, 169, 117)',
+    });
+    expect(inactiveLabelButton).toHaveStyle({
+      backgroundColor: 'rgb(246, 222, 205)',
+    });
+    expect(activeLabelButton.getAttribute('style')).toContain(
+      'var(--figma-colors-join-our-sprouts-squad-community, #333333)',
+    );
+
+    const searchInput = screen.getByRole('textbox', {
+      name: enContent.faq.searchPlaceholder,
+    });
+    expect(searchInput.className).toContain('bg-[#F2F2F2]');
+  });
 });

@@ -28,9 +28,9 @@ const SECTION_BACKGROUND_FILTER =
 const SECTION_BACKGROUND_MASK_IMAGE =
   'linear-gradient(to bottom, black 18%, transparent 20%)';
 const ACTIVE_TAB_BACKGROUND = '#F2A975';
-const ACTIVE_TAB_TEXT = '#333333';
-const INACTIVE_TAB_BACKGROUND = '#F7F2E1';
-const INACTIVE_TAB_TEXT = '#5A5A5A';
+const ACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
+const INACTIVE_TAB_BACKGROUND = '#F6DECD';
+const INACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
 const CONTACT_CARD_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
 const CONTACT_CARD_CTA_HREF = '/contact-us';
@@ -277,7 +277,7 @@ export function Faq({ content }: FaqProps) {
                 setSearchValue(event.target.value);
               }}
               placeholder={content.searchPlaceholder}
-              className='es-focus-ring w-full bg-transparent pl-8 text-[18px] font-semibold tracking-[0.5px] text-[#6A6A6A] outline-none placeholder:text-[#8A8A8A] sm:pl-9 sm:text-[22px]'
+              className='es-focus-ring w-full rounded-full bg-[#F2F2F2] py-3 pl-8 pr-4 text-[18px] font-semibold tracking-[0.5px] text-[#6A6A6A] outline-none placeholder:text-[#8A8A8A] sm:pl-9 sm:text-[22px]'
             />
           </div>
         </div>
@@ -294,7 +294,7 @@ export function Faq({ content }: FaqProps) {
                   onClick={() => {
                     setActiveLabelId(entry.id);
                   }}
-                  className='es-focus-ring rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
+                  className='es-focus-ring es-nav-pill rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
                   style={{
                     backgroundColor: isActive
                       ? ACTIVE_TAB_BACKGROUND
