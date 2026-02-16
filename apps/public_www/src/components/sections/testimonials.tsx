@@ -341,7 +341,7 @@ export function Testimonials({ content }: TestimonialsProps) {
 
         <div
           data-testid='testimonials-card'
-          className='relative mt-10 overflow-hidden bg-white shadow-[0_28px_70px_rgba(18,18,17,0.08)] lg:mt-14'
+          className='relative mt-10 overflow-hidden bg-white lg:mt-14'
         >
           <div
             className='overflow-hidden'
