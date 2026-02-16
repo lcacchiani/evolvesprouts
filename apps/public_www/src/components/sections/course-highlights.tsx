@@ -32,12 +32,12 @@ interface BenefitCardMeta {
 
 const SECTION_BG = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_POSITION = 'center -150px';
-const SECTION_BACKGROUND_SIZE = '900px auto';
+const SECTION_BACKGROUND_POSITION = 'center -900px';
+const SECTION_BACKGROUND_SIZE = '2000px auto';
 const SECTION_BACKGROUND_FILTER =
   'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
 const SECTION_BACKGROUND_MASK_IMAGE =
-  'linear-gradient(to bottom, black 18%, transparent 20%)';
+  'linear-gradient(to bottom, black 5%, transparent 15%)';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const GOLD_CARD = '#9E6D12';
