@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Kid icon">
+  <circle cx="48" cy="48" r="46" fill="#E8F7E8" stroke="#9FD09F" stroke-width="4"/>
+  <circle cx="48" cy="45" r="21" fill="#FFE8D1"/>
+  <circle cx="40" cy="42" r="2.8" fill="#3F3A37"/>
+  <circle cx="56" cy="42" r="2.8" fill="#3F3A37"/>
+  <path d="M39 53C43 57 53 57 57 53" stroke="#3F3A37" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M31 34C39 25 57 25 65 34" stroke="#3A2A1E" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>

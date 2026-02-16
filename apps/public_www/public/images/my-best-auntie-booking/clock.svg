@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Clock icon">
+  <circle cx="12" cy="12" r="10" fill="#FFFFFF" stroke="#5B617F" stroke-width="1.8"/>
+  <path d="M12 6.5V12L15.8 14.2" stroke="#5B617F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

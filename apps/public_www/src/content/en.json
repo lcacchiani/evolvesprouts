@@ -51,19 +51,19 @@
           "locale": "en",
           "label": "English",
           "shortLabel": "Eng",
-          "flagSrc": "/images/flags/gb.png"
+          "flagSrc": "/images/flags/gb.svg"
         },
         {
           "locale": "zh-CN",
           "label": "Chinese (Simplified)",
           "shortLabel": "SC",
-          "flagSrc": "/images/flags/cn.png"
+          "flagSrc": "/images/flags/cn.svg"
         },
         {
           "locale": "zh-HK",
           "label": "Chinese (Traditional)",
           "shortLabel": "TC",
-          "flagSrc": "/images/flags/hk.png"
+          "flagSrc": "/images/flags/hk.svg"
         }
       ]
     }
@@ -120,17 +120,17 @@
       {
         "id": "0-1",
         "label": "0-1",
-        "iconSrc": "/images/baby.png"
+        "iconSrc": "/images/baby.svg"
       },
       {
         "id": "1-3",
         "label": "1-3",
-        "iconSrc": "/images/toddler.png"
+        "iconSrc": "/images/toddler.svg"
       },
       {
         "id": "3-6",
         "label": "3-6",
-        "iconSrc": "/images/kid.png"
+        "iconSrc": "/images/kid.svg"
       }
     ],
     "dateSelectorLabel": "Select from Available Date",
