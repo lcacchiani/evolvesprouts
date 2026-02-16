@@ -327,6 +327,19 @@
     "mediaTitleLine2": "to Young Children",
     "ctaLabel": "Get 4 Ways to Teach Patience",
     "ctaHref": "#resources",
+    "sectionConfig": {
+      "_comment": "Template config for free resources section layout.",
+      "_valueCombinations": [
+        "headerAlignment: left | center",
+        "layoutVariant: split | overlay",
+        "split + imagePosition: left | right (text card stays opposite side)",
+        "overlay + cardPosition: left | right (image stays full width behind card)"
+      ],
+      "headerAlignment": "center",
+      "layoutVariant": "split",
+      "imagePosition": "right",
+      "cardPosition": "left"
+    },
     "items": [
       "The “First…Then” Trick: Links waiting to a clear, concrete action.",
       "Make Time Visible: Use a visual timer for results.",
