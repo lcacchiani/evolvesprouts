@@ -1,14 +1,25 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Events } from '@/components/sections/events';
 import enContent from '@/content/en.json';
+import {
+  createCrmApiClient,
+  type CrmApiClient,
+} from '@/lib/crm-api-client';
 
 vi.mock('@/lib/crm-api-client', () => ({
-  createCrmApiClient: vi.fn(() => null),
+  createCrmApiClient: vi.fn(),
 }));
 
 describe('Events section', () => {
+  const mockedCreateCrmApiClient = vi.mocked(createCrmApiClient);
+
+  beforeEach(() => {
+    mockedCreateCrmApiClient.mockReset();
+    mockedCreateCrmApiClient.mockReturnValue(null);
+  });
+
   it('does not render the eyebrow label', () => {
     render(<Events content={enContent.events} />);
 
@@ -19,5 +30,25 @@ describe('Events section', () => {
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText(enContent.events.eyebrow)).not.toBeInTheDocument();
+  });
+
+  it('renders an orange spinning gear while events load', () => {
+    const pendingRequest = vi.fn(() => new Promise<unknown>(() => {}));
+    const mockApiClient: CrmApiClient = {
+      request: pendingRequest,
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    render(<Events content={enContent.events} />);
+
+    const loadingStatus = screen.getByRole('status', {
+      name: enContent.events.loadingLabel,
+    });
+    const loadingGear = screen.getByTestId('events-loading-gear');
+
+    expect(loadingStatus).toBeInTheDocument();
+    expect(loadingGear).toHaveClass('animate-spin');
+    expect(loadingGear).toHaveStyle({ color: '#F2A975' });
+    expect(screen.getByText(enContent.events.loadingLabel)).toBeInTheDocument();
   });
 });

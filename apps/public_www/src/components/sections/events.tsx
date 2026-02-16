@@ -21,6 +21,8 @@ interface EventsProps {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
+const LOADING_GEAR_COLOR = '#F2A975';
+const LOADING_GEAR_BACKGROUND = '#FFF0E5';
 
 const titleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -156,6 +158,54 @@ function LocationIcon() {
   );
 }
 
+interface LoadingGearIconProps {
+  className?: string;
+}
+
+function LoadingGearIcon({ className }: LoadingGearIconProps) {
+  return (
+    <svg
+      data-testid='events-loading-gear'
+      aria-hidden='true'
+      viewBox='0 0 24 24'
+      className={className}
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+      style={{ color: LOADING_GEAR_COLOR }}
+    >
+      <circle cx='12' cy='12' r='3.25' stroke='currentColor' strokeWidth='1.8' />
+      <path d='M12 2.75V5.25' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' />
+      <path d='M12 18.75V21.25' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' />
+      <path d='M2.75 12H5.25' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' />
+      <path d='M18.75 12H21.25' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' />
+      <path
+        d='M5.46 5.46L7.23 7.23'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinecap='round'
+      />
+      <path
+        d='M16.77 16.77L18.54 18.54'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinecap='round'
+      />
+      <path
+        d='M5.46 18.54L7.23 16.77'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinecap='round'
+      />
+      <path
+        d='M16.77 7.23L18.54 5.46'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinecap='round'
+      />
+    </svg>
+  );
+}
+
 export function Events({ content }: EventsProps) {
   const sortOptions = useMemo(() => resolveSortOptions(content), [content]);
   const defaultSortOptionValue = sortOptions[0]?.value ?? 'latest';
@@ -275,9 +325,17 @@ export function Events({ content }: EventsProps) {
 
         <div className='mt-8 sm:mt-10'>
           {isLoading ? (
-            <p className='text-center' style={cardBodyStyle}>
-              {content.loadingLabel}
-            </p>
+            <div className='flex flex-col items-center gap-3 py-6 text-center sm:py-8'>
+              <span
+                role='status'
+                aria-label={content.loadingLabel}
+                className='inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#EECAB0]'
+                style={{ backgroundColor: LOADING_GEAR_BACKGROUND }}
+              >
+                <LoadingGearIcon className='h-7 w-7 animate-spin' />
+              </span>
+              <p style={cardBodyStyle}>{content.loadingLabel}</p>
+            </div>
           ) : visibleEvents.length === 0 ? (
             <div className='rounded-[17px] border border-[#E7D5C9] bg-[#F4F6F8] px-5 py-7 text-center sm:px-8 sm:py-10'>
               <p style={cardBodyStyle}>{content.emptyStateLabel}</p>
