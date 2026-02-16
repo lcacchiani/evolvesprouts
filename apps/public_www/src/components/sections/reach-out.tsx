@@ -66,11 +66,6 @@ export function ReachOut({ content }: ReachOutProps) {
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowStyle}
-            className='px-4 py-2.5'
-            style={{
-              borderColor: '#EECAB0',
-              backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            }}
           />
           <h2 className='es-section-heading mt-6 text-balance'>{content.title}</h2>
         </div>

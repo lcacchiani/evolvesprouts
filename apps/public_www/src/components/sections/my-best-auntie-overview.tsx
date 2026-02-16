@@ -350,11 +350,6 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowTextStyle}
-            className='px-4 py-2.5'
-            style={{
-              borderColor: '#EECAB0',
-              backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            }}
           />
 
           <h2 className='mt-6 text-balance' style={titleStyle}>

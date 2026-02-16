@@ -34,7 +34,6 @@ const TEXT_PRIMARY = HEADING_TEXT_COLOR;
 const TEXT_SECONDARY = BODY_TEXT_COLOR;
 const CONTROL_BG = '#FFFFFF';
 const CONTROL_ICON = '#3D3E3D';
-const BADGE_BORDER = '#EECAB0';
 const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
@@ -321,11 +320,6 @@ export function Testimonials({ content }: TestimonialsProps) {
           <SectionEyebrowChip
             label={badgeLabel}
             labelStyle={badgeTextStyle}
-            className='px-4 py-2.5'
-            style={{
-              borderColor: BADGE_BORDER,
-              backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            }}
           />
 
           <h2 className='mt-6 text-balance' style={headingStyle}>

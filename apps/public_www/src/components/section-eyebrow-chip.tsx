@@ -8,7 +8,8 @@ interface SectionEyebrowChipProps {
   style?: CSSProperties;
 }
 
-const BASE_CHIP_CLASSNAME = 'inline-flex items-center gap-2 rounded-full border';
+const BASE_CHIP_CLASSNAME =
+  'es-section-eyebrow-chip inline-flex items-center gap-2 rounded-full border';
 const CHIP_LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const CHIP_LOGO_SIZE = 31;
 
