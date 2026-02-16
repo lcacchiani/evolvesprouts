@@ -205,7 +205,7 @@ export default async function HomePage({ params }) {
 
 ### Figma Token Studio Sync (`figma-token-studio-sync.yml`)
 
-Runs: weekly (Monday 06:00 UTC), on push to relevant paths, or manually.
+Runs: on push to relevant paths, or manually.
 
 Pipeline: `pull → tokenize → build → scaffold → commit`
 

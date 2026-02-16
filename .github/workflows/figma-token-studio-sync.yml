@@ -6,7 +6,6 @@ name: Figma Token Studio Sync
 #
 # Triggers:
 #   - Manual (workflow_dispatch)
-#   - Scheduled (weekly, Monday 06:00 UTC)
 #   - Push to main when token-studio source files change
 #
 # Required secrets:
@@ -30,8 +29,6 @@ on:
         options:
           - 'true'
           - 'false'
-  schedule:
-    - cron: '0 6 * * 1'  # Monday 06:00 UTC
   push:
     branches:
       - main
