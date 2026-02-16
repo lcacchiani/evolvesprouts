@@ -33,7 +33,9 @@ describe('Faq section', () => {
       section,
     ).not.toBeNull();
     expect(section?.className).toContain('es-section-bg-overlay');
-    expect(section?.style.backgroundColor).toBe('rgb(255, 255, 255)');
+    expect(section?.style.backgroundColor).toBe(
+      'var(--es-color-surface-white, #FFFFFF)',
+    );
     expect(section?.style.getPropertyValue('--es-section-bg-image')).toContain(
       '/images/evolvesprouts-logo.svg',
     );
@@ -67,7 +69,7 @@ describe('Faq section', () => {
       name: fallbackQuestion.question,
     });
     expect(questionHeading.getAttribute('style')).toContain(
-      'color: var(--figma-colors-desktop, #FFFFFF)',
+      'color: var(--es-color-surface-white, #FFFFFF)',
     );
 
     const card = questionHeading.closest('article');
@@ -79,7 +81,7 @@ describe('Faq section', () => {
 
     const answer = screen.getByText(fallbackQuestion.answer);
     expect(answer.getAttribute('style')).toContain(
-      'color: var(--figma-colors-desktop, #FFFFFF)',
+      'color: var(--es-color-surface-white, #FFFFFF)',
     );
 
     const contactCta = within(card as HTMLElement).getByRole('link', {
@@ -107,12 +109,12 @@ describe('Faq section', () => {
 
     expect(activeLabelButton.className).toContain('es-nav-pill');
     expect(inactiveLabelButton.className).toContain('es-nav-pill');
-    expect(activeLabelButton).toHaveStyle({
-      backgroundColor: 'rgb(242, 169, 117)',
-    });
-    expect(inactiveLabelButton).toHaveStyle({
-      backgroundColor: 'rgb(246, 222, 205)',
-    });
+    expect(activeLabelButton.getAttribute('style')).toContain(
+      'var(--es-color-brand-orange-soft, #F2A975)',
+    );
+    expect(inactiveLabelButton.getAttribute('style')).toContain(
+      'var(--figma-colors-frame-2147235267, #F6DECD)',
+    );
     expect(activeLabelButton.getAttribute('style')).toContain(
       'var(--figma-colors-join-our-sprouts-squad-community, #333333)',
     );
