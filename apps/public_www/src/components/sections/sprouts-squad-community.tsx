@@ -63,9 +63,9 @@ export function SproutsSquadCommunity({
         <Image
           src='/images/evolvesprouts-logo.svg'
           alt=''
-          width={241}
-          height={247}
-          className='h-auto w-[82px] sm:w-[96px] lg:w-[118px]'
+          width={250}
+          height={250}
+          className='h-auto w-[250px]'
           style={{
             filter: FOREGROUND_LOGO_FILTER,
             maskImage: FOREGROUND_LOGO_MASK_IMAGE,

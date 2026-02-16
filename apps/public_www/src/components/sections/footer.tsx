@@ -235,7 +235,7 @@ export function Footer({ content }: FooterProps) {
               className='h-auto w-[700px] max-w-full'
             />
           </div>
-          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_360px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
+          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_600px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
             <FooterDesktopColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
@@ -248,9 +248,9 @@ export function Footer({ content }: FooterProps) {
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
-                width={360}
-                height={360}
-                className='h-auto w-[264px] lg:w-[360px]'
+                width={600}
+                height={600}
+                className='h-auto w-[264px] lg:w-[600px]'
               />
             </div>
             <FooterDesktopColumn
