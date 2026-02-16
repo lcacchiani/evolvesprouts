@@ -19,6 +19,14 @@ const SECTION_BACKGROUND_FILTER =
 const SECTION_BACKGROUND_MASK_IMAGE =
   'linear-gradient(to bottom, black 18%, transparent 20%)';
 const JOURNEY_IMAGE_SRC = '/images/contact-us/my-journey.webp';
+const RIGHT_COLUMN_BLUE_CARD_BACKGROUND =
+  'linear-gradient(180deg, #E3F0FF 0%, #FFFFFF 100%)';
+const RIGHT_COLUMN_YELLOW_CARD_BACKGROUND =
+  'linear-gradient(180deg, #FFF3E0 0%, #FFFFFF 100%)';
+const RIGHT_COLUMN_CARD_BACKGROUNDS = [
+  RIGHT_COLUMN_BLUE_CARD_BACKGROUND,
+  RIGHT_COLUMN_YELLOW_CARD_BACKGROUND,
+] as const;
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -97,9 +105,17 @@ export function MyJourney({ content }: MyJourneyProps) {
           </div>
 
           <ul className='space-y-4'>
-            {content.cards.map((card) => (
+            {content.cards.map((card, index) => (
               <li key={card.tag}>
-                <article className='rounded-[20px] border border-[#ECD5C3] bg-[#FFF9F5] p-5 sm:p-6'>
+                <article
+                  className='rounded-[20px] border border-[#ECD5C3] p-5 sm:p-6'
+                  style={{
+                    background:
+                      RIGHT_COLUMN_CARD_BACKGROUNDS[
+                        index % RIGHT_COLUMN_CARD_BACKGROUNDS.length
+                      ],
+                  }}
+                >
                   <span style={tagStyle}>{card.tag}</span>
                   <p className='mt-3' style={bodyStyle}>
                     {card.description}
