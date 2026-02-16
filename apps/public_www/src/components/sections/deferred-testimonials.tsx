@@ -11,7 +11,7 @@ interface DeferredTestimonialsProps {
 }
 
 const PRELOAD_ROOT_MARGIN = '500px 0px';
-const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
+const SECTION_BG = '#FFFFFF';
 const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
 const SECTION_BACKGROUND_POSITION = 'center -150px';
 const SECTION_BACKGROUND_SIZE = '900px auto';
@@ -99,7 +99,7 @@ export function DeferredTestimonials({ content }: DeferredTestimonialsProps) {
                 {content.title}
               </h2>
             </div>
-            <div className='mt-10 h-[420px] rounded-[30px] border border-[#EFD7C7] bg-white lg:mt-14 lg:h-[540px]' />
+            <div className='mt-10 h-[420px] bg-white lg:mt-14 lg:h-[540px]' />
           </div>
         </SectionShell>
       )}
