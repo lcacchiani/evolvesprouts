@@ -300,7 +300,7 @@ export function MyBestAuntieBooking({
                         onClick={() => {
                           setSelectedAgeId(option.id);
                         }}
-                        className='es-focus-ring min-h-[76px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left'
+                        className='es-focus-ring min-h-[76px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left cursor-pointer'
                         style={
                           isSelected
                             ? activeSelectorCardStyle
