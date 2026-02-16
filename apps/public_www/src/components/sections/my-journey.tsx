@@ -18,8 +18,7 @@ const SECTION_BACKGROUND_FILTER =
   'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
 const SECTION_BACKGROUND_MASK_IMAGE =
   'linear-gradient(to bottom, black 18%, transparent 20%)';
-const JOURNEY_IMAGE_SRC =
-  'https://www2.evolvesprouts.com/wp-content/uploads/2025/10/Rectangle-240648668.png';
+const JOURNEY_IMAGE_SRC = '/images/contact-us/my-journey.webp';
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,

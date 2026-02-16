@@ -49,7 +49,7 @@ describe('MyJourney section', () => {
     });
     expect(image).toHaveAttribute(
       'src',
-      'https://www2.evolvesprouts.com/wp-content/uploads/2025/10/Rectangle-240648668.png',
+      '/images/contact-us/my-journey.webp',
     );
   });
 });
