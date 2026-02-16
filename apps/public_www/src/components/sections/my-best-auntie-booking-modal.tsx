@@ -8,6 +8,7 @@ import {
   type ReactNode,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -90,6 +91,15 @@ const PART_TIMELINE_GAP_CONNECTOR_HEIGHT_PX = 10;
 const PART_TIMELINE_ITEM_PADDING_BOTTOM_PX = 100;
 const PART_TIMELINE_LANE_WIDTH_PX =
   PART_TIMELINE_LINE_WIDTH_PX + PART_TIMELINE_CONTENT_GAP_PX;
+const REQUIRED_ASTERISK_COLOR = '#C84A16';
+const FPS_GENERATOR_SCRIPT_SOURCE =
+  'https://crm.evolvesprouts.com/static/fps-generator.js';
+const FPS_QR_CODE_SCRIPT_SOURCE =
+  'https://crm.evolvesprouts.com/static/fps-qr-code.js';
+const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
+const FPS_MERCHANT_NAME = 'Ida De Gregorio';
+const FPS_MOBILE_NUMBER = '85297942094';
+const FPS_QR_CODE_SIZE_PX = 128;
 
 const headingStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -104,6 +114,47 @@ const bodyStyle: CSSProperties = {
   fontWeight: 400,
   lineHeight: 1.5,
 };
+
+interface FpsGenerationResult {
+  data?: string;
+  isError: () => boolean;
+}
+
+interface FpsInstance {
+  merchantName: string;
+  setMobile: (value: string | number) => void;
+  setAmount: (value: string | number) => void;
+  setDynamic: () => void;
+  generate: () => FpsGenerationResult;
+}
+
+interface FpsConstructor {
+  new (): FpsInstance;
+}
+
+interface QrCodeConstructor {
+  new (
+    target: HTMLElement | string,
+    options: {
+      text: string;
+      width: number;
+      height: number;
+      colorDark: string;
+      colorLight: string;
+      correctLevel: unknown;
+    },
+  ): unknown;
+  CorrectLevel: {
+    H: unknown;
+  };
+}
+
+declare global {
+  interface Window {
+    FPS?: FpsConstructor;
+    QRCode?: QrCodeConstructor;
+  }
+}
 
 function applyDiscount(basePrice: number, rule: DiscountRule | null): number {
   if (!rule) {
@@ -125,6 +176,81 @@ function resolveLocalizedDate(locale: Locale): string {
   });
 
   return dateFormatter.format(new Date());
+}
+
+function toTransparentColor(hexColor: string): string {
+  const normalizedHex = hexColor.replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(normalizedHex)) {
+    return 'rgba(255, 255, 255, 0)';
+  }
+
+  const red = Number.parseInt(normalizedHex.slice(0, 2), 16);
+  const green = Number.parseInt(normalizedHex.slice(2, 4), 16);
+  const blue = Number.parseInt(normalizedHex.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, 0)`;
+}
+
+const externalScriptLoadMap = new Map<string, Promise<void>>();
+
+function isExternalScriptLoaded(source: string): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  if (source === FPS_GENERATOR_SCRIPT_SOURCE) {
+    return typeof window.FPS === 'function';
+  }
+
+  if (source === FPS_QR_CODE_SCRIPT_SOURCE) {
+    return typeof window.QRCode === 'function';
+  }
+
+  return false;
+}
+
+function loadExternalScript(source: string): Promise<void> {
+  if (typeof window === 'undefined' || isExternalScriptLoaded(source)) {
+    return Promise.resolve();
+  }
+
+  const cachedPromise = externalScriptLoadMap.get(source);
+  if (cachedPromise) {
+    return cachedPromise;
+  }
+
+  const existingScript = document.querySelector(
+    `script[src="${source}"]`,
+  ) as HTMLScriptElement | null;
+
+  const loadingPromise = new Promise<void>((resolve, reject) => {
+    if (isExternalScriptLoaded(source)) {
+      resolve();
+      return;
+    }
+
+    const handleLoad = () => {
+      resolve();
+    };
+    const handleError = () => {
+      reject(new Error(`Failed to load script: ${source}`));
+    };
+
+    if (existingScript) {
+      existingScript.addEventListener('load', handleLoad, { once: true });
+      existingScript.addEventListener('error', handleError, { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = source;
+    script.async = true;
+    script.addEventListener('load', handleLoad, { once: true });
+    script.addEventListener('error', handleError, { once: true });
+    document.body.appendChild(script);
+  });
+
+  externalScriptLoadMap.set(source, loadingPromise);
+  return loadingPromise;
 }
 
 function escapeHtml(value: string): string {
@@ -185,18 +311,79 @@ function CloseButton({ label, onClose }: { label: string; onClose: () => void })
   );
 }
 
-function QrPlaceholder({ label }: { label: string }) {
+function FpsQrCode({ amount, qrLabel }: { amount: number; qrLabel: string }) {
+  const qrCodeContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+    const qrCodeContainer = qrCodeContainerRef.current;
+    if (!qrCodeContainer) {
+      return;
+    }
+
+    qrCodeContainer.innerHTML = '';
+
+    void Promise.all([
+      loadExternalScript(FPS_GENERATOR_SCRIPT_SOURCE),
+      loadExternalScript(FPS_QR_CODE_SCRIPT_SOURCE),
+    ])
+      .then(() => {
+        if (isCancelled) {
+          return;
+        }
+
+        const Fps = window.FPS;
+        const QrCode = window.QRCode;
+        if (!Fps || !QrCode || !qrCodeContainer) {
+          return;
+        }
+
+        const fpsPayloadGenerator = new Fps();
+        fpsPayloadGenerator.merchantName = FPS_MERCHANT_NAME;
+        fpsPayloadGenerator.setMobile(FPS_MOBILE_NUMBER);
+        fpsPayloadGenerator.setAmount(String(amount));
+        fpsPayloadGenerator.setDynamic();
+
+        const payloadResult = fpsPayloadGenerator.generate();
+        if (payloadResult.isError() || !payloadResult.data) {
+          return;
+        }
+
+        qrCodeContainer.innerHTML = '';
+        new QrCode(qrCodeContainer, {
+          text: payloadResult.data,
+          width: FPS_QR_CODE_SIZE_PX,
+          height: FPS_QR_CODE_SIZE_PX,
+          colorDark: '#000',
+          colorLight: '#fff',
+          correctLevel: QrCode.CorrectLevel.H,
+        });
+      })
+      .catch(() => {
+        // The QR container remains blank when the external script cannot be loaded.
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [amount]);
+
   return (
-    <div className='mx-auto w-full max-w-[180px] rounded-[14px] border border-[#CAD6E5] bg-white p-3 text-center'>
-      <div className='mx-auto grid h-[106px] w-[106px] grid-cols-5 gap-1 rounded-[10px] bg-[#FFF7F1] p-2'>
-        {Array.from({ length: 25 }).map((_, index) => (
-          <span
-            key={index}
-            className={`rounded-[3px] ${index % 2 === 0 ? 'bg-black' : 'bg-transparent'}`}
-          />
-        ))}
+    <div className='mx-auto flex w-full max-w-[320px] items-center justify-center gap-4 rounded-[14px] border border-[#CAD6E5] bg-white p-3 text-center'>
+      <Image
+        src={FPS_LOGO_SOURCE}
+        alt='FPS'
+        width={92}
+        height={86}
+        className='h-auto w-[92px] shrink-0'
+      />
+      <div className='mx-auto w-[128px] rounded-[10px] bg-white p-1'>
+        <div
+          ref={qrCodeContainerRef}
+          aria-label={qrLabel}
+          className='mx-auto h-[128px] w-[128px] rounded-[8px] border border-[#E2E8F0] bg-white'
+        />
       </div>
-      <p className='mt-2 text-xs font-semibold text-[#5B617F]'>{label}</p>
     </div>
   );
 }
@@ -224,12 +411,13 @@ function getPartLineColor(index: number): string {
 function getPartLineStyle(index: number, isLastItem: boolean): CSSProperties {
   const rowGapHeight = isLastItem ? '' : ` + ${PART_ROW_GAP_REM}rem`;
   const overlapHeight = index === 0 ? '' : ` + ${PART_TIMELINE_SEGMENT_OVERLAP_PX}px`;
+  const lineColor = getPartLineColor(index);
 
-  return {
+  const style: CSSProperties = {
     top: `${index === 0 ? 0 : -PART_TIMELINE_SEGMENT_OVERLAP_PX}px`,
     width: `${PART_TIMELINE_LINE_WIDTH_PX}px`,
     height: `calc(100%${rowGapHeight}${overlapHeight})`,
-    backgroundColor: getPartLineColor(index),
+    backgroundColor: lineColor,
     borderTopLeftRadius: '999px',
     borderTopRightRadius: '999px',
     boxShadow:
@@ -238,6 +426,12 @@ function getPartLineStyle(index: number, isLastItem: boolean): CSSProperties {
         : `0 -${PART_TIMELINE_SEGMENT_WHITE_GAP_PX}px 0 0 #FFFFFF`,
     zIndex: index + 1,
   };
+
+  if (isLastItem) {
+    style.background = `linear-gradient(to bottom, ${lineColor} 0%, ${lineColor} 68%, ${toTransparentColor(lineColor)} 100%)`;
+  }
+
+  return style;
 }
 
 function getPartGapConnectorStyle(index: number): CSSProperties {
@@ -318,6 +512,9 @@ export function MyBestAuntieBookingModal({
   const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
+  const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
+    useState(false);
+  const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
 
   useModalLockBody({ onEscape: onClose });
 
@@ -358,9 +555,19 @@ export function MyBestAuntieBookingModal({
     content.packageOptions.find((option) => option.id === selectedPackageId) ??
     content.packageOptions[0];
 
+  const originalAmount = selectedPackage?.price ?? 0;
   const totalAmount = useMemo(() => {
-    return applyDiscount(selectedPackage?.price ?? 0, discountRule);
-  }, [discountRule, selectedPackage?.price]);
+    return applyDiscount(originalAmount, discountRule);
+  }, [discountRule, originalAmount]);
+  const discountAmount = Math.max(0, originalAmount - totalAmount);
+  const hasDiscount = discountAmount > 0;
+  const hasConfirmedPriceDifference = totalAmount !== originalAmount;
+  const isSubmitDisabled =
+    !fullName.trim() ||
+    !email.trim() ||
+    !phone.trim() ||
+    !hasPendingReservationAcknowledgement ||
+    !hasTermsAgreement;
 
   const activePartRows = useMemo<CoursePartRow[]>(() => {
     const activeMonthId = selectedMonth?.id ?? '';
@@ -410,7 +617,7 @@ export function MyBestAuntieBookingModal({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedPackage || !selectedMonth) {
+    if (!selectedPackage || !selectedMonth || isSubmitDisabled) {
       return;
     }
 
@@ -549,7 +756,7 @@ export function MyBestAuntieBookingModal({
                         {content.totalAmountLabel}
                       </p>
                       <p className='mt-2 text-[30px] font-bold leading-none text-[#333333]'>
-                        {formatCurrencyHkd(totalAmount)}
+                        {formatCurrencyHkd(originalAmount)}
                       </p>
                       <p className='mt-4 text-[18px] font-semibold leading-[26px] text-[#333333]'>
                         {content.refundHint}
@@ -624,6 +831,13 @@ export function MyBestAuntieBookingModal({
                   <label className='block'>
                     <span className='mb-1 block text-sm font-semibold text-[#333333]'>
                       {content.fullNameLabel}
+                      <span
+                        className='ml-0.5'
+                        style={{ color: REQUIRED_ASTERISK_COLOR }}
+                        aria-hidden='true'
+                      >
+                        *
+                      </span>
                     </span>
                     <input
                       type='text'
@@ -638,6 +852,13 @@ export function MyBestAuntieBookingModal({
                   <label className='block'>
                     <span className='mb-1 block text-sm font-semibold text-[#333333]'>
                       {content.emailLabel}
+                      <span
+                        className='ml-0.5'
+                        style={{ color: REQUIRED_ASTERISK_COLOR }}
+                        aria-hidden='true'
+                      >
+                        *
+                      </span>
                     </span>
                     <input
                       type='email'
@@ -652,6 +873,13 @@ export function MyBestAuntieBookingModal({
                   <label className='block'>
                     <span className='mb-1 block text-sm font-semibold text-[#333333]'>
                       {content.phoneLabel}
+                      <span
+                        className='ml-0.5'
+                        style={{ color: REQUIRED_ASTERISK_COLOR }}
+                        aria-hidden='true'
+                      >
+                        *
+                      </span>
                     </span>
                     <input
                       type='tel'
@@ -714,8 +942,33 @@ export function MyBestAuntieBookingModal({
                     </p>
                   )}
 
+                  <div
+                    data-booking-price-breakdown='true'
+                    className='space-y-2 rounded-[12px] border border-[#D9E2EE] bg-white p-4'
+                  >
+                    <div className='flex items-center justify-between text-sm font-semibold text-[#4A4A4A]'>
+                      <span>Original Price</span>
+                      <span>{formatCurrencyHkd(originalAmount)}</span>
+                    </div>
+                    {hasDiscount && (
+                      <div className='flex items-center justify-between text-sm font-semibold text-[#276738]'>
+                        <span>Discount</span>
+                        <span>-{formatCurrencyHkd(discountAmount)}</span>
+                      </div>
+                    )}
+                    {hasConfirmedPriceDifference && (
+                      <div className='flex items-center justify-between border-t border-[#E2E8F0] pt-2 text-sm font-bold text-[#333333]'>
+                        <span>Confirmed Price</span>
+                        <span>{formatCurrencyHkd(totalAmount)}</span>
+                      </div>
+                    )}
+                  </div>
+
                   <div data-booking-fps-block='true' className='p-4'>
-                    <QrPlaceholder label={content.qrLabel} />
+                    <FpsQrCode amount={totalAmount} qrLabel={content.qrLabel} />
+                    <p className='mt-3 text-center text-xs font-semibold uppercase tracking-[0.08em] text-[#5B617F]'>
+                      {content.qrLabel}
+                    </p>
                     <p className='mt-3 text-center text-[20px] font-semibold leading-none text-[#333333]'>
                       {formatCurrencyHkd(totalAmount)}
                     </p>
@@ -726,10 +979,21 @@ export function MyBestAuntieBookingModal({
                       <input
                         type='checkbox'
                         required
+                        checked={hasPendingReservationAcknowledgement}
+                        onChange={(event) => {
+                          setHasPendingReservationAcknowledgement(event.target.checked);
+                        }}
                         className='es-focus-ring mt-1 h-4 w-4 shrink-0 accent-[#C84A16]'
                       />
                       <span className='text-sm leading-[1.45] text-[#333333]'>
                         {content.pendingReservationAcknowledgementLabel}
+                        <span
+                          className='ml-0.5'
+                          style={{ color: REQUIRED_ASTERISK_COLOR }}
+                          aria-hidden='true'
+                        >
+                          *
+                        </span>
                       </span>
                     </label>
 
@@ -737,6 +1001,10 @@ export function MyBestAuntieBookingModal({
                       <input
                         type='checkbox'
                         required
+                        checked={hasTermsAgreement}
+                        onChange={(event) => {
+                          setHasTermsAgreement(event.target.checked);
+                        }}
                         className='es-focus-ring mt-1 h-4 w-4 shrink-0 accent-[#C84A16]'
                       />
                       <span className='text-sm leading-[1.45] text-[#333333]'>
@@ -752,13 +1020,21 @@ export function MyBestAuntieBookingModal({
                         >
                           {content.termsLinkLabel}
                         </Link>
+                        <span
+                          className='ml-0.5'
+                          style={{ color: REQUIRED_ASTERISK_COLOR }}
+                          aria-hidden='true'
+                        >
+                          *
+                        </span>
                       </span>
                     </label>
                   </div>
 
                   <button
                     type='submit'
-                    className='es-focus-ring es-cta-button es-cta-primary mt-1 h-[56px] w-full rounded-[10px] text-base font-semibold'
+                    disabled={isSubmitDisabled}
+                    className='es-focus-ring es-cta-button es-cta-primary mt-1 h-[56px] w-full rounded-[10px] text-base font-semibold disabled:!cursor-not-allowed disabled:!border-[#D1D5DB] disabled:!bg-[#D1D5DB] disabled:!text-[#F8FAFC] disabled:!shadow-none'
                   >
                     {content.submitLabel}
                   </button>

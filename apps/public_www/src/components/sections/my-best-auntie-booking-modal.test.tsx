@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -152,9 +152,19 @@ describe('my-best-auntie booking modals footer content', () => {
 
     const topicsField = screen.getByLabelText(bookingModalContent.topicsInterestLabel);
     expect(topicsField.tagName).toBe('TEXTAREA');
+    expect(topicsField).toHaveAttribute(
+      'placeholder',
+      bookingModalContent.topicsInterestPlaceholder,
+    );
+
+    const fullNameField = screen.getByLabelText(
+      new RegExp(bookingModalContent.fullNameLabel),
+    );
+    const emailField = screen.getByLabelText(new RegExp(bookingModalContent.emailLabel));
+    const phoneField = screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel));
 
     const pendingAcknowledgement = screen.getByRole('checkbox', {
-      name: bookingModalContent.pendingReservationAcknowledgementLabel,
+      name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
     });
     const termsAcknowledgement = screen.getByRole('checkbox', {
       name: new RegExp(bookingModalContent.termsLinkLabel),
@@ -191,6 +201,19 @@ describe('my-best-auntie booking modals footer content', () => {
     const submitButton = screen.getByRole('button', {
       name: bookingModalContent.submitLabel,
     });
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.change(fullNameField, { target: { value: 'Ida De Gregorio' } });
+    fireEvent.change(emailField, { target: { value: 'ida@example.com' } });
+    fireEvent.change(phoneField, { target: { value: '85297942094' } });
+    fireEvent.click(pendingAcknowledgement);
+    expect(submitButton).toBeDisabled();
+    fireEvent.click(termsAcknowledgement);
+    expect(submitButton).toBeEnabled();
+
+    const requiredMarkers = screen.getAllByText('*');
+    expect(requiredMarkers).toHaveLength(5);
+
     const fpsBeforeAcknowledgements =
       fpsBlock?.compareDocumentPosition(acknowledgementsBlock ?? fpsBlock) ??
       Node.DOCUMENT_POSITION_DISCONNECTED;
@@ -199,6 +222,70 @@ describe('my-best-auntie booking modals footer content', () => {
       Node.DOCUMENT_POSITION_DISCONNECTED;
     expect(fpsBeforeAcknowledgements & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(acknowledgementsBeforeSubmit & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('keeps left pricing fixed and shows original/discount/confirmed pricing on the right', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedFetchDiscountRules.mockResolvedValue([
+      {
+        code: 'SAVE10',
+        type: 'percent',
+        value: 10,
+      },
+    ]);
+
+    const { container } = render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockedFetchDiscountRules).toHaveBeenCalledTimes(1);
+    });
+
+    const pricingSection = screen
+      .getByRole('heading', { name: bookingModalContent.pricingTitle })
+      .closest('div') as HTMLDivElement | null;
+    expect(pricingSection).not.toBeNull();
+    expect(within(pricingSection as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
+
+    const discountInput = screen.getByPlaceholderText(
+      bookingModalContent.discountCodePlaceholder,
+    ) as HTMLInputElement;
+    const applyButton = screen.getByRole('button', {
+      name: bookingModalContent.applyDiscountLabel,
+    });
+
+    fireEvent.change(discountInput, {
+      target: {
+        value: 'SAVE10',
+      },
+    });
+    fireEvent.click(applyButton);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(bookingModalContent.discountAppliedLabel),
+      ).toBeInTheDocument();
+    });
+
+    expect(within(pricingSection as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
+
+    const priceBreakdown = container.querySelector(
+      'div[data-booking-price-breakdown="true"]',
+    ) as HTMLDivElement | null;
+    expect(priceBreakdown).not.toBeNull();
+    expect(within(priceBreakdown as HTMLDivElement).getByText('Original Price')).toBeInTheDocument();
+    expect(within(priceBreakdown as HTMLDivElement).getByText('Discount')).toBeInTheDocument();
+    expect(within(priceBreakdown as HTMLDivElement).getByText('Confirmed Price')).toBeInTheDocument();
+    expect(within(priceBreakdown as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
+    expect(within(priceBreakdown as HTMLDivElement).getByText('-HK$900')).toBeInTheDocument();
+    expect(within(priceBreakdown as HTMLDivElement).getByText('HK$8,100')).toBeInTheDocument();
   });
 
   it('uses cubes.svg mask icon for all course part chips', () => {
