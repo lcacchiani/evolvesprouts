@@ -16,7 +16,7 @@ interface MyHistoryProps {
 
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_DEEP,
-  backgroundColor: '#F8F8F8',
+  backgroundColor: 'var(--es-color-surface-muted, #F8F8F8)',
 });
 
 const eyebrowStyle: CSSProperties = {

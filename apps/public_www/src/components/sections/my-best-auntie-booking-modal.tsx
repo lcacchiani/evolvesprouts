@@ -31,7 +31,6 @@ import {
 } from '@/lib/crm-api-client';
 import {
   bodyTextStyle,
-  BRAND_ORANGE,
   headingTextStyle,
 } from '@/lib/design-tokens';
 import {
@@ -75,19 +74,20 @@ const PART_CHIP_ICON_MASK_PATH = '/images/cubes.svg';
 const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
 const CREDIT_CARD_ICON_MASK_PATH = '/images/credit-card.svg';
 const TARGET_ICON_MASK_PATH = '/images/target.svg';
-const BOOKING_HIGHLIGHT_ICON_COLOR = '#B31D1F';
+const BOOKING_HIGHLIGHT_ICON_COLOR =
+  'var(--es-color-booking-highlight-icon, #B31D1F)';
 const PART_CHIP_TONES = [
   {
-    backgroundColor: '#99BDE2',
-    color: '#073B6E',
+    backgroundColor: 'var(--es-color-part-chip-blue-bg, #99BDE2)',
+    color: 'var(--es-color-part-chip-blue-text, #073B6E)',
   },
   {
-    backgroundColor: '#CDF0C9',
-    color: '#2C6C25',
+    backgroundColor: 'var(--es-color-part-chip-green-bg, #CDF0C9)',
+    color: 'var(--es-color-part-chip-green-text, #2C6C25)',
   },
   {
-    backgroundColor: '#FFE483',
-    color: '#6B5400',
+    backgroundColor: 'var(--es-color-part-chip-yellow-bg, #FFE483)',
+    color: 'var(--es-color-part-chip-yellow-text, #6B5400)',
   },
 ] as const;
 const PART_ROW_GAP_REM = 2.5;
@@ -99,7 +99,8 @@ const PART_TIMELINE_GAP_CONNECTOR_HEIGHT_PX = 10;
 const PART_TIMELINE_ITEM_PADDING_BOTTOM_PX = 100;
 const PART_TIMELINE_LANE_WIDTH_PX =
   PART_TIMELINE_LINE_WIDTH_PX + PART_TIMELINE_CONTENT_GAP_PX;
-const REQUIRED_ASTERISK_COLOR = BRAND_ORANGE;
+const TIMELINE_GAP_WHITE =
+  'var(--es-color-surface-white, #FFFFFF)';
 
 const headingStyle: CSSProperties = headingTextStyle({
   lineHeight: 1.2,
@@ -136,7 +137,7 @@ function getPartLineStyle(index: number, isLastItem: boolean): CSSProperties {
     boxShadow:
       index === 0
         ? 'none'
-        : `0 -${PART_TIMELINE_SEGMENT_WHITE_GAP_PX}px 0 0 #FFFFFF`,
+        : `0 -${PART_TIMELINE_SEGMENT_WHITE_GAP_PX}px 0 0 ${TIMELINE_GAP_WHITE}`,
     zIndex: index + 1,
   };
 
@@ -162,7 +163,7 @@ const partChipIconMaskStyle = createMaskIconStyle(
 );
 const darkCalendarIconMaskStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  '#333333',
+  'var(--es-color-text-heading, #333333)',
 );
 const redCreditCardIconMaskStyle = createMaskIconStyle(
   CREDIT_CARD_ICON_MASK_PATH,
@@ -345,7 +346,7 @@ export function MyBestAuntieBookingModal({
 
           <div className='relative z-10 flex flex-col gap-8 pb-9 lg:flex-row lg:gap-10 lg:pb-[72px]'>
             <div className='w-full lg:w-[calc(50%-20px)]'>
-              <p className='text-[20px] leading-7 text-[#333333]'>
+              <p className='text-[20px] leading-7 es-text-heading'>
                 {content.thankYouLead}
               </p>
               <h2
@@ -409,11 +410,11 @@ export function MyBestAuntieBookingModal({
                               style={darkCalendarIconMaskStyle}
                               aria-hidden='true'
                             />
-                            <p className='mt-1 text-[17px] font-semibold leading-6 text-[#333333]'>
+                            <p className='mt-1 text-[17px] font-semibold leading-6 es-text-heading'>
                               {part.date}
                             </p>
                           </div>
-                          <p className='mt-2 text-[15px] leading-[22px] text-[#4A4A4A]'>
+                          <p className='mt-2 text-[15px] leading-[22px] es-text-body'>
                             {part.description}
                           </p>
                         </div>
@@ -425,11 +426,11 @@ export function MyBestAuntieBookingModal({
 
               <section className='mt-9'>
                 <div className='border-b border-black/15 pb-8'>
-                  <h3 className='text-[28px] font-bold leading-none text-[#333333]'>
+                  <h3 className='text-[28px] font-bold leading-none es-text-heading'>
                     {content.pricingTitle}
                   </h3>
                   <div className='mt-4 flex items-start gap-4'>
-                    <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#F3E3D8]'>
+                    <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
                       <span
                         className='h-[46px] w-[46px] shrink-0'
                         style={redCreditCardIconMaskStyle}
@@ -437,13 +438,13 @@ export function MyBestAuntieBookingModal({
                       />
                     </span>
                     <div>
-                      <p className='text-[20px] font-semibold leading-6 text-[#333333]'>
+                      <p className='text-[20px] font-semibold leading-6 es-text-heading'>
                         {content.totalAmountLabel}
                       </p>
-                      <p className='mt-2 text-[30px] font-bold leading-none text-[#333333]'>
+                      <p className='mt-2 text-[30px] font-bold leading-none es-text-heading'>
                         {formatCurrencyHkd(originalAmount)}
                       </p>
-                      <p className='mt-4 text-[18px] font-semibold leading-[26px] text-[#333333]'>
+                      <p className='mt-4 text-[18px] font-semibold leading-[26px] es-text-heading'>
                         {content.refundHint}
                       </p>
                     </div>
@@ -451,11 +452,11 @@ export function MyBestAuntieBookingModal({
                 </div>
 
                 <div className='border-b border-black/15 pb-8 pt-8'>
-                  <h3 className='text-[28px] font-bold leading-none text-[#333333]'>
+                  <h3 className='text-[28px] font-bold leading-none es-text-heading'>
                     {content.locationTitle}
                   </h3>
                   <div className='mt-4 flex items-start gap-4'>
-                    <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#F3E3D8]'>
+                    <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
                       <span
                         className='h-[46px] w-[46px] shrink-0'
                         style={redTargetIconMaskStyle}
@@ -463,17 +464,17 @@ export function MyBestAuntieBookingModal({
                       />
                     </span>
                     <div>
-                      <p className='text-[20px] font-semibold leading-6 text-[#333333]'>
+                      <p className='text-[20px] font-semibold leading-6 es-text-heading'>
                         {content.locationName}
                       </p>
-                      <p className='mt-1 text-[18px] font-semibold leading-[26px] text-[#333333]'>
+                      <p className='mt-1 text-[18px] font-semibold leading-[26px] es-text-heading'>
                         {content.locationAddress}
                       </p>
                       <a
                         href={content.directionHref}
                         target='_blank'
                         rel='noopener noreferrer'
-                        className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none text-[#333333]'
+                        className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none es-text-heading'
                       >
                         <span className='underline underline-offset-4'>
                           {content.directionLabel}
@@ -488,7 +489,7 @@ export function MyBestAuntieBookingModal({
                   <div className='mt-8'>
                     <Link
                       href={learnMoreHref}
-                      className='es-focus-ring inline-flex h-[56px] items-center justify-center rounded-[10px] border border-[#C84A16] px-7 text-base font-semibold text-[#C84A16]'
+                      className='es-focus-ring es-modal-outline-brand-button inline-flex h-[56px] items-center justify-center rounded-[10px] border px-7 text-base font-semibold'
                     >
                       {learnMoreLabel}
                     </Link>
@@ -498,7 +499,7 @@ export function MyBestAuntieBookingModal({
             </div>
 
             <div className='w-full lg:w-[calc(50%-20px)]'>
-              <section className='relative overflow-hidden rounded-[14px] border border-[#D0E4F4] bg-[#F8F8F8] px-5 py-7 sm:px-7'>
+              <section className='relative overflow-hidden rounded-[14px] border es-border-panel es-bg-surface-muted px-5 py-7 sm:px-7'>
                 <Image
                   src='/images/evolvesprouts-logo.svg'
                   alt=''
@@ -508,19 +509,15 @@ export function MyBestAuntieBookingModal({
                   aria-hidden='true'
                 />
 
-                <h3 className='relative z-10 text-[30px] font-bold leading-none text-[#333333]'>
+                <h3 className='relative z-10 text-[30px] font-bold leading-none es-text-heading'>
                   {content.reservationTitle}
                 </h3>
 
                 <form className='relative z-10 mt-4 space-y-3' onSubmit={handleSubmit}>
                   <label className='block'>
-                    <span className='mb-1 block text-sm font-semibold text-[#333333]'>
+                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
                       {content.fullNameLabel}
-                      <span
-                        className='ml-0.5'
-                        style={{ color: REQUIRED_ASTERISK_COLOR }}
-                        aria-hidden='true'
-                      >
+                      <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
                         *
                       </span>
                     </span>
@@ -531,17 +528,13 @@ export function MyBestAuntieBookingModal({
                       onChange={(event) => {
                         setFullName(event.target.value);
                       }}
-                      className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
+                      className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
                     />
                   </label>
                   <label className='block'>
-                    <span className='mb-1 block text-sm font-semibold text-[#333333]'>
+                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
                       {content.emailLabel}
-                      <span
-                        className='ml-0.5'
-                        style={{ color: REQUIRED_ASTERISK_COLOR }}
-                        aria-hidden='true'
-                      >
+                      <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
                         *
                       </span>
                     </span>
@@ -552,17 +545,13 @@ export function MyBestAuntieBookingModal({
                       onChange={(event) => {
                         setEmail(event.target.value);
                       }}
-                      className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
+                      className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
                     />
                   </label>
                   <label className='block'>
-                    <span className='mb-1 block text-sm font-semibold text-[#333333]'>
+                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
                       {content.phoneLabel}
-                      <span
-                        className='ml-0.5'
-                        style={{ color: REQUIRED_ASTERISK_COLOR }}
-                        aria-hidden='true'
-                      >
+                      <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
                         *
                       </span>
                     </span>
@@ -573,11 +562,11 @@ export function MyBestAuntieBookingModal({
                       onChange={(event) => {
                         setPhone(event.target.value);
                       }}
-                      className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
+                      className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
                     />
                   </label>
                   <label className='block'>
-                    <span className='mb-1 block text-sm font-semibold text-[#333333]'>
+                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
                       {content.topicsInterestLabel}
                     </span>
                     <textarea
@@ -587,13 +576,13 @@ export function MyBestAuntieBookingModal({
                       }}
                       placeholder={content.topicsInterestPlaceholder}
                       rows={3}
-                      className='es-focus-ring w-full resize-y rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
+                      className='es-focus-ring es-modal-input w-full resize-y rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
                     />
                   </label>
 
                   <div className='grid grid-cols-[1fr_auto] gap-2'>
                     <label>
-                      <span className='mb-1 block text-sm font-semibold text-[#333333]'>
+                      <span className='mb-1 block text-sm font-semibold es-text-heading'>
                         {content.discountCodeLabel}
                       </span>
                       <input
@@ -605,14 +594,14 @@ export function MyBestAuntieBookingModal({
                           setDiscountError('');
                         }}
                         placeholder={content.discountCodePlaceholder}
-                        className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold disabled:cursor-not-allowed disabled:bg-[#F5F7FA] disabled:text-[#6B7280]'
+                        className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
                       />
                     </label>
                     <button
                       type='button'
                       onClick={handleApplyDiscount}
                       disabled={Boolean(discountRule)}
-                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] bg-white px-4 text-sm font-semibold text-[#C84A16] disabled:cursor-not-allowed disabled:border-[#D8B8A7] disabled:text-[#B19180]'
+                      className='es-focus-ring es-modal-outline-brand-button mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border px-4 text-sm font-semibold'
                     >
                       {content.applyDiscountLabel}
                     </button>
@@ -622,27 +611,27 @@ export function MyBestAuntieBookingModal({
                     <DiscountBadge label={content.discountAppliedLabel} />
                   )}
                   {discountError && (
-                    <p className='text-sm font-semibold text-[#B23535]'>
+                    <p className='text-sm font-semibold es-text-danger-strong'>
                       {discountError}
                     </p>
                   )}
 
                   <div
                     data-booking-price-breakdown='true'
-                    className='space-y-2 rounded-[12px] border border-[#D9E2EE] bg-white p-4'
+                    className='space-y-2 rounded-[12px] border es-border-panel-soft bg-white p-4'
                   >
-                    <div className='flex items-center justify-between text-sm font-semibold text-[#4A4A4A]'>
+                    <div className='flex items-center justify-between text-sm font-semibold es-text-body'>
                       <span>Price</span>
                       <span>{formatCurrencyHkd(originalAmount)}</span>
                     </div>
                     {hasDiscount && (
-                      <div className='flex items-center justify-between text-sm font-semibold text-[#276738]'>
+                      <div className='flex items-center justify-between text-sm font-semibold es-text-success'>
                         <span>Discount</span>
                         <span>-{formatCurrencyHkd(discountAmount)}</span>
                       </div>
                     )}
                     {hasConfirmedPriceDifference && (
-                      <div className='flex items-center justify-between border-t border-[#E2E8F0] pt-2 text-sm font-bold text-[#333333]'>
+                      <div className='flex items-center justify-between border-t es-border-divider pt-2 text-sm font-bold es-text-heading'>
                         <span>Confirmed Price</span>
                         <span>{formatCurrencyHkd(totalAmount)}</span>
                       </div>
@@ -662,15 +651,11 @@ export function MyBestAuntieBookingModal({
                         onChange={(event) => {
                           setHasPendingReservationAcknowledgement(event.target.checked);
                         }}
-                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 accent-[#C84A16]'
+                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
                       />
-                      <span className='text-sm leading-[1.45] text-[#333333]'>
+                      <span className='text-sm leading-[1.45] es-text-heading'>
                         {content.pendingReservationAcknowledgementLabel}
-                        <span
-                          className='ml-0.5'
-                          style={{ color: REQUIRED_ASTERISK_COLOR }}
-                          aria-hidden='true'
-                        >
+                        <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
                           *
                         </span>
                       </span>
@@ -684,26 +669,22 @@ export function MyBestAuntieBookingModal({
                         onChange={(event) => {
                           setHasTermsAgreement(event.target.checked);
                         }}
-                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 accent-[#C84A16]'
+                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
                       />
-                      <span className='text-sm leading-[1.45] text-[#333333]'>
+                      <span className='text-sm leading-[1.45] es-text-heading'>
                         {content.termsAgreementLabel}{' '}
                         <Link
                           href={content.termsHref}
                           target='_blank'
                           rel='noopener noreferrer'
-                          className='es-focus-ring rounded-[2px] text-[#C84A16] underline underline-offset-4'
+                          className='es-focus-ring rounded-[2px] es-text-brand underline underline-offset-4'
                           onClick={(event) => {
                             event.stopPropagation();
                           }}
                         >
                           {content.termsLinkLabel}
                         </Link>
-                        <span
-                          className='ml-0.5'
-                          style={{ color: REQUIRED_ASTERISK_COLOR }}
-                          aria-hidden='true'
-                        >
+                        <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
                           *
                         </span>
                       </span>
@@ -713,7 +694,7 @@ export function MyBestAuntieBookingModal({
                   <button
                     type='submit'
                     disabled={isSubmitDisabled}
-                    className='es-focus-ring es-cta-button es-cta-primary mt-1 h-[56px] w-full rounded-[10px] text-base font-semibold disabled:!cursor-not-allowed disabled:!border-[#D1D5DB] disabled:!bg-[#D1D5DB] disabled:!text-[#F8FAFC] disabled:!shadow-none'
+                    className='es-focus-ring es-cta-button es-cta-primary es-modal-submit-button mt-1 h-[56px] w-full rounded-[10px] text-base font-semibold'
                   >
                     {content.submitLabel}
                   </button>

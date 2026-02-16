@@ -33,9 +33,9 @@ interface EventsProps {
   content: EventsContent;
 }
 
-const SECTION_BACKGROUND = '#FFFFFF';
-const LOADING_GEAR_COLOR = '#F2A975';
-const LOADING_GEAR_BACKGROUND = '#FFF0E5';
+const SECTION_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
+const LOADING_GEAR_COLOR = 'var(--es-color-brand-orange-soft, #F2A975)';
+const LOADING_GEAR_BACKGROUND = 'var(--es-color-brand-peach-bg, #FFF0E5)';
 
 const titleStyle: CSSProperties = headingTextStyle({
   fontSize: 'clamp(2.1rem, 5.6vw, 55px)',
@@ -230,7 +230,7 @@ export function Events({ content }: EventsProps) {
               onChange={(event) => {
                 setActiveFilter(event.target.value);
               }}
-              className='es-focus-ring w-full appearance-none rounded-[58px] border border-[#EECAB0] bg-[#F6DECD24] px-4 py-[17px] pr-10'
+              className='es-focus-ring w-full appearance-none rounded-[58px] border es-border-soft es-bg-peach-glass px-4 py-[17px] pr-10'
               style={filterSelectStyle}
             >
               {sortOptions.map((option) => (
@@ -265,7 +265,7 @@ export function Events({ content }: EventsProps) {
               <span
                 role='status'
                 aria-label={content.loadingLabel}
-                className='inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#EECAB0]'
+                className='inline-flex h-12 w-12 items-center justify-center rounded-full border es-border-soft'
                 style={{ backgroundColor: LOADING_GEAR_BACKGROUND }}
               >
                 <LoadingGearIcon className='h-7 w-7 animate-spin' />
@@ -273,7 +273,7 @@ export function Events({ content }: EventsProps) {
               <p style={cardBodyStyle}>{content.loadingLabel}</p>
             </div>
           ) : visibleEvents.length === 0 ? (
-            <div className='rounded-[17px] border border-[#E7D5C9] bg-[#F4F6F8] px-5 py-7 text-center sm:px-8 sm:py-10'>
+            <div className='rounded-[17px] border es-border-event-card es-bg-surface-event-card px-5 py-7 text-center sm:px-8 sm:py-10'>
               <p style={cardBodyStyle}>{content.emptyStateLabel}</p>
               {hasRequestError && (
                 <p className='mt-3 text-sm text-black/60'>{content.errorLabel}</p>
@@ -283,13 +283,13 @@ export function Events({ content }: EventsProps) {
             <ul className='space-y-6'>
               {visibleEvents.map((eventCard) => (
                 <li key={eventCard.id}>
-                  <article className='rounded-[17px] bg-[#F4F6F8] p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
+                  <article className='rounded-[17px] es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
                     <div className='w-full lg:max-w-[720px]'>
                       <div className='flex flex-wrap items-center gap-2'>
                         {eventCard.tags.map((tag) => (
                           <span
                             key={`${eventCard.id}-${tag}`}
-                            className='inline-flex rounded-[24px] border border-[#EECAB0] bg-[#F6DECD24] px-[13px] py-[7px]'
+                            className='inline-flex rounded-[24px] border es-border-soft es-bg-peach-glass px-[13px] py-[7px]'
                             style={cardTagStyle}
                           >
                             {tag}
@@ -347,10 +347,10 @@ export function Events({ content }: EventsProps) {
                       <div className='mt-5'>
                         {eventCard.status === 'fully_booked' ? (
                           <span
-                            className='inline-flex items-center gap-1 rounded-[24px] bg-[#FFC3C3] px-3 py-[9px]'
+                            className='inline-flex items-center gap-1 rounded-[24px] es-bg-surface-danger-soft px-3 py-[9px]'
                             style={{
                               ...detailChipStyle,
-                              color: '#D03C3C',
+                              color: 'var(--es-color-text-danger-chip, #D03C3C)',
                             }}
                           >
                             <LocationIcon />

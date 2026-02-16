@@ -33,16 +33,16 @@ interface FaqQuestion {
   labelIds: string[];
 }
 
-const ACTIVE_TAB_BACKGROUND = '#F2A975';
+const ACTIVE_TAB_BACKGROUND = 'var(--es-color-brand-orange-soft, #F2A975)';
 const ACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
-const INACTIVE_TAB_BACKGROUND = '#F6DECD';
+const INACTIVE_TAB_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const INACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
-const CONTACT_CARD_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
+const CONTACT_CARD_TEXT = 'var(--es-color-surface-white, #FFFFFF)';
 const CONTACT_CARD_CTA_LABEL = 'Contact Us';
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
-  backgroundColor: '#FFFFFF',
+  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
 });
 
 const eyebrowStyle: CSSProperties = eyebrowTextStyle({
@@ -198,9 +198,9 @@ function FaqItems({
 
         return (
           <li key={`${item.question}-${index}`} className='h-full'>
-            <article className='flex h-full flex-col rounded-[24px] bg-[#F8F8F8] px-6 py-7 sm:px-8 sm:py-8'>
+            <article className='flex h-full flex-col rounded-[24px] es-bg-surface-muted px-6 py-7 sm:px-8 sm:py-8'>
               <h3 style={questionStyle}>{item.question}</h3>
-              <div className='mt-5 border-l-[4.1px] border-l-[#13522799] pl-5 sm:pl-6'>
+              <div className='mt-5 border-l-[4.1px] es-divider-green pl-5 sm:pl-6'>
                 <p className='whitespace-pre-line' style={answerStyle}>
                   {item.answer}
                 </p>
@@ -252,12 +252,12 @@ export function Faq({ content }: FaqProps) {
           </h2>
         </div>
 
-        <div className='mx-auto mt-8 max-w-[980px] rounded-[58px] border border-[#EECAB0] bg-[#F2F2F2] px-4 py-[13px] sm:px-6 sm:py-4'>
+        <div className='mx-auto mt-8 max-w-[980px] rounded-[58px] border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
           <div className='relative'>
             <label htmlFor='faq-search' className='sr-only'>
               {content.searchPlaceholder}
             </label>
-            <span className='pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[#333333]'>
+            <span className='pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 es-text-heading'>
               <FaqLensIcon />
             </span>
             <input
@@ -268,7 +268,7 @@ export function Faq({ content }: FaqProps) {
                 setSearchValue(event.target.value);
               }}
               placeholder={content.searchPlaceholder}
-              className='es-focus-ring w-full rounded-full bg-[#F2F2F2] py-3 pl-8 pr-4 text-[18px] font-semibold tracking-[0.5px] text-[#6A6A6A] outline-none placeholder:text-[#8A8A8A] sm:pl-9 sm:text-[22px]'
+              className='es-focus-ring w-full rounded-full es-bg-surface-neutral py-3 pl-8 pr-4 text-[18px] font-semibold tracking-[0.5px] es-text-dim outline-none es-text-placeholder sm:pl-9 sm:text-[22px]'
             />
           </div>
         </div>
@@ -302,7 +302,7 @@ export function Faq({ content }: FaqProps) {
 
         <div className='mt-10'>
           {visibleQuestions.length === 0 ? (
-            <p className='rounded-2xl border border-[#E9D2BF] bg-[#FFF9F4] px-5 py-6 text-center' style={answerStyle}>
+            <p className='rounded-2xl border es-border-soft-alt es-bg-surface-soft px-5 py-6 text-center' style={answerStyle}>
               {content.emptySearchResultsLabel}
             </p>
           ) : (

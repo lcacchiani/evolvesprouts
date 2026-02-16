@@ -16,13 +16,13 @@ interface MyJourneyProps {
 
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
-  backgroundColor: '#FFFFFF',
+  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
 });
 const JOURNEY_IMAGE_SRC = '/images/contact-us/my-journey.webp';
 const RIGHT_COLUMN_BLUE_CARD_BACKGROUND =
-  'linear-gradient(180deg, #E3F0FF 0%, #FFFFFF 100%)';
+  'var(--es-gradient-card-blue)';
 const RIGHT_COLUMN_YELLOW_CARD_BACKGROUND =
-  'linear-gradient(180deg, #FFF3E0 0%, #FFFFFF 100%)';
+  'var(--es-gradient-card-yellow)';
 const RIGHT_COLUMN_CARD_BACKGROUNDS = [
   RIGHT_COLUMN_BLUE_CARD_BACKGROUND,
   RIGHT_COLUMN_YELLOW_CARD_BACKGROUND,
@@ -45,7 +45,7 @@ const titleStyle: CSSProperties = {
 };
 
 const tagStyle: CSSProperties = {
-  color: '#C84A16',
+  color: 'var(--es-color-brand-orange, #C84A16)',
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontWeight: 700,
   lineHeight: '1',
@@ -83,7 +83,7 @@ export function MyJourney({ content }: MyJourneyProps) {
         </div>
 
         <div className='mt-10 grid gap-6 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-8'>
-          <div className='relative overflow-hidden rounded-[30px] bg-[#F5DFCF]'>
+          <div className='relative overflow-hidden rounded-[30px] es-bg-surface-peach'>
             <Image
               src={JOURNEY_IMAGE_SRC}
               alt='My Montessori Journey section image'
@@ -98,7 +98,7 @@ export function MyJourney({ content }: MyJourneyProps) {
             {content.cards.map((card, index) => (
               <li key={card.tag}>
                 <article
-                  className='rounded-[20px] border border-[#ECD5C3] p-5 sm:p-6'
+                  className='rounded-[20px] border es-border-warm-3 p-5 sm:p-6'
                   style={{
                     background:
                       RIGHT_COLUMN_CARD_BACKGROUNDS[

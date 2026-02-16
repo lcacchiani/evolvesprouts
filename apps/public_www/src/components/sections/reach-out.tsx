@@ -22,14 +22,21 @@ const SECTION_STYLE = buildSectionBackgroundStyle({
 const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 function ReachOutGlyph({ index }: { index: number }) {
-  const colorMap = ['#C84A16', '#174879', '#9E6D12', '#5D9D49'] as const;
+  const colorMap = [
+    'var(--es-color-brand-orange, #C84A16)',
+    'var(--figma-colors-frame-2147235242, #174879)',
+    'var(--es-color-accent-gold, #9E6D12)',
+    'var(--es-color-accent-green, #5D9D49)',
+  ] as const;
   const color = colorMap[index % colorMap.length];
 
   return (
     <span
       aria-hidden='true'
       className='inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border bg-white'
-      style={{ borderColor: `${color}40` }}
+      style={{
+        borderColor: `color-mix(in srgb, ${color} 25%, transparent)`,
+      }}
     >
       <svg
         viewBox='0 0 24 24'

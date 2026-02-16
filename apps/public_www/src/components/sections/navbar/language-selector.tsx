@@ -22,7 +22,7 @@ import { localizePath } from '@/lib/locale-routing';
 import { LanguageChevronIcon } from '@/components/sections/navbar-icons';
 
 const NAV_TEXT_COLOR = HEADING_TEXT_COLOR;
-const NAV_ACTIVE_TEXT = '#C84A16';
+const NAV_ACTIVE_TEXT = 'var(--es-color-brand-orange, #C84A16)';
 const NAV_LANGUAGE_OPTION_CLASSNAME =
   'es-focus-ring es-nav-language-option';
 

@@ -17,7 +17,7 @@ interface DeferredTestimonialsClientProps {
 const PRELOAD_ROOT_MARGIN = '500px 0px';
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
-  backgroundColor: '#FFFFFF',
+  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
 });
 
 const LazyTestimonials = dynamic(

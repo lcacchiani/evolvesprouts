@@ -120,11 +120,11 @@ describe('Faq section', () => {
     const searchInput = screen.getByRole('textbox', {
       name: enContent.faq.searchPlaceholder,
     });
-    expect(searchInput.className).toContain('bg-[#F2F2F2]');
+    expect(searchInput.className).toContain('es-bg-surface-neutral');
 
     const searchWrapper = container.querySelector(
       'div.mx-auto.mt-8.max-w-\\[980px\\].rounded-\\[58px\\]',
     );
-    expect(searchWrapper?.className).toContain('bg-[#F2F2F2]');
+    expect(searchWrapper?.className).toContain('es-bg-surface-neutral');
   });
 });

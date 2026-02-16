@@ -47,9 +47,9 @@ const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const RESOURCE_IMAGE_SRC = '/images/family.webp';
-const BORDER_COLOR = '#EECAB0';
-const GREEN_ACCENT = '#5D9D49';
-const TILE_BORDER_COLOR = '#D9A578';
+const BORDER_COLOR = 'var(--es-color-border-soft, #EECAB0)';
+const GREEN_ACCENT = 'var(--es-color-accent-green, #5D9D49)';
+const TILE_BORDER_COLOR = 'var(--es-color-tile-border, #D9A578)';
 
 const cardBackgroundPatternStyle: CSSProperties = {
   backgroundColor: BORDER_COLOR,

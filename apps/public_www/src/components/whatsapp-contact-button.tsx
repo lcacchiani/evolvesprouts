@@ -21,12 +21,12 @@ const WHATSAPP_ICON_PATH =
 
 const buttonClassName =
   'fixed right-5 z-50 flex h-16 w-16 items-center justify-center ' +
-  'rounded-full bg-white shadow-[0_16px_35px_5px_#e8c3ac] transition-' +
+  'rounded-full bg-white shadow-es-whatsapp transition-' +
   'transform duration-150 hover:scale-105 focus-visible:outline ' +
   'focus-visible:outline-2 focus-visible:outline-offset-4 ' +
-  'focus-visible:outline-[#25D366] sm:right-[30px]';
+  'focus-visible:outline-[var(--es-color-whatsapp)] sm:right-[30px]';
 
-const iconClassName = 'h-11 w-11 fill-[#25D366]';
+const iconClassName = 'h-11 w-11 fill-current text-es-whatsapp';
 
 export function WhatsappContactButton({
   href,

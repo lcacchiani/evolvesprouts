@@ -41,7 +41,7 @@ interface NavbarProps {
   content: NavbarContent;
 }
 
-const NAV_BACKGROUND = '#fff';
+const NAV_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
@@ -245,7 +245,7 @@ export function Navbar({ content }: NavbarProps) {
               alt={content.brand}
               width={150}
               height={150}
-              className='h-[150px] w-[150px] bg-[#fff] object-contain'
+              className='h-[150px] w-[150px] es-bg-surface-white object-contain'
             />
           </Link>
 
@@ -314,7 +314,7 @@ export function Navbar({ content }: NavbarProps) {
                   alt={content.brand}
                   width={150}
                   height={150}
-                  className='h-[150px] w-[150px] bg-[#fff] object-contain'
+                  className='h-[150px] w-[150px] es-bg-surface-white object-contain'
                 />
               </Link>
               <button

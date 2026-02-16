@@ -13,7 +13,7 @@ export function LanguageChevronIcon({ isOpen = false }: ChevronIconProps) {
     >
       <path
         d='M5 8L10 13L15 8'
-        stroke='var(--figma-colors-join-our-sprouts-squad-community, #333333)'
+        stroke='var(--es-color-text-heading, #333333)'
         strokeWidth='2'
         strokeLinecap='round'
         strokeLinejoin='round'
