@@ -23,7 +23,11 @@ interface FormState {
 
 const SECTION_BACKGROUND = '#FFFFFF';
 const FORM_PANEL_BACKGROUND = 'linear-gradient(155deg, #FFF7F0 0%, #FFFFFF 100%)';
-const LEFT_PANEL_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
+const LEFT_PANEL_BACKGROUND_IMAGE = '/images/evolvesprouts-logo.svg';
+const LEFT_PANEL_BACKGROUND_FILTER =
+  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
+const LEFT_PANEL_BACKGROUND_MASK_IMAGE =
+  'linear-gradient(to bottom, black 60%, transparent 90%)';
 const FORM_DECORATIVE_BLUE_LINE =
   'url("/images/vector-blue-line.svg")';
 const FORM_DECORATIVE_GREEN_WEDGE =
@@ -116,14 +120,22 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
       <div className='mx-auto grid w-full max-w-[1465px] gap-10 lg:grid-cols-2 lg:gap-9'>
         <section
           className='relative flex h-full items-start overflow-hidden px-6 py-8 sm:px-8 lg:px-10 lg:pt-[25%]'
-          style={{
-            backgroundImage: LEFT_PANEL_BACKGROUND_IMAGE,
-            backgroundPosition: 'left center',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: 'contain',
-          }}
         >
-          <div className='space-y-6'>
+          <div
+            aria-hidden='true'
+            className='pointer-events-none absolute left-0 top-0'
+            style={{
+              backgroundImage: `url(${LEFT_PANEL_BACKGROUND_IMAGE})`,
+              width: '1500px',
+              height: '750px',
+              backgroundSize: 'cover',
+              backgroundPosition: '-750px -250px',
+              filter: LEFT_PANEL_BACKGROUND_FILTER,
+              maskImage: LEFT_PANEL_BACKGROUND_MASK_IMAGE,
+              WebkitMaskImage: LEFT_PANEL_BACKGROUND_MASK_IMAGE,
+            }}
+          />
+          <div className='relative z-10 space-y-6'>
             <h1 className='es-section-heading text-balance'>{content.title}</h1>
             <p className='es-section-body text-balance text-[1.05rem] leading-8'>
               {content.description}
