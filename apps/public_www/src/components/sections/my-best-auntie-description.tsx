@@ -69,7 +69,6 @@ const descriptionStyle: CSSProperties = {
 };
 
 const ctaStyle: CSSProperties = {
-  color: CTA_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontSize: '18px',
   fontWeight: 600,
@@ -294,7 +293,7 @@ export function MyBestAuntieDescription({
                   <div className='mt-auto pt-8'>
                     <a
                       href={item.ctaHref}
-                      className='inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] border px-6 text-center transition-colors duration-200 hover:bg-[#ED622E] hover:text-white'
+                      className='inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] border px-6 text-center text-[#ED622E] transition-colors duration-200 hover:bg-[#ED622E] hover:text-white'
                       style={{
                         ...ctaStyle,
                         borderColor: CTA_COLOR,
