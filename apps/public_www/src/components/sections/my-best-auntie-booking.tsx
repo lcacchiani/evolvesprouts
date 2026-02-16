@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   MyBestAuntieBookingModal,
@@ -20,6 +20,9 @@ interface MyBestAuntieBookingProps {
 
 const SECTION_BACKGROUND = '#FFFFFF';
 const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
+const DATE_CONTROL_BG = '#FFFFFF';
+const DATE_CONTROL_ICON = '#3D3E3D';
+const DATE_CONTROL_SHADOW = '0 1px 14px rgba(0, 0, 0, 0.08)';
 
 const headingStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -73,6 +76,28 @@ const inactiveDateSelectorCalendarIconStyle = createMaskIconStyle(
   '#333333',
 );
 
+function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+  const rotationClass = direction === 'left' ? 'rotate-180' : '';
+
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 24 24'
+      className={`h-7 w-7 ${rotationClass}`}
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <path
+        d='M8 4L16 12L8 20'
+        stroke={DATE_CONTROL_ICON}
+        strokeWidth='2.4'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  );
+}
+
 export function MyBestAuntieBooking({
   locale,
   content,
@@ -96,6 +121,9 @@ export function MyBestAuntieBooking({
   const [selectedDateId, setSelectedDateId] = useState(dateOptions[0]?.id ?? '');
   const dateCarouselRef = useRef<HTMLDivElement | null>(null);
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const hasDateNavigation = dateOptions.length > 3;
+  const [canScrollDateLeft, setCanScrollDateLeft] = useState(false);
+  const [canScrollDateRight, setCanScrollDateRight] = useState(hasDateNavigation);
 
   const selectedAgeOption =
     ageOptions.find((option) => option.id === selectedAgeId) ?? ageOptions[0];
@@ -118,6 +146,27 @@ export function MyBestAuntieBooking({
     dateOptions[0]?.label ??
     content.scheduleDate;
 
+  const updateDateNavigationState = useCallback(() => {
+    const carouselElement = dateCarouselRef.current;
+    if (!carouselElement || !hasDateNavigation) {
+      setCanScrollDateLeft(false);
+      setCanScrollDateRight(false);
+      return;
+    }
+
+    const maxScrollLeft = carouselElement.scrollWidth - carouselElement.clientWidth;
+    const threshold = 2;
+
+    if (maxScrollLeft <= threshold) {
+      setCanScrollDateLeft(false);
+      setCanScrollDateRight(false);
+      return;
+    }
+
+    setCanScrollDateLeft(carouselElement.scrollLeft > threshold);
+    setCanScrollDateRight(carouselElement.scrollLeft < maxScrollLeft - threshold);
+  }, [hasDateNavigation]);
+
   useEffect(() => {
     const selectedDateCard = dateCardRefs.current[selectedDateId];
     if (!selectedDateCard) {
@@ -129,11 +178,49 @@ export function MyBestAuntieBooking({
       block: 'nearest',
       inline: 'center',
     });
-  }, [selectedDateId]);
+
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        updateDateNavigationState();
+      });
+    }
+  }, [selectedDateId, updateDateNavigationState]);
+
+  useEffect(() => {
+    const carouselElement = dateCarouselRef.current;
+    if (!carouselElement) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      updateDateNavigationState();
+    });
+
+    function handleScroll() {
+      updateDateNavigationState();
+    }
+
+    carouselElement.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      carouselElement.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [dateOptions.length, updateDateNavigationState]);
 
   function handleDateCarouselNavigation(direction: 'prev' | 'next') {
     const carouselElement = dateCarouselRef.current;
     if (!carouselElement) {
+      return;
+    }
+
+    if (direction === 'prev' && !canScrollDateLeft) {
+      return;
+    }
+
+    if (direction === 'next' && !canScrollDateRight) {
       return;
     }
 
@@ -209,7 +296,7 @@ export function MyBestAuntieBooking({
                             : inactiveAgeSelectorCardStyle
                         }
                       >
-                        <div className='flex items-center justify-start gap-1.5'>
+                        <div className='flex items-center justify-start gap-3'>
                           <Image
                             src={option.iconSrc}
                             alt=''
@@ -233,84 +320,96 @@ export function MyBestAuntieBooking({
                   {content.dateSelectorLabel}
                 </h3>
                 <div className='mt-3 min-w-0'>
-                  <div
-                    role='region'
-                    aria-roledescription='carousel'
-                    aria-label={content.dateSelectorLabel}
-                    className='w-full min-w-0 overflow-hidden'
-                  >
+                  <div className='relative w-full min-w-0 overflow-visible'>
                     <div
-                      ref={dateCarouselRef}
-                      className='flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+                      role='region'
+                      aria-roledescription='carousel'
+                      aria-label={content.dateSelectorLabel}
+                      className='w-full min-w-0 overflow-hidden'
                     >
-                      {dateOptions.map((option) => {
-                        const isSelected = option.id === selectedDateId;
+                      <div
+                        ref={dateCarouselRef}
+                        data-testid='my-best-auntie-booking-date-carousel'
+                        className='flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+                      >
+                        {dateOptions.map((option) => {
+                          const isSelected = option.id === selectedDateId;
 
-                        return (
-                          <button
-                            key={option.id}
-                            ref={(element) => {
-                              dateCardRefs.current[option.id] = element;
-                            }}
-                            type='button'
-                            aria-pressed={isSelected}
-                            onClick={() => {
-                              setSelectedDateId(option.id);
-                            }}
-                            className='es-focus-ring w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left'
-                            style={
-                              isSelected
-                                ? activeSelectorCardStyle
-                                : inactiveSelectorCardStyle
-                            }
-                          >
-                            <div className='flex items-center justify-between gap-3'>
-                              <span
-                                className='h-6 w-6 shrink-0'
-                                style={
-                                  isSelected
-                                    ? activeDateSelectorCalendarIconStyle
-                                    : inactiveDateSelectorCalendarIconStyle
-                                }
-                                aria-hidden='true'
-                              />
-                              <p className='text-base font-semibold text-[#333333]'>
-                                {option.label}
+                          return (
+                            <button
+                              key={option.id}
+                              ref={(element) => {
+                                dateCardRefs.current[option.id] = element;
+                              }}
+                              type='button'
+                              aria-pressed={isSelected}
+                              onClick={() => {
+                                setSelectedDateId(option.id);
+                              }}
+                              className='es-focus-ring w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left'
+                              style={
+                                isSelected
+                                  ? activeSelectorCardStyle
+                                  : inactiveSelectorCardStyle
+                              }
+                            >
+                              <div className='flex items-center justify-start gap-1.5'>
+                                <span
+                                  className='h-6 w-6 shrink-0'
+                                  style={
+                                    isSelected
+                                      ? activeDateSelectorCalendarIconStyle
+                                      : inactiveDateSelectorCalendarIconStyle
+                                  }
+                                  aria-hidden='true'
+                                />
+                                <p className='text-base font-semibold text-[#333333]'>
+                                  {option.label}
+                                </p>
+                              </div>
+                              <p className='mt-2 text-center text-sm text-[#C71B1B]'>
+                                {option.availabilityLabel}
                               </p>
-                            </div>
-                            <p className='mt-2 text-center text-sm text-[#C71B1B]'>
-                              {option.availabilityLabel}
-                            </p>
-                          </button>
-                        );
-                      })}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
 
-                  {dateOptions.length > 1 && (
-                    <div className='mt-2 flex items-center justify-end gap-2'>
+                    {hasDateNavigation && canScrollDateLeft && (
                       <button
                         type='button'
                         onClick={() => {
                           handleDateCarouselNavigation('prev');
                         }}
                         aria-label='Scroll dates left'
-                        className='es-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EED5C1] bg-white text-[#333333]'
+                        className='es-focus-ring absolute left-0 top-1/2 z-20 inline-flex h-[58px] w-[58px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
+                        style={{
+                          backgroundColor: DATE_CONTROL_BG,
+                          boxShadow: DATE_CONTROL_SHADOW,
+                        }}
                       >
-                        <span aria-hidden='true'>&larr;</span>
+                        <DateArrowIcon direction='left' />
                       </button>
+                    )}
+
+                    {hasDateNavigation && canScrollDateRight && (
                       <button
                         type='button'
                         onClick={() => {
                           handleDateCarouselNavigation('next');
                         }}
                         aria-label='Scroll dates right'
-                        className='es-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EED5C1] bg-white text-[#333333]'
+                        className='es-focus-ring absolute right-0 top-1/2 z-20 inline-flex h-[58px] w-[58px] translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
+                        style={{
+                          backgroundColor: DATE_CONTROL_BG,
+                          boxShadow: DATE_CONTROL_SHADOW,
+                        }}
                       >
-                        <span aria-hidden='true'>&rarr;</span>
+                        <DateArrowIcon direction='right' />
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
