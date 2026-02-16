@@ -510,13 +510,14 @@ export function MyBestAuntieBookingModal({
                         </span>
 
                         <div className='max-w-[340px]'>
-                          <div className='flex items-center gap-2'>
+                          <div data-course-part-date-block='true'>
                             <span
+                              data-course-part-date-icon='true'
                               className='h-6 w-6 shrink-0'
                               style={darkCalendarIconMaskStyle}
                               aria-hidden='true'
                             />
-                            <p className='text-[17px] font-semibold leading-6 text-[#333333]'>
+                            <p className='mt-1 text-[17px] font-semibold leading-6 text-[#333333]'>
                               {part.date}
                             </p>
                           </div>

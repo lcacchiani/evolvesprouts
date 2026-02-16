@@ -236,6 +236,20 @@ describe('my-best-auntie booking modals footer content', () => {
 
     const firstPartRow = firstPartChip?.closest('div');
     expect(firstPartRow?.className).toContain('sm:items-start');
+
+    const firstPartDateBlock = firstPartItem?.querySelector(
+      'div[data-course-part-date-block="true"]',
+    ) as HTMLDivElement | null;
+    expect(firstPartDateBlock).not.toBeNull();
+    expect(firstPartDateBlock?.className).not.toContain('flex');
+
+    const firstPartDateIcon = firstPartDateBlock?.querySelector(
+      'span[data-course-part-date-icon="true"]',
+    ) as HTMLSpanElement | null;
+    expect(firstPartDateIcon?.className).toContain('h-6');
+
+    const firstPartDateText = firstPartDateBlock?.querySelector('p');
+    expect(firstPartDateText?.className).toContain('mt-1');
   });
 
   it('does not render booking modal copyright footer section', () => {
