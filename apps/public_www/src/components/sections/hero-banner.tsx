@@ -80,7 +80,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
         style={{
           backgroundImage: `url(${HERO_FRAME_BACKGROUND})`,
           width: '1500px',
-          height: '800px',
+          height: '750px',
           backgroundSize: 'cover',
           backgroundPosition: '-750px -250px',
           filter: 'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)',
