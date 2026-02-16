@@ -46,13 +46,35 @@ describe('Free resources for gentle parenting section', () => {
   });
 
   it('applies the orange tile background pattern to the card container', () => {
-    render(<FreeResourcesForGentleParenting content={enContent.resources} />);
+    const { container, rerender } = render(
+      <FreeResourcesForGentleParenting content={enContent.resources} />,
+    );
 
     const layout = screen.getByTestId('free-resource-layout');
+    const mediaPane = screen.getByTestId('free-resource-media-pane');
+    const splitArticle = container.querySelector('article');
 
     expect(layout.style.backgroundColor).toBe('rgb(238, 202, 176)');
     expect(layout.style.backgroundImage).toContain('linear-gradient');
     expect(layout.style.backgroundSize).toBe('100px 100px');
+    expect(mediaPane.style.backgroundColor).toBe('');
+    expect(splitArticle?.style.backgroundColor).toBe('');
+
+    const overlayContent = createResourcesContent({
+      headerAlignment: 'center',
+      layoutVariant: 'overlay',
+      imagePosition: 'right',
+      cardPosition: 'right',
+    });
+    rerender(<FreeResourcesForGentleParenting content={overlayContent} />);
+
+    const overlayLayout = screen.getByTestId('free-resource-layout');
+    const overlayMediaPane = screen.getByTestId('free-resource-media-pane');
+    const overlayArticle = container.querySelector('article');
+
+    expect(overlayLayout.style.backgroundColor).toBe('rgb(238, 202, 176)');
+    expect(overlayMediaPane.style.backgroundColor).toBe('');
+    expect(overlayArticle?.style.backgroundColor).toBe('');
   });
 
   it('does not render the circular play-arrow overlay on the media image', () => {
@@ -72,6 +94,19 @@ describe('Free resources for gentle parenting section', () => {
     rerender(<FreeResourcesForGentleParenting content={overlayContent} />);
 
     expect(container.querySelector(playIconPathSelector)).toBeNull();
+  });
+
+  it('renders checklist list items with white rounded backgrounds', () => {
+    const { container } = render(
+      <FreeResourcesForGentleParenting content={enContent.resources} />,
+    );
+
+    const checklistItems = container.querySelectorAll('li');
+    expect(checklistItems.length).toBeGreaterThan(0);
+    checklistItems.forEach((item) => {
+      expect(item.className).toContain('rounded-[12px]');
+      expect(item.className).toContain('bg-white');
+    });
   });
 
   it('supports left heading alignment from locale config', () => {

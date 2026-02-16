@@ -46,8 +46,6 @@ const HORIZONTAL_POSITION_VALUES = ['left', 'right'] as const;
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
-const PANEL_BG = 'var(--figma-colors-frame-2147235252, #F8F8F8)';
-const MEDIA_BG = 'var(--figma-colors-rectangle-240648654, #D9D9D9)';
 const RESOURCE_IMAGE_SRC = '/images/family.webp';
 const BORDER_COLOR = '#EECAB0';
 const GREEN_ACCENT = '#5D9D49';
@@ -329,7 +327,7 @@ function ResourceCardContent({
           {checklistItems.map((item) => (
             <li
               key={`${item.title}-${item.description ?? ''}`}
-              className='rounded-[12px] bg-[#F8F8F8] px-4 py-[18px] sm:px-5'
+              className='rounded-[12px] bg-white px-4 py-[18px] sm:px-5'
             >
               <p className='relative pl-9' style={checklistTitleStyle}>
                 <span className='absolute left-0 top-[-1px]'>
@@ -432,7 +430,6 @@ export function FreeResourcesForGentleParenting({
               >
                 <div
                   className='relative min-h-[620px] overflow-hidden sm:min-h-[700px] lg:min-h-[740px]'
-                  style={{ backgroundColor: MEDIA_BG }}
                   data-testid='free-resource-media-pane'
                 >
                   <Image
@@ -441,14 +438,6 @@ export function FreeResourcesForGentleParenting({
                     fill
                     className='object-cover'
                     sizes='100vw'
-                  />
-                  <div
-                    aria-hidden='true'
-                    className='absolute inset-0'
-                    style={{
-                      background:
-                        'linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.24) 100%)',
-                    }}
                   />
 
                   <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
@@ -473,7 +462,6 @@ export function FreeResourcesForGentleParenting({
                   <article
                     className='relative isolate flex w-full max-w-[530px] min-h-[420px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[460px] sm:p-8'
                     style={{
-                      backgroundColor: PANEL_BG,
                       boxShadow:
                         '0px 22px 60px -36px rgba(28, 53, 66, 0.38)',
                     }}
@@ -502,7 +490,6 @@ export function FreeResourcesForGentleParenting({
                   <article
                     className='relative isolate flex h-full min-h-[370px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
                     style={{
-                      backgroundColor: PANEL_BG,
                       boxShadow:
                         '0px 22px 60px -36px rgba(28, 53, 66, 0.38)',
                     }}
@@ -520,7 +507,6 @@ export function FreeResourcesForGentleParenting({
                 <div
                   data-testid='free-resource-media-pane'
                   className={`relative min-h-[280px] overflow-hidden sm:min-h-[370px] lg:min-h-[587px] ${splitMediaPaneOrderClassName}`}
-                  style={{ backgroundColor: MEDIA_BG }}
                 >
                   <Image
                     src={RESOURCE_IMAGE_SRC}
@@ -528,14 +514,6 @@ export function FreeResourcesForGentleParenting({
                     fill
                     className='object-cover'
                     sizes='(min-width: 1024px) 58vw, 100vw'
-                  />
-                  <div
-                    aria-hidden='true'
-                    className='absolute inset-0'
-                    style={{
-                      background:
-                        'linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.24) 100%)',
-                    }}
                   />
 
                   <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
