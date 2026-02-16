@@ -257,8 +257,7 @@
       "termsAgreementLabel": "我同意此",
       "termsLinkLabel": "條款及細則",
       "termsHref": "/terms",
-      "submitLabel": "提交報名",
-      "qrLabel": "FPS 二維碼"
+      "submitLabel": "提交報名"
     },
     "thankYouModal": {
       "closeLabel": "關閉",

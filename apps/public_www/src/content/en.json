@@ -257,8 +257,7 @@
       "termsAgreementLabel": "I agree with this",
       "termsLinkLabel": "Terms & Conditions",
       "termsHref": "/terms",
-      "submitLabel": "Submit Reservation",
-      "qrLabel": "FPS QR"
+      "submitLabel": "Submit Reservation"
     },
     "thankYouModal": {
       "closeLabel": "Close",

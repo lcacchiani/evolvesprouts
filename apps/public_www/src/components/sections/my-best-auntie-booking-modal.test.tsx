@@ -142,7 +142,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('renders topics textarea and required acknowledgement checkboxes', () => {
-    render(
+    const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
         onClose={() => {}}
@@ -191,10 +191,11 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(termsWrapperClassName).not.toContain('border');
     expect(termsWrapperClassName).not.toContain('bg-');
 
-    const fpsBlock = screen.getByText('FPS QR').closest(
+    const fpsBlock = container.querySelector(
       'div[data-booking-fps-block="true"]',
     ) as HTMLDivElement | null;
     expect(fpsBlock).not.toBeNull();
+    expect(fpsBlock?.className).toContain('w-full');
     expect(fpsBlock?.className).not.toContain('border');
     expect(fpsBlock?.className).not.toContain('bg-');
 
