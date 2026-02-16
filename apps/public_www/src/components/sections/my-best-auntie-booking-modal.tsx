@@ -677,7 +677,7 @@ export function MyBestAuntieBookingModal({
                     <button
                       type='button'
                       onClick={handleApplyDiscount}
-                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] px-4 text-sm font-semibold text-[#C84A16]'
+                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] bg-white px-4 text-sm font-semibold text-[#C84A16]'
                     >
                       {content.applyDiscountLabel}
                     </button>
