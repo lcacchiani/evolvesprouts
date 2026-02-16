@@ -76,10 +76,15 @@ export function HeroBanner({ content }: HeroBannerProps) {
     >
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-0 bg-left-top bg-no-repeat'
+        className='pointer-events-none absolute left-0 top-0 bg-no-repeat'
         style={{
           backgroundImage: `url(${HERO_FRAME_BACKGROUND})`,
-          backgroundSize: '1000px auto',
+          width: '1500px',
+          height: '750px',
+          backgroundSize: 'cover',
+          backgroundPosition: '-750px -250px',
+          filter: 'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)',
+          maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
         }}
       />
       <div className='relative z-10 mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-6'>
