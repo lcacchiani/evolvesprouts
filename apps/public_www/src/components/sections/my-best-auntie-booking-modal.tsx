@@ -382,6 +382,10 @@ export function MyBestAuntieBookingModal({
   }, [activePartRows]);
 
   function handleApplyDiscount() {
+    if (discountRule) {
+      return;
+    }
+
     const normalizedCode = discountCode.trim().toUpperCase();
     if (!normalizedCode) {
       setDiscountRule(null);
@@ -666,18 +670,20 @@ export function MyBestAuntieBookingModal({
                       <input
                         type='text'
                         value={discountCode}
+                        disabled={Boolean(discountRule)}
                         onChange={(event) => {
                           setDiscountCode(event.target.value);
                           setDiscountError('');
                         }}
                         placeholder={content.discountCodePlaceholder}
-                        className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
+                        className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold disabled:cursor-not-allowed disabled:bg-[#F5F7FA] disabled:text-[#6B7280]'
                       />
                     </label>
                     <button
                       type='button'
                       onClick={handleApplyDiscount}
-                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] bg-white px-4 text-sm font-semibold text-[#C84A16]'
+                      disabled={Boolean(discountRule)}
+                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] bg-white px-4 text-sm font-semibold text-[#C84A16] disabled:cursor-not-allowed disabled:border-[#D8B8A7] disabled:text-[#B19180]'
                     >
                       {content.applyDiscountLabel}
                     </button>
