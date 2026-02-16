@@ -924,7 +924,7 @@ export function MyBestAuntieBookingModal({
                     className='space-y-2 rounded-[12px] border border-[#D9E2EE] bg-white p-4'
                   >
                     <div className='flex items-center justify-between text-sm font-semibold text-[#4A4A4A]'>
-                      <span>Original Price</span>
+                      <span>Price</span>
                       <span>{formatCurrencyHkd(originalAmount)}</span>
                     </div>
                     {hasDiscount && (
