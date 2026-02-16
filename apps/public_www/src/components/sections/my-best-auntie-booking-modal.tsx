@@ -489,16 +489,16 @@ export function MyBestAuntieBookingModal({
                       </span>
                       <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
                         <span
-                          data-course-part-line='gap-connector'
-                          className='pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2'
-                          style={getPartGapConnectorStyle(index)}
-                          aria-hidden='true'
-                        />
-                        <span
                           data-course-part-chip='true'
-                          className='inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
+                          className='relative inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
                           style={getPartChipTone(index)}
                         >
+                          <span
+                            data-course-part-line='gap-connector'
+                            className='pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2'
+                            style={getPartGapConnectorStyle(index)}
+                            aria-hidden='true'
+                          />
                           <span
                             className='h-[30px] w-[30px] shrink-0'
                             style={partChipIconMaskStyle}
@@ -513,7 +513,7 @@ export function MyBestAuntieBookingModal({
                           <div data-course-part-date-block='true'>
                             <span
                               data-course-part-date-icon='true'
-                              className='h-6 w-6 shrink-0'
+                              className='inline-block h-6 w-6 shrink-0'
                               style={darkCalendarIconMaskStyle}
                               aria-hidden='true'
                             />
@@ -714,8 +714,15 @@ export function MyBestAuntieBookingModal({
                     </p>
                   )}
 
-                  <div className='space-y-2'>
-                    <label className='flex items-start gap-2.5 rounded-[12px] border border-[#CAD6E5] bg-white px-3 py-3'>
+                  <div data-booking-fps-block='true' className='p-4'>
+                    <QrPlaceholder label={content.qrLabel} />
+                    <p className='mt-3 text-center text-[20px] font-semibold leading-none text-[#333333]'>
+                      {formatCurrencyHkd(totalAmount)}
+                    </p>
+                  </div>
+
+                  <div data-booking-acknowledgements='true' className='space-y-2'>
+                    <label className='flex items-start gap-2.5 py-1'>
                       <input
                         type='checkbox'
                         required
@@ -726,7 +733,7 @@ export function MyBestAuntieBookingModal({
                       </span>
                     </label>
 
-                    <label className='flex items-start gap-2.5 rounded-[12px] border border-[#CAD6E5] bg-white px-3 py-3'>
+                    <label className='flex items-start gap-2.5 py-1'>
                       <input
                         type='checkbox'
                         required
@@ -747,13 +754,6 @@ export function MyBestAuntieBookingModal({
                         </Link>
                       </span>
                     </label>
-                  </div>
-
-                  <div className='rounded-[14px] border border-[#CAD6E5] bg-[#F1F6FC] p-4'>
-                    <QrPlaceholder label={content.qrLabel} />
-                    <p className='mt-3 text-center text-[20px] font-semibold leading-none text-[#333333]'>
-                      {formatCurrencyHkd(totalAmount)}
-                    </p>
                   </div>
 
                   <button

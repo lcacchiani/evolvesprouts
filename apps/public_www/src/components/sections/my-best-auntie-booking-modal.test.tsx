@@ -167,6 +167,38 @@ describe('my-best-auntie booking modals footer content', () => {
       name: bookingModalContent.termsLinkLabel,
     });
     expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
+
+    const acknowledgementsBlock = pendingAcknowledgement.closest(
+      'div[data-booking-acknowledgements="true"]',
+    ) as HTMLDivElement | null;
+    expect(acknowledgementsBlock).not.toBeNull();
+
+    const pendingWrapperClassName =
+      pendingAcknowledgement.closest('label')?.className ?? '';
+    const termsWrapperClassName = termsAcknowledgement.closest('label')?.className ?? '';
+    expect(pendingWrapperClassName).not.toContain('border');
+    expect(pendingWrapperClassName).not.toContain('bg-');
+    expect(termsWrapperClassName).not.toContain('border');
+    expect(termsWrapperClassName).not.toContain('bg-');
+
+    const fpsBlock = screen.getByText('FPS QR').closest(
+      'div[data-booking-fps-block="true"]',
+    ) as HTMLDivElement | null;
+    expect(fpsBlock).not.toBeNull();
+    expect(fpsBlock?.className).not.toContain('border');
+    expect(fpsBlock?.className).not.toContain('bg-');
+
+    const submitButton = screen.getByRole('button', {
+      name: bookingModalContent.submitLabel,
+    });
+    const fpsBeforeAcknowledgements =
+      fpsBlock?.compareDocumentPosition(acknowledgementsBlock ?? fpsBlock) ??
+      Node.DOCUMENT_POSITION_DISCONNECTED;
+    const acknowledgementsBeforeSubmit =
+      acknowledgementsBlock?.compareDocumentPosition(submitButton) ??
+      Node.DOCUMENT_POSITION_DISCONNECTED;
+    expect(fpsBeforeAcknowledgements & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(acknowledgementsBeforeSubmit & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('uses cubes.svg mask icon for all course part chips', () => {
@@ -247,9 +279,15 @@ describe('my-best-auntie booking modals footer content', () => {
       'span[data-course-part-date-icon="true"]',
     ) as HTMLSpanElement | null;
     expect(firstPartDateIcon?.className).toContain('h-6');
+    expect(firstPartDateIcon?.className).toContain('inline-block');
 
     const firstPartDateText = firstPartDateBlock?.querySelector('p');
     expect(firstPartDateText?.className).toContain('mt-1');
+
+    const firstConnector = firstPartChip?.querySelector(
+      'span[data-course-part-line="gap-connector"]',
+    );
+    expect(firstConnector).not.toBeNull();
   });
 
   it('does not render booking modal copyright footer section', () => {
