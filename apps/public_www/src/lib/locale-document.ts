@@ -4,6 +4,7 @@ import {
   getContent,
   type Locale,
 } from '@/content';
+import { getLocaleFromPath } from '@/lib/locale-routing';
 
 export type DocumentDirection = 'ltr' | 'rtl';
 
@@ -19,17 +20,7 @@ export function getDirectionForLocale(locale: Locale): DocumentDirection {
 }
 
 export function resolveLocaleFromPathname(pathname: string): Locale {
-  const segments = pathname.split('/').filter(Boolean);
-  const candidateLocale = segments[0];
-
-  if (
-    typeof candidateLocale === 'string' &&
-    SUPPORTED_LOCALES.includes(candidateLocale as Locale)
-  ) {
-    return candidateLocale as Locale;
-  }
-
-  return DEFAULT_LOCALE;
+  return getLocaleFromPath(pathname);
 }
 
 export function buildLocaleDocumentAttributesScript(): string {

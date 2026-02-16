@@ -1,11 +1,10 @@
 import { PageLayout } from '@/components/page-layout';
 import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
 import {
-  buildPlaceholderMetadataFromParams,
+  createPlaceholderPage,
   generateLocaleStaticParams,
   getFooterLinkLabel,
   type LocaleRouteProps,
-  resolveLocalePageContext,
 } from '@/lib/locale-page';
 
 const TERMS_PLACEHOLDER_OPTIONS = {
@@ -13,20 +12,16 @@ const TERMS_PLACEHOLDER_OPTIONS = {
   fallbackTitle: 'Terms & Conditions',
   labelResolver: getFooterLinkLabel,
 } as const;
+const termsPlaceholderPage = createPlaceholderPage(TERMS_PLACEHOLDER_OPTIONS);
 
 export { generateLocaleStaticParams as generateStaticParams };
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
-  return buildPlaceholderMetadataFromParams(params, TERMS_PLACEHOLDER_OPTIONS);
+  return termsPlaceholderPage.generateMetadata({ params });
 }
 
 export default async function TermsPage({ params }: LocaleRouteProps) {
-  const { content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(
-    content,
-    TERMS_PLACEHOLDER_OPTIONS.path,
-    TERMS_PLACEHOLDER_OPTIONS.fallbackTitle,
-  );
+  const { content, title } = await termsPlaceholderPage.resolveProps(params);
 
   return (
     <PageLayout

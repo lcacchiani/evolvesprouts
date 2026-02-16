@@ -1,13 +1,9 @@
 import {
   DEFAULT_LOCALE,
-  SUPPORTED_LOCALES,
+  isValidLocale,
   type Locale,
 } from '@/content';
 import { isExternalHref } from '@/lib/url-utils';
-
-export function isSupportedLocale(value: string): value is Locale {
-  return SUPPORTED_LOCALES.includes(value as Locale);
-}
 
 function sanitizePath(path: string): string {
   let value = path.trim();
@@ -36,7 +32,7 @@ function sanitizePath(path: string): string {
 
 export function getLocaleFromPath(path: string): Locale {
   const segments = sanitizePath(path).split('/').filter(Boolean);
-  if (segments.length > 0 && isSupportedLocale(segments[0])) {
+  if (segments.length > 0 && isValidLocale(segments[0])) {
     return segments[0];
   }
 
@@ -47,7 +43,7 @@ export function normalizeLocalizedPath(path: string): string {
   let value = sanitizePath(path);
   const segments = value.split('/').filter(Boolean);
 
-  if (segments.length > 0 && isSupportedLocale(segments[0])) {
+  if (segments.length > 0 && isValidLocale(segments[0])) {
     const localizedValue = `/${segments.slice(1).join('/')}`;
     value = localizedValue === '/' ? '/' : localizedValue;
   }

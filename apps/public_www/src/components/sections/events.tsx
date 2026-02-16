@@ -4,13 +4,23 @@ import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import {
+  CalendarIcon,
+  ClockIcon,
+  LocationIcon,
+} from '@/components/sections/navbar-icons';
 import { SectionShell } from '@/components/section-shell';
 import type { EventsContent } from '@/content';
 import {
   createPublicCrmApiClient,
   isAbortRequestError,
 } from '@/lib/crm-api-client';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  bodyTextStyle,
+  BODY_TEXT_COLOR,
+  headingTextStyle,
+  HEADING_TEXT_COLOR,
+} from '@/lib/design-tokens';
 import {
   type EventCardData,
   fetchEventsPayload,
@@ -27,139 +37,67 @@ const SECTION_BACKGROUND = '#FFFFFF';
 const LOADING_GEAR_COLOR = '#F2A975';
 const LOADING_GEAR_BACKGROUND = '#FFF0E5';
 
-const titleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+const titleStyle: CSSProperties = headingTextStyle({
   fontSize: 'clamp(2.1rem, 5.6vw, 55px)',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
   lineHeight: '1.12',
-};
+});
 
-const descriptionStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+const descriptionStyle: CSSProperties = bodyTextStyle({
   fontSize: 'clamp(1rem, 2.2vw, 24px)',
-  fontWeight: 400,
   lineHeight: '1.45',
   letterSpacing: '0.2px',
-};
+});
 
-const scheduledHeadingStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+const scheduledHeadingStyle: CSSProperties = headingTextStyle({
   fontSize: 'clamp(1.45rem, 3.5vw, 32px)',
   fontWeight: 600,
   lineHeight: '1.2',
-};
+});
 
-const filterSelectStyle: CSSProperties = {
+const filterSelectStyle: CSSProperties = bodyTextStyle({
   color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontSize: '17px',
   fontWeight: 600,
   lineHeight: '1',
-};
+});
 
-const cardTagStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+const cardTagStyle: CSSProperties = headingTextStyle({
   fontSize: '11px',
   fontWeight: 500,
   lineHeight: '1',
   textTransform: 'uppercase',
   letterSpacing: '0',
-};
+});
 
-const cardTitleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+const cardTitleStyle: CSSProperties = headingTextStyle({
   fontSize: 'clamp(1.4rem, 3vw, 32px)',
   fontWeight: 600,
   lineHeight: '1.25',
-};
+});
 
-const cardBodyStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+const cardBodyStyle: CSSProperties = bodyTextStyle({
   fontSize: '16px',
-  fontWeight: 400,
   lineHeight: '1.6',
-};
+});
 
-const detailChipStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+const detailChipStyle: CSSProperties = headingTextStyle({
   fontSize: '11px',
   fontWeight: 500,
   lineHeight: '1',
   letterSpacing: '0',
-};
+});
 
-const locationHeadingStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+const locationHeadingStyle: CSSProperties = headingTextStyle({
   fontSize: '18px',
   fontWeight: 600,
   lineHeight: '1.25',
-};
+});
 
-const locationTextStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+const locationTextStyle: CSSProperties = bodyTextStyle({
   fontSize: '16px',
   fontWeight: 500,
   lineHeight: '1.45',
-};
-
-function CalendarIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 16 16'
-      className='h-3.5 w-3.5'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <rect x='2' y='3' width='12' height='11' rx='2' stroke='currentColor' />
-      <path d='M2 6H14' stroke='currentColor' />
-      <path d='M5 1.5V4.5' stroke='currentColor' strokeLinecap='round' />
-      <path d='M11 1.5V4.5' stroke='currentColor' strokeLinecap='round' />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 16 16'
-      className='h-3.5 w-3.5'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <circle cx='8' cy='8' r='6' stroke='currentColor' />
-      <path d='M8 4.8V8L10.3 9.6' stroke='currentColor' strokeLinecap='round' />
-    </svg>
-  );
-}
-
-function LocationIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 16 16'
-      className='h-3.5 w-3.5'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M8 14C8 14 12 10.4 12 6.9C12 4.7 10.2 3 8 3C5.8 3 4 4.7 4 6.9C4 10.4 8 14 8 14Z'
-        stroke='currentColor'
-      />
-      <circle cx='8' cy='6.8' r='1.5' stroke='currentColor' />
-    </svg>
-  );
-}
+});
 
 interface LoadingGearIconProps {
   className?: string;

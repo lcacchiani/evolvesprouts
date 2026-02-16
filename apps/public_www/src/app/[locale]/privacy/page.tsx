@@ -1,11 +1,10 @@
 import { PageLayout } from '@/components/page-layout';
 import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
 import {
-  buildPlaceholderMetadataFromParams,
+  createPlaceholderPage,
   generateLocaleStaticParams,
   getFooterLinkLabel,
   type LocaleRouteProps,
-  resolveLocalePageContext,
 } from '@/lib/locale-page';
 
 const PRIVACY_PLACEHOLDER_OPTIONS = {
@@ -13,20 +12,16 @@ const PRIVACY_PLACEHOLDER_OPTIONS = {
   fallbackTitle: 'Privacy Policy',
   labelResolver: getFooterLinkLabel,
 } as const;
+const privacyPlaceholderPage = createPlaceholderPage(PRIVACY_PLACEHOLDER_OPTIONS);
 
 export { generateLocaleStaticParams as generateStaticParams };
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
-  return buildPlaceholderMetadataFromParams(params, PRIVACY_PLACEHOLDER_OPTIONS);
+  return privacyPlaceholderPage.generateMetadata({ params });
 }
 
 export default async function PrivacyPage({ params }: LocaleRouteProps) {
-  const { content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(
-    content,
-    PRIVACY_PLACEHOLDER_OPTIONS.path,
-    PRIVACY_PLACEHOLDER_OPTIONS.fallbackTitle,
-  );
+  const { content, title } = await privacyPlaceholderPage.resolveProps(params);
 
   return (
     <PageLayout

@@ -12,15 +12,13 @@ import {
 } from 'react';
 
 import {
+  isValidLocale,
   type Locale,
   type NavbarContent,
 } from '@/content';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
-import {
-  isSupportedLocale,
-  localizePath,
-} from '@/lib/locale-routing';
+import { localizePath } from '@/lib/locale-routing';
 import { LanguageChevronIcon } from '@/components/sections/navbar-icons';
 
 const NAV_TEXT_COLOR = HEADING_TEXT_COLOR;
@@ -75,17 +73,17 @@ const DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX = 'Selected language';
 export function resolveLanguageSelectorContent(
   content: NavbarContent,
 ): LanguageSelectorContent {
-  const selector = (content as NavbarContent & {
-    languageSelector?: {
-      menuAriaLabel?: string;
-      selectedLanguageAriaPrefix?: string;
-      options?: RawLanguageOption[];
-    };
-  }).languageSelector;
+  const selector = content.languageSelector as
+    | {
+        menuAriaLabel?: string;
+        selectedLanguageAriaPrefix?: string;
+        options?: RawLanguageOption[];
+      }
+    | undefined;
 
   const normalizedOptions = (selector?.options ?? [])
     .map((option) => {
-      if (!isSupportedLocale(option.locale)) {
+      if (!isValidLocale(option.locale)) {
         return null;
       }
 
@@ -101,7 +99,7 @@ export function resolveLanguageSelectorContent(
         label,
         shortLabel,
         flagSrc,
-      } as LanguageOption;
+      };
     })
     .filter((option): option is LanguageOption => option !== null);
 

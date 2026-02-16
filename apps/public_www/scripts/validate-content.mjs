@@ -32,22 +32,66 @@ function validateType(referenceValue, candidateValue, keyPath, errors) {
   }
 }
 
-function validateTopLevelShape(reference, candidate, locale, errors) {
-  const referenceKeys = Object.keys(reference);
-  const candidateKeys = Object.keys(candidate);
+function validateShape(referenceValue, candidateValue, keyPath, errors) {
+  const referenceType = getTypeName(referenceValue);
+  const candidateType = getTypeName(candidateValue);
+
+  validateType(referenceValue, candidateValue, keyPath, errors);
+  if (referenceType !== candidateType) {
+    return;
+  }
+
+  if (referenceType === 'array') {
+    const referenceArray = referenceValue;
+    const candidateArray = candidateValue;
+
+    if (referenceArray.length === 0) {
+      return;
+    }
+
+    if (candidateArray.length === 0) {
+      return;
+    }
+
+    const referenceSample = referenceArray[0];
+    for (let index = 0; index < candidateArray.length; index += 1) {
+      validateShape(
+        referenceSample,
+        candidateArray[index],
+        `${keyPath}[${index}]`,
+        errors,
+      );
+    }
+
+    return;
+  }
+
+  if (referenceType !== 'object') {
+    return;
+  }
+
+  const referenceRecord = referenceValue;
+  const candidateRecord = candidateValue;
+  const referenceKeys = Object.keys(referenceRecord);
+  const candidateKeys = Object.keys(candidateRecord);
 
   for (const key of referenceKeys) {
-    if (!(key in candidate)) {
-      errors.push(`${locale}: missing top-level key "${key}"`);
+    if (!(key in candidateRecord)) {
+      errors.push(`${keyPath}: missing key "${key}"`);
       continue;
     }
 
-    validateType(reference[key], candidate[key], `${locale}.${key}`, errors);
+    validateShape(
+      referenceRecord[key],
+      candidateRecord[key],
+      `${keyPath}.${key}`,
+      errors,
+    );
   }
 
   for (const key of candidateKeys) {
-    if (!(key in reference)) {
-      errors.push(`${locale}: unexpected top-level key "${key}"`);
+    if (!(key in referenceRecord)) {
+      errors.push(`${keyPath}: unexpected key "${key}"`);
     }
   }
 }
@@ -85,7 +129,7 @@ async function main() {
 
   for (const [locale] of LOCALE_FILES) {
     const localeContent = localeMap[locale];
-    validateTopLevelShape(englishContent, localeContent, locale, errors);
+    validateShape(englishContent, localeContent, locale, errors);
     assertLocaleMetadata(localeContent, locale, errors);
   }
 

@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import { createDefaultLocaleRedirectPage } from '@/lib/locale-page';
 
-export default function MyBestAuntieRedirectPage() {
-  redirect('/en/services/my-best-auntie-training-course');
-}
+export default createDefaultLocaleRedirectPage(
+  '/services/my-best-auntie-training-course',
+);

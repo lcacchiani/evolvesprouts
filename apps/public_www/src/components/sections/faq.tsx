@@ -8,7 +8,13 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
-import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  bodyTextStyle,
+  BRAND_ORANGE_SOFT,
+  eyebrowTextStyle,
+  HEADING_TEXT_COLOR,
+  headingTextStyle,
+} from '@/lib/design-tokens';
 import {
   getLocaleFromPath,
   localizePath,
@@ -28,9 +34,9 @@ interface FaqQuestion {
   labelIds: string[];
 }
 
-const ACTIVE_TAB_BACKGROUND = '#F2A975';
+const ACTIVE_TAB_BACKGROUND = BRAND_ORANGE_SOFT;
 const ACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
-const INACTIVE_TAB_BACKGROUND = '#F6DECD';
+const INACTIVE_TAB_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const INACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
 const CONTACT_CARD_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
@@ -40,37 +46,25 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   backgroundColor: '#FFFFFF',
 });
 
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 500,
-  lineHeight: '1',
+const eyebrowStyle: CSSProperties = eyebrowTextStyle({
   fontSize: '18px',
-};
+});
 
-const titleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 700,
+const titleStyle: CSSProperties = headingTextStyle({
   lineHeight: '1.14',
   fontSize: 'clamp(1.95rem, 4.7vw, 50px)',
-};
+});
 
-const questionStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
+const questionStyle: CSSProperties = headingTextStyle({
   fontWeight: 600,
   lineHeight: '1.42',
   fontSize: 'clamp(1.1rem, 1.7vw, 28px)',
-};
+});
 
-const answerStyle: CSSProperties = {
-  color: '#4A4A4A',
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 400,
+const answerStyle: CSSProperties = bodyTextStyle({
   lineHeight: '1.6',
   fontSize: 'clamp(1rem, 1.3vw, 20px)',
-};
+});
 
 const contactQuestionStyle: CSSProperties = {
   ...questionStyle,
@@ -82,12 +76,11 @@ const contactAnswerStyle: CSSProperties = {
   color: CONTACT_CARD_TEXT,
 };
 
-const contactCardCtaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+const contactCardCtaStyle: CSSProperties = bodyTextStyle({
   fontSize: '18px',
   fontWeight: 600,
   lineHeight: '1',
-};
+});
 
 function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
