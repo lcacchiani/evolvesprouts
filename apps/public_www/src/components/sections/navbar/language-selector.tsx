@@ -51,19 +51,19 @@ const DEFAULT_LANGUAGE_OPTIONS: readonly LanguageOption[] = [
     locale: 'en',
     label: 'English',
     shortLabel: 'Eng',
-    flagSrc: '/images/flags/gb.svg',
+    flagSrc: '/images/flags/gb.png',
   },
   {
     locale: 'zh-CN',
     label: 'Chinese (Simplified)',
     shortLabel: 'SC',
-    flagSrc: '/images/flags/cn.svg',
+    flagSrc: '/images/flags/cn.png',
   },
   {
     locale: 'zh-HK',
     label: 'Chinese (Traditional)',
     shortLabel: 'TC',
-    flagSrc: '/images/flags/hk.svg',
+    flagSrc: '/images/flags/hk.png',
   },
 ];
 

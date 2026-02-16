@@ -142,7 +142,7 @@ export function MyBestAuntieThankYouModal({
           <div className='relative z-10 flex flex-col items-center pt-0 text-center sm:pt-6 lg:pt-14'>
             <div className='flex h-[100px] w-[100px] items-center justify-center rounded-full bg-[#D5E9CB]'>
               <Image
-                src='/images/my-best-auntie-booking/green-tick-icon.svg'
+                src='/images/my-best-auntie-booking/green-tick-icon.png'
                 alt=''
                 width={124}
                 height={124}
@@ -195,7 +195,7 @@ export function MyBestAuntieThankYouModal({
                     </span>
                     <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium text-[#5B617F]'>
                       <Image
-                        src='/images/my-best-auntie-booking/clock.svg'
+                        src='/images/my-best-auntie-booking/clock.png'
                         alt=''
                         width={24}
                         height={24}
