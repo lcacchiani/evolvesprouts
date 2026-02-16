@@ -35,7 +35,7 @@ interface FaqQuestion {
 
 const ACTIVE_TAB_BACKGROUND = '#F2A975';
 const ACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
-const INACTIVE_TAB_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
+const INACTIVE_TAB_BACKGROUND = '#F6DECD';
 const INACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
 const CONTACT_CARD_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';

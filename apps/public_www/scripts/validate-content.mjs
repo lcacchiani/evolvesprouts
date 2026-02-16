@@ -53,14 +53,36 @@ function validateShape(referenceValue, candidateValue, keyPath, errors) {
       return;
     }
 
-    const referenceSample = referenceArray[0];
+    const referenceItemTypes = new Set(referenceArray.map((item) => getTypeName(item)));
+
     for (let index = 0; index < candidateArray.length; index += 1) {
-      validateShape(
-        referenceSample,
-        candidateArray[index],
-        `${keyPath}[${index}]`,
-        errors,
-      );
+      const candidateItem = candidateArray[index];
+      const candidateItemType = getTypeName(candidateItem);
+
+      if (!referenceItemTypes.has(candidateItemType)) {
+        errors.push(
+          `${keyPath}[${index}]: unexpected item type "${candidateItemType}"`,
+        );
+        continue;
+      }
+
+      if (candidateItemType === 'array') {
+        const referenceArrayItem = referenceArray.find(
+          (item) => getTypeName(item) === 'array',
+        );
+        if (referenceArrayItem) {
+          validateShape(
+            referenceArrayItem,
+            candidateItem,
+            `${keyPath}[${index}]`,
+            errors,
+          );
+        }
+      }
+
+      if (candidateItemType === 'object' && referenceArray.length === 1) {
+        validateShape(referenceArray[0], candidateItem, `${keyPath}[${index}]`, errors);
+      }
     }
 
     return;
