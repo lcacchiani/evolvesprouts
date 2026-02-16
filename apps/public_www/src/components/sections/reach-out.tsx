@@ -7,14 +7,18 @@ import {
   DEFAULT_SECTION_EYEBROW_STYLE,
   HEADING_TEXT_COLOR,
 } from '@/lib/design-tokens';
+import { buildSectionBackgroundStyle } from '@/lib/section-backgrounds';
 
 interface ReachOutProps {
   content: ContactUsContent['reachOut'];
 }
 
-const SECTION_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_SIZE = '900px auto';
+const SECTION_STYLE = buildSectionBackgroundStyle({
+  backgroundColor: 'var(--figma-colors-frame-2147235259, #FFEEE3)',
+  position: 'center -400px',
+  size: '900px auto',
+  blendMode: 'difference',
+});
 const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 function ReachOutGlyph({ index }: { index: number }) {
@@ -52,14 +56,7 @@ export function ReachOut({ content }: ReachOutProps) {
       ariaLabel={content.title}
       dataFigmaNode='reach-out'
       className='relative isolate overflow-hidden'
-      style={{
-        backgroundColor: SECTION_BACKGROUND,
-        backgroundImage: SECTION_BACKGROUND_IMAGE,
-        backgroundPosition: 'center -400px',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: SECTION_BACKGROUND_SIZE,
-        backgroundBlendMode: 'difference',
-      }}
+      style={SECTION_STYLE}
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[840px] text-center'>

@@ -33,7 +33,7 @@ const FOOTER_LOGO_CLASSNAME =
   'h-auto w-full max-w-[600px] -mt-[100px] -mb-[100px]';
 const columnTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-urbanist, Urbanist), sans-serif',
+  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
   fontSize: 'var(--figma-fontsizes-24, 24px)',
   fontWeight: 'var(--figma-fontweights-600, 600)',
   lineHeight: 'calc(var(--figma-lineheights-quick-links, 28) * 1px)',

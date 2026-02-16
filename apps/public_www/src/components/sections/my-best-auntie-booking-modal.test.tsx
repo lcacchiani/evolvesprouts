@@ -9,7 +9,7 @@ import {
   type ReservationSummary,
 } from '@/components/sections/my-best-auntie-booking-modal';
 import enContent from '@/content/en.json';
-import { createCrmApiClient } from '@/lib/crm-api-client';
+import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { fetchDiscountRules } from '@/lib/discounts-data';
 
 vi.mock('next/image', () => ({
@@ -43,7 +43,9 @@ vi.mock('@/lib/crm-api-client', async () => {
 
   return {
     ...actual,
-    createCrmApiClient: vi.fn(() => null),
+    createPublicCrmApiClient: vi.fn(() => null),
+    isAbortRequestError: (error: unknown) =>
+      error instanceof Error && error.name === 'AbortError',
   };
 });
 
@@ -60,7 +62,7 @@ vi.mock('@/lib/discounts-data', async () => {
 
 const bookingModalContent = enContent.myBestAuntieBooking.paymentModal;
 const thankYouModalContent = enContent.myBestAuntieBooking.thankYouModal;
-const mockedCreateCrmApiClient = vi.mocked(createCrmApiClient);
+const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedFetchDiscountRules = vi.mocked(fetchDiscountRules);
 
 const reservationSummary: ReservationSummary = {

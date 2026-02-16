@@ -6,8 +6,8 @@
     color-scheme: light;
     --figma-fontfamilies-lato: var(--font-lato);
     --figma-fontfamilies-poppins: var(--font-poppins);
-    --figma-fontfamilies-urbanist: var(--font-urbanist);
-    --figma-fontfamilies-plus-jakarta-sans: var(--font-plus-jakarta-sans);
+    --figma-fontfamilies-urbanist: var(--font-poppins);
+    --figma-fontfamilies-plus-jakarta-sans: var(--font-poppins);
     --site-primary-font:
       var(--figma-fontfamilies-lato, var(--font-lato)), sans-serif;
     --site-heading-font:

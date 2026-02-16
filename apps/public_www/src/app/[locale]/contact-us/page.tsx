@@ -6,6 +6,8 @@ import {
 } from '@/lib/locale-page';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
+export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
+
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const title = getMenuLabel(content, '/contact-us', 'Contact Us');

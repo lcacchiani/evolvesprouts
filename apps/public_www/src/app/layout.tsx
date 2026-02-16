@@ -1,4 +1,4 @@
-import { Lato, Plus_Jakarta_Sans, Poppins, Urbanist } from 'next/font/google';
+import { Lato, Poppins } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import type { ReactNode } from 'react';
@@ -10,31 +10,15 @@ import './globals.css';
 const lato = Lato({
   subsets: ['latin'],
   variable: '--font-lato',
-  weight: ['300', '400', '700', '900'],
-  style: ['normal', 'italic'],
+  weight: ['400', '700'],
+  style: ['normal'],
   display: 'swap',
 });
 
 const poppins = Poppins({
   subsets: ['latin'],
   variable: '--font-poppins',
-  weight: ['400', '500', '600', '700', '800'],
-  style: ['normal', 'italic'],
-  display: 'swap',
-});
-
-const urbanist = Urbanist({
-  subsets: ['latin'],
-  variable: '--font-urbanist',
-  weight: ['400', '500', '600', '700', '800'],
-  style: ['normal', 'italic'],
-  display: 'swap',
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-plus-jakarta-sans',
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['500', '600', '700'],
   style: ['normal'],
   display: 'swap',
 });
@@ -88,7 +72,7 @@ export default function RootLayout({
     <html
       lang='en'
       suppressHydrationWarning
-      className={`${lato.variable} ${poppins.variable} ${urbanist.variable} ${plusJakartaSans.variable}`}
+      className={`${lato.variable} ${poppins.variable}`}
     >
       <body className='antialiased'>
         <a

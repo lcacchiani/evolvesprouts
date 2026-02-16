@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 
@@ -8,6 +9,14 @@ import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  getLocaleFromPath,
+  localizePath,
+} from '@/lib/locale-routing';
+import {
+  buildSectionBackgroundOverlayStyle,
+  LOGO_OVERLAY_TOP,
+} from '@/lib/section-backgrounds';
 
 interface FaqProps {
   content: FaqContent;
@@ -19,22 +28,17 @@ interface FaqQuestion {
   labelIds: string[];
 }
 
-const SECTION_BG = '#FFFFFF';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_POSITION = 'center -150px';
-const SECTION_BACKGROUND_SIZE = '900px auto';
-const SECTION_BACKGROUND_FILTER =
-  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
-const SECTION_BACKGROUND_MASK_IMAGE =
-  'linear-gradient(to bottom, black 18%, transparent 20%)';
 const ACTIVE_TAB_BACKGROUND = '#F2A975';
 const ACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const INACTIVE_TAB_BACKGROUND = '#F6DECD';
 const INACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
 const CONTACT_CARD_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
-const CONTACT_CARD_CTA_HREF = '/contact-us';
 const CONTACT_CARD_CTA_LABEL = 'Contact Us';
+const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
+  ...LOGO_OVERLAY_TOP,
+  backgroundColor: '#FFFFFF',
+});
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -166,9 +170,11 @@ function isContactUsPromptQuestion(
 function FaqItems({
   items,
   allLabelIds,
+  contactCardCtaHref,
 }: {
   items: FaqQuestion[];
   allLabelIds: Set<string>;
+  contactCardCtaHref: string;
 }) {
   return (
     <ul className='grid grid-cols-1 gap-5 md:grid-cols-2'>
@@ -187,7 +193,7 @@ function FaqItems({
                   {item.answer}
                 </p>
                 <SectionCtaAnchor
-                  href={CONTACT_CARD_CTA_HREF}
+                  href={contactCardCtaHref}
                   className='mt-6 h-[52px] w-full rounded-[10px] px-5 text-base sm:h-[56px] sm:w-fit sm:min-w-[190px] sm:px-6'
                   style={contactCardCtaStyle}
                 >
@@ -216,8 +222,11 @@ function FaqItems({
 }
 
 export function Faq({ content }: FaqProps) {
+  const pathname = usePathname();
   const labels = content.labels;
   const questions = content.questions;
+  const locale = getLocaleFromPath(pathname ?? '/');
+  const contactCardCtaHref = localizePath('/contact-us', locale);
   const allLabelIds = useMemo(
     () => new Set(labels.map((entry) => entry.id)),
     [labels],
@@ -238,17 +247,7 @@ export function Faq({ content }: FaqProps) {
       ariaLabel={content.title}
       dataFigmaNode='faq'
       className='es-section-bg-overlay'
-      style={
-        {
-          backgroundColor: SECTION_BG,
-          ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
-          ['--es-section-bg-position' as string]: SECTION_BACKGROUND_POSITION,
-          ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
-          ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
-          ['--es-section-bg-mask-image' as string]:
-            SECTION_BACKGROUND_MASK_IMAGE,
-        } as CSSProperties
-      }
+      style={SECTION_STYLE}
     >
       <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[980px] text-center'>
@@ -315,7 +314,11 @@ export function Faq({ content }: FaqProps) {
               {content.emptySearchResultsLabel}
             </p>
           ) : (
-            <FaqItems items={visibleQuestions} allLabelIds={allLabelIds} />
+            <FaqItems
+              items={visibleQuestions}
+              allLabelIds={allLabelIds}
+              contactCardCtaHref={contactCardCtaHref}
+            />
           )}
         </div>
       </div>

@@ -1,17 +1,30 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import {
-  MyBestAuntieBookingModal,
-  MyBestAuntieThankYouModal,
-  type ReservationSummary,
-} from '@/components/sections/my-best-auntie-booking-modal';
+import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import { SectionShell } from '@/components/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+
+const MyBestAuntieBookingModal = dynamic(
+  () =>
+    import('@/components/sections/my-best-auntie-booking-modal').then(
+      (module) => module.MyBestAuntieBookingModal,
+    ),
+  { ssr: false },
+);
+
+const MyBestAuntieThankYouModal = dynamic(
+  () =>
+    import('@/components/sections/my-best-auntie-booking-modal').then(
+      (module) => module.MyBestAuntieThankYouModal,
+    ),
+  { ssr: false },
+);
 
 interface MyBestAuntieBookingProps {
   locale: Locale;

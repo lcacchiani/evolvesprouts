@@ -15,7 +15,18 @@ import {
 
 import { ExternalLinkIcon } from '@/components/external-link-icon';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
-import { createCrmApiClient } from '@/lib/crm-api-client';
+import {
+  applyDiscount,
+  createMaskIconStyle,
+  escapeHtml,
+  extractTimeRangeFromPartDate,
+  resolveLocalizedDate,
+  toTransparentColor,
+} from '@/components/sections/booking-modal/helpers';
+import {
+  createPublicCrmApiClient,
+  isAbortRequestError,
+} from '@/lib/crm-api-client';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import {
   type DiscountRule,
@@ -136,40 +147,6 @@ declare global {
   }
 }
 
-function applyDiscount(basePrice: number, rule: DiscountRule | null): number {
-  if (!rule) {
-    return basePrice;
-  }
-
-  if (rule.type === 'percent') {
-    return Math.max(0, Math.round(basePrice * (1 - rule.value / 100)));
-  }
-
-  return Math.max(0, basePrice - rule.value);
-}
-
-function resolveLocalizedDate(locale: Locale): string {
-  const dateFormatter = new Intl.DateTimeFormat(locale, {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-
-  return dateFormatter.format(new Date());
-}
-
-function toTransparentColor(hexColor: string): string {
-  const normalizedHex = hexColor.replace('#', '');
-  if (!/^[0-9a-fA-F]{6}$/.test(normalizedHex)) {
-    return 'rgba(255, 255, 255, 0)';
-  }
-
-  const red = Number.parseInt(normalizedHex.slice(0, 2), 16);
-  const green = Number.parseInt(normalizedHex.slice(2, 4), 16);
-  const blue = Number.parseInt(normalizedHex.slice(4, 6), 16);
-  return `rgba(${red}, ${green}, ${blue}, 0)`;
-}
-
 const externalScriptLoadMap = new Map<string, Promise<void>>();
 
 function isExternalScriptLoaded(source: string): boolean {
@@ -227,15 +204,6 @@ function loadExternalScript(source: string): Promise<void> {
 
   externalScriptLoadMap.set(source, loadingPromise);
   return loadingPromise;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
 }
 
 function ModalOverlay({
@@ -419,20 +387,6 @@ function getPartGapConnectorStyle(index: number): CSSProperties {
   };
 }
 
-function createMaskIconStyle(iconPath: string, color: string): CSSProperties {
-  return {
-    backgroundColor: color,
-    WebkitMaskImage: `url(${iconPath})`,
-    maskImage: `url(${iconPath})`,
-    WebkitMaskRepeat: 'no-repeat',
-    maskRepeat: 'no-repeat',
-    WebkitMaskPosition: 'center',
-    maskPosition: 'center',
-    WebkitMaskSize: 'contain',
-    maskSize: 'contain',
-  };
-}
-
 const partChipIconMaskStyle = createMaskIconStyle(
   PART_CHIP_ICON_MASK_PATH,
   'currentColor',
@@ -450,14 +404,6 @@ const redTargetIconMaskStyle = createMaskIconStyle(
   BOOKING_HIGHLIGHT_ICON_COLOR,
 );
 
-function extractTimeRangeFromPartDate(partDate: string): string {
-  const rawSegments = partDate.split('@');
-  if (rawSegments.length < 2) {
-    return '';
-  }
-  return rawSegments[1]?.trim() ?? '';
-}
-
 export function MyBestAuntieBookingModal({
   content,
   initialMonthId,
@@ -467,9 +413,6 @@ export function MyBestAuntieBookingModal({
   onClose,
   onSubmitReservation,
 }: MyBestAuntieBookingModalProps) {
-  const crmApiKey = process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '';
-  const crmApiBaseUrl = process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '';
-
   const firstMonthId = content.monthOptions[0]?.id ?? '';
   const firstPackageId = content.packageOptions[0]?.id ?? '';
   const resolvedMonthId = content.monthOptions.some(
@@ -496,10 +439,7 @@ export function MyBestAuntieBookingModal({
 
   useEffect(() => {
     const controller = new AbortController();
-    const crmApiClient = createCrmApiClient({
-      baseUrl: crmApiBaseUrl,
-      apiKey: crmApiKey,
-    });
+    const crmApiClient = createPublicCrmApiClient();
 
     if (!crmApiClient) {
       return () => {
@@ -512,7 +452,7 @@ export function MyBestAuntieBookingModal({
         setDiscountRules(remoteRules);
       })
       .catch((error) => {
-        if (error instanceof Error && error.name === 'AbortError') {
+        if (isAbortRequestError(error)) {
           return;
         }
 
@@ -522,7 +462,7 @@ export function MyBestAuntieBookingModal({
     return () => {
       controller.abort();
     };
-  }, [crmApiBaseUrl, crmApiKey]);
+  }, []);
 
   const selectedMonth =
     content.monthOptions.find((option) => option.id === selectedMonthId) ??
@@ -626,7 +566,7 @@ export function MyBestAuntieBookingModal({
         </header>
         <div className='relative max-h-[82vh] overflow-y-auto px-4 pb-5 sm:px-8 sm:pb-8'>
           <Image
-            src='/images/my-best-auntie-booking/modal-big-tree.png'
+            src='/images/evolvesprouts-logo.svg'
             alt=''
             width={446}
             height={592}
@@ -791,7 +731,7 @@ export function MyBestAuntieBookingModal({
             <div className='w-full lg:w-[calc(50%-20px)]'>
               <section className='relative overflow-hidden rounded-[14px] border border-[#D0E4F4] bg-[#F8F8F8] px-5 py-7 sm:px-7'>
                 <Image
-                  src='/images/my-best-auntie-booking/small-tree-form.png'
+                  src='/images/evolvesprouts-logo.svg'
                   alt=''
                   width={276}
                   height={267}
@@ -1096,7 +1036,7 @@ export function MyBestAuntieThankYouModal({
 
         <div className='relative max-h-[82vh] overflow-y-auto px-4 pb-6 sm:px-8 sm:pb-8'>
           <Image
-            src='/images/my-best-auntie-booking/thank-you-modal-tree.png'
+            src='/images/evolvesprouts-logo.svg'
             alt=''
             width={1488}
             height={855}
@@ -1104,7 +1044,7 @@ export function MyBestAuntieThankYouModal({
             aria-hidden='true'
           />
           <Image
-            src='/images/my-best-auntie-booking/flying-chip.png'
+            src='/images/evolvesprouts-logo.svg'
             alt=''
             width={1196}
             height={568}
@@ -1143,7 +1083,7 @@ export function MyBestAuntieThankYouModal({
 
           <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-[16px] border border-[#D0E4F4] bg-[#F8F8F8] px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
             <Image
-              src='/images/my-best-auntie-booking/seat-tree.png'
+              src='/images/evolvesprouts-logo.svg'
               alt=''
               width={319}
               height={359}

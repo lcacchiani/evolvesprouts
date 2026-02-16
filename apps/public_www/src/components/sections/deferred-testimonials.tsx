@@ -1,24 +1,24 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { SectionShell } from '@/components/section-shell';
 import type { TestimonialsContent } from '@/content';
+import {
+  buildSectionBackgroundOverlayStyle,
+  LOGO_OVERLAY_TOP,
+} from '@/lib/section-backgrounds';
 
 interface DeferredTestimonialsProps {
   content: TestimonialsContent;
 }
 
 const PRELOAD_ROOT_MARGIN = '500px 0px';
-const SECTION_BG = '#FFFFFF';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_POSITION = 'center -150px';
-const SECTION_BACKGROUND_SIZE = '900px auto';
-const SECTION_BACKGROUND_FILTER =
-  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
-const SECTION_BACKGROUND_MASK_IMAGE =
-  'linear-gradient(to bottom, black 18%, transparent 20%)';
+const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
+  ...LOGO_OVERLAY_TOP,
+  backgroundColor: '#FFFFFF',
+});
 
 const LazyTestimonials = dynamic(
   () =>
@@ -80,18 +80,7 @@ export function DeferredTestimonials({ content }: DeferredTestimonialsProps) {
           ariaLabel={content.title}
           dataFigmaNode='Testimonials'
           className='es-section-bg-overlay'
-          style={
-            {
-              backgroundColor: SECTION_BG,
-              ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
-              ['--es-section-bg-position' as string]:
-                SECTION_BACKGROUND_POSITION,
-              ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
-              ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
-              ['--es-section-bg-mask-image' as string]:
-                SECTION_BACKGROUND_MASK_IMAGE,
-            } as CSSProperties
-          }
+          style={SECTION_STYLE}
         >
           <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
             <div className='mx-auto max-w-[760px] text-center'>

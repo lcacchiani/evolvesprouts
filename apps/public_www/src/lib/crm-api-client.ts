@@ -195,6 +195,17 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
   };
 }
 
+export function createPublicCrmApiClient(): CrmApiClient | null {
+  return createCrmApiClient({
+    baseUrl: process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '',
+    apiKey: process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '',
+  });
+}
+
+export function isAbortRequestError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
+}
+
 export function clearCrmApiGetCacheForTests(): void {
   getRequestCache.clear();
 }
