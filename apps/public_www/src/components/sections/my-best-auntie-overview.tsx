@@ -34,6 +34,13 @@ const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
 ];
 
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
+const SECTION_BACKGROUND_POSITION = 'center -150px';
+const SECTION_BACKGROUND_SIZE = '900px auto';
+const SECTION_BACKGROUND_FILTER =
+  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
+const SECTION_BACKGROUND_MASK_IMAGE =
+  'linear-gradient(to bottom, black 60%, transparent 100%)';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const WEEK_COLOR = 'var(--figma-colors-week-01-04, #313131)';
@@ -324,10 +331,18 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
       id='courses'
       ariaLabel={content.title}
       dataFigmaNode='My Best Auntie Overview'
-      className='es-my-best-auntie-overview'
-      style={{
-        backgroundColor: SECTION_BG,
-      }}
+      className='es-section-bg-overlay'
+      style={
+        {
+          backgroundColor: SECTION_BG,
+          ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
+          ['--es-section-bg-position' as string]: SECTION_BACKGROUND_POSITION,
+          ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
+          ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
+          ['--es-section-bg-mask-image' as string]:
+            SECTION_BACKGROUND_MASK_IMAGE,
+        } as CSSProperties
+      }
     >
       <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[760px] text-center'>

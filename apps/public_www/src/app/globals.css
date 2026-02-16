@@ -205,29 +205,29 @@
     opacity: 0.9;
   }
 
-  .es-my-best-auntie-overview {
+  .es-section-bg-overlay {
     position: relative;
     isolation: isolate;
     overflow: hidden;
   }
 
-  .es-my-best-auntie-overview::before {
+  .es-section-bg-overlay::before {
     content: '';
     pointer-events: none;
     position: absolute;
     inset: 0;
     z-index: 0;
-    background-image: url('/images/evolvesprouts-logo.svg');
-    background-position: center -150px;
-    background-repeat: no-repeat;
-    background-size: 900px auto;
-    filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%);
-    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-    mask-repeat: no-repeat;
-    mask-size: 100% 100%;
-    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
+    background-image: var(--es-section-bg-image, none);
+    background-position: var(--es-section-bg-position, center center);
+    background-repeat: var(--es-section-bg-repeat, no-repeat);
+    background-size: var(--es-section-bg-size, cover);
+    filter: var(--es-section-bg-filter, none);
+    mask-image: var(--es-section-bg-mask-image, none);
+    mask-repeat: var(--es-section-bg-mask-repeat, no-repeat);
+    mask-size: var(--es-section-bg-mask-size, 100% 100%);
+    -webkit-mask-image: var(--es-section-bg-mask-image, none);
+    -webkit-mask-repeat: var(--es-section-bg-mask-repeat, no-repeat);
+    -webkit-mask-size: var(--es-section-bg-mask-size, 100% 100%);
   }
 }
 
