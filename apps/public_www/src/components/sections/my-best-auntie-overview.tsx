@@ -40,7 +40,7 @@ const SECTION_BACKGROUND_SIZE = '900px auto';
 const SECTION_BACKGROUND_FILTER =
   'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
 const SECTION_BACKGROUND_MASK_IMAGE =
-  'linear-gradient(to bottom, black 60%, transparent 100%)';
+  'linear-gradient(to bottom, black 18%, transparent 20%)';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const WEEK_COLOR = 'var(--figma-colors-week-01-04, #313131)';

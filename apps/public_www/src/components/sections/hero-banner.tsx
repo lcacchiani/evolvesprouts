@@ -84,7 +84,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
           backgroundSize: 'cover',
           backgroundPosition: '-750px -250px',
           filter: 'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)',
-          maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, black 60%, transparent 90%)',
         }}
       />
       <div className='relative z-10 mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-6'>
