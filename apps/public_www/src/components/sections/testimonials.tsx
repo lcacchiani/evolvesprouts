@@ -40,8 +40,14 @@ const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 const SWIPE_THRESHOLD_PX = 48;
 const QUOTE_ICON_SRC = '/images/orange-quote.svg';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
+const SECTION_BACKGROUND_POSITION = 'center -150px';
 const SECTION_BACKGROUND_SIZE = '900px auto';
+const SECTION_BACKGROUND_FILTER =
+  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
+const SECTION_BACKGROUND_MASK_IMAGE =
+  'linear-gradient(to bottom, black 18%, transparent 20%)';
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
 
@@ -297,15 +303,20 @@ export function Testimonials({ content }: TestimonialsProps) {
     <SectionShell
       ariaLabel={content.title}
       dataFigmaNode='Testimonials'
-      className='relative isolate overflow-hidden bg-white'
-      style={{
-        backgroundImage: SECTION_BACKGROUND_IMAGE,
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: SECTION_BACKGROUND_SIZE,
-      }}
+      className='es-section-bg-overlay'
+      style={
+        {
+          backgroundColor: SECTION_BG,
+          ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
+          ['--es-section-bg-position' as string]: SECTION_BACKGROUND_POSITION,
+          ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
+          ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
+          ['--es-section-bg-mask-image' as string]:
+            SECTION_BACKGROUND_MASK_IMAGE,
+        } as CSSProperties
+      }
     >
-      <div className='relative mx-auto w-full max-w-[1488px]'>
+      <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
         <div className='mx-auto max-w-[760px] text-center'>
           <SectionEyebrowChip
             label={badgeLabel}

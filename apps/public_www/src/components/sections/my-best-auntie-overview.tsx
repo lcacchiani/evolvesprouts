@@ -108,6 +108,7 @@ const descriptionStyle: CSSProperties = {
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontSize: 'clamp(1.1rem, 3vw, var(--figma-fontsizes-30, 30px))',
   fontWeight: 'var(--figma-fontweights-400, 400)',
+  fontStyle: 'italic',
   lineHeight:
     'clamp(1.75rem, 4vw, calc(var(--figma-lineheights-transform-your-auntie-into-a-montessori-guided-child-development-partner-2, 46) * 1px))',
   letterSpacing:
