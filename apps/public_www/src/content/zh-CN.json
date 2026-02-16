@@ -108,13 +108,13 @@
     ]
   },
   "myBestAuntieBooking": {
+    "scheduleLabel": "下一期课程",
+    "scheduleDate": "2026年4月",
+    "scheduleTime": "12:00 pm - 2:00 pm",
     "eyebrow": "预订席位",
     "title": "我的最佳阿姨培训课程",
     "description": "一步完成席位预留与付款确认，流程清晰安心。",
     "availabilityLabel": "仅剩 30 个名额！",
-    "scheduleLabel": "下一期课程",
-    "scheduleDate": "2026年4月",
-    "scheduleTime": "12:00 pm - 2:00 pm",
     "ageSelectorLabel": "您孩子的年龄组是？",
     "ageOptions": [
       {

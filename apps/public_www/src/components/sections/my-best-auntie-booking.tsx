@@ -43,13 +43,11 @@ const inactiveSelectorCardStyle: CSSProperties = {
 const activeSelectorCardStyle: CSSProperties = {
   backgroundColor: '#FFD4B5',
   border: '2px solid #E76C3D',
-  boxShadow: '0 0 14px rgba(231, 108, 61, 0.5)',
 };
 
 const inactiveAgeSelectorCardStyle: CSSProperties = {
   backgroundColor: '#EFF3F6',
   border: '1px solid #E1E6EC',
-  boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.08)',
 };
 
 function createMaskIconStyle(iconPath: string, color: string): CSSProperties {
@@ -162,6 +160,16 @@ export function MyBestAuntieBooking({
         <div className='mx-auto w-full max-w-[1465px]'>
           <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>
             <section className='space-y-5 max-w-[620px] lg:pr-8'>
+              <div className='space-y-1'>
+                <p className='text-base font-semibold uppercase tracking-[0.08em] text-[#C84A16]'>
+                  {content.scheduleLabel}
+                </p>
+                <p className='mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-bold text-[#222222]'>
+                  {nextCohortDate}
+                </p>
+                <p className='mt-1 text-[#4A4A4A]'>{content.scheduleTime}</p>
+              </div>
+
               <h1
                 className='text-[clamp(2rem,5.6vw,3.3rem)]'
                 style={headingStyle}
@@ -174,16 +182,6 @@ export function MyBestAuntieBooking({
               >
                 {content.description}
               </p>
-
-              <div className='space-y-1 pt-3'>
-                <p className='text-base font-semibold uppercase tracking-[0.08em] text-[#C84A16]'>
-                  {content.scheduleLabel}
-                </p>
-                <p className='mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-bold text-[#222222]'>
-                  {nextCohortDate}
-                </p>
-                <p className='mt-1 text-[#4A4A4A]'>{content.scheduleTime}</p>
-              </div>
             </section>
 
             <aside className='mx-auto w-full min-w-0 max-w-[764px] lg:ml-auto lg:mr-0'>
@@ -207,20 +205,20 @@ export function MyBestAuntieBooking({
                         onClick={() => {
                           setSelectedAgeId(option.id);
                         }}
-                        className='es-focus-ring h-[60px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left'
+                        className='es-focus-ring min-h-[76px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left'
                         style={
                           isSelected
                             ? activeSelectorCardStyle
                             : inactiveAgeSelectorCardStyle
                         }
                       >
-                        <div className='flex items-center justify-between gap-3'>
+                        <div className='flex items-center justify-start gap-1.5'>
                           <Image
                             src={option.iconSrc}
                             alt=''
-                            width={24}
-                            height={24}
-                            className='h-6 w-6'
+                            width={48}
+                            height={48}
+                            className='h-12 w-12'
                             aria-hidden='true'
                           />
                           <span className='text-base font-semibold text-[#333333]'>
@@ -324,7 +322,7 @@ export function MyBestAuntieBooking({
                 onClick={() => {
                   setIsPaymentModalOpen(true);
                 }}
-                className='es-focus-ring es-cta-button es-cta-primary mt-7 h-[58px] w-full rounded-[10px] px-5 text-base font-semibold'
+                className='es-focus-ring es-cta-button es-cta-primary mt-7 h-[58px] rounded-[10px] px-5 text-base font-semibold'
               >
                 {content.confirmAndPayLabel}
               </button>
