@@ -261,7 +261,7 @@ export function Faq({ content }: FaqProps) {
           </h2>
         </div>
 
-        <div className='mx-auto mt-8 max-w-[980px] rounded-[58px] border border-[#EECAB0] bg-[#FFFDF8] px-4 py-[13px] sm:px-6 sm:py-4'>
+        <div className='mx-auto mt-8 max-w-[980px] rounded-[58px] border border-[#EECAB0] bg-[#F2F2F2] px-4 py-[13px] sm:px-6 sm:py-4'>
           <div className='relative'>
             <label htmlFor='faq-search' className='sr-only'>
               {content.searchPlaceholder}
