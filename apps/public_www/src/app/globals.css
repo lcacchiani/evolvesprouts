@@ -205,6 +205,19 @@
     opacity: 0.9;
   }
 
+  .es-testimonial-quote-icon {
+    display: inline-block;
+    background-color: #E66C3C;
+    mask-image: url('/images/double-quotes.svg');
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    -webkit-mask-image: url('/images/double-quotes.svg');
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+  }
+
   .es-section-bg-overlay {
     position: relative;
     isolation: isolate;

@@ -39,7 +39,6 @@ const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = '#F3DCCB';
 const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
 const SWIPE_THRESHOLD_PX = 48;
-const QUOTE_ICON_SRC = '/images/orange-quote.svg';
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
 const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
 const SECTION_BACKGROUND_POSITION = 'center -150px';
@@ -220,6 +219,7 @@ export function Testimonials({ content }: TestimonialsProps) {
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
   const activeIndex = getWrappedIndex(activeStoryIndex, storiesToRender.length);
+  const activeStory = storiesToRender[activeIndex];
   const hasMultipleStories = storiesToRender.length > 1;
   const testimonialsRecord = content as Record<string, unknown>;
   const badgeLabel =
@@ -339,7 +339,10 @@ export function Testimonials({ content }: TestimonialsProps) {
           )}
         </div>
 
-        <div className='relative mt-10 overflow-hidden rounded-[30px] border border-[#EFD7C7] bg-white shadow-[0_28px_70px_rgba(18,18,17,0.08)] lg:mt-14'>
+        <div
+          data-testid='testimonials-card'
+          className='relative mt-10 overflow-hidden bg-white shadow-[0_28px_70px_rgba(18,18,17,0.08)] lg:mt-14'
+        >
           <div
             className='overflow-hidden'
             aria-live='polite'
@@ -349,99 +352,141 @@ export function Testimonials({ content }: TestimonialsProps) {
               touchStartXRef.current = null;
             }}
           >
-            <div
-              className='flex transition-transform duration-500 ease-out'
-              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            <article
+              key={`${activeStory.author ?? 'story'}-${activeIndex}`}
+              className='min-w-full'
             >
-              {storiesToRender.map((story, index) => {
-                const quoteText = story.quote ?? content.title;
-                const showMeta = Boolean(story.author) || Boolean(story.role);
+              <div className='grid lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)]'>
+                <div className='relative min-h-[260px] overflow-hidden rounded-[30px] bg-[#F5DFCF] sm:min-h-[360px] lg:min-h-[540px]'>
+                  {activeStory.mainImageSrc ? (
+                    <Image
+                      src={activeStory.mainImageSrc}
+                      alt={`${activeStory.author ?? 'Parent'} testimonial image`}
+                      fill
+                      sizes='(min-width: 1024px) 500px, 100vw'
+                      className='rounded-[30px] object-cover'
+                      priority={activeIndex === 0}
+                    />
+                  ) : (
+                    <div
+                      className='flex h-full min-h-[260px] items-center justify-center rounded-[30px] sm:min-h-[360px] lg:min-h-[540px]'
+                      style={{ backgroundColor: IMAGE_FALLBACK_BG }}
+                    >
+                      <ParentIcon />
+                    </div>
+                  )}
+                </div>
 
-                return (
-                  <article
-                    key={`${story.author ?? 'story'}-${index}`}
-                    className='min-w-full'
-                  >
-                    <div className='grid lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)]'>
-                      <div className='relative min-h-[260px] bg-[#F5DFCF] sm:min-h-[360px] lg:min-h-[540px]'>
-                        {story.mainImageSrc ? (
-                          <Image
-                            src={story.mainImageSrc}
-                            alt={`${story.author ?? 'Parent'} testimonial image`}
-                            fill
-                            sizes='(min-width: 1024px) 500px, 100vw'
-                            className='object-cover'
-                            priority={index === 0}
-                          />
-                        ) : (
-                          <div
-                            className='flex h-full min-h-[260px] items-center justify-center sm:min-h-[360px] lg:min-h-[540px]'
-                            style={{ backgroundColor: IMAGE_FALLBACK_BG }}
+                <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
+                  <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
+                    <span
+                      aria-hidden='true'
+                      className='es-testimonial-quote-icon h-9 w-9 sm:h-11 sm:w-11'
+                    />
+                    <p className='w-full text-balance' style={quoteTextStyle}>
+                      {activeStory.quote ?? content.title}
+                    </p>
+                  </div>
+
+                  {(activeStory.author || activeStory.role) && (
+                    <div className='relative mt-6 flex items-center gap-4 sm:mt-8 sm:gap-6'>
+                      {activeStory.avatarImageSrc ? (
+                        <Image
+                          src={activeStory.avatarImageSrc}
+                          alt={`${activeStory.author ?? 'Parent'} avatar`}
+                          width={100}
+                          height={100}
+                          className='h-[82px] w-[71px] shrink-0 rounded-[30px] object-cover sm:h-[100px] sm:w-[100px]'
+                        />
+                      ) : (
+                        <span
+                          className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-[30px] sm:h-[100px] sm:w-[100px]'
+                          style={{ backgroundColor: PROFILE_CARD_BG }}
+                        >
+                          <ParentIcon />
+                        </span>
+                      )}
+
+                      <div className='min-w-0 lg:pr-[170px]'>
+                        {activeStory.author && <p style={authorStyle}>{activeStory.author}</p>}
+                        {activeStory.role && (
+                          <p
+                            className={`max-w-[190px] ${activeStory.author ? 'mt-1' : ''}`}
+                            style={metaTextStyle}
                           >
-                            <ParentIcon />
-                          </div>
+                            {activeStory.role}
+                          </p>
                         )}
                       </div>
 
-                      <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
-                        <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
-                          <Image
-                            src={QUOTE_ICON_SRC}
-                            alt=''
-                            aria-hidden='true'
-                            width={43}
-                            height={43}
-                            className='h-9 w-9 sm:h-11 sm:w-11'
-                          />
-                          <p className='w-full text-balance' style={quoteTextStyle}>
-                            {quoteText}
-                          </p>
+                      {hasMultipleStories && (
+                        <div className='hidden lg:absolute lg:-right-4 lg:top-1/2 lg:flex lg:-translate-y-1/2 lg:items-center lg:gap-[14px]'>
+                          <button
+                            type='button'
+                            onClick={goToPreviousStory}
+                            aria-label={previousButtonLabel}
+                            className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
+                            style={{
+                              backgroundColor: CONTROL_BG,
+                              boxShadow: CONTROL_SHADOW,
+                            }}
+                          >
+                            <ChevronIcon direction='left' />
+                          </button>
+                          <button
+                            type='button'
+                            onClick={goToNextStory}
+                            aria-label={nextButtonLabel}
+                            className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
+                            style={{
+                              backgroundColor: CONTROL_BG,
+                              boxShadow: CONTROL_SHADOW,
+                            }}
+                          >
+                            <ChevronIcon direction='right' />
+                          </button>
                         </div>
+                      )}
+                    </div>
+                  )}
 
-                        {showMeta && (
-                          <div className='mt-6 flex items-start gap-4 sm:mt-8 sm:gap-6'>
-                            {story.avatarImageSrc ? (
-                              <Image
-                                src={story.avatarImageSrc}
-                                alt={`${story.author ?? 'Parent'} avatar`}
-                                width={100}
-                                height={100}
-                                className='h-[82px] w-[71px] shrink-0 rounded-[16px] object-cover sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
-                              />
-                            ) : (
-                              <span
-                                className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-[16px] sm:h-[100px] sm:w-[100px] sm:rounded-[20px]'
-                                style={{ backgroundColor: PROFILE_CARD_BG }}
-                              >
-                                <ParentIcon />
-                              </span>
-                            )}
-
-                            <div className='min-w-0'>
-                              {story.author && (
-                                <p style={authorStyle}>{story.author}</p>
-                              )}
-                              {story.role && (
-                                <p
-                                  className={`max-w-[190px] ${story.author ? 'mt-1' : ''}`}
-                                  style={metaTextStyle}
-                                >
-                                  {story.role}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                  {hasMultipleStories && !activeStory.author && !activeStory.role && (
+                    <div className='mt-6 hidden justify-end lg:flex'>
+                      <div className='flex items-center gap-[14px]'>
+                        <button
+                          type='button'
+                          onClick={goToPreviousStory}
+                          aria-label={previousButtonLabel}
+                          className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
+                          style={{
+                            backgroundColor: CONTROL_BG,
+                            boxShadow: CONTROL_SHADOW,
+                          }}
+                        >
+                          <ChevronIcon direction='left' />
+                        </button>
+                        <button
+                          type='button'
+                          onClick={goToNextStory}
+                          aria-label={nextButtonLabel}
+                          className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
+                          style={{
+                            backgroundColor: CONTROL_BG,
+                            boxShadow: CONTROL_SHADOW,
+                          }}
+                        >
+                          <ChevronIcon direction='right' />
+                        </button>
                       </div>
                     </div>
-                  </article>
-                );
-              })}
-            </div>
+                  )}
+                </div>
+              </div>
+            </article>
           </div>
 
           {hasMultipleStories && (
-            <div className='flex items-center justify-center gap-[14px] px-6 pb-6 pt-5 sm:gap-[18px] sm:px-9 lg:absolute lg:bottom-8 lg:right-8 lg:gap-[14px] lg:p-0'>
+            <div className='flex items-center justify-center gap-[14px] px-6 pb-6 pt-5 sm:gap-[18px] sm:px-9 lg:hidden'>
               <button
                 type='button'
                 onClick={goToPreviousStory}

@@ -99,7 +99,7 @@ export function DeferredTestimonials({ content }: DeferredTestimonialsProps) {
                 {content.title}
               </h2>
             </div>
-            <div className='mt-10 h-[420px] rounded-[30px] border border-[#EFD7C7] bg-white lg:mt-14 lg:h-[540px]' />
+            <div className='mt-10 h-[420px] bg-white lg:mt-14 lg:h-[540px]' />
           </div>
         </SectionShell>
       )}
