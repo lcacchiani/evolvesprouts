@@ -10,7 +10,6 @@ import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
 import {
   bodyTextStyle,
-  BRAND_ORANGE_SOFT,
   eyebrowTextStyle,
   HEADING_TEXT_COLOR,
   headingTextStyle,
@@ -34,7 +33,7 @@ interface FaqQuestion {
   labelIds: string[];
 }
 
-const ACTIVE_TAB_BACKGROUND = BRAND_ORANGE_SOFT;
+const ACTIVE_TAB_BACKGROUND = '#F2A975';
 const ACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const INACTIVE_TAB_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const INACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
