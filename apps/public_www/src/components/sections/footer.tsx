@@ -29,6 +29,8 @@ function resolveCurrentYearCopyright(value: string): string {
 
 const FOOTER_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
+const FOOTER_LOGO_CLASSNAME =
+  'h-auto w-full max-w-[600px] -mt-[100px] -mb-[100px]';
 const columnTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-urbanist, Urbanist), sans-serif',
@@ -230,9 +232,9 @@ export function Footer({ content }: FooterProps) {
             <Image
               src='/images/evolvesprouts-logo.svg'
               alt={content.brand}
-              width={700}
-              height={700}
-              className='h-auto w-[700px] max-w-full'
+              width={600}
+              height={600}
+              className={FOOTER_LOGO_CLASSNAME}
             />
           </div>
           <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_600px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
@@ -250,7 +252,7 @@ export function Footer({ content }: FooterProps) {
                 alt={content.brand}
                 width={600}
                 height={600}
-                className='h-auto w-[264px] lg:w-[600px]'
+                className={FOOTER_LOGO_CLASSNAME}
               />
             </div>
             <FooterDesktopColumn
@@ -269,9 +271,9 @@ export function Footer({ content }: FooterProps) {
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
-                width={1200}
-                height={1200}
-                className='h-auto w-[1200px] max-w-full'
+                width={600}
+                height={600}
+                className={FOOTER_LOGO_CLASSNAME}
               />
             </div>
             <FooterMobileAccordion
