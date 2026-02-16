@@ -13,9 +13,14 @@ interface MyBestAuntieDescriptionProps {
   content: MyBestAuntieDescriptionContent;
 }
 
-const SECTION_BACKGROUND = '#F8F8F8';
+const SECTION_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
-const SECTION_BACKGROUND_SIZE = '900px auto';
+const SECTION_BACKGROUND_POSITION = 'center -900px';
+const SECTION_BACKGROUND_SIZE = '2000px auto';
+const SECTION_BACKGROUND_FILTER =
+  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
+const SECTION_BACKGROUND_MASK_IMAGE =
+  'linear-gradient(to bottom, black 5%, transparent 15%)';
 const CARD_BACKGROUND = '#FFFFFF';
 const CARD_SHADOW =
   '0 8px 8px rgba(50, 50, 71, 0.08), 0 8px 16px rgba(50, 50, 71, 0.06)';
@@ -182,17 +187,21 @@ export function MyBestAuntieDescription({
       id='my-best-auntie-description'
       ariaLabel={content.title}
       dataFigmaNode='courseHiglit_sec'
-      className='relative isolate overflow-hidden'
-      style={{
-        backgroundColor: SECTION_BACKGROUND,
-        backgroundImage: SECTION_BACKGROUND_IMAGE,
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: SECTION_BACKGROUND_SIZE,
-      }}
+      className='es-section-bg-overlay'
+      style={
+        {
+          backgroundColor: SECTION_BACKGROUND,
+          ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
+          ['--es-section-bg-position' as string]: SECTION_BACKGROUND_POSITION,
+          ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
+          ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
+          ['--es-section-bg-mask-image' as string]:
+            SECTION_BACKGROUND_MASK_IMAGE,
+        } as CSSProperties
+      }
     >
       <div className='mx-auto w-full max-w-[1465px]'>
-        <div className='mx-auto max-w-[920px] text-center'>
+        <div className='max-w-[920px] text-left'>
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowStyle}
