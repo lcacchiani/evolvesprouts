@@ -67,6 +67,9 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
 
+Use `NEXT_PUBLIC_WWW_CRM_API_BASE_URL=/www` to route requests through the
+same-origin CloudFront API proxy and avoid cross-origin CORS preflight issues.
+
 ## Build
 
 ```bash

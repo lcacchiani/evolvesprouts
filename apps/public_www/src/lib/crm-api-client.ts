@@ -25,14 +25,72 @@ interface CachedGetEntry {
 export const CRM_GET_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const getRequestCache = new Map<string, CachedGetEntry>();
+const PUBLIC_WWW_API_HOSTNAMES = new Set([
+  'www.evolvesprouts.com',
+  'www-staging.evolvesprouts.com',
+]);
+const CRM_API_HOSTNAME = 'api.evolvesprouts.com';
+const WWW_API_PATH_PREFIX = '/www';
 
 function normalizeBaseUrl(baseUrl: string): string {
   const normalizedBaseUrl = baseUrl.trim();
-  if (!normalizedBaseUrl || !/^https:\/\//i.test(normalizedBaseUrl)) {
+  if (!normalizedBaseUrl) {
     return '';
   }
 
-  return normalizedBaseUrl.replace(/\/+$/, '');
+  if (normalizedBaseUrl.startsWith('/')) {
+    return normalizeRelativeBaseUrl(normalizedBaseUrl);
+  }
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(normalizedBaseUrl);
+  } catch {
+    return '';
+  }
+
+  if (parsedUrl.protocol.toLowerCase() !== 'https:') {
+    return '';
+  }
+
+  const normalizedPathname = normalizeAbsolutePathname(parsedUrl.pathname);
+  if (shouldUsePublicWwwProxy(parsedUrl.hostname, normalizedPathname)) {
+    return normalizedPathname;
+  }
+
+  return `${parsedUrl.origin}${normalizedPathname}`;
+}
+
+function normalizeRelativeBaseUrl(baseUrl: string): string {
+  const normalizedPath = baseUrl.replace(/^\/+/, '').replace(/\/+$/, '');
+  if (!normalizedPath) {
+    return '';
+  }
+
+  return `/${normalizedPath}`;
+}
+
+function normalizeAbsolutePathname(pathname: string): string {
+  const normalizedPath = pathname.replace(/\/+$/, '');
+  if (!normalizedPath || normalizedPath === '/') {
+    return '';
+  }
+
+  return normalizedPath;
+}
+
+function shouldUsePublicWwwProxy(apiHostname: string, apiPathname: string): boolean {
+  if (apiHostname.toLowerCase() !== CRM_API_HOSTNAME) {
+    return false;
+  }
+  if (!apiPathname.startsWith(WWW_API_PATH_PREFIX)) {
+    return false;
+  }
+
+  const currentHostname =
+    typeof location === 'undefined' ? '' : location.hostname.toLowerCase();
+
+  return PUBLIC_WWW_API_HOSTNAMES.has(currentHostname);
 }
 
 function normalizeEndpointPath(endpointPath: string): string {

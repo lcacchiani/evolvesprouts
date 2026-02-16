@@ -34,6 +34,14 @@ The stack outputs:
 - `PublicWwwStagingDistributionDomain`
 - `PublicWwwStagingLoggingBucketName`
 
+Public WWW CloudFront includes:
+
+- Default behavior: static site content from S3 with extensionless path rewrite.
+- Additional behavior: `www/*` forwards to `api.evolvesprouts.com` using
+  HTTPS-only origin policy, disabled caching, and
+  `OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER` so API key headers and
+  query parameters pass through while preserving the API origin host header.
+
 ---
 
 ## CDK Bootstrap Stack (CDKToolkit)
