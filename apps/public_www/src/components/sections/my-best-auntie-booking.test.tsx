@@ -87,11 +87,27 @@ describe('MyBestAuntieBooking section', () => {
       name: enContent.myBestAuntieBooking.confirmAndPayLabel,
     });
     expect(ctaButton.className).not.toContain('w-full');
+    expect(ctaButton.className).toContain('cursor-pointer');
+
+    const secondDateOption = enContent.myBestAuntieBooking.dateOptions[1];
+    if (!secondDateOption) {
+      throw new Error('Test content must include second date option.');
+    }
+    const secondDateButton = screen.getByRole('button', {
+      name: new RegExp(secondDateOption.label),
+    });
+    const secondDateButtonStyle = secondDateButton.getAttribute('style') ?? '';
+    expect(secondDateButton.className).toContain('cursor-pointer');
+    expect(secondDateButtonStyle).toContain(
+      'background-color: rgb(239, 243, 246)',
+    );
+    expect(secondDateButtonStyle).toContain('border: 1px solid rgb(225, 230, 236)');
+
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
   });
 
-  it('doubles age icon size while keeping original icon-text gap', () => {
+  it('doubles age icon size and uses wider age icon/text spacing', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
     const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
@@ -109,8 +125,10 @@ describe('MyBestAuntieBooking section', () => {
     expect(firstAgeIcon?.className).toContain('w-12');
 
     const iconRowClassName = firstAgeIcon?.closest('div')?.className ?? '';
-    expect(iconRowClassName).toContain('gap-3');
+    expect(iconRowClassName).toContain('gap-10');
     expect(iconRowClassName).toContain('justify-start');
+    const ageLabelClassName = firstAgeButton.querySelector('span')?.className ?? '';
+    expect(ageLabelClassName).toContain('text-lg');
   });
 
   it('shows edge-overlapped arrows only when more dates are available to scroll', () => {

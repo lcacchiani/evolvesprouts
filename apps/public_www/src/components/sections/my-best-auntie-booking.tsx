@@ -38,17 +38,17 @@ const bodyStyle: CSSProperties = {
   lineHeight: 1.55,
 };
 
-const inactiveSelectorCardStyle: CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  border: '1px solid #EED5C1',
-};
-
 const activeSelectorCardStyle: CSSProperties = {
   backgroundColor: '#FFD4B5',
   border: '2px solid #E76C3D',
 };
 
 const inactiveAgeSelectorCardStyle: CSSProperties = {
+  backgroundColor: '#EFF3F6',
+  border: '1px solid #E1E6EC',
+};
+
+const inactiveDateSelectorCardStyle: CSSProperties = {
   backgroundColor: '#EFF3F6',
   border: '1px solid #E1E6EC',
 };
@@ -307,7 +307,7 @@ export function MyBestAuntieBooking({
                             : inactiveAgeSelectorCardStyle
                         }
                       >
-                        <div className='flex items-center justify-start gap-3'>
+                        <div className='flex items-center justify-start gap-10'>
                           <Image
                             src={option.iconSrc}
                             alt=''
@@ -316,7 +316,7 @@ export function MyBestAuntieBooking({
                             className='h-12 w-12'
                             aria-hidden='true'
                           />
-                          <span className='text-base font-semibold text-[#333333]'>
+                          <span className='text-lg font-semibold text-[#333333]'>
                             {option.label}
                           </span>
                         </div>
@@ -357,11 +357,11 @@ export function MyBestAuntieBooking({
                               onClick={() => {
                                 setSelectedDateId(option.id);
                               }}
-                              className='es-focus-ring w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left'
+                              className='es-focus-ring w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left cursor-pointer'
                               style={
                                 isSelected
                                   ? activeSelectorCardStyle
-                                  : inactiveSelectorCardStyle
+                                  : inactiveDateSelectorCardStyle
                               }
                             >
                               <div className='flex items-center justify-start gap-1.5'>
@@ -429,7 +429,7 @@ export function MyBestAuntieBooking({
                 onClick={() => {
                   setIsPaymentModalOpen(true);
                 }}
-                className='es-focus-ring es-cta-button es-cta-primary mt-7 h-[58px] rounded-[10px] px-5 text-base font-semibold'
+                className='es-focus-ring es-cta-button es-cta-primary mt-7 h-[58px] rounded-[10px] px-5 text-base font-semibold cursor-pointer'
               >
                 {content.confirmAndPayLabel}
               </button>
