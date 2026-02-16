@@ -13,7 +13,7 @@ interface ReachOutProps {
 }
 
 const SECTION_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
 const SECTION_BACKGROUND_SIZE = '900px auto';
 const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 

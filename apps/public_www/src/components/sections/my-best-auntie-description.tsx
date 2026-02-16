@@ -14,7 +14,7 @@ interface MyBestAuntieDescriptionProps {
 }
 
 const SECTION_BACKGROUND = '#F8F8F8';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
 const SECTION_BACKGROUND_SIZE = '900px auto';
 const CARD_BACKGROUND = '#FFFFFF';
 const CARD_SHADOW =

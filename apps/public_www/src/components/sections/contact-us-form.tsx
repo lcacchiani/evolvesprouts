@@ -23,7 +23,7 @@ interface FormState {
 
 const SECTION_BACKGROUND = '#FFFFFF';
 const FORM_PANEL_BACKGROUND = 'linear-gradient(155deg, #FFF7F0 0%, #FFFFFF 100%)';
-const LEFT_PANEL_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const LEFT_PANEL_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
 const FORM_DECORATIVE_BLUE_LINE =
   'url("/images/vector-blue-line.svg")';
 const FORM_DECORATIVE_GREEN_WEDGE =
