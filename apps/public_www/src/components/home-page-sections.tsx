@@ -4,7 +4,7 @@ import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-commu
 import { CourseHighlights } from '@/components/sections/course-highlights';
 import { HeroBanner } from '@/components/sections/hero-banner';
 import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overview';
-import { Resources } from '@/components/sections/resources';
+import { FreeResourcesForGentleParenting } from '@/components/sections/free-resources-for-gentle-parenting';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 
 interface HomePageSectionsProps {
@@ -20,7 +20,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
       <HeroBanner content={content.hero} />
       <MyBestAuntieOverview content={content.myBestAuntieOverview} />
       <CourseHighlights content={content.courseHighlights} />
-      <Resources content={content.resources} />
+      <FreeResourcesForGentleParenting content={content.resources} />
       <DeferredTestimonials content={content.testimonials} />
       <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
     </PageLayout>
