@@ -19,7 +19,7 @@ vi.mock('next/image', () => ({
 }));
 
 describe('MyJourney section', () => {
-  it('uses testimonials overlay properties and renders the www2 journey image', () => {
+  it('uses testimonials overlay properties and renders the local journey image', () => {
     render(<MyJourney content={enContent.myJourney} />);
 
     const section = screen.getByRole('region', {
@@ -51,5 +51,21 @@ describe('MyJourney section', () => {
       'src',
       '/images/contact-us/my-journey.webp',
     );
+
+    const firstCard = screen
+      .getByText(enContent.myJourney.cards[0].tag)
+      .closest('article');
+    expect(firstCard).not.toBeNull();
+    expect(firstCard).toHaveStyle({
+      background: 'linear-gradient(180deg, #E3F0FF 0%, #FFFFFF 100%)',
+    });
+
+    const secondCard = screen
+      .getByText(enContent.myJourney.cards[1].tag)
+      .closest('article');
+    expect(secondCard).not.toBeNull();
+    expect(secondCard).toHaveStyle({
+      background: 'linear-gradient(180deg, #FFF3E0 0%, #FFFFFF 100%)',
+    });
   });
 });
