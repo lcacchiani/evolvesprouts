@@ -323,7 +323,7 @@ function ResourceCardContent({
       )}
 
       {checklistItems.length > 0 && (
-        <ul className='mt-7 space-y-3 sm:mt-8'>
+        <ul className='mb-7 mt-7 space-y-3 sm:mb-8 sm:mt-8'>
           {checklistItems.map((item) => (
             <li
               key={`${item.title}-${item.description ?? ''}`}
@@ -460,11 +460,7 @@ export function FreeResourcesForGentleParenting({
                   className={`absolute inset-4 z-20 flex items-start sm:inset-6 lg:inset-8 ${overlayCardAlignmentClassName}`}
                 >
                   <article
-                    className='relative isolate flex w-full max-w-[530px] min-h-[420px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[460px] sm:p-8'
-                    style={{
-                      boxShadow:
-                        '0px 22px 60px -36px rgba(28, 53, 66, 0.38)',
-                    }}
+                    className='relative flex w-full max-w-[530px] min-h-[420px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[460px] sm:p-8'
                   >
                     <ResourceCardContent
                       cardTitle={cardTitle}
@@ -485,14 +481,10 @@ export function FreeResourcesForGentleParenting({
               >
                 <div
                   data-testid='free-resource-text-pane'
-                  className={`relative p-4 sm:p-6 lg:p-[35px] ${splitTextPaneOrderClassName}`}
+                  className={`relative z-0 p-4 sm:p-6 lg:p-[35px] ${splitTextPaneOrderClassName}`}
                 >
                   <article
-                    className='relative isolate flex h-full min-h-[370px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
-                    style={{
-                      boxShadow:
-                        '0px 22px 60px -36px rgba(28, 53, 66, 0.38)',
-                    }}
+                    className='relative flex h-full min-h-[370px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
                   >
                     <ResourceCardContent
                       cardTitle={cardTitle}
@@ -506,7 +498,7 @@ export function FreeResourcesForGentleParenting({
 
                 <div
                   data-testid='free-resource-media-pane'
-                  className={`relative min-h-[280px] overflow-hidden sm:min-h-[370px] lg:min-h-[587px] ${splitMediaPaneOrderClassName}`}
+                  className={`relative z-10 min-h-[280px] overflow-hidden sm:min-h-[370px] lg:min-h-[587px] ${splitMediaPaneOrderClassName}`}
                 >
                   <Image
                     src={RESOURCE_IMAGE_SRC}

@@ -38,10 +38,13 @@ describe('Free resources for gentle parenting section', () => {
 
     const header = screen.getByTestId('free-resource-header');
     const layout = screen.getByTestId('free-resource-layout');
+    const textPane = screen.getByTestId('free-resource-text-pane');
     const mediaPane = screen.getByTestId('free-resource-media-pane');
 
     expect(header.className).toContain('text-center');
     expect(layout).toHaveAttribute('data-layout', 'split');
+    expect(textPane.className).toContain('z-0');
+    expect(mediaPane.className).toContain('z-10');
     expect(mediaPane.className).toContain('lg:order-2');
   });
 
@@ -59,6 +62,8 @@ describe('Free resources for gentle parenting section', () => {
     expect(layout.style.backgroundSize).toBe('100px 100px');
     expect(mediaPane.style.backgroundColor).toBe('');
     expect(splitArticle?.style.backgroundColor).toBe('');
+    expect(splitArticle?.style.boxShadow).toBe('');
+    expect(splitArticle?.className).not.toContain('isolate');
 
     const overlayContent = createResourcesContent({
       headerAlignment: 'center',
@@ -75,6 +80,8 @@ describe('Free resources for gentle parenting section', () => {
     expect(overlayLayout.style.backgroundColor).toBe('rgb(238, 202, 176)');
     expect(overlayMediaPane.style.backgroundColor).toBe('');
     expect(overlayArticle?.style.backgroundColor).toBe('');
+    expect(overlayArticle?.style.boxShadow).toBe('');
+    expect(overlayArticle?.className).not.toContain('isolate');
   });
 
   it('does not render the circular play-arrow overlay on the media image', () => {
@@ -101,7 +108,10 @@ describe('Free resources for gentle parenting section', () => {
       <FreeResourcesForGentleParenting content={enContent.resources} />,
     );
 
+    const checklistList = container.querySelector('ul');
     const checklistItems = container.querySelectorAll('li');
+    expect(checklistList?.className).toContain('mt-7');
+    expect(checklistList?.className).toContain('mb-7');
     expect(checklistItems.length).toBeGreaterThan(0);
     checklistItems.forEach((item) => {
       expect(item.className).toContain('rounded-[12px]');
