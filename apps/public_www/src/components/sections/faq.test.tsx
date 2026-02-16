@@ -86,7 +86,7 @@ describe('Faq section', () => {
   });
 
   it('uses navbar pill colors for category buttons and a grey search input', () => {
-    render(<Faq content={enContent.faq} />);
+    const { container } = render(<Faq content={enContent.faq} />);
 
     const firstLabel = enContent.faq.labels[0];
     const secondLabel = enContent.faq.labels[1];
@@ -117,5 +117,10 @@ describe('Faq section', () => {
       name: enContent.faq.searchPlaceholder,
     });
     expect(searchInput.className).toContain('bg-[#F2F2F2]');
+
+    const searchWrapper = container.querySelector(
+      'div.mx-auto.mt-8.max-w-\\[980px\\].rounded-\\[58px\\]',
+    );
+    expect(searchWrapper?.className).toContain('bg-[#F2F2F2]');
   });
 });
