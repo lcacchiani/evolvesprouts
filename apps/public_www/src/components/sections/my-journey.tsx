@@ -11,6 +11,15 @@ interface MyJourneyProps {
 }
 
 const SECTION_BACKGROUND = '#FFFFFF';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
+const SECTION_BACKGROUND_POSITION = 'center -150px';
+const SECTION_BACKGROUND_SIZE = '900px auto';
+const SECTION_BACKGROUND_FILTER =
+  'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
+const SECTION_BACKGROUND_MASK_IMAGE =
+  'linear-gradient(to bottom, black 18%, transparent 20%)';
+const JOURNEY_IMAGE_SRC =
+  'https://www2.evolvesprouts.com/wp-content/uploads/2025/10/Rectangle-240648668.png';
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -52,9 +61,20 @@ export function MyJourney({ content }: MyJourneyProps) {
       id='my-journey'
       ariaLabel={content.title}
       dataFigmaNode='my-journey'
-      style={{ backgroundColor: SECTION_BACKGROUND }}
+      className='es-section-bg-overlay'
+      style={
+        {
+          backgroundColor: SECTION_BACKGROUND,
+          ['--es-section-bg-image' as string]: SECTION_BACKGROUND_IMAGE,
+          ['--es-section-bg-position' as string]: SECTION_BACKGROUND_POSITION,
+          ['--es-section-bg-size' as string]: SECTION_BACKGROUND_SIZE,
+          ['--es-section-bg-filter' as string]: SECTION_BACKGROUND_FILTER,
+          ['--es-section-bg-mask-image' as string]:
+            SECTION_BACKGROUND_MASK_IMAGE,
+        } as CSSProperties
+      }
     >
-      <div className='mx-auto w-full max-w-[1465px]'>
+      <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[980px] text-center'>
           <SectionEyebrowChip
             label={content.eyebrow}
@@ -66,28 +86,15 @@ export function MyJourney({ content }: MyJourneyProps) {
         </div>
 
         <div className='mt-10 grid gap-6 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-8'>
-          <div className='relative isolate overflow-hidden rounded-[28px] border border-[#ECD5C3] bg-[linear-gradient(165deg,#FFEFE4_0%,#FFF8F3_100%)] p-6'>
-            <div
-              aria-hidden='true'
-              className='absolute -top-9 right-6 h-24 w-24 rounded-full bg-[#A8D6A2]/35 blur-2xl'
+          <div className='relative overflow-hidden rounded-[30px] bg-[#F5DFCF]'>
+            <Image
+              src={JOURNEY_IMAGE_SRC}
+              alt='My Montessori Journey section image'
+              width={539}
+              height={675}
+              sizes='(min-width: 1280px) 34vw, (min-width: 1024px) 38vw, 100vw'
+              className='h-full min-h-[360px] w-full object-cover lg:min-h-[540px]'
             />
-            <div
-              aria-hidden='true'
-              className='absolute -bottom-12 left-7 h-32 w-32 rounded-full bg-[#F2A975]/35 blur-2xl'
-            />
-            <div className='relative z-10 flex min-h-[340px] flex-col justify-between rounded-[20px] border border-white/70 bg-white/80 p-6 shadow-[0_18px_40px_-30px_rgba(0,0,0,0.6)]'>
-              <Image
-                src='/images/evolvesprouts-logo.svg'
-                alt=''
-                width={68}
-                height={68}
-                className='h-[68px] w-[68px] rounded-full bg-white p-1'
-              />
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='h-20 rounded-xl bg-[#FFF5EC]' />
-                <div className='h-20 rounded-xl bg-[#F4FAF2]' />
-              </div>
-            </div>
           </div>
 
           <ul className='space-y-4'>
