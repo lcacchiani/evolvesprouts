@@ -613,12 +613,6 @@ export function MyBestAuntieBookingModal({
                 <h3 className='relative z-10 text-[30px] font-bold leading-none text-[#333333]'>
                   {content.reservationTitle}
                 </h3>
-                <p
-                  className='relative z-10 mt-2 text-sm text-[#4A4A4A]'
-                  style={bodyStyle}
-                >
-                  {content.reservationDescription}
-                </p>
 
                 <form className='relative z-10 mt-4 space-y-3' onSubmit={handleSubmit}>
                   <label className='block'>
