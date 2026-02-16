@@ -482,7 +482,7 @@ export function MyBestAuntieBookingModal({
                           )}
                         />
                       </span>
-                      <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:justify-between sm:gap-4'>
+                      <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
                         <span
                           data-course-part-line='gap-connector'
                           className='pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2'
@@ -490,7 +490,8 @@ export function MyBestAuntieBookingModal({
                           aria-hidden='true'
                         />
                         <span
-                          className='inline-flex items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
+                          data-course-part-chip='true'
+                          className='inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
                           style={getPartChipTone(index)}
                         >
                           <span

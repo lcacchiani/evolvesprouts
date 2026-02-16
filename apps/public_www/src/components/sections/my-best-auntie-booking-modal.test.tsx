@@ -169,6 +169,14 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(firstPartItem?.getAttribute('style')).toContain('padding-left: 50px');
     expect(firstPartItem?.getAttribute('style')).toContain('padding-bottom: 100px');
     expect(firstPartItem?.querySelector('img')).toBeNull();
+
+    const firstPartChip = firstPartItem?.querySelector(
+      'span[data-course-part-chip="true"]',
+    ) as HTMLSpanElement | null;
+    expect(firstPartChip?.className).toContain('self-start');
+
+    const firstPartRow = firstPartChip?.closest('div');
+    expect(firstPartRow?.className).toContain('sm:items-start');
   });
 
   it('does not render booking modal copyright footer section', () => {
