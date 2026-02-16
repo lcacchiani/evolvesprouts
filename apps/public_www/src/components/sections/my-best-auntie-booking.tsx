@@ -105,20 +105,12 @@ export function MyBestAuntieBooking({
   const modalMonthId =
     selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
   const firstCoursePart = content.paymentModal.parts[0];
-  const selectedMonthEntry = firstCoursePart
-    ? Object.entries(firstCoursePart.dateByMonth).find(
-        ([monthId]) => monthId === selectedDateOption?.id,
-      )
-    : undefined;
-  const fallbackMonthEntry = firstCoursePart
-    ? Object.entries(firstCoursePart.dateByMonth).find(
-        ([monthId]) => monthId === content.paymentModal.monthOptions[0]?.id,
-      )
-    : undefined;
+  const firstMonthId =
+    content.paymentModal.monthOptions[0]?.id ?? dateOptions[0]?.id ?? '';
+  const firstCohortDate = firstCoursePart?.dateByMonth[firstMonthId];
   const nextCohortDate =
-    selectedMonthEntry?.[1] ??
-    fallbackMonthEntry?.[1] ??
-    selectedDateOption?.label ??
+    firstCohortDate ??
+    dateOptions[0]?.label ??
     content.scheduleDate;
 
   useEffect(() => {
@@ -160,16 +152,6 @@ export function MyBestAuntieBooking({
         <div className='mx-auto w-full max-w-[1465px]'>
           <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>
             <section className='space-y-5 max-w-[620px] lg:pr-8'>
-              <div className='space-y-1'>
-                <p className='text-base font-semibold uppercase tracking-[0.08em] text-[#C84A16]'>
-                  {content.scheduleLabel}
-                </p>
-                <p className='mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-bold text-[#222222]'>
-                  {nextCohortDate}
-                </p>
-                <p className='mt-1 text-[#4A4A4A]'>{content.scheduleTime}</p>
-              </div>
-
               <h1
                 className='text-[clamp(2rem,5.6vw,3.3rem)]'
                 style={headingStyle}
@@ -182,6 +164,16 @@ export function MyBestAuntieBooking({
               >
                 {content.description}
               </p>
+
+              <div className='space-y-1 pt-3'>
+                <p className='text-base font-semibold uppercase tracking-[0.08em] text-[#C84A16]'>
+                  {content.scheduleLabel}
+                </p>
+                <p className='mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-bold text-[#222222]'>
+                  {nextCohortDate}
+                </p>
+                <p className='mt-1 text-[#4A4A4A]'>{content.scheduleTime}</p>
+              </div>
             </section>
 
             <aside className='mx-auto w-full min-w-0 max-w-[764px] lg:ml-auto lg:mr-0'>

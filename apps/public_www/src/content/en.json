@@ -108,13 +108,13 @@
     ]
   },
   "myBestAuntieBooking": {
-    "scheduleLabel": "Next Cohort",
-    "scheduleDate": "Apr, 2026",
-    "scheduleTime": "12:00 pm - 2:00 pm",
     "eyebrow": "Book Your Spot",
     "title": "My Best Auntie Training Course",
     "description": "Reserve your seat and complete payment securely in one flow.",
     "availabilityLabel": "30 Spots Left!",
+    "scheduleLabel": "Next Cohort",
+    "scheduleDate": "Apr, 2026",
+    "scheduleTime": "12:00 pm - 2:00 pm",
     "ageSelectorLabel": "What's the age group of your child?",
     "ageOptions": [
       {

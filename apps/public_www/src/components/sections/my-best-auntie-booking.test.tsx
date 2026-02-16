@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie-booking';
@@ -22,23 +22,37 @@ beforeAll(() => {
 });
 
 describe('MyBestAuntieBooking section', () => {
-  it('renders next cohort before title and description', () => {
+  it('keeps next cohort fixed to the first locale booking entry', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
-    const section = screen.getByRole('region', {
-      name: enContent.myBestAuntieBooking.title,
-    });
-    const scheduleLabel = within(section).getByText(
-      enContent.myBestAuntieBooking.scheduleLabel,
-    );
-    const title = within(section).getByRole('heading', {
-      level: 1,
-      name: enContent.myBestAuntieBooking.title,
-    });
+    const firstMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[0]?.id;
+    const firstCohortDate =
+      firstMonthId
+        ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[firstMonthId]
+        : undefined;
+    const secondMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[1]?.id;
+    const secondCohortDate =
+      secondMonthId
+        ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[secondMonthId]
+        : undefined;
+    const secondDateOption = enContent.myBestAuntieBooking.dateOptions[1];
 
-    const followsTitle =
-      scheduleLabel.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING;
-    expect(followsTitle).toBeTruthy();
+    if (!firstCohortDate || !secondDateOption) {
+      throw new Error('Test content must include first and second cohort data.');
+    }
+
+    expect(screen.getByText(firstCohortDate)).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: new RegExp(secondDateOption.label),
+      }),
+    );
+
+    expect(screen.getByText(firstCohortDate)).toBeInTheDocument();
+    if (secondCohortDate) {
+      expect(screen.queryByText(secondCohortDate)).not.toBeInTheDocument();
+    }
   });
 
   it('removes right-column selector shadows and keeps CTA width to copy', () => {

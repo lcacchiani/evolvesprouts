@@ -108,13 +108,13 @@
     ]
   },
   "myBestAuntieBooking": {
-    "scheduleLabel": "下一期課程",
-    "scheduleDate": "2026年4月",
-    "scheduleTime": "12:00 pm - 2:00 pm",
     "eyebrow": "預約名額",
     "title": "我的最佳姨姨培訓課程",
     "description": "一個流程完成預留名額與付款確認，清楚又安心。",
     "availabilityLabel": "只剩 30 個名額！",
+    "scheduleLabel": "下一期課程",
+    "scheduleDate": "2026年4月",
+    "scheduleTime": "12:00 pm - 2:00 pm",
     "ageSelectorLabel": "你小朋友的年齡組別是？",
     "ageOptions": [
       {
