@@ -51,4 +51,19 @@ describe('MyBestAuntieDescription section', () => {
     expect(titleWrapperClassName).toContain('text-left');
     expect(titleWrapperClassName).not.toContain('text-center');
   });
+
+  it('renders highlight cards without box shadow', () => {
+    render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
+
+    const firstCardTitle = enContent.myBestAuntieDescription.items[0]?.title;
+    expect(firstCardTitle).toBeDefined();
+
+    const cardHeading = screen.getByRole('heading', {
+      level: 3,
+      name: firstCardTitle,
+    });
+    const cardArticleStyle = cardHeading.closest('article')?.getAttribute('style') ?? '';
+
+    expect(cardArticleStyle).not.toContain('box-shadow');
+  });
 });

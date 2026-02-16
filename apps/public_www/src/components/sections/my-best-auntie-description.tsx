@@ -22,8 +22,6 @@ const SECTION_BACKGROUND_FILTER =
 const SECTION_BACKGROUND_MASK_IMAGE =
   'linear-gradient(to bottom, black 5%, transparent 15%)';
 const CARD_BACKGROUND = '#FFFFFF';
-const CARD_SHADOW =
-  '0 8px 8px rgba(50, 50, 71, 0.08), 0 8px 16px rgba(50, 50, 71, 0.06)';
 const CTA_COLOR = '#ED622E';
 const CARD_ICON_FALLBACK =
   '/images/training.svg';
@@ -265,7 +263,6 @@ export function MyBestAuntieDescription({
                   className='flex h-full min-h-[520px] flex-col rounded-[32px] p-6 sm:p-8'
                   style={{
                     backgroundColor: CARD_BACKGROUND,
-                    boxShadow: CARD_SHADOW,
                   }}
                 >
                   <div className='inline-flex h-[100px] w-[100px] items-center justify-center rounded-full bg-[#F8F8F8]'>
