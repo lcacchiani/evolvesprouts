@@ -50,7 +50,9 @@ describe('Events section', () => {
 
     expect(loadingStatus).toBeInTheDocument();
     expect(loadingGear).toHaveClass('animate-spin');
-    expect(loadingGear).toHaveStyle({ color: '#F2A975' });
+    expect(loadingGear.getAttribute('style')).toContain(
+      'var(--es-color-brand-orange-soft, #F2A975)',
+    );
     expect(screen.getByText(enContent.events.loadingLabel)).toBeInTheDocument();
   });
 });

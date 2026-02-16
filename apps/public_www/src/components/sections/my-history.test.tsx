@@ -27,7 +27,9 @@ describe('MyHistory section', () => {
     });
 
     expect(section.className).toContain('es-section-bg-overlay');
-    expect(section.style.backgroundColor).toBe('rgb(248, 248, 248)');
+    expect(section.style.backgroundColor).toBe(
+      'var(--es-color-surface-muted, #F8F8F8)',
+    );
     expect(section.style.getPropertyValue('--es-section-bg-image')).toContain(
       '/images/evolvesprouts-logo.svg',
     );
