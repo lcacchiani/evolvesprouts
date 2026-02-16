@@ -160,7 +160,7 @@ function isContactUsPromptQuestion(
     }
   }
 
-  return true;
+  return /contact us/i.test(question.answer);
 }
 
 function FaqItems({

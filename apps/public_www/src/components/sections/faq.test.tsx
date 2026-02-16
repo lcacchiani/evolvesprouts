@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -78,7 +78,9 @@ describe('Faq section', () => {
       'color: var(--figma-colors-desktop, #FFFFFF)',
     );
 
-    const contactCta = screen.getByRole('link', { name: 'Contact Us' });
+    const contactCta = within(card as HTMLElement).getByRole('link', {
+      name: 'Contact Us',
+    });
     expect(contactCta).toHaveAttribute('href', '/contact-us');
     expect(contactCta.className).toContain('es-cta-primary');
   });
