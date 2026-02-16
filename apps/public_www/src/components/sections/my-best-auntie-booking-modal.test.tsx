@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   MyBestAuntieBookingModal,
@@ -9,6 +9,8 @@ import {
   type ReservationSummary,
 } from '@/components/sections/my-best-auntie-booking-modal';
 import enContent from '@/content/en.json';
+import { createCrmApiClient } from '@/lib/crm-api-client';
+import { fetchDiscountRules } from '@/lib/discounts-data';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -34,8 +36,32 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('@/lib/crm-api-client', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/crm-api-client')>(
+    '@/lib/crm-api-client',
+  );
+
+  return {
+    ...actual,
+    createCrmApiClient: vi.fn(() => null),
+  };
+});
+
+vi.mock('@/lib/discounts-data', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/discounts-data')>(
+    '@/lib/discounts-data',
+  );
+
+  return {
+    ...actual,
+    fetchDiscountRules: vi.fn(),
+  };
+});
+
 const bookingModalContent = enContent.myBestAuntieBooking.paymentModal;
 const thankYouModalContent = enContent.myBestAuntieBooking.thankYouModal;
+const mockedCreateCrmApiClient = vi.mocked(createCrmApiClient);
+const mockedFetchDiscountRules = vi.mocked(fetchDiscountRules);
 
 const reservationSummary: ReservationSummary = {
   attendeeName: 'Test User',
@@ -50,6 +76,11 @@ const reservationSummary: ReservationSummary = {
   scheduleDateLabel: 'April',
   scheduleTimeLabel: '12:00 pm - 2:00 pm',
 };
+
+afterEach(() => {
+  mockedCreateCrmApiClient.mockReturnValue(null);
+  mockedFetchDiscountRules.mockReset();
+});
 
 describe('my-best-auntie booking modals footer content', () => {
   it('hides child age group and payment method in booking modal', () => {
@@ -108,6 +139,34 @@ describe('my-best-auntie booking modals footer content', () => {
     for (const option of bookingModalContent.packageOptions) {
       expect(screen.queryByText(option.description)).not.toBeInTheDocument();
     }
+  });
+
+  it('renders topics textarea and required acknowledgement checkboxes', () => {
+    render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    const topicsField = screen.getByLabelText(bookingModalContent.topicsInterestLabel);
+    expect(topicsField.tagName).toBe('TEXTAREA');
+
+    const pendingAcknowledgement = screen.getByRole('checkbox', {
+      name: bookingModalContent.pendingReservationAcknowledgementLabel,
+    });
+    const termsAcknowledgement = screen.getByRole('checkbox', {
+      name: new RegExp(bookingModalContent.termsLinkLabel),
+    });
+
+    expect(pendingAcknowledgement).toBeRequired();
+    expect(termsAcknowledgement).toBeRequired();
+
+    const termsLink = screen.getByRole('link', {
+      name: bookingModalContent.termsLinkLabel,
+    });
+    expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
   });
 
   it('uses cubes.svg mask icon for all course part chips', () => {
@@ -169,6 +228,28 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(firstPartItem?.getAttribute('style')).toContain('padding-left: 50px');
     expect(firstPartItem?.getAttribute('style')).toContain('padding-bottom: 100px');
     expect(firstPartItem?.querySelector('img')).toBeNull();
+
+    const firstPartChip = firstPartItem?.querySelector(
+      'span[data-course-part-chip="true"]',
+    ) as HTMLSpanElement | null;
+    expect(firstPartChip?.className).toContain('self-start');
+
+    const firstPartRow = firstPartChip?.closest('div');
+    expect(firstPartRow?.className).toContain('sm:items-start');
+
+    const firstPartDateBlock = firstPartItem?.querySelector(
+      'div[data-course-part-date-block="true"]',
+    ) as HTMLDivElement | null;
+    expect(firstPartDateBlock).not.toBeNull();
+    expect(firstPartDateBlock?.className).not.toContain('flex');
+
+    const firstPartDateIcon = firstPartDateBlock?.querySelector(
+      'span[data-course-part-date-icon="true"]',
+    ) as HTMLSpanElement | null;
+    expect(firstPartDateIcon?.className).toContain('h-6');
+
+    const firstPartDateText = firstPartDateBlock?.querySelector('p');
+    expect(firstPartDateText?.className).toContain('mt-1');
   });
 
   it('does not render booking modal copyright footer section', () => {
@@ -251,5 +332,54 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(
       container.querySelector('span[style*="/images/calendar.svg"]'),
     ).not.toBeNull();
+  });
+
+  it('allows only one discount code to be applied at a time', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedFetchDiscountRules.mockResolvedValue([
+      {
+        code: 'SAVE10',
+        type: 'percent',
+        value: 10,
+      },
+    ]);
+
+    render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockedFetchDiscountRules).toHaveBeenCalledTimes(1);
+    });
+
+    const discountInput = screen.getByPlaceholderText(
+      bookingModalContent.discountCodePlaceholder,
+    ) as HTMLInputElement;
+    const applyButton = screen.getByRole('button', {
+      name: bookingModalContent.applyDiscountLabel,
+    });
+
+    fireEvent.change(discountInput, {
+      target: {
+        value: 'SAVE10',
+      },
+    });
+    fireEvent.click(applyButton);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(bookingModalContent.discountAppliedLabel),
+      ).toBeInTheDocument();
+    });
+
+    expect(discountInput).toBeDisabled();
+    expect(applyButton).toBeDisabled();
+    expect(discountInput.value).toBe('SAVE10');
   });
 });

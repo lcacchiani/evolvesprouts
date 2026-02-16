@@ -313,6 +313,7 @@ export function MyBestAuntieBookingModal({
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [interestedTopics, setInterestedTopics] = useState('');
   const [discountCode, setDiscountCode] = useState('');
   const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
@@ -382,6 +383,10 @@ export function MyBestAuntieBookingModal({
   }, [activePartRows]);
 
   function handleApplyDiscount() {
+    if (discountRule) {
+      return;
+    }
+
     const normalizedCode = discountCode.trim().toUpperCase();
     if (!normalizedCode) {
       setDiscountRule(null);
@@ -482,7 +487,7 @@ export function MyBestAuntieBookingModal({
                           )}
                         />
                       </span>
-                      <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:justify-between sm:gap-4'>
+                      <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
                         <span
                           data-course-part-line='gap-connector'
                           className='pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2'
@@ -490,7 +495,8 @@ export function MyBestAuntieBookingModal({
                           aria-hidden='true'
                         />
                         <span
-                          className='inline-flex items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
+                          data-course-part-chip='true'
+                          className='inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
                           style={getPartChipTone(index)}
                         >
                           <span
@@ -504,13 +510,14 @@ export function MyBestAuntieBookingModal({
                         </span>
 
                         <div className='max-w-[340px]'>
-                          <div className='flex items-center gap-2'>
+                          <div data-course-part-date-block='true'>
                             <span
+                              data-course-part-date-icon='true'
                               className='h-6 w-6 shrink-0'
                               style={darkCalendarIconMaskStyle}
                               aria-hidden='true'
                             />
-                            <p className='text-[17px] font-semibold leading-6 text-[#333333]'>
+                            <p className='mt-1 text-[17px] font-semibold leading-6 text-[#333333]'>
                               {part.date}
                             </p>
                           </div>
@@ -599,7 +606,7 @@ export function MyBestAuntieBookingModal({
             </div>
 
             <div className='w-full lg:w-[calc(50%-20px)]'>
-              <section className='relative overflow-hidden rounded-[14px] border border-[#D0E4F4] bg-[#F8F8F8] px-5 py-7 shadow-[0_8px_8px_rgba(49,86,153,0.08),0_8px_16px_rgba(49,86,153,0.06)] sm:px-7'>
+              <section className='relative overflow-hidden rounded-[14px] border border-[#D0E4F4] bg-[#F8F8F8] px-5 py-7 sm:px-7'>
                 <Image
                   src='/images/my-best-auntie-booking/small-tree-form.png'
                   alt=''
@@ -612,12 +619,6 @@ export function MyBestAuntieBookingModal({
                 <h3 className='relative z-10 text-[30px] font-bold leading-none text-[#333333]'>
                   {content.reservationTitle}
                 </h3>
-                <p
-                  className='relative z-10 mt-2 text-sm text-[#4A4A4A]'
-                  style={bodyStyle}
-                >
-                  {content.reservationDescription}
-                </p>
 
                 <form className='relative z-10 mt-4 space-y-3' onSubmit={handleSubmit}>
                   <label className='block'>
@@ -662,6 +663,20 @@ export function MyBestAuntieBookingModal({
                       className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
                     />
                   </label>
+                  <label className='block'>
+                    <span className='mb-1 block text-sm font-semibold text-[#333333]'>
+                      {content.topicsInterestLabel}
+                    </span>
+                    <textarea
+                      value={interestedTopics}
+                      onChange={(event) => {
+                        setInterestedTopics(event.target.value);
+                      }}
+                      placeholder={content.topicsInterestPlaceholder}
+                      rows={3}
+                      className='es-focus-ring w-full resize-y rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
+                    />
+                  </label>
 
                   <div className='grid grid-cols-[1fr_auto] gap-2'>
                     <label>
@@ -671,18 +686,20 @@ export function MyBestAuntieBookingModal({
                       <input
                         type='text'
                         value={discountCode}
+                        disabled={Boolean(discountRule)}
                         onChange={(event) => {
                           setDiscountCode(event.target.value);
                           setDiscountError('');
                         }}
                         placeholder={content.discountCodePlaceholder}
-                        className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
+                        className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold disabled:cursor-not-allowed disabled:bg-[#F5F7FA] disabled:text-[#6B7280]'
                       />
                     </label>
                     <button
                       type='button'
                       onClick={handleApplyDiscount}
-                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] px-4 text-sm font-semibold text-[#C84A16]'
+                      disabled={Boolean(discountRule)}
+                      className='es-focus-ring mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border border-[#C84A16] bg-white px-4 text-sm font-semibold text-[#C84A16] disabled:cursor-not-allowed disabled:border-[#D8B8A7] disabled:text-[#B19180]'
                     >
                       {content.applyDiscountLabel}
                     </button>
@@ -696,6 +713,41 @@ export function MyBestAuntieBookingModal({
                       {discountError}
                     </p>
                   )}
+
+                  <div className='space-y-2'>
+                    <label className='flex items-start gap-2.5 rounded-[12px] border border-[#CAD6E5] bg-white px-3 py-3'>
+                      <input
+                        type='checkbox'
+                        required
+                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 accent-[#C84A16]'
+                      />
+                      <span className='text-sm leading-[1.45] text-[#333333]'>
+                        {content.pendingReservationAcknowledgementLabel}
+                      </span>
+                    </label>
+
+                    <label className='flex items-start gap-2.5 rounded-[12px] border border-[#CAD6E5] bg-white px-3 py-3'>
+                      <input
+                        type='checkbox'
+                        required
+                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 accent-[#C84A16]'
+                      />
+                      <span className='text-sm leading-[1.45] text-[#333333]'>
+                        {content.termsAgreementLabel}{' '}
+                        <Link
+                          href={content.termsHref}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='es-focus-ring rounded-[2px] text-[#C84A16] underline underline-offset-4'
+                          onClick={(event) => {
+                            event.stopPropagation();
+                          }}
+                        >
+                          {content.termsLinkLabel}
+                        </Link>
+                      </span>
+                    </label>
+                  </div>
 
                   <div className='rounded-[14px] border border-[#CAD6E5] bg-[#F1F6FC] p-4'>
                     <QrPlaceholder label={content.qrLabel} />

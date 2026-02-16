@@ -114,6 +114,7 @@ describe('MyBestAuntieBooking section', () => {
     const firstAgeButton = screen.getByRole('button', {
       name: firstAgeOption.label,
     });
+    expect(firstAgeButton.className).toContain('cursor-pointer');
     const firstAgeIcon = firstAgeButton.querySelector(
       `img[src="${firstAgeOption.iconSrc}"]`,
     );
