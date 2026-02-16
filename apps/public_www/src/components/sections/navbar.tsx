@@ -7,6 +7,7 @@ import {
   type CSSProperties,
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
 } from 'react';
@@ -15,6 +16,7 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import {
   CloseIcon,
   HamburgerIcon,
+  LanguageChevronIcon,
   MobileChevronIcon,
 } from '@/components/sections/navbar-icons';
 import {

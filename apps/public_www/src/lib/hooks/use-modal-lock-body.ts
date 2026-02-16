@@ -1,15 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId } from 'react';
 
 interface UseModalLockBodyOptions {
   isActive?: boolean;
   onEscape: () => void;
 }
 
-const BODY_LOCK_TOKEN_PREFIX = 'modal-lock-';
 const activeBodyLockTokens = new Set<string>();
-let lockSequence = 0;
 let previousBodyOverflow = '';
 
 function lockBodyScroll(token: string) {
@@ -41,18 +39,13 @@ export function useModalLockBody({
   isActive = true,
   onEscape,
 }: UseModalLockBodyOptions) {
-  const lockTokenRef = useRef('');
-  if (lockTokenRef.current === '') {
-    lockSequence += 1;
-    lockTokenRef.current = `${BODY_LOCK_TOKEN_PREFIX}${lockSequence}`;
-  }
+  const lockToken = useId();
 
   useEffect(() => {
     if (!isActive) {
       return;
     }
 
-    const lockToken = lockTokenRef.current;
     lockBodyScroll(lockToken);
 
     function handleEscape(event: KeyboardEvent) {
@@ -67,5 +60,5 @@ export function useModalLockBody({
       unlockBodyScroll(lockToken);
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [isActive, onEscape]);
+  }, [isActive, lockToken, onEscape]);
 }
