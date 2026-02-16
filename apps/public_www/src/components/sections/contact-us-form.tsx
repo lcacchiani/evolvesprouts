@@ -163,11 +163,11 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
             <h2 className='es-section-heading text-[clamp(1.5rem,3.6vw,2.2rem)]'>
               {content.promiseTitle}
             </h2>
-            <ul className='mt-4 space-y-3'>
+            <ul className='mt-4 list-disc space-y-2 pl-6'>
               {content.promises.map((promise) => (
                 <li
                   key={promise}
-                  className='rounded-xl bg-white px-4 py-3 text-base leading-7 text-[color:var(--site-primary-text)] shadow-[0_8px_20px_-18px_rgba(0,0,0,0.45)]'
+                  className='text-base leading-7 text-[color:var(--site-primary-text)]'
                 >
                   {promise}
                 </li>

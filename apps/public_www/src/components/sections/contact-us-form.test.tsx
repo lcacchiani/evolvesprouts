@@ -33,4 +33,24 @@ describe('ContactUsForm section', () => {
       'linear-gradient(black 60%, transparent 90%)',
     );
   });
+
+  it('renders promise items as bulleted text without background cards', () => {
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    const promiseList = screen
+      .getByRole('heading', {
+        level: 2,
+        name: enContent.contactUs.contactUsForm.promiseTitle,
+      })
+      .nextElementSibling as HTMLUListElement | null;
+    expect(promiseList).not.toBeNull();
+    expect(promiseList?.className).toContain('list-disc');
+
+    const listItems = promiseList?.querySelectorAll('li') ?? [];
+    expect(listItems.length).toBeGreaterThan(0);
+    for (const listItem of listItems) {
+      expect(listItem.className).not.toContain('bg-white');
+      expect(listItem.className).not.toContain('shadow-');
+    }
+  });
 });
