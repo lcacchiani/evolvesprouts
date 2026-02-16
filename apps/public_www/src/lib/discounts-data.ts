@@ -1,3 +1,4 @@
+import { toRecord } from '@/content/content-field-utils';
 import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
 
 export interface DiscountRule {
@@ -16,14 +17,6 @@ interface StaticDiscountRule {
 }
 
 export const DISCOUNTS_API_PATH = '/v1/discounts';
-
-function toRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return null;
-  }
-
-  return value as Record<string, unknown>;
-}
 
 function readRequiredText(value: unknown): string | null {
   if (typeof value !== 'string') {

@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation';
+import { createDefaultLocaleRedirectPage } from '@/lib/locale-page';
 
-export default function ContactRedirectPage() {
-  redirect('/en/contact-us');
-}
+export default createDefaultLocaleRedirectPage('/contact-us');

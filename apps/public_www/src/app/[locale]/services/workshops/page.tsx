@@ -1,11 +1,10 @@
 import { PageLayout } from '@/components/page-layout';
 import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
 import {
-  buildPlaceholderMetadataFromParams,
+  createPlaceholderPage,
   generateLocaleStaticParams,
   getFooterLinkLabel,
   type LocaleRouteProps,
-  resolveLocalePageContext,
 } from '@/lib/locale-page';
 
 const WORKSHOPS_PLACEHOLDER_OPTIONS = {
@@ -13,20 +12,18 @@ const WORKSHOPS_PLACEHOLDER_OPTIONS = {
   fallbackTitle: 'Workshops',
   labelResolver: getFooterLinkLabel,
 } as const;
+const workshopsPlaceholderPage = createPlaceholderPage(
+  WORKSHOPS_PLACEHOLDER_OPTIONS,
+);
 
 export { generateLocaleStaticParams as generateStaticParams };
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
-  return buildPlaceholderMetadataFromParams(params, WORKSHOPS_PLACEHOLDER_OPTIONS);
+  return workshopsPlaceholderPage.generateMetadata({ params });
 }
 
 export default async function WorkshopsPage({ params }: LocaleRouteProps) {
-  const { content } = await resolveLocalePageContext(params);
-  const title = getFooterLinkLabel(
-    content,
-    WORKSHOPS_PLACEHOLDER_OPTIONS.path,
-    WORKSHOPS_PLACEHOLDER_OPTIONS.fallbackTitle,
-  );
+  const { content, title } = await workshopsPlaceholderPage.resolveProps(params);
 
   return (
     <PageLayout

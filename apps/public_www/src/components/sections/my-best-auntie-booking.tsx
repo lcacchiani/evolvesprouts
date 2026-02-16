@@ -6,9 +6,15 @@ import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
+import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 import { SectionShell } from '@/components/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  bodyTextStyle,
+  BRAND_ORANGE_SOFT,
+  BRAND_ORANGE_STRONG,
+  headingTextStyle,
+} from '@/lib/design-tokens';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -37,23 +43,17 @@ const DATE_CONTROL_BG = '#FFFFFF';
 const DATE_CONTROL_ICON = '#3D3E3D';
 const DATE_CONTROL_SHADOW = '0 1px 14px rgba(0, 0, 0, 0.08)';
 
-const headingStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 700,
+const headingStyle: CSSProperties = headingTextStyle({
   lineHeight: 1.15,
-};
+});
 
-const bodyStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 400,
+const bodyStyle: CSSProperties = bodyTextStyle({
   lineHeight: 1.55,
-};
+});
 
 const activeSelectorCardStyle: CSSProperties = {
-  backgroundColor: '#FFD4B5',
-  border: '2px solid #E76C3D',
+  backgroundColor: BRAND_ORANGE_SOFT,
+  border: `2px solid ${BRAND_ORANGE_STRONG}`,
 };
 
 const inactiveAgeSelectorCardStyle: CSSProperties = {
@@ -66,23 +66,9 @@ const inactiveDateSelectorCardStyle: CSSProperties = {
   border: '1px solid #E1E6EC',
 };
 
-function createMaskIconStyle(iconPath: string, color: string): CSSProperties {
-  return {
-    backgroundColor: color,
-    WebkitMaskImage: `url(${iconPath})`,
-    maskImage: `url(${iconPath})`,
-    WebkitMaskRepeat: 'no-repeat',
-    maskRepeat: 'no-repeat',
-    WebkitMaskPosition: 'center',
-    maskPosition: 'center',
-    WebkitMaskSize: 'contain',
-    maskSize: 'contain',
-  };
-}
-
 const activeDateSelectorCalendarIconStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  '#E76C3D',
+  BRAND_ORANGE_STRONG,
 );
 const inactiveDateSelectorCalendarIconStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,

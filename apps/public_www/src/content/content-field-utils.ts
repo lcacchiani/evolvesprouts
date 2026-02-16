@@ -7,6 +7,14 @@ export function readOptionalText(value: unknown): string | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
+export function toRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
 export function readCandidateText(
   record: Record<string, unknown>,
   keys: readonly string[],

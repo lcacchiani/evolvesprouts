@@ -16,7 +16,7 @@
     "figma:studio-sync": "npm run figma:pull && npm run figma:tokenize && npm run figma:build:studio",
     "figma:full-sync": "npm run figma:studio-sync && npm run figma:scaffold && npm run figma:specs",
     "build": "npm run validate:content && npm run figma:build:studio && next build",
-    "lighthouse:ci": "npx -y @lhci/cli@0.15.1 autorun --config=.lighthouserc.json",
+    "lighthouse:ci": "lhci autorun --config=.lighthouserc.json",
     "start": "next start",
     "lint": "eslint --max-warnings=0 .",
     "test": "vitest run",
@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.2",
+    "@lhci/cli": "^0.15.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

@@ -15,6 +15,14 @@
     --site-primary-text: var(--figma-colors-home, #4A4A4A);
     --site-heading-text:
       var(--figma-colors-join-our-sprouts-squad-community, #333333);
+    --es-color-brand-orange: #C84A16;
+    --es-color-brand-orange-strong: #E76C3D;
+    --es-color-brand-orange-soft: #F2A975;
+    --es-color-brand-peach-bg: #FFF0E5;
+    --es-color-brand-peach-border: #EECAB0;
+    --es-color-surface-white: #FFFFFF;
+    --es-color-heading: #333333;
+    --es-color-body: #4A4A4A;
   }
 
   html {
@@ -91,8 +99,12 @@
 
   .es-section-eyebrow-chip {
     padding: 0.625rem 1rem;
-    border-color: #EECAB0;
-    background-color: rgba(255, 255, 255, 0.7);
+    border-color: var(--es-color-brand-peach-border);
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-surface-white) 70%,
+      transparent
+    );
   }
 
   .es-section-body {
@@ -101,7 +113,7 @@
   }
 
   .es-cta-primary {
-    background-color: #C84A16;
+    background-color: var(--es-color-brand-orange);
     color: var(--figma-colors-desktop, #FFFFFF);
     font-family: var(--site-primary-font);
     font-weight: 600;
@@ -162,7 +174,7 @@
 
   @media (hover: hover) {
     .es-nav-pill:hover {
-      background-color: #F2A975 !important;
+      background-color: var(--es-color-brand-orange-soft) !important;
       color: var(
         --figma-colors-join-our-sprouts-squad-community,
         #333333
@@ -170,7 +182,7 @@
     }
 
     .es-nav-submenu-link:hover {
-      background-color: #F2A975 !important;
+      background-color: var(--es-color-brand-orange-soft) !important;
       color: var(
         --figma-colors-join-our-sprouts-squad-community,
         #333333
@@ -189,7 +201,7 @@
   }
 
   .es-nav-language-option:hover {
-    background-color: #FFF0E5;
+    background-color: var(--es-color-brand-peach-bg);
   }
 
   .es-nav-icon-button {
@@ -197,7 +209,7 @@
     align-items: center;
     justify-content: center;
     background-color: transparent;
-    color: #333333;
+    color: var(--es-color-heading);
   }
 
   .es-testimonial-control-button {
@@ -214,7 +226,7 @@
 
   .es-testimonial-quote-icon {
     display: inline-block;
-    background-color: #E66C3C;
+    background-color: var(--es-color-brand-orange-strong);
     mask-image: url('/images/double-quotes.svg');
     mask-position: center;
     mask-repeat: no-repeat;

@@ -2,6 +2,7 @@ import type { EventsContent } from '@/content';
 import {
   readCandidateText,
   readOptionalText,
+  toRecord,
 } from '@/content/content-field-utils';
 import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
 import { isHttpHref } from '@/lib/url-utils';
@@ -50,14 +51,6 @@ const DEFAULT_SORT_OPTIONS: readonly SortOption[] = [
   { value: 'oldest', label: 'Older Events' },
   { value: 'fully_booked', label: 'Fully Booked' },
 ];
-
-function toRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return null;
-  }
-
-  return value as Record<string, unknown>;
-}
 
 function sanitizeExternalHref(value: string | undefined): string {
   const href = readOptionalText(value);

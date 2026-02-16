@@ -73,3 +73,53 @@ export function CloseIcon() {
     </svg>
   );
 }
+
+export function CalendarIcon() {
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 16 16'
+      className='h-3.5 w-3.5'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <rect x='2' y='3' width='12' height='11' rx='2' stroke='currentColor' />
+      <path d='M2 6H14' stroke='currentColor' />
+      <path d='M5 1.5V4.5' stroke='currentColor' strokeLinecap='round' />
+      <path d='M11 1.5V4.5' stroke='currentColor' strokeLinecap='round' />
+    </svg>
+  );
+}
+
+export function ClockIcon() {
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 16 16'
+      className='h-3.5 w-3.5'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <circle cx='8' cy='8' r='6' stroke='currentColor' />
+      <path d='M8 4.8V8L10.3 9.6' stroke='currentColor' strokeLinecap='round' />
+    </svg>
+  );
+}
+
+export function LocationIcon() {
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 16 16'
+      className='h-3.5 w-3.5'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <path
+        d='M8 14C8 14 12 10.4 12 6.9C12 4.7 10.2 3 8 3C5.8 3 4 4.7 4 6.9C4 10.4 8 14 8 14Z'
+        stroke='currentColor'
+      />
+      <circle cx='8' cy='6.8' r='1.5' stroke='currentColor' />
+    </svg>
+  );
+}

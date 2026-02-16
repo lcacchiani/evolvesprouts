@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation';
+import { createRootRedirectPage } from '@/lib/locale-page';
 
-export default function ResourcesRedirectPage() {
-  redirect('/en#resources');
-}
+export default createRootRedirectPage('/en#resources');

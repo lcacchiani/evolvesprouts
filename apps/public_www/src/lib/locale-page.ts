@@ -1,12 +1,14 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import {
+  DEFAULT_LOCALE,
   getContent,
   isValidLocale,
   SUPPORTED_LOCALES,
   type Locale,
   type SiteContent,
 } from '@/content';
+import { localizePath } from '@/lib/locale-routing';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
 export type LocaleRouteParams = Promise<{ locale: string }>;
@@ -94,6 +96,8 @@ interface PlaceholderPageOptions {
   labelResolver: LinkLabelResolver;
 }
 
+type LocaleAliasTarget = string | ((locale: Locale) => string);
+
 export function buildPlaceholderPageMetadata({
   locale,
   path,
@@ -127,4 +131,54 @@ export async function buildPlaceholderMetadataFromParams(
     path,
     title,
   });
+}
+
+function resolveLocaleAliasTarget(
+  locale: Locale,
+  target: LocaleAliasTarget,
+): string {
+  if (typeof target === 'function') {
+    return target(locale);
+  }
+
+  return localizePath(target, locale);
+}
+
+export function createRootRedirectPage(targetPath: string) {
+  return function RootRedirectPage() {
+    redirect(targetPath);
+  };
+}
+
+export function createDefaultLocaleRedirectPage(targetPath: string) {
+  return createRootRedirectPage(localizePath(targetPath, DEFAULT_LOCALE));
+}
+
+export function createLocaleAliasRedirectPage(target: LocaleAliasTarget) {
+  return async function LocaleAliasRedirectPage({ params }: LocaleRouteProps) {
+    const locale = await resolveLocaleFromParams(params);
+    redirect(resolveLocaleAliasTarget(locale, target));
+  };
+}
+
+export function createPlaceholderPage(options: PlaceholderPageOptions) {
+  async function generateMetadata({ params }: LocaleRouteProps) {
+    return buildPlaceholderMetadataFromParams(params, options);
+  }
+
+  async function resolveProps(params: LocaleRouteParams) {
+    const { content } = await resolveLocalePageContext(params);
+    const title = options.labelResolver(
+      content,
+      options.path,
+      options.fallbackTitle,
+    );
+
+    return { content, title };
+  }
+
+  return {
+    generateMetadata,
+    resolveProps,
+  };
 }
