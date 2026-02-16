@@ -218,8 +218,11 @@ export class PublicWwwStack extends cdk.Stack {
       config.certificateArn,
     );
 
-    const origin = origins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
+    const websiteOrigin = origins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
       originAccessIdentity,
+    });
+    const wwwApiOrigin = new origins.HttpOrigin("api.evolvesprouts.com", {
+      protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
     });
     const pathRewriteFunction = new cloudfront.Function(
       this,
@@ -329,7 +332,7 @@ function handler(event) {
           },
         ],
         defaultBehavior: {
-          origin,
+          origin: websiteOrigin,
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
@@ -341,6 +344,17 @@ function handler(event) {
               eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
             },
           ],
+        },
+        additionalBehaviors: {
+          "www/*": {
+            origin: wwwApiOrigin,
+            viewerProtocolPolicy:
+              cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+            cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+            originRequestPolicy:
+              cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          },
         },
       },
     );

@@ -22,8 +22,22 @@ describe('crm-api-client', () => {
     expect(buildCrmApiUrl('https://api.evolvesprouts.com/www/', 'v1/discounts')).toBe(
       'https://api.evolvesprouts.com/www/v1/discounts',
     );
+    expect(buildCrmApiUrl('/www', '/v1/discounts')).toBe('/www/v1/discounts');
+    expect(buildCrmApiUrl('/www/', 'v1/discounts')).toBe('/www/v1/discounts');
     expect(buildCrmApiUrl('api.evolvesprouts.com/www', '/v1/discounts')).toBe('');
+    expect(buildCrmApiUrl('/', '/v1/discounts')).toBe('');
     expect(buildCrmApiUrl('   ', '/v1/discounts')).toBe('');
+  });
+
+  it('rewrites api.evolvesprouts.com URLs to same-origin proxy on public hosts', () => {
+    vi.stubGlobal('location', new URL('https://www-staging.evolvesprouts.com/en/events'));
+
+    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www', '/v1/discounts')).toBe(
+      '/www/v1/discounts',
+    );
+    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www/', 'v1/calendar/events')).toBe(
+      '/www/v1/calendar/events',
+    );
   });
 
   it('returns null when base URL or API key is invalid', () => {

@@ -45,6 +45,11 @@ Public WWW CRM API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
 
+`evolvesprouts-public-www` CloudFront now proxies `https://{www-domain}/www/*`
+to `https://api.evolvesprouts.com/www/*` with caching disabled for those
+requests. Set `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` to `/www` to keep browser API
+calls same-origin and avoid cross-origin CORS preflight failures.
+
 ## CI/CD workflows
 
 ### Deploy to staging (automatic)
