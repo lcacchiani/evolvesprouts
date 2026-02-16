@@ -473,9 +473,24 @@ function DesktopMenuItem({
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
   const submenuListId = useId();
   const submenuWrapperRef = useRef<HTMLLIElement | null>(null);
-  const closeSubmenu = useCallback(() => {
-    setIsSubmenuOpen(false);
-  }, [setIsSubmenuOpen]);
+  const submenuToggleButtonRef = useRef<HTMLButtonElement | null>(null);
+  const closeSubmenu = useCallback(
+    ({ restoreFocus = true }: { restoreFocus?: boolean } = {}) => {
+      if (restoreFocus) {
+        const activeElement = document.activeElement;
+        if (
+          activeElement instanceof HTMLElement &&
+          submenuWrapperRef.current?.contains(activeElement) &&
+          activeElement !== submenuToggleButtonRef.current
+        ) {
+          submenuToggleButtonRef.current?.focus();
+        }
+      }
+
+      setIsSubmenuOpen(false);
+    },
+    [],
+  );
 
   useOutsideClickClose({
     ref: submenuWrapperRef,
@@ -526,6 +541,7 @@ function DesktopMenuItem({
       }}
     >
       <button
+        ref={submenuToggleButtonRef}
         type='button'
         className={NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME}
         style={getTopLinkStyle(itemIsActive)}
