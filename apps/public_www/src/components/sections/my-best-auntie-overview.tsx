@@ -34,7 +34,7 @@ const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
 ];
 
 const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
-const SECTION_BACKGROUND_IMAGE = 'url("/images/tree-background.png")';
+const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
 const SECTION_BACKGROUND_SIZE = '900px auto';
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
