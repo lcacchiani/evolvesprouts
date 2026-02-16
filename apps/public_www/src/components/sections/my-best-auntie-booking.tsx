@@ -98,6 +98,12 @@ function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
   );
 }
 
+function formatCohortPreviewLabel(value: string): string {
+  const firstDateSegment = value.split(/\s+-\s+/)[0]?.trim() ?? value.trim();
+
+  return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
+}
+
 export function MyBestAuntieBooking({
   locale,
   content,
@@ -145,6 +151,7 @@ export function MyBestAuntieBooking({
     firstCohortDate ??
     dateOptions[0]?.label ??
     content.scheduleDate;
+  const nextCohortPreview = formatCohortPreviewLabel(nextCohortDate);
 
   const updateDateNavigationState = useCallback(() => {
     const carouselElement = dateCarouselRef.current;
@@ -257,14 +264,18 @@ export function MyBestAuntieBooking({
                 {content.description}
               </p>
 
-              <div className='space-y-1 pt-3'>
-                <p className='text-base font-semibold uppercase tracking-[0.08em] text-[#C84A16]'>
-                  {content.scheduleLabel}
-                </p>
-                <p className='mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-bold text-[#222222]'>
-                  {nextCohortDate}
-                </p>
-                <p className='mt-1 text-[#4A4A4A]'>{content.scheduleTime}</p>
+              <div className='pt-3'>
+                <div
+                  data-testid='my-best-auntie-next-cohort-card'
+                  className='w-full max-w-[410px] rounded-[14px] border border-[#EED5C1] bg-[#FFF9F4] px-5 py-4'
+                >
+                  <p className='text-base font-semibold text-[#C84A16]'>
+                    {content.scheduleLabel}
+                  </p>
+                  <p className='mt-1 text-[clamp(1.3rem,3vw,1.7rem)] font-bold text-[#222222]'>
+                    {nextCohortPreview}
+                  </p>
+                </div>
               </div>
             </section>
 

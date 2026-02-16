@@ -21,8 +21,14 @@ beforeAll(() => {
   });
 });
 
+function formatCohortPreviewLabel(value: string): string {
+  const firstDateSegment = value.split(/\s+-\s+/)[0]?.trim() ?? value.trim();
+
+  return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
+}
+
 describe('MyBestAuntieBooking section', () => {
-  it('keeps next cohort fixed to the first locale booking entry', () => {
+  it('renders next cohort as a rounded card and keeps it fixed to the first locale booking entry', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
     const firstMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[0]?.id;
@@ -41,7 +47,15 @@ describe('MyBestAuntieBooking section', () => {
       throw new Error('Test content must include first and second cohort data.');
     }
 
-    expect(screen.getByText(firstCohortDate)).toBeInTheDocument();
+    const formattedFirstCohortDate = formatCohortPreviewLabel(firstCohortDate);
+    const nextCohortCard = screen.getByTestId('my-best-auntie-next-cohort-card');
+    expect(nextCohortCard.className).toContain('rounded-[14px]');
+    expect(nextCohortCard.className).toContain('border');
+    expect(screen.getByText(enContent.myBestAuntieBooking.scheduleLabel)).toBeInTheDocument();
+    expect(screen.getByText(formattedFirstCohortDate)).toBeInTheDocument();
+    expect(
+      screen.queryByText(enContent.myBestAuntieBooking.scheduleTime),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -49,9 +63,11 @@ describe('MyBestAuntieBooking section', () => {
       }),
     );
 
-    expect(screen.getByText(firstCohortDate)).toBeInTheDocument();
+    expect(screen.getByText(formattedFirstCohortDate)).toBeInTheDocument();
     if (secondCohortDate) {
-      expect(screen.queryByText(secondCohortDate)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(formatCohortPreviewLabel(secondCohortDate)),
+      ).not.toBeInTheDocument();
     }
   });
 
