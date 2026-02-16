@@ -13,7 +13,7 @@ interface MyBestAuntieDescriptionProps {
   content: MyBestAuntieDescriptionContent;
 }
 
-const SECTION_BACKGROUND = 'var(--figma-colors-frame-2147235259, #FFEEE3)';
+const SECTION_BACKGROUND = '#F8F8F8';
 const SECTION_BACKGROUND_IMAGE = 'url("/images/evolvesprouts-logo.svg")';
 const SECTION_BACKGROUND_POSITION = 'center -900px';
 const SECTION_BACKGROUND_SIZE = '2000px auto';
@@ -199,53 +199,63 @@ export function MyBestAuntieDescription({
       }
     >
       <div className='mx-auto w-full max-w-[1465px]'>
-        <div className='max-w-[920px] text-left'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
-          />
-          <h2
-            className='mt-6 text-[clamp(2rem,5.6vw,3.2rem)]'
-            style={titleStyle}
-          >
-            {content.title}
-          </h2>
-        </div>
-
-        {hasMultipleCards && (
-          <div className='mt-8 flex justify-end gap-3'>
-            <button
-              type='button'
-              onClick={() => {
-                scrollCarousel('previous');
-              }}
-              aria-label='Previous highlight cards'
-              disabled={!canScrollPrevious}
-              className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full disabled:cursor-not-allowed sm:h-[68px] sm:w-[68px]'
-              style={{
-                backgroundColor: canScrollPrevious ? CONTROL_BG : CONTROL_BG_DISABLED,
-                boxShadow: CONTROL_SHADOW,
-              }}
+        <div
+          data-testid='my-best-auntie-description-header'
+          className='flex flex-col gap-5 md:flex-row md:items-end md:justify-between'
+        >
+          <div className='max-w-[920px] text-left'>
+            <SectionEyebrowChip
+              label={content.eyebrow}
+              labelStyle={eyebrowStyle}
+            />
+            <h2
+              className='mt-6 text-[clamp(2rem,5.6vw,3.2rem)]'
+              style={titleStyle}
             >
-              <ArrowIcon direction='left' isDisabled={!canScrollPrevious} />
-            </button>
-            <button
-              type='button'
-              onClick={() => {
-                scrollCarousel('next');
-              }}
-              aria-label='Next highlight cards'
-              disabled={!canScrollNext}
-              className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full disabled:cursor-not-allowed sm:h-[68px] sm:w-[68px]'
-              style={{
-                backgroundColor: canScrollNext ? CONTROL_BG : CONTROL_BG_DISABLED,
-                boxShadow: CONTROL_SHADOW,
-              }}
-            >
-              <ArrowIcon direction='right' isDisabled={!canScrollNext} />
-            </button>
+              {content.title}
+            </h2>
           </div>
-        )}
+
+          {hasMultipleCards && (
+            <div
+              data-testid='my-best-auntie-description-controls'
+              className='flex gap-3 self-end md:self-auto md:pb-2'
+            >
+              <button
+                type='button'
+                onClick={() => {
+                  scrollCarousel('previous');
+                }}
+                aria-label='Previous highlight cards'
+                disabled={!canScrollPrevious}
+                className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full disabled:cursor-not-allowed sm:h-[68px] sm:w-[68px]'
+                style={{
+                  backgroundColor: canScrollPrevious
+                    ? CONTROL_BG
+                    : CONTROL_BG_DISABLED,
+                  boxShadow: CONTROL_SHADOW,
+                }}
+              >
+                <ArrowIcon direction='left' isDisabled={!canScrollPrevious} />
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  scrollCarousel('next');
+                }}
+                aria-label='Next highlight cards'
+                disabled={!canScrollNext}
+                className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full disabled:cursor-not-allowed sm:h-[68px] sm:w-[68px]'
+                style={{
+                  backgroundColor: canScrollNext ? CONTROL_BG : CONTROL_BG_DISABLED,
+                  boxShadow: CONTROL_SHADOW,
+                }}
+              >
+                <ArrowIcon direction='right' isDisabled={!canScrollNext} />
+              </button>
+            </div>
+          )}
+        </div>
 
         <div
           ref={carouselRef}
