@@ -21,8 +21,14 @@ beforeAll(() => {
   });
 });
 
+function formatCohortPreviewLabel(value: string): string {
+  const firstDateSegment = value.split(/\s+-\s+/)[0]?.trim() ?? value.trim();
+
+  return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
+}
+
 describe('MyBestAuntieBooking section', () => {
-  it('keeps next cohort fixed to the first locale booking entry', () => {
+  it('renders next cohort as a rounded card and keeps it fixed to the first locale booking entry', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
     const firstMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[0]?.id;
@@ -41,7 +47,15 @@ describe('MyBestAuntieBooking section', () => {
       throw new Error('Test content must include first and second cohort data.');
     }
 
-    expect(screen.getByText(firstCohortDate)).toBeInTheDocument();
+    const formattedFirstCohortDate = formatCohortPreviewLabel(firstCohortDate);
+    const nextCohortCard = screen.getByTestId('my-best-auntie-next-cohort-card');
+    expect(nextCohortCard.className).toContain('rounded-[14px]');
+    expect(nextCohortCard.className).toContain('border');
+    expect(screen.getByText(enContent.myBestAuntieBooking.scheduleLabel)).toBeInTheDocument();
+    expect(screen.getByText(formattedFirstCohortDate)).toBeInTheDocument();
+    expect(
+      screen.queryByText(enContent.myBestAuntieBooking.scheduleTime),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -49,13 +63,15 @@ describe('MyBestAuntieBooking section', () => {
       }),
     );
 
-    expect(screen.getByText(firstCohortDate)).toBeInTheDocument();
+    expect(screen.getByText(formattedFirstCohortDate)).toBeInTheDocument();
     if (secondCohortDate) {
-      expect(screen.queryByText(secondCohortDate)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(formatCohortPreviewLabel(secondCohortDate)),
+      ).not.toBeInTheDocument();
     }
   });
 
-  it('removes right-column selector shadows and keeps CTA width to copy', () => {
+  it('removes right-column selector shadows, keeps CTA width to copy, and hides date arrows for three dates', () => {
     const { container } = render(
       <MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />,
     );
@@ -71,9 +87,11 @@ describe('MyBestAuntieBooking section', () => {
       name: enContent.myBestAuntieBooking.confirmAndPayLabel,
     });
     expect(ctaButton.className).not.toContain('w-full');
+    expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
   });
 
-  it('doubles age icon size and halves icon-text gap', () => {
+  it('doubles age icon size while keeping original icon-text gap', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
     const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
@@ -91,8 +109,86 @@ describe('MyBestAuntieBooking section', () => {
     expect(firstAgeIcon?.className).toContain('w-12');
 
     const iconRowClassName = firstAgeIcon?.closest('div')?.className ?? '';
-    expect(iconRowClassName).toContain('gap-1.5');
+    expect(iconRowClassName).toContain('gap-3');
     expect(iconRowClassName).toContain('justify-start');
-    expect(iconRowClassName).not.toContain('justify-between');
+  });
+
+  it('shows edge-overlapped arrows only when more dates are available to scroll', () => {
+    const extendedBookingContent = JSON.parse(
+      JSON.stringify(enContent.myBestAuntieBooking),
+    ) as typeof enContent.myBestAuntieBooking;
+
+    (extendedBookingContent as any).dateOptions.push(
+      {
+        id: 'jul-2026',
+        label: 'Jul, 2026',
+        availabilityLabel: '8 Spots Left!',
+      },
+      {
+        id: 'aug-2026',
+        label: 'Aug, 2026',
+        availabilityLabel: '4 Spots Left!',
+      },
+    );
+    (extendedBookingContent as any).paymentModal.monthOptions.push(
+      { id: 'jul-2026', label: 'Jul, 2026' },
+      { id: 'aug-2026', label: 'Aug, 2026' },
+    );
+    for (const part of (extendedBookingContent as any).paymentModal.parts) {
+      part.dateByMonth['jul-2026'] = part.dateByMonth['jun-2026'];
+      part.dateByMonth['aug-2026'] = part.dateByMonth['jun-2026'];
+    }
+
+    render(<MyBestAuntieBooking locale='en' content={extendedBookingContent} />);
+
+    const carousel = screen.getByTestId('my-best-auntie-booking-date-carousel');
+    let scrollLeftValue = 0;
+    const maxScrollLeft = 416;
+
+    Object.defineProperty(carousel, 'clientWidth', {
+      configurable: true,
+      get: () => 520,
+    });
+    Object.defineProperty(carousel, 'scrollWidth', {
+      configurable: true,
+      get: () => 936,
+    });
+    Object.defineProperty(carousel, 'scrollLeft', {
+      configurable: true,
+      get: () => scrollLeftValue,
+      set: (value: number) => {
+        scrollLeftValue = value;
+      },
+    });
+    Object.defineProperty(carousel, 'scrollBy', {
+      configurable: true,
+      value: ({ left }: { left: number }) => {
+        scrollLeftValue = Math.max(
+          0,
+          Math.min(maxScrollLeft, scrollLeftValue + left),
+        );
+        carousel.dispatchEvent(new Event('scroll'));
+      },
+    });
+
+    fireEvent(window, new Event('resize'));
+
+    expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
+    const rightArrow = screen.getByLabelText('Scroll dates right');
+    expect(rightArrow.className).toContain('absolute');
+    expect(rightArrow.className).toContain('right-0');
+    expect(rightArrow.className).toContain('translate-x-1/2');
+
+    fireEvent.click(rightArrow);
+
+    const leftArrow = screen.getByLabelText('Scroll dates left');
+    expect(leftArrow.className).toContain('absolute');
+    expect(leftArrow.className).toContain('left-0');
+    expect(leftArrow.className).toContain('-translate-x-1/2');
+    expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
+
+    fireEvent.click(leftArrow);
+    expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Scroll dates right')).toBeInTheDocument();
   });
 });
