@@ -293,7 +293,6 @@ function FpsQrCode({ amount }: { amount: number }) {
 
   useEffect(() => {
     let isCancelled = false;
-    setQrCodeImageDataUrl('');
 
     void loadExternalScript(FPS_GENERATOR_SCRIPT_SOURCE)
       .then(async () => {
