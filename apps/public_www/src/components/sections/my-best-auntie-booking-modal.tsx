@@ -313,6 +313,7 @@ export function MyBestAuntieBookingModal({
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [interestedTopics, setInterestedTopics] = useState('');
   const [discountCode, setDiscountCode] = useState('');
   const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
@@ -661,6 +662,20 @@ export function MyBestAuntieBookingModal({
                       className='es-focus-ring w-full rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
                     />
                   </label>
+                  <label className='block'>
+                    <span className='mb-1 block text-sm font-semibold text-[#333333]'>
+                      {content.topicsInterestLabel}
+                    </span>
+                    <textarea
+                      value={interestedTopics}
+                      onChange={(event) => {
+                        setInterestedTopics(event.target.value);
+                      }}
+                      placeholder={content.topicsInterestPlaceholder}
+                      rows={3}
+                      className='es-focus-ring w-full resize-y rounded-[14px] border border-[#CAD6E5] bg-white px-4 py-3 text-[16px] font-semibold'
+                    />
+                  </label>
 
                   <div className='grid grid-cols-[1fr_auto] gap-2'>
                     <label>
@@ -697,6 +712,41 @@ export function MyBestAuntieBookingModal({
                       {discountError}
                     </p>
                   )}
+
+                  <div className='space-y-2'>
+                    <label className='flex items-start gap-2.5 rounded-[12px] border border-[#CAD6E5] bg-white px-3 py-3'>
+                      <input
+                        type='checkbox'
+                        required
+                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 accent-[#C84A16]'
+                      />
+                      <span className='text-sm leading-[1.45] text-[#333333]'>
+                        {content.pendingReservationAcknowledgementLabel}
+                      </span>
+                    </label>
+
+                    <label className='flex items-start gap-2.5 rounded-[12px] border border-[#CAD6E5] bg-white px-3 py-3'>
+                      <input
+                        type='checkbox'
+                        required
+                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 accent-[#C84A16]'
+                      />
+                      <span className='text-sm leading-[1.45] text-[#333333]'>
+                        {content.termsAgreementLabel}{' '}
+                        <Link
+                          href={content.termsHref}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='es-focus-ring rounded-[2px] text-[#C84A16] underline underline-offset-4'
+                          onClick={(event) => {
+                            event.stopPropagation();
+                          }}
+                        >
+                          {content.termsLinkLabel}
+                        </Link>
+                      </span>
+                    </label>
+                  </div>
 
                   <div className='rounded-[14px] border border-[#CAD6E5] bg-[#F1F6FC] p-4'>
                     <QrPlaceholder label={content.qrLabel} />

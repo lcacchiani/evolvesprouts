@@ -141,6 +141,34 @@ describe('my-best-auntie booking modals footer content', () => {
     }
   });
 
+  it('renders topics textarea and required acknowledgement checkboxes', () => {
+    render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    const topicsField = screen.getByLabelText(bookingModalContent.topicsInterestLabel);
+    expect(topicsField.tagName).toBe('TEXTAREA');
+
+    const pendingAcknowledgement = screen.getByRole('checkbox', {
+      name: bookingModalContent.pendingReservationAcknowledgementLabel,
+    });
+    const termsAcknowledgement = screen.getByRole('checkbox', {
+      name: new RegExp(bookingModalContent.termsLinkLabel),
+    });
+
+    expect(pendingAcknowledgement).toBeRequired();
+    expect(termsAcknowledgement).toBeRequired();
+
+    const termsLink = screen.getByRole('link', {
+      name: bookingModalContent.termsLinkLabel,
+    });
+    expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
+  });
+
   it('uses cubes.svg mask icon for all course part chips', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
