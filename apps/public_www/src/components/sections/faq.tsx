@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 
+import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
@@ -30,6 +31,10 @@ const ACTIVE_TAB_BACKGROUND = '#F2A975';
 const ACTIVE_TAB_TEXT = '#333333';
 const INACTIVE_TAB_BACKGROUND = '#F7F2E1';
 const INACTIVE_TAB_TEXT = '#5A5A5A';
+const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
+const CONTACT_CARD_TEXT = 'var(--figma-colors-desktop, #FFFFFF)';
+const CONTACT_CARD_CTA_HREF = '/contact-us';
+const CONTACT_CARD_CTA_LABEL = 'Contact Us';
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -61,6 +66,23 @@ const answerStyle: CSSProperties = {
   fontWeight: 400,
   lineHeight: '1.6',
   fontSize: 'clamp(1rem, 1.3vw, 20px)',
+};
+
+const contactQuestionStyle: CSSProperties = {
+  ...questionStyle,
+  color: CONTACT_CARD_TEXT,
+};
+
+const contactAnswerStyle: CSSProperties = {
+  ...answerStyle,
+  color: CONTACT_CARD_TEXT,
+};
+
+const contactCardCtaStyle: CSSProperties = {
+  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
+  fontSize: '18px',
+  fontWeight: 600,
+  lineHeight: '1',
 };
 
 function normalizeQuery(value: string): string {
@@ -123,21 +145,72 @@ function FaqLensIcon() {
   );
 }
 
-function FaqItems({ items }: { items: FaqQuestion[] }) {
+function isContactUsPromptQuestion(
+  question: FaqQuestion,
+  allLabelIds: Set<string>,
+): boolean {
+  if (allLabelIds.size === 0 || question.labelIds.length < allLabelIds.size) {
+    return false;
+  }
+
+  const questionLabelIds = new Set(question.labelIds);
+  for (const labelId of allLabelIds) {
+    if (!questionLabelIds.has(labelId)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function FaqItems({
+  items,
+  allLabelIds,
+}: {
+  items: FaqQuestion[];
+  allLabelIds: Set<string>;
+}) {
   return (
     <ul className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-      {items.map((item, index) => (
-        <li key={`${item.question}-${index}`} className='h-full'>
-          <article className='flex h-full flex-col rounded-[24px] bg-[#F8F8F8] px-6 py-7 sm:px-8 sm:py-8'>
-            <h3 style={questionStyle}>{item.question}</h3>
-            <div className='mt-5 border-l-[4.1px] border-l-[#13522799] pl-5 sm:pl-6'>
-              <p className='whitespace-pre-line' style={answerStyle}>
-                {item.answer}
-              </p>
-            </div>
-          </article>
-        </li>
-      ))}
+      {items.map((item, index) => {
+        const isContactCard = isContactUsPromptQuestion(item, allLabelIds);
+
+        if (isContactCard) {
+          return (
+            <li key={`${item.question}-${index}`} className='h-full'>
+              <article
+                className='flex h-full flex-col rounded-[24px] px-6 py-7 sm:px-8 sm:py-8'
+                style={{ backgroundColor: CONTACT_CARD_BACKGROUND }}
+              >
+                <h3 style={contactQuestionStyle}>{item.question}</h3>
+                <p className='mt-5 whitespace-pre-line' style={contactAnswerStyle}>
+                  {item.answer}
+                </p>
+                <SectionCtaAnchor
+                  href={CONTACT_CARD_CTA_HREF}
+                  className='mt-6 h-[52px] w-full rounded-[10px] px-5 text-base sm:h-[56px] sm:w-fit sm:min-w-[190px] sm:px-6'
+                  style={contactCardCtaStyle}
+                >
+                  {CONTACT_CARD_CTA_LABEL}
+                </SectionCtaAnchor>
+              </article>
+            </li>
+          );
+        }
+
+        return (
+          <li key={`${item.question}-${index}`} className='h-full'>
+            <article className='flex h-full flex-col rounded-[24px] bg-[#F8F8F8] px-6 py-7 sm:px-8 sm:py-8'>
+              <h3 style={questionStyle}>{item.question}</h3>
+              <div className='mt-5 border-l-[4.1px] border-l-[#13522799] pl-5 sm:pl-6'>
+                <p className='whitespace-pre-line' style={answerStyle}>
+                  {item.answer}
+                </p>
+              </div>
+            </article>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -145,6 +218,10 @@ function FaqItems({ items }: { items: FaqQuestion[] }) {
 export function Faq({ content }: FaqProps) {
   const labels = content.labels;
   const questions = content.questions;
+  const allLabelIds = useMemo(
+    () => new Set(labels.map((entry) => entry.id)),
+    [labels],
+  );
   const firstLabelId = labels[0]?.id ?? '';
   const [activeLabelId, setActiveLabelId] = useState(firstLabelId);
   const [searchValue, setSearchValue] = useState('');
@@ -240,7 +317,7 @@ export function Faq({ content }: FaqProps) {
               {content.emptySearchResultsLabel}
             </p>
           ) : (
-            <FaqItems items={visibleQuestions} />
+            <FaqItems items={visibleQuestions} allLabelIds={allLabelIds} />
           )}
         </div>
       </div>

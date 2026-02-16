@@ -1,10 +1,26 @@
-import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { type AnchorHTMLAttributes, type ReactNode } from 'react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { Faq } from '@/components/sections/faq';
 import enContent from '@/content/en.json';
 
-describe('Faq section background', () => {
+vi.mock('next/link', () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: ReactNode;
+  } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+describe('Faq section', () => {
   it('uses the testimonials background image and overlay properties', () => {
     const { container } = render(<Faq content={enContent.faq} />);
 
@@ -30,5 +46,40 @@ describe('Faq section background', () => {
       'linear-gradient(to bottom, black 18%, transparent 20%)',
     );
     expect(section?.querySelector('div.relative.z-10')).not.toBeNull();
+  });
+
+  it('renders the fallback prompt as a blue card with contact CTA', () => {
+    render(<Faq content={enContent.faq} />);
+
+    const fallbackQuestion = enContent.faq.questions.find(
+      (item) => item.question === 'Have not found what you need?',
+    );
+    if (!fallbackQuestion) {
+      throw new Error('Expected fallback FAQ prompt in content fixture');
+    }
+
+    const questionHeading = screen.getByRole('heading', {
+      level: 3,
+      name: fallbackQuestion.question,
+    });
+    expect(questionHeading.getAttribute('style')).toContain(
+      'color: var(--figma-colors-desktop, #FFFFFF)',
+    );
+
+    const card = questionHeading.closest('article');
+    expect(card).not.toBeNull();
+    expect(card?.getAttribute('style')).toContain(
+      'background-color: var(--figma-colors-frame-2147235242, #174879)',
+    );
+    expect(card?.querySelector('div[class*="border-l"]')).toBeNull();
+
+    const answer = screen.getByText(fallbackQuestion.answer);
+    expect(answer.getAttribute('style')).toContain(
+      'color: var(--figma-colors-desktop, #FFFFFF)',
+    );
+
+    const contactCta = screen.getByRole('link', { name: 'Contact Us' });
+    expect(contactCta).toHaveAttribute('href', '/contact-us');
+    expect(contactCta.className).toContain('es-cta-primary');
   });
 });
