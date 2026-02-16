@@ -59,8 +59,6 @@ export function MyJourney({ content }: MyJourneyProps) {
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowStyle}
-            className='px-4 py-[11px] sm:px-5'
-            style={{ borderColor: '#EECAB0' }}
           />
           <h2 className='mt-6' style={titleStyle}>
             {content.title}

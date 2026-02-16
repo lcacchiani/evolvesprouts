@@ -350,12 +350,6 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowTextStyle}
-            className='px-4 py-2.5 sm:px-5'
-            style={{
-              backgroundColor: 'var(--figma-colors-desktop, #FFFFFF)',
-              borderColor: '#EECAB0',
-              backdropFilter: 'blur(14px)',
-            }}
           />
 
           <h2 className='mt-6 text-balance' style={titleStyle}>

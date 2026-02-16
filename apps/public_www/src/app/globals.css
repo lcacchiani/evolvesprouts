@@ -89,6 +89,12 @@
     line-height: 1;
   }
 
+  .es-section-eyebrow-chip {
+    padding: 0.625rem 1rem;
+    border-color: #EECAB0;
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+
   .es-section-body {
     color: var(--site-primary-text);
     font-family: var(--site-primary-font);

@@ -42,7 +42,6 @@ const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
 const GOLD_CARD = '#9E6D12';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
-const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
 
 const fallbackCourseHighlightsCopy = enContent.courseHighlights;
 
@@ -202,11 +201,6 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
           <SectionEyebrowChip
             label={sectionEyebrow}
             labelStyle={sectionEyebrowStyle}
-            className='h-[46px] justify-center px-4 sm:px-5'
-            style={{
-              backgroundColor: WHITE,
-              borderColor: '#FF9D59',
-            }}
           />
 
           <h2 className='mt-6 text-balance' style={sectionTitleStyle}>

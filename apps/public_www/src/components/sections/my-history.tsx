@@ -63,8 +63,6 @@ export function MyHistory({ content }: MyHistoryProps) {
           <SectionEyebrowChip
             label={content.eyebrow}
             labelStyle={eyebrowStyle}
-            className='px-4 py-[11px] sm:px-5'
-            style={{ borderColor: '#EECAB0', backgroundColor: '#FFFDF8' }}
           />
           <h2 className='mt-6 max-w-[780px]' style={titleStyle}>
             {content.title}
