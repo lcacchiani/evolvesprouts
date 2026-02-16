@@ -51,6 +51,13 @@ const MEDIA_BG = 'var(--figma-colors-rectangle-240648654, #D9D9D9)';
 const RESOURCE_IMAGE_SRC = '/images/family.webp';
 const BORDER_COLOR = '#EECAB0';
 const GREEN_ACCENT = '#5D9D49';
+const TILE_BORDER_COLOR = '#D9A578';
+
+const cardBackgroundPatternStyle: CSSProperties = {
+  backgroundColor: BORDER_COLOR,
+  backgroundImage: `linear-gradient(${TILE_BORDER_COLOR} 1px, transparent 1px), linear-gradient(90deg, ${TILE_BORDER_COLOR} 1px, transparent 1px)`,
+  backgroundSize: '100px 100px',
+};
 
 const eyebrowStyle: CSSProperties = {
   color: HEADING_COLOR,
@@ -298,23 +305,6 @@ function ChecklistIcon() {
   );
 }
 
-function PlayIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 32 32'
-      className='h-6 w-6'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M12 9.8L23 16L12 22.2V9.8Z'
-        fill='#174879'
-      />
-    </svg>
-  );
-}
-
 function ResourceCardContent({
   cardTitle,
   cardDescription,
@@ -432,12 +422,13 @@ export function FreeResourcesForGentleParenting({
         </div>
 
         <div className='mt-10 sm:mt-12 lg:mt-14'>
-          <div className='overflow-hidden rounded-[18px] bg-[linear-gradient(145deg,#F6D6BE_0%,#FBE7D8_100%)] p-[2px]'>
+          <div className='overflow-hidden rounded-[18px]'>
             {isOverlayLayout ? (
               <div
                 data-testid='free-resource-layout'
                 data-layout='overlay'
                 className='relative overflow-hidden rounded-[16px] border border-black/5'
+                style={cardBackgroundPatternStyle}
               >
                 <div
                   className='relative min-h-[620px] overflow-hidden sm:min-h-[700px] lg:min-h-[740px]'
@@ -473,12 +464,6 @@ export function FreeResourcesForGentleParenting({
                     </div>
                   </div>
 
-                  <div
-                    aria-hidden='true'
-                    className='absolute right-[30px] top-[44%] z-10 flex h-[72px] w-[72px] -translate-y-1/2 items-center justify-center rounded-full border border-[#174879]/10 bg-white/92 shadow-[0px_18px_38px_-20px_rgba(0,0,0,0.6)] backdrop-blur max-lg:left-1/2 max-lg:right-auto max-lg:top-1/2 max-lg:-translate-x-1/2'
-                  >
-                    <PlayIcon />
-                  </div>
                 </div>
 
                 <div
@@ -507,7 +492,8 @@ export function FreeResourcesForGentleParenting({
               <div
                 data-testid='free-resource-layout'
                 data-layout='split'
-                className='grid overflow-hidden rounded-[16px] border border-black/5 bg-white lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+                className='grid overflow-hidden rounded-[16px] border border-black/5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+                style={cardBackgroundPatternStyle}
               >
                 <div
                   data-testid='free-resource-text-pane'
@@ -565,12 +551,6 @@ export function FreeResourcesForGentleParenting({
                     </div>
                   </div>
 
-                  <div
-                    aria-hidden='true'
-                    className='absolute right-[30px] top-[44%] z-10 flex h-[72px] w-[72px] -translate-y-1/2 items-center justify-center rounded-full border border-[#174879]/10 bg-white/92 shadow-[0px_18px_38px_-20px_rgba(0,0,0,0.6)] backdrop-blur max-lg:left-1/2 max-lg:right-auto max-lg:top-1/2 max-lg:-translate-x-1/2'
-                  >
-                    <PlayIcon />
-                  </div>
                 </div>
               </div>
             )}

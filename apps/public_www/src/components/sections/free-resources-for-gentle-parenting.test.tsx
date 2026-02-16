@@ -45,6 +45,35 @@ describe('Free resources for gentle parenting section', () => {
     expect(mediaPane.className).toContain('lg:order-2');
   });
 
+  it('applies the orange tile background pattern to the card container', () => {
+    render(<FreeResourcesForGentleParenting content={enContent.resources} />);
+
+    const layout = screen.getByTestId('free-resource-layout');
+
+    expect(layout.style.backgroundColor).toBe('rgb(238, 202, 176)');
+    expect(layout.style.backgroundImage).toContain('linear-gradient');
+    expect(layout.style.backgroundSize).toBe('100px 100px');
+  });
+
+  it('does not render the circular play-arrow overlay on the media image', () => {
+    const playIconPathSelector = 'path[d="M12 9.8L23 16L12 22.2V9.8Z"]';
+    const { container, rerender } = render(
+      <FreeResourcesForGentleParenting content={enContent.resources} />,
+    );
+
+    expect(container.querySelector(playIconPathSelector)).toBeNull();
+
+    const overlayContent = createResourcesContent({
+      headerAlignment: 'center',
+      layoutVariant: 'overlay',
+      imagePosition: 'right',
+      cardPosition: 'right',
+    });
+    rerender(<FreeResourcesForGentleParenting content={overlayContent} />);
+
+    expect(container.querySelector(playIconPathSelector)).toBeNull();
+  });
+
   it('supports left heading alignment from locale config', () => {
     const content = createResourcesContent({
       headerAlignment: 'left',
