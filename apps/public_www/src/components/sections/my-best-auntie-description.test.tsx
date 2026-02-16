@@ -19,7 +19,7 @@ vi.mock('next/image', () => ({
 }));
 
 describe('MyBestAuntieDescription section', () => {
-  it('uses course-highlights background properties and left-aligned heading', () => {
+  it('uses grey background properties and left-aligned heading', () => {
     render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
 
     const section = screen.getByRole('region', {
@@ -28,9 +28,7 @@ describe('MyBestAuntieDescription section', () => {
     const sectionStyle = section.getAttribute('style') ?? '';
 
     expect(section.className).toContain('es-section-bg-overlay');
-    expect(sectionStyle).toContain(
-      'background-color: var(--figma-colors-frame-2147235259, #FFEEE3)',
-    );
+    expect(sectionStyle).toContain('background-color: rgb(248, 248, 248)');
     expect(sectionStyle).toContain(
       '--es-section-bg-position: center -900px',
     );
@@ -50,6 +48,17 @@ describe('MyBestAuntieDescription section', () => {
 
     expect(titleWrapperClassName).toContain('text-left');
     expect(titleWrapperClassName).not.toContain('text-center');
+  });
+
+  it('keeps controls in the same header row as the title', () => {
+    render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
+
+    const header = screen.getByTestId('my-best-auntie-description-header');
+    const controls = screen.getByTestId('my-best-auntie-description-controls');
+
+    expect(header.className).toContain('md:flex-row');
+    expect(header.className).toContain('md:items-end');
+    expect(controls.parentElement).toBe(header);
   });
 
   it('renders highlight cards without box shadow', () => {
