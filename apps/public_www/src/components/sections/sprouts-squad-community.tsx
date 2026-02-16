@@ -12,6 +12,10 @@ interface SproutsSquadCommunityProps {
 
 const SECTION_BACKGROUND =
   'var(--figma-colors-frame-2147235259, #FFEEE3)';
+const FOREGROUND_LOGO_FILTER =
+  'sepia(1) opacity(50%) saturate(150%)';
+const FOREGROUND_LOGO_MASK_IMAGE =
+  'linear-gradient(to bottom, black 50%, transparent 63%)';
 
 const headingStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -57,11 +61,16 @@ export function SproutsSquadCommunity({
 
       <div className='relative z-10 mx-auto flex min-h-[420px] w-full max-w-[1465px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
         <Image
-          src='/images/tree-background.png'
+          src='/images/evolvesprouts-logo.svg'
           alt=''
-          width={241}
-          height={247}
-          className='h-auto w-[82px] sm:w-[96px] lg:w-[118px]'
+          width={250}
+          height={250}
+          className='h-auto w-[250px]'
+          style={{
+            filter: FOREGROUND_LOGO_FILTER,
+            maskImage: FOREGROUND_LOGO_MASK_IMAGE,
+            WebkitMaskImage: FOREGROUND_LOGO_MASK_IMAGE,
+          }}
         />
         <h2
           className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px]'

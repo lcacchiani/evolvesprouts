@@ -8,18 +8,36 @@
     "brand": "Evolve Sprouts",
     "logoSrc": "/images/evolvesprouts-logo.svg",
     "menuItems": [
-      { "label": "Home", "href": "/" },
+      {
+        "label": "Home",
+        "href": "/"
+      },
       {
         "label": "Training Courses",
         "href": "/services/my-best-auntie-training-course",
         "children": [
-          { "label": "Auntie Training", "href": "/services/my-best-auntie-training-course" },
-          { "label": "Montessori Training", "href": "#" }
+          {
+            "label": "Auntie Training",
+            "href": "/services/my-best-auntie-training-course"
+          },
+          {
+            "label": "Montessori Training",
+            "href": "#"
+          }
         ]
       },
-      { "label": "About Us", "href": "/about-us" },
-      { "label": "Events", "href": "/events" },
-      { "label": "Contact Us", "href": "/contact-us" }
+      {
+        "label": "About Us",
+        "href": "/about-us"
+      },
+      {
+        "label": "Events",
+        "href": "/events"
+      },
+      {
+        "label": "Contact Us",
+        "href": "/contact-us"
+      }
     ],
     "bookNow": {
       "label": "Book Now",
@@ -155,9 +173,18 @@
       "title": "My Best Auntie Training Course.",
       "monthLabel": "Month",
       "monthOptions": [
-        { "id": "apr-2026", "label": "Apr, 2026" },
-        { "id": "may-2026", "label": "May, 2026" },
-        { "id": "jun-2026", "label": "Jun, 2026" }
+        {
+          "id": "apr-2026",
+          "label": "Apr, 2026"
+        },
+        {
+          "id": "may-2026",
+          "label": "May, 2026"
+        },
+        {
+          "id": "jun-2026",
+          "label": "Jun, 2026"
+        }
       ],
       "parts": [
         {
@@ -484,9 +511,18 @@
     "scheduledHeading": "Scheduled Events",
     "sortAriaLabel": "Sort events by",
     "sortOptions": [
-      { "value": "latest", "label": "Latest Events" },
-      { "value": "oldest", "label": "Older Events" },
-      { "value": "fully_booked", "label": "Fully Booked" }
+      {
+        "value": "latest",
+        "label": "Latest Events"
+      },
+      {
+        "value": "oldest",
+        "label": "Older Events"
+      },
+      {
+        "value": "fully_booked",
+        "label": "Fully Booked"
+      }
     ],
     "loadingLabel": "Loading events...",
     "emptyStateLabel": "No scheduled events for now",
@@ -563,133 +599,214 @@
     "searchPlaceholder": "Ask a question",
     "emptySearchResultsLabel": "No matching questions found. Please try another keyword.",
     "labels": [
-      { "id": "general", "label": "General Questions" },
-      { "id": "discipline", "label": "Montessori Discipline" },
-      { "id": "support", "label": "Support & Resources" },
-      { "id": "pricing", "label": "Packages & Pricing" },
-      { "id": "trust", "label": "Trust & Guarantees" },
-      { "id": "enrolment", "label": "Enrolment" }
+      {
+        "id": "general",
+        "label": "General Questions"
+      },
+      {
+        "id": "discipline",
+        "label": "Montessori Discipline"
+      },
+      {
+        "id": "support",
+        "label": "Support & Resources"
+      },
+      {
+        "id": "pricing",
+        "label": "Packages & Pricing"
+      },
+      {
+        "id": "trust",
+        "label": "Trust & Guarantees"
+      },
+      {
+        "id": "enrolment",
+        "label": "Enrolment"
+      }
     ],
     "questions": [
       {
         "question": "We live in a small apartment. Will this still work?",
         "answer": "Yes. Most Hong Kong families do, and so do I. We specialise in small-space Montessori setups, shared rooms, and practical routines that do not require expensive materials or furniture.",
-        "labelIds": ["general"]
+        "labelIds": [
+          "general"
+        ]
       },
       {
         "question": "Do I need to follow Montessori perfectly to work with you?",
         "answer": "No. This is Montessori-informed, not Montessori-dogmatic. We focus on principles that improve daily life: independence, respect, consistency, and emotional regulation-adapted to modern Hong Kong homes and caregiving realities.",
-        "labelIds": ["general"]
+        "labelIds": [
+          "general"
+        ]
       },
       {
         "question": "Who is Evolve Sprouts for?",
         "answer": "Evolve Sprouts supports families in Hong Kong with children aged 0-6, especially those working with helpers or navigating busy city life.",
-        "labelIds": ["general"]
+        "labelIds": [
+          "general"
+        ]
       },
       {
         "question": "How is Montessori relevant for infants and toddlers at home?",
         "answer": "Montessori is not just for classrooms. We teach aunties to create child-friendly home environments and practical routines that build independence from infancy.",
-        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+        "labelIds": [
+          "general",
+          "discipline",
+          "support",
+          "pricing",
+          "trust",
+          "enrolment"
+        ]
       },
       {
         "question": "What is the difference between positive discipline and regular discipline?",
         "answer": "Traditional discipline often relies on rewards and punishments. Positive discipline focuses on understanding behaviour, setting clear boundaries, and coaching children toward self-regulation.",
-        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+        "labelIds": [
+          "general",
+          "discipline",
+          "support",
+          "pricing",
+          "trust",
+          "enrolment"
+        ]
       },
       {
         "question": "Are these strategies culturally appropriate for Hong Kong families?",
         "answer": "Yes. We adapt Montessori principles to local lifestyles, including small homes, busy schedules, and helper-supported caregiving.",
-        "labelIds": ["general"]
+        "labelIds": [
+          "general"
+        ]
       },
       {
         "question": "Will this make my child too soft or less competitive?",
         "answer": "Children raised with independence, emotional regulation, and responsibility often become more confident, focused, and resilient-not less capable.",
-        "labelIds": ["discipline"]
+        "labelIds": [
+          "discipline"
+        ]
       },
       {
         "question": "My child has tantrums, hits, or refuses to listen. Can Montessori help?",
         "answer": "Yes, but not with quick fixes. We review environment, adult responses, routines, and developmental expectations, then give practical steps you can apply consistently.",
-        "labelIds": ["discipline"]
+        "labelIds": [
+          "discipline"
+        ]
       },
       {
         "question": "Does Montessori mean no discipline or letting children do anything?",
         "answer": "No. Montessori discipline means clear limits, consistent routines, and calm leadership. Children thrive when freedom is paired with structure.",
-        "labelIds": ["discipline"]
+        "labelIds": [
+          "discipline"
+        ]
       },
       {
         "question": "Will I get practical tools or just theory?",
         "answer": "You will get practical tools, including routines, behaviour scripts, environment checklists, and reflection sheets. We always turn principles into action.",
-        "labelIds": ["support"]
+        "labelIds": [
+          "support"
+        ]
       },
       {
         "question": "What if parents and helpers disagree on discipline?",
         "answer": "This is very common. We align adults first so children receive consistent messages, expectations, and routines.",
-        "labelIds": ["support"]
+        "labelIds": [
+          "support"
+        ]
       },
       {
         "question": "My helper does not speak English fluently. Is that a problem?",
         "answer": "No. Our method uses clear language, repetition, demonstrations, and visual guidance. The goal is understanding and consistency.",
-        "labelIds": ["support"]
+        "labelIds": [
+          "support"
+        ]
       },
       {
         "question": "Do you work directly with helpers?",
         "answer": "Yes. We provide helper-friendly coaching, practical scripts, and routines aligned with family values.",
-        "labelIds": ["support"]
+        "labelIds": [
+          "support"
+        ]
       },
       {
         "question": "What services do you offer?",
         "answer": "We offer consultation sessions, auntie training, home setup guidance, and parent support services tailored for families in Hong Kong.",
-        "labelIds": ["pricing"]
+        "labelIds": [
+          "pricing"
+        ]
       },
       {
         "question": "Do you offer packages or bundles?",
         "answer": "Yes. Some families choose bundled support for deeper change. We recommend options after understanding your family needs.",
-        "labelIds": ["pricing"]
+        "labelIds": [
+          "pricing"
+        ]
       },
       {
         "question": "Why is this priced higher than a one-off parenting talk?",
         "answer": "Because this is personalised and implementation-focused. You are paying for real-life observation, tailored guidance, and ongoing support-not just motivation.",
-        "labelIds": ["pricing"]
+        "labelIds": [
+          "pricing"
+        ]
       },
       {
         "question": "Is this just a one-time session or ongoing support?",
         "answer": "Both options are available. Some families need a reset plan, while others benefit from longer support as children grow.",
-        "labelIds": ["pricing"]
+        "labelIds": [
+          "pricing"
+        ]
       },
       {
         "question": "Do you guarantee results?",
         "answer": "Children are not machines, so no ethical professional guarantees instant perfection. What we do guarantee is clear guidance, practical strategy, and honest support.",
-        "labelIds": ["trust"]
+        "labelIds": [
+          "trust"
+        ]
       },
       {
         "question": "Is this backed by evidence?",
         "answer": "Our work is informed by Montessori principles, child development research, and years of practical application with Hong Kong families and helpers.",
-        "labelIds": ["trust"]
+        "labelIds": [
+          "trust"
+        ]
       },
       {
         "question": "What makes Evolve Sprouts different from other parenting coaches?",
         "answer": "We combine Montessori-informed guidance with deep understanding of Hong Kong family-helper dynamics. Our approach is practical, respectful, and non-judgmental.",
-        "labelIds": ["trust"]
+        "labelIds": [
+          "trust"
+        ]
       },
       {
         "question": "Is this suitable for international families in Hong Kong?",
         "answer": "Yes. We regularly support multicultural families navigating different expectations around discipline, education, and caregiving.",
-        "labelIds": ["enrolment"]
+        "labelIds": [
+          "enrolment"
+        ]
       },
       {
         "question": "What if I am not sure which service I need?",
         "answer": "That is normal. Reach out and we will help you choose the best starting point with no pressure.",
-        "labelIds": ["enrolment"]
+        "labelIds": [
+          "enrolment"
+        ]
       },
       {
         "question": "How do I get started?",
         "answer": "Start with a consultation or contact us directly. We will guide you to the most suitable service for your family.",
-        "labelIds": ["enrolment"]
+        "labelIds": [
+          "enrolment"
+        ]
       },
       {
         "question": "Have not found what you need?",
         "answer": "Get in touch-we are happy to help. Contact us through the Contact Us page.",
-        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+        "labelIds": [
+          "general",
+          "discipline",
+          "support",
+          "pricing",
+          "trust",
+          "enrolment"
+        ]
       }
     ]
   },
@@ -710,36 +827,85 @@
     "quickLinks": {
       "title": "Quick Links",
       "items": [
-        { "label": "Home", "href": "/" },
-        { "label": "About Us", "href": "/about-us" },
-        { "label": "Events", "href": "/events" },
-        { "label": "Contact Us", "href": "/contact-us" },
-        { "label": "Book Now", "href": "#" }
+        {
+          "label": "Home",
+          "href": "/"
+        },
+        {
+          "label": "About Us",
+          "href": "/about-us"
+        },
+        {
+          "label": "Events",
+          "href": "/events"
+        },
+        {
+          "label": "Contact Us",
+          "href": "/contact-us"
+        },
+        {
+          "label": "Book Now",
+          "href": "#"
+        }
       ]
     },
     "services": {
       "title": "Services",
       "items": [
-        { "label": "My Best Auntie", "href": "#" },
-        { "label": "Workshops", "href": "#" },
-        { "label": "Resources", "href": "#" }
+        {
+          "label": "My Best Auntie",
+          "href": "#"
+        },
+        {
+          "label": "Workshops",
+          "href": "#"
+        },
+        {
+          "label": "Resources",
+          "href": "#"
+        }
       ]
     },
     "aboutUs": {
       "title": "About Us",
       "items": [
-        { "label": "Who We Are", "href": "#" },
-        { "label": "Newsletter", "href": "#" },
-        { "label": "Privacy Policy", "href": "#" }
+        {
+          "label": "Who We Are",
+          "href": "#"
+        },
+        {
+          "label": "Newsletter",
+          "href": "#"
+        },
+        {
+          "label": "Privacy Policy",
+          "href": "#"
+        }
       ]
     },
     "connectOn": {
       "title": "Connect on",
       "items": [
-        { "label": "Facebook", "href": "https://facebook.com", "icon": "facebook" },
-        { "label": "Linkedin", "href": "https://linkedin.com", "icon": "linkedin" },
-        { "label": "Instagram", "href": "https://instagram.com", "icon": "instagram" },
-        { "label": "Tiktok", "href": "https://tiktok.com", "icon": "tiktok" }
+        {
+          "label": "Facebook",
+          "href": "https://facebook.com",
+          "icon": "facebook"
+        },
+        {
+          "label": "Linkedin",
+          "href": "https://linkedin.com",
+          "icon": "linkedin"
+        },
+        {
+          "label": "Instagram",
+          "href": "https://instagram.com",
+          "icon": "instagram"
+        },
+        {
+          "label": "Tiktok",
+          "href": "https://tiktok.com",
+          "icon": "tiktok"
+        }
       ]
     },
     "copyright": "© 2025 Evolve Sprouts",
@@ -755,6 +921,26 @@
   },
   "banner": {
     "title": "banner",
+    "description": "",
+    "items": []
+  },
+  "realStories": {
+    "title": "Real Stories",
+    "description": "",
+    "items": []
+  },
+  "freeResources": {
+    "title": "Free Resources ",
+    "description": "",
+    "items": []
+  },
+  "whyJoiningOurCourses": {
+    "title": "Why Joining Our Courses",
+    "description": "",
+    "items": []
+  },
+  "courseModule": {
+    "title": "Course module",
     "description": "",
     "items": []
   }

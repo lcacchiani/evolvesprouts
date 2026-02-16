@@ -200,18 +200,22 @@ describe('my-best-auntie booking modals footer content', () => {
 
     expect(directionLink).toHaveAttribute('href', bookingModalContent.directionHref);
     expect(directionLink).toHaveTextContent(bookingModalContent.directionLabel);
+    expect(screen.getByText(bookingModalContent.directionLabel).className).toContain(
+      'underline',
+    );
+    const directionIcon = directionLink.querySelector(
+      'svg[data-external-link-icon="true"]',
+    );
     expect(
-      directionLink.querySelector('svg[data-external-link-icon="true"]'),
+      directionIcon,
+    ).not.toBeNull();
+    expect(directionIcon?.getAttribute('class')).toContain('border-b');
+    expect(
+      container.querySelector('span[style*="/images/credit-card.svg"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('img[src*="/images/credit-card.svg"]'),
+      container.querySelector('span[style*="/images/target.svg"]'),
     ).not.toBeNull();
-    expect(
-      container.querySelector('img[src*="/images/target.svg"]'),
-    ).not.toBeNull();
-    expect(
-      container.querySelector('img[src*="/images/my-best-auntie-booking/direction-mark.png"]'),
-    ).toBeNull();
     expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(2);
   });
 

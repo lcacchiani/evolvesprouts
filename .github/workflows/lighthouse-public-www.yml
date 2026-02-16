@@ -23,7 +23,7 @@ jobs:
           cache-dependency-path: apps/public_www/package-lock.json
 
       - name: Restore Next.js build cache (public_www)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: apps/public_www/.next/cache
           key: ${{ runner.os }}-nextjs-public-www-${{ hashFiles('apps/public_www/package-lock.json') }}-${{ hashFiles('apps/public_www/src/**/*.{js,jsx,ts,tsx}', 'apps/public_www/scripts/**/*.mjs', 'apps/public_www/next.config.*') }}
@@ -46,7 +46,7 @@ jobs:
 
       - name: Upload Lighthouse artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lighthouse-public-www-results
           path: apps/public_www/.lighthouseci/**

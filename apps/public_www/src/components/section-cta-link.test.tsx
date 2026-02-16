@@ -25,9 +25,13 @@ describe('SectionCtaAnchor', () => {
 
     const link = screen.getByRole('link', { name: 'Visit resource' });
     expect(link).toHaveAttribute('href', 'https://example.com');
+    const label = screen.getByText('Visit resource');
+    expect(label.className).toContain('underline');
+    const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
     expect(
-      link.querySelector('svg[data-external-link-icon="true"]'),
+      externalIcon,
     ).not.toBeNull();
+    expect(externalIcon?.getAttribute('class')).toContain('border-b');
   });
 
   it('keeps the chevron icon for internal href values', () => {

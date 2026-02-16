@@ -8,18 +8,36 @@
     "brand": "Evolve Sprouts",
     "logoSrc": "/images/evolvesprouts-logo.svg",
     "menuItems": [
-      { "label": "Home", "href": "/" },
+      {
+        "label": "Home",
+        "href": "/"
+      },
       {
         "label": "Training Courses",
         "href": "/services/my-best-auntie-training-course",
         "children": [
-          { "label": "Auntie Training", "href": "/services/my-best-auntie-training-course" },
-          { "label": "Montessori Training", "href": "#" }
+          {
+            "label": "Auntie Training",
+            "href": "/services/my-best-auntie-training-course"
+          },
+          {
+            "label": "Montessori Training",
+            "href": "#"
+          }
         ]
       },
-      { "label": "About Us", "href": "/about-us" },
-      { "label": "Events", "href": "/events" },
-      { "label": "Contact Us", "href": "/contact-us" }
+      {
+        "label": "About Us",
+        "href": "/about-us"
+      },
+      {
+        "label": "Events",
+        "href": "/events"
+      },
+      {
+        "label": "Contact Us",
+        "href": "/contact-us"
+      }
     ],
     "bookNow": {
       "label": "Book Now",
@@ -155,9 +173,18 @@
       "title": "我的最佳姨姨培訓課程。",
       "monthLabel": "月份",
       "monthOptions": [
-        { "id": "apr-2026", "label": "2026年4月" },
-        { "id": "may-2026", "label": "2026年5月" },
-        { "id": "jun-2026", "label": "2026年6月" }
+        {
+          "id": "apr-2026",
+          "label": "2026年4月"
+        },
+        {
+          "id": "may-2026",
+          "label": "2026年5月"
+        },
+        {
+          "id": "jun-2026",
+          "label": "2026年6月"
+        }
       ],
       "parts": [
         {
@@ -484,9 +511,18 @@
     "scheduledHeading": "已排期活動",
     "sortAriaLabel": "按條件排序活動",
     "sortOptions": [
-      { "value": "latest", "label": "最新活動" },
-      { "value": "oldest", "label": "較早活動" },
-      { "value": "fully_booked", "label": "已滿額" }
+      {
+        "value": "latest",
+        "label": "最新活動"
+      },
+      {
+        "value": "oldest",
+        "label": "較早活動"
+      },
+      {
+        "value": "fully_booked",
+        "label": "已滿額"
+      }
     ],
     "loadingLabel": "正在載入活動...",
     "emptyStateLabel": "暫無已排期活動",
@@ -563,133 +599,214 @@
     "searchPlaceholder": "請輸入問題關鍵字",
     "emptySearchResultsLabel": "找不到相符問題，請嘗試其他關鍵字。",
     "labels": [
-      { "id": "general", "label": "一般問題" },
-      { "id": "discipline", "label": "蒙特梭利紀律" },
-      { "id": "support", "label": "支援與資源" },
-      { "id": "pricing", "label": "方案與收費" },
-      { "id": "trust", "label": "信任與保證" },
-      { "id": "enrolment", "label": "報名" }
+      {
+        "id": "general",
+        "label": "一般問題"
+      },
+      {
+        "id": "discipline",
+        "label": "蒙特梭利紀律"
+      },
+      {
+        "id": "support",
+        "label": "支援與資源"
+      },
+      {
+        "id": "pricing",
+        "label": "方案與收費"
+      },
+      {
+        "id": "trust",
+        "label": "信任與保證"
+      },
+      {
+        "id": "enrolment",
+        "label": "報名"
+      }
     ],
     "questions": [
       {
         "question": "我們住在細單位，這套方法仍然適用嗎？",
         "answer": "適用。香港很多家庭都屬於小空間，我自己也是。我們專注於小空間蒙特梭利布置、共享房間安排，以及不依賴昂貴教具的日常流程。",
-        "labelIds": ["general"]
+        "labelIds": [
+          "general"
+        ]
       },
       {
         "question": "和你合作前，我需要把蒙特梭利做到完美嗎？",
         "answer": "不需要。我們的方法是「蒙特梭利啟發」，不是「蒙特梭利教條」。重點是把獨立、尊重、一致性和情緒調節落地到真實生活。",
-        "labelIds": ["general"]
+        "labelIds": [
+          "general"
+        ]
       },
       {
         "question": "Evolve Sprouts 適合哪些家庭？",
         "answer": "我們支援香港 0-6 歲孩子家庭，特別適合與姨姨共同照顧、或在高節奏城市生活中希望建立更清晰育兒系統的家庭。",
-        "labelIds": ["general"]
+        "labelIds": [
+          "general"
+        ]
       },
       {
         "question": "蒙特梭利對嬰幼兒家庭場景有甚麼實際意義？",
         "answer": "蒙特梭利不只適用於課室。我們會教姨姨在家中建立對孩子友善的環境和可執行流程，從小培養獨立能力。",
-        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+        "labelIds": [
+          "general",
+          "discipline",
+          "support",
+          "pricing",
+          "trust",
+          "enrolment"
+        ]
       },
       {
         "question": "正向管教和傳統管教有甚麼分別？",
         "answer": "傳統方式常依賴獎懲；正向管教更重視行為背後的需要，配合清晰界線與穩定引導，幫助孩子建立自我調節能力。",
-        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+        "labelIds": [
+          "general",
+          "discipline",
+          "support",
+          "pricing",
+          "trust",
+          "enrolment"
+        ]
       },
       {
         "question": "這些策略適合香港家庭文化嗎？",
         "answer": "適合。我們會按香港家庭實際情況調整，包括居住空間、生活節奏和姨姨協作模式。",
-        "labelIds": ["general"]
+        "labelIds": [
+          "general"
+        ]
       },
       {
         "question": "這樣會不會令孩子太「軟」，失去競爭力？",
         "answer": "不會。具備獨立性、情緒調節和責任感的孩子，通常更自信、更專注，也更有韌性。",
-        "labelIds": ["discipline"]
+        "labelIds": [
+          "discipline"
+        ]
       },
       {
         "question": "孩子發脾氣、打人、不聽話，蒙特梭利真的有幫助嗎？",
         "answer": "有，但不是速成技巧。我們會從環境、成人回應、日常節奏和發展階段預期入手，提供可持續執行的具體方法。",
-        "labelIds": ["discipline"]
+        "labelIds": [
+          "discipline"
+        ]
       },
       {
         "question": "蒙特梭利是否等於「無紀律」或「孩子想做甚麼就做甚麼」？",
         "answer": "不是。蒙特梭利紀律強調清晰界線、穩定流程和溫和而堅定的成人帶領。自由要建立在結構之上。",
-        "labelIds": ["discipline"]
+        "labelIds": [
+          "discipline"
+        ]
       },
       {
         "question": "我會得到實操工具，還是只有理論？",
         "answer": "你會獲得可執行工具，例如日常流程、行為溝通腳本、環境清單和復盤記錄表。我們一向重視落地。",
-        "labelIds": ["support"]
+        "labelIds": [
+          "support"
+        ]
       },
       {
         "question": "如果父母和姨姨在管教上意見不一致怎麼辦？",
         "answer": "這很常見。我們會先協助成人對齊，讓孩子接收到一致訊號、界線和回應方式。",
-        "labelIds": ["support"]
+        "labelIds": [
+          "support"
+        ]
       },
       {
         "question": "姨姨英文不流利，會影響學習嗎？",
         "answer": "不會。我們會用清晰語言、重複示範和可視化方式，讓核心方法容易理解和執行。",
-        "labelIds": ["support"]
+        "labelIds": [
+          "support"
+        ]
       },
       {
         "question": "你們會直接和姨姨一起工作嗎？",
         "answer": "會。我們提供姨姨可直接使用的指引、腳本與流程，並確保與家庭價值觀一致。",
-        "labelIds": ["support"]
+        "labelIds": [
+          "support"
+        ]
       },
       {
         "question": "你們提供哪些服務？",
         "answer": "我們提供諮詢、姨姨培訓、家居環境指導及家長支援服務，內容會按家庭情況作個人化調整。",
-        "labelIds": ["pricing"]
+        "labelIds": [
+          "pricing"
+        ]
       },
       {
         "question": "有組合方案嗎？",
         "answer": "有。部分家庭會選擇組合支援，以達到更深入改變。我們會在了解需求後給予建議。",
-        "labelIds": ["pricing"]
+        "labelIds": [
+          "pricing"
+        ]
       },
       {
         "question": "為甚麼價錢比一次性育兒講座高？",
         "answer": "因為我們提供的是個人化且可執行的陪跑支援，包括真實場景分析、度身方案及後續調整，而不只是一次分享。",
-        "labelIds": ["pricing"]
+        "labelIds": [
+          "pricing"
+        ]
       },
       {
         "question": "這是一次性服務還是持續支援？",
         "answer": "兩者都有。有些家庭需要一次系統重置；有些家庭則更適合持續支援，尤其在孩子進入新階段時。",
-        "labelIds": ["pricing"]
+        "labelIds": [
+          "pricing"
+        ]
       },
       {
         "question": "你們會保證結果嗎？",
         "answer": "孩子不是機器，任何負責任的專業人士都不會承諾立即完美見效。我們保證的是清晰方向、務實策略和持續支持。",
-        "labelIds": ["trust"]
+        "labelIds": [
+          "trust"
+        ]
       },
       {
         "question": "這些方法有理據支持嗎？",
         "answer": "我們的方法基於蒙特梭利原則、兒童發展研究，以及多年與香港家庭和姨姨合作的實務經驗。",
-        "labelIds": ["trust"]
+        "labelIds": [
+          "trust"
+        ]
       },
       {
         "question": "Evolve Sprouts 與其他育兒顧問有何不同？",
         "answer": "我們深入理解香港家庭與姨姨協作情境，以蒙特梭利原則處理真實生活問題，方法務實、尊重且無批判。",
-        "labelIds": ["trust"]
+        "labelIds": [
+          "trust"
+        ]
       },
       {
         "question": "這適合在香港生活的國際家庭嗎？",
         "answer": "適合。我們經常支援多文化背景家庭，協助在不同育兒觀念之間建立一致做法。",
-        "labelIds": ["enrolment"]
+        "labelIds": [
+          "enrolment"
+        ]
       },
       {
         "question": "如果我不確定需要哪項服務，怎麼辦？",
         "answer": "很正常。先聯絡我們，我們會在無壓力情況下協助你找到合適起點。",
-        "labelIds": ["enrolment"]
+        "labelIds": [
+          "enrolment"
+        ]
       },
       {
         "question": "我可以如何開始？",
         "answer": "你可以先預約諮詢，或直接透過 Contact Us 聯絡我們。我們會建議最適合你家庭的下一步。",
-        "labelIds": ["enrolment"]
+        "labelIds": [
+          "enrolment"
+        ]
       },
       {
         "question": "找不到你關心的問題怎麼辦？",
         "answer": "歡迎直接聯絡我們，我們很樂意提供建議。可透過 Contact Us 頁面聯絡。",
-        "labelIds": ["general", "discipline", "support", "pricing", "trust", "enrolment"]
+        "labelIds": [
+          "general",
+          "discipline",
+          "support",
+          "pricing",
+          "trust",
+          "enrolment"
+        ]
       }
     ]
   },
@@ -710,36 +827,85 @@
     "quickLinks": {
       "title": "快速連結",
       "items": [
-        { "label": "首頁", "href": "/" },
-        { "label": "關於我們", "href": "/about" },
-        { "label": "活動", "href": "/events" },
-        { "label": "聯絡我們", "href": "/contact" },
-        { "label": "立即預約", "href": "/book" }
+        {
+          "label": "首頁",
+          "href": "/"
+        },
+        {
+          "label": "關於我們",
+          "href": "/about"
+        },
+        {
+          "label": "活動",
+          "href": "/events"
+        },
+        {
+          "label": "聯絡我們",
+          "href": "/contact"
+        },
+        {
+          "label": "立即預約",
+          "href": "/book"
+        }
       ]
     },
     "services": {
       "title": "服務",
       "items": [
-        { "label": "我的好阿姨", "href": "/services/my-best-auntie-training-course" },
-        { "label": "工作坊", "href": "/services/workshops" },
-        { "label": "資源", "href": "/resources" }
+        {
+          "label": "我的好阿姨",
+          "href": "/services/my-best-auntie-training-course"
+        },
+        {
+          "label": "工作坊",
+          "href": "/services/workshops"
+        },
+        {
+          "label": "資源",
+          "href": "/resources"
+        }
       ]
     },
     "aboutUs": {
       "title": "關於我們",
       "items": [
-        { "label": "我們是誰", "href": "/about" },
-        { "label": "通訊", "href": "#" },
-        { "label": "私隱政策", "href": "/privacy" }
+        {
+          "label": "我們是誰",
+          "href": "/about"
+        },
+        {
+          "label": "通訊",
+          "href": "#"
+        },
+        {
+          "label": "私隱政策",
+          "href": "/privacy"
+        }
       ]
     },
     "connectOn": {
       "title": "關注我們",
       "items": [
-        { "label": "Facebook", "href": "https://facebook.com", "icon": "facebook" },
-        { "label": "Linkedin", "href": "https://linkedin.com", "icon": "linkedin" },
-        { "label": "Instagram", "href": "https://instagram.com", "icon": "instagram" },
-        { "label": "Tiktok", "href": "https://tiktok.com", "icon": "tiktok" }
+        {
+          "label": "Facebook",
+          "href": "https://facebook.com",
+          "icon": "facebook"
+        },
+        {
+          "label": "Linkedin",
+          "href": "https://linkedin.com",
+          "icon": "linkedin"
+        },
+        {
+          "label": "Instagram",
+          "href": "https://instagram.com",
+          "icon": "instagram"
+        },
+        {
+          "label": "Tiktok",
+          "href": "https://tiktok.com",
+          "icon": "tiktok"
+        }
       ]
     },
     "copyright": "© 2025 Evolve Sprouts",
@@ -755,6 +921,26 @@
   },
   "banner": {
     "title": "banner",
+    "description": "",
+    "items": []
+  },
+  "realStories": {
+    "title": "Real Stories",
+    "description": "",
+    "items": []
+  },
+  "freeResources": {
+    "title": "Free Resources ",
+    "description": "",
+    "items": []
+  },
+  "whyJoiningOurCourses": {
+    "title": "Why Joining Our Courses",
+    "description": "",
+    "items": []
+  },
+  "courseModule": {
+    "title": "Course module",
     "description": "",
     "items": []
   }

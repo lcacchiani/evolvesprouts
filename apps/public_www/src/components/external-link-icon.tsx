@@ -8,12 +8,14 @@ export function ExternalLinkIcon({
   className = 'h-4 w-4 shrink-0',
   ...svgProps
 }: ExternalLinkIconProps) {
+  const mergedClassName = `shrink-0 border-b border-current pb-[1px] ${className}`;
+
   return (
     <svg
       aria-hidden='true'
       data-external-link-icon='true'
       viewBox='0 0 16 16'
-      className={className}
+      className={mergedClassName}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
       {...svgProps}
