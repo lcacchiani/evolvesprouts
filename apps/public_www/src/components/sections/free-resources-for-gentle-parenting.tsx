@@ -340,7 +340,7 @@ function ResourceCardContent({
 
       <SectionCtaAnchor
         href={ctaHref}
-        className='mt-auto w-full max-w-[360px] es-focus-ring-medium'
+        className='mt-auto w-full max-w-[360px]'
       >
         {ctaLabel}
       </SectionCtaAnchor>

@@ -458,7 +458,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
           <SectionCtaAnchor
             href={content.ctaHref}
-            className='mt-8 w-full max-w-[491px] es-focus-ring-soft lg:mt-10'
+            className='mt-8 w-full max-w-[491px] lg:mt-10'
           >
             {computedCtaLabel}
           </SectionCtaAnchor>
