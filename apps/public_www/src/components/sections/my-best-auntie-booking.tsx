@@ -422,7 +422,7 @@ export function MyBestAuntieBooking({
                 onClick={() => {
                   setIsPaymentModalOpen(true);
                 }}
-                className='es-focus-ring es-cta-button es-cta-primary mt-7 h-[58px] rounded-[10px] px-5 text-base font-semibold cursor-pointer'
+                className='es-focus-ring es-cta-button es-cta-primary es-primary-cta mt-7 cursor-pointer'
               >
                 {content.confirmAndPayLabel}
               </button>

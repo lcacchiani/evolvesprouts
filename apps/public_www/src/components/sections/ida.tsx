@@ -36,13 +36,6 @@ const bodyStyle: CSSProperties = {
   fontSize: 'clamp(1rem, 1.95vw, 24px)',
 };
 
-const ctaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 600,
-  lineHeight: '1',
-  fontSize: '18px',
-};
-
 export function Ida({ content }: IdaProps) {
   return (
     <SectionShell
@@ -63,8 +56,7 @@ export function Ida({ content }: IdaProps) {
           </p>
           <SectionCtaAnchor
             href={content.ctaHref}
-            className='mt-8 h-[56px] rounded-[10px] px-6 sm:h-[62px]'
-            style={ctaStyle}
+            className='mt-8'
           >
             {content.ctaLabel}
           </SectionCtaAnchor>

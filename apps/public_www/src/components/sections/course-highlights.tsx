@@ -117,13 +117,6 @@ const sectionDescriptionStyle: CSSProperties = {
     'calc(var(--figma-letterspacing-transform-your-auntie-into-a-montessori-guided-child-development-partner, 0.28) * 1px)',
 };
 
-const ctaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.05rem, 2.3vw, var(--figma-fontsizes-28, 28px))',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight: 'var(--figma-fontsizes-28, 28px)',
-};
-
 function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
   const activeItems =
     content.items.length > 0
@@ -233,8 +226,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
           <SectionCtaAnchor
             href={ctaHref}
-            className='h-[62px] w-full max-w-[488px] gap-2 rounded-[8px] px-5 sm:h-[70px] sm:px-7 lg:h-[78px]'
-            style={ctaStyle}
+            className='w-full max-w-[488px]'
           >
             {ctaLabel}
           </SectionCtaAnchor>

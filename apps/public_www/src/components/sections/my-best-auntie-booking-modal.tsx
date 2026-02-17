@@ -694,7 +694,7 @@ export function MyBestAuntieBookingModal({
                   <button
                     type='submit'
                     disabled={isSubmitDisabled}
-                    className='es-focus-ring es-cta-button es-cta-primary es-modal-submit-button mt-1 h-[56px] w-full rounded-[10px] text-base font-semibold'
+                    className='es-focus-ring es-cta-button es-cta-primary es-primary-cta es-modal-submit-button mt-1 w-full'
                   >
                     {content.submitLabel}
                   </button>

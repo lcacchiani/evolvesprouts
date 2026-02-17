@@ -268,7 +268,7 @@ export function MyBestAuntieThankYouModal({
                 </button>
                 <Link
                   href={homeHref}
-                  className='es-focus-ring es-cta-button es-cta-primary inline-flex h-[54px] items-center justify-center rounded-[10px] px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
+                  className='es-focus-ring es-cta-button es-cta-primary es-primary-cta'
                 >
                   {content.backHomeLabel}
                 </Link>

@@ -36,14 +36,6 @@ const subheadlineStyle: CSSProperties = {
   letterSpacing: '0.5px',
 };
 
-const ctaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: '600',
-  fontSize: '18px',
-  lineHeight: '1',
-  letterSpacing: '0',
-};
-
 const highlightedWordStyle: CSSProperties = {
   color: HEADLINE_HIGHLIGHT,
 };
@@ -96,8 +88,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
             </p>
             <SectionCtaAnchor
               href='/services/my-best-auntie-training-course'
-              className='mt-6 h-[55px] rounded-[10px] px-[34px]'
-              style={ctaStyle}
+              className='mt-6'
             >
               {content.cta}
             </SectionCtaAnchor>

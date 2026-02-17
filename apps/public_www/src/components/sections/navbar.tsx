@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  type CSSProperties,
   useCallback,
   useEffect,
   useRef,
@@ -48,20 +47,11 @@ const MOBILE_MENU_TRANSITION_MS = 300;
 const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const NAV_MOBILE_BOOK_BUTTON_CLASSNAME =
-  'w-full rounded-[10px] px-4';
-const NAV_DESKTOP_BOOK_BUTTON_CLASSNAME =
-  'h-[56px] rounded-[10px] px-[27px]';
+  'w-full';
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
   'es-focus-ring es-nav-icon-button h-11 w-11 rounded-xl lg:hidden';
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
   'es-focus-ring es-nav-icon-button h-10 w-10 rounded-full';
-
-const ctaStyle = {
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'var(--figma-fontsizes-22, 22px)',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight: 'var(--figma-lineheights-book-now, 100%)',
-};
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -80,19 +70,16 @@ function BookNowButton({
   href,
   label,
   onClick,
-  style = ctaStyle,
 }: {
-  className: string;
+  className?: string;
   href: string;
   label: string;
   onClick?: () => void;
-  style?: CSSProperties;
 }) {
   return (
     <SectionCtaAnchor
       href={href}
       className={className}
-      style={style}
       onClick={onClick}
     >
       {label}
@@ -266,7 +253,6 @@ export function Navbar({ content }: NavbarProps) {
             <BookNowButton
               href={localizedBookNowHref}
               label={content.bookNow.label}
-              className={NAV_DESKTOP_BOOK_BUTTON_CLASSNAME}
             />
           </div>
 

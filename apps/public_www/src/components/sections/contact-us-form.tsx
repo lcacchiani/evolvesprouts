@@ -251,7 +251,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
 
             <button
               type='submit'
-              className='es-focus-ring es-cta-button es-cta-primary mt-2 inline-flex h-[58px] w-full items-center justify-center rounded-[10px] px-5 text-[1.1rem] font-semibold'
+              className='es-focus-ring es-cta-button es-cta-primary es-primary-cta mt-2 w-full'
             >
               {content.submitLabel}
             </button>
