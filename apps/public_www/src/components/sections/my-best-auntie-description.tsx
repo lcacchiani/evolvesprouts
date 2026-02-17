@@ -25,7 +25,7 @@ const CARD_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
 const CARD_ICON_FALLBACK =
   '/images/training.svg';
 const CONTROL_ICON = 'var(--es-color-text-icon, #3D3E3D)';
-const CONTROL_ICON_DISABLED = 'var(--es-color-text-neutral-strong, #6B6B6B)';
+const CONTROL_ICON_DISABLED = 'var(--es-color-text-neutral-strong, #5A5A5A)';
 
 const iconByKey: Record<string, string> = {
   'live-training': '/images/training.svg',
