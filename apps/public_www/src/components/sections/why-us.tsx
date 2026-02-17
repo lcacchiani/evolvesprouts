@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { WhyUsContent } from '@/content';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
@@ -37,12 +37,7 @@ export function WhyUs({ content }: WhyUsProps) {
       style={{ backgroundColor: SECTION_BACKGROUND }}
     >
       <div className='mx-auto w-full max-w-[1465px]'>
-        <div className='mx-auto max-w-[980px] text-center'>
-          <SectionEyebrowChip label={content.eyebrow} />
-          <h2 className='es-type-title mt-6'>
-            {content.title}
-          </h2>
-        </div>
+        <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
         <div className='mt-10 grid gap-6 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-8'>
           <div

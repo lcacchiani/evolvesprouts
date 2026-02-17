@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import {
   readCandidateText,
@@ -283,19 +283,13 @@ export function Testimonials({ content }: TestimonialsProps) {
       style={SECTION_STYLE}
     >
       <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
-        <div className='mx-auto max-w-[760px] text-center'>
-          <SectionEyebrowChip label={badgeLabel} />
-
-          <h2 className='es-type-title mt-6 text-balance'>
-            {content.title}
-          </h2>
-
-          {descriptionText && (
-            <p className='es-type-body mt-3'>
-              {descriptionText}
-            </p>
-          )}
-        </div>
+        <SectionHeader
+          eyebrow={badgeLabel}
+          title={content.title}
+          titleClassName='text-balance'
+          description={descriptionText || undefined}
+          descriptionClassName='es-type-body mt-3'
+        />
 
         <div
           data-testid='testimonials-card'

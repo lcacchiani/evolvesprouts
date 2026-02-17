@@ -1,6 +1,6 @@
 import { CourseHighlightCard } from '@/components/sections/course-highlight-card';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { CourseHighlightsContent } from '@/content';
 import enContent from '@/content/en.json';
@@ -148,13 +148,11 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
       />
 
       <div className='relative z-10 mx-auto w-full max-w-[1520px]'>
-        <div className='mx-auto max-w-[1000px] text-center'>
-          <SectionEyebrowChip label={sectionEyebrow} />
-
-          <h2 className='es-type-title mt-6 text-balance'>
-            {sectionTitle}
-          </h2>
-        </div>
+        <SectionHeader
+          eyebrow={sectionEyebrow}
+          title={sectionTitle}
+          titleClassName='text-balance'
+        />
 
         <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3'>
           {benefitCards.map((card, index) => {

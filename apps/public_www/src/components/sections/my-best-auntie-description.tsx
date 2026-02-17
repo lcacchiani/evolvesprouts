@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieDescriptionContent } from '@/content';
 import {
@@ -179,12 +179,12 @@ export function MyBestAuntieDescription({
           data-testid='my-best-auntie-description-header'
           className='flex flex-col gap-5 md:flex-row md:items-end md:justify-between'
         >
-          <div className='max-w-[920px] text-left'>
-            <SectionEyebrowChip label={content.eyebrow} />
-            <h2 className='es-type-title mt-6'>
-              {content.title}
-            </h2>
-          </div>
+          <SectionHeader
+            eyebrow={content.eyebrow}
+            title={content.title}
+            align='left'
+            className='min-w-0 flex-1'
+          />
 
           {hasMultipleCards && (
             <div

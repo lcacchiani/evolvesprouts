@@ -233,6 +233,24 @@
     letter-spacing: 0.28px;
   }
 
+  .es-section-header {
+    width: 100%;
+  }
+
+  .es-section-header--wide {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 980px;
+  }
+
+  .es-section-header--center {
+    text-align: center;
+  }
+
+  .es-section-header--left {
+    text-align: left;
+  }
+
   .es-section-eyebrow-chip {
     padding: 0.625rem 1rem;
     border-color: var(--es-color-brand-peach-border);

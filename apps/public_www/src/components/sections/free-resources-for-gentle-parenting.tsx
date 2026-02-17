@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import {
   readCandidateText,
@@ -368,10 +368,6 @@ export function FreeResourcesForGentleParenting({
     splitImagePosition === 'left' ? 'lg:order-1' : 'lg:order-2';
   const overlayCardAlignmentClassName =
     overlayCardPosition === 'left' ? 'justify-start' : 'justify-end';
-  const headerClassName =
-    headerAlignment === 'center'
-      ? 'mx-auto max-w-[760px] text-center'
-      : 'max-w-[760px] text-left';
 
   return (
     <SectionShell
@@ -381,17 +377,13 @@ export function FreeResourcesForGentleParenting({
       style={{ backgroundColor: SECTION_BG }}
     >
       <div className='mx-auto w-full max-w-[1464px]'>
-        <div data-testid='free-resource-header' className={headerClassName}>
-          <SectionEyebrowChip
-            label={eyebrowLabel}
-            className='px-4 py-[11px] sm:px-5'
-            style={{ borderColor: BORDER_COLOR }}
-          />
-
-          <h2 className='es-type-title mt-6 text-balance'>
-            {content.title}
-          </h2>
-        </div>
+        <SectionHeader
+          testId='free-resource-header'
+          eyebrow={eyebrowLabel}
+          title={content.title}
+          align={headerAlignment}
+          titleClassName='text-balance'
+        />
 
         <div className='mt-10 sm:mt-12 lg:mt-14'>
           <div className='overflow-hidden rounded-[18px]'>

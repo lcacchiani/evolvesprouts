@@ -1,4 +1,4 @@
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
@@ -62,10 +62,11 @@ export function ReachOut({ content }: ReachOutProps) {
       style={SECTION_STYLE}
     >
       <div className='mx-auto w-full max-w-[1465px]'>
-        <div className='mx-auto max-w-[840px] text-center'>
-          <SectionEyebrowChip label={content.eyebrow} />
-          <h2 className='es-type-title mt-6 text-balance'>{content.title}</h2>
-        </div>
+        <SectionHeader
+          eyebrow={content.eyebrow}
+          title={content.title}
+          titleClassName='text-balance'
+        />
 
         <ul className='mt-10 grid grid-cols-1 gap-4 sm:gap-5 lg:mt-12 lg:grid-cols-2'>
           {content.items.map((item, index) => (

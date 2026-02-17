@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
 import {
@@ -227,12 +227,7 @@ export function Faq({ content }: FaqProps) {
       style={SECTION_STYLE}
     >
       <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
-        <div className='mx-auto max-w-[980px] text-center'>
-          <SectionEyebrowChip label={content.eyebrow} />
-          <h2 className='es-type-title mt-6'>
-            {content.title}
-          </h2>
-        </div>
+        <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
         <div className='mx-auto mt-8 max-w-[980px] rounded-[58px] border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
           <div className='relative'>

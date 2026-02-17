@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieOverviewContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
@@ -298,13 +298,11 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
       style={SECTION_STYLE}
     >
       <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
-        <div className='mx-auto max-w-[760px] text-center'>
-          <SectionEyebrowChip label={content.eyebrow} />
-
-          <h2 className='es-type-title mt-6 text-balance'>
-            {renderMultilineText(content.title)}
-          </h2>
-        </div>
+        <SectionHeader
+          eyebrow={content.eyebrow}
+          title={renderMultilineText(content.title)}
+          titleClassName='text-balance'
+        />
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>
           {/* Desktop / tablet grid (md+) */}

@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyHistoryContent } from '@/content';
 import {
@@ -28,13 +28,14 @@ export function MyHistory({ content }: MyHistoryProps) {
     >
       <div className='mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-12'>
         <div>
-          <SectionEyebrowChip label={content.eyebrow} />
-          <h2 className='es-type-title mt-6 max-w-[780px]'>
-            {content.title}
-          </h2>
-          <p className='es-type-subtitle mt-4 max-w-[760px]'>
-            {content.subtitle}
-          </p>
+          <SectionHeader
+            eyebrow={content.eyebrow}
+            title={content.title}
+            align='left'
+            titleClassName='max-w-[780px]'
+            description={content.subtitle}
+            descriptionClassName='es-type-subtitle mt-4 max-w-[760px]'
+          />
           <p className='es-type-body mt-4 max-w-[760px]'>
             {content.description}
           </p>
