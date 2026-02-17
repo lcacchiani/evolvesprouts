@@ -40,17 +40,6 @@ const SECTION_BACKGROUND = SURFACE_WHITE;
 const LOADING_GEAR_COLOR = BRAND_ORANGE_SOFT;
 const LOADING_GEAR_BACKGROUND = BRAND_PEACH_BG;
 
-const titleStyle: CSSProperties = headingTextStyle({
-  fontSize: 'clamp(2.1rem, 5.6vw, 55px)',
-  lineHeight: '1.12',
-});
-
-const descriptionStyle: CSSProperties = bodyTextStyle({
-  fontSize: 'clamp(1rem, 2.2vw, 24px)',
-  lineHeight: '1.45',
-  letterSpacing: '0.2px',
-});
-
 const scheduledHeadingStyle: CSSProperties = headingTextStyle({
   fontSize: 'clamp(1.45rem, 3.5vw, 32px)',
   fontWeight: 600,
@@ -215,10 +204,10 @@ export function Events({ content }: EventsProps) {
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[920px] text-center'>
-          <h1 className='text-balance' style={titleStyle}>
+          <h1 className='es-type-title text-balance'>
             {content.title}
           </h1>
-          <p className='mt-4 text-balance' style={descriptionStyle}>
+          <p className='es-type-body-lg mt-4 text-balance'>
             {content.description}
           </p>
         </div>

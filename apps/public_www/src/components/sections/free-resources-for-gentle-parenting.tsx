@@ -57,23 +57,6 @@ const cardBackgroundPatternStyle: CSSProperties = {
   backgroundSize: '100px 100px',
 };
 
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: 'var(--figma-fontsizes-18, 18px)',
-};
-
-const sectionTitleStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(2rem, 6vw, var(--figma-fontsizes-55, 55px))',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight:
-    'clamp(2.75rem, 7vw, calc(var(--figma-lineheights-real-stories-from-parents-in-hong-kong, 70) * 1px))',
-};
-
 const cardTitleStyle: CSSProperties = {
   color: HEADING_COLOR,
   fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
@@ -401,12 +384,11 @@ export function FreeResourcesForGentleParenting({
         <div data-testid='free-resource-header' className={headerClassName}>
           <SectionEyebrowChip
             label={eyebrowLabel}
-            labelStyle={eyebrowStyle}
             className='px-4 py-[11px] sm:px-5'
             style={{ borderColor: BORDER_COLOR }}
           />
 
-          <h2 className='mt-6 text-balance' style={sectionTitleStyle}>
+          <h2 className='es-type-title mt-6 text-balance'>
             {content.title}
           </h2>
         </div>

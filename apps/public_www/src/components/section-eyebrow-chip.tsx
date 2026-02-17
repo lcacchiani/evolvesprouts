@@ -3,6 +3,7 @@ import Image from 'next/image';
 
 interface SectionEyebrowChipProps {
   label: string;
+  labelClassName?: string;
   labelStyle?: CSSProperties;
   className?: string;
   style?: CSSProperties;
@@ -15,6 +16,7 @@ const CHIP_LOGO_SIZE = 31;
 
 export function SectionEyebrowChip({
   label,
+  labelClassName,
   labelStyle,
   className,
   style,
@@ -22,6 +24,10 @@ export function SectionEyebrowChip({
   const chipClassName = className
     ? `${BASE_CHIP_CLASSNAME} ${className}`
     : BASE_CHIP_CLASSNAME;
+
+  const labelTextClassName = labelClassName
+    ? `es-type-eyebrow ${labelClassName}`
+    : 'es-type-eyebrow';
 
   return (
     <div className={chipClassName} style={style}>
@@ -32,7 +38,9 @@ export function SectionEyebrowChip({
         height={CHIP_LOGO_SIZE}
         className='h-[31px] w-[31px] shrink-0'
       />
-      <span style={labelStyle}>{label}</span>
+      <span className={labelTextClassName} style={labelStyle}>
+        {label}
+      </span>
     </div>
   );
 }

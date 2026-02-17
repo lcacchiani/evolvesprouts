@@ -39,21 +39,6 @@ const iconByKey: Record<string, string> = {
   workbook: '/images/workbook.svg',
 };
 
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: '18px',
-  fontWeight: 500,
-  lineHeight: 1,
-};
-
-const titleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 700,
-  lineHeight: 1.15,
-};
-
 const cardTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
@@ -195,14 +180,8 @@ export function MyBestAuntieDescription({
           className='flex flex-col gap-5 md:flex-row md:items-end md:justify-between'
         >
           <div className='max-w-[920px] text-left'>
-            <SectionEyebrowChip
-              label={content.eyebrow}
-              labelStyle={eyebrowStyle}
-            />
-            <h2
-              className='mt-6 text-[clamp(2rem,5.6vw,3.2rem)]'
-              style={titleStyle}
-            >
+            <SectionEyebrowChip label={content.eyebrow} />
+            <h2 className='es-type-title mt-6'>
               {content.title}
             </h2>
           </div>

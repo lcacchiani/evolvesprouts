@@ -67,22 +67,6 @@ const MODULE_TONES: readonly ModuleTone[] = [
   },
 ];
 
-const eyebrowTextStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: '18px',
-};
-
-const titleStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(2.2rem, 6vw, var(--figma-fontsizes-55, 55px))',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight: 'clamp(2.95rem, 7vw, 70px)',
-};
-
 const moduleTitleStyle: CSSProperties = {
   color: HEADING_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
@@ -98,18 +82,6 @@ const moduleWeekStyle: CSSProperties = {
   fontSize: 'clamp(1.15rem, 2.2vw, 28px)',
   fontWeight: '700',
   lineHeight: '1.2',
-};
-
-const descriptionStyle: CSSProperties = {
-  color: BODY_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.1rem, 3vw, var(--figma-fontsizes-30, 30px))',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  fontStyle: 'italic',
-  lineHeight:
-    'clamp(1.75rem, 4vw, calc(var(--figma-lineheights-transform-your-auntie-into-a-montessori-guided-child-development-partner-2, 46) * 1px))',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-transform-your-auntie-into-a-montessori-guided-child-development-partner-2, 0.3) * 1px)',
 };
 
 const activityStyle: CSSProperties = {
@@ -327,12 +299,9 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
     >
       <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[760px] text-center'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowTextStyle}
-          />
+          <SectionEyebrowChip label={content.eyebrow} />
 
-          <h2 className='mt-6 text-balance' style={titleStyle}>
+          <h2 className='es-type-title mt-6 text-balance'>
             {renderMultilineText(content.title)}
           </h2>
         </div>
@@ -451,7 +420,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
         <div className='mx-auto mt-12 max-w-[760px] text-center lg:mt-16'>
           {content.description && (
-            <p className='text-balance' style={descriptionStyle}>
+            <p className='es-type-body-italic-lg text-balance'>
               {content.description}
             </p>
           )}

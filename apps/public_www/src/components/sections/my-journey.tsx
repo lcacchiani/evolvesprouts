@@ -5,9 +5,7 @@ import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { MyJourneyContent } from '@/content';
 import {
-  BODY_TEXT_COLOR,
   BRAND_ORANGE,
-  HEADING_TEXT_COLOR,
   SURFACE_WHITE,
 } from '@/lib/design-tokens';
 import {
@@ -33,22 +31,6 @@ const RIGHT_COLUMN_CARD_BACKGROUNDS = [
   RIGHT_COLUMN_YELLOW_CARD_BACKGROUND,
 ] as const;
 
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 500,
-  lineHeight: '1',
-  fontSize: '18px',
-};
-
-const titleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 700,
-  lineHeight: '1.14',
-  fontSize: 'clamp(1.95rem, 4.7vw, 50px)',
-};
-
 const tagStyle: CSSProperties = {
   color: BRAND_ORANGE,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
@@ -57,14 +39,6 @@ const tagStyle: CSSProperties = {
   fontSize: '14px',
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
-};
-
-const bodyStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 400,
-  lineHeight: '1.55',
-  fontSize: 'clamp(1rem, 1.85vw, 22px)',
 };
 
 export function MyJourney({ content }: MyJourneyProps) {
@@ -78,11 +52,8 @@ export function MyJourney({ content }: MyJourneyProps) {
     >
       <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[980px] text-center'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
-          />
-          <h2 className='mt-6' style={titleStyle}>
+          <SectionEyebrowChip label={content.eyebrow} />
+          <h2 className='es-type-title mt-6'>
             {content.title}
           </h2>
         </div>
@@ -112,7 +83,7 @@ export function MyJourney({ content }: MyJourneyProps) {
                   }}
                 >
                   <span style={tagStyle}>{card.tag}</span>
-                  <p className='mt-3' style={bodyStyle}>
+                  <p className='es-type-body-base mt-3'>
                     {card.description}
                   </p>
                 </article>

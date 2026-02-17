@@ -52,32 +52,6 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
 
-const badgeTextStyle: CSSProperties = {
-  color: TEXT_PRIMARY,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: 'var(--figma-lineheights-testimonials, 100%)',
-};
-
-const headingStyle: CSSProperties = {
-  color: TEXT_PRIMARY,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(2rem, 5.8vw, var(--figma-fontsizes-55, 55px))',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight:
-    'clamp(2.6rem, 7vw, calc(var(--figma-lineheights-real-stories-from-parents-in-hong-kong, 70) * 1px))',
-};
-
-const descriptionTextStyle: CSSProperties = {
-  color: TEXT_SECONDARY,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight: 'var(--figma-lineheights-home, 28px)',
-  letterSpacing: 'var(--figma-letterspacing-home, 0.5px)',
-};
-
 const quoteTextStyle: CSSProperties = {
   color: TEXT_PRIMARY,
   fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
@@ -310,17 +284,14 @@ export function Testimonials({ content }: TestimonialsProps) {
     >
       <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
         <div className='mx-auto max-w-[760px] text-center'>
-          <SectionEyebrowChip
-            label={badgeLabel}
-            labelStyle={badgeTextStyle}
-          />
+          <SectionEyebrowChip label={badgeLabel} />
 
-          <h2 className='mt-6 text-balance' style={headingStyle}>
+          <h2 className='es-type-title mt-6 text-balance'>
             {content.title}
           </h2>
 
           {descriptionText && (
-            <p className='mt-3' style={descriptionTextStyle}>
+            <p className='es-type-body-base mt-3'>
               {descriptionText}
             </p>
           )}

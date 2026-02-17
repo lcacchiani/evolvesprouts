@@ -1,12 +1,9 @@
-import type { CSSProperties } from 'react';
-
 import { CourseHighlightCard } from '@/components/sections/course-highlight-card';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { CourseHighlightsContent } from '@/content';
 import enContent from '@/content/en.json';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import {
   buildSectionBackgroundOverlayStyle,
   LOGO_OVERLAY_DEEP,
@@ -38,8 +35,6 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_DEEP,
   backgroundColor: 'var(--figma-colors-frame-2147235259, #FFEEE3)',
 });
-const HEADING_COLOR = HEADING_TEXT_COLOR;
-const BODY_COLOR = BODY_TEXT_COLOR;
 const GOLD_CARD = 'var(--es-color-accent-gold, #9E6D12)';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
 
@@ -89,33 +84,6 @@ const benefitCardMeta: BenefitCardMeta[] = [
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
   },
 ];
-
-const sectionEyebrowStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: 'var(--figma-fontsizes-18, 18px)',
-};
-
-const sectionTitleStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(2.2rem, 6vw, var(--figma-fontsizes-55, 55px))',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight: 'clamp(2.9rem, 7.2vw, 70px)',
-};
-
-const sectionDescriptionStyle: CSSProperties = {
-  color: BODY_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1rem, 2.2vw, var(--figma-fontsizes-28, 28px))',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  fontStyle: 'italic',
-  lineHeight: 'clamp(1.5rem, 3vw, 50px)',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-transform-your-auntie-into-a-montessori-guided-child-development-partner, 0.28) * 1px)',
-};
 
 function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
   const activeItems =
@@ -181,12 +149,9 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
       <div className='relative z-10 mx-auto w-full max-w-[1520px]'>
         <div className='mx-auto max-w-[1000px] text-center'>
-          <SectionEyebrowChip
-            label={sectionEyebrow}
-            labelStyle={sectionEyebrowStyle}
-          />
+          <SectionEyebrowChip label={sectionEyebrow} />
 
-          <h2 className='mt-6 text-balance' style={sectionTitleStyle}>
+          <h2 className='es-type-title mt-6 text-balance'>
             {sectionTitle}
           </h2>
         </div>
@@ -214,10 +179,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
         {sectionDescription && (
           <div className='mt-9 text-center sm:mt-11 lg:mt-12'>
-            <p
-              className='mx-auto max-w-[780px] text-balance'
-              style={sectionDescriptionStyle}
-            >
+            <p className='es-type-body-italic-md mx-auto max-w-[780px] text-balance'>
               {sectionDescription}
             </p>
           </div>

@@ -11,7 +11,6 @@ import type { FaqContent } from '@/content';
 import {
   BRAND_ORANGE_SOFT,
   bodyTextStyle,
-  eyebrowTextStyle,
   HEADING_TEXT_COLOR,
   headingTextStyle,
   SURFACE_WHITE,
@@ -45,15 +44,6 @@ const CONTACT_CARD_CTA_LABEL = 'Contact Us';
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
   backgroundColor: SURFACE_WHITE,
-});
-
-const eyebrowStyle: CSSProperties = eyebrowTextStyle({
-  fontSize: '18px',
-});
-
-const titleStyle: CSSProperties = headingTextStyle({
-  lineHeight: '1.14',
-  fontSize: 'clamp(1.95rem, 4.7vw, 50px)',
 });
 
 const questionStyle: CSSProperties = headingTextStyle({
@@ -238,11 +228,8 @@ export function Faq({ content }: FaqProps) {
     >
       <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[980px] text-center'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
-          />
-          <h2 className='mt-6' style={titleStyle}>
+          <SectionEyebrowChip label={content.eyebrow} />
+          <h2 className='es-type-title mt-6'>
             {content.title}
           </h2>
         </div>

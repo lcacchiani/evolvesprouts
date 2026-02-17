@@ -6,7 +6,6 @@ import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
   BRAND_ORANGE,
-  DEFAULT_SECTION_EYEBROW_STYLE,
   HEADING_TEXT_COLOR,
   SURFACE_WHITE,
 } from '@/lib/design-tokens';
@@ -22,7 +21,6 @@ const SECTION_STYLE = buildSectionBackgroundStyle({
   position: 'center top',
   size: '900px auto',
 });
-const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 const cardTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -87,11 +85,8 @@ export function Connect({ content }: ConnectProps) {
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[840px] text-center'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
-          />
-          <h2 className='es-section-heading mt-6 text-balance'>{content.title}</h2>
+          <SectionEyebrowChip label={content.eyebrow} />
+          <h2 className='es-type-title mt-6 text-balance'>{content.title}</h2>
         </div>
 
         <ul className='mt-10 grid grid-cols-1 gap-5 lg:mt-12 lg:grid-cols-3'>

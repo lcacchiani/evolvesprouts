@@ -1,40 +1,14 @@
-import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionShell } from '@/components/section-shell';
 import type { IdaContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface IdaProps {
   content: IdaContent;
 }
 
 const SECTION_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
-
-const titleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 700,
-  lineHeight: '1.15',
-  fontSize: 'clamp(2rem, 6vw, 58px)',
-};
-
-const subtitleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 500,
-  lineHeight: '1.4',
-  fontSize: 'clamp(1.05rem, 2.2vw, 26px)',
-};
-
-const bodyStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 400,
-  lineHeight: '1.5',
-  fontSize: 'clamp(1rem, 1.95vw, 24px)',
-};
 
 export function Ida({ content }: IdaProps) {
   return (
@@ -47,11 +21,11 @@ export function Ida({ content }: IdaProps) {
     >
       <div className='mx-auto grid w-full max-w-[1465px] items-center gap-7 lg:grid-cols-2 lg:gap-10'>
         <div className='order-1 relative z-10 lg:order-2 lg:pl-8 xl:pl-[110px]'>
-          <h1 style={titleStyle}>{content.title}</h1>
-          <p className='mt-4 max-w-[760px]' style={subtitleStyle}>
+          <h1 className='es-type-title'>{content.title}</h1>
+          <p className='es-type-subtitle mt-4 max-w-[760px]'>
             {content.subtitle}
           </p>
-          <p className='mt-4 max-w-[720px]' style={bodyStyle}>
+          <p className='es-type-body-lg mt-4 max-w-[720px]'>
             {content.description}
           </p>
           <SectionCtaAnchor

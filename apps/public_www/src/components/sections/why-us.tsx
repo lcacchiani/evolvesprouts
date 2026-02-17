@@ -4,29 +4,13 @@ import Image from 'next/image';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { WhyUsContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface WhyUsProps {
   content: WhyUsContent;
 }
 
 const SECTION_BACKGROUND = 'var(--es-color-surface-warm, #F7F2E1)';
-
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 500,
-  lineHeight: '1',
-  fontSize: '18px',
-};
-
-const titleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 700,
-  lineHeight: '1.14',
-  fontSize: 'clamp(1.95rem, 4.7vw, 50px)',
-};
 
 const introTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -36,28 +20,12 @@ const introTitleStyle: CSSProperties = {
   fontSize: 'clamp(1.05rem, 2.2vw, 24px)',
 };
 
-const bodyStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 400,
-  lineHeight: '1.55',
-  fontSize: 'clamp(1rem, 1.8vw, 21px)',
-};
-
 const pillarTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
   fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
   fontWeight: 600,
   lineHeight: '1.25',
   fontSize: 'clamp(1.1rem, 1.9vw, 24px)',
-};
-
-const pillarBodyStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 400,
-  lineHeight: '1.5',
-  fontSize: '16px',
 };
 
 export function WhyUs({ content }: WhyUsProps) {
@@ -70,11 +38,8 @@ export function WhyUs({ content }: WhyUsProps) {
     >
       <div className='mx-auto w-full max-w-[1465px]'>
         <div className='mx-auto max-w-[980px] text-center'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
-          />
-          <h2 className='mt-6' style={titleStyle}>
+          <SectionEyebrowChip label={content.eyebrow} />
+          <h2 className='es-type-title mt-6'>
             {content.title}
           </h2>
         </div>
@@ -120,14 +85,14 @@ export function WhyUs({ content }: WhyUsProps) {
                     aria-hidden='true'
                     className='mt-2 inline-flex h-2.5 w-2.5 shrink-0 rounded-full es-bg-brand-orange'
                   />
-                  <p style={bodyStyle}>{item}</p>
+                  <p className='es-type-body-base'>{item}</p>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <p className='mt-8 rounded-[22px] border es-border-soft-alt bg-white/70 p-5 sm:p-6' style={bodyStyle}>
+        <p className='es-type-body-base mt-8 rounded-[22px] border es-border-soft-alt bg-white/70 p-5 sm:p-6'>
           {content.communityText}
         </p>
 
@@ -136,7 +101,7 @@ export function WhyUs({ content }: WhyUsProps) {
             <li key={pillar.title}>
               <article className='h-full rounded-[18px] border es-border-soft-alt es-bg-surface-cream p-5'>
                 <h3 style={pillarTitleStyle}>{pillar.title}</h3>
-                <p className='mt-3' style={pillarBodyStyle}>
+                <p className='es-section-body mt-3 text-[16px] leading-[1.5]'>
                   {pillar.description}
                 </p>
               </article>
