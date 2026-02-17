@@ -10,6 +10,7 @@ import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers
 import { SectionShell } from '@/components/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
+  BORDER_DATE_COLOR,
   bodyTextStyle,
   BRAND_ORANGE_SOFT,
   BRAND_ORANGE_STRONG,
@@ -59,12 +60,12 @@ const activeSelectorCardStyle: CSSProperties = {
 
 const inactiveAgeSelectorCardStyle: CSSProperties = {
   backgroundColor: 'var(--es-color-surface-selection-idle, #EFF3F6)',
-  border: '1px solid var(--es-color-border-date, #E1E6EC)',
+  border: `1px solid ${BORDER_DATE_COLOR}`,
 };
 
 const inactiveDateSelectorCardStyle: CSSProperties = {
   backgroundColor: 'var(--es-color-surface-selection-idle, #EFF3F6)',
-  border: '1px solid var(--es-color-border-date, #E1E6EC)',
+  border: `1px solid ${BORDER_DATE_COLOR}`,
 };
 
 const activeDateSelectorCalendarIconStyle = createMaskIconStyle(

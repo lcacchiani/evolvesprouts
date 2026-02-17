@@ -24,14 +24,6 @@
       "value": "#4A4A4A",
       "type": "color"
     },
-    "Frame-1000007814": {
-      "value": "#1F1F1F",
-      "type": "color"
-    },
-    "Frame-2147224783": {
-      "value": "#121211",
-      "type": "color"
-    },
     "Frame-2147235267": {
       "value": "#F6DECD",
       "type": "color"
@@ -83,19 +75,19 @@
   },
   "fontFamilies": {
     "Poppins": {
-      "value": "Poppins",
+      "value": "var(--font-poppins)",
       "type": "fontFamilies"
     },
     "Lato": {
-      "value": "Lato",
+      "value": "var(--font-lato)",
       "type": "fontFamilies"
     },
     "Urbanist": {
-      "value": "Urbanist",
+      "value": "var(--font-poppins)",
       "type": "fontFamilies"
     },
     "Plus-Jakarta-Sans": {
-      "value": "Plus Jakarta Sans",
+      "value": "var(--font-poppins)",
       "type": "fontFamilies"
     }
   },

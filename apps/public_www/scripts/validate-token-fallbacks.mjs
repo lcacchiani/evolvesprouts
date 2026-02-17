@@ -10,7 +10,9 @@ const ALLOWED_EXTENSIONS = new Set(['.css', '.ts', '.tsx']);
 const EXPECTED_TOKEN_FALLBACKS = {
   '--es-color-brand-orange': '#C84A16',
   '--es-color-brand-orange-soft': '#F2A975',
-  '--es-color-brand-orange-strong': '#E76C3D',
+  '--es-color-brand-orange-strong': '#ED622E',
+  '--es-color-booking-highlight-icon': '#B42318',
+  '--es-color-border-date': '#CAD6E5',
   '--es-color-text-heading': '#333333',
   '--es-color-text-icon': '#3D3E3D',
   '--es-color-text-neutral-strong': '#5A5A5A',

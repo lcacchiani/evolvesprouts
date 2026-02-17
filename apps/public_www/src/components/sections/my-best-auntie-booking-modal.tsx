@@ -30,6 +30,7 @@ import {
   isAbortRequestError,
 } from '@/lib/crm-api-client';
 import {
+  BOOKING_HIGHLIGHT_ICON_COLOR,
   bodyTextStyle,
   headingTextStyle,
   TEXT_HEADING_STRONG,
@@ -75,8 +76,6 @@ const PART_CHIP_ICON_MASK_PATH = '/images/cubes.svg';
 const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
 const CREDIT_CARD_ICON_MASK_PATH = '/images/credit-card.svg';
 const TARGET_ICON_MASK_PATH = '/images/target.svg';
-const BOOKING_HIGHLIGHT_ICON_COLOR =
-  'var(--es-color-booking-highlight-icon, #B31D1F)';
 const PART_CHIP_TONES = [
   {
     backgroundColor: 'var(--es-color-part-chip-blue-bg, #99BDE2)',

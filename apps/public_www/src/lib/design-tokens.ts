@@ -2,10 +2,12 @@ import type { CSSProperties } from 'react';
 
 export const TOKEN_FALLBACK_HEX = {
   '--es-color-brand-orange': '#C84A16',
-  '--es-color-brand-orange-strong': '#E76C3D',
+  '--es-color-brand-orange-strong': '#ED622E',
   '--es-color-brand-orange-soft': '#F2A975',
   '--es-color-brand-peach-bg': '#FFF0E5',
   '--es-color-brand-peach-border': '#EECAB0',
+  '--es-color-booking-highlight-icon': '#B42318',
+  '--es-color-border-date': '#CAD6E5',
   '--es-color-surface-white': '#FFFFFF',
   '--es-color-text-heading': '#333333',
   '--es-color-text-icon': '#3D3E3D',
@@ -20,6 +22,8 @@ export const BRAND_ORANGE_STRONG = `var(--es-color-brand-orange-strong, ${TOKEN_
 export const BRAND_ORANGE_SOFT = `var(--es-color-brand-orange-soft, ${TOKEN_FALLBACK_HEX['--es-color-brand-orange-soft']})`;
 export const BRAND_PEACH_BG = `var(--es-color-brand-peach-bg, ${TOKEN_FALLBACK_HEX['--es-color-brand-peach-bg']})`;
 export const BRAND_PEACH_BORDER = `var(--es-color-brand-peach-border, ${TOKEN_FALLBACK_HEX['--es-color-brand-peach-border']})`;
+export const BOOKING_HIGHLIGHT_ICON_COLOR = `var(--es-color-booking-highlight-icon, ${TOKEN_FALLBACK_HEX['--es-color-booking-highlight-icon']})`;
+export const BORDER_DATE_COLOR = `var(--es-color-border-date, ${TOKEN_FALLBACK_HEX['--es-color-border-date']})`;
 export const SURFACE_WHITE = `var(--es-color-surface-white, ${TOKEN_FALLBACK_HEX['--es-color-surface-white']})`;
 export const TEXT_HEADING_STRONG = `var(--es-color-text-heading, ${TOKEN_FALLBACK_HEX['--es-color-text-heading']})`;
 export const TEXT_ICON_COLOR = `var(--es-color-text-icon, ${TOKEN_FALLBACK_HEX['--es-color-text-icon']})`;
