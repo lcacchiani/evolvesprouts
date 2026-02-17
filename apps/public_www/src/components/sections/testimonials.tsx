@@ -16,7 +16,12 @@ import {
   readOptionalText,
 } from '@/content/content-field-utils';
 import type { TestimonialsContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  BODY_TEXT_COLOR,
+  HEADING_TEXT_COLOR,
+  SURFACE_WHITE,
+  TEXT_ICON_COLOR,
+} from '@/lib/design-tokens';
 import {
   buildSectionBackgroundOverlayStyle,
   LOGO_OVERLAY_TOP,
@@ -36,13 +41,13 @@ interface NormalizedStory {
 
 const TEXT_PRIMARY = HEADING_TEXT_COLOR;
 const TEXT_SECONDARY = BODY_TEXT_COLOR;
-const CONTROL_ICON = 'var(--es-color-text-icon, #3D3E3D)';
+const CONTROL_ICON = TEXT_ICON_COLOR;
 const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const IMAGE_FALLBACK_BG = 'var(--es-color-surface-peach, #F5DFCF)';
 const SWIPE_THRESHOLD_PX = 48;
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
-  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
+  backgroundColor: SURFACE_WHITE,
 });
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';

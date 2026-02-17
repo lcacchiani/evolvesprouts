@@ -9,10 +9,12 @@ import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
 import {
+  BRAND_ORANGE_SOFT,
   bodyTextStyle,
   eyebrowTextStyle,
   HEADING_TEXT_COLOR,
   headingTextStyle,
+  SURFACE_WHITE,
 } from '@/lib/design-tokens';
 import {
   getLocaleFromPath,
@@ -33,16 +35,16 @@ interface FaqQuestion {
   labelIds: string[];
 }
 
-const ACTIVE_TAB_BACKGROUND = 'var(--es-color-brand-orange-soft, #F2A975)';
+const ACTIVE_TAB_BACKGROUND = BRAND_ORANGE_SOFT;
 const ACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const INACTIVE_TAB_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const INACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
-const CONTACT_CARD_TEXT = 'var(--es-color-surface-white, #FFFFFF)';
+const CONTACT_CARD_TEXT = SURFACE_WHITE;
 const CONTACT_CARD_CTA_LABEL = 'Contact Us';
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
-  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
+  backgroundColor: SURFACE_WHITE,
 });
 
 const eyebrowStyle: CSSProperties = eyebrowTextStyle({

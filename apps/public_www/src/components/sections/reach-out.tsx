@@ -4,6 +4,7 @@ import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
+  BRAND_ORANGE,
   DEFAULT_SECTION_EYEBROW_STYLE,
   HEADING_TEXT_COLOR,
 } from '@/lib/design-tokens';
@@ -23,7 +24,7 @@ const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 function ReachOutGlyph({ index }: { index: number }) {
   const colorMap = [
-    'var(--es-color-brand-orange, #C84A16)',
+    BRAND_ORANGE,
     'var(--figma-colors-frame-2147235242, #174879)',
     'var(--es-color-accent-gold, #9E6D12)',
     'var(--es-color-accent-green, #5D9D49)',

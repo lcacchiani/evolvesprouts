@@ -32,6 +32,7 @@ import {
 import {
   bodyTextStyle,
   headingTextStyle,
+  TEXT_HEADING_STRONG,
 } from '@/lib/design-tokens';
 import {
   type DiscountRule,
@@ -163,7 +164,7 @@ const partChipIconMaskStyle = createMaskIconStyle(
 );
 const darkCalendarIconMaskStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  'var(--es-color-text-heading, #333333)',
+  TEXT_HEADING_STRONG,
 );
 const redCreditCardIconMaskStyle = createMaskIconStyle(
   CREDIT_CARD_ICON_MASK_PATH,

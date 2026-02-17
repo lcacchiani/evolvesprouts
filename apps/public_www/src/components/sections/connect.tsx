@@ -4,7 +4,12 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
-import { DEFAULT_SECTION_EYEBROW_STYLE, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  BRAND_ORANGE,
+  DEFAULT_SECTION_EYEBROW_STYLE,
+  HEADING_TEXT_COLOR,
+  SURFACE_WHITE,
+} from '@/lib/design-tokens';
 import { buildSectionBackgroundStyle } from '@/lib/section-backgrounds';
 import { isHttpHref } from '@/lib/url-utils';
 
@@ -13,7 +18,7 @@ interface ConnectProps {
 }
 
 const SECTION_STYLE = buildSectionBackgroundStyle({
-  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
+  backgroundColor: SURFACE_WHITE,
   position: 'center top',
   size: '900px auto',
 });
@@ -47,9 +52,9 @@ function ConnectGlyph({ index }: { index: number }) {
         'color-mix(in srgb, var(--es-color-accent-green, #5D9D49) 10%, transparent)',
     },
     {
-      stroke: 'var(--es-color-brand-orange, #C84A16)',
+      stroke: BRAND_ORANGE,
       background:
-        'color-mix(in srgb, var(--es-color-brand-orange, #C84A16) 10%, transparent)',
+        `color-mix(in srgb, ${BRAND_ORANGE} 10%, transparent)`,
     },
   ] as const;
   const tone = iconTones[index % iconTones.length];

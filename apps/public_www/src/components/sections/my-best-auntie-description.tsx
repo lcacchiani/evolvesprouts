@@ -7,7 +7,13 @@ import Image from 'next/image';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieDescriptionContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  BODY_TEXT_COLOR,
+  HEADING_TEXT_COLOR,
+  SURFACE_WHITE,
+  TEXT_ICON_COLOR,
+  TEXT_NEUTRAL_STRONG_COLOR,
+} from '@/lib/design-tokens';
 import {
   buildSectionBackgroundOverlayStyle,
   LOGO_OVERLAY_DEEP,
@@ -21,11 +27,11 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_DEEP,
   backgroundColor: 'var(--es-color-surface-muted, #F8F8F8)',
 });
-const CARD_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
+const CARD_BACKGROUND = SURFACE_WHITE;
 const CARD_ICON_FALLBACK =
   '/images/training.svg';
-const CONTROL_ICON = 'var(--es-color-text-icon, #3D3E3D)';
-const CONTROL_ICON_DISABLED = 'var(--es-color-text-neutral-strong, #5A5A5A)';
+const CONTROL_ICON = TEXT_ICON_COLOR;
+const CONTROL_ICON_DISABLED = TEXT_NEUTRAL_STRONG_COLOR;
 
 const iconByKey: Record<string, string> = {
   'live-training': '/images/training.svg',

@@ -9,7 +9,11 @@ import {
   type Locale,
   type NavbarContent,
 } from '@/content';
-import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  BRAND_ORANGE,
+  BRAND_ORANGE_SOFT,
+  HEADING_TEXT_COLOR,
+} from '@/lib/design-tokens';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 import {
   localizeHref,
@@ -21,8 +25,8 @@ type SubmenuItem = NonNullable<MenuItem['children']>[number];
 
 const NAV_PILL_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const NAV_TEXT_COLOR = HEADING_TEXT_COLOR;
-const NAV_ACTIVE_TEXT = 'var(--es-color-brand-orange, #C84A16)';
-const NAV_ACTIVE_BACKGROUND = 'var(--es-color-brand-orange-soft, #F2A975)';
+const NAV_ACTIVE_TEXT = BRAND_ORANGE;
+const NAV_ACTIVE_BACKGROUND = BRAND_ORANGE_SOFT;
 const NAV_TOP_LEVEL_LINK_CLASSNAME =
   'es-focus-ring es-nav-pill justify-center transition-colors';
 const NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME =

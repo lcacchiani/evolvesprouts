@@ -8,6 +8,7 @@ import type { ReservationSummary } from '@/components/sections/my-best-auntie-bo
 import {
   bodyTextStyle,
   headingTextStyle,
+  TEXT_HEADING_STRONG,
 } from '@/lib/design-tokens';
 import {
   CloseButton,
@@ -43,7 +44,7 @@ const bodyStyle: CSSProperties = bodyTextStyle({
 
 const darkCalendarIconMaskStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  'var(--es-color-text-heading, #333333)',
+  TEXT_HEADING_STRONG,
 );
 
 export function MyBestAuntieThankYouModal({
