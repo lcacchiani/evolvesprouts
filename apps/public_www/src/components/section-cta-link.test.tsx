@@ -25,6 +25,7 @@ describe('SectionCtaAnchor', () => {
 
     const link = screen.getByRole('link', { name: 'Visit resource' });
     expect(link).toHaveAttribute('href', 'https://example.com');
+    expect(link.className).toContain('es-section-cta');
     const label = screen.getByText('Visit resource');
     expect(label.className).toContain('underline');
     const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
@@ -38,6 +39,7 @@ describe('SectionCtaAnchor', () => {
     render(<SectionCtaAnchor href='/about-us'>About us</SectionCtaAnchor>);
 
     const link = screen.getByRole('link', { name: 'About us' });
+    expect(link.className).toContain('es-section-cta');
     expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
     expect(link.querySelector('path[d="M7 4L13 10L7 16"]')).not.toBeNull();
   });

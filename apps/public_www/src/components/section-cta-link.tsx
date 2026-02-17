@@ -9,7 +9,7 @@ import { ExternalLinkIcon } from '@/components/external-link-icon';
 import { isExternalHref } from '@/lib/url-utils';
 
 const BASE_SECTION_CTA_CLASSNAME =
-  'es-cta-primary es-cta-button es-focus-ring gap-2';
+  'es-cta-primary es-cta-button es-section-cta es-focus-ring gap-2';
 
 interface SectionCtaProps
   extends Omit<

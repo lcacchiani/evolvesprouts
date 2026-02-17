@@ -77,12 +77,6 @@ const contactAnswerStyle: CSSProperties = {
   color: CONTACT_CARD_TEXT,
 };
 
-const contactCardCtaStyle: CSSProperties = bodyTextStyle({
-  fontSize: '18px',
-  fontWeight: 600,
-  lineHeight: '1',
-});
-
 function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -188,8 +182,7 @@ function FaqItems({
                 </p>
                 <SectionCtaAnchor
                   href={contactCardCtaHref}
-                  className='mt-6 h-[52px] w-full rounded-[10px] px-5 text-base sm:h-[56px] sm:w-fit sm:min-w-[190px] sm:px-6'
-                  style={contactCardCtaStyle}
+                  className='mt-6 w-full sm:w-fit sm:min-w-[190px]'
                 >
                   {CONTACT_CARD_CTA_LABEL}
                 </SectionCtaAnchor>
