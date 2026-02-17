@@ -1,3 +1,5 @@
+import { TEXT_HEADING_STRONG } from '@/lib/design-tokens';
+
 interface ChevronIconProps {
   isOpen?: boolean;
 }
@@ -13,7 +15,7 @@ export function LanguageChevronIcon({ isOpen = false }: ChevronIconProps) {
     >
       <path
         d='M5 8L10 13L15 8'
-        stroke='var(--es-color-text-heading, #333333)'
+        stroke={TEXT_HEADING_STRONG}
         strokeWidth='2'
         strokeLinecap='round'
         strokeLinejoin='round'

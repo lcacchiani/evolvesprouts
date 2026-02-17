@@ -6,8 +6,6 @@
     color-scheme: light;
     --figma-fontfamilies-lato: var(--font-lato);
     --figma-fontfamilies-poppins: var(--font-poppins);
-    --figma-fontfamilies-urbanist: var(--font-poppins);
-    --figma-fontfamilies-plus-jakarta-sans: var(--font-poppins);
     --site-primary-font:
       var(--figma-fontfamilies-lato, var(--font-lato)), sans-serif;
     --site-heading-font:
@@ -16,7 +14,7 @@
     --site-heading-text:
       var(--figma-colors-join-our-sprouts-squad-community, #333333);
     --es-color-brand-orange: #C84A16;
-    --es-color-brand-orange-strong: #E76C3D;
+    --es-color-brand-orange-strong: #ED622E;
     --es-color-brand-orange-soft: #F2A975;
     --es-color-brand-peach-bg: #FFF0E5;
     --es-color-brand-peach-border: #EECAB0;
@@ -29,7 +27,7 @@
     --es-color-surface-submenu-active: #FFE0CA;
     --es-color-surface-submenu-idle: #FFF0E5;
     --es-color-surface-peach: #F5DFCF;
-    --es-color-surface-cream: #FFF8F1;
+    --es-color-surface-cream: #FFF9F4;
     --es-color-surface-icon-soft: #F3E3D8;
     --es-color-surface-success-soft: #D5E9CB;
     --es-color-surface-success-pale: #E9F8EA;
@@ -44,16 +42,16 @@
     --es-color-text-body: #4A4A4A;
     --es-color-text-muted: #5B617F;
     --es-color-text-subtle: #828B9E;
-    --es-color-text-dim: #6A6A6A;
+    --es-color-text-dim: #5A5A5A;
     --es-color-text-placeholder: #8A8A8A;
     --es-color-text-neutral-strong: #5A5A5A;
     --es-color-text-emphasis: #2C2C2C;
     --es-color-text-icon: #3D3E3D;
     --es-color-text-danger: #B42318;
-    --es-color-text-danger-strong: #B23535;
-    --es-color-text-danger-accent: #C71B1B;
+    --es-color-text-danger-strong: #B42318;
+    --es-color-text-danger-accent: #B42318;
     --es-color-text-danger-chip: #D03C3C;
-    --es-color-text-success: #276738;
+    --es-color-text-success: #2C6C25;
     --es-color-text-success-strong: #2C6C25;
     --es-color-text-brand-strong: #ED622E;
     --es-color-text-disabled: #6B7280;
@@ -65,19 +63,19 @@
     --es-color-part-chip-green-text: #2C6C25;
     --es-color-part-chip-yellow-bg: #FFE483;
     --es-color-part-chip-yellow-text: #6B5400;
-    --es-color-booking-highlight-icon: #B31D1F;
+    --es-color-booking-highlight-icon: #B42318;
     --es-color-border-soft: #EECAB0;
-    --es-color-border-soft-alt: #E9D2BF;
-    --es-color-border-event-card: #E7D5C9;
+    --es-color-border-soft-alt: #E7D1BF;
+    --es-color-border-event-card: #E7D1BF;
     --es-color-border-input: #CAD6E5;
     --es-color-border-divider: #E2E8F0;
-    --es-color-border-panel: #D0E4F4;
-    --es-color-border-panel-soft: #D9E2EE;
+    --es-color-border-panel: #CAD6E5;
+    --es-color-border-panel-soft: #E2E8F0;
     --es-color-border-form-shell: #E7D1BF;
-    --es-color-border-warm-1: #EEDCCD;
-    --es-color-border-warm-2: #EED5C1;
-    --es-color-border-warm-3: #ECD5C3;
-    --es-color-border-date: #E1E6EC;
+    --es-color-border-warm-1: #EECAB0;
+    --es-color-border-warm-2: #EECAB0;
+    --es-color-border-warm-3: #E7D1BF;
+    --es-color-border-date: #CAD6E5;
     --es-color-border-disabled: #D8B8A7;
     --es-color-border-disabled-strong: #D1D5DB;
     --es-color-divider-blue: #418CCF3D;
@@ -88,11 +86,11 @@
     --es-color-accent-gold: #9E6D12;
     --es-color-accent-green-soft: #A8D6A2;
     --es-color-tile-border: #D9A578;
-    --es-gradient-form-panel: linear-gradient(155deg, #FFF7F0 0%, #FFFFFF 100%);
+    --es-gradient-form-panel: linear-gradient(155deg, #FFF9F4 0%, #FFFFFF 100%);
     --es-gradient-card-blue: linear-gradient(180deg, #E3F0FF 0%, #FFFFFF 100%);
-    --es-gradient-card-yellow: linear-gradient(180deg, #FFF3E0 0%, #FFFFFF 100%);
+    --es-gradient-card-yellow: linear-gradient(180deg, #FFF0E5 0%, #FFFFFF 100%);
     --es-gradient-card-pink: linear-gradient(180deg, #FFE9EE 0%, #FFFFFF 100%);
-    --es-gradient-why-us: linear-gradient(165deg, #FFF3E8 0%, #FFF9F4 100%);
+    --es-gradient-why-us: linear-gradient(165deg, #FFF0E5 0%, #FFF9F4 100%);
     --es-color-module-count-gold: #D7AB0A;
     --es-color-module-count-red: #E3181B;
     --es-color-module-count-blue: #4592DE;

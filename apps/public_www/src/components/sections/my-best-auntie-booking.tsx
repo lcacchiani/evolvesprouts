@@ -10,10 +10,14 @@ import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers
 import { SectionShell } from '@/components/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
+  BORDER_DATE_COLOR,
   bodyTextStyle,
   BRAND_ORANGE_SOFT,
   BRAND_ORANGE_STRONG,
   headingTextStyle,
+  SURFACE_WHITE,
+  TEXT_HEADING_STRONG,
+  TEXT_ICON_COLOR,
 } from '@/lib/design-tokens';
 
 const MyBestAuntieBookingModal = dynamic(
@@ -37,9 +41,9 @@ interface MyBestAuntieBookingProps {
   content: MyBestAuntieBookingContent;
 }
 
-const SECTION_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
+const SECTION_BACKGROUND = SURFACE_WHITE;
 const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
-const DATE_CONTROL_ICON = 'var(--es-color-text-icon, #3D3E3D)';
+const DATE_CONTROL_ICON = TEXT_ICON_COLOR;
 
 const headingStyle: CSSProperties = headingTextStyle({
   lineHeight: 1.15,
@@ -56,12 +60,12 @@ const activeSelectorCardStyle: CSSProperties = {
 
 const inactiveAgeSelectorCardStyle: CSSProperties = {
   backgroundColor: 'var(--es-color-surface-selection-idle, #EFF3F6)',
-  border: '1px solid var(--es-color-border-date, #E1E6EC)',
+  border: `1px solid ${BORDER_DATE_COLOR}`,
 };
 
 const inactiveDateSelectorCardStyle: CSSProperties = {
   backgroundColor: 'var(--es-color-surface-selection-idle, #EFF3F6)',
-  border: '1px solid var(--es-color-border-date, #E1E6EC)',
+  border: `1px solid ${BORDER_DATE_COLOR}`,
 };
 
 const activeDateSelectorCalendarIconStyle = createMaskIconStyle(
@@ -70,7 +74,7 @@ const activeDateSelectorCalendarIconStyle = createMaskIconStyle(
 );
 const inactiveDateSelectorCalendarIconStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  'var(--es-color-text-heading, #333333)',
+  TEXT_HEADING_STRONG,
 );
 
 function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {

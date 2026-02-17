@@ -8,6 +8,7 @@ import type { ReservationSummary } from '@/components/sections/my-best-auntie-bo
 import {
   bodyTextStyle,
   headingTextStyle,
+  TEXT_HEADING_STRONG,
 } from '@/lib/design-tokens';
 import {
   CloseButton,
@@ -43,7 +44,7 @@ const bodyStyle: CSSProperties = bodyTextStyle({
 
 const darkCalendarIconMaskStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  'var(--es-color-text-heading, #333333)',
+  TEXT_HEADING_STRONG,
 );
 
 export function MyBestAuntieThankYouModal({
@@ -73,7 +74,7 @@ export function MyBestAuntieThankYouModal({
         <head>
           <title>${escapeHtml(content.successLabel)}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 24px; color: #333; }
+            body { font-family: "Poppins", sans-serif; margin: 24px; color: #333; }
             h1 { margin: 0 0 8px; }
             .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
             .row { display: flex; justify-content: space-between; margin: 8px 0; }

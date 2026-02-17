@@ -4,7 +4,12 @@ import Image from 'next/image';
 import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
 import { SectionShell } from '@/components/section-shell';
 import type { MyJourneyContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  BODY_TEXT_COLOR,
+  BRAND_ORANGE,
+  HEADING_TEXT_COLOR,
+  SURFACE_WHITE,
+} from '@/lib/design-tokens';
 import {
   buildSectionBackgroundOverlayStyle,
   LOGO_OVERLAY_TOP,
@@ -16,7 +21,7 @@ interface MyJourneyProps {
 
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
-  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
+  backgroundColor: SURFACE_WHITE,
 });
 const JOURNEY_IMAGE_SRC = '/images/contact-us/my-journey.webp';
 const RIGHT_COLUMN_BLUE_CARD_BACKGROUND =
@@ -45,7 +50,7 @@ const titleStyle: CSSProperties = {
 };
 
 const tagStyle: CSSProperties = {
-  color: 'var(--es-color-brand-orange, #C84A16)',
+  color: BRAND_ORANGE,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
   fontWeight: 700,
   lineHeight: '1',

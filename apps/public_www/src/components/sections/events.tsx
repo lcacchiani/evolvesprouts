@@ -16,10 +16,13 @@ import {
   isAbortRequestError,
 } from '@/lib/crm-api-client';
 import {
+  BRAND_ORANGE_SOFT,
+  BRAND_PEACH_BG,
   bodyTextStyle,
   BODY_TEXT_COLOR,
   headingTextStyle,
   HEADING_TEXT_COLOR,
+  SURFACE_WHITE,
 } from '@/lib/design-tokens';
 import {
   type EventCardData,
@@ -33,9 +36,9 @@ interface EventsProps {
   content: EventsContent;
 }
 
-const SECTION_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
-const LOADING_GEAR_COLOR = 'var(--es-color-brand-orange-soft, #F2A975)';
-const LOADING_GEAR_BACKGROUND = 'var(--es-color-brand-peach-bg, #FFF0E5)';
+const SECTION_BACKGROUND = SURFACE_WHITE;
+const LOADING_GEAR_COLOR = BRAND_ORANGE_SOFT;
+const LOADING_GEAR_BACKGROUND = BRAND_PEACH_BG;
 
 const titleStyle: CSSProperties = headingTextStyle({
   fontSize: 'clamp(2.1rem, 5.6vw, 55px)',

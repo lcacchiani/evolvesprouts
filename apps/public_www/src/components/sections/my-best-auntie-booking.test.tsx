@@ -102,7 +102,7 @@ describe('MyBestAuntieBooking section', () => {
       'background-color: var(--es-color-surface-selection-idle, #EFF3F6)',
     );
     expect(secondDateButtonStyle).toContain(
-      'border: 1px solid var(--es-color-border-date, #E1E6EC)',
+      'border: 1px solid var(--es-color-border-date, #CAD6E5)',
     );
 
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
