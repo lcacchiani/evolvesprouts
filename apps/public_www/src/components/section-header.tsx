@@ -42,7 +42,7 @@ export function SectionHeader({
     <div
       data-testid={testId}
       className={mergeClassNames(
-        'es-section-header es-section-header--wide',
+        'es-section-header',
         alignmentClassName,
         className,
       )}
