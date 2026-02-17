@@ -112,13 +112,6 @@ const descriptionStyle: CSSProperties = {
     'calc(var(--figma-letterspacing-transform-your-auntie-into-a-montessori-guided-child-development-partner-2, 0.3) * 1px)',
 };
 
-const ctaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.05rem, 2.4vw, var(--figma-fontsizes-28, 28px))',
-  fontWeight: '600',
-  lineHeight: 'var(--figma-fontsizes-28, 28px)',
-};
-
 const activityStyle: CSSProperties = {
   color: BODY_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
@@ -465,8 +458,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
           <SectionCtaAnchor
             href={content.ctaHref}
-            className='mt-8 h-[62px] w-full max-w-[491px] rounded-[10px] px-5 es-focus-ring-soft sm:h-[72px] sm:px-7 lg:mt-10 lg:h-[81px]'
-            style={ctaStyle}
+            className='mt-8 w-full max-w-[491px] es-focus-ring-soft lg:mt-10'
           >
             {computedCtaLabel}
           </SectionCtaAnchor>

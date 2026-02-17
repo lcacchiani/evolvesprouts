@@ -508,20 +508,21 @@
     --es-focus-ring-color: rgba(0, 0, 0, 0.35);
   }
 
-  .es-section-cta {
-    min-height: 52px;
+  .es-primary-cta {
+    min-height: 55px;
     border-radius: 10px;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 34px;
+    padding-right: 34px;
+    font-family: var(--site-primary-font);
     font-size: 18px;
+    font-weight: 600;
     line-height: 1;
+    letter-spacing: 0;
   }
 
   @media (min-width: 640px) {
-    .es-section-cta {
+    .es-primary-cta {
       min-height: 56px;
-      padding-left: 24px;
-      padding-right: 24px;
     }
   }
 

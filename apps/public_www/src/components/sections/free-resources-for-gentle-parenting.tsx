@@ -116,13 +116,6 @@ const checklistDescriptionStyle: CSSProperties = {
   letterSpacing: 'calc(var(--figma-letterspacing-home, 0.5) * 1px)',
 };
 
-const ctaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.05rem, 2.8vw, var(--figma-fontsizes-26, 26px))',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight: 'var(--figma-fontsizes-26, 26px)',
-};
-
 const mediaPillTextStyle: CSSProperties = {
   color: BODY_COLOR,
   fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
@@ -347,8 +340,7 @@ function ResourceCardContent({
 
       <SectionCtaAnchor
         href={ctaHref}
-        className='mt-auto h-[58px] w-full max-w-[360px] rounded-[10px] px-5 es-focus-ring-medium sm:h-[67px] sm:px-6'
-        style={ctaStyle}
+        className='mt-auto w-full max-w-[360px] es-focus-ring-medium'
       >
         {ctaLabel}
       </SectionCtaAnchor>

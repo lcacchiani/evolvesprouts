@@ -89,7 +89,7 @@ describe('Faq section', () => {
     });
     expect(contactCta).toHaveAttribute('href', '/zh-CN/contact-us');
     expect(contactCta.className).toContain('es-cta-primary');
-    expect(contactCta.className).toContain('es-section-cta');
+    expect(contactCta.className).toContain('es-primary-cta');
   });
 
   it('uses navbar pill colors for category buttons and a grey search input', () => {

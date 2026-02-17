@@ -365,7 +365,7 @@ export function Events({ content }: EventsProps) {
                               href={eventCard.ctaHref}
                               target='_blank'
                               rel='noopener noreferrer'
-                              className='h-12 w-full rounded-[8px] px-4 text-base'
+                              className='w-full'
                             >
                               {eventCard.ctaLabel}
                             </SectionCtaAnchor>

@@ -32,13 +32,6 @@ const cardTitleStyle: CSSProperties = {
   lineHeight: '1.25',
 };
 
-const ctaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 600,
-  fontSize: '18px',
-  lineHeight: '1',
-};
-
 function ConnectGlyph({ index }: { index: number }) {
   const iconTones = [
     {
@@ -114,8 +107,7 @@ export function Connect({ content }: ConnectProps) {
                 </p>
                 <SectionCtaAnchor
                   href={card.ctaHref}
-                  className='mt-auto h-12 w-full rounded-[10px] px-4 text-base sm:h-[52px]'
-                  style={ctaStyle}
+                  className='mt-auto w-full'
                   {...(isHttpHref(card.ctaHref)
                     ? { target: '_blank', rel: 'noopener noreferrer' }
                     : {})}

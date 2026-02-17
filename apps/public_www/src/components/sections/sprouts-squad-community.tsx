@@ -25,13 +25,6 @@ const headingStyle: CSSProperties = {
     'calc(var(--figma-letterspacing-join-our-sprouts-squad-community, 0.77) * 1px)',
 };
 
-const ctaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight:
-    'var(--figma-lineheights-sign-up-to-our-monthly-newsletter, 100%)',
-};
-
 export function SproutsSquadCommunity({
   content,
 }: SproutsSquadCommunityProps) {
@@ -81,8 +74,7 @@ export function SproutsSquadCommunity({
 
         <SectionCtaAnchor
           href={content.ctaHref}
-          className='h-14 w-full max-w-[500px] rounded-[10px] px-5 text-base sm:h-[62px] sm:text-lg lg:h-[74px] lg:max-w-[410px] lg:text-[26px]'
-          style={ctaStyle}
+          className='w-full max-w-[500px] lg:max-w-[410px]'
         >
           {content.ctaLabel}
         </SectionCtaAnchor>
