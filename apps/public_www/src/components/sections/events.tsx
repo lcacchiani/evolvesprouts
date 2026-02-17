@@ -207,7 +207,7 @@ export function Events({ content }: EventsProps) {
           <h1 className='es-type-title text-balance'>
             {content.title}
           </h1>
-          <p className='es-type-body-lg mt-4 text-balance'>
+          <p className='es-type-body mt-4 text-balance'>
             {content.description}
           </p>
         </div>

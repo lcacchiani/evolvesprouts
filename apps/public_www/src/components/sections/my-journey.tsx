@@ -83,7 +83,7 @@ export function MyJourney({ content }: MyJourneyProps) {
                   }}
                 >
                   <span style={tagStyle}>{card.tag}</span>
-                  <p className='es-type-body-base mt-3'>
+                  <p className='es-type-body mt-3'>
                     {card.description}
                   </p>
                 </article>

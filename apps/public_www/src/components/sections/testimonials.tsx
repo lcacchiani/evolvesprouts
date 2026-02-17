@@ -291,7 +291,7 @@ export function Testimonials({ content }: TestimonialsProps) {
           </h2>
 
           {descriptionText && (
-            <p className='es-type-body-base mt-3'>
+            <p className='es-type-body mt-3'>
               {descriptionText}
             </p>
           )}

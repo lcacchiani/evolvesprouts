@@ -179,7 +179,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
         {sectionDescription && (
           <div className='mt-9 text-center sm:mt-11 lg:mt-12'>
-            <p className='es-type-body-italic-md mx-auto max-w-[780px] text-balance'>
+            <p className='es-type-body-italic mx-auto max-w-[780px] text-balance'>
               {sectionDescription}
             </p>
           </div>

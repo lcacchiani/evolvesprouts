@@ -420,7 +420,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
         <div className='mx-auto mt-12 max-w-[760px] text-center lg:mt-16'>
           {content.description && (
-            <p className='es-type-body-italic-lg text-balance'>
+            <p className='es-type-body-italic text-balance'>
               {content.description}
             </p>
           )}

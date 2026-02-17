@@ -25,7 +25,7 @@ export function Ida({ content }: IdaProps) {
           <p className='es-type-subtitle mt-4 max-w-[760px]'>
             {content.subtitle}
           </p>
-          <p className='es-type-body-lg mt-4 max-w-[720px]'>
+          <p className='es-type-body mt-4 max-w-[720px]'>
             {content.description}
           </p>
           <SectionCtaAnchor

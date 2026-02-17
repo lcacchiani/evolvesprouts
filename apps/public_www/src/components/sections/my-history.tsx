@@ -35,7 +35,7 @@ export function MyHistory({ content }: MyHistoryProps) {
           <p className='es-type-subtitle mt-4 max-w-[760px]'>
             {content.subtitle}
           </p>
-          <p className='es-type-body-base mt-4 max-w-[760px]'>
+          <p className='es-type-body mt-4 max-w-[760px]'>
             {content.description}
           </p>
         </div>

@@ -85,14 +85,14 @@ export function WhyUs({ content }: WhyUsProps) {
                     aria-hidden='true'
                     className='mt-2 inline-flex h-2.5 w-2.5 shrink-0 rounded-full es-bg-brand-orange'
                   />
-                  <p className='es-type-body-base'>{item}</p>
+                  <p className='es-type-body'>{item}</p>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <p className='es-type-body-base mt-8 rounded-[22px] border es-border-soft-alt bg-white/70 p-5 sm:p-6'>
+        <p className='es-type-body mt-8 rounded-[22px] border es-border-soft-alt bg-white/70 p-5 sm:p-6'>
           {content.communityText}
         </p>
 
