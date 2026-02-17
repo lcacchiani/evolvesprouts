@@ -21,8 +21,8 @@ type SubmenuItem = NonNullable<MenuItem['children']>[number];
 
 const NAV_PILL_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
 const NAV_TEXT_COLOR = HEADING_TEXT_COLOR;
-const NAV_ACTIVE_TEXT = '#C84A16';
-const NAV_ACTIVE_BACKGROUND = '#F2A975';
+const NAV_ACTIVE_TEXT = 'var(--es-color-brand-orange, #C84A16)';
+const NAV_ACTIVE_BACKGROUND = 'var(--es-color-brand-orange-soft, #F2A975)';
 const NAV_TOP_LEVEL_LINK_CLASSNAME =
   'es-focus-ring es-nav-pill justify-center transition-colors';
 const NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME =
@@ -83,7 +83,9 @@ export function getTopLinkStyle(isActive: boolean) {
 function getSubmenuLinkStyle(isActive: boolean) {
   return {
     ...linkStyle,
-    backgroundColor: isActive ? '#FFE0CA' : '#FFF0E5',
+    backgroundColor: isActive
+      ? 'var(--es-color-surface-submenu-active, #FFE0CA)'
+      : 'var(--es-color-surface-submenu-idle, #FFF0E5)',
     color: isActive ? NAV_ACTIVE_TEXT : NAV_TEXT_COLOR,
     fontSize: 'var(--figma-fontsizes-16, 16px)',
     fontWeight: 500,

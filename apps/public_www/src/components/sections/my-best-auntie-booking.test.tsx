@@ -99,9 +99,11 @@ describe('MyBestAuntieBooking section', () => {
     const secondDateButtonStyle = secondDateButton.getAttribute('style') ?? '';
     expect(secondDateButton.className).toContain('cursor-pointer');
     expect(secondDateButtonStyle).toContain(
-      'background-color: rgb(239, 243, 246)',
+      'background-color: var(--es-color-surface-selection-idle, #EFF3F6)',
     );
-    expect(secondDateButtonStyle).toContain('border: 1px solid rgb(225, 230, 236)');
+    expect(secondDateButtonStyle).toContain(
+      'border: 1px solid var(--es-color-border-date, #E1E6EC)',
+    );
 
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();

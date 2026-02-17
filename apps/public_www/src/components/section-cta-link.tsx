@@ -41,7 +41,7 @@ function CtaChevronIcon() {
     >
       <path
         d='M7 4L13 10L7 16'
-        stroke='var(--figma-colors-desktop, #FFFFFF)'
+        stroke='var(--es-color-surface-white, #FFFFFF)'
         strokeWidth='2.2'
         strokeLinecap='round'
         strokeLinejoin='round'

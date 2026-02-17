@@ -19,17 +19,13 @@ interface MyBestAuntieDescriptionProps {
 
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_DEEP,
-  backgroundColor: '#F8F8F8',
+  backgroundColor: 'var(--es-color-surface-muted, #F8F8F8)',
 });
-const CARD_BACKGROUND = '#FFFFFF';
-const CTA_COLOR = '#ED622E';
+const CARD_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
 const CARD_ICON_FALLBACK =
   '/images/training.svg';
-const CONTROL_BG = '#FFFFFF';
-const CONTROL_ICON = '#3D3E3D';
-const CONTROL_SHADOW = '0 1px 14px rgba(0, 0, 0, 0.08)';
-const CONTROL_BG_DISABLED = '#E9E9E9';
-const CONTROL_ICON_DISABLED = '#6B6B6B';
+const CONTROL_ICON = 'var(--es-color-text-icon, #3D3E3D)';
+const CONTROL_ICON_DISABLED = 'var(--es-color-text-neutral-strong, #6B6B6B)';
 
 const iconByKey: Record<string, string> = {
   'live-training': '/images/training.svg',
@@ -217,13 +213,7 @@ export function MyBestAuntieDescription({
                 }}
                 aria-label='Previous highlight cards'
                 disabled={!canScrollPrevious}
-                className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full disabled:cursor-not-allowed sm:h-[68px] sm:w-[68px]'
-                style={{
-                  backgroundColor: canScrollPrevious
-                    ? CONTROL_BG
-                    : CONTROL_BG_DISABLED,
-                  boxShadow: CONTROL_SHADOW,
-                }}
+                className={`inline-flex h-[58px] w-[58px] items-center justify-center rounded-full sm:h-[68px] sm:w-[68px] ${canScrollPrevious ? 'es-control-button' : 'es-control-button es-control-button-disabled disabled:cursor-not-allowed'}`}
               >
                 <ArrowIcon direction='left' isDisabled={!canScrollPrevious} />
               </button>
@@ -234,11 +224,7 @@ export function MyBestAuntieDescription({
                 }}
                 aria-label='Next highlight cards'
                 disabled={!canScrollNext}
-                className='inline-flex h-[58px] w-[58px] items-center justify-center rounded-full disabled:cursor-not-allowed sm:h-[68px] sm:w-[68px]'
-                style={{
-                  backgroundColor: canScrollNext ? CONTROL_BG : CONTROL_BG_DISABLED,
-                  boxShadow: CONTROL_SHADOW,
-                }}
+                className={`inline-flex h-[58px] w-[58px] items-center justify-center rounded-full sm:h-[68px] sm:w-[68px] ${canScrollNext ? 'es-control-button' : 'es-control-button es-control-button-disabled disabled:cursor-not-allowed'}`}
               >
                 <ArrowIcon direction='right' isDisabled={!canScrollNext} />
               </button>
@@ -264,7 +250,7 @@ export function MyBestAuntieDescription({
                     backgroundColor: CARD_BACKGROUND,
                   }}
                 >
-                  <div className='inline-flex h-[100px] w-[100px] items-center justify-center rounded-full bg-[#F8F8F8]'>
+                  <div className='inline-flex h-[100px] w-[100px] items-center justify-center rounded-full es-bg-surface-muted'>
                     <Image
                       src={readIconSrc(item.icon)}
                       alt=''
@@ -283,11 +269,8 @@ export function MyBestAuntieDescription({
                   <div className='mt-auto pt-8'>
                     <a
                       href={item.ctaHref}
-                      className='inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] border px-6 text-center text-[#ED622E] transition-colors duration-200 hover:bg-[#ED622E] hover:text-white'
-                      style={{
-                        ...ctaStyle,
-                        borderColor: CTA_COLOR,
-                      }}
+                      className='es-card-action-outline inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] border px-6 text-center transition-colors duration-200'
+                      style={ctaStyle}
                     >
                       {item.ctaLabel}
                     </a>

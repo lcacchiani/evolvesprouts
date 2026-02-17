@@ -21,8 +21,8 @@ interface FormState {
   message: string;
 }
 
-const SECTION_BACKGROUND = '#FFFFFF';
-const FORM_PANEL_BACKGROUND = 'linear-gradient(155deg, #FFF7F0 0%, #FFFFFF 100%)';
+const SECTION_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
+const FORM_PANEL_BACKGROUND = 'var(--es-gradient-form-panel)';
 const LEFT_PANEL_BACKGROUND_IMAGE = '/images/evolvesprouts-logo.svg';
 const LEFT_PANEL_BACKGROUND_FILTER =
   'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)';
@@ -46,7 +46,7 @@ const formLabelStyle: CSSProperties = {
 const inputStyle: CSSProperties = {
   color: BODY_TEXT_COLOR,
   border: '1px solid rgba(51, 51, 51, 0.18)',
-  backgroundColor: '#FFFFFF',
+  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
 };
 
 function isValidEmail(value: string): boolean {
@@ -145,7 +145,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
 
         <section
           id='contact-form'
-          className='relative overflow-visible rounded-[28px] border border-[#E7D1BF] p-5 shadow-[0_28px_60px_-45px_rgba(17,17,17,0.58)] sm:p-7 lg:p-8'
+          className='relative overflow-visible rounded-[28px] border es-border-form-shell p-5 shadow-[0_28px_60px_-45px_rgba(17,17,17,0.58)] sm:p-7 lg:p-8'
           style={{ background: FORM_PANEL_BACKGROUND }}
         >
           <div
@@ -207,13 +207,13 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 className='es-focus-ring w-full rounded-xl px-4 py-3 text-base'
                 style={
                   hasEmailError
-                    ? { ...inputStyle, border: '1px solid #B42318' }
+                    ? { ...inputStyle, border: '1px solid var(--es-color-text-danger, #B42318)' }
                     : inputStyle
                 }
                 aria-invalid={hasEmailError}
               />
               {hasEmailError ? (
-                <p className='text-sm text-[#B42318]' role='alert'>
+                <p className='text-sm es-text-danger' role='alert'>
                   Please enter a valid email address.
                 </p>
               ) : null}

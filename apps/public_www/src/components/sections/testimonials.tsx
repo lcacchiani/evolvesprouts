@@ -36,15 +36,13 @@ interface NormalizedStory {
 
 const TEXT_PRIMARY = HEADING_TEXT_COLOR;
 const TEXT_SECONDARY = BODY_TEXT_COLOR;
-const CONTROL_BG = '#FFFFFF';
-const CONTROL_ICON = '#3D3E3D';
+const CONTROL_ICON = 'var(--es-color-text-icon, #3D3E3D)';
 const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
-const IMAGE_FALLBACK_BG = '#F3DCCB';
-const CONTROL_SHADOW = '0px 1px 6px 2px rgba(0, 0, 0, 0.18)';
+const IMAGE_FALLBACK_BG = 'var(--es-color-surface-peach, #F5DFCF)';
 const SWIPE_THRESHOLD_PX = 48;
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
-  backgroundColor: '#FFFFFF',
+  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
 });
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
@@ -341,7 +339,7 @@ export function Testimonials({ content }: TestimonialsProps) {
               className='min-w-full'
             >
               <div className='grid lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)]'>
-                <div className='relative min-h-[260px] overflow-hidden rounded-[30px] bg-[#F5DFCF] sm:min-h-[360px] lg:min-h-[540px]'>
+                <div className='relative min-h-[260px] overflow-hidden rounded-[30px] es-bg-surface-peach sm:min-h-[360px] lg:min-h-[540px]'>
                   {activeStory.mainImageSrc ? (
                     <Image
                       src={activeStory.mainImageSrc}
@@ -410,10 +408,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                             onClick={goToPreviousStory}
                             aria-label={previousButtonLabel}
                             className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                            style={{
-                              backgroundColor: CONTROL_BG,
-                              boxShadow: CONTROL_SHADOW,
-                            }}
                           >
                             <ChevronIcon direction='left' />
                           </button>
@@ -422,10 +416,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                             onClick={goToNextStory}
                             aria-label={nextButtonLabel}
                             className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                            style={{
-                              backgroundColor: CONTROL_BG,
-                              boxShadow: CONTROL_SHADOW,
-                            }}
                           >
                             <ChevronIcon direction='right' />
                           </button>
@@ -442,10 +432,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                           onClick={goToPreviousStory}
                           aria-label={previousButtonLabel}
                           className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                          style={{
-                            backgroundColor: CONTROL_BG,
-                            boxShadow: CONTROL_SHADOW,
-                          }}
                         >
                           <ChevronIcon direction='left' />
                         </button>
@@ -454,10 +440,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                           onClick={goToNextStory}
                           aria-label={nextButtonLabel}
                           className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                          style={{
-                            backgroundColor: CONTROL_BG,
-                            boxShadow: CONTROL_SHADOW,
-                          }}
                         >
                           <ChevronIcon direction='right' />
                         </button>
@@ -476,10 +458,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                 onClick={goToPreviousStory}
                 aria-label={previousButtonLabel}
                 className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                style={{
-                  backgroundColor: CONTROL_BG,
-                  boxShadow: CONTROL_SHADOW,
-                }}
               >
                 <ChevronIcon direction='left' />
               </button>
@@ -488,10 +466,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                 onClick={goToNextStory}
                 aria-label={nextButtonLabel}
                 className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                style={{
-                  backgroundColor: CONTROL_BG,
-                  boxShadow: CONTROL_SHADOW,
-                }}
               >
                 <ChevronIcon direction='right' />
               </button>

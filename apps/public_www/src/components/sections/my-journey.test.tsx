@@ -27,7 +27,9 @@ describe('MyJourney section', () => {
     });
 
     expect(section.className).toContain('es-section-bg-overlay');
-    expect(section.style.backgroundColor).toBe('rgb(255, 255, 255)');
+    expect(section.style.backgroundColor).toBe(
+      'var(--es-color-surface-white, #FFFFFF)',
+    );
     expect(section.style.getPropertyValue('--es-section-bg-image')).toContain(
       '/images/evolvesprouts-logo.svg',
     );
@@ -57,7 +59,7 @@ describe('MyJourney section', () => {
       .closest('article');
     expect(firstCard).not.toBeNull();
     expect(firstCard).toHaveStyle({
-      background: 'linear-gradient(180deg, #E3F0FF 0%, #FFFFFF 100%)',
+      background: 'var(--es-gradient-card-blue)',
     });
 
     const secondCard = screen
@@ -65,7 +67,7 @@ describe('MyJourney section', () => {
       .closest('article');
     expect(secondCard).not.toBeNull();
     expect(secondCard).toHaveStyle({
-      background: 'linear-gradient(180deg, #FFF3E0 0%, #FFFFFF 100%)',
+      background: 'var(--es-gradient-card-yellow)',
     });
   });
 });

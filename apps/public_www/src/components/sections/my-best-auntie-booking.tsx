@@ -37,11 +37,9 @@ interface MyBestAuntieBookingProps {
   content: MyBestAuntieBookingContent;
 }
 
-const SECTION_BACKGROUND = '#FFFFFF';
+const SECTION_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
 const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
-const DATE_CONTROL_BG = '#FFFFFF';
-const DATE_CONTROL_ICON = '#3D3E3D';
-const DATE_CONTROL_SHADOW = '0 1px 14px rgba(0, 0, 0, 0.08)';
+const DATE_CONTROL_ICON = 'var(--es-color-text-icon, #3D3E3D)';
 
 const headingStyle: CSSProperties = headingTextStyle({
   lineHeight: 1.15,
@@ -57,13 +55,13 @@ const activeSelectorCardStyle: CSSProperties = {
 };
 
 const inactiveAgeSelectorCardStyle: CSSProperties = {
-  backgroundColor: '#EFF3F6',
-  border: '1px solid #E1E6EC',
+  backgroundColor: 'var(--es-color-surface-selection-idle, #EFF3F6)',
+  border: '1px solid var(--es-color-border-date, #E1E6EC)',
 };
 
 const inactiveDateSelectorCardStyle: CSSProperties = {
-  backgroundColor: '#EFF3F6',
-  border: '1px solid #E1E6EC',
+  backgroundColor: 'var(--es-color-surface-selection-idle, #EFF3F6)',
+  border: '1px solid var(--es-color-border-date, #E1E6EC)',
 };
 
 const activeDateSelectorCalendarIconStyle = createMaskIconStyle(
@@ -72,7 +70,7 @@ const activeDateSelectorCalendarIconStyle = createMaskIconStyle(
 );
 const inactiveDateSelectorCalendarIconStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  '#333333',
+  'var(--es-color-text-heading, #333333)',
 );
 
 function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
@@ -266,12 +264,12 @@ export function MyBestAuntieBooking({
               <div className='pt-3'>
                 <div
                   data-testid='my-best-auntie-next-cohort-card'
-                  className='w-full max-w-[410px] rounded-[14px] border border-[#EED5C1] bg-[#FFF9F4] px-5 py-4'
+                  className='w-full max-w-[410px] rounded-[14px] border es-border-warm-2 es-bg-surface-soft px-5 py-4'
                 >
-                  <p className='text-base font-semibold text-[#C84A16]'>
+                  <p className='text-base font-semibold es-text-brand'>
                     {content.scheduleLabel}
                   </p>
-                  <p className='mt-1 text-[clamp(1.3rem,3vw,1.7rem)] font-bold text-[#222222]'>
+                  <p className='mt-1 text-[clamp(1.3rem,3vw,1.7rem)] font-bold es-text-heading-alt'>
                     {nextCohortPreview}
                   </p>
                 </div>
@@ -279,12 +277,12 @@ export function MyBestAuntieBooking({
             </section>
 
             <aside className='mx-auto w-full min-w-0 max-w-[764px] lg:ml-auto lg:mr-0'>
-              <h2 className='text-[1.6rem] font-semibold text-[#333333]'>
+              <h2 className='text-[1.6rem] font-semibold es-text-heading'>
                 {content.eyebrow}
               </h2>
 
               <div className='mt-6'>
-                <h3 className='text-sm font-semibold text-[#5A5A5A]'>
+                <h3 className='text-sm font-semibold es-text-neutral-strong'>
                   {content.ageSelectorLabel}
                 </h3>
                 <div className='mt-3 flex min-w-0 gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
@@ -315,7 +313,7 @@ export function MyBestAuntieBooking({
                             className='h-12 w-12'
                             aria-hidden='true'
                           />
-                          <span className='text-lg font-semibold text-[#333333]'>
+                          <span className='text-lg font-semibold es-text-heading'>
                             {option.label}
                           </span>
                         </div>
@@ -326,7 +324,7 @@ export function MyBestAuntieBooking({
               </div>
 
               <div className='mt-7'>
-                <h3 className='text-sm font-semibold text-[#5A5A5A]'>
+                <h3 className='text-sm font-semibold es-text-neutral-strong'>
                   {content.dateSelectorLabel}
                 </h3>
                 <div className='mt-3 min-w-0'>
@@ -373,11 +371,11 @@ export function MyBestAuntieBooking({
                                   }
                                   aria-hidden='true'
                                 />
-                                <p className='text-base font-semibold text-[#333333]'>
+                                <p className='text-base font-semibold es-text-heading'>
                                   {option.label}
                                 </p>
                               </div>
-                              <p className='mt-2 text-center text-sm text-[#C71B1B]'>
+                              <p className='mt-2 text-center text-sm es-text-danger-accent'>
                                 {option.availabilityLabel}
                               </p>
                             </button>
@@ -393,11 +391,7 @@ export function MyBestAuntieBooking({
                           handleDateCarouselNavigation('prev');
                         }}
                         aria-label='Scroll dates left'
-                        className='es-focus-ring absolute left-0 top-1/2 z-20 inline-flex h-[58px] w-[58px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
-                        style={{
-                          backgroundColor: DATE_CONTROL_BG,
-                          boxShadow: DATE_CONTROL_SHADOW,
-                        }}
+                        className='es-focus-ring es-control-button absolute left-0 top-1/2 z-20 inline-flex h-[58px] w-[58px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
                       >
                         <DateArrowIcon direction='left' />
                       </button>
@@ -410,11 +404,7 @@ export function MyBestAuntieBooking({
                           handleDateCarouselNavigation('next');
                         }}
                         aria-label='Scroll dates right'
-                        className='es-focus-ring absolute right-0 top-1/2 z-20 inline-flex h-[58px] w-[58px] translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
-                        style={{
-                          backgroundColor: DATE_CONTROL_BG,
-                          boxShadow: DATE_CONTROL_SHADOW,
-                        }}
+                        className='es-focus-ring es-control-button absolute right-0 top-1/2 z-20 inline-flex h-[58px] w-[58px] translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
                       >
                         <DateArrowIcon direction='right' />
                       </button>

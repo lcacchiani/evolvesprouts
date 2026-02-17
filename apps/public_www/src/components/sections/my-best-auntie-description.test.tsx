@@ -28,7 +28,9 @@ describe('MyBestAuntieDescription section', () => {
     const sectionStyle = section.getAttribute('style') ?? '';
 
     expect(section.className).toContain('es-section-bg-overlay');
-    expect(sectionStyle).toContain('background-color: rgb(248, 248, 248)');
+    expect(sectionStyle).toContain(
+      'background-color: var(--es-color-surface-muted, #F8F8F8)',
+    );
     expect(sectionStyle).toContain(
       '--es-section-bg-position: center -900px',
     );

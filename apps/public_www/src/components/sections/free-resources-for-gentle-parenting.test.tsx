@@ -57,7 +57,9 @@ describe('Free resources for gentle parenting section', () => {
     const mediaPane = screen.getByTestId('free-resource-media-pane');
     const splitArticle = container.querySelector('article');
 
-    expect(layout.style.backgroundColor).toBe('rgb(238, 202, 176)');
+    expect(layout.style.backgroundColor).toBe(
+      'var(--es-color-border-soft, #EECAB0)',
+    );
     expect(layout.style.backgroundImage).toContain('linear-gradient');
     expect(layout.style.backgroundSize).toBe('100px 100px');
     expect(mediaPane.style.backgroundColor).toBe('');
@@ -77,7 +79,9 @@ describe('Free resources for gentle parenting section', () => {
     const overlayMediaPane = screen.getByTestId('free-resource-media-pane');
     const overlayArticle = container.querySelector('article');
 
-    expect(overlayLayout.style.backgroundColor).toBe('rgb(238, 202, 176)');
+    expect(overlayLayout.style.backgroundColor).toBe(
+      'var(--es-color-border-soft, #EECAB0)',
+    );
     expect(overlayMediaPane.style.backgroundColor).toBe('');
     expect(overlayArticle?.style.backgroundColor).toBe('');
     expect(overlayArticle?.style.boxShadow).toBe('');

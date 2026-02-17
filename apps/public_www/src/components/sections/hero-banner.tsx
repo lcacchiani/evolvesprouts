@@ -9,7 +9,7 @@ interface HeroBannerProps {
   content: HeroContent;
 }
 
-const HERO_BACKGROUND = '#fff';
+const HERO_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
 const HEADLINE_COLOR = HEADING_TEXT_COLOR;
 const HEADLINE_HIGHLIGHT =
   'var(--figma-colors-frame-2147235222-2, #ED622E)';

@@ -332,7 +332,9 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(style).toContain(`z-index: ${index + 1}`);
       if (index > 0) {
         expect(style).toContain('top: -12px');
-        expect(style).toContain('box-shadow: 0 -5px 0 0 #FFFFFF');
+        expect(style).toContain(
+          'box-shadow: 0 -5px 0 0 var(--es-color-surface-white, #FFFFFF)',
+        );
       }
     }
 

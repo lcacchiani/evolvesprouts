@@ -114,7 +114,7 @@ export function CourseHighlightCard({
         onClick={handleArrowClick}
         className={`absolute bottom-5 left-5 z-10 inline-flex appearance-none items-center justify-center rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} lg:group-hover:h-[70px] lg:group-hover:w-[70px] ${arrowActive}`}
       >
-        <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#ED622E] shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
+        <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full es-bg-brand-strong shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
           <svg
             aria-hidden='true'
             viewBox='0 0 20 20'

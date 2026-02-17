@@ -10,7 +10,8 @@ import {
   useState,
 } from 'react';
 
-export const MODAL_PANEL_BACKGROUND = '#FFFFFF';
+export const MODAL_PANEL_BACKGROUND =
+  'var(--es-color-surface-white, #FFFFFF)';
 const MODAL_OVERLAY_BACKGROUND = 'rgba(16, 14, 11, 0.6)';
 const FPS_GENERATOR_SCRIPT_SOURCE = '/scripts/fps-generator.js';
 const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
@@ -135,7 +136,7 @@ export function CloseButton({
       type='button'
       aria-label={label}
       onClick={onClose}
-      className='es-focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#E9E9E9] text-[#333333]'
+      className='es-focus-ring es-modal-close-button inline-flex h-10 w-10 items-center justify-center rounded-full'
     >
       <CloseIcon />
     </button>
@@ -193,7 +194,7 @@ export function FpsQrCode({ amount }: { amount: number }) {
   return (
     <div
       ref={qrCodeContainerRef}
-      className='flex w-full items-center justify-between gap-4 rounded-[14px] border border-[#CAD6E5] bg-white p-3 text-center'
+      className='flex w-full items-center justify-between gap-4 rounded-[14px] border es-border-input bg-white p-3 text-center'
     >
       <Image
         src={FPS_LOGO_SOURCE}
@@ -204,7 +205,7 @@ export function FpsQrCode({ amount }: { amount: number }) {
       />
       <div
         aria-label='FPS payment QR code'
-        className='flex h-[128px] w-[128px] shrink-0 items-center justify-center rounded-[8px] border border-[#E2E8F0] bg-white'
+        className='flex h-[128px] w-[128px] shrink-0 items-center justify-center rounded-[8px] border es-border-divider bg-white'
       >
         {qrCodeImageDataUrl && (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -221,7 +222,7 @@ export function FpsQrCode({ amount }: { amount: number }) {
 
 export function DiscountBadge({ label }: { label: string }) {
   return (
-    <p className='rounded-lg bg-[#E9F8EA] px-3 py-2 text-sm text-[#276738]'>
+    <p className='rounded-lg es-bg-surface-success-pale px-3 py-2 text-sm es-text-success'>
       {label}
     </p>
   );

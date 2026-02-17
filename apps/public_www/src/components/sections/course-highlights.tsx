@@ -40,7 +40,7 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
 });
 const HEADING_COLOR = HEADING_TEXT_COLOR;
 const BODY_COLOR = BODY_TEXT_COLOR;
-const GOLD_CARD = '#9E6D12';
+const GOLD_CARD = 'var(--es-color-accent-gold, #9E6D12)';
 const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
 
 const fallbackCourseHighlightsCopy = enContent.courseHighlights;

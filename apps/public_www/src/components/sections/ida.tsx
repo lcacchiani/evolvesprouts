@@ -10,7 +10,7 @@ interface IdaProps {
   content: IdaContent;
 }
 
-const SECTION_BACKGROUND = '#FFFFFF';
+const SECTION_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
 
 const titleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,

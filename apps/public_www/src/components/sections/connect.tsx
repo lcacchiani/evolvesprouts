@@ -13,7 +13,7 @@ interface ConnectProps {
 }
 
 const SECTION_STYLE = buildSectionBackgroundStyle({
-  backgroundColor: '#FFFFFF',
+  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
   position: 'center top',
   size: '900px auto',
 });
@@ -35,13 +35,30 @@ const ctaStyle: CSSProperties = {
 };
 
 function ConnectGlyph({ index }: { index: number }) {
-  const iconColor = ['#174879', '#5D9D49', '#C84A16'][index % 3];
+  const iconTones = [
+    {
+      stroke: 'var(--figma-colors-frame-2147235242, #174879)',
+      background:
+        'color-mix(in srgb, var(--figma-colors-frame-2147235242, #174879) 10%, transparent)',
+    },
+    {
+      stroke: 'var(--es-color-accent-green, #5D9D49)',
+      background:
+        'color-mix(in srgb, var(--es-color-accent-green, #5D9D49) 10%, transparent)',
+    },
+    {
+      stroke: 'var(--es-color-brand-orange, #C84A16)',
+      background:
+        'color-mix(in srgb, var(--es-color-brand-orange, #C84A16) 10%, transparent)',
+    },
+  ] as const;
+  const tone = iconTones[index % iconTones.length];
 
   return (
     <span
       aria-hidden='true'
       className='inline-flex h-12 w-12 items-center justify-center rounded-full'
-      style={{ backgroundColor: `${iconColor}1A` }}
+      style={{ backgroundColor: tone.background }}
     >
       <svg
         viewBox='0 0 20 20'
@@ -51,7 +68,7 @@ function ConnectGlyph({ index }: { index: number }) {
       >
         <path
           d='M4 10H16M10 4L16 10L10 16'
-          stroke={iconColor}
+          stroke={tone.stroke}
           strokeWidth='2'
           strokeLinecap='round'
           strokeLinejoin='round'
@@ -82,7 +99,7 @@ export function Connect({ content }: ConnectProps) {
         <ul className='mt-10 grid grid-cols-1 gap-5 lg:mt-12 lg:grid-cols-3'>
           {content.cards.map((card, index) => (
             <li key={`${card.title}-${card.ctaHref}`}>
-              <article className='flex h-full flex-col rounded-3xl border border-[#EEDCCD] bg-[#FFF9F4] p-5 shadow-[0_16px_34px_-24px_rgba(0,0,0,0.52)] sm:p-6'>
+              <article className='flex h-full flex-col rounded-3xl border es-border-warm-1 es-bg-surface-soft p-5 shadow-[0_16px_34px_-24px_rgba(0,0,0,0.52)] sm:p-6'>
                 <ConnectGlyph index={index} />
                 <h3 className='mt-4' style={cardTitleStyle}>
                   {card.title}

@@ -48,24 +48,21 @@ const BRAND_BLUE = 'var(--figma-colors-frame-2147235242, #174879)';
 
 const MODULE_TONES: readonly ModuleTone[] = [
   {
-    cardBackground: 'linear-gradient(180deg, #FFF3E0 0%, #FFFFFF 100%)',
-    countColor: '#D7AB0A',
-    countLine:
-      'linear-gradient(to top, #F7C600 0%, rgba(247, 198, 0, 0.66) 50%, rgba(247, 198, 0, 0) 100%)',
+    cardBackground: 'var(--es-gradient-card-yellow)',
+    countColor: 'var(--es-color-module-count-gold, #D7AB0A)',
+    countLine: 'var(--es-gradient-module-line-gold)',
     iconGlow: 'rgba(247, 198, 0, 0.25)',
   },
   {
-    cardBackground: 'linear-gradient(180deg, #FFE9EE 0%, #FFFFFF 100%)',
-    countColor: '#E3181B',
-    countLine:
-      'linear-gradient(to top, #E3181B 0%, rgba(227, 24, 27, 0.6) 50%, rgba(227, 24, 27, 0) 100%)',
+    cardBackground: 'var(--es-gradient-card-pink)',
+    countColor: 'var(--es-color-module-count-red, #E3181B)',
+    countLine: 'var(--es-gradient-module-line-red)',
     iconGlow: 'rgba(227, 24, 27, 0.22)',
   },
   {
-    cardBackground: 'linear-gradient(180deg, #E3F0FF 0%, #FFFFFF 100%)',
-    countColor: '#4592DE',
-    countLine:
-      'linear-gradient(to top, #4592DE 0%, rgba(69, 146, 222, 0.62) 50%, rgba(69, 146, 222, 0) 100%)',
+    cardBackground: 'var(--es-gradient-card-blue)',
+    countColor: 'var(--es-color-module-count-blue, #4592DE)',
+    countLine: 'var(--es-gradient-module-line-blue)',
     iconGlow: 'rgba(69, 146, 222, 0.24)',
   },
 ];
@@ -295,7 +292,7 @@ function MyBestAuntieOverviewCard({
           </p>
         )}
         <div className='mt-auto flex flex-col items-center gap-4 pt-6'>
-          <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#333333] shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
+          <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
             <span
               aria-hidden='true'
               className='pointer-events-none absolute -top-[70px] left-1/2 h-[70px] w-2 -translate-x-1/2 rounded-full'

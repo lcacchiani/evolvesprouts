@@ -43,7 +43,7 @@ const bodyStyle: CSSProperties = bodyTextStyle({
 
 const darkCalendarIconMaskStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  '#333333',
+  'var(--es-color-text-heading, #333333)',
 );
 
 export function MyBestAuntieThankYouModal({
@@ -140,7 +140,7 @@ export function MyBestAuntieThankYouModal({
           />
 
           <div className='relative z-10 flex flex-col items-center pt-0 text-center sm:pt-6 lg:pt-14'>
-            <div className='flex h-[100px] w-[100px] items-center justify-center rounded-full bg-[#D5E9CB]'>
+            <div className='flex h-[100px] w-[100px] items-center justify-center rounded-full es-bg-surface-success-soft'>
               <Image
                 src='/images/my-best-auntie-booking/green-tick-icon.png'
                 alt=''
@@ -150,7 +150,7 @@ export function MyBestAuntieThankYouModal({
                 aria-hidden='true'
               />
             </div>
-            <h3 className='mt-3 text-[22px] font-normal leading-none text-[#333333] sm:text-[28px]'>
+            <h3 className='mt-3 text-[22px] font-normal leading-none es-text-heading sm:text-[28px]'>
               {content.successLabel}
             </h3>
             <h2
@@ -159,16 +159,16 @@ export function MyBestAuntieThankYouModal({
             >
               {content.title}
             </h2>
-            <p className='mt-3 text-[18px] leading-7 text-[#4A4A4A]' style={bodyStyle}>
+            <p className='mt-3 text-[18px] leading-7 es-text-body' style={bodyStyle}>
               {content.subtitle}
               <br />
-              <span className='font-semibold text-[#2C2C2C]'>
+              <span className='font-semibold es-text-emphasis'>
                 {summary?.attendeeEmail ?? content.noEmailFallback}
               </span>
             </p>
           </div>
 
-          <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-[16px] border border-[#D0E4F4] bg-[#F8F8F8] px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
+          <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-[16px] border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
             <Image
               src='/images/evolvesprouts-logo.svg'
               alt=''
@@ -178,14 +178,14 @@ export function MyBestAuntieThankYouModal({
               aria-hidden='true'
             />
 
-            <div className='relative z-10 border-b border-[#418CCF3D] pb-8'>
+            <div className='relative z-10 border-b es-divider-blue pb-8'>
               <div className='flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between'>
                 <div>
-                  <h4 className='text-[20px] font-semibold leading-none text-[#333333] sm:text-[24px]'>
+                  <h4 className='text-[20px] font-semibold leading-none es-text-heading sm:text-[24px]'>
                     {summary?.courseLabel ?? content.courseLabel}
                   </h4>
                   <div className='mt-4 flex flex-wrap gap-2'>
-                    <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium text-[#5B617F]'>
+                    <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <span
                         className='h-6 w-6 shrink-0'
                         style={darkCalendarIconMaskStyle}
@@ -193,7 +193,7 @@ export function MyBestAuntieThankYouModal({
                       />
                       {summary?.scheduleDateLabel ?? summary?.monthLabel ?? ''}
                     </span>
-                    <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium text-[#5B617F]'>
+                    <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <Image
                         src='/images/my-best-auntie-booking/clock.png'
                         alt=''
@@ -206,38 +206,38 @@ export function MyBestAuntieThankYouModal({
                   </div>
                 </div>
                 <div className='text-left sm:text-right'>
-                  <span className='text-sm font-medium leading-none text-[#5B617F]'>
+                  <span className='text-sm font-medium leading-none es-text-muted'>
                     {summary?.packageLabel ?? ''}
                   </span>
-                  <p className='mt-2 text-[24px] font-bold leading-none text-[#333333] sm:text-[30px]'>
+                  <p className='mt-2 text-[24px] font-bold leading-none es-text-heading sm:text-[30px]'>
                     {formatCurrencyHkd(summary?.totalAmount ?? 0)}
                   </p>
                 </div>
               </div>
             </div>
 
-            <dl className='relative z-10 space-y-7 border-b border-[#418CCF3D] py-8'>
+            <dl className='relative z-10 space-y-7 border-b es-divider-blue py-8'>
               <div className='flex items-center justify-between gap-4'>
-                <dt className='text-[18px] font-medium text-[#828B9E] sm:text-[22px]'>
+                <dt className='text-[18px] font-medium es-text-subtle sm:text-[22px]'>
                   {content.transactionDateLabel}
                 </dt>
-                <dd className='text-[24px] font-bold leading-none text-[#333333] sm:text-[30px]'>
+                <dd className='text-[24px] font-bold leading-none es-text-heading sm:text-[30px]'>
                   {transactionDate}
                 </dd>
               </div>
               <div className='flex items-center justify-between gap-4'>
-                <dt className='text-[18px] font-medium text-[#828B9E] sm:text-[22px]'>
+                <dt className='text-[18px] font-medium es-text-subtle sm:text-[22px]'>
                   {content.paymentMethodLabel}
                 </dt>
-                <dd className='text-[24px] font-bold leading-none text-[#333333] sm:text-[30px]'>
+                <dd className='text-[24px] font-bold leading-none es-text-heading sm:text-[30px]'>
                   {summary?.paymentMethod ?? ''}
                 </dd>
               </div>
               <div className='flex items-center justify-between gap-4'>
-                <dt className='text-[18px] font-medium text-[#828B9E] sm:text-[22px]'>
+                <dt className='text-[18px] font-medium es-text-subtle sm:text-[22px]'>
                   {content.totalLabel}
                 </dt>
-                <dd className='text-[24px] font-bold leading-none text-[#333333] sm:text-[30px]'>
+                <dd className='text-[24px] font-bold leading-none es-text-heading sm:text-[30px]'>
                   {formatCurrencyHkd(summary?.totalAmount ?? 0)}
                 </dd>
               </div>
@@ -248,7 +248,7 @@ export function MyBestAuntieThankYouModal({
                 <button
                   type='button'
                   onClick={handlePrint}
-                  className='es-focus-ring inline-flex h-[54px] items-center gap-2 rounded-[10px] border border-[#ED622E] bg-white px-6 text-[16px] font-semibold text-[#ED622E] sm:h-[60px] sm:px-8 sm:text-[18px]'
+                  className='es-focus-ring es-card-action-outline es-bg-surface-white inline-flex h-[54px] items-center gap-2 rounded-[10px] border px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
                 >
                   <svg
                     width='24'
