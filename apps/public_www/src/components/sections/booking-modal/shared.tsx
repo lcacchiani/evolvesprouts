@@ -113,7 +113,7 @@ export function ModalOverlay({
   return (
     <div className='fixed inset-0 z-[80] overflow-y-auto'>
       <OverlayBackdrop
-        aria-label='Close modal'
+        ariaLabel='Close modal'
         className='border-0'
         style={{ backgroundColor: MODAL_OVERLAY_BACKGROUND }}
         onClick={onClose}
