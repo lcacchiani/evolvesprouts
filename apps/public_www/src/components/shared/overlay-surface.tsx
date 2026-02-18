@@ -1,6 +1,5 @@
 import type {
   ComponentPropsWithoutRef,
-  CSSProperties,
   ReactNode,
   Ref,
 } from 'react';
@@ -19,16 +18,17 @@ function mergeClassNames(...values: Array<string | undefined>): string {
 }
 
 interface OverlayBackdropProps
-  extends Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'aria-label'> {
+  extends Omit<
+    ComponentPropsWithoutRef<'button'>,
+    'children' | 'type' | 'aria-label' | 'style'
+  > {
   ariaLabel: string;
   className?: string;
-  style?: CSSProperties;
 }
 
 export function OverlayBackdrop({
   ariaLabel,
   className,
-  style,
   ...props
 }: OverlayBackdropProps) {
   return (
@@ -36,7 +36,6 @@ export function OverlayBackdrop({
       variant='icon'
       aria-label={ariaLabel}
       className={mergeClassNames('absolute inset-0 border-0', className)}
-      style={style}
       {...props}
     />
   );

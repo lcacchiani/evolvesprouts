@@ -1798,6 +1798,10 @@
     padding-top: env(safe-area-inset-top);
   }
 
+  .es-whatsapp-contact-button-safe-bottom {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+  }
+
   .text-es-whatsapp {
     color: var(--es-color-whatsapp);
   }

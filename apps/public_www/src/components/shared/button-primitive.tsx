@@ -1,7 +1,6 @@
 import type {
   AnchorHTMLAttributes,
   ButtonHTMLAttributes,
-  CSSProperties,
   Ref,
   ReactNode,
 } from 'react';
@@ -36,7 +35,6 @@ interface ButtonPrimitiveBaseProps {
   variant: ButtonPrimitiveVariant;
   state?: ButtonPrimitiveState;
   className?: string;
-  style?: CSSProperties;
   children?: ButtonPrimitiveChildren;
 }
 
@@ -102,7 +100,6 @@ export function ButtonPrimitive({
   variant,
   state = 'default',
   className,
-  style,
   children,
   ...props
 }: ButtonPrimitiveProps) {
@@ -125,7 +122,6 @@ export function ButtonPrimitive({
         href={href}
         openInNewTab={openInNewTab}
         className={primitiveClassName}
-        style={style}
         {...anchorProps}
       >
         {(linkState) =>
@@ -148,7 +144,6 @@ export function ButtonPrimitive({
       ref={buttonRef}
       type={type}
       className={primitiveClassName}
-      style={style}
       {...buttonProps}
     >
       {renderChildren(children, getBaseState(false))}
