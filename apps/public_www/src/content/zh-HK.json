@@ -51,19 +51,19 @@
           "locale": "en",
           "label": "英文",
           "shortLabel": "EN",
-          "flagSrc": "/images/flags/gb.png"
+          "flagSrc": "/images/flags/united-kingdom.svg"
         },
         {
           "locale": "zh-CN",
           "label": "簡體中文",
           "shortLabel": "簡",
-          "flagSrc": "/images/flags/cn.png"
+          "flagSrc": "/images/flags/china.svg"
         },
         {
           "locale": "zh-HK",
           "label": "繁體中文",
           "shortLabel": "繁",
-          "flagSrc": "/images/flags/hk.png"
+          "flagSrc": "/images/flags/hong-kong.svg"
         }
       ]
     }
