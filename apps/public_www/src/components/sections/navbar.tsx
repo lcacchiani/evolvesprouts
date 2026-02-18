@@ -60,7 +60,7 @@ const NAV_HAMBURGER_ICON_MASK_STYLE = createMaskIconStyle(
   'currentColor',
 );
 const NAV_CLOSE_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-close.svg',
+  '/images/close.svg',
   'currentColor',
 );
 

@@ -21,7 +21,7 @@ const FPS_MERCHANT_NAME = 'Ida De Gregorio';
 const FPS_MOBILE_NUMBER = '85297942094';
 const FPS_QR_CODE_SIZE_PX = 128;
 const NAV_CLOSE_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-close.svg',
+  '/images/close.svg',
   'currentColor',
 );
 
