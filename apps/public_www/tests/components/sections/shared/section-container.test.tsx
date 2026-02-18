@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { SectionContainer } from '@/components/section-container';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 
 describe('SectionContainer', () => {
   it('renders with the shared layout container class', () => {

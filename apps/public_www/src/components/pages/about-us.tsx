@@ -1,5 +1,5 @@
 import type { SiteContent } from '@/content';
-import { PageLayout } from '@/components/page-layout';
+import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
 import { Ida } from '@/components/sections/ida';
 import { MyHistory } from '@/components/sections/my-history';

@@ -1,4 +1,4 @@
-import { AboutUs } from '@/components/about-us';
+import { AboutUs } from '@/components/pages/about-us';
 import {
   getMenuLabel,
   type LocaleRouteProps,

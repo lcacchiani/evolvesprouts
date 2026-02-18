@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
-import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionContainer } from '@/components/section-container';
-import { SectionShell } from '@/components/section-shell';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { SproutsSquadCommunityContent } from '@/content';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 

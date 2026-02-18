@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { ButtonPrimitive } from '@/components/button-primitive';
-import { OverlayBackdrop } from '@/components/overlay-surface';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { OverlayBackdrop } from '@/components/shared/overlay-surface';
 import { CloseIcon } from '@/components/sections/navbar-icons';
 import QRCode from 'qrcode';
 import {

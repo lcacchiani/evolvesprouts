@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
-import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionHeader } from '@/components/section-header';
-import { SectionShell } from '@/components/section-shell';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionHeader } from '@/components/sections/shared/section-header';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import {
   readCandidateText,
   readCandidateTextFromUnknown,

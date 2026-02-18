@@ -1,4 +1,4 @@
-import { PageLayout } from '@/components/page-layout';
+import { PageLayout } from '@/components/shared/page-layout';
 import { Events } from '@/components/sections/events';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import {

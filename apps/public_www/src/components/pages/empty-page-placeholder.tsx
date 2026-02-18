@@ -1,4 +1,4 @@
-import { PlaceholderPanel } from '@/components/placeholder-panel';
+import { PlaceholderPanel } from '@/components/shared/placeholder-panel';
 
 interface EmptyPagePlaceholderProps {
   title: string;

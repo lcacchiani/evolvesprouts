@@ -5,11 +5,11 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
-import { SectionContainer } from '@/components/section-container';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
-import { SectionShell } from '@/components/section-shell';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
   bodyTextStyle,

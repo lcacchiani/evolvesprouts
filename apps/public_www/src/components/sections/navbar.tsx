@@ -10,13 +10,13 @@ import {
   useState,
 } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import {
   OverlayBackdrop,
   OverlayDrawerPanel,
-} from '@/components/overlay-surface';
-import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionContainer } from '@/components/section-container';
+} from '@/components/shared/overlay-surface';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import {
   CloseIcon,
   HamburgerIcon,

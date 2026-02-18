@@ -1,4 +1,4 @@
-import { SmartLink } from '@/components/smart-link';
+import { SmartLink } from '@/components/shared/smart-link';
 
 interface WhatsappContactButtonProps {
   href: string;

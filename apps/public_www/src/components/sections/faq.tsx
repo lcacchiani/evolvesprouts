@@ -4,11 +4,11 @@ import { usePathname } from 'next/navigation';
 import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
-import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionContainer } from '@/components/section-container';
-import { SectionHeader } from '@/components/section-header';
-import { SectionShell } from '@/components/section-shell';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { FaqContent } from '@/content';
 import {
   bodyTextStyle,

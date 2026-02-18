@@ -2,10 +2,10 @@ import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { PlaceholderPageLayout } from '@/components/placeholder-page-layout';
+import { PlaceholderPageLayout } from '@/components/shared/placeholder-page-layout';
 import type { FooterContent, NavbarContent } from '@/content';
 
-vi.mock('@/components/page-layout', () => ({
+vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({
     children,
     mainClassName,

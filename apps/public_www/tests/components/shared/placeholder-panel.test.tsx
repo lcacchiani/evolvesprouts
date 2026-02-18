@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { PlaceholderPanel } from '@/components/placeholder-panel';
+import { PlaceholderPanel } from '@/components/shared/placeholder-panel';
 
 describe('PlaceholderPanel', () => {
   it('renders with shared placeholder shell classes', () => {

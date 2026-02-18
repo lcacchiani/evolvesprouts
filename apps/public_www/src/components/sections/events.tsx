@@ -3,14 +3,14 @@
 import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionContainer } from '@/components/section-container';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import {
   CalendarIcon,
   ClockIcon,
   LocationIcon,
 } from '@/components/sections/navbar-icons';
-import { SectionShell } from '@/components/section-shell';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { EventsContent } from '@/content';
 import {
   createPublicCrmApiClient,

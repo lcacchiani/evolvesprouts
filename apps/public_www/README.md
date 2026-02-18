@@ -14,6 +14,22 @@
 - `npm run build` — validate content, build Figma CSS tokens, and build the app.
 - `npm run lighthouse:ci` — run Lighthouse CI against the static export.
 
+## Component and test folder conventions
+
+Use this structure for all new `public_www` UI code:
+
+- `src/components/pages/**` for page-composition components.
+- `src/components/shared/**` for reusable primitives and layout helpers.
+- `src/components/sections/**` for section components.
+- `src/components/sections/shared/**` for section-only shared helpers.
+
+Place all test files under `tests/**` (not under `src/**`), with mirrored
+domains for navigation:
+
+- `tests/components/**`
+- `tests/lib/**`
+- `tests/content/**`
+
 ## Figma token scaffolding
 
 The app can consume design tokens from Figma:

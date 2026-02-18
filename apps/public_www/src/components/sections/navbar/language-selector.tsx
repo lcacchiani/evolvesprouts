@@ -14,7 +14,7 @@ import {
   ButtonPrimitive,
   type ButtonPrimitiveState,
   type ButtonPrimitiveVariant,
-} from '@/components/button-primitive';
+} from '@/components/shared/button-primitive';
 import {
   isValidLocale,
   type Locale,

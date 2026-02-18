@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { WhatsappContactButton } from '@/components/whatsapp-contact-button';
+import { WhatsappContactButton } from '@/components/shared/whatsapp-contact-button';
 import {
   generateLocaleStaticParams,
   type LocaleRouteParams,

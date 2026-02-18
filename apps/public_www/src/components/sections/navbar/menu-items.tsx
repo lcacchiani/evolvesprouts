@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import {
   LanguageChevronIcon,
   MobileChevronIcon,

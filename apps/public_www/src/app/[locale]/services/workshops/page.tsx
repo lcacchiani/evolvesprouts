@@ -1,5 +1,5 @@
-import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
-import { PlaceholderPageLayout } from '@/components/placeholder-page-layout';
+import { EmptyPagePlaceholder } from '@/components/pages/empty-page-placeholder';
+import { PlaceholderPageLayout } from '@/components/shared/placeholder-page-layout';
 import {
   createPlaceholderPage,
   generateLocaleStaticParams,
