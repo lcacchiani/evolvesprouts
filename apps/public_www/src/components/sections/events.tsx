@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import { SectionContainer } from '@/components/section-container';
 import {
   CalendarIcon,
   ClockIcon,
@@ -202,8 +203,8 @@ export function Events({ content }: EventsProps) {
       dataFigmaNode='events'
       style={{ backgroundColor: SECTION_BACKGROUND }}
     >
-      <div className='mx-auto w-full max-w-[1465px]'>
-        <div className='mx-auto max-w-[920px] text-center'>
+      <SectionContainer>
+        <div className='es-layout-content-narrow text-center'>
           <h1 className='es-type-title text-balance'>
             {content.title}
           </h1>
@@ -366,7 +367,7 @@ export function Events({ content }: EventsProps) {
             </ul>
           )}
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

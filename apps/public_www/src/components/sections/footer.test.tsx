@@ -34,6 +34,9 @@ describe('Footer external links', () => {
   it('adds the shared external icon to social links only', () => {
     render(<Footer content={enContent.footer} />);
 
+    const sharedContainers = document.querySelectorAll('.es-layout-container');
+    expect(sharedContainers.length).toBeGreaterThan(0);
+
     const facebookLinks = screen.getAllByRole('link', { name: 'Facebook' });
     expect(facebookLinks.length).toBeGreaterThan(0);
     for (const link of facebookLinks) {

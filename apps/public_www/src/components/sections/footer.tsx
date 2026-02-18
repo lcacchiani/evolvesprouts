@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 
 import { ExternalLinkIcon } from '@/components/external-link-icon';
+import { SectionContainer } from '@/components/section-container';
 import { SmartLink } from '@/components/smart-link';
 import type { FooterContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
@@ -227,7 +228,7 @@ export function Footer({ content }: FooterProps) {
       style={{ backgroundColor: FOOTER_BACKGROUND }}
     >
       <section className='w-full px-4 pb-8 pt-9 sm:px-6 sm:pb-10 sm:pt-11 lg:px-8 lg:pb-12 lg:pt-16'>
-        <div className='mx-auto w-full max-w-[1465px]'>
+        <SectionContainer>
           <div className='mb-7 hidden justify-center sm:flex lg:hidden'>
             <Image
               src='/images/evolvesprouts-logo.svg'
@@ -295,13 +296,13 @@ export function Footer({ content }: FooterProps) {
               hasSocialIcons
             />
           </div>
-        </div>
+        </SectionContainer>
       </section>
 
       <div className='w-full px-4 pb-8 sm:px-6 lg:px-8'>
-        <div className='mx-auto w-full max-w-[1465px] text-center'>
+        <SectionContainer className='text-center'>
           <p style={copyrightStyle}>{copyrightText}</p>
-        </div>
+        </SectionContainer>
       </div>
     </footer>
   );

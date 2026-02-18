@@ -1,5 +1,6 @@
 import { CourseHighlightCard } from '@/components/sections/course-highlight-card';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { CourseHighlightsContent } from '@/content';
@@ -147,7 +148,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         }}
       />
 
-      <div className='relative z-10 mx-auto w-full max-w-[1520px]'>
+      <SectionContainer>
         <SectionHeader
           eyebrow={sectionEyebrow}
           title={sectionTitle}
@@ -191,7 +192,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
             {ctaLabel}
           </SectionCtaAnchor>
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

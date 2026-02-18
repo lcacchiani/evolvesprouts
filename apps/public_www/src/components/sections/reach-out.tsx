@@ -1,4 +1,5 @@
 import { SectionHeader } from '@/components/section-header';
+import { SectionContainer } from '@/components/section-container';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
@@ -61,7 +62,7 @@ export function ReachOut({ content }: ReachOutProps) {
       className='relative isolate overflow-hidden'
       style={SECTION_STYLE}
     >
-      <div className='mx-auto w-full max-w-[1465px]'>
+      <SectionContainer>
         <SectionHeader
           eyebrow={content.eyebrow}
           title={content.title}
@@ -85,7 +86,7 @@ export function ReachOut({ content }: ReachOutProps) {
             </li>
           ))}
         </ul>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

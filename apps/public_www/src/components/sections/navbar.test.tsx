@@ -38,6 +38,13 @@ vi.mock('next/link', () => ({
 }));
 
 describe('Navbar desktop submenu accessibility', () => {
+  it('uses shared layout container class on desktop nav wrapper', () => {
+    render(<Navbar content={enContent.navbar} />);
+
+    const nav = screen.getByRole('navigation');
+    expect(nav.className).toContain('es-layout-container');
+  });
+
   it('restores focus to the submenu trigger before hiding links', () => {
     render(<Navbar content={enContent.navbar} />);
 

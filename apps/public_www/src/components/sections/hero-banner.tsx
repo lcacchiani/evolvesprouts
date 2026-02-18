@@ -2,6 +2,7 @@ import { Fragment, type CSSProperties, type ReactNode } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import { SectionContainer } from '@/components/section-container';
 import type { HeroContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
@@ -79,7 +80,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
           maskImage: 'linear-gradient(to bottom, black 60%, transparent 90%)',
         }}
       />
-      <div className='relative z-10 mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-6'>
+      <SectionContainer className='grid items-center gap-8 lg:grid-cols-2 lg:gap-6'>
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8 lg:pt-[70px]'>
           <div className='relative z-10'>
             <h1 style={headlineStyle}>{renderHeadline(content.headline)}</h1>
@@ -106,7 +107,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
             className='h-auto w-full'
           />
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 }
