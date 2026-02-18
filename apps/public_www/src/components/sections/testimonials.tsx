@@ -3,10 +3,7 @@
 import Image from 'next/image';
 import {
   type CSSProperties,
-  type TouchEvent,
   useMemo,
-  useRef,
-  useState,
 } from 'react';
 
 import { ButtonPrimitive } from '@/components/button-primitive';
@@ -27,6 +24,7 @@ import {
   buildSectionBackgroundOverlayStyle,
   LOGO_OVERLAY_TOP,
 } from '@/lib/section-backgrounds';
+import { useSwipePager } from '@/lib/hooks/use-swipe-pager';
 
 interface TestimonialsProps {
   content: TestimonialsContent;
@@ -127,14 +125,6 @@ function normalizeStories(items: unknown): NormalizedStory[] {
     .filter((item): item is NormalizedStory => item !== null);
 }
 
-function getWrappedIndex(index: number, total: number): number {
-  if (total <= 0) {
-    return 0;
-  }
-
-  return ((index % total) + total) % total;
-}
-
 function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
@@ -193,11 +183,19 @@ export function Testimonials({ content }: TestimonialsProps) {
     stories.length > 0
       ? stories
       : [{ quote: content.title } satisfies NormalizedStory];
-  const [activeStoryIndex, setActiveStoryIndex] = useState(0);
-  const touchStartXRef = useRef<number | null>(null);
-  const activeIndex = getWrappedIndex(activeStoryIndex, storiesToRender.length);
+  const {
+    activeIndex,
+    hasMultiplePages: hasMultipleStories,
+    goToPrevious: goToPreviousStory,
+    goToNext: goToNextStory,
+    handleTouchStart,
+    handleTouchEnd,
+    handleTouchCancel,
+  } = useSwipePager<HTMLDivElement>({
+    itemCount: storiesToRender.length,
+    swipeThresholdPx: SWIPE_THRESHOLD_PX,
+  });
   const activeStory = storiesToRender[activeIndex];
-  const hasMultipleStories = storiesToRender.length > 1;
   const testimonialsRecord = content as Record<string, unknown>;
   const badgeLabel =
     readCandidateText(testimonialsRecord, [
@@ -219,62 +217,6 @@ export function Testimonials({ content }: TestimonialsProps) {
       'nextAriaLabel',
       'nextLabel',
     ]) ?? 'Next testimonial';
-
-  function goToPreviousStory() {
-    if (!hasMultipleStories) {
-      return;
-    }
-
-    setActiveStoryIndex((currentIndex) =>
-      getWrappedIndex(currentIndex - 1, storiesToRender.length),
-    );
-  }
-
-  function goToNextStory() {
-    if (!hasMultipleStories) {
-      return;
-    }
-
-    setActiveStoryIndex((currentIndex) =>
-      getWrappedIndex(currentIndex + 1, storiesToRender.length),
-    );
-  }
-
-  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
-    if (!hasMultipleStories) {
-      return;
-    }
-
-    const touch = event.changedTouches[0];
-    touchStartXRef.current = touch ? touch.clientX : null;
-  }
-
-  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
-    if (!hasMultipleStories || touchStartXRef.current === null) {
-      touchStartXRef.current = null;
-      return;
-    }
-
-    const touch = event.changedTouches[0];
-    if (!touch) {
-      touchStartXRef.current = null;
-      return;
-    }
-
-    const deltaX = touch.clientX - touchStartXRef.current;
-    touchStartXRef.current = null;
-
-    if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) {
-      return;
-    }
-
-    if (deltaX > 0) {
-      goToPreviousStory();
-      return;
-    }
-
-    goToNextStory();
-  }
 
   return (
     <SectionShell
@@ -301,9 +243,7 @@ export function Testimonials({ content }: TestimonialsProps) {
             aria-live='polite'
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            onTouchCancel={() => {
-              touchStartXRef.current = null;
-            }}
+            onTouchCancel={handleTouchCancel}
           >
             <article
               key={`${activeStory.author ?? 'story'}-${activeIndex}`}

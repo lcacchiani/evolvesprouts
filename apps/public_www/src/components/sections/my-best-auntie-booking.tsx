@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/button-primitive';
 import { SectionContainer } from '@/components/section-container';
@@ -17,6 +17,7 @@ import {
   SURFACE_WHITE,
   TEXT_ICON_COLOR,
 } from '@/lib/design-tokens';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -105,11 +106,18 @@ export function MyBestAuntieBooking({
 
   const [selectedAgeId, setSelectedAgeId] = useState(ageOptions[0]?.id ?? '');
   const [selectedDateId, setSelectedDateId] = useState(dateOptions[0]?.id ?? '');
-  const dateCarouselRef = useRef<HTMLDivElement | null>(null);
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const hasDateNavigation = dateOptions.length > 3;
-  const [canScrollDateLeft, setCanScrollDateLeft] = useState(false);
-  const [canScrollDateRight, setCanScrollDateRight] = useState(hasDateNavigation);
+  const {
+    carouselRef: dateCarouselRef,
+    hasNavigation: hasDateNavigation,
+    canScrollPrevious: canScrollDateLeft,
+    canScrollNext: canScrollDateRight,
+    scrollByDirection: scrollDateCarouselByDirection,
+    scrollItemIntoView,
+  } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: dateOptions.length,
+    minItemsForNavigation: 3,
+  });
 
   const selectedAgeOption =
     ageOptions.find((option) => option.id === selectedAgeId) ?? ageOptions[0];
@@ -133,91 +141,13 @@ export function MyBestAuntieBooking({
     content.scheduleDate;
   const nextCohortPreview = formatCohortPreviewLabel(nextCohortDate);
 
-  const updateDateNavigationState = useCallback(() => {
-    const carouselElement = dateCarouselRef.current;
-    if (!carouselElement || !hasDateNavigation) {
-      setCanScrollDateLeft(false);
-      setCanScrollDateRight(false);
-      return;
-    }
-
-    const maxScrollLeft = carouselElement.scrollWidth - carouselElement.clientWidth;
-    const threshold = 2;
-
-    if (maxScrollLeft <= threshold) {
-      setCanScrollDateLeft(false);
-      setCanScrollDateRight(false);
-      return;
-    }
-
-    setCanScrollDateLeft(carouselElement.scrollLeft > threshold);
-    setCanScrollDateRight(carouselElement.scrollLeft < maxScrollLeft - threshold);
-  }, [hasDateNavigation]);
-
   useEffect(() => {
     const selectedDateCard = dateCardRefs.current[selectedDateId];
-    if (!selectedDateCard) {
-      return;
-    }
-
-    selectedDateCard.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    });
-
-    if (typeof window !== 'undefined') {
-      window.requestAnimationFrame(() => {
-        updateDateNavigationState();
-      });
-    }
-  }, [selectedDateId, updateDateNavigationState]);
-
-  useEffect(() => {
-    const carouselElement = dateCarouselRef.current;
-    if (!carouselElement) {
-      return;
-    }
-
-    const frameId = window.requestAnimationFrame(() => {
-      updateDateNavigationState();
-    });
-
-    function handleScroll() {
-      updateDateNavigationState();
-    }
-
-    carouselElement.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      carouselElement.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
-  }, [dateOptions.length, updateDateNavigationState]);
+    scrollItemIntoView(selectedDateCard);
+  }, [scrollItemIntoView, selectedDateId]);
 
   function handleDateCarouselNavigation(direction: 'prev' | 'next') {
-    const carouselElement = dateCarouselRef.current;
-    if (!carouselElement) {
-      return;
-    }
-
-    if (direction === 'prev' && !canScrollDateLeft) {
-      return;
-    }
-
-    if (direction === 'next' && !canScrollDateRight) {
-      return;
-    }
-
-    const step = Math.max(180, Math.round(carouselElement.clientWidth * 0.8));
-    const leftOffset = direction === 'prev' ? -step : step;
-
-    carouselElement.scrollBy({
-      left: leftOffset,
-      behavior: 'smooth',
-    });
+    scrollDateCarouselByDirection(direction);
   }
 
   return (
