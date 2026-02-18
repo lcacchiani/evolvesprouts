@@ -34,7 +34,7 @@ const NAV_ACTIVE_TEXT = BRAND_ORANGE;
 const NAV_LANGUAGE_OPTION_CLASSNAME =
   'es-focus-ring es-nav-language-option';
 const NAV_LANGUAGE_CHEVRON_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-language-chevron.svg',
+  '/images/chevron.svg',
   TEXT_HEADING_STRONG,
 );
 
