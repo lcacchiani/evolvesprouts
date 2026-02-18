@@ -1,23 +1,22 @@
-import type { CSSProperties } from 'react';
-
 interface BackgroundGlowProps {
   className?: string;
-  background: string;
-  opacity?: number;
+  backgroundClassName: string;
+  opacityClassName?: string;
 }
 
 export function BackgroundGlow({
   className,
-  background,
-  opacity,
+  backgroundClassName,
+  opacityClassName,
 }: BackgroundGlowProps) {
-  const glowClassName = className
-    ? `pointer-events-none absolute rounded-full ${className}`
-    : 'pointer-events-none absolute rounded-full';
-  const glowStyle: CSSProperties = {
-    background,
-    ...(typeof opacity === 'number' ? { opacity } : {}),
-  };
+  const glowClassName = [
+    'pointer-events-none absolute rounded-full',
+    className,
+    backgroundClassName,
+    opacityClassName,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(' ');
 
-  return <div aria-hidden='true' className={glowClassName} style={glowStyle} />;
+  return <div aria-hidden='true' className={glowClassName} />;
 }

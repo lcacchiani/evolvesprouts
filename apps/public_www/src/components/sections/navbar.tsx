@@ -17,7 +17,10 @@ import {
 } from '@/components/shared/overlay-surface';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
-import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
+import {
+  CloseIcon,
+  HamburgerIcon,
+} from '@/components/sections/navbar-icons';
 import {
   LanguageSelectorButton,
   resolveLanguageSelectorContent,
@@ -43,7 +46,6 @@ interface NavbarProps {
   content: NavbarContent;
 }
 
-const NAV_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
@@ -55,14 +57,6 @@ const NAV_OPEN_MENU_BUTTON_CLASSNAME =
   'h-11 w-11 rounded-xl lg:hidden';
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
   'h-10 w-10 rounded-full';
-const NAV_HAMBURGER_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/hamburger.svg',
-  'currentColor',
-);
-const NAV_CLOSE_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/close.svg',
-  'currentColor',
-);
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -233,8 +227,7 @@ export function Navbar({ content }: NavbarProps) {
     <>
       <header
         data-figma-node='navbar'
-        className='w-full'
-        style={{ backgroundColor: NAV_BACKGROUND }}
+        className='es-navbar-surface w-full'
       >
         <SectionContainer
           as='nav'
@@ -281,11 +274,7 @@ export function Navbar({ content }: NavbarProps) {
             className={NAV_OPEN_MENU_BUTTON_CLASSNAME}
           >
             <span className='sr-only'>Open navigation menu</span>
-            <span
-              aria-hidden='true'
-              className='h-4 w-4'
-              style={NAV_HAMBURGER_ICON_MASK_STYLE}
-            />
+            <HamburgerIcon />
           </ButtonPrimitive>
         </SectionContainer>
       </header>
@@ -304,8 +293,7 @@ export function Navbar({ content }: NavbarProps) {
             role='dialog'
             aria-modal='true'
             aria-label='Mobile navigation menu'
-            className={MOBILE_PANEL_WIDTH_CLASS}
-            style={{ backgroundColor: NAV_BACKGROUND }}
+            className={`${MOBILE_PANEL_WIDTH_CLASS} es-navbar-surface`}
           >
             <div className='flex items-center justify-between px-4 py-4'>
               <Link
@@ -328,11 +316,7 @@ export function Navbar({ content }: NavbarProps) {
                 onClick={closeMobileMenu}
                 className={NAV_CLOSE_MENU_BUTTON_CLASSNAME}
               >
-                <span
-                  aria-hidden='true'
-                  className='h-[18px] w-[18px]'
-                  style={NAV_CLOSE_ICON_MASK_STYLE}
-                />
+                <CloseIcon />
               </ButtonPrimitive>
             </div>
             <div className='flex-1 overflow-y-auto p-4'>

@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
@@ -12,7 +11,6 @@ import {
   toRecord,
 } from '@/content/content-field-utils';
 import type { ResourcesContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface FreeResourcesForGentleParentingProps {
   content: ResourcesContent;
@@ -46,69 +44,8 @@ const HEADER_ALIGNMENT_VALUES = ['left', 'center'] as const;
 const LAYOUT_VARIANT_VALUES = ['split', 'overlay'] as const;
 const HORIZONTAL_POSITION_VALUES = ['left', 'right'] as const;
 
-const SECTION_BG = 'var(--figma-colors-desktop, #FFFFFF)';
-const HEADING_COLOR = HEADING_TEXT_COLOR;
-const BODY_COLOR = BODY_TEXT_COLOR;
 const RESOURCE_IMAGE_SRC = '/images/family.webp';
-const BORDER_COLOR = 'var(--es-color-border-soft, #EECAB0)';
 const GREEN_ACCENT = 'var(--es-color-accent-green, #5D9D49)';
-const TILE_BORDER_COLOR = 'var(--es-color-tile-border, #D9A578)';
-
-const cardBackgroundPatternStyle: CSSProperties = {
-  backgroundColor: BORDER_COLOR,
-  backgroundImage: `linear-gradient(${TILE_BORDER_COLOR} 1px, transparent 1px), linear-gradient(90deg, ${TILE_BORDER_COLOR} 1px, transparent 1px)`,
-  backgroundSize: '100px 100px',
-};
-
-const cardTitleStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize:
-    'clamp(1.75rem, 4.5vw, var(--figma-fontsizes-41, 41px))',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight:
-    'clamp(2.15rem, 5.2vw, calc(var(--figma-lineheights-age-specific-strategies, 50) * 1px))',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-free-guide-4-simple-ways-to-teach-patience-to-young-children, 0.41) * 1px)',
-};
-
-const cardBodyStyle: CSSProperties = {
-  color: BODY_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.1rem, 3.2vw, var(--figma-fontsizes-28, 28px))',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight:
-    'clamp(1.7rem, 4vw, calc(var(--figma-lineheights-gentle-strategies-for-busy-parents, 41) * 1px))',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-gentle-strategies-for-busy-parents, 0.28) * 1px)',
-};
-
-const checklistTitleStyle: CSSProperties = {
-  color: BODY_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.05rem, 2.1vw, 20px)',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight: '1.2',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-the-firstthen-trick, 0.336) * 1px)',
-};
-
-const checklistDescriptionStyle: CSSProperties = {
-  color: BODY_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1rem, 1.9vw, 18px)',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight: '1.4',
-  letterSpacing: 'calc(var(--figma-letterspacing-home, 0.5) * 1px)',
-};
-
-const mediaPillTextStyle: CSSProperties = {
-  color: BODY_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1rem, 1.6vw, 20px)',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight: '1',
-};
 
 function readSectionConfig(
   customContent: Record<string, unknown>,
@@ -272,12 +209,12 @@ function ResourceCardContent({
 }: ResourceCardContentProps) {
   return (
     <>
-      <h3 className='max-w-[366px] text-balance' style={cardTitleStyle}>
+      <h3 className='max-w-[366px] text-balance es-free-resources-card-title'>
         {cardTitle}
       </h3>
 
       {cardDescription && (
-        <p className='mt-4 max-w-[420px] text-balance' style={cardBodyStyle}>
+        <p className='mt-4 max-w-[420px] text-balance es-free-resources-card-body'>
           {cardDescription}
         </p>
       )}
@@ -289,14 +226,14 @@ function ResourceCardContent({
               key={`${item.title}-${item.description ?? ''}`}
               className='rounded-[12px] bg-white px-4 py-[18px] sm:px-5'
             >
-              <p className='relative pl-9' style={checklistTitleStyle}>
+              <p className='relative pl-9 es-free-resources-checklist-title'>
                 <span className='absolute left-0 top-[-1px]'>
                   <ChecklistIcon />
                 </span>
                 {item.title}
               </p>
               {item.description && (
-                <p className='mt-2 pl-9' style={checklistDescriptionStyle}>
+                <p className='mt-2 pl-9 es-free-resources-checklist-description'>
                   {item.description}
                 </p>
               )}
@@ -358,7 +295,7 @@ export function FreeResourcesForGentleParenting({
       id='resources'
       ariaLabel={content.title}
       dataFigmaNode='Resources'
-      style={{ backgroundColor: SECTION_BG }}
+      className='es-free-resources-section'
     >
       <div className='mx-auto w-full max-w-[1464px]'>
         <SectionHeader
@@ -375,8 +312,7 @@ export function FreeResourcesForGentleParenting({
               <div
                 data-testid='free-resource-layout'
                 data-layout='overlay'
-                className='relative overflow-hidden rounded-[16px] border border-black/5'
-                style={cardBackgroundPatternStyle}
+                className='relative overflow-hidden rounded-[16px] border border-black/5 es-free-resources-pattern-bg'
               >
                 <div
                   className='relative min-h-[620px] overflow-hidden sm:min-h-[700px] lg:min-h-[740px]'
@@ -392,12 +328,12 @@ export function FreeResourcesForGentleParenting({
 
                   <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
                     <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>
-                      <p className='whitespace-nowrap' style={mediaPillTextStyle}>
+                      <p className='whitespace-nowrap es-free-resources-media-pill-text'>
                         {mediaTitleLine1}
                       </p>
                     </div>
                     <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>
-                      <p className='whitespace-nowrap' style={mediaPillTextStyle}>
+                      <p className='whitespace-nowrap es-free-resources-media-pill-text'>
                         {mediaTitleLine2}
                       </p>
                     </div>
@@ -426,8 +362,7 @@ export function FreeResourcesForGentleParenting({
               <div
                 data-testid='free-resource-layout'
                 data-layout='split'
-                className='grid overflow-hidden rounded-[16px] border border-black/5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
-                style={cardBackgroundPatternStyle}
+                className='grid overflow-hidden rounded-[16px] border border-black/5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] es-free-resources-pattern-bg'
               >
                 <div
                   data-testid='free-resource-text-pane'
@@ -460,12 +395,12 @@ export function FreeResourcesForGentleParenting({
 
                   <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
                     <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>
-                      <p className='whitespace-nowrap' style={mediaPillTextStyle}>
+                      <p className='whitespace-nowrap es-free-resources-media-pill-text'>
                         {mediaTitleLine1}
                       </p>
                     </div>
                     <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>
-                      <p className='whitespace-nowrap' style={mediaPillTextStyle}>
+                      <p className='whitespace-nowrap es-free-resources-media-pill-text'>
                         {mediaTitleLine2}
                       </p>
                     </div>

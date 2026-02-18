@@ -19,28 +19,15 @@ vi.mock('next/image', () => ({
 }));
 
 describe('MyBestAuntieDescription section', () => {
-  it('uses grey background properties and left-aligned heading', () => {
+  it('uses migrated section background class and left-aligned heading', () => {
     render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
 
     const section = screen.getByRole('region', {
       name: enContent.myBestAuntieDescription.title,
     });
-    const sectionStyle = section.getAttribute('style') ?? '';
 
     expect(section.className).toContain('es-section-bg-overlay');
-    expect(sectionStyle).toContain(
-      'background-color: var(--es-color-surface-muted, #F8F8F8)',
-    );
-    expect(sectionStyle).toContain(
-      '--es-section-bg-position: center -900px',
-    );
-    expect(sectionStyle).toContain('--es-section-bg-size: 2000px auto');
-    expect(sectionStyle).toContain(
-      '--es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)',
-    );
-    expect(sectionStyle).toContain(
-      '--es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%)',
-    );
+    expect(section.className).toContain('es-my-best-auntie-description-section');
 
     const title = screen.getByRole('heading', {
       level: 2,
@@ -73,8 +60,13 @@ describe('MyBestAuntieDescription section', () => {
       level: 3,
       name: firstCardTitle,
     });
-    const cardArticleStyle = cardHeading.closest('article')?.getAttribute('style') ?? '';
+    const cardArticle = cardHeading.closest('article');
 
-    expect(cardArticleStyle).not.toContain('box-shadow');
+    expect(cardArticle?.className).toContain('es-my-best-auntie-description-card');
+    expect(cardArticle?.getAttribute('style')).toBeNull();
+    expect(cardHeading.className).toContain('es-my-best-auntie-description-card-title');
+
+    const cardBody = cardArticle?.querySelector('p');
+    expect(cardBody?.className).toContain('es-my-best-auntie-description-card-description');
   });
 });

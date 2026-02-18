@@ -1,46 +1,17 @@
-import { Fragment, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import type { HeroContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import { ROUTES } from '@/lib/routes';
 
 interface HeroBannerProps {
   content: HeroContent;
 }
 
-const HERO_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
-const HEADLINE_COLOR = HEADING_TEXT_COLOR;
-const HEADLINE_HIGHLIGHT =
-  'var(--figma-colors-frame-2147235222-2, #ED622E)';
-const SUBHEADLINE_COLOR = BODY_TEXT_COLOR;
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
-const HERO_FRAME_BACKGROUND = '/images/evolvesprouts-logo.svg';
 const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
-
-const headlineStyle: CSSProperties = {
-  color: HEADLINE_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: '700',
-  fontSize: 'clamp(2.15rem, 5.8vw, 60px)',
-  lineHeight: 'clamp(2.65rem, 6.3vw, 66px)',
-  letterSpacing: '0',
-};
-
-const subheadlineStyle: CSSProperties = {
-  color: SUBHEADLINE_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  fontSize: 'clamp(1rem, 2.1vw, 25px)',
-  lineHeight: 'clamp(1.45rem, 3.1vw, 44px)',
-  letterSpacing: '0.5px',
-};
-
-const highlightedWordStyle: CSSProperties = {
-  color: HEADLINE_HIGHLIGHT,
-};
 
 function renderHeadline(headline: string): ReactNode {
   const sections = headline.split(HEADLINE_HIGHLIGHT_WORD);
@@ -52,7 +23,7 @@ function renderHeadline(headline: string): ReactNode {
     <Fragment key={`${section}-${index}`}>
       {section}
       {index < sections.length - 1 && (
-        <span style={highlightedWordStyle}>
+        <span className='es-hero-highlight-word'>
           {HEADLINE_HIGHLIGHT_WORD}
         </span>
       )}
@@ -65,27 +36,17 @@ export function HeroBanner({ content }: HeroBannerProps) {
     <section
       aria-label={content.headline}
       data-figma-node='banner'
-      className='relative w-full overflow-hidden px-4 pb-10 pt-8 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8 lg:pb-16 lg:pt-0'
-      style={{ backgroundColor: HERO_BACKGROUND }}
+      className='relative w-full overflow-hidden px-4 pb-10 pt-8 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8 lg:pb-16 lg:pt-0 es-hero-section'
     >
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute left-0 top-0 bg-no-repeat'
-        style={{
-          backgroundImage: `url(${HERO_FRAME_BACKGROUND})`,
-          width: '1500px',
-          height: '750px',
-          backgroundSize: 'cover',
-          backgroundPosition: '-750px -250px',
-          filter: 'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)',
-          maskImage: 'linear-gradient(to bottom, black 60%, transparent 90%)',
-        }}
+        className='pointer-events-none absolute left-0 top-0 bg-no-repeat es-hero-frame-bg'
       />
       <SectionContainer className='grid items-center gap-8 lg:grid-cols-2 lg:gap-6'>
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8 lg:pt-[70px]'>
           <div className='relative z-10'>
-            <h1 style={headlineStyle}>{renderHeadline(content.headline)}</h1>
-            <p className='mt-4 max-w-[610px] sm:mt-6' style={subheadlineStyle}>
+            <h1 className='es-hero-headline'>{renderHeadline(content.headline)}</h1>
+            <p className='mt-4 max-w-[610px] sm:mt-6 es-hero-subheadline'>
               {content.subheadline}
             </p>
             <SectionCtaAnchor

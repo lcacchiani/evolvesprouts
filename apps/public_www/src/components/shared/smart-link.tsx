@@ -1,6 +1,5 @@
 import type {
   AnchorHTMLAttributes,
-  CSSProperties,
   ReactNode,
 } from 'react';
 import Link from 'next/link';
@@ -25,7 +24,6 @@ interface SmartLinkProps
   > {
   href: string;
   className?: string;
-  style?: CSSProperties;
   openInNewTab?: boolean;
   children: SmartLinkChildren;
 }
@@ -55,7 +53,6 @@ function renderChildren(
 export function SmartLink({
   href,
   className,
-  style,
   openInNewTab,
   children,
   ...anchorProps
@@ -76,7 +73,6 @@ export function SmartLink({
   const linkChildren = renderChildren(children, state);
   const sharedProps = {
     className,
-    style,
     ...anchorProps,
     ...(opensInNewTab
       ? { target: '_blank' as const, rel: 'noopener noreferrer' }

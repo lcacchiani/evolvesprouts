@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import type { CSSProperties } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import {
@@ -10,18 +9,11 @@ import {
 } from '@/components/shared/overlay-surface';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import {
-  bodyTextStyle,
-  headingTextStyle,
-  TEXT_HEADING_STRONG,
-} from '@/lib/design-tokens';
-import {
   CloseButton,
-  MODAL_PANEL_BACKGROUND,
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
-  createMaskIconStyle,
   escapeHtml,
   resolveLocalizedDate,
 } from '@/components/sections/booking-modal/helpers';
@@ -35,21 +27,6 @@ export interface MyBestAuntieThankYouModalProps {
   homeHref: string;
   onClose: () => void;
 }
-
-const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
-
-const headingStyle: CSSProperties = headingTextStyle({
-  lineHeight: 1.2,
-});
-
-const bodyStyle: CSSProperties = bodyTextStyle({
-  lineHeight: 1.5,
-});
-
-const darkCalendarIconMaskStyle = createMaskIconStyle(
-  CALENDAR_ICON_MASK_PATH,
-  TEXT_HEADING_STRONG,
-);
 
 export function MyBestAuntieThankYouModal({
   locale,
@@ -115,10 +92,7 @@ export function MyBestAuntieThankYouModal({
 
   return (
     <ModalOverlay onClose={onClose}>
-      <OverlayDialogPanel
-        ariaLabel={content.title}
-        style={{ backgroundColor: MODAL_PANEL_BACKGROUND }}
-      >
+      <OverlayDialogPanel ariaLabel={content.title} className='es-my-best-auntie-thank-you-panel'>
         <header className='flex justify-end px-4 pb-6 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton label={content.closeLabel} onClose={onClose} />
         </header>
@@ -155,13 +129,10 @@ export function MyBestAuntieThankYouModal({
             <h3 className='mt-3 text-[22px] font-normal leading-none es-text-heading sm:text-[28px]'>
               {content.successLabel}
             </h3>
-            <h2
-              className='mt-2 max-w-[610px] text-[clamp(1.5rem,4vw,2.5rem)] leading-[1.1]'
-              style={headingStyle}
-            >
+            <h2 className='mt-2 max-w-[610px] text-[clamp(1.5rem,4vw,2.5rem)] leading-[1.1] es-my-best-auntie-thank-you-heading'>
               {content.title}
             </h2>
-            <p className='mt-3 text-[18px] leading-7 es-text-body' style={bodyStyle}>
+            <p className='mt-3 text-[18px] leading-7 es-my-best-auntie-thank-you-body'>
               {content.subtitle}
               <br />
               <span className='font-semibold es-text-emphasis'>
@@ -189,8 +160,7 @@ export function MyBestAuntieThankYouModal({
                   <div className='mt-4 flex flex-wrap gap-2'>
                     <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <span
-                        className='h-6 w-6 shrink-0'
-                        style={darkCalendarIconMaskStyle}
+                        className='h-6 w-6 shrink-0 es-mask-calendar-heading'
                         aria-hidden='true'
                       />
                       {summary?.scheduleDateLabel ?? summary?.monthLabel ?? ''}

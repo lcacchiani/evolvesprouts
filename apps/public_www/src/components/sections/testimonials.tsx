@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import {
-  type CSSProperties,
   useMemo,
 } from 'react';
 
@@ -15,16 +14,6 @@ import {
   toRecord,
 } from '@/content/content-field-utils';
 import type { TestimonialsContent } from '@/content';
-import {
-  BODY_TEXT_COLOR,
-  HEADING_TEXT_COLOR,
-  SURFACE_WHITE,
-  TEXT_ICON_COLOR,
-} from '@/lib/design-tokens';
-import {
-  buildSectionBackgroundOverlayStyle,
-  LOGO_OVERLAY_TOP,
-} from '@/lib/section-backgrounds';
 import { useSwipePager } from '@/lib/hooks/use-swipe-pager';
 
 interface TestimonialsProps {
@@ -39,44 +28,9 @@ interface NormalizedStory {
   avatarImageSrc?: string;
 }
 
-const TEXT_PRIMARY = HEADING_TEXT_COLOR;
-const TEXT_SECONDARY = BODY_TEXT_COLOR;
-const CONTROL_ICON = TEXT_ICON_COLOR;
-const PROFILE_CARD_BG = 'var(--figma-colors-frame-2147235267, #F6DECD)';
-const IMAGE_FALLBACK_BG = 'var(--es-color-surface-peach, #F5DFCF)';
 const SWIPE_THRESHOLD_PX = 48;
-const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
-  ...LOGO_OVERLAY_TOP,
-  backgroundColor: SURFACE_WHITE,
-});
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-btn--control';
-
-const quoteTextStyle: CSSProperties = {
-  color: TEXT_PRIMARY,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(1.25rem, 2.3vw, 28px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: '1.7',
-  letterSpacing: '0.01em',
-};
-
-const authorStyle: CSSProperties = {
-  color: TEXT_PRIMARY,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.4rem, 2.8vw, var(--figma-fontsizes-32, 32px))',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight: '1.15',
-};
-
-const metaTextStyle: CSSProperties = {
-  color: TEXT_SECONDARY,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1rem, 2.1vw, 1.2rem)',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight: '1.5',
-  letterSpacing: 'var(--figma-letterspacing-mom-of-2, 0.5px)',
-};
 
 function normalizeStory(item: unknown): NormalizedStory | null {
   if (typeof item === 'string') {
@@ -132,13 +86,13 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
     <svg
       aria-hidden='true'
       viewBox='0 0 24 24'
-      className={`h-8 w-8 ${rotationClass}`}
+      className={`h-8 w-8 es-text-icon ${rotationClass}`}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
       <path
         d='M8 4L16 12L8 20'
-        stroke={CONTROL_ICON}
+        stroke='currentColor'
         strokeWidth='2.4'
         strokeLinecap='round'
         strokeLinejoin='round'
@@ -152,7 +106,7 @@ function ParentIcon() {
     <svg
       aria-hidden='true'
       viewBox='0 0 134 134'
-      className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px]'
+      className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px] es-text-body'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -160,19 +114,19 @@ function ParentIcon() {
         cx='67'
         cy='46'
         r='20'
-        stroke={TEXT_SECONDARY}
+        stroke='currentColor'
         strokeWidth='6'
         opacity='0.9'
       />
       <path
         d='M31 106C35.2 85.4 49.4 75 67 75C84.6 75 98.8 85.4 103 106'
-        stroke={TEXT_SECONDARY}
+        stroke='currentColor'
         strokeWidth='6'
         strokeLinecap='round'
         opacity='0.9'
       />
-      <circle cx='95' cy='43' r='8' fill={TEXT_SECONDARY} opacity='0.22' />
-      <circle cx='39' cy='89' r='7' fill={TEXT_SECONDARY} opacity='0.22' />
+      <circle cx='95' cy='43' r='8' fill='currentColor' opacity='0.22' />
+      <circle cx='39' cy='89' r='7' fill='currentColor' opacity='0.22' />
     </svg>
   );
 }
@@ -222,8 +176,7 @@ export function Testimonials({ content }: TestimonialsProps) {
     <SectionShell
       ariaLabel={content.title}
       dataFigmaNode='Testimonials'
-      className='es-section-bg-overlay'
-      style={SECTION_STYLE}
+      className='es-section-bg-overlay es-testimonials-section'
     >
       <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
         <SectionHeader
@@ -262,8 +215,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                     />
                   ) : (
                     <div
-                      className='flex h-full min-h-[260px] items-center justify-center rounded-[30px] sm:min-h-[360px] lg:min-h-[540px]'
-                      style={{ backgroundColor: IMAGE_FALLBACK_BG }}
+                      className='flex h-full min-h-[260px] items-center justify-center rounded-[30px] sm:min-h-[360px] lg:min-h-[540px] es-testimonials-image-fallback'
                     >
                       <ParentIcon />
                     </div>
@@ -276,7 +228,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                       aria-hidden='true'
                       className='es-testimonial-quote-icon h-9 w-9 sm:h-11 sm:w-11'
                     />
-                    <p className='w-full text-balance' style={quoteTextStyle}>
+                    <p className='w-full text-balance es-testimonials-quote'>
                       {activeStory.quote ?? content.title}
                     </p>
                   </div>
@@ -293,19 +245,19 @@ export function Testimonials({ content }: TestimonialsProps) {
                         />
                       ) : (
                         <span
-                          className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-[30px] sm:h-[100px] sm:w-[100px]'
-                          style={{ backgroundColor: PROFILE_CARD_BG }}
+                          className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-[30px] sm:h-[100px] sm:w-[100px] es-testimonials-avatar-fallback'
                         >
                           <ParentIcon />
                         </span>
                       )}
 
                       <div className='min-w-0 lg:pr-[170px]'>
-                        {activeStory.author && <p style={authorStyle}>{activeStory.author}</p>}
+                        {activeStory.author && (
+                          <p className='es-testimonials-author'>{activeStory.author}</p>
+                        )}
                         {activeStory.role && (
                           <p
-                            className={`max-w-[190px] ${activeStory.author ? 'mt-1' : ''}`}
-                            style={metaTextStyle}
+                            className={`max-w-[190px] es-testimonials-meta ${activeStory.author ? 'mt-1' : ''}`}
                           >
                             {activeStory.role}
                           </p>

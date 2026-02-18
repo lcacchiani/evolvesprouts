@@ -25,7 +25,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 describe('Faq section', () => {
-  it('uses the testimonials background image and overlay properties', () => {
+  it('uses the migrated FAQ section background class', () => {
     const { container } = render(<Faq content={enContent.faq} />);
 
     const section = container.querySelector('section[data-figma-node="faq"]');
@@ -33,24 +33,7 @@ describe('Faq section', () => {
       section,
     ).not.toBeNull();
     expect(section?.className).toContain('es-section-bg-overlay');
-    expect(section?.style.backgroundColor).toBe(
-      'var(--es-color-surface-white, #FFFFFF)',
-    );
-    expect(section?.style.getPropertyValue('--es-section-bg-image')).toContain(
-      '/images/evolvesprouts-logo.svg',
-    );
-    expect(section?.style.getPropertyValue('--es-section-bg-position')).toBe(
-      'center -150px',
-    );
-    expect(section?.style.getPropertyValue('--es-section-bg-size')).toBe(
-      '900px auto',
-    );
-    expect(section?.style.getPropertyValue('--es-section-bg-filter')).toBe(
-      'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)',
-    );
-    expect(section?.style.getPropertyValue('--es-section-bg-mask-image')).toBe(
-      'linear-gradient(to bottom, black 18%, transparent 20%)',
-    );
+    expect(section?.className).toContain('es-faq-section');
     expect(section?.querySelector('div.es-layout-container')).not.toBeNull();
   });
 
@@ -68,21 +51,15 @@ describe('Faq section', () => {
       level: 3,
       name: fallbackQuestion.question,
     });
-    expect(questionHeading.getAttribute('style')).toContain(
-      'color: var(--es-color-surface-white, #FFFFFF)',
-    );
+    expect(questionHeading.className).toContain('es-faq-contact-question');
 
     const card = questionHeading.closest('article');
     expect(card).not.toBeNull();
-    expect(card?.getAttribute('style')).toContain(
-      'background-color: var(--figma-colors-frame-2147235242, #174879)',
-    );
+    expect(card?.className).toContain('es-faq-contact-card');
     expect(card?.querySelector('div[class*="border-l"]')).toBeNull();
 
     const answer = screen.getByText(fallbackQuestion.answer);
-    expect(answer.getAttribute('style')).toContain(
-      'color: var(--es-color-surface-white, #FFFFFF)',
-    );
+    expect(answer.className).toContain('es-faq-contact-answer');
 
     const contactCta = within(card as HTMLElement).getByRole('link', {
       name: 'Contact Us',

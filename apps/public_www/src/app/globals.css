@@ -494,6 +494,10 @@
     color: var(--es-color-text-heading);
   }
 
+  .es-modal-input-error {
+    border-color: var(--es-color-text-danger, #B42318);
+  }
+
   .es-modal-input:disabled {
     background-color: var(--es-color-surface-disabled-field);
     color: var(--es-color-text-disabled);
@@ -755,10 +759,29 @@
     border-radius: 8px;
     padding: 8px 12px;
     transition: background-color 150ms ease;
+    color: var(--es-color-text-heading, #333333);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.25;
   }
 
   .es-nav-language-option:hover {
     background-color: var(--es-color-brand-peach-bg);
+  }
+
+  .es-nav-language-option--active {
+    color: var(--es-color-brand-orange, #C84A16);
+    font-weight: 700;
+  }
+
+  .es-nav-language-option--inactive {
+    color: var(--es-color-text-heading, #333333);
+    font-weight: 500;
+  }
+
+  .es-navbar-surface {
+    background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
   .es-testimonial-quote-icon {
@@ -799,6 +822,956 @@
     -webkit-mask-size: var(--es-section-bg-mask-size, 100% 100%);
   }
 
+  .es-connect-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: 900px auto;
+  }
+
+  .es-connect-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .es-connect-glyph--blue {
+    color: var(--figma-colors-frame-2147235242, #174879);
+    background-color: color-mix(
+      in srgb,
+      var(--figma-colors-frame-2147235242, #174879) 10%,
+      transparent
+    );
+  }
+
+  .es-connect-glyph--green {
+    color: var(--es-color-accent-green, #5D9D49);
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-accent-green, #5D9D49) 10%,
+      transparent
+    );
+  }
+
+  .es-connect-glyph--orange {
+    color: var(--es-color-brand-orange, #C84A16);
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-brand-orange, #C84A16) 10%,
+      transparent
+    );
+  }
+
+  .es-reach-out-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-position: center -400px;
+    background-repeat: no-repeat;
+    background-size: 900px auto;
+    background-blend-mode: difference;
+  }
+
+  .es-reach-out-glyph--orange {
+    color: var(--es-color-brand-orange, #C84A16);
+    border-color: color-mix(
+      in srgb,
+      var(--es-color-brand-orange, #C84A16) 25%,
+      transparent
+    );
+  }
+
+  .es-reach-out-glyph--blue {
+    color: var(--figma-colors-frame-2147235242, #174879);
+    border-color: color-mix(
+      in srgb,
+      var(--figma-colors-frame-2147235242, #174879) 25%,
+      transparent
+    );
+  }
+
+  .es-reach-out-glyph--gold {
+    color: var(--es-color-accent-gold, #9E6D12);
+    border-color: color-mix(
+      in srgb,
+      var(--es-color-accent-gold, #9E6D12) 25%,
+      transparent
+    );
+  }
+
+  .es-reach-out-glyph--green {
+    color: var(--es-color-accent-green, #5D9D49);
+    border-color: color-mix(
+      in srgb,
+      var(--es-color-accent-green, #5D9D49) 25%,
+      transparent
+    );
+  }
+
+  .es-my-journey-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -150px;
+    --es-section-bg-size: 900px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(
+      to bottom,
+      black 18%,
+      transparent 20%
+    );
+  }
+
+  .es-my-journey-tag {
+    color: var(--es-color-brand-orange, #C84A16);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .es-my-journey-card--blue {
+    background: var(--es-gradient-card-blue);
+  }
+
+  .es-my-journey-card--yellow {
+    background: var(--es-gradient-card-yellow);
+  }
+
+  .es-sprouts-community-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  }
+
+  .es-sprouts-community-overlay {
+    background: radial-gradient(
+      circle at center top,
+      rgba(255, 255, 255, 0) 15%,
+      rgba(255, 238, 227, 0.74) 68%
+    );
+  }
+
+  .es-sprouts-community-logo {
+    filter: sepia(1) opacity(50%) saturate(150%);
+    mask-image: linear-gradient(to bottom, black 50%, transparent 63%);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black 50%,
+      transparent 63%
+    );
+  }
+
+  .es-sprouts-community-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: var(--figma-fontweights-700, 700);
+    letter-spacing: calc(
+      var(--figma-letterspacing-join-our-sprouts-squad-community, 0.77) * 1px
+    );
+  }
+
+  .es-why-us-section {
+    background-color: var(--es-color-surface-warm, #F7F2E1);
+  }
+
+  .es-why-us-hero-card {
+    background: var(--es-gradient-why-us);
+  }
+
+  .es-why-us-glow-orange {
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-brand-orange-soft) 35%,
+      transparent
+    );
+  }
+
+  .es-why-us-glow-green {
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-accent-green-soft) 30%,
+      transparent
+    );
+  }
+
+  .es-why-us-intro-title,
+  .es-why-us-pillar-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .es-why-us-intro-title {
+    font-size: clamp(1.05rem, 2.2vw, 24px);
+  }
+
+  .es-why-us-pillar-title {
+    font-size: clamp(1.1rem, 1.9vw, 24px);
+  }
+
+  .es-course-highlight-title {
+    color: var(--figma-colors-desktop, #FFFFFF);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.45rem, 3.4vw, var(--figma-fontsizes-37, 37px));
+    font-weight: var(--figma-fontweights-600, 600);
+    line-height: clamp(
+      1.95rem,
+      4.6vw,
+      calc(var(--figma-lineheights-age-specific-strategies, 50) * 1px)
+    );
+    letter-spacing: calc(var(--figma-letterspacing-age-specific-strategies, 0.37) * 1px);
+  }
+
+  .es-course-highlight-description {
+    color: var(--figma-colors-desktop, #FFFFFF);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1rem, 2.2vw, var(--figma-fontsizes-22, 22px));
+    font-weight: var(--figma-fontweights-500, 500);
+    line-height: clamp(
+      1.45rem,
+      2.8vw,
+      calc(
+        var(
+          --figma-lineheights-scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges,
+          36
+        ) * 1px
+      )
+    );
+    letter-spacing: calc(
+      var(
+        --figma-letterspacing-scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges,
+        0.3079999947547913
+      ) * 1px
+    );
+  }
+
+  .es-course-highlight-card--gold {
+    background-color: var(--es-color-accent-gold, #9E6D12);
+  }
+
+  .es-course-highlight-card--blue {
+    background-color: var(--figma-colors-frame-2147235242, #174879);
+  }
+
+  .es-course-highlights-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -900px;
+    --es-section-bg-size: 2000px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+  }
+
+  .es-course-highlights-overlay {
+    background: radial-gradient(
+        circle at 16% 22%,
+        rgba(23, 72, 121, 0.1) 0%,
+        rgba(23, 72, 121, 0) 47%
+      ),
+      radial-gradient(
+        circle at 88% 78%,
+        rgba(231, 108, 61, 0.16) 0%,
+        rgba(231, 108, 61, 0) 52%
+      );
+  }
+
+  .es-my-best-auntie-description-section {
+    background-color: var(--es-color-surface-muted, #F8F8F8);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -900px;
+    --es-section-bg-size: 2000px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+  }
+
+  .es-my-best-auntie-description-card {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-description-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 30px;
+  }
+
+  .es-my-best-auntie-description-card-description {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 30px;
+  }
+
+  .es-my-history-section {
+    background-color: var(--es-color-surface-muted, #F8F8F8);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -900px;
+    --es-section-bg-size: 2000px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+  }
+
+  .es-ida-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-hero-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-hero-frame-bg {
+    background-image: url('/images/evolvesprouts-logo.svg');
+    width: 1500px;
+    height: 750px;
+    background-size: cover;
+    background-position: -750px -250px;
+    filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 90%);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 90%);
+  }
+
+  .es-hero-headline {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.15rem, 5.8vw, 60px);
+    line-height: clamp(2.65rem, 6.3vw, 66px);
+    letter-spacing: 0;
+  }
+
+  .es-hero-subheadline {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-weight: var(--figma-fontweights-400, 400);
+    font-size: clamp(1rem, 2.1vw, 25px);
+    line-height: clamp(1.45rem, 3.1vw, 44px);
+    letter-spacing: 0.5px;
+  }
+
+  .es-hero-highlight-word {
+    color: var(--figma-colors-frame-2147235222-2, #ED622E);
+  }
+
+  .es-contact-us-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-contact-us-left-decor {
+    background-image: url('/images/evolvesprouts-logo.svg');
+    width: 1500px;
+    height: 750px;
+    background-size: cover;
+    background-position: -750px -250px;
+    filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 90%);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 90%);
+  }
+
+  .es-contact-us-form-panel {
+    background: var(--es-gradient-form-panel);
+  }
+
+  .es-contact-us-decor-green-wedge {
+    background-image: url('/images/green-wedge.svg');
+  }
+
+  .es-contact-us-decor-blue-line {
+    background-image: url('/images/vector-blue-line.svg');
+  }
+
+  .es-footer-root {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  }
+
+  .es-footer-column-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: var(--figma-fontsizes-24, 24px);
+    font-weight: var(--figma-fontweights-600, 600);
+    line-height: calc(var(--figma-lineheights-quick-links, 28) * 1px);
+    letter-spacing: calc(var(--figma-letterspacing-quick-links, -0.5) * 1px);
+  }
+
+  .es-footer-link {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: var(--figma-fontsizes-16, 16px);
+    font-weight: var(--figma-fontweights-400, 400);
+    line-height: calc(var(--figma-lineheights-home, 26) * 1px);
+    letter-spacing: calc(var(--figma-letterspacing-home, 0.5) * 1px);
+    gap: 8px;
+  }
+
+  .es-footer-link--social {
+    gap: 12px;
+  }
+
+  .es-footer-social-icon {
+    color: var(--site-primary-text);
+  }
+
+  .es-footer-copyright {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: var(--figma-fontsizes-16, 16px);
+    font-weight: var(--figma-fontweights-500, 500);
+    line-height: calc(var(--figma-lineheights-2025-evolvesprouts, 28) * 1px);
+  }
+
+  .es-testimonials-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -150px;
+    --es-section-bg-size: 900px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(
+      to bottom,
+      black 18%,
+      transparent 20%
+    );
+  }
+
+  .es-testimonials-quote {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.25rem, 2.3vw, 28px);
+    font-weight: var(--figma-fontweights-500, 500);
+    line-height: 1.7;
+    letter-spacing: 0.01em;
+  }
+
+  .es-testimonials-author {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.4rem, 2.8vw, var(--figma-fontsizes-32, 32px));
+    font-weight: var(--figma-fontweights-700, 700);
+    line-height: 1.15;
+  }
+
+  .es-testimonials-meta {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1rem, 2.1vw, 1.2rem);
+    font-weight: var(--figma-fontweights-400, 400);
+    line-height: 1.5;
+    letter-spacing: var(--figma-letterspacing-mom-of-2, 0.5px);
+  }
+
+  .es-testimonials-image-fallback {
+    background-color: var(--es-color-surface-peach, #F5DFCF);
+  }
+
+  .es-testimonials-avatar-fallback {
+    background-color: var(--figma-colors-frame-2147235267, #F6DECD);
+  }
+
+  .es-faq-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -150px;
+    --es-section-bg-size: 900px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(
+      to bottom,
+      black 18%,
+      transparent 20%
+    );
+  }
+
+  .es-faq-contact-card {
+    background-color: var(--figma-colors-frame-2147235242, #174879);
+  }
+
+  .es-faq-question,
+  .es-faq-contact-question {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.1rem, 1.7vw, 28px);
+    font-weight: 600;
+    line-height: 1.42;
+  }
+
+  .es-faq-answer,
+  .es-faq-contact-answer {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1rem, 1.3vw, 20px);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .es-faq-contact-question,
+  .es-faq-contact-answer {
+    color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-booking-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-booking-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0;
+  }
+
+  .es-my-best-auntie-booking-body {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-weight: 400;
+    line-height: 1.55;
+  }
+
+  .es-booking-modal-overlay {
+    background-color: rgba(16, 14, 11, 0.6);
+  }
+
+  .es-my-best-auntie-booking-modal-panel {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-booking-modal-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .es-my-best-auntie-booking-part-item {
+    padding-left: 50px;
+    padding-bottom: 100px;
+  }
+
+  .es-my-best-auntie-booking-part-chip--blue {
+    background-color: var(--es-color-part-chip-blue-bg, #99BDE2);
+    color: var(--es-color-part-chip-blue-text, #073B6E);
+  }
+
+  .es-my-best-auntie-booking-part-chip--green {
+    background-color: var(--es-color-part-chip-green-bg, #CDF0C9);
+    color: var(--es-color-part-chip-green-text, #2C6C25);
+  }
+
+  .es-my-best-auntie-booking-part-chip--yellow {
+    background-color: var(--es-color-part-chip-yellow-bg, #FFE483);
+    color: var(--es-color-part-chip-yellow-text, #6B5400);
+  }
+
+  .es-my-best-auntie-booking-part-line {
+    width: 25px;
+    border-top-left-radius: 999px;
+    border-top-right-radius: 999px;
+  }
+
+  .es-my-best-auntie-booking-part-line--tone-blue {
+    --es-booking-part-line-color: var(--es-color-part-chip-blue-bg, #99BDE2);
+    --es-booking-part-line-color-transparent: rgba(153, 189, 226, 0);
+  }
+
+  .es-my-best-auntie-booking-part-line--tone-green {
+    --es-booking-part-line-color: var(--es-color-part-chip-green-bg, #CDF0C9);
+    --es-booking-part-line-color-transparent: rgba(205, 240, 201, 0);
+  }
+
+  .es-my-best-auntie-booking-part-line--tone-yellow {
+    --es-booking-part-line-color: var(--es-color-part-chip-yellow-bg, #FFE483);
+    --es-booking-part-line-color-transparent: rgba(255, 228, 131, 0);
+  }
+
+  .es-my-best-auntie-booking-part-line--with-gap-first {
+    top: 0;
+    height: calc(100% + 2.5rem);
+    background-color: var(--es-booking-part-line-color);
+  }
+
+  .es-my-best-auntie-booking-part-line--with-gap-stacked {
+    top: -12px;
+    height: calc(100% + 2.5rem + 12px);
+    background-color: var(--es-booking-part-line-color);
+    box-shadow: 0 -5px 0 0 var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-booking-part-line--last-first {
+    top: 0;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      var(--es-booking-part-line-color) 0%,
+      var(--es-booking-part-line-color) 68%,
+      var(--es-booking-part-line-color-transparent) 100%
+    );
+  }
+
+  .es-my-best-auntie-booking-part-line--last-stacked {
+    top: -12px;
+    height: calc(100% + 12px);
+    box-shadow: 0 -5px 0 0 var(--es-color-surface-white, #FFFFFF);
+    background: linear-gradient(
+      to bottom,
+      var(--es-booking-part-line-color) 0%,
+      var(--es-booking-part-line-color) 68%,
+      var(--es-booking-part-line-color-transparent) 100%
+    );
+  }
+
+  .es-my-best-auntie-booking-part-gap-connector {
+    width: 25px;
+    height: 10px;
+  }
+
+  .es-my-best-auntie-booking-part-gap-connector--blue {
+    background-color: var(--es-color-part-chip-blue-bg, #99BDE2);
+  }
+
+  .es-my-best-auntie-booking-part-gap-connector--green {
+    background-color: var(--es-color-part-chip-green-bg, #CDF0C9);
+  }
+
+  .es-my-best-auntie-booking-part-gap-connector--yellow {
+    background-color: var(--es-color-part-chip-yellow-bg, #FFE483);
+  }
+
+  .es-mask-calendar-current,
+  .es-mask-calendar-heading {
+    mask-image: url('/images/calendar.svg');
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    -webkit-mask-image: url('/images/calendar.svg');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+  }
+
+  .es-mask-calendar-current {
+    background-color: currentColor;
+  }
+
+  .es-mask-calendar-heading {
+    background-color: var(--es-color-text-heading, #333333);
+  }
+
+  .es-mask-cubes-current,
+  .es-mask-credit-card-danger,
+  .es-mask-target-danger {
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+  }
+
+  .es-mask-cubes-current {
+    background-color: currentColor;
+    mask-image: url('/images/cubes.svg');
+    -webkit-mask-image: url('/images/cubes.svg');
+  }
+
+  .es-mask-credit-card-danger {
+    background-color: var(--es-color-booking-highlight-icon, #B42318);
+    mask-image: url('/images/credit-card.svg');
+    -webkit-mask-image: url('/images/credit-card.svg');
+  }
+
+  .es-mask-target-danger {
+    background-color: var(--es-color-booking-highlight-icon, #B42318);
+    mask-image: url('/images/target.svg');
+    -webkit-mask-image: url('/images/target.svg');
+  }
+
+  .es-my-best-auntie-thank-you-panel {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-thank-you-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .es-my-best-auntie-thank-you-body {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .es-events-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-events-loading-gear {
+    color: var(--es-color-brand-orange-soft, #F2A975);
+  }
+
+  .es-events-loading-bubble {
+    background-color: var(--es-color-brand-peach-bg, #FFF0E5);
+  }
+
+  .es-events-scheduled-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.45rem, 3.5vw, 32px);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .es-events-filter-select {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .es-events-card-tag {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .es-events-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.4rem, 3vw, 32px);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .es-events-card-body {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    letter-spacing: 0;
+  }
+
+  .es-events-detail-chip {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .es-events-detail-chip-danger {
+    color: var(--es-color-text-danger-chip, #D03C3C);
+  }
+
+  .es-events-location-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .es-events-location-text {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: 0;
+  }
+
+  .es-free-resources-section {
+    background-color: var(--figma-colors-desktop, #FFFFFF);
+  }
+
+  .es-free-resources-pattern-bg {
+    background-color: var(--es-color-border-soft, #EECAB0);
+    background-image: linear-gradient(
+        var(--es-color-tile-border, #D9A578) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        var(--es-color-tile-border, #D9A578) 1px,
+        transparent 1px
+      );
+    background-size: 100px 100px;
+  }
+
+  .es-free-resources-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.75rem, 4.5vw, var(--figma-fontsizes-41, 41px));
+    font-weight: var(--figma-fontweights-600, 600);
+    line-height: clamp(
+      2.15rem,
+      5.2vw,
+      calc(var(--figma-lineheights-age-specific-strategies, 50) * 1px)
+    );
+    letter-spacing: calc(
+      var(
+        --figma-letterspacing-free-guide-4-simple-ways-to-teach-patience-to-young-children,
+        0.41
+      ) * 1px
+    );
+  }
+
+  .es-free-resources-card-body {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.1rem, 3.2vw, var(--figma-fontsizes-28, 28px));
+    font-weight: var(--figma-fontweights-400, 400);
+    line-height: clamp(
+      1.7rem,
+      4vw,
+      calc(var(--figma-lineheights-gentle-strategies-for-busy-parents, 41) * 1px)
+    );
+    letter-spacing: calc(
+      var(--figma-letterspacing-gentle-strategies-for-busy-parents, 0.28) * 1px
+    );
+  }
+
+  .es-free-resources-checklist-title {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.05rem, 2.1vw, 20px);
+    font-weight: var(--figma-fontweights-400, 400);
+    line-height: 1.2;
+    letter-spacing: calc(var(--figma-letterspacing-the-firstthen-trick, 0.336) * 1px);
+  }
+
+  .es-free-resources-checklist-description {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1rem, 1.9vw, 18px);
+    font-weight: var(--figma-fontweights-400, 400);
+    line-height: 1.4;
+    letter-spacing: calc(var(--figma-letterspacing-home, 0.5) * 1px);
+  }
+
+  .es-free-resources-media-pill-text {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1rem, 1.6vw, 20px);
+    font-weight: var(--figma-fontweights-600, 600);
+    line-height: 1;
+  }
+
+  .es-my-best-auntie-overview-section {
+    background-color: var(--figma-colors-desktop, #FFFFFF);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -150px;
+    --es-section-bg-size: 900px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(
+      to bottom,
+      black 18%,
+      transparent 20%
+    );
+  }
+
+  .es-my-best-auntie-overview-card--gold {
+    background: var(--es-gradient-card-yellow);
+  }
+
+  .es-my-best-auntie-overview-card--red {
+    background: var(--es-gradient-card-pink);
+  }
+
+  .es-my-best-auntie-overview-card--blue {
+    background: var(--es-gradient-card-blue);
+  }
+
+  .es-my-best-auntie-overview-icon-glow--gold {
+    background-color: rgba(247, 198, 0, 0.25);
+  }
+
+  .es-my-best-auntie-overview-icon-glow--red {
+    background-color: rgba(227, 24, 27, 0.22);
+  }
+
+  .es-my-best-auntie-overview-icon-glow--blue {
+    background-color: rgba(69, 146, 222, 0.24);
+  }
+
+  .es-my-best-auntie-overview-module-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.1rem, 2vw, 22px);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+  }
+
+  .es-my-best-auntie-overview-module-week {
+    color: var(--figma-colors-week-01-04, #313131);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.15rem, 2.2vw, 28px);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .es-my-best-auntie-overview-activity {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(0.875rem, 2vw, 16px);
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  .es-my-best-auntie-overview-count-line--gold {
+    background: var(--es-gradient-module-line-gold);
+  }
+
+  .es-my-best-auntie-overview-count-line--red {
+    background: var(--es-gradient-module-line-red);
+  }
+
+  .es-my-best-auntie-overview-count-line--blue {
+    background: var(--es-gradient-module-line-blue);
+  }
+
+  .es-my-best-auntie-overview-count-text {
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .es-my-best-auntie-overview-count-text--gold {
+    color: var(--es-color-module-count-gold, #D7AB0A);
+  }
+
+  .es-my-best-auntie-overview-count-text--red {
+    color: var(--es-color-module-count-red, #E3181B);
+  }
+
+  .es-my-best-auntie-overview-count-text--blue {
+    color: var(--es-color-module-count-blue, #4592DE);
+  }
+
   .es-selection-card-idle {
     background-color: var(--es-color-surface-selection-idle);
     border: 1px solid var(--es-color-border-date);
@@ -823,6 +1796,10 @@
   }
   .safe-top {
     padding-top: env(safe-area-inset-top);
+  }
+
+  .es-whatsapp-contact-button-safe-bottom {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
   }
 
   .text-es-whatsapp {

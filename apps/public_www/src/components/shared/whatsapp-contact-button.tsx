@@ -23,6 +23,7 @@ const WHATSAPP_ICON_PATH =
 
 const buttonClassName =
   'fixed right-5 z-50 flex h-16 w-16 items-center justify-center ' +
+  'es-whatsapp-contact-button-safe-bottom ' +
   'rounded-full bg-white shadow-es-whatsapp transition-' +
   'transform duration-150 hover:scale-105 focus-visible:outline ' +
   'focus-visible:outline-2 focus-visible:outline-offset-4 ' +
@@ -44,7 +45,6 @@ export function WhatsappContactButton({
       aria-label={ariaLabel}
       title={ariaLabel}
       className={buttonClassName}
-      style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 28px)' }}
     >
       <svg
         aria-hidden='true'

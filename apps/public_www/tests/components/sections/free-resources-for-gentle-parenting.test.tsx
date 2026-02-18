@@ -57,14 +57,9 @@ describe('Free resources for gentle parenting section', () => {
     const mediaPane = screen.getByTestId('free-resource-media-pane');
     const splitArticle = container.querySelector('article');
 
-    expect(layout.style.backgroundColor).toBe(
-      'var(--es-color-border-soft, #EECAB0)',
-    );
-    expect(layout.style.backgroundImage).toContain('linear-gradient');
-    expect(layout.style.backgroundSize).toBe('100px 100px');
+    expect(layout.className).toContain('es-free-resources-pattern-bg');
     expect(mediaPane.style.backgroundColor).toBe('');
-    expect(splitArticle?.style.backgroundColor).toBe('');
-    expect(splitArticle?.style.boxShadow).toBe('');
+    expect(splitArticle?.getAttribute('style')).toBeNull();
     expect(splitArticle?.className).not.toContain('isolate');
 
     const overlayContent = createResourcesContent({
@@ -79,12 +74,9 @@ describe('Free resources for gentle parenting section', () => {
     const overlayMediaPane = screen.getByTestId('free-resource-media-pane');
     const overlayArticle = container.querySelector('article');
 
-    expect(overlayLayout.style.backgroundColor).toBe(
-      'var(--es-color-border-soft, #EECAB0)',
-    );
+    expect(overlayLayout.className).toContain('es-free-resources-pattern-bg');
     expect(overlayMediaPane.style.backgroundColor).toBe('');
-    expect(overlayArticle?.style.backgroundColor).toBe('');
-    expect(overlayArticle?.style.boxShadow).toBe('');
+    expect(overlayArticle?.getAttribute('style')).toBeNull();
     expect(overlayArticle?.className).not.toContain('isolate');
   });
 

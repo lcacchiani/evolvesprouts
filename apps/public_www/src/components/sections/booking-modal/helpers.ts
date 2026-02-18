@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react';
-
 import type { Locale } from '@/content';
 import type { DiscountRule } from '@/lib/discounts-data';
 
@@ -28,18 +26,6 @@ export function resolveLocalizedDate(locale: Locale): string {
   return dateFormatter.format(new Date());
 }
 
-export function toTransparentColor(hexColor: string): string {
-  const normalizedHex = hexColor.replace('#', '');
-  if (!/^[0-9a-fA-F]{6}$/.test(normalizedHex)) {
-    return 'rgba(255, 255, 255, 0)';
-  }
-
-  const red = Number.parseInt(normalizedHex.slice(0, 2), 16);
-  const green = Number.parseInt(normalizedHex.slice(2, 4), 16);
-  const blue = Number.parseInt(normalizedHex.slice(4, 6), 16);
-  return `rgba(${red}, ${green}, ${blue}, 0)`;
-}
-
 export function escapeHtml(value: string): string {
   return value
     .replaceAll('&', '&amp;')
@@ -47,23 +33,6 @@ export function escapeHtml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
-}
-
-export function createMaskIconStyle(
-  iconPath: string,
-  color: string,
-): CSSProperties {
-  return {
-    backgroundColor: color,
-    WebkitMaskImage: `url(${iconPath})`,
-    maskImage: `url(${iconPath})`,
-    WebkitMaskRepeat: 'no-repeat',
-    maskRepeat: 'no-repeat',
-    WebkitMaskPosition: 'center',
-    maskPosition: 'center',
-    WebkitMaskSize: 'contain',
-    maskSize: 'contain',
-  };
 }
 
 export function extractTimeRangeFromPartDate(partDate: string): string {

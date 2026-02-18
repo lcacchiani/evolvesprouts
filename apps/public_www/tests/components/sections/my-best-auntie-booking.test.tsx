@@ -79,8 +79,7 @@ describe('MyBestAuntieBooking section', () => {
     const selectorButtons = container.querySelectorAll('button[aria-pressed]');
     expect(selectorButtons.length).toBeGreaterThan(0);
     for (const selectorButton of selectorButtons) {
-      const styleAttribute = selectorButton.getAttribute('style') ?? '';
-      expect(styleAttribute).not.toContain('box-shadow');
+      expect(selectorButton.getAttribute('style')).toBeNull();
     }
 
     const ctaButton = screen.getByRole('button', {

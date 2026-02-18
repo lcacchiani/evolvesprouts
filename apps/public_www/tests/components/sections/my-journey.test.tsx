@@ -19,7 +19,7 @@ vi.mock('next/image', () => ({
 }));
 
 describe('MyJourney section', () => {
-  it('uses testimonials overlay properties and renders the local journey image', () => {
+  it('uses migrated overlay/card classes and renders the local journey image', () => {
     render(<MyJourney content={enContent.myJourney} />);
 
     const section = screen.getByRole('region', {
@@ -27,24 +27,7 @@ describe('MyJourney section', () => {
     });
 
     expect(section.className).toContain('es-section-bg-overlay');
-    expect(section.style.backgroundColor).toBe(
-      'var(--es-color-surface-white, #FFFFFF)',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-image')).toContain(
-      '/images/evolvesprouts-logo.svg',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-position')).toBe(
-      'center -150px',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-size')).toBe(
-      '900px auto',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-filter')).toBe(
-      'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-mask-image')).toBe(
-      'linear-gradient(to bottom, black 18%, transparent 20%)',
-    );
+    expect(section.className).toContain('es-my-journey-section');
 
     const image = screen.getByRole('img', {
       name: /my montessori journey section image/i,
@@ -58,16 +41,15 @@ describe('MyJourney section', () => {
       .getByText(enContent.myJourney.cards[0].tag)
       .closest('article');
     expect(firstCard).not.toBeNull();
-    expect(firstCard).toHaveStyle({
-      background: 'var(--es-gradient-card-blue)',
-    });
+    expect(firstCard?.className).toContain('es-my-journey-card--blue');
 
     const secondCard = screen
       .getByText(enContent.myJourney.cards[1].tag)
       .closest('article');
     expect(secondCard).not.toBeNull();
-    expect(secondCard).toHaveStyle({
-      background: 'var(--es-gradient-card-yellow)',
-    });
+    expect(secondCard?.className).toContain('es-my-journey-card--yellow');
+
+    const firstTag = screen.getByText(enContent.myJourney.cards[0].tag);
+    expect(firstTag.className).toContain('es-my-journey-tag');
   });
 });

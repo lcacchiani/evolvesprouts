@@ -5,10 +5,6 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { CourseHighlightsContent } from '@/content';
 import enContent from '@/content/en.json';
-import {
-  buildSectionBackgroundOverlayStyle,
-  LOGO_OVERLAY_DEEP,
-} from '@/lib/section-backgrounds';
 
 interface CourseHighlightsProps {
   content: CourseHighlightsContent;
@@ -32,12 +28,7 @@ interface BenefitCardMeta {
   imageClassName: string;
 }
 
-const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
-  ...LOGO_OVERLAY_DEEP,
-  backgroundColor: 'var(--figma-colors-frame-2147235259, #FFEEE3)',
-});
-const GOLD_CARD = 'var(--es-color-accent-gold, #9E6D12)';
-const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
+const CARD_TONES = ['gold', 'blue'] as const;
 
 const fallbackCourseHighlightsCopy = enContent.courseHighlights;
 
@@ -136,16 +127,11 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
     <SectionShell
       ariaLabel={sectionTitle}
       dataFigmaNode='Course Highlights'
-      className='es-section-bg-overlay'
-      style={SECTION_STYLE}
+      className='es-section-bg-overlay es-course-highlights-section'
     >
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-0'
-        style={{
-          background:
-            'radial-gradient(circle at 16% 22%, rgba(23, 72, 121, 0.1) 0%, rgba(23, 72, 121, 0) 47%), radial-gradient(circle at 88% 78%, rgba(231, 108, 61, 0.16) 0%, rgba(231, 108, 61, 0) 52%)',
-        }}
+        className='es-course-highlights-overlay pointer-events-none absolute inset-0'
       />
 
       <SectionContainer>
@@ -157,7 +143,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
         <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3'>
           {benefitCards.map((card, index) => {
-            const cardBg = index % 2 === 0 ? GOLD_CARD : BLUE_CARD;
+            const tone = CARD_TONES[index % CARD_TONES.length];
 
             return (
               <li key={card.id}>
@@ -169,7 +155,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                   imageHeight={card.imageHeight}
                   imageClassName={card.imageClassName}
                   description={card.description}
-                  cardBg={cardBg}
+                  tone={tone}
                 />
               </li>
             );

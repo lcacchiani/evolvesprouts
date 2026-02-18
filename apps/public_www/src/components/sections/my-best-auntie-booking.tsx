@@ -2,21 +2,13 @@
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
-import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
-import {
-  bodyTextStyle,
-  headingTextStyle,
-  SURFACE_WHITE,
-  TEXT_ICON_COLOR,
-} from '@/lib/design-tokens';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 const MyBestAuntieBookingModal = dynamic(
@@ -40,23 +32,6 @@ interface MyBestAuntieBookingProps {
   content: MyBestAuntieBookingContent;
 }
 
-const SECTION_BACKGROUND = SURFACE_WHITE;
-const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
-const DATE_CONTROL_ICON = TEXT_ICON_COLOR;
-
-const headingStyle: CSSProperties = headingTextStyle({
-  lineHeight: 1.15,
-});
-
-const bodyStyle: CSSProperties = bodyTextStyle({
-  lineHeight: 1.55,
-});
-
-const dateSelectorCalendarIconMaskStyle = createMaskIconStyle(
-  CALENDAR_ICON_MASK_PATH,
-  'currentColor',
-);
-
 function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
@@ -64,13 +39,13 @@ function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
     <svg
       aria-hidden='true'
       viewBox='0 0 24 24'
-      className={`h-7 w-7 ${rotationClass}`}
+      className={`h-7 w-7 es-text-icon ${rotationClass}`}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
       <path
         d='M8 4L16 12L8 20'
-        stroke={DATE_CONTROL_ICON}
+        stroke='currentColor'
         strokeWidth='2.4'
         strokeLinecap='round'
         strokeLinejoin='round'
@@ -156,21 +131,15 @@ export function MyBestAuntieBooking({
         id='my-best-auntie-booking'
         ariaLabel={content.title}
         dataFigmaNode='book_spot_Sec'
-        style={{ backgroundColor: SECTION_BACKGROUND }}
+        className='es-my-best-auntie-booking-section'
       >
         <SectionContainer>
           <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>
             <section className='space-y-5 max-w-[620px] lg:pr-8'>
-              <h1
-                className='text-[clamp(2rem,5.6vw,3.3rem)]'
-                style={headingStyle}
-              >
+              <h1 className='text-[clamp(2rem,5.6vw,3.3rem)] es-my-best-auntie-booking-heading'>
                 {content.title}
               </h1>
-              <p
-                className='max-w-[58ch] text-[clamp(1rem,2vw,1.2rem)]'
-                style={bodyStyle}
-              >
+              <p className='max-w-[58ch] text-[clamp(1rem,2vw,1.2rem)] es-my-best-auntie-booking-body'>
                 {content.description}
               </p>
 
@@ -268,8 +237,7 @@ export function MyBestAuntieBooking({
                             >
                               <div className='flex items-center justify-start gap-1.5'>
                                 <span
-                                  className={`h-6 w-6 shrink-0 ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
-                                  style={dateSelectorCalendarIconMaskStyle}
+                                  className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
                                   aria-hidden='true'
                                 />
                                 <p className='text-base font-semibold es-text-heading'>

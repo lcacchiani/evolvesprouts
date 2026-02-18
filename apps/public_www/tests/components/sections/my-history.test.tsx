@@ -19,7 +19,7 @@ vi.mock('next/image', () => ({
 }));
 
 describe('MyHistory section', () => {
-  it('uses course highlights overlay properties with the grey background', () => {
+  it('uses shared overlay and section classes for the muted background', () => {
     render(<MyHistory content={enContent.myHistory} />);
 
     const section = screen.getByRole('region', {
@@ -27,23 +27,6 @@ describe('MyHistory section', () => {
     });
 
     expect(section.className).toContain('es-section-bg-overlay');
-    expect(section.style.backgroundColor).toBe(
-      'var(--es-color-surface-muted, #F8F8F8)',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-image')).toContain(
-      '/images/evolvesprouts-logo.svg',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-position')).toBe(
-      'center -900px',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-size')).toBe(
-      '2000px auto',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-filter')).toBe(
-      'sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%)',
-    );
-    expect(section.style.getPropertyValue('--es-section-bg-mask-image')).toBe(
-      'linear-gradient(to bottom, black 5%, transparent 15%)',
-    );
+    expect(section.className).toContain('es-my-history-section');
   });
 });

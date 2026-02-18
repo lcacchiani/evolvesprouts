@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { OverlayBackdrop } from '@/components/shared/overlay-surface';
+import { CloseIcon } from '@/components/sections/navbar-icons';
 import QRCode from 'qrcode';
 import {
   type ReactNode,
@@ -10,20 +11,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 
-export const MODAL_PANEL_BACKGROUND =
-  'var(--es-color-surface-white, #FFFFFF)';
-const MODAL_OVERLAY_BACKGROUND = 'rgba(16, 14, 11, 0.6)';
 const FPS_GENERATOR_SCRIPT_SOURCE = '/scripts/fps-generator.js';
 const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
 const FPS_MERCHANT_NAME = 'Ida De Gregorio';
 const FPS_MOBILE_NUMBER = '85297942094';
 const FPS_QR_CODE_SIZE_PX = 128;
-const NAV_CLOSE_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/close.svg',
-  'currentColor',
-);
 
 interface FpsGenerationResult {
   data?: string;
@@ -118,8 +111,7 @@ export function ModalOverlay({
     <div className='fixed inset-0 z-[80] overflow-y-auto'>
       <OverlayBackdrop
         ariaLabel='Close modal'
-        className='border-0'
-        style={{ backgroundColor: MODAL_OVERLAY_BACKGROUND }}
+        className='es-booking-modal-overlay border-0'
         onClick={onClose}
       />
       <div className='relative z-10 flex min-h-full items-start justify-center px-4 pb-4 pt-6 sm:px-6 sm:pt-8'>
@@ -143,11 +135,7 @@ export function CloseButton({
       onClick={onClose}
       className='es-btn--icon-surface h-10 w-10 rounded-full'
     >
-      <span
-        aria-hidden='true'
-        className='h-[18px] w-[18px]'
-        style={NAV_CLOSE_ICON_MASK_STYLE}
-      />
+      <CloseIcon />
     </ButtonPrimitive>
   );
 }

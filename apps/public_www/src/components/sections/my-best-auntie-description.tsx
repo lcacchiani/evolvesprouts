@@ -1,6 +1,5 @@
 'use client';
 
-import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -9,27 +8,15 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { MyBestAuntieDescriptionContent } from '@/content';
 import {
-  BODY_TEXT_COLOR,
-  HEADING_TEXT_COLOR,
-  SURFACE_WHITE,
   TEXT_ICON_COLOR,
   TEXT_NEUTRAL_STRONG_COLOR,
 } from '@/lib/design-tokens';
-import {
-  buildSectionBackgroundOverlayStyle,
-  LOGO_OVERLAY_DEEP,
-} from '@/lib/section-backgrounds';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieDescriptionProps {
   content: MyBestAuntieDescriptionContent;
 }
 
-const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
-  ...LOGO_OVERLAY_DEEP,
-  backgroundColor: 'var(--es-color-surface-muted, #F8F8F8)',
-});
-const CARD_BACKGROUND = SURFACE_WHITE;
 const CARD_ICON_FALLBACK =
   '/images/training.svg';
 const CONTROL_ICON = TEXT_ICON_COLOR;
@@ -39,22 +26,6 @@ const iconByKey: Record<string, string> = {
   'live-training': '/images/training.svg',
   'auntie-review': '/images/review.svg',
   workbook: '/images/workbook.svg',
-};
-
-const cardTitleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: '24px',
-  fontWeight: 600,
-  lineHeight: '30px',
-};
-
-const descriptionStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: '18px',
-  fontWeight: 400,
-  lineHeight: '30px',
 };
 
 function ArrowIcon({
@@ -110,8 +81,7 @@ export function MyBestAuntieDescription({
       id='my-best-auntie-description'
       ariaLabel={content.title}
       dataFigmaNode='courseHiglit_sec'
-      className='es-section-bg-overlay'
-      style={SECTION_STYLE}
+      className='es-section-bg-overlay es-my-best-auntie-description-section'
     >
       <SectionContainer>
         <div
@@ -169,10 +139,7 @@ export function MyBestAuntieDescription({
                 className='w-[88%] shrink-0 sm:w-[48%] lg:w-[32%]'
               >
                 <article
-                  className='flex h-full min-h-[520px] flex-col rounded-[32px] p-6 sm:p-8'
-                  style={{
-                    backgroundColor: CARD_BACKGROUND,
-                  }}
+                  className='flex h-full min-h-[520px] flex-col rounded-[32px] p-6 sm:p-8 es-my-best-auntie-description-card'
                 >
                   <div className='inline-flex h-[100px] w-[100px] items-center justify-center rounded-full es-bg-surface-muted'>
                     <Image
@@ -184,10 +151,10 @@ export function MyBestAuntieDescription({
                       className='h-[50px] w-[50px] object-contain'
                     />
                   </div>
-                  <h3 className='mt-6' style={cardTitleStyle}>
+                  <h3 className='mt-6 es-my-best-auntie-description-card-title'>
                     {item.title}
                   </h3>
-                  <p className='mt-3' style={descriptionStyle}>
+                  <p className='mt-3 es-my-best-auntie-description-card-description'>
                     {item.description}
                   </p>
                   <div className='mt-auto pt-8'>

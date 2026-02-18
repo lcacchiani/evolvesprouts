@@ -2,38 +2,22 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
-import {
-  BRAND_ORANGE,
-} from '@/lib/design-tokens';
-import { buildSectionBackgroundStyle } from '@/lib/section-backgrounds';
 
 interface ReachOutProps {
   content: ContactUsContent['reachOut'];
 }
 
-const SECTION_STYLE = buildSectionBackgroundStyle({
-  backgroundColor: 'var(--figma-colors-frame-2147235259, #FFEEE3)',
-  position: 'center -400px',
-  size: '900px auto',
-  blendMode: 'difference',
-});
+const GLYPH_TONES = ['orange', 'blue', 'gold', 'green'] as const;
+
+function resolveGlyphTone(index: number): (typeof GLYPH_TONES)[number] {
+  return GLYPH_TONES[index % GLYPH_TONES.length];
+}
 
 function ReachOutGlyph({ index }: { index: number }) {
-  const colorMap = [
-    BRAND_ORANGE,
-    'var(--figma-colors-frame-2147235242, #174879)',
-    'var(--es-color-accent-gold, #9E6D12)',
-    'var(--es-color-accent-green, #5D9D49)',
-  ] as const;
-  const color = colorMap[index % colorMap.length];
-
   return (
     <span
       aria-hidden='true'
-      className='inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border bg-white'
-      style={{
-        borderColor: `color-mix(in srgb, ${color} 25%, transparent)`,
-      }}
+      className={`es-reach-out-glyph es-reach-out-glyph--${resolveGlyphTone(index)} inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border bg-white`}
     >
       <svg
         viewBox='0 0 24 24'
@@ -43,7 +27,7 @@ function ReachOutGlyph({ index }: { index: number }) {
       >
         <path
           d='M6 12.2L10.3 16.5L18 8.8'
-          stroke={color}
+          stroke='currentColor'
           strokeWidth='2.4'
           strokeLinecap='round'
           strokeLinejoin='round'
@@ -59,8 +43,7 @@ export function ReachOut({ content }: ReachOutProps) {
       id='reach-out'
       ariaLabel={content.title}
       dataFigmaNode='reach-out'
-      className='relative isolate overflow-hidden'
-      style={SECTION_STYLE}
+      className='es-reach-out-section relative isolate overflow-hidden'
     >
       <SectionContainer>
         <SectionHeader
