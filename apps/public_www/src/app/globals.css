@@ -799,7 +799,6 @@
     -webkit-mask-size: var(--es-section-bg-mask-size, 100% 100%);
   }
 
-  /* Tier 1 section style migrations (inline styles -> CSS classes) */
   .es-connect-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
     background-image: url('/images/evolvesprouts-logo.svg');
