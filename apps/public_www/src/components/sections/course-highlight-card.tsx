@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
@@ -107,12 +108,12 @@ export function CourseHighlightCard({
       </div>
 
       {/* Arrow button — triggers reveal on tap */}
-      <button
-        type='button'
+      <ButtonPrimitive
+        variant='icon'
         aria-label={`Show details for ${title}`}
         aria-expanded={isActive}
         onClick={handleArrowClick}
-        className={`absolute bottom-5 left-5 z-10 inline-flex appearance-none items-center justify-center rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} lg:group-hover:h-[70px] lg:group-hover:w-[70px] ${arrowActive}`}
+        className={`absolute bottom-5 left-5 z-10 appearance-none rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} lg:group-hover:h-[70px] lg:group-hover:w-[70px] ${arrowActive}`}
       >
         <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full es-bg-brand-strong shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
           <svg
@@ -131,7 +132,7 @@ export function CourseHighlightCard({
             />
           </svg>
         </span>
-      </button>
+      </ButtonPrimitive>
 
       {/* Card text content */}
       <div className='relative z-10 flex h-full w-full flex-col'>

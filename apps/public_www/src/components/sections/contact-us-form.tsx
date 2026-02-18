@@ -3,6 +3,7 @@
 import type { CSSProperties, FormEvent } from 'react';
 import { useState } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { SectionContainer } from '@/components/section-container';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
@@ -250,12 +251,9 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               />
             </label>
 
-            <button
-              type='submit'
-              className='es-focus-ring es-cta-button es-cta-primary es-primary-cta mt-2 w-full'
-            >
+            <ButtonPrimitive variant='primary' type='submit' className='mt-2 w-full'>
               {content.submitLabel}
-            </button>
+            </ButtonPrimitive>
           </form>
         </section>
       </SectionContainer>

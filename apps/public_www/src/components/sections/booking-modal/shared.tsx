@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { CloseIcon } from '@/components/sections/navbar-icons';
 import QRCode from 'qrcode';
 import {
@@ -132,14 +133,14 @@ export function CloseButton({
   onClose: () => void;
 }) {
   return (
-    <button
-      type='button'
+    <ButtonPrimitive
+      variant='icon'
       aria-label={label}
       onClick={onClose}
-      className='es-focus-ring es-modal-close-button inline-flex h-10 w-10 items-center justify-center rounded-full'
+      className='es-btn--icon-surface h-10 w-10 rounded-full'
     >
       <CloseIcon />
-    </button>
+    </ButtonPrimitive>
   );
 }
 

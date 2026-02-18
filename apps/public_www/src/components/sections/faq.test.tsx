@@ -88,11 +88,11 @@ describe('Faq section', () => {
       name: 'Contact Us',
     });
     expect(contactCta).toHaveAttribute('href', '/zh-CN/contact-us');
-    expect(contactCta.className).toContain('es-cta-primary');
-    expect(contactCta.className).toContain('es-primary-cta');
+    expect(contactCta.className).toContain('es-btn');
+    expect(contactCta.className).toContain('es-btn--primary');
   });
 
-  it('uses navbar pill colors for category buttons and a grey search input', () => {
+  it('uses shared button states for category buttons and a grey search input', () => {
     const { container } = render(<Faq content={enContent.faq} />);
 
     const firstLabel = enContent.faq.labels[0];
@@ -108,17 +108,12 @@ describe('Faq section', () => {
       name: secondLabel.label,
     });
 
-    expect(activeLabelButton.className).toContain('es-nav-pill');
-    expect(inactiveLabelButton.className).toContain('es-nav-pill');
-    expect(activeLabelButton.getAttribute('style')).toContain(
-      'var(--es-color-brand-orange-soft, #F2A975)',
-    );
-    expect(inactiveLabelButton.getAttribute('style')).toContain(
-      'var(--figma-colors-frame-2147235267, #F6DECD)',
-    );
-    expect(activeLabelButton.getAttribute('style')).toContain(
-      'var(--figma-colors-join-our-sprouts-squad-community, #333333)',
-    );
+    expect(activeLabelButton.className).toContain('es-btn');
+    expect(activeLabelButton.className).toContain('es-btn--pill');
+    expect(activeLabelButton.className).toContain('es-btn--state-active');
+    expect(inactiveLabelButton.className).toContain('es-btn');
+    expect(inactiveLabelButton.className).toContain('es-btn--pill');
+    expect(inactiveLabelButton.className).toContain('es-btn--state-inactive');
 
     const searchInput = screen.getByRole('textbox', {
       name: enContent.faq.searchPlaceholder,

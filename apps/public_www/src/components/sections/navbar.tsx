@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionContainer } from '@/components/section-container';
 import {
@@ -22,7 +23,6 @@ import {
 } from '@/components/sections/navbar/language-selector';
 import {
   DesktopMenuItems,
-  getTopLinkStyle,
   MOBILE_PRIMARY_ACTION_CLASSNAME,
   MobileMenuItems,
 } from '@/components/sections/navbar/menu-items';
@@ -50,9 +50,9 @@ const FOCUSABLE_ELEMENT_SELECTOR =
 const NAV_MOBILE_BOOK_BUTTON_CLASSNAME =
   'w-full';
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
-  'es-focus-ring es-nav-icon-button h-11 w-11 rounded-xl lg:hidden';
+  'h-11 w-11 rounded-xl lg:hidden';
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
-  'es-focus-ring es-nav-icon-button h-10 w-10 rounded-full';
+  'h-10 w-10 rounded-full';
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -252,7 +252,7 @@ export function Navbar({ content }: NavbarProps) {
               currentLocale={currentLocale}
               currentPathname={pathname}
               languageSelector={languageSelector}
-              className='inline-flex h-[30px] items-center gap-[9px] px-[6px]'
+              className='h-[30px] gap-[9px] px-[6px]'
             />
             <BookNowButton
               href={localizedBookNowHref}
@@ -260,9 +260,9 @@ export function Navbar({ content }: NavbarProps) {
             />
           </div>
 
-          <button
-            ref={mobileMenuButtonRef}
-            type='button'
+          <ButtonPrimitive
+            variant='icon'
+            buttonRef={mobileMenuButtonRef}
             aria-controls='mobile-navigation-drawer'
             aria-expanded={isMobileMenuOpen}
             aria-haspopup='dialog'
@@ -272,7 +272,7 @@ export function Navbar({ content }: NavbarProps) {
           >
             <span className='sr-only'>Open navigation menu</span>
             <HamburgerIcon />
-          </button>
+          </ButtonPrimitive>
         </SectionContainer>
       </header>
       {isMobileMenuRendered && (
@@ -307,15 +307,15 @@ export function Navbar({ content }: NavbarProps) {
                   className='h-[150px] w-[150px] es-bg-surface-white object-contain'
                 />
               </Link>
-              <button
-                ref={mobileMenuCloseButtonRef}
-                type='button'
+              <ButtonPrimitive
+                variant='icon'
+                buttonRef={mobileMenuCloseButtonRef}
                 aria-label='Close navigation menu'
                 onClick={closeMobileMenu}
                 className={NAV_CLOSE_MENU_BUTTON_CLASSNAME}
               >
                 <CloseIcon />
-              </button>
+              </ButtonPrimitive>
             </div>
             <div className='flex-1 overflow-y-auto p-4'>
               <MobileMenuItems
@@ -331,8 +331,9 @@ export function Navbar({ content }: NavbarProps) {
                   currentPathname={pathname}
                   languageSelector={languageSelector}
                   menuAlign='left'
+                  buttonVariant='pill'
+                  buttonState='inactive'
                   className={MOBILE_PRIMARY_ACTION_CLASSNAME}
-                  buttonStyle={getTopLinkStyle(false)}
                   isBorderlessMenu
                 />
                 <BookNowButton

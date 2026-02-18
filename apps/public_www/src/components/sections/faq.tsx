@@ -4,15 +4,14 @@ import { usePathname } from 'next/navigation';
 import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
 import {
-  BRAND_ORANGE_SOFT,
   bodyTextStyle,
-  HEADING_TEXT_COLOR,
   headingTextStyle,
   SURFACE_WHITE,
 } from '@/lib/design-tokens';
@@ -35,10 +34,6 @@ interface FaqQuestion {
   labelIds: string[];
 }
 
-const ACTIVE_TAB_BACKGROUND = BRAND_ORANGE_SOFT;
-const ACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
-const INACTIVE_TAB_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
-const INACTIVE_TAB_TEXT = HEADING_TEXT_COLOR;
 const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
 const CONTACT_CARD_TEXT = SURFACE_WHITE;
 const CONTACT_CARD_CTA_LABEL = 'Contact Us';
@@ -257,22 +252,17 @@ export function Faq({ content }: FaqProps) {
               const isActive = activeLabelId === entry.id;
 
               return (
-                <button
+                <ButtonPrimitive
                   key={entry.id}
-                  type='button'
+                  variant='pill'
+                  state={isActive ? 'active' : 'inactive'}
                   onClick={() => {
                     setActiveLabelId(entry.id);
                   }}
-                  className='es-focus-ring es-nav-pill rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
-                  style={{
-                    backgroundColor: isActive
-                      ? ACTIVE_TAB_BACKGROUND
-                      : INACTIVE_TAB_BACKGROUND,
-                    color: isActive ? ACTIVE_TAB_TEXT : INACTIVE_TAB_TEXT,
-                  }}
+                  className='rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
                 >
                   {entry.label}
-                </button>
+                </ButtonPrimitive>
               );
             })}
           </div>

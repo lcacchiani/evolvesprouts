@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
@@ -54,13 +55,6 @@ const descriptionStyle: CSSProperties = {
   fontSize: '18px',
   fontWeight: 400,
   lineHeight: '30px',
-};
-
-const ctaStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: '18px',
-  fontWeight: 600,
-  lineHeight: 1,
 };
 
 function ArrowIcon({
@@ -192,28 +186,28 @@ export function MyBestAuntieDescription({
               data-testid='my-best-auntie-description-controls'
               className='flex gap-3 self-end md:self-auto md:pb-2'
             >
-              <button
-                type='button'
+              <ButtonPrimitive
+                variant='control'
                 onClick={() => {
                   scrollCarousel('previous');
                 }}
                 aria-label='Previous highlight cards'
                 disabled={!canScrollPrevious}
-                className={`inline-flex h-[58px] w-[58px] items-center justify-center rounded-full sm:h-[68px] sm:w-[68px] ${canScrollPrevious ? 'es-control-button' : 'es-control-button es-control-button-disabled disabled:cursor-not-allowed'}`}
+                className='disabled:cursor-not-allowed'
               >
                 <ArrowIcon direction='left' isDisabled={!canScrollPrevious} />
-              </button>
-              <button
-                type='button'
+              </ButtonPrimitive>
+              <ButtonPrimitive
+                variant='control'
                 onClick={() => {
                   scrollCarousel('next');
                 }}
                 aria-label='Next highlight cards'
                 disabled={!canScrollNext}
-                className={`inline-flex h-[58px] w-[58px] items-center justify-center rounded-full sm:h-[68px] sm:w-[68px] ${canScrollNext ? 'es-control-button' : 'es-control-button es-control-button-disabled disabled:cursor-not-allowed'}`}
+                className='disabled:cursor-not-allowed'
               >
                 <ArrowIcon direction='right' isDisabled={!canScrollNext} />
-              </button>
+              </ButtonPrimitive>
             </div>
           )}
         </div>
@@ -253,13 +247,13 @@ export function MyBestAuntieDescription({
                     {item.description}
                   </p>
                   <div className='mt-auto pt-8'>
-                    <a
+                    <ButtonPrimitive
                       href={item.ctaHref}
-                      className='es-card-action-outline inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] border px-6 text-center transition-colors duration-200'
-                      style={ctaStyle}
+                      variant='outline'
+                      className='min-h-[52px] w-full rounded-[10px] px-6 text-center text-[18px] font-semibold leading-none transition-colors duration-200'
                     >
                       {item.ctaLabel}
-                    </a>
+                    </ButtonPrimitive>
                   </div>
                 </article>
               </li>
