@@ -111,10 +111,10 @@ export function ModalOverlay({
 }) {
   return (
     <div className='fixed inset-0 z-[80] overflow-y-auto'>
-      <button
-        type='button'
+      <ButtonPrimitive
+        variant='icon'
         aria-label='Close modal'
-        className='absolute inset-0'
+        className='absolute inset-0 border-0'
         style={{ backgroundColor: MODAL_OVERLAY_BACKGROUND }}
         onClick={onClose}
       />

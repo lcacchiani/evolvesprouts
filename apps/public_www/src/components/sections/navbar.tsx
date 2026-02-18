@@ -277,8 +277,8 @@ export function Navbar({ content }: NavbarProps) {
       </header>
       {isMobileMenuRendered && (
         <div className='fixed inset-0 z-[60] lg:hidden'>
-          <button
-            type='button'
+          <ButtonPrimitive
+            variant='icon'
             tabIndex={-1}
             aria-label='Close navigation menu'
             className={`absolute inset-0 bg-black/35 transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
