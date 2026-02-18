@@ -1,5 +1,5 @@
-import { PageLayout } from '@/components/page-layout';
 import { EmptyPagePlaceholder } from '@/components/empty-page-placeholder';
+import { PlaceholderPageLayout } from '@/components/placeholder-page-layout';
 import {
   createPlaceholderPage,
   generateLocaleStaticParams,
@@ -24,12 +24,11 @@ export default async function TermsPage({ params }: LocaleRouteProps) {
   const { content, title } = await termsPlaceholderPage.resolveProps(params);
 
   return (
-    <PageLayout
+    <PlaceholderPageLayout
       navbarContent={content.navbar}
       footerContent={content.footer}
-      mainClassName='mx-auto flex min-h-[52vh] w-full max-w-[1465px] items-center px-4 py-16 sm:px-6 lg:px-8'
     >
       <EmptyPagePlaceholder title={title} />
-    </PageLayout>
+    </PlaceholderPageLayout>
   );
 }
