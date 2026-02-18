@@ -1,6 +1,4 @@
-import { PageLayout } from '@/components/shared/page-layout';
-import { Events } from '@/components/sections/events';
-import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
+import { EventsPageSections } from '@/components/pages/events';
 import {
   getMenuLabel,
   type LocaleRouteProps,
@@ -27,13 +25,5 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
 export default async function EventsPage({ params }: LocaleRouteProps) {
   const { content } = await resolveLocalePageContext(params);
 
-  return (
-    <PageLayout
-      navbarContent={content.navbar}
-      footerContent={content.footer}
-    >
-      <Events content={content.events} />
-      <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
-    </PageLayout>
-  );
+  return <EventsPageSections content={content} />;
 }
