@@ -197,7 +197,7 @@ export function MyBestAuntieThankYouModal({
                     </span>
                     <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <Image
-                        src='/images/my-best-auntie-booking/clock.png'
+                        src='/images/clock.svg'
                         alt=''
                         width={24}
                         height={24}
