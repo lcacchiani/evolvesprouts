@@ -1,14 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
-import {
-  CalendarIcon,
-  ClockIcon,
-  LocationIcon,
-} from '@/components/sections/navbar-icons';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { EventsContent } from '@/content';
 import {
@@ -30,6 +26,10 @@ interface EventsProps {
 interface LoadingGearIconProps {
   className?: string;
 }
+
+const CALENDAR_ICON_SRC = '/images/calendar.svg';
+const CLOCK_ICON_SRC = '/images/clock.svg';
+const LOCATION_ICON_SRC = '/images/location.svg';
 
 function LoadingGearIcon({ className }: LoadingGearIconProps) {
   return (
@@ -236,7 +236,14 @@ export function Events({ content }: EventsProps) {
                           <li
                             className='inline-flex items-center gap-1.5 rounded-[24px] bg-white px-3 py-[7px] es-events-detail-chip'
                           >
-                            <CalendarIcon />
+                            <Image
+                              src={CALENDAR_ICON_SRC}
+                              alt=''
+                              aria-hidden='true'
+                              width={14}
+                              height={14}
+                              className='h-3.5 w-3.5'
+                            />
                             <span>
                               {content.card.dateLabel}: {eventCard.dateLabel}
                             </span>
@@ -246,7 +253,14 @@ export function Events({ content }: EventsProps) {
                           <li
                             className='inline-flex items-center gap-1.5 rounded-[24px] bg-white px-3 py-[7px] es-events-detail-chip'
                           >
-                            <ClockIcon />
+                            <Image
+                              src={CLOCK_ICON_SRC}
+                              alt=''
+                              aria-hidden='true'
+                              width={14}
+                              height={14}
+                              className='h-3.5 w-3.5'
+                            />
                             <span>
                               {content.card.timeLabel}: {eventCard.timeLabel}
                             </span>
@@ -273,7 +287,14 @@ export function Events({ content }: EventsProps) {
                           <span
                             className='inline-flex items-center gap-1 rounded-[24px] es-bg-surface-danger-soft px-3 py-[9px] es-events-detail-chip es-events-detail-chip-danger'
                           >
-                            <LocationIcon />
+                            <Image
+                              src={LOCATION_ICON_SRC}
+                              alt=''
+                              aria-hidden='true'
+                              width={14}
+                              height={14}
+                              className='h-3.5 w-3.5'
+                            />
                             <span>{content.card.fullyBookedLabel}</span>
                           </span>
                         ) : (

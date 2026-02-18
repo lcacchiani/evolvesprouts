@@ -1,10 +1,7 @@
+import Image from 'next/image';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import {
-  LanguageChevronIcon,
-  MobileChevronIcon,
-} from '@/components/sections/navbar-icons';
 import {
   type Locale,
   type NavbarContent,
@@ -27,6 +24,8 @@ const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
   'flex-1';
 export const MOBILE_PRIMARY_ACTION_CLASSNAME =
   'w-full justify-between transition-colors';
+const NAV_LANGUAGE_CHEVRON_ICON_SRC = '/images/chevron.svg';
+const NAV_MOBILE_CHEVRON_ICON_SRC = '/images/chevron.svg';
 
 function isHrefActive(currentPath: string, href: string): boolean {
   const targetPath = normalizeLocalizedPath(href);
@@ -228,7 +227,14 @@ function DesktopMenuItem({
         aria-hidden='true'
         className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-transform ${isSubmenuOpen ? 'rotate-180' : ''}`}
       >
-        <LanguageChevronIcon />
+        <Image
+          src={NAV_LANGUAGE_CHEVRON_ICON_SRC}
+          alt=''
+          aria-hidden='true'
+          width={20}
+          height={20}
+          className='h-5 w-5'
+        />
       </span>
       <SubmenuLinks
         items={item.children}
@@ -301,7 +307,19 @@ function MobileMenuItem({
           className={MOBILE_PRIMARY_ACTION_CLASSNAME}
         >
           <span>{item.label}</span>
-          <MobileChevronIcon isExpanded={isExpanded} />
+          <span
+            aria-hidden='true'
+            className={`inline-flex h-4 w-4 items-center justify-center transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          >
+            <Image
+              src={NAV_MOBILE_CHEVRON_ICON_SRC}
+              alt=''
+              aria-hidden='true'
+              width={16}
+              height={16}
+              className='h-4 w-4'
+            />
+          </span>
         </ButtonPrimitive>
       ) : (
         <ButtonPrimitive
