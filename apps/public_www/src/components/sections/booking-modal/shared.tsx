@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { OverlayBackdrop } from '@/components/shared/overlay-surface';
-import { CloseIcon } from '@/components/sections/navbar-icons';
 import QRCode from 'qrcode';
 import {
   type ReactNode,
@@ -11,6 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 
 export const MODAL_PANEL_BACKGROUND =
   'var(--es-color-surface-white, #FFFFFF)';
@@ -20,6 +20,10 @@ const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
 const FPS_MERCHANT_NAME = 'Ida De Gregorio';
 const FPS_MOBILE_NUMBER = '85297942094';
 const FPS_QR_CODE_SIZE_PX = 128;
+const NAV_CLOSE_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-close.svg',
+  'currentColor',
+);
 
 interface FpsGenerationResult {
   data?: string;
@@ -139,7 +143,11 @@ export function CloseButton({
       onClick={onClose}
       className='es-btn--icon-surface h-10 w-10 rounded-full'
     >
-      <CloseIcon />
+      <span
+        aria-hidden='true'
+        className='h-[18px] w-[18px]'
+        style={NAV_CLOSE_ICON_MASK_STYLE}
+      />
     </ButtonPrimitive>
   );
 }

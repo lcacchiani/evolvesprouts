@@ -20,15 +20,23 @@ import {
   type Locale,
   type NavbarContent,
 } from '@/content';
-import { BRAND_ORANGE, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import {
+  BRAND_ORANGE,
+  HEADING_TEXT_COLOR,
+  TEXT_HEADING_STRONG,
+} from '@/lib/design-tokens';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 import { localizePath } from '@/lib/locale-routing';
-import { LanguageChevronIcon } from '@/components/sections/navbar-icons';
+import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 
 const NAV_TEXT_COLOR = HEADING_TEXT_COLOR;
 const NAV_ACTIVE_TEXT = BRAND_ORANGE;
 const NAV_LANGUAGE_OPTION_CLASSNAME =
   'es-focus-ring es-nav-language-option';
+const NAV_LANGUAGE_CHEVRON_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-language-chevron.svg',
+  TEXT_HEADING_STRONG,
+);
 
 interface LanguageOption {
   locale: Locale;
@@ -199,7 +207,11 @@ export function LanguageSelectorButton({
         <span className='sr-only'>
           {`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
         </span>
-        <LanguageChevronIcon isOpen={isMenuOpen} />
+        <span
+          aria-hidden='true'
+          className={`h-5 w-5 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
+          style={NAV_LANGUAGE_CHEVRON_ICON_MASK_STYLE}
+        />
       </ButtonPrimitive>
       <ul
         id={languageMenuId}

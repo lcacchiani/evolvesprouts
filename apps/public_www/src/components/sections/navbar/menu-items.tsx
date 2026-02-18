@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import {
-  LanguageChevronIcon,
-  MobileChevronIcon,
-} from '@/components/sections/navbar-icons';
+import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 import {
   type Locale,
   type NavbarContent,
@@ -27,6 +24,14 @@ const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
   'flex-1';
 export const MOBILE_PRIMARY_ACTION_CLASSNAME =
   'w-full justify-between transition-colors';
+const NAV_LANGUAGE_CHEVRON_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-language-chevron.svg',
+  'currentColor',
+);
+const NAV_MOBILE_CHEVRON_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-mobile-chevron.svg',
+  'currentColor',
+);
 
 function isHrefActive(currentPath: string, href: string): boolean {
   const targetPath = normalizeLocalizedPath(href);
@@ -226,10 +231,9 @@ function DesktopMenuItem({
       </ButtonPrimitive>
       <span
         aria-hidden='true'
-        className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-transform ${isSubmenuOpen ? 'rotate-180' : ''}`}
-      >
-        <LanguageChevronIcon />
-      </span>
+        className={`pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 transition-transform ${isSubmenuOpen ? 'rotate-180' : ''}`}
+        style={NAV_LANGUAGE_CHEVRON_ICON_MASK_STYLE}
+      />
       <SubmenuLinks
         items={item.children}
         currentPath={currentPath}
@@ -301,7 +305,11 @@ function MobileMenuItem({
           className={MOBILE_PRIMARY_ACTION_CLASSNAME}
         >
           <span>{item.label}</span>
-          <MobileChevronIcon isExpanded={isExpanded} />
+          <span
+            aria-hidden='true'
+            className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            style={NAV_MOBILE_CHEVRON_ICON_MASK_STYLE}
+          />
         </ButtonPrimitive>
       ) : (
         <ButtonPrimitive

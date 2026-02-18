@@ -3,13 +3,9 @@
 import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
-import {
-  CalendarIcon,
-  ClockIcon,
-  LocationIcon,
-} from '@/components/sections/navbar-icons';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { EventsContent } from '@/content';
 import {
@@ -40,6 +36,18 @@ interface EventsProps {
 const SECTION_BACKGROUND = SURFACE_WHITE;
 const LOADING_GEAR_COLOR = BRAND_ORANGE_SOFT;
 const LOADING_GEAR_BACKGROUND = BRAND_PEACH_BG;
+const NAV_CALENDAR_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-calendar.svg',
+  'currentColor',
+);
+const NAV_CLOCK_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-clock.svg',
+  'currentColor',
+);
+const NAV_LOCATION_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-location.svg',
+  'currentColor',
+);
 
 const scheduledHeadingStyle: CSSProperties = headingTextStyle({
   fontSize: 'clamp(1.45rem, 3.5vw, 32px)',
@@ -306,7 +314,11 @@ export function Events({ content }: EventsProps) {
                             className='inline-flex items-center gap-1.5 rounded-[24px] bg-white px-3 py-[7px]'
                             style={detailChipStyle}
                           >
-                            <CalendarIcon />
+                            <span
+                              aria-hidden='true'
+                              className='h-3.5 w-3.5'
+                              style={NAV_CALENDAR_ICON_MASK_STYLE}
+                            />
                             <span>
                               {content.card.dateLabel}: {eventCard.dateLabel}
                             </span>
@@ -317,7 +329,11 @@ export function Events({ content }: EventsProps) {
                             className='inline-flex items-center gap-1.5 rounded-[24px] bg-white px-3 py-[7px]'
                             style={detailChipStyle}
                           >
-                            <ClockIcon />
+                            <span
+                              aria-hidden='true'
+                              className='h-3.5 w-3.5'
+                              style={NAV_CLOCK_ICON_MASK_STYLE}
+                            />
                             <span>
                               {content.card.timeLabel}: {eventCard.timeLabel}
                             </span>
@@ -346,7 +362,11 @@ export function Events({ content }: EventsProps) {
                               color: 'var(--es-color-text-danger-chip, #D03C3C)',
                             }}
                           >
-                            <LocationIcon />
+                            <span
+                              aria-hidden='true'
+                              className='h-3.5 w-3.5'
+                              style={NAV_LOCATION_ICON_MASK_STYLE}
+                            />
                             <span>{content.card.fullyBookedLabel}</span>
                           </span>
                         ) : (

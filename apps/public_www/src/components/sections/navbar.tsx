@@ -17,10 +17,7 @@ import {
 } from '@/components/shared/overlay-surface';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
-import {
-  CloseIcon,
-  HamburgerIcon,
-} from '@/components/sections/navbar-icons';
+import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 import {
   LanguageSelectorButton,
   resolveLanguageSelectorContent,
@@ -58,6 +55,14 @@ const NAV_OPEN_MENU_BUTTON_CLASSNAME =
   'h-11 w-11 rounded-xl lg:hidden';
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
   'h-10 w-10 rounded-full';
+const NAV_HAMBURGER_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-hamburger.svg',
+  'currentColor',
+);
+const NAV_CLOSE_ICON_MASK_STYLE = createMaskIconStyle(
+  '/images/navbar-close.svg',
+  'currentColor',
+);
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -276,7 +281,11 @@ export function Navbar({ content }: NavbarProps) {
             className={NAV_OPEN_MENU_BUTTON_CLASSNAME}
           >
             <span className='sr-only'>Open navigation menu</span>
-            <HamburgerIcon />
+            <span
+              aria-hidden='true'
+              className='h-4 w-4'
+              style={NAV_HAMBURGER_ICON_MASK_STYLE}
+            />
           </ButtonPrimitive>
         </SectionContainer>
       </header>
@@ -319,7 +328,11 @@ export function Navbar({ content }: NavbarProps) {
                 onClick={closeMobileMenu}
                 className={NAV_CLOSE_MENU_BUTTON_CLASSNAME}
               >
-                <CloseIcon />
+                <span
+                  aria-hidden='true'
+                  className='h-[18px] w-[18px]'
+                  style={NAV_CLOSE_ICON_MASK_STYLE}
+                />
               </ButtonPrimitive>
             </div>
             <div className='flex-1 overflow-y-auto p-4'>
