@@ -12,6 +12,7 @@ import { SectionShell } from '@/components/section-shell';
 import {
   readCandidateText,
   readOptionalText,
+  toRecord,
 } from '@/content/content-field-utils';
 import type { TestimonialsContent } from '@/content';
 import {
@@ -83,11 +84,10 @@ function normalizeStory(item: unknown): NormalizedStory | null {
     return quote ? { quote } : null;
   }
 
-  if (typeof item !== 'object' || item === null) {
+  const record = toRecord(item);
+  if (!record) {
     return null;
   }
-
-  const record = item as Record<string, unknown>;
   const story: NormalizedStory = {
     quote: readCandidateText(record, [
       'quote',

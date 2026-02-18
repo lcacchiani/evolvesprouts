@@ -6,7 +6,10 @@ import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import {
   readCandidateText,
+  readCandidateTextFromUnknown,
   readOptionalText,
+  readStringUnion,
+  toRecord,
 } from '@/content/content-field-utils';
 import type { ResourcesContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
@@ -107,39 +110,11 @@ const mediaPillTextStyle: CSSProperties = {
   lineHeight: '1',
 };
 
-function readOptionalRecord(
-  value: unknown,
-): Record<string, unknown> | undefined {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return undefined;
-  }
-
-  return value as Record<string, unknown>;
-}
-
-function readStringUnion<T extends readonly string[]>(
-  value: unknown,
-  values: T,
-): T[number] | undefined {
-  if (typeof value !== 'string') {
-    return undefined;
-  }
-
-  const normalized = value.trim().toLowerCase();
-  if (!normalized) {
-    return undefined;
-  }
-
-  return values.find((entry) => entry === normalized) as T[number] | undefined;
-}
-
 function readSectionConfig(
   customContent: Record<string, unknown>,
 ): ResourceSectionConfig {
-  const rawSectionConfig = readOptionalRecord(customContent.sectionConfig) ?? {};
-
   const headerAlignmentValue =
-    readCandidateText(rawSectionConfig, [
+    readCandidateTextFromUnknown(customContent.sectionConfig, [
       'headerAlignment',
       'headingAlignment',
       'titleAlignment',
@@ -150,13 +125,22 @@ function readSectionConfig(
       'titleAlignment',
     ]);
   const layoutVariantValue =
-    readCandidateText(rawSectionConfig, ['layoutVariant', 'layout']) ??
+    readCandidateTextFromUnknown(customContent.sectionConfig, [
+      'layoutVariant',
+      'layout',
+    ]) ??
     readCandidateText(customContent, ['layoutVariant', 'layout']);
   const imagePositionValue =
-    readCandidateText(rawSectionConfig, ['imagePosition', 'mediaPosition']) ??
+    readCandidateTextFromUnknown(customContent.sectionConfig, [
+      'imagePosition',
+      'mediaPosition',
+    ]) ??
     readCandidateText(customContent, ['imagePosition', 'mediaPosition']);
   const cardPositionValue =
-    readCandidateText(rawSectionConfig, ['cardPosition', 'textCardPosition']) ??
+    readCandidateTextFromUnknown(customContent.sectionConfig, [
+      'cardPosition',
+      'textCardPosition',
+    ]) ??
     readCandidateText(customContent, ['cardPosition', 'textCardPosition']);
 
   return {
@@ -213,8 +197,8 @@ function resolveChecklistItems(items: unknown): ChecklistEntry[] {
         return parseChecklistEntry(item);
       }
 
-      if (item && typeof item === 'object') {
-        const typedItem = item as Record<string, unknown>;
+      const typedItem = toRecord(item);
+      if (typedItem) {
         const title =
           readOptionalText(typedItem.label) ??
           readOptionalText(typedItem.title) ??
