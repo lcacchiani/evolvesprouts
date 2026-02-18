@@ -1,5 +1,6 @@
 import { createDefaultLocaleRedirectPage } from '@/lib/locale-page';
+import { ROUTES } from '@/lib/routes';
 
 export default createDefaultLocaleRedirectPage(
-  '/services/my-best-auntie-training-course',
+  ROUTES.servicesMyBestAuntieTrainingCourse,
 );

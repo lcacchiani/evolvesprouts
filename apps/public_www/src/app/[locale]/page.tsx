@@ -4,6 +4,7 @@ import {
   type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
 export function generateStaticParams() {
@@ -17,7 +18,7 @@ export async function generateMetadata({
 
   return buildLocalizedMetadata({
     locale,
-    path: '/',
+    path: ROUTES.home,
     title: content.navbar.brand,
     description: content.hero.subheadline,
   });

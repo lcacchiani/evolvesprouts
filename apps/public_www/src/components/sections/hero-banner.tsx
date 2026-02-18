@@ -5,6 +5,7 @@ import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionContainer } from '@/components/section-container';
 import type { HeroContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { ROUTES } from '@/lib/routes';
 
 interface HeroBannerProps {
   content: HeroContent;
@@ -88,7 +89,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
               {content.subheadline}
             </p>
             <SectionCtaAnchor
-              href='/services/my-best-auntie-training-course'
+              href={ROUTES.servicesMyBestAuntieTrainingCourse}
               className='mt-6'
             >
               {content.cta}

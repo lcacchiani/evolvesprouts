@@ -6,9 +6,10 @@ import {
   getFooterLinkLabel,
   type LocaleRouteProps,
 } from '@/lib/locale-page';
+import { ROUTES } from '@/lib/routes';
 
 const WORKSHOPS_PLACEHOLDER_OPTIONS = {
-  path: '/services/workshops',
+  path: ROUTES.servicesWorkshops,
   fallbackTitle: 'Workshops',
   labelResolver: getFooterLinkLabel,
 } as const;

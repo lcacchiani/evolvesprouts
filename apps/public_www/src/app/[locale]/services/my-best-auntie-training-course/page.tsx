@@ -4,6 +4,7 @@ import {
   type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
@@ -12,14 +13,14 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const title = getFooterLinkLabel(
     content,
-    '/services/my-best-auntie-training-course',
+    ROUTES.servicesMyBestAuntieTrainingCourse,
     'My Best Auntie Training Course',
   );
   const description = content.myBestAuntieBooking.description;
 
   return buildLocalizedMetadata({
     locale,
-    path: '/services/my-best-auntie-training-course',
+    path: ROUTES.servicesMyBestAuntieTrainingCourse,
     title,
     description,
   });

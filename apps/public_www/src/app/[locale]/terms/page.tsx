@@ -6,9 +6,10 @@ import {
   getFooterLinkLabel,
   type LocaleRouteProps,
 } from '@/lib/locale-page';
+import { ROUTES } from '@/lib/routes';
 
 const TERMS_PLACEHOLDER_OPTIONS = {
-  path: '/terms',
+  path: ROUTES.terms,
   fallbackTitle: 'Terms & Conditions',
   labelResolver: getFooterLinkLabel,
 } as const;

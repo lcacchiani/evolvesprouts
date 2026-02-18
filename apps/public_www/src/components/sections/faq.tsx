@@ -19,6 +19,7 @@ import {
   getLocaleFromPath,
   localizePath,
 } from '@/lib/locale-routing';
+import { ROUTES } from '@/lib/routes';
 import {
   buildSectionBackgroundOverlayStyle,
   LOGO_OVERLAY_TOP,
@@ -199,7 +200,7 @@ export function Faq({ content }: FaqProps) {
   const labels = content.labels;
   const questions = content.questions;
   const locale = getLocaleFromPath(pathname ?? '/');
-  const contactCardCtaHref = localizePath('/contact-us', locale);
+  const contactCardCtaHref = localizePath(ROUTES.contact, locale);
   const allLabelIds = useMemo(
     () => new Set(labels.map((entry) => entry.id)),
     [labels],
