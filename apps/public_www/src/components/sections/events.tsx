@@ -45,7 +45,7 @@ const NAV_CLOCK_ICON_MASK_STYLE = createMaskIconStyle(
   'currentColor',
 );
 const NAV_LOCATION_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-location.svg',
+  '/images/location.svg',
   'currentColor',
 );
 

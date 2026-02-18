@@ -56,7 +56,7 @@ const NAV_OPEN_MENU_BUTTON_CLASSNAME =
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
   'h-10 w-10 rounded-full';
 const NAV_HAMBURGER_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-hamburger.svg',
+  '/images/hamburger.svg',
   'currentColor',
 );
 const NAV_CLOSE_ICON_MASK_STYLE = createMaskIconStyle(
