@@ -37,7 +37,7 @@ interface ButtonPrimitiveBaseProps {
   state?: ButtonPrimitiveState;
   className?: string;
   style?: CSSProperties;
-  children: ButtonPrimitiveChildren;
+  children?: ButtonPrimitiveChildren;
 }
 
 type ButtonPrimitiveAnchorProps =
@@ -74,9 +74,13 @@ function mergeClassNames(
 }
 
 function renderChildren(
-  children: ButtonPrimitiveChildren,
+  children: ButtonPrimitiveChildren | undefined,
   state: ButtonPrimitiveRenderState,
 ): ReactNode {
+  if (typeof children === 'undefined') {
+    return null;
+  }
+
   if (typeof children === 'function') {
     return children(state);
   }

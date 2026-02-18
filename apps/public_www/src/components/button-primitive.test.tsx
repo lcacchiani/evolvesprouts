@@ -79,6 +79,14 @@ describe('ButtonPrimitive', () => {
     expect(button.className).toContain('es-btn--state-active');
   });
 
+  it('supports icon-only buttons without children', () => {
+    render(<ButtonPrimitive variant='icon' aria-label='Close modal' />);
+
+    const button = screen.getByRole('button', { name: 'Close modal' });
+    expect(button.className).toContain('es-btn');
+    expect(button.className).toContain('es-btn--icon');
+  });
+
   it('exposes SmartLink state to render-prop children', () => {
     render(
       <ButtonPrimitive variant='primary' href='https://example.com'>
