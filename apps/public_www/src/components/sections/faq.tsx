@@ -1,7 +1,6 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -11,19 +10,10 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { FaqContent } from '@/content';
 import {
-  bodyTextStyle,
-  headingTextStyle,
-  SURFACE_WHITE,
-} from '@/lib/design-tokens';
-import {
   getLocaleFromPath,
   localizePath,
 } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
-import {
-  buildSectionBackgroundOverlayStyle,
-  LOGO_OVERLAY_TOP,
-} from '@/lib/section-backgrounds';
 
 interface FaqProps {
   content: FaqContent;
@@ -35,34 +25,7 @@ interface FaqQuestion {
   labelIds: string[];
 }
 
-const CONTACT_CARD_BACKGROUND = 'var(--figma-colors-frame-2147235242, #174879)';
-const CONTACT_CARD_TEXT = SURFACE_WHITE;
 const CONTACT_CARD_CTA_LABEL = 'Contact Us';
-const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
-  ...LOGO_OVERLAY_TOP,
-  backgroundColor: SURFACE_WHITE,
-});
-
-const questionStyle: CSSProperties = headingTextStyle({
-  fontWeight: 600,
-  lineHeight: '1.42',
-  fontSize: 'clamp(1.1rem, 1.7vw, 28px)',
-});
-
-const answerStyle: CSSProperties = bodyTextStyle({
-  lineHeight: '1.6',
-  fontSize: 'clamp(1rem, 1.3vw, 20px)',
-});
-
-const contactQuestionStyle: CSSProperties = {
-  ...questionStyle,
-  color: CONTACT_CARD_TEXT,
-};
-
-const contactAnswerStyle: CSSProperties = {
-  ...answerStyle,
-  color: CONTACT_CARD_TEXT,
-};
 
 function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
@@ -160,11 +123,10 @@ function FaqItems({
           return (
             <li key={`${item.question}-${index}`} className='h-full'>
               <article
-                className='flex h-full flex-col rounded-[24px] px-6 py-7 sm:px-8 sm:py-8'
-                style={{ backgroundColor: CONTACT_CARD_BACKGROUND }}
+                className='flex h-full flex-col rounded-[24px] px-6 py-7 sm:px-8 sm:py-8 es-faq-contact-card'
               >
-                <h3 style={contactQuestionStyle}>{item.question}</h3>
-                <p className='mt-5 whitespace-pre-line' style={contactAnswerStyle}>
+                <h3 className='es-faq-contact-question'>{item.question}</h3>
+                <p className='mt-5 whitespace-pre-line es-faq-contact-answer'>
                   {item.answer}
                 </p>
                 <SectionCtaAnchor
@@ -181,9 +143,9 @@ function FaqItems({
         return (
           <li key={`${item.question}-${index}`} className='h-full'>
             <article className='flex h-full flex-col rounded-[24px] es-bg-surface-muted px-6 py-7 sm:px-8 sm:py-8'>
-              <h3 style={questionStyle}>{item.question}</h3>
+              <h3 className='es-faq-question'>{item.question}</h3>
               <div className='mt-5 border-l-[4.1px] es-divider-green pl-5 sm:pl-6'>
-                <p className='whitespace-pre-line' style={answerStyle}>
+                <p className='whitespace-pre-line es-faq-answer'>
                   {item.answer}
                 </p>
               </div>
@@ -220,8 +182,7 @@ export function Faq({ content }: FaqProps) {
       id='faq'
       ariaLabel={content.title}
       dataFigmaNode='faq'
-      className='es-section-bg-overlay'
-      style={SECTION_STYLE}
+      className='es-section-bg-overlay es-faq-section'
     >
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
@@ -271,7 +232,7 @@ export function Faq({ content }: FaqProps) {
 
         <div className='mt-10'>
           {visibleQuestions.length === 0 ? (
-            <p className='rounded-2xl border es-border-soft-alt es-bg-surface-soft px-5 py-6 text-center' style={answerStyle}>
+            <p className='rounded-2xl border es-border-soft-alt es-bg-surface-soft px-5 py-6 text-center es-faq-answer'>
               {content.emptySearchResultsLabel}
             </p>
           ) : (

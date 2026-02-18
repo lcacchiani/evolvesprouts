@@ -468,9 +468,7 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
-    expect(
-      container.querySelector('span[style*="/images/calendar.svg"]'),
-    ).not.toBeNull();
+    expect(container.querySelector('span.es-mask-calendar-heading')).not.toBeNull();
   });
 
   it('allows only one discount code to be applied at a time', async () => {

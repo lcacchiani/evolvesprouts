@@ -1,11 +1,10 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 
 import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { FooterContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface FooterProps {
   content: FooterContent;
@@ -27,37 +26,8 @@ function resolveCurrentYearCopyright(value: string): string {
   return `© ${currentYear} ${normalizedValue}`;
 }
 
-const FOOTER_BACKGROUND =
-  'var(--figma-colors-frame-2147235259, #FFEEE3)';
 const FOOTER_LOGO_CLASSNAME =
   'h-auto w-full max-w-[600px] -mt-[100px] -mb-[100px]';
-const columnTitleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'var(--figma-fontsizes-24, 24px)',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight: 'calc(var(--figma-lineheights-quick-links, 28) * 1px)',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-quick-links, -0.5) * 1px)',
-};
-
-const linkStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-16, 16px)',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight: 'calc(var(--figma-lineheights-home, 26) * 1px)',
-  letterSpacing: 'calc(var(--figma-letterspacing-home, 0.5) * 1px)',
-};
-
-const copyrightStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'var(--figma-fontsizes-16, 16px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight:
-    'calc(var(--figma-lineheights-2025-evolvesprouts, 28) * 1px)',
-};
 
 const socialIcons: Record<string, ReactNode> = {
   facebook: (
@@ -113,6 +83,10 @@ function FooterColumnLinks({
   items: FooterLinkItem[];
   hasSocialIcons?: boolean;
 }) {
+  const linkClassName = hasSocialIcons
+    ? 'inline-flex items-center transition-opacity hover:opacity-70 es-footer-link es-footer-link--social'
+    : 'inline-flex items-center transition-opacity hover:opacity-70 es-footer-link';
+
   return (
     <ul className='flex flex-col gap-[8px]'>
       {items.map((item) => {
@@ -122,16 +96,12 @@ function FooterColumnLinks({
           <li key={`${item.label}-${item.href}`}>
             <SmartLink
               href={item.href}
-              className='inline-flex items-center transition-opacity hover:opacity-70'
-              style={{
-                ...linkStyle,
-                gap: hasSocialIcons ? '12px' : '8px',
-              }}
+              className={linkClassName}
             >
               {({ isExternalHttp }) => (
                 <>
                   {hasSocialIcons && icon ? (
-                    <span className='shrink-0' style={{ color: BODY_TEXT_COLOR }}>
+                    <span className='shrink-0 es-footer-social-icon'>
                       {icon}
                     </span>
                   ) : null}
@@ -162,7 +132,7 @@ function FooterDesktopColumn({
 }) {
   return (
     <section className='w-full max-w-[223px] lg:pt-[70px]'>
-      <h3 className='pb-4' style={columnTitleStyle}>
+      <h3 className='pb-4 es-footer-column-title'>
         {title}
       </h3>
       <FooterColumnLinks items={items} hasSocialIcons={hasSocialIcons} />
@@ -204,7 +174,7 @@ function FooterMobileAccordion({
   return (
     <details className={`group ${hasTopBorder ? 'border-t border-black/15' : ''} py-5`}>
       <summary className='flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden'>
-        <span style={columnTitleStyle}>{title}</span>
+        <span className='es-footer-column-title'>{title}</span>
         <AccordionChevronIcon />
       </summary>
       <div
@@ -222,11 +192,7 @@ export function Footer({ content }: FooterProps) {
   const copyrightText = resolveCurrentYearCopyright(content.copyright);
 
   return (
-    <footer
-      data-figma-node='footer'
-      className='w-full'
-      style={{ backgroundColor: FOOTER_BACKGROUND }}
-    >
+    <footer data-figma-node='footer' className='w-full es-footer-root'>
       <section className='w-full px-4 pb-8 pt-9 sm:px-6 sm:pb-10 sm:pt-11 lg:px-8 lg:pb-12 lg:pt-16'>
         <SectionContainer>
           <div className='mb-7 hidden justify-center sm:flex lg:hidden'>
@@ -301,7 +267,7 @@ export function Footer({ content }: FooterProps) {
 
       <div className='w-full px-4 pb-8 sm:px-6 lg:px-8'>
         <SectionContainer className='text-center'>
-          <p style={copyrightStyle}>{copyrightText}</p>
+          <p className='es-footer-copyright'>{copyrightText}</p>
         </SectionContainer>
       </div>
     </footer>
