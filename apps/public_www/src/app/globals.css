@@ -188,6 +188,66 @@
     line-height: 1;
   }
 
+  .es-type-eyebrow {
+    color: var(--site-heading-text);
+    font-family: var(--site-primary-font);
+    font-size: var(--figma-fontsizes-18, 18px);
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .es-type-title {
+    color: var(--site-heading-text);
+    font-family: var(--site-heading-font);
+    font-size: clamp(2rem, 5.8vw, 55px);
+    font-weight: 700;
+    line-height: clamp(2.6rem, 7vw, 70px);
+    letter-spacing: 0;
+  }
+
+  .es-type-subtitle {
+    color: var(--site-heading-text);
+    font-family: var(--site-heading-font);
+    font-size: clamp(1rem, 2.1vw, 22px);
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+
+  .es-type-body {
+    color: var(--site-primary-text);
+    font-family: var(--site-primary-font);
+    font-size: clamp(1rem, 1.9vw, 22px);
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: 0;
+  }
+
+  .es-type-body-italic {
+    color: var(--site-primary-text);
+    font-family: var(--site-primary-font);
+    font-size: clamp(1rem, 2.2vw, 28px);
+    font-weight: 400;
+    font-style: italic;
+    line-height: clamp(1.5rem, 3vw, 50px);
+    letter-spacing: 0.28px;
+  }
+
+  .es-section-header {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 980px;
+  }
+
+  .es-section-header--center {
+    text-align: center;
+  }
+
+  .es-section-header--left {
+    text-align: left;
+  }
+
   .es-section-eyebrow-chip {
     padding: 0.625rem 1rem;
     border-color: var(--es-color-brand-peach-border);
@@ -537,6 +597,28 @@
 
   .es-cta-button:hover {
     opacity: 0.9;
+  }
+
+  .es-link-external-label {
+    text-decoration-line: underline;
+    text-underline-offset: 4px;
+  }
+
+  .es-link-external-icon {
+    display: inline-block;
+    flex-shrink: 0;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+
+  .es-link-external-icon--inline {
+    width: 14px;
+    height: 14px;
+  }
+
+  .es-link-external-icon--cta {
+    width: 20px;
+    height: 20px;
   }
 
   .es-nav-pill {

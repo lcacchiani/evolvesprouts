@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import {
   readCandidateText,
@@ -51,32 +51,6 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
 });
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
-
-const badgeTextStyle: CSSProperties = {
-  color: TEXT_PRIMARY,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: 'var(--figma-lineheights-testimonials, 100%)',
-};
-
-const headingStyle: CSSProperties = {
-  color: TEXT_PRIMARY,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(2rem, 5.8vw, var(--figma-fontsizes-55, 55px))',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  lineHeight:
-    'clamp(2.6rem, 7vw, calc(var(--figma-lineheights-real-stories-from-parents-in-hong-kong, 70) * 1px))',
-};
-
-const descriptionTextStyle: CSSProperties = {
-  color: TEXT_SECONDARY,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-400, 400)',
-  lineHeight: 'var(--figma-lineheights-home, 28px)',
-  letterSpacing: 'var(--figma-letterspacing-home, 0.5px)',
-};
 
 const quoteTextStyle: CSSProperties = {
   color: TEXT_PRIMARY,
@@ -309,22 +283,13 @@ export function Testimonials({ content }: TestimonialsProps) {
       style={SECTION_STYLE}
     >
       <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
-        <div className='mx-auto max-w-[760px] text-center'>
-          <SectionEyebrowChip
-            label={badgeLabel}
-            labelStyle={badgeTextStyle}
-          />
-
-          <h2 className='mt-6 text-balance' style={headingStyle}>
-            {content.title}
-          </h2>
-
-          {descriptionText && (
-            <p className='mt-3' style={descriptionTextStyle}>
-              {descriptionText}
-            </p>
-          )}
-        </div>
+        <SectionHeader
+          eyebrow={badgeLabel}
+          title={content.title}
+          titleClassName='text-balance'
+          description={descriptionText || undefined}
+          descriptionClassName='es-type-body mt-3'
+        />
 
         <div
           data-testid='testimonials-card'

@@ -5,10 +5,12 @@ interface ExternalLinkIconProps extends SVGProps<SVGSVGElement> {
 }
 
 export function ExternalLinkIcon({
-  className = 'h-4 w-4 shrink-0',
+  className = 'es-link-external-icon--inline',
   ...svgProps
 }: ExternalLinkIconProps) {
-  const mergedClassName = `shrink-0 border-b border-current pb-[1px] ${className}`;
+  const mergedClassName = className
+    ? `es-link-external-icon ${className}`
+    : 'es-link-external-icon';
 
   return (
     <svg

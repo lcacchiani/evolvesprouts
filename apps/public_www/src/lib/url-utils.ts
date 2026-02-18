@@ -1,11 +1,37 @@
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
-const CONTACT_PROTOCOL_REGEX = /^(mailto:|tel:)/i;
+const MAILTO_PROTOCOL_REGEX = /^mailto:/i;
+const TEL_PROTOCOL_REGEX = /^tel:/i;
+const HASH_PROTOCOL_REGEX = /^#/;
+
+export type HrefKind = 'internal' | 'hash' | 'http' | 'mailto' | 'tel';
+
+export function getHrefKind(href: string): HrefKind {
+  const value = href.trim();
+
+  if (HTTP_PROTOCOL_REGEX.test(value)) {
+    return 'http';
+  }
+
+  if (MAILTO_PROTOCOL_REGEX.test(value)) {
+    return 'mailto';
+  }
+
+  if (TEL_PROTOCOL_REGEX.test(value)) {
+    return 'tel';
+  }
+
+  if (HASH_PROTOCOL_REGEX.test(value)) {
+    return 'hash';
+  }
+
+  return 'internal';
+}
 
 export function isHttpHref(href: string): boolean {
-  return HTTP_PROTOCOL_REGEX.test(href.trim());
+  return getHrefKind(href) === 'http';
 }
 
 export function isExternalHref(href: string): boolean {
-  const value = href.trim();
-  return isHttpHref(value) || CONTACT_PROTOCOL_REGEX.test(value);
+  const hrefKind = getHrefKind(href);
+  return hrefKind === 'http' || hrefKind === 'mailto' || hrefKind === 'tel';
 }

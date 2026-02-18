@@ -1,10 +1,8 @@
-import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyHistoryContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import {
   buildSectionBackgroundOverlayStyle,
   LOGO_OVERLAY_DEEP,
@@ -19,38 +17,6 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   backgroundColor: 'var(--es-color-surface-muted, #F8F8F8)',
 });
 
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 500,
-  lineHeight: '1',
-  fontSize: '18px',
-};
-
-const titleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 700,
-  lineHeight: '1.14',
-  fontSize: 'clamp(1.95rem, 4.7vw, 50px)',
-};
-
-const subtitleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 500,
-  lineHeight: '1.4',
-  fontSize: 'clamp(1rem, 2.1vw, 22px)',
-};
-
-const bodyStyle: CSSProperties = {
-  color: BODY_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 400,
-  lineHeight: '1.55',
-  fontSize: 'clamp(1rem, 1.9vw, 22px)',
-};
-
 export function MyHistory({ content }: MyHistoryProps) {
   return (
     <SectionShell
@@ -62,17 +28,15 @@ export function MyHistory({ content }: MyHistoryProps) {
     >
       <div className='mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-12'>
         <div>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
+          <SectionHeader
+            eyebrow={content.eyebrow}
+            title={content.title}
+            align='left'
+            titleClassName='max-w-[780px]'
+            description={content.subtitle}
+            descriptionClassName='es-type-subtitle mt-4 max-w-[760px]'
           />
-          <h2 className='mt-6 max-w-[780px]' style={titleStyle}>
-            {content.title}
-          </h2>
-          <p className='mt-4 max-w-[760px]' style={subtitleStyle}>
-            {content.subtitle}
-          </p>
-          <p className='mt-4 max-w-[760px]' style={bodyStyle}>
+          <p className='es-type-body mt-4 max-w-[760px]'>
             {content.description}
           </p>
         </div>

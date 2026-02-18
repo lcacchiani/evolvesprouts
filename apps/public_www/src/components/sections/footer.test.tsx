@@ -38,19 +38,22 @@ describe('Footer external links', () => {
     expect(facebookLinks.length).toBeGreaterThan(0);
     for (const link of facebookLinks) {
       expect(link).toHaveAttribute('target', '_blank');
-      expect(link.querySelector('span:last-of-type')?.className).toContain('underline');
+      expect(link.querySelector('span:last-of-type')?.className).toContain(
+        'es-link-external-label',
+      );
       const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
-      expect(
-        externalIcon,
-      ).not.toBeNull();
-      expect(externalIcon?.getAttribute('class')).toContain('border-b');
+      expect(externalIcon).not.toBeNull();
+      expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
+      expect(externalIcon?.getAttribute('class')).toContain(
+        'es-link-external-icon--inline',
+      );
     }
 
     const homeLinks = screen.getAllByRole('link', { name: 'Home' });
     expect(homeLinks.length).toBeGreaterThan(0);
     for (const link of homeLinks) {
       expect(link.querySelector('span:last-of-type')?.className ?? '').not.toContain(
-        'underline',
+        'es-link-external-label',
       );
       expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
     }

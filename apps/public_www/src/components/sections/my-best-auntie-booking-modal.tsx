@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 import { ExternalLinkIcon } from '@/components/external-link-icon';
+import { SmartLink } from '@/components/smart-link';
 import {
   CloseButton,
   DiscountBadge,
@@ -470,17 +471,27 @@ export function MyBestAuntieBookingModal({
                       <p className='mt-1 text-[18px] font-semibold leading-[26px] es-text-heading'>
                         {content.locationAddress}
                       </p>
-                      <a
+                      <SmartLink
                         href={content.directionHref}
-                        target='_blank'
-                        rel='noopener noreferrer'
                         className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none es-text-heading'
                       >
-                        <span className='underline underline-offset-4'>
-                          {content.directionLabel}
-                        </span>
-                        <ExternalLinkIcon className='h-[18px] w-[18px] shrink-0' />
-                      </a>
+                        {({ isExternalHttp }) => (
+                          <>
+                            <span
+                              className={
+                                isExternalHttp
+                                  ? 'es-link-external-label'
+                                  : undefined
+                              }
+                            >
+                              {content.directionLabel}
+                            </span>
+                            {isExternalHttp ? (
+                              <ExternalLinkIcon className='es-link-external-icon--cta' />
+                            ) : null}
+                          </>
+                        )}
+                      </SmartLink>
                     </div>
                   </div>
                 </div>
@@ -673,17 +684,16 @@ export function MyBestAuntieBookingModal({
                       />
                       <span className='text-sm leading-[1.45] es-text-heading'>
                         {content.termsAgreementLabel}{' '}
-                        <Link
+                        <SmartLink
                           href={content.termsHref}
-                          target='_blank'
-                          rel='noopener noreferrer'
+                          openInNewTab
                           className='es-focus-ring rounded-[2px] es-text-brand underline underline-offset-4'
                           onClick={(event) => {
                             event.stopPropagation();
                           }}
                         >
                           {content.termsLinkLabel}
-                        </Link>
+                        </SmartLink>
                         <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
                           *
                         </span>

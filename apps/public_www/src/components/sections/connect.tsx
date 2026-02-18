@@ -1,17 +1,15 @@
 import type { CSSProperties } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
   BRAND_ORANGE,
-  DEFAULT_SECTION_EYEBROW_STYLE,
   HEADING_TEXT_COLOR,
   SURFACE_WHITE,
 } from '@/lib/design-tokens';
 import { buildSectionBackgroundStyle } from '@/lib/section-backgrounds';
-import { isHttpHref } from '@/lib/url-utils';
 
 interface ConnectProps {
   content: ContactUsContent['connect'];
@@ -22,7 +20,6 @@ const SECTION_STYLE = buildSectionBackgroundStyle({
   position: 'center top',
   size: '900px auto',
 });
-const eyebrowStyle: CSSProperties = DEFAULT_SECTION_EYEBROW_STYLE;
 
 const cardTitleStyle: CSSProperties = {
   color: HEADING_TEXT_COLOR,
@@ -86,13 +83,11 @@ export function Connect({ content }: ConnectProps) {
       style={SECTION_STYLE}
     >
       <div className='mx-auto w-full max-w-[1465px]'>
-        <div className='mx-auto max-w-[840px] text-center'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
-          />
-          <h2 className='es-section-heading mt-6 text-balance'>{content.title}</h2>
-        </div>
+        <SectionHeader
+          eyebrow={content.eyebrow}
+          title={content.title}
+          titleClassName='text-balance'
+        />
 
         <ul className='mt-10 grid grid-cols-1 gap-5 lg:mt-12 lg:grid-cols-3'>
           {content.cards.map((card, index) => (
@@ -108,9 +103,6 @@ export function Connect({ content }: ConnectProps) {
                 <SectionCtaAnchor
                   href={card.ctaHref}
                   className='mt-auto w-full'
-                  {...(isHttpHref(card.ctaHref)
-                    ? { target: '_blank', rel: 'noopener noreferrer' }
-                    : {})}
                 >
                   {card.ctaLabel}
                 </SectionCtaAnchor>

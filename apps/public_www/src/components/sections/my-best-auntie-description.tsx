@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieDescriptionContent } from '@/content';
 import {
@@ -37,21 +37,6 @@ const iconByKey: Record<string, string> = {
   'live-training': '/images/training.svg',
   'auntie-review': '/images/review.svg',
   workbook: '/images/workbook.svg',
-};
-
-const eyebrowStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: '18px',
-  fontWeight: 500,
-  lineHeight: 1,
-};
-
-const titleStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 700,
-  lineHeight: 1.15,
 };
 
 const cardTitleStyle: CSSProperties = {
@@ -194,18 +179,12 @@ export function MyBestAuntieDescription({
           data-testid='my-best-auntie-description-header'
           className='flex flex-col gap-5 md:flex-row md:items-end md:justify-between'
         >
-          <div className='max-w-[920px] text-left'>
-            <SectionEyebrowChip
-              label={content.eyebrow}
-              labelStyle={eyebrowStyle}
-            />
-            <h2
-              className='mt-6 text-[clamp(2rem,5.6vw,3.2rem)]'
-              style={titleStyle}
-            >
-              {content.title}
-            </h2>
-          </div>
+          <SectionHeader
+            eyebrow={content.eyebrow}
+            title={content.title}
+            align='left'
+            className='min-w-0 flex-1'
+          />
 
           {hasMultipleCards && (
             <div

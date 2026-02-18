@@ -5,13 +5,12 @@ import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
 import {
   BRAND_ORANGE_SOFT,
   bodyTextStyle,
-  eyebrowTextStyle,
   HEADING_TEXT_COLOR,
   headingTextStyle,
   SURFACE_WHITE,
@@ -45,15 +44,6 @@ const CONTACT_CARD_CTA_LABEL = 'Contact Us';
 const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_TOP,
   backgroundColor: SURFACE_WHITE,
-});
-
-const eyebrowStyle: CSSProperties = eyebrowTextStyle({
-  fontSize: '18px',
-});
-
-const titleStyle: CSSProperties = headingTextStyle({
-  lineHeight: '1.14',
-  fontSize: 'clamp(1.95rem, 4.7vw, 50px)',
 });
 
 const questionStyle: CSSProperties = headingTextStyle({
@@ -237,15 +227,7 @@ export function Faq({ content }: FaqProps) {
       style={SECTION_STYLE}
     >
       <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
-        <div className='mx-auto max-w-[980px] text-center'>
-          <SectionEyebrowChip
-            label={content.eyebrow}
-            labelStyle={eyebrowStyle}
-          />
-          <h2 className='mt-6' style={titleStyle}>
-            {content.title}
-          </h2>
-        </div>
+        <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
         <div className='mx-auto mt-8 max-w-[980px] rounded-[58px] border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
           <div className='relative'>
