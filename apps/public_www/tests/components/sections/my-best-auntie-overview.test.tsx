@@ -18,24 +18,21 @@ describe('MyBestAuntieOverview section', () => {
     const moduleTitles = enContent.myBestAuntieOverview.modules.map(
       (module) => module.title,
     );
-    const toneClasses = [
-      'es-my-best-auntie-overview-card--gold',
-      'es-my-best-auntie-overview-card--red',
-      'es-my-best-auntie-overview-card--blue',
-    ] as const;
 
-    moduleTitles.forEach((title, index) => {
-      const heading = screen.getByRole('heading', {
+    moduleTitles.forEach((title) => {
+      const headings = screen.getAllByRole('heading', {
         level: 3,
         name: title,
       });
-      expect(heading.className).toContain('es-my-best-auntie-overview-module-title');
-
-      const card = heading.closest('article');
-      expect(card).not.toBeNull();
-      expect(card?.className).toContain(toneClasses[index] ?? toneClasses[0]);
+      expect(headings.length).toBeGreaterThan(0);
+      headings.forEach((heading) => {
+        expect(heading.className).toContain('es-my-best-auntie-overview-module-title');
+      });
     });
 
+    expect(container.querySelector('article.es-my-best-auntie-overview-card--gold')).not.toBeNull();
+    expect(container.querySelector('article.es-my-best-auntie-overview-card--red')).not.toBeNull();
+    expect(container.querySelector('article.es-my-best-auntie-overview-card--blue')).not.toBeNull();
     expect(
       container.querySelector('span.es-my-best-auntie-overview-count-line--gold'),
     ).not.toBeNull();

@@ -50,7 +50,7 @@ describe('Events section', () => {
 
     expect(loadingStatus).toBeInTheDocument();
     expect(loadingGear).toHaveClass('animate-spin');
-    expect(loadingGear.className).toContain('es-events-loading-gear');
+    expect(loadingGear.getAttribute('class')).toContain('es-events-loading-gear');
     expect(loadingGear.getAttribute('style')).toBeNull();
     expect(screen.getByText(enContent.events.loadingLabel)).toBeInTheDocument();
   });
