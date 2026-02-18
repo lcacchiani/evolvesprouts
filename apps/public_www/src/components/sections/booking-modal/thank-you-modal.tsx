@@ -4,6 +4,10 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 
 import { ButtonPrimitive } from '@/components/button-primitive';
+import {
+  OverlayDialogPanel,
+  OverlayScrollableBody,
+} from '@/components/overlay-surface';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import {
   bodyTextStyle,
@@ -111,18 +115,15 @@ export function MyBestAuntieThankYouModal({
 
   return (
     <ModalOverlay onClose={onClose}>
-      <section
-        role='dialog'
-        aria-modal='true'
-        aria-label={content.title}
-        className='relative w-full max-w-[1190px] overflow-hidden rounded-[24px] border border-black/10 shadow-[0_22px_70px_rgba(0,0,0,0.42)]'
+      <OverlayDialogPanel
+        ariaLabel={content.title}
         style={{ backgroundColor: MODAL_PANEL_BACKGROUND }}
       >
         <header className='flex justify-end px-4 pb-6 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton label={content.closeLabel} onClose={onClose} />
         </header>
 
-        <div className='relative max-h-[82vh] overflow-y-auto px-4 pb-6 sm:px-8 sm:pb-8'>
+        <OverlayScrollableBody>
           <Image
             src='/images/evolvesprouts-logo.svg'
             alt=''
@@ -275,8 +276,8 @@ export function MyBestAuntieThankYouModal({
               </div>
             </div>
           </section>
-        </div>
-      </section>
+        </OverlayScrollableBody>
+      </OverlayDialogPanel>
     </ModalOverlay>
   );
 }

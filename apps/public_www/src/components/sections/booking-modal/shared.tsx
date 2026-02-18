@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { ButtonPrimitive } from '@/components/button-primitive';
+import { OverlayBackdrop } from '@/components/overlay-surface';
 import { CloseIcon } from '@/components/sections/navbar-icons';
 import QRCode from 'qrcode';
 import {
@@ -111,10 +112,9 @@ export function ModalOverlay({
 }) {
   return (
     <div className='fixed inset-0 z-[80] overflow-y-auto'>
-      <ButtonPrimitive
-        variant='icon'
+      <OverlayBackdrop
         aria-label='Close modal'
-        className='absolute inset-0 border-0'
+        className='border-0'
         style={{ backgroundColor: MODAL_OVERLAY_BACKGROUND }}
         onClick={onClose}
       />
