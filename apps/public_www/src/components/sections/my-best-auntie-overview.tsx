@@ -1,21 +1,18 @@
-import { Fragment, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { MyBestAuntieOverviewContent } from '@/content';
-import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
-import {
-  buildSectionBackgroundOverlayStyle,
-  LOGO_OVERLAY_TOP,
-} from '@/lib/section-backgrounds';
+import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface MyBestAuntieOverviewProps {
   content: MyBestAuntieOverviewContent;
 }
 
 type ModuleIconVariant = 'foundation' | 'coaching' | 'practice';
+type ModuleToneVariant = 'gold' | 'red' | 'blue';
 
 interface ModuleStep {
   step: string;
@@ -25,80 +22,16 @@ interface ModuleStep {
   activity?: string;
 }
 
-interface ModuleTone {
-  cardBackground: string;
-  countColor: string;
-  countLine: string;
-  iconGlow: string;
-}
-
 const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
   'foundation',
   'coaching',
   'practice',
 ];
 
-const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
-  ...LOGO_OVERLAY_TOP,
-  backgroundColor: 'var(--figma-colors-desktop, #FFFFFF)',
-});
 const HEADING_COLOR = HEADING_TEXT_COLOR;
-const BODY_COLOR = BODY_TEXT_COLOR;
-const WEEK_COLOR = 'var(--figma-colors-week-01-04, #313131)';
 const BRAND_BLUE = 'var(--figma-colors-frame-2147235242, #174879)';
 
-const MODULE_TONES: readonly ModuleTone[] = [
-  {
-    cardBackground: 'var(--es-gradient-card-yellow)',
-    countColor: 'var(--es-color-module-count-gold, #D7AB0A)',
-    countLine: 'var(--es-gradient-module-line-gold)',
-    iconGlow: 'rgba(247, 198, 0, 0.25)',
-  },
-  {
-    cardBackground: 'var(--es-gradient-card-pink)',
-    countColor: 'var(--es-color-module-count-red, #E3181B)',
-    countLine: 'var(--es-gradient-module-line-red)',
-    iconGlow: 'rgba(227, 24, 27, 0.22)',
-  },
-  {
-    cardBackground: 'var(--es-gradient-card-blue)',
-    countColor: 'var(--es-color-module-count-blue, #4592DE)',
-    countLine: 'var(--es-gradient-module-line-blue)',
-    iconGlow: 'rgba(69, 146, 222, 0.24)',
-  },
-];
-
-const moduleTitleStyle: CSSProperties = {
-  color: HEADING_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.1rem, 2vw, 22px)',
-  fontWeight: '500',
-  lineHeight: '1.2',
-  letterSpacing: '0.3px',
-};
-
-const moduleWeekStyle: CSSProperties = {
-  color: WEEK_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1.15rem, 2.2vw, 28px)',
-  fontWeight: '700',
-  lineHeight: '1.2',
-};
-
-const activityStyle: CSSProperties = {
-  color: BODY_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(0.875rem, 2vw, 16px)',
-  fontWeight: '400',
-  lineHeight: '1.45',
-};
-
-const countTextStyle: CSSProperties = {
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: '20px',
-  fontWeight: '700',
-  lineHeight: '1',
-};
+const MODULE_TONES: readonly ModuleToneVariant[] = ['gold', 'red', 'blue'];
 
 function ModuleGlyph({
   variant,
@@ -214,7 +147,7 @@ function renderMultilineText(value: string): ReactNode {
   ));
 }
 
-function getModuleTone(index: number): ModuleTone {
+function getModuleTone(index: number): ModuleToneVariant {
   return MODULE_TONES[index % MODULE_TONES.length];
 }
 
@@ -231,28 +164,25 @@ function MyBestAuntieOverviewCard({
 
   return (
     <article
-      className='group relative flex min-h-[450px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:min-h-[520px] sm:px-6 md:min-h-[480px] lg:min-h-[560px]'
-      style={{ background: tone.cardBackground }}
+      className={`group relative flex min-h-[450px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:min-h-[520px] sm:px-6 md:min-h-[480px] lg:min-h-[560px] es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone}`}
     >
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute -right-8 top-10 h-36 w-36 rounded-full blur-3xl'
-        style={{ backgroundColor: tone.iconGlow }}
+        className={`pointer-events-none absolute -right-8 top-10 h-36 w-36 rounded-full blur-3xl es-my-best-auntie-overview-icon-glow es-my-best-auntie-overview-icon-glow--${tone}`}
       />
       <div className='relative flex flex-1 flex-col items-center text-center'>
         <span className='inline-flex h-[84px] w-[84px] items-center justify-center rounded-full bg-white/90 shadow-[0_8px_24px_rgba(0,0,0,0.2)]'>
           <ModuleGlyph variant={module.icon} className='h-[44px] w-[44px]' />
         </span>
-        <h3 className='mt-5' style={moduleTitleStyle}>
+        <h3 className='mt-5 es-my-best-auntie-overview-module-title'>
           {module.title}
         </h3>
-        <p className='mt-2' style={moduleWeekStyle}>
+        <p className='mt-2 es-my-best-auntie-overview-module-week'>
           {module.week}
         </p>
         {module.activity && (
           <p
-            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 ${showFullActivity ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
-            style={activityStyle}
+            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-overview-activity ${showFullActivity ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
           >
             {module.activity}
           </p>
@@ -261,10 +191,9 @@ function MyBestAuntieOverviewCard({
           <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
             <span
               aria-hidden='true'
-              className='pointer-events-none absolute -top-[70px] left-1/2 h-[70px] w-2 -translate-x-1/2 rounded-full'
-              style={{ background: tone.countLine }}
+              className={`pointer-events-none absolute -top-[70px] left-1/2 h-[70px] w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
             />
-            <span style={{ ...countTextStyle, color: tone.countColor }}>
+            <span className={`es-my-best-auntie-overview-count-text es-my-best-auntie-overview-count-text--${tone}`}>
               {module.step}
             </span>
           </span>
@@ -295,8 +224,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
       id='courses'
       ariaLabel={content.title}
       dataFigmaNode='My Best Auntie Overview'
-      className='es-section-bg-overlay'
-      style={SECTION_STYLE}
+      className='es-section-bg-overlay es-my-best-auntie-overview-section'
     >
       <SectionContainer>
         <SectionHeader

@@ -1273,6 +1273,266 @@
     line-height: 1.5;
   }
 
+  .es-events-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-events-loading-gear {
+    color: var(--es-color-brand-orange-soft, #F2A975);
+  }
+
+  .es-events-loading-bubble {
+    background-color: var(--es-color-brand-peach-bg, #FFF0E5);
+  }
+
+  .es-events-scheduled-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.45rem, 3.5vw, 32px);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .es-events-filter-select {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .es-events-card-tag {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .es-events-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.4rem, 3vw, 32px);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .es-events-card-body {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    letter-spacing: 0;
+  }
+
+  .es-events-detail-chip {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .es-events-detail-chip-danger {
+    color: var(--es-color-text-danger-chip, #D03C3C);
+  }
+
+  .es-events-location-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .es-events-location-text {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: 0;
+  }
+
+  .es-free-resources-section {
+    background-color: var(--figma-colors-desktop, #FFFFFF);
+  }
+
+  .es-free-resources-pattern-bg {
+    background-color: var(--es-color-border-soft, #EECAB0);
+    background-image: linear-gradient(
+        var(--es-color-tile-border, #D9A578) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        var(--es-color-tile-border, #D9A578) 1px,
+        transparent 1px
+      );
+    background-size: 100px 100px;
+  }
+
+  .es-free-resources-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.75rem, 4.5vw, var(--figma-fontsizes-41, 41px));
+    font-weight: var(--figma-fontweights-600, 600);
+    line-height: clamp(
+      2.15rem,
+      5.2vw,
+      calc(var(--figma-lineheights-age-specific-strategies, 50) * 1px)
+    );
+    letter-spacing: calc(
+      var(
+        --figma-letterspacing-free-guide-4-simple-ways-to-teach-patience-to-young-children,
+        0.41
+      ) * 1px
+    );
+  }
+
+  .es-free-resources-card-body {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.1rem, 3.2vw, var(--figma-fontsizes-28, 28px));
+    font-weight: var(--figma-fontweights-400, 400);
+    line-height: clamp(
+      1.7rem,
+      4vw,
+      calc(var(--figma-lineheights-gentle-strategies-for-busy-parents, 41) * 1px)
+    );
+    letter-spacing: calc(
+      var(--figma-letterspacing-gentle-strategies-for-busy-parents, 0.28) * 1px
+    );
+  }
+
+  .es-free-resources-checklist-title {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.05rem, 2.1vw, 20px);
+    font-weight: var(--figma-fontweights-400, 400);
+    line-height: 1.2;
+    letter-spacing: calc(var(--figma-letterspacing-the-firstthen-trick, 0.336) * 1px);
+  }
+
+  .es-free-resources-checklist-description {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1rem, 1.9vw, 18px);
+    font-weight: var(--figma-fontweights-400, 400);
+    line-height: 1.4;
+    letter-spacing: calc(var(--figma-letterspacing-home, 0.5) * 1px);
+  }
+
+  .es-free-resources-media-pill-text {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1rem, 1.6vw, 20px);
+    font-weight: var(--figma-fontweights-600, 600);
+    line-height: 1;
+  }
+
+  .es-my-best-auntie-overview-section {
+    background-color: var(--figma-colors-desktop, #FFFFFF);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -150px;
+    --es-section-bg-size: 900px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(
+      to bottom,
+      black 18%,
+      transparent 20%
+    );
+  }
+
+  .es-my-best-auntie-overview-card--gold {
+    background: var(--es-gradient-card-yellow);
+  }
+
+  .es-my-best-auntie-overview-card--red {
+    background: var(--es-gradient-card-pink);
+  }
+
+  .es-my-best-auntie-overview-card--blue {
+    background: var(--es-gradient-card-blue);
+  }
+
+  .es-my-best-auntie-overview-icon-glow--gold {
+    background-color: rgba(247, 198, 0, 0.25);
+  }
+
+  .es-my-best-auntie-overview-icon-glow--red {
+    background-color: rgba(227, 24, 27, 0.22);
+  }
+
+  .es-my-best-auntie-overview-icon-glow--blue {
+    background-color: rgba(69, 146, 222, 0.24);
+  }
+
+  .es-my-best-auntie-overview-module-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.1rem, 2vw, 22px);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+  }
+
+  .es-my-best-auntie-overview-module-week {
+    color: var(--figma-colors-week-01-04, #313131);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.15rem, 2.2vw, 28px);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .es-my-best-auntie-overview-activity {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(0.875rem, 2vw, 16px);
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  .es-my-best-auntie-overview-count-line--gold {
+    background: var(--es-gradient-module-line-gold);
+  }
+
+  .es-my-best-auntie-overview-count-line--red {
+    background: var(--es-gradient-module-line-red);
+  }
+
+  .es-my-best-auntie-overview-count-line--blue {
+    background: var(--es-gradient-module-line-blue);
+  }
+
+  .es-my-best-auntie-overview-count-text {
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .es-my-best-auntie-overview-count-text--gold {
+    color: var(--es-color-module-count-gold, #D7AB0A);
+  }
+
+  .es-my-best-auntie-overview-count-text--red {
+    color: var(--es-color-module-count-red, #E3181B);
+  }
+
+  .es-my-best-auntie-overview-count-text--blue {
+    color: var(--es-color-module-count-blue, #4592DE);
+  }
+
   .es-selection-card-idle {
     background-color: var(--es-color-surface-selection-idle);
     border: 1px solid var(--es-color-border-date);
