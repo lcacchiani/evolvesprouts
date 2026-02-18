@@ -44,9 +44,6 @@ describe('Footer external links', () => {
       const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
       expect(externalIcon).not.toBeNull();
       expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
-      expect(externalIcon?.getAttribute('class')).toContain(
-        'es-link-external-icon--inline',
-      );
     }
 
     const homeLinks = screen.getAllByRole('link', { name: 'Home' });

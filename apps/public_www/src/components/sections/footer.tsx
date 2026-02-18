@@ -138,7 +138,7 @@ function FooterColumnLinks({
                     {item.label}
                   </span>
                   {isExternalHttp ? (
-                    <ExternalLinkIcon className='es-link-external-icon--inline' />
+                    <ExternalLinkIcon />
                   ) : null}
                 </>
               )}

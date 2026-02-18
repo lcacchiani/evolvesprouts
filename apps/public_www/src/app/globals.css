@@ -607,13 +607,10 @@
   .es-link-external-icon {
     display: inline-block;
     flex-shrink: 0;
+    width: 20px;
+    height: 20px;
     border-bottom: 1px solid currentColor;
     padding-bottom: 1px;
-  }
-
-  .es-link-external-icon--inline {
-    width: 14px;
-    height: 14px;
   }
 
   .es-link-external-icon--cta {
