@@ -18,10 +18,6 @@ import {
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import {
-  CloseIcon,
-  HamburgerIcon,
-} from '@/components/sections/navbar-icons';
-import {
   LanguageSelectorButton,
   resolveLanguageSelectorContent,
 } from '@/components/sections/navbar/language-selector';
@@ -47,6 +43,8 @@ interface NavbarProps {
 }
 
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
+const NAV_HAMBURGER_ICON_SRC = '/images/hamburger.svg';
+const NAV_CLOSE_ICON_SRC = '/images/close.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
 const FOCUSABLE_ELEMENT_SELECTOR =
@@ -274,7 +272,14 @@ export function Navbar({ content }: NavbarProps) {
             className={NAV_OPEN_MENU_BUTTON_CLASSNAME}
           >
             <span className='sr-only'>Open navigation menu</span>
-            <HamburgerIcon />
+            <Image
+              src={NAV_HAMBURGER_ICON_SRC}
+              alt=''
+              aria-hidden='true'
+              width={16}
+              height={16}
+              className='h-4 w-4'
+            />
           </ButtonPrimitive>
         </SectionContainer>
       </header>
@@ -316,7 +321,14 @@ export function Navbar({ content }: NavbarProps) {
                 onClick={closeMobileMenu}
                 className={NAV_CLOSE_MENU_BUTTON_CLASSNAME}
               >
-                <CloseIcon />
+                <Image
+                  src={NAV_CLOSE_ICON_SRC}
+                  alt=''
+                  aria-hidden='true'
+                  width={18}
+                  height={18}
+                  className='h-[18px] w-[18px]'
+                />
               </ButtonPrimitive>
             </div>
             <div className='flex-1 overflow-y-auto p-4'>

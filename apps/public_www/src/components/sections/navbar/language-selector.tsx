@@ -22,12 +22,12 @@ import {
 } from '@/content';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 import { localizePath } from '@/lib/locale-routing';
-import { LanguageChevronIcon } from '@/components/sections/navbar-icons';
 
 const NAV_LANGUAGE_OPTION_CLASSNAME =
   'es-focus-ring es-nav-language-option';
 const NAV_LANGUAGE_OPTION_ACTIVE_CLASSNAME = 'es-nav-language-option--active';
 const NAV_LANGUAGE_OPTION_INACTIVE_CLASSNAME = 'es-nav-language-option--inactive';
+const NAV_LANGUAGE_CHEVRON_ICON_SRC = '/images/chevron.svg';
 
 function buildLanguageOptionClassName(isCurrent: boolean): string {
   const stateClassName = isCurrent
@@ -206,7 +206,19 @@ export function LanguageSelectorButton({
         <span className='sr-only'>
           {`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
         </span>
-        <LanguageChevronIcon isOpen={isMenuOpen} />
+        <span
+          aria-hidden='true'
+          className={`inline-flex h-5 w-5 items-center justify-center transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
+        >
+          <Image
+            src={NAV_LANGUAGE_CHEVRON_ICON_SRC}
+            alt=''
+            aria-hidden='true'
+            width={20}
+            height={20}
+            className='h-5 w-5'
+          />
+        </span>
       </ButtonPrimitive>
       <ul
         id={languageMenuId}

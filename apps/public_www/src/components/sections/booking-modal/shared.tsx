@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { OverlayBackdrop } from '@/components/shared/overlay-surface';
-import { CloseIcon } from '@/components/sections/navbar-icons';
 import QRCode from 'qrcode';
 import {
   type ReactNode,
@@ -14,6 +13,7 @@ import {
 
 const FPS_GENERATOR_SCRIPT_SOURCE = '/scripts/fps-generator.js';
 const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
+const CLOSE_ICON_SOURCE = '/images/close.svg';
 const FPS_MERCHANT_NAME = 'Ida De Gregorio';
 const FPS_MOBILE_NUMBER = '85297942094';
 const FPS_QR_CODE_SIZE_PX = 128;
@@ -135,7 +135,14 @@ export function CloseButton({
       onClick={onClose}
       className='es-btn--icon-surface h-10 w-10 rounded-full'
     >
-      <CloseIcon />
+      <Image
+        src={CLOSE_ICON_SOURCE}
+        alt=''
+        aria-hidden='true'
+        width={18}
+        height={18}
+        className='h-[18px] w-[18px]'
+      />
     </ButtonPrimitive>
   );
 }
