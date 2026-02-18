@@ -1,5 +1,5 @@
 import type { SiteContent } from '@/content';
-import { PageLayout } from '@/components/page-layout';
+import { PageLayout } from '@/components/shared/page-layout';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import { CourseHighlights } from '@/components/sections/course-highlights';
 import { HeroBanner } from '@/components/sections/hero-banner';

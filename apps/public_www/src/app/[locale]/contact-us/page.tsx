@@ -1,4 +1,4 @@
-import { ContactUsPageSections } from '@/components/contact-us';
+import { ContactUsPageSections } from '@/components/pages/contact-us';
 import {
   getMenuLabel,
   type LocaleRouteProps,

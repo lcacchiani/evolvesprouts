@@ -6,9 +6,9 @@ import {
   useMemo,
 } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
-import { SectionHeader } from '@/components/section-header';
-import { SectionShell } from '@/components/section-shell';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionHeader } from '@/components/sections/shared/section-header';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import {
   readCandidateText,
   readOptionalText,

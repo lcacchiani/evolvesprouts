@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react';
 
-import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionContainer } from '@/components/section-container';
-import { SectionHeader } from '@/components/section-header';
-import { SectionShell } from '@/components/section-shell';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
   BRAND_ORANGE,

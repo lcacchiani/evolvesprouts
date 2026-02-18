@@ -198,6 +198,20 @@ repo root
 - Keep Tailwind usage consistent and mobile-first.
 - For simple pure helpers, use the `function` keyword.
 
+### Public WWW component and test structure (MANDATORY for `apps/public_www/**`)
+
+- Place page composition components in `apps/public_www/src/components/pages/**`.
+- Place reusable UI primitives/layout helpers in
+  `apps/public_www/src/components/shared/**`.
+- Place section components in `apps/public_www/src/components/sections/**`.
+- Place section-only shared helpers in
+  `apps/public_www/src/components/sections/shared/**`.
+- Place all unit/component tests in `apps/public_www/tests/**`.
+- Do not create `*.test.*` or `*.spec.*` files under
+  `apps/public_www/src/**`.
+- Mirror source domains in tests (`tests/components/**`, `tests/lib/**`,
+  `tests/content/**`) to keep navigation predictable.
+
 ## React/Redux guidance (when Redux is used)
 
 - Use Redux Toolkit patterns (`createSlice`, `createAsyncThunk`).

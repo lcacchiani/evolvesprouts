@@ -1,4 +1,4 @@
-import { PlaceholderPageLayout } from '@/components/placeholder-page-layout';
+import { PlaceholderPageLayout } from '@/components/shared/placeholder-page-layout';
 import { Whoops } from '@/components/sections/whoops';
 import { DEFAULT_LOCALE, getContent } from '@/content';
 

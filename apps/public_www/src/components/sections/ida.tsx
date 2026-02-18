@@ -1,8 +1,8 @@
 import Image from 'next/image';
 
-import { SectionCtaAnchor } from '@/components/section-cta-link';
-import { SectionContainer } from '@/components/section-container';
-import { SectionShell } from '@/components/section-shell';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { IdaContent } from '@/content';
 
 interface IdaProps {

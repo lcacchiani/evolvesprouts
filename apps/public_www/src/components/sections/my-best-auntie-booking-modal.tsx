@@ -9,13 +9,13 @@ import {
   useState,
 } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
-import { ExternalLinkIcon } from '@/components/external-link-icon';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
 import {
   OverlayDialogPanel,
   OverlayScrollableBody,
-} from '@/components/overlay-surface';
-import { SmartLink } from '@/components/smart-link';
+} from '@/components/shared/overlay-surface';
+import { SmartLink } from '@/components/shared/smart-link';
 import {
   CloseButton,
   DiscountBadge,

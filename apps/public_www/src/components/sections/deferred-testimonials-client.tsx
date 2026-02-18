@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 
-import { SectionShell } from '@/components/section-shell';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { TestimonialsContent } from '@/content';
 import {
   buildSectionBackgroundOverlayStyle,

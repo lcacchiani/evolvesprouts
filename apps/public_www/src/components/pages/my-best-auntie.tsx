@@ -1,5 +1,5 @@
 import type { Locale, SiteContent } from '@/content';
-import { PageLayout } from '@/components/page-layout';
+import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie-booking';

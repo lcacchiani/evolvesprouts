@@ -5,7 +5,7 @@ import type {
   Ref,
 } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 
 const DEFAULT_DIALOG_PANEL_CLASSNAME =
   'relative w-full max-w-[1190px] overflow-hidden rounded-[24px] border border-black/10 shadow-[0_22px_70px_rgba(0,0,0,0.42)]';

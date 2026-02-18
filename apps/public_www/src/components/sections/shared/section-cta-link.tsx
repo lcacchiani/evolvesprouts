@@ -4,8 +4,8 @@ import type {
   ReactNode,
 } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
-import { ExternalLinkIcon } from '@/components/external-link-icon';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
 
 const BASE_SECTION_CTA_CLASSNAME =
   'gap-2';

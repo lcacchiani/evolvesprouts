@@ -1,9 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 
-import { ExternalLinkIcon } from '@/components/external-link-icon';
-import { SectionContainer } from '@/components/section-container';
-import { SmartLink } from '@/components/smart-link';
+import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SmartLink } from '@/components/shared/smart-link';
 import type { FooterContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 

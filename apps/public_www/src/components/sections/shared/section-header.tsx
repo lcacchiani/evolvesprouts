@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { SectionEyebrowChip } from '@/components/section-eyebrow-chip';
+import { SectionEyebrowChip } from '@/components/sections/shared/section-eyebrow-chip';
 
 type SectionHeaderAlignment = 'center' | 'left';
 type SectionHeaderTitleTag = 'h1' | 'h2';

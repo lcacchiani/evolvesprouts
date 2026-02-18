@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react';
 import { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';

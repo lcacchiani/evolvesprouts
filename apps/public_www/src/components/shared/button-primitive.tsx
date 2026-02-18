@@ -6,7 +6,7 @@ import type {
   ReactNode,
 } from 'react';
 
-import { SmartLink } from '@/components/smart-link';
+import { SmartLink } from '@/components/shared/smart-link';
 import type { HrefKind } from '@/lib/url-utils';
 
 export type ButtonPrimitiveVariant =

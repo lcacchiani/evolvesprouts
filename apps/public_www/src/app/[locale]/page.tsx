@@ -1,4 +1,4 @@
-import { HomePageSections } from '@/components/home-page-sections';
+import { HomePageSections } from '@/components/pages/home-page-sections';
 import {
   generateLocaleStaticParams,
   type LocaleRouteProps,

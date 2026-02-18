@@ -3,9 +3,9 @@
 import type { CSSProperties, FormEvent } from 'react';
 import { useState } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
-import { SectionContainer } from '@/components/section-container';
-import { SectionShell } from '@/components/section-shell';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
   BODY_TEXT_COLOR,

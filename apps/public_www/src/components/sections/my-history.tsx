@@ -1,8 +1,8 @@
 import Image from 'next/image';
 
-import { SectionContainer } from '@/components/section-container';
-import { SectionHeader } from '@/components/section-header';
-import { SectionShell } from '@/components/section-shell';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { MyHistoryContent } from '@/content';
 import {
   buildSectionBackgroundOverlayStyle,

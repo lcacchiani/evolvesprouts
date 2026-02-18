@@ -1,4 +1,4 @@
-import { MyBestAuntie } from '@/components/my-best-auntie';
+import { MyBestAuntie } from '@/components/pages/my-best-auntie';
 import {
   getFooterLinkLabel,
   type LocaleRouteProps,

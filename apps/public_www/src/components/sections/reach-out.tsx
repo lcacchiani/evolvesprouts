@@ -1,6 +1,6 @@
-import { SectionHeader } from '@/components/section-header';
-import { SectionContainer } from '@/components/section-container';
-import { SectionShell } from '@/components/section-shell';
+import { SectionHeader } from '@/components/sections/shared/section-header';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
   BRAND_ORANGE,

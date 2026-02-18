@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { SmartLink } from '@/components/smart-link';
+import { SmartLink } from '@/components/shared/smart-link';
 
 vi.mock('next/link', () => ({
   default: ({

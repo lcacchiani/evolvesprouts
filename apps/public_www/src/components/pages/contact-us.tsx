@@ -1,5 +1,5 @@
 import type { SiteContent } from '@/content';
-import { PageLayout } from '@/components/page-layout';
+import { PageLayout } from '@/components/shared/page-layout';
 import { Connect } from '@/components/sections/connect';
 import { ContactUsForm } from '@/components/sections/contact-us-form';
 import { ReachOut } from '@/components/sections/reach-out';

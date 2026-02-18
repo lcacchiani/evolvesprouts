@@ -3,10 +3,10 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
-import { SectionContainer } from '@/components/section-container';
-import { SectionHeader } from '@/components/section-header';
-import { SectionShell } from '@/components/section-shell';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { MyBestAuntieDescriptionContent } from '@/content';
 import {
   BODY_TEXT_COLOR,

@@ -3,11 +3,11 @@
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
 
-import { ButtonPrimitive } from '@/components/button-primitive';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import {
   OverlayDialogPanel,
   OverlayScrollableBody,
-} from '@/components/overlay-surface';
+} from '@/components/shared/overlay-surface';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import {
   bodyTextStyle,
