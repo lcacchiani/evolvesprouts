@@ -5,19 +5,16 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { SectionContainer } from '@/components/section-container';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 import { SectionShell } from '@/components/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
-  BORDER_DATE_COLOR,
   bodyTextStyle,
-  BRAND_ORANGE_SOFT,
-  BRAND_ORANGE_STRONG,
   headingTextStyle,
   SURFACE_WHITE,
-  TEXT_HEADING_STRONG,
   TEXT_ICON_COLOR,
 } from '@/lib/design-tokens';
 
@@ -54,28 +51,9 @@ const bodyStyle: CSSProperties = bodyTextStyle({
   lineHeight: 1.55,
 });
 
-const activeSelectorCardStyle: CSSProperties = {
-  backgroundColor: BRAND_ORANGE_SOFT,
-  border: `2px solid ${BRAND_ORANGE_STRONG}`,
-};
-
-const inactiveAgeSelectorCardStyle: CSSProperties = {
-  backgroundColor: 'var(--es-color-surface-selection-idle, #EFF3F6)',
-  border: `1px solid ${BORDER_DATE_COLOR}`,
-};
-
-const inactiveDateSelectorCardStyle: CSSProperties = {
-  backgroundColor: 'var(--es-color-surface-selection-idle, #EFF3F6)',
-  border: `1px solid ${BORDER_DATE_COLOR}`,
-};
-
-const activeDateSelectorCalendarIconStyle = createMaskIconStyle(
+const dateSelectorCalendarIconMaskStyle = createMaskIconStyle(
   CALENDAR_ICON_MASK_PATH,
-  BRAND_ORANGE_STRONG,
-);
-const inactiveDateSelectorCalendarIconStyle = createMaskIconStyle(
-  CALENDAR_ICON_MASK_PATH,
-  TEXT_HEADING_STRONG,
+  'currentColor',
 );
 
 function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
@@ -295,19 +273,15 @@ export function MyBestAuntieBooking({
                     const isSelected = option.id === selectedAgeId;
 
                     return (
-                      <button
+                      <ButtonPrimitive
                         key={option.id}
-                        type='button'
+                        variant='selection'
+                        state={isSelected ? 'active' : 'inactive'}
                         aria-pressed={isSelected}
                         onClick={() => {
                           setSelectedAgeId(option.id);
                         }}
-                        className='es-focus-ring min-h-[76px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left cursor-pointer'
-                        style={
-                          isSelected
-                            ? activeSelectorCardStyle
-                            : inactiveAgeSelectorCardStyle
-                        }
+                        className='min-h-[76px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left'
                       >
                         <div className='flex items-center justify-start gap-10'>
                           <Image
@@ -322,7 +296,7 @@ export function MyBestAuntieBooking({
                             {option.label}
                           </span>
                         </div>
-                      </button>
+                      </ButtonPrimitive>
                     );
                   })}
                 </div>
@@ -349,31 +323,23 @@ export function MyBestAuntieBooking({
                           const isSelected = option.id === selectedDateId;
 
                           return (
-                            <button
+                            <ButtonPrimitive
                               key={option.id}
-                              ref={(element) => {
+                              buttonRef={(element) => {
                                 dateCardRefs.current[option.id] = element;
                               }}
-                              type='button'
+                              variant='selection'
+                              state={isSelected ? 'active' : 'inactive'}
                               aria-pressed={isSelected}
                               onClick={() => {
                                 setSelectedDateId(option.id);
                               }}
-                              className='es-focus-ring w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left cursor-pointer'
-                              style={
-                                isSelected
-                                  ? activeSelectorCardStyle
-                                  : inactiveDateSelectorCardStyle
-                              }
+                              className='w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left'
                             >
                               <div className='flex items-center justify-start gap-1.5'>
                                 <span
-                                  className='h-6 w-6 shrink-0'
-                                  style={
-                                    isSelected
-                                      ? activeDateSelectorCalendarIconStyle
-                                      : inactiveDateSelectorCalendarIconStyle
-                                  }
+                                  className={`h-6 w-6 shrink-0 ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                                  style={dateSelectorCalendarIconMaskStyle}
                                   aria-hidden='true'
                                 />
                                 <p className='text-base font-semibold es-text-heading'>
@@ -383,50 +349,50 @@ export function MyBestAuntieBooking({
                               <p className='mt-2 text-center text-sm es-text-danger-accent'>
                                 {option.availabilityLabel}
                               </p>
-                            </button>
+                            </ButtonPrimitive>
                           );
                         })}
                       </div>
                     </div>
 
                     {hasDateNavigation && canScrollDateLeft && (
-                      <button
-                        type='button'
+                      <ButtonPrimitive
+                        variant='control'
                         onClick={() => {
                           handleDateCarouselNavigation('prev');
                         }}
                         aria-label='Scroll dates left'
-                        className='es-focus-ring es-control-button absolute left-0 top-1/2 z-20 inline-flex h-[58px] w-[58px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
+                        className='absolute left-0 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2'
                       >
                         <DateArrowIcon direction='left' />
-                      </button>
+                      </ButtonPrimitive>
                     )}
 
                     {hasDateNavigation && canScrollDateRight && (
-                      <button
-                        type='button'
+                      <ButtonPrimitive
+                        variant='control'
                         onClick={() => {
                           handleDateCarouselNavigation('next');
                         }}
                         aria-label='Scroll dates right'
-                        className='es-focus-ring es-control-button absolute right-0 top-1/2 z-20 inline-flex h-[58px] w-[58px] translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full sm:h-[68px] sm:w-[68px]'
+                        className='absolute right-0 top-1/2 z-20 translate-x-1/2 -translate-y-1/2'
                       >
                         <DateArrowIcon direction='right' />
-                      </button>
+                      </ButtonPrimitive>
                     )}
                   </div>
                 </div>
               </div>
 
-              <button
-                type='button'
+              <ButtonPrimitive
+                variant='primary'
                 onClick={() => {
                   setIsPaymentModalOpen(true);
                 }}
-                className='es-focus-ring es-cta-button es-cta-primary es-primary-cta mt-7 cursor-pointer'
+                className='mt-7'
               >
                 {content.confirmAndPayLabel}
-              </button>
+              </ButtonPrimitive>
             </aside>
           </div>
         </SectionContainer>

@@ -1,9 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import type { CSSProperties } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import {
   bodyTextStyle,
@@ -246,10 +246,10 @@ export function MyBestAuntieThankYouModal({
 
             <div className='relative z-10 pt-7'>
               <div className='flex flex-wrap justify-end gap-3'>
-                <button
-                  type='button'
+                <ButtonPrimitive
+                  variant='outline'
                   onClick={handlePrint}
-                  className='es-focus-ring es-card-action-outline es-bg-surface-white inline-flex h-[54px] items-center gap-2 rounded-[10px] border px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
+                  className='h-[54px] gap-2 rounded-[10px] px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
                 >
                   <svg
                     width='24'
@@ -265,13 +265,13 @@ export function MyBestAuntieThankYouModal({
                     />
                   </svg>
                   {content.printLabel}
-                </button>
-                <Link
+                </ButtonPrimitive>
+                <ButtonPrimitive
                   href={homeHref}
-                  className='es-focus-ring es-cta-button es-cta-primary es-primary-cta'
+                  variant='primary'
                 >
                   {content.backHomeLabel}
-                </Link>
+                </ButtonPrimitive>
               </div>
             </div>
           </section>

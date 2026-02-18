@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import {
   LanguageChevronIcon,
   MobileChevronIcon,
@@ -9,11 +9,6 @@ import {
   type Locale,
   type NavbarContent,
 } from '@/content';
-import {
-  BRAND_ORANGE,
-  BRAND_ORANGE_SOFT,
-  HEADING_TEXT_COLOR,
-} from '@/lib/design-tokens';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 import {
   localizeHref,
@@ -23,28 +18,15 @@ import {
 type MenuItem = NavbarContent['menuItems'][number];
 type SubmenuItem = NonNullable<MenuItem['children']>[number];
 
-const NAV_PILL_BACKGROUND = 'var(--figma-colors-frame-2147235267, #F6DECD)';
-const NAV_TEXT_COLOR = HEADING_TEXT_COLOR;
-const NAV_ACTIVE_TEXT = BRAND_ORANGE;
-const NAV_ACTIVE_BACKGROUND = BRAND_ORANGE_SOFT;
 const NAV_TOP_LEVEL_LINK_CLASSNAME =
-  'es-focus-ring es-nav-pill justify-center transition-colors';
+  'justify-center transition-colors';
 const NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME =
   `${NAV_TOP_LEVEL_LINK_CLASSNAME} pr-10`;
-const NAV_SUBMENU_LINK_CLASSNAME = 'es-focus-ring es-nav-submenu-link';
+const NAV_SUBMENU_LINK_CLASSNAME = '';
 const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
-  'es-focus-ring es-nav-pill flex-1';
+  'flex-1';
 export const MOBILE_PRIMARY_ACTION_CLASSNAME =
-  'es-focus-ring es-nav-pill w-full justify-between transition-colors';
-
-const linkStyle = {
-  backgroundColor: NAV_PILL_BACKGROUND,
-  color: NAV_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight: 'var(--figma-lineheights-home-2, 100%)',
-};
+  'w-full justify-between transition-colors';
 
 function isHrefActive(currentPath: string, href: string): boolean {
   const targetPath = normalizeLocalizedPath(href);
@@ -76,26 +58,6 @@ function isMenuItemActive(currentPath: string, item: MenuItem): boolean {
   );
 }
 
-export function getTopLinkStyle(isActive: boolean) {
-  return {
-    ...linkStyle,
-    backgroundColor: isActive ? NAV_ACTIVE_BACKGROUND : NAV_PILL_BACKGROUND,
-    color: NAV_TEXT_COLOR,
-  };
-}
-
-function getSubmenuLinkStyle(isActive: boolean) {
-  return {
-    ...linkStyle,
-    backgroundColor: isActive
-      ? 'var(--es-color-surface-submenu-active, #FFE0CA)'
-      : 'var(--es-color-surface-submenu-idle, #FFF0E5)',
-    color: isActive ? NAV_ACTIVE_TEXT : NAV_TEXT_COLOR,
-    fontSize: 'var(--figma-fontsizes-16, 16px)',
-    fontWeight: 500,
-  };
-}
-
 interface TopLevelMenuLinkProps {
   item: MenuItem;
   isActive: boolean;
@@ -110,13 +72,14 @@ function TopLevelMenuLink({
   locale,
 }: TopLevelMenuLinkProps) {
   return (
-    <Link
+    <ButtonPrimitive
+      variant='pill'
+      state={isActive ? 'active' : 'inactive'}
       href={localizeHref(item.href, locale)}
       className={className}
-      style={getTopLinkStyle(isActive)}
     >
       {item.label}
-    </Link>
+    </ButtonPrimitive>
   );
 }
 
@@ -149,15 +112,16 @@ function SubmenuLinks({
     >
       {items.map((item) => (
         <li key={item.label}>
-          <Link
+          <ButtonPrimitive
+            variant='submenu'
+            state={isHrefActive(currentPath, item.href) ? 'active' : 'inactive'}
             href={localizeHref(item.href, locale)}
             className={linkClassName}
-            style={getSubmenuLinkStyle(isHrefActive(currentPath, item.href))}
             onClick={onNavigate}
             tabIndex={isOpen === false ? -1 : undefined}
           >
             {item.label}
-          </Link>
+          </ButtonPrimitive>
         </li>
       ))}
     </ul>
@@ -246,11 +210,11 @@ function DesktopMenuItem({
         closeSubmenu();
       }}
     >
-      <button
-        ref={submenuToggleButtonRef}
-        type='button'
+      <ButtonPrimitive
+        buttonRef={submenuToggleButtonRef}
+        variant='pill'
+        state={itemIsActive ? 'active' : 'inactive'}
         className={NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME}
-        style={getTopLinkStyle(itemIsActive)}
         aria-expanded={isSubmenuOpen}
         aria-controls={submenuListId}
         aria-label={`Toggle ${item.label} submenu`}
@@ -259,7 +223,7 @@ function DesktopMenuItem({
         }}
       >
         {item.label}
-      </button>
+      </ButtonPrimitive>
       <span
         aria-hidden='true'
         className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-transform ${isSubmenuOpen ? 'rotate-180' : ''}`}
@@ -326,28 +290,29 @@ function MobileMenuItem({
   return (
     <li className='space-y-2'>
       {item.children ? (
-        <button
-          type='button'
+        <ButtonPrimitive
+          variant='pill'
+          state={itemIsActive ? 'active' : 'inactive'}
           onClick={() => {
             setIsExpanded((value) => !value);
           }}
           aria-expanded={isExpanded}
           aria-label={`Toggle ${item.label} submenu`}
           className={MOBILE_PRIMARY_ACTION_CLASSNAME}
-          style={getTopLinkStyle(itemIsActive)}
         >
           <span>{item.label}</span>
           <MobileChevronIcon isExpanded={isExpanded} />
-        </button>
+        </ButtonPrimitive>
       ) : (
-        <Link
+        <ButtonPrimitive
+          variant='pill'
+          state={itemIsActive ? 'active' : 'inactive'}
           href={localizeHref(item.href, locale)}
           className={NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME}
           onClick={onNavigate}
-          style={getTopLinkStyle(itemIsActive)}
         >
           {item.label}
-        </Link>
+        </ButtonPrimitive>
       )}
       {item.children && (
         <SubmenuLinks

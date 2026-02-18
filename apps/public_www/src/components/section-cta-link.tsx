@@ -4,20 +4,21 @@ import type {
   ReactNode,
 } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { ExternalLinkIcon } from '@/components/external-link-icon';
-import { SmartLink } from '@/components/smart-link';
 
 const BASE_SECTION_CTA_CLASSNAME =
-  'es-cta-primary es-cta-button es-primary-cta es-focus-ring gap-2';
+  'gap-2';
 
 interface SectionCtaProps
   extends Omit<
     AnchorHTMLAttributes<HTMLAnchorElement>,
-    'children' | 'className' | 'href' | 'style'
+    'children' | 'className' | 'href' | 'style' | 'target' | 'rel'
   > {
   href: string;
   className?: string;
   style?: CSSProperties;
+  openInNewTab?: boolean;
   children: ReactNode;
 }
 
@@ -53,14 +54,17 @@ export function SectionCtaAnchor({
   href,
   className,
   style,
+  openInNewTab,
   children,
   ...anchorProps
 }: SectionCtaProps) {
   return (
-    <SmartLink
+    <ButtonPrimitive
       href={href}
+      variant='primary'
       className={buildClassName(className)}
       style={style}
+      openInNewTab={openInNewTab}
       {...anchorProps}
     >
       {({ isExternalHttp }) => (
@@ -75,6 +79,6 @@ export function SectionCtaAnchor({
           )}
         </>
       )}
-    </SmartLink>
+    </ButtonPrimitive>
   );
 }

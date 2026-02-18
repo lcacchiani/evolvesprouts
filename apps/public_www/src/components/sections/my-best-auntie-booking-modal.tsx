@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import {
   type CSSProperties,
   type FormEvent,
@@ -10,6 +9,7 @@ import {
   useState,
 } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { ExternalLinkIcon } from '@/components/external-link-icon';
 import { SmartLink } from '@/components/smart-link';
 import {
@@ -498,12 +498,13 @@ export function MyBestAuntieBookingModal({
 
                 {learnMoreLabel && (
                   <div className='mt-8'>
-                    <Link
+                    <ButtonPrimitive
                       href={learnMoreHref}
-                      className='es-focus-ring es-modal-outline-brand-button inline-flex h-[56px] items-center justify-center rounded-[10px] border px-7 text-base font-semibold'
+                      variant='outline'
+                      className='h-[56px] rounded-[10px] px-7 text-base font-semibold'
                     >
                       {learnMoreLabel}
-                    </Link>
+                    </ButtonPrimitive>
                   </div>
                 )}
               </section>
@@ -608,14 +609,14 @@ export function MyBestAuntieBookingModal({
                         className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
                       />
                     </label>
-                    <button
-                      type='button'
+                    <ButtonPrimitive
+                      variant='outline'
                       onClick={handleApplyDiscount}
                       disabled={Boolean(discountRule)}
-                      className='es-focus-ring es-modal-outline-brand-button mt-6 inline-flex h-[50px] items-center justify-center rounded-[10px] border px-4 text-sm font-semibold'
+                      className='mt-6 h-[50px] rounded-[10px] px-4 text-sm font-semibold'
                     >
                       {content.applyDiscountLabel}
-                    </button>
+                    </ButtonPrimitive>
                   </div>
 
                   {discountRule && (
@@ -701,13 +702,14 @@ export function MyBestAuntieBookingModal({
                     </label>
                   </div>
 
-                  <button
+                  <ButtonPrimitive
+                    variant='primary'
                     type='submit'
                     disabled={isSubmitDisabled}
-                    className='es-focus-ring es-cta-button es-cta-primary es-primary-cta es-modal-submit-button mt-1 w-full'
+                    className='mt-1 w-full'
                   >
                     {content.submitLabel}
-                  </button>
+                  </ButtonPrimitive>
                 </form>
               </section>
             </div>

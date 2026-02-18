@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 
+import { ButtonPrimitive } from '@/components/button-primitive';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import {
@@ -50,7 +51,7 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   backgroundColor: SURFACE_WHITE,
 });
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
-  'es-testimonial-control-button h-[60px] w-[60px] sm:h-[70px] sm:w-[70px]';
+  'es-btn--control';
 
 const quoteTextStyle: CSSProperties = {
   color: TEXT_PRIMARY,
@@ -373,22 +374,22 @@ export function Testimonials({ content }: TestimonialsProps) {
 
                       {hasMultipleStories && (
                         <div className='hidden lg:absolute lg:-right-4 lg:top-1/2 lg:flex lg:-translate-y-1/2 lg:items-center lg:gap-[14px]'>
-                          <button
-                            type='button'
+                          <ButtonPrimitive
+                            variant='control'
                             onClick={goToPreviousStory}
                             aria-label={previousButtonLabel}
                             className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
                           >
                             <ChevronIcon direction='left' />
-                          </button>
-                          <button
-                            type='button'
+                          </ButtonPrimitive>
+                          <ButtonPrimitive
+                            variant='control'
                             onClick={goToNextStory}
                             aria-label={nextButtonLabel}
                             className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
                           >
                             <ChevronIcon direction='right' />
-                          </button>
+                          </ButtonPrimitive>
                         </div>
                       )}
                     </div>
@@ -397,22 +398,22 @@ export function Testimonials({ content }: TestimonialsProps) {
                   {hasMultipleStories && !activeStory.author && !activeStory.role && (
                     <div className='mt-6 hidden justify-end lg:flex'>
                       <div className='flex items-center gap-[14px]'>
-                        <button
-                          type='button'
+                        <ButtonPrimitive
+                          variant='control'
                           onClick={goToPreviousStory}
                           aria-label={previousButtonLabel}
                           className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
                         >
                           <ChevronIcon direction='left' />
-                        </button>
-                        <button
-                          type='button'
+                        </ButtonPrimitive>
+                        <ButtonPrimitive
+                          variant='control'
                           onClick={goToNextStory}
                           aria-label={nextButtonLabel}
                           className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
                         >
                           <ChevronIcon direction='right' />
-                        </button>
+                        </ButtonPrimitive>
                       </div>
                     </div>
                   )}
@@ -423,22 +424,22 @@ export function Testimonials({ content }: TestimonialsProps) {
 
           {hasMultipleStories && (
             <div className='flex items-center justify-center gap-[14px] px-6 pb-6 pt-5 sm:gap-[18px] sm:px-9 lg:hidden'>
-              <button
-                type='button'
+              <ButtonPrimitive
+                variant='control'
                 onClick={goToPreviousStory}
                 aria-label={previousButtonLabel}
                 className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
               >
                 <ChevronIcon direction='left' />
-              </button>
-              <button
-                type='button'
+              </ButtonPrimitive>
+              <ButtonPrimitive
+                variant='control'
                 onClick={goToNextStory}
                 aria-label={nextButtonLabel}
                 className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
               >
                 <ChevronIcon direction='right' />
-              </button>
+              </ButtonPrimitive>
             </div>
           )}
         </div>

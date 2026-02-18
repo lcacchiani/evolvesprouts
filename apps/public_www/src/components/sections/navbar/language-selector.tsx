@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {
-  type CSSProperties,
   useCallback,
   useEffect,
   useId,
@@ -11,6 +10,11 @@ import {
   useState,
 } from 'react';
 
+import {
+  ButtonPrimitive,
+  type ButtonPrimitiveState,
+  type ButtonPrimitiveVariant,
+} from '@/components/button-primitive';
 import {
   isValidLocale,
   type Locale,
@@ -122,7 +126,8 @@ interface LanguageSelectorButtonProps {
   currentPathname: string;
   languageSelector: LanguageSelectorContent;
   menuAlign?: 'left' | 'right';
-  buttonStyle?: CSSProperties;
+  buttonVariant?: ButtonPrimitiveVariant;
+  buttonState?: ButtonPrimitiveState;
   isBorderlessMenu?: boolean;
 }
 
@@ -132,7 +137,8 @@ export function LanguageSelectorButton({
   currentPathname,
   languageSelector,
   menuAlign = 'right',
-  buttonStyle,
+  buttonVariant = 'icon',
+  buttonState = 'default',
   isBorderlessMenu = false,
 }: LanguageSelectorButtonProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -171,10 +177,10 @@ export function LanguageSelectorButton({
 
   return (
     <div ref={wrapperRef} className='relative'>
-      <button
-        type='button'
+      <ButtonPrimitive
+        variant={buttonVariant}
+        state={buttonState}
         className={className}
-        style={buttonStyle}
         aria-controls={languageMenuId}
         aria-expanded={isMenuOpen}
         aria-haspopup='menu'
@@ -194,7 +200,7 @@ export function LanguageSelectorButton({
           {`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}
         </span>
         <LanguageChevronIcon isOpen={isMenuOpen} />
-      </button>
+      </ButtonPrimitive>
       <ul
         id={languageMenuId}
         role='menu'
