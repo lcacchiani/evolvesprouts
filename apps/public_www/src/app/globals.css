@@ -759,10 +759,29 @@
     border-radius: 8px;
     padding: 8px 12px;
     transition: background-color 150ms ease;
+    color: var(--es-color-text-heading, #333333);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.25;
   }
 
   .es-nav-language-option:hover {
     background-color: var(--es-color-brand-peach-bg);
+  }
+
+  .es-nav-language-option--active {
+    color: var(--es-color-brand-orange, #C84A16);
+    font-weight: 700;
+  }
+
+  .es-nav-language-option--inactive {
+    color: var(--es-color-text-heading, #333333);
+    font-weight: 500;
+  }
+
+  .es-navbar-surface {
+    background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
   .es-testimonial-quote-icon {

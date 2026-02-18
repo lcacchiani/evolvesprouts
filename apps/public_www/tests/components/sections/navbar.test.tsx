@@ -43,6 +43,30 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const nav = screen.getByRole('navigation');
     expect(nav.className).toContain('es-layout-container');
+
+    const header = document.querySelector('header[data-figma-node="navbar"]');
+    expect(header?.className).toContain('es-navbar-surface');
+  });
+
+  it('applies active and inactive classes to language menu items', () => {
+    render(<Navbar content={enContent.navbar} />);
+
+    const toggle = screen.getByRole('button', {
+      name: /Selected language: English/i,
+    });
+    fireEvent.click(toggle);
+
+    const englishOption = screen.getByRole('menuitem', { name: /English/i });
+    const simplifiedChineseOption = screen.getByRole('menuitem', {
+      name: /Chinese \(Simplified\)/i,
+    });
+
+    expect(englishOption.className).toContain('es-nav-language-option');
+    expect(englishOption.className).toContain('es-nav-language-option--active');
+    expect(simplifiedChineseOption.className).toContain('es-nav-language-option');
+    expect(simplifiedChineseOption.className).toContain(
+      'es-nav-language-option--inactive',
+    );
   });
 
   it('restores focus to the submenu trigger before hiding links', () => {

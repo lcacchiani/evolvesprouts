@@ -20,15 +20,22 @@ import {
   type Locale,
   type NavbarContent,
 } from '@/content';
-import { BRAND_ORANGE, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 import { localizePath } from '@/lib/locale-routing';
 import { LanguageChevronIcon } from '@/components/sections/navbar-icons';
 
-const NAV_TEXT_COLOR = HEADING_TEXT_COLOR;
-const NAV_ACTIVE_TEXT = BRAND_ORANGE;
 const NAV_LANGUAGE_OPTION_CLASSNAME =
   'es-focus-ring es-nav-language-option';
+const NAV_LANGUAGE_OPTION_ACTIVE_CLASSNAME = 'es-nav-language-option--active';
+const NAV_LANGUAGE_OPTION_INACTIVE_CLASSNAME = 'es-nav-language-option--inactive';
+
+function buildLanguageOptionClassName(isCurrent: boolean): string {
+  const stateClassName = isCurrent
+    ? NAV_LANGUAGE_OPTION_ACTIVE_CLASSNAME
+    : NAV_LANGUAGE_OPTION_INACTIVE_CLASSNAME;
+
+  return `${NAV_LANGUAGE_OPTION_CLASSNAME} ${stateClassName}`;
+}
 
 interface LanguageOption {
   locale: Locale;
@@ -215,19 +222,11 @@ export function LanguageSelectorButton({
               <Link
                 role='menuitem'
                 href={localizePath(currentPathname, option.locale)}
-                className={NAV_LANGUAGE_OPTION_CLASSNAME}
+                className={buildLanguageOptionClassName(isCurrent)}
                 onClick={() => {
                   closeMenu();
                 }}
                 tabIndex={isMenuOpen ? undefined : -1}
-                style={{
-                  color: isCurrent ? NAV_ACTIVE_TEXT : NAV_TEXT_COLOR,
-                  fontFamily:
-                    'var(--figma-fontfamilies-lato, Lato), sans-serif',
-                  fontSize: '16px',
-                  fontWeight: isCurrent ? 700 : 500,
-                  lineHeight: '1.25',
-                }}
               >
                 <Image
                   src={option.flagSrc}

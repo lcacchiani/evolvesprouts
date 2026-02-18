@@ -46,7 +46,6 @@ interface NavbarProps {
   content: NavbarContent;
 }
 
-const NAV_BACKGROUND = 'var(--es-color-surface-white, #FFFFFF)';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
@@ -228,8 +227,7 @@ export function Navbar({ content }: NavbarProps) {
     <>
       <header
         data-figma-node='navbar'
-        className='w-full'
-        style={{ backgroundColor: NAV_BACKGROUND }}
+        className='es-navbar-surface w-full'
       >
         <SectionContainer
           as='nav'
@@ -295,8 +293,7 @@ export function Navbar({ content }: NavbarProps) {
             role='dialog'
             aria-modal='true'
             aria-label='Mobile navigation menu'
-            className={MOBILE_PANEL_WIDTH_CLASS}
-            style={{ backgroundColor: NAV_BACKGROUND }}
+            className={`${MOBILE_PANEL_WIDTH_CLASS} es-navbar-surface`}
           >
             <div className='flex items-center justify-between px-4 py-4'>
               <Link
