@@ -11,6 +11,10 @@ import {
 } from 'react';
 
 import { ButtonPrimitive } from '@/components/button-primitive';
+import {
+  OverlayBackdrop,
+  OverlayDrawerPanel,
+} from '@/components/overlay-surface';
 import { SectionCtaAnchor } from '@/components/section-cta-link';
 import { SectionContainer } from '@/components/section-container';
 import {
@@ -277,20 +281,20 @@ export function Navbar({ content }: NavbarProps) {
       </header>
       {isMobileMenuRendered && (
         <div className='fixed inset-0 z-[60] lg:hidden'>
-          <ButtonPrimitive
-            variant='icon'
+          <OverlayBackdrop
             tabIndex={-1}
-            aria-label='Close navigation menu'
+            ariaLabel='Close navigation menu'
             className={`absolute inset-0 bg-black/35 transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
             onClick={closeMobileMenu}
           />
-          <aside
+          <OverlayDrawerPanel
+            isOpen={isMobileMenuOpen}
             id='mobile-navigation-drawer'
-            ref={mobileNavigationDrawerRef}
+            panelRef={mobileNavigationDrawerRef}
             role='dialog'
             aria-modal='true'
             aria-label='Mobile navigation menu'
-            className={`absolute inset-y-0 right-0 ${MOBILE_PANEL_WIDTH_CLASS} flex flex-col shadow-2xl transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            className={MOBILE_PANEL_WIDTH_CLASS}
             style={{ backgroundColor: NAV_BACKGROUND }}
           >
             <div className='flex items-center justify-between px-4 py-4'>
@@ -344,7 +348,7 @@ export function Navbar({ content }: NavbarProps) {
                 />
               </div>
             </div>
-          </aside>
+          </OverlayDrawerPanel>
         </div>
       )}
     </>

@@ -1,3 +1,4 @@
+import { PlaceholderPanel } from '@/components/placeholder-panel';
 import type { SiteContent } from '@/content';
 
 interface WhoopsProps {
@@ -6,7 +7,7 @@ interface WhoopsProps {
 
 export function Whoops({ content }: WhoopsProps) {
   return (
-    <section className='w-full rounded-2xl border border-black/10 bg-white/70 p-8 text-center shadow-sm sm:p-10 lg:p-12'>
+    <PlaceholderPanel>
       <p className='es-section-heading text-[clamp(7rem,22vw,16rem)] leading-none'>
         {content.code}
       </p>
@@ -16,6 +17,6 @@ export function Whoops({ content }: WhoopsProps) {
       <p className='es-section-body mx-auto mt-3 max-w-[40ch] text-[1rem] leading-relaxed sm:text-[1.1rem]'>
         {content.description}
       </p>
-    </section>
+    </PlaceholderPanel>
   );
 }

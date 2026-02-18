@@ -11,6 +11,10 @@ import {
 
 import { ButtonPrimitive } from '@/components/button-primitive';
 import { ExternalLinkIcon } from '@/components/external-link-icon';
+import {
+  OverlayDialogPanel,
+  OverlayScrollableBody,
+} from '@/components/overlay-surface';
 import { SmartLink } from '@/components/smart-link';
 import {
   CloseButton,
@@ -325,17 +329,14 @@ export function MyBestAuntieBookingModal({
 
   return (
     <ModalOverlay onClose={onClose}>
-      <section
-        role='dialog'
-        aria-modal='true'
-        aria-label={content.title}
-        className='relative w-full max-w-[1190px] overflow-hidden rounded-[24px] border border-black/10 shadow-[0_22px_70px_rgba(0,0,0,0.42)]'
+      <OverlayDialogPanel
+        ariaLabel={content.title}
         style={{ backgroundColor: MODAL_PANEL_BACKGROUND }}
       >
         <header className='flex justify-end px-4 pb-8 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton label={content.closeLabel} onClose={onClose} />
         </header>
-        <div className='relative max-h-[82vh] overflow-y-auto px-4 pb-5 sm:px-8 sm:pb-8'>
+        <OverlayScrollableBody className='pb-5 sm:pb-8'>
           <Image
             src='/images/evolvesprouts-logo.svg'
             alt=''
@@ -715,8 +716,8 @@ export function MyBestAuntieBookingModal({
             </div>
           </div>
 
-        </div>
-      </section>
+        </OverlayScrollableBody>
+      </OverlayDialogPanel>
     </ModalOverlay>
   );
 }

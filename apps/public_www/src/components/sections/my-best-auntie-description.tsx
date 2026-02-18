@@ -1,7 +1,6 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/button-primitive';
@@ -20,6 +19,7 @@ import {
   buildSectionBackgroundOverlayStyle,
   LOGO_OVERLAY_DEEP,
 } from '@/lib/section-backgrounds';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieDescriptionProps {
   content: MyBestAuntieDescriptionContent;
@@ -94,72 +94,16 @@ function readIconSrc(icon: string): string {
 export function MyBestAuntieDescription({
   content,
 }: MyBestAuntieDescriptionProps) {
-  const carouselRef = useRef<HTMLDivElement>(null);
   const cards = content.items.slice(0, 6);
-  const hasMultipleCards = cards.length > 1;
-  const [canScrollPrevious, setCanScrollPrevious] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(hasMultipleCards);
-
-  const updateCarouselControls = useCallback(() => {
-    const carouselElement = carouselRef.current;
-    if (!carouselElement || !hasMultipleCards) {
-      setCanScrollPrevious(false);
-      setCanScrollNext(false);
-      return;
-    }
-
-    const maxScrollLeft = carouselElement.scrollWidth - carouselElement.clientWidth;
-    const threshold = 2;
-    setCanScrollPrevious(carouselElement.scrollLeft > threshold);
-    setCanScrollNext(carouselElement.scrollLeft < maxScrollLeft - threshold);
-  }, [hasMultipleCards]);
-
-  useEffect(() => {
-    const carouselElement = carouselRef.current;
-    if (!carouselElement) {
-      return;
-    }
-
-    const frameId = window.requestAnimationFrame(() => {
-      updateCarouselControls();
-    });
-
-    function handleScroll() {
-      updateCarouselControls();
-    }
-
-    carouselElement.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      carouselElement.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
-  }, [cards.length, updateCarouselControls]);
-
-  const scrollCarousel = useCallback((direction: 'previous' | 'next') => {
-    const carouselElement = carouselRef.current;
-    if (!carouselElement) {
-      return;
-    }
-
-    if (direction === 'previous' && !canScrollPrevious) {
-      return;
-    }
-
-    if (direction === 'next' && !canScrollNext) {
-      return;
-    }
-
-    const shiftBy = carouselElement.clientWidth;
-    const movement = direction === 'next' ? shiftBy : -shiftBy;
-
-    carouselElement.scrollBy({
-      left: movement,
-      behavior: 'smooth',
-    });
-  }, [canScrollNext, canScrollPrevious]);
+  const {
+    carouselRef,
+    hasNavigation: hasMultipleCards,
+    canScrollPrevious,
+    canScrollNext,
+    scrollByDirection,
+  } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: cards.length,
+  });
 
   return (
     <SectionShell
@@ -189,7 +133,7 @@ export function MyBestAuntieDescription({
               <ButtonPrimitive
                 variant='control'
                 onClick={() => {
-                  scrollCarousel('previous');
+                  scrollByDirection('prev');
                 }}
                 aria-label='Previous highlight cards'
                 disabled={!canScrollPrevious}
@@ -200,7 +144,7 @@ export function MyBestAuntieDescription({
               <ButtonPrimitive
                 variant='control'
                 onClick={() => {
-                  scrollCarousel('next');
+                  scrollByDirection('next');
                 }}
                 aria-label='Next highlight cards'
                 disabled={!canScrollNext}
