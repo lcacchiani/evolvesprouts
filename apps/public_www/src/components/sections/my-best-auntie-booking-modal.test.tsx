@@ -412,15 +412,27 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(directionLink).toHaveAttribute('href', bookingModalContent.directionHref);
     expect(directionLink).toHaveTextContent(bookingModalContent.directionLabel);
     expect(screen.getByText(bookingModalContent.directionLabel).className).toContain(
-      'underline',
+      'es-link-external-label',
     );
     const directionIcon = directionLink.querySelector(
       'svg[data-external-link-icon="true"]',
     );
+    expect(directionIcon).not.toBeNull();
+    expect(directionIcon?.getAttribute('class')).toContain('es-link-external-icon');
+    expect(directionIcon?.getAttribute('class')).toContain(
+      'es-link-external-icon--cta',
+    );
+
+    const termsLink = screen.getByRole('link', {
+      name: bookingModalContent.termsLinkLabel,
+    });
+    expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
+    expect(termsLink).toHaveAttribute('target', '_blank');
+    expect(termsLink).toHaveAttribute('rel', 'noopener noreferrer');
     expect(
-      directionIcon,
-    ).not.toBeNull();
-    expect(directionIcon?.getAttribute('class')).toContain('border-b');
+      termsLink.querySelector('svg[data-external-link-icon="true"]'),
+    ).toBeNull();
+
     expect(
       container.querySelector('span[style*="/images/credit-card.svg"]'),
     ).not.toBeNull();

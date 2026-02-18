@@ -25,22 +25,39 @@ describe('SectionCtaAnchor', () => {
 
     const link = screen.getByRole('link', { name: 'Visit resource' });
     expect(link).toHaveAttribute('href', 'https://example.com');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     expect(link.className).toContain('es-primary-cta');
     const label = screen.getByText('Visit resource');
-    expect(label.className).toContain('underline');
+    expect(label.className).toContain('es-link-external-label');
     const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
-    expect(
-      externalIcon,
-    ).not.toBeNull();
-    expect(externalIcon?.getAttribute('class')).toContain('border-b');
+    expect(externalIcon).not.toBeNull();
+    expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
+    expect(externalIcon?.getAttribute('class')).toContain(
+      'es-link-external-icon--cta',
+    );
   });
 
   it('keeps the chevron icon for internal href values', () => {
     render(<SectionCtaAnchor href='/about-us'>About us</SectionCtaAnchor>);
 
     const link = screen.getByRole('link', { name: 'About us' });
+    expect(link).not.toHaveAttribute('target');
     expect(link.className).toContain('es-primary-cta');
     expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
+    expect(link.querySelector('path[d="M7 4L13 10L7 16"]')).not.toBeNull();
+  });
+
+  it('keeps non-HTTP protocols without external indicator styling', () => {
+    render(<SectionCtaAnchor href='mailto:ida@example.com'>Email us</SectionCtaAnchor>);
+
+    const link = screen.getByRole('link', { name: 'Email us' });
+    expect(link).toHaveAttribute('href', 'mailto:ida@example.com');
+    expect(link).not.toHaveAttribute('target');
+    expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
+    expect(screen.getByText('Email us').className).not.toContain(
+      'es-link-external-label',
+    );
     expect(link.querySelector('path[d="M7 4L13 10L7 16"]')).not.toBeNull();
   });
 });

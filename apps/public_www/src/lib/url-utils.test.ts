@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isExternalHref, isHttpHref } from '@/lib/url-utils';
+import { getHrefKind, isExternalHref, isHttpHref } from '@/lib/url-utils';
 
 describe('url-utils', () => {
   it('detects HTTP and HTTPS links', () => {
@@ -20,6 +20,14 @@ describe('url-utils', () => {
     expect(isExternalHref('https://example.com')).toBe(true);
     expect(isExternalHref('mailto:test@example.com')).toBe(true);
     expect(isExternalHref('tel:+85212345678')).toBe(true);
+  });
+
+  it('resolves href kinds using protocol buckets', () => {
+    expect(getHrefKind('https://example.com')).toBe('http');
+    expect(getHrefKind('mailto:test@example.com')).toBe('mailto');
+    expect(getHrefKind('tel:+85212345678')).toBe('tel');
+    expect(getHrefKind('#resources')).toBe('hash');
+    expect(getHrefKind('/en/about-us')).toBe('internal');
   });
 
   it('keeps localized and anchor href values internal', () => {

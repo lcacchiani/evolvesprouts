@@ -352,8 +352,6 @@ export function Events({ content }: EventsProps) {
                           eventCard.ctaHref && (
                             <SectionCtaAnchor
                               href={eventCard.ctaHref}
-                              target='_blank'
-                              rel='noopener noreferrer'
                               className='w-full'
                             >
                               {eventCard.ctaLabel}

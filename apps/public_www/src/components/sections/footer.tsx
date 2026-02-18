@@ -1,11 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 
 import { ExternalLinkIcon } from '@/components/external-link-icon';
+import { SmartLink } from '@/components/smart-link';
 import type { FooterContent } from '@/content';
 import { BODY_TEXT_COLOR, HEADING_TEXT_COLOR } from '@/lib/design-tokens';
-import { isExternalHref, isHttpHref } from '@/lib/url-utils';
 
 interface FooterProps {
   content: FooterContent;
@@ -117,32 +116,33 @@ function FooterColumnLinks({
     <ul className='flex flex-col gap-[8px]'>
       {items.map((item) => {
         const icon = item.icon ? socialIcons[item.icon] : null;
-        const isExternal = isExternalHref(item.href);
-        const opensInNewTab = isHttpHref(item.href);
 
         return (
           <li key={`${item.label}-${item.href}`}>
-            <Link
+            <SmartLink
               href={item.href}
               className='inline-flex items-center transition-opacity hover:opacity-70'
               style={{
                 ...linkStyle,
                 gap: hasSocialIcons ? '12px' : '8px',
               }}
-              {...(opensInNewTab
-                ? { target: '_blank', rel: 'noopener noreferrer' }
-                : {})}
             >
-              {hasSocialIcons && icon ? (
-                <span className='shrink-0' style={{ color: BODY_TEXT_COLOR }}>
-                  {icon}
-                </span>
-              ) : null}
-              <span className={isExternal ? 'underline underline-offset-4' : undefined}>
-                {item.label}
-              </span>
-              {isExternal ? <ExternalLinkIcon className='h-[14px] w-[14px] shrink-0' /> : null}
-            </Link>
+              {({ isExternalHttp }) => (
+                <>
+                  {hasSocialIcons && icon ? (
+                    <span className='shrink-0' style={{ color: BODY_TEXT_COLOR }}>
+                      {icon}
+                    </span>
+                  ) : null}
+                  <span className={isExternalHttp ? 'es-link-external-label' : undefined}>
+                    {item.label}
+                  </span>
+                  {isExternalHttp ? (
+                    <ExternalLinkIcon className='es-link-external-icon--inline' />
+                  ) : null}
+                </>
+              )}
+            </SmartLink>
           </li>
         );
       })}

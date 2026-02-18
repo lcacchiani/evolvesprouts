@@ -10,7 +10,6 @@ import {
   SURFACE_WHITE,
 } from '@/lib/design-tokens';
 import { buildSectionBackgroundStyle } from '@/lib/section-backgrounds';
-import { isHttpHref } from '@/lib/url-utils';
 
 interface ConnectProps {
   content: ContactUsContent['connect'];
@@ -104,9 +103,6 @@ export function Connect({ content }: ConnectProps) {
                 <SectionCtaAnchor
                   href={card.ctaHref}
                   className='mt-auto w-full'
-                  {...(isHttpHref(card.ctaHref)
-                    ? { target: '_blank', rel: 'noopener noreferrer' }
-                    : {})}
                 >
                   {card.ctaLabel}
                 </SectionCtaAnchor>

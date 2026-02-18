@@ -3,10 +3,9 @@ import type {
   CSSProperties,
   ReactNode,
 } from 'react';
-import Link from 'next/link';
 
 import { ExternalLinkIcon } from '@/components/external-link-icon';
-import { isExternalHref } from '@/lib/url-utils';
+import { SmartLink } from '@/components/smart-link';
 
 const BASE_SECTION_CTA_CLASSNAME =
   'es-cta-primary es-cta-button es-primary-cta es-focus-ring gap-2';
@@ -57,28 +56,25 @@ export function SectionCtaAnchor({
   children,
   ...anchorProps
 }: SectionCtaProps) {
-  const isExternalLink = isExternalHref(href);
-  const sharedProps = {
-    className: buildClassName(className),
-    style,
-    ...anchorProps,
-  };
-
-  if (isExternalLink || href.startsWith('#')) {
-    return (
-      <a href={href} {...sharedProps}>
-        <span className={isExternalLink ? 'underline underline-offset-4' : undefined}>
-          {children}
-        </span>
-        {isExternalLink ? <ExternalLinkIcon className='h-5 w-5 shrink-0' /> : <CtaChevronIcon />}
-      </a>
-    );
-  }
-
   return (
-    <Link href={href} {...sharedProps}>
-      <span>{children}</span>
-      <CtaChevronIcon />
-    </Link>
+    <SmartLink
+      href={href}
+      className={buildClassName(className)}
+      style={style}
+      {...anchorProps}
+    >
+      {({ isExternalHttp }) => (
+        <>
+          <span className={isExternalHttp ? 'es-link-external-label' : undefined}>
+            {children}
+          </span>
+          {isExternalHttp ? (
+            <ExternalLinkIcon className='es-link-external-icon--cta' />
+          ) : (
+            <CtaChevronIcon />
+          )}
+        </>
+      )}
+    </SmartLink>
   );
 }

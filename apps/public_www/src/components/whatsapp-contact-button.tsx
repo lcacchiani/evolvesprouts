@@ -1,3 +1,5 @@
+import { SmartLink } from '@/components/smart-link';
+
 interface WhatsappContactButtonProps {
   href: string;
   ariaLabel: string;
@@ -37,10 +39,8 @@ export function WhatsappContactButton({
   }
 
   return (
-    <a
+    <SmartLink
       href={href}
-      target='_blank'
-      rel='noopener noreferrer'
       aria-label={ariaLabel}
       title={ariaLabel}
       className={buttonClassName}
@@ -54,6 +54,6 @@ export function WhatsappContactButton({
       >
         <path d={WHATSAPP_ICON_PATH} />
       </svg>
-    </a>
+    </SmartLink>
   );
 }
