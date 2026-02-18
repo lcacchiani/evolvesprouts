@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import { SectionContainer } from '@/components/section-container';
 import {
   CloseIcon,
   HamburgerIcon,
@@ -225,7 +226,10 @@ export function Navbar({ content }: NavbarProps) {
         className='w-full'
         style={{ backgroundColor: NAV_BACKGROUND }}
       >
-        <nav className='mx-auto flex w-full max-w-[1465px] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:min-h-[115px] lg:px-8 lg:py-0'>
+        <SectionContainer
+          as='nav'
+          className='flex items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:min-h-[115px] lg:px-8 lg:py-0'
+        >
           <Link href={localizedHomeHref} className='shrink-0'>
             <Image
               src={logoSrc}
@@ -269,7 +273,7 @@ export function Navbar({ content }: NavbarProps) {
             <span className='sr-only'>Open navigation menu</span>
             <HamburgerIcon />
           </button>
-        </nav>
+        </SectionContainer>
       </header>
       {isMobileMenuRendered && (
         <div className='fixed inset-0 z-[60] lg:hidden'>

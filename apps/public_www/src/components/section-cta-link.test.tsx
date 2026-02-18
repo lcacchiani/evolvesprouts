@@ -33,9 +33,6 @@ describe('SectionCtaAnchor', () => {
     const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
     expect(externalIcon).not.toBeNull();
     expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
-    expect(externalIcon?.getAttribute('class')).toContain(
-      'es-link-external-icon--cta',
-    );
   });
 
   it('keeps the chevron icon for internal href values', () => {

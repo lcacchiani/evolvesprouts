@@ -5,6 +5,7 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { SectionContainer } from '@/components/section-container';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import { createMaskIconStyle } from '@/components/sections/booking-modal/helpers';
 import { SectionShell } from '@/components/section-shell';
@@ -249,7 +250,7 @@ export function MyBestAuntieBooking({
         dataFigmaNode='book_spot_Sec'
         style={{ backgroundColor: SECTION_BACKGROUND }}
       >
-        <div className='mx-auto w-full max-w-[1465px]'>
+        <SectionContainer>
           <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>
             <section className='space-y-5 max-w-[620px] lg:pr-8'>
               <h1
@@ -428,7 +429,7 @@ export function MyBestAuntieBooking({
               </button>
             </aside>
           </div>
-        </div>
+        </SectionContainer>
       </SectionShell>
 
       {isPaymentModalOpen && (

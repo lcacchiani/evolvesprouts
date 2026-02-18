@@ -3,6 +3,7 @@
 import type { CSSProperties, FormEvent } from 'react';
 import { useState } from 'react';
 
+import { SectionContainer } from '@/components/section-container';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
 import {
@@ -117,7 +118,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
       dataFigmaNode='contact-us-form'
       style={{ backgroundColor: SECTION_BACKGROUND }}
     >
-      <div className='mx-auto grid w-full max-w-[1465px] gap-10 lg:grid-cols-2 lg:gap-9'>
+      <SectionContainer className='grid gap-10 lg:grid-cols-2 lg:gap-9'>
         <section
           className='relative flex h-full items-start overflow-hidden px-6 py-8 sm:px-8 lg:px-10 lg:pt-[25%]'
         >
@@ -257,7 +258,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
             </button>
           </form>
         </section>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

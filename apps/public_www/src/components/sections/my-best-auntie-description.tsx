@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
+import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieDescriptionContent } from '@/content';
@@ -174,7 +175,7 @@ export function MyBestAuntieDescription({
       className='es-section-bg-overlay'
       style={SECTION_STYLE}
     >
-      <div className='mx-auto w-full max-w-[1465px]'>
+      <SectionContainer>
         <div
           data-testid='my-best-auntie-description-header'
           className='flex flex-col gap-5 md:flex-row md:items-end md:justify-between'
@@ -265,7 +266,7 @@ export function MyBestAuntieDescription({
             ))}
           </ul>
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

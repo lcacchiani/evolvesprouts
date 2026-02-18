@@ -69,7 +69,7 @@ export function SectionCtaAnchor({
             {children}
           </span>
           {isExternalHttp ? (
-            <ExternalLinkIcon className='es-link-external-icon--cta' />
+            <ExternalLinkIcon />
           ) : (
             <CtaChevronIcon />
           )}

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
+import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyJourneyContent } from '@/content';
@@ -50,7 +51,7 @@ export function MyJourney({ content }: MyJourneyProps) {
       className='es-section-bg-overlay'
       style={SECTION_STYLE}
     >
-      <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
+      <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
         <div className='mt-10 grid gap-6 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-8'>
@@ -86,7 +87,7 @@ export function MyJourney({ content }: MyJourneyProps) {
             ))}
           </ul>
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

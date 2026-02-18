@@ -1,6 +1,7 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyBestAuntieOverviewContent } from '@/content';
@@ -297,7 +298,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
       className='es-section-bg-overlay'
       style={SECTION_STYLE}
     >
-      <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
+      <SectionContainer>
         <SectionHeader
           eyebrow={content.eyebrow}
           title={renderMultilineText(content.title)}
@@ -430,7 +431,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
             {computedCtaLabel}
           </SectionCtaAnchor>
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

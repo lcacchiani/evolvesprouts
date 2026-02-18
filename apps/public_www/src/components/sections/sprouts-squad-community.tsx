@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import { SectionContainer } from '@/components/section-container';
 import { SectionShell } from '@/components/section-shell';
 import type { SproutsSquadCommunityContent } from '@/content';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
@@ -52,7 +53,7 @@ export function SproutsSquadCommunity({
         }}
       />
 
-      <div className='relative z-10 mx-auto flex min-h-[420px] w-full max-w-[1465px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
+      <SectionContainer className='flex min-h-[420px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
         <Image
           src='/images/evolvesprouts-logo.svg'
           alt=''
@@ -78,7 +79,7 @@ export function SproutsSquadCommunity({
         >
           {content.ctaLabel}
         </SectionCtaAnchor>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

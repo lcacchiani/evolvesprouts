@@ -51,7 +51,7 @@ describe('Faq section', () => {
     expect(section?.style.getPropertyValue('--es-section-bg-mask-image')).toBe(
       'linear-gradient(to bottom, black 18%, transparent 20%)',
     );
-    expect(section?.querySelector('div.relative.z-10')).not.toBeNull();
+    expect(section?.querySelector('div.es-layout-container')).not.toBeNull();
   });
 
   it('renders the fallback prompt as a blue card with contact CTA', () => {
@@ -125,9 +125,7 @@ describe('Faq section', () => {
     });
     expect(searchInput.className).toContain('es-bg-surface-neutral');
 
-    const searchWrapper = container.querySelector(
-      'div.mx-auto.mt-8.max-w-\\[980px\\].rounded-\\[58px\\]',
-    );
+    const searchWrapper = container.querySelector('div.es-layout-container.mt-8');
     expect(searchWrapper?.className).toContain('es-bg-surface-neutral');
   });
 });

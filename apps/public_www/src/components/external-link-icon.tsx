@@ -5,7 +5,7 @@ interface ExternalLinkIconProps extends SVGProps<SVGSVGElement> {
 }
 
 export function ExternalLinkIcon({
-  className = 'es-link-external-icon--inline',
+  className,
   ...svgProps
 }: ExternalLinkIconProps) {
   const mergedClassName = className

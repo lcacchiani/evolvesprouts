@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
+import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { WhyUsContent } from '@/content';
@@ -36,7 +37,7 @@ export function WhyUs({ content }: WhyUsProps) {
       dataFigmaNode='why-us'
       style={{ backgroundColor: SECTION_BACKGROUND }}
     >
-      <div className='mx-auto w-full max-w-[1465px]'>
+      <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
         <div className='mt-10 grid gap-6 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-8'>
@@ -103,7 +104,7 @@ export function WhyUs({ content }: WhyUsProps) {
             </li>
           ))}
         </ul>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

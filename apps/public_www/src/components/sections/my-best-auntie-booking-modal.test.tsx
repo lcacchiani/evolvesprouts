@@ -419,9 +419,6 @@ describe('my-best-auntie booking modals footer content', () => {
     );
     expect(directionIcon).not.toBeNull();
     expect(directionIcon?.getAttribute('class')).toContain('es-link-external-icon');
-    expect(directionIcon?.getAttribute('class')).toContain(
-      'es-link-external-icon--cta',
-    );
 
     const termsLink = screen.getByRole('link', {
       name: bookingModalContent.termsLinkLabel,

@@ -599,6 +599,15 @@
     opacity: 0.9;
   }
 
+  .es-layout-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 1465px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   .es-link-external-label {
     text-decoration-line: underline;
     text-underline-offset: 4px;
@@ -607,18 +616,10 @@
   .es-link-external-icon {
     display: inline-block;
     flex-shrink: 0;
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 1px;
-  }
-
-  .es-link-external-icon--inline {
-    width: 14px;
-    height: 14px;
-  }
-
-  .es-link-external-icon--cta {
     width: 20px;
     height: 20px;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
   }
 
   .es-nav-pill {

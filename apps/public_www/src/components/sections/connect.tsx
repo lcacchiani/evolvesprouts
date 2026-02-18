@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { ContactUsContent } from '@/content';
@@ -82,7 +83,7 @@ export function Connect({ content }: ConnectProps) {
       className='relative isolate overflow-hidden bg-white'
       style={SECTION_STYLE}
     >
-      <div className='mx-auto w-full max-w-[1465px]'>
+      <SectionContainer>
         <SectionHeader
           eyebrow={content.eyebrow}
           title={content.title}
@@ -110,7 +111,7 @@ export function Connect({ content }: ConnectProps) {
             </li>
           ))}
         </ul>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

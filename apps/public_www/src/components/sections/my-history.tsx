@@ -1,5 +1,6 @@
 import Image from 'next/image';
 
+import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { MyHistoryContent } from '@/content';
@@ -26,7 +27,7 @@ export function MyHistory({ content }: MyHistoryProps) {
       className='es-section-bg-overlay'
       style={SECTION_STYLE}
     >
-      <div className='mx-auto grid w-full max-w-[1465px] items-center gap-8 lg:grid-cols-2 lg:gap-12'>
+      <SectionContainer className='grid items-center gap-8 lg:grid-cols-2 lg:gap-12'>
         <div>
           <SectionHeader
             eyebrow={content.eyebrow}
@@ -51,7 +52,7 @@ export function MyHistory({ content }: MyHistoryProps) {
             className='h-auto w-full max-w-[651px] lg:ml-auto'
           />
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

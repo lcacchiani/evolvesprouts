@@ -34,6 +34,9 @@ describe('Footer external links', () => {
   it('adds the shared external icon to social links only', () => {
     render(<Footer content={enContent.footer} />);
 
+    const sharedContainers = document.querySelectorAll('.es-layout-container');
+    expect(sharedContainers.length).toBeGreaterThan(0);
+
     const facebookLinks = screen.getAllByRole('link', { name: 'Facebook' });
     expect(facebookLinks.length).toBeGreaterThan(0);
     for (const link of facebookLinks) {
@@ -44,9 +47,6 @@ describe('Footer external links', () => {
       const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
       expect(externalIcon).not.toBeNull();
       expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
-      expect(externalIcon?.getAttribute('class')).toContain(
-        'es-link-external-icon--inline',
-      );
     }
 
     const homeLinks = screen.getAllByRole('link', { name: 'Home' });

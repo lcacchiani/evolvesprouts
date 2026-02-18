@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/section-cta-link';
+import { SectionContainer } from '@/components/section-container';
 import { SectionHeader } from '@/components/section-header';
 import { SectionShell } from '@/components/section-shell';
 import type { FaqContent } from '@/content';
@@ -226,10 +227,10 @@ export function Faq({ content }: FaqProps) {
       className='es-section-bg-overlay'
       style={SECTION_STYLE}
     >
-      <div className='relative z-10 mx-auto w-full max-w-[1465px]'>
+      <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
-        <div className='mx-auto mt-8 max-w-[980px] rounded-[58px] border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
+        <div className='es-layout-container mt-8 rounded-[58px] border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
           <div className='relative'>
             <label htmlFor='faq-search' className='sr-only'>
               {content.searchPlaceholder}
@@ -290,7 +291,7 @@ export function Faq({ content }: FaqProps) {
             />
           )}
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }
