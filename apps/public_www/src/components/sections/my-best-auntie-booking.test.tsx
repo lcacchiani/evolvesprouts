@@ -87,7 +87,7 @@ describe('MyBestAuntieBooking section', () => {
       name: enContent.myBestAuntieBooking.confirmAndPayLabel,
     });
     expect(ctaButton.className).not.toContain('w-full');
-    expect(ctaButton.className).toContain('cursor-pointer');
+    expect(ctaButton.className).toContain('es-btn--primary');
 
     const secondDateOption = enContent.myBestAuntieBooking.dateOptions[1];
     if (!secondDateOption) {
@@ -96,14 +96,8 @@ describe('MyBestAuntieBooking section', () => {
     const secondDateButton = screen.getByRole('button', {
       name: new RegExp(secondDateOption.label),
     });
-    const secondDateButtonStyle = secondDateButton.getAttribute('style') ?? '';
-    expect(secondDateButton.className).toContain('cursor-pointer');
-    expect(secondDateButtonStyle).toContain(
-      'background-color: var(--es-color-surface-selection-idle, #EFF3F6)',
-    );
-    expect(secondDateButtonStyle).toContain(
-      'border: 1px solid var(--es-color-border-date, #CAD6E5)',
-    );
+    expect(secondDateButton.className).toContain('es-btn--selection');
+    expect(secondDateButton.className).toContain('es-btn--state-inactive');
 
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
@@ -116,7 +110,8 @@ describe('MyBestAuntieBooking section', () => {
     const firstAgeButton = screen.getByRole('button', {
       name: firstAgeOption.label,
     });
-    expect(firstAgeButton.className).toContain('cursor-pointer');
+    expect(firstAgeButton.className).toContain('es-btn--selection');
+    expect(firstAgeButton.className).toContain('es-btn--state-active');
     const firstAgeIcon = firstAgeButton.querySelector(
       `img[src="${firstAgeOption.iconSrc}"]`,
     );
