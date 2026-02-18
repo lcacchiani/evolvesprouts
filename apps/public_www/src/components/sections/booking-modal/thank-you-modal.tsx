@@ -144,7 +144,7 @@ export function MyBestAuntieThankYouModal({
           <div className='relative z-10 flex flex-col items-center pt-0 text-center sm:pt-6 lg:pt-14'>
             <div className='flex h-[100px] w-[100px] items-center justify-center rounded-full es-bg-surface-success-soft'>
               <Image
-                src='/images/my-best-auntie-booking/green-tick-icon.png'
+                src='/images/green-tick-icon.png'
                 alt=''
                 width={124}
                 height={124}
