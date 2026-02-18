@@ -1,3 +1,4 @@
+import type { Locale } from '@/content';
 import { localizePath } from '@/lib/locale-routing';
 
 export const ROUTES = {
@@ -23,6 +24,6 @@ export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.servicesWorkshops,
 ];
 
-export function buildLocalizedResourcesHashPath(locale: string): string {
+export function buildLocalizedResourcesHashPath(locale: Locale): string {
   return `${localizePath(ROUTES.home, locale)}#resources`;
 }
