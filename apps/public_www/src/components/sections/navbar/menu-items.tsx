@@ -25,11 +25,11 @@ const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
 export const MOBILE_PRIMARY_ACTION_CLASSNAME =
   'w-full justify-between transition-colors';
 const NAV_LANGUAGE_CHEVRON_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-language-chevron.svg',
+  '/images/chevron.svg',
   'currentColor',
 );
 const NAV_MOBILE_CHEVRON_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-mobile-chevron.svg',
+  '/images/chevron.svg',
   'currentColor',
 );
 

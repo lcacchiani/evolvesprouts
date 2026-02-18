@@ -37,15 +37,15 @@ const SECTION_BACKGROUND = SURFACE_WHITE;
 const LOADING_GEAR_COLOR = BRAND_ORANGE_SOFT;
 const LOADING_GEAR_BACKGROUND = BRAND_PEACH_BG;
 const NAV_CALENDAR_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-calendar.svg',
+  '/images/calendar.svg',
   'currentColor',
 );
 const NAV_CLOCK_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-clock.svg',
+  '/images/clock.svg',
   'currentColor',
 );
 const NAV_LOCATION_ICON_MASK_STYLE = createMaskIconStyle(
-  '/images/navbar-location.svg',
+  '/images/location.svg',
   'currentColor',
 );
 
