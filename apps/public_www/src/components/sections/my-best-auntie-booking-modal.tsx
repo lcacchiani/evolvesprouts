@@ -487,7 +487,7 @@ export function MyBestAuntieBookingModal({
                               {content.directionLabel}
                             </span>
                             {isExternalHttp ? (
-                              <ExternalLinkIcon className='es-link-external-icon--cta' />
+                              <ExternalLinkIcon />
                             ) : null}
                           </>
                         )}

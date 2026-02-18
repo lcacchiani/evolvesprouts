@@ -613,11 +613,6 @@
     padding-bottom: 1px;
   }
 
-  .es-link-external-icon--cta {
-    width: 20px;
-    height: 20px;
-  }
-
   .es-nav-pill {
     display: inline-flex;
     min-height: 42px;
