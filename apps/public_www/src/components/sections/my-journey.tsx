@@ -1,46 +1,19 @@
-import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { MyJourneyContent } from '@/content';
-import {
-  BRAND_ORANGE,
-  SURFACE_WHITE,
-} from '@/lib/design-tokens';
-import {
-  buildSectionBackgroundOverlayStyle,
-  LOGO_OVERLAY_TOP,
-} from '@/lib/section-backgrounds';
 
 interface MyJourneyProps {
   content: MyJourneyContent;
 }
 
-const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
-  ...LOGO_OVERLAY_TOP,
-  backgroundColor: SURFACE_WHITE,
-});
 const JOURNEY_IMAGE_SRC = '/images/contact-us/my-journey.webp';
-const RIGHT_COLUMN_BLUE_CARD_BACKGROUND =
-  'var(--es-gradient-card-blue)';
-const RIGHT_COLUMN_YELLOW_CARD_BACKGROUND =
-  'var(--es-gradient-card-yellow)';
-const RIGHT_COLUMN_CARD_BACKGROUNDS = [
-  RIGHT_COLUMN_BLUE_CARD_BACKGROUND,
-  RIGHT_COLUMN_YELLOW_CARD_BACKGROUND,
+const RIGHT_COLUMN_CARD_TONE_CLASSES = [
+  'es-my-journey-card--blue',
+  'es-my-journey-card--yellow',
 ] as const;
-
-const tagStyle: CSSProperties = {
-  color: BRAND_ORANGE,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontWeight: 700,
-  lineHeight: '1',
-  fontSize: '14px',
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-};
 
 export function MyJourney({ content }: MyJourneyProps) {
   return (
@@ -48,8 +21,7 @@ export function MyJourney({ content }: MyJourneyProps) {
       id='my-journey'
       ariaLabel={content.title}
       dataFigmaNode='my-journey'
-      className='es-section-bg-overlay'
-      style={SECTION_STYLE}
+      className='es-section-bg-overlay es-my-journey-section'
     >
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
@@ -70,15 +42,9 @@ export function MyJourney({ content }: MyJourneyProps) {
             {content.cards.map((card, index) => (
               <li key={card.tag}>
                 <article
-                  className='rounded-[20px] border es-border-warm-3 p-5 sm:p-6'
-                  style={{
-                    background:
-                      RIGHT_COLUMN_CARD_BACKGROUNDS[
-                        index % RIGHT_COLUMN_CARD_BACKGROUNDS.length
-                      ],
-                  }}
+                  className={`rounded-[20px] border es-border-warm-3 p-5 sm:p-6 ${RIGHT_COLUMN_CARD_TONE_CLASSES[index % RIGHT_COLUMN_CARD_TONE_CLASSES.length]}`}
                 >
-                  <span style={tagStyle}>{card.tag}</span>
+                  <span className='es-my-journey-tag'>{card.tag}</span>
                   <p className='es-type-body mt-3'>
                     {card.description}
                   </p>

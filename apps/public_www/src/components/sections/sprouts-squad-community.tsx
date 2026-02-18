@@ -1,30 +1,13 @@
-import type { CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { SproutsSquadCommunityContent } from '@/content';
-import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 
 interface SproutsSquadCommunityProps {
   content: SproutsSquadCommunityContent;
 }
-
-const SECTION_BACKGROUND =
-  'var(--figma-colors-frame-2147235259, #FFEEE3)';
-const FOREGROUND_LOGO_FILTER =
-  'sepia(1) opacity(50%) saturate(150%)';
-const FOREGROUND_LOGO_MASK_IMAGE =
-  'linear-gradient(to bottom, black 50%, transparent 63%)';
-
-const headingStyle: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontWeight: 'var(--figma-fontweights-700, 700)',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-join-our-sprouts-squad-community, 0.77) * 1px)',
-};
 
 export function SproutsSquadCommunity({
   content,
@@ -34,8 +17,7 @@ export function SproutsSquadCommunity({
       id='sprouts-squad-community'
       ariaLabel={content.heading}
       dataFigmaNode='sprouts-squad-community'
-      className='relative isolate overflow-hidden !px-0 !py-0'
-      style={{ backgroundColor: SECTION_BACKGROUND }}
+      className='relative isolate overflow-hidden !px-0 !py-0 es-sprouts-community-section'
     >
       <Image
         src='/images/footer-community-bg.webp'
@@ -46,11 +28,7 @@ export function SproutsSquadCommunity({
       />
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-0'
-        style={{
-          background:
-            'radial-gradient(circle at center top, rgba(255,255,255,0) 15%, rgba(255,238,227,0.74) 68%)',
-        }}
+        className='pointer-events-none absolute inset-0 es-sprouts-community-overlay'
       />
 
       <SectionContainer className='flex min-h-[420px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
@@ -59,16 +37,10 @@ export function SproutsSquadCommunity({
           alt=''
           width={250}
           height={250}
-          className='h-auto w-[250px]'
-          style={{
-            filter: FOREGROUND_LOGO_FILTER,
-            maskImage: FOREGROUND_LOGO_MASK_IMAGE,
-            WebkitMaskImage: FOREGROUND_LOGO_MASK_IMAGE,
-          }}
+          className='h-auto w-[250px] es-sprouts-community-logo'
         />
         <h2
-          className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px]'
-          style={headingStyle}
+          className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
         >
           {content.heading}
         </h2>

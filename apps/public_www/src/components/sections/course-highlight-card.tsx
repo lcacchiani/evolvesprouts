@@ -1,6 +1,5 @@
 'use client';
 
-import type { CSSProperties } from 'react';
 import { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
 
@@ -9,27 +8,7 @@ import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
 
-const cardTitleStyle: CSSProperties = {
-  color: WHITE,
-  fontFamily: 'var(--figma-fontfamilies-poppins, Poppins), sans-serif',
-  fontSize: 'clamp(1.45rem, 3.4vw, var(--figma-fontsizes-37, 37px))',
-  fontWeight: 'var(--figma-fontweights-600, 600)',
-  lineHeight:
-    'clamp(1.95rem, 4.6vw, calc(var(--figma-lineheights-age-specific-strategies, 50) * 1px))',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-age-specific-strategies, 0.37) * 1px)',
-};
-
-const cardDescriptionStyle: CSSProperties = {
-  color: WHITE,
-  fontFamily: 'var(--figma-fontfamilies-lato, Lato), sans-serif',
-  fontSize: 'clamp(1rem, 2.2vw, var(--figma-fontsizes-22, 22px))',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight:
-    'clamp(1.45rem, 2.8vw, calc(var(--figma-lineheights-scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges, 36) * 1px))',
-  letterSpacing:
-    'calc(var(--figma-letterspacing-scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges, 0.3079999947547913) * 1px)',
-};
+export type CourseHighlightCardTone = 'gold' | 'blue';
 
 export interface CourseHighlightCardProps {
   id: string;
@@ -39,7 +18,7 @@ export interface CourseHighlightCardProps {
   imageHeight: number;
   imageClassName: string;
   description?: string;
-  cardBg: string;
+  tone: CourseHighlightCardTone;
 }
 
 export function CourseHighlightCard({
@@ -49,10 +28,14 @@ export function CourseHighlightCard({
   imageHeight,
   imageClassName,
   description,
-  cardBg,
+  tone,
 }: CourseHighlightCardProps) {
   const [isActive, setIsActive] = useState(false);
   const articleRef = useRef<HTMLElement>(null);
+  const toneClassName =
+    tone === 'gold'
+      ? 'es-course-highlight-card--gold'
+      : 'es-course-highlight-card--blue';
 
   const handleDismiss = useCallback(() => {
     setIsActive(false);
@@ -83,8 +66,7 @@ export function CourseHighlightCard({
   return (
     <article
       ref={articleRef}
-      className='group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8'
-      style={{ backgroundColor: cardBg }}
+      className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8 ${toneClassName}`}
     >
       {/* Dark overlay — activated by desktop hover or mobile tap */}
       <div
@@ -137,17 +119,13 @@ export function CourseHighlightCard({
       {/* Card text content */}
       <div className='relative z-10 flex h-full w-full flex-col'>
         <div className='mt-auto space-y-4'>
-          <h3
-            className='max-w-[12ch] text-balance'
-            style={cardTitleStyle}
-          >
+          <h3 className='max-w-[12ch] text-balance es-course-highlight-title'>
             {title}
           </h3>
 
           {description && (
             <p
-              className={`max-w-[34ch] transition-opacity duration-300 ${isActive ? '' : 'opacity-0'} lg:group-hover:opacity-100 ${descriptionActive}`}
-              style={cardDescriptionStyle}
+              className={`max-w-[34ch] transition-opacity duration-300 es-course-highlight-description ${isActive ? '' : 'opacity-0'} lg:group-hover:opacity-100 ${descriptionActive}`}
             >
               {description}
             </p>

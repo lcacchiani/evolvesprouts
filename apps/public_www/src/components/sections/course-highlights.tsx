@@ -36,8 +36,7 @@ const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
   ...LOGO_OVERLAY_DEEP,
   backgroundColor: 'var(--figma-colors-frame-2147235259, #FFEEE3)',
 });
-const GOLD_CARD = 'var(--es-color-accent-gold, #9E6D12)';
-const BLUE_CARD = 'var(--figma-colors-frame-2147235242, #174879)';
+const CARD_TONES = ['gold', 'blue'] as const;
 
 const fallbackCourseHighlightsCopy = enContent.courseHighlights;
 
@@ -157,7 +156,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
         <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3'>
           {benefitCards.map((card, index) => {
-            const cardBg = index % 2 === 0 ? GOLD_CARD : BLUE_CARD;
+            const tone = CARD_TONES[index % CARD_TONES.length];
 
             return (
               <li key={card.id}>
@@ -169,7 +168,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                   imageHeight={card.imageHeight}
                   imageClassName={card.imageClassName}
                   description={card.description}
-                  cardBg={cardBg}
+                  tone={tone}
                 />
               </li>
             );

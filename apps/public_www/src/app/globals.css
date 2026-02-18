@@ -799,6 +799,227 @@
     -webkit-mask-size: var(--es-section-bg-mask-size, 100% 100%);
   }
 
+  /* Tier 1 section style migrations (inline styles -> CSS classes) */
+  .es-connect-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: 900px auto;
+  }
+
+  .es-connect-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .es-connect-glyph--blue {
+    color: var(--figma-colors-frame-2147235242, #174879);
+    background-color: color-mix(
+      in srgb,
+      var(--figma-colors-frame-2147235242, #174879) 10%,
+      transparent
+    );
+  }
+
+  .es-connect-glyph--green {
+    color: var(--es-color-accent-green, #5D9D49);
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-accent-green, #5D9D49) 10%,
+      transparent
+    );
+  }
+
+  .es-connect-glyph--orange {
+    color: var(--es-color-brand-orange, #C84A16);
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-brand-orange, #C84A16) 10%,
+      transparent
+    );
+  }
+
+  .es-my-journey-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -150px;
+    --es-section-bg-size: 900px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(
+      to bottom,
+      black 18%,
+      transparent 20%
+    );
+  }
+
+  .es-my-journey-tag {
+    color: var(--es-color-brand-orange, #C84A16);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .es-my-journey-card--blue {
+    background: var(--es-gradient-card-blue);
+  }
+
+  .es-my-journey-card--yellow {
+    background: var(--es-gradient-card-yellow);
+  }
+
+  .es-sprouts-community-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  }
+
+  .es-sprouts-community-overlay {
+    background: radial-gradient(
+      circle at center top,
+      rgba(255, 255, 255, 0) 15%,
+      rgba(255, 238, 227, 0.74) 68%
+    );
+  }
+
+  .es-sprouts-community-logo {
+    filter: sepia(1) opacity(50%) saturate(150%);
+    mask-image: linear-gradient(to bottom, black 50%, transparent 63%);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black 50%,
+      transparent 63%
+    );
+  }
+
+  .es-sprouts-community-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: var(--figma-fontweights-700, 700);
+    letter-spacing: calc(
+      var(--figma-letterspacing-join-our-sprouts-squad-community, 0.77) * 1px
+    );
+  }
+
+  .es-why-us-section {
+    background-color: var(--es-color-surface-warm, #F7F2E1);
+  }
+
+  .es-why-us-hero-card {
+    background: var(--es-gradient-why-us);
+  }
+
+  .es-why-us-glow-orange {
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-brand-orange-soft) 35%,
+      transparent
+    );
+  }
+
+  .es-why-us-glow-green {
+    background-color: color-mix(
+      in srgb,
+      var(--es-color-accent-green-soft) 30%,
+      transparent
+    );
+  }
+
+  .es-why-us-intro-title,
+  .es-why-us-pillar-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .es-why-us-intro-title {
+    font-size: clamp(1.05rem, 2.2vw, 24px);
+  }
+
+  .es-why-us-pillar-title {
+    font-size: clamp(1.1rem, 1.9vw, 24px);
+  }
+
+  .es-course-highlight-title {
+    color: var(--figma-colors-desktop, #FFFFFF);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.45rem, 3.4vw, var(--figma-fontsizes-37, 37px));
+    font-weight: var(--figma-fontweights-600, 600);
+    line-height: clamp(
+      1.95rem,
+      4.6vw,
+      calc(var(--figma-lineheights-age-specific-strategies, 50) * 1px)
+    );
+    letter-spacing: calc(var(--figma-letterspacing-age-specific-strategies, 0.37) * 1px);
+  }
+
+  .es-course-highlight-description {
+    color: var(--figma-colors-desktop, #FFFFFF);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1rem, 2.2vw, var(--figma-fontsizes-22, 22px));
+    font-weight: var(--figma-fontweights-500, 500);
+    line-height: clamp(
+      1.45rem,
+      2.8vw,
+      calc(
+        var(
+          --figma-lineheights-scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges,
+          36
+        ) * 1px
+      )
+    );
+    letter-spacing: calc(
+      var(
+        --figma-letterspacing-scripts-workbooks-and-troubleshooting-guides-for-real-life-challenges,
+        0.3079999947547913
+      ) * 1px
+    );
+  }
+
+  .es-course-highlight-card--gold {
+    background-color: var(--es-color-accent-gold, #9E6D12);
+  }
+
+  .es-course-highlight-card--blue {
+    background-color: var(--figma-colors-frame-2147235242, #174879);
+  }
+
+  .es-my-best-auntie-description-section {
+    background-color: var(--es-color-surface-muted, #F8F8F8);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -900px;
+    --es-section-bg-size: 2000px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+  }
+
+  .es-my-best-auntie-description-card {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-description-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 30px;
+  }
+
+  .es-my-best-auntie-description-card-description {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 30px;
+  }
+
   .es-selection-card-idle {
     background-color: var(--es-color-surface-selection-idle);
     border: 1px solid var(--es-color-border-date);
