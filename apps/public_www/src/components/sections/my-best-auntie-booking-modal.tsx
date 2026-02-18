@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import {
-  type CSSProperties,
   type FormEvent,
   useEffect,
   useMemo,
@@ -20,26 +19,17 @@ import {
   CloseButton,
   DiscountBadge,
   FpsQrCode,
-  MODAL_PANEL_BACKGROUND,
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
 import type { MyBestAuntieBookingContent } from '@/content';
 import {
   applyDiscount,
-  createMaskIconStyle,
   extractTimeRangeFromPartDate,
-  toTransparentColor,
 } from '@/components/sections/booking-modal/helpers';
 import {
   createPublicCrmApiClient,
   isAbortRequestError,
 } from '@/lib/crm-api-client';
-import {
-  BOOKING_HIGHLIGHT_ICON_COLOR,
-  bodyTextStyle,
-  headingTextStyle,
-  TEXT_HEADING_STRONG,
-} from '@/lib/design-tokens';
 import {
   type DiscountRule,
   fetchDiscountRules,
@@ -77,107 +67,39 @@ type CoursePartRow = {
   description: string;
 };
 
-const PART_CHIP_ICON_MASK_PATH = '/images/cubes.svg';
-const CALENDAR_ICON_MASK_PATH = '/images/calendar.svg';
-const CREDIT_CARD_ICON_MASK_PATH = '/images/credit-card.svg';
-const TARGET_ICON_MASK_PATH = '/images/target.svg';
-const PART_CHIP_TONES = [
-  {
-    backgroundColor: 'var(--es-color-part-chip-blue-bg, #99BDE2)',
-    color: 'var(--es-color-part-chip-blue-text, #073B6E)',
-  },
-  {
-    backgroundColor: 'var(--es-color-part-chip-green-bg, #CDF0C9)',
-    color: 'var(--es-color-part-chip-green-text, #2C6C25)',
-  },
-  {
-    backgroundColor: 'var(--es-color-part-chip-yellow-bg, #FFE483)',
-    color: 'var(--es-color-part-chip-yellow-text, #6B5400)',
-  },
-] as const;
-const PART_ROW_GAP_REM = 2.5;
-const PART_TIMELINE_LINE_WIDTH_PX = 25;
-const PART_TIMELINE_CONTENT_GAP_PX = 25;
-const PART_TIMELINE_SEGMENT_OVERLAP_PX = 12;
-const PART_TIMELINE_SEGMENT_WHITE_GAP_PX = 5;
-const PART_TIMELINE_GAP_CONNECTOR_HEIGHT_PX = 10;
-const PART_TIMELINE_ITEM_PADDING_BOTTOM_PX = 100;
-const PART_TIMELINE_LANE_WIDTH_PX =
-  PART_TIMELINE_LINE_WIDTH_PX + PART_TIMELINE_CONTENT_GAP_PX;
-const TIMELINE_GAP_WHITE =
-  'var(--es-color-surface-white, #FFFFFF)';
+const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
+type PartChipTone = (typeof PART_CHIP_TONES)[number];
 
-const headingStyle: CSSProperties = headingTextStyle({
-  lineHeight: 1.2,
-});
-
-const bodyStyle: CSSProperties = bodyTextStyle({
-  lineHeight: 1.5,
-});
-
-function getPartChipTone(index: number): CSSProperties {
-  const tone = PART_CHIP_TONES[index] ?? PART_CHIP_TONES[2];
-  return {
-    backgroundColor: tone.backgroundColor,
-    color: tone.color,
-  };
+function resolvePartChipTone(index: number): PartChipTone {
+  return PART_CHIP_TONES[index] ?? PART_CHIP_TONES[PART_CHIP_TONES.length - 1];
 }
 
-function getPartLineColor(index: number): string {
-  return (PART_CHIP_TONES[index] ?? PART_CHIP_TONES[2]).backgroundColor;
+function getPartChipClassName(index: number): string {
+  return `es-my-best-auntie-booking-part-chip es-my-best-auntie-booking-part-chip--${resolvePartChipTone(index)}`;
 }
 
-function getPartLineStyle(index: number, isLastItem: boolean): CSSProperties {
-  const rowGapHeight = isLastItem ? '' : ` + ${PART_ROW_GAP_REM}rem`;
-  const overlapHeight = index === 0 ? '' : ` + ${PART_TIMELINE_SEGMENT_OVERLAP_PX}px`;
-  const lineColor = getPartLineColor(index);
-
-  const style: CSSProperties = {
-    top: `${index === 0 ? 0 : -PART_TIMELINE_SEGMENT_OVERLAP_PX}px`,
-    width: `${PART_TIMELINE_LINE_WIDTH_PX}px`,
-    height: `calc(100%${rowGapHeight}${overlapHeight})`,
-    backgroundColor: lineColor,
-    borderTopLeftRadius: '999px',
-    borderTopRightRadius: '999px',
-    boxShadow:
-      index === 0
-        ? 'none'
-        : `0 -${PART_TIMELINE_SEGMENT_WHITE_GAP_PX}px 0 0 ${TIMELINE_GAP_WHITE}`,
-    zIndex: index + 1,
-  };
+function getPartLineClassName(index: number, isLastItem: boolean): string {
+  const tone = resolvePartChipTone(index);
+  const baseClassName = `es-my-best-auntie-booking-part-line es-my-best-auntie-booking-part-line--tone-${tone}`;
 
   if (isLastItem) {
-    style.background = `linear-gradient(to bottom, ${lineColor} 0%, ${lineColor} 68%, ${toTransparentColor(lineColor)} 100%)`;
+    return `${baseClassName} ${
+      index === 0
+        ? 'es-my-best-auntie-booking-part-line--last-first'
+        : 'es-my-best-auntie-booking-part-line--last-stacked'
+    }`;
   }
 
-  return style;
+  return `${baseClassName} ${
+    index === 0
+      ? 'es-my-best-auntie-booking-part-line--with-gap-first'
+      : 'es-my-best-auntie-booking-part-line--with-gap-stacked'
+  }`;
 }
 
-function getPartGapConnectorStyle(index: number): CSSProperties {
-  return {
-    width: `${PART_TIMELINE_CONTENT_GAP_PX}px`,
-    height: `${PART_TIMELINE_GAP_CONNECTOR_HEIGHT_PX}px`,
-    backgroundColor: getPartLineColor(index),
-    zIndex: index + 1,
-  };
+function getPartGapConnectorClassName(index: number): string {
+  return `es-my-best-auntie-booking-part-gap-connector es-my-best-auntie-booking-part-gap-connector--${resolvePartChipTone(index)}`;
 }
-
-const partChipIconMaskStyle = createMaskIconStyle(
-  PART_CHIP_ICON_MASK_PATH,
-  'currentColor',
-);
-const darkCalendarIconMaskStyle = createMaskIconStyle(
-  CALENDAR_ICON_MASK_PATH,
-  TEXT_HEADING_STRONG,
-);
-const redCreditCardIconMaskStyle = createMaskIconStyle(
-  CREDIT_CARD_ICON_MASK_PATH,
-  BOOKING_HIGHLIGHT_ICON_COLOR,
-);
-const redTargetIconMaskStyle = createMaskIconStyle(
-  TARGET_ICON_MASK_PATH,
-  BOOKING_HIGHLIGHT_ICON_COLOR,
-);
 
 export function MyBestAuntieBookingModal({
   content,
@@ -331,7 +253,7 @@ export function MyBestAuntieBookingModal({
     <ModalOverlay onClose={onClose}>
       <OverlayDialogPanel
         ariaLabel={content.title}
-        style={{ backgroundColor: MODAL_PANEL_BACKGROUND }}
+        className='es-my-best-auntie-booking-modal-panel'
       >
         <header className='flex justify-end px-4 pb-8 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton label={content.closeLabel} onClose={onClose} />
@@ -352,8 +274,7 @@ export function MyBestAuntieBookingModal({
                 {content.thankYouLead}
               </p>
               <h2
-                className='mt-1 text-[clamp(1.9rem,3.8vw,2.8rem)] leading-[1.1]'
-                style={headingStyle}
+                className='es-my-best-auntie-booking-modal-heading mt-1 text-[clamp(1.9rem,3.8vw,2.8rem)]'
               >
                 {content.title}
               </h2>
@@ -363,11 +284,7 @@ export function MyBestAuntieBookingModal({
                   {activePartRows.map((part, index) => (
                     <li
                       key={part.label}
-                      className='relative'
-                      style={{
-                        paddingLeft: `${PART_TIMELINE_LANE_WIDTH_PX}px`,
-                        paddingBottom: `${PART_TIMELINE_ITEM_PADDING_BOTTOM_PX}px`,
-                      }}
+                      className='es-my-best-auntie-booking-part-item relative'
                     >
                       <span
                         className='pointer-events-none absolute left-0 top-0 h-full'
@@ -375,28 +292,24 @@ export function MyBestAuntieBookingModal({
                       >
                         <span
                           data-course-part-line='segment'
-                          className='absolute left-0'
-                          style={getPartLineStyle(
+                          className={`absolute left-0 ${getPartLineClassName(
                             index,
                             index === activePartRows.length - 1,
-                          )}
+                          )}`}
                         />
                       </span>
                       <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
                         <span
                           data-course-part-chip='true'
-                          className='relative inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px]'
-                          style={getPartChipTone(index)}
+                          className={`relative inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px] ${getPartChipClassName(index)}`}
                         >
                           <span
                             data-course-part-line='gap-connector'
-                            className='pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2'
-                            style={getPartGapConnectorStyle(index)}
+                            className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
                             aria-hidden='true'
                           />
                           <span
-                            className='h-[30px] w-[30px] shrink-0'
-                            style={partChipIconMaskStyle}
+                            className='es-mask-cubes-current h-[30px] w-[30px] shrink-0'
                             aria-hidden='true'
                           />
                           <span className='text-[18px] font-semibold leading-none'>
@@ -408,8 +321,7 @@ export function MyBestAuntieBookingModal({
                           <div data-course-part-date-block='true'>
                             <span
                               data-course-part-date-icon='true'
-                              className='inline-block h-6 w-6 shrink-0'
-                              style={darkCalendarIconMaskStyle}
+                              className='es-mask-calendar-heading inline-block h-6 w-6 shrink-0'
                               aria-hidden='true'
                             />
                             <p className='mt-1 text-[17px] font-semibold leading-6 es-text-heading'>
@@ -434,8 +346,7 @@ export function MyBestAuntieBookingModal({
                   <div className='mt-4 flex items-start gap-4'>
                     <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
                       <span
-                        className='h-[46px] w-[46px] shrink-0'
-                        style={redCreditCardIconMaskStyle}
+                        className='es-mask-credit-card-danger h-[46px] w-[46px] shrink-0'
                         aria-hidden='true'
                       />
                     </span>
@@ -460,8 +371,7 @@ export function MyBestAuntieBookingModal({
                   <div className='mt-4 flex items-start gap-4'>
                     <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
                       <span
-                        className='h-[46px] w-[46px] shrink-0'
-                        style={redTargetIconMaskStyle}
+                        className='es-mask-target-danger h-[46px] w-[46px] shrink-0'
                         aria-hidden='true'
                       />
                     </span>

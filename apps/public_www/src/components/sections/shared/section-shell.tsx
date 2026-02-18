@@ -1,11 +1,10 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface SectionShellProps {
   id?: string;
   ariaLabel: string;
   dataFigmaNode: string;
   className?: string;
-  style?: CSSProperties;
   children: ReactNode;
 }
 
@@ -17,7 +16,6 @@ export function SectionShell({
   ariaLabel,
   dataFigmaNode,
   className,
-  style,
   children,
 }: SectionShellProps) {
   const sectionClassName = className
@@ -30,7 +28,6 @@ export function SectionShell({
       aria-label={ariaLabel}
       data-figma-node={dataFigmaNode}
       className={sectionClassName}
-      style={style}
     >
       {children}
     </section>

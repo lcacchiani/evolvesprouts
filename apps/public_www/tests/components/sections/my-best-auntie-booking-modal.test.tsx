@@ -117,9 +117,9 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     expect(screen.queryByText('Course Schedule')).not.toBeInTheDocument();
-    expect(
-      container.querySelectorAll('span[style*="/images/calendar.svg"]').length,
-    ).toBeGreaterThan(0);
+    expect(container.querySelectorAll('span.es-mask-calendar-heading').length).toBeGreaterThan(
+      0,
+    );
   });
 
   it('does not render the month/package selector box in booking modal', () => {
@@ -300,10 +300,10 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
-    expect(container.querySelectorAll('span[style*="/images/cubes.svg"]')).toHaveLength(3);
+    expect(container.querySelectorAll('span.es-mask-cubes-current')).toHaveLength(3);
   });
 
-  it('renders overlapping rounded timeline segments and 10px gap connectors', () => {
+  it('renders timeline segments and 10px gap connectors with tone classes', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
@@ -324,33 +324,37 @@ describe('my-best-auntie booking modals footer content', () => {
       container.querySelectorAll('span[data-course-part-line="connector"]'),
     ).toHaveLength(0);
 
-    for (const [index, segment] of Array.from(timelineSegments).entries()) {
-      const style = segment.getAttribute('style');
-      expect(style).toContain('width: 25px');
-      expect(style).toContain('border-top-left-radius: 999px');
-      expect(style).toContain('border-top-right-radius: 999px');
-      expect(style).toContain(`z-index: ${index + 1}`);
-      if (index > 0) {
-        expect(style).toContain('top: -12px');
-        expect(style).toContain(
-          'box-shadow: 0 -5px 0 0 var(--es-color-surface-white, #FFFFFF)',
-        );
-      }
-    }
+    const [firstSegment, secondSegment, thirdSegment] = Array.from(timelineSegments);
+    expect(firstSegment?.className).toContain('es-my-best-auntie-booking-part-line');
+    expect(firstSegment?.className).toContain(
+      'es-my-best-auntie-booking-part-line--tone-blue',
+    );
+    expect(firstSegment?.className).toContain(
+      'es-my-best-auntie-booking-part-line--with-gap-first',
+    );
+    expect(secondSegment?.className).toContain(
+      'es-my-best-auntie-booking-part-line--tone-green',
+    );
+    expect(secondSegment?.className).toContain(
+      'es-my-best-auntie-booking-part-line--with-gap-stacked',
+    );
+    expect(thirdSegment?.className).toContain(
+      'es-my-best-auntie-booking-part-line--tone-yellow',
+    );
+    expect(thirdSegment?.className).toContain(
+      'es-my-best-auntie-booking-part-line--last-stacked',
+    );
 
     for (const connector of gapConnectors) {
-      const style = connector.getAttribute('style');
       const className = connector.getAttribute('class');
-      expect(style).toContain('width: 25px');
-      expect(style).toContain('height: 10px');
+      expect(className).toContain('es-my-best-auntie-booking-part-gap-connector');
       expect(className).toContain('top-1/2');
       expect(className).toContain('-translate-y-1/2');
       expect(className).toContain('-left-[25px]');
     }
 
     const firstPartItem = screen.getByText(bookingModalContent.parts[0].label).closest('li');
-    expect(firstPartItem?.getAttribute('style')).toContain('padding-left: 50px');
-    expect(firstPartItem?.getAttribute('style')).toContain('padding-bottom: 100px');
+    expect(firstPartItem?.className).toContain('es-my-best-auntie-booking-part-item');
     expect(firstPartItem?.querySelector('img')).toBeNull();
 
     const firstPartChip = firstPartItem?.querySelector(
@@ -430,12 +434,8 @@ describe('my-best-auntie booking modals footer content', () => {
       termsLink.querySelector('svg[data-external-link-icon="true"]'),
     ).toBeNull();
 
-    expect(
-      container.querySelector('span[style*="/images/credit-card.svg"]'),
-    ).not.toBeNull();
-    expect(
-      container.querySelector('span[style*="/images/target.svg"]'),
-    ).not.toBeNull();
+    expect(container.querySelector('span.es-mask-credit-card-danger')).not.toBeNull();
+    expect(container.querySelector('span.es-mask-target-danger')).not.toBeNull();
     expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(2);
   });
 

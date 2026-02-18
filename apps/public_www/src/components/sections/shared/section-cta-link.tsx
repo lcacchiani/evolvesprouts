@@ -1,6 +1,5 @@
 import type {
   AnchorHTMLAttributes,
-  CSSProperties,
   ReactNode,
 } from 'react';
 
@@ -17,7 +16,6 @@ interface SectionCtaProps
   > {
   href: string;
   className?: string;
-  style?: CSSProperties;
   openInNewTab?: boolean;
   children: ReactNode;
 }
@@ -53,7 +51,6 @@ function CtaChevronIcon() {
 export function SectionCtaAnchor({
   href,
   className,
-  style,
   openInNewTab,
   children,
   ...anchorProps
@@ -63,7 +60,6 @@ export function SectionCtaAnchor({
       href={href}
       variant='primary'
       className={buildClassName(className)}
-      style={style}
       openInNewTab={openInNewTab}
       {...anchorProps}
     >

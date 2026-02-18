@@ -5,20 +5,12 @@ import { useEffect, useRef, useState } from 'react';
 
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { TestimonialsContent } from '@/content';
-import {
-  buildSectionBackgroundOverlayStyle,
-  LOGO_OVERLAY_TOP,
-} from '@/lib/section-backgrounds';
 
 interface DeferredTestimonialsClientProps {
   content: TestimonialsContent;
 }
 
 const PRELOAD_ROOT_MARGIN = '500px 0px';
-const SECTION_STYLE = buildSectionBackgroundOverlayStyle({
-  ...LOGO_OVERLAY_TOP,
-  backgroundColor: 'var(--es-color-surface-white, #FFFFFF)',
-});
 
 const LazyTestimonials = dynamic(
   () =>
@@ -81,8 +73,7 @@ export function DeferredTestimonialsClient({
         <SectionShell
           ariaLabel={content.title}
           dataFigmaNode='Testimonials'
-          className='es-section-bg-overlay'
-          style={SECTION_STYLE}
+          className='es-section-bg-overlay es-testimonials-section'
         >
           <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
             <div className='mx-auto max-w-[760px] text-center'>

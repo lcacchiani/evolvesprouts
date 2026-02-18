@@ -846,6 +846,51 @@
     );
   }
 
+  .es-reach-out-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-position: center -400px;
+    background-repeat: no-repeat;
+    background-size: 900px auto;
+    background-blend-mode: difference;
+  }
+
+  .es-reach-out-glyph--orange {
+    color: var(--es-color-brand-orange, #C84A16);
+    border-color: color-mix(
+      in srgb,
+      var(--es-color-brand-orange, #C84A16) 25%,
+      transparent
+    );
+  }
+
+  .es-reach-out-glyph--blue {
+    color: var(--figma-colors-frame-2147235242, #174879);
+    border-color: color-mix(
+      in srgb,
+      var(--figma-colors-frame-2147235242, #174879) 25%,
+      transparent
+    );
+  }
+
+  .es-reach-out-glyph--gold {
+    color: var(--es-color-accent-gold, #9E6D12);
+    border-color: color-mix(
+      in srgb,
+      var(--es-color-accent-gold, #9E6D12) 25%,
+      transparent
+    );
+  }
+
+  .es-reach-out-glyph--green {
+    color: var(--es-color-accent-green, #5D9D49);
+    border-color: color-mix(
+      in srgb,
+      var(--es-color-accent-green, #5D9D49) 25%,
+      transparent
+    );
+  }
+
   .es-my-journey-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
@@ -993,6 +1038,29 @@
     background-color: var(--figma-colors-frame-2147235242, #174879);
   }
 
+  .es-course-highlights-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -900px;
+    --es-section-bg-size: 2000px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+  }
+
+  .es-course-highlights-overlay {
+    background: radial-gradient(
+        circle at 16% 22%,
+        rgba(23, 72, 121, 0.1) 0%,
+        rgba(23, 72, 121, 0) 47%
+      ),
+      radial-gradient(
+        circle at 88% 78%,
+        rgba(231, 108, 61, 0.16) 0%,
+        rgba(231, 108, 61, 0) 52%
+      );
+  }
+
   .es-my-best-auntie-description-section {
     background-color: var(--es-color-surface-muted, #F8F8F8);
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
@@ -1021,6 +1089,20 @@
     font-size: 18px;
     font-weight: 400;
     line-height: 30px;
+  }
+
+  .es-my-history-section {
+    background-color: var(--es-color-surface-muted, #F8F8F8);
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -900px;
+    --es-section-bg-size: 2000px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+  }
+
+  .es-ida-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
   .es-hero-section {
@@ -1234,6 +1316,115 @@
     line-height: 1.55;
   }
 
+  .es-booking-modal-overlay {
+    background-color: rgba(16, 14, 11, 0.6);
+  }
+
+  .es-my-best-auntie-booking-modal-panel {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-booking-modal-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .es-my-best-auntie-booking-part-item {
+    padding-left: 50px;
+    padding-bottom: 100px;
+  }
+
+  .es-my-best-auntie-booking-part-chip--blue {
+    background-color: var(--es-color-part-chip-blue-bg, #99BDE2);
+    color: var(--es-color-part-chip-blue-text, #073B6E);
+  }
+
+  .es-my-best-auntie-booking-part-chip--green {
+    background-color: var(--es-color-part-chip-green-bg, #CDF0C9);
+    color: var(--es-color-part-chip-green-text, #2C6C25);
+  }
+
+  .es-my-best-auntie-booking-part-chip--yellow {
+    background-color: var(--es-color-part-chip-yellow-bg, #FFE483);
+    color: var(--es-color-part-chip-yellow-text, #6B5400);
+  }
+
+  .es-my-best-auntie-booking-part-line {
+    width: 25px;
+    border-top-left-radius: 999px;
+    border-top-right-radius: 999px;
+  }
+
+  .es-my-best-auntie-booking-part-line--tone-blue {
+    --es-booking-part-line-color: var(--es-color-part-chip-blue-bg, #99BDE2);
+    --es-booking-part-line-color-transparent: rgba(153, 189, 226, 0);
+  }
+
+  .es-my-best-auntie-booking-part-line--tone-green {
+    --es-booking-part-line-color: var(--es-color-part-chip-green-bg, #CDF0C9);
+    --es-booking-part-line-color-transparent: rgba(205, 240, 201, 0);
+  }
+
+  .es-my-best-auntie-booking-part-line--tone-yellow {
+    --es-booking-part-line-color: var(--es-color-part-chip-yellow-bg, #FFE483);
+    --es-booking-part-line-color-transparent: rgba(255, 228, 131, 0);
+  }
+
+  .es-my-best-auntie-booking-part-line--with-gap-first {
+    top: 0;
+    height: calc(100% + 2.5rem);
+    background-color: var(--es-booking-part-line-color);
+  }
+
+  .es-my-best-auntie-booking-part-line--with-gap-stacked {
+    top: -12px;
+    height: calc(100% + 2.5rem + 12px);
+    background-color: var(--es-booking-part-line-color);
+    box-shadow: 0 -5px 0 0 var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-booking-part-line--last-first {
+    top: 0;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      var(--es-booking-part-line-color) 0%,
+      var(--es-booking-part-line-color) 68%,
+      var(--es-booking-part-line-color-transparent) 100%
+    );
+  }
+
+  .es-my-best-auntie-booking-part-line--last-stacked {
+    top: -12px;
+    height: calc(100% + 12px);
+    box-shadow: 0 -5px 0 0 var(--es-color-surface-white, #FFFFFF);
+    background: linear-gradient(
+      to bottom,
+      var(--es-booking-part-line-color) 0%,
+      var(--es-booking-part-line-color) 68%,
+      var(--es-booking-part-line-color-transparent) 100%
+    );
+  }
+
+  .es-my-best-auntie-booking-part-gap-connector {
+    width: 25px;
+    height: 10px;
+  }
+
+  .es-my-best-auntie-booking-part-gap-connector--blue {
+    background-color: var(--es-color-part-chip-blue-bg, #99BDE2);
+  }
+
+  .es-my-best-auntie-booking-part-gap-connector--green {
+    background-color: var(--es-color-part-chip-green-bg, #CDF0C9);
+  }
+
+  .es-my-best-auntie-booking-part-gap-connector--yellow {
+    background-color: var(--es-color-part-chip-yellow-bg, #FFE483);
+  }
+
   .es-mask-calendar-current,
   .es-mask-calendar-heading {
     mask-image: url('/images/calendar.svg');
@@ -1252,6 +1443,35 @@
 
   .es-mask-calendar-heading {
     background-color: var(--es-color-text-heading, #333333);
+  }
+
+  .es-mask-cubes-current,
+  .es-mask-credit-card-danger,
+  .es-mask-target-danger {
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+  }
+
+  .es-mask-cubes-current {
+    background-color: currentColor;
+    mask-image: url('/images/cubes.svg');
+    -webkit-mask-image: url('/images/cubes.svg');
+  }
+
+  .es-mask-credit-card-danger {
+    background-color: var(--es-color-booking-highlight-icon, #B42318);
+    mask-image: url('/images/credit-card.svg');
+    -webkit-mask-image: url('/images/credit-card.svg');
+  }
+
+  .es-mask-target-danger {
+    background-color: var(--es-color-booking-highlight-icon, #B42318);
+    mask-image: url('/images/target.svg');
+    -webkit-mask-image: url('/images/target.svg');
   }
 
   .es-my-best-auntie-thank-you-panel {
