@@ -6,18 +6,19 @@ import {
   type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, '/events', 'Events');
+  const title = getMenuLabel(content, ROUTES.events, 'Events');
   const description = content.events.description;
 
   return buildLocalizedMetadata({
     locale,
-    path: '/events',
+    path: ROUTES.events,
     title,
     description,
   });

@@ -6,9 +6,10 @@ import {
   getFooterLinkLabel,
   type LocaleRouteProps,
 } from '@/lib/locale-page';
+import { ROUTES } from '@/lib/routes';
 
 const PRIVACY_PLACEHOLDER_OPTIONS = {
-  path: '/privacy',
+  path: ROUTES.privacy,
   fallbackTitle: 'Privacy Policy',
   labelResolver: getFooterLinkLabel,
 } as const;

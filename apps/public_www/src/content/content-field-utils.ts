@@ -28,3 +28,31 @@ export function readCandidateText(
 
   return undefined;
 }
+
+export function readCandidateTextFromUnknown(
+  value: unknown,
+  keys: readonly string[],
+): string | undefined {
+  const record = toRecord(value);
+  if (!record) {
+    return undefined;
+  }
+
+  return readCandidateText(record, keys);
+}
+
+export function readStringUnion<T extends readonly string[]>(
+  value: unknown,
+  values: T,
+): T[number] | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+
+  return values.find((entry) => entry === normalized) as T[number] | undefined;
+}

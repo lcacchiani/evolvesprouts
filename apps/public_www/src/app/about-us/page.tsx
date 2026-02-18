@@ -1,3 +1,4 @@
 import { createDefaultLocaleRedirectPage } from '@/lib/locale-page';
+import { ROUTES } from '@/lib/routes';
 
-export default createDefaultLocaleRedirectPage('/about-us');
+export default createDefaultLocaleRedirectPage(ROUTES.about);

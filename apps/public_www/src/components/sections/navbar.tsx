@@ -40,6 +40,7 @@ import {
   localizePath,
   normalizeLocalizedPath,
 } from '@/lib/locale-routing';
+import { ROUTES } from '@/lib/routes';
 
 interface NavbarProps {
   content: NavbarContent;
@@ -97,7 +98,7 @@ export function Navbar({ content }: NavbarProps) {
   const currentPath = normalizeLocalizedPath(pathname);
   const currentLocale = getLocaleFromPath(pathname);
   const logoSrc = content.logoSrc || LOGO_SRC;
-  const localizedHomeHref = localizePath('/', currentLocale);
+  const localizedHomeHref = localizePath(ROUTES.home, currentLocale);
   const localizedBookNowHref = localizeHref(content.bookNow.href, currentLocale);
   const languageSelector = resolveLanguageSelectorContent(content);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
