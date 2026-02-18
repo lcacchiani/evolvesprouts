@@ -204,7 +204,7 @@ export function Events({ content }: EventsProps) {
       style={{ backgroundColor: SECTION_BACKGROUND }}
     >
       <SectionContainer>
-        <div className='es-layout-content-narrow text-center'>
+        <div className='es-layout-container text-center'>
           <h1 className='es-type-title text-balance'>
             {content.title}
           </h1>

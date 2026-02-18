@@ -608,13 +608,6 @@
     margin-right: auto;
   }
 
-  .es-layout-content-narrow {
-    width: 100%;
-    max-width: 980px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
   .es-link-external-label {
     text-decoration-line: underline;
     text-underline-offset: 4px;
