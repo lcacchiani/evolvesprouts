@@ -17,6 +17,7 @@ const CSP_DIRECTIVE_BASE = [
 
 const INLINE_SCRIPT_REGEX = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
 const INLINE_STYLE_REGEX = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
+const INLINE_STYLE_ATTRIBUTE_REGEX = /\sstyle\s*=\s*(['"])([\s\S]*?)\1/gi;
 const HEAD_OPENING_TAG_REGEX = /<head\b[^>]*>/i;
 const EXISTING_CSP_META_REGEX =
   /<meta\s+http-equiv=["']Content-Security-Policy["'][^>]*>/i;
@@ -63,12 +64,23 @@ function buildCspValue(html) {
     INLINE_STYLE_REGEX,
     () => false,
   );
+  const inlineStyleAttributeValues = collectUniqueInlineBodies(
+    html,
+    INLINE_STYLE_ATTRIBUTE_REGEX,
+    () => false,
+  );
 
   const scriptHashes = inlineScriptBodies.map(toSha256HashSource);
   const styleHashes = inlineStyleBodies.map(toSha256HashSource);
+  const styleAttributeHashes = inlineStyleAttributeValues.map(toSha256HashSource);
 
   const scriptDirectiveSources = ["'self'", ...scriptHashes].join(' ');
-  const styleDirectiveSources = ["'self'", ...styleHashes].join(' ');
+  const styleDirectiveSources = [
+    "'self'",
+    ...(styleAttributeHashes.length > 0 ? ["'unsafe-hashes'"] : []),
+    ...styleHashes,
+    ...styleAttributeHashes,
+  ].join(' ');
 
   const directives = [
     ...CSP_DIRECTIVE_BASE,
@@ -80,6 +92,7 @@ function buildCspValue(html) {
     cspValue: directives.join('; '),
     scriptHashCount: scriptHashes.length,
     styleHashCount: styleHashes.length,
+    styleAttributeHashCount: styleAttributeHashes.length,
   };
 }
 
@@ -137,11 +150,17 @@ async function main() {
   let modifiedFiles = 0;
   let totalScriptHashes = 0;
   let totalStyleHashes = 0;
+  let totalStyleAttributeHashes = 0;
   let maxScriptHashesOnPage = 0;
 
   for (const htmlPath of htmlFiles) {
     const html = await readFile(htmlPath, 'utf8');
-    const { cspValue, scriptHashCount, styleHashCount } = buildCspValue(html);
+    const {
+      cspValue,
+      scriptHashCount,
+      styleHashCount,
+      styleAttributeHashCount,
+    } = buildCspValue(html);
     const updatedHtml = applyCspMetaTag(html, cspValue);
 
     if (updatedHtml !== html) {
@@ -151,6 +170,7 @@ async function main() {
 
     totalScriptHashes += scriptHashCount;
     totalStyleHashes += styleHashCount;
+    totalStyleAttributeHashes += styleAttributeHashCount;
     if (scriptHashCount > maxScriptHashesOnPage) {
       maxScriptHashesOnPage = scriptHashCount;
     }
@@ -161,6 +181,7 @@ async function main() {
       `Injected CSP meta into ${modifiedFiles}/${htmlFiles.length} HTML files.`,
       `Total script hash entries: ${totalScriptHashes}.`,
       `Total style hash entries: ${totalStyleHashes}.`,
+      `Total style attribute hash entries: ${totalStyleAttributeHashes}.`,
       `Max script hashes on a single page: ${maxScriptHashesOnPage}.`,
     ].join(' '),
   );
