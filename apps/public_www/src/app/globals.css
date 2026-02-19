@@ -180,14 +180,6 @@
     letter-spacing: 0;
   }
 
-  .es-section-eyebrow {
-    color: var(--site-heading-text);
-    font-family: var(--site-primary-font);
-    font-size: var(--figma-fontsizes-18, 18px);
-    font-weight: 500;
-    line-height: 1;
-  }
-
   .es-type-eyebrow {
     color: var(--site-heading-text);
     font-family: var(--site-primary-font);
@@ -279,10 +271,6 @@
     color: var(--es-color-brand-orange);
   }
 
-  .es-text-brand-strong {
-    color: var(--es-color-text-brand-strong);
-  }
-
   .es-text-muted {
     color: var(--es-color-text-muted);
   }
@@ -315,16 +303,8 @@
     color: var(--es-color-text-danger-accent);
   }
 
-  .es-text-danger-chip {
-    color: var(--es-color-text-danger-chip);
-  }
-
   .es-text-success {
     color: var(--es-color-text-success);
-  }
-
-  .es-text-success-strong {
-    color: var(--es-color-text-success-strong);
   }
 
   .es-text-neutral-strong {
@@ -333,14 +313,6 @@
 
   .es-text-emphasis {
     color: var(--es-color-text-emphasis);
-  }
-
-  .es-text-disabled {
-    color: var(--es-color-text-disabled);
-  }
-
-  .es-text-disabled-warm {
-    color: var(--es-color-text-disabled-warm);
   }
 
   .es-bg-surface-white {
@@ -379,28 +351,12 @@
     background-color: var(--es-color-surface-success-pale);
   }
 
-  .es-bg-surface-disabled {
-    background-color: var(--es-color-surface-disabled);
-  }
-
-  .es-bg-surface-disabled-field {
-    background-color: var(--es-color-surface-disabled-field);
-  }
-
   .es-bg-surface-danger-soft {
     background-color: var(--es-color-surface-danger-soft);
   }
 
   .es-bg-peach-glass {
     background-color: #F6DECD24;
-  }
-
-  .es-bg-surface-selection-idle {
-    background-color: var(--es-color-surface-selection-idle);
-  }
-
-  .es-bg-surface-warm {
-    background-color: var(--es-color-surface-warm);
   }
 
   .es-bg-surface-event-card {
@@ -463,29 +419,12 @@
     border-color: var(--es-color-border-warm-3);
   }
 
-  .es-border-date {
-    border-color: var(--es-color-border-date);
-  }
-
-  .es-border-disabled {
-    border-color: var(--es-color-border-disabled);
-  }
-
-  .es-border-disabled-strong {
-    border-color: var(--es-color-border-disabled-strong);
-  }
-
   .es-divider-blue {
     border-color: var(--es-color-divider-blue);
   }
 
   .es-divider-green {
     border-color: var(--es-color-divider-green);
-  }
-
-  .es-modal-panel {
-    border-color: var(--es-color-border-panel);
-    background-color: var(--es-color-surface-muted);
   }
 
   .es-modal-input {
@@ -520,14 +459,6 @@
   .es-focus-ring:focus-visible {
     outline: 2px solid var(--es-focus-ring-color);
     outline-offset: 2px;
-  }
-
-  .es-focus-ring-soft {
-    --es-focus-ring-color: rgba(0, 0, 0, 0.3);
-  }
-
-  .es-focus-ring-medium {
-    --es-focus-ring-color: rgba(0, 0, 0, 0.35);
   }
 
   .es-btn {
@@ -1772,14 +1703,6 @@
     color: var(--es-color-module-count-blue, #4592DE);
   }
 
-  .es-selection-card-idle {
-    background-color: var(--es-color-surface-selection-idle);
-    border: 1px solid var(--es-color-border-date);
-  }
-
-  .es-divider-soft {
-    border-color: rgba(31, 31, 31, 0.2);
-  }
 }
 
 @layer utilities {
@@ -1789,13 +1712,6 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
-  }
-
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
   }
 
   .es-whatsapp-contact-button-safe-bottom {
