@@ -8,7 +8,6 @@ const CSP_DIRECTIVE_BASE = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
-  "frame-ancestors 'none'",
   "img-src 'self' data: https:",
   "font-src 'self' https://fonts.gstatic.com data:",
   "connect-src 'self' https://api.evolvesprouts.com",
@@ -58,6 +57,55 @@ function collectUniqueInlineBodies(
   return orderedBodies;
 }
 
+function collectQueuedNextInlineScripts(inlineScriptBodies) {
+  const queuedBodies = [];
+  const seen = new Set();
+
+  for (const scriptBody of inlineScriptBodies) {
+    const pushCallIndex = scriptBody.indexOf('.push(');
+    if (!scriptBody.includes('__next_s') || pushCallIndex < 0) {
+      continue;
+    }
+
+    const payloadStartIndex = pushCallIndex + '.push('.length;
+    const payloadEndIndex = scriptBody.lastIndexOf(')');
+    if (payloadEndIndex <= payloadStartIndex) {
+      continue;
+    }
+
+    const payloadRaw = scriptBody.slice(payloadStartIndex, payloadEndIndex);
+    try {
+      const payload = JSON.parse(payloadRaw);
+      if (!Array.isArray(payload) || payload.length < 2) {
+        continue;
+      }
+
+      const scriptSource = payload[0];
+      const scriptProps = payload[1];
+      if (
+        scriptSource ||
+        !scriptProps ||
+        typeof scriptProps !== 'object' ||
+        typeof scriptProps.children !== 'string'
+      ) {
+        continue;
+      }
+
+      const inlineChildren = scriptProps.children;
+      if (inlineChildren.trim() === '' || seen.has(inlineChildren)) {
+        continue;
+      }
+
+      seen.add(inlineChildren);
+      queuedBodies.push(inlineChildren);
+    } catch {
+      // Ignore payloads that are not parseable JSON arrays.
+    }
+  }
+
+  return queuedBodies;
+}
+
 function buildCspValue(html) {
   const inlineScriptBodies = collectUniqueInlineBodies(
     html,
@@ -75,10 +123,17 @@ function buildCspValue(html) {
     () => false,
     2,
   );
+  const queuedInlineScriptBodies = collectQueuedNextInlineScripts(inlineScriptBodies);
 
-  const scriptHashes = inlineScriptBodies.map(toSha256HashSource);
-  const styleHashes = inlineStyleBodies.map(toSha256HashSource);
-  const styleAttributeHashes = inlineStyleAttributeValues.map(toSha256HashSource);
+  const scriptHashes = [
+    ...new Set(
+      [...inlineScriptBodies, ...queuedInlineScriptBodies].map(toSha256HashSource),
+    ),
+  ];
+  const styleHashes = [...new Set(inlineStyleBodies.map(toSha256HashSource))];
+  const styleAttributeHashes = [
+    ...new Set(inlineStyleAttributeValues.map(toSha256HashSource)),
+  ];
 
   const scriptDirectiveSources = ["'self'", ...scriptHashes].join(' ');
   const styleDirectiveSources = [
