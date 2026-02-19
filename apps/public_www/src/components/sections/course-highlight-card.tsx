@@ -59,9 +59,9 @@ export function CourseHighlightCard({
   const arrowActive = isActive
     ? 'h-[70px] w-[70px]'
     : '';
-  const descriptionActive = isActive
-    ? 'opacity-100'
-    : '';
+  const descriptionVisibilityClassName = isActive
+    ? 'opacity-100 transition-opacity duration-300'
+    : 'opacity-0 transition-none';
 
   return (
     <article
@@ -125,7 +125,7 @@ export function CourseHighlightCard({
 
           {description && (
             <p
-              className={`max-w-[34ch] transition-opacity duration-300 es-course-highlight-description ${isActive ? '' : 'opacity-0'} lg:group-hover:opacity-100 ${descriptionActive}`}
+              className={`max-w-[34ch] es-course-highlight-description lg:group-hover:opacity-100 lg:group-hover:transition-opacity lg:group-hover:duration-300 ${descriptionVisibilityClassName}`}
             >
               {description}
             </p>
