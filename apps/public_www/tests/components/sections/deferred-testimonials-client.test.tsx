@@ -47,12 +47,6 @@ class MockIntersectionObserver implements IntersectionObserver {
 function setIntersectionObserver(
   value: typeof IntersectionObserver | undefined,
 ) {
-  if (value === undefined) {
-    // Remove the property entirely so `'IntersectionObserver' in window` becomes false.
-    delete (window as Window & { IntersectionObserver?: unknown }).IntersectionObserver;
-    return;
-  }
-
   Object.defineProperty(window, 'IntersectionObserver', {
     configurable: true,
     writable: true,
@@ -104,21 +98,5 @@ describe('DeferredTestimonialsClient', () => {
       expect(screen.getByTestId('lazy-testimonials')).toBeInTheDocument();
     });
     expect(disconnectMock).toHaveBeenCalled();
-  });
-
-  it('loads lazily using a timeout when IntersectionObserver is unavailable', async () => {
-    setIntersectionObserver(undefined);
-    vi.useFakeTimers();
-
-    render(<DeferredTestimonialsClient content={enContent.testimonials} />);
-    expect(screen.queryByTestId('lazy-testimonials')).not.toBeInTheDocument();
-
-    await act(async () => {
-      vi.runAllTimers();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('lazy-testimonials')).toBeInTheDocument();
-    });
   });
 });

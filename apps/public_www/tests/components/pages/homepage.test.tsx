@@ -59,6 +59,8 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
     expect(screen.getByText(enContent.hero.headline)).toBeInTheDocument();
-    expect(screen.getByText(enContent.myBestAuntieOverview.title)).toBeInTheDocument();
+    expect(
+      screen.getByTestId('my-best-auntie-overview'),
+    ).toHaveTextContent('Best Auntie Training Course Designed by Ida');
   });
 });
