@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { SectionEyebrowChip } from '@/components/sections/shared/section-eyebrow-chip';
+import { mergeClassNames } from '@/lib/class-name-utils';
 
 type SectionHeaderAlignment = 'center' | 'left';
 type SectionHeaderTitleTag = 'h1' | 'h2';
@@ -15,10 +16,6 @@ interface SectionHeaderProps {
   titleClassName?: string;
   descriptionClassName?: string;
   testId?: string;
-}
-
-function mergeClassNames(...values: Array<string | undefined>): string {
-  return values.filter((value): value is string => Boolean(value)).join(' ');
 }
 
 export function SectionHeader({

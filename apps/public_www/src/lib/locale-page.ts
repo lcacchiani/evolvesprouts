@@ -108,6 +108,10 @@ export function buildPlaceholderPageMetadata({
     path,
     title,
     description: `${title} — Evolve Sprouts`,
+    robots: {
+      index: false,
+      follow: true,
+    },
   });
 }
 

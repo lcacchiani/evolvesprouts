@@ -14,14 +14,18 @@ export const ROUTES = {
 
 export type AppRoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
+export const PLACEHOLDER_ROUTE_PATHS: readonly AppRoutePath[] = [
+  ROUTES.privacy,
+  ROUTES.servicesWorkshops,
+  ROUTES.terms,
+];
+
 export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.home,
   ROUTES.about,
   ROUTES.events,
   ROUTES.contact,
-  ROUTES.privacy,
   ROUTES.servicesMyBestAuntieTrainingCourse,
-  ROUTES.servicesWorkshops,
 ];
 
 export function buildLocalizedResourcesHashPath(locale: Locale): string {

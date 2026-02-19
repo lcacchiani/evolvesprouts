@@ -4,15 +4,13 @@ import type {
   ReactNode,
 } from 'react';
 
+import { mergeClassNames } from '@/lib/class-name-utils';
+
 type SectionContainerProps<T extends ElementType = 'div'> = {
   as?: T;
   className?: string;
   children: ReactNode;
 } & Omit<ComponentPropsWithoutRef<T>, 'as' | 'className' | 'children'>;
-
-function mergeClassNames(...values: Array<string | undefined>): string {
-  return values.filter((value): value is string => Boolean(value)).join(' ');
-}
 
 export function SectionContainer<T extends ElementType = 'div'>({
   as,

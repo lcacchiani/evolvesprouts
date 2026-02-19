@@ -1,5 +1,4 @@
 import {
-  DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
   getContent,
   type Locale,
@@ -21,22 +20,4 @@ export function getDirectionForLocale(locale: Locale): DocumentDirection {
 
 export function resolveLocaleFromPathname(pathname: string): Locale {
   return getLocaleFromPath(pathname);
-}
-
-export function buildLocaleDocumentAttributesScript(): string {
-  return `
-(function applyLocaleDocumentAttributes() {
-  var defaultLocale = ${JSON.stringify(DEFAULT_LOCALE)};
-  var localeDirections = ${JSON.stringify(localeDirectionMap)};
-  var segments = window.location.pathname.split('/').filter(Boolean);
-  var candidateLocale = segments[0];
-  var locale = Object.prototype.hasOwnProperty.call(localeDirections, candidateLocale)
-    ? candidateLocale
-    : defaultLocale;
-  var direction = localeDirections[locale] || 'ltr';
-  var rootElement = document.documentElement;
-  rootElement.lang = locale;
-  rootElement.setAttribute('dir', direction);
-})();
-`;
 }
