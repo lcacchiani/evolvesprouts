@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useId, useRef } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import {
@@ -18,6 +19,7 @@ import {
 } from '@/components/sections/booking-modal/helpers';
 import { formatCurrencyHkd } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
+import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
 export interface MyBestAuntieThankYouModalProps {
   locale: Locale;
@@ -130,7 +132,18 @@ export function MyBestAuntieThankYouModal({
   homeHref,
   onClose,
 }: MyBestAuntieThankYouModalProps) {
+  const modalPanelRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dialogTitleId = useId();
+  const dialogDescriptionId = useId();
+
   useModalLockBody({ onEscape: onClose });
+  useModalFocusManagement({
+    isActive: true,
+    containerRef: modalPanelRef,
+    initialFocusRef: closeButtonRef,
+    restoreFocus: true,
+  });
 
   const transactionDate = resolveLocalizedDate(locale);
 
@@ -163,9 +176,19 @@ export function MyBestAuntieThankYouModal({
 
   return (
     <ModalOverlay onClose={onClose}>
-      <OverlayDialogPanel ariaLabel={content.title} className='es-my-best-auntie-thank-you-panel'>
+      <OverlayDialogPanel
+        panelRef={modalPanelRef}
+        ariaLabelledBy={dialogTitleId}
+        ariaDescribedBy={dialogDescriptionId}
+        tabIndex={-1}
+        className='es-my-best-auntie-thank-you-panel'
+      >
         <header className='flex justify-end px-4 pb-6 pt-6 sm:px-8 sm:pt-7'>
-          <CloseButton label={content.closeLabel} onClose={onClose} />
+          <CloseButton
+            label={content.closeLabel}
+            onClose={onClose}
+            buttonRef={closeButtonRef}
+          />
         </header>
 
         <OverlayScrollableBody>
@@ -200,10 +223,16 @@ export function MyBestAuntieThankYouModal({
             <h3 className='mt-3 text-[22px] font-normal leading-none es-text-heading sm:text-[28px]'>
               {content.successLabel}
             </h3>
-            <h2 className='mt-2 max-w-[610px] text-[clamp(1.5rem,4vw,2.5rem)] leading-[1.1] es-my-best-auntie-thank-you-heading'>
+            <h2
+              id={dialogTitleId}
+              className='mt-2 max-w-[610px] text-[clamp(1.5rem,4vw,2.5rem)] leading-[1.1] es-my-best-auntie-thank-you-heading'
+            >
               {content.title}
             </h2>
-            <p className='mt-3 text-[18px] leading-7 es-my-best-auntie-thank-you-body'>
+            <p
+              id={dialogDescriptionId}
+              className='mt-3 text-[18px] leading-7 es-my-best-auntie-thank-you-body'
+            >
               {content.subtitle}
               <br />
               <span className='font-semibold es-text-emphasis'>

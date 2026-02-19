@@ -5,6 +5,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { OverlayBackdrop } from '@/components/shared/overlay-surface';
 import QRCode from 'qrcode';
 import {
+  type Ref,
   type ReactNode,
   useEffect,
   useRef,
@@ -124,13 +125,16 @@ export function ModalOverlay({
 export function CloseButton({
   label,
   onClose,
+  buttonRef,
 }: {
   label: string;
   onClose: () => void;
+  buttonRef?: Ref<HTMLButtonElement>;
 }) {
   return (
     <ButtonPrimitive
       variant='icon'
+      buttonRef={buttonRef}
       aria-label={label}
       onClick={onClose}
       className='es-btn--icon-surface h-10 w-10 rounded-full'
