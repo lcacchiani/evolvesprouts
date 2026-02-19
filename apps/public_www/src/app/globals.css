@@ -427,27 +427,23 @@
     border-color: var(--es-color-divider-green);
   }
 
-  .es-form-input,
-  .es-modal-input {
+  .es-form-input {
     border-color: var(--es-color-border-input);
     background-color: var(--es-color-surface-white);
     color: var(--es-color-text-heading);
   }
 
-  .es-form-input-error,
-  .es-modal-input-error {
+  .es-form-input-error {
     border-color: var(--es-color-text-danger, #B42318);
   }
 
-  .es-form-input:disabled,
-  .es-modal-input:disabled {
+  .es-form-input:disabled {
     background-color: var(--es-color-surface-disabled-field);
     color: var(--es-color-text-disabled);
     cursor: not-allowed;
   }
 
-  .es-form-required-marker,
-  .es-modal-required-marker {
+  .es-form-required-marker {
     color: var(--es-color-brand-orange);
   }
 
