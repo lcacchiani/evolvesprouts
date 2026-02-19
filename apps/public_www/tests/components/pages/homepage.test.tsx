@@ -5,37 +5,46 @@ import { describe, expect, it, vi } from 'vitest';
 import { HomePageSections } from '@/components/pages/homepage';
 import enContent from '@/content/en.json';
 
-const heroBannerMock = vi.fn(() => <section data-testid='hero-banner' />);
-const overviewMock = vi.fn(() => <section data-testid='my-best-auntie-overview' />);
-const courseHighlightsMock = vi.fn(() => <section data-testid='course-highlights' />);
-const freeResourcesMock = vi.fn(
-  () => <section data-testid='free-resources-for-gentle-parenting' />,
-);
-const deferredTestimonialsMock = vi.fn(() => <section data-testid='deferred-testimonials' />);
-const sproutsCommunityMock = vi.fn(() => <section data-testid='sprouts-squad-community' />);
-
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({ children }: { children: ReactNode }) => (
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
 vi.mock('@/components/sections/hero-banner', () => ({
-  HeroBanner: heroBannerMock,
+  HeroBanner: ({ content }: { content: { headline: string } }) => (
+    <section data-testid='hero-banner'>{content.headline}</section>
+  ),
 }));
 vi.mock('@/components/sections/my-best-auntie-overview', () => ({
-  MyBestAuntieOverview: overviewMock,
+  MyBestAuntieOverview: ({ content }: { content: { title: string } }) => (
+    <section data-testid='my-best-auntie-overview'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/course-highlights', () => ({
-  CourseHighlights: courseHighlightsMock,
+  CourseHighlights: ({ content }: { content: { title: string } }) => (
+    <section data-testid='course-highlights'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/free-resources-for-gentle-parenting', () => ({
-  FreeResourcesForGentleParenting: freeResourcesMock,
+  FreeResourcesForGentleParenting: ({
+    content,
+  }: {
+    content: { title: string };
+  }) => (
+    <section data-testid='free-resources-for-gentle-parenting'>
+      {content.title}
+    </section>
+  ),
 }));
 vi.mock('@/components/sections/deferred-testimonials', () => ({
-  DeferredTestimonials: deferredTestimonialsMock,
+  DeferredTestimonials: ({ content }: { content: { title: string } }) => (
+    <section data-testid='deferred-testimonials'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: sproutsCommunityMock,
+  SproutsSquadCommunity: ({ content }: { content: { heading: string } }) => (
+    <section data-testid='sprouts-squad-community'>{content.heading}</section>
+  ),
 }));
 
 describe('HomePageSections', () => {
@@ -49,15 +58,7 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('free-resources-for-gentle-parenting')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
-
-    expect(heroBannerMock.mock.calls[0]?.[0]).toMatchObject({
-      content: enContent.hero,
-    });
-    expect(overviewMock.mock.calls[0]?.[0]).toMatchObject({
-      content: enContent.myBestAuntieOverview,
-    });
-    expect(courseHighlightsMock.mock.calls[0]?.[0]).toMatchObject({
-      content: enContent.courseHighlights,
-    });
+    expect(screen.getByText(enContent.hero.headline)).toBeInTheDocument();
+    expect(screen.getByText(enContent.myBestAuntieOverview.title)).toBeInTheDocument();
   });
 });

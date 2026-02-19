@@ -5,27 +5,30 @@ import { describe, expect, it, vi } from 'vitest';
 import { ContactUsPageSections } from '@/components/pages/contact-us';
 import enContent from '@/content/en.json';
 
-const contactUsFormMock = vi.fn(() => <section data-testid='contact-us-form' />);
-const reachOutMock = vi.fn(() => <section data-testid='reach-out' />);
-const connectMock = vi.fn(() => <section data-testid='connect' />);
-const sproutsCommunityMock = vi.fn(() => <section data-testid='sprouts-squad-community' />);
-
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({ children }: { children: ReactNode }) => (
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
 vi.mock('@/components/sections/contact-us-form', () => ({
-  ContactUsForm: contactUsFormMock,
+  ContactUsForm: ({ content }: { content: { title: string } }) => (
+    <section data-testid='contact-us-form'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/reach-out', () => ({
-  ReachOut: reachOutMock,
+  ReachOut: ({ content }: { content: { title: string } }) => (
+    <section data-testid='reach-out'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/connect', () => ({
-  Connect: connectMock,
+  Connect: ({ content }: { content: { title: string } }) => (
+    <section data-testid='connect'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: sproutsCommunityMock,
+  SproutsSquadCommunity: ({ content }: { content: { heading: string } }) => (
+    <section data-testid='sprouts-squad-community'>{content.heading}</section>
+  ),
 }));
 
 describe('ContactUsPageSections', () => {
@@ -37,12 +40,7 @@ describe('ContactUsPageSections', () => {
     expect(screen.getByTestId('reach-out')).toBeInTheDocument();
     expect(screen.getByTestId('connect')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
-
-    expect(contactUsFormMock.mock.calls[0]?.[0]).toMatchObject({
-      content: enContent.contactUs.contactUsForm,
-    });
-    expect(reachOutMock.mock.calls[0]?.[0]).toMatchObject({
-      content: enContent.contactUs.reachOut,
-    });
+    expect(screen.getByText(enContent.contactUs.contactUsForm.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.contactUs.reachOut.title)).toBeInTheDocument();
   });
 });

@@ -5,31 +5,43 @@ import { describe, expect, it, vi } from 'vitest';
 import { MyBestAuntie } from '@/components/pages/my-best-auntie';
 import enContent from '@/content/en.json';
 
-const bookingMock = vi.fn(() => <section data-testid='my-best-auntie-booking' />);
-const descriptionMock = vi.fn(() => <section data-testid='my-best-auntie-description' />);
-const faqMock = vi.fn(() => <section data-testid='faq' />);
-const deferredTestimonialsMock = vi.fn(() => <section data-testid='deferred-testimonials' />);
-const sproutsCommunityMock = vi.fn(() => <section data-testid='sprouts-squad-community' />);
-
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({ children }: { children: ReactNode }) => (
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
 vi.mock('@/components/sections/my-best-auntie-booking', () => ({
-  MyBestAuntieBooking: bookingMock,
+  MyBestAuntieBooking: ({
+    content,
+    locale,
+  }: {
+    content: { title: string };
+    locale: string;
+  }) => (
+    <section data-testid='my-best-auntie-booking'>
+      {content.title} ({locale})
+    </section>
+  ),
 }));
 vi.mock('@/components/sections/my-best-auntie-description', () => ({
-  MyBestAuntieDescription: descriptionMock,
+  MyBestAuntieDescription: ({ content }: { content: { title: string } }) => (
+    <section data-testid='my-best-auntie-description'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/faq', () => ({
-  Faq: faqMock,
+  Faq: ({ content }: { content: { title: string } }) => (
+    <section data-testid='faq'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/deferred-testimonials', () => ({
-  DeferredTestimonials: deferredTestimonialsMock,
+  DeferredTestimonials: ({ content }: { content: { title: string } }) => (
+    <section data-testid='deferred-testimonials'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: sproutsCommunityMock,
+  SproutsSquadCommunity: ({ content }: { content: { heading: string } }) => (
+    <section data-testid='sprouts-squad-community'>{content.heading}</section>
+  ),
 }));
 
 describe('MyBestAuntie page', () => {
@@ -42,10 +54,8 @@ describe('MyBestAuntie page', () => {
     expect(screen.getByTestId('faq')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
-
-    expect(bookingMock.mock.calls[0]?.[0]).toMatchObject({
-      locale: 'zh-HK',
-      content: enContent.myBestAuntieBooking,
-    });
+    expect(
+      screen.getByText(`${enContent.myBestAuntieBooking.title} (zh-HK)`),
+    ).toBeInTheDocument();
   });
 });

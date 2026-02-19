@@ -8,9 +8,11 @@ import enContent from '@/content/en.json';
 vi.mock('next/image', () => ({
   default: ({
     alt,
+    priority: _priority,
     ...props
   }: {
     alt?: string;
+    priority?: boolean;
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 

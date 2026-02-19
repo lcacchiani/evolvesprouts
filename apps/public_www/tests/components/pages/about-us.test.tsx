@@ -5,35 +5,40 @@ import { describe, expect, it, vi } from 'vitest';
 import { AboutUs } from '@/components/pages/about-us';
 import enContent from '@/content/en.json';
 
-const idaMock = vi.fn(() => <section data-testid='ida' />);
-const myHistoryMock = vi.fn(() => <section data-testid='my-history' />);
-const myJourneyMock = vi.fn(() => <section data-testid='my-journey' />);
-const whyUsMock = vi.fn(() => <section data-testid='why-us' />);
-const faqMock = vi.fn(() => <section data-testid='faq' />);
-const sproutsCommunityMock = vi.fn(() => <section data-testid='sprouts-squad-community' />);
-
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({ children }: { children: ReactNode }) => (
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
 vi.mock('@/components/sections/ida', () => ({
-  Ida: idaMock,
+  Ida: ({ content }: { content: { title: string } }) => (
+    <section data-testid='ida'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/my-history', () => ({
-  MyHistory: myHistoryMock,
+  MyHistory: ({ content }: { content: { title: string } }) => (
+    <section data-testid='my-history'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/my-journey', () => ({
-  MyJourney: myJourneyMock,
+  MyJourney: ({ content }: { content: { title: string } }) => (
+    <section data-testid='my-journey'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/why-us', () => ({
-  WhyUs: whyUsMock,
+  WhyUs: ({ content }: { content: { title: string } }) => (
+    <section data-testid='why-us'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/faq', () => ({
-  Faq: faqMock,
+  Faq: ({ content }: { content: { title: string } }) => (
+    <section data-testid='faq'>{content.title}</section>
+  ),
 }));
 vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: sproutsCommunityMock,
+  SproutsSquadCommunity: ({ content }: { content: { heading: string } }) => (
+    <section data-testid='sprouts-squad-community'>{content.heading}</section>
+  ),
 }));
 
 describe('AboutUs page', () => {
@@ -47,12 +52,7 @@ describe('AboutUs page', () => {
     expect(screen.getByTestId('why-us')).toBeInTheDocument();
     expect(screen.getByTestId('faq')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
-
-    expect(idaMock.mock.calls[0]?.[0]).toMatchObject({
-      content: enContent.ida,
-    });
-    expect(faqMock.mock.calls[0]?.[0]).toMatchObject({
-      content: enContent.faq,
-    });
+    expect(screen.getByText(enContent.ida.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.faq.title)).toBeInTheDocument();
   });
 });

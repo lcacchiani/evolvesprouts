@@ -47,6 +47,12 @@ class MockIntersectionObserver implements IntersectionObserver {
 function setIntersectionObserver(
   value: typeof IntersectionObserver | undefined,
 ) {
+  if (value === undefined) {
+    // Remove the property entirely so `'IntersectionObserver' in window` becomes false.
+    delete (window as Window & { IntersectionObserver?: unknown }).IntersectionObserver;
+    return;
+  }
+
   Object.defineProperty(window, 'IntersectionObserver', {
     configurable: true,
     writable: true,
