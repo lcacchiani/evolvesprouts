@@ -197,6 +197,9 @@ repo root
 - Use descriptive, intention-revealing names.
 - Keep Tailwind usage consistent and mobile-first.
 - For simple pure helpers, use the `function` keyword.
+- Styling must live in CSS classes/files, not inline style objects.
+- Never use `style={...}` or `style=""` in JSX (MANDATORY).
+- Never use `CSSProperties` / `React.CSSProperties` in app code (MANDATORY).
 
 ### Public WWW component and test structure (MANDATORY for `apps/public_www/**`)
 
