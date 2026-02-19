@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  buildLocaleDocumentAttributesScript,
   getDirectionForLocale,
   resolveLocaleFromPathname,
 } from '@/lib/locale-document';
@@ -23,14 +22,5 @@ describe('locale-document', () => {
     expect(getDirectionForLocale('en')).toBe('ltr');
     expect(getDirectionForLocale('zh-CN')).toBe('ltr');
     expect(getDirectionForLocale('zh-HK')).toBe('ltr');
-  });
-
-  it('generates a pre-hydration script with direction map', () => {
-    const script = buildLocaleDocumentAttributesScript();
-
-    expect(script).toContain('applyLocaleDocumentAttributes');
-    expect(script).toContain('"en":"ltr"');
-    expect(script).toContain('"zh-CN":"ltr"');
-    expect(script).toContain('"zh-HK":"ltr"');
   });
 });

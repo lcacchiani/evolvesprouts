@@ -1,12 +1,10 @@
 import type { ReactNode } from 'react';
 
+import { mergeClassNames } from '@/lib/class-name-utils';
+
 interface PlaceholderPanelProps {
   children: ReactNode;
   className?: string;
-}
-
-function mergeClassNames(...values: Array<string | undefined>): string {
-  return values.filter((value): value is string => Boolean(value)).join(' ');
 }
 
 const BASE_PLACEHOLDER_PANEL_CLASSNAME =

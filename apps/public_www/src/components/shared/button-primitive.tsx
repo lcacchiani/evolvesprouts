@@ -6,6 +6,7 @@ import type {
 } from 'react';
 
 import { SmartLink } from '@/components/shared/smart-link';
+import { mergeClassNames } from '@/lib/class-name-utils';
 import type { HrefKind } from '@/lib/url-utils';
 
 export type ButtonPrimitiveVariant =
@@ -64,12 +65,6 @@ type ButtonPrimitiveButtonProps =
 export type ButtonPrimitiveProps =
   | ButtonPrimitiveAnchorProps
   | ButtonPrimitiveButtonProps;
-
-function mergeClassNames(
-  ...values: Array<string | undefined | false>
-): string {
-  return values.filter((value): value is string => Boolean(value)).join(' ');
-}
 
 function renderChildren(
   children: ButtonPrimitiveChildren | undefined,
