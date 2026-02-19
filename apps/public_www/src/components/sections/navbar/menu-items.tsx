@@ -143,8 +143,11 @@ function DesktopMenuItem({
   const submenuListId = useId();
   const submenuWrapperRef = useRef<HTMLLIElement | null>(null);
   const submenuToggleButtonRef = useRef<HTMLButtonElement | null>(null);
+  const isSubmenuOpenedByHoverRef = useRef(false);
   const closeSubmenu = useCallback(
     ({ restoreFocus = true }: { restoreFocus?: boolean } = {}) => {
+      isSubmenuOpenedByHoverRef.current = false;
+
       if (restoreFocus) {
         const activeElement = document.activeElement;
         if (
@@ -203,6 +206,7 @@ function DesktopMenuItem({
       ref={submenuWrapperRef}
       className='relative'
       onMouseEnter={() => {
+        isSubmenuOpenedByHoverRef.current = true;
         setIsSubmenuOpen(true);
       }}
       onMouseLeave={() => {
@@ -218,7 +222,20 @@ function DesktopMenuItem({
         aria-controls={submenuListId}
         aria-label={`Toggle ${item.label} submenu`}
         onClick={() => {
-          setIsSubmenuOpen((value) => !value);
+          setIsSubmenuOpen((value) => {
+            if (!value) {
+              isSubmenuOpenedByHoverRef.current = false;
+              return true;
+            }
+
+            // Keep the first click open if hover already opened the submenu.
+            if (isSubmenuOpenedByHoverRef.current) {
+              isSubmenuOpenedByHoverRef.current = false;
+              return true;
+            }
+
+            return false;
+          });
         }}
       >
         {item.label}

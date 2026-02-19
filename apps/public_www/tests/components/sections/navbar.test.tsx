@@ -101,4 +101,23 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(submenuToggle).toHaveAttribute('aria-expanded', 'false');
     expect(submenu).toHaveAttribute('aria-hidden', 'true');
   });
+
+  it('keeps training submenu open on first click after hover', () => {
+    render(<Navbar content={enContent.navbar} />);
+
+    const submenuToggle = screen.getByRole('button', {
+      name: 'Toggle Training Courses submenu',
+    });
+    const submenuWrapper = submenuToggle.closest('li');
+
+    expect(submenuWrapper).not.toBeNull();
+    fireEvent.mouseEnter(submenuWrapper as HTMLElement);
+    expect(submenuToggle).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(submenuToggle);
+    expect(submenuToggle).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(submenuToggle);
+    expect(submenuToggle).toHaveAttribute('aria-expanded', 'false');
+  });
 });
