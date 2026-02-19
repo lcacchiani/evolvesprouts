@@ -30,17 +30,17 @@ describe('ContactUsForm section', () => {
       enContent.contactUs.contactUsForm.firstNameLabel,
     );
     const emailInput = screen.getByLabelText(
-      `${enContent.contactUs.contactUsForm.emailFieldLabel} (*)`,
+      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
       enContent.contactUs.contactUsForm.phoneLabel,
     );
     const messageInput = screen.getByLabelText(
-      `${enContent.contactUs.contactUsForm.messageLabel} (*)`,
+      new RegExp(enContent.contactUs.contactUsForm.messageLabel),
     );
 
     for (const input of [firstNameInput, emailInput, phoneInput, messageInput]) {
-      expect(input.className).toContain('es-modal-input');
+      expect(input.className).toContain('es-form-input');
       expect(input.className).toContain('rounded-[14px]');
       expect(input.className).toContain('text-[16px]');
       expect(input.className).toContain('font-semibold');
@@ -71,7 +71,7 @@ describe('ContactUsForm section', () => {
     render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
 
     const emailInput = screen.getByLabelText(
-      `${enContent.contactUs.contactUsForm.emailFieldLabel} (*)`,
+      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
       enContent.contactUs.contactUsForm.phoneLabel,

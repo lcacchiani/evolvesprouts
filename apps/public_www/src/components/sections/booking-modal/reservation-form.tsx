@@ -179,7 +179,7 @@ export function BookingReservationForm({
           <label className='block'>
             <span className='mb-1 block text-sm font-semibold es-text-heading'>
               {content.fullNameLabel}
-              <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
+              <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
                 *
               </span>
             </span>
@@ -191,13 +191,13 @@ export function BookingReservationForm({
               onChange={(event) => {
                 setFullName(event.target.value);
               }}
-              className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+              className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
             />
           </label>
           <label className='block'>
             <span className='mb-1 block text-sm font-semibold es-text-heading'>
               {content.emailLabel}
-              <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
+              <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
                 *
               </span>
             </span>
@@ -209,13 +209,13 @@ export function BookingReservationForm({
               onChange={(event) => {
                 setEmail(event.target.value);
               }}
-              className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+              className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
             />
           </label>
           <label className='block'>
             <span className='mb-1 block text-sm font-semibold es-text-heading'>
               {content.phoneLabel}
-              <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
+              <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
                 *
               </span>
             </span>
@@ -227,7 +227,7 @@ export function BookingReservationForm({
               onChange={(event) => {
                 setPhone(event.target.value);
               }}
-              className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+              className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
             />
           </label>
           <label className='block'>
@@ -241,7 +241,7 @@ export function BookingReservationForm({
               }}
               placeholder={content.topicsInterestPlaceholder}
               rows={3}
-              className='es-focus-ring es-modal-input w-full resize-y rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+              className='es-focus-ring es-form-input w-full resize-y rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
             />
           </label>
 
@@ -261,7 +261,7 @@ export function BookingReservationForm({
                   setDiscountError('');
                 }}
                 placeholder={content.discountCodePlaceholder}
-                className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
               />
             </label>
             <ButtonPrimitive
@@ -326,7 +326,7 @@ export function BookingReservationForm({
               />
               <span className='text-sm leading-[1.45] es-text-heading'>
                 {content.pendingReservationAcknowledgementLabel}
-                <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
+                <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
                   *
                 </span>
               </span>
@@ -354,7 +354,7 @@ export function BookingReservationForm({
                 >
                   {content.termsLinkLabel}
                 </SmartLink>
-                <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
+                <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
                   *
                 </span>
               </span>

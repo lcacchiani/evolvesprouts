@@ -225,7 +225,7 @@ export function Navbar({ content }: NavbarProps) {
     <>
       <header
         data-figma-node='navbar'
-        className='es-navbar-surface w-full'
+        className='relative z-30 es-navbar-surface w-full'
       >
         <SectionContainer
           as='nav'
