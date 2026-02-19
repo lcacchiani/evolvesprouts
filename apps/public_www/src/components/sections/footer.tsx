@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 
-import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
+import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { FooterContent } from '@/content';
@@ -105,12 +105,9 @@ function FooterColumnLinks({
                       {icon}
                     </span>
                   ) : null}
-                  <span className={isExternalHttp ? 'es-link-external-label' : undefined}>
+                  <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
                     {item.label}
-                  </span>
-                  {isExternalHttp ? (
-                    <ExternalLinkIcon />
-                  ) : null}
+                  </ExternalLinkInlineContent>
                 </>
               )}
             </SmartLink>

@@ -1,7 +1,13 @@
-import type { SVGProps } from 'react';
+import type { ReactNode, SVGProps } from 'react';
 
 interface ExternalLinkIconProps extends SVGProps<SVGSVGElement> {
   className?: string;
+}
+
+interface ExternalLinkInlineContentProps {
+  isExternalHttp: boolean;
+  children: ReactNode;
+  internalIcon?: ReactNode;
 }
 
 export function ExternalLinkIcon({
@@ -23,18 +29,33 @@ export function ExternalLinkIcon({
       {...svgProps}
     >
       <path
-        d='M5 11L11 5'
+        d='M1 11L7 5'
         stroke='currentColor'
         strokeWidth='1.8'
         strokeLinecap='round'
       />
       <path
-        d='M6.5 5H11V9.5'
+        d='M2.5 5H7V9.5'
         stroke='currentColor'
         strokeWidth='1.8'
         strokeLinecap='round'
         strokeLinejoin='round'
       />
     </svg>
+  );
+}
+
+export function ExternalLinkInlineContent({
+  isExternalHttp,
+  children,
+  internalIcon = null,
+}: ExternalLinkInlineContentProps) {
+  return (
+    <>
+      <span className={isExternalHttp ? 'es-link-external-label' : undefined}>
+        {children}
+      </span>
+      {isExternalHttp ? <ExternalLinkIcon /> : internalIcon}
+    </>
   );
 }
