@@ -48,6 +48,7 @@ jobs:
           npm ci
           npm run validate:content
           npm run lint
+          npm run test
           npm run audit:assets
           npm run build
 
@@ -97,7 +98,7 @@ jobs:
       - name: Run Node tests
         run: |
           set -e
-          for dir in apps/crm_web apps/public_www packages/react_ui packages/api_client_ts; do
+          for dir in apps/crm_web packages/react_ui packages/api_client_ts; do
             if [ -f "$dir/package.json" ]; then
               echo "Testing Node in $dir"
               if [ -f "$dir/package-lock.json" ]; then

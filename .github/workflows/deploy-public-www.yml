@@ -38,6 +38,10 @@ jobs:
         run: npm ci
         working-directory: apps/public_www
 
+      - name: Audit public website production dependencies
+        run: npm run audit:deps:prod
+        working-directory: apps/public_www
+
       - name: Audit public website assets
         run: npm run audit:assets
         working-directory: apps/public_www
