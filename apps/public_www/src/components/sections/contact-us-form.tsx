@@ -164,8 +164,8 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
             </ul>
           </div>
 
-          <form onSubmit={handleSubmit} className='relative z-10 space-y-4'>
-            <label className='block space-y-1.5'>
+          <form onSubmit={handleSubmit} className='relative z-10 space-y-3'>
+            <label className='block'>
               <span className='mb-1 block text-sm font-semibold es-text-heading'>
                 {content.firstNameLabel}
               </span>
@@ -176,13 +176,16 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 onChange={(event) => {
                   updateField('firstName', event.target.value);
                 }}
-                className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
               />
             </label>
 
-            <label className='block space-y-1.5'>
+            <label className='block'>
               <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                {`${content.emailFieldLabel} (*)`}
+                {content.emailFieldLabel}
+                <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+                  *
+                </span>
               </span>
               <input
                 type='email'
@@ -196,7 +199,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 onBlur={() => {
                   setIsEmailTouched(true);
                 }}
-                className={`es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold ${hasEmailError ? 'es-modal-input-error' : ''}`}
+                className={`es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold ${hasEmailError ? 'es-form-input-error' : ''}`}
                 aria-invalid={hasEmailError}
                 aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
               />
@@ -211,7 +214,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               ) : null}
             </label>
 
-            <label className='block space-y-1.5'>
+            <label className='block'>
               <span className='mb-1 block text-sm font-semibold es-text-heading'>
                 {content.phoneLabel}
               </span>
@@ -225,7 +228,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 onBlur={() => {
                   setIsPhoneTouched(true);
                 }}
-                className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
                 aria-invalid={hasPhoneError}
                 aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
               />
@@ -240,9 +243,12 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               ) : null}
             </label>
 
-            <label className='block space-y-1.5'>
+            <label className='block'>
               <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                {`${content.messageLabel} (*)`}
+                {content.messageLabel}
+                <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+                  *
+                </span>
               </span>
               <textarea
                 required
@@ -253,7 +259,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                   updateField('message', event.target.value);
                 }}
                 placeholder={content.messagePlaceholder}
-                className='es-focus-ring es-modal-input w-full min-h-[152px] resize-y rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input w-full min-h-[152px] resize-y rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
               />
             </label>
 
