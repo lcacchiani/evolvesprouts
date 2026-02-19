@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { getHrefKind, isExternalHref, isHttpHref } from '@/lib/url-utils';
+import {
+  getHrefKind,
+  isExternalHref,
+  isHttpHref,
+  isUnsafeHref,
+} from '@/lib/url-utils';
 
 describe('url-utils', () => {
   it('detects HTTP and HTTPS links', () => {
@@ -28,6 +33,15 @@ describe('url-utils', () => {
     expect(getHrefKind('tel:+85212345678')).toBe('tel');
     expect(getHrefKind('#resources')).toBe('hash');
     expect(getHrefKind('/en/about-us')).toBe('internal');
+  });
+
+  it('flags unsafe href values and unsupported protocols', () => {
+    expect(getHrefKind('javascript:alert(1)')).toBe('unsafe');
+    expect(getHrefKind('data:text/html;base64,abc')).toBe('unsafe');
+    expect(getHrefKind('//example.com/path')).toBe('unsafe');
+    expect(getHrefKind('ftp://example.com')).toBe('unsafe');
+    expect(getHrefKind('   ')).toBe('unsafe');
+    expect(isUnsafeHref('javascript:alert(1)')).toBe(true);
   });
 
   it('keeps localized and anchor href values internal', () => {

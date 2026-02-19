@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react';
-
 export const TOKEN_FALLBACK_HEX = {
   '--es-color-brand-orange': '#C84A16',
   '--es-color-brand-orange-strong': '#ED622E',
@@ -31,65 +29,3 @@ export const TEXT_NEUTRAL_STRONG_COLOR = `var(--es-color-text-neutral-strong, ${
 export const HEADING_FONT_FAMILY =
   'var(--figma-fontfamilies-poppins, Poppins), sans-serif';
 export const BODY_FONT_FAMILY = 'var(--figma-fontfamilies-lato, Lato), sans-serif';
-
-export const DEFAULT_SECTION_EYEBROW_STYLE: CSSProperties = {
-  color: HEADING_TEXT_COLOR,
-  fontFamily: BODY_FONT_FAMILY,
-  fontSize: 'var(--figma-fontsizes-18, 18px)',
-  fontWeight: 'var(--figma-fontweights-500, 500)',
-  lineHeight: '1',
-};
-
-function mergeStyle(
-  baseStyle: CSSProperties,
-  overrides?: Partial<CSSProperties>,
-): CSSProperties {
-  return overrides ? { ...baseStyle, ...overrides } : baseStyle;
-}
-
-export function headingTextStyle(
-  overrides?: Partial<CSSProperties>,
-): CSSProperties {
-  return mergeStyle(
-    {
-      color: HEADING_TEXT_COLOR,
-      fontFamily: HEADING_FONT_FAMILY,
-      fontWeight: 700,
-      lineHeight: 1.2,
-    },
-    overrides,
-  );
-}
-
-export function bodyTextStyle(
-  overrides?: Partial<CSSProperties>,
-): CSSProperties {
-  return mergeStyle(
-    {
-      color: BODY_TEXT_COLOR,
-      fontFamily: BODY_FONT_FAMILY,
-      fontWeight: 400,
-      lineHeight: 1.5,
-    },
-    overrides,
-  );
-}
-
-export function eyebrowTextStyle(
-  overrides?: Partial<CSSProperties>,
-): CSSProperties {
-  return mergeStyle(DEFAULT_SECTION_EYEBROW_STYLE, overrides);
-}
-
-export function ctaTextStyle(
-  overrides?: Partial<CSSProperties>,
-): CSSProperties {
-  return mergeStyle(
-    {
-      fontFamily: BODY_FONT_FAMILY,
-      fontWeight: 600,
-      lineHeight: 1,
-    },
-    overrides,
-  );
-}

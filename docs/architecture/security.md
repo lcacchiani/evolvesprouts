@@ -200,6 +200,22 @@ logger.exception("Internal error")  # Log details internally
 return {"error": "Internal server error"}  # Generic response to client
 ```
 
+### Public WWW API key model
+
+The public website (`apps/public_www`) uses a browser-visible key:
+
+- `NEXT_PUBLIC_WWW_CRM_API_KEY`
+- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
+
+This key is intentionally public and must remain strictly scoped.
+
+Requirements:
+
+- The key must be read-only and limited to the required public endpoints.
+- Requests should prefer same-origin `/www` proxy routing.
+- API-side rate limiting and monitoring must be enabled.
+- Any key rotation must be coordinated with frontend runtime configuration.
+
 ---
 
 ## Infrastructure Security
@@ -209,6 +225,41 @@ return {"error": "Internal server error"}  # Generic response to client
 - Use least-privilege IAM roles
 - Use OIDC for GitHub Actions (no long-lived AWS keys)
 - Scope permissions to specific resources
+
+### Public website CDN headers
+
+`backend/infrastructure/lib/public-www-stack.ts` configures CloudFront
+response headers for the public website distributions.
+
+Baseline policy includes:
+
+- `Strict-Transport-Security`
+- `X-Content-Type-Options`
+- `X-Frame-Options`
+- `Referrer-Policy`
+- `Content-Security-Policy`
+- `Permissions-Policy`
+
+#### CSP model for S3 + CloudFront static hosting
+
+The public site is deployed as static HTML to S3 behind CloudFront, without
+Lambda@Edge/body mutation. In this architecture, Next.js static output includes
+many inline hydration scripts that vary by page. A single CloudFront CSP header
+cannot safely enumerate all required script hashes within header size limits.
+
+To keep CSP strict while removing `unsafe-inline`:
+
+- CloudFront sets a minimal header CSP:
+  - `base-uri 'self'; object-src 'none'; frame-ancestors 'none'`
+- Build step `apps/public_www/scripts/inject-csp-meta.mjs` injects a
+  per-page `<meta http-equiv="Content-Security-Policy">` into every exported
+  HTML file in `apps/public_www/out`.
+- The injected page-level CSP computes SHA-256 hashes for that page's inline
+  scripts and includes them in `script-src`, with no `unsafe-inline`.
+
+Staging additionally sets:
+
+- `X-Robots-Tag: noindex, nofollow, noarchive`
 
 ### Database Security
 
@@ -255,6 +306,7 @@ Before approving any PR, verify:
 - [ ] CORS restricted to specific origins (not `ALL_ORIGINS`)
 - [ ] Input is validated before processing
 - [ ] Error responses don't leak internal details
+- [ ] Browser-visible API keys are explicitly scoped and rate-limited
 
 ### Infrastructure
 - [ ] IAM permissions follow least-privilege

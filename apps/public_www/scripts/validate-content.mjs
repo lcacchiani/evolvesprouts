@@ -11,6 +11,13 @@ const LOCALE_FILES = [
   ['zh-CN', 'zh-CN.json'],
   ['zh-HK', 'zh-HK.json'],
 ];
+const EMAIL_VALUE_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_VALUE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
+const DANGEROUS_HREF_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
+const PROTOCOL_RELATIVE_URL_REGEX = /^\/\//;
+const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
+const MAILTO_PROTOCOL_REGEX = /^mailto:/i;
+const TEL_PROTOCOL_REGEX = /^tel:/i;
 
 function getTypeName(value) {
   if (Array.isArray(value)) {
@@ -131,6 +138,104 @@ function assertLocaleMetadata(content, locale, errors) {
   }
 }
 
+function validateEmailValue(value, keyPath, errors) {
+  const normalizedValue = value.trim();
+  if (!EMAIL_VALUE_REGEX.test(normalizedValue)) {
+    errors.push(`${keyPath}: invalid email value "${normalizedValue}"`);
+  }
+}
+
+function validateHrefValue(value, keyPath, errors) {
+  const normalizedValue = value.trim();
+  if (!normalizedValue) {
+    errors.push(`${keyPath}: href cannot be empty`);
+    return;
+  }
+  if (
+    DANGEROUS_HREF_PROTOCOL_REGEX.test(normalizedValue) ||
+    PROTOCOL_RELATIVE_URL_REGEX.test(normalizedValue)
+  ) {
+    errors.push(`${keyPath}: unsafe href protocol "${normalizedValue}"`);
+    return;
+  }
+  if (normalizedValue.startsWith('#') || normalizedValue.startsWith('/')) {
+    return;
+  }
+
+  if (MAILTO_PROTOCOL_REGEX.test(normalizedValue)) {
+    const targetValue = normalizedValue.slice('mailto:'.length).split('?')[0]?.trim() ?? '';
+    if (!EMAIL_VALUE_REGEX.test(targetValue)) {
+      errors.push(`${keyPath}: invalid mailto target "${normalizedValue}"`);
+    }
+    return;
+  }
+
+  if (TEL_PROTOCOL_REGEX.test(normalizedValue)) {
+    const phoneValue = normalizedValue.slice('tel:'.length).split('?')[0]?.trim() ?? '';
+    if (!PHONE_VALUE_REGEX.test(phoneValue)) {
+      errors.push(`${keyPath}: invalid tel target "${normalizedValue}"`);
+    }
+    return;
+  }
+
+  if (HTTP_PROTOCOL_REGEX.test(normalizedValue)) {
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(normalizedValue);
+    } catch {
+      errors.push(`${keyPath}: invalid URL "${normalizedValue}"`);
+      return;
+    }
+
+    const protocol = parsedUrl.protocol.toLowerCase();
+    const hostname = parsedUrl.hostname.toLowerCase();
+    if (protocol === 'https:') {
+      return;
+    }
+    if (protocol === 'http:' && hostname === 'localhost') {
+      return;
+    }
+
+    errors.push(`${keyPath}: external URLs must use https "${normalizedValue}"`);
+    return;
+  }
+
+  errors.push(`${keyPath}: unsupported href format "${normalizedValue}"`);
+}
+
+function validateSemanticRules(value, keyPath, errors) {
+  if (typeof value === 'string') {
+    const keyName = keyPath.split('.').pop()?.toLowerCase() ?? '';
+    if (keyName === 'href' || keyName.endsWith('href')) {
+      validateHrefValue(value, keyPath, errors);
+    }
+    if (
+      keyName === 'email' ||
+      keyName.endsWith('email') ||
+      keyName === 'emailaddress'
+    ) {
+      validateEmailValue(value, keyPath, errors);
+    }
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index += 1) {
+      validateSemanticRules(value[index], `${keyPath}[${index}]`, errors);
+    }
+    return;
+  }
+
+  if (!value || typeof value !== 'object') {
+    return;
+  }
+
+  for (const [key, nestedValue] of Object.entries(value)) {
+    const nestedPath = keyPath ? `${keyPath}.${key}` : key;
+    validateSemanticRules(nestedValue, nestedPath, errors);
+  }
+}
+
 async function loadJson(filePath) {
   const raw = await readFile(filePath, 'utf8');
   return JSON.parse(raw);
@@ -153,6 +258,7 @@ async function main() {
     const localeContent = localeMap[locale];
     validateShape(englishContent, localeContent, locale, errors);
     assertLocaleMetadata(localeContent, locale, errors);
+    validateSemanticRules(localeContent, locale, errors);
   }
 
   if (errors.length > 0) {

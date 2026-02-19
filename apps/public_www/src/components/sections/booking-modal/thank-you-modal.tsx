@@ -14,7 +14,6 @@ import {
 } from '@/components/sections/booking-modal/shared';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
-  escapeHtml,
   resolveLocalizedDate,
 } from '@/components/sections/booking-modal/helpers';
 import { formatCurrencyHkd } from '@/lib/format';
@@ -26,6 +25,102 @@ export interface MyBestAuntieThankYouModalProps {
   summary: ReservationSummary | null;
   homeHref: string;
   onClose: () => void;
+}
+
+const PRINT_WINDOW_FEATURES = 'noopener,noreferrer,width=880,height=700';
+
+function appendPrintSummaryRow({
+  popupDocument,
+  container,
+  label,
+  value,
+}: {
+  popupDocument: Document;
+  container: HTMLElement;
+  label: string;
+  value: string;
+}): void {
+  const row = popupDocument.createElement('div');
+  row.className = 'row';
+
+  const labelElement = popupDocument.createElement('span');
+  labelElement.textContent = label;
+
+  const valueElement = popupDocument.createElement('strong');
+  valueElement.textContent = value;
+
+  row.append(labelElement, valueElement);
+  container.append(row);
+}
+
+function renderPrintDocument({
+  popupDocument,
+  locale,
+  successLabel,
+  title,
+  transactionDateLabel,
+  transactionDate,
+  paymentMethodLabel,
+  paymentMethod,
+  totalLabel,
+  totalAmountLabel,
+}: {
+  popupDocument: Document;
+  locale: Locale;
+  successLabel: string;
+  title: string;
+  transactionDateLabel: string;
+  transactionDate: string;
+  paymentMethodLabel: string;
+  paymentMethod: string;
+  totalLabel: string;
+  totalAmountLabel: string;
+}): void {
+  popupDocument.title = successLabel;
+  popupDocument.documentElement.lang = locale;
+  popupDocument.head.replaceChildren();
+  popupDocument.body.replaceChildren();
+
+  const metaCharset = popupDocument.createElement('meta');
+  metaCharset.setAttribute('charset', 'utf-8');
+
+  const styleElement = popupDocument.createElement('style');
+  styleElement.textContent =
+    'body { font-family: "Poppins", sans-serif; margin: 24px; color: #333; }' +
+    'h1 { margin: 0 0 8px; }' +
+    '.card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }' +
+    '.row { display: flex; justify-content: space-between; margin: 8px 0; }';
+  popupDocument.head.append(metaCharset, styleElement);
+
+  const heading = popupDocument.createElement('h1');
+  heading.textContent = successLabel;
+
+  const subtitle = popupDocument.createElement('p');
+  subtitle.textContent = title;
+
+  const card = popupDocument.createElement('div');
+  card.className = 'card';
+
+  appendPrintSummaryRow({
+    popupDocument,
+    container: card,
+    label: transactionDateLabel,
+    value: transactionDate,
+  });
+  appendPrintSummaryRow({
+    popupDocument,
+    container: card,
+    label: paymentMethodLabel,
+    value: paymentMethod,
+  });
+  appendPrintSummaryRow({
+    popupDocument,
+    container: card,
+    label: totalLabel,
+    value: totalAmountLabel,
+  });
+
+  popupDocument.body.append(heading, subtitle, card);
 }
 
 export function MyBestAuntieThankYouModal({
@@ -44,47 +139,23 @@ export function MyBestAuntieThankYouModal({
       return;
     }
 
-    const popup = window.open('', '_blank', 'width=880,height=700');
+    const popup = window.open('', '_blank', PRINT_WINDOW_FEATURES);
     if (!popup) {
       window.print();
       return;
     }
-
-    const printHtml = `
-      <html>
-        <head>
-          <title>${escapeHtml(content.successLabel)}</title>
-          <style>
-            body { font-family: "Poppins", sans-serif; margin: 24px; color: #333; }
-            h1 { margin: 0 0 8px; }
-            .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
-            .row { display: flex; justify-content: space-between; margin: 8px 0; }
-          </style>
-        </head>
-        <body>
-          <h1>${escapeHtml(content.successLabel)}</h1>
-          <p>${escapeHtml(content.title)}</p>
-          <div class="card">
-            <div class="row">
-              <span>${escapeHtml(content.transactionDateLabel)}</span>
-              <strong>${escapeHtml(transactionDate)}</strong>
-            </div>
-            <div class="row">
-              <span>${escapeHtml(content.paymentMethodLabel)}</span>
-              <strong>${escapeHtml(summary.paymentMethod)}</strong>
-            </div>
-            <div class="row">
-              <span>${escapeHtml(content.totalLabel)}</span>
-              <strong>${escapeHtml(formatCurrencyHkd(summary.totalAmount))}</strong>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    popup.document.open();
-    popup.document.write(printHtml);
-    popup.document.close();
+    renderPrintDocument({
+      popupDocument: popup.document,
+      locale,
+      successLabel: content.successLabel,
+      title: content.title,
+      transactionDateLabel: content.transactionDateLabel,
+      transactionDate,
+      paymentMethodLabel: content.paymentMethodLabel,
+      paymentMethod: summary.paymentMethod,
+      totalLabel: content.totalLabel,
+      totalAmountLabel: formatCurrencyHkd(summary.totalAmount),
+    });
     popup.focus();
     popup.print();
     popup.close();

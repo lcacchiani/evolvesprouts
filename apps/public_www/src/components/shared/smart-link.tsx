@@ -11,6 +11,7 @@ interface SmartLinkRenderState {
   isExternal: boolean;
   isExternalHttp: boolean;
   opensInNewTab: boolean;
+  isUnsafe: boolean;
 }
 
 type SmartLinkChildren =
@@ -32,6 +33,10 @@ function resolveOpensInNewTab(
   hrefKind: HrefKind,
   openInNewTab: boolean | undefined,
 ): boolean {
+  if (hrefKind === 'unsafe') {
+    return false;
+  }
+
   if (typeof openInNewTab === 'boolean') {
     return openInNewTab;
   }
@@ -58,16 +63,19 @@ export function SmartLink({
   ...anchorProps
 }: SmartLinkProps) {
   const hrefKind = getHrefKind(href);
+  const isUnsafe = hrefKind === 'unsafe';
   const isExternalHttp = hrefKind === 'http';
   const isExternal =
     hrefKind === 'http' || hrefKind === 'mailto' || hrefKind === 'tel';
   const opensInNewTab = resolveOpensInNewTab(hrefKind, openInNewTab);
+  const resolvedHref = isUnsafe ? '#' : href;
 
   const state: SmartLinkRenderState = {
     hrefKind,
     isExternal,
     isExternalHttp,
     opensInNewTab,
+    isUnsafe,
   };
 
   const linkChildren = renderChildren(children, state);
@@ -81,14 +89,14 @@ export function SmartLink({
 
   if (hrefKind === 'internal') {
     return (
-      <Link href={href} {...sharedProps}>
+      <Link href={resolvedHref} {...sharedProps}>
         {linkChildren}
       </Link>
     );
   }
 
   return (
-    <a href={href} {...sharedProps}>
+    <a href={resolvedHref} {...sharedProps}>
       {linkChildren}
     </a>
   );

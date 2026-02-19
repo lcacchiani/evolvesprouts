@@ -23,6 +23,16 @@ interface WebsiteEnvironmentResources {
   readonly loggingBucket: s3.Bucket;
 }
 
+const PUBLIC_WWW_HEADER_CONTENT_SECURITY_POLICY = [
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+const PUBLIC_WWW_PERMISSIONS_POLICY =
+  "accelerometer=(), camera=(), geolocation=(), gyroscope=(), " +
+  "magnetometer=(), microphone=(), payment=(), usb=()";
+
 export class PublicWwwStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
@@ -256,7 +266,13 @@ function handler(event) {
       },
     );
 
-    const customHeaders: cloudfront.ResponseCustomHeader[] = [];
+    const customHeaders: cloudfront.ResponseCustomHeader[] = [
+      {
+        header: "Permissions-Policy",
+        value: PUBLIC_WWW_PERMISSIONS_POLICY,
+        override: true,
+      },
+    ];
     if (config.addNoIndexHeader) {
       customHeaders.push({
         header: "X-Robots-Tag",
@@ -277,6 +293,10 @@ function handler(event) {
               }
             : undefined,
         securityHeadersBehavior: {
+          contentSecurityPolicy: {
+            contentSecurityPolicy: PUBLIC_WWW_HEADER_CONTENT_SECURITY_POLICY,
+            override: true,
+          },
           contentTypeOptions: {
             override: true,
           },

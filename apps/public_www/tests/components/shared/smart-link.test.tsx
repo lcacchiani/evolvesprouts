@@ -61,6 +61,15 @@ describe('SmartLink', () => {
     expect(link).not.toHaveAttribute('data-mocked-next-link');
   });
 
+  it('neutralizes unsafe href values', () => {
+    render(<SmartLink href='javascript:alert(1)'>Blocked</SmartLink>);
+
+    const link = screen.getByRole('link', { name: 'Blocked' });
+    expect(link).toHaveAttribute('href', '#');
+    expect(link).not.toHaveAttribute('target');
+    expect(link).not.toHaveAttribute('data-mocked-next-link');
+  });
+
   it('exposes protocol bucket state to render-prop children', () => {
     render(
       <SmartLink href='mailto:hello@example.com'>
