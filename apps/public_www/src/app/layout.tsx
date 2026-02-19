@@ -1,9 +1,12 @@
 import { Lato, Poppins } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
-import Script from 'next/script';
 import type { ReactNode } from 'react';
 
-import { buildLocaleDocumentAttributesScript } from '@/lib/locale-document';
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from '@/content';
+import {
+  getDirectionForLocale,
+  type DocumentDirection,
+} from '@/lib/locale-document';
 import { SITE_ORIGIN } from '@/lib/seo';
 import './globals.css';
 
@@ -23,30 +26,9 @@ const poppins = Poppins({
   display: 'swap',
 });
 
-const stagingBadgeScript = `
-(function showStagingBadge() {
-  var host = window.location.hostname.toLowerCase();
-  var isStagingHost = host.includes('staging') || host.includes('preprod');
-  if (!isStagingHost) {
-    return;
-  }
-
-  var robotsMeta = document.querySelector('meta[name="robots"]');
-  if (!robotsMeta) {
-    robotsMeta = document.createElement('meta');
-    robotsMeta.setAttribute('name', 'robots');
-    document.head.appendChild(robotsMeta);
-  }
-  robotsMeta.setAttribute('content', 'noindex, nofollow, noarchive');
-
-  var badge = document.getElementById('environment-badge');
-  if (badge) {
-    badge.classList.remove('hidden');
-  }
-})();
-`;
-
-const localeDocumentAttributesScript = buildLocaleDocumentAttributesScript();
+const DOCUMENT_LOCALE_DIRECTIONS = Object.fromEntries(
+  SUPPORTED_LOCALES.map((locale) => [locale, getDirectionForLocale(locale)]),
+) as Record<Locale, DocumentDirection>;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -73,8 +55,11 @@ export default function RootLayout({
       lang='en'
       suppressHydrationWarning
       className={`${lato.variable} ${poppins.variable}`}
+      data-default-locale={DEFAULT_LOCALE}
+      data-locale-directions={JSON.stringify(DOCUMENT_LOCALE_DIRECTIONS)}
     >
       <body className='antialiased'>
+        <script src='/scripts/set-locale-document-attributes.js' />
         <a
           href='#main-content'
           className='sr-only fixed left-4 top-4 z-[80] rounded-md bg-black px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black'
@@ -87,12 +72,7 @@ export default function RootLayout({
         >
           Staging
         </div>
-        <Script id='show-staging-badge' strategy='beforeInteractive'>
-          {stagingBadgeScript}
-        </Script>
-        <Script id='set-locale-document-attributes' strategy='beforeInteractive'>
-          {localeDocumentAttributesScript}
-        </Script>
+        <script src='/scripts/show-staging-badge.js' />
         {children}
       </body>
     </html>

@@ -256,6 +256,8 @@ To keep CSP strict while removing `unsafe-inline`:
   HTML file in `apps/public_www/out`.
 - The injected page-level CSP computes SHA-256 hashes for that page's inline
   scripts and includes them in `script-src`, with no `unsafe-inline`.
+- `frame-ancestors` remains header-only, because browsers ignore that directive
+  when delivered through a CSP `<meta>` tag.
 
 Staging additionally sets:
 

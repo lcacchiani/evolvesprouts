@@ -51,6 +51,8 @@ Public WWW CloudFront includes:
     - Page-specific CSP is injected at build time into exported HTML
       (`apps/public_www/scripts/inject-csp-meta.mjs`) so each page can
       allow only its own hashed inline scripts.
+    - `frame-ancestors` is intentionally omitted from the page-level CSP meta
+      because browsers ignore it outside the response header.
 - Staging distribution adds `X-Robots-Tag: noindex, nofollow, noarchive`.
 
 ---
