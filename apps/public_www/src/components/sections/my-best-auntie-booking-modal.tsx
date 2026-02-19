@@ -20,7 +20,7 @@ import {
   type BookingEventDetailPart,
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
-import { BookingResevationForm } from '@/components/sections/booking-modal/resevation-form';
+import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
 import type { MyBestAuntieBookingContent } from '@/content';
 import {
   extractTimeRangeFromPartDate,
@@ -148,7 +148,7 @@ export function MyBestAuntieBookingModal({
               learnMoreLabel={learnMoreLabel}
               learnMoreHref={learnMoreHref}
             />
-            <BookingResevationForm
+            <BookingReservationForm
               content={content}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
               selectedMonthLabel={selectedMonth?.label ?? ''}

@@ -25,7 +25,7 @@ import {
 } from '@/lib/discounts-data';
 import { formatCurrencyHkd } from '@/lib/format';
 
-interface BookingResevationFormProps {
+interface BookingReservationFormProps {
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedAgeGroupLabel: string;
   selectedMonthLabel: string;
@@ -42,7 +42,7 @@ function sanitizeSingleLineValue(value: string): string {
   return value.replaceAll(/\s+/g, ' ').trim();
 }
 
-export function BookingResevationForm({
+export function BookingReservationForm({
   content,
   selectedAgeGroupLabel,
   selectedMonthLabel,
@@ -51,7 +51,7 @@ export function BookingResevationForm({
   scheduleTimeLabel,
   descriptionId,
   onSubmitReservation,
-}: BookingResevationFormProps) {
+}: BookingReservationFormProps) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
