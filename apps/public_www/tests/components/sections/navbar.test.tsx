@@ -46,6 +46,8 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const header = document.querySelector('header[data-figma-node="navbar"]');
     expect(header?.className).toContain('es-navbar-surface');
+    expect(header?.className).toContain('relative');
+    expect(header?.className).toContain('z-30');
   });
 
   it('applies active and inactive classes to language menu items', () => {
