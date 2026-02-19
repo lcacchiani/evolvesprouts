@@ -59,6 +59,7 @@ export default function RootLayout({
       data-locale-directions={JSON.stringify(DOCUMENT_LOCALE_DIRECTIONS)}
     >
       <body className='antialiased'>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts -- must run before hydration without inline wrappers */}
         <script src='/scripts/set-locale-document-attributes.js' />
         <a
           href='#main-content'
@@ -72,6 +73,7 @@ export default function RootLayout({
         >
           Staging
         </div>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts -- keeps staging badge bootstrap external and CSP-safe */}
         <script src='/scripts/show-staging-badge.js' />
         {children}
       </body>
