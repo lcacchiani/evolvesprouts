@@ -23,17 +23,10 @@ interface WebsiteEnvironmentResources {
   readonly loggingBucket: s3.Bucket;
 }
 
-const PUBLIC_WWW_CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
+const PUBLIC_WWW_HEADER_CONTENT_SECURITY_POLICY = [
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https:",
-  "font-src 'self' https://fonts.gstatic.com data:",
-  "connect-src 'self' https://api.evolvesprouts.com",
-  "form-action 'self' mailto:",
 ].join("; ");
 
 const PUBLIC_WWW_PERMISSIONS_POLICY =
@@ -301,7 +294,7 @@ function handler(event) {
             : undefined,
         securityHeadersBehavior: {
           contentSecurityPolicy: {
-            contentSecurityPolicy: PUBLIC_WWW_CONTENT_SECURITY_POLICY,
+            contentSecurityPolicy: PUBLIC_WWW_HEADER_CONTENT_SECURITY_POLICY,
             override: true,
           },
           contentTypeOptions: {

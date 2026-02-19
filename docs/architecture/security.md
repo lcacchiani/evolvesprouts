@@ -240,6 +240,23 @@ Baseline policy includes:
 - `Content-Security-Policy`
 - `Permissions-Policy`
 
+#### CSP model for S3 + CloudFront static hosting
+
+The public site is deployed as static HTML to S3 behind CloudFront, without
+Lambda@Edge/body mutation. In this architecture, Next.js static output includes
+many inline hydration scripts that vary by page. A single CloudFront CSP header
+cannot safely enumerate all required script hashes within header size limits.
+
+To keep CSP strict while removing `unsafe-inline`:
+
+- CloudFront sets a minimal header CSP:
+  - `base-uri 'self'; object-src 'none'; frame-ancestors 'none'`
+- Build step `apps/public_www/scripts/inject-csp-meta.mjs` injects a
+  per-page `<meta http-equiv="Content-Security-Policy">` into every exported
+  HTML file in `apps/public_www/out`.
+- The injected page-level CSP computes SHA-256 hashes for that page's inline
+  scripts and includes them in `script-src`, with no `unsafe-inline`.
+
 Staging additionally sets:
 
 - `X-Robots-Tag: noindex, nofollow, noarchive`

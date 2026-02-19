@@ -45,6 +45,12 @@ Public WWW CloudFront includes:
   `Strict-Transport-Security`, `X-Content-Type-Options`,
   `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`,
   and `Permissions-Policy`.
+  - Public WWW CSP is split by design:
+    - CloudFront header CSP enforces `base-uri`, `object-src`, and
+      `frame-ancestors` (no `unsafe-inline`).
+    - Page-specific CSP is injected at build time into exported HTML
+      (`apps/public_www/scripts/inject-csp-meta.mjs`) so each page can
+      allow only its own hashed inline scripts.
 - Staging distribution adds `X-Robots-Tag: noindex, nofollow, noarchive`.
 
 ---
