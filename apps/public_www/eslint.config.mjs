@@ -2,7 +2,7 @@ import { fixupConfigRules } from '@eslint/compat';
 import * as espree from 'espree';
 import nextConfig from 'eslint-config-next';
 
-export default [
+const eslintConfig = [
   ...fixupConfigRules(nextConfig),
   {
     files: ['**/*.{js,jsx,mjs,cjs}'],
@@ -46,3 +46,5 @@ export default [
     ignores: ['node_modules/**', 'e2e/**', 'playwright.config.ts'],
   },
 ];
+
+export default eslintConfig;
