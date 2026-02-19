@@ -20,6 +20,8 @@ lib64/
 !apps/crm_web/src/lib/**
 !apps/public_www/src/lib/
 !apps/public_www/src/lib/**
+!apps/public_www/tests/lib/
+!apps/public_www/tests/lib/**
 parts/
 sdist/
 var/
