@@ -1,7 +1,4 @@
 @import 'tailwindcss';
 @import './generated/figma-tokens.css';
 
-@import './styles/base.css';
-@import './styles/components-core.css';
-@import './styles/components-sections.css';
-@import './styles/utilities.css';
+@import './styles/original/index.css';
