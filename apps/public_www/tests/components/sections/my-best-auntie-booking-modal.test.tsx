@@ -85,6 +85,46 @@ afterEach(() => {
 });
 
 describe('my-best-auntie booking modals footer content', () => {
+  it('exposes labelled dialog semantics for booking and thank-you modals', () => {
+    const bookingModalView = render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    const bookingDialog = screen.getByRole('dialog', {
+      name: bookingModalContent.title,
+    });
+    const bookingDescriptionId = bookingDialog.getAttribute('aria-describedby');
+    expect(bookingDialog).toHaveAttribute('aria-labelledby');
+    expect(bookingDescriptionId).toBeTruthy();
+    expect(document.getElementById(bookingDescriptionId ?? '')).not.toBeNull();
+
+    bookingModalView.unmount();
+
+    render(
+      <MyBestAuntieThankYouModal
+        locale='en'
+        content={thankYouModalContent}
+        summary={reservationSummary}
+        homeHref='/en'
+        onClose={() => {}}
+      />,
+    );
+
+    const thankYouDialog = screen.getByRole('dialog', {
+      name: thankYouModalContent.title,
+    });
+    const thankYouDescriptionId = thankYouDialog.getAttribute('aria-describedby');
+    expect(thankYouDialog).toHaveAttribute('aria-labelledby');
+    expect(thankYouDescriptionId).toBeTruthy();
+    expect(
+      document.getElementById(thankYouDescriptionId ?? '')?.textContent ?? '',
+    ).toContain(thankYouModalContent.subtitle);
+  });
+
   it('hides child age group and payment method in booking modal', () => {
     render(
       <MyBestAuntieBookingModal

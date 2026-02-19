@@ -2,40 +2,31 @@
 
 import Image from 'next/image';
 import {
-  type FormEvent,
-  useEffect,
+  useId,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
-import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
 import {
   OverlayDialogPanel,
   OverlayScrollableBody,
 } from '@/components/shared/overlay-surface';
-import { SmartLink } from '@/components/shared/smart-link';
 import {
   CloseButton,
-  DiscountBadge,
-  FpsQrCode,
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
+import {
+  type BookingEventDetailPart,
+  BookingEventDetails,
+} from '@/components/sections/booking-modal/event-details';
+import { BookingResevationForm } from '@/components/sections/booking-modal/resevation-form';
 import type { MyBestAuntieBookingContent } from '@/content';
 import {
-  applyDiscount,
   extractTimeRangeFromPartDate,
 } from '@/components/sections/booking-modal/helpers';
-import {
-  createPublicCrmApiClient,
-  isAbortRequestError,
-} from '@/lib/crm-api-client';
-import {
-  type DiscountRule,
-  fetchDiscountRules,
-} from '@/lib/discounts-data';
-import { formatCurrencyHkd } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
+import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
 export interface ReservationSummary {
   attendeeName: string;
@@ -61,50 +52,6 @@ interface MyBestAuntieBookingModalProps {
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
 
-type CoursePartRow = {
-  label: string;
-  date: string;
-  description: string;
-};
-
-const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
-type PartChipTone = (typeof PART_CHIP_TONES)[number];
-
-function sanitizeSingleLineValue(value: string): string {
-  return value.replaceAll(/\s+/g, ' ').trim();
-}
-
-function resolvePartChipTone(index: number): PartChipTone {
-  return PART_CHIP_TONES[index] ?? PART_CHIP_TONES[PART_CHIP_TONES.length - 1];
-}
-
-function getPartChipClassName(index: number): string {
-  return `es-my-best-auntie-booking-part-chip es-my-best-auntie-booking-part-chip--${resolvePartChipTone(index)}`;
-}
-
-function getPartLineClassName(index: number, isLastItem: boolean): string {
-  const tone = resolvePartChipTone(index);
-  const baseClassName = `es-my-best-auntie-booking-part-line es-my-best-auntie-booking-part-line--tone-${tone}`;
-
-  if (isLastItem) {
-    return `${baseClassName} ${
-      index === 0
-        ? 'es-my-best-auntie-booking-part-line--last-first'
-        : 'es-my-best-auntie-booking-part-line--last-stacked'
-    }`;
-  }
-
-  return `${baseClassName} ${
-    index === 0
-      ? 'es-my-best-auntie-booking-part-line--with-gap-first'
-      : 'es-my-best-auntie-booking-part-line--with-gap-stacked'
-  }`;
-}
-
-function getPartGapConnectorClassName(index: number): string {
-  return `es-my-best-auntie-booking-part-gap-connector es-my-best-auntie-booking-part-gap-connector--${resolvePartChipTone(index)}`;
-}
-
 export function MyBestAuntieBookingModal({
   content,
   initialMonthId,
@@ -124,46 +71,18 @@ export function MyBestAuntieBookingModal({
 
   const [selectedMonthId] = useState(resolvedMonthId);
   const [selectedPackageId] = useState(firstPackageId);
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [interestedTopics, setInterestedTopics] = useState('');
-  const [discountCode, setDiscountCode] = useState('');
-  const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
-  const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
-  const [discountError, setDiscountError] = useState('');
-  const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
-    useState(false);
-  const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
+  const modalPanelRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dialogTitleId = useId();
+  const dialogDescriptionId = useId();
 
   useModalLockBody({ onEscape: onClose });
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const crmApiClient = createPublicCrmApiClient();
-
-    if (!crmApiClient) {
-      return () => {
-        controller.abort();
-      };
-    }
-
-    fetchDiscountRules(crmApiClient, controller.signal)
-      .then((remoteRules) => {
-        setDiscountRules(remoteRules);
-      })
-      .catch((error) => {
-        if (isAbortRequestError(error)) {
-          return;
-        }
-
-        setDiscountRules([]);
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, []);
+  useModalFocusManagement({
+    isActive: true,
+    containerRef: modalPanelRef,
+    initialFocusRef: closeButtonRef,
+    restoreFocus: true,
+  });
 
   const selectedMonth =
     content.monthOptions.find((option) => option.id === selectedMonthId) ??
@@ -173,20 +92,8 @@ export function MyBestAuntieBookingModal({
     content.packageOptions[0];
 
   const originalAmount = selectedPackage?.price ?? 0;
-  const totalAmount = useMemo(() => {
-    return applyDiscount(originalAmount, discountRule);
-  }, [discountRule, originalAmount]);
-  const discountAmount = Math.max(0, originalAmount - totalAmount);
-  const hasDiscount = discountAmount > 0;
-  const hasConfirmedPriceDifference = totalAmount !== originalAmount;
-  const isSubmitDisabled =
-    !fullName.trim() ||
-    !email.trim() ||
-    !phone.trim() ||
-    !hasPendingReservationAcknowledgement ||
-    !hasTermsAgreement;
 
-  const activePartRows = useMemo<CoursePartRow[]>(() => {
+  const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
     const activeMonthId = selectedMonth?.id ?? '';
 
     return content.parts.map((part) => {
@@ -206,61 +113,21 @@ export function MyBestAuntieBookingModal({
     return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');
   }, [activePartRows]);
 
-  function handleApplyDiscount() {
-    if (discountRule) {
-      return;
-    }
-
-    const normalizedCode = discountCode.trim().toUpperCase();
-    if (!normalizedCode) {
-      setDiscountRule(null);
-      setDiscountError(content.invalidDiscountLabel);
-      return;
-    }
-
-    const matchedRule = discountRules.find(
-      (entry) => entry.code.toUpperCase() === normalizedCode,
-    );
-
-    if (!matchedRule) {
-      setDiscountRule(null);
-      setDiscountError(content.invalidDiscountLabel);
-      return;
-    }
-
-    setDiscountRule(matchedRule);
-    setDiscountError('');
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedPackage || !selectedMonth || isSubmitDisabled) {
-      return;
-    }
-
-    onSubmitReservation({
-      attendeeName: sanitizeSingleLineValue(fullName),
-      attendeeEmail: sanitizeSingleLineValue(email),
-      attendeePhone: sanitizeSingleLineValue(phone),
-      childAgeGroup: sanitizeSingleLineValue(selectedAgeGroupLabel),
-      packageLabel: sanitizeSingleLineValue(selectedPackage.label),
-      monthLabel: sanitizeSingleLineValue(selectedMonth.label),
-      paymentMethod: sanitizeSingleLineValue(content.paymentMethodValue),
-      totalAmount,
-      courseLabel: sanitizeSingleLineValue(content.title),
-      scheduleDateLabel: sanitizeSingleLineValue(selectedMonth.label),
-      scheduleTimeLabel: sanitizeSingleLineValue(selectedTimeLabel),
-    });
-  }
-
   return (
     <ModalOverlay onClose={onClose}>
       <OverlayDialogPanel
-        ariaLabel={content.title}
+        panelRef={modalPanelRef}
+        ariaLabelledBy={dialogTitleId}
+        ariaDescribedBy={dialogDescriptionId}
+        tabIndex={-1}
         className='es-my-best-auntie-booking-modal-panel'
       >
         <header className='flex justify-end px-4 pb-8 pt-6 sm:px-8 sm:pt-7'>
-          <CloseButton label={content.closeLabel} onClose={onClose} />
+          <CloseButton
+            label={content.closeLabel}
+            onClose={onClose}
+            buttonRef={closeButtonRef}
+          />
         </header>
         <OverlayScrollableBody className='pb-5 sm:pb-8'>
           <Image
@@ -273,361 +140,24 @@ export function MyBestAuntieBookingModal({
           />
 
           <div className='relative z-10 flex flex-col gap-8 pb-9 lg:flex-row lg:gap-10 lg:pb-[72px]'>
-            <div className='w-full lg:w-[calc(50%-20px)]'>
-              <p className='text-[20px] leading-7 es-text-heading'>
-                {content.thankYouLead}
-              </p>
-              <h2
-                className='es-my-best-auntie-booking-modal-heading mt-1 text-[clamp(1.9rem,3.8vw,2.8rem)]'
-              >
-                {content.title}
-              </h2>
-
-              <section className='mt-8'>
-                <ul className='space-y-10'>
-                  {activePartRows.map((part, index) => (
-                    <li
-                      key={part.label}
-                      className='es-my-best-auntie-booking-part-item relative'
-                    >
-                      <span
-                        className='pointer-events-none absolute left-0 top-0 h-full'
-                        aria-hidden='true'
-                      >
-                        <span
-                          data-course-part-line='segment'
-                          className={`absolute left-0 ${getPartLineClassName(
-                            index,
-                            index === activePartRows.length - 1,
-                          )}`}
-                        />
-                      </span>
-                      <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
-                        <span
-                          data-course-part-chip='true'
-                          className={`relative inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px] ${getPartChipClassName(index)}`}
-                        >
-                          <span
-                            data-course-part-line='gap-connector'
-                            className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
-                            aria-hidden='true'
-                          />
-                          <span
-                            className='es-mask-cubes-current h-[30px] w-[30px] shrink-0'
-                            aria-hidden='true'
-                          />
-                          <span className='text-[18px] font-semibold leading-none'>
-                            {part.label}
-                          </span>
-                        </span>
-
-                        <div className='max-w-[340px]'>
-                          <div data-course-part-date-block='true'>
-                            <span
-                              data-course-part-date-icon='true'
-                              className='es-mask-calendar-heading inline-block h-6 w-6 shrink-0'
-                              aria-hidden='true'
-                            />
-                            <p className='mt-1 text-[17px] font-semibold leading-6 es-text-heading'>
-                              {part.date}
-                            </p>
-                          </div>
-                          <p className='mt-2 text-[15px] leading-[22px] es-text-body'>
-                            {part.description}
-                          </p>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-
-              <section className='mt-9'>
-                <div className='border-b border-black/15 pb-8'>
-                  <h3 className='text-[28px] font-bold leading-none es-text-heading'>
-                    {content.pricingTitle}
-                  </h3>
-                  <div className='mt-4 flex items-start gap-4'>
-                    <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
-                      <span
-                        className='es-mask-credit-card-danger h-[46px] w-[46px] shrink-0'
-                        aria-hidden='true'
-                      />
-                    </span>
-                    <div>
-                      <p className='text-[20px] font-semibold leading-6 es-text-heading'>
-                        {content.totalAmountLabel}
-                      </p>
-                      <p className='mt-2 text-[30px] font-bold leading-none es-text-heading'>
-                        {formatCurrencyHkd(originalAmount)}
-                      </p>
-                      <p className='mt-4 text-[18px] font-semibold leading-[26px] es-text-heading'>
-                        {content.refundHint}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className='border-b border-black/15 pb-8 pt-8'>
-                  <h3 className='text-[28px] font-bold leading-none es-text-heading'>
-                    {content.locationTitle}
-                  </h3>
-                  <div className='mt-4 flex items-start gap-4'>
-                    <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
-                      <span
-                        className='es-mask-target-danger h-[46px] w-[46px] shrink-0'
-                        aria-hidden='true'
-                      />
-                    </span>
-                    <div>
-                      <p className='text-[20px] font-semibold leading-6 es-text-heading'>
-                        {content.locationName}
-                      </p>
-                      <p className='mt-1 text-[18px] font-semibold leading-[26px] es-text-heading'>
-                        {content.locationAddress}
-                      </p>
-                      <SmartLink
-                        href={content.directionHref}
-                        className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none es-text-heading'
-                      >
-                        {({ isExternalHttp }) => (
-                          <>
-                            <span
-                              className={
-                                isExternalHttp
-                                  ? 'es-link-external-label'
-                                  : undefined
-                              }
-                            >
-                              {content.directionLabel}
-                            </span>
-                            {isExternalHttp ? (
-                              <ExternalLinkIcon />
-                            ) : null}
-                          </>
-                        )}
-                      </SmartLink>
-                    </div>
-                  </div>
-                </div>
-
-                {learnMoreLabel && (
-                  <div className='mt-8'>
-                    <ButtonPrimitive
-                      href={learnMoreHref}
-                      variant='outline'
-                      className='h-[56px] rounded-[10px] px-7 text-base font-semibold'
-                    >
-                      {learnMoreLabel}
-                    </ButtonPrimitive>
-                  </div>
-                )}
-              </section>
-            </div>
-
-            <div className='w-full lg:w-[calc(50%-20px)]'>
-              <section className='relative overflow-hidden rounded-[14px] border es-border-panel es-bg-surface-muted px-5 py-7 sm:px-7'>
-                <Image
-                  src='/images/evolvesprouts-logo.svg'
-                  alt=''
-                  width={276}
-                  height={267}
-                  className='pointer-events-none absolute -right-5 -top-6 hidden w-[220px] sm:block'
-                  aria-hidden='true'
-                />
-
-                <h3 className='relative z-10 text-[30px] font-bold leading-none es-text-heading'>
-                  {content.reservationTitle}
-                </h3>
-
-                <form className='relative z-10 mt-4 space-y-3' onSubmit={handleSubmit}>
-                  <label className='block'>
-                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                      {content.fullNameLabel}
-                      <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
-                        *
-                      </span>
-                    </span>
-                    <input
-                      type='text'
-                      required
-                      value={fullName}
-                      onChange={(event) => {
-                        setFullName(event.target.value);
-                      }}
-                      className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
-                    />
-                  </label>
-                  <label className='block'>
-                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                      {content.emailLabel}
-                      <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
-                        *
-                      </span>
-                    </span>
-                    <input
-                      type='email'
-                      required
-                      value={email}
-                      onChange={(event) => {
-                        setEmail(event.target.value);
-                      }}
-                      className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
-                    />
-                  </label>
-                  <label className='block'>
-                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                      {content.phoneLabel}
-                      <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
-                        *
-                      </span>
-                    </span>
-                    <input
-                      type='tel'
-                      required
-                      value={phone}
-                      onChange={(event) => {
-                        setPhone(event.target.value);
-                      }}
-                      className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
-                    />
-                  </label>
-                  <label className='block'>
-                    <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                      {content.topicsInterestLabel}
-                    </span>
-                    <textarea
-                      value={interestedTopics}
-                      onChange={(event) => {
-                        setInterestedTopics(event.target.value);
-                      }}
-                      placeholder={content.topicsInterestPlaceholder}
-                      rows={3}
-                      className='es-focus-ring es-modal-input w-full resize-y rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
-                    />
-                  </label>
-
-                  <div className='grid grid-cols-[1fr_auto] gap-2'>
-                    <label>
-                      <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                        {content.discountCodeLabel}
-                      </span>
-                      <input
-                        type='text'
-                        value={discountCode}
-                        disabled={Boolean(discountRule)}
-                        onChange={(event) => {
-                          setDiscountCode(event.target.value);
-                          setDiscountError('');
-                        }}
-                        placeholder={content.discountCodePlaceholder}
-                        className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
-                      />
-                    </label>
-                    <ButtonPrimitive
-                      variant='outline'
-                      onClick={handleApplyDiscount}
-                      disabled={Boolean(discountRule)}
-                      className='mt-6 h-[50px] rounded-[10px] px-4 text-sm font-semibold'
-                    >
-                      {content.applyDiscountLabel}
-                    </ButtonPrimitive>
-                  </div>
-
-                  {discountRule && (
-                    <DiscountBadge label={content.discountAppliedLabel} />
-                  )}
-                  {discountError && (
-                    <p className='text-sm font-semibold es-text-danger-strong'>
-                      {discountError}
-                    </p>
-                  )}
-
-                  <div
-                    data-booking-price-breakdown='true'
-                    className='space-y-2 rounded-[12px] border es-border-panel-soft bg-white p-4'
-                  >
-                    <div className='flex items-center justify-between text-sm font-semibold es-text-body'>
-                      <span>Price</span>
-                      <span>{formatCurrencyHkd(originalAmount)}</span>
-                    </div>
-                    {hasDiscount && (
-                      <div className='flex items-center justify-between text-sm font-semibold es-text-success'>
-                        <span>Discount</span>
-                        <span>-{formatCurrencyHkd(discountAmount)}</span>
-                      </div>
-                    )}
-                    {hasConfirmedPriceDifference && (
-                      <div className='flex items-center justify-between border-t es-border-divider pt-2 text-sm font-bold es-text-heading'>
-                        <span>Confirmed Price</span>
-                        <span>{formatCurrencyHkd(totalAmount)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div data-booking-fps-block='true' className='w-full p-4'>
-                    <FpsQrCode amount={totalAmount} />
-                  </div>
-
-                  <div data-booking-acknowledgements='true' className='space-y-2'>
-                    <label className='flex items-start gap-2.5 py-1'>
-                      <input
-                        type='checkbox'
-                        required
-                        checked={hasPendingReservationAcknowledgement}
-                        onChange={(event) => {
-                          setHasPendingReservationAcknowledgement(event.target.checked);
-                        }}
-                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
-                      />
-                      <span className='text-sm leading-[1.45] es-text-heading'>
-                        {content.pendingReservationAcknowledgementLabel}
-                        <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
-                          *
-                        </span>
-                      </span>
-                    </label>
-
-                    <label className='flex items-start gap-2.5 py-1'>
-                      <input
-                        type='checkbox'
-                        required
-                        checked={hasTermsAgreement}
-                        onChange={(event) => {
-                          setHasTermsAgreement(event.target.checked);
-                        }}
-                        className='es-focus-ring mt-1 h-4 w-4 shrink-0 es-accent-brand'
-                      />
-                      <span className='text-sm leading-[1.45] es-text-heading'>
-                        {content.termsAgreementLabel}{' '}
-                        <SmartLink
-                          href={content.termsHref}
-                          openInNewTab
-                          className='es-focus-ring rounded-[2px] es-text-brand underline underline-offset-4'
-                          onClick={(event) => {
-                            event.stopPropagation();
-                          }}
-                        >
-                          {content.termsLinkLabel}
-                        </SmartLink>
-                        <span className='es-modal-required-marker ml-0.5' aria-hidden='true'>
-                          *
-                        </span>
-                      </span>
-                    </label>
-                  </div>
-
-                  <ButtonPrimitive
-                    variant='primary'
-                    type='submit'
-                    disabled={isSubmitDisabled}
-                    className='mt-1 w-full'
-                  >
-                    {content.submitLabel}
-                  </ButtonPrimitive>
-                </form>
-              </section>
-            </div>
+            <BookingEventDetails
+              headingId={dialogTitleId}
+              content={content}
+              activePartRows={activePartRows}
+              originalAmount={originalAmount}
+              learnMoreLabel={learnMoreLabel}
+              learnMoreHref={learnMoreHref}
+            />
+            <BookingResevationForm
+              content={content}
+              selectedAgeGroupLabel={selectedAgeGroupLabel}
+              selectedMonthLabel={selectedMonth?.label ?? ''}
+              selectedPackageLabel={selectedPackage?.label ?? ''}
+              selectedPackagePrice={originalAmount}
+              scheduleTimeLabel={selectedTimeLabel}
+              descriptionId={dialogDescriptionId}
+              onSubmitReservation={onSubmitReservation}
+            />
           </div>
 
         </OverlayScrollableBody>

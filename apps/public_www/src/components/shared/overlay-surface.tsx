@@ -41,9 +41,18 @@ export function OverlayBackdrop({
 interface OverlayDialogPanelProps
   extends Omit<
     ComponentPropsWithoutRef<'section'>,
-    'children' | 'className' | 'ref' | 'role' | 'aria-modal' | 'aria-label'
+    | 'children'
+    | 'className'
+    | 'ref'
+    | 'role'
+    | 'aria-modal'
+    | 'aria-label'
+    | 'aria-labelledby'
+    | 'aria-describedby'
   > {
-  ariaLabel: string;
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
+  ariaDescribedBy?: string;
   className?: string;
   panelRef?: Ref<HTMLElement>;
   children: ReactNode;
@@ -51,6 +60,8 @@ interface OverlayDialogPanelProps
 
 export function OverlayDialogPanel({
   ariaLabel,
+  ariaLabelledBy,
+  ariaDescribedBy,
   className,
   panelRef,
   children,
@@ -61,7 +72,9 @@ export function OverlayDialogPanel({
       ref={panelRef}
       role='dialog'
       aria-modal='true'
-      aria-label={ariaLabel}
+      aria-label={ariaLabelledBy ? undefined : ariaLabel}
+      aria-labelledby={ariaLabelledBy}
+      aria-describedby={ariaDescribedBy}
       className={mergeClassNames(DEFAULT_DIALOG_PANEL_CLASSNAME, className)}
       {...props}
     >
