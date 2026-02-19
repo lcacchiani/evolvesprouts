@@ -7,7 +7,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
 
 const BASE_SECTION_CTA_CLASSNAME =
-  'gap-2';
+  'gap-0';
 
 interface SectionCtaProps
   extends Omit<
@@ -33,7 +33,7 @@ function CtaChevronIcon() {
     <svg
       aria-hidden='true'
       viewBox='0 0 20 20'
-      className='h-5 w-5 shrink-0'
+      className='ml-2 h-5 w-5 shrink-0'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >

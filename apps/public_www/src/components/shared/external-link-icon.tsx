@@ -23,13 +23,13 @@ export function ExternalLinkIcon({
       {...svgProps}
     >
       <path
-        d='M5 11L11 5'
+        d='M1 11L7 5'
         stroke='currentColor'
         strokeWidth='1.8'
         strokeLinecap='round'
       />
       <path
-        d='M6.5 5H11V9.5'
+        d='M2.5 5H7V9.5'
         stroke='currentColor'
         strokeWidth='1.8'
         strokeLinecap='round'

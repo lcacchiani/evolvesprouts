@@ -388,7 +388,7 @@ export function MyBestAuntieBookingModal({
                       </p>
                       <SmartLink
                         href={content.directionHref}
-                        className='mt-3 inline-flex items-center gap-1.5 text-[18px] font-semibold leading-none es-text-heading'
+                        className='mt-3 inline-flex items-center text-[18px] font-semibold leading-none es-text-heading'
                       >
                         {({ isExternalHttp }) => (
                           <>
