@@ -31,7 +31,12 @@ function escapeHtmlAttribute(value) {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
-function collectUniqueInlineBodies(html, regex, skipPredicate) {
+function collectUniqueInlineBodies(
+  html,
+  regex,
+  skipPredicate,
+  bodyGroupIndex = 1,
+) {
   const seen = new Set();
   const orderedBodies = [];
 
@@ -41,7 +46,7 @@ function collectUniqueInlineBodies(html, regex, skipPredicate) {
       continue;
     }
 
-    const body = match[1] ?? '';
+    const body = match[bodyGroupIndex] ?? '';
     if (body.trim() === '' || seen.has(body)) {
       continue;
     }
@@ -68,6 +73,7 @@ function buildCspValue(html) {
     html,
     INLINE_STYLE_ATTRIBUTE_REGEX,
     () => false,
+    2,
   );
 
   const scriptHashes = inlineScriptBodies.map(toSha256HashSource);
