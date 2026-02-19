@@ -863,7 +863,7 @@
         },
         {
           "label": "Book Now",
-          "href": "#"
+          "href": "/services/my-best-auntie-training-course"
         }
       ]
     },
@@ -872,15 +872,15 @@
       "items": [
         {
           "label": "My Best Auntie",
-          "href": "#"
+          "href": "/services/my-best-auntie-training-course"
         },
         {
           "label": "Workshops",
-          "href": "#"
+          "href": "/services/workshops"
         },
         {
           "label": "Resources",
-          "href": "#"
+          "href": "/#resources"
         }
       ]
     },
@@ -889,7 +889,7 @@
       "items": [
         {
           "label": "Who We Are",
-          "href": "#"
+          "href": "/about-us"
         },
         {
           "label": "Newsletter",
@@ -897,7 +897,7 @@
         },
         {
           "label": "Privacy Policy",
-          "href": "#"
+          "href": "/privacy"
         }
       ]
     },

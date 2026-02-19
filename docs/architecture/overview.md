@@ -42,6 +42,9 @@ Flutter Mobile / Next.js Admin
   production assets.
 - Deploys to staging first, then promotes immutable release artifacts to
   production.
+- Placeholder public routes (currently `/privacy`, `/terms`, and
+  `/services/workshops`) remain reachable for users but are marked
+  `noindex,follow` in page metadata and excluded from sitemap entries.
 
 ### Backend
 - API Gateway exposes REST endpoints for public search, admin CRUD,

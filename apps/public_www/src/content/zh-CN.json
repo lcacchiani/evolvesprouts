@@ -851,7 +851,7 @@
         },
         {
           "label": "关于我们",
-          "href": "/about"
+          "href": "/about-us"
         },
         {
           "label": "活动",
@@ -859,11 +859,11 @@
         },
         {
           "label": "联系我们",
-          "href": "/contact"
+          "href": "/contact-us"
         },
         {
           "label": "立即预约",
-          "href": "/book"
+          "href": "/services/my-best-auntie-training-course"
         }
       ]
     },
@@ -880,7 +880,7 @@
         },
         {
           "label": "资源",
-          "href": "/resources"
+          "href": "/#resources"
         }
       ]
     },
@@ -889,7 +889,7 @@
       "items": [
         {
           "label": "我们是谁",
-          "href": "/about"
+          "href": "/about-us"
         },
         {
           "label": "通讯",

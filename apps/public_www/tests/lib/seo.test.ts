@@ -39,6 +39,10 @@ describe('seo metadata builder', () => {
       description: 'About page description',
       images: [DEFAULT_SOCIAL_IMAGE],
     });
+    expect(metadata.robots).toMatchObject({
+      index: true,
+      follow: true,
+    });
   });
 
   it('keeps root page title without the site suffix', () => {
@@ -50,5 +54,23 @@ describe('seo metadata builder', () => {
     });
 
     expect(metadata.title).toBe('Evolve Sprouts');
+  });
+
+  it('applies explicit robots override values when provided', () => {
+    const metadata = buildLocalizedMetadata({
+      locale: 'en',
+      path: '/privacy',
+      title: 'Privacy Policy',
+      description: 'Placeholder page',
+      robots: {
+        index: false,
+        follow: true,
+      },
+    });
+
+    expect(metadata.robots).toMatchObject({
+      index: false,
+      follow: true,
+    });
   });
 });

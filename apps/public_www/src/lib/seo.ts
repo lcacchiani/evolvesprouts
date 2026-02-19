@@ -39,6 +39,10 @@ interface LocalizedMetadataOptions {
   path: string;
   title: string;
   description: string;
+  robots?: {
+    index: boolean;
+    follow: boolean;
+  };
 }
 
 function buildPageTitle(title: string, path: string): string {
@@ -64,6 +68,7 @@ export function buildLocalizedMetadata({
   path,
   title,
   description,
+  robots,
 }: LocalizedMetadataOptions): Metadata {
   const localizedPath = localizePath(path, locale);
   const pageTitle = buildPageTitle(title, path);
@@ -96,8 +101,8 @@ export function buildLocalizedMetadata({
       images: [DEFAULT_SOCIAL_IMAGE],
     },
     robots: {
-      index: true,
-      follow: true,
+      index: robots?.index ?? true,
+      follow: robots?.follow ?? true,
     },
   };
 }

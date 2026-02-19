@@ -70,6 +70,10 @@ describe('locale-page', () => {
 
     expect(metadata.title).toContain('Privacy');
     expect(metadata.alternates?.canonical).toBe('/en/privacy');
+    expect(metadata.robots).toMatchObject({
+      index: false,
+      follow: true,
+    });
     expect(resolved.title).toBeTruthy();
     expect(resolved.content.meta.locale).toBe('en');
   });
