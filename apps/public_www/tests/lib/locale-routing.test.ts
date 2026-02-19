@@ -45,4 +45,10 @@ describe('locale-routing', () => {
       'mailto:test@example.com',
     );
   });
+
+  it('preserves unsafe href values for downstream link sanitization', () => {
+    expect(localizeHref('javascript:alert(1)', 'en')).toBe(
+      'javascript:alert(1)',
+    );
+  });
 });

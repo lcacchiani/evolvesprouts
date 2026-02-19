@@ -30,6 +30,7 @@ const PUBLIC_WWW_API_HOSTNAMES = new Set([
   'www-staging.evolvesprouts.com',
 ]);
 const CRM_API_HOSTNAME = 'api.evolvesprouts.com';
+const ALLOWED_API_HOSTNAMES = new Set([CRM_API_HOSTNAME]);
 const WWW_API_PATH_PREFIX = '/www';
 
 function normalizeBaseUrl(baseUrl: string): string {
@@ -52,8 +53,14 @@ function normalizeBaseUrl(baseUrl: string): string {
   if (parsedUrl.protocol.toLowerCase() !== 'https:') {
     return '';
   }
+  if (!ALLOWED_API_HOSTNAMES.has(parsedUrl.hostname.toLowerCase())) {
+    return '';
+  }
 
   const normalizedPathname = normalizeAbsolutePathname(parsedUrl.pathname);
+  if (normalizedPathname !== WWW_API_PATH_PREFIX) {
+    return '';
+  }
   if (shouldUsePublicWwwProxy(parsedUrl.hostname, normalizedPathname)) {
     return normalizedPathname;
   }
@@ -67,7 +74,12 @@ function normalizeRelativeBaseUrl(baseUrl: string): string {
     return '';
   }
 
-  return `/${normalizedPath}`;
+  const normalizedBasePath = `/${normalizedPath}`;
+  if (normalizedBasePath !== WWW_API_PATH_PREFIX) {
+    return '';
+  }
+
+  return normalizedBasePath;
 }
 
 function normalizeAbsolutePathname(pathname: string): string {

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { ContactUsForm } from '@/components/sections/contact-us-form';
@@ -65,5 +65,38 @@ describe('ContactUsForm section', () => {
       expect(listItem.className).not.toContain('bg-white');
       expect(listItem.className).not.toContain('shadow-');
     }
+  });
+
+  it('shows linked validation feedback for invalid email and phone values', () => {
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    const emailInput = screen.getByLabelText(
+      `${enContent.contactUs.contactUsForm.emailFieldLabel} (*)`,
+    );
+    const phoneInput = screen.getByLabelText(
+      enContent.contactUs.contactUsForm.phoneLabel,
+    );
+    const submitButton = screen.getByRole('button', {
+      name: enContent.contactUs.contactUsForm.submitLabel,
+    });
+
+    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
+    fireEvent.blur(emailInput);
+    fireEvent.change(phoneInput, { target: { value: 'not-a-phone' } });
+    fireEvent.blur(phoneInput);
+    fireEvent.click(submitButton);
+
+    expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+    expect(screen.getByText('Please enter a valid phone number.')).toBeInTheDocument();
+    expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    expect(phoneInput).toHaveAttribute('aria-invalid', 'true');
+    expect(emailInput).toHaveAttribute(
+      'aria-describedby',
+      'contact-us-form-email-error',
+    );
+    expect(phoneInput).toHaveAttribute(
+      'aria-describedby',
+      'contact-us-form-phone-error',
+    );
   });
 });

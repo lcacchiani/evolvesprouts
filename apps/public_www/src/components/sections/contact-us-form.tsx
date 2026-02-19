@@ -21,9 +21,29 @@ interface FormState {
 
 const MESSAGE_MAX_LENGTH = 5000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
+const EMAIL_ERROR_MESSAGE_ID = 'contact-us-form-email-error';
+const PHONE_ERROR_MESSAGE_ID = 'contact-us-form-phone-error';
 
 function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
+}
+
+function isValidPhone(value: string): boolean {
+  const normalizedValue = value.trim();
+  if (normalizedValue === '') {
+    return true;
+  }
+
+  return PHONE_PATTERN.test(normalizedValue);
+}
+
+function sanitizeSingleLineValue(value: string): string {
+  return value.replaceAll(/\s+/g, ' ').trim();
+}
+
+function sanitizeMultilineValue(value: string): string {
+  return value.replaceAll(/\r\n/g, '\n').replaceAll(/\r/g, '\n').trim();
 }
 
 function buildMailtoHref(
@@ -31,21 +51,27 @@ function buildMailtoHref(
   subject: string,
   formState: FormState,
 ): string {
+  const normalizedFormState = {
+    firstName: sanitizeSingleLineValue(formState.firstName),
+    email: sanitizeSingleLineValue(formState.email),
+    phone: sanitizeSingleLineValue(formState.phone),
+    message: sanitizeMultilineValue(formState.message),
+  };
   const bodyLines = [
-    `First Name: ${formState.firstName}`,
-    `Email Address: ${formState.email}`,
-    `Phone Number: ${formState.phone}`,
+    `First Name: ${normalizedFormState.firstName}`,
+    `Email Address: ${normalizedFormState.email}`,
+    `Phone Number: ${normalizedFormState.phone}`,
     '',
     'Message:',
-    formState.message,
+    normalizedFormState.message,
   ];
 
   const query = new URLSearchParams({
-    subject,
+    subject: sanitizeSingleLineValue(subject),
     body: bodyLines.join('\n'),
   });
 
-  return `mailto:${targetEmail}?${query.toString()}`;
+  return `mailto:${sanitizeSingleLineValue(targetEmail)}?${query.toString()}`;
 }
 
 export function ContactUsForm({ content }: ContactUsFormProps) {
@@ -56,8 +82,10 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
     message: '',
   });
   const [isEmailTouched, setIsEmailTouched] = useState(false);
+  const [isPhoneTouched, setIsPhoneTouched] = useState(false);
 
   const hasEmailError = isEmailTouched && !isValidEmail(formState.email);
+  const hasPhoneError = isPhoneTouched && !isValidPhone(formState.phone);
 
   function updateField(field: keyof FormState, value: string) {
     setFormState((currentState) => ({
@@ -69,8 +97,9 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsEmailTouched(true);
+    setIsPhoneTouched(true);
 
-    if (!isValidEmail(formState.email)) {
+    if (!isValidEmail(formState.email) || !isValidPhone(formState.phone)) {
       return;
     }
 
@@ -169,9 +198,14 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 }}
                 className={`es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold ${hasEmailError ? 'es-modal-input-error' : ''}`}
                 aria-invalid={hasEmailError}
+                aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
               />
               {hasEmailError ? (
-                <p className='text-sm es-text-danger' role='alert'>
+                <p
+                  id={EMAIL_ERROR_MESSAGE_ID}
+                  className='text-sm es-text-danger'
+                  role='alert'
+                >
                   Please enter a valid email address.
                 </p>
               ) : null}
@@ -188,8 +222,22 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 onChange={(event) => {
                   updateField('phone', event.target.value);
                 }}
+                onBlur={() => {
+                  setIsPhoneTouched(true);
+                }}
                 className='es-focus-ring es-modal-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                aria-invalid={hasPhoneError}
+                aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
               />
+              {hasPhoneError ? (
+                <p
+                  id={PHONE_ERROR_MESSAGE_ID}
+                  className='text-sm es-text-danger'
+                  role='alert'
+                >
+                  Please enter a valid phone number.
+                </p>
+              ) : null}
             </label>
 
             <label className='block space-y-1.5'>

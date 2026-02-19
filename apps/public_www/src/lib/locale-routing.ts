@@ -3,7 +3,7 @@ import {
   isValidLocale,
   type Locale,
 } from '@/content';
-import { isExternalHref } from '@/lib/url-utils';
+import { getHrefKind, isExternalHref } from '@/lib/url-utils';
 
 function sanitizePath(path: string): string {
   let value = path.trim();
@@ -60,6 +60,10 @@ export function localizeHref(href: string, locale: Locale): string {
   const value = href.trim();
   if (value === '' || value === '#') {
     return value || '/';
+  }
+
+  if (getHrefKind(value) === 'unsafe') {
+    return value;
   }
 
   if (isExternalHref(value)) {

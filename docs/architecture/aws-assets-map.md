@@ -41,6 +41,11 @@ Public WWW CloudFront includes:
   HTTPS-only origin policy, disabled caching, and
   `OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER` so API key headers and
   query parameters pass through while preserving the API origin host header.
+- Response headers policy for browser hardening:
+  `Strict-Transport-Security`, `X-Content-Type-Options`,
+  `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`,
+  and `Permissions-Policy`.
+- Staging distribution adds `X-Robots-Tag: noindex, nofollow, noarchive`.
 
 ---
 

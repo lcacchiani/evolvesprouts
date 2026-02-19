@@ -24,6 +24,12 @@ describe('crm-api-client', () => {
     );
     expect(buildCrmApiUrl('/www', '/v1/discounts')).toBe('/www/v1/discounts');
     expect(buildCrmApiUrl('/www/', 'v1/discounts')).toBe('/www/v1/discounts');
+    expect(buildCrmApiUrl('/api', '/v1/discounts')).toBe('');
+    expect(buildCrmApiUrl('//api.evolvesprouts.com/www', '/v1/discounts')).toBe('');
+    expect(buildCrmApiUrl('https://example.com/www', '/v1/discounts')).toBe('');
+    expect(buildCrmApiUrl('https://api.evolvesprouts.com/admin', '/v1/discounts')).toBe(
+      '',
+    );
     expect(buildCrmApiUrl('api.evolvesprouts.com/www', '/v1/discounts')).toBe('');
     expect(buildCrmApiUrl('/', '/v1/discounts')).toBe('');
     expect(buildCrmApiUrl('   ', '/v1/discounts')).toBe('');
@@ -44,6 +50,18 @@ describe('crm-api-client', () => {
     expect(
       createCrmApiClient({
         baseUrl: 'api.evolvesprouts.com/www',
+        apiKey: 'public-key',
+      }),
+    ).toBeNull();
+    expect(
+      createCrmApiClient({
+        baseUrl: 'https://example.com/www',
+        apiKey: 'public-key',
+      }),
+    ).toBeNull();
+    expect(
+      createCrmApiClient({
+        baseUrl: '/admin',
         apiKey: 'public-key',
       }),
     ).toBeNull();

@@ -70,6 +70,10 @@ type CoursePartRow = {
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
 type PartChipTone = (typeof PART_CHIP_TONES)[number];
 
+function sanitizeSingleLineValue(value: string): string {
+  return value.replaceAll(/\s+/g, ' ').trim();
+}
+
 function resolvePartChipTone(index: number): PartChipTone {
   return PART_CHIP_TONES[index] ?? PART_CHIP_TONES[PART_CHIP_TONES.length - 1];
 }
@@ -235,17 +239,17 @@ export function MyBestAuntieBookingModal({
     }
 
     onSubmitReservation({
-      attendeeName: fullName,
-      attendeeEmail: email,
-      attendeePhone: phone,
-      childAgeGroup: selectedAgeGroupLabel,
-      packageLabel: selectedPackage.label,
-      monthLabel: selectedMonth.label,
-      paymentMethod: content.paymentMethodValue,
+      attendeeName: sanitizeSingleLineValue(fullName),
+      attendeeEmail: sanitizeSingleLineValue(email),
+      attendeePhone: sanitizeSingleLineValue(phone),
+      childAgeGroup: sanitizeSingleLineValue(selectedAgeGroupLabel),
+      packageLabel: sanitizeSingleLineValue(selectedPackage.label),
+      monthLabel: sanitizeSingleLineValue(selectedMonth.label),
+      paymentMethod: sanitizeSingleLineValue(content.paymentMethodValue),
       totalAmount,
-      courseLabel: content.title,
-      scheduleDateLabel: selectedMonth.label,
-      scheduleTimeLabel: selectedTimeLabel,
+      courseLabel: sanitizeSingleLineValue(content.title),
+      scheduleDateLabel: sanitizeSingleLineValue(selectedMonth.label),
+      scheduleTimeLabel: sanitizeSingleLineValue(selectedTimeLabel),
     });
   }
 
