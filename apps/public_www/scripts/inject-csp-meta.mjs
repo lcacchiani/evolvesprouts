@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { JSDOM } from 'jsdom';
 
 const BUILD_OUTPUT_DIRECTORY = resolve('out');
 
@@ -14,9 +15,6 @@ const CSP_DIRECTIVE_BASE = [
   "form-action 'self' mailto:",
 ];
 
-const INLINE_SCRIPT_REGEX = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
-const INLINE_STYLE_REGEX = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
-const INLINE_STYLE_ATTRIBUTE_REGEX = /\sstyle\s*=\s*(['"])([\s\S]*?)\1/gi;
 const HEAD_OPENING_TAG_REGEX = /<head\b[^>]*>/i;
 const EXISTING_CSP_META_REGEX =
   /<meta\s+http-equiv=["']Content-Security-Policy["'][^>]*>/i;
@@ -30,22 +28,11 @@ function escapeHtmlAttribute(value) {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
-function collectUniqueInlineBodies(
-  html,
-  regex,
-  skipPredicate,
-  bodyGroupIndex = 1,
-) {
+function collectUniqueInlineBodies(values) {
   const seen = new Set();
   const orderedBodies = [];
 
-  for (const match of html.matchAll(regex)) {
-    const wholeTag = match[0] ?? '';
-    if (skipPredicate(wholeTag)) {
-      continue;
-    }
-
-    const body = match[bodyGroupIndex] ?? '';
+  for (const body of values) {
     if (body.trim() === '' || seen.has(body)) {
       continue;
     }
@@ -55,6 +42,35 @@ function collectUniqueInlineBodies(
   }
 
   return orderedBodies;
+}
+
+function collectInlineBodiesWithDom(html) {
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
+
+  const inlineScriptBodies = collectUniqueInlineBodies(
+    [...document.querySelectorAll('script:not([src])')].map(
+      (element) => element.textContent ?? '',
+    ),
+  );
+  const inlineStyleBodies = collectUniqueInlineBodies(
+    [...document.querySelectorAll('style')].map(
+      (element) => element.textContent ?? '',
+    ),
+  );
+  const inlineStyleAttributeValues = collectUniqueInlineBodies(
+    [...document.querySelectorAll('[style]')].map(
+      (element) => element.getAttribute('style') ?? '',
+    ),
+  );
+
+  dom.window.close();
+
+  return {
+    inlineScriptBodies,
+    inlineStyleBodies,
+    inlineStyleAttributeValues,
+  };
 }
 
 function collectQueuedNextInlineScripts(inlineScriptBodies) {
@@ -107,22 +123,11 @@ function collectQueuedNextInlineScripts(inlineScriptBodies) {
 }
 
 function buildCspValue(html) {
-  const inlineScriptBodies = collectUniqueInlineBodies(
-    html,
-    INLINE_SCRIPT_REGEX,
-    (wholeTag) => /\bsrc\s*=/.test(wholeTag),
-  );
-  const inlineStyleBodies = collectUniqueInlineBodies(
-    html,
-    INLINE_STYLE_REGEX,
-    () => false,
-  );
-  const inlineStyleAttributeValues = collectUniqueInlineBodies(
-    html,
-    INLINE_STYLE_ATTRIBUTE_REGEX,
-    () => false,
-    2,
-  );
+  const {
+    inlineScriptBodies,
+    inlineStyleBodies,
+    inlineStyleAttributeValues,
+  } = collectInlineBodiesWithDom(html);
   const queuedInlineScriptBodies = collectQueuedNextInlineScripts(inlineScriptBodies);
 
   const scriptHashes = [
