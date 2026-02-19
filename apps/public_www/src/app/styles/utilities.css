@@ -1,0 +1,21 @@
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .es-whatsapp-contact-button-safe-bottom {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+  }
+
+  .text-es-whatsapp {
+    color: var(--es-color-whatsapp);
+  }
+
+  .shadow-es-whatsapp {
+    box-shadow: 0 16px 35px 5px var(--es-color-whatsapp-shadow);
+  }
+}
