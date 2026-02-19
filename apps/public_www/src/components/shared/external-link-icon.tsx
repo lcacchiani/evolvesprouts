@@ -1,7 +1,13 @@
-import type { SVGProps } from 'react';
+import type { ReactNode, SVGProps } from 'react';
 
 interface ExternalLinkIconProps extends SVGProps<SVGSVGElement> {
   className?: string;
+}
+
+interface ExternalLinkInlineContentProps {
+  isExternalHttp: boolean;
+  children: ReactNode;
+  internalIcon?: ReactNode;
 }
 
 export function ExternalLinkIcon({
@@ -36,5 +42,20 @@ export function ExternalLinkIcon({
         strokeLinejoin='round'
       />
     </svg>
+  );
+}
+
+export function ExternalLinkInlineContent({
+  isExternalHttp,
+  children,
+  internalIcon = null,
+}: ExternalLinkInlineContentProps) {
+  return (
+    <>
+      <span className={isExternalHttp ? 'es-link-external-label' : undefined}>
+        {children}
+      </span>
+      {isExternalHttp ? <ExternalLinkIcon /> : internalIcon}
+    </>
   );
 }

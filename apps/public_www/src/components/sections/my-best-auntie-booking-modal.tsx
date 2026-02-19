@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
+import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import {
   OverlayDialogPanel,
   OverlayScrollableBody,
@@ -391,20 +391,9 @@ export function MyBestAuntieBookingModal({
                         className='mt-3 inline-flex items-center text-[18px] font-semibold leading-none es-text-heading'
                       >
                         {({ isExternalHttp }) => (
-                          <>
-                            <span
-                              className={
-                                isExternalHttp
-                                  ? 'es-link-external-label'
-                                  : undefined
-                              }
-                            >
-                              {content.directionLabel}
-                            </span>
-                            {isExternalHttp ? (
-                              <ExternalLinkIcon />
-                            ) : null}
-                          </>
+                          <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
+                            {content.directionLabel}
+                          </ExternalLinkInlineContent>
                         )}
                       </SmartLink>
                     </div>

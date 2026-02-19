@@ -4,7 +4,7 @@ import type {
 } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { ExternalLinkIcon } from '@/components/shared/external-link-icon';
+import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 
 const BASE_SECTION_CTA_CLASSNAME =
   'gap-0';
@@ -64,16 +64,12 @@ export function SectionCtaAnchor({
       {...anchorProps}
     >
       {({ isExternalHttp }) => (
-        <>
-          <span className={isExternalHttp ? 'es-link-external-label' : undefined}>
-            {children}
-          </span>
-          {isExternalHttp ? (
-            <ExternalLinkIcon />
-          ) : (
-            <CtaChevronIcon />
-          )}
-        </>
+        <ExternalLinkInlineContent
+          isExternalHttp={isExternalHttp}
+          internalIcon={<CtaChevronIcon />}
+        >
+          {children}
+        </ExternalLinkInlineContent>
       )}
     </ButtonPrimitive>
   );
