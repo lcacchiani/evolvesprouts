@@ -71,7 +71,7 @@ describe('MyBestAuntieBooking section', () => {
     }
   });
 
-  it('removes right-column selector shadows, keeps CTA width to copy, and hides date arrows for three dates', () => {
+  it('removes right-column selector shadows, keeps date cards in two lines, keeps CTA width to copy, and hides date arrows for three dates', () => {
     const { container } = render(
       <MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />,
     );
@@ -97,6 +97,13 @@ describe('MyBestAuntieBooking section', () => {
     });
     expect(secondDateButton.className).toContain('es-btn--selection');
     expect(secondDateButton.className).toContain('es-btn--state-inactive');
+    const secondDateCardContent = secondDateButton.querySelector('div.w-full');
+    expect(secondDateCardContent).not.toBeNull();
+    expect(secondDateCardContent?.className).toContain('flex-col');
+    const dateLine = secondDateCardContent?.firstElementChild;
+    const availabilityLine = secondDateCardContent?.lastElementChild;
+    expect(dateLine?.textContent).toContain(secondDateOption.label);
+    expect(availabilityLine?.textContent).toContain(secondDateOption.availabilityLabel);
 
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();

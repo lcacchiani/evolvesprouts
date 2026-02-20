@@ -246,18 +246,20 @@ export function MyBestAuntieBooking({
                               }}
                               className='w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left'
                             >
-                              <div className='flex items-center justify-start gap-1.5'>
-                                <span
-                                  className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
-                                  aria-hidden='true'
-                                />
-                                <p className='text-base font-semibold es-text-heading'>
-                                  {option.label}
+                              <div className='flex w-full flex-col items-start gap-2'>
+                                <div className='flex items-center justify-start gap-1.5'>
+                                  <span
+                                    className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                                    aria-hidden='true'
+                                  />
+                                  <p className='text-base font-semibold es-text-heading'>
+                                    {option.label}
+                                  </p>
+                                </div>
+                                <p className='text-sm es-text-danger-accent'>
+                                  {option.availabilityLabel}
                                 </p>
                               </div>
-                              <p className='mt-2 text-center text-sm es-text-danger-accent'>
-                                {option.availabilityLabel}
-                              </p>
                             </ButtonPrimitive>
                           );
                         })}
