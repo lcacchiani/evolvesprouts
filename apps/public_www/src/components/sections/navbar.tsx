@@ -49,12 +49,11 @@ const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const NAV_MOBILE_BOOK_BUTTON_CLASSNAME =
   'w-full';
-const NAV_MOBILE_CONTROL_SURFACE_CLASSNAME =
-  'border es-border-soft bg-[#F6DECD] es-text-brand';
+const NAV_MOBILE_CONTROL_BASE_CLASSNAME = 'border es-border-soft es-text-brand';
 const NAV_MOBILE_LANGUAGE_BUTTON_CLASSNAME =
-  `${NAV_MOBILE_CONTROL_SURFACE_CLASSNAME} h-11 gap-2 rounded-[14px] px-2.5`;
+  `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-transparent h-11 gap-2 rounded-[14px] px-2.5`;
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
-  `${NAV_MOBILE_CONTROL_SURFACE_CLASSNAME} h-11 w-11 rounded-[14px]`;
+  `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-[#F6DECD] h-11 w-11 rounded-[14px]`;
 const NAV_HAMBURGER_ICON_CLASSNAME = 'es-navbar-hamburger-icon h-4 w-4';
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
   'h-10 w-10 rounded-full';
@@ -232,7 +231,7 @@ export function Navbar({ content }: NavbarProps) {
       >
         <SectionContainer
           as='nav'
-          className='flex min-h-[115px] items-center justify-between gap-3 px-8 py-0'
+          className='flex min-h-[115px] items-center justify-between gap-3 py-0 pl-0 pr-4 sm:px-6 lg:px-8'
         >
           <Link href={localizedHomeHref} className='shrink-0'>
             <Image
