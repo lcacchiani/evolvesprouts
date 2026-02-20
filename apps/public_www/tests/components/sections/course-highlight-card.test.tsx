@@ -59,6 +59,37 @@ afterEach(() => {
 });
 
 describe('CourseHighlightCard description visibility transition', () => {
+  it('applies hover reveal classes at every breakpoint', () => {
+    render(
+      <CourseHighlightCard
+        id='age-specific'
+        title='Age Specific Strategies'
+        imageSrc='/images/course-highlights/course-card-1.webp'
+        imageWidth={344}
+        imageHeight={309}
+        imageClassName='h-[235px]'
+        description='Practical scripts and examples'
+        tone='gold'
+      />,
+    );
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('article');
+    const description = screen.getByText('Practical scripts and examples');
+    const toggleButton = screen.getByRole('button', {
+      name: 'Show details for Age Specific Strategies',
+    });
+
+    expect(card).not.toBeNull();
+    expect(card?.className).toContain('group');
+    expect(description.className).toContain('group-hover:opacity-100');
+    expect(description.className).not.toContain('lg:group-hover:opacity-100');
+    expect(toggleButton.className).toContain('group-hover:h-[70px]');
+    expect(toggleButton.className).not.toContain('lg:group-hover:h-[70px]');
+  });
+
   it('uses immediate hide classes when toggled inactive', () => {
     render(
       <CourseHighlightCard
