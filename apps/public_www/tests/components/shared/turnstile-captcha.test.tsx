@@ -60,6 +60,42 @@ describe('TurnstileCaptcha script loading', () => {
     expect(turnstileRemove).toHaveBeenCalledWith('test-widget-id');
   });
 
+  it('replaces about:blank script src with default script src', async () => {
+    const existingScriptElement = appendExistingTurnstileScript('about:blank');
+    const onTokenChange = vi.fn();
+    const onLoadError = vi.fn();
+    const turnstileRender = vi.fn(() => 'test-widget-id');
+    const turnstileRemove = vi.fn();
+
+    const { unmount } = render(
+      <TurnstileCaptcha
+        siteKey='test-site-key'
+        onTokenChange={onTokenChange}
+        onLoadError={onLoadError}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(existingScriptElement.getAttribute('src')).toBe(TURNSTILE_SCRIPT_SRC);
+    });
+
+    window.turnstile = {
+      render: turnstileRender,
+      remove: turnstileRemove,
+    };
+    fireEvent.load(existingScriptElement);
+
+    await waitFor(() => {
+      expect(turnstileRender).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onLoadError).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(turnstileRemove).toHaveBeenCalledWith('test-widget-id');
+  });
+
   it('does not overwrite an existing explicit script src', async () => {
     const explicitSource = 'https://example.com/custom-turnstile-loader.js';
     const existingScriptElement = appendExistingTurnstileScript(explicitSource);
@@ -83,5 +119,40 @@ describe('TurnstileCaptcha script loading', () => {
     await waitFor(() => {
       expect(onLoadError).toHaveBeenCalled();
     });
+  });
+
+  it('does not treat runtime challenge errors as hard load errors', async () => {
+    const onTokenChange = vi.fn();
+    const onLoadError = vi.fn();
+    const turnstileRender = vi.fn(() => 'test-widget-id');
+    const turnstileRemove = vi.fn();
+
+    window.turnstile = {
+      render: turnstileRender,
+      remove: turnstileRemove,
+    };
+
+    render(
+      <TurnstileCaptcha
+        siteKey='test-site-key'
+        onTokenChange={onTokenChange}
+        onLoadError={onLoadError}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(turnstileRender).toHaveBeenCalledTimes(1);
+    });
+
+    const renderOptions = turnstileRender.mock.calls[0]?.[1];
+    expect(renderOptions).toBeTruthy();
+
+    onTokenChange.mockClear();
+    onLoadError.mockClear();
+
+    renderOptions?.['error-callback']?.('network-error');
+
+    expect(onTokenChange).toHaveBeenCalledWith(null);
+    expect(onLoadError).not.toHaveBeenCalled();
   });
 });

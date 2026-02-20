@@ -12,7 +12,7 @@ interface TurnstileRenderOptions {
   size?: TurnstileSize;
   callback?: (token: string) => void;
   'expired-callback'?: () => void;
-  'error-callback'?: () => void;
+  'error-callback'?: (errorCode?: string) => void;
   'timeout-callback'?: () => void;
 }
 
@@ -34,7 +34,21 @@ const TURNSTILE_SCRIPT_SRC =
 
 function hasExplicitScriptSource(scriptElement: HTMLScriptElement): boolean {
   const sourceAttribute = scriptElement.getAttribute('src');
-  return typeof sourceAttribute === 'string' && sourceAttribute.trim().length > 0;
+  if (typeof sourceAttribute !== 'string') {
+    return false;
+  }
+
+  const normalizedSource = sourceAttribute.trim();
+  if (normalizedSource === '') {
+    return false;
+  }
+
+  try {
+    const resolvedSource = new URL(normalizedSource, window.location.href);
+    return resolvedSource.protocol === 'http:' || resolvedSource.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 function resolveTurnstileReady(
@@ -191,9 +205,10 @@ export function TurnstileCaptcha({
           'timeout-callback': () => {
             onTokenChangeRef.current(null);
           },
-          'error-callback': () => {
+          'error-callback': (_errorCode) => {
+            // Runtime challenge warnings can be transient (for example PAT 401s).
+            // Keep the widget recoverable instead of hard-disabling the form.
             onTokenChangeRef.current(null);
-            onLoadErrorRef.current();
           },
         });
       })
