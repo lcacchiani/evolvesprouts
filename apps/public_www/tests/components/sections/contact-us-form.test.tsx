@@ -16,6 +16,7 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
   }) => (
     <div data-testid='mock-turnstile-captcha'>
       <button
+        data-testid='mock-turnstile-captcha-solve'
         type='button'
         onClick={() => {
           onTokenChange('mock-turnstile-token');
@@ -24,6 +25,7 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
         Solve CAPTCHA
       </button>
       <button
+        data-testid='mock-turnstile-captcha-fail'
         type='button'
         onClick={() => {
           onLoadError();
@@ -165,7 +167,7 @@ describe('ContactUsForm section', () => {
       screen.getByText(enContent.contactUs.contactUsForm.captchaRequiredError),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Solve CAPTCHA' }));
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
 
     expect(
       screen.queryByText(enContent.contactUs.contactUsForm.captchaRequiredError),

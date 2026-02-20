@@ -70,6 +70,7 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
   }) => (
     <div data-testid='mock-turnstile-captcha'>
       <button
+        data-testid='mock-turnstile-captcha-solve'
         type='button'
         onClick={() => {
           onTokenChange('mock-turnstile-token');
@@ -78,6 +79,7 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
         Solve CAPTCHA
       </button>
       <button
+        data-testid='mock-turnstile-captcha-fail'
         type='button'
         onClick={() => {
           onLoadError();
@@ -295,7 +297,7 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.click(termsAcknowledgement);
     expect(submitButton).toBeDisabled();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Solve CAPTCHA' }));
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
     expect(submitButton).toBeEnabled();
 
     const requiredMarkers = screen.getAllByText('*');
