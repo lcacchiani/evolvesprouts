@@ -875,7 +875,12 @@
     background-size: 100px 100px;
   }
 
-  .es-free-resources-media-background {
+  .es-free-resources-media-pane::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
     background-image: url('/images/family.webp');
     background-position: center;
     background-repeat: no-repeat;
@@ -942,11 +947,11 @@
   }
 
   @media (min-width: 1024px) {
-    .es-free-resources-media-pane--bleed-left .es-free-resources-media-background {
+    .es-free-resources-media-pane--bleed-left::before {
       left: -14%;
     }
 
-    .es-free-resources-media-pane--bleed-right .es-free-resources-media-background {
+    .es-free-resources-media-pane--bleed-right::before {
       right: -14%;
     }
   }
