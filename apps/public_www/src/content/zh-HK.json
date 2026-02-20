@@ -49,13 +49,13 @@
       "options": [
         {
           "locale": "en",
-          "label": "英文",
+          "label": "English",
           "shortLabel": "EN",
           "flagSrc": "/images/flags/united-kingdom.svg"
         },
         {
           "locale": "zh-CN",
-          "label": "簡體中文",
+          "label": "简体中文",
           "shortLabel": "簡",
           "flagSrc": "/images/flags/china.svg"
         },
