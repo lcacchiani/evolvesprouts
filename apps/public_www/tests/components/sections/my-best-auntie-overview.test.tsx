@@ -96,13 +96,24 @@ describe('MyBestAuntieOverview section', () => {
     const description = firstCard?.querySelector(
       'p.es-my-best-auntie-overview-activity',
     );
+    const countLine = firstCard?.querySelector(
+      'span.es-my-best-auntie-overview-count-line',
+    );
     expect(description).not.toBeNull();
+    expect(countLine).not.toBeNull();
     expect(description?.className).toContain('opacity-0');
+    expect(countLine?.className).toContain('h-[148px]');
+    expect(countLine?.className).toContain('-top-[144px]');
 
     fireEvent.click(firstCard!);
     expect(description?.className).toContain('opacity-100');
+    expect(countLine?.className).toContain('h-[74px]');
+    expect(countLine?.className).toContain('-top-[70px]');
+    expect(countLine?.className).not.toContain('h-[148px]');
 
     fireEvent.click(firstCard!);
     expect(description?.className).toContain('opacity-0');
+    expect(countLine?.className).toContain('h-[148px]');
+    expect(countLine?.className).toContain('-top-[144px]');
   });
 });

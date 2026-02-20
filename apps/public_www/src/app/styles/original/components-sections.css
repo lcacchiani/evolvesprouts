@@ -1048,20 +1048,20 @@
   }
 
   .es-my-best-auntie-overview-module-title {
+    color: var(--figma-colors-week-01-04, #313131);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: clamp(1.15rem, 2.2vw, 28px);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .es-my-best-auntie-overview-module-week {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
     font-size: clamp(1.1rem, 2vw, 22px);
     font-weight: 500;
     line-height: 1.2;
     letter-spacing: 0.3px;
-  }
-
-  .es-my-best-auntie-overview-module-week {
-    color: var(--figma-colors-week-01-04, #313131);
-    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
-    font-size: clamp(1.15rem, 2.2vw, 28px);
-    font-weight: 700;
-    line-height: 1.2;
   }
 
   .es-my-best-auntie-overview-activity {
