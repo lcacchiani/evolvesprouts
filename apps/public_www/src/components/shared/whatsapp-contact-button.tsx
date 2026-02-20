@@ -22,12 +22,12 @@ const WHATSAPP_ICON_PATH =
   '37.4-26.4s4.6-24.1 3.2-26.4c-1.3-2.5-5-3.9-10.5-6.6z';
 
 const buttonClassName =
-  'fixed right-5 z-50 flex h-16 w-16 items-center justify-center ' +
+  'fixed right-[30px] z-50 flex h-16 w-16 items-center justify-center ' +
   'es-whatsapp-contact-button-safe-bottom ' +
   'rounded-full bg-white shadow-es-whatsapp transition-' +
   'transform duration-150 hover:scale-105 focus-visible:outline ' +
   'focus-visible:outline-2 focus-visible:outline-offset-4 ' +
-  'focus-visible:outline-[var(--es-color-whatsapp)] sm:right-[30px]';
+  'focus-visible:outline-[var(--es-color-whatsapp)]';
 
 const iconClassName = 'h-11 w-11 fill-current text-es-whatsapp';
 
