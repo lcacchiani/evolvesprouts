@@ -27,6 +27,7 @@ describe('WhyUs section', () => {
     });
     expect(section.className).toContain('es-section-bg-overlay');
     expect(section.className).toContain('es-why-us-section');
+    expect(container.querySelector('.es-course-highlights-overlay')).not.toBeNull();
 
     expect(container.querySelector('.es-why-us-hero-card')).not.toBeNull();
     expect(container.querySelector('.es-why-us-glow-orange')).not.toBeNull();

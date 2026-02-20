@@ -20,6 +20,11 @@ export function WhyUs({ content }: WhyUsProps) {
       dataFigmaNode='why-us'
       className='es-section-bg-overlay es-why-us-section'
     >
+      <div
+        aria-hidden='true'
+        className='es-course-highlights-overlay pointer-events-none absolute inset-0'
+      />
+
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 

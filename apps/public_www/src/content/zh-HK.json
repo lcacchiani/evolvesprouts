@@ -49,13 +49,13 @@
       "options": [
         {
           "locale": "en",
-          "label": "英文",
+          "label": "English",
           "shortLabel": "EN",
           "flagSrc": "/images/flags/united-kingdom.svg"
         },
         {
           "locale": "zh-CN",
-          "label": "簡體中文",
+          "label": "简体中文",
           "shortLabel": "簡",
           "flagSrc": "/images/flags/china.svg"
         },
@@ -85,25 +85,25 @@
     "ctaHref": "/services/my-best-auntie-training-course",
     "modules": [
       {
-        "step": "01",
-        "title": "第1模組",
-        "week": "第01-04週",
-        "icon": "foundation",
-        "activity": "以工作坊開始，之後安排家長電話交流、1對1課程，並以實戰挑戰作結。"
+        "step": "1",
+        "title": "改造你的家居環境",
+        "week": "第1-3週",
+        "icon": "home",
+        "activity": "少啲拉鋸，多啲自主玩耍。打造一個能激發孩子天生好奇心嘅屋企環境。"
       },
       {
-        "step": "02",
-        "title": "第2模組",
-        "week": "第05-08週",
-        "icon": "coaching",
-        "activity": "以工作坊開始，之後安排家長電話交流、1對1課程，並以實戰挑戰作結。"
+        "step": "2",
+        "title": "培養獨立能力",
+        "week": "第4-6週",
+        "icon": "limits",
+        "activity": "唔好再只係處理表面行為。開始建立香港課室最重視嘅專注力、秩序感同自理能力。"
       },
       {
-        "step": "03",
-        "title": "第3模組",
-        "week": "第09-12週",
-        "icon": "practice",
-        "activity": "以工作坊開始，之後安排家長電話交流、1對1課程，並以實戰挑戰作結。"
+        "step": "3",
+        "title": "溫和引導與清晰界線",
+        "week": "第7-9週",
+        "icon": "independence",
+        "activity": "食飯拉扯慢慢消失，瞓覺變得更平靜。你嘅姨姨會學識以冷靜而一致嘅方式去引導孩子。"
       }
     ]
   },

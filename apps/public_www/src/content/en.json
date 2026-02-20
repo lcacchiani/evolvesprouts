@@ -55,13 +55,13 @@
         },
         {
           "locale": "zh-CN",
-          "label": "Chinese (Simplified)",
+          "label": "简体中文",
           "shortLabel": "SC",
           "flagSrc": "/images/flags/china.svg"
         },
         {
           "locale": "zh-HK",
-          "label": "Chinese (Traditional)",
+          "label": "繁體中文",
           "shortLabel": "TC",
           "flagSrc": "/images/flags/hong-kong.svg"
         }
@@ -85,25 +85,25 @@
     "ctaHref": "/services/my-best-auntie-training-course",
     "modules": [
       {
-        "step": "01",
-        "title": "1st Module",
-        "week": "Week 01-04",
-        "icon": "foundation",
-        "activity": "Starting with a workshop, followed by a parent call, a 1:1 session, and ending with a practical challenge."
+        "step": "1",
+        "title": "Transform Your Home",
+        "week": "Week 1-3",
+        "icon": "home",
+        "activity": "Fewer battles, more independent play. A home that fosters your child's natural curiosity."
       },
       {
-        "step": "02",
-        "title": "2nd Module",
-        "week": "Week 05-08",
-        "icon": "coaching",
-        "activity": "Starting with a workshop, followed by a parent call, a 1:1 session, and ending with a practical challenge."
+        "step": "2",
+        "title": "Fostering Independence",
+        "week": "Week 4-6",
+        "icon": "limits",
+        "activity": "Stop just managing behavior. Start building the concentration, order, and self-reliance that every Hong Kong classroom demands."
       },
       {
-        "step": "03",
-        "title": "3rd Module",
-        "week": "Week 09-12",
-        "icon": "practice",
-        "activity": "Starting with a workshop, followed by a parent call, a 1:1 session, and ending with a practical challenge."
+        "step": "3",
+        "title": "Gentle Guidance & Clear Boundaries",
+        "week": "Week 7-9",
+        "icon": "independence",
+        "activity": "Mealtime battles end. Bedtime becomes peaceful. Your helper learns to guide with calm consistency."
       }
     ]
   },
