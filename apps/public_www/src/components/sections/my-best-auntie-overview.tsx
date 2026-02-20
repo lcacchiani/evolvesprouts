@@ -232,7 +232,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           {/* Wave connector — desktop (static overlay on the grid) */}
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute bottom-[64px] left-0 right-0 z-10 hidden md:block'
+            className='pointer-events-none absolute bottom-[62px] left-0 right-0 z-10 hidden md:block'
           >
             <svg
               viewBox='0 0 100 10'
@@ -288,7 +288,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 {/* Wave connector — mobile (scrolls with the cards) */}
                 <li
                   aria-hidden='true'
-                  className='pointer-events-none absolute bottom-[64px] left-0 right-0 z-10'
+                  className='pointer-events-none absolute bottom-[62px] left-0 right-0 z-10'
                 >
                   <svg
                     viewBox='0 0 100 10'
