@@ -42,7 +42,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
       id='hero-banner'
       ariaLabel={content.headline}
       dataFigmaNode='banner'
-      className='w-full overflow-hidden es-hero-section'
+      className='relative w-full overflow-hidden es-hero-section'
     >
       <div
         aria-hidden='true'

@@ -142,7 +142,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
       id='contact-us-form'
       ariaLabel={content.title}
       dataFigmaNode='contact-us-form'
-      className='overflow-hidden es-contact-us-section'
+      className='relative overflow-hidden es-contact-us-section'
     >
       <div
         aria-hidden='true'
