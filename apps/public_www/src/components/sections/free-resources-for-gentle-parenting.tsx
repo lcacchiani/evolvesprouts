@@ -1,7 +1,10 @@
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
-import { SectionContainer } from '@/components/sections/shared/section-container';
+import {
+  buildSectionSplitLayoutClassName,
+  SectionContainer,
+} from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import {
@@ -362,7 +365,9 @@ export function FreeResourcesForGentleParenting({
               <div
                 data-testid='free-resource-layout'
                 data-layout='split'
-                className='grid overflow-hidden rounded-[16px] border border-black/5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] es-free-resources-pattern-bg'
+                className={buildSectionSplitLayoutClassName(
+                  'es-section-split-layout--free-resources overflow-hidden rounded-[16px] border border-black/5 es-free-resources-pattern-bg',
+                )}
               >
                 <div
                   data-testid='free-resource-text-pane'

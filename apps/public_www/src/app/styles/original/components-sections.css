@@ -87,6 +87,80 @@
     );
   }
 
+  .es-section-split-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .es-section-split-layout--ida {
+    gap: 1.75rem;
+  }
+
+  .es-section-split-layout--hero {
+    gap: 2rem;
+  }
+
+  .es-section-split-layout--contact-us {
+    gap: 2.5rem;
+  }
+
+  .es-section-split-layout--my-history {
+    gap: 2rem;
+  }
+
+  .es-section-split-layout--my-best-auntie-booking {
+    gap: 2rem;
+  }
+
+  .es-section-split-layout--why-us,
+  .es-section-split-layout--my-journey {
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .es-section-split-layout {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .es-section-split-layout--ida {
+      gap: 2.5rem;
+    }
+
+    .es-section-split-layout--hero {
+      gap: 1.5rem;
+    }
+
+    .es-section-split-layout--contact-us {
+      gap: 2.25rem;
+    }
+
+    .es-section-split-layout--my-history {
+      gap: 3rem;
+    }
+
+    .es-section-split-layout--my-best-auntie-booking {
+      gap: 1.5rem;
+    }
+
+    .es-section-split-layout--why-us {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+      gap: 2rem;
+    }
+
+    .es-section-split-layout--my-journey {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+      gap: 2rem;
+    }
+
+    .es-section-split-layout--testimonials {
+      grid-template-columns: minmax(0, 500px) minmax(0, 1fr);
+    }
+
+    .es-section-split-layout--free-resources {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    }
+  }
+
   .es-my-journey-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');

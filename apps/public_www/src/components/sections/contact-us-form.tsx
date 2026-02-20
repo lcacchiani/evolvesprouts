@@ -5,7 +5,10 @@ import { useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
-import { SectionContainer } from '@/components/sections/shared/section-container';
+import {
+  buildSectionSplitLayoutClassName,
+  SectionContainer,
+} from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
@@ -145,7 +148,9 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
         aria-hidden='true'
         className='pointer-events-none absolute left-0 top-0 es-contact-us-left-decor'
       />
-      <SectionContainer className='grid gap-10 lg:grid-cols-2 lg:gap-9'>
+      <SectionContainer
+        className={buildSectionSplitLayoutClassName('es-section-split-layout--contact-us')}
+      >
         <section
           className='relative flex h-full items-start overflow-hidden px-6 py-8 sm:px-8 lg:px-10 lg:pt-[25%]'
         >

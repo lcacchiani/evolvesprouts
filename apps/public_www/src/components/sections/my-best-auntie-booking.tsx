@@ -5,7 +5,10 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SectionContainer } from '@/components/sections/shared/section-container';
+import {
+  buildSectionSplitLayoutClassName,
+  SectionContainer,
+} from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -135,7 +138,11 @@ export function MyBestAuntieBooking({
         className='es-my-best-auntie-booking-section'
       >
         <SectionContainer>
-          <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>
+          <div
+            className={buildSectionSplitLayoutClassName(
+              'es-section-split-layout--my-best-auntie-booking w-full min-w-0 items-center',
+            )}
+          >
             <section className='space-y-5 max-w-[620px] lg:pr-8'>
               <SectionHeader
                 title={content.title}

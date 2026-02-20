@@ -6,7 +6,10 @@ import {
 } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SectionContainer } from '@/components/sections/shared/section-container';
+import {
+  buildSectionSplitLayoutClassName,
+  SectionContainer,
+} from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import {
@@ -204,7 +207,11 @@ export function Testimonials({ content }: TestimonialsProps) {
               key={`${activeStory.author ?? 'story'}-${activeIndex}`}
               className='min-w-full'
             >
-              <div className='grid lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)]'>
+              <div
+                className={buildSectionSplitLayoutClassName(
+                  'es-section-split-layout--testimonials',
+                )}
+              >
                 <div className='relative min-h-[260px] overflow-hidden rounded-[30px] es-bg-surface-peach sm:min-h-[360px] lg:min-h-[540px]'>
                   {activeStory.mainImageSrc ? (
                     <Image

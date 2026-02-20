@@ -1,7 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { SectionContainer } from '@/components/sections/shared/section-container';
+import {
+  buildSectionSplitLayoutClassName,
+  SectionContainer,
+  SECTION_SPLIT_LAYOUT_CLASSNAME,
+} from '@/components/sections/shared/section-container';
 
 describe('SectionContainer', () => {
   it('renders with the shared layout container class', () => {
@@ -32,5 +36,19 @@ describe('SectionContainer', () => {
     });
     expect(nav.className).toContain('es-layout-container');
     expect(nav.className).toContain('items-center');
+  });
+});
+
+describe('buildSectionSplitLayoutClassName', () => {
+  it('returns the shared two-column split class by default', () => {
+    expect(buildSectionSplitLayoutClassName()).toBe(
+      SECTION_SPLIT_LAYOUT_CLASSNAME,
+    );
+  });
+
+  it('merges custom classes with the shared two-column split class', () => {
+    expect(buildSectionSplitLayoutClassName('items-center gap-8')).toBe(
+      'es-section-split-layout items-center gap-8',
+    );
   });
 });
