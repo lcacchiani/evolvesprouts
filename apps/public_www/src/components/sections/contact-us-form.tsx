@@ -138,16 +138,16 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
       id='contact-us-form'
       ariaLabel={content.title}
       dataFigmaNode='contact-us-form'
-      className='es-contact-us-section'
+      className='relative overflow-hidden es-contact-us-section'
     >
+      <div
+        aria-hidden='true'
+        className='pointer-events-none absolute left-0 top-0 es-contact-us-left-decor'
+      />
       <SectionContainer className='grid gap-10 lg:grid-cols-2 lg:gap-9'>
         <section
           className='relative flex h-full items-start overflow-hidden px-6 py-8 sm:px-8 lg:px-10 lg:pt-[25%]'
         >
-          <div
-            aria-hidden='true'
-            className='pointer-events-none absolute left-0 top-0 es-contact-us-left-decor'
-          />
           <div className='relative z-10 space-y-6'>
             <h1 className='es-section-heading text-balance'>{content.title}</h1>
             <p className='es-section-body text-balance text-[1.05rem] leading-8'>
