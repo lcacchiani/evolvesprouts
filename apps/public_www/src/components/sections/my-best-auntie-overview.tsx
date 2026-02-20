@@ -97,6 +97,10 @@ function MyBestAuntieOverviewCard({
 }) {
   const tone = getModuleTone(index);
   const isInteractive = !showFullActivity;
+  const isDescriptionVisible = showFullActivity || isExpanded;
+  const countLineSizeClassName = isDescriptionVisible
+    ? '-top-[70px] h-[74px]'
+    : '-top-[144px] h-[148px] md:group-hover:-top-[70px] md:group-hover:h-[74px]';
 
   function handleCardClick() {
     if (!isInteractive) {
@@ -151,16 +155,16 @@ function MyBestAuntieOverviewCard({
         </p>
         {module.activity && (
           <p
-            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-overview-activity ${showFullActivity || isExpanded ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
+            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-overview-activity ${isDescriptionVisible ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
           >
             {module.activity}
           </p>
         )}
-        <div className='mt-auto flex flex-col items-center gap-4 pt-6'>
+        <div className='mt-auto flex -translate-y-[50px] flex-col items-center gap-4 pt-6'>
           <div className='relative'>
             <span
               aria-hidden='true'
-              className={`pointer-events-none absolute -top-[70px] left-1/2 z-0 h-[74px] w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
+              className={`pointer-events-none absolute left-1/2 z-0 w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone} ${countLineSizeClassName}`}
             />
             <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
               <span className={`es-my-best-auntie-overview-count-text es-my-best-auntie-overview-count-text--${tone}`}>
@@ -228,7 +232,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           {/* Wave connector — desktop (static overlay on the grid) */}
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute bottom-[89px] left-0 right-0 z-10 hidden md:block'
+            className='pointer-events-none absolute bottom-[139px] left-0 right-0 z-10 hidden md:block'
           >
             <svg
               viewBox='0 0 100 10'
@@ -284,7 +288,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 {/* Wave connector — mobile (scrolls with the cards) */}
                 <li
                   aria-hidden='true'
-                  className='pointer-events-none absolute bottom-[89px] left-0 right-0 z-10'
+                  className='pointer-events-none absolute bottom-[139px] left-0 right-0 z-10'
                 >
                   <svg
                     viewBox='0 0 100 10'
