@@ -4,12 +4,22 @@ import { mergeClassNames } from '@/lib/class-name-utils';
 
 type TurnstileTheme = 'light' | 'dark' | 'auto';
 type TurnstileSize = 'normal' | 'compact' | 'flexible';
+type TurnstileExecutionMode = 'render' | 'execute';
+type TurnstileAppearanceMode = 'always' | 'execute' | 'interaction-only';
+type TurnstileRetryMode = 'auto' | 'never';
+type TurnstileRefreshMode = 'auto' | 'manual' | 'never';
 
 interface TurnstileRenderOptions {
   sitekey: string;
   action?: string;
   theme?: TurnstileTheme;
   size?: TurnstileSize;
+  execution?: TurnstileExecutionMode;
+  appearance?: TurnstileAppearanceMode;
+  retry?: TurnstileRetryMode;
+  'retry-interval'?: number;
+  'refresh-expired'?: TurnstileRefreshMode;
+  'refresh-timeout'?: TurnstileRefreshMode;
   callback?: (token: string) => void;
   'expired-callback'?: () => void;
   'error-callback'?: (errorCode?: string) => void;
@@ -31,6 +41,10 @@ declare global {
 const TURNSTILE_SCRIPT_ID = 'evolve-sprouts-turnstile-script';
 const TURNSTILE_SCRIPT_SRC =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+const TURNSTILE_WIDGET_APPEARANCE: TurnstileAppearanceMode = 'interaction-only';
+const TURNSTILE_WIDGET_RETRY_MODE: TurnstileRetryMode = 'never';
+const TURNSTILE_WIDGET_REFRESH_EXPIRED_MODE: TurnstileRefreshMode = 'manual';
+const TURNSTILE_WIDGET_REFRESH_TIMEOUT_MODE: TurnstileRefreshMode = 'manual';
 
 function hasExplicitScriptSource(scriptElement: HTMLScriptElement): boolean {
   const sourceAttribute = scriptElement.getAttribute('src');
@@ -196,6 +210,10 @@ export function TurnstileCaptcha({
           action: widgetAction,
           theme,
           size,
+          appearance: TURNSTILE_WIDGET_APPEARANCE,
+          retry: TURNSTILE_WIDGET_RETRY_MODE,
+          'refresh-expired': TURNSTILE_WIDGET_REFRESH_EXPIRED_MODE,
+          'refresh-timeout': TURNSTILE_WIDGET_REFRESH_TIMEOUT_MODE,
           callback: (token) => {
             onTokenChangeRef.current(token);
           },
