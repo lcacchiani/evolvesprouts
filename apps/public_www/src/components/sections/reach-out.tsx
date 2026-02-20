@@ -57,7 +57,7 @@ export function ReachOut({ content }: ReachOutProps) {
               <article className='flex h-full gap-4 rounded-2xl border border-black/10 bg-white px-5 py-5 shadow-[0_16px_28px_-24px_rgba(0,0,0,0.5)] sm:px-6 sm:py-6'>
                 <ReachOutGlyph index={index} />
                 <div className='space-y-1.5'>
-                  <h3 className='es-section-heading text-[clamp(1.2rem,2.4vw,1.6rem)]'>
+                  <h3 className='es-type-title'>
                     {item.title}
                   </h3>
                   <p className='es-section-body text-base leading-7'>

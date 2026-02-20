@@ -45,7 +45,7 @@ export function SproutsSquadCommunity({
             title={content.heading}
             align='left'
             className='max-w-[620px]'
-            titleClassName='text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
+            titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
           />
 
           <SectionCtaAnchor

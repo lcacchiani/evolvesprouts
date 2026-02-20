@@ -142,9 +142,9 @@ export function MyBestAuntieBooking({
                 titleAs='h1'
                 align='left'
                 className='max-w-[620px]'
-                titleClassName='text-[clamp(2rem,5.6vw,3.3rem)] es-my-best-auntie-booking-heading'
+                titleClassName='es-my-best-auntie-booking-heading'
                 description={content.description}
-                descriptionClassName='mt-5 max-w-[58ch] text-[clamp(1rem,2vw,1.2rem)] es-my-best-auntie-booking-body'
+                descriptionClassName='mt-5 max-w-[58ch] es-type-body es-my-best-auntie-booking-body'
               />
 
               <div className='pt-3'>
@@ -155,7 +155,7 @@ export function MyBestAuntieBooking({
                   <p className='text-base font-semibold es-text-brand'>
                     {content.scheduleLabel}
                   </p>
-                  <p className='mt-1 text-[clamp(1.3rem,3vw,1.7rem)] font-bold es-text-heading-alt'>
+                  <p className='es-type-title mt-1 font-bold es-text-heading-alt'>
                     {nextCohortPreview}
                   </p>
                 </div>

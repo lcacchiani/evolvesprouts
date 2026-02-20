@@ -68,7 +68,7 @@ export function BookingEventDetails({
       </p>
       <h2
         id={headingId}
-        className='es-my-best-auntie-booking-modal-heading mt-1 text-[clamp(1.9rem,3.8vw,2.8rem)]'
+        className='es-type-title es-my-best-auntie-booking-modal-heading mt-1'
       >
         {content.title}
       </h2>

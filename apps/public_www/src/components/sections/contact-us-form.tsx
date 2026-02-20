@@ -175,7 +175,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
           />
 
           <div className='relative z-10 mb-6 pt-4'>
-            <h2 className='es-section-heading text-[clamp(1.5rem,3.6vw,2.2rem)]'>
+            <h2 className='es-type-title'>
               {content.promiseTitle}
             </h2>
             <ul className='mt-4 list-disc space-y-2 pl-6'>
