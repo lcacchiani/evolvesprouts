@@ -216,9 +216,9 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>
           {/* Desktop / tablet grid (md+) */}
-          <ul className='hidden gap-6 md:grid md:grid-cols-3'>
+          <ul className='relative z-10 hidden gap-6 md:grid md:grid-cols-3'>
             {moduleSteps.map((module, index) => (
-              <li key={module.step}>
+              <li key={module.step} className='relative z-10'>
                 <MyBestAuntieOverviewCard
                   module={module}
                   index={index}
@@ -232,7 +232,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           {/* Wave connector — desktop (static overlay on the grid) */}
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute bottom-[64px] left-0 right-0 z-10 hidden md:block'
+            className='pointer-events-none absolute bottom-[64px] left-0 right-0 z-0 hidden md:block'
           >
             <svg
               viewBox='0 0 100 10'
@@ -245,9 +245,9 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 <linearGradient
                   id='wave-fade-lg'
                   gradientUnits='userSpaceOnUse'
-                  x1='14.8'
+                  x1='15.9'
                   y1='5'
-                  x2='97.4'
+                  x2='96.2'
                   y2='5'
                 >
                   <stop offset='0%' stopColor={HEADING_COLOR} />
@@ -260,7 +260,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 </linearGradient>
               </defs>
               <path
-                d='M14.8,5 C20.13,7 26.13,9 31.46,9 S42.63,7 48.13,5 S59.13,1 64.8,1 S76.13,3 81.46,5 S93.43,8 97.4,8'
+                d='M15.9,5 C21.23,7 27.23,9 32.56,9 S43.73,7 49.23,5 S60.23,1 65.9,1 S77.23,3 82.56,5 S92.23,8 96.2,8'
                 stroke='url(#wave-fade-lg)'
                 strokeWidth='3.5'
                 strokeLinecap='round'
@@ -275,7 +275,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 {moduleSteps.map((module, index) => (
                   <li
                     key={module.step}
-                    className='w-[80vw] shrink-0 snap-center sm:w-[66vw]'
+                    className='relative z-10 w-[80vw] shrink-0 snap-center sm:w-[66vw]'
                   >
                     <MyBestAuntieOverviewCard
                       module={module}
@@ -288,7 +288,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 {/* Wave connector — mobile (scrolls with the cards) */}
                 <li
                   aria-hidden='true'
-                  className='pointer-events-none absolute bottom-[64px] left-0 right-0 z-10'
+                  className='pointer-events-none absolute bottom-[64px] left-0 right-0 z-0'
                 >
                   <svg
                     viewBox='0 0 100 10'
@@ -301,9 +301,9 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                       <linearGradient
                         id='wave-fade-sm'
                         gradientUnits='userSpaceOnUse'
-                        x1='14.8'
+                        x1='15.9'
                         y1='5'
-                        x2='97.4'
+                        x2='96.2'
                         y2='5'
                       >
                         <stop offset='0%' stopColor={HEADING_COLOR} />
@@ -316,7 +316,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                       </linearGradient>
                     </defs>
                     <path
-                      d='M14.8,5 C20.13,7 26.13,9 31.46,9 S42.63,7 48.13,5 S59.13,1 64.8,1 S76.13,3 81.46,5 S93.43,8 97.4,8'
+                      d='M15.9,5 C21.23,7 27.23,9 32.56,9 S43.73,7 49.23,5 S60.23,1 65.9,1 S77.23,3 82.56,5 S92.23,8 96.2,8'
                       stroke='url(#wave-fade-sm)'
                       strokeWidth='3.5'
                       strokeLinecap='round'
