@@ -2,6 +2,7 @@ import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { IdaContent } from '@/content';
 
@@ -19,10 +20,14 @@ export function Ida({ content }: IdaProps) {
     >
       <SectionContainer className='grid items-center gap-7 lg:grid-cols-2 lg:gap-10'>
         <div className='order-1 relative z-10 lg:order-2 lg:pl-8 xl:pl-[110px]'>
-          <h1 className='es-type-title'>{content.title}</h1>
-          <p className='es-type-subtitle mt-4 max-w-[760px]'>
-            {content.subtitle}
-          </p>
+          <SectionHeader
+            title={content.title}
+            titleAs='h1'
+            align='left'
+            titleClassName='!mt-0'
+            description={content.subtitle}
+            descriptionClassName='es-type-subtitle mt-4 max-w-[760px]'
+          />
           <p className='es-type-body mt-4 max-w-[720px]'>
             {content.description}
           </p>

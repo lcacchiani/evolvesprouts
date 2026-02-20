@@ -3,6 +3,8 @@ import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
+import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { HeroContent } from '@/content';
 import { ROUTES } from '@/lib/routes';
 
@@ -33,10 +35,11 @@ function renderHeadline(headline: string): ReactNode {
 
 export function HeroBanner({ content }: HeroBannerProps) {
   return (
-    <section
-      aria-label={content.headline}
-      data-figma-node='banner'
-      className='relative w-full overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-[100px] es-hero-section'
+    <SectionShell
+      id='hero-banner'
+      ariaLabel={content.headline}
+      dataFigmaNode='banner'
+      className='relative w-full overflow-hidden es-hero-section'
     >
       <div
         aria-hidden='true'
@@ -45,10 +48,15 @@ export function HeroBanner({ content }: HeroBannerProps) {
       <SectionContainer className='grid items-center gap-8 lg:grid-cols-2 lg:gap-6'>
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8 lg:pt-[70px]'>
           <div className='relative z-10'>
-            <h1 className='es-hero-headline'>{renderHeadline(content.headline)}</h1>
-            <p className='mt-4 max-w-[610px] sm:mt-6 es-hero-subheadline'>
-              {content.subheadline}
-            </p>
+            <SectionHeader
+              title={renderHeadline(content.headline)}
+              titleAs='h1'
+              align='left'
+              className='max-w-[610px]'
+              titleClassName='!mt-0 es-hero-headline'
+              description={content.subheadline}
+              descriptionClassName='mt-4 max-w-[610px] sm:mt-6 es-hero-subheadline'
+            />
             <SectionCtaAnchor
               href={ROUTES.servicesMyBestAuntieTrainingCourse}
               className='mt-6'
@@ -70,6 +78,6 @@ export function HeroBanner({ content }: HeroBannerProps) {
           />
         </div>
       </SectionContainer>
-    </section>
+    </SectionShell>
   );
 }

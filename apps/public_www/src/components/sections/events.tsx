@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { EventsContent } from '@/content';
 import {
@@ -138,14 +139,13 @@ export function Events({ content }: EventsProps) {
       className='es-events-section'
     >
       <SectionContainer>
-        <div className='es-layout-container text-center'>
-          <h1 className='es-type-title text-balance'>
-            {content.title}
-          </h1>
-          <p className='es-type-body mt-4 text-balance'>
-            {content.description}
-          </p>
-        </div>
+        <SectionHeader
+          title={content.title}
+          titleAs='h1'
+          titleClassName='!mt-0 text-balance'
+          description={content.description}
+          descriptionClassName='es-type-body mt-4 text-balance'
+        />
 
         <div className='mt-10 flex flex-col gap-4 sm:mt-12 sm:flex-row sm:items-center sm:justify-between'>
           <h2 className='es-events-scheduled-heading'>{content.scheduledHeading}</h2>

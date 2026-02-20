@@ -223,7 +223,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
     <SectionShell
       id='courses'
       ariaLabel={content.title}
-      dataFigmaNode='My Best Auntie Overview'
+      dataFigmaNode='my-best-auntie-overview'
       className='es-section-bg-overlay es-my-best-auntie-overview-section'
     >
       <SectionContainer>

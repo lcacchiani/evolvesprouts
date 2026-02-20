@@ -6,6 +6,7 @@ import {
 } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import {
@@ -174,11 +175,12 @@ export function Testimonials({ content }: TestimonialsProps) {
 
   return (
     <SectionShell
+      id='testimonials'
       ariaLabel={content.title}
-      dataFigmaNode='Testimonials'
+      dataFigmaNode='testimonials'
       className='es-section-bg-overlay es-testimonials-section'
     >
-      <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
+      <SectionContainer className='max-w-[1488px]'>
         <SectionHeader
           eyebrow={badgeLabel}
           title={content.title}
@@ -334,7 +336,7 @@ export function Testimonials({ content }: TestimonialsProps) {
             </div>
           )}
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

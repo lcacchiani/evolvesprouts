@@ -125,8 +125,9 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
   return (
     <SectionShell
+      id='course-highlights'
       ariaLabel={sectionTitle}
-      dataFigmaNode='Course Highlights'
+      dataFigmaNode='course-highlights'
       className='es-section-bg-overlay es-course-highlights-section'
     >
       <div
