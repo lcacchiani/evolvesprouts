@@ -386,7 +386,7 @@ export function BookingReservationForm({
             </span>
             <TurnstileCaptcha
               siteKey={turnstileSiteKey}
-              widgetAction='my_best_auntie_reservation_submit'
+              widgetAction='mba_reservation_submit'
               size='normal'
               onTokenChange={(token) => {
                 setCaptchaToken(token);
