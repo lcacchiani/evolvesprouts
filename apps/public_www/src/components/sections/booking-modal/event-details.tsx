@@ -63,7 +63,7 @@ export function BookingEventDetails({
 }: BookingEventDetailsProps) {
   return (
     <div className='w-full lg:w-[calc(50%-20px)]'>
-      <p className='text-[20px] leading-7 es-text-heading'>
+      <p className='text-xl leading-7 es-text-heading'>
         {content.thankYouLead}
       </p>
       <h2
@@ -95,7 +95,7 @@ export function BookingEventDetails({
               <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
                 <span
                   data-course-part-chip='true'
-                  className={`relative inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px] ${getPartChipClassName(index)}`}
+                  className={`relative inline-flex self-start items-center gap-1.5 rounded-full px-[15px] py-[5px] ${getPartChipClassName(index)}`}
                 >
                   <span
                     data-course-part-line='gap-connector'
@@ -106,7 +106,7 @@ export function BookingEventDetails({
                     className='es-mask-cubes-current h-[30px] w-[30px] shrink-0'
                     aria-hidden='true'
                   />
-                  <span className='text-[18px] font-semibold leading-none'>
+                  <span className='text-lg font-semibold leading-none'>
                     {part.label}
                   </span>
                 </span>
@@ -138,20 +138,20 @@ export function BookingEventDetails({
             {content.pricingTitle}
           </h3>
           <div className='mt-4 flex items-start gap-4'>
-            <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
+            <span className='es-icon-circle-lg'>
               <span
                 className='es-mask-credit-card-danger h-[46px] w-[46px] shrink-0'
                 aria-hidden='true'
               />
             </span>
             <div>
-              <p className='text-[20px] font-semibold leading-6 es-text-heading'>
+              <p className='text-xl font-semibold leading-6 es-text-heading'>
                 {content.totalAmountLabel}
               </p>
               <p className='mt-2 text-[30px] font-bold leading-none es-text-heading'>
                 {formatCurrencyHkd(originalAmount)}
               </p>
-              <p className='mt-4 text-[18px] font-semibold leading-[26px] es-text-heading'>
+              <p className='mt-4 text-lg font-semibold leading-[26px] es-text-heading'>
                 {content.refundHint}
               </p>
             </div>
@@ -163,22 +163,22 @@ export function BookingEventDetails({
             {content.locationTitle}
           </h3>
           <div className='mt-4 flex items-start gap-4'>
-            <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
+            <span className='es-icon-circle-lg'>
               <span
                 className='es-mask-target-danger h-[46px] w-[46px] shrink-0'
                 aria-hidden='true'
               />
             </span>
             <div>
-              <p className='text-[20px] font-semibold leading-6 es-text-heading'>
+              <p className='text-xl font-semibold leading-6 es-text-heading'>
                 {content.locationName}
               </p>
-              <p className='mt-1 text-[18px] font-semibold leading-[26px] es-text-heading'>
+              <p className='mt-1 text-lg font-semibold leading-[26px] es-text-heading'>
                 {content.locationAddress}
               </p>
               <SmartLink
                 href={content.directionHref}
-                className='mt-3 inline-flex items-center text-[18px] font-semibold leading-none es-text-heading'
+                className='mt-3 inline-flex items-center text-lg font-semibold leading-none es-text-heading'
               >
                 {({ isExternalHttp }) => (
                   <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
@@ -195,7 +195,7 @@ export function BookingEventDetails({
             <ButtonPrimitive
               href={learnMoreHref}
               variant='outline'
-              className='h-[56px] rounded-[10px] px-7 text-base font-semibold'
+              className='h-[56px] rounded-control px-7 text-base font-semibold'
             >
               {learnMoreLabel}
             </ButtonPrimitive>

@@ -231,7 +231,7 @@ export function MyBestAuntieThankYouModal({
             </h2>
             <p
               id={dialogDescriptionId}
-              className='mt-3 text-[18px] leading-7 es-my-best-auntie-thank-you-body'
+              className='mt-3 text-lg leading-7 es-my-best-auntie-thank-you-body'
             >
               {content.subtitle}
               <br />
@@ -241,7 +241,7 @@ export function MyBestAuntieThankYouModal({
             </p>
           </div>
 
-          <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-[16px] border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
+          <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
             <Image
               src='/images/evolvesprouts-logo.svg'
               alt=''
@@ -254,18 +254,18 @@ export function MyBestAuntieThankYouModal({
             <div className='relative z-10 border-b es-divider-blue pb-8'>
               <div className='flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between'>
                 <div>
-                  <h4 className='text-[20px] font-semibold leading-none es-text-heading sm:text-[24px]'>
+                  <h4 className='text-xl font-semibold leading-none es-text-heading sm:text-2xl'>
                     {summary?.courseLabel ?? content.courseLabel}
                   </h4>
                   <div className='mt-4 flex flex-wrap gap-2'>
-                    <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <span
                         className='h-6 w-6 shrink-0 es-mask-calendar-heading'
                         aria-hidden='true'
                       />
                       {summary?.scheduleDateLabel ?? summary?.monthLabel ?? ''}
                     </span>
-                    <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <Image
                         src='/images/clock.svg'
                         alt=''
@@ -281,7 +281,7 @@ export function MyBestAuntieThankYouModal({
                   <span className='text-sm font-medium leading-none es-text-muted'>
                     {summary?.packageLabel ?? ''}
                   </span>
-                  <p className='mt-2 text-[24px] font-bold leading-none es-text-heading sm:text-[30px]'>
+                  <p className='mt-2 text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
                     {formatCurrencyHkd(summary?.totalAmount ?? 0)}
                   </p>
                 </div>
@@ -290,26 +290,26 @@ export function MyBestAuntieThankYouModal({
 
             <dl className='relative z-10 space-y-7 border-b es-divider-blue py-8'>
               <div className='flex items-center justify-between gap-4'>
-                <dt className='text-[18px] font-medium es-text-subtle sm:text-[22px]'>
+                <dt className='text-lg font-medium es-text-subtle sm:text-[22px]'>
                   {content.transactionDateLabel}
                 </dt>
-                <dd className='text-[24px] font-bold leading-none es-text-heading sm:text-[30px]'>
+                <dd className='text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
                   {transactionDate}
                 </dd>
               </div>
               <div className='flex items-center justify-between gap-4'>
-                <dt className='text-[18px] font-medium es-text-subtle sm:text-[22px]'>
+                <dt className='text-lg font-medium es-text-subtle sm:text-[22px]'>
                   {content.paymentMethodLabel}
                 </dt>
-                <dd className='text-[24px] font-bold leading-none es-text-heading sm:text-[30px]'>
+                <dd className='text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
                   {summary?.paymentMethod ?? ''}
                 </dd>
               </div>
               <div className='flex items-center justify-between gap-4'>
-                <dt className='text-[18px] font-medium es-text-subtle sm:text-[22px]'>
+                <dt className='text-lg font-medium es-text-subtle sm:text-[22px]'>
                   {content.totalLabel}
                 </dt>
-                <dd className='text-[24px] font-bold leading-none es-text-heading sm:text-[30px]'>
+                <dd className='text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
                   {formatCurrencyHkd(summary?.totalAmount ?? 0)}
                 </dd>
               </div>
@@ -320,7 +320,7 @@ export function MyBestAuntieThankYouModal({
                 <ButtonPrimitive
                   variant='outline'
                   onClick={handlePrint}
-                  className='h-[54px] gap-2 rounded-[10px] px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
+                  className='h-[54px] gap-2 rounded-control px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
                 >
                   <svg
                     width='24'

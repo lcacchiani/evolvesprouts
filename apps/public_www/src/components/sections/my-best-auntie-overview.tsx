@@ -128,7 +128,7 @@ function MyBestAuntieOverviewCard({
       aria-expanded={isInteractive ? isExpanded : undefined}
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
-      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
+      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-card-xl px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
     >
       <div
         aria-hidden='true'

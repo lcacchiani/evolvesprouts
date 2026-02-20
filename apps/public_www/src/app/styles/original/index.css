@@ -1,3 +1,19 @@
+@theme {
+  --radius-control: 10px;
+  --radius-inner: 14px;
+  --radius-panel: 18px;
+  --radius-card-sm: 20px;
+  --radius-card: 26px;
+  --radius-card-lg: 30px;
+  --radius-card-xl: 32px;
+
+  --shadow-pill: 0 10px 22px -18px rgba(0, 0, 0, 0.58);
+  --shadow-card: 0 16px 34px -24px rgba(0, 0, 0, 0.52);
+  --shadow-card-glass: 0 18px 36px -30px rgba(0, 0, 0, 0.55);
+  --shadow-panel: 0 28px 60px -45px rgba(17, 17, 17, 0.58);
+  --shadow-overlay: 0 22px 70px rgba(0, 0, 0, 0.42);
+}
+
 @import './base.css';
 @import './components-core.css';
 @import './components-sections.css';

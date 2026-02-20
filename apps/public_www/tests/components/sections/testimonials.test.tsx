@@ -24,15 +24,15 @@ describe('Testimonials section', () => {
 
     const card = screen.getByTestId('testimonials-card');
     expect(card.className).not.toContain('border-[#EFD7C7]');
-    expect(card.className).not.toContain('rounded-[30px]');
+    expect(card.className).not.toContain('rounded-card-lg');
     expect(card.className).not.toContain('shadow');
 
     const firstStory = enContent.testimonials.items[0];
     expect(
       screen.getByAltText(`${firstStory.author} testimonial image`).className,
-    ).toContain('rounded-[30px]');
+    ).toContain('rounded-card-lg');
     expect(screen.getByAltText(`${firstStory.author} avatar`).className).toContain(
-      'rounded-[30px]',
+      'rounded-card-lg',
     );
     expect(container.querySelector('.es-testimonial-quote-icon')).not.toBeNull();
   });

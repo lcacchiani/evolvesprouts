@@ -239,7 +239,7 @@ export function Navbar({ content }: NavbarProps) {
               alt={content.brand}
               width={150}
               height={150}
-              className='h-[150px] w-[150px] es-bg-surface-white object-contain'
+              className='es-navbar-logo'
             />
           </Link>
 
@@ -315,7 +315,7 @@ export function Navbar({ content }: NavbarProps) {
                   alt={content.brand}
                   width={150}
                   height={150}
-                  className='h-[150px] w-[150px] es-bg-surface-white object-contain'
+                  className='es-navbar-logo'
                 />
               </Link>
               <ButtonPrimitive

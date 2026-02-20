@@ -264,9 +264,15 @@
   }
 
   .es-form-input {
+    width: 100%;
+    border-width: 1px;
+    border-radius: 14px;
     border-color: var(--es-color-border-input);
     background-color: var(--es-color-surface-white);
     color: var(--es-color-text-heading);
+    padding: 0.75rem 1rem;
+    font-size: 16px;
+    font-weight: 600;
   }
 
   .es-form-input-error {
@@ -489,6 +495,24 @@
     max-width: 1465px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  .es-icon-circle-lg {
+    display: flex;
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: var(--es-color-surface-icon-soft);
+  }
+
+  .es-navbar-logo {
+    width: 150px;
+    height: 150px;
+    background-color: var(--es-color-surface-white);
+    object-fit: contain;
   }
 
   .es-link-external-label {

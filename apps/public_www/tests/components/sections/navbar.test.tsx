@@ -83,7 +83,7 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const englishOption = screen.getByRole('menuitem', { name: /English/i });
     const simplifiedChineseOption = screen.getByRole('menuitem', {
-      name: /Chinese \(Simplified\)/i,
+      name: /简体中文/,
     });
 
     expect(englishOption.className).toContain('es-nav-language-option');

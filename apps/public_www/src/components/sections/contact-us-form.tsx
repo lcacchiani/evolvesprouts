@@ -168,7 +168,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
 
         <section
           id='contact-form'
-          className='relative overflow-visible rounded-[28px] border es-border-form-shell p-5 shadow-[0_28px_60px_-45px_rgba(17,17,17,0.58)] sm:p-7 lg:p-8 es-contact-us-form-panel'
+          className='relative overflow-visible rounded-[28px] border es-border-form-shell p-5 shadow-panel sm:p-7 lg:p-8 es-contact-us-form-panel'
         >
           <div
             aria-hidden='true'
@@ -207,7 +207,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 onChange={(event) => {
                   updateField('firstName', event.target.value);
                 }}
-                className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input'
               />
             </label>
 
@@ -230,7 +230,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 onBlur={() => {
                   setIsEmailTouched(true);
                 }}
-                className={`es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold ${hasEmailError ? 'es-form-input-error' : ''}`}
+                className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
                 aria-invalid={hasEmailError}
                 aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
               />
@@ -259,7 +259,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                 onBlur={() => {
                   setIsPhoneTouched(true);
                 }}
-                className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input'
                 aria-invalid={hasPhoneError}
                 aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
               />
@@ -290,7 +290,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                   updateField('message', event.target.value);
                 }}
                 placeholder={content.messagePlaceholder}
-                className='es-focus-ring es-form-input w-full min-h-[152px] resize-y rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input min-h-[152px] resize-y'
               />
             </label>
 
