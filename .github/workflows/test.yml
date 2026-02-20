@@ -44,6 +44,7 @@ jobs:
         working-directory: apps/public_www
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
         run: |
           npm ci
           npm run validate:content
