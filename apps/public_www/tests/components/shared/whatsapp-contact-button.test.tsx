@@ -43,5 +43,6 @@ describe('WhatsappContactButton', () => {
     );
     expect(link.querySelector('svg')).not.toBeNull();
     expect(link.className).toContain('es-whatsapp-contact-button-safe-bottom');
+    expect(link.className).toContain('right-[30px]');
   });
 });
