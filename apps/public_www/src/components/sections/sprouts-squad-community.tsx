@@ -2,6 +2,7 @@ import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { SproutsSquadCommunityContent } from '@/content';
 
@@ -39,11 +40,12 @@ export function SproutsSquadCommunity({
           height={250}
           className='h-auto w-[250px] es-sprouts-community-logo'
         />
-        <h2
-          className='max-w-[620px] text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
-        >
-          {content.heading}
-        </h2>
+        <SectionHeader
+          title={content.heading}
+          align='left'
+          className='max-w-[620px]'
+          titleClassName='!mt-0 text-[clamp(1.9rem,6vw,55px)] leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
+        />
 
         <SectionCtaAnchor
           href={content.ctaHref}

@@ -31,6 +31,9 @@ describe('SproutsSquadCommunity section', () => {
 
     expect(container.querySelector('.es-sprouts-community-overlay')).not.toBeNull();
     expect(container.querySelector('img.es-sprouts-community-logo')).not.toBeNull();
+    expect(
+      container.querySelector('.es-section-header')?.className,
+    ).toContain('es-section-header--left');
 
     const heading = screen.getByRole('heading', {
       level: 2,
