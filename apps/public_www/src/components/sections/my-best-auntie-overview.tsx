@@ -191,7 +191,7 @@ function MyBestAuntieOverviewCard({
           <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
             <span
               aria-hidden='true'
-              className={`pointer-events-none absolute -top-[70px] left-1/2 h-[70px] w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
+              className={`pointer-events-none absolute -top-[70px] left-1/2 h-[74px] w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
             />
             <span className={`es-my-best-auntie-overview-count-text es-my-best-auntie-overview-count-text--${tone}`}>
               {module.step}
