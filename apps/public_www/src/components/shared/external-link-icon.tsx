@@ -50,12 +50,19 @@ export function ExternalLinkInlineContent({
   children,
   internalIcon = null,
 }: ExternalLinkInlineContentProps) {
+  if (isExternalHttp) {
+    return (
+      <span className='es-link-external-label es-link-external-label--with-icon'>
+        {children}
+        <ExternalLinkIcon />
+      </span>
+    );
+  }
+
   return (
     <>
-      <span className={isExternalHttp ? 'es-link-external-label' : undefined}>
-        {children}
-      </span>
-      {isExternalHttp ? <ExternalLinkIcon /> : internalIcon}
+      <span>{children}</span>
+      {internalIcon}
     </>
   );
 }

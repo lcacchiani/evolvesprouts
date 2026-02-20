@@ -25,10 +25,12 @@ describe('ExternalLinkInlineContent', () => {
       </ExternalLinkInlineContent>,
     );
 
-    expect(screen.getByText('Link label').className).toContain('es-link-external-label');
-    expect(
-      document.querySelector('svg[data-external-link-icon="true"]'),
-    ).not.toBeNull();
+    const label = screen.getByText('Link label');
+    expect(label.className).toContain('es-link-external-label');
+    expect(label.className).toContain('es-link-external-label--with-icon');
+    const externalIcon = label.querySelector('svg[data-external-link-icon="true"]');
+    expect(externalIcon).not.toBeNull();
+    expect(externalIcon?.parentElement).toBe(label);
 
     rerender(
       <ExternalLinkInlineContent
