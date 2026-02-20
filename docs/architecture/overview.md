@@ -108,6 +108,8 @@ See [`docs/architecture/database-schema.md`](database-schema.md) for full table 
 - Amplify promotion workflow with gating (staging -> main).
 - Public website promotion workflow with immutable artifact promotion
   (staging -> production).
+- Public website CI validates content, lint, tests, static build, and
+  production-only npm dependency audit (`npm audit --omit=dev`).
 - Dependabot enabled for automated dependency updates (see below).
 - Infrastructure tests validate CDK templates for new and imported
   database resources.

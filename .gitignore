@@ -20,6 +20,8 @@ lib64/
 !apps/crm_web/src/lib/**
 !apps/public_www/src/lib/
 !apps/public_www/src/lib/**
+!apps/public_www/tests/lib/
+!apps/public_www/tests/lib/**
 parts/
 sdist/
 var/
@@ -198,6 +200,7 @@ apps/crm_web/.next/
 apps/crm_web/out/
 apps/public_www/.next/
 apps/public_www/out/
+apps/public_www/figma/mdm/artifacts/
 
 # Playwright
 apps/crm_web/playwright-report/

@@ -1,10 +1,11 @@
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CONTENT_DIR = path.resolve(__dirname, '..', 'src', 'content');
+const LOCALE_APP_DIR = path.resolve(__dirname, '..', 'src', 'app', '[locale]');
 
 const LOCALE_FILES = [
   ['en', 'en.json'],
@@ -203,11 +204,76 @@ function validateHrefValue(value, keyPath, errors) {
   errors.push(`${keyPath}: unsupported href format "${normalizedValue}"`);
 }
 
-function validateSemanticRules(value, keyPath, errors) {
+function normalizeInternalRoutePath(value) {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(value, 'https://www.evolvesprouts.com');
+  } catch {
+    return null;
+  }
+
+  return parsedUrl.pathname.replace(/\/+$/, '') || '/';
+}
+
+async function collectLocaleRoutePaths(directory = LOCALE_APP_DIR) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const routePaths = new Set();
+
+  for (const entry of entries) {
+    const absolutePath = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      const nestedPaths = await collectLocaleRoutePaths(absolutePath);
+      for (const nestedPath of nestedPaths) {
+        routePaths.add(nestedPath);
+      }
+      continue;
+    }
+
+    if (!entry.isFile() || entry.name !== 'page.tsx') {
+      continue;
+    }
+
+    const relativePath = path
+      .relative(LOCALE_APP_DIR, absolutePath)
+      .replaceAll('\\', '/');
+
+    if (relativePath === 'page.tsx') {
+      routePaths.add('/');
+      continue;
+    }
+
+    routePaths.add(`/${relativePath.slice(0, -'/page.tsx'.length)}`);
+  }
+
+  return routePaths;
+}
+
+function validateInternalRouteHref(value, keyPath, errors, routePaths) {
+  const normalizedValue = value.trim();
+  if (normalizedValue.startsWith('#') || !normalizedValue.startsWith('/')) {
+    return;
+  }
+
+  const normalizedPath = normalizeInternalRoutePath(normalizedValue);
+  if (!normalizedPath) {
+    errors.push(`${keyPath}: invalid internal href "${normalizedValue}"`);
+    return;
+  }
+
+  if (!routePaths.has(normalizedPath)) {
+    errors.push(
+      `${keyPath}: unknown internal route "${normalizedValue}" (normalized path "${normalizedPath}")`,
+    );
+  }
+}
+
+function validateSemanticRules(value, keyPath, errors, routePaths) {
   if (typeof value === 'string') {
     const keyName = keyPath.split('.').pop()?.toLowerCase() ?? '';
     if (keyName === 'href' || keyName.endsWith('href')) {
       validateHrefValue(value, keyPath, errors);
+      validateInternalRouteHref(value, keyPath, errors, routePaths);
     }
     if (
       keyName === 'email' ||
@@ -221,7 +287,7 @@ function validateSemanticRules(value, keyPath, errors) {
 
   if (Array.isArray(value)) {
     for (let index = 0; index < value.length; index += 1) {
-      validateSemanticRules(value[index], `${keyPath}[${index}]`, errors);
+      validateSemanticRules(value[index], `${keyPath}[${index}]`, errors, routePaths);
     }
     return;
   }
@@ -232,7 +298,7 @@ function validateSemanticRules(value, keyPath, errors) {
 
   for (const [key, nestedValue] of Object.entries(value)) {
     const nestedPath = keyPath ? `${keyPath}.${key}` : key;
-    validateSemanticRules(nestedValue, nestedPath, errors);
+    validateSemanticRules(nestedValue, nestedPath, errors, routePaths);
   }
 }
 
@@ -242,6 +308,7 @@ async function loadJson(filePath) {
 }
 
 async function main() {
+  const localeRoutePaths = await collectLocaleRoutePaths();
   const loadedEntries = await Promise.all(
     LOCALE_FILES.map(async ([locale, filename]) => {
       const filePath = path.join(CONTENT_DIR, filename);
@@ -258,7 +325,7 @@ async function main() {
     const localeContent = localeMap[locale];
     validateShape(englishContent, localeContent, locale, errors);
     assertLocaleMetadata(localeContent, locale, errors);
-    validateSemanticRules(localeContent, locale, errors);
+    validateSemanticRules(localeContent, locale, errors, localeRoutePaths);
   }
 
   if (errors.length > 0) {
