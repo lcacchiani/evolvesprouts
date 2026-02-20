@@ -216,9 +216,9 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>
           {/* Desktop / tablet grid (md+) */}
-          <ul className='hidden gap-6 md:grid md:grid-cols-3'>
+          <ul className='relative z-10 hidden gap-6 md:grid md:grid-cols-3'>
             {moduleSteps.map((module, index) => (
-              <li key={module.step}>
+              <li key={module.step} className='relative z-10'>
                 <MyBestAuntieOverviewCard
                   module={module}
                   index={index}
@@ -232,7 +232,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           {/* Wave connector — desktop (static overlay on the grid) */}
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute bottom-[69px] left-0 right-0 z-10 hidden md:block'
+            className='pointer-events-none absolute bottom-[64px] left-0 right-0 z-0 hidden md:block'
           >
             <svg
               viewBox='0 0 100 10'
@@ -275,7 +275,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 {moduleSteps.map((module, index) => (
                   <li
                     key={module.step}
-                    className='w-[80vw] shrink-0 snap-center sm:w-[66vw]'
+                    className='relative z-10 w-[80vw] shrink-0 snap-center sm:w-[66vw]'
                   >
                     <MyBestAuntieOverviewCard
                       module={module}
@@ -288,7 +288,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 {/* Wave connector — mobile (scrolls with the cards) */}
                 <li
                   aria-hidden='true'
-                  className='pointer-events-none absolute bottom-[69px] left-0 right-0 z-10'
+                  className='pointer-events-none absolute bottom-[64px] left-0 right-0 z-0'
                 >
                   <svg
                     viewBox='0 0 100 10'
