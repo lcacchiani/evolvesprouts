@@ -875,16 +875,32 @@
     background-size: 100px 100px;
   }
 
+  .es-free-resources-media-pane {
+    --es-free-resources-bleed-inline: clamp(24px, 8vw, 72px);
+    --es-free-resources-bleed-top: clamp(56px, 18vw, 120px);
+  }
+
   .es-free-resources-media-pane::before {
     content: '';
     position: absolute;
-    inset: 0;
+    top: calc(-1 * var(--es-free-resources-bleed-top));
+    right: 0;
+    bottom: 0;
+    left: 0;
     z-index: 0;
     pointer-events: none;
     background-image: url('/images/family.webp');
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
+  }
+
+  .es-free-resources-media-pane--bleed-left::before {
+    left: calc(-1 * var(--es-free-resources-bleed-inline));
+  }
+
+  .es-free-resources-media-pane--bleed-right::before {
+    right: calc(-1 * var(--es-free-resources-bleed-inline));
   }
 
   .es-free-resources-card-title {
@@ -946,13 +962,17 @@
     line-height: 1;
   }
 
-  @media (min-width: 1024px) {
-    .es-free-resources-media-pane--bleed-left::before {
-      left: -14%;
+  @media (min-width: 640px) {
+    .es-free-resources-media-pane {
+      --es-free-resources-bleed-inline: clamp(40px, 10vw, 120px);
+      --es-free-resources-bleed-top: clamp(72px, 14vw, 170px);
     }
+  }
 
-    .es-free-resources-media-pane--bleed-right::before {
-      right: -14%;
+  @media (min-width: 1024px) {
+    .es-free-resources-media-pane {
+      --es-free-resources-bleed-inline: clamp(72px, 11vw, 220px);
+      --es-free-resources-bleed-top: clamp(84px, 9vw, 190px);
     }
   }
 

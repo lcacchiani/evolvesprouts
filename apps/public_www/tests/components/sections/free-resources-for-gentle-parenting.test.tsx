@@ -49,6 +49,7 @@ describe('Free resources for gentle parenting section', () => {
     expect(mediaPane.className).toContain(
       'es-free-resources-media-pane--bleed-left',
     );
+    expect(mediaPane.className).toContain('overflow-visible');
     expect(mediaPane.className).toContain('lg:order-2');
     expect(mediaPane.querySelector('img')).toBeNull();
   });
