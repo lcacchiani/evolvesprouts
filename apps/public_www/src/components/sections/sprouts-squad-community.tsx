@@ -37,7 +37,7 @@ export function SproutsSquadCommunity({
           <SectionHeader
             title={content.heading}
             align='left'
-            className='max-w-[620px] mx-0'
+            className='max-w-[620px]'
             titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
           />
 

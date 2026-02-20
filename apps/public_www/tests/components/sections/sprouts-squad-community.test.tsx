@@ -37,9 +37,6 @@ describe('SproutsSquadCommunity section', () => {
     expect(
       container.querySelector('.es-section-header')?.className,
     ).toContain('es-section-header--left');
-    expect(container.querySelector('.es-section-header')?.className).toContain(
-      'mx-0',
-    );
 
     const heading = screen.getByRole('heading', {
       level: 2,

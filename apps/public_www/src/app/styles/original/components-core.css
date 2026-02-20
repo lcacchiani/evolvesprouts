@@ -72,6 +72,8 @@
 
   .es-section-header--left {
     text-align: left;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .es-section-eyebrow-chip {
