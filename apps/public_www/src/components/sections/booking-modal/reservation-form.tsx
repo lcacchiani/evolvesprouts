@@ -210,7 +210,7 @@ export function BookingReservationForm({
               onChange={(event) => {
                 setFullName(event.target.value);
               }}
-              className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+              className='es-focus-ring es-form-input'
             />
           </label>
           <label className='block'>
@@ -228,7 +228,7 @@ export function BookingReservationForm({
               onChange={(event) => {
                 setEmail(event.target.value);
               }}
-              className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+              className='es-focus-ring es-form-input'
             />
           </label>
           <label className='block'>
@@ -246,7 +246,7 @@ export function BookingReservationForm({
               onChange={(event) => {
                 setPhone(event.target.value);
               }}
-              className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+              className='es-focus-ring es-form-input'
             />
           </label>
           <label className='block'>
@@ -260,7 +260,7 @@ export function BookingReservationForm({
               }}
               placeholder={content.topicsInterestPlaceholder}
               rows={3}
-              className='es-focus-ring es-form-input w-full resize-y rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+              className='es-focus-ring es-form-input resize-y'
             />
           </label>
 
@@ -280,7 +280,7 @@ export function BookingReservationForm({
                   setDiscountError('');
                 }}
                 placeholder={content.discountCodePlaceholder}
-                className='es-focus-ring es-form-input w-full rounded-[14px] border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input'
               />
             </label>
             <ButtonPrimitive
