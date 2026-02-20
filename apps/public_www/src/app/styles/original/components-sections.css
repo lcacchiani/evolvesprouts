@@ -71,11 +71,12 @@
 
   .es-reach-out-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
-    background-image: url('/images/evolvesprouts-logo.svg');
-    background-position: center -400px;
-    background-repeat: no-repeat;
-    background-size: 900px auto;
-    background-blend-mode: difference;
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -900px;
+    --es-section-bg-size: 2000px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
   }
 
   .es-reach-out-glyph--orange {
