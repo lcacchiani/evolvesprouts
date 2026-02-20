@@ -334,12 +334,12 @@ export function FreeResourcesForGentleParenting({
                   />
 
                   <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
-                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>
+                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
                       <p className='whitespace-nowrap es-free-resources-media-pill-text'>
                         {mediaTitleLine1}
                       </p>
                     </div>
-                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>
+                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
                       <p className='whitespace-nowrap es-free-resources-media-pill-text'>
                         {mediaTitleLine2}
                       </p>
@@ -395,12 +395,12 @@ export function FreeResourcesForGentleParenting({
                   className={`es-free-resources-media-pane ${splitMediaBleedClassName} relative z-0 min-h-[280px] overflow-visible sm:min-h-[370px] lg:min-h-[587px] ${splitMediaPaneOrderClassName}`}
                 >
                   <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
-                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>
+                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
                       <p className='whitespace-nowrap es-free-resources-media-pill-text'>
                         {mediaTitleLine1}
                       </p>
                     </div>
-                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>
+                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
                       <p className='whitespace-nowrap es-free-resources-media-pill-text'>
                         {mediaTitleLine2}
                       </p>

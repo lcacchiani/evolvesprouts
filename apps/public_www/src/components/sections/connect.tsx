@@ -56,7 +56,7 @@ export function Connect({ content }: ConnectProps) {
         <ul className='mt-10 grid grid-cols-1 gap-5 lg:mt-12 lg:grid-cols-3'>
           {content.cards.map((card, index) => (
             <li key={`${card.title}-${card.ctaHref}`}>
-              <article className='flex h-full flex-col rounded-3xl border es-border-warm-1 es-bg-surface-soft p-5 shadow-[0_16px_34px_-24px_rgba(0,0,0,0.52)] sm:p-6'>
+              <article className='flex h-full flex-col rounded-3xl border es-border-warm-1 es-bg-surface-soft p-5 shadow-card sm:p-6'>
                 <ConnectGlyph index={index} />
                 <h3 className='mt-4 es-connect-card-title'>
                   {card.title}

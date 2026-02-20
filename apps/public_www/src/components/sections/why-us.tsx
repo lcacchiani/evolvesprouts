@@ -39,7 +39,7 @@ export function WhyUs({ content }: WhyUsProps) {
               aria-hidden='true'
               className='absolute -bottom-12 right-7 h-36 w-36 rounded-full blur-3xl es-why-us-glow-green'
             />
-            <div className='relative z-10 flex min-h-[280px] items-end rounded-card-sm border border-white/70 bg-white/78 p-6 shadow-[0_18px_36px_-30px_rgba(0,0,0,0.55)] sm:min-h-[320px]'>
+            <div className='relative z-10 flex min-h-[280px] items-end rounded-card-sm border border-white/70 bg-white/78 p-6 shadow-card-glass sm:min-h-[320px]'>
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt=''

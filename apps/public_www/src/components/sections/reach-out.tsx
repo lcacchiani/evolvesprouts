@@ -54,7 +54,7 @@ export function ReachOut({ content }: ReachOutProps) {
         <ul className='mt-10 grid grid-cols-1 gap-4 sm:gap-5 lg:mt-12 lg:grid-cols-2'>
           {content.items.map((item, index) => (
             <li key={item.title}>
-              <article className='flex h-full gap-4 rounded-2xl border border-black/10 bg-white px-5 py-5 shadow-[0_16px_28px_-24px_rgba(0,0,0,0.5)] sm:px-6 sm:py-6'>
+              <article className='flex h-full gap-4 rounded-2xl border border-black/10 bg-white px-5 py-5 shadow-card sm:px-6 sm:py-6'>
                 <ReachOutGlyph index={index} />
                 <div className='space-y-1.5'>
                   <h3 className='es-type-title'>

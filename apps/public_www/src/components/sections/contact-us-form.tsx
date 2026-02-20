@@ -168,7 +168,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
 
         <section
           id='contact-form'
-          className='relative overflow-visible rounded-[28px] border es-border-form-shell p-5 shadow-[0_28px_60px_-45px_rgba(17,17,17,0.58)] sm:p-7 lg:p-8 es-contact-us-form-panel'
+          className='relative overflow-visible rounded-[28px] border es-border-form-shell p-5 shadow-panel sm:p-7 lg:p-8 es-contact-us-form-panel'
         >
           <div
             aria-hidden='true'
