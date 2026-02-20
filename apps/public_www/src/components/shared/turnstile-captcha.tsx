@@ -32,6 +32,11 @@ const TURNSTILE_SCRIPT_ID = 'evolve-sprouts-turnstile-script';
 const TURNSTILE_SCRIPT_SRC =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
+function hasExplicitScriptSource(scriptElement: HTMLScriptElement): boolean {
+  const sourceAttribute = scriptElement.getAttribute('src');
+  return typeof sourceAttribute === 'string' && sourceAttribute.trim().length > 0;
+}
+
 function resolveTurnstileReady(
   resolve: () => void,
   reject: (error: Error) => void,
@@ -67,6 +72,12 @@ function loadTurnstileScript(): Promise<void> {
     };
 
     if (existingScriptElement) {
+      if (!hasExplicitScriptSource(existingScriptElement)) {
+        existingScriptElement.src = TURNSTILE_SCRIPT_SRC;
+      }
+      existingScriptElement.async = true;
+      existingScriptElement.defer = true;
+
       if (existingScriptElement.dataset.loaded === 'true') {
         handleLoad();
         return;
