@@ -17,7 +17,7 @@ export function SproutsSquadCommunity({
       id='sprouts-squad-community'
       ariaLabel={content.heading}
       dataFigmaNode='sprouts-squad-community'
-      className='relative isolate overflow-hidden !px-0 !py-0 es-sprouts-community-section'
+      className='relative isolate overflow-hidden es-sprouts-community-section'
     >
       <Image
         src='/images/footer-community-bg.webp'
@@ -31,7 +31,7 @@ export function SproutsSquadCommunity({
         className='pointer-events-none absolute inset-0 es-sprouts-community-overlay'
       />
 
-      <SectionContainer className='flex min-h-[420px] flex-col justify-center gap-7 px-4 py-14 sm:min-h-[530px] sm:px-6 sm:py-20 lg:min-h-[740px] lg:gap-9 lg:px-8'>
+      <SectionContainer className='flex min-h-[420px] flex-col justify-center gap-7 sm:min-h-[530px] lg:min-h-[740px] lg:gap-9'>
         <Image
           src='/images/evolvesprouts-logo.svg'
           alt=''
