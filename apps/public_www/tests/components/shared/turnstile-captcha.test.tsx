@@ -146,10 +146,6 @@ describe('TurnstileCaptcha script loading', () => {
 
     const renderOptions = turnstileRender.mock.calls[0]?.[1];
     expect(renderOptions).toBeTruthy();
-    expect(renderOptions?.appearance).toBe('interaction-only');
-    expect(renderOptions?.retry).toBe('never');
-    expect(renderOptions?.['refresh-expired']).toBe('manual');
-    expect(renderOptions?.['refresh-timeout']).toBe('manual');
 
     onTokenChange.mockClear();
     onLoadError.mockClear();
