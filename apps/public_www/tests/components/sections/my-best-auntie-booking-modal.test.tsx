@@ -168,8 +168,8 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toContain(thankYouModalContent.subtitle);
   });
 
-  it('hides child age group and payment method in booking modal', () => {
-    render(
+  it('hides child age group and renders payment option label in booking modal', () => {
+    const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
         selectedAgeGroupLabel='18-24 months'
@@ -183,11 +183,18 @@ describe('my-best-auntie booking modals footer content', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText('18-24 months')).not.toBeInTheDocument();
     expect(
-      screen.queryByText(bookingModalContent.paymentMethodLabel),
-    ).not.toBeInTheDocument();
+      screen.getByText(bookingModalContent.paymentMethodLabel),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText(bookingModalContent.paymentMethodValue),
     ).not.toBeInTheDocument();
+
+    const fpsBlock = container.querySelector(
+      'div[data-booking-fps-block="true"]',
+    ) as HTMLDivElement | null;
+    expect(fpsBlock).not.toBeNull();
+    expect(within(fpsBlock as HTMLDivElement).getByText(bookingModalContent.paymentMethodLabel))
+      .toBeInTheDocument();
   });
 
   it('does not render course schedule heading and uses shared calendar icon in booking modal', () => {
@@ -283,6 +290,24 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(fpsBlock?.className).toContain('w-full');
     expect(fpsBlock?.className).not.toContain('border');
     expect(fpsBlock?.className).not.toContain('bg-');
+    expect(within(fpsBlock as HTMLDivElement).getByText(bookingModalContent.paymentMethodLabel))
+      .toBeInTheDocument();
+
+    const fpsLayout = fpsBlock?.querySelector('img[alt="FPS"]')?.parentElement as
+      | HTMLDivElement
+      | null;
+    expect(fpsLayout).not.toBeNull();
+    expect(fpsLayout?.className).toContain('justify-start');
+    expect(fpsLayout?.className).toContain('gap-2');
+    expect(fpsLayout?.className).not.toContain('border');
+    expect(fpsLayout?.className).not.toContain('bg-');
+
+    const qrCodeContainer = fpsLayout?.querySelector(
+      'div[aria-label="FPS payment QR code"]',
+    ) as HTMLDivElement | null;
+    expect(qrCodeContainer).not.toBeNull();
+    expect(qrCodeContainer?.className).not.toContain('border');
+    expect(qrCodeContainer?.className).not.toContain('bg-');
 
     const submitButton = screen.getByRole('button', {
       name: bookingModalContent.submitLabel,
@@ -369,6 +394,8 @@ describe('my-best-auntie booking modals footer content', () => {
       'div[data-booking-price-breakdown="true"]',
     ) as HTMLDivElement | null;
     expect(priceBreakdown).not.toBeNull();
+    expect(priceBreakdown?.className).not.toContain('border');
+    expect(priceBreakdown?.className).not.toContain('bg-');
     expect(within(priceBreakdown as HTMLDivElement).getByText('Price')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('Discount')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('Confirmed Price')).toBeInTheDocument();
