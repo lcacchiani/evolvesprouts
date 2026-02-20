@@ -139,7 +139,7 @@ export function MyBestAuntieDescription({
                 className='w-[88%] shrink-0 sm:w-[48%] lg:w-[32%]'
               >
                 <article
-                  className='flex h-full min-h-[520px] flex-col rounded-module-card p-6 sm:p-8 es-my-best-auntie-description-card'
+                  className='flex h-full min-h-size-540 flex-col rounded-module-card p-6 sm:p-8 es-my-best-auntie-description-card'
                 >
                   <div className='inline-flex h-size-100 w-size-100 items-center justify-center rounded-full es-bg-surface-muted'>
                     <Image
@@ -161,7 +161,7 @@ export function MyBestAuntieDescription({
                     <ButtonPrimitive
                       href={item.ctaHref}
                       variant='outline'
-                      className='min-h-[52px] w-full rounded-button px-6 text-center text-[18px] font-semibold leading-none transition-colors duration-200'
+                      className='min-h-size-50 w-full rounded-button px-6 text-center text-[18px] font-semibold leading-none transition-colors duration-200'
                     >
                       {item.ctaLabel}
                     </ButtonPrimitive>

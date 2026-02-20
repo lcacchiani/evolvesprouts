@@ -157,7 +157,7 @@ export function MyBestAuntieBooking({
               <div className='pt-3'>
                 <div
                   data-testid='my-best-auntie-next-cohort-card'
-                  className='w-full max-w-[410px] rounded-input border es-border-warm-2 es-bg-surface-soft px-5 py-4'
+                  className='w-full max-w-size-420 rounded-input border es-border-warm-2 es-bg-surface-soft px-5 py-4'
                 >
                   <p className='text-base font-semibold es-text-brand'>
                     {content.scheduleLabel}
@@ -169,7 +169,7 @@ export function MyBestAuntieBooking({
               </div>
             </section>
 
-            <aside className='mx-auto w-full min-w-0 max-w-[764px] lg:ml-auto lg:mr-0'>
+            <aside className='mx-auto w-full min-w-0 max-w-size-620 lg:ml-auto lg:mr-0'>
               <h2 className='text-[1.6rem] font-semibold es-text-heading'>
                 {content.eyebrow}
               </h2>
@@ -191,7 +191,7 @@ export function MyBestAuntieBooking({
                         onClick={() => {
                           setSelectedAgeId(option.id);
                         }}
-                        className='min-h-[76px] w-[175px] shrink-0 rounded-lg px-4 py-2 text-left'
+                        className='min-h-size-70 w-size-235 shrink-0 rounded-lg px-4 py-2 text-left'
                       >
                         <div className='flex items-center justify-start gap-10'>
                           <Image
@@ -244,7 +244,7 @@ export function MyBestAuntieBooking({
                               onClick={() => {
                                 setSelectedDateId(option.id);
                               }}
-                              className='w-[168px] shrink-0 snap-start rounded-input px-4 py-3 text-center'
+                              className='w-size-235 shrink-0 snap-start rounded-input px-4 py-3 text-center'
                             >
                               <div className='flex w-full flex-col items-center gap-2'>
                                 <div className='flex items-center justify-center gap-1.5'>

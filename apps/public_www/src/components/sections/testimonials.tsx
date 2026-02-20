@@ -110,7 +110,7 @@ function ParentIcon() {
     <svg
       aria-hidden='true'
       viewBox='0 0 134 134'
-      className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px] es-text-body'
+      className='h-size-50 w-size-50 sm:h-size-70 sm:w-size-70 es-text-body'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -184,7 +184,7 @@ export function Testimonials({ content }: TestimonialsProps) {
       className='es-section-bg-overlay es-testimonials-section'
     >
       <SectionContainer>
-        <div className='mx-auto w-full max-w-[1488px]'>
+        <div className='mx-auto w-full max-w-size-620'>
         <SectionHeader
           eyebrow={badgeLabel}
           title={content.title}
@@ -212,7 +212,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                   'es-section-split-layout--testimonials',
                 )}
               >
-                <div className='relative min-h-[260px] overflow-hidden rounded-feature-card es-bg-surface-peach sm:min-h-size-360 lg:min-h-size-540'>
+                <div className='relative min-h-size-235 overflow-hidden rounded-feature-card es-bg-surface-peach sm:min-h-size-360 lg:min-h-size-540'>
                   {activeStory.mainImageSrc ? (
                     <Image
                       src={activeStory.mainImageSrc}
@@ -223,7 +223,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                     />
                   ) : (
                     <div
-                      className='flex h-full min-h-[260px] items-center justify-center rounded-feature-card sm:min-h-size-360 lg:min-h-size-540 es-testimonials-image-fallback'
+                      className='flex h-full min-h-size-235 items-center justify-center rounded-feature-card sm:min-h-size-360 lg:min-h-size-540 es-testimonials-image-fallback'
                     >
                       <ParentIcon />
                     </div>
@@ -249,11 +249,11 @@ export function Testimonials({ content }: TestimonialsProps) {
                           alt={`${activeStory.author ?? 'Parent'} avatar`}
                           width={100}
                           height={100}
-                          className='h-[82px] w-[71px] shrink-0 rounded-feature-card object-cover sm:h-size-100 sm:w-size-100'
+                          className='h-size-70 w-size-70 shrink-0 rounded-feature-card object-cover sm:h-size-100 sm:w-size-100'
                         />
                       ) : (
                         <span
-                          className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-feature-card sm:h-size-100 sm:w-size-100 es-testimonials-avatar-fallback'
+                          className='inline-flex h-size-70 w-size-70 shrink-0 items-center justify-center rounded-feature-card sm:h-size-100 sm:w-size-100 es-testimonials-avatar-fallback'
                         >
                           <ParentIcon />
                         </span>
@@ -265,7 +265,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                         )}
                         {activeStory.role && (
                           <p
-                            className={`max-w-[190px] es-testimonials-meta ${activeStory.author ? 'mt-1' : ''}`}
+                            className={`max-w-size-235 es-testimonials-meta ${activeStory.author ? 'mt-1' : ''}`}
                           >
                             {activeStory.role}
                           </p>

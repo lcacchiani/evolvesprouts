@@ -124,7 +124,7 @@ function MyBestAuntieOverviewCard({
       aria-expanded={isInteractive ? isExpanded : undefined}
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
-      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-module-card px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
+      className={`group relative flex min-h-size-540 flex-col overflow-hidden rounded-module-card px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
     >
       <div
         aria-hidden='true'
@@ -133,14 +133,14 @@ function MyBestAuntieOverviewCard({
       <div className='relative flex flex-1 flex-col items-center text-center'>
         <span
           aria-hidden='true'
-          className='inline-flex h-[84px] w-[84px] items-center justify-center rounded-full bg-white/90 shadow-[0_8px_24px_rgba(0,0,0,0.2)]'
+          className='inline-flex h-size-70 w-size-70 items-center justify-center rounded-full bg-white/90 shadow-[0_8px_24px_rgba(0,0,0,0.2)]'
         >
           <Image
             src={getModuleIconSource(module.icon)}
             alt=''
             width={44}
             height={44}
-            className='h-[44px] w-[44px]'
+            className='h-size-50 w-size-50'
           />
         </span>
         <h3 className='mt-5 es-my-best-auntie-overview-module-title'>
@@ -160,7 +160,7 @@ function MyBestAuntieOverviewCard({
           <div className='relative'>
             <span
               aria-hidden='true'
-              className={`pointer-events-none absolute -top-[70px] left-1/2 z-0 h-[74px] w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
+              className={`pointer-events-none absolute -top-[70px] left-1/2 z-0 h-size-70 w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
             />
             <span className='relative z-20 inline-flex h-size-50 w-size-50 items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
               <span className={`es-my-best-auntie-overview-count-text es-my-best-auntie-overview-count-text--${tone}`}>
@@ -325,7 +325,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           </div>
         </div>
 
-        <div className='mx-auto mt-12 max-w-[760px] text-center lg:mt-16'>
+        <div className='mx-auto mt-12 max-w-size-620 text-center lg:mt-16'>
           {content.description && (
             <p className='es-type-body-italic text-balance'>
               {content.description}
@@ -334,7 +334,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
           <SectionCtaAnchor
             href={content.ctaHref}
-            className='mt-8 w-full max-w-[491px] lg:mt-10'
+            className='mt-8 w-full max-w-size-540 lg:mt-10'
           >
             {computedCtaLabel}
           </SectionCtaAnchor>

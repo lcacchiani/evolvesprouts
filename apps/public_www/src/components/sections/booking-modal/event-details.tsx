@@ -111,7 +111,7 @@ export function BookingEventDetails({
                   </span>
                 </span>
 
-                <div className='max-w-[340px]'>
+                <div className='max-w-size-360'>
                   <div data-course-part-date-block='true'>
                     <span
                       data-course-part-date-icon='true'
@@ -138,9 +138,9 @@ export function BookingEventDetails({
             {content.pricingTitle}
           </h3>
           <div className='mt-4 flex items-start gap-4'>
-            <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
+            <span className='flex h-size-70 w-size-70 shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
               <span
-                className='es-mask-credit-card-danger h-[46px] w-[46px] shrink-0'
+                className='es-mask-credit-card-danger h-size-50 w-size-50 shrink-0'
                 aria-hidden='true'
               />
             </span>
@@ -163,9 +163,9 @@ export function BookingEventDetails({
             {content.locationTitle}
           </h3>
           <div className='mt-4 flex items-start gap-4'>
-            <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
+            <span className='flex h-size-70 w-size-70 shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
               <span
-                className='es-mask-target-danger h-[46px] w-[46px] shrink-0'
+                className='es-mask-target-danger h-size-50 w-size-50 shrink-0'
                 aria-hidden='true'
               />
             </span>
@@ -195,7 +195,7 @@ export function BookingEventDetails({
             <ButtonPrimitive
               href={learnMoreHref}
               variant='outline'
-              className='h-[56px] rounded-button px-7 text-base font-semibold'
+              className='h-size-50 rounded-button px-7 text-base font-semibold'
             >
               {learnMoreLabel}
             </ButtonPrimitive>

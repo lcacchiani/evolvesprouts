@@ -30,11 +30,11 @@ export function MyHistory({ content }: MyHistoryProps) {
             eyebrow={content.eyebrow}
             title={content.title}
             align='left'
-            titleClassName='max-w-[780px]'
+            titleClassName='max-w-size-620'
             description={content.subtitle}
-            descriptionClassName='es-type-subtitle mt-4 max-w-[760px]'
+            descriptionClassName='es-type-subtitle mt-4 max-w-size-620'
           />
-          <p className='es-type-body mt-4 max-w-[760px]'>
+          <p className='es-type-body mt-4 max-w-size-620'>
             {content.description}
           </p>
         </div>
@@ -46,7 +46,7 @@ export function MyHistory({ content }: MyHistoryProps) {
             width={925}
             height={780}
             sizes='(min-width: 1280px) 651px, (min-width: 1024px) 44vw, 100vw'
-            className='h-auto w-full max-w-[651px] lg:ml-auto'
+            className='h-auto w-full max-w-size-620 lg:ml-auto'
           />
         </div>
       </SectionContainer>

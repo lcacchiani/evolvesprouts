@@ -32,9 +32,9 @@ export function Ida({ content }: IdaProps) {
             titleAs='h1'
             align='left'
             description={content.subtitle}
-            descriptionClassName='es-type-subtitle mt-4 max-w-[760px]'
+            descriptionClassName='es-type-subtitle mt-4 max-w-size-620'
           />
-          <p className='es-type-body mt-4 max-w-[720px]'>
+          <p className='es-type-body mt-4 max-w-size-620'>
             {content.description}
           </p>
           <SectionCtaAnchor
@@ -46,7 +46,7 @@ export function Ida({ content }: IdaProps) {
         </div>
 
         <div className='order-2 lg:order-1'>
-          <div className='w-full lg:ml-[-100px] lg:mr-[-50px] lg:w-[700px] xl:ml-[-180px] xl:mr-[-200px] xl:w-[1111px]'>
+          <div className='w-full lg:ml-[-100px] lg:mr-[-50px] lg:w-size-620 xl:ml-[-180px] xl:mr-[-200px] xl:w-size-620'>
             <Image
               src='/images/about-us/ida-degregorio-evolvesprouts-1.webp'
               alt='Ida De Gregorio from Evolve Sprouts'

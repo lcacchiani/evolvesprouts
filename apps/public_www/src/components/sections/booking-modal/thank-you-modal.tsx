@@ -197,7 +197,7 @@ export function MyBestAuntieThankYouModal({
             alt=''
             width={1488}
             height={855}
-            className='pointer-events-none absolute left-1/2 top-0 hidden w-[800px] -translate-x-1/2 -translate-y-[120px] lg:block'
+            className='pointer-events-none absolute left-1/2 top-0 hidden w-size-620 -translate-x-1/2 -translate-y-[120px] lg:block'
             aria-hidden='true'
           />
           <Image
@@ -205,7 +205,7 @@ export function MyBestAuntieThankYouModal({
             alt=''
             width={1196}
             height={568}
-            className='pointer-events-none absolute left-1/2 top-0 hidden w-[650px] -translate-x-1/2 -translate-y-10 lg:block'
+            className='pointer-events-none absolute left-1/2 top-0 hidden w-size-620 -translate-x-1/2 -translate-y-10 lg:block'
             aria-hidden='true'
           />
 
@@ -216,7 +216,7 @@ export function MyBestAuntieThankYouModal({
                 alt=''
                 width={124}
                 height={124}
-                className='h-[55px] w-[55px]'
+                className='h-size-50 w-size-50'
                 aria-hidden='true'
               />
             </div>
@@ -225,7 +225,7 @@ export function MyBestAuntieThankYouModal({
             </h3>
             <h2
               id={dialogTitleId}
-              className='es-type-title mt-2 max-w-[610px] leading-[1.1] es-my-best-auntie-thank-you-heading'
+              className='es-type-title mt-2 max-w-size-620 leading-[1.1] es-my-best-auntie-thank-you-heading'
             >
               {content.title}
             </h2>
@@ -241,13 +241,13 @@ export function MyBestAuntieThankYouModal({
             </p>
           </div>
 
-          <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
+          <section className='relative z-10 mx-auto mt-10 max-w-size-620 overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
             <Image
               src='/images/evolvesprouts-logo.svg'
               alt=''
               width={319}
               height={359}
-              className='pointer-events-none absolute -right-3 -top-6 hidden w-[250px] lg:block'
+              className='pointer-events-none absolute -right-3 -top-6 hidden w-size-235 lg:block'
               aria-hidden='true'
             />
 
@@ -320,7 +320,7 @@ export function MyBestAuntieThankYouModal({
                 <ButtonPrimitive
                   variant='outline'
                   onClick={handlePrint}
-                  className='h-[54px] gap-2 rounded-button px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
+                  className='h-size-50 gap-2 rounded-button px-6 text-[16px] font-semibold sm:h-size-50 sm:px-8 sm:text-[18px]'
                 >
                   <svg
                     width='24'

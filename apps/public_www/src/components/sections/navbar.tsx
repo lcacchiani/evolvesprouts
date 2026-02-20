@@ -229,7 +229,7 @@ export function Navbar({ content }: NavbarProps) {
       >
         <SectionContainer
           as='nav'
-          className='flex min-h-[115px] items-center justify-between gap-3 px-8 py-0'
+          className='flex min-h-size-100 items-center justify-between gap-3 px-8 py-0'
         >
           <Link href={localizedHomeHref} className='shrink-0'>
             <Image
@@ -237,7 +237,7 @@ export function Navbar({ content }: NavbarProps) {
               alt={content.brand}
               width={150}
               height={150}
-              className='h-[150px] w-[150px] es-bg-surface-white object-contain'
+              className='h-size-100 w-size-100 es-bg-surface-white object-contain'
             />
           </Link>
 
@@ -311,7 +311,7 @@ export function Navbar({ content }: NavbarProps) {
                   alt={content.brand}
                   width={150}
                   height={150}
-                  className='h-[150px] w-[150px] es-bg-surface-white object-contain'
+                  className='h-size-100 w-size-100 es-bg-surface-white object-contain'
                 />
               </Link>
               <ButtonPrimitive

@@ -79,7 +79,7 @@ export function DeferredTestimonialsClient({
           className='es-section-bg-overlay es-testimonials-section'
         >
           <SectionContainer>
-            <div className='mx-auto w-full max-w-[1488px]'>
+            <div className='mx-auto w-full max-w-size-620'>
               <SectionHeader
                 title={content.title}
               />

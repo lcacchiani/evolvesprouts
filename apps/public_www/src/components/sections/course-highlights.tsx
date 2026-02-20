@@ -38,42 +38,42 @@ const benefitCardMeta: BenefitCardMeta[] = [
     imageSrc: '/images/course-highlights/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
-    imageClassName: 'h-size-235 sm:h-[265px] lg:h-[305px]',
+    imageClassName: 'h-size-235 sm:h-size-235 lg:h-size-360',
   },
   {
     id: 'small-group-learning',
     imageSrc: '/images/course-highlights/course-card-2.webp',
     imageWidth: 433,
     imageHeight: 424,
-    imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
+    imageClassName: 'h-size-235 sm:h-size-235 lg:h-size-360',
   },
   {
     id: 'montessori-positive-discipline',
     imageSrc: '/images/course-highlights/course-card-3.webp',
     imageWidth: 282,
     imageHeight: 335,
-    imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
+    imageClassName: 'h-size-235 sm:h-size-235 lg:h-size-360',
   },
   {
     id: 'ongoing-support',
     imageSrc: '/images/course-highlights/course-card-4.webp',
     imageWidth: 308,
     imageHeight: 323,
-    imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
+    imageClassName: 'h-size-235 sm:h-size-235 lg:h-size-235',
   },
   {
     id: 'ready-to-use-tools',
     imageSrc: '/images/course-highlights/course-card-5.webp',
     imageWidth: 472,
     imageHeight: 457,
-    imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
+    imageClassName: 'h-size-235 sm:h-size-235 lg:h-size-360',
   },
   {
     id: 'guaranteed-confidence',
     imageSrc: '/images/course-highlights/course-card-6.webp',
     imageWidth: 433,
     imageHeight: 443,
-    imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
+    imageClassName: 'h-size-235 sm:h-size-235 lg:h-size-360',
   },
 ];
 
@@ -164,7 +164,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
 
         {sectionDescription && (
           <div className='mt-9 text-center sm:mt-11 lg:mt-12'>
-            <p className='es-type-body-italic mx-auto max-w-[780px] text-balance'>
+            <p className='es-type-body-italic mx-auto max-w-size-620 text-balance'>
               {sectionDescription}
             </p>
           </div>
@@ -173,7 +173,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
           <SectionCtaAnchor
             href={ctaHref}
-            className='w-full max-w-[488px]'
+            className='w-full max-w-size-540'
           >
             {ctaLabel}
           </SectionCtaAnchor>

@@ -43,7 +43,7 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const nav = screen.getByRole('navigation');
     expect(nav.className).toContain('es-layout-container');
-    expect(nav.className).toContain('min-h-[115px]');
+    expect(nav.className).toContain('min-h-size-100');
     expect(nav.className).toContain('px-8');
     expect(nav.className).toContain('py-0');
     expect(nav.className).not.toContain('px-4');

@@ -263,7 +263,7 @@ function DesktopMenuItem({
         }}
         id={submenuListId}
         isOpen={isSubmenuOpen}
-        listClassName={`absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition-opacity duration-200 ease-out ${isSubmenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+        listClassName={`absolute left-0 top-full z-50 w-size-235 space-y-[3px] rounded-none bg-transparent pt-1 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition-opacity duration-200 ease-out ${isSubmenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
         linkClassName={NAV_SUBMENU_LINK_CLASSNAME}
       />
     </li>
@@ -356,7 +356,7 @@ function MobileMenuItem({
           currentPath={currentPath}
           locale={locale}
           onNavigate={onNavigate}
-          listClassName={`overflow-hidden pl-4 transition-all duration-300 ${isExpanded ? 'max-h-[480px] space-y-2 pt-1 opacity-100' : 'max-h-0 space-y-0 pt-0 opacity-0'}`}
+          listClassName={`overflow-hidden pl-4 transition-all duration-300 ${isExpanded ? 'max-h-size-420 space-y-2 pt-1 opacity-100' : 'max-h-0 space-y-0 pt-0 opacity-0'}`}
           linkClassName={NAV_SUBMENU_LINK_CLASSNAME}
         />
       )}

@@ -27,7 +27,7 @@ function resolveCurrentYearCopyright(value: string): string {
 }
 
 const FOOTER_LOGO_CLASSNAME =
-  'h-auto w-full max-w-[600px] -mt-[100px] -mb-[100px]';
+  'h-auto w-full max-w-size-620 -mt-[100px] -mb-[100px]';
 
 const socialIcons: Record<string, ReactNode> = {
   facebook: (
@@ -128,7 +128,7 @@ function FooterDesktopColumn({
   hasSocialIcons?: boolean;
 }) {
   return (
-    <section className='w-full max-w-[223px] lg:pt-[70px]'>
+    <section className='w-full max-w-size-235 lg:pt-[70px]'>
       <h3 className='pb-4 es-footer-column-title'>
         {title}
       </h3>
@@ -142,7 +142,7 @@ function AccordionChevronIcon() {
     <svg
       aria-hidden='true'
       viewBox='0 0 18 10'
-      className='h-[9px] w-[17px] shrink-0 transition-transform duration-300 group-open:rotate-180'
+      className='h-size-18 w-size-18 shrink-0 transition-transform duration-300 group-open:rotate-180'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >

@@ -135,7 +135,7 @@ export function MyBestAuntieBookingModal({
             alt=''
             width={446}
             height={592}
-            className='pointer-events-none absolute left-0 top-0 hidden w-[250px] -translate-y-12 lg:block'
+            className='pointer-events-none absolute left-0 top-0 hidden w-size-235 -translate-y-12 lg:block'
             aria-hidden='true'
           />
 

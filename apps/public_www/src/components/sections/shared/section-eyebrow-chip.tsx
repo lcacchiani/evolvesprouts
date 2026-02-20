@@ -31,7 +31,7 @@ export function SectionEyebrowChip({
         alt=''
         width={CHIP_LOGO_SIZE}
         height={CHIP_LOGO_SIZE}
-        className='h-[31px] w-[31px] shrink-0'
+        className='h-size-30 w-size-30 shrink-0'
       />
       <span className={labelTextClassName}>
         {label}

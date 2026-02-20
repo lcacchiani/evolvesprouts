@@ -172,11 +172,11 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
         >
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute left-[58px] top-0 z-20 h-size-30 w-[36px] -translate-y-1/2 bg-contain bg-center bg-no-repeat es-contact-us-decor-green-wedge'
+            className='pointer-events-none absolute left-[58px] top-0 z-20 h-size-30 w-size-30 -translate-y-1/2 bg-contain bg-center bg-no-repeat es-contact-us-decor-green-wedge'
           />
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute right-0 top-[130px] z-20 h-[36px] w-[33px] translate-x-1/2 bg-contain bg-center bg-no-repeat es-contact-us-decor-blue-line'
+            className='pointer-events-none absolute right-0 top-[130px] z-20 h-size-30 w-size-30 translate-x-1/2 bg-contain bg-center bg-no-repeat es-contact-us-decor-blue-line'
           />
 
           <div className='relative z-10 mb-6 pt-4'>
@@ -290,7 +290,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                   updateField('message', event.target.value);
                 }}
                 placeholder={content.messagePlaceholder}
-                className='es-focus-ring es-form-input w-full min-h-[152px] resize-y rounded-input border px-4 py-3 text-[16px] font-semibold'
+                className='es-focus-ring es-form-input w-full min-h-size-100 resize-y rounded-input border px-4 py-3 text-[16px] font-semibold'
               />
             </label>
 

@@ -209,18 +209,18 @@ export function FpsQrCode({ amount }: { amount: number }) {
         alt='FPS'
         width={92}
         height={86}
-        className='h-auto w-[92px] shrink-0'
+        className='h-auto w-size-100 shrink-0'
       />
       <div
         aria-label='FPS payment QR code'
-        className='flex h-[128px] w-[128px] shrink-0 items-center justify-center'
+        className='flex h-size-100 w-size-100 shrink-0 items-center justify-center'
       >
         {qrCodeImageDataUrl && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={qrCodeImageDataUrl}
             alt='FPS payment QR code'
-            className='h-[128px] w-[128px]'
+            className='h-size-100 w-size-100'
           />
         )}
       </div>

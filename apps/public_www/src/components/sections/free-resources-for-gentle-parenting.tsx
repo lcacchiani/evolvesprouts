@@ -213,7 +213,7 @@ function ResourceCardContent({
 }: ResourceCardContentProps) {
   return (
     <>
-      <h3 className='max-w-[366px] text-balance es-free-resources-card-title'>
+      <h3 className='max-w-size-360 text-balance es-free-resources-card-title'>
         {cardTitle}
       </h3>
 
@@ -322,7 +322,7 @@ export function FreeResourcesForGentleParenting({
                 className='relative overflow-hidden rounded-2xl border border-black/5 es-free-resources-pattern-bg'
               >
                 <div
-                  className='relative min-h-size-620 overflow-hidden sm:min-h-[700px] lg:min-h-[740px]'
+                  className='relative min-h-size-620 overflow-hidden sm:min-h-size-620 lg:min-h-size-620'
                   data-testid='free-resource-media-pane'
                 >
                   <Image
@@ -353,7 +353,7 @@ export function FreeResourcesForGentleParenting({
                   className={`absolute inset-4 z-20 flex items-start sm:inset-6 lg:inset-8 ${overlayCardAlignmentClassName}`}
                 >
                   <article
-                    className='relative flex w-full max-w-[530px] min-h-size-420 flex-col overflow-hidden rounded-2xl p-6 sm:min-h-[460px] sm:p-8'
+                    className='relative flex w-full max-w-size-540 min-h-size-420 flex-col overflow-hidden rounded-2xl p-6 sm:min-h-size-420 sm:p-8'
                   >
                     <ResourceCardContent
                       cardTitle={cardTitle}
@@ -378,7 +378,7 @@ export function FreeResourcesForGentleParenting({
                   className={`relative z-10 p-4 sm:p-6 lg:p-[35px] ${splitTextPaneOrderClassName}`}
                 >
                   <article
-                    className='relative flex h-full min-h-[370px] flex-col overflow-hidden rounded-2xl p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
+                    className='relative flex h-full min-h-size-360 flex-col overflow-hidden rounded-2xl p-6 sm:min-h-size-420 sm:p-8 lg:min-h-size-540'
                   >
                     <ResourceCardContent
                       cardTitle={cardTitle}
@@ -392,7 +392,7 @@ export function FreeResourcesForGentleParenting({
 
                 <div
                   data-testid='free-resource-media-pane'
-                  className={`es-free-resources-media-pane ${splitMediaBleedClassName} relative z-0 min-h-[280px] overflow-visible sm:min-h-[370px] lg:min-h-[587px] ${splitMediaPaneOrderClassName}`}
+                  className={`es-free-resources-media-pane ${splitMediaBleedClassName} relative z-0 min-h-size-235 overflow-visible sm:min-h-size-360 lg:min-h-size-620 ${splitMediaPaneOrderClassName}`}
                 >
                   <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
                     <div className='rounded-full bg-white/95 px-5 py-2 shadow-[0px_10px_22px_-18px_rgba(0,0,0,0.58)] sm:px-6'>

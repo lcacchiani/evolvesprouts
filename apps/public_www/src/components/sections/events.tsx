@@ -148,7 +148,7 @@ export function Events({ content }: EventsProps) {
 
         <div className='mt-10 flex flex-col gap-4 sm:mt-12 sm:flex-row sm:items-center sm:justify-between'>
           <h2 className='es-events-scheduled-heading'>{content.scheduledHeading}</h2>
-          <label className='relative inline-flex w-full max-w-[230px] items-center sm:w-auto'>
+          <label className='relative inline-flex w-full max-w-size-235 items-center sm:w-auto'>
             <span className='sr-only'>{content.sortAriaLabel}</span>
             <select
               value={activeFilter}
@@ -208,7 +208,7 @@ export function Events({ content }: EventsProps) {
               {visibleEvents.map((eventCard) => (
                 <li key={eventCard.id}>
                   <article className='rounded-2xl es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
-                    <div className='w-full lg:max-w-[720px]'>
+                    <div className='w-full lg:max-w-size-620'>
                       <div className='flex flex-wrap items-center gap-2'>
                         {eventCard.tags.map((tag) => (
                           <span
@@ -268,7 +268,7 @@ export function Events({ content }: EventsProps) {
                       </ul>
                     </div>
 
-                    <aside className='mt-6 w-full rounded-lg bg-white px-4 py-5 lg:mt-0 lg:max-w-[335px]'>
+                    <aside className='mt-6 w-full rounded-lg bg-white px-4 py-5 lg:mt-0 lg:max-w-size-360'>
                       <h4 className='es-events-location-heading'>
                         {content.card.locationLabel}
                       </h4>

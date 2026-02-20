@@ -183,7 +183,7 @@ export function BookingReservationForm({
           alt=''
           width={276}
           height={267}
-          className='pointer-events-none absolute -right-5 -top-6 hidden w-[220px] sm:block'
+          className='pointer-events-none absolute -right-5 -top-6 hidden w-size-235 sm:block'
           aria-hidden='true'
         />
 

@@ -131,7 +131,7 @@ function FaqItems({
                 </p>
                 <SectionCtaAnchor
                   href={contactCardCtaHref}
-                  className='mt-6 w-full sm:w-fit sm:min-w-[190px]'
+                  className='mt-6 w-full sm:w-fit sm:min-w-size-235'
                 >
                   {CONTACT_CARD_CTA_LABEL}
                 </SectionCtaAnchor>
