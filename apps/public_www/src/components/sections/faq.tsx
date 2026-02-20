@@ -187,7 +187,7 @@ export function Faq({ content }: FaqProps) {
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
-        <div className='es-layout-container mt-8 rounded-[58px] border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
+        <div className='es-layout-container mt-8 rounded-full border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
           <div className='relative'>
             <label htmlFor='faq-search' className='sr-only'>
               {content.searchPlaceholder}

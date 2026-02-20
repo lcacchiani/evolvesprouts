@@ -156,7 +156,7 @@ export function Events({ content }: EventsProps) {
               onChange={(event) => {
                 setActiveFilter(event.target.value);
               }}
-              className='es-focus-ring es-events-filter-select w-full appearance-none rounded-[58px] border es-border-soft es-bg-peach-glass px-4 py-[17px] pr-10'
+              className='es-focus-ring es-events-filter-select w-full appearance-none rounded-full border es-border-soft es-bg-peach-glass px-4 py-[17px] pr-10'
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -197,7 +197,7 @@ export function Events({ content }: EventsProps) {
               <p className='es-events-card-body'>{content.loadingLabel}</p>
             </div>
           ) : visibleEvents.length === 0 ? (
-            <div className='rounded-[17px] border es-border-event-card es-bg-surface-event-card px-5 py-7 text-center sm:px-8 sm:py-10'>
+            <div className='rounded-panel border es-border-event-card es-bg-surface-event-card px-5 py-7 text-center sm:px-8 sm:py-10'>
               <p className='es-events-card-body'>{content.emptyStateLabel}</p>
               {hasRequestError && (
                 <p className='mt-3 text-sm text-black/60'>{content.errorLabel}</p>
@@ -207,7 +207,7 @@ export function Events({ content }: EventsProps) {
             <ul className='space-y-6'>
               {visibleEvents.map((eventCard) => (
                 <li key={eventCard.id}>
-                  <article className='rounded-[17px] es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
+                  <article className='rounded-panel es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
                     <div className='w-full lg:max-w-[720px]'>
                       <div className='flex flex-wrap items-center gap-2'>
                         {eventCard.tags.map((tag) => (

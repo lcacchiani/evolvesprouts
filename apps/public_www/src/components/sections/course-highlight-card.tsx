@@ -95,7 +95,7 @@ export function CourseHighlightCard({
     <article
       ref={articleRef}
       onClick={handleCardSurfaceClick}
-      className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8 ${toneClassName}`}
+      className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-card p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8 ${toneClassName}`}
     >
       {/* Dark overlay — activated by pointer hover or tap */}
       <div

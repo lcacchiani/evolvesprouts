@@ -314,12 +314,12 @@ export function FreeResourcesForGentleParenting({
         />
 
         <div className='mt-10 sm:mt-12 lg:mt-14'>
-          <div className='overflow-hidden rounded-[18px]'>
+          <div className='overflow-hidden rounded-panel'>
             {isOverlayLayout ? (
               <div
                 data-testid='free-resource-layout'
                 data-layout='overlay'
-                className='relative overflow-hidden rounded-[16px] border border-black/5 es-free-resources-pattern-bg'
+                className='relative overflow-hidden rounded-2xl border border-black/5 es-free-resources-pattern-bg'
               >
                 <div
                   className='relative min-h-[620px] overflow-hidden sm:min-h-[700px] lg:min-h-[740px]'
@@ -353,7 +353,7 @@ export function FreeResourcesForGentleParenting({
                   className={`absolute inset-4 z-20 flex items-start sm:inset-6 lg:inset-8 ${overlayCardAlignmentClassName}`}
                 >
                   <article
-                    className='relative flex w-full max-w-[530px] min-h-[420px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[460px] sm:p-8'
+                    className='relative flex w-full max-w-[530px] min-h-[420px] flex-col overflow-hidden rounded-2xl p-6 sm:min-h-[460px] sm:p-8'
                   >
                     <ResourceCardContent
                       cardTitle={cardTitle}
@@ -370,7 +370,7 @@ export function FreeResourcesForGentleParenting({
                 data-testid='free-resource-layout'
                 data-layout='split'
                 className={buildSectionSplitLayoutClassName(
-                  'es-section-split-layout--free-resources overflow-hidden rounded-[16px] border border-black/5 es-free-resources-pattern-bg',
+                  'es-section-split-layout--free-resources overflow-hidden rounded-2xl border border-black/5 es-free-resources-pattern-bg',
                 )}
               >
                 <div
@@ -378,7 +378,7 @@ export function FreeResourcesForGentleParenting({
                   className={`relative z-10 p-4 sm:p-6 lg:p-[35px] ${splitTextPaneOrderClassName}`}
                 >
                   <article
-                    className='relative flex h-full min-h-[370px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
+                    className='relative flex h-full min-h-[370px] flex-col overflow-hidden rounded-2xl p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
                   >
                     <ResourceCardContent
                       cardTitle={cardTitle}

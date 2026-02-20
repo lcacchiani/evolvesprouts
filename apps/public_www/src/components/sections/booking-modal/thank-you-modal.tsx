@@ -241,7 +241,7 @@ export function MyBestAuntieThankYouModal({
             </p>
           </div>
 
-          <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-[16px] border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
+          <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
             <Image
               src='/images/evolvesprouts-logo.svg'
               alt=''
@@ -258,14 +258,14 @@ export function MyBestAuntieThankYouModal({
                     {summary?.courseLabel ?? content.courseLabel}
                   </h4>
                   <div className='mt-4 flex flex-wrap gap-2'>
-                    <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <span
                         className='h-6 w-6 shrink-0 es-mask-calendar-heading'
                         aria-hidden='true'
                       />
                       {summary?.scheduleDateLabel ?? summary?.monthLabel ?? ''}
                     </span>
-                    <span className='inline-flex items-center gap-1 rounded-[50px] bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <Image
                         src='/images/clock.svg'
                         alt=''
@@ -320,7 +320,7 @@ export function MyBestAuntieThankYouModal({
                 <ButtonPrimitive
                   variant='outline'
                   onClick={handlePrint}
-                  className='h-[54px] gap-2 rounded-[10px] px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
+                  className='h-[54px] gap-2 rounded-control px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
                 >
                   <svg
                     width='24'

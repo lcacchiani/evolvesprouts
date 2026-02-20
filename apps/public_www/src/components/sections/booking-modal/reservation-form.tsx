@@ -177,7 +177,7 @@ export function BookingReservationForm({
 
   return (
     <div className='w-full lg:w-[calc(50%-20px)]'>
-      <section className='relative overflow-visible rounded-[14px] border es-border-panel es-bg-surface-muted px-5 py-7 sm:px-7'>
+      <section className='relative overflow-visible rounded-inner border es-border-panel es-bg-surface-muted px-5 py-7 sm:px-7'>
         <Image
           src='/images/evolvesprouts-logo.svg'
           alt=''
@@ -287,7 +287,7 @@ export function BookingReservationForm({
               variant='outline'
               onClick={handleApplyDiscount}
               disabled={Boolean(discountRule)}
-              className='mt-6 h-[50px] rounded-[10px] px-4 text-sm font-semibold'
+              className='mt-6 h-[50px] rounded-control px-4 text-sm font-semibold'
             >
               {content.applyDiscountLabel}
             </ButtonPrimitive>

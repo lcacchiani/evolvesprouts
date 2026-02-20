@@ -29,7 +29,7 @@ export function WhyUs({ content }: WhyUsProps) {
           )}
         >
           <div
-            className='relative isolate overflow-hidden rounded-[26px] border es-border-soft-alt p-6 es-why-us-hero-card'
+            className='relative isolate overflow-hidden rounded-card border es-border-soft-alt p-6 es-why-us-hero-card'
           >
             <div
               aria-hidden='true'
@@ -39,7 +39,7 @@ export function WhyUs({ content }: WhyUsProps) {
               aria-hidden='true'
               className='absolute -bottom-12 right-7 h-36 w-36 rounded-full blur-3xl es-why-us-glow-green'
             />
-            <div className='relative z-10 flex min-h-[280px] items-end rounded-[20px] border border-white/70 bg-white/78 p-6 shadow-[0_18px_36px_-30px_rgba(0,0,0,0.55)] sm:min-h-[320px]'>
+            <div className='relative z-10 flex min-h-[280px] items-end rounded-card-sm border border-white/70 bg-white/78 p-6 shadow-[0_18px_36px_-30px_rgba(0,0,0,0.55)] sm:min-h-[320px]'>
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt=''
@@ -50,7 +50,7 @@ export function WhyUs({ content }: WhyUsProps) {
             </div>
           </div>
 
-          <div className='rounded-[26px] border es-border-soft-alt bg-white/85 p-6 sm:p-7'>
+          <div className='rounded-card border es-border-soft-alt bg-white/85 p-6 sm:p-7'>
             <h3 className='es-why-us-intro-title'>{content.introTitle}</h3>
             <ul className='mt-4 space-y-3'>
               {content.introItems.map((item) => (
@@ -73,7 +73,7 @@ export function WhyUs({ content }: WhyUsProps) {
         <ul className='mt-7 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
           {content.pillars.map((pillar) => (
             <li key={pillar.title}>
-              <article className='h-full rounded-[18px] border es-border-soft-alt es-bg-surface-cream p-5'>
+              <article className='h-full rounded-panel border es-border-soft-alt es-bg-surface-cream p-5'>
                 <h3 className='es-why-us-pillar-title'>{pillar.title}</h3>
                 <p className='es-section-body mt-3 text-base leading-[1.5]'>
                   {pillar.description}

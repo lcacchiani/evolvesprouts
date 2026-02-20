@@ -1,3 +1,13 @@
+@theme {
+  --radius-control: 10px;
+  --radius-inner: 14px;
+  --radius-panel: 18px;
+  --radius-card-sm: 20px;
+  --radius-card: 26px;
+  --radius-card-lg: 30px;
+  --radius-card-xl: 32px;
+}
+
 @import './base.css';
 @import './components-core.css';
 @import './components-sections.css';

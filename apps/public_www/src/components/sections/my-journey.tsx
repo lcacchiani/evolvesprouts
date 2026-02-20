@@ -34,7 +34,7 @@ export function MyJourney({ content }: MyJourneyProps) {
             'es-section-split-layout--my-journey mt-10 lg:mt-12',
           )}
         >
-          <div className='relative overflow-hidden rounded-[30px] es-bg-surface-peach'>
+          <div className='relative overflow-hidden rounded-card-lg es-bg-surface-peach'>
             <Image
               src={JOURNEY_IMAGE_SRC}
               alt='My Montessori Journey section image'
@@ -49,7 +49,7 @@ export function MyJourney({ content }: MyJourneyProps) {
             {content.cards.map((card, index) => (
               <li key={card.tag}>
                 <article
-                  className={`rounded-[20px] border es-border-warm-3 p-5 sm:p-6 ${RIGHT_COLUMN_CARD_TONE_CLASSES[index % RIGHT_COLUMN_CARD_TONE_CLASSES.length]}`}
+                  className={`rounded-card-sm border es-border-warm-3 p-5 sm:p-6 ${RIGHT_COLUMN_CARD_TONE_CLASSES[index % RIGHT_COLUMN_CARD_TONE_CLASSES.length]}`}
                 >
                   <span className='es-my-journey-tag'>{card.tag}</span>
                   <p className='es-type-body mt-3'>
