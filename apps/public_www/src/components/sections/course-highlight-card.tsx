@@ -80,7 +80,7 @@ export function CourseHighlightCard({
   );
 
   // Build conditional class fragments for the active (tapped) state.
-  // Desktop hover continues to work independently via lg:group-hover:*.
+  // Pointer hover continues to work independently via group-hover:*.
   const overlayActive = isActive
     ? 'bg-black/70 backdrop-blur-[4px]'
     : '';
@@ -97,10 +97,10 @@ export function CourseHighlightCard({
       onClick={handleCardSurfaceClick}
       className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8 ${toneClassName}`}
     >
-      {/* Dark overlay — activated by desktop hover or mobile tap */}
+      {/* Dark overlay — activated by pointer hover or tap */}
       <div
         aria-hidden='true'
-        className={`pointer-events-none absolute inset-0 z-[1] transition-all duration-300 ${isActive ? '' : 'bg-black/0'} lg:group-hover:bg-black/70 lg:group-hover:backdrop-blur-[4px] ${overlayActive}`}
+        className={`pointer-events-none absolute inset-0 z-[1] transition-all duration-300 ${isActive ? '' : 'bg-black/0'} group-hover:bg-black/70 group-hover:backdrop-blur-[4px] ${overlayActive}`}
       />
 
       {/* Card illustration */}
@@ -124,7 +124,7 @@ export function CourseHighlightCard({
         aria-label={`Show details for ${title}`}
         aria-expanded={isActive}
         onClick={handleArrowClick}
-        className={`absolute bottom-5 left-5 z-10 appearance-none rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} lg:group-hover:h-[70px] lg:group-hover:w-[70px] ${arrowActive}`}
+        className={`absolute bottom-5 left-5 z-10 appearance-none rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} group-hover:h-[70px] group-hover:w-[70px] ${arrowActive}`}
       >
         <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full es-bg-brand-strong shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
           <svg
@@ -154,7 +154,7 @@ export function CourseHighlightCard({
 
           {description && (
             <p
-              className={`max-w-[34ch] es-course-highlight-description lg:group-hover:opacity-100 lg:group-hover:transition-opacity lg:group-hover:duration-300 ${descriptionVisibilityClassName}`}
+              className={`max-w-[34ch] es-course-highlight-description group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300 ${descriptionVisibilityClassName}`}
             >
               {description}
             </p>
