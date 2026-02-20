@@ -188,15 +188,17 @@ function MyBestAuntieOverviewCard({
           </p>
         )}
         <div className='mt-auto flex flex-col items-center gap-4 pt-6'>
-          <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
+          <div className='relative'>
             <span
               aria-hidden='true'
-              className={`pointer-events-none absolute -top-[70px] left-1/2 h-[74px] w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
+              className={`pointer-events-none absolute -top-[70px] left-1/2 z-0 h-[74px] w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
             />
-            <span className={`es-my-best-auntie-overview-count-text es-my-best-auntie-overview-count-text--${tone}`}>
-              {module.step}
+            <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
+              <span className={`es-my-best-auntie-overview-count-text es-my-best-auntie-overview-count-text--${tone}`}>
+                {module.step}
+              </span>
             </span>
-          </span>
+          </div>
           <span className='inline-flex h-[64px] w-[64px] items-center justify-center rounded-full bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.22)]'>
             <ModuleGlyph variant={module.icon} className='h-[34px] w-[34px]' />
           </span>
