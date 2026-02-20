@@ -183,7 +183,7 @@ export function LanguageSelectorButton({
   }, [closeMenu, isMenuOpen]);
 
   return (
-    <div ref={wrapperRef} className='relative'>
+    <div ref={wrapperRef} className='relative flex items-center'>
       <ButtonPrimitive
         variant={buttonVariant}
         state={buttonState}

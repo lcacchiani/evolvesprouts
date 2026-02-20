@@ -54,6 +54,13 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(header?.className).toContain('es-navbar-surface');
     expect(header?.className).toContain('relative');
     expect(header?.className).toContain('z-30');
+
+    const languageSelector = screen.getByRole('button', {
+      name: /Selected language: English/i,
+    });
+    expect(languageSelector.className).toContain('self-center');
+    const languageSelectorWrapper = languageSelector.closest('div');
+    expect(languageSelectorWrapper?.className).toContain('items-center');
   });
 
   it('applies active and inactive classes to language menu items', () => {

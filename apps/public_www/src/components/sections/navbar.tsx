@@ -253,7 +253,7 @@ export function Navbar({ content }: NavbarProps) {
               currentLocale={currentLocale}
               currentPathname={pathname}
               languageSelector={languageSelector}
-              className='h-[30px] gap-[9px] px-[6px]'
+              className='h-[30px] self-center gap-[9px] px-[6px]'
             />
             <BookNowButton
               href={localizedBookNowHref}
