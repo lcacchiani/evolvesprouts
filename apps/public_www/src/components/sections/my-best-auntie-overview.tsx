@@ -1,4 +1,7 @@
-import { Fragment, type ReactNode } from 'react';
+'use client';
+
+import { Fragment, type KeyboardEvent, type ReactNode, useState } from 'react';
+import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
@@ -11,7 +14,13 @@ interface MyBestAuntieOverviewProps {
   content: MyBestAuntieOverviewContent;
 }
 
-type ModuleIconVariant = 'foundation' | 'coaching' | 'practice';
+type ModuleIconVariant =
+  | 'home'
+  | 'limits'
+  | 'independence'
+  | 'foundation'
+  | 'coaching'
+  | 'practice';
 type ModuleToneVariant = 'gold' | 'red' | 'blue';
 
 interface ModuleStep {
@@ -23,114 +32,36 @@ interface ModuleStep {
 }
 
 const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
-  'foundation',
-  'coaching',
-  'practice',
+  'home',
+  'limits',
+  'independence',
 ];
 
 const HEADING_COLOR = HEADING_TEXT_COLOR;
-const BRAND_BLUE = 'var(--figma-colors-frame-2147235242, #174879)';
+const MODULE_ICON_SOURCE_BY_VARIANT: Record<ModuleIconVariant, string> = {
+  home: '/images/home.svg',
+  limits: '/images/limits.svg',
+  independence: '/images/independence.svg',
+  foundation: '/images/home.svg',
+  coaching: '/images/limits.svg',
+  practice: '/images/independence.svg',
+};
 
 const MODULE_TONES: readonly ModuleToneVariant[] = ['gold', 'red', 'blue'];
 
-function ModuleGlyph({
-  variant,
-  className = 'h-[52px] w-[52px]',
-}: {
-  variant: ModuleIconVariant;
-  className?: string;
-}) {
-  if (variant === 'foundation') {
-    return (
-      <svg
-        aria-hidden='true'
-        viewBox='0 0 84 84'
-        className={className}
-        fill='none'
-        xmlns='http://www.w3.org/2000/svg'
-      >
-        <rect
-          x='16'
-          y='11'
-          width='52'
-          height='62'
-          rx='9'
-          stroke={HEADING_COLOR}
-          strokeWidth='5'
-        />
-        <rect
-          x='28'
-          y='4'
-          width='28'
-          height='12'
-          rx='5'
-          fill={BRAND_BLUE}
-        />
-        <path
-          d='M28 35H56M28 46H56M28 57H46'
-          stroke={HEADING_COLOR}
-          strokeWidth='5'
-          strokeLinecap='round'
-        />
-      </svg>
-    );
-  }
-
-  if (variant === 'coaching') {
-    return (
-      <svg
-        aria-hidden='true'
-        viewBox='0 0 84 84'
-        className={className}
-        fill='none'
-        xmlns='http://www.w3.org/2000/svg'
-      >
-        <path
-          d='M13 20C13 12.82 18.82 7 26 7H58C65.18 7 71 12.82 71 20V44C71 51.18 65.18 57 58 57H38L22 72V57H26C18.82 57 13 51.18 13 44V20Z'
-          stroke={HEADING_COLOR}
-          strokeWidth='5'
-          fill={BRAND_BLUE}
-          fillOpacity='0.15'
-        />
-        <path
-          d='M28 24H56M28 34H56M28 44H47'
-          stroke={HEADING_COLOR}
-          strokeWidth='5'
-          strokeLinecap='round'
-        />
-      </svg>
-    );
-  }
-
+function isModuleIconVariant(value: string): value is ModuleIconVariant {
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 84 84'
-      className={className}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M19 26C19 20.48 23.48 16 29 16H36V9C36 6.24 38.24 4 41 4H43C45.76 4 48 6.24 48 9V16H55C60.52 16 65 20.48 65 26V33H72C74.76 33 77 35.24 77 38V40C77 42.76 74.76 45 72 45H65V52C65 57.52 60.52 62 55 62H48V69C48 71.76 45.76 74 43 74H41C38.24 74 36 71.76 36 69V62H29C23.48 62 19 57.52 19 52V45H12C9.24 45 7 42.76 7 40V38C7 35.24 9.24 33 12 33H19V26Z'
-        stroke={HEADING_COLOR}
-        strokeWidth='5'
-        fill={BRAND_BLUE}
-        fillOpacity='0.12'
-      />
-      <path
-        d='M31 31L53 53M53 31L31 53'
-        stroke={HEADING_COLOR}
-        strokeWidth='5'
-        strokeLinecap='round'
-      />
-    </svg>
+    value === 'home' ||
+    value === 'limits' ||
+    value === 'independence' ||
+    value === 'foundation' ||
+    value === 'coaching' ||
+    value === 'practice'
   );
 }
 
-function isModuleIconVariant(value: string): value is ModuleIconVariant {
-  return (
-    value === 'foundation' || value === 'coaching' || value === 'practice'
-  );
+function getModuleIconSource(variant: ModuleIconVariant): string {
+  return MODULE_ICON_SOURCE_BY_VARIANT[variant];
 }
 
 function renderMultilineText(value: string): ReactNode {
@@ -155,24 +86,62 @@ function MyBestAuntieOverviewCard({
   module,
   index,
   showFullActivity,
+  isExpanded,
+  onToggleDescription,
 }: {
   module: ModuleStep;
   index: number;
   showFullActivity: boolean;
+  isExpanded: boolean;
+  onToggleDescription?: () => void;
 }) {
   const tone = getModuleTone(index);
+  const isInteractive = !showFullActivity;
+
+  function handleCardClick() {
+    if (!isInteractive) {
+      return;
+    }
+
+    onToggleDescription?.();
+  }
+
+  function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (!isInteractive) {
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onToggleDescription?.();
+    }
+  }
 
   return (
     <article
-      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone}`}
+      role={isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      aria-expanded={isInteractive ? isExpanded : undefined}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
     >
       <div
         aria-hidden='true'
         className={`pointer-events-none absolute -right-8 top-10 h-36 w-36 rounded-full blur-3xl es-my-best-auntie-overview-icon-glow es-my-best-auntie-overview-icon-glow--${tone}`}
       />
       <div className='relative flex flex-1 flex-col items-center text-center'>
-        <span className='inline-flex h-[84px] w-[84px] items-center justify-center rounded-full bg-white/90 shadow-[0_8px_24px_rgba(0,0,0,0.2)]'>
-          <ModuleGlyph variant={module.icon} className='h-[44px] w-[44px]' />
+        <span
+          aria-hidden='true'
+          className='inline-flex h-[84px] w-[84px] items-center justify-center rounded-full bg-white/90 shadow-[0_8px_24px_rgba(0,0,0,0.2)]'
+        >
+          <Image
+            src={getModuleIconSource(module.icon)}
+            alt=''
+            width={44}
+            height={44}
+            className='h-[44px] w-[44px]'
+          />
         </span>
         <h3 className='mt-5 es-my-best-auntie-overview-module-title'>
           {module.title}
@@ -182,7 +151,7 @@ function MyBestAuntieOverviewCard({
         </p>
         {module.activity && (
           <p
-            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-overview-activity ${showFullActivity ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
+            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-overview-activity ${showFullActivity || isExpanded ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
           >
             {module.activity}
           </p>
@@ -199,9 +168,6 @@ function MyBestAuntieOverviewCard({
               </span>
             </span>
           </div>
-          <span className='inline-flex h-[64px] w-[64px] items-center justify-center rounded-full bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.22)]'>
-            <ModuleGlyph variant={module.icon} className='h-[34px] w-[34px]' />
-          </span>
         </div>
       </div>
     </article>
@@ -209,6 +175,10 @@ function MyBestAuntieOverviewCard({
 }
 
 export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
+  const [expandedModuleStep, setExpandedModuleStep] = useState<string | null>(
+    null,
+  );
+
   const moduleSteps: ModuleStep[] = content.modules.map((module, index) => ({
     step: module.step,
     title: module.title,
@@ -220,6 +190,12 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
   }));
 
   const computedCtaLabel = content.ctaLabel.trim().replace(/\s*>$/, '');
+
+  function handleToggleModule(step: string) {
+    setExpandedModuleStep((previousStep) =>
+      previousStep === step ? null : step,
+    );
+  }
 
   return (
     <SectionShell
@@ -243,6 +219,8 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                   module={module}
                   index={index}
                   showFullActivity={false}
+                  isExpanded={expandedModuleStep === module.step}
+                  onToggleDescription={() => handleToggleModule(module.step)}
                 />
               </li>
             ))}
@@ -299,6 +277,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                       module={module}
                       index={index}
                       showFullActivity
+                      isExpanded
                     />
                   </li>
                 ))}
