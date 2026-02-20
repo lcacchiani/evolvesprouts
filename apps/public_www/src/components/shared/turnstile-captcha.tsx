@@ -57,7 +57,7 @@ function loadTurnstileScript(): Promise<void> {
     return window.__evolveSproutsTurnstileLoaderPromise;
   }
 
-  window.__evolveSproutsTurnstileLoaderPromise = new Promise((resolve, reject) => {
+  window.__evolveSproutsTurnstileLoaderPromise = new Promise<void>((resolve, reject) => {
     const existingScriptElement = document.getElementById(
       TURNSTILE_SCRIPT_ID,
     ) as HTMLScriptElement | null;
