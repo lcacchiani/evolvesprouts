@@ -85,25 +85,25 @@
     "ctaHref": "/services/my-best-auntie-training-course",
     "modules": [
       {
-        "step": "01",
-        "title": "第1模块",
-        "week": "第01-04周",
-        "icon": "foundation",
-        "activity": "以工作坊开始，随后进行家长电话沟通、1对1课程，并以实战挑战收尾。"
+        "step": "1",
+        "title": "打造你的家",
+        "week": "第1-3周",
+        "icon": "home",
+        "activity": "减少对抗，增加自主玩耍。让家成为激发孩子天生好奇心的环境。"
       },
       {
-        "step": "02",
-        "title": "第2模块",
-        "week": "第05-08周",
-        "icon": "coaching",
-        "activity": "以工作坊开始，随后进行家长电话沟通、1对1课程，并以实战挑战收尾。"
+        "step": "2",
+        "title": "培养独立能力",
+        "week": "第4-6周",
+        "icon": "limits",
+        "activity": "别再只忙于管理行为。开始建立每一间香港课堂都看重的专注力、秩序感与自理能力。"
       },
       {
-        "step": "03",
-        "title": "第3模块",
-        "week": "第09-12周",
-        "icon": "practice",
-        "activity": "以工作坊开始，随后进行家长电话沟通、1对1课程，并以实战挑战收尾。"
+        "step": "3",
+        "title": "温和引导与清晰边界",
+        "week": "第7-9周",
+        "icon": "independence",
+        "activity": "用餐拉扯减少，入睡更平静。你的阿姨会学会用冷静且一致的方式引导孩子。"
       }
     ]
   },
