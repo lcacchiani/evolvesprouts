@@ -8,10 +8,10 @@ interface WhoopsProps {
 export function Whoops({ content }: WhoopsProps) {
   return (
     <PlaceholderPanel>
-      <p className='es-section-heading text-[clamp(7rem,22vw,16rem)] leading-none'>
+      <p className='es-type-title leading-none'>
         {content.code}
       </p>
-      <h1 className='es-section-heading mt-3 text-[clamp(1.75rem,4.5vw,2.75rem)] leading-tight'>
+      <h1 className='es-type-title mt-3 leading-tight'>
         {content.title}
       </h1>
       <p className='es-section-body mx-auto mt-3 max-w-[40ch] text-[1rem] leading-relaxed sm:text-[1.1rem]'>

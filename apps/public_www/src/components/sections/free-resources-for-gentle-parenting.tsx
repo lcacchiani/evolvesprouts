@@ -1,6 +1,7 @@
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import {
@@ -294,16 +295,15 @@ export function FreeResourcesForGentleParenting({
     <SectionShell
       id='resources'
       ariaLabel={content.title}
-      dataFigmaNode='Resources'
+      dataFigmaNode='resources'
       className='es-free-resources-section'
     >
-      <div className='mx-auto w-full max-w-[1464px]'>
+      <SectionContainer>
         <SectionHeader
           testId='free-resource-header'
           eyebrow={eyebrowLabel}
           title={content.title}
           align={headerAlignment}
-          titleClassName='text-balance'
         />
 
         <div className='mt-10 sm:mt-12 lg:mt-14'>
@@ -411,7 +411,7 @@ export function FreeResourcesForGentleParenting({
             )}
           </div>
         </div>
-      </div>
+      </SectionContainer>
     </SectionShell>
   );
 }

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 
@@ -138,7 +139,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
       id='contact-us-form'
       ariaLabel={content.title}
       dataFigmaNode='contact-us-form'
-      className='relative overflow-hidden es-contact-us-section'
+      className='overflow-hidden es-contact-us-section'
     >
       <div
         aria-hidden='true'
@@ -149,10 +150,14 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
           className='relative flex h-full items-start overflow-hidden px-6 py-8 sm:px-8 lg:px-10 lg:pt-[25%]'
         >
           <div className='relative z-10 space-y-6'>
-            <h1 className='es-section-heading text-balance'>{content.title}</h1>
-            <p className='es-section-body text-balance text-[1.05rem] leading-8'>
-              {content.description}
-            </p>
+            <SectionHeader
+              title={content.title}
+              titleAs='h1'
+              align='left'
+              titleClassName='es-section-heading'
+              description={content.description}
+              descriptionClassName='mt-4 es-section-body text-[1.05rem] leading-8'
+            />
           </div>
         </section>
 
@@ -170,7 +175,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
           />
 
           <div className='relative z-10 mb-6 pt-4'>
-            <h2 className='es-section-heading text-[clamp(1.5rem,3.6vw,2.2rem)]'>
+            <h2 className='es-type-title'>
               {content.promiseTitle}
             </h2>
             <ul className='mt-4 list-disc space-y-2 pl-6'>

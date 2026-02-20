@@ -45,13 +45,12 @@ export function Connect({ content }: ConnectProps) {
       id='connect'
       ariaLabel={content.title}
       dataFigmaNode='connect'
-      className='relative isolate overflow-hidden bg-white es-connect-section'
+      className='overflow-hidden es-connect-section'
     >
       <SectionContainer>
         <SectionHeader
           eyebrow={content.eyebrow}
           title={content.title}
-          titleClassName='text-balance'
         />
 
         <ul className='mt-10 grid grid-cols-1 gap-5 lg:mt-12 lg:grid-cols-3'>

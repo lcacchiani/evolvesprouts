@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 
+import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { TestimonialsContent } from '@/content';
 
@@ -71,18 +73,19 @@ export function DeferredTestimonialsClient({
         <LazyTestimonials content={content} />
       ) : (
         <SectionShell
+          id='testimonials'
           ariaLabel={content.title}
-          dataFigmaNode='Testimonials'
+          dataFigmaNode='testimonials'
           className='es-section-bg-overlay es-testimonials-section'
         >
-          <div className='relative z-10 mx-auto w-full max-w-[1488px]'>
-            <div className='mx-auto max-w-[760px] text-center'>
-              <h2 className='text-balance text-[clamp(2rem,5.8vw,55px)] font-semibold'>
-                {content.title}
-              </h2>
+          <SectionContainer>
+            <div className='mx-auto w-full max-w-[1488px]'>
+              <SectionHeader
+                title={content.title}
+              />
+              <div className='mt-10 h-[420px] bg-white lg:mt-14 lg:h-[540px]' />
             </div>
-            <div className='mt-10 h-[420px] bg-white lg:mt-14 lg:h-[540px]' />
-          </div>
+          </SectionContainer>
         </SectionShell>
       )}
     </div>

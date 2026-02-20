@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionHeader } from '@/components/sections/shared/section-header';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
@@ -130,18 +131,21 @@ export function MyBestAuntieBooking({
       <SectionShell
         id='my-best-auntie-booking'
         ariaLabel={content.title}
-        dataFigmaNode='book_spot_Sec'
+        dataFigmaNode='my-best-auntie-booking'
         className='es-my-best-auntie-booking-section'
       >
         <SectionContainer>
           <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>
             <section className='space-y-5 max-w-[620px] lg:pr-8'>
-              <h1 className='text-[clamp(2rem,5.6vw,3.3rem)] es-my-best-auntie-booking-heading'>
-                {content.title}
-              </h1>
-              <p className='max-w-[58ch] text-[clamp(1rem,2vw,1.2rem)] es-my-best-auntie-booking-body'>
-                {content.description}
-              </p>
+              <SectionHeader
+                title={content.title}
+                titleAs='h1'
+                align='left'
+                className='max-w-[620px]'
+                titleClassName='es-my-best-auntie-booking-heading'
+                description={content.description}
+                descriptionClassName='mt-5 max-w-[58ch] es-type-body es-my-best-auntie-booking-body'
+              />
 
               <div className='pt-3'>
                 <div
@@ -151,7 +155,7 @@ export function MyBestAuntieBooking({
                   <p className='text-base font-semibold es-text-brand'>
                     {content.scheduleLabel}
                   </p>
-                  <p className='mt-1 text-[clamp(1.3rem,3vw,1.7rem)] font-bold es-text-heading-alt'>
+                  <p className='es-type-title mt-1 font-bold es-text-heading-alt'>
                     {nextCohortPreview}
                   </p>
                 </div>

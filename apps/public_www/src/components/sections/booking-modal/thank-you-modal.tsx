@@ -225,7 +225,7 @@ export function MyBestAuntieThankYouModal({
             </h3>
             <h2
               id={dialogTitleId}
-              className='mt-2 max-w-[610px] text-[clamp(1.5rem,4vw,2.5rem)] leading-[1.1] es-my-best-auntie-thank-you-heading'
+              className='es-type-title mt-2 max-w-[610px] leading-[1.1] es-my-best-auntie-thank-you-heading'
             >
               {content.title}
             </h2>

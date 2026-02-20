@@ -80,7 +80,7 @@ export function MyBestAuntieDescription({
     <SectionShell
       id='my-best-auntie-description'
       ariaLabel={content.title}
-      dataFigmaNode='courseHiglit_sec'
+      dataFigmaNode='my-best-auntie-description'
       className='es-section-bg-overlay es-my-best-auntie-description-section'
     >
       <SectionContainer>
