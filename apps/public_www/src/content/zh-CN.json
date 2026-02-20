@@ -257,7 +257,11 @@
       "termsAgreementLabel": "我同意此",
       "termsLinkLabel": "条款与细则",
       "termsHref": "/terms",
-      "submitLabel": "提交报名"
+      "submitLabel": "提交报名",
+      "captchaLabel": "请完成 CAPTCHA 验证",
+      "captchaRequiredError": "提交前请先完成 CAPTCHA 验证。",
+      "captchaLoadError": "CAPTCHA 加载失败，请刷新后重试。",
+      "captchaUnavailableError": "CAPTCHA 暂时不可用，请稍后再试。"
     },
     "thankYouModal": {
       "closeLabel": "关闭",
@@ -472,6 +476,10 @@
       "messageLabel": "你的留言",
       "messagePlaceholder": "你的留言",
       "submitLabel": "发送留言！",
+      "captchaLabel": "请完成 CAPTCHA 验证",
+      "captchaRequiredError": "提交前请先完成 CAPTCHA 验证。",
+      "captchaLoadError": "CAPTCHA 加载失败，请刷新后重试。",
+      "captchaUnavailableError": "CAPTCHA 暂时不可用，请稍后再试。",
       "subject": "网站联系表单",
       "requiredHint": "* 必填项"
     },

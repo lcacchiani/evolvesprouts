@@ -1,0 +1,221 @@
+import { useEffect, useMemo, useRef } from 'react';
+
+import { mergeClassNames } from '@/lib/class-name-utils';
+
+type TurnstileTheme = 'light' | 'dark' | 'auto';
+type TurnstileSize = 'normal' | 'compact' | 'flexible';
+
+interface TurnstileRenderOptions {
+  sitekey: string;
+  action?: string;
+  theme?: TurnstileTheme;
+  size?: TurnstileSize;
+  callback?: (token: string) => void;
+  'expired-callback'?: () => void;
+  'error-callback'?: () => void;
+  'timeout-callback'?: () => void;
+}
+
+interface TurnstileApi {
+  render: (container: HTMLElement, options: TurnstileRenderOptions) => string;
+  remove: (widgetId: string) => void;
+}
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+    __evolveSproutsTurnstileLoaderPromise?: Promise<void>;
+  }
+}
+
+const TURNSTILE_SCRIPT_ID = 'evolve-sprouts-turnstile-script';
+const TURNSTILE_SCRIPT_SRC =
+  'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+
+function resolveTurnstileReady(
+  resolve: () => void,
+  reject: (error: Error) => void,
+): () => void {
+  return () => {
+    if (window.turnstile) {
+      resolve();
+      return;
+    }
+
+    reject(new Error('Turnstile script loaded without API'));
+  };
+}
+
+function loadTurnstileScript(): Promise<void> {
+  if (typeof window === 'undefined') {
+    return Promise.resolve();
+  }
+  if (window.turnstile) {
+    return Promise.resolve();
+  }
+  if (window.__evolveSproutsTurnstileLoaderPromise) {
+    return window.__evolveSproutsTurnstileLoaderPromise;
+  }
+
+  window.__evolveSproutsTurnstileLoaderPromise = new Promise<void>((resolve, reject) => {
+    const existingScriptElement = document.getElementById(
+      TURNSTILE_SCRIPT_ID,
+    ) as HTMLScriptElement | null;
+    const handleLoad = resolveTurnstileReady(resolve, reject);
+    const handleError = () => {
+      reject(new Error('Failed to load Turnstile script'));
+    };
+
+    if (existingScriptElement) {
+      if (existingScriptElement.dataset.loaded === 'true') {
+        handleLoad();
+        return;
+      }
+
+      existingScriptElement.addEventListener('load', handleLoad, {
+        once: true,
+      });
+      existingScriptElement.addEventListener('error', handleError, {
+        once: true,
+      });
+      return;
+    }
+
+    const scriptElement = document.createElement('script');
+    scriptElement.id = TURNSTILE_SCRIPT_ID;
+    scriptElement.src = TURNSTILE_SCRIPT_SRC;
+    scriptElement.async = true;
+    scriptElement.defer = true;
+    scriptElement.addEventListener(
+      'load',
+      () => {
+        scriptElement.dataset.loaded = 'true';
+        handleLoad();
+      },
+      { once: true },
+    );
+    scriptElement.addEventListener('error', handleError, { once: true });
+
+    document.head.append(scriptElement);
+  }).catch((error) => {
+    window.__evolveSproutsTurnstileLoaderPromise = undefined;
+    throw error;
+  });
+
+  return window.__evolveSproutsTurnstileLoaderPromise;
+}
+
+export interface TurnstileCaptchaProps {
+  siteKey: string;
+  className?: string;
+  theme?: TurnstileTheme;
+  size?: TurnstileSize;
+  widgetAction?: string;
+  onTokenChange: (token: string | null) => void;
+  onLoadError: () => void;
+}
+
+export function TurnstileCaptcha({
+  siteKey,
+  className,
+  theme = 'auto',
+  size = 'flexible',
+  widgetAction,
+  onTokenChange,
+  onLoadError,
+}: TurnstileCaptchaProps) {
+  const widgetContainerRef = useRef<HTMLDivElement | null>(null);
+  const widgetIdRef = useRef<string | null>(null);
+  const onTokenChangeRef = useRef(onTokenChange);
+  const onLoadErrorRef = useRef(onLoadError);
+  const normalizedSiteKey = useMemo(() => siteKey.trim(), [siteKey]);
+
+  useEffect(() => {
+    onTokenChangeRef.current = onTokenChange;
+  }, [onTokenChange]);
+
+  useEffect(() => {
+    onLoadErrorRef.current = onLoadError;
+  }, [onLoadError]);
+
+  useEffect(() => {
+    let isDisposed = false;
+
+    if (!normalizedSiteKey) {
+      onTokenChangeRef.current(null);
+      onLoadErrorRef.current();
+      return () => {
+        isDisposed = true;
+      };
+    }
+
+    onTokenChangeRef.current(null);
+
+    loadTurnstileScript()
+      .then(() => {
+        if (isDisposed) {
+          return;
+        }
+
+        const widgetContainer = widgetContainerRef.current;
+        const turnstileApi = window.turnstile;
+        if (!widgetContainer || !turnstileApi) {
+          onTokenChangeRef.current(null);
+          onLoadErrorRef.current();
+          return;
+        }
+
+        widgetContainer.replaceChildren();
+        widgetIdRef.current = turnstileApi.render(widgetContainer, {
+          sitekey: normalizedSiteKey,
+          action: widgetAction,
+          theme,
+          size,
+          callback: (token) => {
+            onTokenChangeRef.current(token);
+          },
+          'expired-callback': () => {
+            onTokenChangeRef.current(null);
+          },
+          'timeout-callback': () => {
+            onTokenChangeRef.current(null);
+          },
+          'error-callback': () => {
+            onTokenChangeRef.current(null);
+            onLoadErrorRef.current();
+          },
+        });
+      })
+      .catch(() => {
+        if (!isDisposed) {
+          onTokenChangeRef.current(null);
+          onLoadErrorRef.current();
+        }
+      });
+
+    return () => {
+      isDisposed = true;
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current);
+      }
+      widgetIdRef.current = null;
+    };
+  }, [
+    normalizedSiteKey,
+    size,
+    theme,
+    widgetAction,
+  ]);
+
+  return (
+    <div
+      ref={widgetContainerRef}
+      className={mergeClassNames('min-h-[65px]', className)}
+      data-testid='turnstile-captcha'
+    />
+  );
+}

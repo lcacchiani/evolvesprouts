@@ -8,6 +8,7 @@ import {
 
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SmartLink } from '@/components/shared/smart-link';
 import {
   DiscountBadge,
@@ -37,6 +38,7 @@ interface BookingReservationFormProps {
 }
 
 const DISCOUNT_ERROR_MESSAGE_ID = 'booking-modal-discount-error-message';
+const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 
 function sanitizeSingleLineValue(value: string): string {
   return value.replaceAll(/\s+/g, ' ').trim();
@@ -52,6 +54,7 @@ export function BookingReservationForm({
   descriptionId,
   onSubmitReservation,
 }: BookingReservationFormProps) {
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -63,6 +66,9 @@ export function BookingReservationForm({
   const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
     useState(false);
   const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
+  const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -98,12 +104,24 @@ export function BookingReservationForm({
   const discountAmount = Math.max(0, originalAmount - totalAmount);
   const hasDiscount = discountAmount > 0;
   const hasConfirmedPriceDifference = totalAmount !== originalAmount;
+  const hasCaptchaValidationError = isCaptchaTouched && !captchaToken;
+  const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
+  const isCaptchaUnavailable = !isCaptchaConfigured || hasCaptchaLoadError;
+  const captchaErrorMessage = !isCaptchaConfigured
+    ? content.captchaUnavailableError
+    : hasCaptchaLoadError
+      ? content.captchaLoadError
+      : hasCaptchaValidationError
+        ? content.captchaRequiredError
+        : '';
   const isSubmitDisabled =
     !fullName.trim() ||
     !email.trim() ||
     !phone.trim() ||
     !hasPendingReservationAcknowledgement ||
-    !hasTermsAgreement;
+    !hasTermsAgreement ||
+    !captchaToken ||
+    isCaptchaUnavailable;
 
   function handleApplyDiscount() {
     if (discountRule) {
@@ -133,6 +151,7 @@ export function BookingReservationForm({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsCaptchaTouched(true);
     if (
       !selectedPackageLabel ||
       !selectedMonthLabel ||
@@ -361,10 +380,40 @@ export function BookingReservationForm({
             </label>
           </div>
 
+          <label className='block'>
+            <span className='mb-1 block text-sm font-semibold es-text-heading'>
+              {content.captchaLabel}
+            </span>
+            <TurnstileCaptcha
+              siteKey={turnstileSiteKey}
+              widgetAction='my_best_auntie_reservation_submit'
+              onTokenChange={(token) => {
+                setCaptchaToken(token);
+                if (token) {
+                  setIsCaptchaTouched(false);
+                  setHasCaptchaLoadError(false);
+                }
+              }}
+              onLoadError={() => {
+                setHasCaptchaLoadError(true);
+              }}
+            />
+          </label>
+          {captchaErrorMessage ? (
+            <p
+              id={CAPTCHA_ERROR_MESSAGE_ID}
+              className='text-sm font-semibold es-text-danger-strong'
+              role='alert'
+            >
+              {captchaErrorMessage}
+            </p>
+          ) : null}
+
           <ButtonPrimitive
             variant='primary'
             type='submit'
             disabled={isSubmitDisabled}
+            aria-describedby={captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : undefined}
             className='mt-1 w-full'
           >
             {content.submitLabel}

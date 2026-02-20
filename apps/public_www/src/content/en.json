@@ -257,7 +257,11 @@
       "termsAgreementLabel": "I agree with this",
       "termsLinkLabel": "Terms & Conditions",
       "termsHref": "/terms",
-      "submitLabel": "Submit Reservation"
+      "submitLabel": "Submit Reservation",
+      "captchaLabel": "Please complete CAPTCHA verification",
+      "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
+      "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
+      "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later."
     },
     "thankYouModal": {
       "closeLabel": "Close",
@@ -472,6 +476,10 @@
       "messageLabel": "Your message",
       "messagePlaceholder": "Your message",
       "submitLabel": "Launch the Message!",
+      "captchaLabel": "Please complete CAPTCHA verification",
+      "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
+      "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
+      "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
       "subject": "Website Contact Form",
       "requiredHint": "* Required fields"
     },

@@ -257,7 +257,11 @@
       "termsAgreementLabel": "我同意此",
       "termsLinkLabel": "條款及細則",
       "termsHref": "/terms",
-      "submitLabel": "提交報名"
+      "submitLabel": "提交報名",
+      "captchaLabel": "請完成 CAPTCHA 驗證",
+      "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
+      "captchaLoadError": "CAPTCHA 載入失敗，請重新整理後再試。",
+      "captchaUnavailableError": "CAPTCHA 暫時未能使用，請稍後再試。"
     },
     "thankYouModal": {
       "closeLabel": "關閉",
@@ -472,6 +476,10 @@
       "messageLabel": "你的留言",
       "messagePlaceholder": "你的留言",
       "submitLabel": "送出留言！",
+      "captchaLabel": "請完成 CAPTCHA 驗證",
+      "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
+      "captchaLoadError": "CAPTCHA 載入失敗，請重新整理後再試。",
+      "captchaUnavailableError": "CAPTCHA 暫時未能使用，請稍後再試。",
       "subject": "網站聯絡表單",
       "requiredHint": "* 必填欄位"
     },
