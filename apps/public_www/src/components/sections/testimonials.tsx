@@ -180,11 +180,11 @@ export function Testimonials({ content }: TestimonialsProps) {
       dataFigmaNode='testimonials'
       className='es-section-bg-overlay es-testimonials-section'
     >
-      <SectionContainer className='max-w-[1488px]'>
+      <SectionContainer>
+        <div className='mx-auto w-full max-w-[1488px]'>
         <SectionHeader
           eyebrow={badgeLabel}
           title={content.title}
-          titleClassName='text-balance'
           description={descriptionText || undefined}
           descriptionClassName='es-type-body mt-3'
         />
@@ -335,6 +335,7 @@ export function Testimonials({ content }: TestimonialsProps) {
               </ButtonPrimitive>
             </div>
           )}
+        </div>
         </div>
       </SectionContainer>
     </SectionShell>

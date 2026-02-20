@@ -78,12 +78,14 @@ export function DeferredTestimonialsClient({
           dataFigmaNode='testimonials'
           className='es-section-bg-overlay es-testimonials-section'
         >
-          <SectionContainer className='max-w-[1488px]'>
-            <SectionHeader
-              title={content.title}
-              titleClassName='!mt-0 text-balance text-[clamp(2rem,5.8vw,55px)] font-semibold'
-            />
-            <div className='mt-10 h-[420px] bg-white lg:mt-14 lg:h-[540px]' />
+          <SectionContainer>
+            <div className='mx-auto w-full max-w-[1488px]'>
+              <SectionHeader
+                title={content.title}
+                titleClassName='text-[clamp(2rem,5.8vw,55px)] font-semibold'
+              />
+              <div className='mt-10 h-[420px] bg-white lg:mt-14 lg:h-[540px]' />
+            </div>
           </SectionContainer>
         </SectionShell>
       )}

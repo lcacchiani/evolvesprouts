@@ -58,6 +58,10 @@
     max-width: 980px;
   }
 
+  .es-section-header .es-type-title {
+    text-wrap: balance;
+  }
+
   .es-section-header--center {
     text-align: center;
   }

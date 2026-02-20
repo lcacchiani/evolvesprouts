@@ -296,7 +296,7 @@ export function FreeResourcesForGentleParenting({
       id='resources'
       ariaLabel={content.title}
       dataFigmaNode='resources'
-      className='es-free-resources-section'
+      className='es-section-bg-overlay es-free-resources-section'
     >
       <SectionContainer>
         <SectionHeader
@@ -304,7 +304,6 @@ export function FreeResourcesForGentleParenting({
           eyebrow={eyebrowLabel}
           title={content.title}
           align={headerAlignment}
-          titleClassName='text-balance'
         />
 
         <div className='mt-10 sm:mt-12 lg:mt-14'>

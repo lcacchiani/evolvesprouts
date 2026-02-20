@@ -139,7 +139,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
       id='contact-us-form'
       ariaLabel={content.title}
       dataFigmaNode='contact-us-form'
-      className='relative overflow-hidden es-contact-us-section'
+      className='es-section-bg-overlay overflow-hidden es-contact-us-section'
     >
       <div
         aria-hidden='true'
@@ -154,7 +154,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               title={content.title}
               titleAs='h1'
               align='left'
-              titleClassName='!mt-0 es-section-heading text-balance'
+              titleClassName='es-section-heading'
               description={content.description}
               descriptionClassName='mt-4 es-section-body text-balance text-[1.05rem] leading-8'
             />

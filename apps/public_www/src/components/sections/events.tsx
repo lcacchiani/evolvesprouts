@@ -136,13 +136,12 @@ export function Events({ content }: EventsProps) {
       id='events'
       ariaLabel={content.title}
       dataFigmaNode='events'
-      className='es-events-section'
+      className='es-section-bg-overlay es-events-section'
     >
       <SectionContainer>
         <SectionHeader
           title={content.title}
           titleAs='h1'
-          titleClassName='!mt-0 text-balance'
           description={content.description}
           descriptionClassName='es-type-body mt-4 text-balance'
         />

@@ -230,7 +230,6 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
         <SectionHeader
           eyebrow={content.eyebrow}
           title={renderMultilineText(content.title)}
-          titleClassName='text-balance'
         />
 
         <div className='relative mt-12 sm:mt-14 lg:mt-16'>

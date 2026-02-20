@@ -139,7 +139,6 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         <SectionHeader
           eyebrow={sectionEyebrow}
           title={sectionTitle}
-          titleClassName='text-balance'
         />
 
         <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3'>

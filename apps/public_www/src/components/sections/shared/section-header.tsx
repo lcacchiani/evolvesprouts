@@ -30,6 +30,7 @@ export function SectionHeader({
   testId,
 }: SectionHeaderProps) {
   const TitleTag = titleAs;
+  const titleSpacingClassName = eyebrow ? 'mt-6' : undefined;
   const alignmentClassName =
     align === 'left'
       ? 'es-section-header--left text-left'
@@ -45,7 +46,13 @@ export function SectionHeader({
       )}
     >
       {eyebrow ? <SectionEyebrowChip label={eyebrow} /> : null}
-      <TitleTag className={mergeClassNames('es-type-title mt-6', titleClassName)}>
+      <TitleTag
+        className={mergeClassNames(
+          'es-type-title',
+          titleSpacingClassName,
+          titleClassName,
+        )}
+      >
         {title}
       </TitleTag>
       {description ? (

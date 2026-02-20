@@ -132,7 +132,7 @@ export function MyBestAuntieBooking({
         id='my-best-auntie-booking'
         ariaLabel={content.title}
         dataFigmaNode='my-best-auntie-booking'
-        className='es-my-best-auntie-booking-section'
+        className='es-section-bg-overlay es-my-best-auntie-booking-section'
       >
         <SectionContainer>
           <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>
@@ -142,7 +142,7 @@ export function MyBestAuntieBooking({
                 titleAs='h1'
                 align='left'
                 className='max-w-[620px]'
-                titleClassName='!mt-0 text-[clamp(2rem,5.6vw,3.3rem)] es-my-best-auntie-booking-heading'
+                titleClassName='text-[clamp(2rem,5.6vw,3.3rem)] es-my-best-auntie-booking-heading'
                 description={content.description}
                 descriptionClassName='mt-5 max-w-[58ch] text-[clamp(1rem,2vw,1.2rem)] es-my-best-auntie-booking-body'
               />

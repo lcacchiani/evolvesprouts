@@ -39,7 +39,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
       id='hero-banner'
       ariaLabel={content.headline}
       dataFigmaNode='banner'
-      className='relative w-full overflow-hidden es-hero-section'
+      className='es-section-bg-overlay w-full overflow-hidden es-hero-section'
     >
       <div
         aria-hidden='true'
@@ -53,7 +53,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
               titleAs='h1'
               align='left'
               className='max-w-[610px]'
-              titleClassName='!mt-0 es-hero-headline'
+              titleClassName='es-hero-headline'
               description={content.subheadline}
               descriptionClassName='mt-4 max-w-[610px] sm:mt-6 es-hero-subheadline'
             />

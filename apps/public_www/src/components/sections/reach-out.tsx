@@ -43,13 +43,12 @@ export function ReachOut({ content }: ReachOutProps) {
       id='reach-out'
       ariaLabel={content.title}
       dataFigmaNode='reach-out'
-      className='es-reach-out-section relative isolate overflow-hidden'
+      className='es-section-bg-overlay es-reach-out-section overflow-hidden'
     >
       <SectionContainer>
         <SectionHeader
           eyebrow={content.eyebrow}
           title={content.title}
-          titleClassName='text-balance'
         />
 
         <ul className='mt-10 grid grid-cols-1 gap-4 sm:gap-5 lg:mt-12 lg:grid-cols-2'>
