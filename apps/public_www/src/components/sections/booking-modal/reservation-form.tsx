@@ -308,7 +308,7 @@ export function BookingReservationForm({
 
           <div
             data-booking-price-breakdown='true'
-            className='space-y-2 rounded-[12px] border es-border-panel-soft bg-white p-4'
+            className='space-y-2 py-1'
           >
             <div className='flex items-center justify-between text-sm font-semibold es-text-body'>
               <span>Price</span>
@@ -328,7 +328,10 @@ export function BookingReservationForm({
             ) : null}
           </div>
 
-          <div data-booking-fps-block='true' className='w-full p-4'>
+          <div data-booking-fps-block='true' className='w-full space-y-2 py-1'>
+            <p className='text-sm font-semibold es-text-heading'>
+              {content.paymentMethodLabel}
+            </p>
             <FpsQrCode amount={totalAmount} />
           </div>
 

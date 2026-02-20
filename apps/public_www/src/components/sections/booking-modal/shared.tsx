@@ -202,7 +202,7 @@ export function FpsQrCode({ amount }: { amount: number }) {
   return (
     <div
       ref={qrCodeContainerRef}
-      className='flex w-full items-center justify-between gap-4 rounded-[14px] border es-border-input bg-white p-3 text-center'
+      className='flex w-full items-center justify-start gap-2 py-1 text-center sm:gap-3'
     >
       <Image
         src={FPS_LOGO_SOURCE}
@@ -213,7 +213,7 @@ export function FpsQrCode({ amount }: { amount: number }) {
       />
       <div
         aria-label='FPS payment QR code'
-        className='flex h-[128px] w-[128px] shrink-0 items-center justify-center rounded-[8px] border es-border-divider bg-white'
+        className='flex h-[128px] w-[128px] shrink-0 items-center justify-center'
       >
         {qrCodeImageDataUrl && (
           /* eslint-disable-next-line @next/next/no-img-element */
