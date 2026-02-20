@@ -497,6 +497,24 @@
     margin-right: auto;
   }
 
+  .es-icon-circle-lg {
+    display: flex;
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: var(--es-color-surface-icon-soft);
+  }
+
+  .es-navbar-logo {
+    width: 150px;
+    height: 150px;
+    background-color: var(--es-color-surface-white);
+    object-fit: contain;
+  }
+
   .es-link-external-label {
     text-decoration-line: underline;
     text-underline-offset: 4px;

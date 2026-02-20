@@ -138,7 +138,7 @@ export function BookingEventDetails({
             {content.pricingTitle}
           </h3>
           <div className='mt-4 flex items-start gap-4'>
-            <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
+            <span className='es-icon-circle-lg'>
               <span
                 className='es-mask-credit-card-danger h-[46px] w-[46px] shrink-0'
                 aria-hidden='true'
@@ -163,7 +163,7 @@ export function BookingEventDetails({
             {content.locationTitle}
           </h3>
           <div className='mt-4 flex items-start gap-4'>
-            <span className='flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full es-bg-surface-icon-soft'>
+            <span className='es-icon-circle-lg'>
               <span
                 className='es-mask-target-danger h-[46px] w-[46px] shrink-0'
                 aria-hidden='true'
