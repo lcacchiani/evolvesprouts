@@ -58,4 +58,20 @@ describe('Footer external links', () => {
       expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
     }
   });
+
+  it('keeps mobile logo non-interactive and full-width accordion tap targets', () => {
+    render(<Footer content={enContent.footer} />);
+
+    const mobileFooterSection = document.querySelector('div.sm\\:hidden');
+    expect(mobileFooterSection).not.toBeNull();
+    expect(
+      mobileFooterSection?.querySelector('div.pointer-events-none'),
+    ).not.toBeNull();
+
+    const accordionSummaries = document.querySelectorAll('summary');
+    expect(accordionSummaries.length).toBeGreaterThan(0);
+    for (const summary of accordionSummaries) {
+      expect(summary.className).toContain('w-full');
+    }
+  });
 });

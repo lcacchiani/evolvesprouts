@@ -27,7 +27,7 @@ function resolveCurrentYearCopyright(value: string): string {
 }
 
 const FOOTER_LOGO_CLASSNAME =
-  'h-auto w-full max-w-[600px] -mt-[100px] mb-0 sm:-mb-[100px]';
+  'h-auto w-full max-w-[600px] -mt-[100px] -mb-[100px]';
 
 const socialIcons: Record<string, ReactNode> = {
   facebook: (
@@ -170,7 +170,7 @@ function FooterMobileAccordion({
 }) {
   return (
     <details className={`group ${hasTopBorder ? 'border-t border-black/15' : ''} py-5`}>
-      <summary className='flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden'>
+      <summary className='flex w-full cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden'>
         <span className='es-footer-column-title'>{title}</span>
         <AccordionChevronIcon />
       </summary>
@@ -231,7 +231,7 @@ export function Footer({ content }: FooterProps) {
           </div>
 
           <div className='sm:hidden'>
-            <div className='mb-7 flex justify-center'>
+            <div className='pointer-events-none mb-7 flex justify-center'>
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
