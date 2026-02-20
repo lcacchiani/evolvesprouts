@@ -19,12 +19,13 @@ vi.mock('next/image', () => ({
 }));
 
 describe('WhyUs section', () => {
-  it('uses migrated background and glow classes', () => {
+  it('uses migrated background, overlay, and glow classes', () => {
     const { container } = render(<WhyUs content={enContent.whyUs} />);
 
     const section = screen.getByRole('region', {
       name: enContent.whyUs.title,
     });
+    expect(section.className).toContain('es-section-bg-overlay');
     expect(section.className).toContain('es-why-us-section');
 
     expect(container.querySelector('.es-why-us-hero-card')).not.toBeNull();
