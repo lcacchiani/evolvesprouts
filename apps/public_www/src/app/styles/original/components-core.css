@@ -520,6 +520,10 @@
     text-underline-offset: 4px;
   }
 
+  .es-link-external-label--with-icon > .es-link-external-icon {
+    margin-left: 3px;
+  }
+
   .es-link-external-icon {
     display: inline-block;
     flex-shrink: 0;
