@@ -177,7 +177,7 @@ export function BookingReservationForm({
 
   return (
     <div className='w-full lg:w-[calc(50%-20px)]'>
-      <section className='relative overflow-hidden rounded-[14px] border es-border-panel es-bg-surface-muted px-5 py-7 sm:px-7'>
+      <section className='relative overflow-visible rounded-[14px] border es-border-panel es-bg-surface-muted px-5 py-7 sm:px-7'>
         <Image
           src='/images/evolvesprouts-logo.svg'
           alt=''
@@ -380,13 +380,14 @@ export function BookingReservationForm({
             </label>
           </div>
 
-          <label className='block'>
+          <label className='relative z-20 block overflow-visible'>
             <span className='mb-1 block text-sm font-semibold es-text-heading'>
               {content.captchaLabel}
             </span>
             <TurnstileCaptcha
               siteKey={turnstileSiteKey}
               widgetAction='my_best_auntie_reservation_submit'
+              size='normal'
               onTokenChange={(token) => {
                 setCaptchaToken(token);
                 if (token) {
