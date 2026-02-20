@@ -82,7 +82,6 @@ export function DeferredTestimonialsClient({
             <div className='mx-auto w-full max-w-[1488px]'>
               <SectionHeader
                 title={content.title}
-                titleClassName='font-semibold'
               />
               <div className='mt-10 h-[420px] bg-white lg:mt-14 lg:h-[540px]' />
             </div>
