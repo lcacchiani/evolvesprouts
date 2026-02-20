@@ -36,7 +36,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
     <section
       aria-label={content.headline}
       data-figma-node='banner'
-      className='relative w-full overflow-hidden px-4 pb-10 pt-8 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8 lg:pb-16 lg:pt-0 es-hero-section'
+      className='relative w-full overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-[100px] es-hero-section'
     >
       <div
         aria-hidden='true'
