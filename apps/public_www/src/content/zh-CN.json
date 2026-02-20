@@ -358,40 +358,40 @@
   "courseHighlights": {
     "eyebrow": "课程亮点",
     "title": "为什么加入我们的课程",
-    "description": "将您的阿姨培养成遵循蒙特梭利理念的儿童成长伙伴！",
+    "description": "当家庭真正想要改变时会选择的课程",
     "ctaLabel": "立即开始—今天就培训阿姨",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "立即联系",
     "items": [
       {
         "id": "age-specific",
-        "title": "按年龄定制策略",
-        "description": "为真实生活挑战提供话术脚本、练习手册和疑难排解指南。"
+        "title": "平静是建立出来的，不是靠期待",
+        "description": "孩子并不是“天生难带”。混乱来自指导不清和照护者不一致。我们训练阿姨通过结构、边界和准备来建立平静。"
       },
       {
         "id": "small-group-learning",
-        "title": "小组学习",
-        "description": "为真实生活挑战提供话术脚本、练习手册和疑难排解指南。"
+        "title": "你的阿姨每天都在教育孩子",
+        "description": "无论是否受过训练，阿姨每天都在塑造你的孩子。我们确保她示范独立、尊重与情绪调节——而不是控制或被动。"
       },
       {
         "id": "montessori-positive-discipline",
-        "title": "蒙特梭利 + 正向纪律",
-        "description": "为真实生活挑战提供话术脚本、练习手册和疑难排解指南。"
+        "title": "只有安全感会带来依赖",
+        "description": "只有安稳却没有边界，会培养依赖而不是自信。孩子成长需要清晰边界、责任与明确期待。我们教阿姨如何同时做到这三点。"
       },
       {
         "id": "ongoing-support",
-        "title": "1年持续支持",
-        "description": "为真实生活挑战提供话术脚本、练习手册和疑难排解指南。"
+        "title": "我们在问题真正发生的地方工作",
+        "description": "课程停留在理论就会失效。我们在你家中、在真实日常与真实压力下观察孩子——并进行精准干预。"
       },
       {
         "id": "ready-to-use-tools",
-        "title": "即用工具",
-        "description": "为真实生活挑战提供话术脚本、练习手册和疑难排解指南。"
+        "title": "进步必须看得见",
+        "description": "如果没有变化，训练就是失败。我们的家庭能看到行为、日常流程和家庭氛围的可量化变化——每周追踪并共同复盘。"
       },
       {
         "id": "guaranteed-confidence",
-        "title": "信心保障",
-        "description": "为真实生活挑战提供话术脚本、练习手册和疑难排解指南。"
+        "title": "对齐不可妥协",
+        "description": "当父母与阿姨不一致，受影响的是孩子。我们同时与双方合作——让引导始终一致、公平、可预期。"
       }
     ]
   },

@@ -358,40 +358,40 @@
   "courseHighlights": {
     "eyebrow": "Course Highlights",
     "title": "Why Joining Our Courses",
-    "description": "Transform Your Auntie into a Montessori-Guided Child Development Partner!",
+    "description": "The program serious families choose when they want real change",
     "ctaLabel": "Get Started—Train Auntie Today",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "Connect Now",
     "items": [
       {
         "id": "age-specific",
-        "title": "Age-Specific Strategies",
-        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
+        "title": "Calm Is Built, Not Hoped For",
+        "description": "Children are not \"naturally difficult.\" Chaos comes from unclear guidance and inconsistent adults. We train aunties to build calm through structure, limits, and preparation."
       },
       {
         "id": "small-group-learning",
-        "title": "Small Group Learning",
-        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
+        "title": "Your Auntie Is a Daily Educator",
+        "description": "Whether trained or not, your auntie is shaping your child every day. We ensure she models independence, respect, and emotional regulation — not control or passivity."
       },
       {
         "id": "montessori-positive-discipline",
-        "title": "Montessori + Positive Discipline",
-        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
+        "title": "Security Alone Creates Dependence",
+        "description": "Comfort without limits creates reliance, not confidence. Children need clear boundaries, responsibility, and expectations to grow. We teach aunties how to provide all three."
       },
       {
         "id": "ongoing-support",
-        "title": "1-Year Ongoing Support",
-        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
+        "title": "We Work Where Problems Actually Happen",
+        "description": "Courses fail when they stay theoretical. We observe your child in your home, during real routines and real stress — and intervene with precision."
       },
       {
         "id": "ready-to-use-tools",
-        "title": "Ready-to-Use Tools",
-        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
+        "title": "Progress Must Be Visible",
+        "description": "If nothing changes, training failed. Our families see measurable shifts in behavior, routines, and atmosphere — tracked weekly and reviewed together."
       },
       {
         "id": "guaranteed-confidence",
-        "title": "Guaranteed Confidence",
-        "description": "Scripts, workbooks, and troubleshooting guides for real-life challenges."
+        "title": "Alignment Is Non-Negotiable",
+        "description": "When parents and aunties are misaligned, children suffer. We work with both — so guidance is consistent, fair, and predictable."
       }
     ]
   },

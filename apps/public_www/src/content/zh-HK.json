@@ -358,40 +358,40 @@
   "courseHighlights": {
     "eyebrow": "課程亮點",
     "title": "為什麼加入我們的課程",
-    "description": "把姨姨培訓成以蒙特梭利為導向的幼兒發展夥伴！",
+    "description": "當家庭真正想要改變時會選擇的課程",
     "ctaLabel": "立即開始—今天就培訓姨姨",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "立即聯絡",
     "items": [
       {
         "id": "age-specific",
-        "title": "按年齡制定策略",
-        "description": "為真實生活挑戰提供話術腳本、工作簿和疑難排解指南。"
+        "title": "平靜是建立出來的，不是靠期待",
+        "description": "孩子並不是「天生難湊」。混亂來自指引不清和照顧者不一致。我們訓練姨姨透過結構、界線和準備去建立平靜。"
       },
       {
         "id": "small-group-learning",
-        "title": "小組學習",
-        "description": "為真實生活挑戰提供話術腳本、工作簿和疑難排解指南。"
+        "title": "你的姨姨每天都在教育孩子",
+        "description": "無論有沒有受過訓練，姨姨每天都在塑造你的孩子。我們確保她示範獨立、尊重和情緒調節——而不是控制或被動。"
       },
       {
         "id": "montessori-positive-discipline",
-        "title": "蒙特梭利 + 正向管教",
-        "description": "為真實生活挑戰提供話術腳本、工作簿和疑難排解指南。"
+        "title": "只有安全感會帶來依賴",
+        "description": "只有安穩而沒有界線，會培養依賴而不是自信。孩子成長需要清晰界線、責任和明確期望。我們教姨姨如何同時做到這三點。"
       },
       {
         "id": "ongoing-support",
-        "title": "1年持續支援",
-        "description": "為真實生活挑戰提供話術腳本、工作簿和疑難排解指南。"
+        "title": "我們在問題真正發生的地方工作",
+        "description": "課程停留於理論就會失效。我們在你家中、在真實日常與真實壓力下觀察孩子——並作出精準介入。"
       },
       {
         "id": "ready-to-use-tools",
-        "title": "即用工具",
-        "description": "為真實生活挑戰提供話術腳本、工作簿和疑難排解指南。"
+        "title": "進步必須看得見",
+        "description": "如果沒有改變，訓練就是失敗。我們的家庭會看到行為、日常流程和家庭氣氛的可量化變化——每週追蹤並一起檢視。"
       },
       {
         "id": "guaranteed-confidence",
-        "title": "信心保證",
-        "description": "為真實生活挑戰提供話術腳本、工作簿和疑難排解指南。"
+        "title": "對齊不可妥協",
+        "description": "當父母和姨姨不一致，受影響的是孩子。我們同時與雙方合作——讓引導始終一致、公平、可預期。"
       }
     ]
   },
