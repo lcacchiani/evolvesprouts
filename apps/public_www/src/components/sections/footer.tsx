@@ -190,7 +190,7 @@ export function Footer({ content }: FooterProps) {
 
   return (
     <footer data-figma-node='footer' className='w-full es-footer-root'>
-      <section className='w-full px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-[100px]'>
+      <section className='w-full es-section-shell-spacing'>
         <SectionContainer>
           <div className='mb-7 hidden justify-center sm:flex lg:hidden'>
             <Image

@@ -42,6 +42,7 @@ describe('HeroBanner section', () => {
     const section = container.querySelector('section[data-figma-node="banner"]');
     expect(section).not.toBeNull();
     expect(section?.className).toContain('es-hero-section');
+    expect(section?.className).toContain('es-section-shell-spacing');
 
     const frameBackground = container.querySelector('.es-hero-frame-bg');
     expect(frameBackground).not.toBeNull();

@@ -8,8 +8,7 @@ interface SectionShellProps {
   children: ReactNode;
 }
 
-const BASE_SECTION_CLASSNAME =
-  'w-full px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-[100px]';
+const BASE_SECTION_CLASSNAME = 'w-full es-section-shell-spacing';
 
 export function SectionShell({
   id,
