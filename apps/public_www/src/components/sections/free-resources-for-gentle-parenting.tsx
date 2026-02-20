@@ -291,6 +291,10 @@ export function FreeResourcesForGentleParenting({
     splitImagePosition === 'left' ? 'lg:order-2' : 'lg:order-1';
   const splitMediaPaneOrderClassName =
     splitImagePosition === 'left' ? 'lg:order-1' : 'lg:order-2';
+  const splitMediaBleedClassName =
+    splitImagePosition === 'left'
+      ? 'es-free-resources-media-pane--bleed-right'
+      : 'es-free-resources-media-pane--bleed-left';
   const overlayCardAlignmentClassName =
     overlayCardPosition === 'left' ? 'justify-start' : 'justify-end';
 
@@ -371,7 +375,7 @@ export function FreeResourcesForGentleParenting({
               >
                 <div
                   data-testid='free-resource-text-pane'
-                  className={`relative z-0 p-4 sm:p-6 lg:p-[35px] ${splitTextPaneOrderClassName}`}
+                  className={`relative z-10 p-4 sm:p-6 lg:p-[35px] ${splitTextPaneOrderClassName}`}
                 >
                   <article
                     className='relative flex h-full min-h-[370px] flex-col overflow-hidden rounded-[15px] p-6 sm:min-h-[440px] sm:p-8 lg:min-h-[516px]'
@@ -388,14 +392,11 @@ export function FreeResourcesForGentleParenting({
 
                 <div
                   data-testid='free-resource-media-pane'
-                  className={`relative z-10 min-h-[280px] overflow-hidden sm:min-h-[370px] lg:min-h-[587px] ${splitMediaPaneOrderClassName}`}
+                  className={`es-free-resources-media-pane ${splitMediaBleedClassName} relative z-0 min-h-[280px] overflow-visible sm:min-h-[370px] lg:min-h-[587px] ${splitMediaPaneOrderClassName}`}
                 >
-                  <Image
-                    src={RESOURCE_IMAGE_SRC}
-                    alt={mediaAltText}
-                    fill
-                    className='object-cover'
-                    sizes='(min-width: 1024px) 58vw, 100vw'
+                  <div
+                    aria-hidden='true'
+                    className='pointer-events-none absolute inset-0 z-0 es-free-resources-media-background'
                   />
 
                   <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>

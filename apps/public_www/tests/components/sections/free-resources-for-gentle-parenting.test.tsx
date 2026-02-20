@@ -43,9 +43,14 @@ describe('Free resources for gentle parenting section', () => {
 
     expect(header.className).toContain('text-center');
     expect(layout).toHaveAttribute('data-layout', 'split');
-    expect(textPane.className).toContain('z-0');
-    expect(mediaPane.className).toContain('z-10');
+    expect(textPane.className).toContain('z-10');
+    expect(mediaPane.className).toContain('z-0');
+    expect(mediaPane.className).toContain('es-free-resources-media-pane');
+    expect(mediaPane.className).toContain(
+      'es-free-resources-media-pane--bleed-left',
+    );
     expect(mediaPane.className).toContain('lg:order-2');
+    expect(mediaPane.querySelector('img')).toBeNull();
   });
 
   it('applies the orange tile background pattern to the card container', () => {
@@ -147,6 +152,9 @@ describe('Free resources for gentle parenting section', () => {
     expect(layout).toHaveAttribute('data-layout', 'split');
     expect(textPane.className).toContain('lg:order-2');
     expect(mediaPane.className).toContain('lg:order-1');
+    expect(mediaPane.className).toContain(
+      'es-free-resources-media-pane--bleed-right',
+    );
   });
 
   it('supports overlay layout with right-positioned text card', () => {

@@ -875,6 +875,13 @@
     background-size: 100px 100px;
   }
 
+  .es-free-resources-media-background {
+    background-image: url('/images/family.webp');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
   .es-free-resources-card-title {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
@@ -932,6 +939,16 @@
     font-size: clamp(1rem, 1.6vw, 20px);
     font-weight: var(--figma-fontweights-600, 600);
     line-height: 1;
+  }
+
+  @media (min-width: 1024px) {
+    .es-free-resources-media-pane--bleed-left .es-free-resources-media-background {
+      left: -14%;
+    }
+
+    .es-free-resources-media-pane--bleed-right .es-free-resources-media-background {
+      right: -14%;
+    }
   }
 
   .es-my-best-auntie-overview-section {
