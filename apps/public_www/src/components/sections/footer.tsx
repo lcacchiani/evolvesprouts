@@ -27,7 +27,7 @@ function resolveCurrentYearCopyright(value: string): string {
 }
 
 const FOOTER_LOGO_CLASSNAME =
-  'h-auto w-full max-w-[600px] -mt-[100px] -mb-[100px]';
+  'h-auto w-full max-w-[600px] -mt-[100px] mb-0 sm:-mb-[100px]';
 
 const socialIcons: Record<string, ReactNode> = {
   facebook: (
