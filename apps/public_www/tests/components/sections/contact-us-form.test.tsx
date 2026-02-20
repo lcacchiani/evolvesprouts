@@ -1,10 +1,54 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ContactUsForm } from '@/components/sections/contact-us-form';
 import enContent from '@/content/en.json';
 
+const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+vi.mock('@/components/shared/turnstile-captcha', () => ({
+  TurnstileCaptcha: ({
+    onTokenChange,
+    onLoadError,
+  }: {
+    onTokenChange: (token: string | null) => void;
+    onLoadError: () => void;
+  }) => (
+    <div data-testid='mock-turnstile-captcha'>
+      <button
+        type='button'
+        onClick={() => {
+          onTokenChange('mock-turnstile-token');
+        }}
+      >
+        Solve CAPTCHA
+      </button>
+      <button
+        type='button'
+        onClick={() => {
+          onLoadError();
+        }}
+      >
+        Fail CAPTCHA
+      </button>
+    </div>
+  ),
+}));
+
 describe('ContactUsForm section', () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
+  });
+
+  afterEach(() => {
+    if (originalTurnstileSiteKey === undefined) {
+      delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+      return;
+    }
+
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
+  });
+
   it('uses class-based decorative background styling on the left panel', () => {
     render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
 
@@ -98,5 +142,33 @@ describe('ContactUsForm section', () => {
       'aria-describedby',
       'contact-us-form-phone-error',
     );
+  });
+
+  it('requires CAPTCHA verification before form submission', () => {
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    const emailInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
+    );
+    const messageInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.contactUsForm.messageLabel),
+    );
+    const submitButton = screen.getByRole('button', {
+      name: enContent.contactUs.contactUsForm.submitLabel,
+    });
+
+    fireEvent.change(emailInput, { target: { value: 'parent@example.com' } });
+    fireEvent.change(messageInput, { target: { value: 'Tell me more about your course.' } });
+    fireEvent.click(submitButton);
+
+    expect(
+      screen.getByText(enContent.contactUs.contactUsForm.captchaRequiredError),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Solve CAPTCHA' }));
+
+    expect(
+      screen.queryByText(enContent.contactUs.contactUsForm.captchaRequiredError),
+    ).not.toBeInTheDocument();
   });
 });

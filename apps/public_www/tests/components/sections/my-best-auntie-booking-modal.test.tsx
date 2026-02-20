@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   MyBestAuntieBookingModal,
@@ -60,10 +60,40 @@ vi.mock('@/lib/discounts-data', async () => {
   };
 });
 
+vi.mock('@/components/shared/turnstile-captcha', () => ({
+  TurnstileCaptcha: ({
+    onTokenChange,
+    onLoadError,
+  }: {
+    onTokenChange: (token: string | null) => void;
+    onLoadError: () => void;
+  }) => (
+    <div data-testid='mock-turnstile-captcha'>
+      <button
+        type='button'
+        onClick={() => {
+          onTokenChange('mock-turnstile-token');
+        }}
+      >
+        Solve CAPTCHA
+      </button>
+      <button
+        type='button'
+        onClick={() => {
+          onLoadError();
+        }}
+      >
+        Fail CAPTCHA
+      </button>
+    </div>
+  ),
+}));
+
 const bookingModalContent = enContent.myBestAuntieBooking.paymentModal;
 const thankYouModalContent = enContent.myBestAuntieBooking.thankYouModal;
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedFetchDiscountRules = vi.mocked(fetchDiscountRules);
+const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 const reservationSummary: ReservationSummary = {
   attendeeName: 'Test User',
@@ -79,9 +109,20 @@ const reservationSummary: ReservationSummary = {
   scheduleTimeLabel: '12:00 pm - 2:00 pm',
 };
 
+beforeEach(() => {
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
+});
+
 afterEach(() => {
   mockedCreateCrmApiClient.mockReturnValue(null);
   mockedFetchDiscountRules.mockReset();
+
+  if (originalTurnstileSiteKey === undefined) {
+    delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    return;
+  }
+
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
 });
 
 describe('my-best-auntie booking modals footer content', () => {
@@ -252,6 +293,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.click(pendingAcknowledgement);
     expect(submitButton).toBeDisabled();
     fireEvent.click(termsAcknowledgement);
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Solve CAPTCHA' }));
     expect(submitButton).toBeEnabled();
 
     const requiredMarkers = screen.getAllByText('*');

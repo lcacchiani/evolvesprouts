@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
@@ -24,6 +25,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
 const EMAIL_ERROR_MESSAGE_ID = 'contact-us-form-email-error';
 const PHONE_ERROR_MESSAGE_ID = 'contact-us-form-phone-error';
+const CAPTCHA_ERROR_MESSAGE_ID = 'contact-us-form-captcha-error';
 
 function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
@@ -75,6 +77,7 @@ function buildMailtoHref(
 }
 
 export function ContactUsForm({ content }: ContactUsFormProps) {
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const [formState, setFormState] = useState<FormState>({
     firstName: '',
     email: '',
@@ -83,9 +86,23 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
   });
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isPhoneTouched, setIsPhoneTouched] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
+  const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
 
   const hasEmailError = isEmailTouched && !isValidEmail(formState.email);
   const hasPhoneError = isPhoneTouched && !isValidPhone(formState.phone);
+  const hasCaptchaValidationError = isCaptchaTouched && !captchaToken;
+  const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
+  const isCaptchaUnavailable = !isCaptchaConfigured || hasCaptchaLoadError;
+  const captchaErrorMessage = !isCaptchaConfigured
+    ? content.captchaUnavailableError
+    : hasCaptchaLoadError
+      ? content.captchaLoadError
+      : hasCaptchaValidationError
+        ? content.captchaRequiredError
+        : '';
+  const isSubmitDisabled = isCaptchaUnavailable;
 
   function updateField(field: keyof FormState, value: string) {
     setFormState((currentState) => ({
@@ -98,8 +115,12 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
     event.preventDefault();
     setIsEmailTouched(true);
     setIsPhoneTouched(true);
+    setIsCaptchaTouched(true);
 
     if (!isValidEmail(formState.email) || !isValidPhone(formState.phone)) {
+      return;
+    }
+    if (!captchaToken || isCaptchaUnavailable) {
       return;
     }
 
@@ -263,7 +284,42 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               />
             </label>
 
-            <ButtonPrimitive variant='primary' type='submit' className='mt-2 w-full'>
+            <label className='block'>
+              <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                {content.captchaLabel}
+              </span>
+              <TurnstileCaptcha
+                siteKey={turnstileSiteKey}
+                widgetAction='contact_us_form_submit'
+                onTokenChange={(token) => {
+                  setCaptchaToken(token);
+                  if (token) {
+                    setIsCaptchaTouched(false);
+                    setHasCaptchaLoadError(false);
+                  }
+                }}
+                onLoadError={() => {
+                  setHasCaptchaLoadError(true);
+                }}
+              />
+            </label>
+            {captchaErrorMessage ? (
+              <p
+                id={CAPTCHA_ERROR_MESSAGE_ID}
+                className='text-sm es-text-danger'
+                role='alert'
+              >
+                {captchaErrorMessage}
+              </p>
+            ) : null}
+
+            <ButtonPrimitive
+              variant='primary'
+              type='submit'
+              disabled={isSubmitDisabled}
+              className='mt-2 w-full'
+              aria-describedby={captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : undefined}
+            >
               {content.submitLabel}
             </ButtonPrimitive>
           </form>

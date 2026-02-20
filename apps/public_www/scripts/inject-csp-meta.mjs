@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
 
 const BUILD_OUTPUT_DIRECTORY = resolve('out');
+const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
 
 const CSP_DIRECTIVE_BASE = [
   "default-src 'self'",
@@ -11,7 +12,8 @@ const CSP_DIRECTIVE_BASE = [
   "object-src 'none'",
   "img-src 'self' data: https:",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "connect-src 'self' https://api.evolvesprouts.com",
+  `connect-src 'self' https://api.evolvesprouts.com ${TURNSTILE_ORIGIN}`,
+  `frame-src 'self' ${TURNSTILE_ORIGIN}`,
   "form-action 'self' mailto:",
 ];
 
@@ -140,7 +142,7 @@ function buildCspValue(html) {
     ...new Set(inlineStyleAttributeValues.map(toSha256HashSource)),
   ];
 
-  const scriptDirectiveSources = ["'self'", ...scriptHashes].join(' ');
+  const scriptDirectiveSources = ["'self'", TURNSTILE_ORIGIN, ...scriptHashes].join(' ');
   const styleDirectiveSources = [
     "'self'",
     ...(styleAttributeHashes.length > 0 ? ["'unsafe-hashes'"] : []),
