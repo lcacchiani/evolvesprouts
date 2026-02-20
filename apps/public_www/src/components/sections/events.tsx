@@ -143,7 +143,7 @@ export function Events({ content }: EventsProps) {
           title={content.title}
           titleAs='h1'
           description={content.description}
-          descriptionClassName='es-type-body mt-4 text-balance'
+          descriptionClassName='es-type-body mt-4'
         />
 
         <div className='mt-10 flex flex-col gap-4 sm:mt-12 sm:flex-row sm:items-center sm:justify-between'>

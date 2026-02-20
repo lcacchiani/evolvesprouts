@@ -56,7 +56,12 @@ export function SectionHeader({
         {title}
       </TitleTag>
       {description ? (
-        <p className={descriptionClassName ?? 'es-type-body mt-4'}>
+        <p
+          className={mergeClassNames(
+            'es-section-header-description',
+            descriptionClassName ?? 'es-type-body mt-4',
+          )}
+        >
           {description}
         </p>
       ) : null}

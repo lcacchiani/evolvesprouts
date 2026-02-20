@@ -156,7 +156,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               align='left'
               titleClassName='es-section-heading'
               description={content.description}
-              descriptionClassName='mt-4 es-section-body text-balance text-[1.05rem] leading-8'
+              descriptionClassName='mt-4 es-section-body text-[1.05rem] leading-8'
             />
           </div>
         </section>
