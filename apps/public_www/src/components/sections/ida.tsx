@@ -42,7 +42,6 @@ export function Ida({ content }: IdaProps) {
               width={1112}
               height={840}
               sizes='(min-width: 1280px) 1111px, (min-width: 1024px) 700px, 100vw'
-              priority
               className='h-auto w-full'
             />
           </div>
