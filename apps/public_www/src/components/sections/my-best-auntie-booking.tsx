@@ -132,7 +132,7 @@ export function MyBestAuntieBooking({
         id='my-best-auntie-booking'
         ariaLabel={content.title}
         dataFigmaNode='my-best-auntie-booking'
-        className='es-section-bg-overlay es-my-best-auntie-booking-section'
+        className='es-my-best-auntie-booking-section'
       >
         <SectionContainer>
           <div className='grid w-full min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-6'>

@@ -136,7 +136,7 @@ export function Events({ content }: EventsProps) {
       id='events'
       ariaLabel={content.title}
       dataFigmaNode='events'
-      className='es-section-bg-overlay es-events-section'
+      className='es-events-section'
     >
       <SectionContainer>
         <SectionHeader

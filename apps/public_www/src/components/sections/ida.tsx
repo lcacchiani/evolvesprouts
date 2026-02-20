@@ -16,7 +16,7 @@ export function Ida({ content }: IdaProps) {
       id='ida'
       ariaLabel={content.title}
       dataFigmaNode='ida'
-      className='es-section-bg-overlay es-ida-section overflow-hidden'
+      className='es-ida-section overflow-hidden'
     >
       <SectionContainer className='grid items-center gap-7 lg:grid-cols-2 lg:gap-10'>
         <div className='order-1 relative z-10 lg:order-2 lg:pl-8 xl:pl-[110px]'>

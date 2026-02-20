@@ -45,7 +45,7 @@ export function Connect({ content }: ConnectProps) {
       id='connect'
       ariaLabel={content.title}
       dataFigmaNode='connect'
-      className='es-section-bg-overlay overflow-hidden es-connect-section'
+      className='overflow-hidden es-connect-section'
     >
       <SectionContainer>
         <SectionHeader

@@ -18,7 +18,7 @@ export function SproutsSquadCommunity({
       id='sprouts-squad-community'
       ariaLabel={content.heading}
       dataFigmaNode='sprouts-squad-community'
-      className='es-section-bg-overlay overflow-hidden es-sprouts-community-section'
+      className='overflow-hidden es-sprouts-community-section'
     >
       <Image
         src='/images/footer-community-bg.webp'

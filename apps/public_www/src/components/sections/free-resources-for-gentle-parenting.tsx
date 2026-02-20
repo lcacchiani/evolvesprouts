@@ -296,7 +296,7 @@ export function FreeResourcesForGentleParenting({
       id='resources'
       ariaLabel={content.title}
       dataFigmaNode='resources'
-      className='es-section-bg-overlay es-free-resources-section'
+      className='es-free-resources-section'
     >
       <SectionContainer>
         <SectionHeader

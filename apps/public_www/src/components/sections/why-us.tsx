@@ -15,7 +15,7 @@ export function WhyUs({ content }: WhyUsProps) {
       id='why-us'
       ariaLabel={content.title}
       dataFigmaNode='why-us'
-      className='es-section-bg-overlay es-why-us-section'
+      className='es-why-us-section'
     >
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
