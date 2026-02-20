@@ -164,7 +164,7 @@ function MyBestAuntieOverviewCard({
 
   return (
     <article
-      className={`group relative flex min-h-[450px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:min-h-[520px] sm:px-6 md:min-h-[480px] lg:min-h-[560px] es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone}`}
+      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone}`}
     >
       <div
         aria-hidden='true'
