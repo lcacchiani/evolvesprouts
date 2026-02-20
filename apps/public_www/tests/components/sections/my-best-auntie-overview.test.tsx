@@ -1,8 +1,21 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import type { ComponentProps } from 'react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overview';
 import enContent from '@/content/en.json';
+
+vi.mock('next/image', () => ({
+  default: function MockImage(props: ComponentProps<'img'>) {
+    return (
+      <img
+        src={typeof props.src === 'string' ? props.src : 'non-string-src'}
+        alt={props.alt ?? ''}
+        className={props.className}
+      />
+    );
+  },
+}));
 
 describe('MyBestAuntieOverview section', () => {
   it('uses migrated section and module tone classes', () => {
@@ -42,5 +55,21 @@ describe('MyBestAuntieOverview section', () => {
     expect(
       container.querySelector('span.es-my-best-auntie-overview-count-text--blue'),
     ).not.toBeNull();
+
+    const moduleIcons = enContent.myBestAuntieOverview.modules.map(
+      (module) => module.icon,
+    );
+    moduleIcons.forEach((iconName) => {
+      expect(
+        container.querySelectorAll(`img[src="/images/${iconName}.svg"]`).length,
+      ).toBe(2);
+    });
+    const renderedModuleIconCount = moduleIcons.reduce(
+      (count, iconName) =>
+        count +
+        container.querySelectorAll(`img[src="/images/${iconName}.svg"]`).length,
+      0,
+    );
+    expect(renderedModuleIconCount).toBe(moduleIcons.length * 2);
   });
 });
