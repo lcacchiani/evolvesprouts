@@ -9,6 +9,13 @@ describe('ReachOut', () => {
     const content = enContent.contactUs.reachOut;
     const { container } = render(<ReachOut content={content} />);
 
+    const section = screen.getByRole('region', {
+      name: content.title,
+    });
+    expect(section.className).toContain('es-section-bg-overlay');
+    expect(section.className).toContain('es-reach-out-section');
+    expect(container.querySelector('.es-course-highlights-overlay')).not.toBeNull();
+
     expect(
       screen.getByRole('heading', {
         name: content.title,
