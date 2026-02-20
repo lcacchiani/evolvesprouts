@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -19,6 +19,17 @@ export interface CourseHighlightCardProps {
   imageClassName: string;
   description?: string;
   tone: CourseHighlightCardTone;
+}
+
+const INTERACTIVE_ELEMENT_SELECTOR =
+  'button, a, input, select, textarea, [role="button"]';
+
+function supportsHoverInteraction(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia('(hover: hover)').matches;
 }
 
 export function CourseHighlightCard({
@@ -51,6 +62,22 @@ export function CourseHighlightCard({
     setIsActive((prev) => !prev);
   }, []);
 
+  const handleCardSurfaceClick = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      const clickTarget = event.target as HTMLElement | null;
+      if (clickTarget?.closest(INTERACTIVE_ELEMENT_SELECTOR)) {
+        return;
+      }
+
+      if (supportsHoverInteraction()) {
+        return;
+      }
+
+      setIsActive((prev) => !prev);
+    },
+    [],
+  );
+
   // Build conditional class fragments for the active (tapped) state.
   // Desktop hover continues to work independently via lg:group-hover:*.
   const overlayActive = isActive
@@ -66,6 +93,7 @@ export function CourseHighlightCard({
   return (
     <article
       ref={articleRef}
+      onClick={handleCardSurfaceClick}
       className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-[25px] p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8 ${toneClassName}`}
     >
       {/* Dark overlay — activated by desktop hover or mobile tap */}
