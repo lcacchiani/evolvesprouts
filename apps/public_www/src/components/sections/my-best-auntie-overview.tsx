@@ -160,7 +160,7 @@ function MyBestAuntieOverviewCard({
             {module.activity}
           </p>
         )}
-        <div className='mt-auto flex -translate-y-[50px] flex-col items-center gap-4 pt-6'>
+        <div className='relative z-20 mt-auto flex -translate-y-[50px] flex-col items-center gap-4 pt-6'>
           <div className='relative'>
             <span
               aria-hidden='true'
