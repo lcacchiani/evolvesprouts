@@ -140,7 +140,7 @@ export function MyBestAuntieBooking({
         <SectionContainer>
           <div
             className={buildSectionSplitLayoutClassName(
-              'w-full min-w-0 items-center gap-8 lg:gap-6',
+              'es-section-split-layout--my-best-auntie-booking w-full min-w-0 items-center',
             )}
           >
             <section className='space-y-5 max-w-[620px] lg:pr-8'>

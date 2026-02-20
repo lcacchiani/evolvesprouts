@@ -30,7 +30,9 @@ export function MyJourney({ content }: MyJourneyProps) {
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
         <div
-          className={buildSectionSplitLayoutClassName('mt-10 gap-6 lg:mt-12 lg:gap-8')}
+          className={buildSectionSplitLayoutClassName(
+            'es-section-split-layout--my-journey mt-10 lg:mt-12',
+          )}
         >
           <div className='relative overflow-hidden rounded-[30px] es-bg-surface-peach'>
             <Image

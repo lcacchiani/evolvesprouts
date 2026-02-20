@@ -49,7 +49,9 @@ export function HeroBanner({ content }: HeroBannerProps) {
         className='pointer-events-none absolute left-0 top-0 bg-no-repeat es-hero-frame-bg'
       />
       <SectionContainer
-        className={buildSectionSplitLayoutClassName('items-center gap-8 lg:gap-6')}
+        className={buildSectionSplitLayoutClassName(
+          'es-section-split-layout--hero items-center',
+        )}
       >
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8 lg:pt-[70px]'>
           <div className='relative z-10'>

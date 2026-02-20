@@ -149,7 +149,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
         className='pointer-events-none absolute left-0 top-0 es-contact-us-left-decor'
       />
       <SectionContainer
-        className={buildSectionSplitLayoutClassName('gap-10 lg:gap-9')}
+        className={buildSectionSplitLayoutClassName('es-section-split-layout--contact-us')}
       >
         <section
           className='relative flex h-full items-start overflow-hidden px-6 py-8 sm:px-8 lg:px-10 lg:pt-[25%]'

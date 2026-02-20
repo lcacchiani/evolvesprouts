@@ -366,7 +366,7 @@ export function FreeResourcesForGentleParenting({
                 data-testid='free-resource-layout'
                 data-layout='split'
                 className={buildSectionSplitLayoutClassName(
-                  'overflow-hidden rounded-[16px] border border-black/5 es-free-resources-pattern-bg',
+                  'es-section-split-layout--free-resources overflow-hidden rounded-[16px] border border-black/5 es-free-resources-pattern-bg',
                 )}
               >
                 <div

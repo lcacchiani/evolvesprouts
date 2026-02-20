@@ -21,7 +21,9 @@ export function MyHistory({ content }: MyHistoryProps) {
       className='es-section-bg-overlay es-my-history-section'
     >
       <SectionContainer
-        className={buildSectionSplitLayoutClassName('items-center gap-8 lg:gap-12')}
+        className={buildSectionSplitLayoutClassName(
+          'es-section-split-layout--my-history items-center',
+        )}
       >
         <div>
           <SectionHeader

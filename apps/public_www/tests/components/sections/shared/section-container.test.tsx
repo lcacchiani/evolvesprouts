@@ -48,7 +48,7 @@ describe('buildSectionSplitLayoutClassName', () => {
 
   it('merges custom classes with the shared two-column split class', () => {
     expect(buildSectionSplitLayoutClassName('items-center gap-8')).toBe(
-      'grid lg:grid-cols-2 items-center gap-8',
+      'es-section-split-layout items-center gap-8',
     );
   });
 });

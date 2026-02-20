@@ -24,7 +24,9 @@ export function WhyUs({ content }: WhyUsProps) {
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
         <div
-          className={buildSectionSplitLayoutClassName('mt-10 gap-6 lg:mt-12 lg:gap-8')}
+          className={buildSectionSplitLayoutClassName(
+            'es-section-split-layout--why-us mt-10 lg:mt-12',
+          )}
         >
           <div
             className='relative isolate overflow-hidden rounded-[26px] border es-border-soft-alt p-6 es-why-us-hero-card'

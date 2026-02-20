@@ -22,7 +22,9 @@ export function Ida({ content }: IdaProps) {
       className='es-ida-section overflow-hidden'
     >
       <SectionContainer
-        className={buildSectionSplitLayoutClassName('items-center gap-7 lg:gap-10')}
+        className={buildSectionSplitLayoutClassName(
+          'es-section-split-layout--ida items-center',
+        )}
       >
         <div className='order-1 relative z-10 lg:order-2 lg:pl-8 xl:pl-[110px]'>
           <SectionHeader

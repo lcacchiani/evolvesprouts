@@ -207,7 +207,11 @@ export function Testimonials({ content }: TestimonialsProps) {
               key={`${activeStory.author ?? 'story'}-${activeIndex}`}
               className='min-w-full'
             >
-              <div className={buildSectionSplitLayoutClassName()}>
+              <div
+                className={buildSectionSplitLayoutClassName(
+                  'es-section-split-layout--testimonials',
+                )}
+              >
                 <div className='relative min-h-[260px] overflow-hidden rounded-[30px] es-bg-surface-peach sm:min-h-[360px] lg:min-h-[540px]'>
                   {activeStory.mainImageSrc ? (
                     <Image

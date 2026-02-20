@@ -12,7 +12,7 @@ type SectionContainerProps<T extends ElementType = 'div'> = {
   children: ReactNode;
 } & Omit<ComponentPropsWithoutRef<T>, 'as' | 'className' | 'children'>;
 
-export const SECTION_SPLIT_LAYOUT_CLASSNAME = 'grid lg:grid-cols-2';
+export const SECTION_SPLIT_LAYOUT_CLASSNAME = 'es-section-split-layout';
 
 export function buildSectionSplitLayoutClassName(className?: string): string {
   return mergeClassNames(SECTION_SPLIT_LAYOUT_CLASSNAME, className);
