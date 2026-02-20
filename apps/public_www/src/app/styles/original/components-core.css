@@ -560,6 +560,19 @@
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
+  .es-navbar-hamburger-icon {
+    display: inline-block;
+    background-color: var(--es-color-brand-orange, #C84A16);
+    mask-image: url('/images/hamburger.svg');
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    -webkit-mask-image: url('/images/hamburger.svg');
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+  }
+
   .es-testimonial-quote-icon {
     display: inline-block;
     background-color: var(--es-color-brand-orange-strong);
