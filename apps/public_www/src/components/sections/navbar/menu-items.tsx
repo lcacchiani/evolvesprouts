@@ -20,10 +20,11 @@ const NAV_TOP_LEVEL_LINK_CLASSNAME =
 const NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME =
   `${NAV_TOP_LEVEL_LINK_CLASSNAME} pr-10`;
 const NAV_SUBMENU_LINK_CLASSNAME = '';
+const NAV_MOBILE_PILL_RESET_CLASSNAME = 'es-navbar-mobile-pill-reset';
 const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
-  'flex-1';
+  `flex-1 ${NAV_MOBILE_PILL_RESET_CLASSNAME}`;
 export const MOBILE_PRIMARY_ACTION_CLASSNAME =
-  'w-full justify-between transition-colors';
+  `w-full justify-between transition-colors ${NAV_MOBILE_PILL_RESET_CLASSNAME}`;
 const NAV_LANGUAGE_CHEVRON_ICON_SRC = '/images/chevron.svg';
 const NAV_MOBILE_CHEVRON_ICON_SRC = '/images/chevron.svg';
 

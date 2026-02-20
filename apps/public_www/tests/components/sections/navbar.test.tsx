@@ -120,4 +120,27 @@ describe('Navbar desktop submenu accessibility', () => {
     fireEvent.click(submenuToggle);
     expect(submenuToggle).toHaveAttribute('aria-expanded', 'false');
   });
+
+  it('applies the pill reset class to mobile drawer pill controls', async () => {
+    render(<Navbar content={enContent.navbar} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Open navigation menu/i }));
+
+    const drawer = await screen.findByRole('dialog', {
+      name: /Mobile navigation menu/i,
+    });
+
+    const homeLink = within(drawer).getByRole('link', { name: 'Home' });
+    expect(homeLink.className).toContain('es-navbar-mobile-pill-reset');
+
+    const trainingCoursesToggle = within(drawer).getByRole('button', {
+      name: 'Toggle Training Courses submenu',
+    });
+    expect(trainingCoursesToggle.className).toContain('es-navbar-mobile-pill-reset');
+
+    const languageSelectorButton = within(drawer).getByRole('button', {
+      name: /Selected language: English/i,
+    });
+    expect(languageSelectorButton.className).toContain('es-navbar-mobile-pill-reset');
+  });
 });
