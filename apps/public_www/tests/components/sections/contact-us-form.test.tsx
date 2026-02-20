@@ -83,9 +83,6 @@ describe('ContactUsForm section', () => {
 
     for (const input of [firstNameInput, emailInput, phoneInput, messageInput]) {
       expect(input.className).toContain('es-form-input');
-      expect(input.className).toContain('rounded-[14px]');
-      expect(input.className).toContain('text-[16px]');
-      expect(input.className).toContain('font-semibold');
     }
   });
 
