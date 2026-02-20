@@ -1,4 +1,6 @@
-import { Fragment, type ReactNode } from 'react';
+'use client';
+
+import { Fragment, type KeyboardEvent, type ReactNode, useState } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
@@ -84,16 +86,45 @@ function MyBestAuntieOverviewCard({
   module,
   index,
   showFullActivity,
+  isExpanded,
+  onToggleDescription,
 }: {
   module: ModuleStep;
   index: number;
   showFullActivity: boolean;
+  isExpanded: boolean;
+  onToggleDescription?: () => void;
 }) {
   const tone = getModuleTone(index);
+  const isInteractive = !showFullActivity;
+
+  function handleCardClick() {
+    if (!isInteractive) {
+      return;
+    }
+
+    onToggleDescription?.();
+  }
+
+  function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (!isInteractive) {
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onToggleDescription?.();
+    }
+  }
 
   return (
     <article
-      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone}`}
+      role={isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      aria-expanded={isInteractive ? isExpanded : undefined}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
     >
       <div
         aria-hidden='true'
@@ -120,7 +151,7 @@ function MyBestAuntieOverviewCard({
         </p>
         {module.activity && (
           <p
-            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-overview-activity ${showFullActivity ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
+            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-overview-activity ${showFullActivity || isExpanded ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
           >
             {module.activity}
           </p>
@@ -144,6 +175,10 @@ function MyBestAuntieOverviewCard({
 }
 
 export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
+  const [expandedModuleStep, setExpandedModuleStep] = useState<string | null>(
+    null,
+  );
+
   const moduleSteps: ModuleStep[] = content.modules.map((module, index) => ({
     step: module.step,
     title: module.title,
@@ -155,6 +190,12 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
   }));
 
   const computedCtaLabel = content.ctaLabel.trim().replace(/\s*>$/, '');
+
+  function handleToggleModule(step: string) {
+    setExpandedModuleStep((previousStep) =>
+      previousStep === step ? null : step,
+    );
+  }
 
   return (
     <SectionShell
@@ -178,6 +219,8 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                   module={module}
                   index={index}
                   showFullActivity={false}
+                  isExpanded={expandedModuleStep === module.step}
+                  onToggleDescription={() => handleToggleModule(module.step)}
                 />
               </li>
             ))}
@@ -234,6 +277,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                       module={module}
                       index={index}
                       showFullActivity
+                      isExpanded
                     />
                   </li>
                 ))}

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -71,5 +71,32 @@ describe('MyBestAuntieOverview section', () => {
       0,
     );
     expect(renderedModuleIconCount).toBe(moduleIcons.length * 2);
+  });
+
+  it('reveals the desktop card description when clicked', () => {
+    const { container } = render(
+      <MyBestAuntieOverview content={enContent.myBestAuntieOverview} />,
+    );
+
+    const desktopGrid = Array.from(container.querySelectorAll('ul')).find(
+      (list) => list.className.includes('md:grid-cols-3'),
+    );
+    expect(desktopGrid).not.toBeUndefined();
+
+    const firstCard = desktopGrid?.querySelector('article');
+    expect(firstCard).not.toBeNull();
+    expect(firstCard?.getAttribute('role')).toBe('button');
+
+    const description = firstCard?.querySelector(
+      'p.es-my-best-auntie-overview-activity',
+    );
+    expect(description).not.toBeNull();
+    expect(description?.className).toContain('opacity-0');
+
+    fireEvent.click(firstCard!);
+    expect(description?.className).toContain('opacity-100');
+
+    fireEvent.click(firstCard!);
+    expect(description?.className).toContain('opacity-0');
   });
 });
