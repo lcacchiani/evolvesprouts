@@ -1,6 +1,9 @@
 import Image from 'next/image';
 
-import { SectionContainer } from '@/components/sections/shared/section-container';
+import {
+  buildSectionSplitLayoutClassName,
+  SectionContainer,
+} from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { WhyUsContent } from '@/content';
@@ -20,7 +23,9 @@ export function WhyUs({ content }: WhyUsProps) {
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
-        <div className='mt-10 grid gap-6 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-8'>
+        <div
+          className={buildSectionSplitLayoutClassName('mt-10 gap-6 lg:mt-12 lg:gap-8')}
+        >
           <div
             className='relative isolate overflow-hidden rounded-[26px] border es-border-soft-alt p-6 es-why-us-hero-card'
           >

@@ -1,6 +1,9 @@
 import Image from 'next/image';
 
-import { SectionContainer } from '@/components/sections/shared/section-container';
+import {
+  buildSectionSplitLayoutClassName,
+  SectionContainer,
+} from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { MyHistoryContent } from '@/content';
@@ -17,7 +20,9 @@ export function MyHistory({ content }: MyHistoryProps) {
       dataFigmaNode='my-history'
       className='es-section-bg-overlay es-my-history-section'
     >
-      <SectionContainer className='grid items-center gap-8 lg:grid-cols-2 lg:gap-12'>
+      <SectionContainer
+        className={buildSectionSplitLayoutClassName('items-center gap-8 lg:gap-12')}
+      >
         <div>
           <SectionHeader
             eyebrow={content.eyebrow}

@@ -2,7 +2,10 @@ import { Fragment, type ReactNode } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
-import { SectionContainer } from '@/components/sections/shared/section-container';
+import {
+  buildSectionSplitLayoutClassName,
+  SectionContainer,
+} from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { HeroContent } from '@/content';
@@ -45,7 +48,9 @@ export function HeroBanner({ content }: HeroBannerProps) {
         aria-hidden='true'
         className='pointer-events-none absolute left-0 top-0 bg-no-repeat es-hero-frame-bg'
       />
-      <SectionContainer className='grid items-center gap-8 lg:grid-cols-2 lg:gap-6'>
+      <SectionContainer
+        className={buildSectionSplitLayoutClassName('items-center gap-8 lg:gap-6')}
+      >
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8 lg:pt-[70px]'>
           <div className='relative z-10'>
             <SectionHeader
