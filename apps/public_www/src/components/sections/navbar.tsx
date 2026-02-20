@@ -42,7 +42,6 @@ interface NavbarProps {
 }
 
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
-const NAV_HAMBURGER_ICON_SRC = '/images/hamburger.svg';
 const NAV_CLOSE_ICON_SRC = '/images/close.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
@@ -56,6 +55,7 @@ const NAV_MOBILE_LANGUAGE_BUTTON_CLASSNAME =
   `${NAV_MOBILE_CONTROL_SURFACE_CLASSNAME} h-11 gap-2 rounded-[14px] px-2.5`;
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
   `${NAV_MOBILE_CONTROL_SURFACE_CLASSNAME} h-11 w-11 rounded-[14px]`;
+const NAV_HAMBURGER_ICON_CLASSNAME = 'es-navbar-hamburger-icon h-4 w-4';
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
   'h-10 w-10 rounded-full';
 
@@ -283,14 +283,7 @@ export function Navbar({ content }: NavbarProps) {
               className={NAV_OPEN_MENU_BUTTON_CLASSNAME}
             >
               <span className='sr-only'>Open navigation menu</span>
-              <Image
-                src={NAV_HAMBURGER_ICON_SRC}
-                alt=''
-                aria-hidden='true'
-                width={16}
-                height={16}
-                className='h-4 w-4'
-              />
+              <span aria-hidden='true' className={NAV_HAMBURGER_ICON_CLASSNAME} />
             </ButtonPrimitive>
           </div>
         </SectionContainer>
