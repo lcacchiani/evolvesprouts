@@ -11,6 +11,7 @@ describe('Connect section', () => {
     const section = screen.getByRole('region', {
       name: enContent.contactUs.connect.title,
     });
+    expect(section.className).toContain('es-section-bg-overlay');
     expect(section.className).toContain('es-connect-section');
 
     const firstCardTitle = screen.getByRole('heading', {
