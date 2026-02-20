@@ -55,21 +55,30 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(header?.className).toContain('relative');
     expect(header?.className).toContain('z-30');
 
-    const languageSelector = screen.getByRole('button', {
+    const languageSelectors = screen.getAllByRole('button', {
       name: /Selected language: English/i,
     });
-    expect(languageSelector.className).toContain('self-center');
-    const languageSelectorWrapper = languageSelector.closest('div');
+    const desktopLanguageSelector = languageSelectors.find((button) =>
+      button.className.includes('self-center'),
+    );
+    expect(desktopLanguageSelector).toBeDefined();
+    const languageSelectorWrapper = (
+      desktopLanguageSelector as HTMLElement
+    ).closest('div');
     expect(languageSelectorWrapper?.className).toContain('items-center');
   });
 
   it('applies active and inactive classes to language menu items', () => {
     render(<Navbar content={enContent.navbar} />);
 
-    const toggle = screen.getByRole('button', {
+    const languageSelectors = screen.getAllByRole('button', {
       name: /Selected language: English/i,
     });
-    fireEvent.click(toggle);
+    const desktopToggle = languageSelectors.find((button) =>
+      button.className.includes('self-center'),
+    );
+    expect(desktopToggle).toBeDefined();
+    fireEvent.click(desktopToggle as HTMLElement);
 
     const englishOption = screen.getByRole('menuitem', { name: /English/i });
     const simplifiedChineseOption = screen.getByRole('menuitem', {
@@ -134,14 +143,35 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(submenuToggle).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('applies the pill reset class to mobile drawer pill controls', async () => {
+  it('styles mobile navbar controls and keeps language selector outside the drawer', async () => {
     render(<Navbar content={enContent.navbar} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Open navigation menu/i }));
+    const openMenuButton = screen.getByRole('button', {
+      name: /Open navigation menu/i,
+    });
+    expect(openMenuButton.className).toContain('es-border-soft');
+    expect(openMenuButton.className).toContain('bg-[#F6DECD]');
+
+    const languageSelectors = screen.getAllByRole('button', {
+      name: /Selected language: English/i,
+    });
+    const mobileLanguageSelector = languageSelectors.find((button) =>
+      button.className.includes('rounded-[14px]'),
+    );
+    expect(mobileLanguageSelector).toBeDefined();
+    expect(mobileLanguageSelector?.className).toContain('es-border-soft');
+    expect(mobileLanguageSelector?.className).toContain('bg-[#F6DECD]');
+
+    fireEvent.click(openMenuButton);
 
     const drawer = await screen.findByRole('dialog', {
       name: /Mobile navigation menu/i,
     });
+    expect(
+      within(drawer).queryByRole('button', {
+        name: /Selected language: English/i,
+      }),
+    ).toBeNull();
 
     const homeLink = within(drawer).getByRole('link', { name: 'Home' });
     expect(homeLink.className).toContain('es-navbar-mobile-pill-reset');
@@ -151,9 +181,5 @@ describe('Navbar desktop submenu accessibility', () => {
     });
     expect(trainingCoursesToggle.className).toContain('es-navbar-mobile-pill-reset');
 
-    const languageSelectorButton = within(drawer).getByRole('button', {
-      name: /Selected language: English/i,
-    });
-    expect(languageSelectorButton.className).toContain('es-navbar-mobile-pill-reset');
   });
 });
