@@ -8,9 +8,11 @@ import enContent from '@/content/en.json';
 vi.mock('next/image', () => ({
   default: function MockImage(props: ComponentProps<'img'>) {
     return (
-      <img
-        src={typeof props.src === 'string' ? props.src : 'non-string-src'}
-        alt={props.alt ?? ''}
+      <div
+        data-next-image-src={
+          typeof props.src === 'string' ? props.src : 'non-string-src'
+        }
+        data-next-image-alt={props.alt ?? ''}
         className={props.className}
       />
     );
@@ -61,13 +63,17 @@ describe('MyBestAuntieOverview section', () => {
     );
     moduleIcons.forEach((iconName) => {
       expect(
-        container.querySelectorAll(`img[src="/images/${iconName}.svg"]`).length,
+        container.querySelectorAll(
+          `div[data-next-image-src="/images/${iconName}.svg"]`,
+        ).length,
       ).toBe(2);
     });
     const renderedModuleIconCount = moduleIcons.reduce(
       (count, iconName) =>
         count +
-        container.querySelectorAll(`img[src="/images/${iconName}.svg"]`).length,
+        container.querySelectorAll(
+          `div[data-next-image-src="/images/${iconName}.svg"]`,
+        ).length,
       0,
     );
     expect(renderedModuleIconCount).toBe(moduleIcons.length * 2);
