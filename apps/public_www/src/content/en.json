@@ -55,13 +55,13 @@
         },
         {
           "locale": "zh-CN",
-          "label": "Chinese (Simplified)",
+          "label": "简体中文",
           "shortLabel": "SC",
           "flagSrc": "/images/flags/china.svg"
         },
         {
           "locale": "zh-HK",
-          "label": "Chinese (Traditional)",
+          "label": "繁體中文",
           "shortLabel": "TC",
           "flagSrc": "/images/flags/hong-kong.svg"
         }
