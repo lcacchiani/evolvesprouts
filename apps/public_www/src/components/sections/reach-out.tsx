@@ -45,11 +45,6 @@ export function ReachOut({ content }: ReachOutProps) {
       dataFigmaNode='reach-out'
       className='es-section-bg-overlay es-reach-out-section overflow-hidden'
     >
-      <div
-        aria-hidden='true'
-        className='es-course-highlights-overlay pointer-events-none absolute inset-0'
-      />
-
       <SectionContainer>
         <SectionHeader
           eyebrow={content.eyebrow}

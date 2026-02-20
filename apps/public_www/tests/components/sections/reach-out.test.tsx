@@ -14,7 +14,6 @@ describe('ReachOut', () => {
     });
     expect(section.className).toContain('es-section-bg-overlay');
     expect(section.className).toContain('es-reach-out-section');
-    expect(container.querySelector('.es-course-highlights-overlay')).not.toBeNull();
 
     expect(
       screen.getByRole('heading', {
