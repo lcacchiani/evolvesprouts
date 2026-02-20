@@ -161,7 +161,7 @@ export function MyBestAuntieDescription({
                     <ButtonPrimitive
                       href={item.ctaHref}
                       variant='outline'
-                      className='min-h-[52px] w-full rounded-[10px] px-6 text-center text-[18px] font-semibold leading-none transition-colors duration-200'
+                      className='min-h-[52px] w-full rounded-[10px] px-6 text-center text-lg font-semibold leading-none transition-colors duration-200'
                     >
                       {item.ctaLabel}
                     </ButtonPrimitive>

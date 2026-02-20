@@ -191,7 +191,7 @@ export function MyBestAuntieBooking({
                         onClick={() => {
                           setSelectedAgeId(option.id);
                         }}
-                        className='min-h-[76px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left'
+                        className='min-h-[76px] w-[175px] shrink-0 rounded-lg px-4 py-2 text-left'
                       >
                         <div className='flex items-center justify-start gap-10'>
                           <Image

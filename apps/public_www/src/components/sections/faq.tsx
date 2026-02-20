@@ -123,7 +123,7 @@ function FaqItems({
           return (
             <li key={`${item.question}-${index}`} className='h-full'>
               <article
-                className='flex h-full flex-col rounded-[24px] px-6 py-7 sm:px-8 sm:py-8 es-faq-contact-card'
+                className='flex h-full flex-col rounded-3xl px-6 py-7 sm:px-8 sm:py-8 es-faq-contact-card'
               >
                 <h3 className='es-faq-contact-question'>{item.question}</h3>
                 <p className='mt-5 whitespace-pre-line es-faq-contact-answer'>
@@ -142,7 +142,7 @@ function FaqItems({
 
         return (
           <li key={`${item.question}-${index}`} className='h-full'>
-            <article className='flex h-full flex-col rounded-[24px] es-bg-surface-muted px-6 py-7 sm:px-8 sm:py-8'>
+            <article className='flex h-full flex-col rounded-3xl es-bg-surface-muted px-6 py-7 sm:px-8 sm:py-8'>
               <h3 className='es-faq-question'>{item.question}</h3>
               <div className='mt-5 border-l-[4.1px] es-divider-green pl-5 sm:pl-6'>
                 <p className='whitespace-pre-line es-faq-answer'>
@@ -203,7 +203,7 @@ export function Faq({ content }: FaqProps) {
                 setSearchValue(event.target.value);
               }}
               placeholder={content.searchPlaceholder}
-              className='es-focus-ring w-full rounded-full es-bg-surface-neutral py-3 pl-8 pr-4 text-[18px] font-semibold tracking-[0.5px] es-text-dim outline-none es-text-placeholder sm:pl-9 sm:text-[22px]'
+              className='es-focus-ring w-full rounded-full es-bg-surface-neutral py-3 pl-8 pr-4 text-lg font-semibold tracking-[0.5px] es-text-dim outline-none es-text-placeholder sm:pl-9 sm:text-[22px]'
             />
           </div>
         </div>

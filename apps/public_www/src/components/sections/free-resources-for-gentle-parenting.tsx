@@ -228,7 +228,7 @@ function ResourceCardContent({
           {checklistItems.map((item) => (
             <li
               key={`${item.title}-${item.description ?? ''}`}
-              className='rounded-[12px] bg-white px-4 py-[18px] sm:px-5'
+              className='rounded-xl bg-white px-4 py-[18px] sm:px-5'
             >
               <p className='relative pl-9 es-free-resources-checklist-title'>
                 <span className='absolute left-0 top-[-1px]'>
