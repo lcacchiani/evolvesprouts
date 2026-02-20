@@ -20,13 +20,6 @@ export function SproutsSquadCommunity({
       dataFigmaNode='sprouts-squad-community'
       className='overflow-hidden es-sprouts-community-section'
     >
-      <Image
-        src='/images/footer-community-bg.webp'
-        alt=''
-        fill
-        sizes='100vw'
-        className='object-cover object-top'
-      />
       <div
         aria-hidden='true'
         className='pointer-events-none absolute inset-0 es-sprouts-community-overlay'
@@ -44,7 +37,7 @@ export function SproutsSquadCommunity({
           <SectionHeader
             title={content.heading}
             align='left'
-            className='max-w-[620px]'
+            className='max-w-[620px] mx-0'
             titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
           />
 
