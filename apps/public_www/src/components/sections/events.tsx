@@ -156,7 +156,7 @@ export function Events({ content }: EventsProps) {
               onChange={(event) => {
                 setActiveFilter(event.target.value);
               }}
-              className='es-focus-ring es-events-filter-select w-full appearance-none rounded-[58px] border es-border-soft es-bg-peach-glass px-4 py-[17px] pr-10'
+              className='es-focus-ring es-events-filter-select w-full appearance-none rounded-full border es-border-soft es-bg-peach-glass px-4 py-[17px] pr-10'
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -197,7 +197,7 @@ export function Events({ content }: EventsProps) {
               <p className='es-events-card-body'>{content.loadingLabel}</p>
             </div>
           ) : visibleEvents.length === 0 ? (
-            <div className='rounded-[17px] border es-border-event-card es-bg-surface-event-card px-5 py-7 text-center sm:px-8 sm:py-10'>
+            <div className='rounded-2xl border es-border-event-card es-bg-surface-event-card px-5 py-7 text-center sm:px-8 sm:py-10'>
               <p className='es-events-card-body'>{content.emptyStateLabel}</p>
               {hasRequestError && (
                 <p className='mt-3 text-sm text-black/60'>{content.errorLabel}</p>
@@ -207,13 +207,13 @@ export function Events({ content }: EventsProps) {
             <ul className='space-y-6'>
               {visibleEvents.map((eventCard) => (
                 <li key={eventCard.id}>
-                  <article className='rounded-[17px] es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
+                  <article className='rounded-2xl es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
                     <div className='w-full lg:max-w-[720px]'>
                       <div className='flex flex-wrap items-center gap-2'>
                         {eventCard.tags.map((tag) => (
                           <span
                             key={`${eventCard.id}-${tag}`}
-                            className='inline-flex rounded-[24px] border es-border-soft es-bg-peach-glass px-[13px] py-[7px] es-events-card-tag'
+                            className='inline-flex rounded-3xl border es-border-soft es-bg-peach-glass px-[13px] py-[7px] es-events-card-tag'
                           >
                             {tag}
                           </span>
@@ -233,7 +233,7 @@ export function Events({ content }: EventsProps) {
                       <ul className='mt-5 flex flex-wrap items-center gap-2'>
                         {eventCard.dateLabel && (
                           <li
-                            className='inline-flex items-center gap-1.5 rounded-[24px] bg-white px-3 py-[7px] es-events-detail-chip'
+                            className='inline-flex items-center gap-1.5 rounded-3xl bg-white px-3 py-[7px] es-events-detail-chip'
                           >
                             <Image
                               src={CALENDAR_ICON_SRC}
@@ -250,7 +250,7 @@ export function Events({ content }: EventsProps) {
                         )}
                         {eventCard.timeLabel && (
                           <li
-                            className='inline-flex items-center gap-1.5 rounded-[24px] bg-white px-3 py-[7px] es-events-detail-chip'
+                            className='inline-flex items-center gap-1.5 rounded-3xl bg-white px-3 py-[7px] es-events-detail-chip'
                           >
                             <Image
                               src={CLOCK_ICON_SRC}
@@ -268,7 +268,7 @@ export function Events({ content }: EventsProps) {
                       </ul>
                     </div>
 
-                    <aside className='mt-6 w-full rounded-[8px] bg-white px-4 py-5 lg:mt-0 lg:max-w-[335px]'>
+                    <aside className='mt-6 w-full rounded-lg bg-white px-4 py-5 lg:mt-0 lg:max-w-[335px]'>
                       <h4 className='es-events-location-heading'>
                         {content.card.locationLabel}
                       </h4>
@@ -284,7 +284,7 @@ export function Events({ content }: EventsProps) {
                       <div className='mt-5'>
                         {eventCard.status === 'fully_booked' ? (
                           <span
-                            className='inline-flex items-center gap-1 rounded-[24px] es-bg-surface-danger-soft px-3 py-[9px] es-events-detail-chip es-events-detail-chip-danger'
+                            className='inline-flex items-center gap-1 rounded-3xl es-bg-surface-danger-soft px-3 py-[9px] es-events-detail-chip es-events-detail-chip-danger'
                           >
                             <Image
                               src={LOCATION_ICON_SRC}

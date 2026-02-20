@@ -83,7 +83,7 @@ export function DeferredTestimonialsClient({
               <SectionHeader
                 title={content.title}
               />
-              <div className='mt-10 h-[420px] bg-white lg:mt-14 lg:h-[540px]' />
+              <div className='mt-10 h-size-420 bg-white lg:mt-14 lg:h-size-540' />
             </div>
           </SectionContainer>
         </SectionShell>

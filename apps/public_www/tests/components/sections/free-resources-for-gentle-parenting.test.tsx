@@ -116,7 +116,7 @@ describe('Free resources for gentle parenting section', () => {
     expect(checklistList?.className).toContain('mb-7');
     expect(checklistItems.length).toBeGreaterThan(0);
     checklistItems.forEach((item) => {
-      expect(item.className).toContain('rounded-[12px]');
+      expect(item.className).toContain('rounded-xl');
       expect(item.className).toContain('bg-white');
     });
   });

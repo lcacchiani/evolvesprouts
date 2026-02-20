@@ -38,7 +38,7 @@ const benefitCardMeta: BenefitCardMeta[] = [
     imageSrc: '/images/course-highlights/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
-    imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
+    imageClassName: 'h-size-235 sm:h-[265px] lg:h-[305px]',
   },
   {
     id: 'small-group-learning',

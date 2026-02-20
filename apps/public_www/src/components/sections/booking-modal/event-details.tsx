@@ -95,7 +95,7 @@ export function BookingEventDetails({
               <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
                 <span
                   data-course-part-chip='true'
-                  className={`relative inline-flex self-start items-center gap-1.5 rounded-[112px] px-[15px] py-[5px] ${getPartChipClassName(index)}`}
+                  className={`relative inline-flex self-start items-center gap-1.5 rounded-full px-[15px] py-[5px] ${getPartChipClassName(index)}`}
                 >
                   <span
                     data-course-part-line='gap-connector'
@@ -103,7 +103,7 @@ export function BookingEventDetails({
                     aria-hidden='true'
                   />
                   <span
-                    className='es-mask-cubes-current h-[30px] w-[30px] shrink-0'
+                    className='es-mask-cubes-current h-size-30 w-size-30 shrink-0'
                     aria-hidden='true'
                   />
                   <span className='text-[18px] font-semibold leading-none'>
@@ -195,7 +195,7 @@ export function BookingEventDetails({
             <ButtonPrimitive
               href={learnMoreHref}
               variant='outline'
-              className='h-[56px] rounded-[10px] px-7 text-base font-semibold'
+              className='h-[56px] rounded-button px-7 text-base font-semibold'
             >
               {learnMoreLabel}
             </ButtonPrimitive>

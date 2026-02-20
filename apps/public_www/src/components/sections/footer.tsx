@@ -56,7 +56,7 @@ const socialIcons: Record<string, ReactNode> = {
     <svg
       aria-hidden='true'
       viewBox='0 0 18 18'
-      className='h-[18px] w-[18px]'
+      className='h-size-18 w-size-18'
       fill='currentColor'
       xmlns='http://www.w3.org/2000/svg'
     >

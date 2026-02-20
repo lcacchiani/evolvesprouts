@@ -53,7 +53,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
           'es-section-split-layout--hero items-center',
         )}
       >
-        <div className='relative max-w-[620px] lg:pb-4 lg:pr-8 lg:pt-[70px]'>
+        <div className='relative max-w-size-620 lg:pb-4 lg:pr-8 lg:pt-[70px]'>
           <div className='relative z-10'>
             <SectionHeader
               title={renderHeadline(content.headline)}

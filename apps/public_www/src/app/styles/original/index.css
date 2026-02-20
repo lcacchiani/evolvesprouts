@@ -2,3 +2,23 @@
 @import './components-core.css';
 @import './components-sections.css';
 @import './utilities.css';
+
+@theme {
+  --radius-button: 10px;
+  --radius-input: 14px;
+  --radius-soft: 20px;
+  --radius-shell: 28px;
+  --radius-feature-card: 30px;
+  --radius-module-card: 32px;
+
+  --spacing-size-18: 18px;
+  --spacing-size-30: 30px;
+  --spacing-size-50: 50px;
+  --spacing-size-70: 70px;
+  --spacing-size-100: 100px;
+  --spacing-size-235: 235px;
+  --spacing-size-420: 420px;
+  --spacing-size-540: 540px;
+  --spacing-size-360: 360px;
+  --spacing-size-620: 620px;
+}

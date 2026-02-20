@@ -201,7 +201,7 @@ export function LanguageSelectorButton({
           aria-hidden='true'
           width={30}
           height={30}
-          className='h-[30px] w-[30px] rounded-full object-cover'
+          className='h-size-30 w-size-30 rounded-full object-cover'
         />
         <span className='sr-only'>
           {`${languageSelector.selectedLanguageAriaPrefix}: ${activeOption.label}`}

@@ -67,7 +67,7 @@ describe('CourseHighlightCard description visibility transition', () => {
         imageSrc='/images/course-highlights/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
-        imageClassName='h-[235px]'
+        imageClassName='h-size-235'
         description='Practical scripts and examples'
         tone='gold'
       />,
@@ -86,8 +86,8 @@ describe('CourseHighlightCard description visibility transition', () => {
     expect(card?.className).toContain('group');
     expect(description.className).toContain('group-hover:opacity-100');
     expect(description.className).not.toContain('lg:group-hover:opacity-100');
-    expect(toggleButton.className).toContain('group-hover:h-[70px]');
-    expect(toggleButton.className).not.toContain('lg:group-hover:h-[70px]');
+    expect(toggleButton.className).toContain('group-hover:h-size-70');
+    expect(toggleButton.className).not.toContain('lg:group-hover:h-size-70');
   });
 
   it('uses immediate hide classes when toggled inactive', () => {
@@ -98,7 +98,7 @@ describe('CourseHighlightCard description visibility transition', () => {
         imageSrc='/images/course-highlights/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
-        imageClassName='h-[235px]'
+        imageClassName='h-size-235'
         description='Practical scripts and examples'
         tone='gold'
       />,
@@ -140,7 +140,7 @@ describe('CourseHighlightCard description visibility transition', () => {
         imageSrc='/images/course-highlights/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
-        imageClassName='h-[235px]'
+        imageClassName='h-size-235'
         description='Practical scripts and examples'
         tone='gold'
       />,
@@ -177,7 +177,7 @@ describe('CourseHighlightCard description visibility transition', () => {
         imageSrc='/images/course-highlights/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
-        imageClassName='h-[235px]'
+        imageClassName='h-size-235'
         description='Practical scripts and examples'
         tone='gold'
       />,
@@ -211,7 +211,7 @@ describe('CourseHighlightCard description visibility transition', () => {
         imageSrc='/images/course-highlights/course-card-1.webp'
         imageWidth={344}
         imageHeight={309}
-        imageClassName='h-[235px]'
+        imageClassName='h-size-235'
         description='Practical scripts and examples'
         tone='gold'
       />,

@@ -124,7 +124,7 @@ function MyBestAuntieOverviewCard({
       aria-expanded={isInteractive ? isExpanded : undefined}
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
-      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-[32px] px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
+      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-module-card px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
     >
       <div
         aria-hidden='true'
@@ -162,7 +162,7 @@ function MyBestAuntieOverviewCard({
               aria-hidden='true'
               className={`pointer-events-none absolute -top-[70px] left-1/2 z-0 h-[74px] w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone}`}
             />
-            <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
+            <span className='relative z-20 inline-flex h-size-50 w-size-50 items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
               <span className={`es-my-best-auntie-overview-count-text es-my-best-auntie-overview-count-text--${tone}`}>
                 {module.step}
               </span>

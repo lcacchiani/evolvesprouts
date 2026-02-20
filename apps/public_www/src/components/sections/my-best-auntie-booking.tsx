@@ -143,12 +143,12 @@ export function MyBestAuntieBooking({
               'es-section-split-layout--my-best-auntie-booking w-full min-w-0 items-center',
             )}
           >
-            <section className='space-y-5 max-w-[620px] lg:pr-8'>
+            <section className='space-y-5 max-w-size-620 lg:pr-8'>
               <SectionHeader
                 title={content.title}
                 titleAs='h1'
                 align='left'
-                className='max-w-[620px]'
+                className='max-w-size-620'
                 titleClassName='es-my-best-auntie-booking-heading'
                 description={content.description}
                 descriptionClassName='mt-5 max-w-[58ch] es-type-body es-my-best-auntie-booking-body'
@@ -157,7 +157,7 @@ export function MyBestAuntieBooking({
               <div className='pt-3'>
                 <div
                   data-testid='my-best-auntie-next-cohort-card'
-                  className='w-full max-w-[410px] rounded-[14px] border es-border-warm-2 es-bg-surface-soft px-5 py-4'
+                  className='w-full max-w-[410px] rounded-input border es-border-warm-2 es-bg-surface-soft px-5 py-4'
                 >
                   <p className='text-base font-semibold es-text-brand'>
                     {content.scheduleLabel}
@@ -191,7 +191,7 @@ export function MyBestAuntieBooking({
                         onClick={() => {
                           setSelectedAgeId(option.id);
                         }}
-                        className='min-h-[76px] w-[175px] shrink-0 rounded-[8px] px-4 py-2 text-left'
+                        className='min-h-[76px] w-[175px] shrink-0 rounded-lg px-4 py-2 text-left'
                       >
                         <div className='flex items-center justify-start gap-10'>
                           <Image
@@ -244,7 +244,7 @@ export function MyBestAuntieBooking({
                               onClick={() => {
                                 setSelectedDateId(option.id);
                               }}
-                              className='w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-center'
+                              className='w-[168px] shrink-0 snap-start rounded-input px-4 py-3 text-center'
                             >
                               <div className='flex w-full flex-col items-center gap-2'>
                                 <div className='flex items-center justify-center gap-1.5'>

@@ -212,18 +212,18 @@ export function Testimonials({ content }: TestimonialsProps) {
                   'es-section-split-layout--testimonials',
                 )}
               >
-                <div className='relative min-h-[260px] overflow-hidden rounded-[30px] es-bg-surface-peach sm:min-h-[360px] lg:min-h-[540px]'>
+                <div className='relative min-h-[260px] overflow-hidden rounded-feature-card es-bg-surface-peach sm:min-h-size-360 lg:min-h-size-540'>
                   {activeStory.mainImageSrc ? (
                     <Image
                       src={activeStory.mainImageSrc}
                       alt={`${activeStory.author ?? 'Parent'} testimonial image`}
                       fill
                       sizes='(min-width: 1024px) 500px, 100vw'
-                      className='rounded-[30px] object-cover'
+                      className='rounded-feature-card object-cover'
                     />
                   ) : (
                     <div
-                      className='flex h-full min-h-[260px] items-center justify-center rounded-[30px] sm:min-h-[360px] lg:min-h-[540px] es-testimonials-image-fallback'
+                      className='flex h-full min-h-[260px] items-center justify-center rounded-feature-card sm:min-h-size-360 lg:min-h-size-540 es-testimonials-image-fallback'
                     >
                       <ParentIcon />
                     </div>
@@ -249,11 +249,11 @@ export function Testimonials({ content }: TestimonialsProps) {
                           alt={`${activeStory.author ?? 'Parent'} avatar`}
                           width={100}
                           height={100}
-                          className='h-[82px] w-[71px] shrink-0 rounded-[30px] object-cover sm:h-[100px] sm:w-[100px]'
+                          className='h-[82px] w-[71px] shrink-0 rounded-feature-card object-cover sm:h-size-100 sm:w-size-100'
                         />
                       ) : (
                         <span
-                          className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-[30px] sm:h-[100px] sm:w-[100px] es-testimonials-avatar-fallback'
+                          className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-feature-card sm:h-size-100 sm:w-size-100 es-testimonials-avatar-fallback'
                         >
                           <ParentIcon />
                         </span>

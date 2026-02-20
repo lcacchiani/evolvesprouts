@@ -26,7 +26,7 @@ export function SproutsSquadCommunity({
       />
 
       <SectionContainer>
-        <div className='flex min-h-[420px] flex-col justify-center gap-7 sm:min-h-[530px] lg:min-h-[740px] lg:gap-9'>
+        <div className='flex min-h-size-420 flex-col justify-center gap-7 sm:min-h-[530px] lg:min-h-[740px] lg:gap-9'>
           <Image
             src='/images/evolvesprouts-logo.svg'
             alt=''
@@ -37,7 +37,7 @@ export function SproutsSquadCommunity({
           <SectionHeader
             title={content.heading}
             align='left'
-            className='max-w-[620px]'
+            className='max-w-size-620'
             titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
           />
 

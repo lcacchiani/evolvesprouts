@@ -49,7 +49,7 @@ describe('MyBestAuntieBooking section', () => {
 
     const formattedFirstCohortDate = formatCohortPreviewLabel(firstCohortDate);
     const nextCohortCard = screen.getByTestId('my-best-auntie-next-cohort-card');
-    expect(nextCohortCard.className).toContain('rounded-[14px]');
+    expect(nextCohortCard.className).toContain('rounded-input');
     expect(nextCohortCard.className).toContain('border');
     expect(screen.getByText(enContent.myBestAuntieBooking.scheduleLabel)).toBeInTheDocument();
     expect(screen.getByText(formattedFirstCohortDate)).toBeInTheDocument();

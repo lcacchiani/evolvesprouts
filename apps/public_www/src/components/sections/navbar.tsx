@@ -253,7 +253,7 @@ export function Navbar({ content }: NavbarProps) {
               currentLocale={currentLocale}
               currentPathname={pathname}
               languageSelector={languageSelector}
-              className='h-[30px] self-center gap-[9px] px-[6px]'
+              className='h-size-30 self-center gap-[9px] px-[6px]'
             />
             <BookNowButton
               href={localizedBookNowHref}
@@ -327,7 +327,7 @@ export function Navbar({ content }: NavbarProps) {
                   aria-hidden='true'
                   width={18}
                   height={18}
-                  className='h-[18px] w-[18px]'
+                  className='h-size-18 w-size-18'
                 />
               </ButtonPrimitive>
             </div>

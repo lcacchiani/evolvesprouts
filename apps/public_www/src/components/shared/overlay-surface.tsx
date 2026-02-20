@@ -8,7 +8,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { mergeClassNames } from '@/lib/class-name-utils';
 
 const DEFAULT_DIALOG_PANEL_CLASSNAME =
-  'relative w-full max-w-[1190px] overflow-hidden rounded-[24px] border border-black/10 shadow-[0_22px_70px_rgba(0,0,0,0.42)]';
+  'relative w-full max-w-[1190px] overflow-hidden rounded-3xl border border-black/10 shadow-[0_22px_70px_rgba(0,0,0,0.42)]';
 const DEFAULT_DRAWER_PANEL_CLASSNAME =
   'absolute inset-y-0 right-0 flex flex-col shadow-2xl transition-transform duration-300 ease-out';
 const DEFAULT_SCROLLABLE_BODY_CLASSNAME =
