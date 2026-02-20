@@ -120,7 +120,12 @@
   }
 
   .es-sprouts-community-section {
+    position: relative;
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+    background-image: url('/images/sprouts-squad-community-bg.webp');
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: cover;
   }
 
   .es-sprouts-community-overlay {
