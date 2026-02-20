@@ -43,11 +43,24 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const nav = screen.getByRole('navigation');
     expect(nav.className).toContain('es-layout-container');
+    expect(nav.className).toContain('min-h-[115px]');
+    expect(nav.className).toContain('px-8');
+    expect(nav.className).toContain('py-0');
+    expect(nav.className).not.toContain('px-4');
+    expect(nav.className).not.toContain('sm:px-6');
+    expect(nav.className).not.toContain('lg:px-8');
 
     const header = document.querySelector('header[data-figma-node="navbar"]');
     expect(header?.className).toContain('es-navbar-surface');
     expect(header?.className).toContain('relative');
     expect(header?.className).toContain('z-30');
+
+    const languageSelector = screen.getByRole('button', {
+      name: /Selected language: English/i,
+    });
+    expect(languageSelector.className).toContain('self-center');
+    const languageSelectorWrapper = languageSelector.closest('div');
+    expect(languageSelectorWrapper?.className).toContain('items-center');
   });
 
   it('applies active and inactive classes to language menu items', () => {

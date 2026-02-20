@@ -229,7 +229,7 @@ export function Navbar({ content }: NavbarProps) {
       >
         <SectionContainer
           as='nav'
-          className='flex items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:min-h-[115px] lg:px-8 lg:py-0'
+          className='flex min-h-[115px] items-center justify-between gap-3 px-8 py-0'
         >
           <Link href={localizedHomeHref} className='shrink-0'>
             <Image
@@ -253,7 +253,7 @@ export function Navbar({ content }: NavbarProps) {
               currentLocale={currentLocale}
               currentPathname={pathname}
               languageSelector={languageSelector}
-              className='h-[30px] gap-[9px] px-[6px]'
+              className='h-[30px] self-center gap-[9px] px-[6px]'
             />
             <BookNowButton
               href={localizedBookNowHref}
