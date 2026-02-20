@@ -211,7 +211,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                       fill
                       sizes='(min-width: 1024px) 500px, 100vw'
                       className='rounded-[30px] object-cover'
-                      priority={activeIndex === 0}
                     />
                   ) : (
                     <div
