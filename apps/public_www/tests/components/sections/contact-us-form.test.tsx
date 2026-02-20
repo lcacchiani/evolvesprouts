@@ -51,18 +51,14 @@ describe('ContactUsForm section', () => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
   });
 
-  it('uses class-based decorative background styling on the left panel', () => {
+  it('uses class-based decorative background styling on the section container', () => {
     render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
 
-    const leftPanelHeading = screen.getByRole('heading', {
-      level: 1,
-      name: enContent.contactUs.contactUsForm.title,
-    });
-    const leftPanel = leftPanelHeading.closest('section');
-    expect(leftPanel).not.toBeNull();
+    const sectionContainer = document.getElementById('contact-us-form');
+    expect(sectionContainer).not.toBeNull();
 
-    const decorativeLayer = leftPanel?.querySelector(
-      'div[aria-hidden="true"]',
+    const decorativeLayer = sectionContainer?.querySelector(
+      'div[aria-hidden="true"].es-contact-us-left-decor',
     ) as HTMLDivElement | null;
     expect(decorativeLayer).not.toBeNull();
     expect(decorativeLayer?.className).toContain('es-contact-us-left-decor');
