@@ -7,6 +7,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
+const DESKTOP_HOVER_QUERY = '(min-width: 1024px) and (hover: hover)';
 
 export type CourseHighlightCardTone = 'gold' | 'blue';
 
@@ -24,12 +25,12 @@ export interface CourseHighlightCardProps {
 const INTERACTIVE_ELEMENT_SELECTOR =
   'button, a, input, select, textarea, [role="button"]';
 
-function supportsHoverInteraction(): boolean {
+function isDesktopHoverMode(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
     return false;
   }
 
-  return window.matchMedia('(hover: hover)').matches;
+  return window.matchMedia(DESKTOP_HOVER_QUERY).matches;
 }
 
 export function CourseHighlightCard({
@@ -69,7 +70,7 @@ export function CourseHighlightCard({
         return;
       }
 
-      if (supportsHoverInteraction()) {
+      if (isDesktopHoverMode()) {
         return;
       }
 

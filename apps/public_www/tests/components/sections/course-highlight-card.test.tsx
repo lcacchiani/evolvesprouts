@@ -18,13 +18,22 @@ function hasClassToken(className: string, token: string): boolean {
 }
 
 const originalMatchMedia = window.matchMedia;
+const DESKTOP_HOVER_QUERY = '(min-width: 1024px) and (hover: hover)';
 
-function mockHoverCapability(canHover: boolean): void {
+function mockInteractionCapabilities({
+  isDesktopViewport,
+  canHover,
+}: {
+  isDesktopViewport: boolean;
+  canHover: boolean;
+}): void {
+  const desktopHoverEnabled = isDesktopViewport && canHover;
+
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     writable: true,
     value: vi.fn().mockImplementation((query: string) => ({
-      matches: query === '(hover: hover)' ? canHover : false,
+      matches: query === DESKTOP_HOVER_QUERY ? desktopHoverEnabled : false,
       media: query,
       onchange: null,
       addListener: vi.fn(),
@@ -87,8 +96,11 @@ describe('CourseHighlightCard description visibility transition', () => {
     expect(hasClassToken(description.className, 'transition-none')).toBe(true);
   });
 
-  it('toggles when tapping the card surface on non-hover devices', () => {
-    mockHoverCapability(false);
+  it('toggles when tapping the card surface below desktop breakpoint', () => {
+    mockInteractionCapabilities({
+      isDesktopViewport: false,
+      canHover: true,
+    });
 
     render(
       <CourseHighlightCard
@@ -121,8 +133,45 @@ describe('CourseHighlightCard description visibility transition', () => {
     expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('toggles when tapping the card surface without hover support', () => {
+    mockInteractionCapabilities({
+      isDesktopViewport: true,
+      canHover: false,
+    });
+
+    render(
+      <CourseHighlightCard
+        id='age-specific'
+        title='Age Specific Strategies'
+        imageSrc='/images/course-highlights/course-card-1.webp'
+        imageWidth={344}
+        imageHeight={309}
+        imageClassName='h-[235px]'
+        description='Practical scripts and examples'
+        tone='gold'
+      />,
+    );
+
+    const heading = screen.getByRole('heading', {
+      name: 'Age Specific Strategies',
+    });
+    const card = heading.closest('article');
+    const toggleButton = screen.getByRole('button', {
+      name: 'Show details for Age Specific Strategies',
+    });
+
+    expect(card).not.toBeNull();
+    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(card as HTMLElement);
+    expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('keeps desktop card-surface clicks inert when hover is available', () => {
-    mockHoverCapability(true);
+    mockInteractionCapabilities({
+      isDesktopViewport: true,
+      canHover: true,
+    });
 
     render(
       <CourseHighlightCard
