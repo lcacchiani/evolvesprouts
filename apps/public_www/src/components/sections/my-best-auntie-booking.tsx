@@ -244,10 +244,10 @@ export function MyBestAuntieBooking({
                               onClick={() => {
                                 setSelectedDateId(option.id);
                               }}
-                              className='w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-left'
+                              className='w-[168px] shrink-0 snap-start rounded-[14px] px-4 py-3 text-center'
                             >
-                              <div className='flex w-full flex-col items-start gap-2'>
-                                <div className='flex items-center justify-start gap-1.5'>
+                              <div className='flex w-full flex-col items-center gap-2'>
+                                <div className='flex items-center justify-center gap-1.5'>
                                   <span
                                     className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
                                     aria-hidden='true'
@@ -256,7 +256,7 @@ export function MyBestAuntieBooking({
                                     {option.label}
                                   </p>
                                 </div>
-                                <p className='text-sm es-text-danger-accent'>
+                                <p className='text-center text-sm es-text-danger-accent'>
                                   {option.availabilityLabel}
                                 </p>
                               </div>

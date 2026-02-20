@@ -100,8 +100,11 @@ describe('MyBestAuntieBooking section', () => {
     const secondDateCardContent = secondDateButton.querySelector('div.w-full');
     expect(secondDateCardContent).not.toBeNull();
     expect(secondDateCardContent?.className).toContain('flex-col');
+    expect(secondDateCardContent?.className).toContain('items-center');
     const dateLine = secondDateCardContent?.firstElementChild;
     const availabilityLine = secondDateCardContent?.lastElementChild;
+    expect(dateLine?.className).toContain('justify-center');
+    expect(availabilityLine?.className).toContain('text-center');
     expect(dateLine?.textContent).toContain(secondDateOption.label);
     expect(availabilityLine?.textContent).toContain(secondDateOption.availabilityLabel);
 
