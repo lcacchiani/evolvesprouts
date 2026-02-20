@@ -62,6 +62,9 @@ describe('Footer external links', () => {
   it('keeps mobile logo non-interactive and full-width accordion tap targets', () => {
     render(<Footer content={enContent.footer} />);
 
+    const footerTopSection = document.querySelector('footer section');
+    expect(footerTopSection?.className).toContain('es-section-shell-spacing');
+
     const mobileFooterSection = document.querySelector('div.sm\\:hidden');
     expect(mobileFooterSection).not.toBeNull();
     expect(

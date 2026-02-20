@@ -1,4 +1,25 @@
 @layer components {
+  .es-section-shell-spacing {
+    padding-top: 80px;
+    padding-right: 16px;
+    padding-bottom: 80px;
+    padding-left: 16px;
+  }
+
+  @media (min-width: 640px) {
+    .es-section-shell-spacing {
+      padding-right: 24px;
+      padding-left: 24px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .es-section-shell-spacing {
+      padding-right: 32px;
+      padding-left: 32px;
+    }
+  }
+
   .es-connect-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
     background-image: url('/images/evolvesprouts-logo.svg');
