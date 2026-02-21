@@ -171,17 +171,20 @@ visible to anyone inspecting the page source.
 - Longer term, consider proxying API calls through an edge function to
   avoid exposing the key entirely.
 
-### 3.3 FPS merchant mobile number hardcoded in client code — MEDIUM
+### 3.3 FPS payment details exposed in client bundle — MEDIUM
 
 `booking-modal/shared.tsx` contains:
 
 ```
-const FPS_MOBILE_NUMBER = '85297942094';
+const FPS_MERCHANT_NAME = process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME ?? '';
+const FPS_MOBILE_NUMBER = process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER ?? '';
 ```
 
 **Recommendation:** FPS payment details must be visible to the payer, so
-client exposure is expected. Consider fetching this value from the API to
-allow changes without redeployment.
+client exposure is expected. Store the source values only in GitHub
+repository/environment variables (or secrets if preferred), rotate promptly
+if needed, and consider fetching these values from the API to allow updates
+without redeployment.
 
 ### 3.4 Booking form fields passed unsanitised to callback — MEDIUM
 

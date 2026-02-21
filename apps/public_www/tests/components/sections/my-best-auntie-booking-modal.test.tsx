@@ -343,9 +343,9 @@ describe('my-best-auntie booking modals footer content', () => {
     });
     expect(submitButton).toBeDisabled();
 
-    fireEvent.change(fullNameField, { target: { value: 'Ida De Gregorio' } });
+    fireEvent.change(fullNameField, { target: { value: 'Test User' } });
     fireEvent.change(emailField, { target: { value: 'ida@example.com' } });
-    fireEvent.change(phoneField, { target: { value: '85297942094' } });
+    fireEvent.change(phoneField, { target: { value: '85212345678' } });
     fireEvent.click(pendingAcknowledgement);
     expect(submitButton).toBeDisabled();
     fireEvent.click(termsAcknowledgement);
