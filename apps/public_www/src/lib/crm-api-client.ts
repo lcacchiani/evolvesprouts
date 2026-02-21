@@ -11,6 +11,7 @@ export interface CrmApiRequestOptions {
   signal?: AbortSignal;
   body?: unknown;
   headers?: Record<string, string>;
+  turnstileToken?: string;
 }
 
 export interface CrmApiClient {
@@ -175,6 +176,10 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
         'x-api-key': normalizedApiKey,
         ...options.headers,
       };
+      const normalizedTurnstileToken = options.turnstileToken?.trim() ?? '';
+      if (normalizedTurnstileToken) {
+        headers['X-Turnstile-Token'] = normalizedTurnstileToken;
+      }
 
       const requestInit: RequestInit = {
         method,

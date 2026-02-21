@@ -24,16 +24,19 @@ their primary responsibilities.
 - Function: SiutindeiAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — handles routes under `/v1/admin/*`,
-  `/v1/manager/*`, and `/v1/user/*`
+  `/v1/manager/*`, `/v1/user/*`, `/v1/reservations`,
+  and `/www/v1/reservations`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`, admin/manager
   group for `/v1/manager/*`, any authenticated user for `/v1/user/*`
 - Purpose: admin CRUD (including activity categories), manager CRUD
   (filtered by ownership), user self-service (tickets), Cognito user
   management, audit logs, media upload, admin import/export, and address
-  autocomplete (Nominatim via the AWS/HTTP proxy)
+  autocomplete (Nominatim via the AWS/HTTP proxy), plus public reservation
+  submissions with server-side Turnstile verification
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - Environment:
   - `SES_SENDER_EMAIL`
+  - `TURNSTILE_SECRET_KEY`
   - `SES_TEMPLATE_REQUEST_DECISION` (optional)
   - `SES_TEMPLATE_SUGGESTION_DECISION` (optional)
   - `SES_TEMPLATE_FEEDBACK_DECISION` (optional)

@@ -133,7 +133,8 @@ def get_cors_headers(
     return {
         "Access-Control-Allow-Origin": allow_origin,
         "Access-Control-Allow-Headers": (
-            "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token"
+            "Content-Type,Authorization,X-Amz-Date,X-Api-Key,"
+            "X-Amz-Security-Token,X-Turnstile-Token"
         ),
         "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
     }

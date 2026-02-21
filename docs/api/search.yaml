@@ -158,6 +158,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ActivitySearchResponse"
+  /v1/reservations:
+    post:
+      summary: Submit a public reservation
+      description: |
+        Submit a My Best Auntie reservation from the public website.
+        Requests must include a valid Cloudflare Turnstile token in
+        `X-Turnstile-Token`.
+      parameters:
+        - name: X-Turnstile-Token
+          in: header
+          required: true
+          description: Cloudflare Turnstile response token.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationSubmissionRequest"
+      responses:
+        "202":
+          description: Reservation accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
+        "400":
+          description: Validation error
+        "403":
+          description: Captcha verification failed
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -180,6 +211,62 @@ components:
         next_cursor:
           type: string
           nullable: true
+    ReservationSubmissionRequest:
+      type: object
+      required:
+        - attendeeName
+        - attendeeEmail
+        - attendeePhone
+        - childAgeGroup
+        - packageLabel
+        - monthLabel
+        - paymentMethod
+        - totalAmount
+        - courseLabel
+      properties:
+        attendeeName:
+          type: string
+          maxLength: 200
+        attendeeEmail:
+          type: string
+          format: email
+        attendeePhone:
+          type: string
+          maxLength: 40
+        childAgeGroup:
+          type: string
+          maxLength: 200
+        packageLabel:
+          type: string
+          maxLength: 200
+        monthLabel:
+          type: string
+          maxLength: 200
+        paymentMethod:
+          type: string
+          maxLength: 100
+        totalAmount:
+          type: number
+          minimum: 0
+          maximum: 1000000
+        courseLabel:
+          type: string
+          maxLength: 200
+        scheduleDateLabel:
+          type: string
+          maxLength: 200
+        scheduleTimeLabel:
+          type: string
+          maxLength: 200
+        interestedTopics:
+          type: string
+          maxLength: 1000
+    ReservationSubmissionAccepted:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
     ActivitySearchResult:
       type: object
       required: [activity, organization, location, pricing, schedule]

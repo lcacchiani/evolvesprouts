@@ -187,6 +187,7 @@ describe('crm-api-client', () => {
       endpointPath: '/v1/test-endpoint',
       method: 'POST',
       body: { name: 'sprout' },
+      turnstileToken: 'turnstile-token',
     });
     await client.request({
       endpointPath: '/v1/test-endpoint',
@@ -204,6 +205,7 @@ describe('crm-api-client', () => {
           Accept: 'application/json',
           'x-api-key': 'public-key',
           'Content-Type': 'application/json',
+          'X-Turnstile-Token': 'turnstile-token',
         }),
       }),
     );
