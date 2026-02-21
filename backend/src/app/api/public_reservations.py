@@ -236,7 +236,9 @@ def _parse_total_amount(value: Any) -> Decimal:
     try:
         parsed_amount = Decimal(str(value))
     except (InvalidOperation, ValueError, TypeError) as exc:
-        raise ValidationError("totalAmount must be numeric", field="totalAmount") from exc
+        raise ValidationError(
+            "totalAmount must be numeric", field="totalAmount"
+        ) from exc
 
     if parsed_amount < 0:
         raise ValidationError(

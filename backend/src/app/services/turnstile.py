@@ -116,9 +116,7 @@ def verify_turnstile_token(token: str, remote_ip: Optional[str] = None) -> bool:
         error_codes = parsed_response.get("error-codes")
         logger.info(
             "Turnstile verification rejected token",
-            extra={
-                "error_codes": error_codes if isinstance(error_codes, list) else []
-            },
+            extra={"error_codes": error_codes if isinstance(error_codes, list) else []},
         )
 
     return is_success
