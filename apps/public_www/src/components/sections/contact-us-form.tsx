@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
@@ -12,6 +12,7 @@ import {
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
+import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 interface ContactUsFormProps {
   content: ContactUsContent['contactUsForm'];
@@ -30,6 +31,7 @@ const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
 const EMAIL_ERROR_MESSAGE_ID = 'contact-us-form-email-error';
 const PHONE_ERROR_MESSAGE_ID = 'contact-us-form-phone-error';
 const CAPTCHA_ERROR_MESSAGE_ID = 'contact-us-form-captcha-error';
+const CONTACT_US_API_PATH = '/v1/contact-us';
 
 function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
@@ -52,36 +54,9 @@ function sanitizeMultilineValue(value: string): string {
   return value.replaceAll(/\r\n/g, '\n').replaceAll(/\r/g, '\n').trim();
 }
 
-function buildMailtoHref(
-  targetEmail: string,
-  subject: string,
-  formState: FormState,
-): string {
-  const normalizedFormState = {
-    firstName: sanitizeSingleLineValue(formState.firstName),
-    email: sanitizeSingleLineValue(formState.email),
-    phone: sanitizeSingleLineValue(formState.phone),
-    message: sanitizeMultilineValue(formState.message),
-  };
-  const bodyLines = [
-    `First Name: ${normalizedFormState.firstName}`,
-    `Email Address: ${normalizedFormState.email}`,
-    `Phone Number: ${normalizedFormState.phone}`,
-    '',
-    'Message:',
-    normalizedFormState.message,
-  ];
-
-  const query = new URLSearchParams({
-    subject: sanitizeSingleLineValue(subject),
-    body: bodyLines.join('\n'),
-  });
-
-  return `mailto:${sanitizeSingleLineValue(targetEmail)}?${query.toString()}`;
-}
-
 export function ContactUsForm({ content }: ContactUsFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
+  const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [formState, setFormState] = useState<FormState>({
     firstName: '',
     email: '',
@@ -90,6 +65,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
   });
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isPhoneTouched, setIsPhoneTouched] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
   const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
@@ -106,7 +82,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
       : hasCaptchaValidationError
         ? content.captchaRequiredError
         : '';
-  const isSubmitDisabled = isCaptchaUnavailable;
+  const isSubmitDisabled = isCaptchaUnavailable || isSubmitting;
 
   function updateField(field: keyof FormState, value: string) {
     setFormState((currentState) => ({
@@ -115,7 +91,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
     }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsEmailTouched(true);
     setIsPhoneTouched(true);
@@ -127,14 +103,55 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
     if (!captchaToken || isCaptchaUnavailable) {
       return;
     }
+    if (!crmApiClient) {
+      return;
+    }
 
-    const mailtoHref = buildMailtoHref(
-      content.emailAddress,
-      content.subject,
-      formState,
-    );
+    const normalizedEmail = sanitizeSingleLineValue(formState.email);
+    const normalizedMessage = sanitizeMultilineValue(formState.message);
+    if (!normalizedEmail || !normalizedMessage) {
+      return;
+    }
+    const normalizedFirstName = sanitizeSingleLineValue(formState.firstName);
+    const normalizedPhone = sanitizeSingleLineValue(formState.phone);
+    const requestBody: {
+      firstName?: string;
+      emailAddress: string;
+      phoneNumber?: string;
+      message: string;
+    } = {
+      emailAddress: normalizedEmail,
+      message: normalizedMessage,
+    };
+    if (normalizedFirstName) {
+      requestBody.firstName = normalizedFirstName;
+    }
+    if (normalizedPhone) {
+      requestBody.phoneNumber = normalizedPhone;
+    }
 
-    window.location.href = mailtoHref;
+    setIsSubmitting(true);
+    try {
+      await crmApiClient.request({
+        endpointPath: CONTACT_US_API_PATH,
+        method: 'POST',
+        body: requestBody,
+      });
+      setFormState({
+        firstName: '',
+        email: '',
+        phone: '',
+        message: '',
+      });
+      setIsEmailTouched(false);
+      setIsPhoneTouched(false);
+      setIsCaptchaTouched(false);
+      setCaptchaToken(null);
+    } catch {
+      // Keep the form values intact so users can retry submission.
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
