@@ -201,6 +201,14 @@ repo root
 - Never use `style={...}` or `style=""` in JSX (MANDATORY).
 - Never use `CSSProperties` / `React.CSSProperties` in app code (MANDATORY).
 
+### Public WWW XSS policy (MANDATORY for `apps/public_www/**`)
+
+- Do not use `dangerouslySetInnerHTML`.
+- Do not use `eval()` or `new Function()`.
+- Keep `csp:inject` and `csp:validate` required in the public website build
+  pipeline.
+- During code review, reject changes introducing any of these patterns.
+
 ### Public WWW component and test structure (MANDATORY for `apps/public_www/**`)
 
 - Place page composition components in `apps/public_www/src/components/pages/**`.
