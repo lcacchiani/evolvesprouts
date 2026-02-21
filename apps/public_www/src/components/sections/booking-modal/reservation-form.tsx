@@ -25,6 +25,10 @@ import {
   fetchDiscountRules,
 } from '@/lib/discounts-data';
 import { formatCurrencyHkd } from '@/lib/format';
+import {
+  submitReservation,
+  type ReservationSubmissionPayload,
+} from '@/lib/reservations-data';
 
 interface BookingReservationFormProps {
   content: MyBestAuntieBookingContent['paymentModal'];
@@ -39,6 +43,9 @@ interface BookingReservationFormProps {
 
 const DISCOUNT_ERROR_MESSAGE_ID = 'booking-modal-discount-error-message';
 const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
+const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
+const RESERVATION_SUBMIT_ERROR_MESSAGE =
+  'Unable to submit reservation right now. Please try again.';
 
 function sanitizeSingleLineValue(value: string): string {
   return value.replaceAll(/\s+/g, ' ').trim();
@@ -69,6 +76,8 @@ export function BookingReservationForm({
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
   const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -121,7 +130,8 @@ export function BookingReservationForm({
     !hasPendingReservationAcknowledgement ||
     !hasTermsAgreement ||
     !captchaToken ||
-    isCaptchaUnavailable;
+    isCaptchaUnavailable ||
+    isSubmitting;
 
   function handleApplyDiscount() {
     if (discountRule) {
@@ -149,9 +159,10 @@ export function BookingReservationForm({
     setDiscountError('');
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsCaptchaTouched(true);
+    setSubmitError('');
     if (
       !selectedPackageLabel ||
       !selectedMonthLabel ||
@@ -160,7 +171,7 @@ export function BookingReservationForm({
       return;
     }
 
-    onSubmitReservation({
+    const reservationSummary: ReservationSummary = {
       attendeeName: sanitizeSingleLineValue(fullName),
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: sanitizeSingleLineValue(phone),
@@ -172,7 +183,31 @@ export function BookingReservationForm({
       courseLabel: sanitizeSingleLineValue(content.title),
       scheduleDateLabel: sanitizeSingleLineValue(selectedMonthLabel),
       scheduleTimeLabel: sanitizeSingleLineValue(scheduleTimeLabel),
-    });
+    };
+    const crmApiClient = createPublicCrmApiClient();
+    if (!crmApiClient || !captchaToken) {
+      setSubmitError(RESERVATION_SUBMIT_ERROR_MESSAGE);
+      return;
+    }
+
+    const reservationPayload: ReservationSubmissionPayload = {
+      ...reservationSummary,
+      interestedTopics:
+        sanitizeSingleLineValue(interestedTopics) || undefined,
+    };
+
+    setIsSubmitting(true);
+    try {
+      await submitReservation(crmApiClient, {
+        payload: reservationPayload,
+        turnstileToken: captchaToken,
+      });
+      onSubmitReservation(reservationSummary);
+    } catch {
+      setSubmitError(RESERVATION_SUBMIT_ERROR_MESSAGE);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -412,12 +447,27 @@ export function BookingReservationForm({
               {captchaErrorMessage}
             </p>
           ) : null}
+          {submitError ? (
+            <p
+              id={SUBMIT_ERROR_MESSAGE_ID}
+              className='text-sm font-semibold es-text-danger-strong'
+              role='alert'
+            >
+              {submitError}
+            </p>
+          ) : null}
 
           <ButtonPrimitive
             variant='primary'
             type='submit'
             disabled={isSubmitDisabled}
-            aria-describedby={captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : undefined}
+            aria-describedby={
+              captchaErrorMessage
+                ? CAPTCHA_ERROR_MESSAGE_ID
+                : submitError
+                  ? SUBMIT_ERROR_MESSAGE_ID
+                  : undefined
+            }
             className='mt-1 w-full'
           >
             {content.submitLabel}

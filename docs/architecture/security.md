@@ -213,6 +213,8 @@ Requirements:
 
 - The key must be read-only and limited to the required public endpoints.
 - Requests should prefer same-origin `/www` proxy routing.
+- Public write endpoints (for example reservation submissions) must validate
+  `X-Turnstile-Token` server-side against Cloudflare Turnstile.
 - API-side rate limiting and monitoring must be enabled.
 - Any key rotation must be coordinated with frontend runtime configuration.
 

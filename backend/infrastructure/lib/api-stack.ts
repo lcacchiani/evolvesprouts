@@ -532,6 +532,16 @@ export class ApiStack extends cdk.Stack {
         "SES-verified sender email address for access request notifications. " +
         "Can be the same as SupportEmail.",
     });
+    const turnstileSecretKey = new cdk.CfnParameter(
+      this,
+      "TurnstileSecretKey",
+      {
+        type: "String",
+        noEcho: true,
+        default: "",
+        description: "Cloudflare Turnstile server-side secret key",
+      }
+    );
 
     // ---------------------------------------------------------------------
     // API Custom Domain Parameters (Optional)
@@ -1169,6 +1179,7 @@ export class ApiStack extends cdk.Stack {
         CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
         SUPPORT_EMAIL: supportEmail.valueAsString,
         SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
+        TURNSTILE_SECRET_KEY: turnstileSecretKey.valueAsString,
         FEEDBACK_STARS_PER_APPROVAL: feedbackStarsPerApproval.valueAsString,
         NOMINATIM_USER_AGENT: nominatimUserAgent.valueAsString,
         NOMINATIM_REFERER: nominatimReferer.valueAsString,
@@ -1197,6 +1208,10 @@ export class ApiStack extends cdk.Stack {
       "cognito-idp:admin_user_global_sign_out",
       "cognito-idp:admin_update_user_attributes",
     ];
+    const allowedProxyHttpUrls = [
+      "https://nominatim.openstreetmap.org/search",
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    ];
 
     const awsProxyFunction = createPythonFunction("AwsApiProxyFunction", {
       handler: "lambda/aws_proxy/handler.lambda_handler",
@@ -1208,7 +1223,7 @@ export class ApiStack extends cdk.Stack {
         // Comma-separated URL prefixes for outbound HTTP requests.
         // Add prefixes here when Lambdas inside the VPC need to call
         // external APIs via the proxy.
-        ALLOWED_HTTP_URLS: "https://nominatim.openstreetmap.org/search",
+        ALLOWED_HTTP_URLS: allowedProxyHttpUrls.join(","),
       },
     });
 
@@ -1798,6 +1813,14 @@ export class ApiStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: corsAllowedOrigins,
         allowMethods: ["GET", "OPTIONS", "POST", "PUT", "DELETE"],
+        allowHeaders: [
+          "Content-Type",
+          "Authorization",
+          "X-Amz-Date",
+          "X-Api-Key",
+          "X-Amz-Security-Token",
+          "X-Turnstile-Token",
+        ],
       },
       deployOptions: {
         stageName: "prod",
@@ -1843,7 +1866,7 @@ export class ApiStack extends cdk.Stack {
     const gatewayResponseHeaders: Record<string, string> = {
       "method.response.header.Access-Control-Allow-Origin": `'${corsAllowedOrigins[0]}'`,
       "method.response.header.Access-Control-Allow-Headers":
-        "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
+        "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Turnstile-Token'",
       "method.response.header.Access-Control-Allow-Methods":
         "'GET,POST,PUT,DELETE,OPTIONS'",
     };
@@ -1990,7 +2013,17 @@ export class ApiStack extends cdk.Stack {
       sourceArn: api.arnForExecuteApi(),
     });
 
+    const reservations = v1.addResource("reservations");
+    reservations.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+    });
 
+    const www = api.root.addResource("www");
+    const wwwV1 = www.addResource("v1");
+    const wwwReservations = wwwV1.addResource("reservations");
+    wwwReservations.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+    });
 
     // All admin resources - admin only, full access
     const adminResources = [

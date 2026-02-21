@@ -50,6 +50,7 @@ from app.api.admin_resources import (
 )
 from app.api.admin_suggestions import _handle_user_organization_suggestion
 from app.api.admin_tickets import _handle_admin_tickets, _handle_user_access_request
+from app.api.public_reservations import _handle_public_reservation
 from app.api.user_organizations import _handle_user_organizations
 from app.api.admin_validators import (
     MAX_DESCRIPTION_LENGTH,
@@ -130,6 +131,12 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
             "resource_id": resource_id,
         },
     )
+
+    if _is_public_reservation_path(path):
+        return _safe_handler(
+            lambda: _handle_public_reservation(event, method),
+            event,
+        )
 
     if base_path == "user":
         return _handle_user_routes(event, method, resource, resource_id)
@@ -306,3 +313,9 @@ def _handle_manager_routes(
         lambda: _handle_crud(event, method, config, resource_id, managed_org_ids),
         event,
     )
+
+
+def _is_public_reservation_path(path: str) -> bool:
+    """Return whether the request targets the public reservations endpoint."""
+    normalized_path = path.rstrip("/")
+    return normalized_path in ("/v1/reservations", "/www/v1/reservations")
