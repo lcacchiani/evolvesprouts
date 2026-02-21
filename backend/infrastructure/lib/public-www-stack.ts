@@ -265,6 +265,46 @@ function handler(event) {
 `),
       },
     );
+    const wwwProxyAllowlistFunction = new cloudfront.Function(
+      this,
+      `${config.idPrefix}WwwProxyAllowlistFunction`,
+      {
+        comment:
+          "Allow only explicitly approved public API method/path pairs on /www/*.",
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
+        code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var method = request.method || '';
+  var uri = request.uri || '';
+
+  var allowlist = {
+    'GET': {
+      '/www/v1/calendar/events': true
+    },
+    'POST': {
+      '/www/v1/discounts/validate': true,
+      '/www/v1/reservations': true
+    }
+  };
+
+  if (allowlist[method] && allowlist[method][uri]) {
+    return request;
+  }
+
+  return {
+    statusCode: 403,
+    statusDescription: 'Forbidden',
+    headers: {
+      'content-type': { value: 'application/json; charset=utf-8' },
+      'cache-control': { value: 'no-store' }
+    },
+    body: '{"message":"Forbidden"}'
+  };
+}
+`),
+      },
+    );
 
     const customHeaders: cloudfront.ResponseCustomHeader[] = [
       {
@@ -370,10 +410,16 @@ function handler(event) {
             origin: wwwApiOrigin,
             viewerProtocolPolicy:
               cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-            allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+            allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
             cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
             originRequestPolicy:
               cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+            functionAssociations: [
+              {
+                function: wwwProxyAllowlistFunction,
+                eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+              },
+            ],
           },
         },
       },
