@@ -23,7 +23,7 @@ import {
 } from '@/components/sections/my-best-auntie-booking-modal';
 import enContent from '@/content/en.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
-import { fetchDiscountRules } from '@/lib/discounts-data';
+import { validateDiscountCode } from '@/lib/discounts-data';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -69,7 +69,7 @@ vi.mock('@/lib/discounts-data', async () => {
 
   return {
     ...actual,
-    fetchDiscountRules: vi.fn(),
+    validateDiscountCode: vi.fn(() => Promise.resolve(null)),
   };
 });
 
@@ -107,7 +107,7 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
 const bookingModalContent = enContent.myBestAuntieBooking.paymentModal;
 const thankYouModalContent = enContent.myBestAuntieBooking.thankYouModal;
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
-const mockedFetchDiscountRules = vi.mocked(fetchDiscountRules);
+const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
 const testFpsMerchantName = 'Test FPS Merchant';
 const testFpsMobileNumber = '85200000000';
@@ -135,7 +135,7 @@ beforeEach(() => {
 
 afterEach(() => {
   mockedCreateCrmApiClient.mockReturnValue(null);
-  mockedFetchDiscountRules.mockReset();
+  mockedValidateDiscountCode.mockReset();
 
   if (originalTurnstileSiteKey === undefined) {
     delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -371,13 +371,11 @@ describe('my-best-auntie booking modals footer content', () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: vi.fn(),
     });
-    mockedFetchDiscountRules.mockResolvedValue([
-      {
-        code: 'SAVE10',
-        type: 'percent',
-        value: 10,
-      },
-    ]);
+    mockedValidateDiscountCode.mockResolvedValue({
+      code: 'SAVE10',
+      type: 'percent',
+      value: 10,
+    });
 
     const { container } = render(
       <MyBestAuntieBookingModal
@@ -386,10 +384,6 @@ describe('my-best-auntie booking modals footer content', () => {
         onSubmitReservation={() => {}}
       />,
     );
-
-    await waitFor(() => {
-      expect(mockedFetchDiscountRules).toHaveBeenCalledTimes(1);
-    });
 
     const pricingSection = screen
       .getByRole('heading', { name: bookingModalContent.pricingTitle })
@@ -412,6 +406,10 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.click(applyButton);
 
     await waitFor(() => {
+      expect(mockedValidateDiscountCode).toHaveBeenCalledWith(
+        expect.objectContaining({ request: expect.any(Function) }),
+        'SAVE10',
+      );
       expect(
         screen.getByText(bookingModalContent.discountAppliedLabel),
       ).toBeInTheDocument();
@@ -431,6 +429,72 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(within(priceBreakdown as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('-HK$900')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('HK$8,100')).toBeInTheDocument();
+  });
+
+  it('submits reservation payload with required snake_case fields', async () => {
+    const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: requestSpy,
+    });
+
+    render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        selectedAgeGroupLabel='18-24 months'
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
+      target: { value: 'ida@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
+      target: { value: 'Need details' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(requestSpy).toHaveBeenCalledWith({
+        endpointPath: '/v1/reservations',
+        method: 'POST',
+        body: {
+          full_name: 'Test User',
+          email: 'ida@example.com',
+          phone_number: '85212345678',
+          cohort_age: '18-24 months',
+          cohort_date: '2026-04-08',
+          comments: 'Need details',
+          discount_code: undefined,
+          price: 9000,
+          reservation_pending_until_payment_confirmed: true,
+          agreed_to_terms_and_conditions: true,
+        },
+        turnstileToken: 'mock-turnstile-token',
+        expectedSuccessStatuses: [200, 202],
+      });
+    });
   });
 
   it('uses cubes.svg mask icon for all course part chips', () => {
@@ -617,13 +681,11 @@ describe('my-best-auntie booking modals footer content', () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: vi.fn(),
     });
-    mockedFetchDiscountRules.mockResolvedValue([
-      {
-        code: 'SAVE10',
-        type: 'percent',
-        value: 10,
-      },
-    ]);
+    mockedValidateDiscountCode.mockResolvedValue({
+      code: 'SAVE10',
+      type: 'percent',
+      value: 10,
+    });
 
     render(
       <MyBestAuntieBookingModal
@@ -632,10 +694,6 @@ describe('my-best-auntie booking modals footer content', () => {
         onSubmitReservation={() => {}}
       />,
     );
-
-    await waitFor(() => {
-      expect(mockedFetchDiscountRules).toHaveBeenCalledTimes(1);
-    });
 
     const discountInput = screen.getByPlaceholderText(
       bookingModalContent.discountCodePlaceholder,

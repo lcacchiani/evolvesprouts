@@ -3,18 +3,16 @@ import type { CrmApiClient } from '@/lib/crm-api-client';
 export const RESERVATIONS_API_PATH = '/v1/reservations';
 
 export interface ReservationSubmissionPayload {
-  attendeeName: string;
-  attendeeEmail: string;
-  attendeePhone: string;
-  childAgeGroup: string;
-  packageLabel: string;
-  monthLabel: string;
-  paymentMethod: string;
-  totalAmount: number;
-  courseLabel: string;
-  scheduleDateLabel?: string;
-  scheduleTimeLabel?: string;
-  interestedTopics?: string;
+  full_name: string;
+  email: string;
+  phone_number: string;
+  cohort_age: string;
+  cohort_date: string;
+  comments?: string;
+  discount_code?: string;
+  price: number;
+  reservation_pending_until_payment_confirmed: boolean;
+  agreed_to_terms_and_conditions: boolean;
 }
 
 interface SubmitReservationOptions {
@@ -31,5 +29,6 @@ export async function submitReservation(
     method: 'POST',
     body: options.payload,
     turnstileToken: options.turnstileToken,
+    expectedSuccessStatuses: [200, 202],
   });
 }

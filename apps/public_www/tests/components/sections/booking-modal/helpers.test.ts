@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   applyDiscount,
   escapeHtml,
+  extractIsoDateFromPartDate,
   extractTimeRangeFromPartDate,
   resolveLocalizedDate,
 } from '@/components/sections/booking-modal/helpers';
@@ -48,6 +49,13 @@ describe('booking modal helpers', () => {
       '12:00 pm - 2:00 pm',
     );
     expect(extractTimeRangeFromPartDate('Apr 08')).toBe('');
+  });
+
+  it('extracts a cohort ISO date from the part date and month label', () => {
+    expect(extractIsoDateFromPartDate('Apr 08 @ 12:00 pm - 2:00 pm', 'Apr, 2026')).toBe(
+      '2026-04-08',
+    );
+    expect(extractIsoDateFromPartDate('Invalid', 'Apr, 2026')).toBe('');
   });
 
   it('formats localized transaction dates from the current time', () => {
