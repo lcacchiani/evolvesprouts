@@ -115,19 +115,19 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
     const normalizedFirstName = sanitizeSingleLineValue(formState.firstName);
     const normalizedPhone = sanitizeSingleLineValue(formState.phone);
     const requestBody: {
-      firstName?: string;
-      emailAddress: string;
-      phoneNumber?: string;
+      first_name?: string;
+      email_address: string;
+      phone_number?: string;
       message: string;
     } = {
-      emailAddress: normalizedEmail,
+      email_address: normalizedEmail,
       message: normalizedMessage,
     };
     if (normalizedFirstName) {
-      requestBody.firstName = normalizedFirstName;
+      requestBody.first_name = normalizedFirstName;
     }
     if (normalizedPhone) {
-      requestBody.phoneNumber = normalizedPhone;
+      requestBody.phone_number = normalizedPhone;
     }
 
     setIsSubmitting(true);

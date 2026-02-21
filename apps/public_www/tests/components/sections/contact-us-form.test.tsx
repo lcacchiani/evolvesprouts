@@ -220,9 +220,9 @@ describe('ContactUsForm section', () => {
         endpointPath: '/v1/contact-us',
         method: 'POST',
         body: {
-          firstName: 'Ida',
-          emailAddress: 'parent@example.com',
-          phoneNumber: '+852 1234 5678',
+          first_name: 'Ida',
+          email_address: 'parent@example.com',
+          phone_number: '+852 1234 5678',
           message: 'Tell me more about your courses.',
         },
       });
