@@ -216,6 +216,34 @@ Requirements:
 - API-side rate limiting and monitoring must be enabled.
 - Any key rotation must be coordinated with frontend runtime configuration.
 
+### Public WWW same-origin proxy allowlist
+
+The CloudFront `www/*` behavior in
+`backend/infrastructure/lib/public-www-stack.ts` uses a viewer-request
+CloudFront Function with a **default-deny** policy.
+
+Security model:
+
+- Only explicitly approved method+path pairs are forwarded to
+  `api.evolvesprouts.com`.
+- Requests that are not allowlisted are blocked at CloudFront with a `403`
+  before reaching the API origin.
+- The policy is applied to both production and staging public website
+  distributions.
+
+Process to add a new public API path:
+
+1. Confirm the endpoint is intended for unauthenticated/public website use.
+2. Update the endpoint contract in the relevant `docs/api/*.yaml` spec.
+3. Add the exact method+path rule to the CloudFront Function allowlist in
+   `public-www-stack.ts`.
+4. Deploy the public website infrastructure.
+5. Verify positive and negative cases:
+   - allowlisted path succeeds
+   - non-allowlisted path returns `403`
+6. Monitor API and CloudFront logs for unexpected request patterns after
+   rollout.
+
 ---
 
 ## Infrastructure Security
