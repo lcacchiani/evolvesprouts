@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ContactUsForm } from '@/components/sections/contact-us-form';
 import enContent from '@/content/en.json';
+import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
@@ -37,12 +38,28 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
   ),
 }));
 
+vi.mock('@/lib/crm-api-client', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/crm-api-client')>(
+    '@/lib/crm-api-client',
+  );
+
+  return {
+    ...actual,
+    createPublicCrmApiClient: vi.fn(() => null),
+  };
+});
+
+const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
+
 describe('ContactUsForm section', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
   });
 
   afterEach(() => {
+    mockedCreateCrmApiClient.mockReset();
+    mockedCreateCrmApiClient.mockReturnValue(null);
+
     if (originalTurnstileSiteKey === undefined) {
       delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
       return;
@@ -165,5 +182,50 @@ describe('ContactUsForm section', () => {
     expect(
       screen.queryByText(enContent.contactUs.contactUsForm.captchaRequiredError),
     ).not.toBeInTheDocument();
+  });
+
+  it('submits the validated form payload to the contact-us API endpoint', async () => {
+    const request = vi.fn().mockResolvedValue(null);
+    mockedCreateCrmApiClient.mockReturnValue({
+      request,
+    });
+
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    const firstNameInput = screen.getByLabelText(
+      enContent.contactUs.contactUsForm.firstNameLabel,
+    );
+    const emailInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
+    );
+    const phoneInput = screen.getByLabelText(
+      enContent.contactUs.contactUsForm.phoneLabel,
+    );
+    const messageInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.contactUsForm.messageLabel),
+    );
+    const submitButton = screen.getByRole('button', {
+      name: enContent.contactUs.contactUsForm.submitLabel,
+    });
+
+    fireEvent.change(firstNameInput, { target: { value: ' Ida ' } });
+    fireEvent.change(emailInput, { target: { value: 'parent@example.com' } });
+    fireEvent.change(phoneInput, { target: { value: ' +852 1234 5678 ' } });
+    fireEvent.change(messageInput, { target: { value: ' Tell me more about your courses. ' } });
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(request).toHaveBeenCalledWith({
+        endpointPath: '/v1/contact-us',
+        method: 'POST',
+        body: {
+          firstName: 'Ida',
+          emailAddress: 'parent@example.com',
+          phoneNumber: '+852 1234 5678',
+          message: 'Tell me more about your courses.',
+        },
+      });
+    });
   });
 });

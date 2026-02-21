@@ -284,7 +284,8 @@ function handler(event) {
     },
     'POST': {
       '/www/v1/discounts/validate': true,
-      '/www/v1/reservations': true
+      '/www/v1/reservations': true,
+      '/www/v1/contact-us': true
     }
   };
 
