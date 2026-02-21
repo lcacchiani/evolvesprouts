@@ -23,6 +23,7 @@ import {
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
 import type { MyBestAuntieBookingContent } from '@/content';
 import {
+  extractIsoDateFromPartDate,
   extractTimeRangeFromPartDate,
 } from '@/components/sections/booking-modal/helpers';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
@@ -112,6 +113,12 @@ export function MyBestAuntieBookingModal({
   const selectedTimeLabel = useMemo(() => {
     return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');
   }, [activePartRows]);
+  const selectedCohortDate = useMemo(() => {
+    return extractIsoDateFromPartDate(
+      activePartRows[0]?.date ?? '',
+      selectedMonth?.label ?? '',
+    );
+  }, [activePartRows, selectedMonth?.label]);
 
   return (
     <ModalOverlay onClose={onClose}>
@@ -152,6 +159,7 @@ export function MyBestAuntieBookingModal({
               content={content}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
               selectedMonthLabel={selectedMonth?.label ?? ''}
+              selectedCohortDate={selectedCohortDate}
               selectedPackageLabel={selectedPackage?.label ?? ''}
               selectedPackagePrice={originalAmount}
               scheduleTimeLabel={selectedTimeLabel}

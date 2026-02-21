@@ -14,15 +14,16 @@ describe('reservations-data', () => {
 
     await submitReservation(client, {
       payload: {
-        attendeeName: 'Test User',
-        attendeeEmail: 'test@example.com',
-        attendeePhone: '85212345678',
-        childAgeGroup: '18-24 months',
-        packageLabel: 'Standard',
-        monthLabel: 'April',
-        paymentMethod: 'FPS',
-        totalAmount: 9000,
-        courseLabel: 'My Best Auntie',
+        full_name: 'Test User',
+        email: 'test@example.com',
+        phone_number: '85212345678',
+        cohort_age: '18-24 months',
+        cohort_date: '2026-04-08',
+        comments: 'Please share more details.',
+        discount_code: 'SPRING10',
+        price: 9000,
+        reservation_pending_until_payment_confirmed: true,
+        agreed_to_terms_and_conditions: true,
       },
       turnstileToken: 'mock-turnstile-token',
     });
@@ -31,10 +32,11 @@ describe('reservations-data', () => {
       endpointPath: RESERVATIONS_API_PATH,
       method: 'POST',
       body: expect.objectContaining({
-        attendeeName: 'Test User',
-        attendeeEmail: 'test@example.com',
+        full_name: 'Test User',
+        email: 'test@example.com',
       }),
       turnstileToken: 'mock-turnstile-token',
+      expectedSuccessStatuses: [200, 202],
     });
   });
 });

@@ -13,6 +13,7 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { ServerSubmissionResult } from '@/lib/server-submission-result';
 
 interface ContactUsFormProps {
   content: ContactUsContent['contactUsForm'];
@@ -31,6 +32,7 @@ const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
 const EMAIL_ERROR_MESSAGE_ID = 'contact-us-form-email-error';
 const PHONE_ERROR_MESSAGE_ID = 'contact-us-form-phone-error';
 const CAPTCHA_ERROR_MESSAGE_ID = 'contact-us-form-captcha-error';
+const SUBMIT_ERROR_MESSAGE_ID = 'contact-us-form-submit-error';
 const CONTACT_US_API_PATH = '/v1/contact-us';
 
 function isValidEmail(value: string): boolean {
@@ -69,6 +71,8 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
   const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
+  const [submitErrorMessage, setSubmitErrorMessage] = useState('');
+  const [hasSuccessfulSubmission, setHasSuccessfulSubmission] = useState(false);
 
   const hasEmailError = isEmailTouched && !isValidEmail(formState.email);
   const hasPhoneError = isPhoneTouched && !isValidPhone(formState.phone);
@@ -93,6 +97,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSubmitErrorMessage('');
     setIsEmailTouched(true);
     setIsPhoneTouched(true);
     setIsCaptchaTouched(true);
@@ -132,23 +137,22 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
 
     setIsSubmitting(true);
     try {
-      await crmApiClient.request({
-        endpointPath: CONTACT_US_API_PATH,
-        method: 'POST',
-        body: requestBody,
+      const submissionResult = await ServerSubmissionResult.resolve({
+        request: () =>
+          crmApiClient.request({
+            endpointPath: CONTACT_US_API_PATH,
+            method: 'POST',
+            body: requestBody,
+            expectedSuccessStatuses: [200, 202],
+          }),
+        failureMessage: content.submitErrorMessage,
       });
-      setFormState({
-        firstName: '',
-        email: '',
-        phone: '',
-        message: '',
-      });
-      setIsEmailTouched(false);
-      setIsPhoneTouched(false);
-      setIsCaptchaTouched(false);
-      setCaptchaToken(null);
-    } catch {
-      // Keep the form values intact so users can retry submission.
+      if (submissionResult.isSuccess) {
+        setHasSuccessfulSubmission(true);
+        return;
+      }
+
+      setSubmitErrorMessage(submissionResult.errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -212,144 +216,170 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
             </ul>
           </div>
 
-          <form onSubmit={handleSubmit} className='relative z-10 space-y-3'>
-            <label className='block'>
-              <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                {content.firstNameLabel}
-              </span>
-              <input
-                type='text'
-                autoComplete='given-name'
-                value={formState.firstName}
-                onChange={(event) => {
-                  updateField('firstName', event.target.value);
-                }}
-                className='es-focus-ring es-form-input'
-              />
-            </label>
-
-            <label className='block'>
-              <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                {content.emailFieldLabel}
-                <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-                  *
-                </span>
-              </span>
-              <input
-                type='email'
-                required
-                autoComplete='email'
-                value={formState.email}
-                onChange={(event) => {
-                  updateField('email', event.target.value);
-                  setIsEmailTouched(true);
-                }}
-                onBlur={() => {
-                  setIsEmailTouched(true);
-                }}
-                className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
-                aria-invalid={hasEmailError}
-                aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
-              />
-              {hasEmailError ? (
-                <p
-                  id={EMAIL_ERROR_MESSAGE_ID}
-                  className='text-sm es-text-danger'
-                  role='alert'
-                >
-                  Please enter a valid email address.
-                </p>
-              ) : null}
-            </label>
-
-            <label className='block'>
-              <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                {content.phoneLabel}
-              </span>
-              <input
-                type='tel'
-                autoComplete='tel'
-                value={formState.phone}
-                onChange={(event) => {
-                  updateField('phone', event.target.value);
-                }}
-                onBlur={() => {
-                  setIsPhoneTouched(true);
-                }}
-                className='es-focus-ring es-form-input'
-                aria-invalid={hasPhoneError}
-                aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
-              />
-              {hasPhoneError ? (
-                <p
-                  id={PHONE_ERROR_MESSAGE_ID}
-                  className='text-sm es-text-danger'
-                  role='alert'
-                >
-                  Please enter a valid phone number.
-                </p>
-              ) : null}
-            </label>
-
-            <label className='block'>
-              <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                {content.messageLabel}
-                <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-                  *
-                </span>
-              </span>
-              <textarea
-                required
-                rows={6}
-                maxLength={MESSAGE_MAX_LENGTH}
-                value={formState.message}
-                onChange={(event) => {
-                  updateField('message', event.target.value);
-                }}
-                placeholder={content.messagePlaceholder}
-                className='es-focus-ring es-form-input min-h-[152px] resize-y'
-              />
-            </label>
-
-            <label className='block'>
-              <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                {content.captchaLabel}
-              </span>
-              <TurnstileCaptcha
-                siteKey={turnstileSiteKey}
-                widgetAction='contact_us_form_submit'
-                onTokenChange={(token) => {
-                  setCaptchaToken(token);
-                  if (token) {
-                    setIsCaptchaTouched(false);
-                    setHasCaptchaLoadError(false);
-                  }
-                }}
-                onLoadError={() => {
-                  setHasCaptchaLoadError(true);
-                }}
-              />
-            </label>
-            {captchaErrorMessage ? (
-              <p
-                id={CAPTCHA_ERROR_MESSAGE_ID}
-                className='text-sm es-text-danger'
-                role='alert'
-              >
-                {captchaErrorMessage}
+          {hasSuccessfulSubmission ? (
+            <div className='relative z-10 rounded-2xl es-bg-surface-muted px-5 py-6 text-center'>
+              <h3 className='text-2xl font-semibold es-text-heading'>
+                {content.successTitle}
+              </h3>
+              <p className='mt-3 text-base leading-7 text-[color:var(--site-primary-text)]'>
+                {content.successDescription}
               </p>
-            ) : null}
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className='relative z-10 space-y-3'>
+              <label className='block'>
+                <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                  {content.firstNameLabel}
+                </span>
+                <input
+                  type='text'
+                  autoComplete='given-name'
+                  value={formState.firstName}
+                  onChange={(event) => {
+                    updateField('firstName', event.target.value);
+                  }}
+                  className='es-focus-ring es-form-input'
+                />
+              </label>
 
-            <ButtonPrimitive
-              variant='primary'
-              type='submit'
-              disabled={isSubmitDisabled}
-              className='mt-2 w-full'
-              aria-describedby={captchaErrorMessage ? CAPTCHA_ERROR_MESSAGE_ID : undefined}
-            >
-              {content.submitLabel}
-            </ButtonPrimitive>
-          </form>
+              <label className='block'>
+                <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                  {content.emailFieldLabel}
+                  <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+                    *
+                  </span>
+                </span>
+                <input
+                  type='email'
+                  required
+                  autoComplete='email'
+                  value={formState.email}
+                  onChange={(event) => {
+                    updateField('email', event.target.value);
+                    setIsEmailTouched(true);
+                  }}
+                  onBlur={() => {
+                    setIsEmailTouched(true);
+                  }}
+                  className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
+                  aria-invalid={hasEmailError}
+                  aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
+                />
+                {hasEmailError ? (
+                  <p
+                    id={EMAIL_ERROR_MESSAGE_ID}
+                    className='text-sm es-text-danger'
+                    role='alert'
+                  >
+                    Please enter a valid email address.
+                  </p>
+                ) : null}
+              </label>
+
+              <label className='block'>
+                <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                  {content.phoneLabel}
+                </span>
+                <input
+                  type='tel'
+                  autoComplete='tel'
+                  value={formState.phone}
+                  onChange={(event) => {
+                    updateField('phone', event.target.value);
+                  }}
+                  onBlur={() => {
+                    setIsPhoneTouched(true);
+                  }}
+                  className='es-focus-ring es-form-input'
+                  aria-invalid={hasPhoneError}
+                  aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
+                />
+                {hasPhoneError ? (
+                  <p
+                    id={PHONE_ERROR_MESSAGE_ID}
+                    className='text-sm es-text-danger'
+                    role='alert'
+                  >
+                    Please enter a valid phone number.
+                  </p>
+                ) : null}
+              </label>
+
+              <label className='block'>
+                <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                  {content.messageLabel}
+                  <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+                    *
+                  </span>
+                </span>
+                <textarea
+                  required
+                  rows={6}
+                  maxLength={MESSAGE_MAX_LENGTH}
+                  value={formState.message}
+                  onChange={(event) => {
+                    updateField('message', event.target.value);
+                  }}
+                  placeholder={content.messagePlaceholder}
+                  className='es-focus-ring es-form-input min-h-[152px] resize-y'
+                />
+              </label>
+
+              <label className='block'>
+                <span className='mb-1 block text-sm font-semibold es-text-heading'>
+                  {content.captchaLabel}
+                </span>
+                <TurnstileCaptcha
+                  siteKey={turnstileSiteKey}
+                  widgetAction='contact_us_form_submit'
+                  onTokenChange={(token) => {
+                    setCaptchaToken(token);
+                    if (token) {
+                      setIsCaptchaTouched(false);
+                      setHasCaptchaLoadError(false);
+                    }
+                  }}
+                  onLoadError={() => {
+                    setHasCaptchaLoadError(true);
+                  }}
+                />
+              </label>
+              {captchaErrorMessage ? (
+                <p
+                  id={CAPTCHA_ERROR_MESSAGE_ID}
+                  className='text-sm es-text-danger'
+                  role='alert'
+                >
+                  {captchaErrorMessage}
+                </p>
+              ) : null}
+
+              <ButtonPrimitive
+                variant='primary'
+                type='submit'
+                disabled={isSubmitDisabled}
+                className='mt-2 w-full'
+                aria-describedby={
+                  captchaErrorMessage
+                    ? CAPTCHA_ERROR_MESSAGE_ID
+                    : submitErrorMessage
+                      ? SUBMIT_ERROR_MESSAGE_ID
+                      : undefined
+                }
+              >
+                {content.submitLabel}
+              </ButtonPrimitive>
+              {submitErrorMessage ? (
+                <p
+                  id={SUBMIT_ERROR_MESSAGE_ID}
+                  className='text-sm es-text-danger'
+                  role='alert'
+                >
+                  {submitErrorMessage}
+                </p>
+              ) : null}
+            </form>
+          )}
         </section>
       </SectionContainer>
     </SectionShell>

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  CrmApiRequestError,
   CRM_GET_CACHE_TTL_MS,
   buildCrmApiUrl,
   clearCrmApiGetCacheForTests,
@@ -222,5 +223,32 @@ describe('crm-api-client', () => {
         }),
       }),
     );
+  });
+
+  it('throws when status code is not in expected success statuses', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ message: 'created' }), {
+        status: 201,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const client = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'public-key',
+    });
+    if (!client) {
+      throw new Error('Expected CRM API client to be configured');
+    }
+
+    await expect(
+      client.request({
+        endpointPath: '/v1/test-endpoint',
+        method: 'POST',
+        body: { name: 'sprout' },
+        expectedSuccessStatuses: [200, 202],
+      }),
+    ).rejects.toBeInstanceOf(CrmApiRequestError);
   });
 });

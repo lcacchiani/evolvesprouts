@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import {
   type FormEvent,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -18,22 +17,23 @@ import type { MyBestAuntieBookingContent } from '@/content';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import {
   createPublicCrmApiClient,
-  isAbortRequestError,
 } from '@/lib/crm-api-client';
 import {
   type DiscountRule,
-  fetchDiscountRules,
+  validateDiscountCode,
 } from '@/lib/discounts-data';
 import { formatCurrencyHkd } from '@/lib/format';
 import {
   submitReservation,
   type ReservationSubmissionPayload,
 } from '@/lib/reservations-data';
+import { ServerSubmissionResult } from '@/lib/server-submission-result';
 
 interface BookingReservationFormProps {
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedAgeGroupLabel: string;
   selectedMonthLabel: string;
+  selectedCohortDate: string;
   selectedPackageLabel: string;
   selectedPackagePrice: number;
   scheduleTimeLabel: string;
@@ -55,6 +55,7 @@ export function BookingReservationForm({
   content,
   selectedAgeGroupLabel,
   selectedMonthLabel,
+  selectedCohortDate,
   selectedPackageLabel,
   selectedPackagePrice,
   scheduleTimeLabel,
@@ -67,9 +68,10 @@ export function BookingReservationForm({
   const [phone, setPhone] = useState('');
   const [interestedTopics, setInterestedTopics] = useState('');
   const [discountCode, setDiscountCode] = useState('');
-  const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
+  const [isDiscountValidationSubmitting, setIsDiscountValidationSubmitting] =
+    useState(false);
   const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
     useState(false);
   const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
@@ -78,33 +80,6 @@ export function BookingReservationForm({
   const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const crmApiClient = createPublicCrmApiClient();
-
-    if (!crmApiClient) {
-      return () => {
-        controller.abort();
-      };
-    }
-
-    fetchDiscountRules(crmApiClient, controller.signal)
-      .then((remoteRules) => {
-        setDiscountRules(remoteRules);
-      })
-      .catch((error) => {
-        if (isAbortRequestError(error)) {
-          return;
-        }
-
-        setDiscountRules([]);
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, []);
 
   const originalAmount = selectedPackagePrice;
   const totalAmount = useMemo(() => {
@@ -133,7 +108,7 @@ export function BookingReservationForm({
     isCaptchaUnavailable ||
     isSubmitting;
 
-  function handleApplyDiscount() {
+  async function handleApplyDiscount() {
     if (discountRule) {
       return;
     }
@@ -145,18 +120,34 @@ export function BookingReservationForm({
       return;
     }
 
-    const matchedRule = discountRules.find(
-      (entry) => entry.code.toUpperCase() === normalizedCode,
-    );
-
-    if (!matchedRule) {
+    const crmApiClient = createPublicCrmApiClient();
+    if (!crmApiClient) {
       setDiscountRule(null);
       setDiscountError(content.invalidDiscountLabel);
       return;
     }
 
-    setDiscountRule(matchedRule);
+    setIsDiscountValidationSubmitting(true);
     setDiscountError('');
+    try {
+      const validatedRule = await validateDiscountCode(
+        crmApiClient,
+        normalizedCode,
+      );
+      if (!validatedRule) {
+        setDiscountRule(null);
+        setDiscountError(content.invalidDiscountLabel);
+        return;
+      }
+
+      setDiscountCode(normalizedCode);
+      setDiscountRule(validatedRule);
+    } catch {
+      setDiscountRule(null);
+      setDiscountError(content.invalidDiscountLabel);
+    } finally {
+      setIsDiscountValidationSubmitting(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -190,24 +181,38 @@ export function BookingReservationForm({
       return;
     }
 
+    const normalizedCohortDate =
+      sanitizeSingleLineValue(selectedCohortDate) ||
+      sanitizeSingleLineValue(selectedMonthLabel);
     const reservationPayload: ReservationSubmissionPayload = {
-      ...reservationSummary,
-      interestedTopics:
-        sanitizeSingleLineValue(interestedTopics) || undefined,
+      full_name: reservationSummary.attendeeName,
+      email: reservationSummary.attendeeEmail,
+      phone_number: reservationSummary.attendeePhone,
+      cohort_age: reservationSummary.childAgeGroup,
+      cohort_date: normalizedCohortDate,
+      comments: sanitizeSingleLineValue(interestedTopics) || undefined,
+      discount_code: discountRule?.code || undefined,
+      price: totalAmount,
+      reservation_pending_until_payment_confirmed:
+        hasPendingReservationAcknowledgement,
+      agreed_to_terms_and_conditions: hasTermsAgreement,
     };
 
     setIsSubmitting(true);
-    try {
-      await submitReservation(crmApiClient, {
-        payload: reservationPayload,
-        turnstileToken: captchaToken,
-      });
+    const submissionResult = await ServerSubmissionResult.resolve({
+      request: () =>
+        submitReservation(crmApiClient, {
+          payload: reservationPayload,
+          turnstileToken: captchaToken,
+        }),
+      failureMessage: RESERVATION_SUBMIT_ERROR_MESSAGE,
+    });
+    if (submissionResult.isSuccess) {
       onSubmitReservation(reservationSummary);
-    } catch {
-      setSubmitError(RESERVATION_SUBMIT_ERROR_MESSAGE);
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setSubmitError(submissionResult.errorMessage);
     }
+    setIsSubmitting(false);
   }
 
   return (
@@ -321,7 +326,7 @@ export function BookingReservationForm({
             <ButtonPrimitive
               variant='outline'
               onClick={handleApplyDiscount}
-              disabled={Boolean(discountRule)}
+              disabled={Boolean(discountRule) || isDiscountValidationSubmitting}
               className='mt-6 h-[50px] rounded-control px-4 text-sm font-semibold'
             >
               {content.applyDiscountLabel}

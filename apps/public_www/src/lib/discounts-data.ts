@@ -10,13 +10,7 @@ export interface DiscountRule {
   currencySymbol?: string | null;
 }
 
-interface StaticDiscountRule {
-  code: unknown;
-  type: unknown;
-  value: unknown;
-}
-
-export const DISCOUNTS_API_PATH = '/v1/discounts';
+export const DISCOUNT_VALIDATE_API_PATH = '/v1/discounts/validate';
 
 function readRequiredText(value: unknown): string | null {
   if (typeof value !== 'string') {
@@ -46,13 +40,16 @@ function readNumericAmount(value: unknown): number | null {
   return null;
 }
 
-function normalizeApiDiscount(value: unknown): DiscountRule | null {
+function normalizeApiDiscount(
+  value: unknown,
+  fallbackCode: string,
+): DiscountRule | null {
   const record = toRecord(value);
   if (!record) {
     return null;
   }
 
-  const code = readRequiredText(record.code);
+  const code = readRequiredText(record.code) ?? fallbackCode;
   const amount = readNumericAmount(record.amount);
   const isPercentage = record.is_percentage;
 
@@ -80,62 +77,82 @@ function normalizeApiDiscount(value: unknown): DiscountRule | null {
   };
 }
 
-export function normalizeStaticDiscountRules(
-  rules: ReadonlyArray<StaticDiscountRule>,
-): DiscountRule[] {
-  return rules
-    .map((rule) => {
-      const code = readRequiredText(rule.code);
-      const amount = readNumericAmount(rule.value);
-      const discountType = rule.type;
-
-      if (
-        !code ||
-        amount === null ||
-        (discountType !== 'percent' && discountType !== 'amount')
-      ) {
-        return null;
-      }
-
-      return {
-        code,
-        type: discountType,
-        value: amount,
-      } satisfies DiscountRule;
-    })
-    .filter((rule): rule is DiscountRule => rule !== null);
-}
-
-export function normalizeDiscountsPayload(payload: unknown): DiscountRule[] {
-  if (Array.isArray(payload)) {
-    return payload
-      .map((entry) => normalizeApiDiscount(entry))
-      .filter((entry): entry is DiscountRule => entry !== null);
+export function normalizeDiscountValidationPayload(
+  payload: unknown,
+  requestedCode: string,
+): DiscountRule | null {
+  const normalizedRequestedCode = readRequiredText(requestedCode) ?? '';
+  if (!normalizedRequestedCode) {
+    return null;
   }
-
+  if (Array.isArray(payload)) {
+    return (
+      payload
+        .map((entry) => normalizeApiDiscount(entry, normalizedRequestedCode))
+        .find((entry): entry is DiscountRule => entry !== null) ?? null
+    );
+  }
   const record = toRecord(payload);
   if (!record) {
-    return [];
+    return null;
+  }
+  if (record.is_valid === false || record.valid === false) {
+    return null;
   }
 
-  const nestedData = Array.isArray(record.data) ? record.data : [];
-  return nestedData
-    .map((entry) => normalizeApiDiscount(entry))
-    .filter((entry): entry is DiscountRule => entry !== null);
+  const nestedData = record.data;
+  if (Array.isArray(nestedData)) {
+    return (
+      nestedData
+        .map((entry) => normalizeApiDiscount(entry, normalizedRequestedCode))
+        .find((entry): entry is DiscountRule => entry !== null) ?? null
+    );
+  }
+
+  if (nestedData) {
+    const nestedDiscount = normalizeApiDiscount(
+      nestedData,
+      normalizedRequestedCode,
+    );
+    if (nestedDiscount) {
+      return nestedDiscount;
+    }
+  }
+
+  const nestedDiscount = normalizeApiDiscount(
+    record.discount,
+    normalizedRequestedCode,
+  );
+  if (nestedDiscount) {
+    return nestedDiscount;
+  }
+
+  return normalizeApiDiscount(record, normalizedRequestedCode);
 }
 
-export function buildDiscountsApiUrl(crmApiBaseUrl: string): string {
-  return buildCrmApiUrl(crmApiBaseUrl, DISCOUNTS_API_PATH);
+export function buildDiscountValidationApiUrl(crmApiBaseUrl: string): string {
+  return buildCrmApiUrl(crmApiBaseUrl, DISCOUNT_VALIDATE_API_PATH);
 }
 
-export async function fetchDiscountRules(
+export async function validateDiscountCode(
   crmApiClient: CrmApiClient,
-  signal: AbortSignal,
-): Promise<DiscountRule[]> {
+  code: string,
+  signal?: AbortSignal,
+): Promise<DiscountRule | null> {
+  const normalizedCode = readRequiredText(code);
+  if (!normalizedCode) {
+    return null;
+  }
+
   const payload = await crmApiClient.request({
-    endpointPath: DISCOUNTS_API_PATH,
-    method: 'GET',
+    endpointPath: DISCOUNT_VALIDATE_API_PATH,
+    method: 'POST',
+    body: {
+      code: normalizedCode,
+    },
     signal,
+    expectedSuccessStatuses: [200, 202],
   });
-  return normalizeDiscountsPayload(payload);
+
+  return normalizeDiscountValidationPayload(payload, normalizedCode);
 }

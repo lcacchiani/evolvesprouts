@@ -225,7 +225,49 @@ describe('ContactUsForm section', () => {
           phone_number: '+852 1234 5678',
           message: 'Tell me more about your courses.',
         },
+        expectedSuccessStatuses: [200, 202],
       });
+      expect(
+        screen.getByText(enContent.contactUs.contactUsForm.successTitle),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(enContent.contactUs.contactUsForm.successDescription),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', {
+          name: enContent.contactUs.contactUsForm.submitLabel,
+        }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows an inline submit error under the button when submission fails', async () => {
+    const request = vi.fn().mockRejectedValue(new Error('request failed'));
+    mockedCreateCrmApiClient.mockReturnValue({
+      request,
+    });
+
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel)),
+      { target: { value: 'parent@example.com' } },
+    );
+    fireEvent.change(
+      screen.getByLabelText(new RegExp(enContent.contactUs.contactUsForm.messageLabel)),
+      { target: { value: 'Tell me more about your course.' } },
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.contactUs.contactUsForm.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(enContent.contactUs.contactUsForm.submitErrorMessage),
+      ).toBeInTheDocument();
     });
   });
 });

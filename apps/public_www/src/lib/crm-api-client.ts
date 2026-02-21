@@ -12,6 +12,7 @@ export interface CrmApiRequestOptions {
   body?: unknown;
   headers?: Record<string, string>;
   turnstileToken?: string;
+  expectedSuccessStatuses?: readonly number[];
 }
 
 export interface CrmApiClient {
@@ -21,6 +22,26 @@ export interface CrmApiClient {
 interface CachedGetEntry {
   expiresAt: number;
   payload: unknown;
+}
+
+export class CrmApiRequestError extends Error {
+  readonly statusCode: number;
+  readonly payload: unknown;
+
+  constructor({
+    statusCode,
+    payload,
+    message,
+  }: {
+    statusCode: number;
+    payload: unknown;
+    message: string;
+  }) {
+    super(message);
+    this.name = 'CrmApiRequestError';
+    this.statusCode = statusCode;
+    this.payload = payload;
+  }
 }
 
 export const CRM_GET_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -193,11 +214,28 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
       }
 
       const response = await fetch(requestUrl, requestInit);
+      const payload = await parseResponsePayload(response);
       if (!response.ok) {
-        throw new Error(`CRM API request failed: ${response.status}`);
+        throw new CrmApiRequestError({
+          statusCode: response.status,
+          payload,
+          message: `CRM API request failed: ${response.status}`,
+        });
       }
 
-      const payload = await parseResponsePayload(response);
+      const expectedSuccessStatuses = options.expectedSuccessStatuses;
+      if (
+        expectedSuccessStatuses &&
+        expectedSuccessStatuses.length > 0 &&
+        !expectedSuccessStatuses.includes(response.status)
+      ) {
+        throw new CrmApiRequestError({
+          statusCode: response.status,
+          payload,
+          message: `CRM API request returned unexpected status: ${response.status}`,
+        });
+      }
+
       if (method === 'GET') {
         getRequestCache.set(cacheKey, {
           payload,

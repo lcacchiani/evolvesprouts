@@ -179,6 +179,12 @@ paths:
             schema:
               $ref: "#/components/schemas/ReservationSubmissionRequest"
       responses:
+        "200":
+          description: Reservation accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
         "202":
           description: Reservation accepted for processing
           content:
@@ -189,6 +195,32 @@ paths:
           description: Validation error
         "403":
           description: Captcha verification failed
+  /v1/discounts/validate:
+    post:
+      summary: Validate a discount code
+      description: |
+        Validate a discount code for the public My Best Auntie booking flow.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountValidationRequest"
+      responses:
+        "200":
+          description: Discount validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountValidationResponse"
+        "202":
+          description: Discount validation accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountValidationResponse"
+        "400":
+          description: Validation error
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -214,53 +246,82 @@ components:
     ReservationSubmissionRequest:
       type: object
       required:
-        - attendeeName
-        - attendeeEmail
-        - attendeePhone
-        - childAgeGroup
-        - packageLabel
-        - monthLabel
-        - paymentMethod
-        - totalAmount
-        - courseLabel
+        - full_name
+        - email
+        - phone_number
+        - cohort_age
+        - cohort_date
+        - price
+        - reservation_pending_until_payment_confirmed
+        - agreed_to_terms_and_conditions
       properties:
-        attendeeName:
+        full_name:
           type: string
           maxLength: 200
-        attendeeEmail:
+        email:
           type: string
           format: email
-        attendeePhone:
+        phone_number:
           type: string
           maxLength: 40
-        childAgeGroup:
+        cohort_age:
           type: string
           maxLength: 200
-        packageLabel:
+        cohort_date:
           type: string
-          maxLength: 200
-        monthLabel:
+          description: Cohort date in ISO format (YYYY-MM-DD).
+        comments:
           type: string
-          maxLength: 200
-        paymentMethod:
+          maxLength: 1000
+        discount_code:
           type: string
           maxLength: 100
-        totalAmount:
+        price:
           type: number
           minimum: 0
           maximum: 1000000
-        courseLabel:
+        reservation_pending_until_payment_confirmed:
+          type: boolean
+        agreed_to_terms_and_conditions:
+          type: boolean
+    DiscountValidationRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
           type: string
-          maxLength: 200
-        scheduleDateLabel:
+          maxLength: 100
+    DiscountValidationResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/DiscountRule"
+        discount:
+          $ref: "#/components/schemas/DiscountRule"
+    DiscountRule:
+      type: object
+      required:
+        - code
+        - amount
+        - is_percentage
+      properties:
+        code:
           type: string
-          maxLength: 200
-        scheduleTimeLabel:
+        name:
           type: string
-          maxLength: 200
-        interestedTopics:
+          nullable: true
+        amount:
+          type: number
+        is_percentage:
+          type: boolean
+        currency_code:
           type: string
-          maxLength: 1000
+          nullable: true
+        currency_symbol:
+          type: string
+          nullable: true
     ReservationSubmissionAccepted:
       type: object
       required: [message]
