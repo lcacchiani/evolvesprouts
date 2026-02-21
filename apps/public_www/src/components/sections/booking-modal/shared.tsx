@@ -15,8 +15,8 @@ import {
 const FPS_GENERATOR_SCRIPT_SOURCE = '/scripts/fps-generator.js';
 const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
 const CLOSE_ICON_SOURCE = '/images/close.svg';
-const FPS_MERCHANT_NAME = 'Ida De Gregorio';
-const FPS_MOBILE_NUMBER = '85297942094';
+const FPS_MERCHANT_NAME = process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME ?? '';
+const FPS_MOBILE_NUMBER = process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER ?? '';
 const FPS_QR_CODE_SIZE_PX = 128;
 
 interface FpsGenerationResult {
@@ -154,8 +154,15 @@ export function CloseButton({
 export function FpsQrCode({ amount }: { amount: number }) {
   const [qrCodeImageDataUrl, setQrCodeImageDataUrl] = useState('');
   const qrCodeContainerRef = useRef<HTMLDivElement | null>(null);
+  const hasFpsConfiguration =
+    FPS_MERCHANT_NAME.trim().length > 0 && FPS_MOBILE_NUMBER.trim().length > 0;
 
   useEffect(() => {
+    if (!hasFpsConfiguration) {
+      setQrCodeImageDataUrl('');
+      return;
+    }
+
     let isCancelled = false;
 
     void loadExternalScript(FPS_GENERATOR_SCRIPT_SOURCE)
@@ -197,7 +204,11 @@ export function FpsQrCode({ amount }: { amount: number }) {
     return () => {
       isCancelled = true;
     };
-  }, [amount]);
+  }, [amount, hasFpsConfiguration]);
+
+  if (!hasFpsConfiguration) {
+    return null;
+  }
 
   return (
     <div
