@@ -13,6 +13,7 @@ const eslintConfig = [
   {
     files: ['**/*.{ts,tsx,js,jsx,mjs,cjs}'],
     rules: {
+      'react/no-danger': 'error',
       'no-restricted-imports': [
         'error',
         {
