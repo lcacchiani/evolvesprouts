@@ -159,7 +159,6 @@ export function FpsQrCode({ amount }: { amount: number }) {
 
   useEffect(() => {
     if (!hasFpsConfiguration) {
-      setQrCodeImageDataUrl('');
       return;
     }
 
