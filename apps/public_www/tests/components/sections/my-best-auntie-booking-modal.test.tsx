@@ -3,6 +3,19 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const { originalFpsMerchantName, originalFpsMobileNumber } = vi.hoisted(() => {
+  const originalFpsMerchantName = process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME;
+  const originalFpsMobileNumber = process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER;
+
+  process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME = 'Test FPS Merchant';
+  process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = '85200000000';
+
+  return {
+    originalFpsMerchantName,
+    originalFpsMobileNumber,
+  };
+});
+
 import {
   MyBestAuntieBookingModal,
   MyBestAuntieThankYouModal,
@@ -95,6 +108,9 @@ const bookingModalContent = enContent.myBestAuntieBooking.paymentModal;
 const thankYouModalContent = enContent.myBestAuntieBooking.thankYouModal;
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedFetchDiscountRules = vi.mocked(fetchDiscountRules);
+const testTurnstileSiteKey = 'test-turnstile-site-key';
+const testFpsMerchantName = 'Test FPS Merchant';
+const testFpsMobileNumber = '85200000000';
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 const reservationSummary: ReservationSummary = {
@@ -112,7 +128,9 @@ const reservationSummary: ReservationSummary = {
 };
 
 beforeEach(() => {
-  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = testTurnstileSiteKey;
+  process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME = testFpsMerchantName;
+  process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = testFpsMobileNumber;
 });
 
 afterEach(() => {
@@ -121,10 +139,21 @@ afterEach(() => {
 
   if (originalTurnstileSiteKey === undefined) {
     delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-    return;
+  } else {
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
   }
 
-  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
+  if (originalFpsMerchantName === undefined) {
+    delete process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME;
+  } else {
+    process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME = originalFpsMerchantName;
+  }
+
+  if (originalFpsMobileNumber === undefined) {
+    delete process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER;
+  } else {
+    process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = originalFpsMobileNumber;
+  }
 });
 
 describe('my-best-auntie booking modals footer content', () => {
@@ -314,9 +343,9 @@ describe('my-best-auntie booking modals footer content', () => {
     });
     expect(submitButton).toBeDisabled();
 
-    fireEvent.change(fullNameField, { target: { value: 'Ida De Gregorio' } });
+    fireEvent.change(fullNameField, { target: { value: 'Test User' } });
     fireEvent.change(emailField, { target: { value: 'ida@example.com' } });
-    fireEvent.change(phoneField, { target: { value: '85297942094' } });
+    fireEvent.change(phoneField, { target: { value: '85212345678' } });
     fireEvent.click(pendingAcknowledgement);
     expect(submitButton).toBeDisabled();
     fireEvent.click(termsAcknowledgement);
