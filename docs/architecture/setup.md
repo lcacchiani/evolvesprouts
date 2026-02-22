@@ -70,10 +70,9 @@ For the OIDC provider itself, add the same tags:
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (e.g. `backend/infrastructure/params/production.json`)
   - For Public WWW deploys, include:
-    - `PublicWwwDomainName` (comma-separated aliases, for example
-      `www.evolvesprouts.com,evolvesprouts.com`)
+    - `PublicWwwDomainName`
     - `PublicWwwCertificateArn`
-    - `PublicWwwStagingDomainName` (comma-separated aliases)
+    - `PublicWwwStagingDomainName`
     - `PublicWwwStagingCertificateArn`
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (for Public WWW builds)
 - `AMPLIFY_APP_ID`

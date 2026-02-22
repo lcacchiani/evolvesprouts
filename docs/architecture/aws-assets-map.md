@@ -20,11 +20,8 @@ The same CDK app also defines static website stacks:
 
 | Stack Name | Environment | Domain Parameter | Certificate Parameter | Notes |
 |-----------|-------------|------------------|-----------------------|-------|
-| `evolvesprouts-public-www` | Production | `PublicWwwDomainName` | `PublicWwwCertificateArn` | Production website (`www.evolvesprouts.com` and `evolvesprouts.com`) |
+| `evolvesprouts-public-www` | Production | `PublicWwwDomainName` | `PublicWwwCertificateArn` | Production website |
 | `evolvesprouts-public-www` | Staging | `PublicWwwStagingDomainName` | `PublicWwwStagingCertificateArn` | Staging website with `X-Robots-Tag: noindex, nofollow, noarchive` |
-
-`PublicWwwDomainName` and `PublicWwwStagingDomainName` accept comma-separated
-CloudFront aliases without spaces.
 
 The stack outputs:
 
