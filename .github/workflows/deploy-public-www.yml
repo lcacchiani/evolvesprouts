@@ -68,6 +68,7 @@ jobs:
           NEXT_PUBLIC_FPS_MOBILE_NUMBER: ${{ vars.NEXT_PUBLIC_FPS_MOBILE_NUMBER || secrets.NEXT_PUBLIC_FPS_MOBILE_NUMBER }}
           NEXT_PUBLIC_WWW_CRM_API_BASE_URL: ${{ vars.NEXT_PUBLIC_WWW_CRM_API_BASE_URL }}
           NEXT_PUBLIC_WWW_CRM_API_KEY: ${{ secrets.NEXT_PUBLIC_WWW_CRM_API_KEY }}
+          NEXT_PUBLIC_GTM_ID: ${{ vars.NEXT_PUBLIC_GTM_ID }}
 
       - name: Configure AWS credentials
         if: ${{ vars.AWS_ACCOUNT_ID != '' && vars.AWS_REGION != '' }}

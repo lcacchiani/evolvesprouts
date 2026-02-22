@@ -293,6 +293,26 @@ Staging additionally sets:
 
 - `X-Robots-Tag: noindex, nofollow, noarchive`
 
+#### Analytics CSP allowlist
+
+When Google Tag Manager is enabled (`NEXT_PUBLIC_GTM_ID` is set at build
+time), the CSP injection script conditionally adds:
+
+- `script-src`: `https://www.googletagmanager.com`
+- `connect-src`: `https://www.google-analytics.com`,
+  `https://analytics.google.com`,
+  `https://region1.google-analytics.com`,
+  `https://stats.g.doubleclick.net`
+
+These origins are only included in the page-level `<meta>` CSP when the GTM
+bootstrap script (`init-gtm.js`) is detected in the build output. The
+CloudFront header CSP is not modified (it covers only `base-uri`,
+`object-src`, and `frame-ancestors`).
+
+GTM is gated at runtime to fire only on `www.evolvesprouts.com`. Staging,
+localhost, and preview hosts receive zero GTM network requests even though
+the CSP permits the Google domains.
+
 ### Database Security
 
 - Always use SSL: `sslmode=require`

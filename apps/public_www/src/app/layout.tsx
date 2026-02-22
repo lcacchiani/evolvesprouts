@@ -7,8 +7,11 @@ import {
   getDirectionForLocale,
   type DocumentDirection,
 } from '@/lib/locale-document';
+import { GoogleTagManager } from '@/components/shared/google-tag-manager';
 import { SITE_ORIGIN } from '@/lib/seo';
 import './globals.css';
+
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || '';
 
 const lato = Lato({
   subsets: ['latin'],
@@ -59,6 +62,7 @@ export default function RootLayout({
       className={`${lato.variable} ${poppins.variable}`}
       data-default-locale={DEFAULT_LOCALE}
       data-locale-directions={JSON.stringify(DOCUMENT_LOCALE_DIRECTIONS)}
+      {...(GTM_ID ? { 'data-gtm-id': GTM_ID } : {})}
     >
       <body className='antialiased'>
         {/* eslint-disable-next-line @next/next/no-sync-scripts -- must run before hydration without inline wrappers */}
@@ -77,6 +81,7 @@ export default function RootLayout({
         </div>
         {/* eslint-disable-next-line @next/next/no-sync-scripts -- keeps staging badge bootstrap external and CSP-safe */}
         <script src='/scripts/show-staging-badge.js' />
+        <GoogleTagManager />
         {children}
       </body>
     </html>

@@ -265,6 +265,36 @@ Lambdas or NAT Gateway.
 - Weekly CI workflow (`.github/workflows/verify-rulesets.yml`) validates configuration.
 - See `docs/architecture/github-rulesets.md` for setup instructions.
 
+## 10) Web Analytics (Google Tag Manager)
+
+**Decision:** Use Google Tag Manager with a runtime production-only hostname
+gate.
+
+**Why:**
+- GTM provides a single container for GA4 and future marketing tags without
+  code changes.
+- Runtime hostname check preserves the immutable artifact promotion model --
+  the same HTML serves staging and production.
+- Zero analytics footprint on non-production hosts (no `dataLayer`, no network
+  requests, no tracking).
+
+**How:**
+- The GTM container ID is baked into the HTML at build time via
+  `NEXT_PUBLIC_GTM_ID` (stored as a GitHub Actions variable).
+- `apps/public_www/public/scripts/init-gtm.js` reads the container ID from
+  a `data-gtm-id` attribute on the `<html>` element and checks the hostname.
+- GTM only initializes when `window.location.hostname` is exactly
+  `www.evolvesprouts.com`.
+- The build-time CSP injection (`inject-csp-meta.mjs`) conditionally adds
+  Google domains to `script-src` and `connect-src` when GTM is detected in
+  the build output.
+
+**Security:**
+- No `<noscript>` iframe is rendered (avoids analytics hits from JS-disabled
+  clients on staging).
+- CSP Google domain allowlists are only included when the GTM bootstrap
+  script is present in the HTML.
+
 ## CI/CD Variables and Secrets
 
 **GitHub Variables**
@@ -274,6 +304,7 @@ Lambdas or NAT Gateway.
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (optional path to CDK parameter JSON)
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (Public WWW CRM API base URL)
+- `NEXT_PUBLIC_GTM_ID` (Google Tag Manager container ID, e.g. `GTM-XXXXXXX`)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
 - `ANDROID_PACKAGE_NAME`

@@ -154,6 +154,8 @@ pull requests for dependency updates:
 - X-Ray tracing enabled for API Gateway.
 - CloudWatch alarms for DLQ messages (manager request processing failures).
 - Structured JSON logging with request ID correlation.
+- Client-side analytics via Google Tag Manager on the public website
+  (production only; gated at runtime by hostname allowlist).
 
 ## Caching
 
