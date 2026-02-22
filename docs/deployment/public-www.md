@@ -77,16 +77,76 @@ Workflow: `.github/workflows/promote-public-www.yml`
   - `promotion_mode=latest_staging` to promote the most recent staging build
   - `promotion_mode=release_id` with `release_id=<id>` to promote a specific
     staging release
+  - `promotion_mode=maintenance_on` to deploy a static maintenance page to
+    production and block `https://www.evolvesprouts.com/www/*` at CloudFront
 - Behavior:
-  - copy `releases/<release_id>/` from staging assets to production root
-  - preserve existing `_next/static` hashed assets to avoid stale HTML
-    requesting deleted chunks
-  - invalidate production CloudFront (including `/_next/static/*` to clear
-    stale asset error responses)
+  - `latest_staging` / `release_id`:
+    - copy `releases/<release_id>/` from staging assets to production root
+    - preserve existing `_next/static` hashed assets to avoid stale HTML
+      requesting deleted chunks
+    - restore `/www/*` CloudFront proxy allowlist behavior
+    - fully invalidate production CloudFront
+  - `maintenance_on`:
+    - deploy static maintenance artifact from `apps/public_www/maintenance/`
+      to production root (no Next.js build required)
+    - include `/images/evolvesprouts-logo.svg` from `apps/public_www/public/`
+    - set `Cache-Control: no-store` on maintenance files
+    - switch `/www/*` CloudFront behavior to a maintenance block function
+      returning `503 Service Unavailable`
+    - fully invalidate production CloudFront
 
 ### Rollback
 
 Rollback uses the same promotion workflow by promoting a previous `release_id`.
+
+## Maintenance mode
+
+Use maintenance mode when production must show a minimal static fallback page.
+
+Maintenance artifact source:
+
+- `apps/public_www/maintenance/index.html`
+- `apps/public_www/maintenance/404.html`
+- `apps/public_www/maintenance/styles.css`
+- `apps/public_www/maintenance/robots.txt`
+
+Characteristics:
+
+- Static HTML + CSS only (no JavaScript)
+- Logo + maintenance text only
+- `/www/*` API proxy blocked at CloudFront while maintenance is enabled
+
+### Enable maintenance mode (production)
+
+Manual workflow:
+
+- Run `.github/workflows/promote-public-www.yml`
+- Select `promotion_mode=maintenance_on`
+
+Local equivalent:
+
+```bash
+PUBLIC_WWW_STACK_NAME=evolvesprouts-public-www \
+PUBLIC_WWW_ENVIRONMENT=production \
+PUBLIC_WWW_MAINTENANCE_MODE=true \
+bash scripts/deploy/deploy-public-www.sh
+```
+
+### Disable maintenance mode (production)
+
+Recommended:
+
+- Run `.github/workflows/promote-public-www.yml`
+- Select `promotion_mode=latest_staging`
+
+Alternative:
+
+- Run `.github/workflows/promote-public-www.yml`
+- Select `promotion_mode=release_id`
+- Provide a known-good staged release ID
+
+Disabling maintenance mode restores the standard `/www/*` CloudFront allowlist
+function and promotes the selected staged release to production.
 
 ## Local build and deploy
 
