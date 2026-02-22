@@ -10,7 +10,7 @@ Public WWW uses a single CloudFormation stack:
 
 Inside the stack, production and staging use separate S3 + CloudFront assets:
 
-- Production URL: `https://www.evolvesprouts.com`
+- Production URLs: `https://www.evolvesprouts.com`, `https://evolvesprouts.com`
 - Staging URL: `https://www-staging.evolvesprouts.com`
 
 The release process is **staging first**:
@@ -27,6 +27,7 @@ staging.
 
 - ACM certificate in `us-east-1` covering:
   - `www.evolvesprouts.com`
+  - `evolvesprouts.com`
   - `www-staging.evolvesprouts.com`
 - CloudFront aliases configured for both domains
 
@@ -34,11 +35,14 @@ staging.
 
 Provide these parameters in `backend/infrastructure/params/production.json`:
 
-- `PublicWwwDomainName`: `www.evolvesprouts.com`
+- `PublicWwwDomainName`: `www.evolvesprouts.com,evolvesprouts.com`
 - `PublicWwwCertificateArn`: ACM certificate ARN for production
 - `PublicWwwStagingDomainName`: `www-staging.evolvesprouts.com`
 - `PublicWwwStagingCertificateArn`: ACM certificate ARN for staging
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1)
+
+Use comma-separated alias values without spaces for `PublicWwwDomainName` and
+`PublicWwwStagingDomainName`.
 
 Public WWW CRM API configuration is provided at build time via:
 

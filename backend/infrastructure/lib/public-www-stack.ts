@@ -8,7 +8,7 @@ import { Construct } from "constructs";
 interface WebsiteEnvironmentConfig {
   readonly idPrefix: "PublicWww" | "PublicWwwStaging";
   readonly environmentLabel: "production" | "staging";
-  readonly domainName: string;
+  readonly domainNames: string[];
   readonly certificateArn: string;
   readonly bucketNamePrefix: string;
   readonly loggingBucketNamePrefix: string;
@@ -49,7 +49,12 @@ export class PublicWwwStack extends cdk.Stack {
 
     const productionDomainName = new cdk.CfnParameter(this, "PublicWwwDomainName", {
       type: "String",
-      description: "Custom domain for production public website (CloudFront alias).",
+      description:
+        "Custom domain aliases for production public website (CloudFront aliases, comma-separated).",
+      allowedPattern:
+        "^[A-Za-z0-9.-]+(,[A-Za-z0-9.-]+)*$",
+      constraintDescription:
+        "Must be one or more domain names separated by commas without spaces.",
     });
 
     const productionCertificateArn = new cdk.CfnParameter(
@@ -66,7 +71,12 @@ export class PublicWwwStack extends cdk.Stack {
       "PublicWwwStagingDomainName",
       {
         type: "String",
-        description: "Custom domain for staging public website (CloudFront alias).",
+        description:
+          "Custom domain aliases for staging public website (CloudFront aliases, comma-separated).",
+        allowedPattern:
+          "^[A-Za-z0-9.-]+(,[A-Za-z0-9.-]+)*$",
+        constraintDescription:
+          "Must be one or more domain names separated by commas without spaces.",
       },
     );
 
@@ -97,7 +107,7 @@ export class PublicWwwStack extends cdk.Stack {
     const productionResources = this.createWebsiteEnvironment({
       idPrefix: "PublicWww",
       environmentLabel: "production",
-      domainName: productionDomainName.valueAsString,
+      domainNames: cdk.Fn.split(",", productionDomainName.valueAsString),
       certificateArn: productionCertificateArn.valueAsString,
       bucketNamePrefix: "evolvesprouts-public-www",
       loggingBucketNamePrefix: "evolvesprouts-public-www-logs",
@@ -112,7 +122,7 @@ export class PublicWwwStack extends cdk.Stack {
     const stagingResources = this.createWebsiteEnvironment({
       idPrefix: "PublicWwwStaging",
       environmentLabel: "staging",
-      domainName: stagingDomainName.valueAsString,
+      domainNames: cdk.Fn.split(",", stagingDomainName.valueAsString),
       certificateArn: stagingCertificateArn.valueAsString,
       bucketNamePrefix: "evolvesprouts-staging-www",
       loggingBucketNamePrefix: "evolvesprouts-staging-www-logs",
@@ -370,7 +380,7 @@ function handler(event) {
       `${config.idPrefix}Distribution`,
       {
         defaultRootObject: "index.html",
-        domainNames: [config.domainName],
+        domainNames: config.domainNames,
         certificate,
         minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
         httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,

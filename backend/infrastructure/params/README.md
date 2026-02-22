@@ -7,9 +7,11 @@ Use `production.json` as a template for CDK parameters.
 `production.json` now includes both production and staging parameters for the
 public website stacks:
 
-- `PublicWwwDomainName`
+- `PublicWwwDomainName` (comma-separated CloudFront aliases, for example
+  `www.evolvesprouts.com,evolvesprouts.com`)
 - `PublicWwwCertificateArn`
-- `PublicWwwStagingDomainName`
+- `PublicWwwStagingDomainName` (comma-separated CloudFront aliases, for example
+  `www-staging.evolvesprouts.com`)
 - `PublicWwwStagingCertificateArn`
 - `WafWebAclArn`
 
