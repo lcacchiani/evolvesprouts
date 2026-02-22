@@ -75,6 +75,60 @@ function validate_release_id() {
   fi
 }
 
+function validate_maintenance_contact_settings() {
+  if [ -z "${NEXT_PUBLIC_EMAIL:-}" ]; then
+    echo "NEXT_PUBLIC_EMAIL is required for maintenance mode deployment."
+    exit 1
+  fi
+  if [ -z "${NEXT_PUBLIC_WHATSAPP_URL:-}" ]; then
+    echo "NEXT_PUBLIC_WHATSAPP_URL is required for maintenance mode deployment."
+    exit 1
+  fi
+  if [ -z "${NEXT_PUBLIC_INSTAGRAM_URL:-}" ]; then
+    echo "NEXT_PUBLIC_INSTAGRAM_URL is required for maintenance mode deployment."
+    exit 1
+  fi
+
+  if [[ ! "$NEXT_PUBLIC_EMAIL" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
+    echo "NEXT_PUBLIC_EMAIL must be a valid email address."
+    exit 1
+  fi
+  if [[ ! "$NEXT_PUBLIC_WHATSAPP_URL" =~ ^https?:// ]]; then
+    echo "NEXT_PUBLIC_WHATSAPP_URL must start with http:// or https://."
+    exit 1
+  fi
+  if [[ ! "$NEXT_PUBLIC_INSTAGRAM_URL" =~ ^https?:// ]]; then
+    echo "NEXT_PUBLIC_INSTAGRAM_URL must start with http:// or https://."
+    exit 1
+  fi
+}
+
+function escape_sed_replacement() {
+  printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+
+function inject_maintenance_contact_values() {
+  local html_path="$1"
+  local escaped_email
+  local escaped_whatsapp_url
+  local escaped_instagram_url
+
+  if [ ! -f "$html_path" ]; then
+    echo "Maintenance HTML file not found for contact injection: $html_path"
+    exit 1
+  fi
+
+  escaped_email="$(escape_sed_replacement "$NEXT_PUBLIC_EMAIL")"
+  escaped_whatsapp_url="$(escape_sed_replacement "$NEXT_PUBLIC_WHATSAPP_URL")"
+  escaped_instagram_url="$(escape_sed_replacement "$NEXT_PUBLIC_INSTAGRAM_URL")"
+
+  sed -i \
+    -e "s|__NEXT_PUBLIC_EMAIL__|$escaped_email|g" \
+    -e "s|__NEXT_PUBLIC_WHATSAPP_URL__|$escaped_whatsapp_url|g" \
+    -e "s|__NEXT_PUBLIC_INSTAGRAM_URL__|$escaped_instagram_url|g" \
+    "$html_path"
+}
+
 function invalidate_distribution() {
   local distribution_id="$1"
   local invalidation_scope="${2:-site}"
@@ -150,6 +204,8 @@ function invalidate_distribution() {
 }
 
 function prepare_maintenance_build_dir() {
+  validate_maintenance_contact_settings
+
   if [ ! -d "$MAINTENANCE_DIR" ]; then
     echo "Maintenance source not found at $MAINTENANCE_DIR"
     exit 1
@@ -167,6 +223,7 @@ function prepare_maintenance_build_dir() {
   cp \
     "$APP_DIR/public/images/evolvesprouts-logo.svg" \
     "$maintenance_build_dir/images/evolvesprouts-logo.svg"
+  inject_maintenance_contact_values "$maintenance_build_dir/index.html"
 
   echo "$maintenance_build_dir"
 }

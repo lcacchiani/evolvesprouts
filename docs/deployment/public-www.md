@@ -109,11 +109,16 @@ Maintenance artifact source:
 - `apps/public_www/maintenance/404.html`
 - `apps/public_www/maintenance/styles.css`
 - `apps/public_www/maintenance/robots.txt`
+- `apps/public_www/maintenance/images/*.png`
 
 Characteristics:
 
 - Static HTML + CSS only (no JavaScript)
-- Logo + maintenance text only
+- Logo + maintenance text + contact methods (email, WhatsApp, Instagram)
+- Maintenance contact values are injected from GitHub environment variables:
+  - `NEXT_PUBLIC_EMAIL`
+  - `NEXT_PUBLIC_WHATSAPP_URL`
+  - `NEXT_PUBLIC_INSTAGRAM_URL`
 - `/www/*` API proxy blocked at CloudFront while maintenance is enabled
 
 ### Enable maintenance mode (production)
@@ -129,6 +134,9 @@ Local equivalent:
 PUBLIC_WWW_STACK_NAME=evolvesprouts-public-www \
 PUBLIC_WWW_ENVIRONMENT=production \
 PUBLIC_WWW_MAINTENANCE_MODE=true \
+NEXT_PUBLIC_EMAIL=hello@example.com \
+NEXT_PUBLIC_WHATSAPP_URL=https://wa.me/message/EXAMPLE \
+NEXT_PUBLIC_INSTAGRAM_URL=https://instagram.com/example \
 bash scripts/deploy/deploy-public-www.sh
 ```
 
