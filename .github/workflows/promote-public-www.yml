@@ -55,17 +55,20 @@ jobs:
       - name: Resolve release ID
         id: resolve_release
         run: |
-          if [ "$PROMOTION_MODE" = "maintenance_on" ]; then
+          RESOLVED_PROMOTION_MODE="${PROMOTION_MODE:-latest_staging}"
+
+          if [ "$RESOLVED_PROMOTION_MODE" = "maintenance_on" ]; then
             echo "release_id=" >> "$GITHUB_OUTPUT"
             echo "maintenance_mode=true" >> "$GITHUB_OUTPUT"
+            echo "promotion_mode=$RESOLVED_PROMOTION_MODE" >> "$GITHUB_OUTPUT"
             exit 0
-          elif [ "$PROMOTION_MODE" = "release_id" ]; then
+          elif [ "$RESOLVED_PROMOTION_MODE" = "release_id" ]; then
             if [ -z "$INPUT_RELEASE_ID" ]; then
               echo 'release_id is required when promotion_mode=release_id'
               exit 1
             fi
             SELECTED_RELEASE_ID="$INPUT_RELEASE_ID"
-          elif [ "$PROMOTION_MODE" = "latest_staging" ]; then
+          elif [ "$RESOLVED_PROMOTION_MODE" = "latest_staging" ]; then
             STAGING_BUCKET="$(aws cloudformation describe-stacks \
               --stack-name "$STACK_NAME" \
               --query "Stacks[0].Outputs[?OutputKey=='PublicWwwStagingBucketName'].OutputValue" \
@@ -87,12 +90,13 @@ jobs:
               exit 1
             fi
           else
-            echo "Unsupported promotion_mode: $PROMOTION_MODE"
+            echo "Unsupported promotion_mode: $RESOLVED_PROMOTION_MODE"
             exit 1
           fi
 
           echo "release_id=$SELECTED_RELEASE_ID" >> "$GITHUB_OUTPUT"
           echo "maintenance_mode=false" >> "$GITHUB_OUTPUT"
+          echo "promotion_mode=$RESOLVED_PROMOTION_MODE" >> "$GITHUB_OUTPUT"
         env:
           PROMOTION_MODE: ${{ inputs.promotion_mode }}
           INPUT_RELEASE_ID: ${{ inputs.release_id }}
@@ -137,5 +141,5 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
         env:
-          PROMOTION_MODE: ${{ inputs.promotion_mode }}
+          PROMOTION_MODE: ${{ steps.resolve_release.outputs.promotion_mode }}
           RELEASE_ID: ${{ steps.resolve_release.outputs.release_id }}
