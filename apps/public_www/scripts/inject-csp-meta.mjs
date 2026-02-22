@@ -6,16 +6,36 @@ import { JSDOM } from 'jsdom';
 const BUILD_OUTPUT_DIRECTORY = resolve('out');
 const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
 
-const CSP_DIRECTIVE_BASE = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "img-src 'self' data: https:",
-  "font-src 'self' https://fonts.gstatic.com data:",
-  `connect-src 'self' https://api.evolvesprouts.com ${TURNSTILE_ORIGIN}`,
-  `frame-src 'self' ${TURNSTILE_ORIGIN}`,
-  "form-action 'self' mailto:",
+const GTM_SCRIPT_ORIGINS = ['https://www.googletagmanager.com'];
+const GTM_CONNECT_ORIGINS = [
+  'https://www.google-analytics.com',
+  'https://analytics.google.com',
+  'https://region1.google-analytics.com',
+  'https://stats.g.doubleclick.net',
 ];
+const GTM_DETECT_MARKER = 'init-gtm.js';
+
+function buildCspDirectiveBase(hasGtm) {
+  const connectSources = [
+    "'self'",
+    'https://api.evolvesprouts.com',
+    TURNSTILE_ORIGIN,
+  ];
+  if (hasGtm) {
+    connectSources.push(...GTM_CONNECT_ORIGINS);
+  }
+
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "img-src 'self' data: https:",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    `connect-src ${connectSources.join(' ')}`,
+    `frame-src 'self' ${TURNSTILE_ORIGIN}`,
+    "form-action 'self' mailto:",
+  ];
+}
 
 const HEAD_OPENING_TAG_REGEX = /<head\b[^>]*>/i;
 const EXISTING_CSP_META_REGEX =
@@ -142,7 +162,15 @@ function buildCspValue(html) {
     ...new Set(inlineStyleAttributeValues.map(toSha256HashSource)),
   ];
 
-  const scriptDirectiveSources = ["'self'", TURNSTILE_ORIGIN, ...scriptHashes].join(' ');
+  const hasGtm = html.includes(GTM_DETECT_MARKER);
+  const gtmScriptOrigins = hasGtm ? GTM_SCRIPT_ORIGINS : [];
+
+  const scriptDirectiveSources = [
+    "'self'",
+    TURNSTILE_ORIGIN,
+    ...gtmScriptOrigins,
+    ...scriptHashes,
+  ].join(' ');
   const styleDirectiveSources = [
     "'self'",
     ...(styleAttributeHashes.length > 0 ? ["'unsafe-hashes'"] : []),
@@ -151,7 +179,7 @@ function buildCspValue(html) {
   ].join(' ');
 
   const directives = [
-    ...CSP_DIRECTIVE_BASE,
+    ...buildCspDirectiveBase(hasGtm),
     `script-src ${scriptDirectiveSources}`,
     `style-src ${styleDirectiveSources}`,
   ];
