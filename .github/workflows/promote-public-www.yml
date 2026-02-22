@@ -115,6 +115,9 @@ jobs:
           PUBLIC_WWW_ENVIRONMENT: production
           PUBLIC_WWW_MAINTENANCE_MODE: ${{ steps.resolve_release.outputs.maintenance_mode }}
           PUBLIC_WWW_PROMOTE_RELEASE_ID: ${{ steps.resolve_release.outputs.release_id }}
+          NEXT_PUBLIC_EMAIL: ${{ vars.NEXT_PUBLIC_EMAIL }}
+          NEXT_PUBLIC_WHATSAPP_URL: ${{ vars.NEXT_PUBLIC_WHATSAPP_URL }}
+          NEXT_PUBLIC_INSTAGRAM_URL: ${{ vars.NEXT_PUBLIC_INSTAGRAM_URL }}
 
       - name: Publish promotion summary
         run: |

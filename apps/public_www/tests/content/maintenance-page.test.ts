@@ -13,14 +13,28 @@ function readMaintenanceFile(relativePath: string): string {
 }
 
 describe('maintenance static site assets', () => {
-  it('keeps maintenance HTML files script-free and logo-only', () => {
+  it('keeps maintenance HTML files script-free with contact methods', () => {
     const indexHtml = readMaintenanceFile('index.html');
     const notFoundHtml = readMaintenanceFile('404.html');
 
     expect(indexHtml).toContain('/images/evolvesprouts-logo.svg');
+    expect(indexHtml).toContain('Get in touch');
+    expect(indexHtml).toContain('__NEXT_PUBLIC_EMAIL__');
+    expect(indexHtml).toContain('__NEXT_PUBLIC_WHATSAPP_URL__');
+    expect(indexHtml).toContain('__NEXT_PUBLIC_INSTAGRAM_URL__');
+    expect(indexHtml).toContain('/images/whatsapp-qr.png');
+    expect(indexHtml).toContain('/images/instagram-qr.png');
     expect(notFoundHtml).toContain('/images/evolvesprouts-logo.svg');
     expect(indexHtml).not.toContain('<script');
     expect(notFoundHtml).not.toContain('<script');
+  });
+
+  it('includes maintenance QR image assets', () => {
+    const whatsappQr = path.join(maintenanceDirectory, 'images', 'whatsapp-qr.png');
+    const instagramQr = path.join(maintenanceDirectory, 'images', 'instagram-qr.png');
+
+    expect(fs.existsSync(whatsappQr)).toBe(true);
+    expect(fs.existsSync(instagramQr)).toBe(true);
   });
 
   it('ships a deny-all robots policy for maintenance mode', () => {

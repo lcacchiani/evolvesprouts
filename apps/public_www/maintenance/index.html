@@ -11,8 +11,8 @@
       <img
         class="maintenance__logo"
         src="/images/evolvesprouts-logo.svg"
-        width="160"
-        height="160"
+        width="480"
+        height="480"
         alt="Evolve Sprouts logo"
       />
       <h1 class="maintenance__title">We&rsquo;ll be back soon.</h1>
@@ -20,6 +20,55 @@
         The website is temporarily unavailable while we complete scheduled
         maintenance.
       </p>
+      <section class="maintenance__contact" aria-labelledby="maintenance-contact-title">
+        <h2 id="maintenance-contact-title" class="maintenance__contact-title">
+          Get in touch
+        </h2>
+        <div class="maintenance__contact-grid">
+          <article class="maintenance__contact-card">
+            <h3 class="maintenance__contact-method">Email</h3>
+            <a class="maintenance__contact-link" href="mailto:__NEXT_PUBLIC_EMAIL__">
+              __NEXT_PUBLIC_EMAIL__
+            </a>
+          </article>
+          <article class="maintenance__contact-card">
+            <h3 class="maintenance__contact-method">WhatsApp</h3>
+            <a
+              class="maintenance__contact-link maintenance__contact-link--qr"
+              href="__NEXT_PUBLIC_WHATSAPP_URL__"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                class="maintenance__qr"
+                src="/images/whatsapp-qr.png"
+                width="144"
+                height="144"
+                alt="QR code for WhatsApp contact"
+              />
+              <span>Scan or tap to open WhatsApp</span>
+            </a>
+          </article>
+          <article class="maintenance__contact-card">
+            <h3 class="maintenance__contact-method">Instagram</h3>
+            <a
+              class="maintenance__contact-link maintenance__contact-link--qr"
+              href="__NEXT_PUBLIC_INSTAGRAM_URL__"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                class="maintenance__qr"
+                src="/images/instagram-qr.png"
+                width="144"
+                height="144"
+                alt="QR code for Instagram contact"
+              />
+              <span>Scan or tap to open Instagram</span>
+            </a>
+          </article>
+        </div>
+      </section>
       <p class="maintenance__message">
         Thank you for your patience.
       </p>
