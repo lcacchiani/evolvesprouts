@@ -287,16 +287,27 @@ function get_www_allowlist_function_logical_prefix() {
 function resolve_www_allowlist_function_arn() {
   local stack_name="$1"
   local environment_name="$2"
-  local logical_prefix function_name
+  local logical_prefix function_resource_id function_name
 
   logical_prefix="$(get_www_allowlist_function_logical_prefix "$environment_name")"
-  function_name="$(aws cloudformation list-stack-resources \
+  function_resource_id="$(aws cloudformation list-stack-resources \
     --stack-name "$stack_name" \
     --query "StackResourceSummaries[?ResourceType=='AWS::CloudFront::Function' && starts_with(LogicalResourceId, '$logical_prefix')].PhysicalResourceId | [0]" \
     --output text)"
 
-  if [ -z "$function_name" ] || [ "$function_name" = "None" ]; then
+  if [ -z "$function_resource_id" ] || [ "$function_resource_id" = "None" ]; then
     echo "Could not resolve CloudFront allowlist function for prefix '$logical_prefix'"
+    exit 1
+  fi
+
+  function_name="$function_resource_id"
+  if [[ "$function_name" == arn:aws:cloudfront::*:function/* ]]; then
+    function_name="${function_name##*/}"
+  fi
+
+  if [[ ! "$function_name" =~ ^[A-Za-z0-9-_]{1,64}$ ]]; then
+    echo "Resolved invalid CloudFront function name: '$function_name'"
+    echo "Raw stack resource identifier: '$function_resource_id'"
     exit 1
   fi
 
