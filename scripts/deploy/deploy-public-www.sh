@@ -296,7 +296,7 @@ function resolve_www_allowlist_function_arn() {
     --output text)"
 
   if [ -z "$function_resource_id" ] || [ "$function_resource_id" = "None" ]; then
-    echo "Could not resolve CloudFront allowlist function for prefix '$logical_prefix'"
+    echo "Could not resolve CloudFront allowlist function for prefix '$logical_prefix'" >&2
     exit 1
   fi
 
@@ -306,8 +306,8 @@ function resolve_www_allowlist_function_arn() {
   fi
 
   if [[ ! "$function_name" =~ ^[A-Za-z0-9-_]{1,64}$ ]]; then
-    echo "Resolved invalid CloudFront function name: '$function_name'"
-    echo "Raw stack resource identifier: '$function_resource_id'"
+    echo "Resolved invalid CloudFront function name: '$function_name'" >&2
+    echo "Raw stack resource identifier: '$function_resource_id'" >&2
     exit 1
   fi
 
@@ -319,7 +319,7 @@ function resolve_www_allowlist_function_arn() {
     --output text)"
 
   if [ -z "$function_arn" ] || [ "$function_arn" = "None" ]; then
-    echo "Could not resolve LIVE function ARN for '$function_name'"
+    echo "Could not resolve LIVE function ARN for '$function_name'" >&2
     exit 1
   fi
 
@@ -609,10 +609,12 @@ if [ "$DEPLOY_ENVIRONMENT" = "staging" ]; then
   enforce_staging_robots_txt "$TARGET_BUCKET_NAME"
 fi
 
-apply_www_proxy_mode \
-  "$STACK_NAME" \
-  "$TARGET_DISTRIBUTION_ID" \
-  "$DEPLOY_ENVIRONMENT" \
-  "normal"
+if [ "$DEPLOY_ENVIRONMENT" = "production" ]; then
+  apply_www_proxy_mode \
+    "$STACK_NAME" \
+    "$TARGET_DISTRIBUTION_ID" \
+    "$DEPLOY_ENVIRONMENT" \
+    "normal"
+fi
 
 invalidate_distribution "$TARGET_DISTRIBUTION_ID"
