@@ -4,14 +4,32 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 APP_DIR="$ROOT_DIR/apps/public_www"
 BUILD_DIR="$APP_DIR/out"
+MAINTENANCE_DIR="$APP_DIR/maintenance"
 STACK_NAME="${PUBLIC_WWW_STACK_NAME:-evolvesprouts-public-www}"
 SOURCE_STACK_NAME="${PUBLIC_WWW_SOURCE_STACK_NAME:-$STACK_NAME}"
 DEPLOY_ENVIRONMENT="${PUBLIC_WWW_ENVIRONMENT:-production}"
 RELEASE_ID="${PUBLIC_WWW_RELEASE_ID:-}"
 PROMOTE_RELEASE_ID="${PUBLIC_WWW_PROMOTE_RELEASE_ID:-}"
+MAINTENANCE_MODE="${PUBLIC_WWW_MAINTENANCE_MODE:-false}"
 ASSET_CACHE_CONTROL="public, max-age=31536000, immutable"
 DOCUMENT_CACHE_CONTROL="public, max-age=300, must-revalidate"
 NO_STORE_CACHE_CONTROL="no-store, max-age=0"
+
+if [ "$MAINTENANCE_MODE" != "true" ] && [ "$MAINTENANCE_MODE" != "false" ]; then
+  echo "Unsupported PUBLIC_WWW_MAINTENANCE_MODE: '$MAINTENANCE_MODE'"
+  echo "Allowed values: true, false"
+  exit 1
+fi
+
+if [ -n "$PROMOTE_RELEASE_ID" ] && [ "$MAINTENANCE_MODE" = "true" ]; then
+  echo "PUBLIC_WWW_PROMOTE_RELEASE_ID and PUBLIC_WWW_MAINTENANCE_MODE=true are mutually exclusive"
+  exit 1
+fi
+
+if [ -n "$RELEASE_ID" ] && [ "$MAINTENANCE_MODE" = "true" ]; then
+  echo "PUBLIC_WWW_RELEASE_ID cannot be used with PUBLIC_WWW_MAINTENANCE_MODE=true"
+  exit 1
+fi
 
 function require_stack_output() {
   local stack_name="$1"
@@ -59,31 +77,39 @@ function validate_release_id() {
 
 function invalidate_distribution() {
   local distribution_id="$1"
+  local invalidation_scope="${2:-site}"
   if [ -n "$distribution_id" ] && [ "$distribution_id" != "None" ]; then
-    local -a invalidation_paths=(
-      "/"
-      "/index.html"
-      "/404.html"
-      "/404/index.html"
-      "/_not-found/index.html"
-      "/_next/static/*"
-      "/en*"
-      "/zh-CN*"
-      "/zh-HK*"
-      "/about-us*"
-      "/about*"
-      "/book*"
-      "/contact-us*"
-      "/contact*"
-      "/events*"
-      "/newsletter*"
-      "/privacy*"
-      "/resources*"
-      "/services*"
-      "/training-courses*"
-      "/robots.txt"
-      "/sitemap.xml"
-    )
+    local -a invalidation_paths
+    if [ "$invalidation_scope" = "full" ]; then
+      invalidation_paths=(
+        "/*"
+      )
+    else
+      invalidation_paths=(
+        "/"
+        "/index.html"
+        "/404.html"
+        "/404/index.html"
+        "/_not-found/index.html"
+        "/_next/static/*"
+        "/en*"
+        "/zh-CN*"
+        "/zh-HK*"
+        "/about-us*"
+        "/about*"
+        "/book*"
+        "/contact-us*"
+        "/contact*"
+        "/events*"
+        "/newsletter*"
+        "/privacy*"
+        "/resources*"
+        "/services*"
+        "/training-courses*"
+        "/robots.txt"
+        "/sitemap.xml"
+      )
+    fi
     local max_attempts=5
     local retry_delay_seconds=20
     local attempt=1
@@ -121,6 +147,28 @@ function invalidate_distribution() {
     echo "CloudFront invalidation failed after $max_attempts attempts."
     return 1
   fi
+}
+
+function prepare_maintenance_build_dir() {
+  if [ ! -d "$MAINTENANCE_DIR" ]; then
+    echo "Maintenance source not found at $MAINTENANCE_DIR"
+    exit 1
+  fi
+
+  if [ ! -f "$APP_DIR/public/images/evolvesprouts-logo.svg" ]; then
+    echo "Logo source not found at $APP_DIR/public/images/evolvesprouts-logo.svg"
+    exit 1
+  fi
+
+  local maintenance_build_dir
+  maintenance_build_dir="$(mktemp -d)"
+  cp -a "$MAINTENANCE_DIR/." "$maintenance_build_dir/"
+  mkdir -p "$maintenance_build_dir/images"
+  cp \
+    "$APP_DIR/public/images/evolvesprouts-logo.svg" \
+    "$maintenance_build_dir/images/evolvesprouts-logo.svg"
+
+  echo "$maintenance_build_dir"
 }
 
 function optimize_images_for_deploy() {
@@ -187,6 +235,18 @@ function sync_release_artifacts() {
     --delete
 }
 
+function sync_maintenance_artifacts() {
+  local source_dir="$1"
+  local destination_uri="$2"
+
+  aws s3 sync \
+    "$source_dir" \
+    "$destination_uri" \
+    --exclude "releases/*" \
+    --cache-control "$NO_STORE_CACHE_CONTROL" \
+    --delete
+}
+
 function enforce_staging_robots_txt() {
   local bucket_name="$1"
   local robots_file
@@ -204,6 +264,237 @@ EOF
     --cache-control "$NO_STORE_CACHE_CONTROL"
 
   rm -f "$robots_file"
+}
+
+function get_www_allowlist_function_logical_prefix() {
+  local environment_name="$1"
+
+  if [ "$environment_name" = "production" ]; then
+    echo "PublicWwwWwwProxyAllowlistFunction"
+    return
+  fi
+
+  if [ "$environment_name" = "staging" ]; then
+    echo "PublicWwwStagingWwwProxyAllowlistFunction"
+    return
+  fi
+
+  echo "Unsupported PUBLIC_WWW_ENVIRONMENT: '$environment_name'"
+  echo "Allowed values: production, staging"
+  exit 1
+}
+
+function resolve_www_allowlist_function_arn() {
+  local stack_name="$1"
+  local environment_name="$2"
+  local logical_prefix function_name
+
+  logical_prefix="$(get_www_allowlist_function_logical_prefix "$environment_name")"
+  function_name="$(aws cloudformation list-stack-resources \
+    --stack-name "$stack_name" \
+    --query "StackResourceSummaries[?ResourceType=='AWS::CloudFront::Function' && starts_with(LogicalResourceId, '$logical_prefix')].PhysicalResourceId | [0]" \
+    --output text)"
+
+  if [ -z "$function_name" ] || [ "$function_name" = "None" ]; then
+    echo "Could not resolve CloudFront allowlist function for prefix '$logical_prefix'"
+    exit 1
+  fi
+
+  local function_arn
+  function_arn="$(aws cloudfront describe-function \
+    --name "$function_name" \
+    --stage LIVE \
+    --query "FunctionSummary.FunctionMetadata.FunctionARN" \
+    --output text)"
+
+  if [ -z "$function_arn" ] || [ "$function_arn" = "None" ]; then
+    echo "Could not resolve LIVE function ARN for '$function_name'"
+    exit 1
+  fi
+
+  echo "$function_arn"
+}
+
+function ensure_maintenance_block_function_arn() {
+  local environment_name="$1"
+  local function_name function_code_file function_config etag
+  function_name="evolvesprouts-public-www-${environment_name}-maintenance-block"
+  function_config="Comment=Block /www proxy during website maintenance,Runtime=cloudfront-js-2.0"
+  function_code_file="$(mktemp)"
+
+  cat > "$function_code_file" <<'EOF'
+function handler(event) {
+  return {
+    statusCode: 503,
+    statusDescription: 'Service Unavailable',
+    headers: {
+      'content-type': { value: 'application/json; charset=utf-8' },
+      'cache-control': { value: 'no-store' },
+      'retry-after': { value: '300' }
+    },
+    body: '{"message":"Service temporarily unavailable due to maintenance"}'
+  };
+}
+EOF
+
+  if aws cloudfront describe-function \
+    --name "$function_name" \
+    --stage DEVELOPMENT >/dev/null 2>&1; then
+    etag="$(aws cloudfront describe-function \
+      --name "$function_name" \
+      --stage DEVELOPMENT \
+      --query "ETag" \
+      --output text)"
+    aws cloudfront update-function \
+      --name "$function_name" \
+      --if-match "$etag" \
+      --function-config "$function_config" \
+      --function-code "fileb://$function_code_file" >/dev/null
+  else
+    aws cloudfront create-function \
+      --name "$function_name" \
+      --function-config "$function_config" \
+      --function-code "fileb://$function_code_file" >/dev/null
+  fi
+
+  rm -f "$function_code_file"
+
+  etag="$(aws cloudfront describe-function \
+    --name "$function_name" \
+    --stage DEVELOPMENT \
+    --query "ETag" \
+    --output text)"
+
+  if ! aws cloudfront publish-function \
+    --name "$function_name" \
+    --if-match "$etag" >/dev/null 2>&1; then
+    if ! aws cloudfront describe-function \
+      --name "$function_name" \
+      --stage LIVE >/dev/null 2>&1; then
+      echo "Failed to publish maintenance block function '$function_name'"
+      exit 1
+    fi
+  fi
+
+  aws cloudfront describe-function \
+    --name "$function_name" \
+    --stage LIVE \
+    --query "FunctionSummary.FunctionMetadata.FunctionARN" \
+    --output text
+}
+
+function get_current_www_function_arn() {
+  local distribution_id="$1"
+  aws cloudfront get-distribution-config \
+    --id "$distribution_id" \
+    --query "DistributionConfig.CacheBehaviors.Items[?PathPattern=='www/*'].FunctionAssociations.Items[?EventType=='viewer-request'].FunctionARN | [0][0]" \
+    --output text
+}
+
+function update_www_function_association() {
+  local distribution_id="$1"
+  local target_function_arn="$2"
+  local distribution_payload_file distribution_config_file distribution_etag
+
+  distribution_payload_file="$(mktemp)"
+  distribution_config_file="$(mktemp)"
+
+  aws cloudfront get-distribution-config \
+    --id "$distribution_id" \
+    > "$distribution_payload_file"
+
+  distribution_etag="$(python3 - "$distribution_payload_file" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+print(payload["ETag"])
+PY
+)"
+
+  python3 - "$distribution_payload_file" "$distribution_config_file" "$target_function_arn" <<'PY'
+import json
+import sys
+
+payload_path = sys.argv[1]
+distribution_config_path = sys.argv[2]
+target_function_arn = sys.argv[3]
+
+with open(payload_path, encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+config = payload["DistributionConfig"]
+cache_behaviors = config.get("CacheBehaviors", {})
+items = cache_behaviors.get("Items", [])
+target_behavior = None
+
+for behavior in items:
+    if behavior.get("PathPattern") == "www/*":
+        target_behavior = behavior
+        break
+
+if target_behavior is None:
+    raise SystemExit("CloudFront behavior 'www/*' not found")
+
+function_associations = target_behavior.setdefault("FunctionAssociations", {})
+association_items = function_associations.setdefault("Items", [])
+if not isinstance(association_items, list):
+    association_items = []
+    function_associations["Items"] = association_items
+
+replaced = False
+for association in association_items:
+    if association.get("EventType") == "viewer-request":
+        association["FunctionARN"] = target_function_arn
+        replaced = True
+        break
+
+if not replaced:
+    association_items.append(
+        {
+            "EventType": "viewer-request",
+            "FunctionARN": target_function_arn,
+        }
+    )
+
+function_associations["Quantity"] = len(association_items)
+
+with open(distribution_config_path, "w", encoding="utf-8") as handle:
+    json.dump(config, handle)
+PY
+
+  aws cloudfront update-distribution \
+    --id "$distribution_id" \
+    --if-match "$distribution_etag" \
+    --distribution-config "file://$distribution_config_file" >/dev/null
+
+  rm -f "$distribution_payload_file" "$distribution_config_file"
+}
+
+function apply_www_proxy_mode() {
+  local stack_name="$1"
+  local distribution_id="$2"
+  local environment_name="$3"
+  local mode="$4"
+  local target_function_arn current_function_arn
+
+  if [ "$mode" = "maintenance" ]; then
+    target_function_arn="$(ensure_maintenance_block_function_arn "$environment_name")"
+  else
+    target_function_arn="$(resolve_www_allowlist_function_arn "$stack_name" "$environment_name")"
+  fi
+
+  current_function_arn="$(get_current_www_function_arn "$distribution_id")"
+
+  if [ "$current_function_arn" = "$target_function_arn" ]; then
+    echo "CloudFront /www viewer-request function already set for mode '$mode'"
+    return
+  fi
+
+  echo "Updating CloudFront /www viewer-request function for mode '$mode'"
+  update_www_function_association "$distribution_id" "$target_function_arn"
 }
 
 if [ -n "$PROMOTE_RELEASE_ID" ]; then
@@ -237,7 +528,41 @@ if [ -n "$PROMOTE_RELEASE_ID" ]; then
     "s3://$SOURCE_BUCKET_NAME/releases/$PROMOTE_RELEASE_ID" \
     "s3://$TARGET_BUCKET_NAME"
 
-  invalidate_distribution "$TARGET_DISTRIBUTION_ID"
+  apply_www_proxy_mode \
+    "$STACK_NAME" \
+    "$TARGET_DISTRIBUTION_ID" \
+    "production" \
+    "normal"
+  invalidate_distribution "$TARGET_DISTRIBUTION_ID" "full"
+  exit 0
+fi
+
+read -r TARGET_BUCKET_OUTPUT_KEY TARGET_DISTRIBUTION_OUTPUT_KEY <<< "$(get_environment_outputs "$DEPLOY_ENVIRONMENT")"
+TARGET_BUCKET_NAME="$(require_stack_output \
+  "$STACK_NAME" \
+  "$TARGET_BUCKET_OUTPUT_KEY")"
+TARGET_DISTRIBUTION_ID="$(require_stack_output \
+  "$STACK_NAME" \
+  "$TARGET_DISTRIBUTION_OUTPUT_KEY")"
+
+if [ "$MAINTENANCE_MODE" = "true" ]; then
+  MAINTENANCE_BUILD_DIR="$(prepare_maintenance_build_dir)"
+  echo "Syncing maintenance website to s3://$TARGET_BUCKET_NAME"
+  sync_maintenance_artifacts "$MAINTENANCE_BUILD_DIR" "s3://$TARGET_BUCKET_NAME"
+  rm -rf "$MAINTENANCE_BUILD_DIR"
+
+  apply_www_proxy_mode \
+    "$STACK_NAME" \
+    "$TARGET_DISTRIBUTION_ID" \
+    "$DEPLOY_ENVIRONMENT" \
+    "maintenance"
+
+  if [ "$DEPLOY_ENVIRONMENT" = "staging" ]; then
+    echo "Applying staging robots.txt deny-all policy"
+    enforce_staging_robots_txt "$TARGET_BUCKET_NAME"
+  fi
+
+  invalidate_distribution "$TARGET_DISTRIBUTION_ID" "full"
   exit 0
 fi
 
@@ -248,14 +573,6 @@ if [ ! -d "$BUILD_DIR" ]; then
 fi
 
 optimize_images_for_deploy
-
-read -r TARGET_BUCKET_OUTPUT_KEY TARGET_DISTRIBUTION_OUTPUT_KEY <<< "$(get_environment_outputs "$DEPLOY_ENVIRONMENT")"
-TARGET_BUCKET_NAME="$(require_stack_output \
-  "$STACK_NAME" \
-  "$TARGET_BUCKET_OUTPUT_KEY")"
-TARGET_DISTRIBUTION_ID="$(require_stack_output \
-  "$STACK_NAME" \
-  "$TARGET_DISTRIBUTION_OUTPUT_KEY")"
 
 echo "Syncing Public WWW to s3://$TARGET_BUCKET_NAME"
 sync_site_artifacts "$BUILD_DIR" "s3://$TARGET_BUCKET_NAME"
@@ -280,5 +597,11 @@ if [ "$DEPLOY_ENVIRONMENT" = "staging" ]; then
   echo "Applying staging robots.txt deny-all policy"
   enforce_staging_robots_txt "$TARGET_BUCKET_NAME"
 fi
+
+apply_www_proxy_mode \
+  "$STACK_NAME" \
+  "$TARGET_DISTRIBUTION_ID" \
+  "$DEPLOY_ENVIRONMENT" \
+  "normal"
 
 invalidate_distribution "$TARGET_DISTRIBUTION_ID"
