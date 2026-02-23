@@ -127,6 +127,7 @@ jobs:
               params = json.load(handle)
 
           stack_set = set(os.environ.get("STACKS", "").split())
+          backend_stack = "evolvesprouts"
           admin_web_stack = "evolvesprouts-admin-web"
           public_stack = "evolvesprouts-public-www"
           admin_web_params = {"AdminWebDomainName", "AdminWebCertificateArn", "WafWebAclArn"}
@@ -150,9 +151,8 @@ jobs:
                   targets.append(admin_web_stack)
               if key in public_params:
                   targets.append(public_stack)
-
               if not targets:
-                  continue
+                  targets.append(backend_stack)
 
               for target in targets:
                   if target not in stack_set:
