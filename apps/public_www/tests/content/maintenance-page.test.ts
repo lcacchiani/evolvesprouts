@@ -12,29 +12,50 @@ function readMaintenanceFile(relativePath: string): string {
   );
 }
 
+function normalizeHtml(value: string): string {
+  return value.replaceAll(/\s+/g, ' ').trim();
+}
+
 describe('maintenance static site assets', () => {
-  it('keeps maintenance HTML files script-free with contact methods', () => {
+  it('keeps maintenance HTML files script-free with icon contact methods', () => {
     const indexHtml = readMaintenanceFile('index.html');
     const notFoundHtml = readMaintenanceFile('404.html');
 
     expect(indexHtml).toContain('/images/evolvesprouts-logo.svg');
-    expect(indexHtml).toContain('Get in touch');
+    expect(indexHtml).toContain('Sprouting Something New!');
+    expect(indexHtml).toContain(
+      'In the meantime, we&#39;d love to hear from you!',
+    );
+    expect(indexHtml).toContain(
+      'Thank you for your patience &ndash; every sprout needs time to bloom.',
+    );
     expect(indexHtml).toContain('__NEXT_PUBLIC_EMAIL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_WHATSAPP_URL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_INSTAGRAM_URL__');
-    expect(indexHtml).toContain('/images/whatsapp-qr.png');
-    expect(indexHtml).toContain('/images/instagram-qr.png');
-    expect(notFoundHtml).toContain('/images/evolvesprouts-logo.svg');
+    expect(indexHtml).toContain('maintenance__contact-icon--whatsapp');
+    expect(indexHtml).toContain('aria-label="Email Evolve Sprouts"');
+    expect(indexHtml).toContain('aria-label="Instagram Evolve Sprouts"');
+    expect(normalizeHtml(notFoundHtml)).toBe(normalizeHtml(indexHtml));
     expect(indexHtml).not.toContain('<script');
     expect(notFoundHtml).not.toContain('<script');
   });
 
-  it('includes maintenance QR image assets', () => {
-    const whatsappQr = path.join(maintenanceDirectory, 'images', 'whatsapp-qr.png');
-    const instagramQr = path.join(maintenanceDirectory, 'images', 'instagram-qr.png');
+  it('does not reference maintenance QR image assets', () => {
+    const indexHtml = readMaintenanceFile('index.html');
+    const notFoundHtml = readMaintenanceFile('404.html');
+    const maintenanceImagesDirectory = path.join(maintenanceDirectory, 'images');
 
-    expect(fs.existsSync(whatsappQr)).toBe(true);
-    expect(fs.existsSync(instagramQr)).toBe(true);
+    expect(indexHtml).not.toMatch(/\/images\/[A-Za-z0-9_-]*qr[A-Za-z0-9_-]*\.png/i);
+    expect(notFoundHtml).not.toMatch(/\/images\/[A-Za-z0-9_-]*qr[A-Za-z0-9_-]*\.png/i);
+
+    if (!fs.existsSync(maintenanceImagesDirectory)) {
+      return;
+    }
+
+    const maintenanceImageFileNames = fs.readdirSync(maintenanceImagesDirectory);
+    expect(
+      maintenanceImageFileNames.some((fileName) => /qr[A-Za-z0-9_-]*\.png/i.test(fileName)),
+    ).toBe(false);
   });
 
   it('ships a deny-all robots policy for maintenance mode', () => {
