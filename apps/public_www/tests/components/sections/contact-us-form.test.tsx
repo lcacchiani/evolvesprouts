@@ -119,7 +119,7 @@ describe('ContactUsForm section', () => {
     }
   });
 
-  it('renders promise items as bulleted text without background cards', () => {
+  it('renders promise items as plain text without bullets or indentation', () => {
     render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
 
     const promiseList = screen
@@ -129,7 +129,8 @@ describe('ContactUsForm section', () => {
       })
       .nextElementSibling as HTMLUListElement | null;
     expect(promiseList).not.toBeNull();
-    expect(promiseList?.className).toContain('list-disc');
+    expect(promiseList?.className).not.toContain('list-disc');
+    expect(promiseList?.className).not.toContain('pl-6');
 
     const listItems = promiseList?.querySelectorAll('li') ?? [];
     expect(listItems.length).toBeGreaterThan(0);
