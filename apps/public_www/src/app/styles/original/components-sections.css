@@ -640,29 +640,63 @@
 
   .es-my-best-auntie-booking-modal-details-column,
   .es-my-best-auntie-booking-modal-reservation-panel {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .es-my-best-auntie-booking-modal-details-column > *,
+  .es-my-best-auntie-booking-modal-reservation-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .es-my-best-auntie-booking-modal-details-column::before,
+  .es-my-best-auntie-booking-modal-reservation-panel::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
     background-image: url('/images/evolvesprouts-logo.svg');
     background-repeat: no-repeat;
+    background-position: var(--es-booking-modal-bg-position, center top);
+    background-size: var(--es-booking-modal-bg-size, 180px auto);
+    filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%);
+    mask-image: linear-gradient(
+      to bottom,
+      black 18%,
+      transparent 20%
+    );
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black 18%,
+      transparent 20%
+    );
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
   }
 
   .es-my-best-auntie-booking-modal-details-column {
-    background-position: left -58px top -22px;
-    background-size: 180px auto;
+    --es-booking-modal-bg-position: left -58px top -22px;
+    --es-booking-modal-bg-size: 180px auto;
   }
 
   .es-my-best-auntie-booking-modal-reservation-panel {
-    background-position: right -42px top -24px;
-    background-size: 190px auto;
+    --es-booking-modal-bg-position: right -42px top -24px;
+    --es-booking-modal-bg-size: 190px auto;
   }
 
   @media (min-width: 640px) {
     .es-my-best-auntie-booking-modal-details-column {
-      background-position: left -62px top -30px;
-      background-size: 220px auto;
+      --es-booking-modal-bg-position: left -62px top -30px;
+      --es-booking-modal-bg-size: 220px auto;
     }
 
     .es-my-best-auntie-booking-modal-reservation-panel {
-      background-position: right -50px top -32px;
-      background-size: 220px auto;
+      --es-booking-modal-bg-position: right -50px top -32px;
+      --es-booking-modal-bg-size: 220px auto;
     }
   }
 
