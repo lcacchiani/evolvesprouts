@@ -188,7 +188,6 @@
       ],
       "parts": [
         {
-          "label": "Part 01",
           "dateByMonth": {
             "apr-2026": "Apr 08 @ 12:00 pm - 2:00 pm",
             "may-2026": "May 08 @ 12:00 pm - 2:00 pm",
@@ -197,7 +196,6 @@
           "description": "Starting with a parent call, followed by a 1:1 session."
         },
         {
-          "label": "Part 02",
           "dateByMonth": {
             "apr-2026": "Apr 15 @ 12:00 pm - 2:00 pm",
             "may-2026": "May 15 @ 12:00 pm - 2:00 pm",
@@ -206,7 +204,6 @@
           "description": "Hands-on role play for practical routines and communication."
         },
         {
-          "label": "Part 03",
           "dateByMonth": {
             "apr-2026": "Apr 22 @ 12:00 pm - 2:00 pm",
             "may-2026": "May 22 @ 12:00 pm - 2:00 pm",

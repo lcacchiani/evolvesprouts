@@ -84,21 +84,6 @@ function formatNextCohortLabel(
   return `${scheduleLabel} for ${ageGroupLabel} age group`;
 }
 
-function getMappedDateIdForAgeSelection(
-  selectedAgeOptionId: string,
-  ageOptions: { id: string }[],
-  dateOptions: { id: string }[],
-): string | undefined {
-  const selectedAgeIndex = ageOptions.findIndex(
-    (option) => option.id === selectedAgeOptionId,
-  );
-  if (selectedAgeIndex < 0) {
-    return undefined;
-  }
-
-  return dateOptions[selectedAgeIndex]?.id;
-}
-
 const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
 
 export function MyBestAuntieBooking({
@@ -144,12 +129,7 @@ export function MyBestAuntieBooking({
     selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
   const firstCoursePart = content.paymentModal.parts[0];
   const firstMonthId = content.paymentModal.monthOptions[0]?.id ?? '';
-  const mappedDateIdByAge = getMappedDateIdForAgeSelection(
-    selectedAgeId,
-    ageOptions,
-    dateOptions,
-  );
-  const nextCohortMonthId = mappedDateIdByAge ?? selectedDateOption?.id ?? firstMonthId;
+  const nextCohortMonthId = selectedDateOption?.id ?? firstMonthId;
   const firstCohortDate = firstCoursePart
     ? Object.entries(firstCoursePart.dateByMonth).find(
         ([monthId]) => monthId === nextCohortMonthId,
@@ -209,7 +189,7 @@ export function MyBestAuntieBooking({
                   <p className='text-base font-semibold es-text-brand'>
                     {nextCohortLabel}
                   </p>
-                  <p className='es-type-subtitle mt-1 font-semibold es-text-heading-alt'>
+                  <p className='es-type-subtitle-lg mt-1 es-text-heading-alt'>
                     {nextCohortPreview}
                   </p>
                 </div>
@@ -237,14 +217,6 @@ export function MyBestAuntieBooking({
                         aria-pressed={isSelected}
                         onClick={() => {
                           setSelectedAgeId(option.id);
-                          const mappedDateId = getMappedDateIdForAgeSelection(
-                            option.id,
-                            ageOptions,
-                            dateOptions,
-                          );
-                          if (mappedDateId) {
-                            setSelectedDateId(mappedDateId);
-                          }
                         }}
                         className={`${BOOKING_SELECTOR_CARD_CLASSNAME} text-left`}
                       >

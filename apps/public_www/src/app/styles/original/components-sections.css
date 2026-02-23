@@ -336,6 +336,10 @@
     background-color: var(--es-color-accent-gold, #9E6D12);
   }
 
+  .es-course-highlight-card--green {
+    background-color: var(--es-color-accent-green, #5D9D49);
+  }
+
   .es-course-highlight-card--blue {
     background-color: var(--figma-colors-frame-2147235242, #174879);
   }
@@ -925,9 +929,9 @@
     z-index: 0;
     pointer-events: none;
     background-image: url('/images/family.webp');
-    background-position: center;
+    background-position: bottom;
     background-repeat: no-repeat;
-    background-size: 75% auto;
+    background-size: var(--es-free-resources-bg-size, 50% auto);
   }
 
   .es-free-resources-media-pane--bleed-left::before {
@@ -1001,6 +1005,7 @@
     .es-free-resources-media-pane {
       --es-free-resources-bleed-inline: clamp(40px, 10vw, 120px);
       --es-free-resources-bleed-top: clamp(72px, 14vw, 170px);
+      --es-free-resources-bg-size: 62% auto;
     }
   }
 
@@ -1008,6 +1013,7 @@
     .es-free-resources-media-pane {
       --es-free-resources-bleed-inline: clamp(72px, 11vw, 220px);
       --es-free-resources-bleed-top: clamp(84px, 9vw, 190px);
+      --es-free-resources-bg-size: 75% auto;
     }
   }
 

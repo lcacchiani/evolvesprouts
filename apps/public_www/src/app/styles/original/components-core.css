@@ -32,6 +32,15 @@
     letter-spacing: 0;
   }
 
+  .es-type-subtitle-lg {
+    color: var(--site-heading-text);
+    font-family: var(--site-heading-font);
+    font-size: clamp(1.4rem, 3vw, 28px);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0;
+  }
+
   .es-type-body {
     color: var(--site-primary-text);
     font-family: var(--site-primary-font);
@@ -529,8 +538,6 @@
     flex-shrink: 0;
     width: 16px;
     height: 16px;
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 1px;
   }
 
   @media (hover: hover) {
