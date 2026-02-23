@@ -34,7 +34,8 @@ describe('Faq section', () => {
     ).not.toBeNull();
     expect(section?.className).toContain('es-section-bg-overlay');
     expect(section?.className).toContain('es-faq-section');
-    expect(section?.querySelector('div.es-layout-container')).not.toBeNull();
+    const layoutContainers = section?.querySelectorAll('div.es-layout-container') ?? [];
+    expect(layoutContainers).toHaveLength(1);
   });
 
   it('renders the fallback prompt as a blue card with contact CTA', () => {
@@ -98,7 +99,7 @@ describe('Faq section', () => {
     expect(searchInput.className).toContain('es-bg-surface-neutral');
     expect(searchInput.className).not.toMatch(/\bpy-/);
 
-    const searchWrapper = container.querySelector('div.es-layout-container.mt-8');
+    const searchWrapper = container.querySelector('div.mt-8.rounded-full');
     expect(searchWrapper?.className).toContain('es-bg-surface-neutral');
   });
 });

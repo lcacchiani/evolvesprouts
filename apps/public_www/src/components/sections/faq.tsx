@@ -187,25 +187,23 @@ export function Faq({ content }: FaqProps) {
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
-        <div className='es-layout-container mt-8 rounded-full border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
-          <div className='relative'>
-            <label htmlFor='faq-search' className='sr-only'>
-              {content.searchPlaceholder}
-            </label>
-            <span className='pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 es-text-heading'>
-              <FaqLensIcon />
-            </span>
-            <input
-              id='faq-search'
-              type='text'
-              value={searchValue}
-              onChange={(event) => {
-                setSearchValue(event.target.value);
-              }}
-              placeholder={content.searchPlaceholder}
-              className='es-focus-ring w-full rounded-full es-bg-surface-neutral pl-8 pr-4 text-lg font-semibold tracking-[0.5px] es-text-dim outline-none es-text-placeholder sm:pl-9 sm:text-[22px]'
-            />
-          </div>
+        <div className='relative mt-8 rounded-full border es-border-soft es-bg-surface-neutral px-4 py-[13px] sm:px-6 sm:py-4'>
+          <label htmlFor='faq-search' className='sr-only'>
+            {content.searchPlaceholder}
+          </label>
+          <span className='pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 es-text-heading sm:left-6'>
+            <FaqLensIcon />
+          </span>
+          <input
+            id='faq-search'
+            type='text'
+            value={searchValue}
+            onChange={(event) => {
+              setSearchValue(event.target.value);
+            }}
+            placeholder={content.searchPlaceholder}
+            className='es-focus-ring w-full rounded-full es-bg-surface-neutral pl-8 pr-4 text-lg font-semibold tracking-[0.5px] es-text-dim outline-none es-text-placeholder sm:pl-9 sm:text-[22px]'
+          />
         </div>
 
         <div className='mt-6 overflow-x-auto pb-1 scrollbar-hide'>
