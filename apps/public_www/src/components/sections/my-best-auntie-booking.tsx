@@ -148,7 +148,11 @@ export function MyBestAuntieBooking({
     dateOptions,
   );
   const nextCohortMonthId = mappedDateIdByAge ?? selectedDateOption?.id ?? firstMonthId;
-  const firstCohortDate = firstCoursePart?.dateByMonth[nextCohortMonthId];
+  const firstCohortDate = firstCoursePart
+    ? Object.entries(firstCoursePart.dateByMonth).find(
+        ([monthId]) => monthId === nextCohortMonthId,
+      )?.[1]
+    : undefined;
   const nextCohortDate =
     firstCohortDate ??
     dateOptions.find((option) => option.id === nextCohortMonthId)?.label ??
