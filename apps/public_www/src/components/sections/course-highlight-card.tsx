@@ -9,7 +9,7 @@ import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
 const DESKTOP_HOVER_QUERY = '(min-width: 1024px) and (hover: hover)';
 
-export type CourseHighlightCardTone = 'gold' | 'blue';
+export type CourseHighlightCardTone = 'gold' | 'green' | 'blue';
 
 export interface CourseHighlightCardProps {
   id: string;
@@ -44,10 +44,12 @@ export function CourseHighlightCard({
 }: CourseHighlightCardProps) {
   const [isActive, setIsActive] = useState(false);
   const articleRef = useRef<HTMLElement>(null);
-  const toneClassName =
-    tone === 'gold'
-      ? 'es-course-highlight-card--gold'
-      : 'es-course-highlight-card--blue';
+  const toneClassMap: Record<CourseHighlightCardTone, string> = {
+    gold: 'es-course-highlight-card--gold',
+    green: 'es-course-highlight-card--green',
+    blue: 'es-course-highlight-card--blue',
+  };
+  const toneClassName = toneClassMap[tone];
 
   const handleDismiss = useCallback(() => {
     setIsActive(false);

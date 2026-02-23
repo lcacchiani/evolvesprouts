@@ -593,11 +593,9 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(className).toContain('-left-[25px]');
     }
 
-    const partLabels = Array.from(
+    expect(
       container.querySelectorAll('span[data-course-part-label="true"]'),
-    );
-    expect(partLabels).toHaveLength(3);
-    expect(partLabels.map((label) => label.textContent)).toEqual(['1', '2', '3']);
+    ).toHaveLength(0);
 
     const partChips = Array.from(
       container.querySelectorAll('span[data-course-part-chip="true"]'),

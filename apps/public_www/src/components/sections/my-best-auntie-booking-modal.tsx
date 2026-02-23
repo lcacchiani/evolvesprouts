@@ -103,7 +103,6 @@ export function MyBestAuntieBookingModal({
       );
 
       return {
-        label: part.label,
         date: matchedDateEntry?.[1] ?? '',
         description: part.description,
       };

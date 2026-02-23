@@ -336,6 +336,10 @@
     background-color: var(--es-color-accent-gold, #9E6D12);
   }
 
+  .es-course-highlight-card--green {
+    background-color: var(--es-color-accent-green, #5D9D49);
+  }
+
   .es-course-highlight-card--blue {
     background-color: var(--figma-colors-frame-2147235242, #174879);
   }

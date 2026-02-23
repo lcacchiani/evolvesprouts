@@ -7,7 +7,6 @@ import type { MyBestAuntieBookingContent } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
 
 export interface BookingEventDetailPart {
-  label: string;
   date: string;
   description: string;
 }
@@ -38,20 +37,6 @@ function getPartIconSource(index: number): string {
     COURSE_OVERVIEW_PART_ICONS[index] ??
     COURSE_OVERVIEW_PART_ICONS[COURSE_OVERVIEW_PART_ICONS.length - 1]
   );
-}
-
-function getPartDisplayLabel(label: string, index: number): string {
-  const firstNumberMatch = label.match(/\d+/);
-  if (!firstNumberMatch) {
-    return String(index + 1);
-  }
-
-  const normalizedNumber = Number.parseInt(firstNumberMatch[0], 10);
-  if (Number.isNaN(normalizedNumber)) {
-    return String(index + 1);
-  }
-
-  return String(normalizedNumber);
 }
 
 function getPartChipClassName(index: number): string {
@@ -104,11 +89,9 @@ export function BookingEventDetails({
       <section className='mt-8'>
         <ul className='space-y-[50px]'>
           {activePartRows.map((part, index) => {
-            const displayLabel = getPartDisplayLabel(part.label, index);
-
             return (
               <li
-                key={part.label}
+                key={index}
                 className='es-my-best-auntie-booking-part-item relative'
               >
                 <span
@@ -142,12 +125,6 @@ export function BookingEventDetails({
                       className='h-7 w-7 shrink-0 object-contain'
                       aria-hidden='true'
                     />
-                    <span
-                      data-course-part-label='true'
-                      className='text-base font-semibold leading-none'
-                    >
-                      {displayLabel}
-                    </span>
                   </span>
 
                   <div className='max-w-[340px]'>
