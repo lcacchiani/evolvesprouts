@@ -96,14 +96,14 @@ body {
 }
 
 .maintenance__contact-icon {
-  width: 1.875rem;
-  height: 1.875rem;
+  width: 3.75rem;
+  height: 3.75rem;
   fill: currentColor;
 }
 
 .maintenance__contact-icon--whatsapp {
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 3.5rem;
+  height: 3.5rem;
   color: var(--maintenance-color-whatsapp);
 }
 

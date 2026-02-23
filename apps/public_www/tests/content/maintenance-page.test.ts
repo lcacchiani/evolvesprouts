@@ -48,7 +48,10 @@ describe('maintenance static site assets', () => {
     expect(stylesCss).toMatch(/--maintenance-color-instagram:\s*#e4405f;/i);
     expect(stylesCss).toContain('padding: 0.375rem 1.5rem 1.5rem;');
     expect(stylesCss).toMatch(
-      /\.maintenance__contact-icon--whatsapp\s*\{[^}]*color:\s*var\(--maintenance-color-whatsapp\);/s,
+      /\.maintenance__contact-icon\s*\{[^}]*width:\s*3\.75rem;[^}]*height:\s*3\.75rem;/s,
+    );
+    expect(stylesCss).toMatch(
+      /\.maintenance__contact-icon--whatsapp\s*\{[^}]*width:\s*3\.5rem;[^}]*height:\s*3\.5rem;[^}]*color:\s*var\(--maintenance-color-whatsapp\);/s,
     );
     expect(stylesCss).toMatch(
       /\.maintenance__contact-icon--instagram\s*\{[^}]*color:\s*var\(--maintenance-color-instagram\);/s,
