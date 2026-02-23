@@ -224,6 +224,7 @@ function prepare_maintenance_build_dir() {
     "$APP_DIR/public/images/evolvesprouts-logo.svg" \
     "$maintenance_build_dir/images/evolvesprouts-logo.svg"
   inject_maintenance_contact_values "$maintenance_build_dir/index.html"
+  cp "$maintenance_build_dir/index.html" "$maintenance_build_dir/404.html"
 
   echo "$maintenance_build_dir"
 }
