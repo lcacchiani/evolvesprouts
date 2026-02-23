@@ -4,6 +4,14 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const maintenanceDirectory = path.resolve(process.cwd(), 'maintenance');
+const maintenanceDeployScriptPath = path.resolve(
+  process.cwd(),
+  '..',
+  '..',
+  'scripts',
+  'deploy',
+  'deploy-public-www.sh',
+);
 
 function readMaintenanceFile(relativePath: string): string {
   return fs.readFileSync(
@@ -14,6 +22,10 @@ function readMaintenanceFile(relativePath: string): string {
 
 function normalizeHtml(value: string): string {
   return value.replaceAll(/\s+/g, ' ').trim();
+}
+
+function readMaintenanceDeployScript(): string {
+  return fs.readFileSync(maintenanceDeployScriptPath, 'utf-8');
 }
 
 describe('maintenance static site assets', () => {
@@ -59,10 +71,13 @@ describe('maintenance static site assets', () => {
     );
   });
 
-  it('ships the public WWW favicon in maintenance artifacts', () => {
+  it('sources favicon from public assets during maintenance deploy', () => {
     const maintenanceFaviconPath = path.join(maintenanceDirectory, 'favicon.ico');
-    expect(fs.existsSync(maintenanceFaviconPath)).toBe(true);
-    expect(fs.statSync(maintenanceFaviconPath).size).toBeGreaterThan(0);
+    const deployScript = readMaintenanceDeployScript();
+
+    expect(fs.existsSync(maintenanceFaviconPath)).toBe(false);
+    expect(deployScript).toContain('$APP_DIR/public/favicon.ico');
+    expect(deployScript).toContain('$maintenance_build_dir/favicon.ico');
   });
 
   it('does not reference maintenance QR image assets', () => {

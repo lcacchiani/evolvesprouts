@@ -90,6 +90,7 @@ Workflow: `.github/workflows/promote-public-www.yml`
     - deploy static maintenance artifact from `apps/public_www/maintenance/`
       to production root (no Next.js build required)
     - include `/images/evolvesprouts-logo.svg` from `apps/public_www/public/`
+    - include `/favicon.ico` from `apps/public_www/public/`
     - set `Cache-Control: no-store` on maintenance files
     - switch `/www/*` CloudFront behavior to a maintenance block function
       returning `503 Service Unavailable`
@@ -110,6 +111,7 @@ Maintenance artifact source:
 - `apps/public_www/maintenance/styles.css`
 - `apps/public_www/maintenance/robots.txt`
 - `apps/public_www/maintenance/images/*.png`
+- `apps/public_www/public/favicon.ico` (copied into maintenance output at deploy time)
 
 Characteristics:
 

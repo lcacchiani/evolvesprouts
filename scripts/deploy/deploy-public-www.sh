@@ -216,6 +216,11 @@ function prepare_maintenance_build_dir() {
     exit 1
   fi
 
+  if [ ! -f "$APP_DIR/public/favicon.ico" ]; then
+    echo "Favicon source not found at $APP_DIR/public/favicon.ico"
+    exit 1
+  fi
+
   local maintenance_build_dir
   maintenance_build_dir="$(mktemp -d)"
   cp -a "$MAINTENANCE_DIR/." "$maintenance_build_dir/"
@@ -223,6 +228,9 @@ function prepare_maintenance_build_dir() {
   cp \
     "$APP_DIR/public/images/evolvesprouts-logo.svg" \
     "$maintenance_build_dir/images/evolvesprouts-logo.svg"
+  cp \
+    "$APP_DIR/public/favicon.ico" \
+    "$maintenance_build_dir/favicon.ico"
   inject_maintenance_contact_values "$maintenance_build_dir/index.html"
   cp "$maintenance_build_dir/index.html" "$maintenance_build_dir/404.html"
 
