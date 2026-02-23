@@ -82,6 +82,22 @@ describe('ContactUsForm section', () => {
     expect(decorativeLayer?.getAttribute('style')).toBeNull();
   });
 
+  it('does not apply horizontal padding to the left content column', () => {
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    const splitLayout = document.querySelector(
+      '#contact-us-form .es-section-split-layout--contact-us',
+    ) as HTMLDivElement | null;
+    expect(splitLayout).not.toBeNull();
+
+    const leftColumn = splitLayout?.firstElementChild as HTMLDivElement | null;
+    expect(leftColumn).not.toBeNull();
+    expect(leftColumn?.className).toContain('py-8');
+    expect(leftColumn?.className).not.toContain('px-6');
+    expect(leftColumn?.className).not.toContain('sm:px-8');
+    expect(leftColumn?.className).not.toContain('lg:px-10');
+  });
+
   it('uses the same input styling pattern as the booking form', () => {
     render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
 
