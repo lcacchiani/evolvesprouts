@@ -225,7 +225,7 @@ export function LanguageSelectorButton({
         role='menu'
         aria-label={languageSelector.menuAriaLabel}
         aria-hidden={!isMenuOpen}
-        className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[230px] space-y-1 rounded-xl bg-white p-2 shadow-xl transition-opacity duration-200 ease-out ${isBorderlessMenu ? '' : 'border border-black/10'} ${isMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[153px] space-y-1 rounded-xl bg-white p-2 shadow-xl transition-opacity duration-200 ease-out ${isBorderlessMenu ? '' : 'border border-black/10'} ${isMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
       >
         {languageSelector.options.map((option) => {
           const isCurrent = option.locale === currentLocale;

@@ -916,11 +916,6 @@
       "title": "關注我們",
       "items": [
         {
-          "label": "Facebook",
-          "href": "https://facebook.com",
-          "icon": "facebook"
-        },
-        {
           "label": "Linkedin",
           "href": "https://linkedin.com",
           "icon": "linkedin"
@@ -929,11 +924,6 @@
           "label": "Instagram",
           "href": "https://instagram.com",
           "icon": "instagram"
-        },
-        {
-          "label": "Tiktok",
-          "href": "https://tiktok.com",
-          "icon": "tiktok"
         }
       ]
     },
