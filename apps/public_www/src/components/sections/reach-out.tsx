@@ -57,7 +57,7 @@ export function ReachOut({ content }: ReachOutProps) {
               <article className='flex h-full gap-4 rounded-2xl border border-black/10 bg-white px-5 py-5 shadow-card sm:px-6 sm:py-6'>
                 <ReachOutGlyph index={index} />
                 <div className='space-y-1.5'>
-                  <h3 className='es-type-title'>
+                  <h3 className='es-type-subtitle'>
                     {item.title}
                   </h3>
                   <p className='es-section-body text-base leading-7'>
