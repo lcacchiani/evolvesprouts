@@ -5,7 +5,9 @@ import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   fetchEventsPayload,
   normalizeEvents,
+  resolveSortOptions,
   resolveEventsApiUrl,
+  sortEvents,
 } from '@/lib/events-data';
 
 afterEach(() => {
@@ -118,6 +120,92 @@ describe('events-data', () => {
       'TEST In-Person',
       'TEST Workshop Category',
     ]);
+  });
+
+  it('resolves dropdown options to upcoming and past only', () => {
+    const defaultOptions = resolveSortOptions(enContent.events);
+    expect(defaultOptions).toEqual([
+      { value: 'upcoming', label: 'Upcoming Events' },
+      { value: 'past', label: 'Past Events' },
+    ]);
+
+    const customOptions = resolveSortOptions({
+      ...enContent.events,
+      sortOptions: [
+        { value: 'upcoming', label: 'Soonest Sessions' },
+        { value: 'past', label: 'Earlier Sessions' },
+        { value: 'latest', label: 'Latest Events' },
+      ],
+    });
+    expect(customOptions).toEqual([
+      { value: 'upcoming', label: 'Soonest Sessions' },
+      { value: 'past', label: 'Earlier Sessions' },
+    ]);
+  });
+
+  it('filters and sorts events by upcoming and past windows', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-10T00:00:00Z'));
+
+    const sourceEvents = [
+      {
+        id: 'future-b',
+        title: 'Future B',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: Date.parse('2026-04-20T10:00:00Z'),
+      },
+      {
+        id: 'future-a',
+        title: 'Future A',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: Date.parse('2026-04-11T10:00:00Z'),
+      },
+      {
+        id: 'past-a',
+        title: 'Past A',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'fully_booked' as const,
+        timestamp: Date.parse('2026-04-08T10:00:00Z'),
+      },
+      {
+        id: 'past-b',
+        title: 'Past B',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: Date.parse('2026-04-05T10:00:00Z'),
+      },
+      {
+        id: 'unknown',
+        title: 'Unknown Date',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: null,
+      },
+    ];
+
+    const upcomingEvents = sortEvents(sourceEvents, 'upcoming');
+    expect(upcomingEvents.map((event) => event.id)).toEqual([
+      'future-a',
+      'future-b',
+      'unknown',
+    ]);
+
+    const pastEvents = sortEvents(sourceEvents, 'past');
+    expect(pastEvents.map((event) => event.id)).toEqual(['past-a', 'past-b']);
+
+    vi.useRealTimers();
   });
 
   it('fetches events payload with x-api-key', async () => {

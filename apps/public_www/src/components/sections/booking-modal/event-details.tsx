@@ -75,7 +75,7 @@ export function BookingEventDetails({
   learnMoreHref,
 }: BookingEventDetailsProps) {
   return (
-    <div className='w-full lg:w-[calc(50%-20px)]'>
+    <div className='es-my-best-auntie-booking-modal-details-column w-full lg:w-[calc(50%-20px)]'>
       <p className='text-xl leading-7 es-text-heading'>
         {content.thankYouLead}
       </p>

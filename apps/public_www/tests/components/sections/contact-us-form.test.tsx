@@ -156,6 +156,20 @@ describe('ContactUsForm section', () => {
     );
   });
 
+  it('validates email only after blur instead of while typing', () => {
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    const emailInput = screen.getByLabelText(
+      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
+    );
+
+    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
+    expect(screen.queryByText('Please enter a valid email address.')).not.toBeInTheDocument();
+
+    fireEvent.blur(emailInput);
+    expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+  });
+
   it('requires CAPTCHA verification before form submission', () => {
     render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
 

@@ -256,7 +256,6 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
                   value={formState.email}
                   onChange={(event) => {
                     updateField('email', event.target.value);
-                    setIsEmailTouched(true);
                   }}
                   onBlur={() => {
                     setIsEmailTouched(true);

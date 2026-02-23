@@ -290,14 +290,14 @@
     );
   }
 
-  .es-why-us-intro-title {
+  .es-why-us-intro-subtitle {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
     font-weight: 600;
     line-height: 1.25;
   }
 
-  .es-why-us-intro-title {
+  .es-why-us-intro-subtitle {
     font-size: clamp(1.05rem, 1.9vw, 18px);
   }
 
@@ -636,6 +636,34 @@
 
   .es-my-best-auntie-booking-modal-panel {
     background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-booking-modal-details-column,
+  .es-my-best-auntie-booking-modal-reservation-panel {
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-repeat: no-repeat;
+  }
+
+  .es-my-best-auntie-booking-modal-details-column {
+    background-position: left -58px top -22px;
+    background-size: 180px auto;
+  }
+
+  .es-my-best-auntie-booking-modal-reservation-panel {
+    background-position: right -42px top -24px;
+    background-size: 190px auto;
+  }
+
+  @media (min-width: 640px) {
+    .es-my-best-auntie-booking-modal-details-column {
+      background-position: left -62px top -30px;
+      background-size: 220px auto;
+    }
+
+    .es-my-best-auntie-booking-modal-reservation-panel {
+      background-position: right -50px top -32px;
+      background-size: 220px auto;
+    }
   }
 
   .es-my-best-auntie-booking-modal-heading {
@@ -1013,7 +1041,7 @@
     .es-free-resources-media-pane {
       --es-free-resources-bleed-inline: clamp(72px, 11vw, 220px);
       --es-free-resources-bleed-top: clamp(84px, 9vw, 190px);
-      --es-free-resources-bg-size: 75% auto;
+      --es-free-resources-bg-size: 100% auto;
     }
   }
 

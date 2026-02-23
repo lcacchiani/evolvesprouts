@@ -8,11 +8,12 @@ import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
 import { isHttpHref } from '@/lib/url-utils';
 
 export interface SortOption {
-  value: string;
+  value: EventFilterValue;
   label: string;
 }
 
 type EventStatus = 'open' | 'fully_booked';
+type EventFilterValue = 'upcoming' | 'past';
 
 export const EVENTS_API_PATH = '/v1/calendar/events';
 
@@ -47,9 +48,8 @@ const UTC_MONTH_NAMES = [
 ] as const;
 
 const DEFAULT_SORT_OPTIONS: readonly SortOption[] = [
-  { value: 'latest', label: 'Latest Events' },
-  { value: 'oldest', label: 'Older Events' },
-  { value: 'fully_booked', label: 'Fully Booked' },
+  { value: 'upcoming', label: 'Upcoming Events' },
+  { value: 'past', label: 'Past Events' },
 ];
 
 function sanitizeExternalHref(value: string | undefined): string {
@@ -167,6 +167,10 @@ function normalizeLocationLabel(value: string | undefined): string | undefined {
   return normalizedValue;
 }
 
+function isEventFilterValue(value: string): value is EventFilterValue {
+  return value === 'upcoming' || value === 'past';
+}
+
 export function resolveSortOptions(content: EventsContent): readonly SortOption[] {
   const normalizedOptions = content.sortOptions
     .map((option) => {
@@ -176,15 +180,25 @@ export function resolveSortOptions(content: EventsContent): readonly SortOption[
         return null;
       }
 
+      if (!isEventFilterValue(value)) {
+        return null;
+      }
+
       return { value, label };
     })
     .filter((option): option is SortOption => option !== null);
 
-  if (normalizedOptions.length === 0) {
-    return DEFAULT_SORT_OPTIONS;
+  const labelsByValue = new Map<EventFilterValue, string>();
+  for (const option of normalizedOptions) {
+    if (!labelsByValue.has(option.value)) {
+      labelsByValue.set(option.value, option.label);
+    }
   }
 
-  return normalizedOptions;
+  return DEFAULT_SORT_OPTIONS.map((fallbackOption) => ({
+    value: fallbackOption.value,
+    label: labelsByValue.get(fallbackOption.value) ?? fallbackOption.label,
+  }));
 }
 
 export async function fetchEventsPayload(
@@ -445,16 +459,14 @@ export function sortEvents(
   activeFilter: string,
 ): EventCardData[] {
   const entries = events.map((event, index) => ({ event, index }));
+  const now = Date.now();
 
-  if (activeFilter === 'fully_booked') {
-    return entries
-      .filter((entry) => entry.event.status === 'fully_booked')
-      .map((entry) => entry.event);
-  }
-
-  if (activeFilter === 'latest' || activeFilter === 'oldest') {
-    const isDescending = activeFilter === 'latest';
-    entries.sort((left, right) => {
+  if (activeFilter === 'past') {
+    const pastEntries = entries.filter((entry) => {
+      const timestamp = entry.event.timestamp;
+      return timestamp !== null && timestamp < now;
+    });
+    pastEntries.sort((left, right) => {
       const leftValue = left.event.timestamp;
       const rightValue = right.event.timestamp;
 
@@ -471,9 +483,33 @@ export function sortEvents(
         return left.index - right.index;
       }
 
-      return isDescending ? rightValue - leftValue : leftValue - rightValue;
+      return rightValue - leftValue;
     });
+    return pastEntries.map((entry) => entry.event);
   }
 
-  return entries.map((entry) => entry.event);
+  const upcomingEntries = entries.filter((entry) => {
+    const timestamp = entry.event.timestamp;
+    return timestamp === null || timestamp >= now;
+  });
+  upcomingEntries.sort((left, right) => {
+    const leftValue = left.event.timestamp;
+    const rightValue = right.event.timestamp;
+
+    if (leftValue === null && rightValue === null) {
+      return left.index - right.index;
+    }
+    if (leftValue === null) {
+      return 1;
+    }
+    if (rightValue === null) {
+      return -1;
+    }
+    if (leftValue === rightValue) {
+      return left.index - right.index;
+    }
+
+    return leftValue - rightValue;
+  });
+  return upcomingEntries.map((entry) => entry.event);
 }

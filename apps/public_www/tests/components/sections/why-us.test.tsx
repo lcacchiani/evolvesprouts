@@ -34,14 +34,15 @@ describe('WhyUs section', () => {
     expect(container.querySelector('.es-why-us-glow-green')).not.toBeNull();
   });
 
-  it('applies migrated title classes for intro and pillars', () => {
+  it('applies subtitle classes for intro and pillar card titles', () => {
     render(<WhyUs content={enContent.whyUs} />);
 
     const introTitle = screen.getByRole('heading', {
       level: 3,
       name: enContent.whyUs.introTitle,
     });
-    expect(introTitle.className).toContain('es-why-us-intro-title');
+    expect(introTitle.className).toContain('es-why-us-intro-subtitle');
+    expect(introTitle.className).toContain('es-type-subtitle');
 
     const firstPillarTitle = screen.getByRole('heading', {
       level: 3,

@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import {
   useId,
   useMemo,
@@ -136,15 +135,6 @@ export function MyBestAuntieBookingModal({
           />
         </header>
         <OverlayScrollableBody className='pb-5 sm:pb-8'>
-          <Image
-            src='/images/evolvesprouts-logo.svg'
-            alt=''
-            width={446}
-            height={592}
-            className='pointer-events-none absolute left-0 top-0 hidden w-[250px] -translate-y-12 lg:block'
-            aria-hidden='true'
-          />
-
           <div className='relative z-10 flex flex-col gap-8 pb-9 lg:flex-row lg:gap-10 lg:pb-[72px]'>
             <BookingEventDetails
               headingId={dialogTitleId}

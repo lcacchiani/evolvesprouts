@@ -241,6 +241,26 @@ describe('my-best-auntie booking modals footer content', () => {
     );
   });
 
+  it('validates reservation email only after blur', () => {
+    render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    const emailField = screen.getByLabelText(
+      new RegExp(bookingModalContent.emailLabel),
+    );
+    fireEvent.change(emailField, { target: { value: 'invalid-email' } });
+    expect(screen.queryByText('Please enter a valid email address.')).not.toBeInTheDocument();
+
+    fireEvent.blur(emailField);
+    expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+    expect(emailField).toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('does not render the month/package selector box in booking modal', () => {
     render(
       <MyBestAuntieBookingModal
@@ -649,6 +669,24 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(screen.queryByText('2026 Evolve Sprouts')).not.toBeInTheDocument();
     expect(screen.queryByText(/©/u)).not.toBeInTheDocument();
     expect(container.innerHTML).not.toContain('border-b border-black/10');
+  });
+
+  it('renders modal column logos as section backgrounds instead of image elements', () => {
+    const { container } = render(
+      <MyBestAuntieBookingModal
+        content={bookingModalContent}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
+    expect(
+      container.querySelector('.es-my-best-auntie-booking-modal-details-column'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('.es-my-best-auntie-booking-modal-reservation-panel'),
+    ).not.toBeNull();
   });
 
   it('renders shared external link icon and updated booking icons', () => {

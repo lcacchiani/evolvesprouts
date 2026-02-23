@@ -538,16 +538,12 @@
     "sortAriaLabel": "按条件排序活动",
     "sortOptions": [
       {
-        "value": "latest",
-        "label": "最新活动"
+        "value": "upcoming",
+        "label": "即将举办的活动"
       },
       {
-        "value": "oldest",
-        "label": "较早活动"
-      },
-      {
-        "value": "fully_booked",
-        "label": "已满额"
+        "value": "past",
+        "label": "往期活动"
       }
     ],
     "loadingLabel": "正在加载活动...",
