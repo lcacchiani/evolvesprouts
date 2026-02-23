@@ -613,7 +613,7 @@ describe('my-best-auntie booking modals footer content', () => {
       'img[data-course-part-icon="true"]',
     ) as HTMLImageElement | null;
     expect(firstPartIcon).not.toBeNull();
-    expect(firstPartIcon?.getAttribute('src')).toBe('/images/training.svg');
+    expect(firstPartIcon?.getAttribute('src')).toBe('/images/home.svg');
 
     const firstPartRow = firstPartChip?.closest('div');
     expect(firstPartRow?.className).toContain('sm:items-start');
