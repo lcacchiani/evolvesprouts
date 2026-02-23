@@ -32,6 +32,8 @@ describe('maintenance static site assets', () => {
     expect(indexHtml).toContain('__NEXT_PUBLIC_EMAIL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_WHATSAPP_URL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_INSTAGRAM_URL__');
+    expect(indexHtml).toContain('/images/whatsapp-official-logo.svg');
+    expect(indexHtml).toContain('/images/instagram-official-logo.svg');
     expect(indexHtml).toContain('maintenance__contact-icon--whatsapp');
     expect(indexHtml).toContain('maintenance__contact-icon--instagram');
     expect(indexHtml).toContain('aria-label="Email Evolve Sprouts"');
@@ -41,20 +43,15 @@ describe('maintenance static site assets', () => {
     expect(notFoundHtml).not.toContain('<script');
   });
 
-  it('keeps branded maintenance icon colors and reduced logo top spacing in CSS', () => {
+  it('keeps branded maintenance icon sizing and reduced logo top spacing in CSS', () => {
     const stylesCss = readMaintenanceFile('styles.css');
 
-    expect(stylesCss).toMatch(/--maintenance-color-whatsapp:\s*#25d366;/i);
-    expect(stylesCss).toMatch(/--maintenance-color-instagram:\s*#e4405f;/i);
     expect(stylesCss).toContain('padding: 0.1875rem 1.5rem 1.5rem;');
     expect(stylesCss).toMatch(
-      /\.maintenance__contact-icon\s*\{[^}]*width:\s*3\.75rem;[^}]*height:\s*3\.75rem;/s,
+      /\.maintenance__contact-icon\s*\{[^}]*width:\s*3\.75rem;[^}]*height:\s*3\.75rem;[^}]*object-fit:\s*contain;/s,
     );
     expect(stylesCss).toMatch(
-      /\.maintenance__contact-icon--whatsapp\s*\{[^}]*width:\s*3\.5rem;[^}]*height:\s*3\.5rem;[^}]*color:\s*var\(--maintenance-color-whatsapp\);/s,
-    );
-    expect(stylesCss).toMatch(
-      /\.maintenance__contact-icon--instagram\s*\{[^}]*color:\s*var\(--maintenance-color-instagram\);/s,
+      /\.maintenance__contact-icon--whatsapp\s*\{[^}]*width:\s*3\.5rem;[^}]*height:\s*3\.5rem;/s,
     );
   });
 

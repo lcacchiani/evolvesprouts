@@ -1,7 +1,5 @@
 :root {
   color-scheme: light;
-  --maintenance-color-whatsapp: #25d366;
-  --maintenance-color-instagram: #e4405f;
 }
 
 * {
@@ -94,15 +92,11 @@ body {
 .maintenance__contact-icon {
   width: 3.75rem;
   height: 3.75rem;
-  fill: currentColor;
+  display: block;
+  object-fit: contain;
 }
 
 .maintenance__contact-icon--whatsapp {
   width: 3.5rem;
   height: 3.5rem;
-  color: var(--maintenance-color-whatsapp);
-}
-
-.maintenance__contact-icon--instagram {
-  color: var(--maintenance-color-instagram);
 }
