@@ -22,7 +22,9 @@ describe('ReachOut', () => {
     ).toBeInTheDocument();
 
     for (const item of content.items) {
-      expect(screen.getByRole('heading', { name: item.title })).toBeInTheDocument();
+      const itemHeading = screen.getByRole('heading', { name: item.title });
+      expect(itemHeading).toBeInTheDocument();
+      expect(itemHeading.className).toContain('es-type-subtitle');
       expect(screen.getByText(item.description)).toBeInTheDocument();
     }
 
