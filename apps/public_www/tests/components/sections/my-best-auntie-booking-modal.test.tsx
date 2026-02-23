@@ -347,7 +347,7 @@ describe('my-best-auntie booking modals footer content', () => {
       | null;
     expect(fpsLayout).not.toBeNull();
     expect(fpsLayout?.className).toContain('justify-start');
-    expect(fpsLayout?.className).toContain('gap-2');
+    expect(fpsLayout?.className).toContain('gap-5');
     expect(fpsLayout?.className).not.toContain('border');
     expect(fpsLayout?.className).not.toContain('bg-');
 
@@ -470,7 +470,9 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(within(priceBreakdown as HTMLDivElement).getByText('Price')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('Discount')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('Confirmed Price')).toBeInTheDocument();
-    expect(within(priceBreakdown as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
+    const breakdownPriceValue = within(priceBreakdown as HTMLDivElement).getByText('HK$9,000');
+    expect(breakdownPriceValue).toBeInTheDocument();
+    expect(breakdownPriceValue.className).toContain('font-bold');
     expect(within(priceBreakdown as HTMLDivElement).getByText('-HK$900')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('HK$8,100')).toBeInTheDocument();
   });
@@ -725,7 +727,7 @@ describe('my-best-auntie booking modals footer content', () => {
 
     expect(container.querySelector('span.es-mask-credit-card-danger')).not.toBeNull();
     expect(container.querySelector('span.es-mask-target-danger')).not.toBeNull();
-    expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(2);
+    expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(1);
   });
 
   it('does not render thank-you modal copyright footer section', () => {

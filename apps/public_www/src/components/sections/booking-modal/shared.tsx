@@ -212,7 +212,7 @@ export function FpsQrCode({ amount }: { amount: number }) {
   return (
     <div
       ref={qrCodeContainerRef}
-      className='flex w-full items-center justify-start gap-2 py-1 text-center sm:gap-3'
+      className='flex w-full items-center justify-start gap-5 py-1 text-center'
     >
       <Image
         src={FPS_LOGO_SOURCE}

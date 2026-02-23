@@ -365,11 +365,11 @@ export function BookingReservationForm({
 
           <div
             data-booking-price-breakdown='true'
-            className='space-y-2 py-1'
+            className='my-3 space-y-2 py-1'
           >
             <div className='flex items-center justify-between text-sm font-semibold es-text-body'>
               <span>Price</span>
-              <span>{formatCurrencyHkd(originalAmount)}</span>
+              <span className='font-bold es-text-heading'>{formatCurrencyHkd(originalAmount)}</span>
             </div>
             {hasDiscount ? (
               <div className='flex items-center justify-between text-sm font-semibold es-text-success'>

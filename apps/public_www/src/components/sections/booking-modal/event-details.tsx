@@ -175,7 +175,7 @@ export function BookingEventDetails({
           </div>
         </div>
 
-        <div className='border-b border-black/15 pb-8 pt-8'>
+        <div className='pb-8 pt-8'>
           <h3 className='text-2xl font-bold leading-none es-text-heading'>
             {content.locationTitle}
           </h3>
