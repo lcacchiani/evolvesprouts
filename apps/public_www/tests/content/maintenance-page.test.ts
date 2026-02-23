@@ -33,11 +33,26 @@ describe('maintenance static site assets', () => {
     expect(indexHtml).toContain('__NEXT_PUBLIC_WHATSAPP_URL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_INSTAGRAM_URL__');
     expect(indexHtml).toContain('maintenance__contact-icon--whatsapp');
+    expect(indexHtml).toContain('maintenance__contact-icon--instagram');
     expect(indexHtml).toContain('aria-label="Email Evolve Sprouts"');
     expect(indexHtml).toContain('aria-label="Instagram Evolve Sprouts"');
     expect(normalizeHtml(notFoundHtml)).toBe(normalizeHtml(indexHtml));
     expect(indexHtml).not.toContain('<script');
     expect(notFoundHtml).not.toContain('<script');
+  });
+
+  it('keeps branded maintenance icon colors and reduced logo top spacing in CSS', () => {
+    const stylesCss = readMaintenanceFile('styles.css');
+
+    expect(stylesCss).toMatch(/--maintenance-color-whatsapp:\s*#25d366;/i);
+    expect(stylesCss).toMatch(/--maintenance-color-instagram:\s*#e4405f;/i);
+    expect(stylesCss).toContain('padding: 0.375rem 1.5rem 1.5rem;');
+    expect(stylesCss).toMatch(
+      /\.maintenance__contact-icon--whatsapp\s*\{[^}]*color:\s*var\(--maintenance-color-whatsapp\);/s,
+    );
+    expect(stylesCss).toMatch(
+      /\.maintenance__contact-icon--instagram\s*\{[^}]*color:\s*var\(--maintenance-color-instagram\);/s,
+    );
   });
 
   it('does not reference maintenance QR image assets', () => {
