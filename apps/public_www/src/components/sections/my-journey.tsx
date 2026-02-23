@@ -41,7 +41,7 @@ export function MyJourney({ content }: MyJourneyProps) {
               width={539}
               height={675}
               sizes='(min-width: 1280px) 34vw, (min-width: 1024px) 38vw, 100vw'
-              className='h-full min-h-[360px] w-full object-cover lg:min-h-[540px]'
+              className='h-full min-h-[270px] w-full object-cover lg:min-h-[405px]'
             />
           </div>
 

@@ -169,7 +169,7 @@ export function MyBestAuntieBooking({
               </div>
             </section>
 
-            <aside className='mx-auto w-full min-w-0 max-w-[764px] lg:ml-auto lg:mr-0'>
+            <aside className='mx-auto w-full min-w-0 max-w-[573px] lg:ml-auto lg:mr-0'>
               <h2 className='text-[1.6rem] font-semibold es-text-heading'>
                 {content.eyebrow}
               </h2>

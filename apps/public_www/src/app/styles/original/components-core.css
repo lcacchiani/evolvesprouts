@@ -9,7 +9,7 @@
   .es-type-eyebrow {
     color: var(--site-heading-text);
     font-family: var(--site-primary-font);
-    font-size: var(--figma-fontsizes-18, 18px);
+    font-size: 14px;
     font-weight: 500;
     line-height: 1;
   }
@@ -17,16 +17,16 @@
   .es-type-title {
     color: var(--site-heading-text);
     font-family: var(--site-heading-font);
-    font-size: clamp(2rem, 5.8vw, 55px);
+    font-size: clamp(2rem, 5vw, 41px);
     font-weight: 700;
-    line-height: clamp(2.6rem, 7vw, 70px);
+    line-height: clamp(2.6rem, 6vw, 53px);
     letter-spacing: 0;
   }
 
   .es-type-subtitle {
     color: var(--site-heading-text);
     font-family: var(--site-heading-font);
-    font-size: clamp(1rem, 2.1vw, 22px);
+    font-size: clamp(1rem, 1.8vw, 18px);
     font-weight: 500;
     line-height: 1.4;
     letter-spacing: 0;
@@ -35,7 +35,7 @@
   .es-type-body {
     color: var(--site-primary-text);
     font-family: var(--site-primary-font);
-    font-size: clamp(1rem, 1.9vw, 22px);
+    font-size: clamp(1rem, 1.6vw, 18px);
     font-weight: 400;
     line-height: 1.55;
     letter-spacing: 0;
@@ -44,18 +44,18 @@
   .es-type-body-italic {
     color: var(--site-primary-text);
     font-family: var(--site-primary-font);
-    font-size: clamp(1rem, 2.2vw, 28px);
+    font-size: clamp(1rem, 1.9vw, 21px);
     font-weight: 400;
     font-style: italic;
-    line-height: clamp(1.5rem, 3vw, 50px);
-    letter-spacing: 0.28px;
+    line-height: clamp(1.5rem, 2.5vw, 38px);
+    letter-spacing: 0.21px;
   }
 
   .es-section-header {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    max-width: 980px;
+    max-width: 740px;
   }
 
   .es-section-header .es-type-title {
@@ -331,14 +331,14 @@
   }
 
   .es-btn--primary {
-    min-height: 55px;
+    min-height: 46px;
     border-radius: 10px;
-    padding-left: 34px;
-    padding-right: 34px;
+    padding-left: 26px;
+    padding-right: 26px;
     background-color: var(--es-color-brand-orange);
     color: var(--figma-colors-desktop, #FFFFFF);
     font-family: var(--site-primary-font);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0;
@@ -346,7 +346,7 @@
 
   @media (min-width: 640px) {
     .es-btn--primary {
-      min-height: 56px;
+      min-height: 48px;
     }
   }
 
@@ -367,7 +367,7 @@
     background-color: var(--es-color-surface-white);
     color: var(--es-color-text-brand-strong);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1;
   }
@@ -385,8 +385,8 @@
   }
 
   .es-btn--control {
-    width: 68px;
-    height: 68px;
+    width: 52px;
+    height: 52px;
     border-radius: 9999px;
     background-color: var(--es-color-surface-white);
     box-shadow: var(--es-shadow-control-strong);
@@ -404,14 +404,14 @@
   }
 
   .es-btn--pill {
-    min-height: 42px;
+    min-height: 36px;
     border-radius: 58.73px;
-    padding-left: 17px;
-    padding-right: 17px;
+    padding-left: 14px;
+    padding-right: 14px;
     background-color: var(--figma-colors-frame-2147235267, #F6DECD);
     color: var(--es-color-text-heading);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
-    font-size: var(--figma-fontsizes-18, 18px);
+    font-size: 16px;
     font-weight: var(--figma-fontweights-600, 600);
     line-height: var(--figma-lineheights-home-2, 100%);
   }
@@ -430,16 +430,16 @@
   }
 
   .es-btn--submenu {
-    min-height: 40px;
+    min-height: 34px;
     width: 100%;
     justify-content: flex-start;
     border-radius: 6px;
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: 10px;
+    padding-right: 10px;
     background-color: var(--es-color-surface-submenu-idle, #FFF0E5);
     color: var(--es-color-text-heading);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
-    font-size: var(--figma-fontsizes-16, 16px);
+    font-size: 14px;
     font-weight: 500;
     line-height: var(--figma-lineheights-home-2, 100%);
   }
@@ -492,15 +492,15 @@
     position: relative;
     z-index: 10;
     width: 100%;
-    max-width: 1465px;
+    max-width: 1100px;
     margin-left: auto;
     margin-right: auto;
   }
 
   .es-icon-circle-lg {
     display: flex;
-    width: 72px;
-    height: 72px;
+    width: 56px;
+    height: 56px;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
@@ -509,8 +509,8 @@
   }
 
   .es-navbar-logo {
-    width: 150px;
-    height: 150px;
+    width: 115px;
+    height: 115px;
     background-color: var(--es-color-surface-white);
     object-fit: contain;
   }
@@ -527,8 +527,8 @@
   .es-link-external-icon {
     display: inline-block;
     flex-shrink: 0;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     border-bottom: 1px solid currentColor;
     padding-bottom: 1px;
   }
