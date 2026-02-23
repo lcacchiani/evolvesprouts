@@ -200,7 +200,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
             <h2 className='es-type-title'>
               {content.promiseTitle}
             </h2>
-            <ul className='mt-4 list-disc space-y-2 pl-6'>
+            <ul className='mt-4 space-y-2'>
               {content.promises.map((promise) => (
                 <li
                   key={promise}
