@@ -38,6 +38,9 @@ describe('maintenance static site assets', () => {
     expect(indexHtml).toContain('maintenance__contact-icon--instagram');
     expect(indexHtml).toContain('aria-label="Email Evolve Sprouts"');
     expect(indexHtml).toContain('aria-label="Instagram Evolve Sprouts"');
+    expect(indexHtml.indexOf('__NEXT_PUBLIC_INSTAGRAM_URL__')).toBeLessThan(
+      indexHtml.indexOf('__NEXT_PUBLIC_WHATSAPP_URL__'),
+    );
     expect(normalizeHtml(notFoundHtml)).toBe(normalizeHtml(indexHtml));
     expect(indexHtml).not.toContain('<script');
     expect(notFoundHtml).not.toContain('<script');
