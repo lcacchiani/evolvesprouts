@@ -390,6 +390,30 @@ describe('my-best-auntie booking modals footer content', () => {
       .closest('div') as HTMLDivElement | null;
     expect(pricingSection).not.toBeNull();
     expect(within(pricingSection as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
+    const pricingHeading = screen.getByRole('heading', {
+      level: 3,
+      name: bookingModalContent.pricingTitle,
+    });
+    expect(pricingHeading.className).toContain('text-2xl');
+    expect(
+      within(pricingSection as HTMLDivElement).getByText(bookingModalContent.totalAmountLabel)
+        .className,
+    ).toContain('text-lg');
+    expect(within(pricingSection as HTMLDivElement).getByText('HK$9,000').className).toContain(
+      'text-[26px]',
+    );
+    expect(within(pricingSection as HTMLDivElement).getByText(bookingModalContent.refundHint).className)
+      .toContain('text-base');
+
+    const locationHeading = screen.getByRole('heading', {
+      level: 3,
+      name: bookingModalContent.locationTitle,
+    });
+    expect(locationHeading.className).toContain('text-2xl');
+    expect(screen.getByText(bookingModalContent.locationName).className).toContain('text-lg');
+    expect(screen.getByText(bookingModalContent.locationAddress).className).toContain('text-base');
+    expect(screen.getByRole('link', { name: bookingModalContent.directionLabel }).className)
+      .toContain('text-base');
 
     const discountInput = screen.getByPlaceholderText(
       bookingModalContent.discountCodePlaceholder,
@@ -497,7 +521,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
   });
 
-  it('uses my best auntie course-highlight icons for all course part chips', () => {
+  it('uses my best auntie overview icons for all course part chips', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
@@ -511,9 +535,9 @@ describe('my-best-auntie booking modals footer content', () => {
     );
     expect(partIcons).toHaveLength(3);
     expect(partIcons.map((icon) => icon.getAttribute('src'))).toEqual([
-      '/images/training.svg',
-      '/images/review.svg',
-      '/images/workbook.svg',
+      '/images/home.svg',
+      '/images/limits.svg',
+      '/images/independence.svg',
     ]);
   });
 
@@ -589,7 +613,7 @@ describe('my-best-auntie booking modals footer content', () => {
       'img[data-course-part-icon="true"]',
     ) as HTMLImageElement | null;
     expect(firstPartIcon).not.toBeNull();
-    expect(firstPartIcon?.getAttribute('src')).toBe('/images/training.svg');
+    expect(firstPartIcon?.getAttribute('src')).toBe('/images/home.svg');
 
     const firstPartRow = firstPartChip?.closest('div');
     expect(firstPartRow?.className).toContain('sm:items-start');

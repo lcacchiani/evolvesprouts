@@ -48,5 +48,6 @@ describe('WhyUs section', () => {
       name: enContent.whyUs.pillars[0].title,
     });
     expect(firstPillarTitle.className).toContain('es-why-us-pillar-title');
+    expect(firstPillarTitle.className).toContain('es-type-subtitle');
   });
 });

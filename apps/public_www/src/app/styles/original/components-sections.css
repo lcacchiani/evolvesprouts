@@ -290,8 +290,7 @@
     );
   }
 
-  .es-why-us-intro-title,
-  .es-why-us-pillar-title {
+  .es-why-us-intro-title {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
     font-weight: 600;
@@ -300,10 +299,6 @@
 
   .es-why-us-intro-title {
     font-size: clamp(1.05rem, 1.9vw, 18px);
-  }
-
-  .es-why-us-pillar-title {
-    font-size: clamp(1.1rem, 1.6vw, 18px);
   }
 
   .es-course-highlight-title {
@@ -622,6 +617,13 @@
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
     font-weight: 400;
     line-height: 1.55;
+  }
+
+  .es-my-best-auntie-booking-selector-card {
+    width: 168px;
+    flex-shrink: 0;
+    border-radius: var(--radius-inner, 14px);
+    padding: 0.75rem 1rem;
   }
 
   .es-booking-modal-overlay {

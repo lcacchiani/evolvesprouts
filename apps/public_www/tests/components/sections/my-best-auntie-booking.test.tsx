@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie-booking';
@@ -175,6 +175,34 @@ describe('MyBestAuntieBooking section', () => {
 
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
+  });
+
+  it('uses one shared date-style selector shell for both age and date cards', () => {
+    render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
+
+    const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
+    const firstDateOption = enContent.myBestAuntieBooking.dateOptions[0];
+    if (!firstAgeOption || !firstDateOption) {
+      throw new Error('Test content must include first age and date options.');
+    }
+
+    const firstAgeButton = screen.getByRole('button', {
+      name: firstAgeOption.label,
+    });
+    const dateSelectorRegion = screen.getByRole('region', {
+      name: enContent.myBestAuntieBooking.dateSelectorLabel,
+    });
+    const firstDateButton = within(dateSelectorRegion).getByRole('button', {
+      name: new RegExp(firstDateOption.label),
+    });
+
+    for (const button of [firstAgeButton, firstDateButton]) {
+      expect(button.className).toContain('es-my-best-auntie-booking-selector-card');
+      expect(button.className).toContain('es-btn--selection');
+    }
+
+    expect(firstAgeButton.className).not.toContain('w-[');
+    expect(firstAgeButton.className).not.toContain('rounded-lg');
   });
 
   it('doubles age icon size and uses wider age icon/text spacing', () => {

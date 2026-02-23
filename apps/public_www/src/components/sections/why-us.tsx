@@ -79,7 +79,7 @@ export function WhyUs({ content }: WhyUsProps) {
           {content.pillars.map((pillar) => (
             <li key={pillar.title}>
               <article className='h-full rounded-panel border es-border-soft-alt es-bg-surface-cream p-5'>
-                <h3 className='es-why-us-pillar-title'>{pillar.title}</h3>
+                <h3 className='es-type-subtitle es-why-us-pillar-title'>{pillar.title}</h3>
                 <p className='es-section-body mt-3 text-base leading-[1.5]'>
                   {pillar.description}
                 </p>

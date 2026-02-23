@@ -22,10 +22,10 @@ interface BookingEventDetailsProps {
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
-const COURSE_HIGHLIGHT_PART_ICONS = [
-  '/images/training.svg',
-  '/images/review.svg',
-  '/images/workbook.svg',
+const COURSE_OVERVIEW_PART_ICONS = [
+  '/images/home.svg',
+  '/images/limits.svg',
+  '/images/independence.svg',
 ] as const;
 type PartChipTone = (typeof PART_CHIP_TONES)[number];
 
@@ -35,8 +35,8 @@ function resolvePartChipTone(index: number): PartChipTone {
 
 function getPartIconSource(index: number): string {
   return (
-    COURSE_HIGHLIGHT_PART_ICONS[index] ??
-    COURSE_HIGHLIGHT_PART_ICONS[COURSE_HIGHLIGHT_PART_ICONS.length - 1]
+    COURSE_OVERVIEW_PART_ICONS[index] ??
+    COURSE_OVERVIEW_PART_ICONS[COURSE_OVERVIEW_PART_ICONS.length - 1]
   );
 }
 
@@ -174,7 +174,7 @@ export function BookingEventDetails({
 
       <section className='mt-9'>
         <div className='border-b border-black/15 pb-8'>
-          <h3 className='text-[28px] font-bold leading-none es-text-heading'>
+          <h3 className='text-2xl font-bold leading-none es-text-heading'>
             {content.pricingTitle}
           </h3>
           <div className='mt-4 flex items-start gap-4'>
@@ -185,13 +185,13 @@ export function BookingEventDetails({
               />
             </span>
             <div>
-              <p className='text-xl font-semibold leading-6 es-text-heading'>
+              <p className='text-lg font-semibold leading-6 es-text-heading'>
                 {content.totalAmountLabel}
               </p>
-              <p className='mt-2 text-[30px] font-bold leading-none es-text-heading'>
+              <p className='mt-2 text-[26px] font-bold leading-none es-text-heading'>
                 {formatCurrencyHkd(originalAmount)}
               </p>
-              <p className='mt-4 text-lg font-semibold leading-[26px] es-text-heading'>
+              <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
                 {content.refundHint}
               </p>
             </div>
@@ -199,7 +199,7 @@ export function BookingEventDetails({
         </div>
 
         <div className='border-b border-black/15 pb-8 pt-8'>
-          <h3 className='text-[28px] font-bold leading-none es-text-heading'>
+          <h3 className='text-2xl font-bold leading-none es-text-heading'>
             {content.locationTitle}
           </h3>
           <div className='mt-4 flex items-start gap-4'>
@@ -210,15 +210,15 @@ export function BookingEventDetails({
               />
             </span>
             <div>
-              <p className='text-xl font-semibold leading-6 es-text-heading'>
+              <p className='text-lg font-semibold leading-6 es-text-heading'>
                 {content.locationName}
               </p>
-              <p className='mt-1 text-lg font-semibold leading-[26px] es-text-heading'>
+              <p className='mt-1 text-base font-semibold leading-6 es-text-heading'>
                 {content.locationAddress}
               </p>
               <SmartLink
                 href={content.directionHref}
-                className='mt-3 inline-flex items-center text-lg font-semibold leading-none es-text-heading'
+                className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
               >
                 {({ isExternalHttp }) => (
                   <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
