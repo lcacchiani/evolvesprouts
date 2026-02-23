@@ -13,7 +13,7 @@ This document maps all AWS resources created by the `backend-deploy` workflow
 
 The same CDK app also defines static website stacks:
 
-- `evolvesprouts-crm-web` (`backend/infrastructure/lib/crm-web-stack.ts`)
+- `evolvesprouts-admin-web` (`backend/infrastructure/lib/admin-web-stack.ts`)
 - `evolvesprouts-public-www` (`backend/infrastructure/lib/public-www-stack.ts`)
 
 ### Public WWW environments in one stack

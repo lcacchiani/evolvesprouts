@@ -1,8 +1,8 @@
-name: Deploy CRM Web
+name: Deploy Admin Web
 
 on:
   repository_dispatch:
-    types: [deploy-crm-web]
+    types: [deploy-admin-web]
   workflow_dispatch:
   push:
     branches:
@@ -17,7 +17,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: deploy-crm-web
+  group: deploy-admin-web
   cancel-in-progress: false
 
 jobs:
@@ -46,7 +46,7 @@ jobs:
           key: ${{ runner.os }}-nextjs-${{ hashFiles('apps/crm_web/package-lock.json') }}
           restore-keys: ${{ runner.os }}-nextjs-
 
-      - name: Build CRM web
+      - name: Build admin web
         run: npm run build
         working-directory: apps/crm_web
         env:
@@ -71,10 +71,10 @@ jobs:
           AMPLIFY_APP_ID: ${{ vars.AMPLIFY_APP_ID }}
           AMPLIFY_BRANCH: ${{ vars.AMPLIFY_BRANCH }}
 
-      - name: Deploy CRM web
+      - name: Deploy admin web
         run: |
-          if [ -f "scripts/deploy/deploy-crm-web.sh" ]; then
-            bash "scripts/deploy/deploy-crm-web.sh"
+          if [ -f "scripts/deploy/deploy-admin-web.sh" ]; then
+            bash "scripts/deploy/deploy-admin-web.sh"
           else
-            echo "Deploy script not found: scripts/deploy/deploy-crm-web.sh"
+            echo "Deploy script not found: scripts/deploy/deploy-admin-web.sh"
           fi

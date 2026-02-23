@@ -27,8 +27,8 @@
   "ActiveCountryCodes": "HK",
   "AdminBootstrapEmail": "",
   "AdminBootstrapTempPassword": "<FROM_GITHUB_SECRET: CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD>",
-  "CrmWebDomainName": "crm.evolvesprouts.com",
-  "CrmWebCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
+  "AdminWebDomainName": "crm.evolvesprouts.com",
+  "AdminWebCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
   "PublicWwwDomainName": "www.evolvesprouts.com",
   "PublicWwwCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
   "PublicWwwStagingDomainName": "www-staging.evolvesprouts.com",
@@ -36,6 +36,6 @@
   "WafWebAclArn": "",
   "ApiCustomDomainName": "api.evolvesprouts.com",
   "ApiCustomDomainCertificateArn": "arn:aws:acm:ap-southeast-1:588024549699:certificate/af726e1f-444b-47e6-906e-ce9e0925bde4",
-  "NominatimUserAgent": "EvolveSproutsCrmWeb/1.0 (https://crm.evolvesprouts.com)",
+  "NominatimUserAgent": "EvolveSproutsAdminWeb/1.0 (https://crm.evolvesprouts.com)",
   "NominatimReferer": "https://crm.evolvesprouts.com"
 }
