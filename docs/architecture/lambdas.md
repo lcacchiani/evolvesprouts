@@ -77,14 +77,6 @@ their primary responsibilities.
 - VPC: **No** (runs outside VPC to fetch JWKS from Cognito)
 - Environment: `ALLOWED_GROUPS=admin`
 
-### Manager group authorizer
-- Function: ManagerGroupAuthorizerFunction
-- Handler: backend/lambda/authorizers/cognito_group/handler.py
-- Trigger: API Gateway request authorizer
-- Purpose: verify JWT and check user belongs to `admin` or `manager` group
-- VPC: **No** (runs outside VPC to fetch JWKS from Cognito)
-- Environment: `ALLOWED_GROUPS=admin,manager`
-
 ### User authorizer (any authenticated user)
 - Function: UserAuthorizerFunction
 - Handler: backend/lambda/authorizers/cognito_user/handler.py
