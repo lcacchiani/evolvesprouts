@@ -91,14 +91,14 @@ Created once per account/region when `cdk bootstrap` runs. Not part of the main 
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| VPC | `SiutindeiVpc` | `evolvesprouts-vpc` | 2 AZs, no NAT Gateway |
-| Internet Gateway | `SiutindeiVpcIGW*` | Auto-generated | Attached to VPC |
-| Public Subnet | `SiutindeiVpcPublicSubnet*` | Auto-generated | 2 subnets (1 per AZ) |
-| Private Subnet | `SiutindeiVpcPrivateSubnet*` | Auto-generated | 2 isolated subnets (1 per AZ) |
-| Route Table | `SiutindeiVpcPublicSubnet*RouteTable*` | Auto-generated | Public route table |
-| Route Table | `SiutindeiVpcPrivateSubnet*RouteTable*` | Auto-generated | Private route table |
-| Route | `SiutindeiVpcPublicSubnet*DefaultRoute*` | Auto-generated | 0.0.0.0/0 → IGW |
-| VPC Gateway Attachment | `SiutindeiVpcVPCGW*` | Auto-generated | IGW attachment |
+| VPC | `EvolvesproutsVpc` | `evolvesprouts-vpc` | 2 AZs, no NAT Gateway |
+| Internet Gateway | `EvolvesproutsVpcIGW*` | Auto-generated | Attached to VPC |
+| Public Subnet | `EvolvesproutsVpcPublicSubnet*` | Auto-generated | 2 subnets (1 per AZ) |
+| Private Subnet | `EvolvesproutsVpcPrivateSubnet*` | Auto-generated | 2 isolated subnets (1 per AZ) |
+| Route Table | `EvolvesproutsVpcPublicSubnet*RouteTable*` | Auto-generated | Public route table |
+| Route Table | `EvolvesproutsVpcPrivateSubnet*RouteTable*` | Auto-generated | Private route table |
+| Route | `EvolvesproutsVpcPublicSubnet*DefaultRoute*` | Auto-generated | 0.0.0.0/0 → IGW |
+| VPC Gateway Attachment | `EvolvesproutsVpcVPCGW*` | Auto-generated | IGW attachment |
 
 ---
 
@@ -206,9 +206,9 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| User Pool | `SiutindeiUserPool` | `evolvesprouts-user-pool` | Email sign-in, auto-verify enabled |
-| User Pool Domain | `SiutindeiUserPoolDomain` | `{CognitoDomainPrefix}.auth.{region}.amazoncognito.com` | Domain prefix from parameter |
-| User Pool Client | `SiutindeiUserPoolClient` | Auto-generated | OAuth client (no secret) |
+| User Pool | `EvolvesproutsUserPool` | `evolvesprouts-user-pool` | Email sign-in, auto-verify enabled |
+| User Pool Domain | `EvolvesproutsUserPoolDomain` | `{CognitoDomainPrefix}.auth.{region}.amazoncognito.com` | Domain prefix from parameter |
+| User Pool Client | `EvolvesproutsUserPoolClient` | Auto-generated | OAuth client (no secret) |
 | User Pool Group | `AdminGroup` | `admin` | Admin group |
 | User Pool Group | `ManagerGroup` | `manager` | Manager group |
 
@@ -317,9 +317,9 @@ For each function above, the following resources are created:
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| REST API | `SiutindeiApi` | `evolvesprouts-api` | Regional REST API |
-| Deployment | `SiutindeiApiDeployment*` | Auto-generated | Deployment for `prod` stage |
-| Stage | `SiutindeiApiDeploymentStageprod*` | `prod` | Production stage |
+| REST API | `EvolvesproutsApi` | `evolvesprouts-api` | Regional REST API |
+| Deployment | `EvolvesproutsApiDeployment*` | Auto-generated | Deployment for `prod` stage |
+| Stage | `EvolvesproutsApiDeploymentStageprod*` | `prod` | Production stage |
 
 **Stage Configuration:**
 - Access Logging: Enabled (to `evolvesprouts-api-access-logs` - must exist)

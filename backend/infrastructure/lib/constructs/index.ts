@@ -1,5 +1,5 @@
 /**
- * Reusable CDK constructs for the Siutindei backend.
+ * Reusable CDK constructs for the Evolve Sprouts backend.
  *
  * This module exports high-level constructs that encapsulate common patterns:
  * - DatabaseConstruct: Aurora PostgreSQL Serverless v2 with RDS Proxy

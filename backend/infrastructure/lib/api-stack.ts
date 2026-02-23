@@ -121,7 +121,7 @@ export class ApiStack extends cdk.Stack {
     // ---------------------------------------------------------------------
     const vpc = existingVpcId
       ? ec2.Vpc.fromLookup(this, "ExistingVpc", { vpcId: existingVpcId })
-      : new ec2.Vpc(this, "SiutindeiVpc", {
+      : new ec2.Vpc(this, "EvolvesproutsVpc", {
           vpcName: name("vpc"),
           maxAzs: 2,
           natGateways: 0,
@@ -550,7 +550,7 @@ export class ApiStack extends cdk.Stack {
     // ---------------------------------------------------------------------
     // Cognito User Pool and Identity Providers
     // ---------------------------------------------------------------------
-    const userPool = new cognito.UserPool(this, "SiutindeiUserPool", {
+    const userPool = new cognito.UserPool(this, "EvolvesproutsUserPool", {
       userPoolName: name("user-pool"),
       signInAliases: { email: true },
       autoVerify: { email: true },
@@ -637,7 +637,7 @@ export class ApiStack extends cdk.Stack {
 
     const cognitoHostedDomain = new cognito.CfnUserPoolDomain(
       this,
-      "SiutindeiCognitoPrefixDomain",
+      "EvolvesproutsCognitoPrefixDomain",
       {
         userPoolId: userPool.userPoolId,
         domain: authDomainPrefix.valueAsString,
@@ -694,7 +694,7 @@ export class ApiStack extends cdk.Stack {
 
     const customHostedDomain = new cognito.CfnUserPoolDomain(
       this,
-      "SiutindeiUserPoolCustomDomain",
+      "EvolvesproutsUserPoolCustomDomain",
       {
         userPoolId: userPool.userPoolId,
         domain: authCustomDomainName.valueAsString,
@@ -708,7 +708,7 @@ export class ApiStack extends cdk.Stack {
 
     const userPoolClient = new cognito.CfnUserPoolClient(
       this,
-      "SiutindeiUserPoolClient",
+      "EvolvesproutsUserPoolClient",
       {
         clientName: name("user-pool-client"),
         userPoolId: userPool.userPoolId,
@@ -1473,7 +1473,7 @@ export class ApiStack extends cdk.Stack {
 
     // SECURITY: Restrict CORS to specific allowed origins
     // Never use Cors.ALL_ORIGINS in production - it allows any website to make requests
-    const api = new apigateway.RestApi(this, "SiutindeiApi", {
+    const api = new apigateway.RestApi(this, "EvolvesproutsApi", {
       restApiName: name("api"),
       defaultCorsPreflightOptions: {
         allowOrigins: corsAllowedOrigins,
