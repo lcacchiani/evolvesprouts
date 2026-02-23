@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SmartLink } from '@/components/shared/smart-link';
@@ -20,10 +22,36 @@ interface BookingEventDetailsProps {
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
+const COURSE_HIGHLIGHT_PART_ICONS = [
+  '/images/training.svg',
+  '/images/review.svg',
+  '/images/workbook.svg',
+] as const;
 type PartChipTone = (typeof PART_CHIP_TONES)[number];
 
 function resolvePartChipTone(index: number): PartChipTone {
   return PART_CHIP_TONES[index] ?? PART_CHIP_TONES[PART_CHIP_TONES.length - 1];
+}
+
+function getPartIconSource(index: number): string {
+  return (
+    COURSE_HIGHLIGHT_PART_ICONS[index] ??
+    COURSE_HIGHLIGHT_PART_ICONS[COURSE_HIGHLIGHT_PART_ICONS.length - 1]
+  );
+}
+
+function getPartDisplayLabel(label: string, index: number): string {
+  const firstNumberMatch = label.match(/\d+/);
+  if (!firstNumberMatch) {
+    return String(index + 1);
+  }
+
+  const normalizedNumber = Number.parseInt(firstNumberMatch[0], 10);
+  if (Number.isNaN(normalizedNumber)) {
+    return String(index + 1);
+  }
+
+  return String(normalizedNumber);
 }
 
 function getPartChipClassName(index: number): string {
@@ -74,61 +102,73 @@ export function BookingEventDetails({
       </h2>
 
       <section className='mt-8'>
-        <ul className='space-y-10'>
-          {activePartRows.map((part, index) => (
-            <li
-              key={part.label}
-              className='es-my-best-auntie-booking-part-item relative'
-            >
-              <span
-                className='pointer-events-none absolute left-0 top-0 h-full'
-                aria-hidden='true'
+        <ul className='space-y-[50px]'>
+          {activePartRows.map((part, index) => {
+            const displayLabel = getPartDisplayLabel(part.label, index);
+
+            return (
+              <li
+                key={part.label}
+                className='es-my-best-auntie-booking-part-item relative'
               >
                 <span
-                  data-course-part-line='segment'
-                  className={`absolute left-0 ${getPartLineClassName(
-                    index,
-                    index === activePartRows.length - 1,
-                  )}`}
-                />
-              </span>
-              <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
-                <span
-                  data-course-part-chip='true'
-                  className={`relative inline-flex self-start items-center gap-1.5 rounded-full px-[15px] py-[5px] ${getPartChipClassName(index)}`}
+                  className='pointer-events-none absolute left-0 top-0 h-full'
+                  aria-hidden='true'
                 >
                   <span
-                    data-course-part-line='gap-connector'
-                    className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
-                    aria-hidden='true'
+                    data-course-part-line='segment'
+                    className={`absolute left-0 ${getPartLineClassName(
+                      index,
+                      index === activePartRows.length - 1,
+                    )}`}
                   />
-                  <span
-                    className='es-mask-cubes-current h-[30px] w-[30px] shrink-0'
-                    aria-hidden='true'
-                  />
-                  <span className='text-lg font-semibold leading-none'>
-                    {part.label}
-                  </span>
                 </span>
-
-                <div className='max-w-[340px]'>
-                  <div data-course-part-date-block='true'>
+                <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
+                  <span
+                    data-course-part-chip='true'
+                    className={`relative inline-flex self-start items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
+                  >
                     <span
-                      data-course-part-date-icon='true'
-                      className='es-mask-calendar-heading inline-block h-6 w-6 shrink-0'
+                      data-course-part-line='gap-connector'
+                      className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
                       aria-hidden='true'
                     />
-                    <p className='mt-1 text-[17px] font-semibold leading-6 es-text-heading'>
-                      {part.date}
+                    <Image
+                      src={getPartIconSource(index)}
+                      alt=''
+                      width={28}
+                      height={28}
+                      data-course-part-icon='true'
+                      className='h-7 w-7 shrink-0 object-contain'
+                      aria-hidden='true'
+                    />
+                    <span
+                      data-course-part-label='true'
+                      className='text-base font-semibold leading-none'
+                    >
+                      {displayLabel}
+                    </span>
+                  </span>
+
+                  <div className='max-w-[340px]'>
+                    <div data-course-part-date-block='true'>
+                      <span
+                        data-course-part-date-icon='true'
+                        className='es-mask-calendar-heading inline-block h-6 w-6 shrink-0'
+                        aria-hidden='true'
+                      />
+                      <p className='mt-1 text-[17px] font-semibold leading-6 es-text-heading'>
+                        {part.date}
+                      </p>
+                    </div>
+                    <p className='mt-2 text-[15px] leading-[22px] es-text-body'>
+                      {part.description}
                     </p>
                   </div>
-                  <p className='mt-2 text-[15px] leading-[22px] es-text-body'>
-                    {part.description}
-                  </p>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </section>
 

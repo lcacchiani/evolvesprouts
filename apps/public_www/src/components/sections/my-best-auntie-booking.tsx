@@ -64,6 +64,41 @@ function formatCohortPreviewLabel(value: string): string {
   return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
 }
 
+function formatNextCohortLabel(
+  scheduleLabel: string,
+  ageGroupLabel: string,
+  locale: Locale,
+): string {
+  if (!ageGroupLabel) {
+    return scheduleLabel;
+  }
+
+  if (locale === 'zh-CN') {
+    return `${scheduleLabel}（${ageGroupLabel} 岁组）`;
+  }
+
+  if (locale === 'zh-HK') {
+    return `${scheduleLabel}（${ageGroupLabel} 歲組）`;
+  }
+
+  return `${scheduleLabel} for ${ageGroupLabel} age group`;
+}
+
+function getMappedDateIdForAgeSelection(
+  selectedAgeOptionId: string,
+  ageOptions: { id: string }[],
+  dateOptions: { id: string }[],
+): string | undefined {
+  const selectedAgeIndex = ageOptions.findIndex(
+    (option) => option.id === selectedAgeOptionId,
+  );
+  if (selectedAgeIndex < 0) {
+    return undefined;
+  }
+
+  return dateOptions[selectedAgeIndex]?.id;
+}
+
 export function MyBestAuntieBooking({
   locale,
   content,
@@ -106,18 +141,24 @@ export function MyBestAuntieBooking({
   const modalMonthId =
     selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
   const firstCoursePart = content.paymentModal.parts[0];
-  const firstMonthId =
-    content.paymentModal.monthOptions[0]?.id ?? dateOptions[0]?.id ?? '';
-  const firstMonthEntry = firstCoursePart
-    ? Object.entries(firstCoursePart.dateByMonth).find(
-        ([monthId]) => monthId === firstMonthId,
-      )
-    : undefined;
-  const firstCohortDate = firstMonthEntry?.[1];
+  const firstMonthId = content.paymentModal.monthOptions[0]?.id ?? '';
+  const mappedDateIdByAge = getMappedDateIdForAgeSelection(
+    selectedAgeId,
+    ageOptions,
+    dateOptions,
+  );
+  const nextCohortMonthId = mappedDateIdByAge ?? selectedDateOption?.id ?? firstMonthId;
+  const firstCohortDate = firstCoursePart?.dateByMonth[nextCohortMonthId];
   const nextCohortDate =
     firstCohortDate ??
-    dateOptions[0]?.label ??
+    dateOptions.find((option) => option.id === nextCohortMonthId)?.label ??
+    selectedDateOption?.label ??
     content.scheduleDate;
+  const nextCohortLabel = formatNextCohortLabel(
+    content.scheduleLabel,
+    selectedAgeOption?.label ?? '',
+    locale,
+  );
   const nextCohortPreview = formatCohortPreviewLabel(nextCohortDate);
 
   useEffect(() => {
@@ -160,9 +201,9 @@ export function MyBestAuntieBooking({
                   className='w-full max-w-[410px] rounded-inner border es-border-warm-2 es-bg-surface-soft px-5 py-4'
                 >
                   <p className='text-base font-semibold es-text-brand'>
-                    {content.scheduleLabel}
+                    {nextCohortLabel}
                   </p>
-                  <p className='es-type-title mt-1 font-bold es-text-heading-alt'>
+                  <p className='es-type-subtitle mt-1 font-semibold es-text-heading-alt'>
                     {nextCohortPreview}
                   </p>
                 </div>
@@ -190,6 +231,14 @@ export function MyBestAuntieBooking({
                         aria-pressed={isSelected}
                         onClick={() => {
                           setSelectedAgeId(option.id);
+                          const mappedDateId = getMappedDateIdForAgeSelection(
+                            option.id,
+                            ageOptions,
+                            dateOptions,
+                          );
+                          if (mappedDateId) {
+                            setSelectedDateId(mappedDateId);
+                          }
                         }}
                         className='min-h-[76px] w-[175px] shrink-0 rounded-lg px-4 py-2 text-left'
                       >

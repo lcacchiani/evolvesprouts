@@ -497,7 +497,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
   });
 
-  it('uses cubes.svg mask icon for all course part chips', () => {
+  it('uses my best auntie course-highlight icons for all course part chips', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
@@ -506,10 +506,18 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
-    expect(container.querySelectorAll('span.es-mask-cubes-current')).toHaveLength(3);
+    const partIcons = Array.from(
+      container.querySelectorAll('img[data-course-part-icon="true"]'),
+    );
+    expect(partIcons).toHaveLength(3);
+    expect(partIcons.map((icon) => icon.getAttribute('src'))).toEqual([
+      '/images/training.svg',
+      '/images/review.svg',
+      '/images/workbook.svg',
+    ]);
   });
 
-  it('renders timeline segments and 10px gap connectors with tone classes', () => {
+  it('renders timeline segments, 50px part spacing, and numeric part chips', () => {
     const { container } = render(
       <MyBestAuntieBookingModal
         content={bookingModalContent}
@@ -517,6 +525,8 @@ describe('my-best-auntie booking modals footer content', () => {
         onSubmitReservation={() => {}}
       />,
     );
+    const timelineList = container.querySelector('ul.space-y-\\[50px\\]');
+    expect(timelineList).not.toBeNull();
 
     const timelineSegments = container.querySelectorAll(
       'span[data-course-part-line="segment"]',
@@ -559,14 +569,27 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(className).toContain('-left-[25px]');
     }
 
-    const firstPartItem = screen.getByText(bookingModalContent.parts[0].label).closest('li');
-    expect(firstPartItem?.className).toContain('es-my-best-auntie-booking-part-item');
-    expect(firstPartItem?.querySelector('img')).toBeNull();
+    const partLabels = Array.from(
+      container.querySelectorAll('span[data-course-part-label="true"]'),
+    );
+    expect(partLabels).toHaveLength(3);
+    expect(partLabels.map((label) => label.textContent)).toEqual(['1', '2', '3']);
 
-    const firstPartChip = firstPartItem?.querySelector(
-      'span[data-course-part-chip="true"]',
-    ) as HTMLSpanElement | null;
+    const partChips = Array.from(
+      container.querySelectorAll('span[data-course-part-chip="true"]'),
+    );
+    expect(partChips).toHaveLength(3);
+    const firstPartChip = partChips[0] as HTMLSpanElement | undefined;
     expect(firstPartChip?.className).toContain('self-start');
+    expect(firstPartChip?.className).toContain('px-3');
+
+    const firstPartItem = firstPartChip?.closest('li') ?? null;
+    expect(firstPartItem?.className).toContain('es-my-best-auntie-booking-part-item');
+    const firstPartIcon = firstPartItem?.querySelector(
+      'img[data-course-part-icon="true"]',
+    ) as HTMLImageElement | null;
+    expect(firstPartIcon).not.toBeNull();
+    expect(firstPartIcon?.getAttribute('src')).toBe('/images/training.svg');
 
     const firstPartRow = firstPartChip?.closest('div');
     expect(firstPartRow?.className).toContain('sm:items-start');

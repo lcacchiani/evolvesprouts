@@ -203,7 +203,7 @@ export function Faq({ content }: FaqProps) {
                 setSearchValue(event.target.value);
               }}
               placeholder={content.searchPlaceholder}
-              className='es-focus-ring w-full rounded-full es-bg-surface-neutral py-3 pl-8 pr-4 text-lg font-semibold tracking-[0.5px] es-text-dim outline-none es-text-placeholder sm:pl-9 sm:text-[22px]'
+              className='es-focus-ring w-full rounded-full es-bg-surface-neutral pl-8 pr-4 text-lg font-semibold tracking-[0.5px] es-text-dim outline-none es-text-placeholder sm:pl-9 sm:text-[22px]'
             />
           </div>
         </div>

@@ -27,48 +27,113 @@ function formatCohortPreviewLabel(value: string): string {
   return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
 }
 
+function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): string {
+  return `${scheduleLabel} for ${ageGroupLabel} age group`;
+}
+
 describe('MyBestAuntieBooking section', () => {
-  it('renders next cohort as a rounded card and keeps it fixed to the first locale booking entry', () => {
+  it('renders next cohort by selected age group and keeps date text in subtitle style', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
+    const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
+    const secondAgeOption = enContent.myBestAuntieBooking.ageOptions[1];
+    const thirdAgeOption = enContent.myBestAuntieBooking.ageOptions[2];
+    const firstDateOption = enContent.myBestAuntieBooking.dateOptions[0];
+    const secondDateOption = enContent.myBestAuntieBooking.dateOptions[1];
+    const thirdDateOption = enContent.myBestAuntieBooking.dateOptions[2];
     const firstMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[0]?.id;
+    const secondMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[1]?.id;
+    const thirdMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[2]?.id;
     const firstCohortDate =
       firstMonthId
         ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[firstMonthId]
         : undefined;
-    const secondMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[1]?.id;
     const secondCohortDate =
       secondMonthId
         ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[secondMonthId]
         : undefined;
-    const secondDateOption = enContent.myBestAuntieBooking.dateOptions[1];
+    const thirdCohortDate =
+      thirdMonthId
+        ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[thirdMonthId]
+        : undefined;
 
-    if (!firstCohortDate || !secondDateOption) {
-      throw new Error('Test content must include first and second cohort data.');
+    if (
+      !firstAgeOption ||
+      !secondAgeOption ||
+      !thirdAgeOption ||
+      !firstDateOption ||
+      !secondDateOption ||
+      !thirdDateOption ||
+      !firstCohortDate ||
+      !secondCohortDate ||
+      !thirdCohortDate
+    ) {
+      throw new Error('Test content must include age and cohort mappings.');
     }
 
     const formattedFirstCohortDate = formatCohortPreviewLabel(firstCohortDate);
+    const formattedSecondCohortDate = formatCohortPreviewLabel(secondCohortDate);
+    const formattedThirdCohortDate = formatCohortPreviewLabel(thirdCohortDate);
     const nextCohortCard = screen.getByTestId('my-best-auntie-next-cohort-card');
     expect(nextCohortCard.className).toContain('rounded-inner');
     expect(nextCohortCard.className).toContain('border');
-    expect(screen.getByText(enContent.myBestAuntieBooking.scheduleLabel)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        formatNextCohortLabel(
+          enContent.myBestAuntieBooking.scheduleLabel,
+          firstAgeOption.label,
+        ),
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByText(formattedFirstCohortDate)).toBeInTheDocument();
+    expect(screen.getByText(formattedFirstCohortDate).className).toContain(
+      'es-type-subtitle',
+    );
     expect(
       screen.queryByText(enContent.myBestAuntieBooking.scheduleTime),
     ).not.toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: new RegExp(secondDateOption.label),
+        name: secondAgeOption.label,
       }),
     );
 
-    expect(screen.getByText(formattedFirstCohortDate)).toBeInTheDocument();
-    if (secondCohortDate) {
-      expect(
-        screen.queryByText(formatCohortPreviewLabel(secondCohortDate)),
-      ).not.toBeInTheDocument();
-    }
+    expect(
+      screen.getByText(
+        formatNextCohortLabel(
+          enContent.myBestAuntieBooking.scheduleLabel,
+          secondAgeOption.label,
+        ),
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: new RegExp(secondDateOption.label),
+      }).className,
+    ).toContain('es-btn--state-active');
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: thirdAgeOption.label,
+      }),
+    );
+
+    expect(
+      screen.getByText(
+        formatNextCohortLabel(
+          enContent.myBestAuntieBooking.scheduleLabel,
+          thirdAgeOption.label,
+        ),
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(formattedThirdCohortDate)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: new RegExp(thirdDateOption.label),
+      }).className,
+    ).toContain('es-btn--state-active');
   });
 
   it('removes right-column selector shadows, keeps date cards in two lines, keeps CTA width to copy, and hides date arrows for three dates', () => {
