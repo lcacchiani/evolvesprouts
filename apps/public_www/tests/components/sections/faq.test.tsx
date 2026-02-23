@@ -96,6 +96,7 @@ describe('Faq section', () => {
       name: enContent.faq.searchPlaceholder,
     });
     expect(searchInput.className).toContain('es-bg-surface-neutral');
+    expect(searchInput.className).not.toMatch(/\bpy-/);
 
     const searchWrapper = container.querySelector('div.es-layout-container.mt-8');
     expect(searchWrapper?.className).toContain('es-bg-surface-neutral');

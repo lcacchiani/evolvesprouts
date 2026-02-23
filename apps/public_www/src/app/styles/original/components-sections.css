@@ -641,7 +641,7 @@
 
   .es-my-best-auntie-booking-part-item {
     padding-left: 38px;
-    padding-bottom: 75px;
+    padding-bottom: 0;
   }
 
   .es-my-best-auntie-booking-part-chip--blue {
@@ -682,13 +682,13 @@
 
   .es-my-best-auntie-booking-part-line--with-gap-first {
     top: 0;
-    height: calc(100% + 2.5rem);
+    height: calc(100% + 3.125rem);
     background-color: var(--es-booking-part-line-color);
   }
 
   .es-my-best-auntie-booking-part-line--with-gap-stacked {
     top: -12px;
-    height: calc(100% + 2.5rem + 12px);
+    height: calc(100% + 3.125rem + 12px);
     background-color: var(--es-booking-part-line-color);
     box-shadow: 0 -5px 0 0 var(--es-color-surface-white, #FFFFFF);
   }
