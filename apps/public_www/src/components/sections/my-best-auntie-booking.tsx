@@ -247,82 +247,80 @@ export function MyBestAuntieBooking({
                 <h3 className='text-sm font-semibold es-text-neutral-strong'>
                   {content.dateSelectorLabel}
                 </h3>
-                <div className='mt-3 min-w-0'>
-                  <div className='relative w-full min-w-0 overflow-visible'>
+                <div className='relative mt-3 w-full min-w-0 overflow-visible'>
+                  <div
+                    role='region'
+                    aria-roledescription='carousel'
+                    aria-label={content.dateSelectorLabel}
+                    className='w-full min-w-0 overflow-hidden'
+                  >
                     <div
-                      role='region'
-                      aria-roledescription='carousel'
-                      aria-label={content.dateSelectorLabel}
-                      className='w-full min-w-0 overflow-hidden'
+                      ref={dateCarouselRef}
+                      data-testid='my-best-auntie-booking-date-carousel'
+                      className='flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
                     >
-                      <div
-                        ref={dateCarouselRef}
-                        data-testid='my-best-auntie-booking-date-carousel'
-                        className='flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-                      >
-                        {dateOptions.map((option) => {
-                          const isSelected = option.id === selectedDateId;
+                      {dateOptions.map((option) => {
+                        const isSelected = option.id === selectedDateId;
 
-                          return (
-                            <ButtonPrimitive
-                              key={option.id}
-                              buttonRef={(element) => {
-                                dateCardRefs.current[option.id] = element;
-                              }}
-                              variant='selection'
-                              state={isSelected ? 'active' : 'inactive'}
-                              aria-pressed={isSelected}
-                              onClick={() => {
-                                setSelectedDateId(option.id);
-                              }}
-                              className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-center`}
-                            >
-                              <div className='flex w-full flex-col items-center gap-2'>
-                                <div className='flex items-center justify-center gap-1.5'>
-                                  <span
-                                    className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
-                                    aria-hidden='true'
-                                  />
-                                  <p className='text-base font-semibold es-text-heading'>
-                                    {option.label}
-                                  </p>
-                                </div>
-                                <p className='text-center text-sm es-text-danger-accent'>
-                                  {option.availabilityLabel}
+                        return (
+                          <ButtonPrimitive
+                            key={option.id}
+                            buttonRef={(element) => {
+                              dateCardRefs.current[option.id] = element;
+                            }}
+                            variant='selection'
+                            state={isSelected ? 'active' : 'inactive'}
+                            aria-pressed={isSelected}
+                            onClick={() => {
+                              setSelectedDateId(option.id);
+                            }}
+                            className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-center`}
+                          >
+                            <div className='flex w-full flex-col items-center gap-2'>
+                              <div className='flex items-center justify-center gap-1.5'>
+                                <span
+                                  className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                                  aria-hidden='true'
+                                />
+                                <p className='text-base font-semibold es-text-heading'>
+                                  {option.label}
                                 </p>
                               </div>
-                            </ButtonPrimitive>
-                          );
-                        })}
-                      </div>
+                              <p className='text-center text-sm es-text-danger-accent'>
+                                {option.availabilityLabel}
+                              </p>
+                            </div>
+                          </ButtonPrimitive>
+                        );
+                      })}
                     </div>
-
-                    {hasDateNavigation && canScrollDateLeft && (
-                      <ButtonPrimitive
-                        variant='control'
-                        onClick={() => {
-                          handleDateCarouselNavigation('prev');
-                        }}
-                        aria-label='Scroll dates left'
-                        className='absolute left-0 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2'
-                      >
-                        <DateArrowIcon direction='left' />
-                      </ButtonPrimitive>
-                    )}
-
-                    {hasDateNavigation && canScrollDateRight && (
-                      <ButtonPrimitive
-                        variant='control'
-                        onClick={() => {
-                          handleDateCarouselNavigation('next');
-                        }}
-                        aria-label='Scroll dates right'
-                        className='absolute right-0 top-1/2 z-20 translate-x-1/2 -translate-y-1/2'
-                      >
-                        <DateArrowIcon direction='right' />
-                      </ButtonPrimitive>
-                    )}
                   </div>
+
+                  {hasDateNavigation && canScrollDateLeft && (
+                    <ButtonPrimitive
+                      variant='control'
+                      onClick={() => {
+                        handleDateCarouselNavigation('prev');
+                      }}
+                      aria-label='Scroll dates left'
+                      className='absolute left-0 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2'
+                    >
+                      <DateArrowIcon direction='left' />
+                    </ButtonPrimitive>
+                  )}
+
+                  {hasDateNavigation && canScrollDateRight && (
+                    <ButtonPrimitive
+                      variant='control'
+                      onClick={() => {
+                        handleDateCarouselNavigation('next');
+                      }}
+                      aria-label='Scroll dates right'
+                      className='absolute right-0 top-1/2 z-20 translate-x-1/2 -translate-y-1/2'
+                    >
+                      <DateArrowIcon direction='right' />
+                    </ButtonPrimitive>
+                  )}
                 </div>
               </div>
 
