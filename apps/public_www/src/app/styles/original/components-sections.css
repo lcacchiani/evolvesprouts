@@ -624,6 +624,13 @@
     line-height: 1.55;
   }
 
+  .es-my-best-auntie-booking-selector-card {
+    width: 168px;
+    flex-shrink: 0;
+    border-radius: var(--radius-inner, 14px);
+    padding: 0.75rem 1rem;
+  }
+
   .es-booking-modal-overlay {
     background-color: rgba(16, 14, 11, 0.6);
   }

@@ -99,6 +99,8 @@ function getMappedDateIdForAgeSelection(
   return dateOptions[selectedAgeIndex]?.id;
 }
 
+const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
+
 export function MyBestAuntieBooking({
   locale,
   content,
@@ -244,7 +246,7 @@ export function MyBestAuntieBooking({
                             setSelectedDateId(mappedDateId);
                           }
                         }}
-                        className='min-h-[76px] w-[175px] shrink-0 rounded-lg px-4 py-2 text-left'
+                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} text-left`}
                       >
                         <div className='flex items-center justify-start gap-10'>
                           <Image
@@ -297,7 +299,7 @@ export function MyBestAuntieBooking({
                               onClick={() => {
                                 setSelectedDateId(option.id);
                               }}
-                              className='w-[168px] shrink-0 snap-start rounded-inner px-4 py-3 text-center'
+                              className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-center`}
                             >
                               <div className='flex w-full flex-col items-center gap-2'>
                                 <div className='flex items-center justify-center gap-1.5'>
