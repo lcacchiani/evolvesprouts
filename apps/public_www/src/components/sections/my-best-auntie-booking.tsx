@@ -168,173 +168,171 @@ export function MyBestAuntieBooking({
         dataFigmaNode='my-best-auntie-booking'
         className='es-my-best-auntie-booking-section'
       >
-        <SectionContainer>
-          <div
-            className={buildSectionSplitLayoutClassName(
-              'es-section-split-layout--my-best-auntie-booking w-full min-w-0 items-center',
-            )}
-          >
-            <div className='space-y-5 max-w-[620px] lg:pr-8'>
-              <SectionHeader
-                title={content.title}
-                titleAs='h1'
-                align='left'
-                className='max-w-[620px]'
-                titleClassName='es-my-best-auntie-booking-heading'
-                description={content.description}
-                descriptionClassName='mt-5 max-w-[58ch] es-type-body es-my-best-auntie-booking-body'
-              />
+        <SectionContainer
+          className={buildSectionSplitLayoutClassName(
+            'es-section-split-layout--my-best-auntie-booking w-full min-w-0 items-center',
+          )}
+        >
+          <div className='space-y-5 max-w-[620px] lg:pr-8'>
+            <SectionHeader
+              title={content.title}
+              titleAs='h1'
+              align='left'
+              className='max-w-[620px]'
+              titleClassName='es-my-best-auntie-booking-heading'
+              description={content.description}
+              descriptionClassName='mt-5 max-w-[58ch] es-type-body es-my-best-auntie-booking-body'
+            />
 
-              <div className='pt-3'>
-                <div
-                  data-testid='my-best-auntie-next-cohort-card'
-                  className='w-full max-w-[410px] rounded-inner border es-border-warm-2 es-bg-surface-soft px-5 py-4'
-                >
-                  <p className='text-base font-semibold es-text-brand'>
-                    {nextCohortLabel}
-                  </p>
-                  <p className='es-type-subtitle-lg mt-1 es-text-heading-alt'>
-                    {nextCohortPreview}
-                  </p>
-                </div>
+            <div className='pt-3'>
+              <div
+                data-testid='my-best-auntie-next-cohort-card'
+                className='w-full max-w-[410px] rounded-inner border es-border-warm-2 es-bg-surface-soft px-5 py-4'
+              >
+                <p className='text-base font-semibold es-text-brand'>
+                  {nextCohortLabel}
+                </p>
+                <p className='es-type-subtitle-lg mt-1 es-text-heading-alt'>
+                  {nextCohortPreview}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <aside className='mx-auto w-full min-w-0 max-w-[573px] lg:ml-auto lg:mr-0'>
+            <h2 className='text-[1.6rem] font-semibold es-text-heading'>
+              {content.eyebrow}
+            </h2>
+
+            <div className='mt-6'>
+              <h3 className='text-sm font-semibold es-text-neutral-strong'>
+                {content.ageSelectorLabel}
+              </h3>
+              <div className='mt-3 flex min-w-0 gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
+                {ageOptions.map((option) => {
+                  const isSelected = option.id === selectedAgeId;
+
+                  return (
+                    <ButtonPrimitive
+                      key={option.id}
+                      variant='selection'
+                      state={isSelected ? 'active' : 'inactive'}
+                      aria-pressed={isSelected}
+                      onClick={() => {
+                        setSelectedAgeId(option.id);
+                      }}
+                      className={`${BOOKING_SELECTOR_CARD_CLASSNAME} text-left`}
+                    >
+                      <div className='flex items-center justify-start gap-10'>
+                        <Image
+                          src={option.iconSrc}
+                          alt=''
+                          width={48}
+                          height={48}
+                          className='h-12 w-12'
+                          aria-hidden='true'
+                        />
+                        <span className='text-lg font-semibold es-text-heading'>
+                          {option.label}
+                        </span>
+                      </div>
+                    </ButtonPrimitive>
+                  );
+                })}
               </div>
             </div>
 
-            <aside className='mx-auto w-full min-w-0 max-w-[573px] lg:ml-auto lg:mr-0'>
-              <h2 className='text-[1.6rem] font-semibold es-text-heading'>
-                {content.eyebrow}
-              </h2>
-
-              <div className='mt-6'>
-                <h3 className='text-sm font-semibold es-text-neutral-strong'>
-                  {content.ageSelectorLabel}
-                </h3>
-                <div className='mt-3 flex min-w-0 gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
-                  {ageOptions.map((option) => {
-                    const isSelected = option.id === selectedAgeId;
-
-                    return (
-                      <ButtonPrimitive
-                        key={option.id}
-                        variant='selection'
-                        state={isSelected ? 'active' : 'inactive'}
-                        aria-pressed={isSelected}
-                        onClick={() => {
-                          setSelectedAgeId(option.id);
-                        }}
-                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} text-left`}
-                      >
-                        <div className='flex items-center justify-start gap-10'>
-                          <Image
-                            src={option.iconSrc}
-                            alt=''
-                            width={48}
-                            height={48}
-                            className='h-12 w-12'
-                            aria-hidden='true'
-                          />
-                          <span className='text-lg font-semibold es-text-heading'>
-                            {option.label}
-                          </span>
-                        </div>
-                      </ButtonPrimitive>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className='mt-7'>
-                <h3 className='text-sm font-semibold es-text-neutral-strong'>
-                  {content.dateSelectorLabel}
-                </h3>
-                <div className='relative mt-3 w-full min-w-0 overflow-visible'>
+            <div className='mt-7'>
+              <h3 className='text-sm font-semibold es-text-neutral-strong'>
+                {content.dateSelectorLabel}
+              </h3>
+              <div className='relative mt-3 w-full min-w-0 overflow-visible'>
+                <div
+                  role='region'
+                  aria-roledescription='carousel'
+                  aria-label={content.dateSelectorLabel}
+                  className='w-full min-w-0 overflow-hidden'
+                >
                   <div
-                    role='region'
-                    aria-roledescription='carousel'
-                    aria-label={content.dateSelectorLabel}
-                    className='w-full min-w-0 overflow-hidden'
+                    ref={dateCarouselRef}
+                    data-testid='my-best-auntie-booking-date-carousel'
+                    className='flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
                   >
-                    <div
-                      ref={dateCarouselRef}
-                      data-testid='my-best-auntie-booking-date-carousel'
-                      className='flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-                    >
-                      {dateOptions.map((option) => {
-                        const isSelected = option.id === selectedDateId;
+                    {dateOptions.map((option) => {
+                      const isSelected = option.id === selectedDateId;
 
-                        return (
-                          <ButtonPrimitive
-                            key={option.id}
-                            buttonRef={(element) => {
-                              dateCardRefs.current[option.id] = element;
-                            }}
-                            variant='selection'
-                            state={isSelected ? 'active' : 'inactive'}
-                            aria-pressed={isSelected}
-                            onClick={() => {
-                              setSelectedDateId(option.id);
-                            }}
-                            className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-center`}
-                          >
-                            <div className='flex w-full flex-col items-center gap-2'>
-                              <div className='flex items-center justify-center gap-1.5'>
-                                <span
-                                  className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
-                                  aria-hidden='true'
-                                />
-                                <p className='text-base font-semibold es-text-heading'>
-                                  {option.label}
-                                </p>
-                              </div>
-                              <p className='text-center text-sm es-text-danger-accent'>
-                                {option.availabilityLabel}
+                      return (
+                        <ButtonPrimitive
+                          key={option.id}
+                          buttonRef={(element) => {
+                            dateCardRefs.current[option.id] = element;
+                          }}
+                          variant='selection'
+                          state={isSelected ? 'active' : 'inactive'}
+                          aria-pressed={isSelected}
+                          onClick={() => {
+                            setSelectedDateId(option.id);
+                          }}
+                          className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-center`}
+                        >
+                          <div className='flex w-full flex-col items-center gap-2'>
+                            <div className='flex items-center justify-center gap-1.5'>
+                              <span
+                                className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                                aria-hidden='true'
+                              />
+                              <p className='text-base font-semibold es-text-heading'>
+                                {option.label}
                               </p>
                             </div>
-                          </ButtonPrimitive>
-                        );
-                      })}
-                    </div>
+                            <p className='text-center text-sm es-text-danger-accent'>
+                              {option.availabilityLabel}
+                            </p>
+                          </div>
+                        </ButtonPrimitive>
+                      );
+                    })}
                   </div>
-
-                  {hasDateNavigation && canScrollDateLeft && (
-                    <ButtonPrimitive
-                      variant='control'
-                      onClick={() => {
-                        handleDateCarouselNavigation('prev');
-                      }}
-                      aria-label='Scroll dates left'
-                      className='absolute left-0 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2'
-                    >
-                      <DateArrowIcon direction='left' />
-                    </ButtonPrimitive>
-                  )}
-
-                  {hasDateNavigation && canScrollDateRight && (
-                    <ButtonPrimitive
-                      variant='control'
-                      onClick={() => {
-                        handleDateCarouselNavigation('next');
-                      }}
-                      aria-label='Scroll dates right'
-                      className='absolute right-0 top-1/2 z-20 translate-x-1/2 -translate-y-1/2'
-                    >
-                      <DateArrowIcon direction='right' />
-                    </ButtonPrimitive>
-                  )}
                 </div>
-              </div>
 
-              <ButtonPrimitive
-                variant='primary'
-                onClick={() => {
-                  setIsPaymentModalOpen(true);
-                }}
-                className='mt-7'
-              >
-                {content.confirmAndPayLabel}
-              </ButtonPrimitive>
-            </aside>
-          </div>
+                {hasDateNavigation && canScrollDateLeft && (
+                  <ButtonPrimitive
+                    variant='control'
+                    onClick={() => {
+                      handleDateCarouselNavigation('prev');
+                    }}
+                    aria-label='Scroll dates left'
+                    className='absolute left-0 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2'
+                  >
+                    <DateArrowIcon direction='left' />
+                  </ButtonPrimitive>
+                )}
+
+                {hasDateNavigation && canScrollDateRight && (
+                  <ButtonPrimitive
+                    variant='control'
+                    onClick={() => {
+                      handleDateCarouselNavigation('next');
+                    }}
+                    aria-label='Scroll dates right'
+                    className='absolute right-0 top-1/2 z-20 translate-x-1/2 -translate-y-1/2'
+                  >
+                    <DateArrowIcon direction='right' />
+                  </ButtonPrimitive>
+                )}
+              </div>
+            </div>
+
+            <ButtonPrimitive
+              variant='primary'
+              onClick={() => {
+                setIsPaymentModalOpen(true);
+              }}
+              className='mt-7'
+            >
+              {content.confirmAndPayLabel}
+            </ButtonPrimitive>
+          </aside>
         </SectionContainer>
       </SectionShell>
 
