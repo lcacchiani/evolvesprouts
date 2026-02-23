@@ -78,7 +78,7 @@ function LoadingGearIcon({ className }: LoadingGearIconProps) {
 export function Events({ content }: EventsProps) {
   const sortOptions = useMemo(() => resolveSortOptions(content), [content]);
   const defaultSortOptionValue = sortOptions[0]?.value ?? 'upcoming';
-  const [activeFilter, setActiveFilter] = useState(defaultSortOptionValue);
+  const [activeFilter, setActiveFilter] = useState<string>(defaultSortOptionValue);
   const [events, setEvents] = useState<EventCardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasRequestError, setHasRequestError] = useState(false);
