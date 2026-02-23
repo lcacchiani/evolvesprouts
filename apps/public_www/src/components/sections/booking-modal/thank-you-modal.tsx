@@ -197,7 +197,7 @@ export function MyBestAuntieThankYouModal({
             alt=''
             width={1488}
             height={855}
-            className='pointer-events-none absolute left-1/2 top-0 hidden w-[800px] -translate-x-1/2 -translate-y-[120px] lg:block'
+            className='pointer-events-none absolute left-1/2 top-0 hidden w-[600px] -translate-x-1/2 -translate-y-[90px] lg:block'
             aria-hidden='true'
           />
           <Image
@@ -205,7 +205,7 @@ export function MyBestAuntieThankYouModal({
             alt=''
             width={1196}
             height={568}
-            className='pointer-events-none absolute left-1/2 top-0 hidden w-[650px] -translate-x-1/2 -translate-y-10 lg:block'
+            className='pointer-events-none absolute left-1/2 top-0 hidden w-[488px] -translate-x-1/2 -translate-y-10 lg:block'
             aria-hidden='true'
           />
 
@@ -241,7 +241,7 @@ export function MyBestAuntieThankYouModal({
             </p>
           </div>
 
-          <section className='relative z-10 mx-auto mt-10 max-w-[950px] overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
+          <section className='relative z-10 mx-auto mt-10 max-w-[713px] overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
             <Image
               src='/images/evolvesprouts-logo.svg'
               alt=''

@@ -184,7 +184,7 @@ export function Testimonials({ content }: TestimonialsProps) {
       className='es-section-bg-overlay es-testimonials-section'
     >
       <SectionContainer>
-        <div className='mx-auto w-full max-w-[1488px]'>
+        <div className='mx-auto w-full max-w-[1116px]'>
         <SectionHeader
           eyebrow={badgeLabel}
           title={content.title}
@@ -212,7 +212,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                   'es-section-split-layout--testimonials',
                 )}
               >
-                <div className='relative min-h-[260px] overflow-hidden rounded-card-lg es-bg-surface-peach sm:min-h-[360px] lg:min-h-[540px]'>
+                <div className='relative min-h-[195px] overflow-hidden rounded-card-lg es-bg-surface-peach sm:min-h-[270px] lg:min-h-[405px]'>
                   {activeStory.mainImageSrc ? (
                     <Image
                       src={activeStory.mainImageSrc}
@@ -223,7 +223,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                     />
                   ) : (
                     <div
-                      className='flex h-full min-h-[260px] items-center justify-center rounded-card-lg sm:min-h-[360px] lg:min-h-[540px] es-testimonials-image-fallback'
+                      className='flex h-full min-h-[195px] items-center justify-center rounded-card-lg sm:min-h-[270px] lg:min-h-[405px] es-testimonials-image-fallback'
                     >
                       <ParentIcon />
                     </div>

@@ -62,7 +62,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
               className='max-w-[610px]'
               titleClassName='es-hero-headline'
               description={content.subheadline}
-              descriptionClassName='mt-4 max-w-[610px] sm:mt-6 es-hero-subheadline'
+              descriptionClassName='mt-4 max-w-[458px] sm:mt-6 es-hero-subheadline'
             />
             <SectionCtaAnchor
               href={ROUTES.servicesMyBestAuntieTrainingCourse}
@@ -72,7 +72,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
             </SectionCtaAnchor>
           </div>
         </div>
-        <div className='mx-auto w-full max-w-[764px] lg:ml-auto lg:mr-0'>
+        <div className='mx-auto w-full max-w-[573px] lg:ml-auto lg:mr-0'>
           <Image
             src={HERO_IMAGE_SRC}
             alt=''

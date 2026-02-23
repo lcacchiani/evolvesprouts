@@ -26,7 +26,7 @@ export function SproutsSquadCommunity({
       />
 
       <SectionContainer>
-        <div className='flex min-h-[420px] flex-col justify-center gap-7 sm:min-h-[530px] lg:min-h-[740px] lg:gap-9'>
+        <div className='flex min-h-[315px] flex-col justify-center gap-7 sm:min-h-[400px] lg:min-h-[555px] lg:gap-9'>
           <Image
             src='/images/evolvesprouts-logo.svg'
             alt=''

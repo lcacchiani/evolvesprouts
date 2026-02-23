@@ -122,9 +122,9 @@
     @apply bg-slate-50 antialiased;
     color: var(--site-primary-text);
     font-family: var(--site-primary-font);
-    font-size: 20px;
-    line-height: 28px;
-    letter-spacing: 0.5px;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0.4px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -142,13 +142,13 @@
   }
 
   h1 {
-    font-size: clamp(2.2rem, 5.8vw, 60px);
-    line-height: clamp(2.7rem, 6.4vw, 66px);
+    font-size: clamp(2.2rem, 5vw, 45px);
+    line-height: clamp(2.7rem, 5.4vw, 50px);
   }
 
   h2 {
-    font-size: clamp(2rem, 4.2vw, 40px);
-    line-height: clamp(2.45rem, 4.9vw, 47px);
+    font-size: clamp(2rem, 3.5vw, 30px);
+    line-height: clamp(2.45rem, 4.2vw, 36px);
   }
 
   p {
