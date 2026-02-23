@@ -22,6 +22,7 @@ describe('maintenance static site assets', () => {
     const notFoundHtml = readMaintenanceFile('404.html');
 
     expect(indexHtml).toContain('/images/evolvesprouts-logo.svg');
+    expect(indexHtml).toContain('/favicon.ico');
     expect(indexHtml).toContain('Sprouting Something New!');
     expect(indexHtml).toContain(
       'In the meantime, we&#39;d love to hear from you!',
