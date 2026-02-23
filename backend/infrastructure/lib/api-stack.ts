@@ -923,7 +923,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     // Admin function
-    const managerGroupName = "manager";
     const adminFunction = createPythonFunction("EvolvesproutsAdminFunction", {
       handler: "lambda/admin/handler.lambda_handler",
     });
@@ -1252,31 +1251,6 @@ export class ApiStack extends cdk.Stack {
       "AdminGroupAuthorizer",
       {
         handler: adminGroupAuthorizerFunction,
-        identitySources: [apigateway.IdentitySource.header("Authorization")],
-        resultsCacheTtl: cdk.Duration.minutes(5),
-      }
-    );
-
-    // Cognito group-based authorizer for manager endpoints (admin OR manager)
-    // NOTE: Runs outside VPC to fetch JWKS from Cognito's public endpoint
-    const managerGroupAuthorizerFunction = createPythonFunction(
-      "ManagerGroupAuthorizerFunction",
-      {
-        handler: "lambda/authorizers/cognito_group/handler.lambda_handler",
-        memorySize: 256,
-        timeout: cdk.Duration.seconds(5),
-        noVpc: true,
-        environment: {
-          ALLOWED_GROUPS: `${adminGroupName},${managerGroupName}`,
-        },
-      }
-    );
-
-    const managerAuthorizer = new apigateway.RequestAuthorizer(
-      this,
-      "ManagerGroupAuthorizer",
-      {
-        handler: managerGroupAuthorizerFunction,
         identitySources: [apigateway.IdentitySource.header("Authorization")],
         resultsCacheTtl: cdk.Duration.minutes(5),
       }
