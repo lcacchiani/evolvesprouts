@@ -32,8 +32,8 @@ describe('maintenance static site assets', () => {
     expect(indexHtml).toContain('__NEXT_PUBLIC_EMAIL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_WHATSAPP_URL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_INSTAGRAM_URL__');
-    expect(indexHtml).toContain('/images/whatsapp-official-logo.svg');
-    expect(indexHtml).toContain('/images/instagram-official-logo.svg');
+    expect(indexHtml).toContain('/images/whatsapp-official-logo.png');
+    expect(indexHtml).toContain('/images/instagram-official-logo.png');
     expect(indexHtml).toContain('maintenance__contact-icon--whatsapp');
     expect(indexHtml).toContain('maintenance__contact-icon--instagram');
     expect(indexHtml).toContain('aria-label="Email Evolve Sprouts"');
