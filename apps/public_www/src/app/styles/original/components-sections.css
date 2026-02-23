@@ -223,6 +223,7 @@
 
   .es-sprouts-community-section {
     position: relative;
+    padding-bottom: 0;
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
     background-image: url('/images/sprouts-squad-community-bg.webp');
     background-position: center top;
@@ -240,6 +241,8 @@
 
   .es-sprouts-community-logo {
     filter: sepia(1) opacity(50%) saturate(150%);
+    margin-bottom: -60px;
+    margin-left: -45px;
     mask-image: linear-gradient(to bottom, black 50%, transparent 63%);
     -webkit-mask-image: linear-gradient(
       to bottom,
@@ -410,6 +413,7 @@
   }
 
   .es-hero-section {
+    padding-top: 0;
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
@@ -921,7 +925,7 @@
     background-image: url('/images/family.webp');
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: 75% auto;
   }
 
   .es-free-resources-media-pane--bleed-left::before {

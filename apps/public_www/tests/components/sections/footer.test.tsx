@@ -37,9 +37,9 @@ describe('Footer external links', () => {
     const sharedContainers = document.querySelectorAll('.es-layout-container');
     expect(sharedContainers.length).toBeGreaterThan(0);
 
-    const facebookLinks = screen.getAllByRole('link', { name: 'Facebook' });
-    expect(facebookLinks.length).toBeGreaterThan(0);
-    for (const link of facebookLinks) {
+    const linkedInLinks = screen.getAllByRole('link', { name: 'Linkedin' });
+    expect(linkedInLinks.length).toBeGreaterThan(0);
+    for (const link of linkedInLinks) {
       expect(link).toHaveAttribute('target', '_blank');
       expect(link.querySelector('span:last-of-type')?.className).toContain(
         'es-link-external-label',
@@ -48,6 +48,8 @@ describe('Footer external links', () => {
       expect(externalIcon).not.toBeNull();
       expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
     }
+    expect(screen.queryByRole('link', { name: 'Facebook' })).toBeNull();
+    expect(screen.queryByRole('link', { name: /Tiktok/i })).toBeNull();
 
     const homeLinks = screen.getAllByRole('link', { name: 'Home' });
     expect(homeLinks.length).toBeGreaterThan(0);

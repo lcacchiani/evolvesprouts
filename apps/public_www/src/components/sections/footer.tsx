@@ -27,7 +27,7 @@ function resolveCurrentYearCopyright(value: string): string {
 }
 
 const FOOTER_LOGO_CLASSNAME =
-  'h-auto w-full max-w-[600px] -mt-[100px] -mb-[100px]';
+  'h-auto w-[calc(100%-200px)] max-w-[500px] m-[100px]';
 
 const socialIcons: Record<string, ReactNode> = {
   facebook: (
@@ -196,12 +196,12 @@ export function Footer({ content }: FooterProps) {
             <Image
               src='/images/evolvesprouts-logo.svg'
               alt={content.brand}
-              width={600}
-              height={600}
+              width={500}
+              height={500}
               className={FOOTER_LOGO_CLASSNAME}
             />
           </div>
-          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_600px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
+          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_700px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
             <FooterDesktopColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
@@ -214,8 +214,8 @@ export function Footer({ content }: FooterProps) {
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
-                width={600}
-                height={600}
+                width={500}
+                height={500}
                 className={FOOTER_LOGO_CLASSNAME}
               />
             </div>
@@ -235,8 +235,8 @@ export function Footer({ content }: FooterProps) {
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
-                width={600}
-                height={600}
+                width={500}
+                height={500}
                 className={FOOTER_LOGO_CLASSNAME}
               />
             </div>
