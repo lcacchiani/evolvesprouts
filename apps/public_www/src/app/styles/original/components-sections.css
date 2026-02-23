@@ -69,16 +69,6 @@
     );
   }
 
-  .es-reach-out-section {
-    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -900px;
-    --es-section-bg-size: 2000px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
-  }
-
   .es-reach-out-glyph--orange {
     color: var(--es-color-brand-orange, #C84A16);
     border-color: color-mix(

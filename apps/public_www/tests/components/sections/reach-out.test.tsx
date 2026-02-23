@@ -13,7 +13,8 @@ describe('ReachOut', () => {
       name: content.title,
     });
     expect(section.className).toContain('es-section-bg-overlay');
-    expect(section.className).toContain('es-reach-out-section');
+    expect(section.className).toContain('es-testimonials-section');
+    expect(section.className).not.toContain('es-reach-out-section');
 
     expect(
       screen.getByRole('heading', {
