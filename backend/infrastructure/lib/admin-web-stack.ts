@@ -5,7 +5,7 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 
-export class CrmWebStack extends cdk.Stack {
+export class AdminWebStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
   public readonly loggingBucket: s3.Bucket;
@@ -14,19 +14,19 @@ export class CrmWebStack extends cdk.Stack {
     super(scope, id, props);
 
     cdk.Tags.of(this).add("Organization", "Evolve Sprouts");
-    cdk.Tags.of(this).add("Project", "CRM Website");
+    cdk.Tags.of(this).add("Project", "Admin Website");
 
     const resourcePrefix = "evolvesprouts";
     const name = (suffix: string) => `${resourcePrefix}-${suffix}`;
 
-    const domainName = new cdk.CfnParameter(this, "CrmWebDomainName", {
+    const domainName = new cdk.CfnParameter(this, "AdminWebDomainName", {
       type: "String",
-      description: "Custom domain for CRM web (CloudFront alias).",
+      description: "Custom domain for admin web (CloudFront alias).",
     });
 
-    const certificateArn = new cdk.CfnParameter(this, "CrmWebCertificateArn", {
+    const certificateArn = new cdk.CfnParameter(this, "AdminWebCertificateArn", {
       type: "String",
-      description: "ACM certificate ARN for CRM web domain.",
+      description: "ACM certificate ARN for admin web domain.",
     });
 
     const wafWebAclArn = new cdk.CfnParameter(this, "WafWebAclArn", {
@@ -45,12 +45,12 @@ export class CrmWebStack extends cdk.Stack {
     });
 
     const loggingBucketName = [
-      name("crm-web-logs"),
+      name("admin-web-logs"),
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
 
-    this.loggingBucket = new s3.Bucket(this, "CrmWebLoggingBucket", {
+    this.loggingBucket = new s3.Bucket(this, "AdminWebLoggingBucket", {
       bucketName: loggingBucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -80,12 +80,12 @@ export class CrmWebStack extends cdk.Stack {
     });
 
     const bucketName = [
-      name("crm-web"),
+      name("admin-web"),
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
 
-    this.bucket = new s3.Bucket(this, "CrmWebBucket", {
+    this.bucket = new s3.Bucket(this, "AdminWebBucket", {
       bucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -98,16 +98,16 @@ export class CrmWebStack extends cdk.Stack {
 
     const originAccessIdentity = new cloudfront.OriginAccessIdentity(
       this,
-      "CrmWebOai",
+      "AdminWebOai",
       {
-        comment: "OAI for CRM web CloudFront distribution.",
+        comment: "OAI for admin web CloudFront distribution.",
       },
     );
     this.bucket.grantRead(originAccessIdentity);
 
     const certificate = acm.Certificate.fromCertificateArn(
       this,
-      "CrmWebCertificate",
+      "AdminWebCertificate",
       certificateArn.valueAsString,
     );
 
@@ -115,7 +115,7 @@ export class CrmWebStack extends cdk.Stack {
       originAccessIdentity,
     });
 
-    this.distribution = new cloudfront.Distribution(this, "CrmWebDistribution", {
+    this.distribution = new cloudfront.Distribution(this, "AdminWebDistribution", {
       defaultRootObject: "index.html",
       domainNames: [domainName.valueAsString],
       certificate,
@@ -129,7 +129,7 @@ export class CrmWebStack extends cdk.Stack {
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
-      // CRM is intentionally a shell SPA.
+      // Admin web is intentionally a shell SPA.
       errorResponses: [
         {
           httpStatus: 403,
@@ -156,19 +156,19 @@ export class CrmWebStack extends cdk.Stack {
       ),
     );
 
-    new cdk.CfnOutput(this, "CrmWebBucketName", {
+    new cdk.CfnOutput(this, "AdminWebBucketName", {
       value: this.bucket.bucketName,
     });
 
-    new cdk.CfnOutput(this, "CrmWebDistributionId", {
+    new cdk.CfnOutput(this, "AdminWebDistributionId", {
       value: this.distribution.distributionId,
     });
 
-    new cdk.CfnOutput(this, "CrmWebDistributionDomain", {
+    new cdk.CfnOutput(this, "AdminWebDistributionDomain", {
       value: this.distribution.distributionDomainName,
     });
 
-    new cdk.CfnOutput(this, "CrmWebLoggingBucketName", {
+    new cdk.CfnOutput(this, "AdminWebLoggingBucketName", {
       value: this.loggingBucket.bucketName,
       description: "S3 bucket for CloudFront and S3 access logs",
     });

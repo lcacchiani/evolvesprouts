@@ -252,15 +252,6 @@ existing secrets when possible.
    - Firebase Console -> Project Settings -> iOS app
    - Copy `FIREBASE_IOS_APP_ID` and set `FIREBASE_IOS_BUNDLE_ID`
 
-### Microsoft (Entra ID)
-1. Go to **Azure Portal → Microsoft Entra ID → App registrations**.
-2. Create an app registration.
-3. Copy:
-   - **Tenant ID** → `MicrosoftTenantId`
-   - **Client ID** → `MicrosoftClientId`
-4. Create a client secret:
-   - **Client Secret** → `CDK_PARAM_MICROSOFT_CLIENT_SECRET`
-
 ### Apple (Sign in with Apple)
 1. Go to **Apple Developer → Certificates, Identifiers & Profiles**.
 2. Create a **Services ID**:

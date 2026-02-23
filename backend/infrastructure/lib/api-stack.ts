@@ -20,26 +20,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { DatabaseConstruct, PythonLambdaFactory, STANDARD_LOG_RETENTION } from "./constructs";
 
-/**
- * CDK Aspect that adds Checkov suppressions to CDK-internal Lambda functions.
- * These Lambda functions are created automatically by CDK for:
- * - LogRetention: Manages CloudWatch log group retention policies
- * - AwsCustomResource: Executes SDK calls for custom resources
- *
- * These are not user-managed code and don't require VPC, DLQ, or concurrent
- * execution limits because they run infrequently during deployments only.
- */
 class CdkInternalLambdaCheckovSuppression implements cdk.IAspect {
   public visit(node: IConstruct): void {
-    // Check for CfnFunction using duck typing since the LogRetention singleton
-    // might create Lambda functions differently
     const cfnType = (node as cdk.CfnResource).cfnResourceType;
     if (cfnType === "AWS::Lambda::Function") {
       const cfnNode = node as cdk.CfnResource;
-      // Use the construct path to identify CDK-internal Lambda functions
       const nodePath = cfnNode.node.path;
-      // LogRetention Lambda: path contains "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a"
-      // AwsCustomResource Lambda: path contains "AWS679f53fac002430cb0da5b7982bd2287"
       const isLogRetentionLambda = nodePath.includes("LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a");
       const isAwsCustomResourceLambda = nodePath.includes("AWS679f53fac002430cb0da5b7982bd2287");
 
@@ -58,7 +44,6 @@ class CdkInternalLambdaCheckovSuppression implements cdk.IAspect {
       }
     }
 
-    // Also handle IAM policies for LogRetention Lambda
     const cfnPolicyType = (node as cdk.CfnResource).cfnResourceType;
     if (cfnPolicyType === "AWS::IAM::Policy") {
       const cfnNode = node as cdk.CfnResource;
@@ -123,10 +108,6 @@ export class ApiStack extends cdk.Stack {
       process.env.EXISTING_LAMBDA_SECURITY_GROUP_ID;
     const existingMigrationSecurityGroupId =
       process.env.EXISTING_MIGRATION_SECURITY_GROUP_ID;
-    const existingOrgMediaLogBucketName =
-      process.env.EXISTING_ORG_MEDIA_LOG_BUCKET_NAME?.trim() || undefined;
-    const existingOrgMediaBucketName =
-      process.env.EXISTING_ORG_MEDIA_BUCKET_NAME?.trim() || undefined;
     const manageDbSecurityGroupRules =
       !existingDbSecurityGroupId && !existingProxySecurityGroupId;
     const skipImmutableDbUpdates =
@@ -157,7 +138,6 @@ export class ApiStack extends cdk.Stack {
           ],
         });
 
-    // VPC Endpoints for AWS services
     vpc.addGatewayEndpoint("S3Endpoint", {
       service: ec2.GatewayVpcEndpointAwsService.S3,
     });
@@ -198,37 +178,31 @@ export class ApiStack extends cdk.Stack {
       // (ListUsers, AdminAddUserToGroup, etc.) are handled by a dedicated
       // Lambda that runs outside the VPC instead.
 
-      // SES endpoint for sending emails (manager requests, passwordless auth)
       vpc.addInterfaceEndpoint("SesEndpoint", {
         service: ec2.InterfaceVpcEndpointAwsService.SES,
         securityGroups: [endpointSecurityGroup],
       });
 
-      // SNS endpoint for notifications (manager access requests)
       vpc.addInterfaceEndpoint("SnsEndpoint", {
         service: ec2.InterfaceVpcEndpointAwsService.SNS,
         securityGroups: [endpointSecurityGroup],
       });
 
-      // RDS endpoint for IAM authentication token generation
       vpc.addInterfaceEndpoint("RdsEndpoint", {
         service: ec2.InterfaceVpcEndpointAwsService.RDS,
         securityGroups: [endpointSecurityGroup],
       });
 
-      // API Gateway endpoint for API key rotation Lambda
       vpc.addInterfaceEndpoint("ApiGatewayEndpoint", {
         service: ec2.InterfaceVpcEndpointAwsService.APIGATEWAY,
         securityGroups: [endpointSecurityGroup],
       });
 
-      // SQS endpoint for manager request processing queue
       vpc.addInterfaceEndpoint("SqsEndpoint", {
         service: ec2.InterfaceVpcEndpointAwsService.SQS,
         securityGroups: [endpointSecurityGroup],
       });
 
-      // Lambda endpoint for invoking the AWS API proxy from within the VPC
       vpc.addInterfaceEndpoint("LambdaEndpoint", {
         service: ec2.InterfaceVpcEndpointAwsService.LAMBDA,
         securityGroups: [endpointSecurityGroup],
@@ -306,10 +280,8 @@ export class ApiStack extends cdk.Stack {
       applyImmutableSettings: !skipImmutableDbUpdates,
     });
 
-    // Allow Lambda access to database via proxy
     database.allowFrom(lambdaSecurityGroup, "Lambda access to RDS Proxy");
 
-    // Allow migration Lambda direct access to database
     database.allowDirectAccessFrom(
       migrationSecurityGroup,
       "Migration Lambda direct access to Aurora"
@@ -378,23 +350,6 @@ export class ApiStack extends cdk.Stack {
     const applePrivateKeyValue = cdk.Fn.join(
       "\n",
       cdk.Fn.split("\\n", applePrivateKey.valueAsString)
-    );
-    const microsoftTenantId = new cdk.CfnParameter(this, "MicrosoftTenantId", {
-      type: "String",
-      description: "Microsoft Entra tenant ID",
-    });
-    const microsoftClientId = new cdk.CfnParameter(this, "MicrosoftClientId", {
-      type: "String",
-      description: "Microsoft OAuth client ID",
-    });
-    const microsoftClientSecret = new cdk.CfnParameter(
-      this,
-      "MicrosoftClientSecret",
-      {
-        type: "String",
-        noEcho: true,
-        description: "Microsoft OAuth client secret",
-      }
     );
     const authEmailFromAddress = new cdk.CfnParameter(
       this,
@@ -604,7 +559,6 @@ export class ApiStack extends cdk.Stack {
         last_auth_time: new cognito.StringAttribute({ mutable: true }),
         feedback_stars: new cognito.StringAttribute({ mutable: true }),
       },
-      // Ensure User Pool is deleted on stack deletion/rollback
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
     const adminGroupName = "admin";
@@ -649,26 +603,6 @@ export class ApiStack extends cdk.Stack {
           key_id: appleKeyId.valueAsString,
           private_key: applePrivateKeyValue,
           authorize_scopes: "name email",
-        },
-      }
-    );
-
-    const microsoftProvider = new cognito.CfnUserPoolIdentityProvider(
-      this,
-      "MicrosoftIdentityProvider",
-      {
-        providerName: "Microsoft",
-        providerType: "OIDC",
-        userPoolId: userPool.userPoolId,
-        attributeMapping: {
-          email: "email",
-        },
-        providerDetails: {
-          client_id: microsoftClientId.valueAsString,
-          client_secret: microsoftClientSecret.valueAsString,
-          attributes_request_method: "GET",
-          oidc_issuer: `https://login.microsoftonline.com/${microsoftTenantId.valueAsString}/v2.0`,
-          authorize_scopes: "openid email profile",
         },
       }
     );
@@ -786,7 +720,6 @@ export class ApiStack extends cdk.Stack {
         supportedIdentityProviders: [
           "Google",
           "SignInWithApple",
-          "Microsoft",
         ],
         explicitAuthFlows: [
           "ALLOW_CUSTOM_AUTH",
@@ -798,12 +731,7 @@ export class ApiStack extends cdk.Stack {
 
     userPoolClient.addDependency(googleProvider);
     userPoolClient.addDependency(appleProvider);
-    userPoolClient.addDependency(microsoftProvider);
 
-    // Create Cognito user pool groups using AwsCustomResource
-    // Using createGroup for both onCreate and onUpdate ensures groups are always created
-    // even if they were previously deleted. GroupExistsException is ignored so this is safe.
-    // Using group name in logical ID for stability (not array index)
     const groupPolicy = customresources.AwsCustomResourcePolicy.fromStatements([
       new iam.PolicyStatement({
         actions: [
@@ -828,12 +756,8 @@ export class ApiStack extends cdk.Stack {
           physicalResourceId: customresources.PhysicalResourceId.of(
             `${userPool.userPoolId}-${group.name}`
           ),
-          // Skip if group already exists
           ignoreErrorCodesMatching: "GroupExistsException",
         },
-        // Use createGroup for onUpdate as well to ensure group exists
-        // This handles the case where a group was manually deleted or
-        // deleted by a previous deployment's cleanup
         onUpdate: {
           service: "CognitoIdentityServiceProvider",
           action: "createGroup",
@@ -845,7 +769,6 @@ export class ApiStack extends cdk.Stack {
           physicalResourceId: customresources.PhysicalResourceId.of(
             `${userPool.userPoolId}-${group.name}`
           ),
-          // Skip if group already exists (expected on normal updates)
           ignoreErrorCodesMatching: "GroupExistsException",
         },
         onDelete: {
@@ -855,7 +778,6 @@ export class ApiStack extends cdk.Stack {
             UserPoolId: userPool.userPoolId,
             GroupName: group.name,
           },
-          // Skip if group doesn't exist
           ignoreErrorCodesMatching: "ResourceNotFoundException",
         },
         policy: groupPolicy,
@@ -907,288 +829,103 @@ export class ApiStack extends cdk.Stack {
 
     const corsAllowedOrigins = resolveCorsAllowedOrigins(this);
 
-    // Import existing log bucket or create a new one.
-    // Use EXISTING_ORG_MEDIA_LOG_BUCKET_NAME to reuse a bucket that persists
-    // after stack deletion (due to RETAIN removal policy).
-    const imagesLogBucketName = [
-      name("org-media-logs"),
+    // Client assets logging bucket
+    const clientAssetsLogBucketName = [
+      name("client-assets-logs"),
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
 
-    const organizationImagesLogBucket = existingOrgMediaLogBucketName
-      ? s3.Bucket.fromBucketName(
-          this,
-          "OrganizationImagesLogBucket",
-          existingOrgMediaLogBucketName
-        )
-      : new s3.Bucket(this, "OrganizationImagesLogBucket", {
-          bucketName: imagesLogBucketName,
-          blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-          encryption: s3.BucketEncryption.S3_MANAGED,
-          enforceSSL: true,
-          versioned: true,
-          removalPolicy: cdk.RemovalPolicy.RETAIN,
-          // Enable object ownership for S3 access log delivery
-          objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
-          lifecycleRules: [
-            {
-              id: "ExpireOldLogs",
-              enabled: true,
-              expiration: cdk.Duration.days(90),
-              noncurrentVersionExpiration: cdk.Duration.days(30),
-            },
-          ],
-        });
-
-    // Checkov suppression: Logging bucket cannot have self-logging (infinite loop)
-    // Only applies when creating a new bucket (imported buckets don't have CfnBucket)
-    const imagesLogBucketCfn = organizationImagesLogBucket.node
-      .defaultChild as s3.CfnBucket | undefined;
-    if (imagesLogBucketCfn) {
-      imagesLogBucketCfn.addMetadata("checkov", {
-        skip: [
-          {
-            id: "CKV_AWS_18",
-            comment:
-              "Logging bucket - enabling access logging would create infinite loop",
-          },
-        ],
-      });
-    }
-
-    const adminImportExportLogBucketName = [
-      name("org-imprt-logs"),
-      cdk.Aws.ACCOUNT_ID,
-      cdk.Aws.REGION,
-    ].join("-");
-
-    const adminImportExportLogBucket = new s3.Bucket(
-      this,
-      "AdminImportExportLogBucket",
-      {
-        bucketName: adminImportExportLogBucketName,
-        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-        encryption: s3.BucketEncryption.S3_MANAGED,
-        enforceSSL: true,
-        versioned: true,
-        removalPolicy: cdk.RemovalPolicy.RETAIN,
-        // Enable object ownership for S3 access log delivery
-        objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
-        lifecycleRules: [
-          {
-            id: "ExpireOldLogs",
-            enabled: true,
-            expiration: cdk.Duration.days(90),
-            noncurrentVersionExpiration: cdk.Duration.days(30),
-          },
-        ],
-      }
-    );
-
-    // Checkov suppression: Logging bucket cannot have self-logging (infinite loop)
-    const adminImportExportLogBucketCfn = adminImportExportLogBucket.node
-      .defaultChild as s3.CfnBucket | undefined;
-    if (adminImportExportLogBucketCfn) {
-      adminImportExportLogBucketCfn.addMetadata("checkov", {
-        skip: [
-          {
-            id: "CKV_AWS_18",
-            comment:
-              "Logging bucket - enabling access logging would create infinite loop",
-          },
-        ],
-      });
-    }
-
-    const imagesBucketName =
-      existingOrgMediaBucketName ??
-      [name("org-media"), cdk.Aws.ACCOUNT_ID, cdk.Aws.REGION].join("-");
-
-    // SECURITY NOTE: This bucket is intentionally public to serve organization images
-    // (logos, photos). It uses BLOCK_ACLS to prevent ACL-based public access while
-    // allowing bucket policy based public read. Access is logged to the logging bucket.
-    // Future improvement: Consider using CloudFront with OAC for better security and caching.
-    // Import existing bucket or create a new one.
-    // Use EXISTING_ORG_MEDIA_BUCKET_NAME to reuse a bucket that persists
-    // after stack deletion (due to RETAIN removal policy).
-    const organizationImagesBucket = existingOrgMediaBucketName
-      ? s3.Bucket.fromBucketName(
-          this,
-          "OrganizationImagesBucket",
-          existingOrgMediaBucketName
-        )
-      : new s3.Bucket(this, "OrganizationImagesBucket", {
-          bucketName: imagesBucketName,
-          blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
-          publicReadAccess: true,
-          encryption: s3.BucketEncryption.S3_MANAGED,
-          enforceSSL: true,
-          versioned: true,
-          removalPolicy: cdk.RemovalPolicy.RETAIN,
-          serverAccessLogsBucket: organizationImagesLogBucket,
-          serverAccessLogsPrefix: "s3-access-logs/",
-          // COST OPTIMIZATION: Use Intelligent-Tiering for automatic cost savings
-          // Images accessed infrequently will automatically move to cheaper storage
-          intelligentTieringConfigurations: [
-            {
-              name: "ImagesTiering",
-              // Move to Archive Access tier after 90 days without access
-              archiveAccessTierTime: cdk.Duration.days(90),
-              // Move to Deep Archive Access tier after 180 days
-              deepArchiveAccessTierTime: cdk.Duration.days(180),
-            },
-          ],
-          lifecycleRules: [
-            {
-              id: "TransitionToIntelligentTiering",
-              enabled: true,
-              // Transition new objects to Intelligent-Tiering after 30 days
-              transitions: [
-                {
-                  storageClass: s3.StorageClass.INTELLIGENT_TIERING,
-                  transitionAfter: cdk.Duration.days(30),
-                },
-              ],
-              // Clean up incomplete multipart uploads
-              abortIncompleteMultipartUploadAfter: cdk.Duration.days(7),
-            },
-            {
-              id: "ExpireNoncurrentVersions",
-              enabled: true,
-              // Delete old versions after 90 days to save storage costs
-              noncurrentVersionExpiration: cdk.Duration.days(90),
-            },
-          ],
-          cors: [
-            {
-              allowedMethods: [
-                s3.HttpMethods.GET,
-                s3.HttpMethods.PUT,
-                s3.HttpMethods.HEAD,
-              ],
-              allowedOrigins: corsAllowedOrigins,
-              allowedHeaders: ["*"],
-              exposedHeaders: ["ETag"],
-              maxAge: 3000,
-            },
-          ],
-        });
-
-    // Checkov suppression: Public access is intentional for serving organization images
-    // Only applies when creating a new bucket (imported buckets don't have CfnBucket)
-    const imagesBucketCfn = organizationImagesBucket.node
-      .defaultChild as s3.CfnBucket | undefined;
-    if (imagesBucketCfn) {
-      imagesBucketCfn.addMetadata("checkov", {
-        skip: [
-          {
-            id: "CKV_AWS_54",
-            comment:
-              "Public access intentional - bucket serves organization images via public URL",
-          },
-          {
-            id: "CKV_AWS_55",
-            comment:
-              "Public access intentional - bucket serves organization images via public URL",
-          },
-          {
-            id: "CKV_AWS_56",
-            comment:
-              "Public access intentional - bucket serves organization images via public URL",
-          },
-        ],
-      });
-    }
-
-    const adminImportExportBucketName = [
-      name("org-imprt"),
-      cdk.Aws.ACCOUNT_ID,
-      cdk.Aws.REGION,
-    ].join("-");
-
-    const adminImportExportBucket = new s3.Bucket(
-      this,
-      "AdminImportExportBucket",
-      {
-        bucketName: adminImportExportBucketName,
-        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-        encryption: s3.BucketEncryption.S3_MANAGED,
-        enforceSSL: true,
-        versioned: true,
-        removalPolicy: cdk.RemovalPolicy.RETAIN,
-        serverAccessLogsBucket: adminImportExportLogBucket,
-        serverAccessLogsPrefix: "s3-access-logs/",
-        lifecycleRules: [
-          {
-            id: "ExpireAdminImports",
-            enabled: true,
-            expiration: cdk.Duration.days(7),
-            noncurrentVersionExpiration: cdk.Duration.days(7),
-            abortIncompleteMultipartUploadAfter: cdk.Duration.days(7),
-          },
-        ],
-        cors: [
-          {
-            allowedMethods: [
-              s3.HttpMethods.GET,
-              s3.HttpMethods.PUT,
-              s3.HttpMethods.HEAD,
-            ],
-            allowedOrigins: corsAllowedOrigins,
-            allowedHeaders: ["*"],
-            exposedHeaders: ["ETag"],
-            maxAge: 3000,
-          },
-        ],
-      }
-    );
-
-    // Search function
-    const searchFunction = createPythonFunction("SiutindeiSearchFunction", {
-      handler: "lambda/search/handler.lambda_handler",
-      environment: {
-        DATABASE_SECRET_ARN: database.appUserSecret.secretArn,
-        DATABASE_NAME: "evolvesprouts",
-        DATABASE_USERNAME: "evolvesprouts_app",
-        DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
-        DATABASE_IAM_AUTH: "true",
-        CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
-      },
+    const clientAssetsLogBucket = new s3.Bucket(this, "ClientAssetsLogBucket", {
+      bucketName: clientAssetsLogBucketName,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
+      lifecycleRules: [
+        {
+          id: "ExpireOldLogs",
+          enabled: true,
+          expiration: cdk.Duration.days(90),
+          noncurrentVersionExpiration: cdk.Duration.days(30),
+        },
+      ],
     });
-    database.grantAppUserSecretRead(searchFunction);
-    database.grantConnect(searchFunction, "evolvesprouts_app");
+
+    const clientAssetsLogBucketCfn = clientAssetsLogBucket.node
+      .defaultChild as s3.CfnBucket;
+    clientAssetsLogBucketCfn.addMetadata("checkov", {
+      skip: [
+        {
+          id: "CKV_AWS_18",
+          comment:
+            "Logging bucket - enabling access logging would create infinite loop",
+        },
+      ],
+    });
+
+    // Client assets bucket
+    const clientAssetsBucketName = [
+      name("client-assets"),
+      cdk.Aws.ACCOUNT_ID,
+      cdk.Aws.REGION,
+    ].join("-");
+
+    const clientAssetsBucket = new s3.Bucket(this, "ClientAssetsBucket", {
+      bucketName: clientAssetsBucketName,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      serverAccessLogsBucket: clientAssetsLogBucket,
+      serverAccessLogsPrefix: "s3-access-logs/",
+      intelligentTieringConfigurations: [
+        {
+          name: "AssetsTiering",
+          archiveAccessTierTime: cdk.Duration.days(90),
+          deepArchiveAccessTierTime: cdk.Duration.days(180),
+        },
+      ],
+      lifecycleRules: [
+        {
+          id: "TransitionToIntelligentTiering",
+          enabled: true,
+          transitions: [
+            {
+              storageClass: s3.StorageClass.INTELLIGENT_TIERING,
+              transitionAfter: cdk.Duration.days(30),
+            },
+          ],
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(7),
+        },
+        {
+          id: "ExpireNoncurrentVersions",
+          enabled: true,
+          noncurrentVersionExpiration: cdk.Duration.days(90),
+        },
+      ],
+      cors: [
+        {
+          allowedMethods: [
+            s3.HttpMethods.GET,
+            s3.HttpMethods.PUT,
+            s3.HttpMethods.HEAD,
+          ],
+          allowedOrigins: corsAllowedOrigins,
+          allowedHeaders: ["*"],
+          exposedHeaders: ["ETag"],
+          maxAge: 3000,
+        },
+      ],
+    });
 
     // Admin function
-    const managerGroupName = "manager";
-    const adminFunction = createPythonFunction("SiutindeiAdminFunction", {
+    const adminFunction = createPythonFunction("EvolvesproutsAdminFunction", {
       handler: "lambda/admin/handler.lambda_handler",
-      environment: {
-        DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
-        DATABASE_NAME: "evolvesprouts",
-        DATABASE_USERNAME: "evolvesprouts_admin",
-        DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
-        DATABASE_IAM_AUTH: "true",
-        ADMIN_GROUP: adminGroupName,
-        MANAGER_GROUP: managerGroupName,
-        COGNITO_USER_POOL_ID: userPool.userPoolId,
-        ORGANIZATION_MEDIA_BUCKET: organizationImagesBucket.bucketName,
-        ORGANIZATION_MEDIA_BASE_URL:
-          `https://${organizationImagesBucket.bucketRegionalDomainName}`,
-        ADMIN_IMPORT_EXPORT_BUCKET: adminImportExportBucket.bucketName,
-        CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
-        SUPPORT_EMAIL: supportEmail.valueAsString,
-        SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
-        TURNSTILE_SECRET_KEY: turnstileSecretKey.valueAsString,
-        FEEDBACK_STARS_PER_APPROVAL: feedbackStarsPerApproval.valueAsString,
-        NOMINATIM_USER_AGENT: nominatimUserAgent.valueAsString,
-        NOMINATIM_REFERER: nominatimReferer.valueAsString,
-      },
     });
-    database.grantAdminUserSecretRead(adminFunction);
-    database.grantConnect(adminFunction, "evolvesprouts_admin");
-    organizationImagesBucket.grantReadWrite(adminFunction);
-    adminImportExportBucket.grantReadWrite(adminFunction);
 
     // -----------------------------------------------------------------
     // AWS API Proxy Lambda (outside VPC)
@@ -1220,14 +957,10 @@ export class ApiStack extends cdk.Stack {
       noVpc: true,
       environment: {
         ALLOWED_ACTIONS: allowedProxyActions.join(","),
-        // Comma-separated URL prefixes for outbound HTTP requests.
-        // Add prefixes here when Lambdas inside the VPC need to call
-        // external APIs via the proxy.
         ALLOWED_HTTP_URLS: allowedProxyHttpUrls.join(","),
       },
     });
 
-    // Grant the proxy only the Cognito permissions it needs
     awsProxyFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -1244,84 +977,56 @@ export class ApiStack extends cdk.Stack {
       })
     );
 
-    // Allow the admin Lambda to invoke the proxy
-    awsProxyFunction.grantInvoke(adminFunction);
-
-    // Pass the proxy ARN to the admin Lambda
-    adminFunction.addEnvironment(
-      "AWS_PROXY_FUNCTION_ARN",
-      awsProxyFunction.functionArn,
-    );
-
-    // Grant SES permissions for sending access request notification emails
-    // Uses condition to only grant if SES sender email is configured
     const sesSenderIdentityArn = cdk.Stack.of(this).formatArn({
       service: "ses",
       resource: "identity",
       resourceName: sesSenderEmail.valueAsString,
     });
-    adminFunction.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: [sesSenderIdentityArn],
-      })
-    );
 
     // -------------------------------------------------------------------------
-    // Manager Request Messaging (SNS + SQS)
-    // Decouples manager request submission from processing for reliability
+    // Booking Request Messaging (SNS + SQS)
     // -------------------------------------------------------------------------
 
-    // KMS key for SQS queue encryption (Checkov CKV_AWS_27)
     const sqsEncryptionKey = new kms.Key(this, "SqsEncryptionKey", {
       enableKeyRotation: true,
       description: "KMS key for SQS queue encryption",
     });
 
-    // Dead Letter Queue for failed message processing
-    // SECURITY: Use customer-managed KMS key (Checkov CKV_AWS_27)
-    const managerRequestDLQ = new sqs.Queue(this, "ManagerRequestDLQ", {
-      queueName: name("manager-request-dlq"),
+    const bookingRequestDLQ = new sqs.Queue(this, "BookingRequestDLQ", {
+      queueName: name("booking-request-dlq"),
       retentionPeriod: cdk.Duration.days(14),
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
-    // Main processing queue with DLQ
-    // SECURITY: Use customer-managed KMS key (Checkov CKV_AWS_27)
-    const managerRequestQueue = new sqs.Queue(this, "ManagerRequestQueue", {
-      queueName: name("manager-request-queue"),
-      visibilityTimeout: cdk.Duration.seconds(60), // 6x Lambda timeout
+    const bookingRequestQueue = new sqs.Queue(this, "BookingRequestQueue", {
+      queueName: name("booking-request-queue"),
+      visibilityTimeout: cdk.Duration.seconds(60),
       deadLetterQueue: {
-        queue: managerRequestDLQ,
-        maxReceiveCount: 3, // Retry 3 times before DLQ
+        queue: bookingRequestDLQ,
+        maxReceiveCount: 3,
       },
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
-    // SNS Topic for manager request events
-    // SECURITY: Enable server-side encryption with customer-managed KMS key
-    const managerRequestTopic = new sns.Topic(this, "ManagerRequestTopic", {
-      topicName: name("manager-request-events"),
+    const bookingRequestTopic = new sns.Topic(this, "BookingRequestTopic", {
+      topicName: name("booking-request-events"),
       masterKey: sqsEncryptionKey,
     });
 
-    // Grant SNS service permission to use the KMS key for SQS encryption
     sqsEncryptionKey.grant(
       new iam.ServicePrincipal("sns.amazonaws.com"),
       "kms:GenerateDataKey*",
       "kms:Decrypt"
     );
 
-    // Subscribe SQS queue to SNS topic
-    managerRequestTopic.addSubscription(
-      new snsSubscriptions.SqsSubscription(managerRequestQueue)
+    bookingRequestTopic.addSubscription(
+      new snsSubscriptions.SqsSubscription(bookingRequestQueue)
     );
 
-    // Lambda processor triggered by SQS
-    const managerRequestProcessor = createPythonFunction(
-      "ManagerRequestProcessor",
+    const bookingRequestProcessor = createPythonFunction(
+      "BookingRequestProcessor",
       {
         handler: "lambda/manager_request_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(10),
@@ -1337,39 +1042,26 @@ export class ApiStack extends cdk.Stack {
       }
     );
 
-    // Grant database access to processor
-    database.grantAdminUserSecretRead(managerRequestProcessor);
-    database.grantConnect(managerRequestProcessor, "evolvesprouts_admin");
+    database.grantAdminUserSecretRead(bookingRequestProcessor);
+    database.grantConnect(bookingRequestProcessor, "evolvesprouts_admin");
 
-    // Grant SES permissions to processor
-    managerRequestProcessor.addToRolePolicy(
+    bookingRequestProcessor.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
         resources: [sesSenderIdentityArn],
       })
     );
 
-    // Connect SQS to Lambda (triggers Lambda on new messages)
-    managerRequestProcessor.addEventSource(
-      new lambdaEventSources.SqsEventSource(managerRequestQueue, {
-        batchSize: 1, // Process one at a time for simplicity
+    bookingRequestProcessor.addEventSource(
+      new lambdaEventSources.SqsEventSource(bookingRequestQueue, {
+        batchSize: 1,
       })
     );
 
-    // Grant admin Lambda permission to publish to SNS
-    managerRequestTopic.grantPublish(adminFunction);
-
-    // Pass topic ARN to admin Lambda
-    adminFunction.addEnvironment(
-      "MANAGER_REQUEST_TOPIC_ARN",
-      managerRequestTopic.topicArn
-    );
-
-    // CloudWatch alarm for DLQ (messages that failed processing)
-    const dlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "ManagerRequestDLQAlarm", {
-      alarmName: name("manager-request-dlq-alarm"),
-      alarmDescription: "Manager request messages failed processing and landed in DLQ",
-      metric: managerRequestDLQ.metricApproximateNumberOfMessagesVisible({
+    const dlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "BookingRequestDLQAlarm", {
+      alarmName: name("booking-request-dlq-alarm"),
+      alarmDescription: "Booking request messages failed processing and landed in DLQ",
+      metric: bookingRequestDLQ.metricApproximateNumberOfMessagesVisible({
         period: cdk.Duration.minutes(5),
       }),
       threshold: 1,
@@ -1378,7 +1070,7 @@ export class ApiStack extends cdk.Stack {
     });
 
     // Migration function
-    const migrationFunction = createPythonFunction("SiutindeiMigrationFunction", {
+    const migrationFunction = createPythonFunction("EvolvesproutsMigrationFunction", {
       handler: "lambda/migrations/handler.lambda_handler",
       timeout: cdk.Duration.minutes(5),
       securityGroups: [migrationSecurityGroup],
@@ -1403,7 +1095,6 @@ export class ApiStack extends cdk.Stack {
     database.grantAdminUserSecretRead(migrationFunction);
     database.grantConnect(migrationFunction, "postgres");
     migrationFunction.node.addDependency(database.cluster);
-    // Grant permission to manage Cognito users (needed for manager migration and seed data)
     migrationFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -1565,31 +1256,6 @@ export class ApiStack extends cdk.Stack {
       }
     );
 
-    // Cognito group-based authorizer for manager endpoints (admin OR manager)
-    // NOTE: Runs outside VPC to fetch JWKS from Cognito's public endpoint
-    const managerGroupAuthorizerFunction = createPythonFunction(
-      "ManagerGroupAuthorizerFunction",
-      {
-        handler: "lambda/authorizers/cognito_group/handler.lambda_handler",
-        memorySize: 256,
-        timeout: cdk.Duration.seconds(5),
-        noVpc: true,
-        environment: {
-          ALLOWED_GROUPS: `${adminGroupName},${managerGroupName}`,
-        },
-      }
-    );
-
-    const managerAuthorizer = new apigateway.RequestAuthorizer(
-      this,
-      "ManagerGroupAuthorizer",
-      {
-        handler: managerGroupAuthorizerFunction,
-        identitySources: [apigateway.IdentitySource.header("Authorization")],
-        resultsCacheTtl: cdk.Duration.minutes(5),
-      }
-    );
-
     // Cognito authorizer for any logged-in user (no group requirement)
     // NOTE: Runs outside VPC to fetch JWKS from Cognito's public endpoint
     const userAuthorizerFunction = createPythonFunction(
@@ -1651,13 +1317,11 @@ export class ApiStack extends cdk.Stack {
     // -------------------------------------------------------------------------
     const apiAccessLogGroupName = name("api-access-logs");
 
-    // KMS key for API Gateway access log encryption
     const apiLogEncryptionKey = new kms.Key(this, "ApiLogEncryptionKey", {
       enableKeyRotation: true,
       description: "KMS key for API Gateway CloudWatch log encryption",
     });
 
-    // Grant CloudWatch Logs service permission to use the key
     apiLogEncryptionKey.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -1844,12 +1508,6 @@ export class ApiStack extends cdk.Stack {
         cacheClusterEnabled: true,
         cacheClusterSize: "0.5",
         cacheDataEncrypted: true,
-        methodOptions: {
-          "/v1/activities/search/GET": {
-            cachingEnabled: true,
-            cacheTtl: cdk.Duration.minutes(5),
-          },
-        },
       },
     });
     api.deploymentStage.node.addDependency(apiAccessLogGroupRetention);
@@ -1879,28 +1537,26 @@ export class ApiStack extends cdk.Stack {
       responseHeaders: gatewayResponseHeaders,
     });
 
-    const mobileApiKey = new apigateway.ApiKey(this, "MobileSearchApiKey", {
-      apiKeyName: name("mobile-search-key"),
+    const publicWwwApiKey = new apigateway.ApiKey(this, "PublicWwwApiKey", {
+      apiKeyName: name("public-www-key"),
       value: publicApiKeyValue.valueAsString,
     });
-    const mobileUsagePlan = api.addUsagePlan("MobileSearchUsagePlan", {
-      name: name("mobile-search-plan"),
+    const publicWwwUsagePlan = api.addUsagePlan("PublicWwwUsagePlan", {
+      name: name("public-www-plan"),
     });
-    mobileUsagePlan.addApiKey(mobileApiKey);
-    mobileUsagePlan.addApiStage({ stage: api.deploymentStage });
+    publicWwwUsagePlan.addApiKey(publicWwwApiKey);
+    publicWwwUsagePlan.addApiStage({ stage: api.deploymentStage });
 
     // -------------------------------------------------------------------------
     // API Key Rotation
     // SECURITY: Rotate API keys every 90 days to limit exposure from compromise
     // -------------------------------------------------------------------------
 
-    // KMS key for secrets encryption (Checkov CKV_AWS_149)
     const secretsEncryptionKey = new kms.Key(this, "SecretsEncryptionKey", {
       enableKeyRotation: true,
       description: "KMS key for Secrets Manager encryption",
     });
 
-    // Secret to store the current API key (for rotation tracking)
     // SECURITY: Use customer-managed KMS key (Checkov CKV_AWS_149)
     const apiKeySecret = new secretsmanager.Secret(this, "ApiKeySecret", {
       secretName: name("api-key"),
@@ -1908,21 +1564,19 @@ export class ApiStack extends cdk.Stack {
       encryptionKey: secretsEncryptionKey,
     });
 
-    // API Key rotation Lambda
     const apiKeyRotationFunction = createPythonFunction("ApiKeyRotationFunction", {
       handler: "lambda/api_key_rotation/handler.lambda_handler",
       memorySize: 256,
       timeout: cdk.Duration.seconds(60),
       environment: {
         API_GATEWAY_REST_API_ID: api.restApiId,
-        API_GATEWAY_USAGE_PLAN_ID: mobileUsagePlan.usagePlanId,
+        API_GATEWAY_USAGE_PLAN_ID: publicWwwUsagePlan.usagePlanId,
         API_KEY_SECRET_ARN: apiKeySecret.secretArn,
-        API_KEY_NAME_PREFIX: name("mobile-search-key"),
+        API_KEY_NAME_PREFIX: name("public-www-key"),
         GRACE_PERIOD_HOURS: "24",
       },
     });
 
-    // Grant permissions to manage API keys
     apiKeyRotationFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -1934,18 +1588,16 @@ export class ApiStack extends cdk.Stack {
         resources: [
           `arn:aws:apigateway:${cdk.Stack.of(this).region}::/apikeys`,
           `arn:aws:apigateway:${cdk.Stack.of(this).region}::/apikeys/*`,
-          `arn:aws:apigateway:${cdk.Stack.of(this).region}::/usageplans/${mobileUsagePlan.usagePlanId}`,
-          `arn:aws:apigateway:${cdk.Stack.of(this).region}::/usageplans/${mobileUsagePlan.usagePlanId}/keys`,
-          `arn:aws:apigateway:${cdk.Stack.of(this).region}::/usageplans/${mobileUsagePlan.usagePlanId}/keys/*`,
+          `arn:aws:apigateway:${cdk.Stack.of(this).region}::/usageplans/${publicWwwUsagePlan.usagePlanId}`,
+          `arn:aws:apigateway:${cdk.Stack.of(this).region}::/usageplans/${publicWwwUsagePlan.usagePlanId}/keys`,
+          `arn:aws:apigateway:${cdk.Stack.of(this).region}::/usageplans/${publicWwwUsagePlan.usagePlanId}/keys/*`,
         ],
       })
     );
 
-    // Grant permissions to manage the secret
     apiKeySecret.grantRead(apiKeyRotationFunction);
     apiKeySecret.grantWrite(apiKeyRotationFunction);
 
-    // Schedule API key rotation every 90 days
     const apiKeyRotationRule = new cdk.aws_events.Rule(this, "ApiKeyRotationSchedule", {
       ruleName: name("api-key-rotation"),
       description: "Rotate mobile API key every 90 days",
@@ -1967,42 +1619,8 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.IAM,
     });
 
-    // v1 API
     const v1 = api.root.addResource("v1");
-    const activities = v1.addResource("activities");
-    const search = activities.addResource("search");
 
-    const cacheKeyParameters = [
-      "method.request.querystring.age",
-      "method.request.querystring.area_id",
-      "method.request.querystring.pricing_type",
-      "method.request.querystring.price_min",
-      "method.request.querystring.price_max",
-      "method.request.querystring.schedule_type",
-      "method.request.querystring.day_of_week_utc",
-      "method.request.querystring.day_of_month",
-      "method.request.querystring.start_minutes_utc",
-      "method.request.querystring.end_minutes_utc",
-      "method.request.querystring.start_at_utc",
-      "method.request.querystring.end_at_utc",
-      "method.request.querystring.language",
-      "method.request.querystring.limit",
-      "method.request.querystring.cursor",
-    ];
-    const requestParameters: Record<string, boolean> = {};
-    for (const param of cacheKeyParameters) {
-      requestParameters[param] = false;
-    }
-
-    search.addMethod("GET", new apigateway.LambdaIntegration(searchFunction), {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: deviceAttestationAuthorizer,
-      apiKeyRequired: true,
-      requestParameters,
-    });
-
-    // Admin routes
-    const admin = v1.addResource("admin");
     const adminIntegration = new apigateway.Integration({
       type: apigateway.IntegrationType.AWS_PROXY,
       integrationHttpMethod: "POST",
@@ -2013,265 +1631,78 @@ export class ApiStack extends cdk.Stack {
       sourceArn: api.arnForExecuteApi(),
     });
 
-    const reservations = v1.addResource("reservations");
-    reservations.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
+    // Admin asset routes
+    const admin = v1.addResource("admin");
+    const adminAssets = admin.addResource("assets");
+    adminAssets.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
     });
-
-    const www = api.root.addResource("www");
-    const wwwV1 = www.addResource("v1");
-    const wwwReservations = wwwV1.addResource("reservations");
-    wwwReservations.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
-    });
-
-    // All admin resources - admin only, full access
-    const adminResources = [
-      "organizations",
-      "locations",
-      "activity-categories",
-      "activities",
-      "pricing",
-      "schedules",
-      "feedback-labels",
-      "organization-feedback",
-    ];
-
-    for (const resourceName of adminResources) {
-      const resource = admin.addResource(resourceName);
-      resource.addMethod("GET", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: adminAuthorizer,
-      });
-      resource.addMethod("POST", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: adminAuthorizer,
-      });
-
-      const resourceById = resource.addResource("{id}");
-      resourceById.addMethod("GET", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: adminAuthorizer,
-      });
-      resourceById.addMethod("PUT", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: adminAuthorizer,
-      });
-      resourceById.addMethod("DELETE", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: adminAuthorizer,
-      });
-
-      if (resourceName === "organizations") {
-        const media = resourceById.addResource("media");
-        media.addMethod("POST", adminIntegration, {
-          authorizationType: apigateway.AuthorizationType.CUSTOM,
-          authorizer: adminAuthorizer,
-        });
-        media.addMethod("DELETE", adminIntegration, {
-          authorizationType: apigateway.AuthorizationType.CUSTOM,
-          authorizer: adminAuthorizer,
-        });
-      }
-    }
-
-    const imports = admin.addResource("imports");
-    imports.addMethod("POST", adminIntegration, {
+    adminAssets.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
 
-    const importsPresign = imports.addResource("presign");
-    importsPresign.addMethod("POST", adminIntegration, {
+    const adminAssetById = adminAssets.addResource("{id}");
+    adminAssetById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminAssetById.addMethod("PUT", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminAssetById.addMethod("DELETE", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
 
-    const importsExport = imports.addResource("export");
-    importsExport.addMethod("GET", adminIntegration, {
+    const adminAssetGrants = adminAssetById.addResource("grants");
+    adminAssetGrants.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminAssetGrants.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
 
-    const users = admin.addResource("users");
-    const userByName = users.addResource("{username}");
-    const userGroups = userByName.addResource("groups");
-    userGroups.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    userGroups.addMethod("DELETE", adminIntegration, {
+    const adminAssetGrantById = adminAssetGrants.addResource("{grantId}");
+    adminAssetGrantById.addMethod("DELETE", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
 
-    // Cognito users listing and management endpoint - admin only
-    const cognitoUsers = admin.addResource("cognito-users");
-    cognitoUsers.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const cognitoUserByName = cognitoUsers.addResource("{username}");
-    cognitoUserByName.addMethod("DELETE", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-
-    // Audit logs endpoint (read-only) - admin only
-    const auditLogs = admin.addResource("audit-logs");
-    auditLogs.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const auditLogById = auditLogs.addResource("{id}");
-    auditLogById.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    // Tickets management - admin only
-    const tickets = admin.addResource("tickets");
-    tickets.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    const ticketById = tickets.addResource("{id}");
-    ticketById.addMethod("PUT", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    // Geographic areas management (admin can list all or toggle active)
-    const adminAreas = admin.addResource("areas");
-    adminAreas.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-    const adminAreaById = adminAreas.addResource("{id}");
-    adminAreaById.addMethod("PATCH", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: adminAuthorizer,
-    });
-
-    // Manager-specific routes at /v1/manager (accessible by users in 'admin' OR 'manager' group)
-    // All manager routes are filtered by organization management in the Lambda
-    const manager = v1.addResource("manager");
-
-    // Manager resources - CRUD filtered by managed organizations
-    const managerResources = [
-      "organizations",
-      "locations",
-      "activities",
-      "pricing",
-      "schedules",
-    ];
-
-    for (const resourceName of managerResources) {
-      const resource = manager.addResource(resourceName);
-      resource.addMethod("GET", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: managerAuthorizer,
-      });
-      resource.addMethod("POST", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: managerAuthorizer,
-      });
-
-      const resourceById = resource.addResource("{id}");
-      resourceById.addMethod("GET", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: managerAuthorizer,
-      });
-      resourceById.addMethod("PUT", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: managerAuthorizer,
-      });
-      resourceById.addMethod("DELETE", adminIntegration, {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: managerAuthorizer,
-      });
-    }
-
-    // -------------------------------------------------------------------------
-    // User routes at /v1/user (accessible by any logged-in Cognito user)
-    // These endpoints require authentication but no specific group membership.
-    // Use userAuthorizer for any endpoint that should be available to all
-    // authenticated users.
-    // -------------------------------------------------------------------------
+    // User asset routes
     const user = v1.addResource("user");
-
-    // Address autocomplete (proxy to Nominatim)
-    const userAddressSearch = user.addResource("address-search");
-    userAddressSearch.addMethod("GET", adminIntegration, {
+    const userAssets = user.addResource("assets");
+    userAssets.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: userAuthorizer,
     });
 
-    // Access request (submit request to become a manager of an organization)
-    // Any logged-in user can request access, not just existing managers
-    const userAccessRequest = user.addResource("access-request");
-    userAccessRequest.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
-    });
-    userAccessRequest.addMethod("POST", adminIntegration, {
+    const userAssetById = userAssets.addResource("{id}");
+    const userAssetDownload = userAssetById.addResource("download");
+    userAssetDownload.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: userAuthorizer,
     });
 
-    // Organization suggestion (suggest a new place/organization)
-    // Any logged-in user can suggest places for the platform
-    const userOrgSuggestion = user.addResource("organization-suggestion");
-    userOrgSuggestion.addMethod("GET", adminIntegration, {
+    // Public asset routes (API key + device attestation)
+    const assets = v1.addResource("assets");
+    const publicAssets = assets.addResource("public");
+    publicAssets.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
-    });
-    userOrgSuggestion.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
+      authorizer: deviceAttestationAuthorizer,
+      apiKeyRequired: true,
     });
 
-    // Feedback labels (any authenticated user can fetch predefined labels)
-    const userFeedbackLabels = user.addResource("feedback-labels");
-    userFeedbackLabels.addMethod("GET", adminIntegration, {
+    const publicAssetById = publicAssets.addResource("{id}");
+    const publicAssetDownload = publicAssetById.addResource("download");
+    publicAssetDownload.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
-    });
-
-    // Organization feedback (any logged-in user can submit feedback)
-    const userOrgFeedback = user.addResource("organization-feedback");
-    userOrgFeedback.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
-    });
-    userOrgFeedback.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
-    });
-
-    // Organization lookup for feedback selection
-    const userOrganizations = user.addResource("organizations");
-    userOrganizations.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
-    });
-
-    // Geographic areas (any authenticated user can fetch the area tree)
-    const userAreas = user.addResource("areas");
-    userAreas.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
-    });
-
-    // Activity categories (any authenticated user can fetch the tree)
-    const userActivityCategories = user.addResource("activity-categories");
-    userActivityCategories.addMethod("GET", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-      authorizer: userAuthorizer,
+      authorizer: deviceAttestationAuthorizer,
+      apiKeyRequired: true,
     });
 
     // ---------------------------------------------------------------------
@@ -2399,15 +1830,12 @@ export class ApiStack extends cdk.Stack {
       ),
     });
 
-    // Import certificate for custom domain
     const apiCertificate = acm.Certificate.fromCertificateArn(
       this,
       "ApiCertificate",
       apiCustomDomainCertificateArn.valueAsString
     );
 
-    // Create custom domain for API Gateway (Regional endpoint)
-    // Regional is preferred for APIs not requiring global edge caching
     const apiDomain = new apigateway.DomainName(this, "ApiCustomDomain", {
       domainName: apiCustomDomainName.valueAsString,
       certificate: apiCertificate,
@@ -2417,7 +1845,6 @@ export class ApiStack extends cdk.Stack {
     const apiDomainCfn = apiDomain.node.defaultChild as apigateway.CfnDomainName;
     apiDomainCfn.cfnOptions.condition = useApiCustomDomain;
 
-    // Map the custom domain to the API stage
     const apiMapping = new apigateway.BasePathMapping(this, "ApiBasePathMapping", {
       domainName: apiDomain,
       restApi: api,
@@ -2449,32 +1876,27 @@ export class ApiStack extends cdk.Stack {
       value: userPoolClient.ref,
     });
 
-    new cdk.CfnOutput(this, "OrganizationImagesBucketName", {
-      value: organizationImagesBucket.bucketName,
+    new cdk.CfnOutput(this, "ClientAssetsBucketName", {
+      value: clientAssetsBucket.bucketName,
     });
 
-    new cdk.CfnOutput(this, "OrganizationImagesBaseUrl", {
-      value:
-        `https://${organizationImagesBucket.bucketRegionalDomainName}`,
+    new cdk.CfnOutput(this, "ClientAssetsLogBucketName", {
+      value: clientAssetsLogBucket.bucketName,
     });
 
-    new cdk.CfnOutput(this, "AdminImportExportBucketName", {
-      value: adminImportExportBucket.bucketName,
+    new cdk.CfnOutput(this, "BookingRequestTopicArn", {
+      value: bookingRequestTopic.topicArn,
+      description: "SNS topic ARN for booking request events",
     });
 
-    new cdk.CfnOutput(this, "ManagerRequestTopicArn", {
-      value: managerRequestTopic.topicArn,
-      description: "SNS topic ARN for manager request events",
+    new cdk.CfnOutput(this, "BookingRequestQueueUrl", {
+      value: bookingRequestQueue.queueUrl,
+      description: "SQS queue URL for booking request processing",
     });
 
-    new cdk.CfnOutput(this, "ManagerRequestQueueUrl", {
-      value: managerRequestQueue.queueUrl,
-      description: "SQS queue URL for manager request processing",
-    });
-
-    new cdk.CfnOutput(this, "ManagerRequestDLQUrl", {
-      value: managerRequestDLQ.queueUrl,
-      description: "SQS dead letter queue URL for failed manager requests",
+    new cdk.CfnOutput(this, "BookingRequestDLQUrl", {
+      value: bookingRequestDLQ.queueUrl,
+      description: "SQS dead letter queue URL for failed booking requests",
     });
 
     const customAuthDomainOutput = new cdk.CfnOutput(
@@ -2486,7 +1908,6 @@ export class ApiStack extends cdk.Stack {
     );
     customAuthDomainOutput.condition = useCustomDomain;
 
-    // Output the API custom domain target for DNS configuration
     const apiCustomDomainTarget = new cdk.CfnOutput(
       this,
       "ApiCustomDomainTarget",
@@ -2510,7 +1931,6 @@ export class ApiStack extends cdk.Stack {
     );
     apiCustomDomainUrlOutput.condition = useApiCustomDomain;
 
-    // Apply Checkov suppressions to CDK-internal Lambda functions
     cdk.Aspects.of(this).add(new CdkInternalLambdaCheckovSuppression());
   }
 }
@@ -2520,7 +1940,6 @@ const REQUIRED_PUBLIC_WEB_CORS_ORIGINS = [
   "https://www-staging.evolvesprouts.com",
 ];
 
-// CORS origins must be concrete at synth time for preflight generation.
 function resolveCorsAllowedOrigins(scope: Construct): string[] {
   const defaultOrigins = [
     ...REQUIRED_PUBLIC_WEB_CORS_ORIGINS,
@@ -2545,8 +1964,6 @@ function resolveCorsAllowedOrigins(scope: Construct): string[] {
 }
 
 function ensureRequiredCorsOrigins(origins: string[]): string[] {
-  // Keep public website origins first because API Gateway default 4xx/5xx
-  // gateway responses use corsAllowedOrigins[0] for Access-Control-Allow-Origin.
   return Array.from(
     new Set([...REQUIRED_PUBLIC_WEB_CORS_ORIGINS, ...origins].map((origin) => origin.trim()))
   ).filter((origin) => origin.length > 0);

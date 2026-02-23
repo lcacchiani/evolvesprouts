@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
-import { CrmWebStack } from "../lib/crm-web-stack";
+import { AdminWebStack } from "../lib/admin-web-stack";
+import { ApiStack } from "../lib/api-stack";
 import { PublicWwwStack } from "../lib/public-www-stack";
 
 const app = new cdk.App();
@@ -9,8 +10,19 @@ if (bootstrapQualifier) {
   app.node.setContext("@aws-cdk/core:bootstrapQualifier", bootstrapQualifier);
 }
 
-new CrmWebStack(app, "evolvesprouts-crm-web", {
-  description: "Evolve Sprouts CRM Web",
+new ApiStack(app, "evolvesprouts", {
+  description: "Evolve Sprouts Backend",
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
+  synthesizer: bootstrapQualifier
+    ? new cdk.DefaultStackSynthesizer({ qualifier: bootstrapQualifier })
+    : undefined,
+});
+
+new AdminWebStack(app, "evolvesprouts-admin-web", {
+  description: "Evolve Sprouts Admin Web",
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,

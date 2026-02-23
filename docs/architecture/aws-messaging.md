@@ -26,26 +26,26 @@ Ticket submissions are processed asynchronously using SNS + SQS messaging. This 
 
 ## Components
 
-### SNS Topic: `evolvesprouts-manager-request-events`
+### SNS Topic: `evolvesprouts-booking-request-events`
 
 - Receives ticket events from the API
 - Fans out to subscribed SQS queue
 - Message attributes enable filtering by `event_type`
 
-### SQS Queue: `evolvesprouts-manager-request-queue`
+### SQS Queue: `evolvesprouts-booking-request-queue`
 
 - Subscribes to SNS topic
 - 60 second visibility timeout (6x Lambda timeout)
 - 3 retry attempts before DLQ
 - SQS-managed encryption
 
-### Dead Letter Queue: `evolvesprouts-manager-request-dlq`
+### Dead Letter Queue: `evolvesprouts-booking-request-dlq`
 
 - Receives messages that fail processing 3 times
 - 14 day retention for debugging
 - CloudWatch alarm triggers when messages arrive
 
-### Processor Lambda: `ManagerRequestProcessor`
+### Processor Lambda: `BookingRequestProcessor`
 
 - Triggered by SQS messages
 - Routes each message to the appropriate handler based on `event_type`
@@ -69,7 +69,7 @@ Example:
 ```
 
 Current event types:
-- `manager_request.submitted`
+- `booking_request.submitted`
 - `organization_suggestion.submitted`
 - `organization_feedback.submitted`
 
@@ -105,7 +105,7 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 |------|-------------|
 | `backend/infrastructure/lib/api-stack.ts` | CDK infrastructure |
 | `backend/src/app/api/admin.py` | API handler with SNS publish |
-| `backend/lambda/manager_request_processor/handler.py` | SQS processor |
+| `backend/lambda/manager_request_processor/handler.py` | SQS booking request processor |
 | `backend/src/app/db/repositories/ticket.py` | Repository with `find_by_ticket_id` |
 
 ## Environment Variables
@@ -114,8 +114,7 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 
 | Variable | Description |
 |----------|-------------|
-| `MANAGER_REQUEST_TOPIC_ARN` | SNS topic ARN (required) |
-| `FEEDBACK_TOPIC_ARN` | Optional SNS topic ARN for feedback (defaults to manager topic) |
+| `BOOKING_REQUEST_TOPIC_ARN` | SNS topic ARN (required) |
 
 ### Processor Lambda
 
@@ -133,9 +132,9 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 
 | Output | Description |
 |--------|-------------|
-| `ManagerRequestTopicArn` | SNS topic ARN |
-| `ManagerRequestQueueUrl` | SQS queue URL |
-| `ManagerRequestDLQUrl` | Dead letter queue URL |
+| `BookingRequestTopicArn` | SNS topic ARN |
+| `BookingRequestQueueUrl` | SQS queue URL |
+| `BookingRequestDLQUrl` | Dead letter queue URL |
 
 ## Monitoring
 

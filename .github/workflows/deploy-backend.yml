@@ -12,7 +12,8 @@ on:
         type: choice
         options:
           - 'all stacks'
-          - 'crm web'
+          - 'backend'
+          - 'admin web'
           - 'public website'
   push:
     branches:
@@ -84,9 +85,11 @@ jobs:
           npm run build --if-present
 
           if [ "${CDK_STACKS:-}" = "all stacks" ]; then
-            CDK_STACKS="evolvesprouts-crm-web evolvesprouts-public-www"
-          elif [ "${CDK_STACKS:-}" = "crm web" ]; then
-            CDK_STACKS="evolvesprouts-crm-web"
+            CDK_STACKS="evolvesprouts evolvesprouts-admin-web evolvesprouts-public-www"
+          elif [ "${CDK_STACKS:-}" = "backend" ]; then
+            CDK_STACKS="evolvesprouts"
+          elif [ "${CDK_STACKS:-}" = "admin web" ]; then
+            CDK_STACKS="evolvesprouts-admin-web"
           elif [ "${CDK_STACKS:-}" = "public website" ] || [ "${CDK_STACKS:-}" = "public www" ] || [ "${CDK_STACKS:-}" = "public website staging" ] || [ "${CDK_STACKS:-}" = "public www staging" ]; then
             CDK_STACKS="evolvesprouts-public-www"
           fi
@@ -124,9 +127,10 @@ jobs:
               params = json.load(handle)
 
           stack_set = set(os.environ.get("STACKS", "").split())
-          crm_stack = "evolvesprouts-crm-web"
+          backend_stack = "evolvesprouts"
+          admin_web_stack = "evolvesprouts-admin-web"
           public_stack = "evolvesprouts-public-www"
-          crm_params = {"CrmWebDomainName", "CrmWebCertificateArn", "WafWebAclArn"}
+          admin_web_params = {"AdminWebDomainName", "AdminWebCertificateArn", "WafWebAclArn"}
           public_params = {
               "PublicWwwDomainName",
               "PublicWwwCertificateArn",
@@ -143,13 +147,12 @@ jobs:
                   continue
 
               targets = []
-              if key in crm_params:
-                  targets.append(crm_stack)
+              if key in admin_web_params:
+                  targets.append(admin_web_stack)
               if key in public_params:
                   targets.append(public_stack)
-
               if not targets:
-                  continue
+                  targets.append(backend_stack)
 
               for target in targets:
                   if target not in stack_set:

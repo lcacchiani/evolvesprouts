@@ -7,7 +7,7 @@ This document outlines Cloudflare optimization strategies for the Evolve Sprouts
 - [Architecture Overview](#architecture-overview)
 - [DNS and Proxy Setup](#dns-and-proxy-setup)
 - [API Optimization](#api-optimization)
-- [CRM Web Optimization](#crm-web-optimization)
+- [Admin Web Optimization](#admin-web-optimization)
 - [Image Optimization](#image-optimization)
 - [Security Enhancements](#security-enhancements)
 - [Performance Optimizations](#performance-optimizations)
@@ -384,7 +384,7 @@ resource "cloudflare_tiered_cache" "api" {
 
 ---
 
-## CRM Web Optimization
+## Admin Web Optimization
 
 ### Page Rules and Cache Configuration
 
