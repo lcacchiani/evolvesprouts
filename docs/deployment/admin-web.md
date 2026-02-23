@@ -4,14 +4,14 @@
 
 ## Prerequisites
 
-- ACM certificate in `us-east-1` for `crm.evolvesprouts.com`
+- ACM certificate in `us-east-1` for `admin.evolvesprouts.com`
 - CloudFront alias configured with the domain above
 
 ## CDK parameters
 
 Provide these parameters when deploying `evolvesprouts-admin-web`:
 
-- `AdminWebDomainName`: `crm.evolvesprouts.com`
+- `AdminWebDomainName`: `admin.evolvesprouts.com`
 - `AdminWebCertificateArn`: ACM certificate ARN (us-east-1)
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1). Set to an
   empty string to deploy without WAF.
@@ -34,7 +34,7 @@ bash scripts/deploy/deploy-admin-web.sh
 
 Set `CORS_ALLOWED_ORIGINS` (or CDK context `corsAllowedOrigins`) to include:
 
-- `https://crm.evolvesprouts.com`
+- `https://admin.evolvesprouts.com`
 - `http://localhost:3000`
 
 This is required if the admin shell calls authenticated backend endpoints.

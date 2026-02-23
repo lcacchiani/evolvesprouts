@@ -6,8 +6,8 @@
   "CognitoDomainPrefix": "evolvesprouts-prod",
   "CognitoCustomDomainName": "auth.evolvesprouts.com",
   "CognitoCustomDomainCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
-  "CognitoCallbackUrls": "com.evolvesprouts://callback,https://crm.evolvesprouts.com/auth/callback,http://localhost:3000/auth/callback",
-  "CognitoLogoutUrls": "com.evolvesprouts://logout,https://crm.evolvesprouts.com/,http://localhost:3000/",
+  "CognitoCallbackUrls": "com.evolvesprouts://callback,https://admin.evolvesprouts.com/auth/callback,http://localhost:3000/auth/callback",
+  "CognitoLogoutUrls": "com.evolvesprouts://logout,https://admin.evolvesprouts.com/,http://localhost:3000/",
   "GoogleClientId": "640961587388-b7qm2408gcnh31shppd4r60rkfr1mqnr.apps.googleusercontent.com",
   "GoogleClientSecret": "<FROM_GITHUB_SECRET: CDK_PARAM_GOOGLE_CLIENT_SECRET>",
   "AppleClientId": "com.evolvesprouts.auth",
@@ -27,7 +27,7 @@
   "ActiveCountryCodes": "HK",
   "AdminBootstrapEmail": "",
   "AdminBootstrapTempPassword": "<FROM_GITHUB_SECRET: CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD>",
-  "AdminWebDomainName": "crm.evolvesprouts.com",
+  "AdminWebDomainName": "admin.evolvesprouts.com",
   "AdminWebCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
   "PublicWwwDomainName": "www.evolvesprouts.com",
   "PublicWwwCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656",
@@ -36,6 +36,6 @@
   "WafWebAclArn": "",
   "ApiCustomDomainName": "api.evolvesprouts.com",
   "ApiCustomDomainCertificateArn": "arn:aws:acm:ap-southeast-1:588024549699:certificate/af726e1f-444b-47e6-906e-ce9e0925bde4",
-  "NominatimUserAgent": "EvolveSproutsAdminWeb/1.0 (https://crm.evolvesprouts.com)",
-  "NominatimReferer": "https://crm.evolvesprouts.com"
+  "NominatimUserAgent": "EvolveSproutsAdminWeb/1.0 (https://admin.evolvesprouts.com)",
+  "NominatimReferer": "https://admin.evolvesprouts.com"
 }
