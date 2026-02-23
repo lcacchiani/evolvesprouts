@@ -32,17 +32,23 @@ function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): st
 }
 
 describe('MyBestAuntieBooking section', () => {
-  it('keeps age and date card selections independent and renders cohort date in subtitle-lg style', () => {
+  it('updates next cohort from age selection only and keeps cohort date in subtitle-lg style', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
     const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
     const secondAgeOption = enContent.myBestAuntieBooking.ageOptions[1];
     const firstDateOption = enContent.myBestAuntieBooking.dateOptions[0];
     const secondDateOption = enContent.myBestAuntieBooking.dateOptions[1];
+    const thirdDateOption = enContent.myBestAuntieBooking.dateOptions[2];
     const firstMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[0]?.id;
+    const secondMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[1]?.id;
     const firstCohortDate =
       firstMonthId
         ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[firstMonthId]
+        : undefined;
+    const secondCohortDate =
+      secondMonthId
+        ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[secondMonthId]
         : undefined;
 
     if (
@@ -50,12 +56,15 @@ describe('MyBestAuntieBooking section', () => {
       !secondAgeOption ||
       !firstDateOption ||
       !secondDateOption ||
-      !firstCohortDate
+      !thirdDateOption ||
+      !firstCohortDate ||
+      !secondCohortDate
     ) {
       throw new Error('Test content must include age and cohort mappings.');
     }
 
     const formattedFirstCohortDate = formatCohortPreviewLabel(firstCohortDate);
+    const formattedSecondCohortDate = formatCohortPreviewLabel(secondCohortDate);
     const nextCohortCard = screen.getByTestId('my-best-auntie-next-cohort-card');
     expect(nextCohortCard.className).toContain('rounded-inner');
     expect(nextCohortCard.className).toContain('border');
@@ -95,6 +104,7 @@ describe('MyBestAuntieBooking section', () => {
         ),
       ),
     ).toBeInTheDocument();
+    expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
         name: new RegExp(firstDateOption.label),
@@ -105,6 +115,19 @@ describe('MyBestAuntieBooking section', () => {
         name: new RegExp(secondDateOption.label),
       }).className,
     ).toContain('es-btn--state-inactive');
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: new RegExp(thirdDateOption.label),
+      }),
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: new RegExp(thirdDateOption.label),
+      }).className,
+    ).toContain('es-btn--state-active');
+    expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
   });
 
   it('removes right-column selector shadows, keeps date cards in two lines, keeps CTA width to copy, and hides date arrows for three dates', () => {

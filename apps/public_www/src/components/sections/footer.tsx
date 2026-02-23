@@ -122,13 +122,15 @@ function FooterDesktopColumn({
   title,
   items,
   hasSocialIcons = false,
+  className = '',
 }: {
   title: string;
   items: FooterLinkItem[];
   hasSocialIcons?: boolean;
+  className?: string;
 }) {
   return (
-    <section className='w-full max-w-[223px] lg:pt-[70px]'>
+    <section className={`w-full max-w-[223px] lg:pt-[70px] ${className}`.trim()}>
       <h3 className='pb-4 es-footer-column-title'>
         {title}
       </h3>
@@ -201,7 +203,7 @@ export function Footer({ content }: FooterProps) {
               className={FOOTER_LOGO_CLASSNAME}
             />
           </div>
-          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,500px)_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-10'>
+          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,500px)_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-0 lg:gap-y-10'>
             <FooterDesktopColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
@@ -209,6 +211,7 @@ export function Footer({ content }: FooterProps) {
             <FooterDesktopColumn
               title={content.services.title}
               items={content.services.items}
+              className='lg:pl-6'
             />
             <div className='hidden justify-center lg:flex lg:pt-2'>
               <Image
@@ -227,6 +230,7 @@ export function Footer({ content }: FooterProps) {
               title={content.connectOn.title}
               items={content.connectOn.items}
               hasSocialIcons
+              className='lg:pl-6'
             />
           </div>
 

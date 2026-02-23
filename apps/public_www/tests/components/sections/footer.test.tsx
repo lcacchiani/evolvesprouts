@@ -79,4 +79,20 @@ describe('Footer external links', () => {
       expect(summary.className).toContain('w-full');
     }
   });
+
+  it('removes desktop gap around the centered logo column', () => {
+    render(<Footer content={enContent.footer} />);
+
+    const desktopGrid = document.querySelector(
+      'div.hidden.grid-cols-1',
+    ) as HTMLDivElement | null;
+    expect(desktopGrid).not.toBeNull();
+    expect(desktopGrid?.className).toContain('lg:gap-x-0');
+
+    const desktopColumns = desktopGrid?.querySelectorAll('section') ?? [];
+    expect(desktopColumns).toHaveLength(4);
+    expect(desktopColumns[1]?.className).toContain('lg:pl-6');
+    expect(desktopColumns[2]?.className).not.toContain('lg:pl-6');
+    expect(desktopColumns[3]?.className).toContain('lg:pl-6');
+  });
 });

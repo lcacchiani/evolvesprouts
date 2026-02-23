@@ -124,12 +124,17 @@ export function MyBestAuntieBooking({
     ageOptions.find((option) => option.id === selectedAgeId) ?? ageOptions[0];
   const selectedDateOption =
     dateOptions.find((option) => option.id === selectedDateId) ?? dateOptions[0];
+  const selectedAgeIndex = ageOptions.findIndex(
+    (option) => option.id === selectedAgeOption?.id,
+  );
+  const nextCohortDateOption =
+    selectedAgeIndex >= 0 ? dateOptions[selectedAgeIndex] : dateOptions[0];
 
   const modalMonthId =
     selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
   const firstCoursePart = content.paymentModal.parts[0];
   const firstMonthId = content.paymentModal.monthOptions[0]?.id ?? '';
-  const nextCohortMonthId = selectedDateOption?.id ?? firstMonthId;
+  const nextCohortMonthId = nextCohortDateOption?.id ?? firstMonthId;
   const firstCohortDate = firstCoursePart
     ? Object.entries(firstCoursePart.dateByMonth).find(
         ([monthId]) => monthId === nextCohortMonthId,
@@ -137,8 +142,7 @@ export function MyBestAuntieBooking({
     : undefined;
   const nextCohortDate =
     firstCohortDate ??
-    dateOptions.find((option) => option.id === nextCohortMonthId)?.label ??
-    selectedDateOption?.label ??
+    nextCohortDateOption?.label ??
     content.scheduleDate;
   const nextCohortLabel = formatNextCohortLabel(
     content.scheduleLabel,

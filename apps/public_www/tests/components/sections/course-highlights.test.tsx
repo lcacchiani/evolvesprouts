@@ -15,7 +15,7 @@ vi.mock('next/image', () => ({
 }));
 
 describe('CourseHighlights', () => {
-  it('falls back to default copy and metadata when section content is sparse', () => {
+  it('falls back to default copy and metadata when section content is sparse and uses green card tones', () => {
     const sparseContent = {
       ...enContent.courseHighlights,
       eyebrow: '',
@@ -38,5 +38,9 @@ describe('CourseHighlights', () => {
 
     const cards = screen.getAllByRole('button', { name: /show details for/i });
     expect(cards).toHaveLength(6);
+    expect(document.querySelectorAll('.es-course-highlight-card--green').length).toBeGreaterThan(
+      0,
+    );
+    expect(document.querySelectorAll('.es-course-highlight-card--gold')).toHaveLength(0);
   });
 });

@@ -28,7 +28,7 @@ interface BenefitCardMeta {
   imageClassName: string;
 }
 
-const CARD_TONES = ['gold', 'blue'] as const;
+const CARD_TONES = ['green', 'blue'] as const;
 
 const fallbackCourseHighlightsCopy = enContent.courseHighlights;
 

@@ -538,16 +538,12 @@
     "sortAriaLabel": "Sort events by",
     "sortOptions": [
       {
-        "value": "latest",
-        "label": "Latest Events"
+        "value": "upcoming",
+        "label": "Upcoming Events"
       },
       {
-        "value": "oldest",
-        "label": "Older Events"
-      },
-      {
-        "value": "fully_booked",
-        "label": "Fully Booked"
+        "value": "past",
+        "label": "Past Events"
       }
     ],
     "loadingLabel": "Loading events...",

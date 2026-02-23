@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import {
   type FormEvent,
   useMemo,
@@ -44,11 +43,17 @@ interface BookingReservationFormProps {
 const DISCOUNT_ERROR_MESSAGE_ID = 'booking-modal-discount-error-message';
 const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
+const EMAIL_ERROR_MESSAGE_ID = 'booking-modal-email-error-message';
 const RESERVATION_SUBMIT_ERROR_MESSAGE =
   'Unable to submit reservation right now. Please try again.';
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function sanitizeSingleLineValue(value: string): string {
   return value.replaceAll(/\s+/g, ' ').trim();
+}
+
+function isValidEmail(value: string): boolean {
+  return EMAIL_PATTERN.test(value.trim());
 }
 
 export function BookingReservationForm({
@@ -65,6 +70,7 @@ export function BookingReservationForm({
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [phone, setPhone] = useState('');
   const [interestedTopics, setInterestedTopics] = useState('');
   const [discountCode, setDiscountCode] = useState('');
@@ -88,6 +94,7 @@ export function BookingReservationForm({
   const discountAmount = Math.max(0, originalAmount - totalAmount);
   const hasDiscount = discountAmount > 0;
   const hasConfirmedPriceDifference = totalAmount !== originalAmount;
+  const hasEmailError = isEmailTouched && !isValidEmail(email);
   const hasCaptchaValidationError = isCaptchaTouched && !captchaToken;
   const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
   const isCaptchaUnavailable = !isCaptchaConfigured || hasCaptchaLoadError;
@@ -101,6 +108,7 @@ export function BookingReservationForm({
   const isSubmitDisabled =
     !fullName.trim() ||
     !email.trim() ||
+    hasEmailError ||
     !phone.trim() ||
     !hasPendingReservationAcknowledgement ||
     !hasTermsAgreement ||
@@ -152,8 +160,12 @@ export function BookingReservationForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsEmailTouched(true);
     setIsCaptchaTouched(true);
     setSubmitError('');
+    if (!isValidEmail(email)) {
+      return;
+    }
     if (
       !selectedPackageLabel ||
       !selectedMonthLabel ||
@@ -217,16 +229,7 @@ export function BookingReservationForm({
 
   return (
     <div className='w-full lg:w-[calc(50%-20px)]'>
-      <section className='relative overflow-visible rounded-inner border es-border-panel es-bg-surface-muted px-5 py-7 sm:px-7'>
-        <Image
-          src='/images/evolvesprouts-logo.svg'
-          alt=''
-          width={276}
-          height={267}
-          className='pointer-events-none absolute -right-5 -top-6 hidden w-[220px] sm:block'
-          aria-hidden='true'
-        />
-
+      <section className='es-my-best-auntie-booking-modal-reservation-panel relative overflow-visible rounded-inner border es-border-panel es-bg-surface-muted px-5 py-7 sm:px-7'>
         <h3 className='relative z-10 text-[30px] font-bold leading-none es-text-heading'>
           {content.reservationTitle}
         </h3>
@@ -268,8 +271,22 @@ export function BookingReservationForm({
               onChange={(event) => {
                 setEmail(event.target.value);
               }}
-              className='es-focus-ring es-form-input'
+              onBlur={() => {
+                setIsEmailTouched(true);
+              }}
+              className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
+              aria-invalid={hasEmailError}
+              aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
             />
+            {hasEmailError ? (
+              <p
+                id={EMAIL_ERROR_MESSAGE_ID}
+                className='text-sm font-semibold es-text-danger-strong'
+                role='alert'
+              >
+                Please enter a valid email address.
+              </p>
+            ) : null}
           </label>
           <label className='block'>
             <span className='mb-1 block text-sm font-semibold es-text-heading'>

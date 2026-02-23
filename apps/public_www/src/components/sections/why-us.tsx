@@ -56,7 +56,7 @@ export function WhyUs({ content }: WhyUsProps) {
           </div>
 
           <div className='rounded-card border es-border-soft-alt bg-white/85 p-6 sm:p-7'>
-            <h3 className='es-why-us-intro-title'>{content.introTitle}</h3>
+            <h3 className='es-type-subtitle es-why-us-intro-subtitle'>{content.introTitle}</h3>
             <ul className='mt-4 space-y-3'>
               {content.introItems.map((item) => (
                 <li key={item} className='flex items-start gap-3'>
