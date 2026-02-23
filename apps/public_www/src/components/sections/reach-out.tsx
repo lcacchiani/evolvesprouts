@@ -43,7 +43,7 @@ export function ReachOut({ content }: ReachOutProps) {
       id='reach-out'
       ariaLabel={content.title}
       dataFigmaNode='reach-out'
-      className='es-section-bg-overlay es-testimonials-section overflow-hidden'
+      className='es-section-bg-overlay es-reach-out-section overflow-hidden'
     >
       <SectionContainer>
         <SectionHeader
