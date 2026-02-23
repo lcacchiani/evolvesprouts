@@ -12,7 +12,7 @@
   "GoogleClientSecret": "<FROM_GITHUB_SECRET: CDK_PARAM_GOOGLE_CLIENT_SECRET>",
   "AppleClientId": "com.evolvesprouts.auth",
   "AppleTeamId": "<FROM_GITHUB_VAR: APPLE_TEAM_ID>",
-  "AppleKeyId": "F7Y8TMYHFC",
+  "AppleKeyId": "AK24FJ6ANZ",
   "ApplePrivateKey": "<FROM_GITHUB_SECRET: CDK_PARAM_APPLE_PRIVATE_KEY>",
   "AuthEmailFromAddress": "hello@lx-software.com",
   "LoginLinkBaseUrl": "",
