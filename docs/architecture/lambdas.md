@@ -12,40 +12,16 @@ their primary responsibilities.
 
 ## API Gateway Lambdas
 
-### Activity search
-- Function: SiutindeiSearchFunction
-- Handler: backend/lambda/search/handler.py
-- Trigger: API Gateway `GET /v1/activities/search`
-- Auth: API key + device attestation authorizer
-- Purpose: public activity search with cursor pagination
-- DB access: RDS Proxy with IAM auth (`activities_app`)
-
 ### Admin API
-- Function: SiutindeiAdminFunction
+- Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
-- Trigger: API Gateway — handles routes under `/v1/admin/*`,
-  `/v1/manager/*`, `/v1/user/*`, `/v1/reservations`,
-  and `/www/v1/reservations`
-- Auth: Cognito JWT — admin group for `/v1/admin/*`, admin/manager
-  group for `/v1/manager/*`, any authenticated user for `/v1/user/*`
-- Purpose: admin CRUD (including activity categories), manager CRUD
-  (filtered by ownership), user self-service (tickets), Cognito user
-  management, audit logs, media upload, admin import/export, and address
-  autocomplete (Nominatim via the AWS/HTTP proxy), plus public reservation
-  submissions with server-side Turnstile verification
-- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
-- Environment:
-  - `SES_SENDER_EMAIL`
-  - `TURNSTILE_SECRET_KEY`
-  - `SES_TEMPLATE_REQUEST_DECISION` (optional)
-  - `SES_TEMPLATE_SUGGESTION_DECISION` (optional)
-  - `SES_TEMPLATE_FEEDBACK_DECISION` (optional)
-  - `FEEDBACK_STARS_PER_APPROVAL`
-  - `NOMINATIM_USER_AGENT`
-  - `NOMINATIM_REFERER`
-  - `ADMIN_IMPORT_EXPORT_BUCKET`
-- For the full endpoint list, see the OpenAPI spec:
-  `docs/api/admin.yaml`
+- Trigger: API Gateway — handles routes under `/v1/admin/assets/*`,
+  `/v1/user/assets/*`, and `/v1/assets/public/*`
+- Auth: Cognito JWT — admin group for `/v1/admin/*`,
+  any authenticated user for `/v1/user/*`,
+  device attestation + API key for `/v1/assets/public/*`
+- Purpose: asset CRUD, access grant management, presigned URL generation
+- Status: empty shell (infrastructure wired, handler pending)
 
 ### Health check
 - Function: HealthCheckFunction
@@ -53,7 +29,7 @@ their primary responsibilities.
 - Trigger: API Gateway `GET /health`
 - Auth: IAM
 - Purpose: service health and configuration checks
-- DB access: RDS Proxy with IAM auth (`activities_app`)
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_app`)
 
 ## Auth and security Lambdas
 
@@ -91,7 +67,7 @@ their primary responsibilities.
 - Function: DeviceAttestationAuthorizer
 - Handler: backend/lambda/authorizers/device_attestation/handler.py
 - Trigger: API Gateway request authorizer
-- Purpose: verify device attestation JWTs for public search
+- Purpose: verify device attestation JWTs for public asset endpoints
 
 ### Admin group authorizer
 - Function: AdminGroupAuthorizerFunction
@@ -119,7 +95,7 @@ their primary responsibilities.
 ## Deployment and maintenance Lambdas
 
 ### Migrations
-- Function: SiutindeiMigrationFunction
+- Function: EvolvesproutsMigrationFunction
 - Handler: backend/lambda/migrations/handler.py
 - Trigger: CloudFormation custom resource during deploy
 - Purpose: run Alembic migrations and optional seed SQL
@@ -145,13 +121,11 @@ their primary responsibilities.
   - `API_KEY_NAME_PREFIX`: prefix for key names
   - `GRACE_PERIOD_HOURS`: hours to keep old key active (default 24)
 
-### Manager request processor
-- Function: ManagerRequestProcessor
+### Booking request processor
+- Function: BookingRequestProcessor
 - Handler: backend/lambda/manager_request_processor/handler.py
-- Trigger: SQS queue (subscribed to SNS manager request topic)
-- Purpose: process async ticket submissions from the SNS topic. Stores
-  the ticket in the `tickets` table (idempotent via `ticket_id`) and
-  sends a notification email to support/admin.
+- Trigger: SQS queue (subscribed to SNS booking request topic)
+- Purpose: process async booking submissions from the SNS topic
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: SES send email
@@ -159,9 +133,6 @@ their primary responsibilities.
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`
-  - `SES_TEMPLATE_NEW_ACCESS_REQUEST` (optional)
-  - `SES_TEMPLATE_NEW_SUGGESTION` (optional)
-  - `SES_TEMPLATE_NEW_FEEDBACK` (optional)
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction

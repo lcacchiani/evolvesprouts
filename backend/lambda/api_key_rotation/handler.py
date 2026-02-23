@@ -19,7 +19,7 @@ Environment Variables:
     API_GATEWAY_REST_API_ID: The API Gateway REST API ID
     API_GATEWAY_USAGE_PLAN_ID: The usage plan ID to associate keys with
     API_KEY_SECRET_ARN: Secrets Manager secret ARN to store the new key
-    API_KEY_NAME_PREFIX: Prefix for API key names (default: "mobile-search-key")
+    API_KEY_NAME_PREFIX: Prefix for API key names (default: "public-www-key")
     GRACE_PERIOD_HOURS: Hours to keep old key active (default: 24)
 """
 
@@ -230,7 +230,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     rest_api_id = os.getenv("API_GATEWAY_REST_API_ID")
     usage_plan_id = os.getenv("API_GATEWAY_USAGE_PLAN_ID")
     secret_arn = os.getenv("API_KEY_SECRET_ARN")
-    key_prefix = os.getenv("API_KEY_NAME_PREFIX", "mobile-search-key")
+    key_prefix = os.getenv("API_KEY_NAME_PREFIX", "public-www-key")
 
     # Validate configuration
     if not rest_api_id or not usage_plan_id or not secret_arn:

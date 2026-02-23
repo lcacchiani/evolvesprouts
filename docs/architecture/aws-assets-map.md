@@ -78,10 +78,8 @@ Created once per account/region when `cdk bootstrap` runs. Not part of the main 
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| S3 Bucket | `OrganizationImagesBucket` | `evolvesprouts-org-media-{account}-{region}` | Public bucket for organization images |
-| S3 Bucket | `OrganizationImagesLogBucket` | `evolvesprouts-org-media-logs-{account}-{region}` | Access logs for org media bucket |
-| S3 Bucket | `AdminImportExportBucket` | `evolvesprouts-org-imprt-{account}-{region}` | Admin import/export JSON storage |
-| S3 Bucket | `AdminImportExportLogBucket` | `evolvesprouts-org-imprt-logs-{account}-{region}` | Access logs for admin import/export bucket |
+| S3 Bucket | `ClientAssetsBucket` | `evolvesprouts-client-assets-{account}-{region}` | Private bucket for client assets |
+| S3 Bucket | `ClientAssetsLogBucket` | `evolvesprouts-client-assets-logs-{account}-{region}` | Access logs for client assets bucket |
 
 ---
 
@@ -139,7 +137,7 @@ Created once per account/region when `cdk bootstrap` runs. Not part of the main 
 | Interface Endpoint | `SnsEndpoint` | SNS | For notifications |
 | Interface Endpoint | `RdsEndpoint` | RDS | For IAM authentication tokens |
 | Interface Endpoint | `ApiGatewayEndpoint` | API Gateway | For API key rotation |
-| Interface Endpoint | `SqsEndpoint` | SQS | For manager request queue |
+| Interface Endpoint | `SqsEndpoint` | SQS | For booking request queue |
 | Interface Endpoint | `LambdaEndpoint` | Lambda | For invoking the AWS API proxy from in-VPC Lambdas |
 
 **Note:** Cognito IDP VPC endpoint is **not** included because Cognito
@@ -220,12 +218,11 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 |--------------|------------|---------------|-------|
 | User Pool Identity Provider | `GoogleIdentityProvider` | `Google` | Google OAuth |
 | User Pool Identity Provider | `AppleIdentityProvider` | `SignInWithApple` | Apple Sign In |
-| User Pool Identity Provider | `MicrosoftIdentityProvider` | `Microsoft` | Microsoft OIDC |
 
 **User Pool Client Configuration:**
 - OAuth Flows: `code`
 - OAuth Scopes: `openid`, `email`, `profile`
-- Supported Providers: `COGNITO`, `Google`, `SignInWithApple`, `Microsoft`
+- Supported Providers: `COGNITO`, `Google`, `SignInWithApple`
 - Explicit Auth Flows: `ALLOW_CUSTOM_AUTH`, `ALLOW_REFRESH_TOKEN_AUTH`
 
 ---
@@ -242,9 +239,8 @@ Each Lambda function created by `PythonLambda` construct includes:
 
 | Function Logical ID | Handler | Memory | Timeout | VPC | Extra Paths |
 |---------------------|---------|--------|---------|-----|-------------|
-| `SiutindeiSearchFunction` | `lambda/search/handler.lambda_handler` | 512 MB | 30s | Yes | - |
-| `SiutindeiAdminFunction` | `lambda/admin/handler.lambda_handler` | 512 MB | 30s | Yes | - |
-| `SiutindeiMigrationFunction` | `lambda/migrations/handler.lambda_handler` | 512 MB | 5 min | Yes | `db` |
+| `EvolvesproutsAdminFunction` | `lambda/admin/handler.lambda_handler` | 512 MB | 30s | Yes | - |
+| `EvolvesproutsMigrationFunction` | `lambda/migrations/handler.lambda_handler` | 512 MB | 5 min | Yes | `db` |
 | `HealthCheckFunction` | `lambda/health/handler.lambda_handler` | 256 MB | 10s | Yes | - |
 
 ### Auth Functions
@@ -272,7 +268,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `AdminBootstrapFunction` | `lambda/admin_bootstrap/handler.lambda_handler` | 256 MB | 30s | Yes | Custom resource handler |
 | `AwsApiProxyFunction` | `lambda/aws_proxy/handler.lambda_handler` | 256 MB | 15s | No | AWS/HTTP proxy for in-VPC Lambdas |
 | `ApiKeyRotationFunction` | `lambda/api_key_rotation/handler.lambda_handler` | 256 MB | 60s | Yes | Scheduled API key rotation |
-| `ManagerRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
+| `BookingRequestProcessor` | `lambda/booking_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
 
 ### Lambda Resources Per Function
 
@@ -299,19 +295,18 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `SiutindeiSearchFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
-| `SiutindeiAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to manager request topic, SES send email, S3 read/write for org media and admin import/export |
+| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking request topic, SES send email, S3 read/write for client assets |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`) |
-| `SiutindeiMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
+| `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
 | `AuthCreateChallengeFunction` | SES `SendEmail`, `SendRawEmail` for the configured email address |
 | `AdminBootstrapFunction` | Cognito `AdminCreateUser`, `AdminUpdateUserAttributes`, `AdminSetUserPassword`, `AdminAddUserToGroup`, CloudFormation invoke permission |
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
-| `ManagerRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
+| `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
 
 **Lambda Log Groups:**
 - Explicitly created by CDK with KMS encryption
-- Naming: `/aws/lambda/{function-name}` (e.g., `/aws/lambda/evolvesprouts-SiutindeiSearchFunction`)
+- Naming: `/aws/lambda/{function-name}` (e.g., `/aws/lambda/evolvesprouts-EvolvesproutsAdminFunction`)
 - 90-day retention policy
 
 ---
@@ -333,7 +328,7 @@ For each function above, the following resources are created:
 - Data Trace: Disabled
 - X-Ray Tracing: Enabled
 - Caching: Enabled (0.5 GB cache cluster, encrypted)
-- Cache TTL: 5 minutes for `/v1/activities/search/GET`
+- Cache TTL: 5 minutes for `/v1/assets/public/GET`
 
 **CORS Configuration:**
 - Allowed Origins: From `CORS_ALLOWED_ORIGINS` env var or context, and always includes `https://www.evolvesprouts.com` plus `https://www-staging.evolvesprouts.com`
@@ -349,23 +344,14 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | Resource Path | Method | Authorization | Integration | Notes |
 |--------------|--------|---------------|-------------|-------|
 | `/health` | GET | IAM | `HealthCheckFunction` | Health check |
-| `/v1/activities/search` | GET | Device Attestation + API Key | `SiutindeiSearchFunction` | Cached |
-| `/v1/admin/{resource}` | GET, POST | Admin Group | `SiutindeiAdminFunction` | CRUD (orgs, locations, activities, pricing, schedules) |
-| `/v1/admin/{resource}/{id}` | GET, PUT, DELETE | Admin Group | `SiutindeiAdminFunction` | CRUD by ID |
-| `/v1/admin/organizations/{id}/media` | POST, DELETE | Admin Group | `SiutindeiAdminFunction` | Media upload/delete |
-| `/v1/admin/users/{username}/groups` | POST, DELETE | Admin Group | `SiutindeiAdminFunction` | Group management |
-| `/v1/admin/cognito-users` | GET | Admin Group | `SiutindeiAdminFunction` | List Cognito users |
-| `/v1/admin/cognito-users/{username}` | DELETE | Admin Group | `SiutindeiAdminFunction` | Delete Cognito user |
-| `/v1/admin/access-requests` | GET | Admin Group | `SiutindeiAdminFunction` | List access requests |
-| `/v1/admin/access-requests/{id}` | PUT | Admin Group | `SiutindeiAdminFunction` | Review access request |
-| `/v1/admin/audit-logs` | GET | Admin Group | `SiutindeiAdminFunction` | List audit logs |
-| `/v1/admin/audit-logs/{id}` | GET | Admin Group | `SiutindeiAdminFunction` | Get audit log entry |
-| `/v1/admin/organization-suggestions` | GET | Admin Group | `SiutindeiAdminFunction` | List suggestions |
-| `/v1/admin/organization-suggestions/{id}` | PUT | Admin Group | `SiutindeiAdminFunction` | Review suggestion |
-| `/v1/manager/{resource}` | GET, POST | Manager Group | `SiutindeiAdminFunction` | Filtered CRUD |
-| `/v1/manager/{resource}/{id}` | GET, PUT, DELETE | Manager Group | `SiutindeiAdminFunction` | Filtered CRUD by ID |
-| `/v1/user/access-request` | GET, POST | User Auth | `SiutindeiAdminFunction` | Access request |
-| `/v1/user/organization-suggestion` | GET, POST | User Auth | `SiutindeiAdminFunction` | Org suggestion |
+| `/v1/admin/assets` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
+| `/v1/admin/assets/{id}` | GET, PUT, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
+| `/v1/admin/assets/{id}/grants` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
+| `/v1/admin/assets/{id}/grants/{grantId}` | DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
+| `/v1/user/assets` | GET | User Auth | `EvolvesproutsAdminFunction` | |
+| `/v1/user/assets/{id}/download` | GET | User Auth | `EvolvesproutsAdminFunction` | |
+| `/v1/assets/public` | GET | Device Attestation + API Key | `EvolvesproutsAdminFunction` | |
+| `/v1/assets/public/{id}/download` | GET | Device Attestation + API Key | `EvolvesproutsAdminFunction` | |
 
 ### API Gateway Gateway Responses
 
@@ -390,8 +376,8 @@ read error status codes instead of silently blocking them.
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| API Key | `MobileSearchApiKey` | `evolvesprouts-mobile-search-key` | Value from `PublicApiKeyValue` parameter |
-| Usage Plan | `MobileSearchUsagePlan` | `evolvesprouts-mobile-search-plan` | Linked to API key and `prod` stage |
+| API Key | `PublicWwwApiKey` | `evolvesprouts-public-www-key` | Value from `PublicApiKeyValue` parameter |
+| Usage Plan | `PublicWwwUsagePlan` | `evolvesprouts-public-www-plan` | Linked to API key and `prod` stage |
 
 ### API Gateway IAM Roles
 
@@ -415,7 +401,7 @@ read error status codes instead of silently blocking them.
 
 | Resource Type | Logical ID | Handler | Notes |
 |--------------|------------|---------|-------|
-| Custom Resource | `RunMigrations` | `SiutindeiMigrationFunction` | Runs Alembic migrations on stack create/update (triggered by migration hash change) |
+| Custom Resource | `RunMigrations` | `EvolvesproutsMigrationFunction` | Runs Alembic migrations on stack create/update (triggered by migration hash change) |
 
 **Properties:**
 - `MigrationsHash`: SHA256 hash of `backend/db/alembic/versions/` directory
@@ -451,20 +437,17 @@ read error status codes instead of silently blocking them.
 | `AppleTeamId` | String | Yes | No | Apple developer team ID |
 | `AppleKeyId` | String | Yes | No | Apple Sign In key ID |
 | `ApplePrivateKey` | String | Yes | Yes | Apple Sign In private key |
-| `MicrosoftTenantId` | String | Yes | No | Microsoft Entra tenant ID |
-| `MicrosoftClientId` | String | Yes | No | Microsoft OAuth client ID |
-| `MicrosoftClientSecret` | String | Yes | Yes | Microsoft OAuth client secret |
 | `AuthEmailFromAddress` | String | Yes | No | SES-verified email for passwordless auth |
 | `LoginLinkBaseUrl` | String | No | No | Base URL for magic links (default: empty) |
 | `MaxChallengeAttempts` | Number | No | No | Max passwordless auth attempts (default: 3) |
-| `PublicApiKeyValue` | String | Yes | Yes | API key for mobile search (min 20 chars) |
+| `PublicApiKeyValue` | String | Yes | Yes | API key for public www (min 20 chars) |
 | `DeviceAttestationJwksUrl` | String | No | No | JWKS URL for device attestation (default: empty) |
 | `DeviceAttestationIssuer` | String | No | No | Expected issuer (default: empty) |
 | `DeviceAttestationAudience` | String | No | No | Expected audience (default: empty) |
 | `DeviceAttestationFailClosed` | String | No | No | Fail-closed mode (default: `true`, allowed: `true`/`false`) |
 | `RunSeedData` | String | No | No | Run seed data after migrations (default: `false`) |
 | `FallbackManagerEmail` | String | No | No | Fallback manager email for migration |
-| `SupportEmail` | String | No | No | Email to receive manager request notifications |
+| `SupportEmail` | String | No | No | Email to receive booking request notifications |
 | `SesSenderEmail` | String | No | No | SES-verified sender email for notifications |
 | `ApiCustomDomainName` | String | No | No | Custom domain for the API (default: empty) |
 | `ApiCustomDomainCertificateArn` | String | No | No | ACM certificate ARN for API custom domain |
@@ -482,12 +465,11 @@ read error status codes instead of silently blocking them.
 | `DatabaseProxyEndpoint` | RDS Proxy endpoint | Endpoint for database connections via proxy |
 | `UserPoolId` | Cognito User Pool ID | User Pool identifier |
 | `UserPoolClientId` | Cognito User Pool Client ID | OAuth client identifier |
-| `OrganizationImagesBucketName` | S3 bucket name | Organization media bucket |
-| `OrganizationImagesBaseUrl` | S3 bucket URL | Public URL for organization images |
-| `AdminImportExportBucketName` | S3 bucket name | Admin import/export JSON bucket |
-| `ManagerRequestTopicArn` | SNS topic ARN | Manager request events topic |
-| `ManagerRequestQueueUrl` | SQS queue URL | Manager request processing queue |
-| `ManagerRequestDLQUrl` | SQS DLQ URL | Failed manager request messages |
+| `ClientAssetsBucketName` | S3 bucket name | Client assets bucket |
+| `ClientAssetsLogBucketName` | S3 bucket name | Client assets access logs bucket |
+| `BookingRequestTopicArn` | SNS topic ARN | Booking request events topic |
+| `BookingRequestQueueUrl` | SQS queue URL | Booking request processing queue |
+| `BookingRequestDLQUrl` | SQS DLQ URL | Failed booking request messages |
 | `CognitoCustomDomainCloudFront` | CloudFront distribution | Custom auth domain target (conditional) |
 | `ApiCustomDomainTarget` | CNAME target | API custom domain DNS target (conditional) |
 | `ApiCustomDomainUrl` | Custom domain URL | API custom domain URL (conditional) |

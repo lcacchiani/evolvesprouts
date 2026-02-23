@@ -26,18 +26,15 @@ download-external-modules: false
 # you may need to remove the skip and use CDK metadata suppressions instead
 # for the specific resources that need exceptions.
 skip-check:
-  # S3 bucket public access checks - ONLY affects OrganizationImagesBucket
-  # This bucket intentionally allows public read access to serve organization
-  # images (logos, photos). It uses BLOCK_ACLS to prevent ACL-based public
-  # access while allowing bucket policy based public read.
-  # Access is logged to OrganizationImagesLogBucket.
-  # Future improvement: Consider using CloudFront with OAC.
+  # S3 bucket public access checks - historically needed for the public
+  # org media bucket. Kept as global skip to avoid false positives if a
+  # public bucket is re-introduced in the future.
   - CKV_AWS_54  # Block public policy
   - CKV_AWS_55  # Ignore public ACLs
   - CKV_AWS_56  # Restrict public buckets
 
   # S3 bucket access logging - ONLY affects logging buckets
-  # AdminWebLoggingBucket, PublicWwwLoggingBucket, and OrganizationImagesLogBucket
+  # AdminWebLoggingBucket, PublicWwwLoggingBucket, and ClientAssetsLogBucket
   # are logging
   # destination buckets. Enabling access logging on them would create
   # an infinite loop. This is standard AWS practice.
