@@ -172,7 +172,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
       <SectionContainer
         className={buildSectionSplitLayoutClassName('es-section-split-layout--contact-us')}
       >
-        <section
+        <div
           className='relative flex h-full items-start overflow-hidden px-6 py-8 sm:px-8 lg:px-10 lg:pt-[25%]'
         >
           <div className='relative z-10 space-y-6'>
@@ -185,9 +185,9 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               descriptionClassName='mt-4 es-section-body text-[1.05rem] leading-8'
             />
           </div>
-        </section>
+        </div>
 
-        <section
+        <div
           id='contact-form'
           className='relative overflow-visible rounded-[28px] border es-border-form-shell p-5 shadow-panel sm:p-7 lg:p-8 es-contact-us-form-panel'
         >
@@ -379,7 +379,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
               ) : null}
             </form>
           )}
-        </section>
+        </div>
       </SectionContainer>
     </SectionShell>
   );

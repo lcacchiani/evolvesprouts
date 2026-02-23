@@ -174,7 +174,7 @@ export function MyBestAuntieBooking({
               'es-section-split-layout--my-best-auntie-booking w-full min-w-0 items-center',
             )}
           >
-            <section className='space-y-5 max-w-[620px] lg:pr-8'>
+            <div className='space-y-5 max-w-[620px] lg:pr-8'>
               <SectionHeader
                 title={content.title}
                 titleAs='h1'
@@ -198,7 +198,7 @@ export function MyBestAuntieBooking({
                   </p>
                 </div>
               </div>
-            </section>
+            </div>
 
             <aside className='mx-auto w-full min-w-0 max-w-[573px] lg:ml-auto lg:mr-0'>
               <h2 className='text-[1.6rem] font-semibold es-text-heading'>
