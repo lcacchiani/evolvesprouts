@@ -59,6 +59,12 @@ describe('maintenance static site assets', () => {
     );
   });
 
+  it('ships the public WWW favicon in maintenance artifacts', () => {
+    const maintenanceFaviconPath = path.join(maintenanceDirectory, 'favicon.ico');
+    expect(fs.existsSync(maintenanceFaviconPath)).toBe(true);
+    expect(fs.statSync(maintenanceFaviconPath).size).toBeGreaterThan(0);
+  });
+
   it('does not reference maintenance QR image assets', () => {
     const indexHtml = readMaintenanceFile('index.html');
     const notFoundHtml = readMaintenanceFile('404.html');
