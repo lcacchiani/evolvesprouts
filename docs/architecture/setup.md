@@ -122,6 +122,15 @@ For the OIDC provider itself, add the same tags:
 - `FIGMA_OAUTH_CLIENT_SECRET`
 - `FIGMA_OAUTH_REFRESH_TOKEN`
 
+### Backend deploy manual seed toggle
+
+When running `.github/workflows/deploy-backend.yml` with `workflow_dispatch`,
+the `run_seed_data` checkbox forces `RunSeedData=true` for the backend stack
+(`evolvesprouts`).
+
+If the selected deploy target does not include the backend stack (for example
+`admin web` only), the checkbox is ignored.
+
 ### Existing infrastructure reuse (auto-detected)
 
 The backend deploy workflow detects existing infrastructure and sets
