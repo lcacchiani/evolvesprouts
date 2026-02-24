@@ -4,8 +4,8 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Evolve Sprouts CRM',
-  description: 'CRM shell for Evolve Sprouts operations.',
+  title: 'Evolve Sprouts Admin',
+  description: 'Admin access portal for Evolve Sprouts operations.',
 };
 
 export const viewport: Viewport = {

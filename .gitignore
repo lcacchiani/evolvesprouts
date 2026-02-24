@@ -16,8 +16,8 @@ eggs/
 .eggs/
 lib/
 lib64/
-!apps/crm_web/src/lib/
-!apps/crm_web/src/lib/**
+!apps/admin_web/src/lib/
+!apps/admin_web/src/lib/**
 !apps/public_www/src/lib/
 !apps/public_www/src/lib/**
 !apps/public_www/tests/lib/
@@ -196,15 +196,15 @@ cython_debug/
 
 # Node
 node_modules/
-apps/crm_web/.next/
-apps/crm_web/out/
+apps/admin_web/.next/
+apps/admin_web/out/
 apps/public_www/.next/
 apps/public_www/out/
 apps/public_www/figma/mdm/artifacts/
 
 # Playwright
-apps/crm_web/playwright-report/
-apps/crm_web/test-results/
+apps/admin_web/playwright-report/
+apps/admin_web/test-results/
 
 # TypeScript build info
 *.tsbuildinfo

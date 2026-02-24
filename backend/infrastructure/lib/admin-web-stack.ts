@@ -129,7 +129,6 @@ export class AdminWebStack extends cdk.Stack {
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
-      // Admin web is intentionally a shell SPA.
       errorResponses: [
         {
           httpStatus: 403,

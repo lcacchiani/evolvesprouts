@@ -1,6 +1,6 @@
 # Admin web deployment
 
-`crm_web` is a static shell SPA hosted in S3 and served by CloudFront.
+`admin_web` is a static Next.js admin app hosted in S3 and served by CloudFront.
 
 ## Prerequisites
 
@@ -19,9 +19,30 @@ Provide these parameters when deploying `evolvesprouts-admin-web`:
 ## Build and deploy
 
 ```
-cd apps/crm_web
+cd apps/admin_web
 npm ci
 npm run build
+```
+
+## Required build variables (GitHub Variables)
+
+The admin web login requires these repository variables:
+
+- `NEXT_PUBLIC_COGNITO_DOMAIN`:
+  - Use `auth.evolvesprouts.com` when `CognitoCustomDomainName` is configured.
+  - Otherwise use `{CognitoDomainPrefix}.auth.{region}.amazoncognito.com`.
+- `NEXT_PUBLIC_COGNITO_CLIENT_ID`:
+  - Value from backend stack output `UserPoolClientId`.
+- `NEXT_PUBLIC_COGNITO_USER_POOL_ID`:
+  - Value from backend stack output `UserPoolId`.
+
+You can fetch output values with AWS CLI:
+
+```bash
+aws cloudformation describe-stacks \
+  --stack-name evolvesprouts \
+  --query "Stacks[0].Outputs[?OutputKey=='UserPoolClientId' || OutputKey=='UserPoolId'].[OutputKey,OutputValue]" \
+  --output table
 ```
 
 From the repo root:
@@ -40,4 +61,4 @@ Set `CORS_ALLOWED_ORIGINS` (or CDK context `corsAllowedOrigins`) to include:
 - `https://admin.evolvesprouts.com`
 - `http://localhost:3000`
 
-This is required if the admin shell calls authenticated backend endpoints.
+This is required if the admin app calls authenticated backend endpoints.
