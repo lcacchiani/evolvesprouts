@@ -264,7 +264,7 @@ def _delete_grant(
         if grant is None:
             raise NotFoundError("Grant", str(grant_id))
 
-        repository.delete(grant)
+        repository.delete_grant(grant)
         session.commit()
         return json_response(204, {}, event=event)
 

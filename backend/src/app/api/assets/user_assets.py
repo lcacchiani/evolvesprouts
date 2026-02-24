@@ -50,6 +50,9 @@ def handle_user_assets_request(
 def _list_accessible_assets(
     event: Mapping[str, object], identity: RequestIdentity
 ) -> dict[str, object]:
+    if not identity.user_sub:
+        raise ValidationError("Authenticated user is required", field="authorization")
+
     limit = parse_limit(event)
     cursor = parse_cursor(event)
 

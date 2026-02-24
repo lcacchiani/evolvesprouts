@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.models import (
     AccessGrantType,
@@ -241,6 +242,11 @@ class AssetRepository(BaseRepository[Asset]):
         self._session.refresh(entity)
         return entity
 
+    def delete_grant(self, grant: AssetAccessGrant) -> None:
+        """Delete an existing access grant."""
+        self._session.delete(grant)
+        self._session.flush()
+
     def find_matching_grant(
         self,
         *,
@@ -264,9 +270,9 @@ def _build_grant_filter(
     *,
     user_sub: str,
     organization_ids: set[str],
-) -> object:
+) -> ColumnElement[bool]:
     """Build SQL filter for grants matching the principal."""
-    grant_clauses: list[object] = [
+    grant_clauses: list[ColumnElement[bool]] = [
         AssetAccessGrant.grant_type == AccessGrantType.ALL_AUTHENTICATED,
         and_(
             AssetAccessGrant.grant_type == AccessGrantType.USER,
