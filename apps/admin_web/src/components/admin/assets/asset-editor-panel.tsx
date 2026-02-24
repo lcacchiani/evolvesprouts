@@ -115,14 +115,15 @@ export function AssetEditorPanel({
       return;
     }
 
-    if (!isEditMode && !selectedFile) {
+    const fileToUpload = selectedFile;
+    if (!isEditMode && !fileToUpload) {
       setFormError('Select a PDF file to upload.');
       return;
     }
 
-    if (selectedFile) {
-      const isPdfMime = !selectedFile.type || selectedFile.type === 'application/pdf';
-      const isPdfExtension = selectedFile.name.toLowerCase().endsWith('.pdf');
+    if (fileToUpload) {
+      const isPdfMime = !fileToUpload.type || fileToUpload.type === 'application/pdf';
+      const isPdfExtension = fileToUpload.name.toLowerCase().endsWith('.pdf');
       if (!isPdfMime || !isPdfExtension) {
         setFormError('Only PDF files are allowed.');
         return;
@@ -138,17 +139,21 @@ export function AssetEditorPanel({
     } = {
       title,
       description: formState.description.trim() || null,
-      fileName: selectedFile?.name || selectedAsset?.fileName || 'document.pdf',
-      fileSizeBytes: selectedFile?.size ?? selectedAsset?.fileSizeBytes ?? null,
+      fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
+      fileSizeBytes: fileToUpload?.size ?? selectedAsset?.fileSizeBytes ?? null,
       visibility: formState.visibility,
     };
 
-    if (selectedAsset) {
+    if (isEditMode && selectedAsset) {
       await onUpdate(selectedAsset.id, payload);
       return;
     }
 
-    await onCreate(payload, selectedFile);
+    if (!fileToUpload) {
+      setFormError('Select a PDF file to upload.');
+      return;
+    }
+    await onCreate(payload, fileToUpload);
   };
 
   const handleDelete = async () => {

@@ -63,7 +63,11 @@ def _list_accessible_assets(
             cursor=cursor,
         )
         page_items = list(assets[:limit])
-        next_cursor = _encode_cursor(page_items[-1].id) if len(assets) > limit and page_items else None
+        next_cursor = (
+            _encode_cursor(page_items[-1].id)
+            if len(assets) > limit and page_items
+            else None
+        )
         return json_response(
             200,
             {

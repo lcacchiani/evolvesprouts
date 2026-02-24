@@ -85,7 +85,9 @@ class AssetRepository(BaseRepository[Asset]):
         if is_admin_or_manager:
             return self.list_assets(limit=limit, cursor=cursor)
 
-        grant_filter = _build_grant_filter(user_sub=user_sub, organization_ids=organization_ids)
+        grant_filter = _build_grant_filter(
+            user_sub=user_sub, organization_ids=organization_ids
+        )
         grant_exists = (
             select(AssetAccessGrant.id)
             .where(and_(AssetAccessGrant.asset_id == Asset.id, grant_filter))
@@ -121,9 +123,13 @@ class AssetRepository(BaseRepository[Asset]):
         if not user_sub:
             return False
 
-        grant_filter = _build_grant_filter(user_sub=user_sub, organization_ids=organization_ids)
-        statement = select(func.count()).select_from(AssetAccessGrant).where(
-            and_(AssetAccessGrant.asset_id == asset.id, grant_filter)
+        grant_filter = _build_grant_filter(
+            user_sub=user_sub, organization_ids=organization_ids
+        )
+        statement = (
+            select(func.count())
+            .select_from(AssetAccessGrant)
+            .where(and_(AssetAccessGrant.asset_id == asset.id, grant_filter))
         )
         count = self._session.execute(statement).scalar_one()
         return count > 0

@@ -92,7 +92,11 @@ def _list_assets(event: Mapping[str, Any]) -> dict[str, Any]:
             asset_type=asset_type,
         )
         page_items = list(assets[:limit])
-        next_cursor = _encode_cursor(page_items[-1].id) if len(assets) > limit and page_items else None
+        next_cursor = (
+            _encode_cursor(page_items[-1].id)
+            if len(assets) > limit and page_items
+            else None
+        )
         return json_response(
             200,
             {
@@ -127,7 +131,9 @@ def _create_asset(event: Mapping[str, Any], created_by: str) -> dict[str, Any]:
             organization_id=payload["organization_id"],
             created_by=created_by,
         )
-        upload = generate_upload_url(s3_key=s3_key, content_type=payload["content_type"])
+        upload = generate_upload_url(
+            s3_key=s3_key, content_type=payload["content_type"]
+        )
         session.commit()
 
         return json_response(
@@ -152,7 +158,9 @@ def _update_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
     request_id = _request_id(event)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=identity.user_sub or "", request_id=request_id)
+        set_audit_context(
+            session, user_id=identity.user_sub or "", request_id=request_id
+        )
         repository = AssetRepository(session)
         asset = repository.get_by_id(asset_id)
         if asset is None:
@@ -178,7 +186,9 @@ def _delete_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
     request_id = _request_id(event)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=identity.user_sub or "", request_id=request_id)
+        set_audit_context(
+            session, user_id=identity.user_sub or "", request_id=request_id
+        )
         repository = AssetRepository(session)
         asset = repository.get_by_id(asset_id)
         if asset is None:
@@ -246,7 +256,9 @@ def _delete_grant(
     request_id = _request_id(event)
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=identity.user_sub or "", request_id=request_id)
+        set_audit_context(
+            session, user_id=identity.user_sub or "", request_id=request_id
+        )
         repository = AssetRepository(session)
         grant = repository.get_grant(asset_id=asset_id, grant_id=grant_id)
         if grant is None:

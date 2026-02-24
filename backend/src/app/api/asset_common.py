@@ -145,13 +145,19 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     body = _parse_body(event)
     title = _required_text(body, "title", max_length=255)
     description = _optional_text(body, "description", max_length=5000)
-    file_name = _required_text(body, "file_name", "fileName", max_length=_MAX_FILE_NAME_LENGTH)
-    asset_type = parse_asset_type(_optional_field(body, "asset_type", "assetType") or "document")
+    file_name = _required_text(
+        body, "file_name", "fileName", max_length=_MAX_FILE_NAME_LENGTH
+    )
+    asset_type = parse_asset_type(
+        _optional_field(body, "asset_type", "assetType") or "document"
+    )
     content_type = _optional_text(
         body, "content_type", "contentType", max_length=_MAX_MIME_TYPE_LENGTH
     )
     file_size_bytes = _optional_int(body, "file_size_bytes", "fileSizeBytes")
-    visibility = parse_asset_visibility(_optional_field(body, "visibility") or "restricted")
+    visibility = parse_asset_visibility(
+        _optional_field(body, "visibility") or "restricted"
+    )
     organization_id = _optional_uuid(body, "organization_id", "organizationId")
 
     return {
@@ -183,7 +189,9 @@ def parse_grant_payload(event: Mapping[str, Any]) -> dict[str, Any]:
         raise ValidationError("grant_type is required", field="grant_type")
     grant_type = parse_grant_type(grant_type_raw)
 
-    grantee_id = _optional_text(body, "grantee_id", "granteeId", max_length=_MAX_PRINCIPAL_ID_LENGTH)
+    grantee_id = _optional_text(
+        body, "grantee_id", "granteeId", max_length=_MAX_PRINCIPAL_ID_LENGTH
+    )
     if grant_type == AccessGrantType.ALL_AUTHENTICATED:
         grantee_id = None
     elif not grantee_id:
@@ -204,7 +212,9 @@ def parse_asset_visibility(value: str) -> AssetVisibility:
     try:
         return AssetVisibility(normalized)
     except ValueError as exc:
-        raise ValidationError("visibility must be 'public' or 'restricted'", field="visibility") from exc
+        raise ValidationError(
+            "visibility must be 'public' or 'restricted'", field="visibility"
+        ) from exc
 
 
 def parse_asset_type(value: str) -> AssetType:
@@ -312,7 +322,9 @@ def serialize_asset(asset: Asset) -> dict[str, Any]:
         "file_size_bytes": asset.file_size_bytes,
         "content_type": asset.content_type,
         "visibility": asset.visibility.value,
-        "organization_id": str(asset.organization_id) if asset.organization_id else None,
+        "organization_id": str(asset.organization_id)
+        if asset.organization_id
+        else None,
         "created_by": asset.created_by,
         "created_at": asset.created_at.isoformat() if asset.created_at else None,
         "updated_at": asset.updated_at.isoformat() if asset.updated_at else None,
@@ -339,7 +351,9 @@ def _require_assets_bucket_name() -> str:
 
 
 def _presign_ttl_seconds() -> int:
-    raw = os.getenv("ASSET_PRESIGN_TTL_SECONDS", f"{_DEFAULT_PRESIGN_TTL_SECONDS}").strip()
+    raw = os.getenv(
+        "ASSET_PRESIGN_TTL_SECONDS", f"{_DEFAULT_PRESIGN_TTL_SECONDS}"
+    ).strip()
     try:
         parsed = int(raw)
     except ValueError as exc:
@@ -349,15 +363,21 @@ def _presign_ttl_seconds() -> int:
 
 def _required_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str:
     value = _optional_field(body, *keys)
-    normalized = _validate_string_length(value, keys[0], max_length=max_length, required=True)
+    normalized = _validate_string_length(
+        value, keys[0], max_length=max_length, required=True
+    )
     if normalized is None:
         raise ValidationError(f"{keys[0]} is required", field=keys[0])
     return normalized
 
 
-def _optional_text(body: Mapping[str, Any], *keys: str, max_length: int) -> Optional[str]:
+def _optional_text(
+    body: Mapping[str, Any], *keys: str, max_length: int
+) -> Optional[str]:
     value = _optional_field(body, *keys)
-    return _validate_string_length(value, keys[0], max_length=max_length, required=False)
+    return _validate_string_length(
+        value, keys[0], max_length=max_length, required=False
+    )
 
 
 def _optional_int(body: Mapping[str, Any], *keys: str) -> Optional[int]:
