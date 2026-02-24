@@ -172,10 +172,11 @@ export function useAdminAssets() {
     try {
       const result = await createAdminAsset(input);
       setLastCreatedUpload(result.upload.uploadUrl ? result.upload : null);
+      const createdAsset = result.asset;
 
-      if (result.asset) {
-        setAssets((previous) => [result.asset, ...previous]);
-        setSelectedAssetId(result.asset.id);
+      if (createdAsset) {
+        setAssets((previous) => [createdAsset, ...previous]);
+        setSelectedAssetId(createdAsset.id);
       } else {
         await refreshAssets();
       }

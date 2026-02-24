@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 
 import type { AdminAsset, AssetType, AssetVisibility, CreatedAssetUpload } from '@/types/assets';
 
@@ -102,16 +102,10 @@ export function AssetEditorPanel({
   onStartCreate,
   onDismissUploadNotice,
 }: AssetEditorPanelProps) {
-  const [formState, setFormState] = useState<AssetFormState>(EMPTY_ASSET_FORM);
+  const [formState, setFormState] = useState<AssetFormState>(() =>
+    selectedAsset ? toFormState(selectedAsset) : EMPTY_ASSET_FORM
+  );
   const [formError, setFormError] = useState('');
-
-  useEffect(() => {
-    if (!selectedAsset) {
-      setFormState(EMPTY_ASSET_FORM);
-      return;
-    }
-    setFormState(toFormState(selectedAsset));
-  }, [selectedAsset]);
 
   const isEditMode = Boolean(selectedAsset);
 
