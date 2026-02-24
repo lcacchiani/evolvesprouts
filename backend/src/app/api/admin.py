@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-from app.api.admin_assets import handle_admin_assets_request
-from app.api.public_assets import handle_public_assets_request
+from app.api.assets import (
+    handle_admin_assets_request,
+    handle_public_assets_request,
+    handle_user_assets_request,
+)
 from app.api.public_reservations import _handle_public_reservation
-from app.api.user_assets import handle_user_assets_request
 from app.exceptions import AppError, ValidationError
 from app.utils import json_response
 from app.utils.logging import configure_logging, get_logger, set_request_context
@@ -41,26 +43,9 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         },
     )
 
-    if _is_public_reservation_path(path):
-        return _safe_handler(
-            lambda: _handle_public_reservation(event, method),
-            event,
-        )
-    if _is_admin_assets_path(path):
-        return _safe_handler(
-            lambda: handle_admin_assets_request(event, method, path),
-            event,
-        )
-    if _is_user_assets_path(path):
-        return _safe_handler(
-            lambda: handle_user_assets_request(event, method, path),
-            event,
-        )
-    if _is_public_assets_path(path):
-        return _safe_handler(
-            lambda: handle_public_assets_request(event, method, path),
-            event,
-        )
+    handler = _match_handler(event=event, method=method, path=path)
+    if handler is not None:
+        return _safe_handler(handler, event)
 
     return json_response(404, {"error": "Not found"}, event=event)
 
@@ -83,6 +68,24 @@ def _safe_handler(
         return json_response(
             500, {"error": "Internal server error", "detail": str(exc)}, event=event
         )
+
+
+def _match_handler(
+    *,
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> Any:
+    """Return the request handler for a known route, if any."""
+    if _is_public_reservation_path(path):
+        return lambda: _handle_public_reservation(event, method)
+    if _is_admin_assets_path(path):
+        return lambda: handle_admin_assets_request(event, method, path)
+    if _is_user_assets_path(path):
+        return lambda: handle_user_assets_request(event, method, path)
+    if _is_public_assets_path(path):
+        return lambda: handle_public_assets_request(event, method, path)
+    return None
 
 
 def _is_public_reservation_path(path: str) -> bool:

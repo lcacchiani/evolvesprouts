@@ -1,4 +1,4 @@
-"""Shared helpers for asset API handlers."""
+"""Shared helpers for assets API handlers."""
 
 from __future__ import annotations
 

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --max-warnings=0 ."
+    "generate:admin-api-types": "openapi-typescript ../../docs/api/admin.yaml -o src/types/generated/admin-api.generated.ts",
+    "check:admin-api-types": "node ./scripts/check-admin-api-types.mjs",
+    "lint": "npm run check:admin-api-types && eslint --max-warnings=0 ."
   },
   "dependencies": {
     "amazon-cognito-identity-js": "^6.3.16",
@@ -22,6 +24,7 @@
     "autoprefixer": "^10.4.24",
     "eslint": "^10.0.2",
     "eslint-config-next": "^16.1.6",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"

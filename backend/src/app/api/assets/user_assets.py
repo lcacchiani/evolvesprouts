@@ -8,12 +8,12 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import _encode_cursor, _parse_uuid
-from app.api.asset_common import (
+from app.api.assets.assets_common import (
+    RequestIdentity,
     extract_identity,
     generate_download_url,
     parse_cursor,
     parse_limit,
-    RequestIdentity,
     serialize_asset,
     split_route_parts,
 )

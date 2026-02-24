@@ -95,6 +95,12 @@ repo root
 - Do not merge endpoint work without all three updates.
 - Do not call boto3 `cognito-idp` directly from in-VPC Lambdas.
   Use the AWS proxy service helpers instead.
+- Asset API module layout is mandatory:
+  - Place asset route handlers and helpers under
+    `backend/src/app/api/assets/**`.
+  - Use `*_assets.py` for route modules and `assets_common.py` for shared
+    helpers.
+  - Keep `backend/src/app/api/admin.py` focused on request dispatch orchestration.
 
 ## Database change rules (MANDATORY for schema changes)
 
@@ -200,6 +206,18 @@ repo root
 - Styling must live in CSS classes/files, not inline style objects.
 - Never use `style={...}` or `style=""` in JSX (MANDATORY).
 - Never use `CSSProperties` / `React.CSSProperties` in app code (MANDATORY).
+
+### Admin Web OpenAPI typing contract (MANDATORY for `apps/admin_web/**`)
+
+- Admin web API types for admin endpoints must be generated from
+  `docs/api/admin.yaml`.
+- Generated admin web types must live at
+  `apps/admin_web/src/types/generated/admin-api.generated.ts`.
+- Do not hand-edit generated types.
+- When `docs/api/admin.yaml` or admin-web API typing changes, run:
+  - `npm run generate:admin-api-types`
+  - `npm run check:admin-api-types`
+- Keep `npm run lint` enforcing the admin API type drift check.
 
 ### Public WWW XSS policy (MANDATORY for `apps/public_www/**`)
 

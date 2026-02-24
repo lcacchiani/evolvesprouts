@@ -12,6 +12,11 @@ import type {
   UpsertAdminAssetInput,
 } from '@/types/assets';
 import { ACCESS_GRANT_TYPES, ASSET_TYPES, ASSET_VISIBILITIES } from '@/types/assets';
+import type { components } from '@/types/generated/admin-api.generated';
+
+type ApiSchemas = components['schemas'];
+type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
+type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
 
 export interface CreateAdminAssetResult {
   asset: AdminAsset | null;
@@ -208,7 +213,7 @@ function extractHeaders(value: unknown): Record<string, string> {
   return headers;
 }
 
-function normalizeAssetInput(input: UpsertAdminAssetInput): Record<string, unknown> {
+function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetRequest {
   const trimmedDescription = input.description?.trim() ?? '';
   const trimmedContentType = input.contentType?.trim() ?? '';
   const trimmedOrganizationId = input.organizationId?.trim() ?? '';
@@ -332,13 +337,15 @@ export async function createAdminAssetGrant(
   assetId: string,
   input: CreateAssetGrantInput
 ): Promise<AssetGrant | null> {
+  const requestBody: ApiCreateAssetGrantRequest = {
+    grant_type: input.grantType,
+    grantee_id: input.granteeId?.trim() || null,
+  };
+
   const payload = await adminApiRequest<unknown>({
     endpointPath: `/v1/admin/assets/${assetId}/grants`,
     method: 'POST',
-    body: {
-      grant_type: input.grantType,
-      grantee_id: input.granteeId?.trim() || null,
-    },
+    body: requestBody,
     expectedSuccessStatuses: [200, 201],
   });
 

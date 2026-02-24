@@ -67,3 +67,21 @@ npm run build
 ```
 
 The static output is generated in `out/`.
+
+## Admin API type contract
+
+Admin web API types are generated from `docs/api/admin.yaml`.
+
+- Generate/update committed types:
+
+  ```bash
+  npm run generate:admin-api-types
+  ```
+
+- Validate that committed generated types match YAML:
+
+  ```bash
+  npm run check:admin-api-types
+  ```
+
+`npm run lint` runs the API type drift check before ESLint.
