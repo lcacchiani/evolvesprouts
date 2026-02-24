@@ -331,27 +331,6 @@ export class ApiStack extends cdk.Stack {
       noEcho: true,
       description: "Google OAuth client secret",
     });
-    const appleClientId = new cdk.CfnParameter(this, "AppleClientId", {
-      type: "String",
-      description: "Apple Services ID (Client ID)",
-    });
-    const appleTeamId = new cdk.CfnParameter(this, "AppleTeamId", {
-      type: "String",
-      description: "Apple developer team ID",
-    });
-    const appleKeyId = new cdk.CfnParameter(this, "AppleKeyId", {
-      type: "String",
-      description: "Apple Sign In key ID",
-    });
-    const applePrivateKey = new cdk.CfnParameter(this, "ApplePrivateKey", {
-      type: "String",
-      noEcho: true,
-      description: "Apple Sign In private key",
-    });
-    const applePrivateKeyValue = cdk.Fn.join(
-      "\n",
-      cdk.Fn.split("\\n", applePrivateKey.valueAsString)
-    );
     const authEmailFromAddress = new cdk.CfnParameter(
       this,
       "AuthEmailFromAddress",
@@ -588,25 +567,6 @@ export class ApiStack extends cdk.Stack {
       }
     );
 
-    const appleProvider = new cognito.CfnUserPoolIdentityProvider(
-      this,
-      "AppleIdentityProvider",
-      {
-        providerName: "SignInWithApple",
-        providerType: "SignInWithApple",
-        userPoolId: userPool.userPoolId,
-        attributeMapping: {
-          email: "email",
-        },
-        providerDetails: {
-          client_id: appleClientId.valueAsString,
-          team_id: appleTeamId.valueAsString,
-          key_id: appleKeyId.valueAsString,
-          private_key: applePrivateKeyValue,
-          authorize_scopes: "name email",
-        },
-      }
-    );
 
     const useCustomDomain = new cdk.CfnCondition(this, "UseCustomAuthDomain", {
       expression: cdk.Fn.conditionAnd(
@@ -720,7 +680,6 @@ export class ApiStack extends cdk.Stack {
         logoutUrLs: oauthLogoutUrls.valueAsList,
         supportedIdentityProviders: [
           "Google",
-          "SignInWithApple",
         ],
         explicitAuthFlows: [
           "ALLOW_CUSTOM_AUTH",
@@ -731,7 +690,6 @@ export class ApiStack extends cdk.Stack {
     );
 
     userPoolClient.addDependency(googleProvider);
-    userPoolClient.addDependency(appleProvider);
 
     const groupPolicy = customresources.AwsCustomResourcePolicy.fromStatements([
       new iam.PolicyStatement({
