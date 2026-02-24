@@ -44,6 +44,10 @@ Public WWW CRM API configuration is provided at build time via:
 
 - GitHub variable `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
+- GitHub variable `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+- GitHub variable `NEXT_PUBLIC_FPS_MERCHANT_NAME` (or secret fallback)
+- GitHub variable `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (or secret fallback)
+- GitHub variable `NEXT_PUBLIC_GTM_ID`
 
 `evolvesprouts-public-www` CloudFront now proxies `https://{www-domain}/www/*`
 to `https://api.evolvesprouts.com/www/*` with caching disabled for those
@@ -211,19 +215,18 @@ bash scripts/deploy/deploy-public-www.sh
 - `figma/token-studio/` stores Token Studio design tokens (tracked in git)
 - `figma/files/` stores raw Figma API payloads (gitignored)
 
-The staging deploy workflow runs `npm run figma:pull` and
-`npm run figma:tokenize` before `npm run build`.
-`npm run build` runs `figma:build:studio` to generate CSS custom
-properties from Token Studio tokens, then `next build` to produce
-the static site.
+The staging deploy workflow does **not** call the Figma API directly.
+It consumes Token Studio artifacts already committed by
+`.github/workflows/figma-token-studio-sync.yml`.
 
-If `FIGMA_FILE_KEY` or OAuth credentials are unavailable, pull is
-skipped and build uses the committed Token Studio tokens.
+`npm run build` runs `figma:build:studio` to generate CSS custom
+properties from committed Token Studio tokens, then `next build`
+to produce the static site.
 
 For the full Figma pipeline architecture, see
 [docs/architecture/public-www-figma-pipeline.md](../architecture/public-www-figma-pipeline.md).
 
-The deploy workflow reads these GitHub values for OAuth 2.0 auth:
+The token sync workflow reads these GitHub values for OAuth 2.0 auth:
 
 - Secrets:
   - `FIGMA_OAUTH_CLIENT_ID`
@@ -232,7 +235,8 @@ The deploy workflow reads these GitHub values for OAuth 2.0 auth:
 - Variables:
   - `PUBLIC_WWW_FIGMA_FILE_KEY`
   - `PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE` (scopes extraction to a frame)
-  - `PUBLIC_WWW_FIGMA_OAUTH_TOKEN_URL` (optional override)
+  - `PUBLIC_WWW_FIGMA_OAUTH_TOKEN_URL` (optional override; exposed to
+    scripts as `FIGMA_OAUTH_TOKEN_URL`)
 
 ## SEO behavior
 

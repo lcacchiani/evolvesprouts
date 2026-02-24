@@ -215,7 +215,11 @@ Commits only if tokens, components, or content keys changed.
 
 Runs: on push to main affecting `apps/public_www/`.
 
-Pipeline: `pull → tokenize → build → next build → deploy`
+Pipeline: `build (includes figma:build:studio) → deploy`
+
+`figma:pull` and `figma:tokenize` run in the dedicated
+`figma-token-studio-sync.yml` workflow, which commits token updates to git.
+The deploy workflow consumes committed tokens and does not call the Figma API.
 
 ## Implementing components via Cursor cloud agents
 

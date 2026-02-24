@@ -225,24 +225,6 @@ Go to **Settings** → **Secrets and variables** → **Actions** → **Variables
 
 ### Required Variables
 
-#### `ANDROID_PACKAGE_NAME`
-
-Your app's package name (application ID).
-
-**How to get it:**
-
-Check `apps/evolvesprouts_app/android/app/build.gradle.kts`:
-```kotlin
-defaultConfig {
-    applicationId = "com.yourcompany.customerapp"
-    ...
-}
-```
-
-**Example:** `com.evolvesprouts`
-
----
-
 #### `ANDROID_RELEASE_TRACK`
 
 The Play Store release track for uploads.
@@ -374,7 +356,9 @@ Testers can install via:
 
 ### "Package name mismatch"
 
-- Verify `ANDROID_PACKAGE_NAME` matches `applicationId` in `build.gradle.kts`
+- The workflow currently uploads with package name `com.evolvesprouts`
+  (hardcoded in `.github/workflows/deploy-mobile.yml`)
+- Verify this matches `applicationId` in `build.gradle.kts`
 - Package name cannot be changed after first upload
 
 ### Build fails with signing error
@@ -454,7 +438,6 @@ internal → alpha → beta → production
 - [ ] `AMPLIFY_API_KEY`
 
 ### Variables
-- [ ] `ANDROID_PACKAGE_NAME`
 - [ ] `ANDROID_RELEASE_TRACK`
 - [ ] Firebase variables (if applicable)
 

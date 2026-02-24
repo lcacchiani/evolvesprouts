@@ -165,10 +165,15 @@ defaultCorsPreflightOptions: {
 
 ### Default Allowed Origins
 
-If no origins are configured, defaults to mobile app schemes only:
+If no origins are configured, defaults include required web and local origins:
+- `https://www.evolvesprouts.com`
+- `https://www-staging.evolvesprouts.com`
 - `capacitor://localhost`
 - `ionic://localhost`
 - `http://localhost` (for development)
+- `http://localhost:3000` (for development)
+- `https://evolvesprouts.lx-software.com`
+- `https://evolvesprouts-api.lx-software.com`
 
 ### Input Validation
 

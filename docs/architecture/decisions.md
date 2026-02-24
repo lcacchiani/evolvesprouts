@@ -36,7 +36,7 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 ## Database schema (Aurora PostgreSQL)
 
 **Decisions:**
-- District filter uses `locations.district` only.
+- Geographic filtering uses `locations.area_id` (FK to `geographic_areas`).
 - Pricing is per location with `per_class`, `per_sessions`, `per_hour`,
   `per_day`, or `free`.
 - Languages are session-specific (stored on schedule entries).
@@ -44,7 +44,7 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - DB changes are versioned with Alembic.
 - Lambda connections use RDS Proxy for connection pooling.
 - RDS Proxy uses IAM authentication; Lambda generates IAM tokens.
-- IAM DB roles `activities_app` (read) and `activities_admin` (write)
+- IAM DB roles `evolvesprouts_app` (read) and `evolvesprouts_admin` (write)
   are created via migrations and granted `rds_iam`.
 - DB connections enforce TLS and use small pools tuned for Lambda.
 - Migrations Lambda uses password auth directly against the cluster endpoint.
@@ -67,10 +67,8 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - OpenAPI contracts live under `docs/api/` and are the single source
   of truth for all API endpoint details (paths, methods, parameters,
   request/response schemas, authentication requirements).
-- Activities search contract: [`docs/api/search.yaml`](../api/search.yaml).
-- Admin, manager, user, and health contracts: [`docs/api/admin.yaml`](../api/admin.yaml).
-- Search responses are cursor-paginated (schedule time + type ordering).
-- Admin and manager list endpoints return `next_cursor` for pagination.
+- Currently wired API Gateway contract: [`docs/api/admin.yaml`](../api/admin.yaml).
+- Public endpoint contract: [`docs/api/public.yaml`](../api/public.yaml).
 - API client generation is handled via generalized scripts in
   `scripts/codegen/`.
 - **Do not duplicate endpoint details in architecture docs.** Always
@@ -79,7 +77,7 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 ## Lambda Implementation
 
 **Decisions:**
-- Lambda entrypoint lives at `backend/lambda/search/handler.py`.
+- Lambda entrypoints live under `backend/lambda/**`.
 - Shared application code lives under `backend/src/app`.
 - Python dependencies are listed in `backend/requirements.txt`.
 - Database migrations and seed are executed during CDK deploy
@@ -89,19 +87,20 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 ## Authentication
 
 **Decisions:**
-- Public activity search uses an API key + device attestation; admin
-  routes require Cognito `admin` group; manager routes require `admin`
-  or `manager` group; user routes require any valid JWT.
+- Public asset routes use API key + device attestation; admin asset
+  routes require Cognito `admin` group; user asset routes require
+  any valid JWT.
 - Admin and manager groups are created via CDK.
 - Admin bootstrap user can be created with CDK parameters.
 - Authentication is passwordless: email custom challenge (OTP + optional magic
-  link) and federated sign-in via Google, Apple, and Microsoft (OIDC).
+  link) and federated sign-in via Google (OIDC).
 - Device attestation validates JWTs against a JWKS URL configured in CDK
   parameters.
 - Hosted UI uses OAuth code flow with callback/logout URLs supplied via CDK
   parameters.
 - API keys are rotated every 90 days by a scheduled Lambda.
-- API Gateway method caching enabled for search responses (5-minute TTL).
+- API Gateway method caching enabled for public asset listing (`/v1/assets/public`,
+  5-minute TTL).
 - See the OpenAPI specs for per-endpoint authentication requirements:
   [`docs/api/admin.yaml`](../api/admin.yaml).
 
@@ -300,14 +299,19 @@ gate.
 **GitHub Variables**
 - `AWS_ACCOUNT_ID`
 - `AWS_REGION`
-- `CDK_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
+- `CDK_STACKS` (optional; `all stacks`, `backend`, `admin web`, or `public website`)
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (optional path to CDK parameter JSON)
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (Public WWW CRM API base URL)
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (Public WWW Turnstile site key)
+- `NEXT_PUBLIC_FPS_MERCHANT_NAME` (Public WWW FPS merchant label)
+- `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (Public WWW FPS recipient number)
 - `NEXT_PUBLIC_GTM_ID` (Google Tag Manager container ID, e.g. `GTM-XXXXXXX`)
+- `NEXT_PUBLIC_EMAIL` (maintenance page email)
+- `NEXT_PUBLIC_WHATSAPP_URL` (maintenance page WhatsApp link)
+- `NEXT_PUBLIC_INSTAGRAM_URL` (maintenance page Instagram link)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
-- `ANDROID_PACKAGE_NAME`
 - `ANDROID_RELEASE_TRACK`
 - `IOS_BUNDLE_ID`
 - `APPLE_TEAM_ID`
@@ -324,8 +328,6 @@ gate.
 **GitHub Secrets**
 - `AMPLIFY_API_KEY` (mobile API key injected at build time)
 - `CDK_PARAM_GOOGLE_CLIENT_SECRET`
-- `CDK_PARAM_APPLE_PRIVATE_KEY`
-- `CDK_PARAM_MICROSOFT_CLIENT_SECRET`
 - `CDK_PARAM_PUBLIC_API_KEY_VALUE`
 - `CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
 - `NEXT_PUBLIC_WWW_CRM_API_KEY` (Public WWW browser API key)
@@ -346,7 +348,7 @@ gate.
 - `FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD`
 
 **CDK Parameters (via `CDK_PARAM_FILE`)**
-- `PublicApiKeyValue` (API key required for public search)
+- `PublicApiKeyValue` (API key required for public asset routes)
 - `DeviceAttestationJwksUrl`, `DeviceAttestationIssuer`, `DeviceAttestationAudience`
 
 ## Keeping Documentation Up to Date

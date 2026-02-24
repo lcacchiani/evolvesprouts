@@ -103,7 +103,7 @@ This project implements the following security measures:
 
 Please review the following when deploying to production:
 
-1. **CORS Configuration**: Default configuration uses wildcard (`*`) for allowed origins. Restrict this for production deployments.
+1. **CORS Configuration**: Do not use wildcard (`*`) origins. The current CDK defaults to a restricted allowlist (production/staging web domains plus local development origins); review and tighten this list for your environment.
 
 2. **MFA**: Cognito MFA is currently set to OFF. Consider enabling for sensitive applications.
 

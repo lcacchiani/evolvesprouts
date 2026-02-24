@@ -217,13 +217,12 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 | Resource Type | Logical ID | Provider Name | Notes |
 |--------------|------------|---------------|-------|
 | User Pool Identity Provider | `GoogleIdentityProvider` | `Google` | Google OAuth |
-| User Pool Identity Provider | `AppleIdentityProvider` | `SignInWithApple` | Apple Sign In |
 
 **User Pool Client Configuration:**
 - OAuth Flows: `code`
 - OAuth Scopes: `openid`, `email`, `profile`
-- Supported Providers: `COGNITO`, `Google`, `SignInWithApple`
-- Explicit Auth Flows: `ALLOW_CUSTOM_AUTH`, `ALLOW_REFRESH_TOKEN_AUTH`
+- Supported Providers: `Google`
+- Explicit Auth Flows: `ALLOW_CUSTOM_AUTH`, `ALLOW_USER_SRP_AUTH`, `ALLOW_REFRESH_TOKEN_AUTH`
 
 ---
 
@@ -251,6 +250,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `AuthDefineChallengeFunction` | `lambda/auth/define_auth_challenge/handler.lambda_handler` | 256 MB | 10s | No | Cognito trigger |
 | `AuthCreateChallengeFunction` | `lambda/auth/create_auth_challenge/handler.lambda_handler` | 256 MB | 10s | No | Cognito trigger, SES permissions |
 | `AuthVerifyChallengeFunction` | `lambda/auth/verify_auth_challenge/handler.lambda_handler` | 256 MB | 10s | No | Cognito trigger |
+| `AuthPostAuthFunction` | `lambda/auth/post_authentication/handler.lambda_handler` | 256 MB | 10s | No | Cognito post-auth trigger |
 
 ### Authorizer Functions
 
@@ -258,7 +258,6 @@ Each Lambda function created by `PythonLambda` construct includes:
 |---------------------|---------|--------|---------|-----|-------|
 | `DeviceAttestationAuthorizer` | `lambda/authorizers/device_attestation/handler.lambda_handler` | 256 MB | 5s | No | Device attestation authorizer |
 | `AdminGroupAuthorizerFunction` | `lambda/authorizers/cognito_group/handler.lambda_handler` | 256 MB | 5s | No | Admin group authorizer |
-| `ManagerGroupAuthorizerFunction` | `lambda/authorizers/cognito_group/handler.lambda_handler` | 256 MB | 5s | No | Manager group authorizer |
 | `UserAuthorizerFunction` | `lambda/authorizers/cognito_user/handler.lambda_handler` | 256 MB | 5s | No | Any-user authorizer |
 
 ### Other Functions
@@ -268,7 +267,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `AdminBootstrapFunction` | `lambda/admin_bootstrap/handler.lambda_handler` | 256 MB | 30s | Yes | Custom resource handler |
 | `AwsApiProxyFunction` | `lambda/aws_proxy/handler.lambda_handler` | 256 MB | 15s | No | AWS/HTTP proxy for in-VPC Lambdas |
 | `ApiKeyRotationFunction` | `lambda/api_key_rotation/handler.lambda_handler` | 256 MB | 60s | Yes | Scheduled API key rotation |
-| `BookingRequestProcessor` | `lambda/booking_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
+| `BookingRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
 
 ### Lambda Resources Per Function
 
@@ -296,7 +295,7 @@ For each function above, the following resources are created:
 | Function | Additional Permissions |
 |----------|------------------------|
 | `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking request topic, SES send email, S3 read/write for client assets |
-| `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`) |
+| `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
 | `AuthCreateChallengeFunction` | SES `SendEmail`, `SendRawEmail` for the configured email address |
@@ -322,7 +321,7 @@ For each function above, the following resources are created:
 | Stage | `EvolvesproutsApiDeploymentStageprod*` | `prod` | Production stage |
 
 **Stage Configuration:**
-- Access Logging: Enabled (to `evolvesprouts-api-access-logs` - must exist)
+- Access Logging: Enabled (custom resource creates/configures `evolvesprouts-api-access-logs`)
 - Access Log Format: JSON with standard fields
 - Logging Level: INFO
 - Data Trace: Disabled
@@ -338,7 +337,7 @@ For each function above, the following resources are created:
 ### API Gateway Resources and Methods
 
 For the complete list of endpoints with request/response schemas, see
-the OpenAPI specs: [`docs/api/search.yaml`](../api/search.yaml)
+the OpenAPI specs: [`docs/api/public.yaml`](../api/public.yaml)
 and [`docs/api/admin.yaml`](../api/admin.yaml).
 
 | Resource Path | Method | Authorization | Integration | Notes |
@@ -369,7 +368,6 @@ read error status codes instead of silently blocking them.
 |--------------|------------|------|---------|-------|
 | Request Authorizer | `DeviceAttestationRequestAuthorizer` | Lambda | `DeviceAttestationAuthorizer` | Validates `x-device-attestation` header, no caching |
 | Request Authorizer | `AdminGroupAuthorizer` | Lambda | `AdminGroupAuthorizerFunction` | JWT + admin group check, 5-min cache |
-| Request Authorizer | `ManagerGroupAuthorizer` | Lambda | `ManagerGroupAuthorizerFunction` | JWT + admin/manager group check, 5-min cache |
 | Request Authorizer | `UserAuthorizer` | Lambda | `UserAuthorizerFunction` | JWT validation (any user), 5-min cache |
 
 ### API Gateway API Key and Usage Plan
@@ -391,7 +389,8 @@ read error status codes instead of silently blocking them.
 |--------------|------------|-------|
 | Account | `ApiGatewayAccount` | Configures CloudWatch role for API Gateway |
 
-**Note:** The access log group `evolvesprouts-api-access-logs` is **imported** (not created by CDK). It must exist before deployment.
+**Note:** The access log group `evolvesprouts-api-access-logs` is created and
+configured by stack custom resources (including retention and KMS association).
 
 ---
 
@@ -406,7 +405,7 @@ read error status codes instead of silently blocking them.
 **Properties:**
 - `MigrationsHash`: SHA256 hash of `backend/db/alembic/versions/` directory
 - `SeedHash`: SHA256 hash of `backend/db/seed/seed_data.sql`
-- `RunSeed`: `true`
+- `RunSeed`: value of `RunSeedData` parameter (default `false`)
 
 ### Admin Bootstrap
 
@@ -429,14 +428,12 @@ read error status codes instead of silently blocking them.
 | Parameter Name | Type | Required | NoEcho | Description |
 |----------------|------|----------|---------|-------------|
 | `CognitoDomainPrefix` | String | Yes | No | Hosted UI domain prefix |
+| `CognitoCustomDomainName` | String | No | No | Optional Cognito custom auth domain |
+| `CognitoCustomDomainCertificateArn` | String | No | No | ACM ARN for Cognito custom domain |
 | `CognitoCallbackUrls` | CommaDelimitedList | Yes | No | OAuth callback URLs |
 | `CognitoLogoutUrls` | CommaDelimitedList | Yes | No | OAuth logout URLs |
 | `GoogleClientId` | String | Yes | No | Google OAuth client ID |
 | `GoogleClientSecret` | String | Yes | Yes | Google OAuth client secret |
-| `AppleClientId` | String | Yes | No | Apple Services ID |
-| `AppleTeamId` | String | Yes | No | Apple developer team ID |
-| `AppleKeyId` | String | Yes | No | Apple Sign In key ID |
-| `ApplePrivateKey` | String | Yes | Yes | Apple Sign In private key |
 | `AuthEmailFromAddress` | String | Yes | No | SES-verified email for passwordless auth |
 | `LoginLinkBaseUrl` | String | No | No | Base URL for magic links (default: empty) |
 | `MaxChallengeAttempts` | Number | No | No | Max passwordless auth attempts (default: 3) |
@@ -445,12 +442,17 @@ read error status codes instead of silently blocking them.
 | `DeviceAttestationIssuer` | String | No | No | Expected issuer (default: empty) |
 | `DeviceAttestationAudience` | String | No | No | Expected audience (default: empty) |
 | `DeviceAttestationFailClosed` | String | No | No | Fail-closed mode (default: `true`, allowed: `true`/`false`) |
+| `ActiveCountryCodes` | String | No | No | Comma-separated country codes (default: `HK`) |
 | `RunSeedData` | String | No | No | Run seed data after migrations (default: `false`) |
 | `FallbackManagerEmail` | String | No | No | Fallback manager email for migration |
 | `SupportEmail` | String | No | No | Email to receive booking request notifications |
+| `FeedbackStarsPerApproval` | Number | No | No | Feedback stars granted per approval (default: `1`) |
 | `SesSenderEmail` | String | No | No | SES-verified sender email for notifications |
+| `TurnstileSecretKey` | String | No | Yes | Cloudflare Turnstile secret key |
 | `ApiCustomDomainName` | String | No | No | Custom domain for the API (default: empty) |
 | `ApiCustomDomainCertificateArn` | String | No | No | ACM certificate ARN for API custom domain |
+| `NominatimUserAgent` | String | No | No | User-Agent for Nominatim geocoding requests |
+| `NominatimReferer` | String | No | No | Referer header for Nominatim requests |
 | `AdminBootstrapEmail` | String | No | No | Admin email for bootstrap (default: empty) |
 | `AdminBootstrapTempPassword` | String | No | Yes | Temporary password for bootstrap (default: empty) |
 
@@ -519,8 +521,8 @@ Examples:
 
 The stack applies two tags at the stack level:
 
-- `Organization= LX Software`
-- `Project= Evolve Sprouts`
+- `Organization= Evolve Sprouts`
+- `Project= Backend`
 
 These tags are inherited by **all taggable resources** created in this
 stack, including implicit resources created by CDK (subnets, route
@@ -530,7 +532,7 @@ Tags are **not guaranteed** on the following:
 
 - Resource types that do not support tagging.
 - Imported or existing resources (for example, an existing VPC, DB
-  cluster, security groups, or the API access log group).
+  cluster, or security groups).
 - Resources created outside the stack lifecycle, such as Lambda log
   groups created on first invocation.
 - CDK bootstrap stack resources (CDKToolkit), which are separate from
@@ -540,12 +542,14 @@ Tags are **not guaranteed** on the following:
 
 ## Resource Retention Policies
 
-The following resources have **RETAIN** deletion policy (survive stack deletion):
+Security groups use **update/replace retain** behavior to prevent replacement
+failures during stack updates:
 
 - `LambdaSecurityGroup`
 - `MigrationSecurityGroup`
 
-All other resources are deleted when the stack is deleted (unless they are imported/existing resources).
+Deletion behavior still follows CloudFormation defaults unless resources are
+imported/external.
 
 ---
 
@@ -555,14 +559,14 @@ All other resources are deleted when the stack is deleted (unless they are impor
 - ~50-60 resources (Lambdas, IAM roles, API Gateway resources, etc.)
 
 **Maximum (all resources created):**
-- ~150-200 resources (includes VPC, subnets, NAT, Aurora, RDS Proxy, all Lambdas with DLQs/KMS, API Gateway, etc.)
+- ~150-200 resources (includes VPC, subnets, Aurora, RDS Proxy, all Lambdas with DLQs/KMS, API Gateway, etc.)
 
 ---
 
 ## Notes
 
 1. **Lambda Log Groups**: Explicitly created by CDK with standard `/aws/lambda/{functionName}` naming and KMS encryption.
-2. **API Gateway Access Log Group**: Must exist before deployment (imported, not created).
+2. **API Gateway Access Log Group**: Created and managed by stack custom resources.
 3. **Existing Resources**: The workflow detects and imports existing VPC, database, and security group resources to avoid recreation.
 4. **CDK Bootstrap**: Required once per account/region. The workflow runs `cdk bootstrap` if needed.
 5. **Lambda Bundling**: Lambda code is bundled during `cdk synth` using Docker or local bundle from `.lambda-build/base`.

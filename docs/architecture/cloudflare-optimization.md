@@ -2,6 +2,12 @@
 
 This document outlines Cloudflare optimization strategies for the Evolve Sprouts project, using a hybrid AWS + Cloudflare architecture. Cloudflare acts as an edge layer in front of your existing AWS infrastructure.
 
+> Status note (current stack):
+> The backend API routes currently wired in `backend/infrastructure/lib/api-stack.ts`
+> are asset-focused (`/v1/assets/public` and related asset/admin endpoints).
+> Examples in this guide that reference `/v1/activities/search` are legacy
+> optimization patterns and should be adapted to currently exposed routes.
+
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)

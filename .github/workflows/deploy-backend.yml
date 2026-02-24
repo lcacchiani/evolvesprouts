@@ -15,6 +15,11 @@ on:
           - 'backend'
           - 'admin web'
           - 'public website'
+      run_seed_data:
+        description: 'Run seed data after migrations (backend stack only)'
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main
@@ -174,6 +179,24 @@ jobs:
             readarray -t PARAM_ARGS < "$PARAM_ARGS_FILE"
           fi
 
+          RUN_SEED_DATA_NORMALIZED="$(printf '%s' "${RUN_SEED_DATA:-false}" | tr '[:upper:]' '[:lower:]')"
+          if [ "$RUN_SEED_DATA_NORMALIZED" = "true" ]; then
+            if [[ " $CDK_STACKS " == *" evolvesprouts "* ]]; then
+              FILTERED_PARAM_ARGS=()
+              for arg in "${PARAM_ARGS[@]}"; do
+                if [[ "$arg" == "evolvesprouts:RunSeedData="* ]]; then
+                  continue
+                fi
+                FILTERED_PARAM_ARGS+=("$arg")
+              done
+              PARAM_ARGS=("${FILTERED_PARAM_ARGS[@]}")
+              PARAM_ARGS+=("--parameters" "evolvesprouts:RunSeedData=true")
+              echo "RunSeedData override enabled for evolvesprouts stack."
+            else
+              echo "run_seed_data=true requested, but backend stack is not selected; skipping seed override."
+            fi
+          fi
+
           QUALIFIER_ARGS=()
           if [ -n "$CDK_BOOTSTRAP_QUALIFIER" ]; then
             QUALIFIER_ARGS=(--qualifier "$CDK_BOOTSTRAP_QUALIFIER")
@@ -184,6 +207,7 @@ jobs:
             "${QUALIFIER_ARGS[@]}" "${PARAM_ARGS[@]}" "${STACK_LIST[@]}"
         env:
           CDK_STACKS: ${{ github.event.inputs.cdk_stacks || vars.CDK_STACKS || 'all stacks' }}
+          RUN_SEED_DATA: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_seed_data || 'false' }}
           CDK_PARAM_FILE: ${{ vars.CDK_PARAM_FILE }}
           CDK_BOOTSTRAP_QUALIFIER: ${{ vars.CDK_BOOTSTRAP_QUALIFIER }}
           CDK_PARAM_GOOGLE_CLIENT_SECRET: ${{ secrets.CDK_PARAM_GOOGLE_CLIENT_SECRET }}

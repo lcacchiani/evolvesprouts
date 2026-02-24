@@ -15,13 +15,13 @@ their primary responsibilities.
 ### Admin API
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
-- Trigger: API Gateway — handles routes under `/v1/admin/assets/*`,
-  `/v1/user/assets/*`, and `/v1/assets/public/*`
+- Trigger: API Gateway — currently wired for
+  `/v1/admin/assets/*`, `/v1/user/assets/*`, and `/v1/assets/public/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`
-- Purpose: asset CRUD, access grant management, presigned URL generation
-- Status: empty shell (infrastructure wired, handler pending)
+- Purpose: public reservation dispatch in `backend/src/app/api/admin.py`.
+- Status: non-reservation requests currently return `404 Not found`.
 
 ### Health check
 - Function: HealthCheckFunction
