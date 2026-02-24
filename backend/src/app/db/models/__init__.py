@@ -8,8 +8,17 @@ from app.db.models.activity import (
     ActivityScheduleEntry,
 )
 from app.db.models.activity_category import ActivityCategory
+from app.db.models.asset import Asset, AssetAccessGrant
 from app.db.models.audit_log import AuditLog
-from app.db.models.enums import PricingType, ScheduleType, TicketStatus, TicketType
+from app.db.models.enums import (
+    AccessGrantType,
+    AssetType,
+    AssetVisibility,
+    PricingType,
+    ScheduleType,
+    TicketStatus,
+    TicketType,
+)
 from app.db.models.feedback_label import FeedbackLabel
 from app.db.models.geographic_area import GeographicArea
 from app.db.models.location import Location
@@ -24,6 +33,11 @@ __all__ = [
     "ActivityPricing",
     "ActivitySchedule",
     "ActivityScheduleEntry",
+    "AccessGrantType",
+    "Asset",
+    "AssetAccessGrant",
+    "AssetType",
+    "AssetVisibility",
     "AuditLog",
     "FeedbackLabel",
     "GeographicArea",

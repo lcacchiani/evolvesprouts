@@ -1,8 +1,8 @@
 'use client';
 
-import type { AdminAsset, AssetType, AssetVisibility } from '@/types/assets';
+import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
-import { ASSET_TYPES, ASSET_VISIBILITIES } from '@/types/assets';
+import { ASSET_VISIBILITIES } from '@/types/assets';
 
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,6 @@ export interface AssetListPanelProps {
   filters: {
     query?: string;
     visibility?: AssetVisibility | '';
-    assetType?: AssetType | '';
   };
   isLoadingAssets: boolean;
   isLoadingMoreAssets: boolean;
@@ -24,7 +23,6 @@ export interface AssetListPanelProps {
   nextCursor: string | null;
   onQueryChange: (value: string) => void;
   onVisibilityChange: (value: AssetVisibility | '') => void;
-  onAssetTypeChange: (value: AssetType | '') => void;
   onApplyFilters: () => Promise<void>;
   onClearFilters: () => Promise<void>;
   onRefresh: () => Promise<void>;
@@ -76,7 +74,6 @@ export function AssetListPanel({
   nextCursor,
   onQueryChange,
   onVisibilityChange,
-  onAssetTypeChange,
   onApplyFilters,
   onClearFilters,
   onRefresh,
@@ -86,10 +83,10 @@ export function AssetListPanel({
   return (
     <Card
       title='Assets'
-      description='Manage guides, videos, PDFs, and documents delivered through presigned URLs.'
+      description='Manage document (PDF) assets delivered through presigned URLs.'
       className='space-y-4'
     >
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_180px_180px_auto]'>
+      <div className='grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_180px_auto]'>
         <Input
           value={filters.query ?? ''}
           onChange={(event) => onQueryChange(event.target.value)}
@@ -104,18 +101,6 @@ export function AssetListPanel({
           {ASSET_VISIBILITIES.map((visibility) => (
             <option key={visibility} value={visibility}>
               {toTitleCase(visibility)}
-            </option>
-          ))}
-        </Select>
-        <Select
-          value={filters.assetType ?? ''}
-          onChange={(event) => onAssetTypeChange(event.target.value as AssetType | '')}
-          aria-label='Filter by asset type'
-        >
-          <option value=''>All asset types</option>
-          {ASSET_TYPES.map((assetType) => (
-            <option key={assetType} value={assetType}>
-              {toTitleCase(assetType)}
             </option>
           ))}
         </Select>
@@ -143,7 +128,6 @@ export function AssetListPanel({
           <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
             <tr>
               <th className='px-4 py-3 font-semibold'>Title</th>
-              <th className='px-4 py-3 font-semibold'>Type</th>
               <th className='px-4 py-3 font-semibold'>Visibility</th>
               <th className='px-4 py-3 font-semibold'>File</th>
               <th className='px-4 py-3 font-semibold'>Size</th>
@@ -153,13 +137,13 @@ export function AssetListPanel({
           <tbody className='divide-y divide-slate-200 bg-white text-sm'>
             {isLoadingAssets ? (
               <tr>
-                <td className='px-4 py-8 text-slate-600' colSpan={6}>
+                <td className='px-4 py-8 text-slate-600' colSpan={5}>
                   Loading assets...
                 </td>
               </tr>
             ) : assets.length === 0 ? (
               <tr>
-                <td className='px-4 py-8 text-slate-600' colSpan={6}>
+                <td className='px-4 py-8 text-slate-600' colSpan={5}>
                   No assets found for the current filters.
                 </td>
               </tr>
@@ -179,7 +163,6 @@ export function AssetListPanel({
                       <p className='font-medium text-slate-900'>{asset.title}</p>
                       <p className='mt-0.5 text-xs text-slate-500'>{asset.id}</p>
                     </td>
-                    <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.assetType)}</td>
                     <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.visibility)}</td>
                     <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>
                     <td className='px-4 py-3 text-slate-700'>{formatFileSize(asset.fileSizeBytes)}</td>

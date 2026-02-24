@@ -352,3 +352,35 @@ export async function deleteAdminAssetGrant(assetId: string, grantId: string): P
     expectedSuccessStatuses: [200, 202, 204],
   });
 }
+
+export async function uploadFileToPresignedUrl({
+  uploadUrl,
+  uploadMethod,
+  uploadHeaders,
+  file,
+  signal,
+}: {
+  uploadUrl: string;
+  uploadMethod?: string;
+  uploadHeaders?: Record<string, string>;
+  file: File;
+  signal?: AbortSignal;
+}): Promise<void> {
+  const method = (uploadMethod || 'PUT').toUpperCase();
+  const headers: Record<string, string> = {
+    ...(uploadHeaders ?? {}),
+  };
+  if (!headers['Content-Type'] && file.type) {
+    headers['Content-Type'] = file.type;
+  }
+
+  const response = await fetch(uploadUrl, {
+    method,
+    headers,
+    body: file,
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Upload failed with status ${response.status}.`);
+  }
+}

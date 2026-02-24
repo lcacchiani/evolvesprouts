@@ -35,3 +35,27 @@ class TicketStatus(str, enum.Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
+
+
+class AssetType(str, enum.Enum):
+    """Supported client asset categories."""
+
+    GUIDE = "guide"
+    VIDEO = "video"
+    PDF = "pdf"
+    DOCUMENT = "document"
+
+
+class AssetVisibility(str, enum.Enum):
+    """Asset visibility level."""
+
+    PUBLIC = "public"
+    RESTRICTED = "restricted"
+
+
+class AccessGrantType(str, enum.Enum):
+    """Scope of access grant for restricted assets."""
+
+    ALL_AUTHENTICATED = "all_authenticated"
+    ORGANIZATION = "organization"
+    USER = "user"

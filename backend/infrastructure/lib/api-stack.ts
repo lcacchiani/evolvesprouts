@@ -884,7 +884,19 @@ export class ApiStack extends cdk.Stack {
     // Admin function
     const adminFunction = createPythonFunction("EvolvesproutsAdminFunction", {
       handler: "lambda/admin/handler.lambda_handler",
+      environment: {
+        DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
+        DATABASE_NAME: "evolvesprouts",
+        DATABASE_USERNAME: "evolvesprouts_admin",
+        DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
+        DATABASE_IAM_AUTH: "true",
+        CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
+        ASSET_PRESIGN_TTL_SECONDS: "900",
+      },
     });
+    database.grantAdminUserSecretRead(adminFunction);
+    database.grantConnect(adminFunction, "evolvesprouts_admin");
+    clientAssetsBucket.grantReadWrite(adminFunction);
 
     // -----------------------------------------------------------------
     // AWS API Proxy Lambda (outside VPC)

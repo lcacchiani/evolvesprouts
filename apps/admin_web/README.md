@@ -33,6 +33,14 @@ This screen supports:
 - deleting assets
 - viewing and managing access grants for restricted assets
 
+Current admin workflow is PDF-focused:
+
+- asset type is fixed to `document`
+- content type is fixed to `application/pdf`
+- creating an asset requires selecting a PDF file
+- file upload runs automatically after metadata creation
+- failed uploads can be retried from the editor panel
+
 If backend asset endpoints are unavailable in an environment, the UI surfaces
 the API error response directly for easier diagnostics.
 

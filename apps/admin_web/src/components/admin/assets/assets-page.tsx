@@ -20,7 +20,9 @@ export function AssetsPage() {
     assetMutationError,
     isSavingAsset,
     isDeletingAssetId,
-    lastCreatedUpload,
+    uploadState,
+    uploadError,
+    hasPendingUpload,
     selectedAssetId,
     selectedAsset,
     grants,
@@ -31,7 +33,6 @@ export function AssetsPage() {
     isDeletingGrantId,
     setQueryFilter,
     setVisibilityFilter,
-    setAssetTypeFilter,
     applyFilters,
     clearFilters,
     refreshAssets,
@@ -43,7 +44,7 @@ export function AssetsPage() {
     deleteAssetEntry,
     createGrantEntry,
     deleteGrantEntry,
-    clearLastCreatedUpload,
+    retryPendingUpload,
   } = useAdminAssets();
 
   return (
@@ -64,7 +65,6 @@ export function AssetsPage() {
         nextCursor={nextCursor}
         onQueryChange={setQueryFilter}
         onVisibilityChange={setVisibilityFilter}
-        onAssetTypeChange={setAssetTypeFilter}
         onApplyFilters={applyFilters}
         onClearFilters={clearFilters}
         onRefresh={refreshAssets}
@@ -81,17 +81,33 @@ export function AssetsPage() {
             Boolean(selectedAssetId) && isDeletingAssetId === selectedAssetId
           }
           assetMutationError={assetMutationError}
-          lastCreatedUpload={lastCreatedUpload}
-          onCreate={async (payload) => {
+          uploadState={uploadState}
+          uploadError={uploadError}
+          hasPendingUpload={hasPendingUpload}
+          onRetryUpload={retryPendingUpload}
+          onCreate={async (payload, file) => {
             try {
-              await createAssetEntry(payload);
+              await createAssetEntry(
+                {
+                  ...payload,
+                  assetType: 'document',
+                  contentType: 'application/pdf',
+                  organizationId: null,
+                },
+                file
+              );
             } catch {
               // The hook stores the actionable error state for UI display.
             }
           }}
           onUpdate={async (assetId, payload) => {
             try {
-              await updateAssetEntry(assetId, payload);
+              await updateAssetEntry(assetId, {
+                ...payload,
+                assetType: 'document',
+                contentType: 'application/pdf',
+                organizationId: null,
+              });
             } catch {
               // The hook stores the actionable error state for UI display.
             }
@@ -104,7 +120,6 @@ export function AssetsPage() {
             }
           }}
           onStartCreate={clearSelectedAsset}
-          onDismissUploadNotice={clearLastCreatedUpload}
         />
 
         <AssetGrantsPanel
