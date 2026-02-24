@@ -55,7 +55,7 @@ jobs:
       - name: Validate package-lock.json
         run: |
           set -e
-          for dir in apps/crm_web apps/public_www packages/react_ui packages/api_client_ts backend/infrastructure; do
+          for dir in apps/admin_web apps/public_www packages/react_ui packages/api_client_ts backend/infrastructure; do
             if [ -f "$dir/package.json" ]; then
               if [ ! -f "$dir/package-lock.json" ]; then
                 echo "Missing package-lock.json in $dir"

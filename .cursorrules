@@ -10,7 +10,7 @@
 - Use path-aware rules:
   - If a change touches `backend/**`, backend + security + docs rules apply.
   - If a change touches `apps/evolvesprouts_app/**`, Flutter rules apply.
-  - If a change touches `apps/crm_web/**` or `apps/public_www/**`,
+  - If a change touches `apps/admin_web/**` or `apps/public_www/**`,
     web rules apply.
   - If a change touches multiple areas, satisfy all relevant sections.
 - If two rules conflict, follow the more specific rule for the changed path.
@@ -20,7 +20,7 @@
 repo root
 |-- apps/
 |   |-- evolvesprouts_app/    # Flutter mobile app
-|   |-- crm_web/              # Next.js admin shell
+|   |-- admin_web/            # Next.js admin shell
 |   `-- public_www/           # Next.js public website
 |-- backend/
 |   |-- db/                   # Alembic + seed SQL
@@ -71,7 +71,7 @@ repo root
 
 ## Architecture decisions (repository baseline)
 
-- Admin web app uses Next.js App Router under `apps/crm_web/src/app`.
+- Admin web app uses Next.js App Router under `apps/admin_web/src/app`.
 - Public website uses Next.js static export in `apps/public_www`.
 - Infrastructure as Code uses AWS CDK (TypeScript) in
   `backend/infrastructure`.
@@ -134,7 +134,7 @@ repo root
 
 ## Web testing requirements (MANDATORY for web behavior changes)
 
-- Applies to `apps/crm_web` and `apps/public_www`.
+- Applies to `apps/admin_web` and `apps/public_www`.
 - When UI/API changes alter web behavior, update existing tests and fixtures
   in the app's current testing framework.
 - If coverage is missing, add focused tests in the app's existing toolchain.
@@ -187,7 +187,7 @@ repo root
 
 ## Next.js and TypeScript rules
 
-### Applies to `apps/crm_web/**` and `apps/public_www/**`
+### Applies to `apps/admin_web/**` and `apps/public_www/**`
 
 - Use TypeScript for app code.
 - Prefer functional components and declarative composition.

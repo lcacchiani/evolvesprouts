@@ -14,7 +14,7 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - Best TypeScript support and forward compatibility.
 
 **Canonical structure:**
-- `apps/crm_web/src/app/...` with route groups and nested layouts.
+- `apps/admin_web/src/app/...` with route groups and nested layouts.
 
 ## 2) Infrastructure as Code
 

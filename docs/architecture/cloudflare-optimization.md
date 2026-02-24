@@ -500,7 +500,7 @@ Use Cloudflare's Image Resizing to serve optimized images on-the-fly:
 
 ```typescript
 // Frontend helper for image optimization
-// apps/crm_web/src/lib/image-utils.ts
+// apps/admin_web/src/lib/image-utils.ts
 
 interface ImageOptions {
   width?: number;

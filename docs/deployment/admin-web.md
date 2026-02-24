@@ -1,6 +1,6 @@
 # Admin web deployment
 
-`crm_web` is a static shell SPA hosted in S3 and served by CloudFront.
+`admin_web` is a static shell SPA hosted in S3 and served by CloudFront.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ Provide these parameters when deploying `evolvesprouts-admin-web`:
 ## Build and deploy
 
 ```
-cd apps/crm_web
+cd apps/admin_web
 npm ci
 npm run build
 ```

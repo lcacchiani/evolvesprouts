@@ -1,6 +1,6 @@
-# CRM Web (SPA Shell)
+# Admin Web (SPA Shell)
 
-`crm_web` is a minimal single-page shell for Evolve Sprouts.
+`admin_web` is a minimal single-page shell for Evolve Sprouts.
 
 ## Development
 
