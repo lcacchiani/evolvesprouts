@@ -1,10 +1,14 @@
+'use client';
+
 import { CourseHighlightCard } from '@/components/sections/course-highlight-card';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type { CourseHighlightsContent } from '@/content';
 import enContent from '@/content/en.json';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface CourseHighlightsProps {
   content: CourseHighlightsContent;
@@ -77,6 +81,28 @@ const benefitCardMeta: BenefitCardMeta[] = [
   },
 ];
 
+function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+  const rotationClass = direction === 'left' ? 'rotate-180' : '';
+
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 24 24'
+      className={`h-7 w-7 es-text-icon ${rotationClass}`}
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <path
+        d='M8 4L16 12L8 20'
+        stroke='currentColor'
+        strokeWidth='2.4'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  );
+}
+
 function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
   const activeItems =
     content.items.length > 0
@@ -122,6 +148,19 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
   const ctaLabel = content.ctaLabel || fallbackCourseHighlightsCopy.ctaLabel;
   const ctaHref = content.ctaHref || fallbackCourseHighlightsCopy.ctaHref;
   const benefitCards = getBenefitCards(content);
+  const {
+    carouselRef,
+    hasNavigation: hasCarouselNavigation,
+    canScrollPrevious,
+    canScrollNext,
+    scrollByDirection,
+  } = useHorizontalCarousel<HTMLUListElement>({
+    itemCount: benefitCards.length,
+  });
+
+  function handleCarouselNavigation(direction: 'prev' | 'next') {
+    scrollByDirection(direction);
+  }
 
   return (
     <SectionShell
@@ -141,26 +180,63 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
           title={sectionTitle}
         />
 
-        <ul className='mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3'>
-          {benefitCards.map((card, index) => {
-            const tone = CARD_TONES[index % CARD_TONES.length];
+        <div className='relative mt-12 sm:mt-14 xl:mt-16'>
+          <div className='w-full min-w-0 overflow-hidden md:overflow-visible'>
+            <ul
+              ref={carouselRef}
+              data-testid='course-highlights-mobile-carousel'
+              className='-mx-1 flex min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:gap-6 md:mx-0 md:grid md:grid-cols-2 md:snap-none md:gap-6 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-3'
+            >
+              {benefitCards.map((card, index) => {
+                const tone = CARD_TONES[index % CARD_TONES.length];
 
-            return (
-              <li key={card.id}>
-                <CourseHighlightCard
-                  id={card.id}
-                  title={card.title}
-                  imageSrc={card.imageSrc}
-                  imageWidth={card.imageWidth}
-                  imageHeight={card.imageHeight}
-                  imageClassName={card.imageClassName}
-                  description={card.description}
-                  tone={tone}
-                />
-              </li>
-            );
-          })}
-        </ul>
+                return (
+                  <li
+                    key={card.id}
+                    className='w-[84vw] max-w-[360px] shrink-0 snap-start sm:w-[68vw] md:w-auto md:max-w-none md:shrink md:snap-none'
+                  >
+                    <CourseHighlightCard
+                      id={card.id}
+                      title={card.title}
+                      imageSrc={card.imageSrc}
+                      imageWidth={card.imageWidth}
+                      imageHeight={card.imageHeight}
+                      imageClassName={card.imageClassName}
+                      description={card.description}
+                      tone={tone}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {hasCarouselNavigation && canScrollPrevious && (
+            <ButtonPrimitive
+              variant='control'
+              onClick={() => {
+                handleCarouselNavigation('prev');
+              }}
+              aria-label='Scroll course highlights left'
+              className='absolute left-0 top-1/2 z-20 -translate-x-1/3 -translate-y-1/2 md:hidden'
+            >
+              <ArrowIcon direction='left' />
+            </ButtonPrimitive>
+          )}
+
+          {hasCarouselNavigation && canScrollNext && (
+            <ButtonPrimitive
+              variant='control'
+              onClick={() => {
+                handleCarouselNavigation('next');
+              }}
+              aria-label='Scroll course highlights right'
+              className='absolute right-0 top-1/2 z-20 translate-x-1/3 -translate-y-1/2 md:hidden'
+            >
+              <ArrowIcon direction='right' />
+            </ButtonPrimitive>
+          )}
+        </div>
 
         {sectionDescription && (
           <div className='mt-9 text-center sm:mt-11 lg:mt-12'>
