@@ -16,6 +16,25 @@ Set these variables before running or building the app:
 - `NEXT_PUBLIC_COGNITO_DOMAIN`
 - `NEXT_PUBLIC_COGNITO_CLIENT_ID`
 - `NEXT_PUBLIC_COGNITO_USER_POOL_ID`
+- `NEXT_PUBLIC_ADMIN_API_BASE_URL`
+
+`NEXT_PUBLIC_ADMIN_API_BASE_URL` accepts:
+
+- an absolute API URL (example: `https://api.evolvesprouts.com`)
+- or a relative proxy base path (example: `/prod`)
+
+## Assets admin page
+
+After authentication, the app renders the first admin module: **Client Assets**.
+This screen supports:
+
+- listing assets with filters and pagination
+- creating and updating asset metadata
+- deleting assets
+- viewing and managing access grants for restricted assets
+
+If backend asset endpoints are unavailable in an environment, the UI surfaces
+the API error response directly for easier diagnostics.
 
 ## ESLint 10 compatibility
 

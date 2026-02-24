@@ -1,12 +1,20 @@
 'use client';
 
+import { useState } from 'react';
+
+import { AssetsPage } from '../components/admin/assets/assets-page';
+import { AppShell } from '../components/app-shell';
 import { AuthProvider, useAuth } from '../components/auth-provider';
 import { LoginScreen } from '../components/login-screen';
 import { StatusBanner } from '../components/status-banner';
-import { Button } from '../components/ui/button';
+
+const NAV_ITEMS = [{ key: 'assets', label: 'Client assets' }] as const;
 
 function LoginGate() {
   const { status, user, logout } = useAuth();
+  const [activeSectionKey, setActiveSectionKey] = useState<(typeof NAV_ITEMS)[number]['key']>(
+    'assets'
+  );
 
   if (status === 'loading') {
     return (
@@ -20,16 +28,16 @@ function LoginGate() {
 
   if (status === 'authenticated') {
     return (
-      <main className='mx-auto flex min-h-screen max-w-lg items-center px-6'>
-        <section className='w-full space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm'>
-          <StatusBanner variant='success' title='Signed in'>
-            You are logged in as {user?.email ?? 'an authenticated user'}.
-          </StatusBanner>
-          <Button type='button' variant='outline' onClick={logout} className='w-full'>
-            Sign out
-          </Button>
-        </section>
-      </main>
+      <AppShell
+        navItems={NAV_ITEMS.map((item) => ({ ...item }))}
+        activeKey={activeSectionKey}
+        onSelect={(key) => setActiveSectionKey(key as (typeof NAV_ITEMS)[number]['key'])}
+        onLogout={logout}
+        userEmail={user?.email}
+        lastAuthTime={user?.lastAuthTime}
+      >
+        <AssetsPage />
+      </AppShell>
     );
   }
 

@@ -1,0 +1,125 @@
+'use client';
+
+import { useMemo, useState, type ReactNode } from 'react';
+
+import { Button } from './ui/button';
+
+export interface AppShellNavItem {
+  key: string;
+  label: string;
+}
+
+export interface AppShellProps {
+  navItems: AppShellNavItem[];
+  activeKey: string;
+  onSelect: (key: string) => void;
+  onLogout: () => void;
+  userEmail?: string;
+  lastAuthTime?: string;
+  children: ReactNode;
+}
+
+function formatTimestamp(value?: string): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export function AppShell({
+  navItems,
+  activeKey,
+  onSelect,
+  onLogout,
+  userEmail,
+  lastAuthTime,
+  children,
+}: AppShellProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const activeLabel = useMemo(
+    () => navItems.find((item) => item.key === activeKey)?.label ?? '',
+    [activeKey, navItems]
+  );
+  const formattedLastAuthTime = formatTimestamp(lastAuthTime);
+
+  return (
+    <div className='min-h-screen bg-slate-50 text-slate-900'>
+      <header className='sticky top-0 z-30 border-b border-slate-200 bg-white'>
+        <div className='mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6'>
+          <div className='flex items-center gap-3'>
+            <button
+              type='button'
+              onClick={() => setIsMobileMenuOpen((previous) => !previous)}
+              className='inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 lg:hidden'
+              aria-expanded={isMobileMenuOpen}
+              aria-label='Toggle navigation'
+            >
+              <span className='text-lg leading-none'>{isMobileMenuOpen ? '×' : '☰'}</span>
+            </button>
+            <div>
+              <p className='text-xs font-semibold uppercase tracking-[0.25em] text-slate-500'>
+                Evolve Sprouts Admin
+              </p>
+              <h1 className='text-lg font-semibold'>{activeLabel || 'Admin'}</h1>
+            </div>
+          </div>
+          <div className='flex items-center gap-3'>
+            {userEmail ? (
+              <div className='hidden text-right md:block'>
+                <p className='text-sm text-slate-700'>{userEmail}</p>
+                {formattedLastAuthTime ? (
+                  <p className='text-xs text-slate-500'>Last auth: {formattedLastAuthTime}</p>
+                ) : null}
+              </div>
+            ) : null}
+            <Button type='button' variant='outline' onClick={onLogout}>
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className='mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[220px_minmax(0,1fr)]'>
+        <aside
+          className={`${isMobileMenuOpen ? 'block' : 'hidden'} rounded-xl border border-slate-200 bg-white p-3 lg:block`}
+        >
+          <nav className='space-y-1'>
+            {navItems.map((item) => {
+              const isActive = item.key === activeKey;
+              return (
+                <button
+                  key={item.key}
+                  type='button'
+                  onClick={() => {
+                    onSelect(item.key);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full rounded-md px-3 py-2 text-left text-sm font-medium transition ${
+                    isActive
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        <main className='min-w-0'>{children}</main>
+      </div>
+    </div>
+  );
+}
