@@ -1,18 +1,45 @@
+'use client';
+
+import { AuthProvider, useAuth } from '../components/auth-provider';
+import { LoginScreen } from '../components/login-screen';
+import { StatusBanner } from '../components/status-banner';
+import { Button } from '../components/ui/button';
+
+function LoginGate() {
+  const { status, user, logout } = useAuth();
+
+  if (status === 'loading') {
+    return (
+      <main className='mx-auto flex min-h-screen max-w-lg items-center px-6'>
+        <StatusBanner variant='info' title='Loading'>
+          Preparing your admin session.
+        </StatusBanner>
+      </main>
+    );
+  }
+
+  if (status === 'authenticated') {
+    return (
+      <main className='mx-auto flex min-h-screen max-w-lg items-center px-6'>
+        <section className='w-full space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm'>
+          <StatusBanner variant='success' title='Signed in'>
+            You are logged in as {user?.email ?? 'an authenticated user'}.
+          </StatusBanner>
+          <Button type='button' variant='outline' onClick={logout} className='w-full'>
+            Sign out
+          </Button>
+        </section>
+      </main>
+    );
+  }
+
+  return <LoginScreen />;
+}
+
 export default function HomePage() {
   return (
-    <main className='mx-auto flex min-h-screen max-w-4xl items-center px-6'>
-      <section className='w-full rounded-xl border border-slate-200 bg-white p-8 shadow-sm'>
-        <p className='text-xs font-semibold uppercase tracking-[0.25em] text-slate-500'>
-          Evolve Sprouts
-        </p>
-        <h1 className='mt-3 text-3xl font-semibold text-slate-900'>
-          CRM Shell
-        </h1>
-        <p className='mt-4 text-slate-600'>
-          This app is intentionally a minimal shell. Feature modules will be
-          added iteratively.
-        </p>
-      </section>
-    </main>
+    <AuthProvider>
+      <LoginGate />
+    </AuthProvider>
   );
 }

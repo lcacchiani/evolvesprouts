@@ -1,6 +1,6 @@
-# Admin Web (SPA Shell)
+# Admin Web
 
-`admin_web` is a minimal single-page shell for Evolve Sprouts.
+`admin_web` is the admin sign-in app for Evolve Sprouts.
 
 ## Development
 
@@ -8,6 +8,14 @@
 npm install
 npm run dev
 ```
+
+## Required environment variables
+
+Set these variables before running or building the app:
+
+- `NEXT_PUBLIC_COGNITO_DOMAIN`
+- `NEXT_PUBLIC_COGNITO_CLIENT_ID`
+- `NEXT_PUBLIC_COGNITO_USER_POOL_ID`
 
 ## ESLint 10 compatibility
 

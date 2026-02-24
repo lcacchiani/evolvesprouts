@@ -51,6 +51,9 @@ jobs:
         working-directory: apps/admin_web
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+          NEXT_PUBLIC_COGNITO_DOMAIN: ${{ vars.NEXT_PUBLIC_COGNITO_DOMAIN }}
+          NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ vars.NEXT_PUBLIC_COGNITO_CLIENT_ID }}
+          NEXT_PUBLIC_COGNITO_USER_POOL_ID: ${{ vars.NEXT_PUBLIC_COGNITO_USER_POOL_ID }}
 
       - name: Configure AWS credentials
         if: ${{ vars.AWS_ACCOUNT_ID != '' && vars.AWS_REGION != '' }}

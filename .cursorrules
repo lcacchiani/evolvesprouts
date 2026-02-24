@@ -20,7 +20,7 @@
 repo root
 |-- apps/
 |   |-- evolvesprouts_app/    # Flutter mobile app
-|   |-- admin_web/            # Next.js admin shell
+|   |-- admin_web/            # Next.js admin app
 |   `-- public_www/           # Next.js public website
 |-- backend/
 |   |-- db/                   # Alembic + seed SQL
