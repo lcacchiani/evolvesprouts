@@ -32,12 +32,6 @@ their primary responsibilities.
 - Purpose: service health and configuration checks
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_app`)
 
-### Search handler (repository only, not currently wired)
-- Handler file: backend/lambda/search/handler.py
-- Shared implementation: backend/src/app/api/search.py
-- Status: present in repository but not currently created/wired by
-  `backend/infrastructure/lib/api-stack.ts`
-
 ## Auth and security Lambdas
 
 ### Pre sign-up trigger

@@ -227,7 +227,7 @@ def api_gateway_event() -> dict:
     """Base API Gateway event structure."""
     return {
         'httpMethod': 'GET',
-        'path': '/v1/activities/search',
+        'path': '/health',
         'queryStringParameters': {},
         'multiValueQueryStringParameters': {},
         'headers': {},
@@ -268,26 +268,3 @@ def mock_boto3_client(mocker):
 
 
 # --- Utility Functions ---
-
-
-def make_search_filters(**kwargs) -> dict:
-    """Create search filter kwargs with defaults."""
-    defaults = {
-        'age': None,
-        'district': None,
-        'pricing_type': None,
-        'price_min': None,
-        'price_max': None,
-        'schedule_type': None,
-        'day_of_week_utc': None,
-        'day_of_month': None,
-        'start_minutes_utc': None,
-        'end_minutes_utc': None,
-        'start_at_utc': None,
-        'end_at_utc': None,
-        'languages': (),
-        'cursor': None,
-        'limit': 50,
-    }
-    defaults.update(kwargs)
-    return defaults

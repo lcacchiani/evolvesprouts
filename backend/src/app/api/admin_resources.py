@@ -20,12 +20,6 @@ from app.api.admin_resource_feedback_label import (
     _serialize_feedback_label,
     _update_feedback_label,
 )
-from app.api.admin_resource_location import (
-    _create_location,
-    _serialize_location,
-    _update_location,
-    _validate_coordinates,
-)
 from app.api.admin_resource_organization import (
     _create_organization,
     _serialize_organization,
@@ -51,7 +45,6 @@ from app.db.models import (
     ActivityPricing,
     ActivitySchedule,
     FeedbackLabel,
-    Location,
     Organization,
 )
 from app.db.repositories import (
@@ -60,7 +53,6 @@ from app.db.repositories import (
     ActivityRepository,
     ActivityScheduleRepository,
     FeedbackLabelRepository,
-    LocationRepository,
     OrganizationRepository,
 )
 
@@ -69,28 +61,24 @@ __all__ = [
     "_create_activity",
     "_create_activity_category",
     "_create_feedback_label",
-    "_create_location",
     "_create_organization",
     "_create_pricing",
     "_create_schedule",
     "_serialize_activity",
     "_serialize_activity_category",
     "_serialize_feedback_label",
-    "_serialize_location",
     "_serialize_organization",
     "_serialize_pricing",
     "_serialize_schedule",
     "_update_activity",
     "_update_activity_category",
     "_update_feedback_label",
-    "_update_location",
     "_update_organization",
     "_update_organization_for_manager",
     "_update_pricing",
     "_update_schedule",
     "_validate_age_range",
     "_validate_category_parent",
-    "_validate_coordinates",
     "_validate_pricing_amount",
     "_validate_schedule",
     "_validate_sessions_count",
@@ -106,14 +94,6 @@ _RESOURCE_CONFIG = {
         create_handler=_create_organization,
         update_handler=_update_organization,
         manager_update_handler=_update_organization_for_manager,
-    ),
-    "locations": ResourceConfig(
-        name="locations",
-        model=Location,
-        repository_class=LocationRepository,
-        serializer=_serialize_location,
-        create_handler=_create_location,
-        update_handler=_update_location,
     ),
     "activity-categories": ResourceConfig(
         name="activity-categories",

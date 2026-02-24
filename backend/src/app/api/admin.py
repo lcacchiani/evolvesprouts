@@ -43,7 +43,6 @@ from app.api.admin_resources import (
     _RESOURCE_CONFIG,
     _validate_age_range,
     _validate_category_parent,
-    _validate_coordinates,
     _validate_pricing_amount,
     _validate_schedule,
     _validate_sessions_count,
@@ -87,7 +86,6 @@ __all__ = [
     "MAX_URL_LENGTH",
     "_validate_age_range",
     "_validate_category_parent",
-    "_validate_coordinates",
     "_validate_currency",
     "_validate_email",
     "_validate_language_code",
@@ -288,7 +286,6 @@ def _handle_manager_routes(
 
     manager_resources = {
         "organizations",
-        "locations",
         "activities",
         "pricing",
         "schedules",

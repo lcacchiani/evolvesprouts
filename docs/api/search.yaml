@@ -9,8 +9,6 @@ info:
     search/public booking routes from this spec into API Gateway.
 
     Notes:
-    - Search handler code exists at `backend/lambda/search/handler.py`
-      (`backend/src/app/api/search.py`).
     - Public reservation handler code exists inside
       `backend/src/app/api/public_reservations.py` and is dispatched by
       `backend/src/app/api/admin.py` when the request path matches
