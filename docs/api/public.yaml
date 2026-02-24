@@ -34,7 +34,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/PublicAssetListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -56,7 +56,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/PublicAssetDownloadResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -229,9 +229,65 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
 
   schemas:
-    GenericPayload:
+    PublicAsset:
       type: object
-      additionalProperties: true
+      required:
+        - id
+        - title
+        - asset_type
+        - file_name
+        - visibility
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        asset_type:
+          type: string
+          enum: [guide, video, pdf, document]
+        file_name:
+          type: string
+        content_type:
+          type: string
+          nullable: true
+        visibility:
+          type: string
+          enum: [public, restricted]
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    PublicAssetListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicAsset"
+        next_cursor:
+          type: string
+          nullable: true
+    PublicAssetDownloadResponse:
+      type: object
+      required:
+        - asset_id
+        - download_url
+        - expires_at
+      properties:
+        asset_id:
+          type: string
+        download_url:
+          type: string
+          format: uri
+        expires_at:
+          type: string
+          format: date-time
     ErrorResponse:
       type: object
       required:

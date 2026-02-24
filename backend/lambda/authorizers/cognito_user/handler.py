@@ -26,6 +26,23 @@ configure_logging()
 logger = get_logger(__name__)
 
 
+def _extract_organization_ids(raw_claims: dict[str, Any]) -> set[str]:
+    """Extract organization IDs from common Cognito custom-claim keys."""
+    claim_value = (
+        raw_claims.get("custom:organization_ids")
+        or raw_claims.get("custom:organization_id")
+        or raw_claims.get("organization_ids")
+        or raw_claims.get("organization_id")
+    )
+    if claim_value is None:
+        return set()
+    if isinstance(claim_value, list):
+        values = [str(item).strip() for item in claim_value]
+    else:
+        values = [part.strip() for part in str(claim_value).split(",")]
+    return {value for value in values if value}
+
+
 def _get_header(headers: dict[str, Any], name: str) -> str:
     """Get a header value case-insensitively."""
     for key, value in headers.items():
@@ -119,6 +136,7 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
         user_sub = claims.sub
         email = claims.email
         user_groups = claims.groups
+        organization_ids = _extract_organization_ids(claims.raw_claims)
 
         logger.info(
             f"Access granted for authenticated user {user_sub[:8]}*** "
@@ -133,6 +151,7 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
                 "userSub": user_sub,
                 "email": email,
                 "groups": ",".join(user_groups),
+                "organizationIds": ",".join(sorted(organization_ids)),
             },
         )
 

@@ -4,7 +4,7 @@ This document describes the organization suggestion feature that allows public u
 
 ## Overview
 
-Public logged-in users can suggest new organizations (places) without becoming managers. This is useful for:
+Public logged-in users can suggest new places without becoming managers. This is useful for:
 - Users discovering new venues they want to share
 - Community-driven content expansion
 - Quality control through admin review

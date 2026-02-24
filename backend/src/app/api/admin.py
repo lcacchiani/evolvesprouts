@@ -1,16 +1,16 @@
-"""Admin Lambda API entrypoint.
-
-This handler currently keeps only the public reservation dispatch path.
-Other legacy admin/manager/user CRUD routes were intentionally removed from
-this module and now return `404 Not found`.
-"""
+"""Admin Lambda API entrypoint."""
 
 from __future__ import annotations
 
 from typing import Any, Mapping
 
+from app.api.assets import (
+    handle_admin_assets_request,
+    handle_public_assets_request,
+    handle_user_assets_request,
+)
 from app.api.public_reservations import _handle_public_reservation
-from app.exceptions import ValidationError
+from app.exceptions import AppError, ValidationError
 from app.utils import json_response
 from app.utils.logging import configure_logging, get_logger, set_request_context
 from app.utils.responses import validate_content_type
@@ -43,11 +43,9 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         },
     )
 
-    if _is_public_reservation_path(path):
-        return _safe_handler(
-            lambda: _handle_public_reservation(event, method),
-            event,
-        )
+    handler = _match_handler(event=event, method=method, path=path)
+    if handler is not None:
+        return _safe_handler(handler, event)
 
     return json_response(404, {"error": "Not found"}, event=event)
 
@@ -59,8 +57,8 @@ def _safe_handler(
     """Execute a handler with common error handling."""
     try:
         return handler()
-    except ValidationError as exc:
-        logger.warning(f"Validation error: {exc.message}")
+    except AppError as exc:
+        logger.warning(f"Application error: {exc.message}")
         return json_response(exc.status_code, exc.to_dict(), event=event)
     except ValueError as exc:
         logger.warning(f"Value error: {exc}")
@@ -72,7 +70,49 @@ def _safe_handler(
         )
 
 
+def _match_handler(
+    *,
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> Any:
+    """Return the request handler for a known route, if any."""
+    if _is_public_reservation_path(path):
+        return lambda: _handle_public_reservation(event, method)
+    if _is_admin_assets_path(path):
+        return lambda: handle_admin_assets_request(event, method, path)
+    if _is_user_assets_path(path):
+        return lambda: handle_user_assets_request(event, method, path)
+    if _is_public_assets_path(path):
+        return lambda: handle_public_assets_request(event, method, path)
+    return None
+
+
 def _is_public_reservation_path(path: str) -> bool:
     """Return whether the request targets the public reservations endpoint."""
     normalized_path = path.rstrip("/")
     return normalized_path in ("/v1/reservations", "/www/v1/reservations")
+
+
+def _is_admin_assets_path(path: str) -> bool:
+    """Return whether the path targets /v1/admin/assets routes."""
+    normalized_path = path.rstrip("/")
+    return normalized_path == "/v1/admin/assets" or normalized_path.startswith(
+        "/v1/admin/assets/"
+    )
+
+
+def _is_user_assets_path(path: str) -> bool:
+    """Return whether the path targets /v1/user/assets routes."""
+    normalized_path = path.rstrip("/")
+    return normalized_path == "/v1/user/assets" or normalized_path.startswith(
+        "/v1/user/assets/"
+    )
+
+
+def _is_public_assets_path(path: str) -> bool:
+    """Return whether the path targets /v1/assets/public routes."""
+    normalized_path = path.rstrip("/")
+    return normalized_path == "/v1/assets/public" or normalized_path.startswith(
+        "/v1/assets/public/"
+    )

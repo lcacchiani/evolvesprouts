@@ -2,9 +2,9 @@
 
 import { useMemo, useState, type FormEvent } from 'react';
 
-import type { AdminAsset, AssetType, AssetVisibility, CreatedAssetUpload } from '@/types/assets';
+import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
-import { ASSET_TYPES, ASSET_VISIBILITIES } from '@/types/assets';
+import { ASSET_VISIBILITIES } from '@/types/assets';
 
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
@@ -19,55 +19,39 @@ interface AssetEditorPanelProps {
   isSavingAsset: boolean;
   isDeletingCurrentAsset: boolean;
   assetMutationError: string;
-  lastCreatedUpload: CreatedAssetUpload | null;
+  uploadState: 'idle' | 'uploading' | 'failed' | 'succeeded';
+  uploadError: string;
+  hasPendingUpload: boolean;
+  onRetryUpload: () => Promise<void>;
   onCreate: (payload: {
     title: string;
     description: string | null;
-    assetType: AssetType;
     fileName: string;
-    contentType: string | null;
-    fileSizeBytes: number | null;
     visibility: AssetVisibility;
-    organizationId: string | null;
-  }) => Promise<void>;
+  }, file: File) => Promise<void>;
   onUpdate: (
     assetId: string,
     payload: {
       title: string;
       description: string | null;
-      assetType: AssetType;
       fileName: string;
-      contentType: string | null;
-      fileSizeBytes: number | null;
       visibility: AssetVisibility;
-      organizationId: string | null;
     }
   ) => Promise<void>;
   onDelete: (assetId: string) => Promise<void>;
   onStartCreate: () => void;
-  onDismissUploadNotice: () => void;
 }
 
 interface AssetFormState {
   title: string;
   description: string;
-  assetType: AssetType;
-  fileName: string;
-  contentType: string;
-  fileSizeBytes: string;
   visibility: AssetVisibility;
-  organizationId: string;
 }
 
 const EMPTY_ASSET_FORM: AssetFormState = {
   title: '',
   description: '',
-  assetType: 'guide',
-  fileName: '',
-  contentType: '',
-  fileSizeBytes: '',
   visibility: 'restricted',
-  organizationId: '',
 };
 
 function toTitleCase(value: string): string {
@@ -81,12 +65,7 @@ function toFormState(asset: AdminAsset): AssetFormState {
   return {
     title: asset.title,
     description: asset.description ?? '',
-    assetType: asset.assetType,
-    fileName: asset.fileName,
-    contentType: asset.contentType ?? '',
-    fileSizeBytes: asset.fileSizeBytes !== null ? `${asset.fileSizeBytes}` : '',
     visibility: asset.visibility,
-    organizationId: asset.organizationId ?? '',
   };
 }
 
@@ -95,24 +74,27 @@ export function AssetEditorPanel({
   isSavingAsset,
   isDeletingCurrentAsset,
   assetMutationError,
-  lastCreatedUpload,
+  uploadState,
+  uploadError,
+  hasPendingUpload,
+  onRetryUpload,
   onCreate,
   onUpdate,
   onDelete,
   onStartCreate,
-  onDismissUploadNotice,
 }: AssetEditorPanelProps) {
   const [formState, setFormState] = useState<AssetFormState>(() =>
     selectedAsset ? toFormState(selectedAsset) : EMPTY_ASSET_FORM
   );
   const [formError, setFormError] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const isEditMode = Boolean(selectedAsset);
 
   const cardTitle = isEditMode ? 'Edit asset' : 'Create asset';
   const cardDescription = isEditMode
     ? 'Update metadata and visibility for the selected asset.'
-    : 'Create a new asset record and request a presigned upload URL.';
+    : 'Create a new PDF asset and upload content automatically with a presigned URL.';
 
   const submitLabel = useMemo(() => {
     if (isSavingAsset) {
@@ -126,43 +108,48 @@ export function AssetEditorPanel({
     setFormError('');
 
     const title = formState.title.trim();
-    const fileName = formState.fileName.trim();
     if (!title) {
       setFormError('Title is required.');
       return;
     }
-    if (!fileName) {
-      setFormError('File name is required.');
+
+    const fileToUpload = selectedFile;
+    if (!isEditMode && !fileToUpload) {
+      setFormError('Select a PDF file to upload.');
       return;
     }
 
-    let parsedFileSizeBytes: number | null = null;
-    if (formState.fileSizeBytes.trim()) {
-      const nextFileSize = Number(formState.fileSizeBytes);
-      if (!Number.isFinite(nextFileSize) || nextFileSize < 0) {
-        setFormError('File size must be a non-negative number.');
+    if (fileToUpload) {
+      const isPdfMime = !fileToUpload.type || fileToUpload.type === 'application/pdf';
+      const isPdfExtension = fileToUpload.name.toLowerCase().endsWith('.pdf');
+      if (!isPdfMime || !isPdfExtension) {
+        setFormError('Only PDF files are allowed.');
         return;
       }
-      parsedFileSizeBytes = Math.floor(nextFileSize);
     }
 
-    const payload = {
+    const payload: {
+      title: string;
+      description: string | null;
+      fileName: string;
+      visibility: AssetVisibility;
+    } = {
       title,
       description: formState.description.trim() || null,
-      assetType: formState.assetType,
-      fileName,
-      contentType: formState.contentType.trim() || null,
-      fileSizeBytes: parsedFileSizeBytes,
+      fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
       visibility: formState.visibility,
-      organizationId: formState.organizationId.trim() || null,
     };
 
-    if (selectedAsset) {
+    if (isEditMode && selectedAsset) {
       await onUpdate(selectedAsset.id, payload);
       return;
     }
 
-    await onCreate(payload);
+    if (!fileToUpload) {
+      setFormError('Select a PDF file to upload.');
+      return;
+    }
+    await onCreate(payload, fileToUpload);
   };
 
   const handleDelete = async () => {
@@ -190,6 +177,7 @@ export function AssetEditorPanel({
             onClick={() => {
               onStartCreate();
               setFormState(EMPTY_ASSET_FORM);
+              setSelectedFile(null);
             }}
           >
             New asset
@@ -209,16 +197,30 @@ export function AssetEditorPanel({
         </StatusBanner>
       ) : null}
 
-      {lastCreatedUpload?.uploadUrl ? (
-        <StatusBanner variant='success' title='Upload URL ready'>
-          <span className='break-all'>{lastCreatedUpload.uploadUrl}</span>
-          <button
-            type='button'
-            className='ml-2 text-xs underline underline-offset-2'
-            onClick={onDismissUploadNotice}
-          >
-            Dismiss
-          </button>
+      {uploadState === 'uploading' ? (
+        <StatusBanner variant='info' title='Uploading'>
+          Uploading PDF content to S3...
+        </StatusBanner>
+      ) : null}
+
+      {uploadState === 'succeeded' ? (
+        <StatusBanner variant='success' title='Upload complete'>
+          PDF content uploaded successfully.
+        </StatusBanner>
+      ) : null}
+
+      {uploadState === 'failed' ? (
+        <StatusBanner variant='error' title='Upload failed'>
+          {uploadError || 'The PDF upload failed.'}
+          {hasPendingUpload ? (
+            <button
+              type='button'
+              className='ml-2 text-xs underline underline-offset-2'
+              onClick={() => void onRetryUpload()}
+            >
+              Retry upload
+            </button>
+          ) : null}
         </StatusBanner>
       ) : null}
 
@@ -235,37 +237,6 @@ export function AssetEditorPanel({
               placeholder='Infant nutrition guide'
               required
             />
-          </div>
-          <div className='space-y-2'>
-            <Label htmlFor='asset-file-name'>File name</Label>
-            <Input
-              id='asset-file-name'
-              value={formState.fileName}
-              onChange={(event) =>
-                setFormState((previous) => ({ ...previous, fileName: event.target.value }))
-              }
-              placeholder='nutrition-guide.pdf'
-              required
-            />
-          </div>
-          <div className='space-y-2'>
-            <Label htmlFor='asset-type'>Asset type</Label>
-            <Select
-              id='asset-type'
-              value={formState.assetType}
-              onChange={(event) =>
-                setFormState((previous) => ({
-                  ...previous,
-                  assetType: event.target.value as AssetType,
-                }))
-              }
-            >
-              {ASSET_TYPES.map((assetType) => (
-                <option key={assetType} value={assetType}>
-                  {toTitleCase(assetType)}
-                </option>
-              ))}
-            </Select>
           </div>
           <div className='space-y-2'>
             <Label htmlFor='asset-visibility'>Visibility</Label>
@@ -286,29 +257,33 @@ export function AssetEditorPanel({
               ))}
             </Select>
           </div>
-          <div className='space-y-2'>
-            <Label htmlFor='asset-content-type'>Content type</Label>
-            <Input
-              id='asset-content-type'
-              value={formState.contentType}
-              onChange={(event) =>
-                setFormState((previous) => ({ ...previous, contentType: event.target.value }))
-              }
-              placeholder='application/pdf'
-            />
-          </div>
-          <div className='space-y-2'>
-            <Label htmlFor='asset-size-bytes'>File size (bytes)</Label>
-            <Input
-              id='asset-size-bytes'
-              value={formState.fileSizeBytes}
-              onChange={(event) =>
-                setFormState((previous) => ({ ...previous, fileSizeBytes: event.target.value }))
-              }
-              inputMode='numeric'
-              placeholder='245760'
-            />
-          </div>
+          {!isEditMode ? (
+            <div className='space-y-2'>
+              <Label htmlFor='asset-file-upload'>PDF file</Label>
+              <Input
+                id='asset-file-upload'
+                type='file'
+                accept='application/pdf,.pdf'
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setSelectedFile(file);
+                }}
+                required
+              />
+              <p className='text-xs text-slate-600'>
+                Asset type is fixed to Document (PDF), content type is applied as
+                application/pdf.
+              </p>
+            </div>
+          ) : (
+            <div className='space-y-2'>
+              <Label>File</Label>
+              <p className='rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>
+                {selectedAsset?.fileName || '—'}
+              </p>
+              <p className='text-xs text-slate-600'>File replacement is not supported in edit mode.</p>
+            </div>
+          )}
         </div>
 
         <div className='space-y-2'>
@@ -321,18 +296,6 @@ export function AssetEditorPanel({
               setFormState((previous) => ({ ...previous, description: event.target.value }))
             }
             placeholder='Optional summary shown in client applications.'
-          />
-        </div>
-
-        <div className='space-y-2'>
-          <Label htmlFor='asset-organization-id'>Organization ID (optional)</Label>
-          <Input
-            id='asset-organization-id'
-            value={formState.organizationId}
-            onChange={(event) =>
-              setFormState((previous) => ({ ...previous, organizationId: event.target.value }))
-            }
-            placeholder='UUID of organization for scoped assets'
           />
         </div>
 

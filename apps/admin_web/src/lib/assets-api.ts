@@ -12,6 +12,11 @@ import type {
   UpsertAdminAssetInput,
 } from '@/types/assets';
 import { ACCESS_GRANT_TYPES, ASSET_TYPES, ASSET_VISIBILITIES } from '@/types/assets';
+import type { components } from '@/types/generated/admin-api.generated';
+
+type ApiSchemas = components['schemas'];
+type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
+type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
 
 export interface CreateAdminAssetResult {
   asset: AdminAsset | null;
@@ -42,19 +47,6 @@ function asString(value: unknown): string | null {
 function asNullableString(value: unknown): string | null {
   if (typeof value === 'string') {
     return value;
-  }
-  return null;
-}
-
-function asNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === 'string' && value.trim()) {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
   }
   return null;
 }
@@ -104,10 +96,8 @@ function parseAsset(value: unknown): AdminAsset | null {
     assetType: parseAssetType(pickFirst(value, ['assetType', 'asset_type'])),
     s3Key: asString(pickFirst(value, ['s3Key', 's3_key'])) ?? '',
     fileName: asString(pickFirst(value, ['fileName', 'file_name'])) ?? '',
-    fileSizeBytes: asNumber(pickFirst(value, ['fileSizeBytes', 'file_size_bytes'])),
     contentType: asNullableString(pickFirst(value, ['contentType', 'content_type'])),
     visibility: parseVisibility(pickFirst(value, ['visibility'])),
-    organizationId: asNullableString(pickFirst(value, ['organizationId', 'organization_id'])),
     createdBy: asNullableString(pickFirst(value, ['createdBy', 'created_by'])),
     createdAt: asNullableString(pickFirst(value, ['createdAt', 'created_at'])),
     updatedAt: asNullableString(pickFirst(value, ['updatedAt', 'updated_at'])),
@@ -208,10 +198,9 @@ function extractHeaders(value: unknown): Record<string, string> {
   return headers;
 }
 
-function normalizeAssetInput(input: UpsertAdminAssetInput): Record<string, unknown> {
+function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetRequest {
   const trimmedDescription = input.description?.trim() ?? '';
   const trimmedContentType = input.contentType?.trim() ?? '';
-  const trimmedOrganizationId = input.organizationId?.trim() ?? '';
 
   return {
     title: input.title.trim(),
@@ -219,9 +208,7 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): Record<string, unkno
     asset_type: input.assetType,
     file_name: input.fileName.trim(),
     content_type: trimmedContentType || null,
-    file_size_bytes: input.fileSizeBytes ?? null,
     visibility: input.visibility,
-    organization_id: trimmedOrganizationId || null,
   };
 }
 
@@ -332,13 +319,15 @@ export async function createAdminAssetGrant(
   assetId: string,
   input: CreateAssetGrantInput
 ): Promise<AssetGrant | null> {
+  const requestBody: ApiCreateAssetGrantRequest = {
+    grant_type: input.grantType,
+    grantee_id: input.granteeId?.trim() || null,
+  };
+
   const payload = await adminApiRequest<unknown>({
     endpointPath: `/v1/admin/assets/${assetId}/grants`,
     method: 'POST',
-    body: {
-      grant_type: input.grantType,
-      grantee_id: input.granteeId?.trim() || null,
-    },
+    body: requestBody,
     expectedSuccessStatuses: [200, 201],
   });
 
@@ -351,4 +340,36 @@ export async function deleteAdminAssetGrant(assetId: string, grantId: string): P
     method: 'DELETE',
     expectedSuccessStatuses: [200, 202, 204],
   });
+}
+
+export async function uploadFileToPresignedUrl({
+  uploadUrl,
+  uploadMethod,
+  uploadHeaders,
+  file,
+  signal,
+}: {
+  uploadUrl: string;
+  uploadMethod?: string;
+  uploadHeaders?: Record<string, string>;
+  file: File;
+  signal?: AbortSignal;
+}): Promise<void> {
+  const method = (uploadMethod || 'PUT').toUpperCase();
+  const headers: Record<string, string> = {
+    ...(uploadHeaders ?? {}),
+  };
+  if (!headers['Content-Type'] && file.type) {
+    headers['Content-Type'] = file.type;
+  }
+
+  const response = await fetch(uploadUrl, {
+    method,
+    headers,
+    body: file,
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Upload failed with status ${response.status}.`);
+  }
 }

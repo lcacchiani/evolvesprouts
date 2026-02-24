@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional
 
 import sqlalchemy as sa
-from sqlalchemy import ForeignKey, Numeric, Text, text
+from sqlalchemy import Numeric, Text, text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import TIMESTAMP
@@ -98,29 +98,6 @@ class Ticket(Base):
         comment="Notes from the reviewing admin",
     )
 
-    organization_id: Mapped[Optional[str]] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("organizations.id", ondelete="SET NULL"),
-        nullable=True,
-        comment="Organization referenced by feedback tickets",
-    )
-    feedback_stars: Mapped[Optional[int]] = mapped_column(
-        sa.SmallInteger(),
-        nullable=True,
-        comment="Feedback rating from 0 to 5",
-    )
-    feedback_label_ids: Mapped[List[str]] = mapped_column(
-        ARRAY(UUID(as_uuid=True)),
-        nullable=False,
-        server_default=text("'{}'::uuid[]"),
-        comment="Selected feedback label IDs",
-    )
-    feedback_text: Mapped[Optional[str]] = mapped_column(
-        Text(),
-        nullable=True,
-        comment="Free-form feedback description",
-    )
-
     description: Mapped[Optional[str]] = mapped_column(
         Text(),
         nullable=True,
@@ -146,15 +123,9 @@ class Ticket(Base):
         nullable=True,
         comment="Longitude coordinate",
     )
-    media_urls: Mapped[List[str]] = mapped_column(
+    media_urls: Mapped[list[str]] = mapped_column(
         ARRAY(Text()),
         nullable=False,
         server_default=text("'{}'::text[]"),
         comment="URLs of uploaded media files",
-    )
-    created_organization_id: Mapped[Optional[str]] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("organizations.id", ondelete="SET NULL"),
-        nullable=True,
-        comment="FK to organization created or assigned on approval",
     )

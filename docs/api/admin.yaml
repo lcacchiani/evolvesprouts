@@ -15,11 +15,6 @@ info:
     - `GET /v1/user/assets`
     - `GET /v1/user/assets/{id}/download`
 
-    Note:
-    The `backend/src/app/api/admin.py` handler is currently minimal.
-    For currently wired asset routes, it returns `404 Not found`
-    for non-reservation requests.
-
 servers:
   - url: https://api.evolvesprouts.com
     description: Production custom domain (when configured)
@@ -64,7 +59,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/AssetListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -76,13 +71,19 @@ paths:
       description: Admin-only route for creating an asset.
       security:
         - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAssetRequest"
       responses:
-        "200":
+        "201":
           description: Asset create response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/CreateAssetResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -103,7 +104,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/AssetResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -114,13 +115,19 @@ paths:
       summary: Update admin asset
       security:
         - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAssetRequest"
       responses:
         "200":
           description: Asset update response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/AssetResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -154,7 +161,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/AssetGrantListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -165,13 +172,19 @@ paths:
       summary: Create asset grant
       security:
         - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAssetGrantRequest"
       responses:
-        "200":
+        "201":
           description: Grant create response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/AssetGrantResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -209,7 +222,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/AssetListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -230,7 +243,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericPayload"
+                $ref: "#/components/schemas/AssetDownloadResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -287,20 +300,193 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
-      description: Resource not found or not currently implemented.
+      description: Resource not found.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
 
   schemas:
-    GenericPayload:
+    Asset:
       type: object
-      additionalProperties: true
-      description: |
-        Placeholder payload schema for currently wired asset endpoints.
-        The current handler path is wired in API Gateway, while detailed
-        asset payload contracts are still being finalized.
+      required:
+        - id
+        - title
+        - asset_type
+        - s3_key
+        - file_name
+        - visibility
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        asset_type:
+          type: string
+          enum: [guide, video, pdf, document]
+        s3_key:
+          type: string
+        file_name:
+          type: string
+        content_type:
+          type: string
+          nullable: true
+        visibility:
+          type: string
+          enum: [public, restricted]
+        created_by:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    AssetGrant:
+      type: object
+      required:
+        - id
+        - asset_id
+        - grant_type
+      properties:
+        id:
+          type: string
+          format: uuid
+        asset_id:
+          type: string
+          format: uuid
+        grant_type:
+          type: string
+          enum: [all_authenticated, organization, user]
+        grantee_id:
+          type: string
+          nullable: true
+        granted_by:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    AssetListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Asset"
+        next_cursor:
+          type: string
+          nullable: true
+    AssetResponse:
+      type: object
+      required:
+        - asset
+      properties:
+        asset:
+          $ref: "#/components/schemas/Asset"
+    AssetGrantListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetGrant"
+    AssetGrantResponse:
+      type: object
+      required:
+        - grant
+      properties:
+        grant:
+          $ref: "#/components/schemas/AssetGrant"
+    AssetDownloadResponse:
+      type: object
+      required:
+        - asset_id
+        - download_url
+        - expires_at
+      properties:
+        asset_id:
+          type: string
+        download_url:
+          type: string
+          format: uri
+        expires_at:
+          type: string
+          format: date-time
+    CreateAssetRequest:
+      type: object
+      required:
+        - title
+        - file_name
+        - asset_type
+        - visibility
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        asset_type:
+          type: string
+          enum: [guide, video, pdf, document]
+        file_name:
+          type: string
+          maxLength: 255
+        content_type:
+          type: string
+          maxLength: 127
+          nullable: true
+        visibility:
+          type: string
+          enum: [public, restricted]
+    UpdateAssetRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreateAssetRequest"
+    CreateAssetResponse:
+      type: object
+      required:
+        - asset
+      properties:
+        asset:
+          $ref: "#/components/schemas/Asset"
+        upload_url:
+          type: string
+          format: uri
+          nullable: true
+        upload_method:
+          type: string
+        upload_headers:
+          type: object
+          additionalProperties:
+            type: string
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+    CreateAssetGrantRequest:
+      type: object
+      required:
+        - grant_type
+      properties:
+        grant_type:
+          type: string
+          enum: [all_authenticated, organization, user]
+        grantee_id:
+          type: string
+          nullable: true
     ErrorResponse:
       type: object
       required:

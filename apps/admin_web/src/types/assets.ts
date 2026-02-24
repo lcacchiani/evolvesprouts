@@ -1,35 +1,54 @@
-export const ASSET_TYPES = ['guide', 'video', 'pdf', 'document'] as const;
-export type AssetType = (typeof ASSET_TYPES)[number];
+import type { components } from '@/types/generated/admin-api.generated';
 
-export const ASSET_VISIBILITIES = ['public', 'restricted'] as const;
-export type AssetVisibility = (typeof ASSET_VISIBILITIES)[number];
+type ApiSchemas = components['schemas'];
+type ApiAsset = ApiSchemas['Asset'];
+type ApiAssetGrant = ApiSchemas['AssetGrant'];
+type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
+type ApiCreateAssetResponse = ApiSchemas['CreateAssetResponse'];
+type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
 
-export const ACCESS_GRANT_TYPES = ['all_authenticated', 'organization', 'user'] as const;
-export type AccessGrantType = (typeof ACCESS_GRANT_TYPES)[number];
+type OptionalToNullable<T> = Exclude<T, undefined>;
+
+function defineEnumValues<T extends string>() {
+  return <U extends readonly T[]>(values: U & ([T] extends [U[number]] ? unknown : never)) => values;
+}
+
+export type AssetType = ApiAsset['asset_type'];
+export const ASSET_TYPES = defineEnumValues<AssetType>()(
+  ['guide', 'video', 'pdf', 'document'] as const satisfies readonly AssetType[]
+);
+
+export type AssetVisibility = ApiAsset['visibility'];
+export const ASSET_VISIBILITIES = defineEnumValues<AssetVisibility>()(
+  ['public', 'restricted'] as const satisfies readonly AssetVisibility[]
+);
+
+export type AccessGrantType = ApiAssetGrant['grant_type'];
+export const ACCESS_GRANT_TYPES = defineEnumValues<AccessGrantType>()(
+  ['all_authenticated', 'organization', 'user'] as const satisfies readonly AccessGrantType[]
+);
 
 export interface AdminAsset {
-  id: string;
-  title: string;
-  description: string | null;
+  id: ApiAsset['id'];
+  title: ApiAsset['title'];
+  description: OptionalToNullable<ApiAsset['description']>;
   assetType: AssetType;
-  s3Key: string;
-  fileName: string;
-  fileSizeBytes: number | null;
-  contentType: string | null;
+  s3Key: ApiAsset['s3_key'];
+  fileName: ApiAsset['file_name'];
+  contentType: OptionalToNullable<ApiAsset['content_type']>;
   visibility: AssetVisibility;
-  organizationId: string | null;
-  createdBy: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
+  createdBy: OptionalToNullable<ApiAsset['created_by']>;
+  createdAt: OptionalToNullable<ApiAsset['created_at']>;
+  updatedAt: OptionalToNullable<ApiAsset['updated_at']>;
 }
 
 export interface AssetGrant {
-  id: string;
-  assetId: string;
+  id: ApiAssetGrant['id'];
+  assetId: ApiAssetGrant['asset_id'];
   grantType: AccessGrantType;
-  granteeId: string | null;
-  grantedBy: string | null;
-  createdAt: string | null;
+  granteeId: OptionalToNullable<ApiAssetGrant['grantee_id']>;
+  grantedBy: OptionalToNullable<ApiAssetGrant['granted_by']>;
+  createdAt: OptionalToNullable<ApiAssetGrant['created_at']>;
 }
 
 export interface PaginatedList<TItem> {
@@ -46,24 +65,22 @@ export interface ListAdminAssetsInput {
 }
 
 export interface UpsertAdminAssetInput {
-  title: string;
-  description?: string | null;
-  assetType: AssetType;
-  fileName: string;
-  contentType?: string | null;
-  fileSizeBytes?: number | null;
-  visibility: AssetVisibility;
-  organizationId?: string | null;
+  title: ApiCreateAssetRequest['title'];
+  description?: OptionalToNullable<ApiCreateAssetRequest['description']>;
+  assetType: ApiCreateAssetRequest['asset_type'];
+  fileName: ApiCreateAssetRequest['file_name'];
+  contentType?: OptionalToNullable<ApiCreateAssetRequest['content_type']>;
+  visibility: ApiCreateAssetRequest['visibility'];
 }
 
 export interface CreatedAssetUpload {
-  uploadUrl: string | null;
+  uploadUrl: OptionalToNullable<ApiCreateAssetResponse['upload_url']>;
   uploadMethod: string;
-  uploadHeaders: Record<string, string>;
-  expiresAt: string | null;
+  uploadHeaders: NonNullable<ApiCreateAssetResponse['upload_headers']>;
+  expiresAt: OptionalToNullable<ApiCreateAssetResponse['expires_at']>;
 }
 
 export interface CreateAssetGrantInput {
-  grantType: AccessGrantType;
-  granteeId?: string | null;
+  grantType: ApiCreateAssetGrantRequest['grant_type'];
+  granteeId?: OptionalToNullable<ApiCreateAssetGrantRequest['grantee_id']>;
 }
