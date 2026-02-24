@@ -47,12 +47,14 @@ Flutter Mobile / Next.js Admin
   `noindex,follow` in page metadata and excluded from sitemap entries.
 
 ### Backend
-- API Gateway exposes REST endpoints for public search, admin CRUD,
-  manager CRUD, and user self-service operations.
-- For the full list of API routes, request/response schemas, and
-  authentication requirements, see the OpenAPI specs:
-  - [`docs/api/search.yaml`](../api/search.yaml) — public activity search
-  - [`docs/api/admin.yaml`](../api/admin.yaml) — admin, manager, user, and health endpoints
+- API Gateway currently exposes REST endpoints for:
+  - `GET /health`
+  - asset/admin routes under `/v1/admin/assets/*`,
+    `/v1/user/assets/*`, and `/v1/assets/public/*`
+- For route inventory and authentication requirements, see:
+  - [`docs/api/admin.yaml`](../api/admin.yaml) — currently wired routes
+  - [`docs/api/search.yaml`](../api/search.yaml) — search/public handler
+    inventory that is not currently wired in API Gateway
 - Lambda functions in `backend/lambda/` call into shared code in
   `backend/src/app`.
 - See [`docs/architecture/lambdas.md`](lambdas.md) for a full function inventory.
@@ -69,7 +71,7 @@ Flutter Mobile / Next.js Admin
   during deploy.
 - Cognito User Pool secures admin/manager routes; any-user routes require
   only a valid JWT. Passwordless email challenges and federated sign-in
-  (Google, Apple, Microsoft) are supported.
+  with Google are supported.
 - API keys are rotated automatically every 90 days via a scheduled Lambda.
 
 ## Data model
@@ -96,13 +98,13 @@ See [`docs/architecture/database-schema.md`](database-schema.md) for full table 
 - Alembic migrations live under `backend/db/`.
 - Seed data stored in `backend/db/seed/seed_data.sql`.
 - Migrations run via a custom resource Lambda using password auth.
-- Application traffic uses IAM auth via the proxy and the `activities_app` role.
+- Application traffic uses IAM auth via the proxy and the `evolvesprouts_app` role.
 - Deployments reuse existing DB clusters, proxies, and VPCs when detected.
 
 ## CI/CD
 
 - GitHub Actions with OIDC for AWS access.
-- Deploy workflows for mobile, admin, backend, iOS.
+- Deploy workflows for mobile, admin web, backend, public website, and iOS.
 - CDK bootstrap workflow for initial environment setup.
 - Lockfile checks for Flutter, Node, and iOS.
 - Amplify promotion workflow with gating (staging -> main).
@@ -137,14 +139,14 @@ pull requests for dependency updates:
 - No long-lived AWS credentials in GitHub.
 - IAM auth for RDS Proxy, TLS enforced on DB connections.
 - Secrets stored in GitHub Secrets or AWS Secrets Manager.
-- Public activity search requires an API key plus device attestation (JWKS-validated).
+- Public asset routes require an API key plus device attestation (JWKS-validated).
 - Admin routes require membership in the Cognito `admin` group.
-- Manager routes require `admin` or `manager` group membership.
-- User routes require any valid Cognito JWT (no group requirement).
+- Manager routes (when exposed) require `admin` or `manager` group membership.
+- User routes (when exposed) require any valid Cognito JWT (no group requirement).
 - API keys are rotated every 90 days via a scheduled Lambda.
 - Optional CDK parameters can bootstrap an initial admin user.
 - Passwordless email sign-in uses Cognito custom auth triggers.
-- Hosted UI enables Google, Apple, and Microsoft IdPs via OAuth.
+- Hosted UI enables Google IdP via OAuth.
 - Database audit logging tracks all data changes (see [`audit-logging.md`](audit-logging.md)).
 - See [`docs/architecture/security.md`](security.md) for full security guidelines.
 
@@ -159,7 +161,7 @@ pull requests for dependency updates:
 
 ## Caching
 
-- API Gateway method caching enabled for search queries (5-minute TTL).
-- Cache keys include all search query parameters.
+- API Gateway method caching enabled for `GET /v1/assets/public` (5-minute TTL).
+- Cache keys include all query parameters for the cached method.
 - Client-side caching with stale-while-revalidate in Flutter (planned).
 - See [`docs/architecture/cloudflare-optimization.md`](cloudflare-optimization.md) for edge caching strategy.

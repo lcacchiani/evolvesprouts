@@ -30,6 +30,9 @@ From the repo root:
 bash scripts/deploy/deploy-admin-web.sh
 ```
 
+The deploy script reads `ADMIN_WEB_STACK_NAME` (default:
+`evolvesprouts-admin-web`) when resolving CloudFormation outputs.
+
 ## CORS configuration
 
 Set `CORS_ALLOWED_ORIGINS` (or CDK context `corsAllowedOrigins`) to include:

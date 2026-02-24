@@ -66,7 +66,7 @@ For the OIDC provider itself, add the same tags:
 
 - `AWS_ACCOUNT_ID`
 - `AWS_REGION`
-- `CDK_STACKS` (optional; comma/space-separated list, e.g. `ActivitiesApiStack`)
+- `CDK_STACKS` (optional; `all stacks`, `backend`, `admin web`, or `public website`)
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (e.g. `backend/infrastructure/params/production.json`)
   - For Public WWW deploys, include:
@@ -75,9 +75,15 @@ For the OIDC provider itself, add the same tags:
     - `PublicWwwStagingDomainName`
     - `PublicWwwStagingCertificateArn`
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (for Public WWW builds)
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (for Public WWW booking form)
+- `NEXT_PUBLIC_FPS_MERCHANT_NAME` (for Public WWW payment display)
+- `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (for Public WWW payment display)
+- `NEXT_PUBLIC_GTM_ID` (optional GTM container ID)
+- `NEXT_PUBLIC_EMAIL` (maintenance page contact)
+- `NEXT_PUBLIC_WHATSAPP_URL` (maintenance page contact)
+- `NEXT_PUBLIC_INSTAGRAM_URL` (maintenance page contact)
 - `AMPLIFY_APP_ID`
 - `AMPLIFY_BRANCH`
-- `ANDROID_PACKAGE_NAME`
 - `ANDROID_RELEASE_TRACK`
 - `IOS_BUNDLE_ID`
 - `APPLE_TEAM_ID`
@@ -90,12 +96,13 @@ For the OIDC provider itself, add the same tags:
 - `FIREBASE_IOS_BUNDLE_ID` (use `IOS_BUNDLE_ID` value)
 - `FIREBASE_STORAGE_BUCKET` (optional)
 - `FIREBASE_APP_CHECK_DEBUG` (optional, `true` for debug providers)
+- `PUBLIC_WWW_FIGMA_FILE_KEY` (for Token Studio sync workflow)
+- `PUBLIC_WWW_FIGMA_TOKEN_ROOT_NODE` (optional frame scope)
+- `PUBLIC_WWW_FIGMA_OAUTH_TOKEN_URL` (optional OAuth token URL override)
 
 ### Secrets
 
 - `CDK_PARAM_GOOGLE_CLIENT_SECRET`
-- `CDK_PARAM_APPLE_PRIVATE_KEY`
-- `CDK_PARAM_MICROSOFT_CLIENT_SECRET`
 - `CDK_PARAM_PUBLIC_API_KEY_VALUE`
 - `CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
 - `NEXT_PUBLIC_WWW_CRM_API_KEY` (Public WWW browser API key)
@@ -108,8 +115,12 @@ For the OIDC provider itself, add the same tags:
 - `APPSTORE_API_KEY_JSON` (or `APPSTORE_ISSUER_ID`, `APPSTORE_API_KEY_ID`, `APPSTORE_API_PRIVATE_KEY`)
 - `MATCH_GIT_URL`
 - `MATCH_PASSWORD`
+- `MATCH_DEPLOY_KEY`
 - `FASTLANE_USER`
 - `FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD`
+- `FIGMA_OAUTH_CLIENT_ID`
+- `FIGMA_OAUTH_CLIENT_SECRET`
+- `FIGMA_OAUTH_REFRESH_TOKEN`
 
 ### Existing infrastructure reuse (auto-detected)
 
@@ -200,8 +211,9 @@ existing secrets when possible.
    - `ANDROID_KEY_PASSWORD` = private key password (set when running `openssl genrsa -aes256`)
    - `ANDROID_KEY_ALIAS` = alias (e.g., `evolvesprouts_release`)
 4. Set GitHub Variables:
-  - `ANDROID_PACKAGE_NAME` (from `apps/evolvesprouts_app/android/app/build.gradle.kts`, `applicationId`)
    - `ANDROID_RELEASE_TRACK` (`internal`, `alpha`, `beta`, or `production`)
+   - Note: `.github/workflows/deploy-mobile.yml` currently uploads with
+     hardcoded package name `com.evolvesprouts`
 5. Create a Play Console service account:
    - Google Cloud Console -> IAM & Admin -> Service Accounts -> Create
    - Grant the service account access in Play Console:
@@ -209,11 +221,11 @@ existing secrets when possible.
    - Create and download the JSON key
    - Set GitHub Secret `GOOGLE_PLAY_SERVICE_ACCOUNT` to the JSON contents
 
-### Amplify API key (mobile public search)
+### Amplify API key (mobile/public API key)
 1. Use the same value as your backend `PublicApiKeyValue`
    (`CDK_PARAM_PUBLIC_API_KEY_VALUE` secret).
 2. Set GitHub Secret `AMPLIFY_API_KEY` to that value so the mobile app
-   can call the public search endpoint.
+   can call API-key-protected public endpoints.
 
 ### iOS (signing + TestFlight)
 1. Create an iOS App ID:
@@ -235,6 +247,7 @@ existing secrets when possible.
    - Create or download an App Store provisioning profile
    - Set GitHub Variable `IOS_PROVISIONING_PROFILE` to the profile name
    - If unset, the workflow defaults to automatic signing
+   - If `IOS_BUNDLE_ID` is unset, workflow fallbacks use `com.evolvesprouts`
 5. Create App Store Connect API key:
    - App Store Connect -> Users and Access -> Keys -> Create API key
    - Download the `.p8` and note:
@@ -253,13 +266,6 @@ existing secrets when possible.
    - Copy `FIREBASE_IOS_APP_ID` and set `FIREBASE_IOS_BUNDLE_ID`
 
 ### Apple (Sign in with Apple)
-1. Go to **Apple Developer → Certificates, Identifiers & Profiles**.
-2. Create a **Services ID**:
-   - Services ID → `AppleClientId`
-3. Note your **Team ID**:
-   - Team ID → `AppleTeamId` (CI uses `APPLE_TEAM_ID` to set this automatically)
-4. Create a **Sign In with Apple Key**:
-   - **Key ID** → `AppleKeyId`
-   - Download `.p8` → `CDK_PARAM_APPLE_PRIVATE_KEY` (full contents)
-   - You can paste the key as multi-line; CI will escape newlines and CDK will
-     restore them automatically. A single-line value with `\n` escapes also works.
+Sign in with Apple is not currently configured in `backend/infrastructure/lib/api-stack.ts`.
+If Apple IdP support is reintroduced in the stack, add provider setup and
+associated `CDK_PARAM_*` documentation in this section.

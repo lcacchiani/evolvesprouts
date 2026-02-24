@@ -239,6 +239,9 @@ Your app's bundle identifier.
 
 **Example:** `com.yourcompany.customerapp`
 
+If `IOS_BUNDLE_ID` is not set, the deploy workflow currently falls back to
+`com.evolvesprouts` for match/build inputs.
+
 ---
 
 #### `APPLE_TEAM_ID`

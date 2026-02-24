@@ -15,13 +15,14 @@ their primary responsibilities.
 ### Admin API
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
-- Trigger: API Gateway — handles routes under `/v1/admin/assets/*`,
-  `/v1/user/assets/*`, and `/v1/assets/public/*`
+- Trigger: API Gateway — currently wired for
+  `/v1/admin/assets/*`, `/v1/user/assets/*`, and `/v1/assets/public/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`
-- Purpose: asset CRUD, access grant management, presigned URL generation
-- Status: empty shell (infrastructure wired, handler pending)
+- Purpose: API entrypoint that dispatches admin/manager/user flows in
+  `backend/src/app/api/admin.py` plus public reservation handling.
+- Status: infrastructure route wiring currently exposes only the asset route set.
 
 ### Health check
 - Function: HealthCheckFunction
@@ -30,6 +31,12 @@ their primary responsibilities.
 - Auth: IAM
 - Purpose: service health and configuration checks
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_app`)
+
+### Search handler (repository only, not currently wired)
+- Handler file: backend/lambda/search/handler.py
+- Shared implementation: backend/src/app/api/search.py
+- Status: present in repository but not currently created/wired by
+  `backend/infrastructure/lib/api-stack.ts`
 
 ## Auth and security Lambdas
 

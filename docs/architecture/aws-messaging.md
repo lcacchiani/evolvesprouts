@@ -37,7 +37,7 @@ Ticket submissions are processed asynchronously using SNS + SQS messaging. This 
 - Subscribes to SNS topic
 - 60 second visibility timeout (6x Lambda timeout)
 - 3 retry attempts before DLQ
-- SQS-managed encryption
+- KMS encryption with a customer-managed key (`SqsEncryptionKey`)
 
 ### Dead Letter Queue: `evolvesprouts-booking-request-dlq`
 
