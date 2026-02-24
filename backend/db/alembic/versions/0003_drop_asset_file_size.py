@@ -30,6 +30,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade is not supported for destructive schema removal."""
-    raise RuntimeError(
-        "Downgrade is not supported for 0003_drop_asset_file_size."
-    )
+    raise RuntimeError("Downgrade is not supported for 0003_drop_asset_file_size.")
