@@ -39,16 +39,27 @@ def _sync_proxy_user_passwords(database_url: str) -> None:
                     (username,),
                 )
                 if cursor.fetchone() is None:
-                    raise RuntimeError(f"Database role {username} does not exist")
-                alter_query = sql.SQL("ALTER ROLE {} PASSWORD {}").format(
-                    sql.Identifier(username),
-                    sql.Literal(password),
-                )
-                cursor.execute(alter_query)
-                logger.info(
-                    "Updated database password for proxy user",
-                    extra={"db_user": username},
-                )
+                    create_query = sql.SQL(
+                        "CREATE ROLE {} WITH LOGIN PASSWORD {}"
+                    ).format(
+                        sql.Identifier(username),
+                        sql.Literal(password),
+                    )
+                    cursor.execute(create_query)
+                    logger.info(
+                        "Created database role for proxy user",
+                        extra={"db_user": username},
+                    )
+                else:
+                    alter_query = sql.SQL("ALTER ROLE {} PASSWORD {}").format(
+                        sql.Identifier(username),
+                        sql.Literal(password),
+                    )
+                    cursor.execute(alter_query)
+                    logger.info(
+                        "Updated database password for proxy user",
+                        extra={"db_user": username},
+                    )
         connection.commit()
 
 
