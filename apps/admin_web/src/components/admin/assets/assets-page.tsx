@@ -92,7 +92,6 @@ export function AssetsPage() {
                   ...payload,
                   assetType: 'document',
                   contentType: 'application/pdf',
-                  organizationId: null,
                 },
                 file
               );
@@ -106,7 +105,6 @@ export function AssetsPage() {
                 ...payload,
                 assetType: 'document',
                 contentType: 'application/pdf',
-                organizationId: null,
               });
             } catch {
               // The hook stores the actionable error state for UI display.

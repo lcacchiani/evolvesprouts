@@ -94,10 +94,10 @@ with Session(get_engine()) as session:
     )
 
     # All changes in this transaction will be audited with this context
-    repo = OrganizationRepository(session)
-    org = repo.get_by_id(org_id)
-    org.name = "New Name"
-    repo.update(org)
+    repo = AssetRepository(session)
+    asset = repo.get_by_id(asset_id)
+    asset.title = "Updated Title"
+    repo.update(asset)
     session.commit()
 ```
 
@@ -138,14 +138,14 @@ with Session(get_engine()) as session:
     repo = AuditLogRepository(session)
 
     # Get history for a specific record
-    history = repo.get_record_history("organizations", org_id)
+    history = repo.get_record_history("assets", asset_id)
 
     # Get user activity
     activity = repo.get_user_activity(user_sub, limit=50)
 
     # Get recent changes to a table
     recent = repo.get_table_activity(
-        "activities",
+        "assets",
         since=datetime.now() - timedelta(days=7),
         action="DELETE"
     )
@@ -155,13 +155,9 @@ with Session(get_engine()) as session:
 
 The following tables have audit triggers:
 
-- `organizations`
-- `locations`
-- `activities`
-- `activity_locations`
-- `activity_pricing`
-- `activity_schedule`
-- `organization_access_requests`
+- `assets`
+- `asset_access_grants`
+- `tickets`
 
 ## Performance Considerations
 

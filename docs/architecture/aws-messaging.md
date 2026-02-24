@@ -71,7 +71,6 @@ Example:
 Current event types:
 - `booking_request.submitted`
 - `organization_suggestion.submitted`
-- `organization_feedback.submitted`
 
 ## API Behavior
 
@@ -126,7 +125,6 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `SES_SENDER_EMAIL` | Verified SES sender address |
 | `SES_TEMPLATE_NEW_ACCESS_REQUEST` | Optional SES template for access requests |
 | `SES_TEMPLATE_NEW_SUGGESTION` | Optional SES template for suggestions |
-| `SES_TEMPLATE_NEW_FEEDBACK` | Optional SES template for feedback submissions |
 
 ## Stack Outputs
 

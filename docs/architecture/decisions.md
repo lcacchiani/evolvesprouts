@@ -37,9 +37,6 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 
 **Decisions:**
 - Geographic filtering uses `locations.area_id` (FK to `geographic_areas`).
-- Pricing is per location with `per_class`, `per_sessions`, `per_hour`,
-  `per_day`, or `free`.
-- Languages are session-specific (stored on schedule entries).
 - Times are stored in UTC.
 - DB changes are versioned with Alembic.
 - Lambda connections use RDS Proxy for connection pooling.
@@ -50,12 +47,12 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
 - Migrations Lambda uses password auth directly against the cluster endpoint.
 
 **Core tables:**
-- `organizations`
 - `locations`
-- `activities`
-- `activity_locations`
-- `activity_pricing`
-- `activity_schedule`
+- `geographic_areas`
+- `assets`
+- `asset_access_grants`
+- `tickets`
+- `audit_log`
 
 **Migrations:**
 - Alembic config and migrations live in `backend/db/`.

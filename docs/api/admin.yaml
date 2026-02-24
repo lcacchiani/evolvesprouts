@@ -341,9 +341,6 @@ components:
         visibility:
           type: string
           enum: [public, restricted]
-        organization_id:
-          type: string
-          nullable: true
         created_by:
           type: string
           nullable: true
@@ -461,9 +458,6 @@ components:
         visibility:
           type: string
           enum: [public, restricted]
-        organization_id:
-          type: string
-          nullable: true
     UpdateAssetRequest:
       allOf:
         - $ref: "#/components/schemas/CreateAssetRequest"

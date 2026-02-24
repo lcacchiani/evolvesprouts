@@ -112,7 +112,6 @@ function parseAsset(value: unknown): AdminAsset | null {
     fileSizeBytes: asNumber(pickFirst(value, ['fileSizeBytes', 'file_size_bytes'])),
     contentType: asNullableString(pickFirst(value, ['contentType', 'content_type'])),
     visibility: parseVisibility(pickFirst(value, ['visibility'])),
-    organizationId: asNullableString(pickFirst(value, ['organizationId', 'organization_id'])),
     createdBy: asNullableString(pickFirst(value, ['createdBy', 'created_by'])),
     createdAt: asNullableString(pickFirst(value, ['createdAt', 'created_at'])),
     updatedAt: asNullableString(pickFirst(value, ['updatedAt', 'updated_at'])),
@@ -216,7 +215,6 @@ function extractHeaders(value: unknown): Record<string, string> {
 function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetRequest {
   const trimmedDescription = input.description?.trim() ?? '';
   const trimmedContentType = input.contentType?.trim() ?? '';
-  const trimmedOrganizationId = input.organizationId?.trim() ?? '';
 
   return {
     title: input.title.trim(),
@@ -226,7 +224,6 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetReques
     content_type: trimmedContentType || null,
     file_size_bytes: input.fileSizeBytes ?? null,
     visibility: input.visibility,
-    organization_id: trimmedOrganizationId || null,
   };
 }
 

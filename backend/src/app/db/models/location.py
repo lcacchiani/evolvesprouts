@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey, Numeric, Text, text
 from sqlalchemy.dialects.postgresql import UUID
@@ -14,9 +14,7 @@ from sqlalchemy.types import TIMESTAMP
 from app.db.base import Base
 
 if TYPE_CHECKING:
-    from app.db.models.activity import ActivityPricing, ActivitySchedule
     from app.db.models.geographic_area import GeographicArea
-    from app.db.models.organization import Organization
 
 
 class Location(Base):
@@ -28,11 +26,6 @@ class Location(Base):
         UUID(as_uuid=True),
         primary_key=True,
         server_default=text("gen_random_uuid()"),
-    )
-    org_id: Mapped[str] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("organizations.id", ondelete="CASCADE"),
-        nullable=False,
     )
     area_id: Mapped[str] = mapped_column(
         UUID(as_uuid=True),
@@ -54,13 +47,4 @@ class Location(Base):
         server_default=text("now()"),
     )
 
-    organization: Mapped["Organization"] = relationship(back_populates="locations")
     area: Mapped["GeographicArea"] = relationship()
-    activity_pricing: Mapped[List["ActivityPricing"]] = relationship(
-        back_populates="location",
-        cascade="all, delete-orphan",
-    )
-    activity_schedules: Mapped[List["ActivitySchedule"]] = relationship(
-        back_populates="location",
-        cascade="all, delete-orphan",
-    )

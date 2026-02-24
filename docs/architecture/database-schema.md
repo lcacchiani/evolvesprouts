@@ -27,7 +27,6 @@ Columns:
 - `file_size_bytes` (bigint, optional) — for display purposes
 - `content_type` (varchar(127), optional) — MIME type
 - `visibility` (enum `asset_visibility`, required) — access level
-- `organization_id` (UUID, optional) — optional org association
 - `created_by` (varchar(128), required) — Cognito sub of uploader
 - `created_at` (timestamptz, default `now()`)
 - `updated_at` (timestamptz, default `now()`)
@@ -37,7 +36,6 @@ Object key pattern: `assets/{asset_id}/{uuid}-{sanitized_filename}`
 Indexes:
 - `assets_visibility_idx` on `visibility`
 - `assets_asset_type_idx` on `asset_type`
-- `assets_organization_id_idx` on `organization_id`
 - `assets_created_by_idx` on `created_by`
 - Unique constraint on `s3_key`
 

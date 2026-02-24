@@ -158,7 +158,6 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     visibility = parse_asset_visibility(
         _optional_field(body, "visibility") or "restricted"
     )
-    organization_id = _optional_uuid(body, "organization_id", "organizationId")
 
     return {
         "title": title,
@@ -168,7 +167,6 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
         "content_type": content_type,
         "file_size_bytes": file_size_bytes,
         "visibility": visibility,
-        "organization_id": organization_id,
     }
 
 
@@ -322,9 +320,6 @@ def serialize_asset(asset: Asset) -> dict[str, Any]:
         "file_size_bytes": asset.file_size_bytes,
         "content_type": asset.content_type,
         "visibility": asset.visibility.value,
-        "organization_id": str(asset.organization_id)
-        if asset.organization_id
-        else None,
         "created_by": asset.created_by,
         "created_at": asset.created_at.isoformat() if asset.created_at else None,
         "updated_at": asset.updated_at.isoformat() if asset.updated_at else None,

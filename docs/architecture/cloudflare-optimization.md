@@ -5,7 +5,7 @@ This document outlines Cloudflare optimization strategies for the Evolve Sprouts
 > Status note (current stack):
 > The backend API routes currently wired in `backend/infrastructure/lib/api-stack.ts`
 > are asset-focused (`/v1/assets/public` and related asset/admin endpoints).
-> Examples in this guide that reference `/v1/activities/search` are legacy
+> Examples in this guide that reference `/v1/assets/public` are legacy
 > optimization patterns and should be adapted to currently exposed routes.
 
 ## Table of Contents
@@ -237,7 +237,7 @@ resource "cloudflare_ruleset" "transform_admin" {
 
 ## API Optimization
 
-### Cache Rules for Activity Search
+### Cache Rules for Public Assets
 
 Create Cloudflare Cache Rules for the search endpoint:
 
@@ -249,7 +249,7 @@ resource "cloudflare_ruleset" "cache_api" {
   kind        = "zone"
   phase       = "http_request_cache_settings"
   
-  # Rule 1: Cache search results at edge
+  # Rule 1: Cache public asset listings at edge
   rules {
     action = "set_cache_settings"
     action_parameters {
@@ -265,10 +265,7 @@ resource "cloudflare_ruleset" "cache_api" {
         custom_key {
           query_string {
             include = [
-              "age", "district", "pricing_type", "price_min", "price_max",
-              "schedule_type", "day_of_week_utc", "day_of_month",
-              "start_minutes_utc", "end_minutes_utc", "start_at_utc",
-              "end_at_utc", "language", "limit", "cursor"
+              "limit", "cursor"
             ]
           }
           header {
@@ -277,8 +274,8 @@ resource "cloudflare_ruleset" "cache_api" {
         }
       }
     }
-    expression  = "(http.request.uri.path eq \"/v1/activities/search\")"
-    description = "Cache search results"
+    expression  = "(http.request.uri.path eq \"/v1/assets/public\")"
+    description = "Cache public assets list"
     enabled     = true
   }
   
@@ -362,8 +359,8 @@ def api_response(
     }
 
 
-def search_response(body: Any) -> Dict[str, Any]:
-    """Response for search endpoint with caching enabled."""
+def public_assets_response(body: Any) -> Dict[str, Any]:
+    """Response for public assets endpoint with caching enabled."""
     return api_response(
         body,
         cache_max_age=60,            # Browser: 1 minute
@@ -632,7 +629,7 @@ resource "cloudflare_ruleset" "rate_limit" {
   kind        = "zone"
   phase       = "http_ratelimit"
   
-  # Search endpoint: 100 requests per minute per IP
+  # Public assets endpoint: 100 requests per minute per IP
   rules {
     action = "block"
     ratelimit {
@@ -641,8 +638,8 @@ resource "cloudflare_ruleset" "rate_limit" {
       requests_per_period = 100
       mitigation_timeout  = 60
     }
-    expression  = "(http.request.uri.path eq \"/v1/activities/search\")"
-    description = "Rate limit search endpoint"
+    expression  = "(http.request.uri.path eq \"/v1/assets/public\")"
+    description = "Rate limit public assets endpoint"
     enabled     = true
   }
   
@@ -776,10 +773,10 @@ resource "cloudflare_ruleset" "security_headers" {
         name      = "Cache-Control"
         operation = "set"
         value     = "no-store"
-        # Only for non-search endpoints
+        # Only for non-public-assets endpoints
       }
     }
-    expression  = "(http.host eq \"api.evolvesprouts.lx-software.com\") and not (http.request.uri.path eq \"/v1/activities/search\")"
+    expression  = "(http.host eq \"api.evolvesprouts.lx-software.com\") and not (http.request.uri.path eq \"/v1/assets/public\")"
     description = "Add security headers to API"
     enabled     = true
   }
@@ -1005,7 +1002,7 @@ curl -I https://api.evolvesprouts.lx-software.com/health
 
 ### Phase 2: Caching + Performance (Day 3-4)
 
-1. **Configure cache rules** for search API endpoint
+1. **Configure cache rules** for the public assets API endpoint
 2. **Update Lambda responses** with proper Cache-Control headers
 3. **Enable Argo** Smart Routing and Tiered Cache
 4. **Enable HTTP/3** and Early Hints
@@ -1014,7 +1011,7 @@ curl -I https://api.evolvesprouts.lx-software.com/health
 **Verification:**
 ```bash
 # Check cache status
-curl -I "https://api.evolvesprouts.lx-software.com/v1/activities/search?limit=10"
+curl -I "https://api.evolvesprouts.lx-software.com/v1/assets/public?limit=10"
 # Should see: cf-cache-status: HIT (on second request)
 ```
 

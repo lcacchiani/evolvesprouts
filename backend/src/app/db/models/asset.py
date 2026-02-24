@@ -22,7 +22,6 @@ class Asset(Base):
     __table_args__ = (
         Index("assets_visibility_idx", "visibility"),
         Index("assets_asset_type_idx", "asset_type"),
-        Index("assets_organization_id_idx", "organization_id"),
         Index("assets_created_by_idx", "created_by"),
     )
 
@@ -44,9 +43,6 @@ class Asset(Base):
     visibility: Mapped[AssetVisibility] = mapped_column(
         Enum(AssetVisibility, name="asset_visibility", create_type=False),
         nullable=False,
-    )
-    organization_id: Mapped[Optional[UUID]] = mapped_column(
-        PG_UUID(as_uuid=True), nullable=True
     )
     created_by: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(

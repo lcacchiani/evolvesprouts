@@ -38,7 +38,6 @@ export interface AdminAsset {
   fileSizeBytes: OptionalToNullable<ApiAsset['file_size_bytes']>;
   contentType: OptionalToNullable<ApiAsset['content_type']>;
   visibility: AssetVisibility;
-  organizationId: OptionalToNullable<ApiAsset['organization_id']>;
   createdBy: OptionalToNullable<ApiAsset['created_by']>;
   createdAt: OptionalToNullable<ApiAsset['created_at']>;
   updatedAt: OptionalToNullable<ApiAsset['updated_at']>;
@@ -74,7 +73,6 @@ export interface UpsertAdminAssetInput {
   contentType?: OptionalToNullable<ApiCreateAssetRequest['content_type']>;
   fileSizeBytes?: OptionalToNullable<ApiCreateAssetRequest['file_size_bytes']>;
   visibility: ApiCreateAssetRequest['visibility'];
-  organizationId?: OptionalToNullable<ApiCreateAssetRequest['organization_id']>;
 }
 
 export interface CreatedAssetUpload {

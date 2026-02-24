@@ -27,13 +27,12 @@ Flutter Mobile / Next.js Admin
 ## Components
 
 ### Mobile app (Flutter)
-- Users browse activities and filter by age, district, price, time/day,
-  and language.
+- Users browse public and granted assets delivered via presigned URLs.
 - Uses generated Dart API client from OpenAPI specs.
 - Device attestation uses Firebase App Check (Play Integrity / App Attest).
 
 ### Admin console (Next.js App Router)
-- Admin users manage organizations, activities, schedules, and pricing.
+- Admin users manage client assets and access grants.
 - Hosted on Amplify Hosting (release jobs triggered in CI).
 
 ### Public website (Next.js static export)
@@ -77,15 +76,11 @@ Flutter Mobile / Next.js Admin
 ## Data model
 
 Key entities:
-- `organizations` (with manager assignment)
 - `locations` (district used for filtering)
-- `activities`
-- `activity_locations`
-- `activity_pricing` (per-class, per-month, per-sessions)
-- `activity_schedule` (weekly only; languages per schedule)
-- `activity_schedule_entries` (per-day timeslots for schedules)
-- `organization_access_requests` (manager access workflow)
-- `organization_suggestions` (user-submitted place suggestions)
+- `geographic_areas`
+- `assets`
+- `asset_access_grants`
+- `tickets` (manager access workflow + organization suggestion workflow)
 - `audit_log` (automatic change tracking via triggers)
 
 All times are stored in UTC.

@@ -128,7 +128,6 @@ def _create_asset(event: Mapping[str, Any], created_by: str) -> dict[str, Any]:
             file_size_bytes=payload["file_size_bytes"],
             content_type=payload["content_type"],
             visibility=payload["visibility"],
-            organization_id=payload["organization_id"],
             created_by=created_by,
         )
         upload = generate_upload_url(
@@ -175,7 +174,6 @@ def _update_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
             file_size_bytes=payload["file_size_bytes"],
             content_type=payload["content_type"],
             visibility=payload["visibility"],
-            organization_id=payload["organization_id"],
         )
         session.commit()
         return json_response(200, {"asset": serialize_asset(updated)}, event=event)

@@ -147,7 +147,6 @@ class AssetRepository(BaseRepository[Asset]):
         file_size_bytes: Optional[int],
         content_type: Optional[str],
         visibility: AssetVisibility,
-        organization_id: Optional[UUID],
         created_by: str,
     ) -> Asset:
         """Create and persist an asset."""
@@ -161,7 +160,6 @@ class AssetRepository(BaseRepository[Asset]):
             file_size_bytes=file_size_bytes,
             content_type=content_type,
             visibility=visibility,
-            organization_id=organization_id,
             created_by=created_by,
         )
         return self.create(entity)
@@ -177,7 +175,6 @@ class AssetRepository(BaseRepository[Asset]):
         file_size_bytes: Optional[int] = None,
         content_type: Optional[str] = None,
         visibility: Optional[AssetVisibility] = None,
-        organization_id: Optional[UUID] = None,
         s3_key: Optional[str] = None,
     ) -> Asset:
         """Update mutable asset fields."""
@@ -195,8 +192,6 @@ class AssetRepository(BaseRepository[Asset]):
             asset.content_type = content_type
         if visibility is not None:
             asset.visibility = visibility
-        if organization_id is not None:
-            asset.organization_id = organization_id
         if s3_key is not None:
             asset.s3_key = s3_key
         return self.update(asset)

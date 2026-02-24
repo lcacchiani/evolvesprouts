@@ -449,7 +449,6 @@ export interface components {
             content_type?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
-            organization_id?: string | null;
             created_by?: string | null;
             /** Format: date-time */
             created_at?: string | null;
@@ -498,7 +497,6 @@ export interface components {
             content_type?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
-            organization_id?: string | null;
         };
         UpdateAssetRequest: components["schemas"]["CreateAssetRequest"];
         CreateAssetResponse: {

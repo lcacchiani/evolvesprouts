@@ -17,12 +17,12 @@ Usage:
         set_audit_context(session, user_id="cognito-sub", request_id="req-123")
 
         # Perform database operations - triggers will capture changes
-        repo = OrganizationRepository(session)
-        repo.create(org)
+        repo = AssetRepository(session)
+        repo.create(asset)
 
         # Or use application-level auditing for more control
         audit = AuditService(session)
-        audit.log_create("organizations", org.id, new_values={...})
+        audit.log_create("assets", asset.id, new_values={...})
 
         session.commit()
 """

@@ -429,18 +429,6 @@ export class ApiStack extends cdk.Stack {
         "stack to seed after initial deployment.",
     });
 
-    const fallbackManagerEmail = new cdk.CfnParameter(
-      this,
-      "FallbackManagerEmail",
-      {
-        type: "String",
-        default: "",
-        description:
-          "Email of the Cognito user to use as fallback manager for existing " +
-          "organizations without a manager during migration.",
-      }
-    );
-
     // ---------------------------------------------------------------------
     // Manager Access Request Email Parameters
     // ---------------------------------------------------------------------
@@ -451,15 +439,6 @@ export class ApiStack extends cdk.Stack {
         "Email address to receive manager access request notifications. " +
         "Must be verified in SES.",
     });
-    const feedbackStarsPerApproval = new cdk.CfnParameter(
-      this,
-      "FeedbackStarsPerApproval",
-      {
-        type: "Number",
-        default: 1,
-        description: "Stars awarded for each approved feedback entry.",
-      }
-    );
     const sesSenderEmail = new cdk.CfnParameter(this, "SesSenderEmail", {
       type: "String",
       default: "",
@@ -537,7 +516,6 @@ export class ApiStack extends cdk.Stack {
       accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
       customAttributes: {
         last_auth_time: new cognito.StringAttribute({ mutable: true }),
-        feedback_stars: new cognito.StringAttribute({ mutable: true }),
       },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
@@ -1057,7 +1035,6 @@ export class ApiStack extends cdk.Stack {
         DATABASE_ADMIN_USER_SECRET_ARN: database.adminUserSecret.secretArn,
         SEED_FILE_PATH: "/var/task/db/seed/seed_data.sql",
         COGNITO_USER_POOL_ID: userPool.userPoolId,
-        FALLBACK_MANAGER_EMAIL: fallbackManagerEmail.valueAsString,
         ACTIVE_COUNTRY_CODES: activeCountryCodes.valueAsString,
       },
     });
