@@ -332,9 +332,6 @@ components:
           type: string
         file_name:
           type: string
-        file_size_bytes:
-          type: integer
-          nullable: true
         content_type:
           type: string
           nullable: true
@@ -448,9 +445,6 @@ components:
         file_name:
           type: string
           maxLength: 255
-        file_size_bytes:
-          type: integer
-          nullable: true
         content_type:
           type: string
           maxLength: 127

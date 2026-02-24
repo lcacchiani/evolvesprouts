@@ -139,6 +139,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade is not supported for destructive table removal."""
-    raise RuntimeError(
-        "Downgrade is not supported for 0002_drop_unused_domain."
-    )
+    raise RuntimeError("Downgrade is not supported for 0002_drop_unused_domain.")

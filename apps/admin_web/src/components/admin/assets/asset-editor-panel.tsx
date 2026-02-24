@@ -27,7 +27,6 @@ interface AssetEditorPanelProps {
     title: string;
     description: string | null;
     fileName: string;
-    fileSizeBytes: number | null;
     visibility: AssetVisibility;
   }, file: File) => Promise<void>;
   onUpdate: (
@@ -36,7 +35,6 @@ interface AssetEditorPanelProps {
       title: string;
       description: string | null;
       fileName: string;
-      fileSizeBytes: number | null;
       visibility: AssetVisibility;
     }
   ) => Promise<void>;
@@ -134,13 +132,11 @@ export function AssetEditorPanel({
       title: string;
       description: string | null;
       fileName: string;
-      fileSizeBytes: number | null;
       visibility: AssetVisibility;
     } = {
       title,
       description: formState.description.trim() || null,
       fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
-      fileSizeBytes: fileToUpload?.size ?? selectedAsset?.fileSizeBytes ?? null,
       visibility: formState.visibility,
     };
 

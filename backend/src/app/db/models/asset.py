@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import BigInteger, Enum, ForeignKey, Index, String, Text, text
+from sqlalchemy import Enum, ForeignKey, Index, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
@@ -38,7 +38,6 @@ class Asset(Base):
     )
     s3_key: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    file_size_bytes: Mapped[Optional[int]] = mapped_column(BigInteger(), nullable=True)
     content_type: Mapped[Optional[str]] = mapped_column(String(127), nullable=True)
     visibility: Mapped[AssetVisibility] = mapped_column(
         Enum(AssetVisibility, name="asset_visibility", create_type=False),

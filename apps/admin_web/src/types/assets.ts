@@ -35,7 +35,6 @@ export interface AdminAsset {
   assetType: AssetType;
   s3Key: ApiAsset['s3_key'];
   fileName: ApiAsset['file_name'];
-  fileSizeBytes: OptionalToNullable<ApiAsset['file_size_bytes']>;
   contentType: OptionalToNullable<ApiAsset['content_type']>;
   visibility: AssetVisibility;
   createdBy: OptionalToNullable<ApiAsset['created_by']>;
@@ -71,7 +70,6 @@ export interface UpsertAdminAssetInput {
   assetType: ApiCreateAssetRequest['asset_type'];
   fileName: ApiCreateAssetRequest['file_name'];
   contentType?: OptionalToNullable<ApiCreateAssetRequest['content_type']>;
-  fileSizeBytes?: OptionalToNullable<ApiCreateAssetRequest['file_size_bytes']>;
   visibility: ApiCreateAssetRequest['visibility'];
 }
 

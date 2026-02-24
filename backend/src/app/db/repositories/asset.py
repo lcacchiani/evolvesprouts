@@ -144,7 +144,6 @@ class AssetRepository(BaseRepository[Asset]):
         asset_type: AssetType,
         s3_key: str,
         file_name: str,
-        file_size_bytes: Optional[int],
         content_type: Optional[str],
         visibility: AssetVisibility,
         created_by: str,
@@ -157,7 +156,6 @@ class AssetRepository(BaseRepository[Asset]):
             asset_type=asset_type,
             s3_key=s3_key,
             file_name=file_name,
-            file_size_bytes=file_size_bytes,
             content_type=content_type,
             visibility=visibility,
             created_by=created_by,
@@ -172,7 +170,6 @@ class AssetRepository(BaseRepository[Asset]):
         description: Optional[str] = None,
         asset_type: Optional[AssetType] = None,
         file_name: Optional[str] = None,
-        file_size_bytes: Optional[int] = None,
         content_type: Optional[str] = None,
         visibility: Optional[AssetVisibility] = None,
         s3_key: Optional[str] = None,
@@ -186,8 +183,6 @@ class AssetRepository(BaseRepository[Asset]):
             asset.asset_type = asset_type
         if file_name is not None:
             asset.file_name = file_name
-        if file_size_bytes is not None:
-            asset.file_size_bytes = file_size_bytes
         if content_type is not None:
             asset.content_type = content_type
         if visibility is not None:

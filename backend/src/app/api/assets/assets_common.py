@@ -9,7 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Mapping, Optional
 from uuid import UUID, uuid4
 
-from app.api.admin_request import _parse_body, _parse_cursor, _parse_uuid, _query_param
+from app.api.admin_request import _parse_body, _parse_cursor, _query_param
 from app.api.admin_validators import _validate_string_length
 from app.db.models import (
     AccessGrantType,
@@ -154,7 +154,6 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     content_type = _optional_text(
         body, "content_type", "contentType", max_length=_MAX_MIME_TYPE_LENGTH
     )
-    file_size_bytes = _optional_int(body, "file_size_bytes", "fileSizeBytes")
     visibility = parse_asset_visibility(
         _optional_field(body, "visibility") or "restricted"
     )
@@ -165,7 +164,6 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
         "file_name": file_name,
         "asset_type": asset_type,
         "content_type": content_type,
-        "file_size_bytes": file_size_bytes,
         "visibility": visibility,
     }
 
@@ -317,7 +315,6 @@ def serialize_asset(asset: Asset) -> dict[str, Any]:
         "asset_type": asset.asset_type.value,
         "s3_key": asset.s3_key,
         "file_name": asset.file_name,
-        "file_size_bytes": asset.file_size_bytes,
         "content_type": asset.content_type,
         "visibility": asset.visibility.value,
         "created_by": asset.created_by,
@@ -373,28 +370,6 @@ def _optional_text(
     return _validate_string_length(
         value, keys[0], max_length=max_length, required=False
     )
-
-
-def _optional_int(body: Mapping[str, Any], *keys: str) -> Optional[int]:
-    value = _optional_field(body, *keys)
-    if value is None:
-        return None
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError) as exc:
-        raise ValidationError(f"{keys[0]} must be an integer", field=keys[0]) from exc
-    if parsed < 0:
-        raise ValidationError(f"{keys[0]} must be >= 0", field=keys[0])
-    return parsed
-
-
-def _optional_uuid(body: Mapping[str, Any], *keys: str) -> Optional[UUID]:
-    value = _optional_field(body, *keys)
-    if value is None or value == "":
-        return None
-    if not isinstance(value, str):
-        raise ValidationError(f"{keys[0]} must be a UUID string", field=keys[0])
-    return _parse_uuid(value)
 
 
 def _optional_field(body: Mapping[str, Any], *keys: str) -> Any:

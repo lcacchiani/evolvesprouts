@@ -445,7 +445,6 @@ export interface components {
             asset_type: "guide" | "video" | "pdf" | "document";
             s3_key: string;
             file_name: string;
-            file_size_bytes?: number | null;
             content_type?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
@@ -493,7 +492,6 @@ export interface components {
             /** @enum {string} */
             asset_type: "guide" | "video" | "pdf" | "document";
             file_name: string;
-            file_size_bytes?: number | null;
             content_type?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";

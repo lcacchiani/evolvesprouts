@@ -51,19 +51,6 @@ function asNullableString(value: unknown): string | null {
   return null;
 }
 
-function asNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === 'string' && value.trim()) {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-  }
-  return null;
-}
-
 function parseAssetType(value: unknown): AssetType {
   if (typeof value === 'string' && ASSET_TYPES.includes(value as AssetType)) {
     return value as AssetType;
@@ -109,7 +96,6 @@ function parseAsset(value: unknown): AdminAsset | null {
     assetType: parseAssetType(pickFirst(value, ['assetType', 'asset_type'])),
     s3Key: asString(pickFirst(value, ['s3Key', 's3_key'])) ?? '',
     fileName: asString(pickFirst(value, ['fileName', 'file_name'])) ?? '',
-    fileSizeBytes: asNumber(pickFirst(value, ['fileSizeBytes', 'file_size_bytes'])),
     contentType: asNullableString(pickFirst(value, ['contentType', 'content_type'])),
     visibility: parseVisibility(pickFirst(value, ['visibility'])),
     createdBy: asNullableString(pickFirst(value, ['createdBy', 'created_by'])),
@@ -222,7 +208,6 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetReques
     asset_type: input.assetType,
     file_name: input.fileName.trim(),
     content_type: trimmedContentType || null,
-    file_size_bytes: input.fileSizeBytes ?? null,
     visibility: input.visibility,
   };
 }

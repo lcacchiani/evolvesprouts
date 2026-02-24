@@ -24,7 +24,6 @@ Columns:
 - `asset_type` (enum `asset_type`, required) — categorization
 - `s3_key` (varchar, unique, required) — object key in S3
 - `file_name` (varchar(255), required) — original filename
-- `file_size_bytes` (bigint, optional) — for display purposes
 - `content_type` (varchar(127), optional) — MIME type
 - `visibility` (enum `asset_visibility`, required) — access level
 - `created_by` (varchar(128), required) — Cognito sub of uploader

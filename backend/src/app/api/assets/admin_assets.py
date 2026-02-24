@@ -125,7 +125,6 @@ def _create_asset(event: Mapping[str, Any], created_by: str) -> dict[str, Any]:
             asset_type=payload["asset_type"],
             s3_key=s3_key,
             file_name=payload["file_name"],
-            file_size_bytes=payload["file_size_bytes"],
             content_type=payload["content_type"],
             visibility=payload["visibility"],
             created_by=created_by,
@@ -171,7 +170,6 @@ def _update_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
             description=payload["description"],
             asset_type=payload["asset_type"],
             file_name=payload["file_name"],
-            file_size_bytes=payload["file_size_bytes"],
             content_type=payload["content_type"],
             visibility=payload["visibility"],
         )

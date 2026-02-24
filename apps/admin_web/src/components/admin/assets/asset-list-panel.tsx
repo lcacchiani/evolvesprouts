@@ -41,22 +41,6 @@ function formatDate(value: string | null): string {
   return parsedDate.toLocaleString();
 }
 
-function formatFileSize(value: number | null): string {
-  if (value === null || value < 0) {
-    return '—';
-  }
-  if (value < 1024) {
-    return `${value} B`;
-  }
-  if (value < 1024 * 1024) {
-    return `${(value / 1024).toFixed(1)} KB`;
-  }
-  if (value < 1024 * 1024 * 1024) {
-    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
-  }
-  return `${(value / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-}
-
 function toTitleCase(value: string): string {
   return value
     .split('_')
@@ -124,26 +108,25 @@ export function AssetListPanel({
       ) : null}
 
       <div className='overflow-x-auto rounded-md border border-slate-200'>
-        <table className='w-full min-w-[860px] divide-y divide-slate-200 text-left'>
+        <table className='w-full min-w-[760px] divide-y divide-slate-200 text-left'>
           <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
             <tr>
               <th className='px-4 py-3 font-semibold'>Title</th>
               <th className='px-4 py-3 font-semibold'>Visibility</th>
               <th className='px-4 py-3 font-semibold'>File</th>
-              <th className='px-4 py-3 font-semibold'>Size</th>
               <th className='px-4 py-3 font-semibold'>Updated</th>
             </tr>
           </thead>
           <tbody className='divide-y divide-slate-200 bg-white text-sm'>
             {isLoadingAssets ? (
               <tr>
-                <td className='px-4 py-8 text-slate-600' colSpan={5}>
+                <td className='px-4 py-8 text-slate-600' colSpan={4}>
                   Loading assets...
                 </td>
               </tr>
             ) : assets.length === 0 ? (
               <tr>
-                <td className='px-4 py-8 text-slate-600' colSpan={5}>
+                <td className='px-4 py-8 text-slate-600' colSpan={4}>
                   No assets found for the current filters.
                 </td>
               </tr>
@@ -165,7 +148,6 @@ export function AssetListPanel({
                     </td>
                     <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.visibility)}</td>
                     <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>
-                    <td className='px-4 py-3 text-slate-700'>{formatFileSize(asset.fileSizeBytes)}</td>
                     <td className='px-4 py-3 text-slate-700'>{formatDate(asset.updatedAt)}</td>
                   </tr>
                 );
