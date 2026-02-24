@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any
 
 from psycopg import sql
 
@@ -39,17 +40,55 @@ def _sync_proxy_user_passwords(database_url: str) -> None:
                     (username,),
                 )
                 if cursor.fetchone() is None:
-                    raise RuntimeError(f"Database role {username} does not exist")
-                alter_query = sql.SQL("ALTER ROLE {} PASSWORD {}").format(
-                    sql.Identifier(username),
-                    sql.Literal(password),
-                )
-                cursor.execute(alter_query)
-                logger.info(
-                    "Updated database password for proxy user",
-                    extra={"db_user": username},
-                )
+                    create_query = sql.SQL(
+                        "CREATE ROLE {} WITH LOGIN PASSWORD {}"
+                    ).format(
+                        sql.Identifier(username),
+                        sql.Literal(password),
+                    )
+                    cursor.execute(create_query)
+                    grant_iam = sql.SQL("GRANT rds_iam TO {}").format(
+                        sql.Identifier(username),
+                    )
+                    cursor.execute(grant_iam)
+                    logger.info(
+                        "Created database role with rds_iam for proxy user",
+                        extra={"db_user": username},
+                    )
+                else:
+                    alter_query = sql.SQL("ALTER ROLE {} PASSWORD {}").format(
+                        sql.Identifier(username),
+                        sql.Literal(password),
+                    )
+                    cursor.execute(alter_query)
+                    logger.info(
+                        "Updated database password for proxy user",
+                        extra={"db_user": username},
+                    )
+            _grant_table_permissions(cursor)
         connection.commit()
+
+
+def _grant_table_permissions(cursor: Any) -> None:
+    """Grant table permissions to proxy users after role creation or migration."""
+    cursor.execute("GRANT SELECT ON ALL TABLES IN SCHEMA public TO evolvesprouts_app")
+    cursor.execute(
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
+        "GRANT SELECT ON TABLES TO evolvesprouts_app"
+    )
+    cursor.execute("GRANT ALL ON ALL TABLES IN SCHEMA public TO evolvesprouts_admin")
+    cursor.execute(
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
+        "GRANT ALL ON TABLES TO evolvesprouts_admin"
+    )
+    cursor.execute(
+        "GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO evolvesprouts_admin"
+    )
+    cursor.execute(
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
+        "GRANT USAGE ON SEQUENCES TO evolvesprouts_admin"
+    )
+    logger.info("Granted table permissions to proxy users")
 
 
 def _sync_active_countries(database_url: str) -> None:
