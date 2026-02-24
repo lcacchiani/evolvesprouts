@@ -18,9 +18,9 @@ info:
     - `GET /v1/assets/public/{id}/download`
 
     Note:
-    `backend/src/app/api/admin.py` also contains broader admin/manager/user
-    CRUD logic, but those additional paths are not currently routed by
-    API Gateway in this stack.
+    The `backend/src/app/api/admin.py` handler is currently minimal.
+    For currently wired asset routes, it returns `404 Not found`
+    for non-reservation requests.
 
 servers:
   - url: https://api.evolvesprouts.com

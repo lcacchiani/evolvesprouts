@@ -20,9 +20,8 @@ their primary responsibilities.
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`
-- Purpose: API entrypoint that dispatches admin/manager/user flows in
-  `backend/src/app/api/admin.py` plus public reservation handling.
-- Status: infrastructure route wiring currently exposes only the asset route set.
+- Purpose: public reservation dispatch in `backend/src/app/api/admin.py`.
+- Status: non-reservation requests currently return `404 Not found`.
 
 ### Health check
 - Function: HealthCheckFunction
