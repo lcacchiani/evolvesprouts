@@ -53,8 +53,8 @@ Flutter Mobile / Next.js Admin
     `/v1/user/assets/*`, and `/v1/assets/public/*`
 - For route inventory and authentication requirements, see:
   - [`docs/api/admin.yaml`](../api/admin.yaml) — currently wired routes
-  - [`docs/api/search.yaml`](../api/search.yaml) — search/public handler
-    inventory that is not currently wired in API Gateway
+  - [`docs/api/public.yaml`](../api/public.yaml) — public endpoint contract
+    (public asset routes plus public_www-consumed `/www/*` routes)
 - Lambda functions in `backend/lambda/` call into shared code in
   `backend/src/app`.
 - See [`docs/architecture/lambdas.md`](lambdas.md) for a full function inventory.

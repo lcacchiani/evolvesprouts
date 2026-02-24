@@ -14,8 +14,6 @@ info:
     - `DELETE /v1/admin/assets/{id}/grants/{grantId}`
     - `GET /v1/user/assets`
     - `GET /v1/user/assets/{id}/download`
-    - `GET /v1/assets/public`
-    - `GET /v1/assets/public/{id}/download`
 
     Note:
     The `backend/src/app/api/admin.py` handler is currently minimal.
@@ -240,49 +238,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /v1/assets/public:
-    get:
-      summary: List public assets
-      description: Public route guarded by device attestation and API key.
-      security:
-        - ApiKeyAuth: []
-          DeviceAttestation: []
-      responses:
-        "200":
-          description: Public asset list response.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GenericPayload"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
-  /v1/assets/public/{id}/download:
-    parameters:
-      - $ref: "#/components/parameters/AssetId"
-    get:
-      summary: Generate public asset download
-      security:
-        - ApiKeyAuth: []
-          DeviceAttestation: []
-      responses:
-        "200":
-          description: Public download response payload.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GenericPayload"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
 components:
   securitySchemes:
     SigV4Auth:
@@ -301,14 +256,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: Cognito JWT validated by UserAuthorizerFunction.
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: x-api-key
-    DeviceAttestation:
-      type: apiKey
-      in: header
-      name: x-device-attestation
 
   parameters:
     AssetId:

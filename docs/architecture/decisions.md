@@ -68,10 +68,7 @@ Flutter mobile app, Next.js admin console, and AWS serverless backend.
   of truth for all API endpoint details (paths, methods, parameters,
   request/response schemas, authentication requirements).
 - Currently wired API Gateway contract: [`docs/api/admin.yaml`](../api/admin.yaml).
-- Search/public handler route inventory: [`docs/api/search.yaml`](../api/search.yaml)
-  (not currently wired by `api-stack.ts`).
-- Search responses are cursor-paginated (schedule time + type ordering).
-- Admin and manager list endpoints return `next_cursor` for pagination.
+- Public endpoint contract: [`docs/api/public.yaml`](../api/public.yaml).
 - API client generation is handled via generalized scripts in
   `scripts/codegen/`.
 - **Do not duplicate endpoint details in architecture docs.** Always
