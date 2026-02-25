@@ -874,6 +874,7 @@ export class ApiStack extends cdk.Stack {
         CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
         CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
         ASSET_PRESIGN_TTL_SECONDS: "900",
+        ASSET_DOWNLOAD_LINK_EXPIRY_DAYS: "9999",
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
