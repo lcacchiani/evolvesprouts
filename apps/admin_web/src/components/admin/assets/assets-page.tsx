@@ -57,9 +57,7 @@ export function AssetsPage() {
           key={selectedAsset?.id ?? 'new-asset'}
           selectedAsset={selectedAsset}
           isSavingAsset={isSavingAsset}
-          isDeletingCurrentAsset={
-            Boolean(selectedAssetId) && isDeletingAssetId === selectedAssetId
-          }
+          isDeletingCurrentAsset={Boolean(selectedAssetId) && isDeletingAssetId === selectedAssetId}
           assetMutationError={assetMutationError}
           uploadState={uploadState}
           uploadError={uploadError}
@@ -86,13 +84,6 @@ export function AssetsPage() {
                 assetType: 'document',
                 contentType: 'application/pdf',
               });
-            } catch {
-              // The hook stores the actionable error state for UI display.
-            }
-          }}
-          onDelete={async (assetId) => {
-            try {
-              await deleteAssetEntry(assetId);
             } catch {
               // The hook stores the actionable error state for UI display.
             }
@@ -131,12 +122,20 @@ export function AssetsPage() {
         filters={filters}
         isLoadingAssets={isLoadingAssets}
         isLoadingMoreAssets={isLoadingMoreAssets}
+        isDeletingAssetId={isDeletingAssetId}
         assetsError={assetsError}
         nextCursor={nextCursor}
         onQueryChange={setQueryFilter}
         onVisibilityChange={setVisibilityFilter}
         onLoadMore={loadMoreAssets}
         onSelectAsset={selectAsset}
+        onDeleteAsset={async (assetId) => {
+          try {
+            await deleteAssetEntry(assetId);
+          } catch {
+            // The hook stores the actionable error state for UI display.
+          }
+        }}
       />
     </div>
   );
