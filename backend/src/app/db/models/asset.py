@@ -15,6 +15,11 @@ from app.db.base import Base
 from app.db.models.enums import AccessGrantType, AssetType, AssetVisibility
 
 
+def _enum_values(enum_cls: type) -> list[str]:
+    """Return enum labels stored in PostgreSQL."""
+    return [member.value for member in enum_cls]
+
+
 class Asset(Base):
     """Client-facing downloadable asset metadata."""
 
@@ -33,14 +38,24 @@ class Asset(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     asset_type: Mapped[AssetType] = mapped_column(
-        Enum(AssetType, name="asset_type", create_type=False),
+        Enum(
+            AssetType,
+            name="asset_type",
+            values_callable=_enum_values,
+            create_type=False,
+        ),
         nullable=False,
     )
     s3_key: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     content_type: Mapped[Optional[str]] = mapped_column(String(127), nullable=True)
     visibility: Mapped[AssetVisibility] = mapped_column(
-        Enum(AssetVisibility, name="asset_visibility", create_type=False),
+        Enum(
+            AssetVisibility,
+            name="asset_visibility",
+            values_callable=_enum_values,
+            create_type=False,
+        ),
         nullable=False,
     )
     created_by: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -88,7 +103,12 @@ class AssetAccessGrant(Base):
         nullable=False,
     )
     grant_type: Mapped[AccessGrantType] = mapped_column(
-        Enum(AccessGrantType, name="access_grant_type", create_type=False),
+        Enum(
+            AccessGrantType,
+            name="access_grant_type",
+            values_callable=_enum_values,
+            create_type=False,
+        ),
         nullable=False,
     )
     grantee_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
