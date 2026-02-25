@@ -295,6 +295,15 @@ def generate_download_url(*, s3_key: str) -> dict[str, Any]:
     }
 
 
+def signed_link_no_cache_headers() -> dict[str, str]:
+    """Return headers that force revalidation for signed-link responses."""
+    return {
+        "Cache-Control": "no-store, no-cache, must-revalidate, private, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
+
+
 def delete_s3_object(*, s3_key: str) -> None:
     """Delete an S3 object by key."""
     bucket_name = _require_assets_bucket_name()

@@ -12,6 +12,7 @@ from app.api.assets.assets_common import (
     generate_download_url,
     parse_cursor,
     parse_limit,
+    signed_link_no_cache_headers,
     serialize_asset,
     split_route_parts,
 )
@@ -75,4 +76,9 @@ def _download_public_asset(
             raise NotFoundError("Asset", str(asset_id))
 
         download = generate_download_url(s3_key=asset.s3_key)
-        return json_response(200, {"asset_id": str(asset.id), **download}, event=event)
+        return json_response(
+            200,
+            {"asset_id": str(asset.id), **download},
+            headers=signed_link_no_cache_headers(),
+            event=event,
+        )

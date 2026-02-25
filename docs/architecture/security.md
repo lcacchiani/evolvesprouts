@@ -270,6 +270,9 @@ Process to add a new public API path:
   recover from leaks.
 - Download URLs returned to clients are CloudFront-signed URLs generated on
   demand by Lambda.
+- Share-token redirects and download-link JSON responses set strict no-store
+  cache headers, and API Gateway stage caching is explicitly disabled for
+  share/download GET routes to avoid stale signed-link responses.
 - The CloudFront signer private key must be stored in AWS Secrets Manager and
   loaded at runtime; never commit private keys in source control.
 - CloudFront distributions serving client assets must restrict S3 origin access

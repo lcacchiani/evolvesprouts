@@ -1552,6 +1552,19 @@ export class ApiStack extends cdk.Stack {
         cacheClusterEnabled: true,
         cacheClusterSize: "0.5",
         cacheDataEncrypted: true,
+        methodOptions: {
+          // Share-token and download endpoints return per-request signed URLs
+          // and must never be served from API Gateway stage cache.
+          "/v1/assets/share/{token}/GET": {
+            cachingEnabled: false,
+          },
+          "/v1/assets/public/{id}/download/GET": {
+            cachingEnabled: false,
+          },
+          "/v1/user/assets/{id}/download/GET": {
+            cachingEnabled: false,
+          },
+        },
       },
     });
     api.deploymentStage.node.addDependency(apiAccessLogGroupRetention);
