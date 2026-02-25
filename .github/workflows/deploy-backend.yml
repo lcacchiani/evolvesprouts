@@ -127,6 +127,7 @@ jobs:
             PARAM_FILE="$RESOLVED_PARAM_FILE" STACKS="$CDK_STACKS" python3 - <<'PY' > "$PARAM_ARGS_FILE"
           import json
           import os
+          import sys
 
           with open(os.environ["PARAM_FILE"], "r", encoding="utf-8") as handle:
               params = json.load(handle)
@@ -173,10 +174,14 @@ jobs:
               for target in targets:
                   if target not in stack_set:
                       continue
-                  print("--parameters")
-                  print(f"{target}:{key}={value_str}")
+                  # Emit NUL-delimited tokens so multiline values (e.g. PEM keys)
+                  # are preserved as single CLI arguments.
+                  sys.stdout.buffer.write(b"--parameters\0")
+                  sys.stdout.buffer.write(
+                      f"{target}:{key}={value_str}".encode("utf-8") + b"\0"
+                  )
           PY
-            readarray -t PARAM_ARGS < "$PARAM_ARGS_FILE"
+            mapfile -d '' -t PARAM_ARGS < "$PARAM_ARGS_FILE"
           fi
 
           RUN_SEED_DATA_NORMALIZED="$(printf '%s' "${RUN_SEED_DATA:-false}" | tr '[:upper:]' '[:lower:]')"
