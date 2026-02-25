@@ -330,8 +330,9 @@ For each function above, the following resources are created:
 - Cache TTL: 5 minutes for `/v1/assets/public/GET`
 
 **CORS Configuration:**
-- Allowed Origins: From `CORS_ALLOWED_ORIGINS` env var or context, and always includes `https://www.evolvesprouts.com` plus `https://www-staging.evolvesprouts.com`
-- Default Origins (when no env/context is set): `https://www.evolvesprouts.com`, `https://www-staging.evolvesprouts.com`, `capacitor://localhost`, `ionic://localhost`, `http://localhost`, `http://localhost:3000`, `https://evolvesprouts.lx-software.com`, `https://evolvesprouts-api.lx-software.com`
+- Allowed Origins: From `CORS_ALLOWED_ORIGINS` env var or context, and always includes `https://www.evolvesprouts.com`, `https://www-staging.evolvesprouts.com`, `https://admin.evolvesprouts.com`, and `https://admin.evolvesprouts.lx-software.com`
+- Default Origins (when no env/context is set): `https://www.evolvesprouts.com`, `https://www-staging.evolvesprouts.com`, `https://admin.evolvesprouts.com`, `https://admin.evolvesprouts.lx-software.com`, `capacitor://localhost`, `ionic://localhost`, `http://localhost`, `http://localhost:3000`, `https://evolvesprouts.lx-software.com`, `https://evolvesprouts-api.lx-software.com`
+- `EvolvesproutsAdminFunction` receives the resolved CORS list through its `CORS_ALLOWED_ORIGINS` environment variable so Lambda responses and API Gateway preflight behavior stay consistent.
 - Allowed Methods: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`
 
 ### API Gateway Resources and Methods

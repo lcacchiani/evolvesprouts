@@ -871,6 +871,7 @@ export class ApiStack extends cdk.Stack {
         DATABASE_USERNAME: "evolvesprouts_admin",
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
+        CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
         CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
         ASSET_PRESIGN_TTL_SECONDS: "900",
       },
@@ -1890,6 +1891,10 @@ const REQUIRED_PUBLIC_WEB_CORS_ORIGINS = [
   "https://www.evolvesprouts.com",
   "https://www-staging.evolvesprouts.com",
 ];
+const REQUIRED_ADMIN_WEB_CORS_ORIGINS = [
+  "https://admin.evolvesprouts.com",
+  "https://admin.evolvesprouts.lx-software.com",
+];
 
 function resolveCorsAllowedOrigins(scope: Construct): string[] {
   const defaultOrigins = [
@@ -1916,7 +1921,13 @@ function resolveCorsAllowedOrigins(scope: Construct): string[] {
 
 function ensureRequiredCorsOrigins(origins: string[]): string[] {
   return Array.from(
-    new Set([...REQUIRED_PUBLIC_WEB_CORS_ORIGINS, ...origins].map((origin) => origin.trim()))
+    new Set(
+      [
+        ...REQUIRED_PUBLIC_WEB_CORS_ORIGINS,
+        ...REQUIRED_ADMIN_WEB_CORS_ORIGINS,
+        ...origins,
+      ].map((origin) => origin.trim())
+    )
   ).filter((origin) => origin.length > 0);
 }
 
