@@ -73,8 +73,12 @@ def _get_signer(*, key_pair_id: str, secret_arn: str) -> CloudFrontSigner:
     private_key = _load_private_key(secret_arn)
 
     def rsa_signer(message: bytes) -> bytes:
-        # CloudFront URL signing requires RSA-SHA1 for signature compatibility.
-        return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())  # nosec B303
+        # CloudFront signed URL verification requires RSA-SHA1 compatibility.
+        return private_key.sign(
+            message,
+            padding.PKCS1v15(),
+            hashes.SHA1(),  # nosec B303  # nosemgrep: python.cryptography.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
+        )
 
     signer = CloudFrontSigner(key_pair_id, rsa_signer)
     _SIGNER_CACHE = _SignerCacheEntry(
