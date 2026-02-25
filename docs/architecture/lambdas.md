@@ -13,6 +13,9 @@ their primary responsibilities.
   `backend/.lambda-build/dependency-cache` keyed by `backend/requirements.txt`
   content and target runtime metadata to avoid reinstalling pip dependencies on
   every synth.
+- Cache retention is bounded (default keeps the 3 most recent keys). Older
+  cached dependency keys are pruned automatically by
+  `backend/scripts/build_lambda_bundle.py`.
 
 ## API Gateway Lambdas
 
