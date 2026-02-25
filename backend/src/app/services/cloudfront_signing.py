@@ -43,7 +43,9 @@ def generate_signed_download_url(*, s3_key: str, expires_at: datetime) -> str:
     if not normalized_key:
         raise RuntimeError("s3_key is required for signed download URL")
 
-    resource_url = f"https://{distribution_domain}/{quote(normalized_key, safe='/_.-~')}"
+    resource_url = (
+        f"https://{distribution_domain}/{quote(normalized_key, safe='/_.-~')}"
+    )
     signer = _get_signer(key_pair_id=key_pair_id, secret_arn=secret_arn)
     return signer.generate_presigned_url(resource_url, date_less_than=expires_at)
 
@@ -71,7 +73,8 @@ def _get_signer(*, key_pair_id: str, secret_arn: str) -> CloudFrontSigner:
     private_key = _load_private_key(secret_arn)
 
     def rsa_signer(message: bytes) -> bytes:
-        return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())
+        # CloudFront URL signing requires RSA-SHA1 for signature compatibility.
+        return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())  # nosec B303
 
     signer = CloudFrontSigner(key_pair_id, rsa_signer)
     _SIGNER_CACHE = _SignerCacheEntry(

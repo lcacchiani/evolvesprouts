@@ -54,7 +54,11 @@ def _derive_request_base_url(event: Mapping[str, Any]) -> str:
         request_context_path = _to_non_empty_string(request_context.get("path")) or ""
 
     base_path = ""
-    if request_context_path and event_path and request_context_path.endswith(event_path):
+    if (
+        request_context_path
+        and event_path
+        and request_context_path.endswith(event_path)
+    ):
         base_path = request_context_path[: -len(event_path)]
 
     return f"{scheme}://{host}{base_path}"
