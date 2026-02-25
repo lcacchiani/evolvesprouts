@@ -1771,8 +1771,19 @@ export class ApiStack extends cdk.Stack {
 
     const publicShareAssets = assets.addResource("share");
     const publicShareAssetByToken = publicShareAssets.addResource("{token}");
-    publicShareAssetByToken.addMethod("GET", adminIntegration, {
+    const publicShareAssetByTokenGet = publicShareAssetByToken.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
+    });
+    const publicShareAssetByTokenGetCfn = publicShareAssetByTokenGet.node
+      .defaultChild as apigateway.CfnMethod;
+    publicShareAssetByTokenGetCfn.addMetadata("checkov", {
+      skip: [
+        {
+          id: "CKV_AWS_59",
+          comment:
+            "Public bearer-link route by design; access requires unguessable share token and resolves to a short-lived signed download URL",
+        },
+      ],
     });
 
     // ---------------------------------------------------------------------
