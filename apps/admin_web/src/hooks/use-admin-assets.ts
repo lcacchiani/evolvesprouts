@@ -51,6 +51,7 @@ function toErrorMessage(error: unknown, fallbackMessage: string): string {
 export function useAdminAssets() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const filtersRef = useRef<Filters>(DEFAULT_FILTERS);
+  const latestRefreshRequestIdRef = useRef(0);
   const [assets, setAssets] = useState<AdminAsset[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
@@ -87,6 +88,8 @@ export function useAdminAssets() {
 
   const refreshAssets = useCallback(
     async (nextFilters?: Partial<Filters>) => {
+      const requestId = latestRefreshRequestIdRef.current + 1;
+      latestRefreshRequestIdRef.current = requestId;
       const effectiveFilters = {
         ...filtersRef.current,
         ...nextFilters,
@@ -102,6 +105,9 @@ export function useAdminAssets() {
           cursor: null,
           limit: 25,
         });
+        if (requestId !== latestRefreshRequestIdRef.current) {
+          return;
+        }
         setAssets(response.items);
         setNextCursor(response.nextCursor);
 
@@ -114,9 +120,14 @@ export function useAdminAssets() {
             : (response.items[0]?.id ?? null);
         });
       } catch (error) {
+        if (requestId !== latestRefreshRequestIdRef.current) {
+          return;
+        }
         setAssetsError(toErrorMessage(error, 'Failed to load assets.'));
       } finally {
-        setIsLoadingAssets(false);
+        if (requestId === latestRefreshRequestIdRef.current) {
+          setIsLoadingAssets(false);
+        }
       }
     },
     []
@@ -150,22 +161,31 @@ export function useAdminAssets() {
     void refreshAssets();
   }, [refreshAssets]);
 
-  const setQueryFilter = useCallback((query: string) => {
-    setFilters((previous) => ({ ...previous, query }));
-  }, []);
+  const setQueryFilter = useCallback(
+    (query: string) => {
+      const nextFilters = {
+        ...filtersRef.current,
+        query,
+      };
+      filtersRef.current = nextFilters;
+      setFilters(nextFilters);
+      void refreshAssets(nextFilters);
+    },
+    [refreshAssets]
+  );
 
-  const setVisibilityFilter = useCallback((visibility: AssetVisibility | '') => {
-    setFilters((previous) => ({ ...previous, visibility }));
-  }, []);
-
-  const applyFilters = useCallback(async () => {
-    await refreshAssets();
-  }, [refreshAssets]);
-
-  const clearFilters = useCallback(async () => {
-    setFilters(DEFAULT_FILTERS);
-    await refreshAssets(DEFAULT_FILTERS);
-  }, [refreshAssets]);
+  const setVisibilityFilter = useCallback(
+    (visibility: AssetVisibility | '') => {
+      const nextFilters = {
+        ...filtersRef.current,
+        visibility,
+      };
+      filtersRef.current = nextFilters;
+      setFilters(nextFilters);
+      void refreshAssets(nextFilters);
+    },
+    [refreshAssets]
+  );
 
   const selectAsset = useCallback((assetId: string) => {
     setSelectedAssetId(assetId);
@@ -395,8 +415,6 @@ export function useAdminAssets() {
     isDeletingGrantId,
     setQueryFilter,
     setVisibilityFilter,
-    applyFilters,
-    clearFilters,
     refreshAssets,
     loadMoreAssets,
     selectAsset,

@@ -9,6 +9,7 @@ import { ASSET_VISIBILITIES } from '@/types/assets';
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { FileUploadButton } from '@/components/ui/file-upload-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -178,9 +179,10 @@ export function AssetEditorPanel({
               onStartCreate();
               setFormState(EMPTY_ASSET_FORM);
               setSelectedFile(null);
+              setFormError('');
             }}
           >
-            New asset
+            Clear
           </Button>
         ) : null}
       </div>
@@ -227,7 +229,7 @@ export function AssetEditorPanel({
       <form onSubmit={handleSubmit} className='space-y-4'>
         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
           <div className='space-y-2'>
-            <Label htmlFor='asset-title'>Title</Label>
+            <Label htmlFor='asset-title'>Title *</Label>
             <Input
               id='asset-title'
               value={formState.title}
@@ -239,7 +241,7 @@ export function AssetEditorPanel({
             />
           </div>
           <div className='space-y-2'>
-            <Label htmlFor='asset-visibility'>Visibility</Label>
+            <Label htmlFor='asset-visibility'>Visibility *</Label>
             <Select
               id='asset-visibility'
               value={formState.visibility}
@@ -259,21 +261,19 @@ export function AssetEditorPanel({
           </div>
           {!isEditMode ? (
             <div className='space-y-2'>
-              <Label htmlFor='asset-file-upload'>PDF file</Label>
-              <Input
+              <Label htmlFor='asset-file-upload'>PDF file *</Label>
+              <FileUploadButton
                 id='asset-file-upload'
-                type='file'
                 accept='application/pdf,.pdf'
+                selectedFileName={selectedFile?.name ?? null}
+                emptyLabel='No file chosen'
+                inputAriaLabel='Upload PDF file'
+                disabled={isSavingAsset}
                 onChange={(event) => {
                   const file = event.target.files?.[0] ?? null;
                   setSelectedFile(file);
                 }}
-                required
               />
-              <p className='text-xs text-slate-600'>
-                Asset type is fixed to Document (PDF), content type is applied as
-                application/pdf.
-              </p>
             </div>
           ) : (
             <div className='space-y-2'>

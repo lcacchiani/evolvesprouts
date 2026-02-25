@@ -126,7 +126,7 @@ export function AssetGrantsPanel({
 
       <form onSubmit={handleSubmit} className='grid grid-cols-1 gap-3 md:grid-cols-[200px_minmax(0,1fr)_auto]'>
         <div className='space-y-2'>
-          <Label htmlFor='grant-type'>Grant type</Label>
+          <Label htmlFor='grant-type'>Grant type *</Label>
           <Select
             id='grant-type'
             value={grantType}
@@ -143,13 +143,12 @@ export function AssetGrantsPanel({
         </div>
 
         <div className='space-y-2'>
-          <Label htmlFor='grantee-id'>
-            Grantee ID {isGranteeRequired ? '(required)' : '(not required)'}
-          </Label>
+          <Label htmlFor='grantee-id'>{isGranteeRequired ? 'Grantee ID *' : 'Grantee ID'}</Label>
           <Input
             id='grantee-id'
             value={granteeId}
             onChange={(event) => setGranteeId(event.target.value)}
+            required={isGranteeRequired}
             placeholder={
               grantType === 'organization'
                 ? 'Organization UUID'

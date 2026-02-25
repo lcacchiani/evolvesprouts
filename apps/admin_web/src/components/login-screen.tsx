@@ -187,7 +187,7 @@ export function LoginScreen() {
               {!showCodeInput ? (
                 <form onSubmit={handleEmailSubmit} className='space-y-4'>
                   <div className='space-y-2'>
-                    <Label htmlFor='email'>Work email</Label>
+                    <Label htmlFor='email'>Work email *</Label>
                     <Input
                       id='email'
                       type='email'
@@ -229,7 +229,7 @@ export function LoginScreen() {
               ) : (
                 <form onSubmit={handleCodeSubmit} className='space-y-4'>
                   <div className='space-y-2'>
-                    <Label htmlFor='code'>Verification code</Label>
+                    <Label htmlFor='code'>Verification code *</Label>
                     <Input
                       id='code'
                       type='text'
