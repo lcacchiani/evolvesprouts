@@ -444,9 +444,7 @@ configured by stack custom resources (including retention and KMS association).
 | `DeviceAttestationFailClosed` | String | No | No | Fail-closed mode (default: `true`, allowed: `true`/`false`) |
 | `ActiveCountryCodes` | String | No | No | Comma-separated country codes (default: `HK`) |
 | `RunSeedData` | String | No | No | Run seed data after migrations (default: `false`) |
-| `FallbackManagerEmail` | String | No | No | Fallback manager email for migration |
 | `SupportEmail` | String | No | No | Email to receive booking request notifications |
-| `FeedbackStarsPerApproval` | Number | No | No | Feedback stars granted per approval (default: `1`) |
 | `SesSenderEmail` | String | No | No | SES-verified sender email for notifications |
 | `TurnstileSecretKey` | String | No | Yes | Cloudflare Turnstile secret key |
 | `ApiCustomDomainName` | String | No | No | Custom domain for the API (default: empty) |
