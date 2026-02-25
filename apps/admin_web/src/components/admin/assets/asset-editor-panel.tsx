@@ -345,16 +345,6 @@ export function AssetEditorPanel({
                   File replacement is not supported in edit mode.
                 </p>
               </div>
-              <Button
-                type='button'
-                variant='secondary'
-                onClick={() => void handleCopyAssetLink()}
-                disabled={isCopyingLink}
-                className='w-fit'
-              >
-                <CopyIcon className='mr-1 h-4 w-4' />
-                {isCopyingLink ? 'Copying...' : isLinkCopied ? 'Copied' : 'Copy link'}
-              </Button>
             </div>
           )}
         </div>
@@ -396,6 +386,17 @@ export function AssetEditorPanel({
           <Button type='submit' disabled={isSavingAsset}>
             {submitLabel}
           </Button>
+          {isEditMode ? (
+            <Button
+              type='button'
+              variant='secondary'
+              onClick={() => void handleCopyAssetLink()}
+              disabled={isCopyingLink}
+            >
+              <CopyIcon className='mr-1 h-4 w-4' />
+              {isCopyingLink ? 'Getting...' : isLinkCopied ? 'Copied' : 'Get link'}
+            </Button>
+          ) : null}
         </div>
       </form>
     </Card>
