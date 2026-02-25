@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Iterable, Optional
 from uuid import UUID
 
 from sqlalchemy import Enum, ForeignKey, Index, String, Text, text
@@ -15,7 +15,9 @@ from app.db.base import Base
 from app.db.models.enums import AccessGrantType, AssetType, AssetVisibility
 
 
-def _enum_values(enum_cls: type) -> list[str]:
+def _enum_values(
+    enum_cls: Iterable[AssetType | AssetVisibility | AccessGrantType],
+) -> list[str]:
     """Return enum labels stored in PostgreSQL."""
     return [member.value for member in enum_cls]
 
