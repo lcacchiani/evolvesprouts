@@ -901,6 +901,28 @@ export class ApiStack extends cdk.Stack {
           "ACM certificate ARN for the client-asset download custom domain (must be in us-east-1).",
       }
     );
+    const assetDownloadWafWebAclArn = new cdk.CfnParameter(
+      this,
+      "AssetDownloadWafWebAclArn",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Optional WAF WebACL ARN for client-asset CloudFront protection (must be from us-east-1).",
+        allowedPattern: "^$|arn:aws:wafv2:us-east-1:[0-9]+:global/webacl/.+$",
+        constraintDescription:
+          "Must be empty or a valid WAF WebACL ARN from us-east-1.",
+      }
+    );
+    const hasAssetDownloadWafWebAclArn = new cdk.CfnCondition(
+      this,
+      "HasAssetDownloadWafWebAclArn",
+      {
+        expression: cdk.Fn.conditionNot(
+          cdk.Fn.conditionEquals(assetDownloadWafWebAclArn.valueAsString, "")
+        ),
+      }
+    );
 
     const assetDownloadPublicKey = new cloudfront.PublicKey(
       this,
@@ -941,6 +963,16 @@ export class ApiStack extends cdk.Stack {
           trustedKeyGroups: [assetDownloadKeyGroup],
         },
       }
+    );
+    const assetDownloadDistributionCfn =
+      assetDownloadDistribution.node.defaultChild as cloudfront.CfnDistribution;
+    assetDownloadDistributionCfn.addPropertyOverride(
+      "DistributionConfig.WebACLId",
+      cdk.Fn.conditionIf(
+        hasAssetDownloadWafWebAclArn.logicalId,
+        assetDownloadWafWebAclArn.valueAsString,
+        cdk.Aws.NO_VALUE
+      )
     );
 
     // Admin function
