@@ -357,11 +357,14 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 
 CORS headers are added to API Gateway error responses so the browser can
 read error status codes instead of silently blocking them.
+Gateway responses use a static fallback origin plus a response-template
+override that echoes the request `Origin` when it matches the configured
+allowlist (`CORS_ALLOWED_ORIGINS` plus required defaults).
 
 | Response Type | Headers Added |
 |--------------|---------------|
-| `DEFAULT_4XX` | `Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods` |
-| `DEFAULT_5XX` | `Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods` |
+| `DEFAULT_4XX` | `Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Vary` |
+| `DEFAULT_5XX` | `Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Vary` |
 
 ### API Gateway Authorizers
 
