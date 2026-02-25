@@ -284,8 +284,14 @@ associated `CDK_PARAM_*` documentation in this section.
 This repository configures Cursor cloud agents with
 `.cursor/environment.json`.
 
-- `install`: `cd backend/infrastructure && npm ci`
-- `start`: `cd backend/infrastructure && npm ci`
+- `install`: `cd backend/infrastructure && npm ci && cd .. && python3 scripts/build_lambda_bundle.py --cache-only`
+- `start`: `cd backend/infrastructure && ( [ -d node_modules ] || npm ci ) && cd .. && python3 scripts/build_lambda_bundle.py --cache-only`
 
 Using `npm ci` keeps dependency installation aligned to
 `backend/infrastructure/package-lock.json`.
+The `--cache-only` bundle step pre-builds a deterministic Python dependency cache
+from `backend/requirements.txt` so later `npm run synth` executions can reuse
+cached Lambda dependencies instead of reinstalling them every run.
+The cache keeps only the most recent entries (default: 3) and automatically
+prunes older keys; override with
+`python3 backend/scripts/build_lambda_bundle.py --max-cache-entries <N>`.

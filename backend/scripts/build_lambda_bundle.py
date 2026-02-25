@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import logging
 import os
 from pathlib import Path
@@ -11,6 +12,7 @@ import subprocess
 import sys
 
 logger = logging.getLogger(__name__)
+_DEFAULT_MAX_CACHE_ENTRIES = 3
 
 
 def _ensure_python_version() -> None:
@@ -37,63 +39,168 @@ def _cleanup_bundle(output_dir: Path) -> None:
         cache_file.unlink()
 
 
-def build_bundle(source_root: Path, output_dir: Path) -> None:
+def _requirements_cache_key(requirements: Path) -> str:
+    hasher = hashlib.sha256()
+    hasher.update(requirements.read_bytes())
+    hasher.update(b"\nplatform=manylinux_2_17_aarch64")
+    hasher.update(b"\nimplementation=cp")
+    hasher.update(b"\npython_version=3.12")
+    return hasher.hexdigest()
+
+
+def _prune_dependency_cache(
+    *,
+    cache_root: Path,
+    keep_entries: int,
+    active_key: str,
+) -> None:
+    temp_dirs = [
+        path
+        for path in cache_root.iterdir()
+        if path.is_dir() and path.name.startswith(".tmp-")
+    ]
+    for temp_dir in temp_dirs:
+        shutil.rmtree(temp_dir)
+
+    for cache_dir in cache_root.iterdir():
+        if not cache_dir.is_dir() or cache_dir.name.startswith(".tmp-"):
+            continue
+        marker = cache_root / f"{cache_dir.name}.ready"
+        if not marker.is_file():
+            shutil.rmtree(cache_dir)
+
+    ready_markers = [path for path in cache_root.glob("*.ready") if path.is_file()]
+    cache_entries: list[tuple[str, float]] = []
+    for marker in ready_markers:
+        cache_key = marker.stem
+        cache_dir = cache_root / cache_key
+        if not cache_dir.is_dir():
+            marker.unlink()
+            continue
+        cache_entries.append((cache_key, marker.stat().st_mtime))
+
+    cache_entries.sort(key=lambda entry: entry[1], reverse=True)
+    for cache_key, _ in cache_entries[keep_entries:]:
+        if cache_key == active_key:
+            continue
+        cache_dir = cache_root / cache_key
+        marker = cache_root / f"{cache_key}.ready"
+        if cache_dir.is_dir():
+            shutil.rmtree(cache_dir)
+        if marker.is_file():
+            marker.unlink()
+        logger.info("Pruned Lambda dependency cache %s", cache_key[:12])
+
+
+def _build_dependency_cache(
+    source_root: Path,
+    requirements: Path,
+    env: dict[str, str],
+    *,
+    max_cache_entries: int,
+) -> Path:
+    cache_root = source_root / ".lambda-build" / "dependency-cache"
+    cache_root.mkdir(parents=True, exist_ok=True)
+    cache_key = _requirements_cache_key(requirements)
+    cache_dir = cache_root / cache_key
+    ready_marker = cache_root / f"{cache_key}.ready"
+
+    if cache_dir.is_dir() and ready_marker.is_file():
+        logger.info("Reusing Lambda dependency cache %s", cache_key[:12])
+        ready_marker.touch()
+        _prune_dependency_cache(
+            cache_root=cache_root,
+            keep_entries=max_cache_entries,
+            active_key=cache_key,
+        )
+        return cache_dir
+
+    logger.info("Building Lambda dependency cache %s", cache_key[:12])
+    temp_cache_dir = cache_root / f".tmp-{cache_key}"
+    if temp_cache_dir.exists():
+        shutil.rmtree(temp_cache_dir)
+    temp_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        _run_pip(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                "requirements.txt",
+                "-t",
+                str(temp_cache_dir),
+                "--no-compile",
+                "--disable-pip-version-check",
+                # Use Lambda-compatible wheels (Amazon Linux 2023 / manylinux)
+                # ARM64 architecture (Graviton2) - matches Lambda config
+                "--platform",
+                "manylinux_2_17_aarch64",
+                "--only-binary=:all:",
+                "--implementation",
+                "cp",
+                "--python-version",
+                "3.12",
+            ],
+            cwd=source_root,
+            env=env,
+        )
+        _cleanup_bundle(temp_cache_dir)
+        if cache_dir.exists():
+            shutil.rmtree(cache_dir)
+        temp_cache_dir.rename(cache_dir)
+        ready_marker.write_text("ready\n", encoding="utf-8")
+        _prune_dependency_cache(
+            cache_root=cache_root,
+            keep_entries=max_cache_entries,
+            active_key=cache_key,
+        )
+        return cache_dir
+    finally:
+        if temp_cache_dir.exists():
+            shutil.rmtree(temp_cache_dir)
+
+
+def build_bundle(
+    source_root: Path,
+    output_dir: Path,
+    *,
+    cache_only: bool = False,
+    max_cache_entries: int = _DEFAULT_MAX_CACHE_ENTRIES,
+) -> None:
     requirements = source_root / "requirements.txt"
     if not requirements.is_file():
         raise FileNotFoundError(f"Missing requirements file: {requirements}")
 
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
     env = os.environ.copy()
+    pip_cache_dir = source_root / ".lambda-build" / "pip-cache"
+    pip_cache_dir.mkdir(parents=True, exist_ok=True)
     env.update(
         {
             "HOME": "/tmp",
-            "PIP_CACHE_DIR": "/tmp/pip-cache",
+            "PIP_CACHE_DIR": str(pip_cache_dir),
             "PYTHONUSERBASE": "/tmp/.local",
             "PYTHONDONTWRITEBYTECODE": "1",
             "PYTHONHASHSEED": "0",
         }
     )
 
-    _run_pip(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--upgrade",
-            "pip",
-            "--no-warn-script-location",
-        ],
-        cwd=source_root,
-        env=env,
+    dependency_cache = _build_dependency_cache(
+        source_root,
+        requirements,
+        env,
+        max_cache_entries=max_cache_entries,
     )
-    _run_pip(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "-r",
-            "requirements.txt",
-            "-t",
-            str(output_dir),
-            "--no-compile",
-            # Use Lambda-compatible wheels (Amazon Linux 2023 / manylinux)
-            # ARM64 architecture (Graviton2) - matches Lambda config
-            "--platform",
-            "manylinux_2_17_aarch64",
-            "--only-binary=:all:",
-            "--implementation",
-            "cp",
-            "--python-version",
-            "3.12",
-        ],
-        cwd=source_root,
-        env=env,
-    )
+    if cache_only:
+        return
+
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    _copy_tree(dependency_cache, output_dir)
 
     _copy_tree(source_root / "lambda", output_dir / "lambda")
     _copy_tree(source_root / "src", output_dir / "src")
@@ -112,6 +219,20 @@ def _parse_args() -> argparse.Namespace:
         default="",
         help="Output directory for the bundled assets.",
     )
+    parser.add_argument(
+        "--cache-only",
+        action="store_true",
+        help="Build dependency cache only (skip writing final bundle output).",
+    )
+    parser.add_argument(
+        "--max-cache-entries",
+        type=int,
+        default=_DEFAULT_MAX_CACHE_ENTRIES,
+        help=(
+            "Keep only the most recent dependency cache entries. "
+            f"Default: {_DEFAULT_MAX_CACHE_ENTRIES}."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -125,9 +246,22 @@ def main() -> None:
         if args.output_dir
         else source_root / ".lambda-build" / "base"
     )
-    logger.info("Building Lambda bundle in %s", output_dir)
-    build_bundle(source_root, output_dir)
-    logger.info("Lambda bundle ready.")
+    if args.max_cache_entries < 1:
+        raise SystemExit("--max-cache-entries must be at least 1.")
+    if args.cache_only:
+        logger.info("Preparing Lambda dependency cache for %s", source_root)
+    else:
+        logger.info("Building Lambda bundle in %s", output_dir)
+    build_bundle(
+        source_root,
+        output_dir,
+        cache_only=args.cache_only,
+        max_cache_entries=args.max_cache_entries,
+    )
+    if args.cache_only:
+        logger.info("Lambda dependency cache ready.")
+    else:
+        logger.info("Lambda bundle ready.")
 
 
 if __name__ == "__main__":

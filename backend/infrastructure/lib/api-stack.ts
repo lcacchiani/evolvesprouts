@@ -871,6 +871,7 @@ export class ApiStack extends cdk.Stack {
         DATABASE_USERNAME: "evolvesprouts_admin",
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
+        CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
         CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
         ASSET_PRESIGN_TTL_SECONDS: "900",
       },
@@ -1472,20 +1473,25 @@ export class ApiStack extends cdk.Stack {
     // CORS headers, causing the browser to block the response.  The frontend
     // then sees a CORS / network error instead of a useful status code.
     // -------------------------------------------------------------------------
+    const gatewayResponseTemplates: Record<string, string> = {
+      "application/json": buildCorsOriginOverrideTemplate(corsAllowedOrigins),
+    };
     const gatewayResponseHeaders: Record<string, string> = {
-      "method.response.header.Access-Control-Allow-Origin": `'${corsAllowedOrigins[0]}'`,
-      "method.response.header.Access-Control-Allow-Headers":
+      "Access-Control-Allow-Origin": `'${corsAllowedOrigins[0]}'`,
+      "Access-Control-Allow-Headers":
         "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Turnstile-Token'",
-      "method.response.header.Access-Control-Allow-Methods":
-        "'GET,POST,PUT,DELETE,OPTIONS'",
+      "Access-Control-Allow-Methods": "'GET,POST,PUT,DELETE,OPTIONS'",
+      Vary: "'Origin'",
     };
     api.addGatewayResponse("GatewayResponseDefault4XX", {
       type: apigateway.ResponseType.DEFAULT_4XX,
       responseHeaders: gatewayResponseHeaders,
+      templates: gatewayResponseTemplates,
     });
     api.addGatewayResponse("GatewayResponseDefault5XX", {
       type: apigateway.ResponseType.DEFAULT_5XX,
       responseHeaders: gatewayResponseHeaders,
+      templates: gatewayResponseTemplates,
     });
 
     const publicWwwApiKey = new apigateway.ApiKey(this, "PublicWwwApiKey", {
@@ -1890,6 +1896,10 @@ const REQUIRED_PUBLIC_WEB_CORS_ORIGINS = [
   "https://www.evolvesprouts.com",
   "https://www-staging.evolvesprouts.com",
 ];
+const REQUIRED_ADMIN_WEB_CORS_ORIGINS = [
+  "https://admin.evolvesprouts.com",
+  "https://admin.evolvesprouts.lx-software.com",
+];
 
 function resolveCorsAllowedOrigins(scope: Construct): string[] {
   const defaultOrigins = [
@@ -1916,7 +1926,13 @@ function resolveCorsAllowedOrigins(scope: Construct): string[] {
 
 function ensureRequiredCorsOrigins(origins: string[]): string[] {
   return Array.from(
-    new Set([...REQUIRED_PUBLIC_WEB_CORS_ORIGINS, ...origins].map((origin) => origin.trim()))
+    new Set(
+      [
+        ...REQUIRED_PUBLIC_WEB_CORS_ORIGINS,
+        ...REQUIRED_ADMIN_WEB_CORS_ORIGINS,
+        ...origins,
+      ].map((origin) => origin.trim())
+    )
   ).filter((origin) => origin.length > 0);
 }
 
@@ -1933,6 +1949,31 @@ function normalizeCorsOrigins(value: unknown): string[] {
     .split(",")
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0);
+}
+
+function buildCorsOriginOverrideTemplate(allowedOrigins: string[]): string {
+  const conditions = allowedOrigins
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0)
+    .map((origin) =>
+      origin
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+    )
+    .map((origin) => `$origin == "${origin}"`)
+    .join(" || ");
+
+  const allowlistCondition = conditions || "false";
+
+  return [
+    '#set($origin = $input.params().header.get("Origin"))',
+    '#if($origin == "")',
+    '  #set($origin = $input.params().header.get("origin"))',
+    "#end",
+    `#if(${allowlistCondition})`,
+    "  #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin)",
+    "#end",
+  ].join("\n");
 }
 
 function parseOptionalPort(value: string | undefined): number | undefined {
