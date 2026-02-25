@@ -81,6 +81,14 @@ export function AppShell({
             >
               <span className='text-lg leading-none'>{isMobileMenuOpen ? '×' : '☰'}</span>
             </button>
+            <Image
+              src='/images/evolvesprouts-logo.svg'
+              alt=''
+              aria-hidden
+              width={24}
+              height={24}
+              className='h-6 w-6 shrink-0'
+            />
             <div>
               <p className='text-xs font-semibold uppercase tracking-[0.25em] text-slate-500'>
                 Evolve Sprouts Admin
@@ -89,17 +97,6 @@ export function AppShell({
             </div>
           </div>
           <div className='flex items-center gap-3'>
-            <div className='hidden items-center gap-2 lg:flex'>
-              <Image
-                src='/images/evolvesprouts-logo.svg'
-                alt=''
-                aria-hidden
-                width={24}
-                height={24}
-                className='h-6 w-6'
-              />
-              <p className='text-sm font-semibold text-slate-700'>Evolve Sprouts Admin</p>
-            </div>
             {userEmail ? (
               <div className='hidden text-right md:block'>
                 <p className='text-sm text-slate-700'>{userEmail}</p>

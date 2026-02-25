@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 
 import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
+import { generateUserAssetDownloadLink } from '@/lib/assets-api';
 import { ASSET_VISIBILITIES } from '@/types/assets';
 
 import { StatusBanner } from '@/components/status-banner';
@@ -70,6 +71,35 @@ function toFormState(asset: AdminAsset): AssetFormState {
   };
 }
 
+function CopyIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='1.8'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden='true'
+    >
+      <rect x='9' y='9' width='13' height='13' rx='2' />
+      <path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1' />
+    </svg>
+  );
+}
+
+function formatDate(value: string | null): string {
+  if (!value) {
+    return '—';
+  }
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value;
+  }
+  return parsedDate.toLocaleString();
+}
+
 export function AssetEditorPanel({
   selectedAsset,
   isSavingAsset,
@@ -89,6 +119,12 @@ export function AssetEditorPanel({
   );
   const [formError, setFormError] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [downloadLink, setDownloadLink] = useState('');
+  const [downloadExpiresAt, setDownloadExpiresAt] = useState<string | null>(null);
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [linkError, setLinkError] = useState('');
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
+  const copiedStateTimeoutRef = useRef<number | null>(null);
 
   const isEditMode = Boolean(selectedAsset);
 
@@ -103,6 +139,14 @@ export function AssetEditorPanel({
     }
     return isEditMode ? 'Save changes' : 'Create asset';
   }, [isEditMode, isSavingAsset]);
+
+  useEffect(() => {
+    return () => {
+      if (copiedStateTimeoutRef.current !== null) {
+        window.clearTimeout(copiedStateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -168,25 +212,59 @@ export function AssetEditorPanel({
     await onDelete(selectedAsset.id);
   };
 
+  const handleCancel = () => {
+    onStartCreate();
+    setFormState(EMPTY_ASSET_FORM);
+    setSelectedFile(null);
+    setFormError('');
+    setDownloadLink('');
+    setDownloadExpiresAt(null);
+    setLinkError('');
+    setIsLinkCopied(false);
+  };
+
+  const handleGenerateAssetLink = async () => {
+    if (!selectedAsset) {
+      return;
+    }
+
+    setIsGeneratingLink(true);
+    setLinkError('');
+    setIsLinkCopied(false);
+    try {
+      const link = await generateUserAssetDownloadLink(selectedAsset.id);
+      setDownloadLink(link.downloadUrl);
+      setDownloadExpiresAt(link.expiresAt);
+    } catch (error) {
+      setLinkError(error instanceof Error ? error.message : 'Unable to generate a download link.');
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
+
+  const handleCopyAssetLink = async () => {
+    if (!downloadLink) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(downloadLink);
+      setLinkError('');
+      setIsLinkCopied(true);
+      if (copiedStateTimeoutRef.current !== null) {
+        window.clearTimeout(copiedStateTimeoutRef.current);
+      }
+      copiedStateTimeoutRef.current = window.setTimeout(() => {
+        setIsLinkCopied(false);
+        copiedStateTimeoutRef.current = null;
+      }, 2000);
+    } catch {
+      setLinkError('Unable to copy the link to clipboard. Please copy it manually.');
+    }
+  };
+
   return (
     <Card title={cardTitle} description={cardDescription} className='space-y-4'>
-      <div className='flex flex-wrap items-center justify-end gap-2'>
-        {isEditMode ? (
-          <Button
-            type='button'
-            variant='ghost'
-            onClick={() => {
-              onStartCreate();
-              setFormState(EMPTY_ASSET_FORM);
-              setSelectedFile(null);
-              setFormError('');
-            }}
-          >
-            Clear
-          </Button>
-        ) : null}
-      </div>
-
       {assetMutationError ? (
         <StatusBanner variant='error' title='Asset'>
           {assetMutationError}
@@ -196,6 +274,12 @@ export function AssetEditorPanel({
       {formError ? (
         <StatusBanner variant='error' title='Validation'>
           {formError}
+        </StatusBanner>
+      ) : null}
+
+      {linkError ? (
+        <StatusBanner variant='error' title='Asset link'>
+          {linkError}
         </StatusBanner>
       ) : null}
 
@@ -276,12 +360,47 @@ export function AssetEditorPanel({
               />
             </div>
           ) : (
-            <div className='space-y-2'>
-              <Label>File</Label>
-              <p className='rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>
-                {selectedAsset?.fileName || '—'}
-              </p>
-              <p className='text-xs text-slate-600'>File replacement is not supported in edit mode.</p>
+            <div className='space-y-4'>
+              <div className='space-y-2'>
+                <Label>File</Label>
+                <p className='rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>
+                  {selectedAsset?.fileName || '—'}
+                </p>
+                <p className='text-xs text-slate-600'>
+                  File replacement is not supported in edit mode.
+                </p>
+              </div>
+              <div className='space-y-2'>
+                <Label htmlFor='asset-download-link'>Asset link</Label>
+                <Input
+                  id='asset-download-link'
+                  value={downloadLink}
+                  readOnly
+                  placeholder='Generate a temporary download link'
+                />
+                <div className='flex flex-wrap items-center gap-2'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => void handleGenerateAssetLink()}
+                    disabled={isGeneratingLink}
+                  >
+                    {isGeneratingLink ? 'Generating...' : 'Get link'}
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='secondary'
+                    onClick={() => void handleCopyAssetLink()}
+                    disabled={!downloadLink}
+                  >
+                    <CopyIcon className='mr-1 h-4 w-4' />
+                    {isLinkCopied ? 'Copied' : 'Copy link'}
+                  </Button>
+                </div>
+                <p className='text-xs text-slate-600'>
+                  Expires: {formatDate(downloadExpiresAt)}
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -300,6 +419,16 @@ export function AssetEditorPanel({
         </div>
 
         <div className='flex flex-wrap items-center justify-end gap-2'>
+          {isEditMode ? (
+            <Button
+              type='button'
+              variant='secondary'
+              onClick={handleCancel}
+              disabled={isSavingAsset || isDeletingCurrentAsset}
+            >
+              Cancel
+            </Button>
+          ) : null}
           {isEditMode ? (
             <Button
               type='button'
