@@ -1,4 +1,4 @@
 {
-  "install": "cd backend/infrastructure && npm ci",
-  "start": "cd backend/infrastructure && npm ci"
+  "install": "cd backend/infrastructure && npm ci && cd .. && python3 scripts/build_lambda_bundle.py --cache-only",
+  "start": "cd backend/infrastructure && ( [ -d node_modules ] || npm ci ) && cd .. && python3 scripts/build_lambda_bundle.py --cache-only"
 }
