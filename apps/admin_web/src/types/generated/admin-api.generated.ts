@@ -345,6 +345,129 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/assets/{id}/share-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Asset identifier. */
+                id: components["parameters"]["AssetId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get or create stable asset share link */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Asset identifier. */
+                    id: components["parameters"]["AssetId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Existing share link returned. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssetShareLinkResponse"];
+                    };
+                };
+                /** @description Share link created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssetShareLinkResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        /** Revoke stable asset share link */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Asset identifier. */
+                    id: components["parameters"]["AssetId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Share link revoked. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/assets/{id}/share-link/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Asset identifier. */
+                id: components["parameters"]["AssetId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rotate stable asset share link */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Asset identifier. */
+                    id: components["parameters"]["AssetId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Share link rotated. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssetShareLinkResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/user/assets": {
         parameters: {
             query?: never;
@@ -481,10 +604,21 @@ export interface components {
         };
         AssetDownloadResponse: {
             asset_id: string;
-            /** Format: uri */
+            /**
+             * Format: uri
+             * @description CloudFront-signed URL generated for this request.
+             */
             download_url: string;
             /** Format: date-time */
             expires_at: string;
+        };
+        AssetShareLinkResponse: {
+            asset_id: string;
+            /**
+             * Format: uri
+             * @description Stable bearer link that resolves to a fresh signed download URL.
+             */
+            share_url: string;
         };
         CreateAssetRequest: {
             title: string;

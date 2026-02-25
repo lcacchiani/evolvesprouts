@@ -64,6 +64,26 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/assets/share/{token}:
+    parameters:
+      - $ref: "#/components/parameters/ShareToken"
+    get:
+      summary: Resolve stable asset share link
+      description: |
+        Public bearer endpoint that resolves a stable share token and redirects
+        to a fresh CloudFront-signed download URL.
+      responses:
+        "302":
+          description: Redirect to signed download URL.
+          headers:
+            Location:
+              description: CloudFront-signed download URL.
+              schema:
+                type: string
+                format: uri
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /www/v1/calendar/events:
     get:
       summary: List public website events
@@ -200,6 +220,13 @@ components:
       schema:
         type: string
       description: Asset identifier.
+    ShareToken:
+      name: token
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Stable bearer token for a shared asset.
     TurnstileTokenHeader:
       name: X-Turnstile-Token
       in: header
@@ -285,6 +312,7 @@ components:
         download_url:
           type: string
           format: uri
+          description: CloudFront-signed URL generated for this request.
         expires_at:
           type: string
           format: date-time

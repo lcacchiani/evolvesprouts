@@ -85,9 +85,9 @@ export function AppShell({
               src='/images/evolvesprouts-logo.svg'
               alt=''
               aria-hidden
-              width={24}
-              height={24}
-              className='h-6 w-6 shrink-0'
+              width={100}
+              height={100}
+              className='h-[100px] w-[100px] shrink-0 mr-[-20px] mt-[-20px] mb-[-20px]'
             />
             <div>
               <p className='text-xs font-semibold uppercase tracking-[0.25em] text-slate-500'>

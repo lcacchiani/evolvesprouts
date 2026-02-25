@@ -20,6 +20,7 @@ from app.db.models import (
 )
 from app.exceptions import ValidationError
 from app.services.aws_clients import get_s3_client
+from app.services.cloudfront_signing import generate_signed_download_url
 
 _MAX_FILE_NAME_LENGTH = 255
 _MAX_MIME_TYPE_LENGTH = 127
@@ -27,6 +28,9 @@ _MAX_PRINCIPAL_ID_LENGTH = 128
 _DEFAULT_PRESIGN_TTL_SECONDS = 900
 _MIN_PRESIGN_TTL_SECONDS = 60
 _MAX_PRESIGN_TTL_SECONDS = 3600
+_DEFAULT_DOWNLOAD_LINK_EXPIRY_DAYS = 9999
+_MIN_DOWNLOAD_LINK_EXPIRY_DAYS = 1
+_MAX_DOWNLOAD_LINK_EXPIRY_DAYS = 36500
 _FILENAME_SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
 
 
@@ -281,18 +285,10 @@ def generate_upload_url(*, s3_key: str, content_type: Optional[str]) -> dict[str
 
 
 def generate_download_url(*, s3_key: str) -> dict[str, Any]:
-    """Generate a presigned GET URL for download."""
-    bucket_name = _require_assets_bucket_name()
-    ttl_seconds = _presign_ttl_seconds()
-    s3_client = get_s3_client()
-
-    url = s3_client.generate_presigned_url(
-        "get_object",
-        Params={"Bucket": bucket_name, "Key": s3_key},
-        ExpiresIn=ttl_seconds,
-        HttpMethod="GET",
-    )
-    expires_at = datetime.now(UTC) + timedelta(seconds=ttl_seconds)
+    """Generate a CloudFront-signed GET URL for download."""
+    expiry_days = _download_link_expiry_days()
+    expires_at = datetime.now(UTC) + timedelta(days=expiry_days)
+    url = generate_signed_download_url(s3_key=s3_key, expires_at=expires_at)
     return {
         "download_url": url,
         "expires_at": expires_at.isoformat(),
@@ -351,6 +347,22 @@ def _presign_ttl_seconds() -> int:
     except ValueError as exc:
         raise RuntimeError("ASSET_PRESIGN_TTL_SECONDS must be an integer") from exc
     return max(_MIN_PRESIGN_TTL_SECONDS, min(_MAX_PRESIGN_TTL_SECONDS, parsed))
+
+
+def _download_link_expiry_days() -> int:
+    raw = os.getenv(
+        "ASSET_DOWNLOAD_LINK_EXPIRY_DAYS", f"{_DEFAULT_DOWNLOAD_LINK_EXPIRY_DAYS}"
+    ).strip()
+    try:
+        parsed_days = int(raw)
+    except ValueError as exc:
+        raise RuntimeError(
+            "ASSET_DOWNLOAD_LINK_EXPIRY_DAYS must be an integer"
+        ) from exc
+    return max(
+        _MIN_DOWNLOAD_LINK_EXPIRY_DAYS,
+        min(_MAX_DOWNLOAD_LINK_EXPIRY_DAYS, parsed_days),
+    )
 
 
 def _required_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str:

@@ -261,6 +261,20 @@ Process to add a new public API path:
 - Use OIDC for GitHub Actions (no long-lived AWS keys)
 - Scope permissions to specific resources
 
+### Asset share-link and download signing model
+
+- Stable share links (`/v1/assets/share/{token}`) are bearer links and must be
+  treated like secrets when shared externally.
+- Share-link tokens are random URL-safe values persisted in
+  `asset_share_links`; admin APIs support rotate and revoke operations to
+  recover from leaks.
+- Download URLs returned to clients are CloudFront-signed URLs generated on
+  demand by Lambda.
+- The CloudFront signer private key must be stored in AWS Secrets Manager and
+  loaded at runtime; never commit private keys in source control.
+- CloudFront distributions serving client assets must restrict S3 origin access
+  via Origin Access Control (OAC).
+
 ### Public website CDN headers
 
 `backend/infrastructure/lib/public-www-stack.ts` configures CloudFront

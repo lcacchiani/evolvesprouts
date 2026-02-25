@@ -12,6 +12,8 @@ info:
     - `GET|PUT|DELETE /v1/admin/assets/{id}`
     - `GET|POST /v1/admin/assets/{id}/grants`
     - `DELETE /v1/admin/assets/{id}/grants/{grantId}`
+    - `POST|DELETE /v1/admin/assets/{id}/share-link`
+    - `POST /v1/admin/assets/{id}/share-link/rotate`
     - `GET /v1/user/assets`
     - `GET /v1/user/assets/{id}/download`
 
@@ -203,6 +205,67 @@ paths:
       responses:
         "204":
           description: Grant deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/assets/{id}/share-link:
+    parameters:
+      - $ref: "#/components/parameters/AssetId"
+    post:
+      summary: Get or create stable asset share link
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Existing share link returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetShareLinkResponse"
+        "201":
+          description: Share link created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetShareLinkResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Revoke stable asset share link
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Share link revoked.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/assets/{id}/share-link/rotate:
+    parameters:
+      - $ref: "#/components/parameters/AssetId"
+    post:
+      summary: Rotate stable asset share link
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Share link rotated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetShareLinkResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -422,9 +485,22 @@ components:
         download_url:
           type: string
           format: uri
+          description: CloudFront-signed URL generated for this request.
         expires_at:
           type: string
           format: date-time
+    AssetShareLinkResponse:
+      type: object
+      required:
+        - asset_id
+        - share_url
+      properties:
+        asset_id:
+          type: string
+        share_url:
+          type: string
+          format: uri
+          description: Stable bearer link that resolves to a fresh signed download URL.
     CreateAssetRequest:
       type: object
       required:

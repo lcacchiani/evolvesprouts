@@ -28,5 +28,7 @@
   "ApiCustomDomainName": "",
   "ApiCustomDomainCertificateArn": "arn:aws:acm:ap-southeast-1:588024549699:certificate/af726e1f-444b-47e6-906e-ce9e0925bde4",
   "NominatimUserAgent": "EvolveSproutsAdminWeb/1.0 (https://admin.evolvesprouts.com)",
-  "NominatimReferer": "https://admin.evolvesprouts.com"
+  "NominatimReferer": "https://admin.evolvesprouts.com",
+  "AssetDownloadCloudFrontPublicKeyPem": "<FROM_GITHUB_SECRET: CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PUBLIC_KEY_PEM>",
+  "AssetDownloadCloudFrontPrivateKeySecretArn": "<FROM_GITHUB_SECRET: CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN>"
 }

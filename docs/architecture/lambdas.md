@@ -23,12 +23,14 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/admin/assets/*`, `/v1/user/assets/*`, and `/v1/assets/public/*`
+  `/v1/admin/assets/*`, `/v1/user/assets/*`, `/v1/assets/public/*`,
+  and `/v1/assets/share/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`
-- Purpose: asset metadata CRUD, grant management, and presigned upload/download
-  URL generation in `backend/src/app/api/admin.py`.
+- Purpose: asset metadata CRUD, grant management, stable share-link lifecycle
+  (create/rotate/revoke), and signed upload/download URL generation in
+  `backend/src/app/api/admin.py`.
 
 ### Health check
 - Function: HealthCheckFunction

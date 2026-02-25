@@ -2,6 +2,8 @@ import * as cdk from "aws-cdk-lib";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as kms from "aws-cdk-lib/aws-kms";
@@ -862,6 +864,59 @@ export class ApiStack extends cdk.Stack {
       ],
     });
 
+    const assetDownloadCloudFrontPublicKeyPem = new cdk.CfnParameter(
+      this,
+      "AssetDownloadCloudFrontPublicKeyPem",
+      {
+        type: "String",
+        description:
+          "PEM-encoded RSA public key used for CloudFront-signed asset download URLs.",
+      }
+    );
+    const assetDownloadCloudFrontPrivateKeySecretArn = new cdk.CfnParameter(
+      this,
+      "AssetDownloadCloudFrontPrivateKeySecretArn",
+      {
+        type: "String",
+        noEcho: true,
+        description:
+          "Secrets Manager ARN containing JSON with private_key_pem for CloudFront asset URL signing.",
+      }
+    );
+
+    const assetDownloadPublicKey = new cloudfront.PublicKey(
+      this,
+      "AssetDownloadPublicKey",
+      {
+        encodedKey: assetDownloadCloudFrontPublicKeyPem.valueAsString,
+        comment: "Public key for client asset CloudFront signed URLs.",
+      }
+    );
+    const assetDownloadKeyGroup = new cloudfront.KeyGroup(
+      this,
+      "AssetDownloadKeyGroup",
+      {
+        items: [assetDownloadPublicKey],
+        comment: "Trusted key group for client asset CloudFront signed URLs.",
+      }
+    );
+    const assetDownloadDistribution = new cloudfront.Distribution(
+      this,
+      "ClientAssetsDownloadDistribution",
+      {
+        enableLogging: true,
+        logBucket: clientAssetsLogBucket,
+        logFilePrefix: "cloudfront-download-access-logs/",
+        defaultBehavior: {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(clientAssetsBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          trustedKeyGroups: [assetDownloadKeyGroup],
+        },
+      }
+    );
+
     // Admin function
     const adminFunction = createPythonFunction("EvolvesproutsAdminFunction", {
       handler: "lambda/admin/handler.lambda_handler",
@@ -874,11 +929,22 @@ export class ApiStack extends cdk.Stack {
         CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
         CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
         ASSET_PRESIGN_TTL_SECONDS: "900",
+        ASSET_DOWNLOAD_LINK_EXPIRY_DAYS: "9999",
+        ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN:
+          assetDownloadDistribution.distributionDomainName,
+        ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID: assetDownloadPublicKey.publicKeyId,
+        ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
+          assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
     database.grantConnect(adminFunction, "evolvesprouts_admin");
     clientAssetsBucket.grantReadWrite(adminFunction);
+    secretsmanager.Secret.fromSecretCompleteArn(
+      this,
+      "AssetDownloadPrivateKeySecret",
+      assetDownloadCloudFrontPrivateKeySecretArn.valueAsString
+    ).grantRead(adminFunction);
 
     // -----------------------------------------------------------------
     // AWS API Proxy Lambda (outside VPC)
@@ -1630,6 +1696,21 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
+    const adminAssetShareLink = adminAssetById.addResource("share-link");
+    adminAssetShareLink.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminAssetShareLink.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminAssetShareLinkRotate = adminAssetShareLink.addResource("rotate");
+    adminAssetShareLinkRotate.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
     // User asset routes
     const user = v1.addResource("user");
     const userAssets = user.addResource("assets");
@@ -1660,6 +1741,12 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: deviceAttestationAuthorizer,
       apiKeyRequired: true,
+    });
+
+    const publicShareAssets = assets.addResource("share");
+    const publicShareAssetByToken = publicShareAssets.addResource("{token}");
+    publicShareAssetByToken.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
     });
 
     // ---------------------------------------------------------------------
@@ -1839,6 +1926,12 @@ export class ApiStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "ClientAssetsLogBucketName", {
       value: clientAssetsLogBucket.bucketName,
+    });
+    new cdk.CfnOutput(this, "ClientAssetsDownloadDistributionDomain", {
+      value: assetDownloadDistribution.distributionDomainName,
+    });
+    new cdk.CfnOutput(this, "ClientAssetsDownloadCloudFrontKeyPairId", {
+      value: assetDownloadPublicKey.publicKeyId,
     });
 
     new cdk.CfnOutput(this, "BookingRequestTopicArn", {

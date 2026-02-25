@@ -60,10 +60,26 @@ Indexes:
 - `access_grants_unique` unique index on
   (`asset_id`, `grant_type`, `COALESCE(grantee_id, '')`)
 
+## Table: asset_share_links
+
+Purpose: Stores stable bearer links for assets that can be shared externally.
+
+Columns:
+- `id` (UUID, PK, default `gen_random_uuid()`)
+- `asset_id` (UUID, FK → `assets.id`, cascade delete, unique)
+- `share_token` (varchar(128), unique, required)
+- `created_by` (varchar(128), required) — admin user sub that created the link
+- `created_at` (timestamptz, default `now()`)
+- `updated_at` (timestamptz, default `now()`)
+
+Indexes:
+- `asset_share_links_asset_idx` unique index on `asset_id`
+- `asset_share_links_token_idx` unique index on `share_token`
+
 ## Access control logic
 
 **Public assets** (`visibility = 'public'`):
-- Any request (even unauthenticated) gets a presigned download URL.
+- Any request (even unauthenticated) gets a CloudFront-signed download URL.
 - Servable via the public website or mobile app without login.
 
 **Restricted assets** (`visibility = 'restricted'`):
@@ -72,6 +88,13 @@ Indexes:
   - `grant_type = 'all_authenticated'` — any logged-in user
   - `grant_type = 'organization'` + `grantee_id = user's org` — org members
   - `grant_type = 'user'` + `grantee_id = user's sub` — specific user
-- If authorized, returns a short-lived presigned GET URL (15-minute expiry).
+- If authorized, returns a CloudFront-signed GET URL
+  (`ASSET_DOWNLOAD_LINK_EXPIRY_DAYS`, default `9999`).
 - If denied, returns 403.
 - Admin/Manager always have full access.
+
+**Stable share links** (`/v1/assets/share/{token}`):
+- A token in `asset_share_links.share_token` acts as a bearer capability.
+- Requests with a valid token resolve the asset and redirect to a fresh
+  CloudFront-signed GET URL.
+- Admin APIs can create/reuse, rotate, and revoke the token per asset.
