@@ -515,6 +515,9 @@ export class ApiStack extends cdk.Stack {
       selfSignUpEnabled: true,
       accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
       customAttributes: {
+        // Legacy custom attribute retained to avoid immutable Cognito schema
+        // update failures on existing user pools.
+        feedback_stars: new cognito.StringAttribute({ mutable: true }),
         last_auth_time: new cognito.StringAttribute({ mutable: true }),
       },
       removalPolicy: cdk.RemovalPolicy.DESTROY,

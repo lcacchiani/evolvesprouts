@@ -206,7 +206,7 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| User Pool | `EvolvesproutsUserPool` | `evolvesprouts-user-pool` | Email sign-in, auto-verify enabled |
+| User Pool | `EvolvesproutsUserPool` | `evolvesprouts-user-pool` | Email sign-in, auto-verify enabled; custom attrs `last_auth_time`, legacy `feedback_stars` |
 | User Pool Domain | `EvolvesproutsUserPoolDomain` | `{CognitoDomainPrefix}.auth.{region}.amazoncognito.com` | Domain prefix from parameter |
 | User Pool Client | `EvolvesproutsUserPoolClient` | Auto-generated | OAuth client (no secret) |
 | User Pool Group | `AdminGroup` | `admin` | Admin group |
