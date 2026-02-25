@@ -278,3 +278,14 @@ existing secrets when possible.
 Sign in with Apple is not currently configured in `backend/infrastructure/lib/api-stack.ts`.
 If Apple IdP support is reintroduced in the stack, add provider setup and
 associated `CDK_PARAM_*` documentation in this section.
+
+## Cloud agent environment bootstrap
+
+This repository configures Cursor cloud agents with
+`.cursor/environment.json`.
+
+- `install`: `cd backend/infrastructure && npm ci`
+- `start`: `cd backend/infrastructure && npm ci`
+
+Using `npm ci` keeps dependency installation aligned to
+`backend/infrastructure/package-lock.json`.
