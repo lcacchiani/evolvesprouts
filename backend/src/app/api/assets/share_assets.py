@@ -6,7 +6,11 @@ from typing import Any, Mapping
 
 from sqlalchemy.orm import Session
 
-from app.api.assets.assets_common import generate_download_url, split_route_parts
+from app.api.assets.assets_common import (
+    generate_download_url,
+    signed_link_no_cache_headers,
+    split_route_parts,
+)
 from app.api.assets.share_links import is_valid_share_token
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
@@ -44,9 +48,11 @@ def _resolve_share_token(event: Mapping[str, Any], share_token: str) -> dict[str
             return json_response(404, {"error": "Not found"}, event=event)
 
         download = generate_download_url(s3_key=asset.s3_key)
+        response_headers = signed_link_no_cache_headers()
+        response_headers["Location"] = download["download_url"]
         return json_response(
             302,
             {},
-            headers={"Location": download["download_url"]},
+            headers=response_headers,
             event=event,
         )
