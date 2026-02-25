@@ -4,7 +4,11 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 
 import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
-import { generateUserAssetDownloadLink } from '@/lib/assets-api';
+import {
+  getOrCreateAdminAssetShareLink,
+  revokeAdminAssetShareLink,
+  rotateAdminAssetShareLink,
+} from '@/lib/assets-api';
 import { ASSET_VISIBILITIES } from '@/types/assets';
 
 import { StatusBanner } from '@/components/status-banner';
@@ -109,7 +113,10 @@ export function AssetEditorPanel({
   const [formError, setFormError] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isCopyingLink, setIsCopyingLink] = useState(false);
+  const [isRotatingLink, setIsRotatingLink] = useState(false);
+  const [isRevokingLink, setIsRevokingLink] = useState(false);
   const [linkError, setLinkError] = useState('');
+  const [linkNotice, setLinkNotice] = useState('');
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const copiedStateTimeoutRef = useRef<number | null>(null);
 
@@ -205,8 +212,15 @@ export function AssetEditorPanel({
     setSelectedFile(null);
     setFormError('');
     setLinkError('');
+    setLinkNotice('');
     setIsLinkCopied(false);
     setIsCopyingLink(false);
+    setIsRotatingLink(false);
+    setIsRevokingLink(false);
+    if (copiedStateTimeoutRef.current !== null) {
+      window.clearTimeout(copiedStateTimeoutRef.current);
+      copiedStateTimeoutRef.current = null;
+    }
   };
 
   const handleCopyAssetLink = async () => {
@@ -216,11 +230,13 @@ export function AssetEditorPanel({
 
     setIsCopyingLink(true);
     setLinkError('');
+    setLinkNotice('');
     setIsLinkCopied(false);
     try {
-      const link = await generateUserAssetDownloadLink(selectedAsset.id);
-      await navigator.clipboard.writeText(link.downloadUrl);
+      const link = await getOrCreateAdminAssetShareLink(selectedAsset.id);
+      await navigator.clipboard.writeText(link.shareUrl);
       setLinkError('');
+      setLinkNotice('Share link copied to clipboard.');
       setIsLinkCopied(true);
       if (copiedStateTimeoutRef.current !== null) {
         window.clearTimeout(copiedStateTimeoutRef.current);
@@ -235,6 +251,73 @@ export function AssetEditorPanel({
       );
     } finally {
       setIsCopyingLink(false);
+    }
+  };
+
+  const handleRotateAssetLink = async () => {
+    if (!selectedAsset) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Rotate this share link? Previously copied links will stop working.'
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsRotatingLink(true);
+    setLinkError('');
+    setLinkNotice('');
+    setIsLinkCopied(false);
+    try {
+      const link = await rotateAdminAssetShareLink(selectedAsset.id);
+      await navigator.clipboard.writeText(link.shareUrl);
+      setLinkNotice('Share link rotated and copied. Previous links are revoked.');
+      setIsLinkCopied(true);
+      if (copiedStateTimeoutRef.current !== null) {
+        window.clearTimeout(copiedStateTimeoutRef.current);
+      }
+      copiedStateTimeoutRef.current = window.setTimeout(() => {
+        setIsLinkCopied(false);
+        copiedStateTimeoutRef.current = null;
+      }, 2000);
+    } catch (error) {
+      setLinkError(
+        error instanceof Error ? error.message : 'Unable to rotate and copy the share link.'
+      );
+    } finally {
+      setIsRotatingLink(false);
+    }
+  };
+
+  const handleRevokeAssetLink = async () => {
+    if (!selectedAsset) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Revoke this share link? Anyone with the current link will lose access.'
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsRevokingLink(true);
+    setLinkError('');
+    setLinkNotice('');
+    setIsLinkCopied(false);
+    try {
+      await revokeAdminAssetShareLink(selectedAsset.id);
+      if (copiedStateTimeoutRef.current !== null) {
+        window.clearTimeout(copiedStateTimeoutRef.current);
+        copiedStateTimeoutRef.current = null;
+      }
+      setLinkNotice('Share link revoked.');
+    } catch (error) {
+      setLinkError(error instanceof Error ? error.message : 'Unable to revoke the share link.');
+    } finally {
+      setIsRevokingLink(false);
     }
   };
 
@@ -255,6 +338,11 @@ export function AssetEditorPanel({
       {linkError ? (
         <StatusBanner variant='error' title='Asset link'>
           {linkError}
+        </StatusBanner>
+      ) : null}
+      {linkNotice ? (
+        <StatusBanner variant='success' title='Share link'>
+          {linkNotice}
         </StatusBanner>
       ) : null}
 
@@ -391,10 +479,30 @@ export function AssetEditorPanel({
               type='button'
               variant='secondary'
               onClick={() => void handleCopyAssetLink()}
-              disabled={isCopyingLink}
+              disabled={isCopyingLink || isRotatingLink || isRevokingLink}
             >
               <CopyIcon className='mr-1 h-4 w-4' />
-              {isCopyingLink ? 'Getting...' : isLinkCopied ? 'Copied' : 'Get link'}
+              {isCopyingLink ? 'Copying...' : isLinkCopied ? 'Copied' : 'Copy link'}
+            </Button>
+          ) : null}
+          {isEditMode ? (
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => void handleRotateAssetLink()}
+              disabled={isCopyingLink || isRotatingLink || isRevokingLink}
+            >
+              {isRotatingLink ? 'Rotating...' : 'Rotate link'}
+            </Button>
+          ) : null}
+          {isEditMode ? (
+            <Button
+              type='button'
+              variant='danger'
+              onClick={() => void handleRevokeAssetLink()}
+              disabled={isCopyingLink || isRotatingLink || isRevokingLink}
+            >
+              {isRevokingLink ? 'Revoking...' : 'Revoke link'}
             </Button>
           ) : null}
         </div>

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -14,6 +15,7 @@ from app.db.models import (
     AccessGrantType,
     Asset,
     AssetAccessGrant,
+    AssetShareLink,
     AssetType,
     AssetVisibility,
 )
@@ -254,6 +256,52 @@ class AssetRepository(BaseRepository[Asset]):
             )
         )
         return self._session.execute(statement).scalar_one_or_none()
+
+    def get_share_link(self, *, asset_id: UUID) -> Optional[AssetShareLink]:
+        """Return the share link for a specific asset, if present."""
+        statement = select(AssetShareLink).where(AssetShareLink.asset_id == asset_id)
+        return self._session.execute(statement).scalar_one_or_none()
+
+    def get_share_link_by_token(self, *, token: str) -> Optional[AssetShareLink]:
+        """Return a share link by bearer token."""
+        statement = select(AssetShareLink).where(AssetShareLink.share_token == token)
+        return self._session.execute(statement).scalar_one_or_none()
+
+    def create_share_link(
+        self,
+        *,
+        asset_id: UUID,
+        share_token: str,
+        created_by: str,
+    ) -> AssetShareLink:
+        """Create and persist a share link for an asset."""
+        entity = AssetShareLink(
+            asset_id=asset_id,
+            share_token=share_token,
+            created_by=created_by,
+        )
+        self._session.add(entity)
+        self._session.flush()
+        self._session.refresh(entity)
+        return entity
+
+    def rotate_share_link(
+        self,
+        share_link: AssetShareLink,
+        *,
+        share_token: str,
+    ) -> AssetShareLink:
+        """Rotate an existing share-link token."""
+        share_link.share_token = share_token
+        share_link.updated_at = datetime.now(UTC)
+        self._session.flush()
+        self._session.refresh(share_link)
+        return share_link
+
+    def revoke_share_link(self, share_link: AssetShareLink) -> None:
+        """Delete a share link."""
+        self._session.delete(share_link)
+        self._session.flush()
 
 
 def _build_grant_filter(

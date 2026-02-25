@@ -1,6 +1,6 @@
 """SQLAlchemy models."""
 
-from app.db.models.asset import Asset, AssetAccessGrant
+from app.db.models.asset import Asset, AssetAccessGrant, AssetShareLink
 from app.db.models.audit_log import AuditLog
 from app.db.models.enums import (
     AccessGrantType,
@@ -17,6 +17,7 @@ __all__ = [
     "AccessGrantType",
     "Asset",
     "AssetAccessGrant",
+    "AssetShareLink",
     "AssetType",
     "AssetVisibility",
     "AuditLog",

@@ -81,6 +81,14 @@ Created once per account/region when `cdk bootstrap` runs. Not part of the main 
 | S3 Bucket | `ClientAssetsBucket` | `evolvesprouts-client-assets-{account}-{region}` | Private bucket for client assets |
 | S3 Bucket | `ClientAssetsLogBucket` | `evolvesprouts-client-assets-logs-{account}-{region}` | Access logs for client assets bucket |
 
+## Client asset download CDN (CloudFront)
+
+| Resource Type | Logical ID | Physical Name/ID | Notes |
+|--------------|------------|------------------|-------|
+| CloudFront Public Key | `AssetDownloadPublicKey` | Auto-generated | Trusted public key for signed client-asset URLs |
+| CloudFront Key Group | `AssetDownloadKeyGroup` | Auto-generated | Trusted key group used by client-asset distribution |
+| CloudFront Distribution | `ClientAssetsDownloadDistribution` | Auto-generated | Serves private S3 objects through signed URLs only |
+
 ---
 
 ## Network Infrastructure
@@ -348,10 +356,13 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/assets/{id}` | GET, PUT, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/grants` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/grants/{grantId}` | DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
+| `/v1/admin/assets/{id}/share-link` | POST, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Stable bearer link create/revoke |
+| `/v1/admin/assets/{id}/share-link/rotate` | POST | Admin Group | `EvolvesproutsAdminFunction` | Rotate bearer token and invalidate prior link |
 | `/v1/user/assets` | GET | User Auth | `EvolvesproutsAdminFunction` | |
 | `/v1/user/assets/{id}/download` | GET | User Auth | `EvolvesproutsAdminFunction` | |
 | `/v1/assets/public` | GET | Device Attestation + API Key | `EvolvesproutsAdminFunction` | |
 | `/v1/assets/public/{id}/download` | GET | Device Attestation + API Key | `EvolvesproutsAdminFunction` | |
+| `/v1/assets/share/{token}` | GET | None | `EvolvesproutsAdminFunction` | Public bearer-link resolver (302 redirect) |
 
 ### API Gateway Gateway Responses
 
@@ -457,6 +468,8 @@ configured by stack custom resources (including retention and KMS association).
 | `NominatimReferer` | String | No | No | Referer header for Nominatim requests |
 | `AdminBootstrapEmail` | String | No | No | Admin email for bootstrap (default: empty) |
 | `AdminBootstrapTempPassword` | String | No | Yes | Temporary password for bootstrap (default: empty) |
+| `AssetDownloadCloudFrontPublicKeyPem` | String | Yes | No | PEM-encoded RSA public key for signed asset URLs |
+| `AssetDownloadCloudFrontPrivateKeySecretArn` | String | Yes | Yes | Secrets Manager ARN containing CloudFront private key PEM |
 
 ---
 
@@ -471,6 +484,8 @@ configured by stack custom resources (including retention and KMS association).
 | `UserPoolClientId` | Cognito User Pool Client ID | OAuth client identifier |
 | `ClientAssetsBucketName` | S3 bucket name | Client assets bucket |
 | `ClientAssetsLogBucketName` | S3 bucket name | Client assets access logs bucket |
+| `ClientAssetsDownloadDistributionDomain` | CloudFront domain | Domain used for signed client-asset downloads |
+| `ClientAssetsDownloadCloudFrontKeyPairId` | CloudFront key pair ID | Key-Pair-Id used in signed download URLs |
 | `BookingRequestTopicArn` | SNS topic ARN | Booking request events topic |
 | `BookingRequestQueueUrl` | SQS queue URL | Booking request processing queue |
 | `BookingRequestDLQUrl` | SQS DLQ URL | Failed booking request messages |

@@ -17,17 +17,15 @@ import type { components } from '@/types/generated/admin-api.generated';
 type ApiSchemas = components['schemas'];
 type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
 type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
-type ApiAssetDownloadResponse = ApiSchemas['AssetDownloadResponse'];
 
 export interface CreateAdminAssetResult {
   asset: AdminAsset | null;
   upload: CreatedAssetUpload;
 }
 
-export interface AssetDownloadLink {
-  assetId: ApiAssetDownloadResponse['asset_id'];
-  downloadUrl: ApiAssetDownloadResponse['download_url'];
-  expiresAt: ApiAssetDownloadResponse['expires_at'] | null;
+export interface AssetShareLink {
+  assetId: string;
+  shareUrl: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -349,29 +347,47 @@ export async function deleteAdminAssetGrant(assetId: string, grantId: string): P
   });
 }
 
-export async function generateUserAssetDownloadLink(assetId: string): Promise<AssetDownloadLink> {
-  const payload = await adminApiRequest<unknown>({
-    endpointPath: `/v1/user/assets/${assetId}/download`,
-    method: 'GET',
-  });
+function parseAssetShareLink(payload: unknown, fallbackAssetId: string): AssetShareLink {
   const root = payloadRoot(payload);
   const rootRecord = isRecord(root) ? root : {};
 
-  const downloadUrl =
-    asString(pickFirst(rootRecord, ['downloadUrl', 'download_url', 'url'])) ??
-    asString(pickFirst(isRecord(payload) ? payload : {}, ['downloadUrl', 'download_url', 'url']));
-  if (!downloadUrl) {
-    throw new Error('Download URL was not returned by the API.');
+  const shareUrl =
+    asString(pickFirst(rootRecord, ['shareUrl', 'share_url', 'url'])) ??
+    asString(pickFirst(isRecord(payload) ? payload : {}, ['shareUrl', 'share_url', 'url']));
+  if (!shareUrl) {
+    throw new Error('Share URL was not returned by the API.');
   }
 
   return {
-    assetId: asString(pickFirst(rootRecord, ['assetId', 'asset_id'])) ?? assetId,
-    downloadUrl,
-    expiresAt:
-      asNullableString(pickFirst(rootRecord, ['expiresAt', 'expires_at'])) ??
-      asNullableString(pickFirst(isRecord(payload) ? payload : {}, ['expiresAt', 'expires_at'])) ??
-      null,
+    assetId: asString(pickFirst(rootRecord, ['assetId', 'asset_id'])) ?? fallbackAssetId,
+    shareUrl,
   };
+}
+
+export async function getOrCreateAdminAssetShareLink(assetId: string): Promise<AssetShareLink> {
+  const payload = await adminApiRequest<unknown>({
+    endpointPath: `/v1/admin/assets/${assetId}/share-link`,
+    method: 'POST',
+    expectedSuccessStatuses: [200, 201],
+  });
+  return parseAssetShareLink(payload, assetId);
+}
+
+export async function rotateAdminAssetShareLink(assetId: string): Promise<AssetShareLink> {
+  const payload = await adminApiRequest<unknown>({
+    endpointPath: `/v1/admin/assets/${assetId}/share-link/rotate`,
+    method: 'POST',
+    expectedSuccessStatuses: [200],
+  });
+  return parseAssetShareLink(payload, assetId);
+}
+
+export async function revokeAdminAssetShareLink(assetId: string): Promise<void> {
+  await adminApiRequest({
+    endpointPath: `/v1/admin/assets/${assetId}/share-link`,
+    method: 'DELETE',
+    expectedSuccessStatuses: [200, 202, 204],
+  });
 }
 
 export async function uploadFileToPresignedUrl({

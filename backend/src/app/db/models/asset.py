@@ -76,6 +76,11 @@ class Asset(Base):
         back_populates="asset",
         cascade="all, delete-orphan",
     )
+    share_link: Mapped[Optional["AssetShareLink"]] = relationship(
+        back_populates="asset",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
 
 
 class AssetAccessGrant(Base):
@@ -125,5 +130,45 @@ class AssetAccessGrant(Base):
         "Asset",
         back_populates="access_grants",
         primaryjoin="AssetAccessGrant.asset_id == Asset.id",
+        foreign_keys=[asset_id],
+    )
+
+
+class AssetShareLink(Base):
+    """Stable share-link token for an asset."""
+
+    __tablename__ = "asset_share_links"
+    __table_args__ = (
+        Index("asset_share_links_token_idx", "share_token", unique=True),
+        Index("asset_share_links_asset_idx", "asset_id", unique=True),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+    )
+    asset_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    share_token: Mapped[str] = mapped_column(String(128), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(128), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+    )
+
+    asset: Mapped["Asset"] = relationship(
+        "Asset",
+        back_populates="share_link",
+        primaryjoin="AssetShareLink.asset_id == Asset.id",
         foreign_keys=[asset_id],
     )

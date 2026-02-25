@@ -23,6 +23,7 @@ from app.api.assets.assets_common import (
     serialize_grant,
     split_route_parts,
 )
+from app.api.assets.share_links import build_share_link_url, generate_share_token
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
@@ -73,6 +74,18 @@ def handle_admin_assets_request(
     if len(parts) == 5 and parts[3] == "grants" and method == "DELETE":
         grant_id = _parse_uuid(parts[4])
         return _delete_grant(event, asset_id, grant_id)
+
+    if len(parts) == 4 and parts[3] == "share-link":
+        if method == "POST":
+            return _get_or_create_share_link(event, asset_id, identity.user_sub)
+        if method == "DELETE":
+            return _revoke_share_link(event, asset_id, identity.user_sub)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 5 and parts[3] == "share-link" and parts[4] == "rotate":
+        if method == "POST":
+            return _rotate_share_link(event, asset_id, identity.user_sub)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
 
@@ -263,6 +276,111 @@ def _delete_grant(
         repository.delete_grant(grant)
         session.commit()
         return json_response(204, {}, event=event)
+
+
+def _get_or_create_share_link(
+    event: Mapping[str, Any],
+    asset_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    request_id = _request_id(event)
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        repository = AssetRepository(session)
+        asset = repository.get_by_id(asset_id)
+        if asset is None:
+            raise NotFoundError("Asset", str(asset_id))
+
+        share_link = repository.get_share_link(asset_id=asset_id)
+        status_code = 200
+        if share_link is None:
+            share_link = repository.create_share_link(
+                asset_id=asset_id,
+                share_token=generate_share_token(),
+                created_by=actor_sub,
+            )
+            status_code = 201
+        session.commit()
+
+        return json_response(
+            status_code,
+            _serialize_share_link_response(
+                event=event, asset_id=asset_id, token=share_link.share_token
+            ),
+            event=event,
+        )
+
+
+def _rotate_share_link(
+    event: Mapping[str, Any],
+    asset_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    request_id = _request_id(event)
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        repository = AssetRepository(session)
+        asset = repository.get_by_id(asset_id)
+        if asset is None:
+            raise NotFoundError("Asset", str(asset_id))
+
+        share_link = repository.get_share_link(asset_id=asset_id)
+        next_token = generate_share_token()
+        if share_link is None:
+            share_link = repository.create_share_link(
+                asset_id=asset_id,
+                share_token=next_token,
+                created_by=actor_sub,
+            )
+        else:
+            share_link = repository.rotate_share_link(
+                share_link,
+                share_token=next_token,
+            )
+        session.commit()
+
+        return json_response(
+            200,
+            _serialize_share_link_response(
+                event=event, asset_id=asset_id, token=share_link.share_token
+            ),
+            event=event,
+        )
+
+
+def _revoke_share_link(
+    event: Mapping[str, Any],
+    asset_id: UUID,
+    actor_sub: str,
+) -> dict[str, Any]:
+    request_id = _request_id(event)
+
+    with Session(get_engine()) as session:
+        set_audit_context(session, user_id=actor_sub, request_id=request_id)
+        repository = AssetRepository(session)
+        asset = repository.get_by_id(asset_id)
+        if asset is None:
+            raise NotFoundError("Asset", str(asset_id))
+
+        share_link = repository.get_share_link(asset_id=asset_id)
+        if share_link is not None:
+            repository.revoke_share_link(share_link)
+        session.commit()
+        return json_response(204, {}, event=event)
+
+
+def _serialize_share_link_response(
+    *,
+    event: Mapping[str, Any],
+    asset_id: UUID,
+    token: str,
+) -> dict[str, Any]:
+    return {
+        "asset_id": str(asset_id),
+        "share_url": build_share_link_url(event, token),
+    }
 
 
 def _request_id(event: Mapping[str, Any]) -> Optional[str]:

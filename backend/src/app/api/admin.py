@@ -7,6 +7,7 @@ from typing import Any, Mapping
 from app.api.assets import (
     handle_admin_assets_request,
     handle_public_assets_request,
+    handle_share_assets_request,
     handle_user_assets_request,
 )
 from app.api.public_reservations import _handle_public_reservation
@@ -83,6 +84,8 @@ def _match_handler(
         return lambda: handle_admin_assets_request(event, method, path)
     if _is_user_assets_path(path):
         return lambda: handle_user_assets_request(event, method, path)
+    if _is_share_assets_path(path):
+        return lambda: handle_share_assets_request(event, method, path)
     if _is_public_assets_path(path):
         return lambda: handle_public_assets_request(event, method, path)
     return None
@@ -115,4 +118,12 @@ def _is_public_assets_path(path: str) -> bool:
     normalized_path = path.rstrip("/")
     return normalized_path == "/v1/assets/public" or normalized_path.startswith(
         "/v1/assets/public/"
+    )
+
+
+def _is_share_assets_path(path: str) -> bool:
+    """Return whether the path targets /v1/assets/share routes."""
+    normalized_path = path.rstrip("/")
+    return normalized_path == "/v1/assets/share" or normalized_path.startswith(
+        "/v1/assets/share/"
     )

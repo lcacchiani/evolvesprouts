@@ -291,6 +291,27 @@ gate.
 - CSP Google domain allowlists are only included when the GTM bootstrap
   script is present in the HTML.
 
+## 11) Asset Download Delivery and Stable Share Links
+
+**Decision:** Use CloudFront-signed URLs for asset downloads and keep stable
+share URLs as database-backed bearer tokens.
+
+**Why:**
+- S3 presigned URLs have strict validity limits and do not satisfy long-lived
+  sharing requirements.
+- Stable links must remain constant while still supporting revoke/rotate
+  controls after accidental exposure.
+- CloudFront signed URLs provide cryptographic validation while allowing
+  long expiry windows.
+
+**How:**
+- `asset_share_links` stores one stable token per asset.
+- Admin APIs create/reuse, rotate, and revoke each asset token.
+- Public route `/v1/assets/share/{token}` resolves the token and redirects to
+  a fresh CloudFront-signed URL for the underlying S3 object.
+- CloudFront public key material is configured in infrastructure; matching
+  private key material is stored in AWS Secrets Manager and loaded by Lambda.
+
 ## CI/CD Variables and Secrets
 
 **GitHub Variables**
@@ -347,6 +368,8 @@ gate.
 **CDK Parameters (via `CDK_PARAM_FILE`)**
 - `PublicApiKeyValue` (API key required for public asset routes)
 - `DeviceAttestationJwksUrl`, `DeviceAttestationIssuer`, `DeviceAttestationAudience`
+- `AssetDownloadCloudFrontPublicKeyPem`
+- `AssetDownloadCloudFrontPrivateKeySecretArn`
 
 ## Keeping Documentation Up to Date
 
