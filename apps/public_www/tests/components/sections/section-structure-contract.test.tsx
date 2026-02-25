@@ -8,6 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const sectionsDirectory = path.resolve(__dirname, '../../../src/components/sections');
 const srcDirectory = path.resolve(__dirname, '../../../src');
+const appDirectory = path.resolve(__dirname, '../../../src/app');
+const publicScriptsDirectory = path.resolve(__dirname, '../../../public/scripts');
 
 const pageSectionFiles = [
   'hero-banner.tsx',
@@ -78,5 +80,25 @@ describe('App source typography class contract', () => {
       .sort((left, right) => left.localeCompare(right));
 
     expect(filesWithInlineClampClass).toEqual([]);
+  });
+});
+
+describe('No-CSS fallback contract', () => {
+  it('keeps the stylesheet marker and duplicate-hiding script wired', () => {
+    const layoutSource = readFileSync(path.join(appDirectory, 'layout.tsx'), 'utf-8');
+    const baseCssSource = readFileSync(
+      path.join(appDirectory, 'styles/original/base.css'),
+      'utf-8',
+    );
+    const fallbackScriptSource = readFileSync(
+      path.join(publicScriptsDirectory, 'hide-css-sensitive-duplicates.js'),
+      'utf-8',
+    );
+
+    expect(layoutSource).toContain('/scripts/hide-css-sensitive-duplicates.js');
+    expect(baseCssSource).toContain('--es-css-loaded: loaded;');
+    expect(fallbackScriptSource).toContain("var cssLoadedMarkerName = '--es-css-loaded';");
+    expect(fallbackScriptSource).toContain('[data-css-fallback="');
+    expect(fallbackScriptSource).toContain("setAttribute('hidden', '')");
   });
 });

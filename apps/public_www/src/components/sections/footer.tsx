@@ -213,7 +213,10 @@ export function Footer({ content }: FooterProps) {
               items={content.services.items}
               className='lg:pl-6'
             />
-            <div className='hidden justify-center lg:flex lg:pt-2'>
+            <div
+              data-css-fallback='hide-when-css-missing'
+              className='hidden justify-center lg:flex lg:pt-2'
+            >
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
@@ -234,7 +237,7 @@ export function Footer({ content }: FooterProps) {
             />
           </div>
 
-          <div className='sm:hidden'>
+          <div data-css-fallback='hide-when-css-missing' className='sm:hidden'>
             <div className='pointer-events-none mb-7 flex justify-center'>
               <Image
                 src='/images/evolvesprouts-logo.svg'

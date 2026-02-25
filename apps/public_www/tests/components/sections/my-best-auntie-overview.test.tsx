@@ -29,6 +29,11 @@ describe('MyBestAuntieOverview section', () => {
       name: /best auntie training/i,
     });
     expect(section.className).toContain('es-my-best-auntie-overview-section');
+    const mobileCarouselWrapper = container.querySelector('div.-mx-1.md\\:hidden');
+    expect(mobileCarouselWrapper).toHaveAttribute(
+      'data-css-fallback',
+      'hide-when-css-missing',
+    );
 
     const moduleTitles = enContent.myBestAuntieOverview.modules.map(
       (module) => module.title,

@@ -152,6 +152,11 @@ describe('Navbar desktop submenu accessibility', () => {
     });
     expect(openMenuButton.className).toContain('es-border-soft');
     expect(openMenuButton.className).toContain('bg-[#F6DECD]');
+    const mobileControlsContainer = openMenuButton.closest('div');
+    expect(mobileControlsContainer).toHaveAttribute(
+      'data-css-fallback',
+      'hide-when-css-missing',
+    );
 
     const languageSelectors = screen.getAllByRole('button', {
       name: /Selected language: English/i,
