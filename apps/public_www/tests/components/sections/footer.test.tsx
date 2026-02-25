@@ -69,9 +69,18 @@ describe('Footer external links', () => {
 
     const mobileFooterSection = document.querySelector('div.sm\\:hidden');
     expect(mobileFooterSection).not.toBeNull();
+    expect(mobileFooterSection).toHaveAttribute(
+      'data-css-fallback',
+      'hide-when-css-missing',
+    );
     expect(
       mobileFooterSection?.querySelector('div.pointer-events-none'),
     ).not.toBeNull();
+
+    const cssFallbackElements = document.querySelectorAll(
+      '[data-css-fallback="hide-when-css-missing"]',
+    );
+    expect(cssFallbackElements).toHaveLength(2);
 
     const accordionSummaries = document.querySelectorAll('summary');
     expect(accordionSummaries.length).toBeGreaterThan(0);

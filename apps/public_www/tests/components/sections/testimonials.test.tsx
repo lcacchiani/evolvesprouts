@@ -26,6 +26,10 @@ describe('Testimonials section', () => {
     expect(card.className).not.toContain('border-[#EFD7C7]');
     expect(card.className).not.toContain('rounded-card-lg');
     expect(card.className).not.toContain('shadow');
+    const mobileControls = container.querySelector(
+      '[data-css-fallback="hide-when-css-missing"]',
+    );
+    expect(mobileControls).not.toBeNull();
 
     const firstStory = enContent.testimonials.items[0];
     expect(

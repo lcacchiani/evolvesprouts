@@ -323,7 +323,10 @@ export function Testimonials({ content }: TestimonialsProps) {
           </div>
 
           {hasMultipleStories && (
-            <div className='flex items-center justify-center gap-[14px] px-6 pb-6 pt-5 sm:gap-[18px] sm:px-9 lg:hidden'>
+            <div
+              data-css-fallback='hide-when-css-missing'
+              className='flex items-center justify-center gap-[14px] px-6 pb-6 pt-5 sm:gap-[18px] sm:px-9 lg:hidden'
+            >
               <ButtonPrimitive
                 variant='control'
                 onClick={goToPreviousStory}

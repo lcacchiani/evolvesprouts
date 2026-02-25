@@ -263,7 +263,10 @@ export function Navbar({ content }: NavbarProps) {
             />
           </div>
 
-          <div className='ml-auto flex items-center gap-2 lg:hidden'>
+          <div
+            data-css-fallback='hide-when-css-missing'
+            className='ml-auto flex items-center gap-2 lg:hidden'
+          >
             <LanguageSelectorButton
               key={`mobile-language-navbar-${pathname}`}
               currentLocale={currentLocale}

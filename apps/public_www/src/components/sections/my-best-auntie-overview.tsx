@@ -269,7 +269,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
             </svg>
           </div>
           {/* Mobile carousel (< md) with wave scrolling alongside cards */}
-          <div className='-mx-1 md:hidden'>
+          <div data-css-fallback='hide-when-css-missing' className='-mx-1 md:hidden'>
             <div className='scrollbar-hide snap-x snap-mandatory overflow-x-auto px-1 pb-2'>
               <ul className='relative inline-flex gap-4'>
                 {moduleSteps.map((module, index) => (
