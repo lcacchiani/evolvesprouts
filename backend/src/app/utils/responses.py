@@ -36,6 +36,18 @@ def validate_content_type(
 
     headers = event.get("headers") or {}
 
+    raw_body = event.get("body")
+    has_body = False
+    if isinstance(raw_body, str):
+        has_body = bool(raw_body.strip())
+    elif raw_body is not None:
+        has_body = True
+
+    # Some endpoints use POST/PUT without a request body (for example
+    # action-style routes). Only enforce Content-Type when a body exists.
+    if not has_body:
+        return
+
     # Get Content-Type header case-insensitively
     content_type = None
     for key, value in headers.items():
