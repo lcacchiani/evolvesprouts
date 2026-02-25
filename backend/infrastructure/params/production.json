@@ -30,5 +30,7 @@
   "NominatimUserAgent": "EvolveSproutsAdminWeb/1.0 (https://admin.evolvesprouts.com)",
   "NominatimReferer": "https://admin.evolvesprouts.com",
   "AssetDownloadCloudFrontPublicKeyPem": "<FROM_GITHUB_SECRET: CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PUBLIC_KEY_PEM>",
-  "AssetDownloadCloudFrontPrivateKeySecretArn": "<FROM_GITHUB_SECRET: CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN>"
+  "AssetDownloadCloudFrontPrivateKeySecretArn": "<FROM_GITHUB_SECRET: CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN>",
+  "AssetDownloadCustomDomainName": "media.evolvesprouts.com",
+  "AssetDownloadCustomDomainCertificateArn": "arn:aws:acm:us-east-1:588024549699:certificate/6fe57a34-8eba-45a9-bcb4-3fa10eb56656"
 }

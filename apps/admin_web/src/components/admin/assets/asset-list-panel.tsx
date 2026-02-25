@@ -175,7 +175,6 @@ export function AssetListPanel({
                         type='button'
                         size='sm'
                         variant='danger'
-                        className='h-8 w-8 p-0'
                         onClick={(event) => void handleDeleteAsset(asset, event)}
                         disabled={isDeletingAssetId === asset.id}
                         title='Delete asset'

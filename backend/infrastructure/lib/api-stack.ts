@@ -883,6 +883,24 @@ export class ApiStack extends cdk.Stack {
           "Secrets Manager ARN containing JSON with private_key_pem for CloudFront asset URL signing.",
       }
     );
+    const assetDownloadCustomDomainName = new cdk.CfnParameter(
+      this,
+      "AssetDownloadCustomDomainName",
+      {
+        type: "String",
+        description:
+          "Custom domain for client-asset downloads (for example media.evolvesprouts.com).",
+      }
+    );
+    const assetDownloadCustomDomainCertificateArn = new cdk.CfnParameter(
+      this,
+      "AssetDownloadCustomDomainCertificateArn",
+      {
+        type: "String",
+        description:
+          "ACM certificate ARN for the client-asset download custom domain (must be in us-east-1).",
+      }
+    );
 
     const assetDownloadPublicKey = new cloudfront.PublicKey(
       this,
@@ -900,10 +918,18 @@ export class ApiStack extends cdk.Stack {
         comment: "Trusted key group for client asset CloudFront signed URLs.",
       }
     );
+    const assetDownloadCustomDomainCertificate =
+      acm.Certificate.fromCertificateArn(
+        this,
+        "AssetDownloadCustomDomainCertificate",
+        assetDownloadCustomDomainCertificateArn.valueAsString
+      );
     const assetDownloadDistribution = new cloudfront.Distribution(
       this,
       "ClientAssetsDownloadDistribution",
       {
+        domainNames: [assetDownloadCustomDomainName.valueAsString],
+        certificate: assetDownloadCustomDomainCertificate,
         enableLogging: true,
         logBucket: clientAssetsLogBucket,
         logFilePrefix: "cloudfront-download-access-logs/",
@@ -931,7 +957,7 @@ export class ApiStack extends cdk.Stack {
         ASSET_PRESIGN_TTL_SECONDS: "900",
         ASSET_DOWNLOAD_LINK_EXPIRY_DAYS: "9999",
         ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN:
-          assetDownloadDistribution.distributionDomainName,
+          assetDownloadCustomDomainName.valueAsString,
         ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID: assetDownloadPublicKey.publicKeyId,
         ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
@@ -1932,6 +1958,15 @@ export class ApiStack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, "ClientAssetsDownloadCloudFrontKeyPairId", {
       value: assetDownloadPublicKey.publicKeyId,
+    });
+    new cdk.CfnOutput(this, "ClientAssetsDownloadCustomDomainTarget", {
+      value: assetDownloadDistribution.distributionDomainName,
+      description:
+        "CNAME target for the client-asset download custom domain in DNS.",
+    });
+    new cdk.CfnOutput(this, "ClientAssetsDownloadCustomDomainUrl", {
+      value: `https://${assetDownloadCustomDomainName.valueAsString}`,
+      description: "Client-asset download custom domain URL.",
     });
 
     new cdk.CfnOutput(this, "BookingRequestTopicArn", {

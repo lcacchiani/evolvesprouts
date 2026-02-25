@@ -13,6 +13,16 @@ public website stacks:
 - `PublicWwwStagingCertificateArn`
 - `WafWebAclArn`
 
+## Client asset download CDN parameters
+
+`production.json` also includes client-asset download domain parameters:
+
+- `AssetDownloadCustomDomainName`
+- `AssetDownloadCustomDomainCertificateArn`
+
+Use these to ensure CloudFront-signed asset links are generated with your
+custom media subdomain.
+
 ## Local deploy
 
 ```bash
