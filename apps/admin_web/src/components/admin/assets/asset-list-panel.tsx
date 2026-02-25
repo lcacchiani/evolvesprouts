@@ -23,9 +23,6 @@ export interface AssetListPanelProps {
   nextCursor: string | null;
   onQueryChange: (value: string) => void;
   onVisibilityChange: (value: AssetVisibility | '') => void;
-  onApplyFilters: () => Promise<void>;
-  onClearFilters: () => Promise<void>;
-  onRefresh: () => Promise<void>;
   onLoadMore: () => Promise<void>;
   onSelectAsset: (assetId: string) => void;
 }
@@ -58,9 +55,6 @@ export function AssetListPanel({
   nextCursor,
   onQueryChange,
   onVisibilityChange,
-  onApplyFilters,
-  onClearFilters,
-  onRefresh,
   onLoadMore,
   onSelectAsset,
 }: AssetListPanelProps) {
@@ -70,7 +64,7 @@ export function AssetListPanel({
       description='Manage document (PDF) assets delivered through presigned URLs.'
       className='space-y-4'
     >
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_180px_auto]'>
+      <div className='grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_180px]'>
         <Input
           value={filters.query ?? ''}
           onChange={(event) => onQueryChange(event.target.value)}
@@ -88,17 +82,6 @@ export function AssetListPanel({
             </option>
           ))}
         </Select>
-        <div className='flex flex-wrap items-center justify-end gap-2'>
-          <Button type='button' variant='outline' onClick={() => void onApplyFilters()}>
-            Apply
-          </Button>
-          <Button type='button' variant='ghost' onClick={() => void onClearFilters()}>
-            Clear
-          </Button>
-          <Button type='button' variant='secondary' onClick={() => void onRefresh()}>
-            Refresh
-          </Button>
-        </div>
       </div>
 
       {assetsError ? (

@@ -33,9 +33,6 @@ export function AssetsPage() {
     isDeletingGrantId,
     setQueryFilter,
     setVisibilityFilter,
-    applyFilters,
-    clearFilters,
-    refreshAssets,
     loadMoreAssets,
     selectAsset,
     clearSelectedAsset,
@@ -54,23 +51,6 @@ export function AssetsPage() {
           {adminApiConfigError}
         </StatusBanner>
       ) : null}
-
-      <AssetListPanel
-        assets={assets}
-        selectedAssetId={selectedAssetId}
-        filters={filters}
-        isLoadingAssets={isLoadingAssets}
-        isLoadingMoreAssets={isLoadingMoreAssets}
-        assetsError={assetsError}
-        nextCursor={nextCursor}
-        onQueryChange={setQueryFilter}
-        onVisibilityChange={setVisibilityFilter}
-        onApplyFilters={applyFilters}
-        onClearFilters={clearFilters}
-        onRefresh={refreshAssets}
-        onLoadMore={loadMoreAssets}
-        onSelectAsset={selectAsset}
-      />
 
       <div className='grid grid-cols-1 gap-6 xl:grid-cols-2'>
         <AssetEditorPanel
@@ -144,6 +124,20 @@ export function AssetsPage() {
           }}
         />
       </div>
+
+      <AssetListPanel
+        assets={assets}
+        selectedAssetId={selectedAssetId}
+        filters={filters}
+        isLoadingAssets={isLoadingAssets}
+        isLoadingMoreAssets={isLoadingMoreAssets}
+        assetsError={assetsError}
+        nextCursor={nextCursor}
+        onQueryChange={setQueryFilter}
+        onVisibilityChange={setVisibilityFilter}
+        onLoadMore={loadMoreAssets}
+        onSelectAsset={selectAsset}
+      />
     </div>
   );
 }

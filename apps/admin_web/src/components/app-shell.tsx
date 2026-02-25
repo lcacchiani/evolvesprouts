@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, type ReactNode } from 'react';
+import Image from 'next/image';
 
 import { Button } from './ui/button';
 
@@ -19,6 +20,18 @@ export interface AppShellProps {
   children: ReactNode;
 }
 
+function formatGmtOffset(value: Date): string {
+  const offsetMinutesEast = -value.getTimezoneOffset();
+  const sign = offsetMinutesEast >= 0 ? '+' : '-';
+  const absoluteOffsetMinutes = Math.abs(offsetMinutesEast);
+  const hours = Math.floor(absoluteOffsetMinutes / 60);
+  const minutes = absoluteOffsetMinutes % 60;
+  if (minutes === 0) {
+    return `GMT${sign}${hours}`;
+  }
+  return `GMT${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
+}
+
 function formatTimestamp(value?: string): string | null {
   if (!value) {
     return null;
@@ -29,12 +42,13 @@ function formatTimestamp(value?: string): string | null {
     return null;
   }
 
-  return parsedDate.toLocaleString(undefined, {
+  const localTimestamp = parsedDate.toLocaleString(undefined, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });
+  return `${localTimestamp} ${formatGmtOffset(parsedDate)}`;
 }
 
 export function AppShell({
@@ -51,7 +65,7 @@ export function AppShell({
     () => navItems.find((item) => item.key === activeKey)?.label ?? '',
     [activeKey, navItems]
   );
-  const formattedLastAuthTime = formatTimestamp(lastAuthTime);
+  const formattedLastLoginTime = formatTimestamp(lastAuthTime);
 
   return (
     <div className='min-h-screen bg-slate-50 text-slate-900'>
@@ -75,11 +89,22 @@ export function AppShell({
             </div>
           </div>
           <div className='flex items-center gap-3'>
+            <div className='hidden items-center gap-2 lg:flex'>
+              <Image
+                src='/images/evolvesprouts-logo.svg'
+                alt=''
+                aria-hidden
+                width={24}
+                height={24}
+                className='h-6 w-6'
+              />
+              <p className='text-sm font-semibold text-slate-700'>Evolve Sprouts Admin</p>
+            </div>
             {userEmail ? (
               <div className='hidden text-right md:block'>
                 <p className='text-sm text-slate-700'>{userEmail}</p>
-                {formattedLastAuthTime ? (
-                  <p className='text-xs text-slate-500'>Last auth: {formattedLastAuthTime}</p>
+                {formattedLastLoginTime ? (
+                  <p className='text-xs text-slate-500'>Last login: {formattedLastLoginTime}</p>
                 ) : null}
               </div>
             ) : null}
