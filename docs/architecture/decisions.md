@@ -328,6 +328,7 @@ share URLs as database-backed bearer tokens.
 - `CDK_BOOTSTRAP_QUALIFIER` (optional)
 - `CDK_PARAM_FILE` (optional path to CDK parameter JSON)
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (Public WWW CRM API base URL)
+- `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS` (Public WWW hostname allowlist for same-origin `/www` proxy rewrites)
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (Public WWW Turnstile site key)
 - `NEXT_PUBLIC_FPS_MERCHANT_NAME` (Public WWW FPS merchant label)
 - `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (Public WWW FPS recipient number)

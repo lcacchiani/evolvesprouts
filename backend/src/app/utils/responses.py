@@ -90,17 +90,6 @@ def get_security_headers() -> dict[str, str]:
     }
 
 
-# Default CORS origins for local development
-_DEFAULT_CORS_ORIGINS = [
-    "capacitor://localhost",
-    "ionic://localhost",
-    "http://localhost",
-    "http://localhost:3000",
-    "https://evolvesprouts.lx-software.com",
-    "https://evolvesprouts-api.lx-software.com",
-]
-
-
 def get_cors_headers(
     event: Optional[Mapping[str, Any]] = None,
 ) -> dict[str, str]:
@@ -112,16 +101,12 @@ def get_cors_headers(
     Returns:
         Dictionary of CORS headers to include in the response.
     """
-    # Get allowed origins from environment or use defaults
+    # Read allowlist from environment only; infrastructure must provide
+    # CORS_ALLOWED_ORIGINS to keep runtime and API Gateway behavior aligned.
     allowed_origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "")
-    if allowed_origins_env:
-        allowed_origins = [
-            origin.strip()
-            for origin in allowed_origins_env.split(",")
-            if origin.strip()
-        ]
-    else:
-        allowed_origins = _DEFAULT_CORS_ORIGINS
+    allowed_origins = [
+        origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()
+    ]
 
     # Get the request origin
     request_origin = None
@@ -133,23 +118,26 @@ def get_cors_headers(
     # If the request origin is in our allowed list, return it
     # Otherwise, return the first allowed origin (for non-browser clients)
     if request_origin and request_origin in allowed_origins:
-        allow_origin = request_origin
+        allow_origin: Optional[str] = request_origin
     elif allowed_origins:
         # For requests without an Origin header (like curl), we can't
         # return a specific origin. Return the first one for preflight
         # compatibility, but browsers will handle this correctly.
         allow_origin = allowed_origins[0]
     else:
-        allow_origin = "*"
+        allow_origin = None
 
-    return {
-        "Access-Control-Allow-Origin": allow_origin,
+    headers = {
         "Access-Control-Allow-Headers": (
             "Content-Type,Authorization,X-Amz-Date,X-Api-Key,"
             "X-Amz-Security-Token,X-Turnstile-Token"
         ),
         "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
     }
+    if allow_origin:
+        headers["Access-Control-Allow-Origin"] = allow_origin
+        headers["Vary"] = "Origin"
+    return headers
 
 
 def json_response(

@@ -38,11 +38,13 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 - `PublicWwwCertificateArn`: ACM certificate ARN for production
 - `PublicWwwStagingDomainName`: `www-staging.evolvesprouts.com`
 - `PublicWwwStagingCertificateArn`: ACM certificate ARN for staging
+- `PublicWwwCrmApiBaseUrl`: `<FROM_GITHUB_VAR: NEXT_PUBLIC_WWW_CRM_API_BASE_URL>`
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1)
 
 Public WWW CRM API configuration is provided at build time via:
 
 - GitHub variable `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
+- GitHub variable `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - GitHub variable `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
 - GitHub variable `NEXT_PUBLIC_FPS_MERCHANT_NAME` (or secret fallback)
@@ -54,9 +56,11 @@ Public WWW CRM API configuration is provided at build time via:
 the website canonical origin aligned with infrastructure domain parameters.
 
 `evolvesprouts-public-www` CloudFront now proxies `https://{www-domain}/www/*`
-to `https://api.evolvesprouts.com/www/*` with caching disabled for those
-requests. Set `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` to `/www` to keep browser API
-calls same-origin and avoid cross-origin CORS preflight failures.
+to the host resolved from `PublicWwwCrmApiBaseUrl` (derived from
+`NEXT_PUBLIC_WWW_CRM_API_BASE_URL`) with caching disabled for those requests.
+Set `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` to `/www` in runtime client config to
+keep browser API calls same-origin and avoid cross-origin CORS preflight
+failures.
 
 ## CI/CD workflows
 

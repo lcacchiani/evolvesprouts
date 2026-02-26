@@ -506,6 +506,28 @@ export class ApiStack extends cdk.Stack {
           "Referer header for Nominatim address lookup requests",
       }
     );
+    const publicWwwDomainName = new cdk.CfnParameter(
+      this,
+      "PublicWwwDomainName",
+      {
+        type: "String",
+        description:
+          "Production public website domain used for backend CORS allowlisting.",
+      }
+    );
+    const publicWwwStagingDomainName = new cdk.CfnParameter(
+      this,
+      "PublicWwwStagingDomainName",
+      {
+        type: "String",
+        description:
+          "Staging public website domain used for backend CORS allowlisting.",
+      }
+    );
+    const adminWebDomainName = new cdk.CfnParameter(this, "AdminWebDomainName", {
+      type: "String",
+      description: "Admin website domain used for backend CORS allowlisting.",
+    });
 
     // ---------------------------------------------------------------------
     // Cognito User Pool and Identity Providers
@@ -769,7 +791,15 @@ export class ApiStack extends cdk.Stack {
       return pythonLambda.function;
     };
 
-    const corsAllowedOrigins = resolveCorsAllowedOrigins(this);
+    const requiredCorsOrigins = [
+      `https://${publicWwwDomainName.valueAsString}`,
+      `https://${publicWwwStagingDomainName.valueAsString}`,
+      `https://${adminWebDomainName.valueAsString}`,
+    ];
+    const corsAllowedOrigins = resolveCorsAllowedOrigins(
+      this,
+      requiredCorsOrigins
+    );
 
     // Client assets logging bucket
     const clientAssetsLogBucketName = [
@@ -2094,46 +2124,25 @@ export class ApiStack extends cdk.Stack {
   }
 }
 
-const REQUIRED_PUBLIC_WEB_CORS_ORIGINS = [
-  "https://www.evolvesprouts.com",
-  "https://www-staging.evolvesprouts.com",
-];
-const REQUIRED_ADMIN_WEB_CORS_ORIGINS = [
-  "https://admin.evolvesprouts.com",
-  "https://admin.evolvesprouts.lx-software.com",
-];
-
-function resolveCorsAllowedOrigins(scope: Construct): string[] {
-  const defaultOrigins = [
-    ...REQUIRED_PUBLIC_WEB_CORS_ORIGINS,
-    "capacitor://localhost",
-    "ionic://localhost",
-    "http://localhost",
-    "http://localhost:3000",
-    "https://evolvesprouts.lx-software.com",
-    "https://evolvesprouts-api.lx-software.com",
-  ];
+function resolveCorsAllowedOrigins(
+  scope: Construct,
+  requiredOrigins: string[]
+): string[] {
   const contextOrigins = normalizeCorsOrigins(
     scope.node.tryGetContext("corsAllowedOrigins")
   );
-  if (contextOrigins.length > 0) {
-    return ensureRequiredCorsOrigins(contextOrigins);
-  }
   const envOrigins = normalizeCorsOrigins(process.env.CORS_ALLOWED_ORIGINS);
-  if (envOrigins.length > 0) {
-    return ensureRequiredCorsOrigins(envOrigins);
-  }
-  return ensureRequiredCorsOrigins(defaultOrigins);
+  const configuredOrigins = [...contextOrigins, ...envOrigins];
+  return ensureRequiredCorsOrigins(requiredOrigins, configuredOrigins);
 }
 
-function ensureRequiredCorsOrigins(origins: string[]): string[] {
+function ensureRequiredCorsOrigins(
+  requiredOrigins: string[],
+  origins: string[]
+): string[] {
   return Array.from(
     new Set(
-      [
-        ...REQUIRED_PUBLIC_WEB_CORS_ORIGINS,
-        ...REQUIRED_ADMIN_WEB_CORS_ORIGINS,
-        ...origins,
-      ].map((origin) => origin.trim())
+      [...requiredOrigins, ...origins].map((origin) => origin.trim())
     )
   ).filter((origin) => origin.length > 0);
 }
