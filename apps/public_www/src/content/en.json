@@ -74,6 +74,12 @@
     "cta": "Book your Free Intro Session",
     "supportingParagraph": "Supporting families in Hong Kong through Montessori & Positive Education. Training aunties to nurture children’s growth."
   },
+  "idaIntro": {
+    "text": "My name is Ida, I'm a Montessori-certified practitioner and mum of 2.",
+    "ctaLabel": "Read more about me",
+    "ctaHref": "/about-us",
+    "imageAlt": "Ida De Gregorio from Evolve Sprouts"
+  },
   "whatsappContact": {
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
     "ariaLabel": "Contact us on WhatsApp"

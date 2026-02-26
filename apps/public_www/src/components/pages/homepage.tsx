@@ -3,6 +3,7 @@ import { PageLayout } from '@/components/shared/page-layout';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import { CourseHighlights } from '@/components/sections/course-highlights';
 import { HeroBanner } from '@/components/sections/hero-banner';
+import { IdaIntro } from '@/components/sections/ida-intro';
 import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overview';
 import { FreeResourcesForGentleParenting } from '@/components/sections/free-resources-for-gentle-parenting';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
@@ -18,6 +19,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
       footerContent={content.footer}
     >
       <HeroBanner content={content.hero} />
+      <IdaIntro content={content.idaIntro} />
       <MyBestAuntieOverview content={content.myBestAuntieOverview} />
       <CourseHighlights content={content.courseHighlights} />
       <FreeResourcesForGentleParenting content={content.resources} />
