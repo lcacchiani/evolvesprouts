@@ -4,7 +4,11 @@ import type {
 } from 'react';
 import Link from 'next/link';
 
-import { getHrefKind, type HrefKind } from '@/lib/url-utils';
+import {
+  getHrefKind,
+  isSameRootDomainHttpHref,
+  type HrefKind,
+} from '@/lib/url-utils';
 
 interface SmartLinkRenderState {
   hrefKind: HrefKind;
@@ -79,11 +83,16 @@ export function SmartLink({
   };
 
   const linkChildren = renderChildren(children, state);
+  const shouldPreserveReferrer =
+    hrefKind === 'internal' || hrefKind === 'hash' || isSameRootDomainHttpHref(resolvedHref);
+  const relForNewTab = shouldPreserveReferrer
+    ? 'noopener'
+    : 'noopener noreferrer';
   const sharedProps = {
     className,
     ...anchorProps,
     ...(opensInNewTab
-      ? { target: '_blank' as const, rel: 'noopener noreferrer' }
+      ? { target: '_blank' as const, rel: relForNewTab }
       : {}),
   };
 

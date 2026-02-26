@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SmartLink } from '@/components/shared/smart-link';
 
@@ -19,6 +19,10 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe('SmartLink', () => {
   it('opens HTTP links in a new tab with secure rel', () => {
     render(<SmartLink href='https://example.com'>External</SmartLink>);
@@ -28,6 +32,24 @@ describe('SmartLink', () => {
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     expect(link).not.toHaveAttribute('data-mocked-next-link');
+  });
+
+  it('keeps referrer for internal root-domain links across subdomains', () => {
+    vi.stubGlobal('location', new URL('https://www-staging.example.com/en/resources'));
+
+    render(
+      <SmartLink href='https://media.example.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1'>
+        Download
+      </SmartLink>,
+    );
+
+    const link = screen.getByRole('link', { name: 'Download' });
+    expect(link).toHaveAttribute(
+      'href',
+      'https://media.example.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+    );
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener');
   });
 
   it('uses Next Link for internal href values', () => {
@@ -49,7 +71,7 @@ describe('SmartLink', () => {
     const link = screen.getByRole('link', { name: 'Terms' });
     expect(link).toHaveAttribute('href', '/terms');
     expect(link).toHaveAttribute('target', '_blank');
-    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(link).toHaveAttribute('rel', 'noopener');
   });
 
   it('keeps hash links in-page by default', () => {

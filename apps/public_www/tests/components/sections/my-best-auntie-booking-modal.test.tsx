@@ -720,7 +720,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
     expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
     expect(termsLink).toHaveAttribute('target', '_blank');
-    expect(termsLink).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(termsLink).toHaveAttribute('rel', 'noopener');
     expect(
       termsLink.querySelector('svg[data-external-link-icon="true"]'),
     ).toBeNull();

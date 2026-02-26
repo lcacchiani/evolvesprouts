@@ -4,6 +4,7 @@ import {
   getHrefKind,
   isExternalHref,
   isHttpHref,
+  isSameRootDomainHttpHref,
   isUnsafeHref,
 } from '@/lib/url-utils';
 
@@ -48,5 +49,47 @@ describe('url-utils', () => {
     expect(isExternalHref('/en/about-us')).toBe(false);
     expect(isExternalHref('/zh-HK/events')).toBe(false);
     expect(isExternalHref('#resources')).toBe(false);
+  });
+
+  it('detects internal HTTP links across subdomains', () => {
+    expect(
+      isSameRootDomainHttpHref(
+        'https://media.example.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+        'www-staging.example.com',
+      ),
+    ).toBe(true);
+    expect(
+      isSameRootDomainHttpHref(
+        'https://admin.example.com/dashboard',
+        'www.example.com',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects HTTP links outside the current root domain', () => {
+    expect(
+      isSameRootDomainHttpHref(
+        'https://cdn.another-example.com/download',
+        'www.example.com',
+      ),
+    ).toBe(false);
+    expect(
+      isSameRootDomainHttpHref(
+        'https://example.net/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+        'www.example.com',
+      ),
+    ).toBe(false);
+    expect(
+      isSameRootDomainHttpHref(
+        'mailto:hello@example.com',
+        'www.example.com',
+      ),
+    ).toBe(false);
+    expect(
+      isSameRootDomainHttpHref(
+        'https://media.example.com/path',
+        '',
+      ),
+    ).toBe(false);
   });
 });
