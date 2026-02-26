@@ -344,9 +344,11 @@ bootstrap script (`init-gtm.js`) is detected in the build output. The
 CloudFront header CSP is not modified (it covers only `base-uri`,
 `object-src`, and `frame-ancestors`).
 
-GTM is gated at runtime to fire only on `www.evolvesprouts.com`. Staging,
-localhost, and preview hosts receive zero GTM network requests even though
-the CSP permits the Google domains.
+GTM is gated at runtime to fire only on hosts in
+`NEXT_PUBLIC_GTM_ALLOWED_HOSTS` (or, when unset, the hostname from
+`NEXT_PUBLIC_SITE_ORIGIN`). Staging, localhost, and preview hosts receive zero
+GTM network requests unless explicitly allowlisted, even though the CSP permits
+the Google domains.
 
 ### Database Security
 

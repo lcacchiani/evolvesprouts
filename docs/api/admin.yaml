@@ -549,7 +549,7 @@ components:
             type: string
           description: |
             Domain allowlist for share-link resolution, for example
-            `www.evolvesprouts.com`.
+            `www.example.com`.
     CreateAssetRequest:
       type: object
       required:

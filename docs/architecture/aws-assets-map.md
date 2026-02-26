@@ -478,7 +478,7 @@ configured by stack custom resources (including retention and KMS association).
 | `AdminBootstrapTempPassword` | String | No | Yes | Temporary password for bootstrap (default: empty) |
 | `AssetDownloadCloudFrontPublicKeyPem` | String | Yes | No | PEM-encoded RSA public key for signed asset URLs |
 | `AssetDownloadCloudFrontPrivateKeySecretArn` | String | Yes | Yes | Secrets Manager ARN containing CloudFront private key PEM |
-| `AssetDownloadCustomDomainName` | String | Yes | No | Custom domain used in signed client-asset download links (for example `media.evolvesprouts.com`) |
+| `AssetDownloadCustomDomainName` | String | Yes | No | Custom domain used in signed client-asset download links (for example `media.example.com`) |
 | `AssetDownloadCustomDomainCertificateArn` | String | Yes | No | ACM certificate ARN for the client-asset custom domain (must be in `us-east-1`) |
 | `AssetDownloadWafWebAclArn` | String | No | No | Optional WAF WebACL ARN for the client-asset download CloudFront distribution (must be in `us-east-1`) |
 
