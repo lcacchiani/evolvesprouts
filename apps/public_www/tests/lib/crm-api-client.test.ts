@@ -57,8 +57,7 @@ describe('crm-api-client', () => {
   });
 
   it('does not rewrite absolute URLs when proxy host allowlist is unset', () => {
-    vi.unstubAllEnvs();
-    vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_BASE_URL', 'https://api.evolvesprouts.com/www');
+    vi.stubEnv('NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS', '');
     vi.stubGlobal('location', new URL('https://www-staging.evolvesprouts.com/en/events'));
 
     expect(buildCrmApiUrl('https://api.evolvesprouts.com/www', '/v1/discounts')).toBe(
