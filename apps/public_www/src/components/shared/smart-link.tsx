@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import {
   getHrefKind,
-  isTrustedAssetShareHref,
+  isSameRootDomainHttpHref,
   type HrefKind,
 } from '@/lib/url-utils';
 
@@ -83,7 +83,9 @@ export function SmartLink({
   };
 
   const linkChildren = renderChildren(children, state);
-  const relForNewTab = isTrustedAssetShareHref(resolvedHref)
+  const shouldPreserveReferrer =
+    hrefKind === 'internal' || hrefKind === 'hash' || isSameRootDomainHttpHref(resolvedHref);
+  const relForNewTab = shouldPreserveReferrer
     ? 'noopener'
     : 'noopener noreferrer';
   const sharedProps = {

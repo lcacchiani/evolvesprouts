@@ -5,11 +5,7 @@ const HASH_PROTOCOL_REGEX = /^#/;
 const PROTOCOL_RELATIVE_URL_REGEX = /^\/\//;
 const DANGEROUS_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
 const GENERIC_PROTOCOL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
-const ASSET_SHARE_LINK_HOSTNAMES = new Set([
-  'media.evolvesprouts.com',
-  'media-staging.evolvesprouts.com',
-]);
-const ASSET_SHARE_LINK_PATH_REGEX = /^\/v1\/assets\/share\/[A-Za-z0-9_-]{24,128}\/?$/;
+const IPV4_ADDRESS_REGEX = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 
 export type HrefKind =
   | 'internal'
@@ -65,7 +61,43 @@ export function isUnsafeHref(href: string): boolean {
   return getHrefKind(href) === 'unsafe';
 }
 
-export function isTrustedAssetShareHref(href: string): boolean {
+function normalizeHostname(hostname: string): string {
+  return hostname.trim().toLowerCase().replace(/\.$/, '');
+}
+
+function getRootDomain(hostname: string): string {
+  const normalizedHostname = normalizeHostname(hostname);
+  if (
+    !normalizedHostname
+    || normalizedHostname === 'localhost'
+    || IPV4_ADDRESS_REGEX.test(normalizedHostname)
+    || normalizedHostname.includes(':')
+  ) {
+    return normalizedHostname;
+  }
+
+  const labels = normalizedHostname
+    .split('.')
+    .filter((label) => label.length > 0);
+  if (labels.length < 2) {
+    return normalizedHostname;
+  }
+
+  return `${labels[labels.length - 2]}.${labels[labels.length - 1]}`;
+}
+
+function resolveCurrentHostname(): string {
+  if (typeof location === 'undefined') {
+    return '';
+  }
+
+  return normalizeHostname(location.hostname);
+}
+
+export function isSameRootDomainHttpHref(
+  href: string,
+  currentHostname?: string,
+): boolean {
   if (getHrefKind(href) !== 'http') {
     return false;
   }
@@ -77,13 +109,21 @@ export function isTrustedAssetShareHref(href: string): boolean {
     return false;
   }
 
-  if (parsedUrl.protocol.toLowerCase() !== 'https:') {
+  const targetHostname = normalizeHostname(parsedUrl.hostname);
+  if (!targetHostname) {
     return false;
   }
 
-  if (!ASSET_SHARE_LINK_HOSTNAMES.has(parsedUrl.hostname.toLowerCase())) {
+  const referenceHostname = normalizeHostname(
+    currentHostname ?? resolveCurrentHostname(),
+  );
+  if (!referenceHostname) {
     return false;
   }
 
-  return ASSET_SHARE_LINK_PATH_REGEX.test(parsedUrl.pathname);
+  if (referenceHostname === targetHostname) {
+    return true;
+  }
+
+  return getRootDomain(referenceHostname) === getRootDomain(targetHostname);
 }

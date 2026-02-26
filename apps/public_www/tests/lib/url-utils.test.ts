@@ -4,7 +4,7 @@ import {
   getHrefKind,
   isExternalHref,
   isHttpHref,
-  isTrustedAssetShareHref,
+  isSameRootDomainHttpHref,
   isUnsafeHref,
 } from '@/lib/url-utils';
 
@@ -51,38 +51,44 @@ describe('url-utils', () => {
     expect(isExternalHref('#resources')).toBe(false);
   });
 
-  it('detects trusted asset share links', () => {
+  it('detects internal HTTP links across subdomains', () => {
     expect(
-      isTrustedAssetShareHref(
-        'https://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+      isSameRootDomainHttpHref(
+        'https://media.example.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+        'www-staging.example.com',
       ),
     ).toBe(true);
     expect(
-      isTrustedAssetShareHref(
-        'https://media-staging.evolvesprouts.com/v1/assets/share/AbcdEfghIjklMnopQrstUvwx',
+      isSameRootDomainHttpHref(
+        'https://admin.example.com/dashboard',
+        'www.example.com',
       ),
     ).toBe(true);
   });
 
-  it('rejects non-share or untrusted asset share links', () => {
+  it('rejects HTTP links outside the current root domain', () => {
     expect(
-      isTrustedAssetShareHref(
-        'https://example.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+      isSameRootDomainHttpHref(
+        'https://cdn.another-example.com/download',
+        'www.example.com',
       ),
     ).toBe(false);
     expect(
-      isTrustedAssetShareHref(
-        'https://media.evolvesprouts.com/v1/assets/public/abc/download',
+      isSameRootDomainHttpHref(
+        'https://example.net/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+        'www.example.com',
       ),
     ).toBe(false);
     expect(
-      isTrustedAssetShareHref(
-        'https://media.evolvesprouts.com/v1/assets/share/short-token',
+      isSameRootDomainHttpHref(
+        'mailto:hello@example.com',
+        'www.example.com',
       ),
     ).toBe(false);
     expect(
-      isTrustedAssetShareHref(
-        'http://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+      isSameRootDomainHttpHref(
+        'https://media.example.com/path',
+        '',
       ),
     ).toBe(false);
   });
