@@ -6,6 +6,8 @@ const PROTOCOL_RELATIVE_URL_REGEX = /^\/\//;
 const DANGEROUS_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
 const GENERIC_PROTOCOL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
 const IPV4_ADDRESS_REGEX = /^\d{1,3}(?:\.\d{1,3}){3}$/;
+const INTERNAL_LINK_ROOT_DOMAIN_ENV = 'NEXT_PUBLIC_INTERNAL_LINK_ROOT_DOMAIN';
+const DEFAULT_INTERNAL_LINK_ROOT_DOMAIN = 'evolvesprouts.com';
 
 export type HrefKind =
   | 'internal'
@@ -86,12 +88,20 @@ function getRootDomain(hostname: string): string {
   return `${labels[labels.length - 2]}.${labels[labels.length - 1]}`;
 }
 
-function resolveCurrentHostname(): string {
-  if (typeof location === 'undefined') {
-    return '';
+function resolveReferenceHostname(currentHostname?: string): string {
+  const normalizedCurrentHostname = normalizeHostname(currentHostname ?? '');
+  if (normalizedCurrentHostname) {
+    return normalizedCurrentHostname;
   }
 
-  return normalizeHostname(location.hostname);
+  const configuredRootDomain = normalizeHostname(
+    process.env[INTERNAL_LINK_ROOT_DOMAIN_ENV] ?? '',
+  );
+  if (configuredRootDomain) {
+    return configuredRootDomain;
+  }
+
+  return DEFAULT_INTERNAL_LINK_ROOT_DOMAIN;
 }
 
 export function isSameRootDomainHttpHref(
@@ -115,7 +125,7 @@ export function isSameRootDomainHttpHref(
   }
 
   const referenceHostname = normalizeHostname(
-    currentHostname ?? resolveCurrentHostname(),
+    resolveReferenceHostname(currentHostname),
   );
   if (!referenceHostname) {
     return false;

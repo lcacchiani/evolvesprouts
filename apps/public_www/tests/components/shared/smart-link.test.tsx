@@ -21,6 +21,7 @@ vi.mock('next/link', () => ({
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe('SmartLink', () => {
@@ -35,7 +36,7 @@ describe('SmartLink', () => {
   });
 
   it('keeps referrer for internal root-domain links across subdomains', () => {
-    vi.stubGlobal('location', new URL('https://www-staging.example.com/en/resources'));
+    vi.stubEnv('NEXT_PUBLIC_INTERNAL_LINK_ROOT_DOMAIN', 'example.com');
 
     render(
       <SmartLink href='https://media.example.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1'>
