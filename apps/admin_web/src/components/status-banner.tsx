@@ -10,7 +10,7 @@ const variantStyles = {
 
 export interface StatusBannerProps {
   variant: 'info' | 'error' | 'success';
-  title: string;
+  title?: string;
   children: ReactNode;
 }
 
@@ -19,12 +19,14 @@ export function StatusBanner({
   title,
   children,
 }: StatusBannerProps) {
+  const hasTitle = Boolean(title?.trim());
+
   return (
     <div
       className={`w-full rounded-lg border px-3 py-2.5 sm:px-4 sm:py-3 ${variantStyles[variant]}`}
     >
-      <p className='text-xs font-semibold sm:text-sm'>{title}</p>
-      <p className='mt-1 text-xs sm:text-sm'>{children}</p>
+      {hasTitle ? <p className='text-xs font-semibold sm:text-sm'>{title}</p> : null}
+      <p className={hasTitle ? 'mt-1 text-xs sm:text-sm' : 'text-xs sm:text-sm'}>{children}</p>
     </div>
   );
 }
