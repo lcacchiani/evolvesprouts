@@ -101,5 +101,7 @@ Indexes:
   CloudFront-signed GET URL.
 - Requests are accepted only when Referer/Origin matches
   `asset_share_links.allowed_domains`.
+- If the resolved asset has `visibility='restricted'`, the request must also
+  include a valid Cognito bearer token.
 - Admin APIs can create/reuse, rotate, revoke, and update source-domain
   allowlist policy per asset.

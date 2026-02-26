@@ -276,6 +276,9 @@ Process to add a new public API path:
 - Share-token resolution requires a request Referer/Origin domain that matches
   the share link's `allowed_domains` policy, blocking direct address-bar opens
   when no allowed source-domain signal is present.
+- When a share link resolves to an asset with `visibility=restricted`,
+  `Authorization: Bearer <JWT>` is required in addition to the source-domain
+  allowlist check.
 - Admin-generated share links are built with `ASSET_SHARE_LINK_BASE_URL`
   (`https://media.evolvesprouts.com`) and served through a CloudFront behavior
   that forwards `v1/assets/share/*` to API Gateway and injects the
