@@ -309,6 +309,9 @@ share URLs as database-backed bearer tokens.
 - Admin APIs create/reuse, rotate, and revoke each asset token.
 - Public route `/v1/assets/share/{token}` resolves the token and redirects to
   a fresh CloudFront-signed URL for the underlying S3 object.
+- API Gateway enforces an API key on `/v1/assets/share/{token}` and the media
+  CloudFront behavior injects `x-api-key` at origin so browser users do not
+  need to provide credentials directly.
 - CloudFront public key material is configured in infrastructure; matching
   private key material is stored in AWS Secrets Manager and loaded by Lambda.
 

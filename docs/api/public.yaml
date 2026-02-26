@@ -72,6 +72,10 @@ paths:
       description: |
         Public bearer endpoint that resolves a stable share token and redirects
         to a fresh CloudFront-signed download URL.
+        Requests are authenticated with API key at API Gateway; CloudFront
+        forwards the request and injects `x-api-key` for end users.
+      security:
+        - ApiKeyAuth: []
       responses:
         "302":
           description: Redirect to signed download URL.

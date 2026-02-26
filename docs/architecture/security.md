@@ -275,7 +275,8 @@ Process to add a new public API path:
   share/download GET routes to avoid stale signed-link responses.
 - Admin-generated share links are built with `ASSET_SHARE_LINK_BASE_URL`
   (`https://media.evolvesprouts.com`) and served through a CloudFront behavior
-  that forwards `v1/assets/share/*` to API Gateway.
+  that forwards `v1/assets/share/*` to API Gateway and injects the
+  required `x-api-key` origin header.
 - The CloudFront signer private key must be stored in AWS Secrets Manager and
   loaded at runtime; never commit private keys in source control.
 - CloudFront distributions serving client assets must restrict S3 origin access
