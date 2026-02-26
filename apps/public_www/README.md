@@ -86,6 +86,7 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 
 Use `NEXT_PUBLIC_WWW_CRM_API_BASE_URL=/www` to route requests through the
 same-origin CloudFront API proxy and avoid cross-origin CORS preflight issues.
+CSP generation also derives `connect-src` API origins from this variable.
 Use Cloudflare Turnstile test key `1x00000000000000000000AA` for local-only
 testing.
 
