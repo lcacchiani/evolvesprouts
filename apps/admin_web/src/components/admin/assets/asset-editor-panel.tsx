@@ -421,7 +421,7 @@ export function AssetEditorPanel({
         </StatusBanner>
       ) : null}
       {linkNotice ? (
-        <StatusBanner variant='success' title='Share link'>
+        <StatusBanner variant='success'>
           {linkNotice}
         </StatusBanner>
       ) : null}
