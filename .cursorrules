@@ -43,6 +43,13 @@ repo root
   - Avoid: "I am modifying..."
 - S3 bucket names must be 63 characters or less.
 - Never hardcode secrets, API keys, passwords, or tokens.
+- Categorically ban hardcoded environment-specific values (for example domains,
+  origins, base URLs, emails, ARNs, account IDs, region-specific endpoints, and
+  deployment/runtime configuration). Derive them from parameters, environment
+  variables, or repository config sources.
+- Allowed exceptions for hardcoding: standards/protocol constants, local-only
+  `localhost` development values, and non-behavioral test/docs examples using
+  `example.com`.
 
 ## Workflow (MANDATORY)
 
