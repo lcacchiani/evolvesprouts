@@ -67,6 +67,11 @@ describe('Navbar desktop submenu accessibility', () => {
       desktopLanguageSelector as HTMLElement
     ).closest('div');
     expect(languageSelectorWrapper?.className).toContain('items-center');
+
+    const desktopBookNowLink = screen.getByRole('link', {
+      name: enContent.navbar.bookNow.label,
+    });
+    expect(desktopBookNowLink).toBeInTheDocument();
   });
 
   it('applies active and inactive classes to language menu items', () => {
@@ -186,6 +191,11 @@ describe('Navbar desktop submenu accessibility', () => {
       name: 'Toggle Training Courses submenu',
     });
     expect(trainingCoursesToggle.className).toContain('es-navbar-mobile-pill-reset');
+
+    const mobileBookNowLink = within(drawer).getByRole('link', {
+      name: enContent.navbar.bookNow.label,
+    });
+    expect(mobileBookNowLink).toBeInTheDocument();
 
   });
 });
