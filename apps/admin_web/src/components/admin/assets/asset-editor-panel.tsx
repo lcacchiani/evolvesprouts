@@ -518,31 +518,8 @@ export function AssetEditorPanel({
                   </p>
                 </div>
                 <div className='space-y-2'>
-                  <Label htmlFor='asset-share-allowed-domains'>Share-link domain allowlist</Label>
-                  <Textarea
-                    id='asset-share-allowed-domains'
-                    rows={3}
-                    value={allowedDomainsInput}
-                    onChange={(event) => setAllowedDomainsInput(event.target.value)}
-                    placeholder='www.evolvesprouts.com'
-                  />
-                  <p className='text-xs text-slate-600'>
-                    One domain per line (or comma-separated). Share links resolve only when
-                    Referer/Origin matches one of these domains.
-                  </p>
                   <Label>Links</Label>
                   <div className='flex items-center gap-2'>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='secondary'
-                      onClick={() => void handleSaveLinkPolicy()}
-                      disabled={areLinkButtonsDisabled}
-                      title={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
-                      aria-label={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
-                    >
-                      Save policy
-                    </Button>
                     <Button
                       type='button'
                       size='sm'
@@ -581,6 +558,33 @@ export function AssetEditorPanel({
                     </Button>
                   </div>
                 </div>
+              </div>
+              <div className='space-y-2'>
+                <div className='flex flex-wrap items-center justify-between gap-2'>
+                  <Label htmlFor='asset-share-allowed-domains'>Share-link domain allowlist</Label>
+                  <Button
+                    type='button'
+                    size='sm'
+                    variant='secondary'
+                    onClick={() => void handleSaveLinkPolicy()}
+                    disabled={areLinkButtonsDisabled}
+                    title={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
+                    aria-label={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
+                  >
+                    Save policy
+                  </Button>
+                </div>
+                <Textarea
+                  id='asset-share-allowed-domains'
+                  rows={3}
+                  value={allowedDomainsInput}
+                  onChange={(event) => setAllowedDomainsInput(event.target.value)}
+                  placeholder='www.evolvesprouts.com'
+                />
+                <p className='text-xs text-slate-600'>
+                  One domain per line (or comma-separated). Share links resolve only when
+                  Referer/Origin matches one of these domains.
+                </p>
               </div>
             </div>
           )}
