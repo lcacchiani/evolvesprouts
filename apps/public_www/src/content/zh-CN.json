@@ -40,7 +40,7 @@
       }
     ],
     "bookNow": {
-      "label": "Train your Auntie Today!",
+      "label": "今天就培训你的阿姨！",
       "href": "/services/my-best-auntie-training-course"
     },
     "languageSelector": {
@@ -70,9 +70,9 @@
   },
   "hero": {
     "headline": "Transform Auntie Into Your Child's Montessori Ally",
-    "subheadline": "Helping your child grow — through the people who care for them every day.",
-    "cta": "Book your Free Intro Session",
-    "supportingParagraph": "Supporting families in Hong Kong through Montessori & Positive Education. Training aunties to nurture children’s growth."
+    "subheadline": "通过每天照顾孩子的人，帮助孩子成长。",
+    "cta": "预约免费入门咨询",
+    "supportingParagraph": "通过蒙特梭利与正向教育支持香港家庭，培训阿姨陪伴孩子成长。"
   },
   "whatsappContact": {
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
