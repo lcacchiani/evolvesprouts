@@ -69,7 +69,8 @@ Columns:
 - `asset_id` (UUID, FK → `assets.id`, cascade delete, unique)
 - `share_token` (varchar(128), unique, required)
 - `allowed_domains` (varchar(255)[], required) — source domains allowed to
-  resolve the share link
+  resolve the share link (no server default; runtime configuration provides
+  values)
 - `created_by` (varchar(128), required) — admin user sub that created the link
 - `created_at` (timestamptz, default `now()`)
 - `updated_at` (timestamptz, default `now()`)

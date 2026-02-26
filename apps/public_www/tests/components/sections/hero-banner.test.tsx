@@ -59,7 +59,6 @@ describe('HeroBanner section', () => {
 
     const cta = screen.getByRole('link', { name: enContent.hero.cta });
     expect(cta).toHaveAttribute('href', ROUTES.servicesMyBestAuntieTrainingCourse);
-
     const supportingParagraph = screen.getByText(enContent.hero.supportingParagraph);
     expect(supportingParagraph).toBeInTheDocument();
     expect(supportingParagraph.className).toContain('es-hero-subheadline');
