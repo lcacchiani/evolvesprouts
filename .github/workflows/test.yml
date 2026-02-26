@@ -28,23 +28,11 @@ jobs:
       - name: Resolve public site origin from infrastructure params
         id: resolve_public_site_origin
         run: |
-          SITE_DOMAIN="$(python3 - <<'PY'
-import json
-from pathlib import Path
-
-params_path = Path("backend/infrastructure/params/production.json")
-with params_path.open(encoding="utf-8") as params_file:
-    params = json.load(params_file)
-
-domain = str(params.get("PublicWwwDomainName", "")).strip()
-if not domain:
-    raise SystemExit(
-        "PublicWwwDomainName is required in backend/infrastructure/params/production.json"
-    )
-
-print(domain)
-PY
-          )"
+          SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwDomainName', '')).strip())")"
+          if [ -z "$SITE_DOMAIN" ]; then
+            echo "PublicWwwDomainName is required in backend/infrastructure/params/production.json"
+            exit 1
+          fi
           echo "site_origin=https://${SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Node.js
