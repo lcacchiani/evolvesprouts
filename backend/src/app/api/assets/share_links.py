@@ -15,7 +15,6 @@ _SHARE_TOKEN_BYTES = 24
 _SHARE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{24,128}$")
 _SHARE_PATH_PREFIX = "/v1/assets/share"
 _MAX_ALLOWED_DOMAINS = 20
-_DEFAULT_ALLOWED_DOMAIN_CSV = "www.evolvesprouts.com,www-staging.evolvesprouts.com"
 _DOMAIN_RE = re.compile(
     r"^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+"
     r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$"
@@ -44,18 +43,20 @@ def build_share_link_url(event: Mapping[str, Any], token: str) -> str:
 
 def resolve_default_allowed_domains() -> list[str]:
     """Resolve default allowed source domains for newly-created share links."""
-    configured = os.getenv(
-        "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS",
-        _DEFAULT_ALLOWED_DOMAIN_CSV,
-    ).strip()
+    configured = os.getenv("ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS", "").strip()
+    if not configured:
+        raise RuntimeError(
+            "Missing required environment variable: "
+            "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS"
+        )
+
     raw_domains = [part.strip() for part in configured.split(",") if part.strip()]
-    if not raw_domains:
-        raw_domains = [part.strip() for part in _DEFAULT_ALLOWED_DOMAIN_CSV.split(",")]
     try:
         return normalize_allowed_domains(raw_domains)
     except ValidationError as exc:
         raise RuntimeError(
-            "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS must contain valid hostnames"
+            "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS must contain one or more "
+            "valid hostnames"
         ) from exc
 
 
