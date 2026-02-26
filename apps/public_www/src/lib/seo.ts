@@ -12,6 +12,7 @@ import {
 
 const SITE_ORIGIN_ENV_NAME = 'NEXT_PUBLIC_SITE_ORIGIN';
 const TEST_SITE_ORIGIN_FALLBACK = 'https://example.com';
+const DEFAULT_SITE_ORIGIN = 'https://www.evolvesprouts.com';
 
 export function normalizeSiteOrigin(rawOrigin: string): string {
   const normalizedOrigin = rawOrigin.trim();
@@ -54,7 +55,7 @@ function resolveSiteOrigin(): string {
     return TEST_SITE_ORIGIN_FALLBACK;
   }
 
-  throw new Error(`Missing required environment variable: ${SITE_ORIGIN_ENV_NAME}`);
+  return DEFAULT_SITE_ORIGIN;
 }
 
 export const SITE_ORIGIN = resolveSiteOrigin();
