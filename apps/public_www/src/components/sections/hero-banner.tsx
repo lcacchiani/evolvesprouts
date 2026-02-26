@@ -70,6 +70,9 @@ export function HeroBanner({ content }: HeroBannerProps) {
             >
               {content.cta}
             </SectionCtaAnchor>
+            <p className='mt-4 max-w-[520px] text-sm leading-relaxed text-[#3E342F] sm:text-base'>
+              {content.supportingParagraph}
+            </p>
           </div>
         </div>
         <div className='mx-auto w-full max-w-[573px] lg:ml-auto lg:mr-0'>
