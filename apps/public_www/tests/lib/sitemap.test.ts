@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { SUPPORTED_LOCALES } from '@/content';
+import robots from '@/app/robots';
 import sitemap from '@/app/sitemap';
 import {
   INDEXED_ROUTE_PATHS,
@@ -29,5 +30,12 @@ describe('sitemap', () => {
         expect(urls).not.toContain(`${SITE_ORIGIN}${localizePath(routePath, locale)}`);
       }
     }
+  });
+
+  it('keeps robots host aligned with SITE_ORIGIN', () => {
+    const robotsMetadata = robots();
+
+    expect(robotsMetadata.host).toBe(new URL(SITE_ORIGIN).hostname);
+    expect(robotsMetadata.sitemap).toBe(`${SITE_ORIGIN}/sitemap.xml`);
   });
 });
