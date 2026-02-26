@@ -1,5 +1,4 @@
 import { Fragment, type ReactNode } from 'react';
-import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import {
@@ -47,10 +46,13 @@ export function IdaIntro({ content }: IdaIntroProps) {
       >
         <div className='order-2 relative z-10 lg:pl-8 xl:pl-[110px]'>
           <SectionHeader
-            title={renderIntroText(content.text)}
+            title={
+              <span className='es-type-body block max-w-[720px] font-normal'>
+                {renderIntroText(content.text)}
+              </span>
+            }
             titleAs='h2'
             align='left'
-            titleClassName='es-type-subtitle max-w-[720px]'
           />
           <SectionCtaAnchor
             href={content.ctaHref}
@@ -60,18 +62,10 @@ export function IdaIntro({ content }: IdaIntroProps) {
           </SectionCtaAnchor>
         </div>
 
-        <div className='order-1'>
-          <div className='w-full lg:ml-[-75px] lg:mr-[-38px] lg:w-[525px] xl:ml-[-135px] xl:mr-[-150px] xl:w-[833px]'>
-            <Image
-              src='/images/about-us/ida-degregorio-evolvesprouts-3.webp'
-              alt={content.imageAlt}
-              width={1112}
-              height={840}
-              sizes='(min-width: 1280px) 1111px, (min-width: 1024px) 700px, 100vw'
-              className='h-auto w-full'
-            />
-          </div>
-        </div>
+        <div
+          aria-hidden='true'
+          className='order-1 hidden lg:block'
+        />
       </SectionContainer>
     </SectionShell>
   );

@@ -1,27 +1,17 @@
-/* eslint-disable @next/next/no-img-element */
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { IdaIntro } from '@/components/sections/ida-intro';
 import enContent from '@/content/en.json';
 
-vi.mock('next/image', () => ({
-  default: ({
-    alt,
-    priority: _priority,
-    ...props
-  }: {
-    alt?: string;
-    priority?: boolean;
-  } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
-}));
-
 describe('IdaIntro', () => {
-  it('renders intro copy, CTA, and portrait image', () => {
+  it('renders intro copy and CTA with background image styling', () => {
     const content = enContent.idaIntro;
     render(<IdaIntro content={content} />);
 
-    expect(screen.getByRole('heading', { name: content.text })).toBeInTheDocument();
+    const heading = screen.getByRole('heading', { name: content.text });
+    expect(heading).toBeInTheDocument();
+    expect(heading.querySelector('.font-normal')).not.toBeNull();
     expect(screen.getByRole('region', { name: content.text })).toHaveClass(
       'es-ida-intro-section',
     );
@@ -30,6 +20,6 @@ describe('IdaIntro', () => {
       'href',
       content.ctaHref,
     );
-    expect(screen.getByRole('img', { name: content.imageAlt })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: content.imageAlt })).not.toBeInTheDocument();
   });
 });
