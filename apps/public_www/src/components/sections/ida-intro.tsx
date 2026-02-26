@@ -44,7 +44,7 @@ export function IdaIntro({ content }: IdaIntroProps) {
         <div className='order-1'>
           <div className='w-full lg:ml-[-75px] lg:mr-[-38px] lg:w-[525px] xl:ml-[-135px] xl:mr-[-150px] xl:w-[833px]'>
             <Image
-              src='/images/about-us/ida-degregorio-evolvesprouts-1.webp'
+              src='/images/about-us/ida-degregorio-evolvesprouts-3.webp'
               alt={content.imageAlt}
               width={1112}
               height={840}
