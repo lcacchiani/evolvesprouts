@@ -22,6 +22,10 @@ describe('IdaIntro', () => {
     render(<IdaIntro content={content} />);
 
     expect(screen.getByRole('heading', { name: content.text })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: content.text })).toHaveClass(
+      'es-ida-intro-section',
+    );
+    expect(screen.getByText('Evolve Sprouts')).toHaveClass('es-hero-highlight-word');
     expect(screen.getByRole('link', { name: content.ctaLabel })).toHaveAttribute(
       'href',
       content.ctaHref,
