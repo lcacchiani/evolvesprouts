@@ -1818,19 +1818,11 @@ export class ApiStack extends cdk.Stack {
 
     const publicShareAssets = assets.addResource("share");
     const publicShareAssetByToken = publicShareAssets.addResource("{token}");
-    const publicShareAssetByTokenGet = publicShareAssetByToken.addMethod("GET", adminIntegration, {
+    publicShareAssetByToken.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
-    });
-    const publicShareAssetByTokenGetCfn = publicShareAssetByTokenGet.node
-      .defaultChild as apigateway.CfnMethod;
-    publicShareAssetByTokenGetCfn.addMetadata("checkov", {
-      skip: [
-        {
-          id: "CKV_AWS_59",
-          comment:
-            "Public bearer-link route by design; access requires unguessable share token and resolves to a short-lived signed download URL",
-        },
-      ],
+      // Keep the bearer-link UX public while preventing open API access:
+      // CloudFront injects x-api-key for this origin behavior.
+      apiKeyRequired: true,
     });
 
     // Route media-domain share links to API Gateway.
@@ -1839,6 +1831,9 @@ export class ApiStack extends cdk.Stack {
       {
         originPath: `/${api.deploymentStage.stageName}`,
         protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+        customHeaders: {
+          "x-api-key": publicApiKeyValue.valueAsString,
+        },
       }
     );
     assetDownloadDistribution.addBehavior("v1/assets/share/*", assetShareApiOrigin, {

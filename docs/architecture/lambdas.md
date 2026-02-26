@@ -27,7 +27,8 @@ their primary responsibilities.
   and `/v1/assets/share/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
-  device attestation + API key for `/v1/assets/public/*`
+  device attestation + API key for `/v1/assets/public/*`,
+  API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
 - Purpose: asset metadata CRUD, grant management, stable share-link lifecycle
   (create/rotate/revoke), and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.

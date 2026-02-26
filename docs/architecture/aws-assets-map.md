@@ -369,7 +369,7 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/user/assets/{id}/download` | GET | User Auth | `EvolvesproutsAdminFunction` | |
 | `/v1/assets/public` | GET | Device Attestation + API Key | `EvolvesproutsAdminFunction` | |
 | `/v1/assets/public/{id}/download` | GET | Device Attestation + API Key | `EvolvesproutsAdminFunction` | |
-| `/v1/assets/share/{token}` | GET | None | `EvolvesproutsAdminFunction` | Public bearer-link resolver (302 redirect) |
+| `/v1/assets/share/{token}` | GET | API Key (CloudFront origin header) | `EvolvesproutsAdminFunction` | Public bearer-link resolver (302 redirect) |
 
 ### API Gateway Gateway Responses
 
