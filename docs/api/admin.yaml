@@ -12,7 +12,7 @@ info:
     - `GET|PUT|DELETE /v1/admin/assets/{id}`
     - `GET|POST /v1/admin/assets/{id}/grants`
     - `DELETE /v1/admin/assets/{id}/grants/{grantId}`
-    - `POST|DELETE /v1/admin/assets/{id}/share-link`
+    - `GET|POST|DELETE /v1/admin/assets/{id}/share-link`
     - `POST /v1/admin/assets/{id}/share-link/rotate`
     - `GET /v1/user/assets`
     - `GET /v1/user/assets/{id}/download`
@@ -215,6 +215,23 @@ paths:
   /v1/admin/assets/{id}/share-link:
     parameters:
       - $ref: "#/components/parameters/AssetId"
+    get:
+      summary: Get stable asset share link
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Existing share link returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetShareLinkResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     post:
       summary: Get or create stable asset share link
       security:

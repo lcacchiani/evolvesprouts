@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
 import {
+  getAdminAssetShareLink,
   getOrCreateAdminAssetShareLink,
   revokeAdminAssetShareLink,
   rotateAdminAssetShareLink,
@@ -196,6 +197,40 @@ export function AssetEditorPanel({
       }
     };
   }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (!selectedAsset) {
+      setAllowedDomainsInput(DEFAULT_ALLOWED_SHARE_DOMAINS);
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    const loadShareLinkPolicy = async () => {
+      try {
+        const existingShareLink = await getAdminAssetShareLink(selectedAsset.id);
+        if (isCancelled) {
+          return;
+        }
+        if (existingShareLink?.allowedDomains.length) {
+          setAllowedDomainsInput(existingShareLink.allowedDomains.join('\n'));
+        } else {
+          setAllowedDomainsInput(DEFAULT_ALLOWED_SHARE_DOMAINS);
+        }
+      } catch {
+        if (isCancelled) {
+          return;
+        }
+        setAllowedDomainsInput(DEFAULT_ALLOWED_SHARE_DOMAINS);
+      }
+    };
+
+    void loadShareLinkPolicy();
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedAsset]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

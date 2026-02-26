@@ -53,11 +53,15 @@ function extractErrorMessage(statusCode: number, payload: unknown): string {
   if (isRecord(payload)) {
     const error = payload.error;
     const detail = payload.detail;
+    if (typeof error === 'string' && error.trim()) {
+      const normalizedError = error.trim();
+      if (typeof detail === 'string' && detail.trim()) {
+        return `${normalizedError} (${detail.trim()})`;
+      }
+      return normalizedError;
+    }
     if (typeof detail === 'string' && detail.trim()) {
       return detail.trim();
-    }
-    if (typeof error === 'string' && error.trim()) {
-      return error.trim();
     }
   }
 

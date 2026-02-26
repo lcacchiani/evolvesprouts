@@ -364,7 +364,7 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/assets/{id}` | GET, PUT, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/grants` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/grants/{grantId}` | DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
-| `/v1/admin/assets/{id}/share-link` | POST, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Stable bearer link create/revoke |
+| `/v1/admin/assets/{id}/share-link` | GET, POST, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Stable bearer link read/create/revoke |
 | `/v1/admin/assets/{id}/share-link/rotate` | POST | Admin Group | `EvolvesproutsAdminFunction` | Rotate bearer token and invalidate prior link |
 | `/v1/user/assets` | GET | User Auth | `EvolvesproutsAdminFunction` | |
 | `/v1/user/assets/{id}/download` | GET | User Auth | `EvolvesproutsAdminFunction` | |
