@@ -4,6 +4,7 @@ import {
   getHrefKind,
   isExternalHref,
   isHttpHref,
+  isTrustedAssetShareHref,
   isUnsafeHref,
 } from '@/lib/url-utils';
 
@@ -48,5 +49,41 @@ describe('url-utils', () => {
     expect(isExternalHref('/en/about-us')).toBe(false);
     expect(isExternalHref('/zh-HK/events')).toBe(false);
     expect(isExternalHref('#resources')).toBe(false);
+  });
+
+  it('detects trusted asset share links', () => {
+    expect(
+      isTrustedAssetShareHref(
+        'https://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+      ),
+    ).toBe(true);
+    expect(
+      isTrustedAssetShareHref(
+        'https://media-staging.evolvesprouts.com/v1/assets/share/AbcdEfghIjklMnopQrstUvwx',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects non-share or untrusted asset share links', () => {
+    expect(
+      isTrustedAssetShareHref(
+        'https://example.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+      ),
+    ).toBe(false);
+    expect(
+      isTrustedAssetShareHref(
+        'https://media.evolvesprouts.com/v1/assets/public/abc/download',
+      ),
+    ).toBe(false);
+    expect(
+      isTrustedAssetShareHref(
+        'https://media.evolvesprouts.com/v1/assets/share/short-token',
+      ),
+    ).toBe(false);
+    expect(
+      isTrustedAssetShareHref(
+        'http://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+      ),
+    ).toBe(false);
   });
 });

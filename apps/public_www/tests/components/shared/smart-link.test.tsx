@@ -30,6 +30,22 @@ describe('SmartLink', () => {
     expect(link).not.toHaveAttribute('data-mocked-next-link');
   });
 
+  it('keeps referrer for trusted media share links', () => {
+    render(
+      <SmartLink href='https://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1'>
+        Download
+      </SmartLink>,
+    );
+
+    const link = screen.getByRole('link', { name: 'Download' });
+    expect(link).toHaveAttribute(
+      'href',
+      'https://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1',
+    );
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener');
+  });
+
   it('uses Next Link for internal href values', () => {
     render(<SmartLink href='/about-us'>About us</SmartLink>);
 
