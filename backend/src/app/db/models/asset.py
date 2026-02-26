@@ -7,6 +7,7 @@ from typing import Iterable, Optional
 from uuid import UUID
 
 from sqlalchemy import Enum, ForeignKey, Index, String, Text, text
+from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
@@ -154,6 +155,11 @@ class AssetShareLink(Base):
         nullable=False,
     )
     share_token: Mapped[str] = mapped_column(String(128), nullable=False)
+    allowed_domains: Mapped[list[str]] = mapped_column(
+        PG_ARRAY(String(255)),
+        nullable=False,
+        default=list,
+    )
     created_by: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),

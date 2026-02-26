@@ -58,6 +58,7 @@ const EMPTY_ASSET_FORM: AssetFormState = {
   description: '',
   visibility: 'restricted',
 };
+const DEFAULT_ALLOWED_SHARE_DOMAINS = 'www.evolvesprouts.com';
 
 function toTitleCase(value: string): string {
   return value
@@ -72,6 +73,18 @@ function toFormState(asset: AdminAsset): AssetFormState {
     description: asset.description ?? '',
     visibility: asset.visibility,
   };
+}
+
+function parseAllowedDomainList(input: string): string[] {
+  const rawEntries = input
+    .split(/[\n,]/)
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry.length > 0);
+  const uniqueEntries = Array.from(new Set(rawEntries));
+  if (uniqueEntries.length === 0) {
+    throw new Error('Add at least one allowed domain before creating or rotating a share link.');
+  }
+  return uniqueEntries;
 }
 
 function CopyIcon({ className }: { className?: string }) {
@@ -153,9 +166,13 @@ export function AssetEditorPanel({
   const [isCopyingLink, setIsCopyingLink] = useState(false);
   const [isRotatingLink, setIsRotatingLink] = useState(false);
   const [isRevokingLink, setIsRevokingLink] = useState(false);
+  const [isSavingLinkPolicy, setIsSavingLinkPolicy] = useState(false);
   const [linkError, setLinkError] = useState('');
   const [linkNotice, setLinkNotice] = useState('');
   const [isLinkCopied, setIsLinkCopied] = useState(false);
+  const [allowedDomainsInput, setAllowedDomainsInput] = useState<string>(
+    DEFAULT_ALLOWED_SHARE_DOMAINS
+  );
   const copiedStateTimeoutRef = useRef<number | null>(null);
 
   const isEditMode = Boolean(selectedAsset);
@@ -240,11 +257,17 @@ export function AssetEditorPanel({
     setIsCopyingLink(false);
     setIsRotatingLink(false);
     setIsRevokingLink(false);
+    setIsSavingLinkPolicy(false);
+    setAllowedDomainsInput(DEFAULT_ALLOWED_SHARE_DOMAINS);
     if (copiedStateTimeoutRef.current !== null) {
       window.clearTimeout(copiedStateTimeoutRef.current);
       copiedStateTimeoutRef.current = null;
     }
   };
+
+  const buildSharePolicyInput = () => ({
+    allowedDomains: parseAllowedDomainList(allowedDomainsInput),
+  });
 
   const handleCopyAssetLink = async () => {
     if (!selectedAsset) {
@@ -256,8 +279,12 @@ export function AssetEditorPanel({
     setLinkNotice('');
     setIsLinkCopied(false);
     try {
-      const link = await getOrCreateAdminAssetShareLink(selectedAsset.id);
+      const policyInput = buildSharePolicyInput();
+      const link = await getOrCreateAdminAssetShareLink(selectedAsset.id, policyInput);
       await navigator.clipboard.writeText(link.shareUrl);
+      if (link.allowedDomains.length > 0) {
+        setAllowedDomainsInput(link.allowedDomains.join('\n'));
+      }
       setLinkError('');
       setLinkNotice('Share link copied to clipboard.');
       setIsLinkCopied(true);
@@ -294,8 +321,12 @@ export function AssetEditorPanel({
     setLinkNotice('');
     setIsLinkCopied(false);
     try {
-      const link = await rotateAdminAssetShareLink(selectedAsset.id);
+      const policyInput = buildSharePolicyInput();
+      const link = await rotateAdminAssetShareLink(selectedAsset.id, policyInput);
       await navigator.clipboard.writeText(link.shareUrl);
+      if (link.allowedDomains.length > 0) {
+        setAllowedDomainsInput(link.allowedDomains.join('\n'));
+      }
       setLinkNotice('Share link rotated and copied. Previous links are revoked.');
       setIsLinkCopied(true);
       if (copiedStateTimeoutRef.current !== null) {
@@ -311,6 +342,29 @@ export function AssetEditorPanel({
       );
     } finally {
       setIsRotatingLink(false);
+    }
+  };
+
+  const handleSaveLinkPolicy = async () => {
+    if (!selectedAsset) {
+      return;
+    }
+
+    setIsSavingLinkPolicy(true);
+    setLinkError('');
+    setLinkNotice('');
+    setIsLinkCopied(false);
+    try {
+      const policyInput = buildSharePolicyInput();
+      const link = await getOrCreateAdminAssetShareLink(selectedAsset.id, policyInput);
+      if (link.allowedDomains.length > 0) {
+        setAllowedDomainsInput(link.allowedDomains.join('\n'));
+      }
+      setLinkNotice('Share-link domain policy saved.');
+    } catch (error) {
+      setLinkError(error instanceof Error ? error.message : 'Unable to save link domain policy.');
+    } finally {
+      setIsSavingLinkPolicy(false);
     }
   };
 
@@ -344,7 +398,8 @@ export function AssetEditorPanel({
     }
   };
 
-  const areLinkButtonsDisabled = isCopyingLink || isRotatingLink || isRevokingLink;
+  const areLinkButtonsDisabled =
+    isCopyingLink || isRotatingLink || isRevokingLink || isSavingLinkPolicy;
 
   return (
     <Card title={cardTitle} description={cardDescription} className='space-y-4'>
@@ -463,8 +518,31 @@ export function AssetEditorPanel({
                   </p>
                 </div>
                 <div className='space-y-2'>
+                  <Label htmlFor='asset-share-allowed-domains'>Share-link domain allowlist</Label>
+                  <Textarea
+                    id='asset-share-allowed-domains'
+                    rows={3}
+                    value={allowedDomainsInput}
+                    onChange={(event) => setAllowedDomainsInput(event.target.value)}
+                    placeholder='www.evolvesprouts.com'
+                  />
+                  <p className='text-xs text-slate-600'>
+                    One domain per line (or comma-separated). Share links resolve only when
+                    Referer/Origin matches one of these domains.
+                  </p>
                   <Label>Links</Label>
                   <div className='flex items-center gap-2'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='secondary'
+                      onClick={() => void handleSaveLinkPolicy()}
+                      disabled={areLinkButtonsDisabled}
+                      title={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
+                      aria-label={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
+                    >
+                      Save policy
+                    </Button>
                     <Button
                       type='button'
                       size='sm'

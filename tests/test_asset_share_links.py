@@ -2,12 +2,18 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
+from app.api.assets import share_assets
 from app.api.assets.assets_common import signed_link_no_cache_headers
 from app.api.assets.share_links import (
+    extract_request_source_domain,
     build_share_link_url,
     generate_share_token,
     is_valid_share_token,
+    normalize_allowed_domains,
 )
+from app.exceptions import ValidationError
 
 
 def test_generate_share_token_is_url_safe() -> None:
@@ -54,3 +60,72 @@ def test_signed_link_no_cache_headers_are_strict() -> None:
     )
     assert headers["Pragma"] == "no-cache"
     assert headers["Expires"] == "0"
+
+
+def test_normalize_allowed_domains_accepts_urls_and_deduplicates() -> None:
+    allowed_domains = normalize_allowed_domains(
+        [
+            "https://www.evolvesprouts.com/page",
+            "WWW.EVOLVESPROUTS.COM",
+            "www-staging.evolvesprouts.com",
+        ]
+    )
+    assert allowed_domains == [
+        "www.evolvesprouts.com",
+        "www-staging.evolvesprouts.com",
+    ]
+
+
+def test_normalize_allowed_domains_rejects_invalid_input() -> None:
+    with pytest.raises(ValidationError):
+        normalize_allowed_domains(["not a domain"])
+
+
+def test_extract_request_source_domain_prefers_referer() -> None:
+    event = {
+        "headers": {
+            "Referer": "https://www.evolvesprouts.com/articles/downloads",
+            "Origin": "https://ignored.example.com",
+        }
+    }
+    assert extract_request_source_domain(event) == "www.evolvesprouts.com"
+
+
+def test_extract_request_source_domain_uses_origin_fallback() -> None:
+    event = {"headers": {"Origin": "https://www.evolvesprouts.com"}}
+    assert extract_request_source_domain(event) == "www.evolvesprouts.com"
+
+
+def test_extract_request_source_domain_returns_none_for_invalid_header() -> None:
+    event = {"headers": {"Referer": "bad value"}}
+    assert extract_request_source_domain(event) is None
+
+
+def test_extract_bearer_token_reads_authorization_header() -> None:
+    event = {"headers": {"Authorization": "Bearer abc.def.ghi"}}
+    assert share_assets._extract_bearer_token(event) == "abc.def.ghi"
+
+
+def test_extract_bearer_token_accepts_non_bearer_value() -> None:
+    event = {"headers": {"authorization": "raw-token"}}
+    assert share_assets._extract_bearer_token(event) == "raw-token"
+
+
+def test_restricted_share_authentication_accepts_valid_token(monkeypatch: Any) -> None:
+    class Claims:
+        sub = "user-sub-123"
+
+    monkeypatch.setattr(
+        share_assets, "decode_and_verify_token", lambda token: Claims()  # noqa: ARG005
+    )
+    event = {"headers": {"Authorization": "Bearer valid.jwt.token"}}
+    assert share_assets._is_restricted_share_request_authenticated(event) is True
+
+
+def test_restricted_share_authentication_rejects_invalid_token(monkeypatch: Any) -> None:
+    def _raise_invalid_token(token: str) -> Any:  # noqa: ARG001
+        raise share_assets.JWTValidationError("invalid token")
+
+    monkeypatch.setattr(share_assets, "decode_and_verify_token", _raise_invalid_token)
+    event = {"headers": {"Authorization": "Bearer invalid.jwt.token"}}
+    assert share_assets._is_restricted_share_request_authenticated(event) is False

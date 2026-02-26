@@ -992,6 +992,8 @@ export class ApiStack extends cdk.Stack {
           assetDownloadCustomDomainName.valueAsString,
         ASSET_SHARE_LINK_BASE_URL:
           `https://${assetDownloadCustomDomainName.valueAsString}`,
+        ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS:
+          "www.evolvesprouts.com,www-staging.evolvesprouts.com",
         ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID: assetDownloadPublicKey.publicKeyId,
         ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,

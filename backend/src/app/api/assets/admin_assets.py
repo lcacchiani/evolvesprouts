@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import json
 from typing import Any, Mapping, Optional
 from uuid import UUID, uuid4
 
@@ -23,7 +25,12 @@ from app.api.assets.assets_common import (
     serialize_grant,
     split_route_parts,
 )
-from app.api.assets.share_links import build_share_link_url, generate_share_token
+from app.api.assets.share_links import (
+    build_share_link_url,
+    generate_share_token,
+    normalize_allowed_domains,
+    resolve_default_allowed_domains,
+)
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
@@ -284,6 +291,7 @@ def _get_or_create_share_link(
     actor_sub: str,
 ) -> dict[str, Any]:
     request_id = _request_id(event)
+    requested_allowed_domains = _parse_share_link_allowed_domains(event)
 
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id)
@@ -295,18 +303,30 @@ def _get_or_create_share_link(
         share_link = repository.get_share_link(asset_id=asset_id)
         status_code = 200
         if share_link is None:
+            allowed_domains = (
+                requested_allowed_domains or resolve_default_allowed_domains()
+            )
             share_link = repository.create_share_link(
                 asset_id=asset_id,
                 share_token=generate_share_token(),
+                allowed_domains=allowed_domains,
                 created_by=actor_sub,
             )
             status_code = 201
+        elif requested_allowed_domains is not None:
+            share_link = repository.update_share_link_allowed_domains(
+                share_link,
+                allowed_domains=requested_allowed_domains,
+            )
         session.commit()
 
         return json_response(
             status_code,
             _serialize_share_link_response(
-                event=event, asset_id=asset_id, token=share_link.share_token
+                event=event,
+                asset_id=asset_id,
+                token=share_link.share_token,
+                allowed_domains=share_link.allowed_domains,
             ),
             event=event,
         )
@@ -318,6 +338,7 @@ def _rotate_share_link(
     actor_sub: str,
 ) -> dict[str, Any]:
     request_id = _request_id(event)
+    requested_allowed_domains = _parse_share_link_allowed_domains(event)
 
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id)
@@ -329,22 +350,30 @@ def _rotate_share_link(
         share_link = repository.get_share_link(asset_id=asset_id)
         next_token = generate_share_token()
         if share_link is None:
+            allowed_domains = (
+                requested_allowed_domains or resolve_default_allowed_domains()
+            )
             share_link = repository.create_share_link(
                 asset_id=asset_id,
                 share_token=next_token,
+                allowed_domains=allowed_domains,
                 created_by=actor_sub,
             )
         else:
             share_link = repository.rotate_share_link(
                 share_link,
                 share_token=next_token,
+                allowed_domains=requested_allowed_domains,
             )
         session.commit()
 
         return json_response(
             200,
             _serialize_share_link_response(
-                event=event, asset_id=asset_id, token=share_link.share_token
+                event=event,
+                asset_id=asset_id,
+                token=share_link.share_token,
+                allowed_domains=share_link.allowed_domains,
             ),
             event=event,
         )
@@ -376,11 +405,56 @@ def _serialize_share_link_response(
     event: Mapping[str, Any],
     asset_id: UUID,
     token: str,
+    allowed_domains: list[str],
 ) -> dict[str, Any]:
     return {
         "asset_id": str(asset_id),
         "share_url": build_share_link_url(event, token),
+        "allowed_domains": list(allowed_domains),
     }
+
+
+def _parse_share_link_allowed_domains(event: Mapping[str, Any]) -> list[str] | None:
+    body = _parse_optional_json_body(event)
+    if body is None:
+        return None
+
+    raw_allowed_domains = body.get("allowed_domains")
+    if raw_allowed_domains is None:
+        raw_allowed_domains = body.get("allowedDomains")
+    if raw_allowed_domains is None:
+        return None
+    if not isinstance(raw_allowed_domains, list):
+        raise ValidationError(
+            "allowed_domains must be an array of domains",
+            field="allowed_domains",
+        )
+    return normalize_allowed_domains(raw_allowed_domains)
+
+
+def _parse_optional_json_body(event: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    raw_body = event.get("body")
+    if raw_body is None:
+        return None
+    if not isinstance(raw_body, str):
+        raise ValidationError("Request body must be a JSON object", field="body")
+    if not raw_body.strip():
+        return None
+
+    decoded_body = raw_body
+    if event.get("isBase64Encoded"):
+        try:
+            decoded_body = base64.b64decode(raw_body).decode("utf-8")
+        except (ValueError, UnicodeDecodeError) as exc:
+            raise ValidationError("Request body is not valid base64 JSON") from exc
+
+    try:
+        parsed_body = json.loads(decoded_body)
+    except json.JSONDecodeError as exc:
+        raise ValidationError("Request body must be valid JSON", field="body") from exc
+    if not isinstance(parsed_body, Mapping):
+        raise ValidationError("Request body must be a JSON object", field="body")
+    return parsed_body
 
 
 def _request_id(event: Mapping[str, Any]) -> Optional[str]:

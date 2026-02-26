@@ -74,6 +74,10 @@ paths:
         to a fresh CloudFront-signed download URL.
         Requests are authenticated with API key at API Gateway; CloudFront
         forwards the request and injects `x-api-key` for end users.
+        Resolution is allowed only when the request carries a Referer/Origin
+        header matching the asset's admin-configured domain allowlist.
+        If the linked asset is `restricted`, the request must also include a
+        valid Cognito JWT in the `Authorization` header.
       security:
         - ApiKeyAuth: []
       responses:
@@ -87,6 +91,14 @@ paths:
                 format: uri
         "404":
           $ref: "#/components/responses/NotFound"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "401":
+          description: Authentication required for restricted asset share links.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /www/v1/calendar/events:
     get:

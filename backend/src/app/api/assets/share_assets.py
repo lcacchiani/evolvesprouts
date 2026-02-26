@@ -6,12 +6,17 @@ from typing import Any, Mapping
 
 from sqlalchemy.orm import Session
 
+from app.auth.jwt_validator import JWTValidationError, decode_and_verify_token
 from app.api.assets.assets_common import (
     generate_download_url,
     signed_link_no_cache_headers,
     split_route_parts,
 )
-from app.api.assets.share_links import is_valid_share_token
+from app.api.assets.share_links import (
+    extract_request_source_domain,
+    is_valid_share_token,
+)
+from app.db.models import AssetVisibility
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
 from app.utils import json_response
@@ -42,10 +47,19 @@ def _resolve_share_token(event: Mapping[str, Any], share_token: str) -> dict[str
         share_link = repository.get_share_link_by_token(token=share_token)
         if share_link is None:
             return json_response(404, {"error": "Not found"}, event=event)
+        source_domain = extract_request_source_domain(event)
+        allowed_domains = set(share_link.allowed_domains or [])
+        if not source_domain or source_domain not in allowed_domains:
+            return json_response(403, {"error": "Forbidden"}, event=event)
 
         asset = repository.get_by_id(share_link.asset_id)
         if asset is None:
             return json_response(404, {"error": "Not found"}, event=event)
+        if (
+            asset.visibility == AssetVisibility.RESTRICTED
+            and not _is_restricted_share_request_authenticated(event)
+        ):
+            return json_response(401, {"error": "Unauthorized"}, event=event)
 
         download = generate_download_url(s3_key=asset.s3_key)
         response_headers = signed_link_no_cache_headers()
@@ -56,3 +70,33 @@ def _resolve_share_token(event: Mapping[str, Any], share_token: str) -> dict[str
             headers=response_headers,
             event=event,
         )
+
+
+def _is_restricted_share_request_authenticated(event: Mapping[str, Any]) -> bool:
+    token = _extract_bearer_token(event)
+    if not token:
+        return False
+    try:
+        claims = decode_and_verify_token(token)
+    except JWTValidationError:
+        return False
+    return bool(claims.sub)
+
+
+def _extract_bearer_token(event: Mapping[str, Any]) -> str | None:
+    headers = event.get("headers")
+    if not isinstance(headers, Mapping):
+        return None
+
+    authorization = ""
+    for key, value in headers.items():
+        if isinstance(key, str) and key.lower() == "authorization":
+            authorization = str(value or "").strip()
+            break
+    if not authorization:
+        return None
+
+    if authorization.lower().startswith("bearer "):
+        token = authorization[7:].strip()
+        return token if token else None
+    return authorization

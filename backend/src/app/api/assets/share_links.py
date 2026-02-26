@@ -2,14 +2,24 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 import os
 import re
 import secrets
+from urllib.parse import urlparse
 from typing import Any, Mapping
+
+from app.exceptions import ValidationError
 
 _SHARE_TOKEN_BYTES = 24
 _SHARE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{24,128}$")
 _SHARE_PATH_PREFIX = "/v1/assets/share"
+_MAX_ALLOWED_DOMAINS = 20
+_DEFAULT_ALLOWED_DOMAIN_CSV = "www.evolvesprouts.com,www-staging.evolvesprouts.com"
+_DOMAIN_RE = re.compile(
+    r"^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+"
+    r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$"
+)
 
 
 def generate_share_token() -> str:
@@ -30,6 +40,66 @@ def build_share_link_url(event: Mapping[str, Any], token: str) -> str:
 
     request_base = _derive_request_base_url(event).rstrip("/")
     return f"{request_base}{_SHARE_PATH_PREFIX}/{token}"
+
+
+def resolve_default_allowed_domains() -> list[str]:
+    """Resolve default allowed source domains for newly-created share links."""
+    configured = os.getenv(
+        "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS",
+        _DEFAULT_ALLOWED_DOMAIN_CSV,
+    ).strip()
+    raw_domains = [part.strip() for part in configured.split(",") if part.strip()]
+    if not raw_domains:
+        raw_domains = [part.strip() for part in _DEFAULT_ALLOWED_DOMAIN_CSV.split(",")]
+    try:
+        return normalize_allowed_domains(raw_domains)
+    except ValidationError as exc:
+        raise RuntimeError(
+            "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS must contain valid hostnames"
+        ) from exc
+
+
+def normalize_allowed_domains(raw_domains: Sequence[str]) -> list[str]:
+    """Validate and normalize share-link source domain allowlist input."""
+    if len(raw_domains) == 0:
+        raise ValidationError(
+            "allowed_domains must include at least one domain",
+            field="allowed_domains",
+        )
+    if len(raw_domains) > _MAX_ALLOWED_DOMAINS:
+        raise ValidationError(
+            f"allowed_domains supports up to {_MAX_ALLOWED_DOMAINS} entries",
+            field="allowed_domains",
+        )
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for raw_domain in raw_domains:
+        domain = _normalize_domain(raw_domain)
+        if domain not in seen:
+            seen.add(domain)
+            normalized.append(domain)
+
+    if not normalized:
+        raise ValidationError(
+            "allowed_domains must include at least one valid domain",
+            field="allowed_domains",
+        )
+    return normalized
+
+
+def extract_request_source_domain(event: Mapping[str, Any]) -> str | None:
+    """Return the source domain inferred from Referer/Origin request headers."""
+    headers = event.get("headers")
+    if not isinstance(headers, Mapping):
+        return None
+
+    for header_name in ("referer", "referrer", "origin"):
+        raw_value = _header_value(headers, header_name)
+        domain = _extract_domain_from_url(raw_value)
+        if domain:
+            return domain
+    return None
 
 
 def _derive_request_base_url(event: Mapping[str, Any]) -> str:
@@ -62,6 +132,50 @@ def _derive_request_base_url(event: Mapping[str, Any]) -> str:
         base_path = request_context_path[: -len(event_path)]
 
     return f"{scheme}://{host}{base_path}"
+
+
+def _normalize_domain(value: Any) -> str:
+    if not isinstance(value, str):
+        raise ValidationError(
+            "allowed_domains must contain strings",
+            field="allowed_domains",
+        )
+
+    domain = _extract_domain_from_url(value)
+    if not domain:
+        raise ValidationError(
+            "allowed_domains entries must be valid hostnames",
+            field="allowed_domains",
+        )
+    return domain
+
+
+def _extract_domain_from_url(value: Any) -> str | None:
+    normalized_value = _to_non_empty_string(value)
+    if not normalized_value:
+        return None
+
+    parsed = urlparse(normalized_value)
+    hostname = parsed.hostname
+    if not hostname and "://" not in normalized_value:
+        parsed = urlparse(f"https://{normalized_value}")
+        hostname = parsed.hostname
+    if not hostname:
+        return None
+
+    normalized_host = hostname.strip().lower().rstrip(".")
+    if normalized_host == "localhost":
+        return normalized_host
+    if not _DOMAIN_RE.fullmatch(normalized_host):
+        return None
+    return normalized_host
+
+
+def _header_value(headers: Mapping[str, Any], target_key: str) -> str | None:
+    for key, value in headers.items():
+        if isinstance(key, str) and key.lower() == target_key.lower():
+            return _to_non_empty_string(value)
+    return None
 
 
 def _to_non_empty_string(value: Any) -> str | None:
