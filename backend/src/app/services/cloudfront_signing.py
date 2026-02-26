@@ -77,7 +77,8 @@ def _get_signer(*, key_pair_id: str, secret_arn: str) -> CloudFrontSigner:
         return private_key.sign(
             message,
             padding.PKCS1v15(),
-            hashes.SHA1(),  # nosec B303  # nosemgrep: python.cryptography.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
+            # nosemgrep: python.cryptography.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
+            hashes.SHA1(),  # nosec B303
         )
 
     signer = CloudFrontSigner(key_pair_id, rsa_signer)
