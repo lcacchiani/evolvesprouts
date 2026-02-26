@@ -201,6 +201,35 @@ jobs:
             p/secrets
             p/owasp-top-ten
 
+      - name: Filter in-source suppressed Semgrep findings
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          sarif_path = Path("semgrep-results.sarif")
+          if not sarif_path.exists():
+              print("semgrep-results.sarif not found; skipping suppression filter.")
+              raise SystemExit(0)
+
+          payload = json.loads(sarif_path.read_text(encoding="utf-8"))
+          removed = 0
+          for run in payload.get("runs", []):
+              results = run.get("results", [])
+              kept = []
+              for result in results:
+                  suppressions = result.get("suppressions", [])
+                  if any(item.get("kind") == "inSource" for item in suppressions):
+                      removed += 1
+                      continue
+                  kept.append(result)
+              run["results"] = kept
+
+          sarif_path.write_text(json.dumps(payload), encoding="utf-8")
+          print(f"Removed {removed} in-source suppressed Semgrep findings from SARIF.")
+          PY
+
       - name: Upload SARIF results
         uses: github/codeql-action/upload-sarif@v4
         if: always()
