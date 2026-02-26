@@ -659,7 +659,7 @@ export interface components {
         AssetShareLinkPolicyRequest: {
             /**
              * @description Domain allowlist for share-link resolution, for example
-             *     `www.evolvesprouts.com`.
+             *     `www.example.com`.
              */
             allowed_domains: string[];
         };
