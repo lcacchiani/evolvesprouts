@@ -35,6 +35,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Resolve public site domains from infrastructure params
+        id: resolve_public_site_domains
+        run: |
+          PRODUCTION_SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwDomainName', '')).strip())")"
+          STAGING_SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwStagingDomainName', '')).strip())")"
+          if [ -z "$PRODUCTION_SITE_DOMAIN" ] || [ -z "$STAGING_SITE_DOMAIN" ]; then
+            echo "PublicWwwDomainName and PublicWwwStagingDomainName are required in backend/infrastructure/params/production.json"
+            exit 1
+          fi
+          echo "production_site_origin=https://${PRODUCTION_SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "staging_site_origin=https://${STAGING_SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
+
       - name: Validate AWS configuration
         run: |
           if [ -z "$AWS_ACCOUNT_ID" ] || [ -z "$AWS_REGION" ]; then
@@ -128,7 +140,7 @@ jobs:
               echo '- Operation mode: `maintenance_on`'
               echo '- Target environment: `production`'
               echo '- Stack: `evolvesprouts-public-www`'
-              echo '- Production URL: `https://www.evolvesprouts.com`'
+              echo "- Production URL: \`${{ steps.resolve_public_site_domains.outputs.production_site_origin }}\`"
               echo '- `/www/*` CloudFront proxy: `blocked`'
             } >> "$GITHUB_STEP_SUMMARY"
           else
@@ -140,7 +152,7 @@ jobs:
               echo '- Source environment: `staging`'
               echo '- Target environment: `production`'
               echo '- Stack: `evolvesprouts-public-www`'
-              echo '- Production URL: `https://www.evolvesprouts.com`'
+              echo "- Production URL: \`${{ steps.resolve_public_site_domains.outputs.production_site_origin }}\`"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
         env:

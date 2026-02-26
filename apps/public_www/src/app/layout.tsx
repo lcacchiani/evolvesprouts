@@ -8,10 +8,20 @@ import {
   type DocumentDirection,
 } from '@/lib/locale-document';
 import { GoogleTagManager } from '@/components/shared/google-tag-manager';
-import { SITE_ORIGIN } from '@/lib/seo';
+import { SITE_HOST, SITE_ORIGIN } from '@/lib/seo';
 import './globals.css';
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || '';
+const GTM_ALLOWED_HOSTS = resolveGtmAllowedHosts();
+
+function resolveGtmAllowedHosts(): string {
+  const configuredHosts = process.env.NEXT_PUBLIC_GTM_ALLOWED_HOSTS;
+  if (!configuredHosts || configuredHosts.trim() === '') {
+    return SITE_HOST;
+  }
+
+  return configuredHosts;
+}
 
 const lato = Lato({
   subsets: ['latin'],
@@ -62,7 +72,12 @@ export default function RootLayout({
       className={`${lato.variable} ${poppins.variable}`}
       data-default-locale={DEFAULT_LOCALE}
       data-locale-directions={JSON.stringify(DOCUMENT_LOCALE_DIRECTIONS)}
-      {...(GTM_ID ? { 'data-gtm-id': GTM_ID } : {})}
+      {...(GTM_ID
+        ? {
+            'data-gtm-id': GTM_ID,
+            'data-gtm-allowed-hosts': GTM_ALLOWED_HOSTS,
+          }
+        : {})}
     >
       <body className='antialiased'>
         {/* eslint-disable-next-line @next/next/no-sync-scripts -- must run before hydration without inline wrappers */}

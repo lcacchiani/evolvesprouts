@@ -10,6 +10,7 @@ interface WebsiteEnvironmentConfig {
   readonly environmentLabel: "production" | "staging";
   readonly domainName: string;
   readonly certificateArn: string;
+  readonly apiOriginDomainName: string;
   readonly bucketNamePrefix: string;
   readonly loggingBucketNamePrefix: string;
   readonly addNoIndexHeader: boolean;
@@ -78,6 +79,21 @@ export class PublicWwwStack extends cdk.Stack {
         description: "ACM certificate ARN for staging public website domain.",
       },
     );
+    const publicWwwCrmApiBaseUrl = new cdk.CfnParameter(
+      this,
+      "PublicWwwCrmApiBaseUrl",
+      {
+        type: "String",
+        description:
+          "Absolute HTTPS public CRM API base URL used by the /www proxy (for example https://api.example.com/www).",
+        allowedPattern: "^https://[^/]+/www/?$",
+        constraintDescription:
+          "Must be an absolute HTTPS URL ending in /www.",
+      },
+    );
+    const publicWwwApiOriginDomainName = resolveApiOriginDomainName(
+      publicWwwCrmApiBaseUrl.valueAsString,
+    );
 
     const wafWebAclArn = new cdk.CfnParameter(this, "WafWebAclArn", {
       type: "String",
@@ -99,6 +115,7 @@ export class PublicWwwStack extends cdk.Stack {
       environmentLabel: "production",
       domainName: productionDomainName.valueAsString,
       certificateArn: productionCertificateArn.valueAsString,
+      apiOriginDomainName: publicWwwApiOriginDomainName,
       bucketNamePrefix: "evolvesprouts-public-www",
       loggingBucketNamePrefix: "evolvesprouts-public-www-logs",
       addNoIndexHeader: false,
@@ -114,6 +131,7 @@ export class PublicWwwStack extends cdk.Stack {
       environmentLabel: "staging",
       domainName: stagingDomainName.valueAsString,
       certificateArn: stagingCertificateArn.valueAsString,
+      apiOriginDomainName: publicWwwApiOriginDomainName,
       bucketNamePrefix: "evolvesprouts-staging-www",
       loggingBucketNamePrefix: "evolvesprouts-staging-www-logs",
       addNoIndexHeader: true,
@@ -231,7 +249,7 @@ export class PublicWwwStack extends cdk.Stack {
     const websiteOrigin = origins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
       originAccessIdentity,
     });
-    const wwwApiOrigin = new origins.HttpOrigin("api.evolvesprouts.com", {
+    const wwwApiOrigin = new origins.HttpOrigin(config.apiOriginDomainName, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
     });
     const pathRewriteFunction = new cloudfront.Function(
@@ -441,4 +459,11 @@ function handler(event) {
       loggingBucket,
     };
   }
+}
+
+function resolveApiOriginDomainName(apiBaseUrl: string): string {
+  return cdk.Fn.select(
+    0,
+    cdk.Fn.split("/", cdk.Fn.select(1, cdk.Fn.split("://", apiBaseUrl))),
+  );
 }

@@ -47,12 +47,8 @@ export class CrmApiRequestError extends Error {
 export const CRM_GET_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const getRequestCache = new Map<string, CachedGetEntry>();
-const PUBLIC_WWW_API_HOSTNAMES = new Set([
-  'www.evolvesprouts.com',
-  'www-staging.evolvesprouts.com',
-]);
-const CRM_API_HOSTNAME = 'api.evolvesprouts.com';
-const ALLOWED_API_HOSTNAMES = new Set([CRM_API_HOSTNAME]);
+const WWW_PROXY_ALLOWED_HOSTS_ENV_NAME = 'NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS';
+const CRM_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_WWW_CRM_API_BASE_URL';
 const WWW_API_PATH_PREFIX = '/www';
 
 function normalizeBaseUrl(baseUrl: string): string {
@@ -75,7 +71,11 @@ function normalizeBaseUrl(baseUrl: string): string {
   if (parsedUrl.protocol.toLowerCase() !== 'https:') {
     return '';
   }
-  if (!ALLOWED_API_HOSTNAMES.has(parsedUrl.hostname.toLowerCase())) {
+  const configuredApiHostname = resolveConfiguredApiHostname();
+  if (
+    configuredApiHostname &&
+    parsedUrl.hostname.toLowerCase() !== configuredApiHostname
+  ) {
     return '';
   }
 
@@ -113,18 +113,53 @@ function normalizeAbsolutePathname(pathname: string): string {
   return normalizedPath;
 }
 
+function resolveConfiguredApiHostname(): string | null {
+  const configuredBaseUrl = process.env[CRM_API_BASE_URL_ENV_NAME]?.trim() ?? '';
+  if (!configuredBaseUrl || configuredBaseUrl.startsWith('/')) {
+    return null;
+  }
+
+  try {
+    const parsedUrl = new URL(configuredBaseUrl);
+    if (parsedUrl.protocol.toLowerCase() !== 'https:') {
+      return null;
+    }
+    const normalizedPathname = normalizeAbsolutePathname(parsedUrl.pathname);
+    if (normalizedPathname !== WWW_API_PATH_PREFIX) {
+      return null;
+    }
+    return parsedUrl.hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function resolveProxyAllowedHosts(): Set<string> {
+  const rawHosts = process.env[WWW_PROXY_ALLOWED_HOSTS_ENV_NAME]?.trim() ?? '';
+  if (!rawHosts) {
+    return new Set();
+  }
+  return new Set(
+    rawHosts
+      .split(',')
+      .map((host) => host.trim().toLowerCase())
+      .filter((host) => host.length > 0),
+  );
+}
+
 function shouldUsePublicWwwProxy(apiHostname: string, apiPathname: string): boolean {
-  if (apiHostname.toLowerCase() !== CRM_API_HOSTNAME) {
+  if (!apiPathname.startsWith(WWW_API_PATH_PREFIX)) {
     return false;
   }
-  if (!apiPathname.startsWith(WWW_API_PATH_PREFIX)) {
+  const configuredApiHostname = resolveConfiguredApiHostname();
+  if (configuredApiHostname && apiHostname.toLowerCase() !== configuredApiHostname) {
     return false;
   }
 
   const currentHostname =
     typeof location === 'undefined' ? '' : location.hostname.toLowerCase();
 
-  return PUBLIC_WWW_API_HOSTNAMES.has(currentHostname);
+  return resolveProxyAllowedHosts().has(currentHostname);
 }
 
 function normalizeEndpointPath(endpointPath: string): string {

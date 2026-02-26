@@ -37,8 +37,9 @@ The stack outputs:
 Public WWW CloudFront includes:
 
 - Default behavior: static site content from S3 with extensionless path rewrite.
-- Additional behavior: `www/*` forwards to `api.evolvesprouts.com` using
-  HTTPS-only origin policy, disabled caching, and
+- Additional behavior: `www/*` forwards to the host extracted from
+  `PublicWwwCrmApiBaseUrl` (for example `https://api.evolvesprouts.com/www`)
+  using HTTPS-only origin policy, disabled caching, and
   `OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER` so API key headers and
   query parameters pass through while preserving the API origin host header.
 - Response headers policy for browser hardening:
@@ -346,8 +347,8 @@ For each function above, the following resources are created:
 - Cache TTL: 5 minutes for `/v1/assets/public/GET`
 
 **CORS Configuration:**
-- Allowed Origins: From `CORS_ALLOWED_ORIGINS` env var or context, and always includes `https://www.evolvesprouts.com`, `https://www-staging.evolvesprouts.com`, `https://admin.evolvesprouts.com`, and `https://admin.evolvesprouts.lx-software.com`
-- Default Origins (when no env/context is set): `https://www.evolvesprouts.com`, `https://www-staging.evolvesprouts.com`, `https://admin.evolvesprouts.com`, `https://admin.evolvesprouts.lx-software.com`, `capacitor://localhost`, `ionic://localhost`, `http://localhost`, `http://localhost:3000`, `https://evolvesprouts.lx-software.com`, `https://evolvesprouts-api.lx-software.com`
+- Allowed Origins: From `CORS_ALLOWED_ORIGINS` env var or CDK context (`corsAllowedOrigins`), always merged with required origins derived from `PublicWwwDomainName`, `PublicWwwStagingDomainName`, and `AdminWebDomainName`
+- Default Origins (when no env/context is set): only the required domain-derived origins above
 - `EvolvesproutsAdminFunction` receives the resolved CORS list through its `CORS_ALLOWED_ORIGINS` environment variable so Lambda responses and API Gateway preflight behavior stay consistent.
 - Allowed Methods: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`
 
@@ -478,7 +479,7 @@ configured by stack custom resources (including retention and KMS association).
 | `AdminBootstrapTempPassword` | String | No | Yes | Temporary password for bootstrap (default: empty) |
 | `AssetDownloadCloudFrontPublicKeyPem` | String | Yes | No | PEM-encoded RSA public key for signed asset URLs |
 | `AssetDownloadCloudFrontPrivateKeySecretArn` | String | Yes | Yes | Secrets Manager ARN containing CloudFront private key PEM |
-| `AssetDownloadCustomDomainName` | String | Yes | No | Custom domain used in signed client-asset download links (for example `media.evolvesprouts.com`) |
+| `AssetDownloadCustomDomainName` | String | Yes | No | Custom domain used in signed client-asset download links (for example `media.example.com`) |
 | `AssetDownloadCustomDomainCertificateArn` | String | Yes | No | ACM certificate ARN for the client-asset custom domain (must be in `us-east-1`) |
 | `AssetDownloadWafWebAclArn` | String | No | No | Optional WAF WebACL ARN for the client-asset download CloudFront distribution (must be in `us-east-1`) |
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildLocalizedMetadata,
   DEFAULT_SOCIAL_IMAGE,
+  normalizeSiteOrigin,
 } from '@/lib/seo';
 
 describe('seo metadata builder', () => {
@@ -72,5 +73,25 @@ describe('seo metadata builder', () => {
       index: false,
       follow: true,
     });
+  });
+
+  it('normalizes valid HTTPS origins for site metadata', () => {
+    expect(normalizeSiteOrigin('https://example.com/')).toBe('https://example.com');
+  });
+
+  it('allows localhost HTTP origin for local development', () => {
+    expect(normalizeSiteOrigin('http://localhost:3000')).toBe('http://localhost:3000');
+  });
+
+  it('rejects non-HTTPS non-localhost origins', () => {
+    expect(() => normalizeSiteOrigin('http://example.com')).toThrow(
+      'must use https, or http://localhost',
+    );
+  });
+
+  it('rejects origins that include path/query/hash', () => {
+    expect(() => normalizeSiteOrigin('https://example.com/path')).toThrow(
+      'must not include a path, query string, or hash fragment',
+    );
   });
 });

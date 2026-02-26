@@ -5,6 +5,7 @@ import { JSDOM } from 'jsdom';
 
 const BUILD_OUTPUT_DIRECTORY = resolve('out');
 const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
+const CRM_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_WWW_CRM_API_BASE_URL';
 
 const GTM_SCRIPT_ORIGINS = ['https://www.googletagmanager.com'];
 const GTM_CONNECT_ORIGINS = [
@@ -14,16 +15,50 @@ const GTM_CONNECT_ORIGINS = [
   'https://stats.g.doubleclick.net',
 ];
 const GTM_DETECT_MARKER = 'init-gtm.js';
+const CRM_API_CONNECT_ORIGINS = resolveCrmApiConnectOrigins();
+
+function resolveCrmApiConnectOrigins() {
+  const configuredBaseUrl = process.env[CRM_API_BASE_URL_ENV_NAME]?.trim() ?? '';
+  if (configuredBaseUrl === '') {
+    return [];
+  }
+
+  // Relative paths (for example "/www") are same-origin and covered by 'self'.
+  if (configuredBaseUrl.startsWith('/')) {
+    return [];
+  }
+
+  let parsedBaseUrl;
+  try {
+    parsedBaseUrl = new URL(configuredBaseUrl);
+  } catch {
+    throw new Error(
+      `${CRM_API_BASE_URL_ENV_NAME} must be an absolute URL or a relative path like "/www".`,
+    );
+  }
+
+  const protocol = parsedBaseUrl.protocol.toLowerCase();
+  const hostname = parsedBaseUrl.hostname.toLowerCase();
+  const isLocalhostHttpOrigin = protocol === 'http:' && hostname === 'localhost';
+  if (protocol !== 'https:' && !isLocalhostHttpOrigin) {
+    throw new Error(
+      `${CRM_API_BASE_URL_ENV_NAME} must use https, or http://localhost for local development.`,
+    );
+  }
+
+  return [parsedBaseUrl.origin];
+}
 
 function buildCspDirectiveBase(hasGtm) {
   const connectSources = [
     "'self'",
-    'https://api.evolvesprouts.com',
+    ...CRM_API_CONNECT_ORIGINS,
     TURNSTILE_ORIGIN,
   ];
   if (hasGtm) {
     connectSources.push(...GTM_CONNECT_ORIGINS);
   }
+  const dedupedConnectSources = [...new Set(connectSources)];
 
   return [
     "default-src 'self'",
@@ -31,7 +66,7 @@ function buildCspDirectiveBase(hasGtm) {
     "object-src 'none'",
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com data:",
-    `connect-src ${connectSources.join(' ')}`,
+    `connect-src ${dedupedConnectSources.join(' ')}`,
     `frame-src 'self' ${TURNSTILE_ORIGIN}`,
     "form-action 'self' mailto:",
   ];

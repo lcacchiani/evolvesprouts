@@ -11,7 +11,7 @@ from app.utils.cfn_response import send_cfn_response
 from app.utils.logging import configure_logging, get_logger
 
 from .runner import _run_migrations
-from .seed import _get_or_create_seed_manager, _run_seed
+from .seed import _run_seed
 from .sync import _sync_active_countries, _sync_proxy_user_passwords
 from .utils import _run_with_retry, _truthy
 
@@ -56,8 +56,7 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
                 "SEED_FILE_PATH",
                 "/var/task/db/seed/seed_data.sql",
             )
-            seed_manager_sub = _get_or_create_seed_manager()
-            _run_with_retry(_run_seed, database_url, seed_path, seed_manager_sub)
+            _run_with_retry(_run_seed, database_url, seed_path)
 
         logger.info("Migrations completed successfully")
         data = {"status": "ok"}
@@ -96,15 +95,7 @@ def _handle_seed_only(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
             "SEED_FILE_PATH",
             "/var/task/db/seed/seed_data.sql",
         )
-
-        seed_manager_sub = event.get("seed_manager_sub")
-        if not seed_manager_sub:
-            logger.info("No seed_manager_sub provided, attempting to create user")
-            seed_manager_sub = _get_or_create_seed_manager()
-        else:
-            logger.info(f"Using provided seed_manager_sub: {seed_manager_sub}")
-
-        _run_with_retry(_run_seed, database_url, seed_path, seed_manager_sub)
+        _run_with_retry(_run_seed, database_url, seed_path)
 
         logger.info("Seeding completed successfully")
         return {"status": "ok", "action": "seed"}

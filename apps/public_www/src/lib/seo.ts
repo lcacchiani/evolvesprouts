@@ -10,7 +10,60 @@ import {
   normalizeLocalizedPath,
 } from '@/lib/locale-routing';
 
-export const SITE_ORIGIN = 'https://www.evolvesprouts.com';
+const SITE_ORIGIN_ENV_NAME = 'NEXT_PUBLIC_SITE_ORIGIN';
+
+export function normalizeSiteOrigin(rawOrigin: string): string {
+  const normalizedOrigin = rawOrigin.trim();
+  if (normalizedOrigin === '') {
+    throw new Error(`${SITE_ORIGIN_ENV_NAME} must not be empty.`);
+  }
+
+  let parsedOrigin: URL;
+  try {
+    parsedOrigin = new URL(normalizedOrigin);
+  } catch {
+    throw new Error(`${SITE_ORIGIN_ENV_NAME} must be a valid absolute URL.`);
+  }
+
+  const protocol = parsedOrigin.protocol.toLowerCase();
+  const hostname = parsedOrigin.hostname.toLowerCase();
+  const isLocalhostHttpOrigin = protocol === 'http:' && hostname === 'localhost';
+  if (protocol !== 'https:' && !isLocalhostHttpOrigin) {
+    throw new Error(
+      `${SITE_ORIGIN_ENV_NAME} must use https, or http://localhost for local development.`,
+    );
+  }
+
+  if (parsedOrigin.pathname !== '/' || parsedOrigin.search !== '' || parsedOrigin.hash !== '') {
+    throw new Error(
+      `${SITE_ORIGIN_ENV_NAME} must not include a path, query string, or hash fragment.`,
+    );
+  }
+
+  return parsedOrigin.origin;
+}
+
+function resolveSiteOrigin(): string {
+  const configuredSiteOrigin = process.env.NEXT_PUBLIC_SITE_ORIGIN?.trim() ?? '';
+  if (configuredSiteOrigin !== '') {
+    return normalizeSiteOrigin(configuredSiteOrigin);
+  }
+
+  if (process.env.NODE_ENV === 'test') {
+    const locationOrigin =
+      typeof globalThis.location?.origin === 'string'
+        ? globalThis.location.origin.trim()
+        : '';
+    if (locationOrigin !== '') {
+      return normalizeSiteOrigin(locationOrigin);
+    }
+  }
+
+  throw new Error(`Missing required environment variable: ${SITE_ORIGIN_ENV_NAME}`);
+}
+
+export const SITE_ORIGIN = resolveSiteOrigin();
+export const SITE_HOST = new URL(SITE_ORIGIN).hostname;
 export const DEFAULT_SOCIAL_IMAGE = '/images/evolvesprouts-logo.svg';
 const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
 const PAGE_TITLE_SEPARATOR = ' - ';

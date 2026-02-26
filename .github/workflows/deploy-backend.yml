@@ -142,7 +142,13 @@ jobs:
               "PublicWwwCertificateArn",
               "PublicWwwStagingDomainName",
               "PublicWwwStagingCertificateArn",
+              "PublicWwwCrmApiBaseUrl",
               "WafWebAclArn",
+          }
+          backend_cors_domain_params = {
+              "PublicWwwDomainName",
+              "PublicWwwStagingDomainName",
+              "AdminWebDomainName",
           }
 
           def resolve_value(raw: str) -> str:
@@ -168,6 +174,8 @@ jobs:
                   targets.append(admin_web_stack)
               if key in public_params:
                   targets.append(public_stack)
+              if key in backend_cors_domain_params:
+                  targets.append(backend_stack)
               if not targets:
                   targets.append(backend_stack)
 
@@ -222,3 +230,4 @@ jobs:
           CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PUBLIC_KEY_PEM: ${{ secrets.CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PUBLIC_KEY_PEM }}
           CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN: ${{ secrets.CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN }}
           APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          NEXT_PUBLIC_WWW_CRM_API_BASE_URL: ${{ vars.NEXT_PUBLIC_WWW_CRM_API_BASE_URL }}

@@ -74,7 +74,9 @@ For the OIDC provider itself, add the same tags:
     - `PublicWwwCertificateArn`
     - `PublicWwwStagingDomainName`
     - `PublicWwwStagingCertificateArn`
+    - `PublicWwwCrmApiBaseUrl` (typically `<FROM_GITHUB_VAR: NEXT_PUBLIC_WWW_CRM_API_BASE_URL>`)
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (for Public WWW builds)
+- `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS` (comma-separated hostname allowlist for `/www` proxy rewrites)
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (for Public WWW booking form)
 - `NEXT_PUBLIC_FPS_MERCHANT_NAME` (for Public WWW payment display)
 - `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (for Public WWW payment display)

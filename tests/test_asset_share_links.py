@@ -65,14 +65,14 @@ def test_signed_link_no_cache_headers_are_strict() -> None:
 def test_normalize_allowed_domains_accepts_urls_and_deduplicates() -> None:
     allowed_domains = normalize_allowed_domains(
         [
-            "https://www.evolvesprouts.com/page",
-            "WWW.EVOLVESPROUTS.COM",
-            "www-staging.evolvesprouts.com",
+            "https://www.example.com/page",
+            "WWW.EXAMPLE.COM",
+            "www-staging.example.com",
         ]
     )
     assert allowed_domains == [
-        "www.evolvesprouts.com",
-        "www-staging.evolvesprouts.com",
+        "www.example.com",
+        "www-staging.example.com",
     ]
 
 
@@ -84,16 +84,16 @@ def test_normalize_allowed_domains_rejects_invalid_input() -> None:
 def test_extract_request_source_domain_prefers_referer() -> None:
     event = {
         "headers": {
-            "Referer": "https://www.evolvesprouts.com/articles/downloads",
+            "Referer": "https://www.example.com/articles/downloads",
             "Origin": "https://ignored.example.com",
         }
     }
-    assert extract_request_source_domain(event) == "www.evolvesprouts.com"
+    assert extract_request_source_domain(event) == "www.example.com"
 
 
 def test_extract_request_source_domain_uses_origin_fallback() -> None:
-    event = {"headers": {"Origin": "https://www.evolvesprouts.com"}}
-    assert extract_request_source_domain(event) == "www.evolvesprouts.com"
+    event = {"headers": {"Origin": "https://www.example.com"}}
+    assert extract_request_source_domain(event) == "www.example.com"
 
 
 def test_extract_request_source_domain_returns_none_for_invalid_header() -> None:

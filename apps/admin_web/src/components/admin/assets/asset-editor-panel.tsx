@@ -59,7 +59,7 @@ const EMPTY_ASSET_FORM: AssetFormState = {
   description: '',
   visibility: 'restricted',
 };
-const DEFAULT_ALLOWED_SHARE_DOMAINS = 'www.evolvesprouts.com';
+const DEFAULT_ALLOWED_SHARE_DOMAINS = '';
 
 function toTitleCase(value: string): string {
   return value
@@ -614,7 +614,7 @@ export function AssetEditorPanel({
                   rows={3}
                   value={allowedDomainsInput}
                   onChange={(event) => setAllowedDomainsInput(event.target.value)}
-                  placeholder='www.evolvesprouts.com'
+                  placeholder='example.com'
                 />
                 <p className='text-xs text-slate-600'>
                   One domain per line (or comma-separated). Share links resolve only when

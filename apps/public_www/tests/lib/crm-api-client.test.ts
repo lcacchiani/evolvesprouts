@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   CrmApiRequestError,
@@ -12,10 +12,19 @@ afterEach(() => {
   clearCrmApiGetCacheForTests();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.useRealTimers();
 });
 
 describe('crm-api-client', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_BASE_URL', 'https://api.evolvesprouts.com/www');
+    vi.stubEnv(
+      'NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS',
+      'www.evolvesprouts.com,www-staging.evolvesprouts.com',
+    );
+  });
+
   it('builds endpoint URLs from base URL and endpoint path', () => {
     expect(buildCrmApiUrl('https://api.evolvesprouts.com/www', '/v1/discounts')).toBe(
       'https://api.evolvesprouts.com/www/v1/discounts',
@@ -44,6 +53,15 @@ describe('crm-api-client', () => {
     );
     expect(buildCrmApiUrl('https://api.evolvesprouts.com/www/', 'v1/calendar/events')).toBe(
       '/www/v1/calendar/events',
+    );
+  });
+
+  it('does not rewrite absolute URLs when proxy host allowlist is unset', () => {
+    vi.stubEnv('NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS', '');
+    vi.stubGlobal('location', new URL('https://www-staging.evolvesprouts.com/en/events'));
+
+    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www', '/v1/discounts')).toBe(
+      'https://api.evolvesprouts.com/www/v1/discounts',
     );
   });
 

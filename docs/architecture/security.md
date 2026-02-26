@@ -163,17 +163,16 @@ defaultCorsPreflightOptions: {
 }
 ```
 
-### Default Allowed Origins
+### Required and Default Allowed Origins
 
-If no origins are configured, defaults include required web and local origins:
-- `https://www.evolvesprouts.com`
-- `https://www-staging.evolvesprouts.com`
-- `capacitor://localhost`
-- `ionic://localhost`
-- `http://localhost` (for development)
-- `http://localhost:3000` (for development)
-- `https://evolvesprouts.lx-software.com`
-- `https://evolvesprouts-api.lx-software.com`
+Backend CORS always includes domain-derived required origins from:
+- `PublicWwwDomainName`
+- `PublicWwwStagingDomainName`
+- `AdminWebDomainName`
+
+Optional extra origins can be added via `CORS_ALLOWED_ORIGINS` or CDK context
+`corsAllowedOrigins`, but when no extras are configured the default is only the
+required domain-derived origins above.
 
 ### Input Validation
 
@@ -211,6 +210,7 @@ The public website (`apps/public_www`) uses a browser-visible key:
 
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
+- `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 
 This key is intentionally public and must remain strictly scoped.
 
@@ -231,8 +231,8 @@ CloudFront Function with a **default-deny** policy.
 
 Security model:
 
-- Only explicitly approved method+path pairs are forwarded to
-  `api.evolvesprouts.com`.
+- Only explicitly approved method+path pairs are forwarded to the API origin
+  host resolved from `PublicWwwCrmApiBaseUrl`.
 - Requests that are not allowlisted are blocked at CloudFront with a `403`
   before reaching the API origin.
 - The policy is applied to both production and staging public website
@@ -344,9 +344,11 @@ bootstrap script (`init-gtm.js`) is detected in the build output. The
 CloudFront header CSP is not modified (it covers only `base-uri`,
 `object-src`, and `frame-ancestors`).
 
-GTM is gated at runtime to fire only on `www.evolvesprouts.com`. Staging,
-localhost, and preview hosts receive zero GTM network requests even though
-the CSP permits the Google domains.
+GTM is gated at runtime to fire only on hosts in
+`NEXT_PUBLIC_GTM_ALLOWED_HOSTS` (or, when unset, the hostname from
+`NEXT_PUBLIC_SITE_ORIGIN`). Staging, localhost, and preview hosts receive zero
+GTM network requests unless explicitly allowlisted, even though the CSP permits
+the Google domains.
 
 ### Database Security
 
