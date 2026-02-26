@@ -958,6 +958,8 @@ export class ApiStack extends cdk.Stack {
         ASSET_DOWNLOAD_LINK_EXPIRY_DAYS: "9999",
         ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN:
           assetDownloadCustomDomainName.valueAsString,
+        ASSET_SHARE_LINK_BASE_URL:
+          `https://${assetDownloadCustomDomainName.valueAsString}`,
         ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID: assetDownloadPublicKey.publicKeyId,
         ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
@@ -1786,6 +1788,21 @@ export class ApiStack extends cdk.Stack {
     const publicShareAssetByToken = publicShareAssets.addResource("{token}");
     publicShareAssetByToken.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
+    });
+
+    // Route media-domain share links to API Gateway.
+    const assetShareApiOrigin = new origins.HttpOrigin(
+      `${api.restApiId}.execute-api.${cdk.Stack.of(this).region}.${cdk.Stack.of(this).urlSuffix}`,
+      {
+        originPath: `/${api.deploymentStage.stageName}`,
+        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+      }
+    );
+    assetDownloadDistribution.addBehavior("v1/assets/share/*", assetShareApiOrigin, {
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+      originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
     });
 
     // ---------------------------------------------------------------------
