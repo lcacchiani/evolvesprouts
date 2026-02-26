@@ -68,6 +68,8 @@ Columns:
 - `id` (UUID, PK, default `gen_random_uuid()`)
 - `asset_id` (UUID, FK → `assets.id`, cascade delete, unique)
 - `share_token` (varchar(128), unique, required)
+- `allowed_domains` (varchar(255)[], required) — source domains allowed to
+  resolve the share link
 - `created_by` (varchar(128), required) — admin user sub that created the link
 - `created_at` (timestamptz, default `now()`)
 - `updated_at` (timestamptz, default `now()`)
@@ -97,4 +99,7 @@ Indexes:
 - A token in `asset_share_links.share_token` acts as a bearer capability.
 - Requests with a valid token resolve the asset and redirect to a fresh
   CloudFront-signed GET URL.
-- Admin APIs can create/reuse, rotate, and revoke the token per asset.
+- Requests are accepted only when Referer/Origin matches
+  `asset_share_links.allowed_domains`.
+- Admin APIs can create/reuse, rotate, revoke, and update source-domain
+  allowlist policy per asset.

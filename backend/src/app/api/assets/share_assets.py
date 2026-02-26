@@ -11,7 +11,10 @@ from app.api.assets.assets_common import (
     signed_link_no_cache_headers,
     split_route_parts,
 )
-from app.api.assets.share_links import is_valid_share_token
+from app.api.assets.share_links import (
+    extract_request_source_domain,
+    is_valid_share_token,
+)
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
 from app.utils import json_response
@@ -42,6 +45,10 @@ def _resolve_share_token(event: Mapping[str, Any], share_token: str) -> dict[str
         share_link = repository.get_share_link_by_token(token=share_token)
         if share_link is None:
             return json_response(404, {"error": "Not found"}, event=event)
+        source_domain = extract_request_source_domain(event)
+        allowed_domains = set(share_link.allowed_domains or [])
+        if not source_domain or source_domain not in allowed_domains:
+            return json_response(403, {"error": "Forbidden"}, event=event)
 
         asset = repository.get_by_id(share_link.asset_id)
         if asset is None:

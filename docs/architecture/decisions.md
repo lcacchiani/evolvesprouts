@@ -312,6 +312,8 @@ share URLs as database-backed bearer tokens.
 - API Gateway enforces an API key on `/v1/assets/share/{token}` and the media
   CloudFront behavior injects `x-api-key` at origin so browser users do not
   need to provide credentials directly.
+- Each share link stores an admin-managed `allowed_domains` list; resolution is
+  denied unless Referer/Origin matches one of the configured domains.
 - CloudFront public key material is configured in infrastructure; matching
   private key material is stored in AWS Secrets Manager and loaded by Lambda.
 

@@ -272,12 +272,14 @@ class AssetRepository(BaseRepository[Asset]):
         *,
         asset_id: UUID,
         share_token: str,
+        allowed_domains: Sequence[str],
         created_by: str,
     ) -> AssetShareLink:
         """Create and persist a share link for an asset."""
         entity = AssetShareLink(
             asset_id=asset_id,
             share_token=share_token,
+            allowed_domains=list(allowed_domains),
             created_by=created_by,
         )
         self._session.add(entity)
@@ -290,9 +292,25 @@ class AssetRepository(BaseRepository[Asset]):
         share_link: AssetShareLink,
         *,
         share_token: str,
+        allowed_domains: Optional[Sequence[str]] = None,
     ) -> AssetShareLink:
         """Rotate an existing share-link token."""
         share_link.share_token = share_token
+        if allowed_domains is not None:
+            share_link.allowed_domains = list(allowed_domains)
+        share_link.updated_at = datetime.now(UTC)
+        self._session.flush()
+        self._session.refresh(share_link)
+        return share_link
+
+    def update_share_link_allowed_domains(
+        self,
+        share_link: AssetShareLink,
+        *,
+        allowed_domains: Sequence[str],
+    ) -> AssetShareLink:
+        """Update allowed source domains for an existing share link."""
+        share_link.allowed_domains = list(allowed_domains)
         share_link.updated_at = datetime.now(UTC)
         self._session.flush()
         self._session.refresh(share_link)

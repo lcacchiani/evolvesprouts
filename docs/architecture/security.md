@@ -266,13 +266,16 @@ Process to add a new public API path:
 - Stable share links (`/v1/assets/share/{token}`) are bearer links and must be
   treated like secrets when shared externally.
 - Share-link tokens are random URL-safe values persisted in
-  `asset_share_links`; admin APIs support rotate and revoke operations to
-  recover from leaks.
+  `asset_share_links`; admin APIs support rotate, revoke, and per-asset
+  source-domain allowlist updates to recover from leaks.
 - Download URLs returned to clients are CloudFront-signed URLs generated on
   demand by Lambda.
 - Share-token redirects and download-link JSON responses set strict no-store
   cache headers, and API Gateway stage caching is explicitly disabled for
   share/download GET routes to avoid stale signed-link responses.
+- Share-token resolution requires a request Referer/Origin domain that matches
+  the share link's `allowed_domains` policy, blocking direct address-bar opens
+  when no allowed source-domain signal is present.
 - Admin-generated share links are built with `ASSET_SHARE_LINK_BASE_URL`
   (`https://media.evolvesprouts.com`) and served through a CloudFront behavior
   that forwards `v1/assets/share/*` to API Gateway and injects the

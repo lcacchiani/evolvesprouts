@@ -368,7 +368,11 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AssetShareLinkPolicyRequest"];
+                };
+            };
             responses: {
                 /** @description Existing share link returned. */
                 200: {
@@ -446,7 +450,11 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AssetShareLinkPolicyRequest"];
+                };
+            };
             responses: {
                 /** @description Share link rotated. */
                 200: {
@@ -619,6 +627,15 @@ export interface components {
              * @description Stable bearer link that resolves to a fresh signed download URL.
              */
             share_url: string;
+            /** @description Allowlisted source domains allowed to resolve this share link. */
+            allowed_domains: string[];
+        };
+        AssetShareLinkPolicyRequest: {
+            /**
+             * @description Domain allowlist for share-link resolution, for example
+             *     `www.evolvesprouts.com`.
+             */
+            allowed_domains: string[];
         };
         CreateAssetRequest: {
             title: string;

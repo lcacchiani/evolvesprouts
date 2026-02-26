@@ -17,6 +17,7 @@ import type { components } from '@/types/generated/admin-api.generated';
 type ApiSchemas = components['schemas'];
 type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
 type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
+type ApiAssetShareLinkPolicyRequest = ApiSchemas['AssetShareLinkPolicyRequest'];
 
 export interface CreateAdminAssetResult {
   asset: AdminAsset | null;
@@ -26,6 +27,11 @@ export interface CreateAdminAssetResult {
 export interface AssetShareLink {
   assetId: string;
   shareUrl: string;
+  allowedDomains: string[];
+}
+
+export interface AssetShareLinkPolicyInput {
+  allowedDomains: string[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -54,6 +60,16 @@ function asNullableString(value: unknown): string | null {
     return value;
   }
   return null;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .filter((entry): entry is string => typeof entry === 'string')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 }
 
 function parseAssetType(value: unknown): AssetType {
@@ -358,25 +374,49 @@ function parseAssetShareLink(payload: unknown, fallbackAssetId: string): AssetSh
     throw new Error('Share URL was not returned by the API.');
   }
 
+  const allowedDomains = asStringArray(
+    pickFirst(rootRecord, ['allowedDomains', 'allowed_domains'])
+  );
+
   return {
     assetId: asString(pickFirst(rootRecord, ['assetId', 'asset_id'])) ?? fallbackAssetId,
     shareUrl,
+    allowedDomains,
   };
 }
 
-export async function getOrCreateAdminAssetShareLink(assetId: string): Promise<AssetShareLink> {
+function normalizeShareLinkPolicyInput(
+  input: AssetShareLinkPolicyInput | undefined
+): ApiAssetShareLinkPolicyRequest | undefined {
+  if (!input) {
+    return undefined;
+  }
+  return {
+    allowed_domains: input.allowedDomains,
+  };
+}
+
+export async function getOrCreateAdminAssetShareLink(
+  assetId: string,
+  input?: AssetShareLinkPolicyInput
+): Promise<AssetShareLink> {
   const payload = await adminApiRequest<unknown>({
     endpointPath: `/v1/admin/assets/${assetId}/share-link`,
     method: 'POST',
+    body: normalizeShareLinkPolicyInput(input),
     expectedSuccessStatuses: [200, 201],
   });
   return parseAssetShareLink(payload, assetId);
 }
 
-export async function rotateAdminAssetShareLink(assetId: string): Promise<AssetShareLink> {
+export async function rotateAdminAssetShareLink(
+  assetId: string,
+  input?: AssetShareLinkPolicyInput
+): Promise<AssetShareLink> {
   const payload = await adminApiRequest<unknown>({
     endpointPath: `/v1/admin/assets/${assetId}/share-link/rotate`,
     method: 'POST',
+    body: normalizeShareLinkPolicyInput(input),
     expectedSuccessStatuses: [200],
   });
   return parseAssetShareLink(payload, assetId);
