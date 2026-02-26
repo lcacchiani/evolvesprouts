@@ -46,9 +46,10 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(nav.className).toContain('min-h-[115px]');
     expect(nav.className).toContain('pl-0');
     expect(nav.className).toContain('pr-4');
-    expect(nav.className).toContain('sm:px-6');
-    expect(nav.className).toContain('lg:px-8');
+    expect(nav.className).toContain('sm:pr-6');
+    expect(nav.className).toContain('lg:pr-8');
     expect(nav.className).toContain('py-0');
+    expect(nav.className).not.toContain('sm:px-6');
     expect(nav.className).not.toContain('px-8 py-0');
 
     const header = document.querySelector('header[data-figma-node="navbar"]');
