@@ -231,7 +231,7 @@ export function Navbar({ content }: NavbarProps) {
       >
         <SectionContainer
           as='nav'
-          className='flex min-h-[115px] items-center justify-between gap-3 py-0 pl-0 pr-4 sm:px-6 lg:px-8'
+          className='flex min-h-[115px] items-center justify-between gap-3 py-0 pl-0 pr-4 sm:pr-6 lg:pr-8'
         >
           <Link href={localizedHomeHref} className='shrink-0'>
             <Image

@@ -17,6 +17,7 @@ interface HeroBannerProps {
 
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
 const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
+const HERO_BODY_TEXT_CLASSNAME = 'max-w-[458px] es-hero-subheadline';
 
 function renderHeadline(headline: string): ReactNode {
   const sections = headline.split(HEADLINE_HIGHLIGHT_WORD);
@@ -62,7 +63,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
               className='max-w-[610px]'
               titleClassName='es-hero-headline'
               description={content.subheadline}
-              descriptionClassName='mt-4 max-w-[458px] sm:mt-6 es-hero-subheadline'
+              descriptionClassName={`mt-4 sm:mt-6 ${HERO_BODY_TEXT_CLASSNAME}`}
             />
             <SectionCtaAnchor
               href={ROUTES.servicesMyBestAuntieTrainingCourse}
@@ -70,7 +71,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
             >
               {content.cta}
             </SectionCtaAnchor>
-            <p className='mt-4 max-w-[520px] text-sm leading-relaxed text-[#3E342F] sm:text-base'>
+            <p className={`mt-4 ${HERO_BODY_TEXT_CLASSNAME}`}>
               {content.supportingParagraph}
             </p>
           </div>
