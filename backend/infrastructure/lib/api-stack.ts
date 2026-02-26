@@ -1772,6 +1772,10 @@ export class ApiStack extends cdk.Stack {
     });
 
     const adminAssetShareLink = adminAssetById.addResource("share-link");
+    adminAssetShareLink.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
     adminAssetShareLink.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,

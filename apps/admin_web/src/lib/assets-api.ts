@@ -1,4 +1,4 @@
-import { adminApiRequest } from './api-admin-client';
+import { AdminApiError, adminApiRequest } from './api-admin-client';
 
 import type {
   AdminAsset,
@@ -407,6 +407,22 @@ export async function getOrCreateAdminAssetShareLink(
     expectedSuccessStatuses: [200, 201],
   });
   return parseAssetShareLink(payload, assetId);
+}
+
+export async function getAdminAssetShareLink(assetId: string): Promise<AssetShareLink | null> {
+  try {
+    const payload = await adminApiRequest<unknown>({
+      endpointPath: `/v1/admin/assets/${assetId}/share-link`,
+      method: 'GET',
+      expectedSuccessStatuses: [200],
+    });
+    return parseAssetShareLink(payload, assetId);
+  } catch (error) {
+    if (error instanceof AdminApiError && error.statusCode === 404) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function rotateAdminAssetShareLink(

@@ -83,6 +83,8 @@ def handle_admin_assets_request(
         return _delete_grant(event, asset_id, grant_id)
 
     if len(parts) == 4 and parts[3] == "share-link":
+        if method == "GET":
+            return _get_share_link(event, asset_id)
         if method == "POST":
             return _get_or_create_share_link(event, asset_id, identity.user_sub)
         if method == "DELETE":
@@ -322,6 +324,29 @@ def _get_or_create_share_link(
 
         return json_response(
             status_code,
+            _serialize_share_link_response(
+                event=event,
+                asset_id=asset_id,
+                token=share_link.share_token,
+                allowed_domains=share_link.allowed_domains,
+            ),
+            event=event,
+        )
+
+
+def _get_share_link(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
+    with Session(get_engine()) as session:
+        repository = AssetRepository(session)
+        asset = repository.get_by_id(asset_id)
+        if asset is None:
+            raise NotFoundError("Asset", str(asset_id))
+
+        share_link = repository.get_share_link(asset_id=asset_id)
+        if share_link is None:
+            raise NotFoundError("Share link", str(asset_id))
+
+        return json_response(
+            200,
             _serialize_share_link_response(
                 event=event,
                 asset_id=asset_id,
