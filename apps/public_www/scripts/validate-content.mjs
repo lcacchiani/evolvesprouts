@@ -207,7 +207,7 @@ function validateHrefValue(value, keyPath, errors) {
 function normalizeInternalRoutePath(value) {
   let parsedUrl;
   try {
-    parsedUrl = new URL(value, 'https://www.evolvesprouts.com');
+    parsedUrl = new URL(value, 'https://example.com');
   } catch {
     return null;
   }
