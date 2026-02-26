@@ -15,6 +15,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Resolve public site origin from infrastructure params
+        id: resolve_public_site_origin
+        run: |
+          SITE_DOMAIN="$(python3 - <<'PY'
+import json
+from pathlib import Path
+
+params_path = Path("backend/infrastructure/params/production.json")
+with params_path.open(encoding="utf-8") as params_file:
+    params = json.load(params_file)
+
+domain = str(params.get("PublicWwwDomainName", "")).strip()
+if not domain:
+    raise SystemExit(
+        "PublicWwwDomainName is required in backend/infrastructure/params/production.json"
+    )
+
+print(domain)
+PY
+          )"
+          echo "site_origin=https://${SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
@@ -38,7 +60,7 @@ jobs:
         working-directory: apps/public_www
         env:
           NEXT_TELEMETRY_DISABLED: '1'
-          NEXT_PUBLIC_SITE_ORIGIN: ${{ vars.NEXT_PUBLIC_SITE_ORIGIN || github.server_url }}
+          NEXT_PUBLIC_SITE_ORIGIN: ${{ steps.resolve_public_site_origin.outputs.site_origin }}
           NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           NEXT_PUBLIC_FPS_MERCHANT_NAME: ${{ vars.NEXT_PUBLIC_FPS_MERCHANT_NAME || secrets.NEXT_PUBLIC_FPS_MERCHANT_NAME }}
           NEXT_PUBLIC_FPS_MOBILE_NUMBER: ${{ vars.NEXT_PUBLIC_FPS_MOBILE_NUMBER || secrets.NEXT_PUBLIC_FPS_MOBILE_NUMBER }}

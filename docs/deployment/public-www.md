@@ -49,6 +49,10 @@ Public WWW CRM API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_GTM_ID`
 
+`NEXT_PUBLIC_SITE_ORIGIN` is resolved automatically in CI from
+`backend/infrastructure/params/production.json` (`PublicWwwDomainName`) to keep
+the website canonical origin aligned with infrastructure domain parameters.
+
 `evolvesprouts-public-www` CloudFront now proxies `https://{www-domain}/www/*`
 to `https://api.evolvesprouts.com/www/*` with caching disabled for those
 requests. Set `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` to `/www` to keep browser API
