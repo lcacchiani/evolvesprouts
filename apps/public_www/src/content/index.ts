@@ -21,6 +21,7 @@ export type SiteContent = typeof enContent;
  */
 export type NavbarContent = SiteContent['navbar'];
 export type HeroContent = SiteContent['hero'];
+export type IdaIntroContent = SiteContent['idaIntro'];
 export type MyBestAuntieOverviewContent = SiteContent['myBestAuntieOverview'];
 export type MyBestAuntieBookingContent = SiteContent['myBestAuntieBooking'];
 export type MyBestAuntieDescriptionContent =

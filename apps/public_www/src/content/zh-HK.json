@@ -74,6 +74,12 @@
     "cta": "預約免費入門諮詢",
     "supportingParagraph": "以蒙特梭利與正向教育支援香港家庭，培訓姨姨陪伴孩子成長。"
   },
+  "idaIntro": {
+    "text": "我叫 Ida，我是一位蒙特梭利認證導師，也是兩個孩子的媽媽。",
+    "ctaLabel": "了解更多關於我",
+    "ctaHref": "/about-us",
+    "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
+  },
   "whatsappContact": {
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
     "ariaLabel": "透過 WhatsApp 聯絡我們"
