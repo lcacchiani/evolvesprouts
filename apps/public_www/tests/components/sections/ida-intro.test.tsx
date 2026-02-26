@@ -1,11 +1,23 @@
+/* eslint-disable @next/next/no-img-element */
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { IdaIntro } from '@/components/sections/ida-intro';
 import enContent from '@/content/en.json';
 
+vi.mock('next/image', () => ({
+  default: ({
+    alt,
+    priority: _priority,
+    ...props
+  }: {
+    alt?: string;
+    priority?: boolean;
+  } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
+}));
+
 describe('IdaIntro', () => {
-  it('renders intro copy and CTA with background image styling', () => {
+  it('renders intro copy, CTA, and hero-style image column', () => {
     const content = enContent.idaIntro;
     render(<IdaIntro content={content} />);
 
@@ -20,6 +32,6 @@ describe('IdaIntro', () => {
       'href',
       content.ctaHref,
     );
-    expect(screen.queryByRole('img', { name: content.imageAlt })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: content.imageAlt })).toBeInTheDocument();
   });
 });

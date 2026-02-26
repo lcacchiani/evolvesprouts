@@ -419,10 +419,6 @@
     padding-top: 0;
     padding-bottom: 0;
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
-    background-image: url('/images/about-us/ida-degregorio-evolvesprouts-3.webp');
-    background-repeat: no-repeat;
-    background-position: left center;
-    background-size: 60% auto;
   }
 
   .es-hero-section {
