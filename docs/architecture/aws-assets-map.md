@@ -97,6 +97,9 @@ default CloudFront hostname.
 The client-asset distribution also routes `v1/assets/share/*` to API Gateway,
 injects `x-api-key` at origin, and relies on per-link source-domain allowlists
 enforced by `EvolvesproutsAdminFunction`.
+Default share-link allowlist values are injected into
+`ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS` from
+`PublicWwwDomainName,PublicWwwStagingDomainName` stack parameters.
 
 ---
 

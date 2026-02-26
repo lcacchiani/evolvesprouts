@@ -12,6 +12,7 @@ from app.api.assets.share_links import (
     generate_share_token,
     is_valid_share_token,
     normalize_allowed_domains,
+    resolve_default_allowed_domains,
 )
 from app.exceptions import ValidationError
 
@@ -60,6 +61,39 @@ def test_signed_link_no_cache_headers_are_strict() -> None:
     )
     assert headers["Pragma"] == "no-cache"
     assert headers["Expires"] == "0"
+
+
+def test_resolve_default_allowed_domains_reads_required_env(monkeypatch: Any) -> None:
+    monkeypatch.setenv(
+        "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS",
+        "www.example.com,www-staging.example.com",
+    )
+    assert resolve_default_allowed_domains() == [
+        "www.example.com",
+        "www-staging.example.com",
+    ]
+
+
+def test_resolve_default_allowed_domains_requires_env(monkeypatch: Any) -> None:
+    monkeypatch.delenv("ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS", raising=False)
+    with pytest.raises(
+        RuntimeError,
+        match="Missing required environment variable: "
+        "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS",
+    ):
+        resolve_default_allowed_domains()
+
+
+def test_resolve_default_allowed_domains_rejects_invalid_env(monkeypatch: Any) -> None:
+    monkeypatch.setenv("ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS", "not a domain")
+    with pytest.raises(
+        RuntimeError,
+        match=(
+            "ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS "
+            "must contain one or more valid hostnames"
+        ),
+    ):
+        resolve_default_allowed_domains()
 
 
 def test_normalize_allowed_domains_accepts_urls_and_deduplicates() -> None:
