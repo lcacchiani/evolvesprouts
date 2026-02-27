@@ -245,7 +245,7 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
     contactMethodLinks.push({
       key: 'email',
       href: `mailto:${publicSiteConfig.contactEmail}`,
-      label: content.contactMethodLinks.email,
+      label: content.contactMethodLinks.mail,
     });
   }
   if (publicSiteConfig.whatsappUrl) {

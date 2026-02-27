@@ -135,7 +135,7 @@ describe('ContactUsForm section', () => {
     expect(list).toBeInTheDocument();
 
     const emailLink = screen.getByRole('link', {
-      name: enContent.contactUs.contactUsForm.contactMethodLinks.email,
+      name: enContent.contactUs.contactUsForm.contactMethodLinks.mail,
     });
     const whatsappLink = screen.getByRole('link', {
       name: enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
@@ -177,7 +177,7 @@ describe('ContactUsForm section', () => {
 
     expect(
       screen.queryByRole('link', {
-        name: enContent.contactUs.contactUsForm.contactMethodLinks.email,
+        name: enContent.contactUs.contactUsForm.contactMethodLinks.mail,
       }),
     ).toBeNull();
     expect(
