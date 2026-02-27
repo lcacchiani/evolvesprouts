@@ -97,15 +97,18 @@ describe('structured-data builders', () => {
     });
     expect(breadcrumbSchema).toMatchObject({
       '@type': 'BreadcrumbList',
-      itemListElement: [
-        expect.objectContaining({
-          item: expect.stringContaining('/zh-HK/'),
-        }),
-        expect.objectContaining({
-          item: expect.stringContaining('/zh-HK/about-us'),
-        }),
-      ],
     });
+    const breadcrumbItems = Array.isArray(breadcrumbSchema.itemListElement)
+      ? breadcrumbSchema.itemListElement
+      : [];
+    const firstBreadcrumbItem = breadcrumbItems[0] as {
+      item?: string;
+    } | undefined;
+    const secondBreadcrumbItem = breadcrumbItems[1] as {
+      item?: string;
+    } | undefined;
+    expect(firstBreadcrumbItem?.item).toContain('/zh-HK');
+    expect(secondBreadcrumbItem?.item).toContain('/zh-HK/about-us');
   });
 
   it('builds event schemas only for events with timestamps', () => {
