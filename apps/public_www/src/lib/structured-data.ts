@@ -16,6 +16,17 @@ const EVENT_ATTENDANCE_MODE_OFFLINE = `${SCHEMA_CONTEXT}/OfflineEventAttendanceM
 const EVENT_STATUS_SCHEDULED = `${SCHEMA_CONTEXT}/EventScheduled`;
 const OFFER_AVAILABILITY_IN_STOCK = `${SCHEMA_CONTEXT}/InStock`;
 const OFFER_AVAILABILITY_SOLD_OUT = `${SCHEMA_CONTEXT}/SoldOut`;
+const ORGANIZATION_SCHEMA_ID = `${SITE_ORIGIN}#organization`;
+const LOCAL_BUSINESS_SCHEMA_ID = `${SITE_ORIGIN}#local-business`;
+
+function buildCourseSchemaId(locale: Locale): string {
+  return `${toLocalizedAbsoluteUrl(ROUTES.servicesMyBestAuntieTrainingCourse, locale)}#course`;
+}
+
+function buildEventSchemaId(locale: Locale, eventId: string): string {
+  const encodedEventId = encodeURIComponent(eventId.trim() || 'event');
+  return `${toLocalizedAbsoluteUrl(ROUTES.events, locale)}#event-${encodedEventId}`;
+}
 
 function toAbsoluteUrl(path: string): string {
   try {
@@ -80,6 +91,7 @@ export function buildOrganizationSchema({
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'Organization',
+    '@id': ORGANIZATION_SCHEMA_ID,
     name: content.navbar.brand,
     url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
     logo: toAbsoluteUrl(content.navbar.logoSrc || '/images/evolvesprouts-logo.svg'),
@@ -97,6 +109,7 @@ export function buildLocalBusinessSchema({
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'LocalBusiness',
+    '@id': LOCAL_BUSINESS_SCHEMA_ID,
     name: content.seo.localBusinessName || content.navbar.brand,
     description: content.seo.localBusinessDescription,
     url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
@@ -112,6 +125,9 @@ export function buildLocalBusinessSchema({
       : undefined,
     areaServed: content.seo.localBusinessAreaServed,
     sameAs: resolveSocialProfiles(),
+    parentOrganization: {
+      '@id': ORGANIZATION_SCHEMA_ID,
+    },
   });
 }
 
@@ -165,13 +181,12 @@ export function buildCourseSchema({
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'Course',
+    '@id': buildCourseSchemaId(locale),
     name: content.seo.trainingCourse.title,
     description: content.seo.trainingCourse.description,
     url: toLocalizedAbsoluteUrl(ROUTES.servicesMyBestAuntieTrainingCourse, locale),
     provider: {
-      '@type': 'Organization',
-      name: content.navbar.brand,
-      url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
+      '@id': ORGANIZATION_SCHEMA_ID,
     },
   });
 }
@@ -216,9 +231,7 @@ function resolveEventOffer(
       : OFFER_AVAILABILITY_IN_STOCK,
     category: 'Course',
     seller: {
-      '@type': 'Organization',
-      name: 'Evolve Sprouts',
-      url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
+      '@id': ORGANIZATION_SCHEMA_ID,
     },
   });
 }
@@ -238,6 +251,7 @@ export function buildEventSchemas({
       compactJsonLdObject({
         '@context': SCHEMA_CONTEXT,
         '@type': 'Event',
+        '@id': buildEventSchemaId(locale, event.id),
         name: event.title,
         description: event.summary,
         startDate:
@@ -246,9 +260,7 @@ export function buildEventSchemas({
         eventAttendanceMode: resolveEventAttendanceMode(event),
         location: resolveEventLocation(event, locale),
         organizer: {
-          '@type': 'Organization',
-          name: 'Evolve Sprouts',
-          url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
+          '@id': ORGANIZATION_SCHEMA_ID,
         },
         offers: resolveEventOffer(event, locale),
       }),

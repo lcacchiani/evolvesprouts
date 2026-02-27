@@ -102,4 +102,23 @@ describe('Faq section', () => {
     const searchWrapper = container.querySelector('div.mt-8.rounded-full');
     expect(searchWrapper?.className).toContain('es-bg-surface-neutral');
   });
+
+  it('adds localized internal links for FAQ answer discovery', () => {
+    render(<Faq content={enContent.faq} />);
+
+    const learnMoreLinks = screen.getAllByRole('link', {
+      name: '了解更多',
+    });
+    expect(
+      learnMoreLinks.some(
+        (link) => link.getAttribute('href') === '/zh-CN/about-us',
+      ),
+    ).toBe(true);
+    expect(
+      learnMoreLinks.some(
+        (link) =>
+          link.getAttribute('href') === '/zh-CN/services/my-best-auntie-training-course',
+      ),
+    ).toBe(true);
+  });
 });

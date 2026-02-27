@@ -54,6 +54,7 @@ describe('structured-data builders', () => {
 
     expect(organizationSchema).toMatchObject({
       '@type': 'Organization',
+      '@id': expect.stringContaining('#organization'),
       name: enContent.navbar.brand,
       sameAs: [
         process.env.NEXT_PUBLIC_INSTAGRAM_URL,
@@ -63,12 +64,16 @@ describe('structured-data builders', () => {
     });
     expect(localBusinessSchema).toMatchObject({
       '@type': 'LocalBusiness',
+      '@id': expect.stringContaining('#local-business'),
       telephone: process.env.NEXT_PUBLIC_BUSINESS_PHONE_NUMBER,
       address: {
         '@type': 'PostalAddress',
         streetAddress: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS,
       },
       areaServed: enContent.seo.localBusinessAreaServed,
+      parentOrganization: {
+        '@id': expect.stringContaining('#organization'),
+      },
     });
   });
 
@@ -91,9 +96,13 @@ describe('structured-data builders', () => {
     });
     expect(courseSchema).toMatchObject({
       '@type': 'Course',
+      '@id': expect.stringContaining('#course'),
       name: enContent.seo.trainingCourse.title,
       description: enContent.seo.trainingCourse.description,
       url: expect.stringContaining('/zh-CN/services/my-best-auntie-training-course'),
+      provider: {
+        '@id': expect.stringContaining('#organization'),
+      },
     });
     expect(breadcrumbSchema).toMatchObject({
       '@type': 'BreadcrumbList',
@@ -151,8 +160,12 @@ describe('structured-data builders', () => {
     expect(eventSchemas).toHaveLength(1);
     expect(eventSchemas[0]).toMatchObject({
       '@type': 'Event',
+      '@id': expect.stringContaining('#event-'),
       name: 'Montessori Workshop',
       startDate: '2026-04-12T10:00:00.000Z',
+      organizer: {
+        '@id': expect.stringContaining('#organization'),
+      },
     });
   });
 });
