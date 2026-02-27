@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
+import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import {
@@ -41,31 +42,41 @@ export function IdaIntro({ content }: IdaIntroProps) {
     >
       <SectionContainer
         className={buildSectionSplitLayoutClassName(
-          'es-section-split-layout--ida items-center',
+          'es-section-split-layout--hero items-center',
         )}
       >
-        <div className='order-2 relative z-10 lg:pl-8 xl:pl-[110px]'>
-          <SectionHeader
-            title={
-              <span className='es-type-body block max-w-[720px] font-normal'>
-                {renderIntroText(content.text)}
-              </span>
-            }
-            titleAs='h2'
-            align='left'
-          />
-          <SectionCtaAnchor
-            href={content.ctaHref}
-            className='mt-8'
-          >
-            {content.ctaLabel}
-          </SectionCtaAnchor>
+        <div className='relative max-w-[620px] lg:pb-4 lg:pr-8'>
+          <div className='relative z-10'>
+            <SectionHeader
+              title={
+                <span className='es-type-body block max-w-[720px] font-normal'>
+                  {renderIntroText(content.text)}
+                </span>
+              }
+              titleAs='h2'
+              align='left'
+            />
+            <SectionCtaAnchor
+              href={content.ctaHref}
+              className='mt-8'
+            >
+              {content.ctaLabel}
+            </SectionCtaAnchor>
+          </div>
         </div>
 
-        <div
-          aria-hidden='true'
-          className='order-1 hidden lg:block'
-        />
+        <div className='mx-auto w-full max-w-[573px] lg:ml-auto lg:mr-0'>
+          <Image
+            src='/images/about-us/ida-degregorio-evolvesprouts-3.webp'
+            alt={content.imageAlt}
+            width={764}
+            height={841}
+            priority
+            fetchPriority='high'
+            sizes='(max-width: 640px) 92vw, (max-width: 1024px) 70vw, 764px'
+            className='h-auto w-full'
+          />
+        </div>
       </SectionContainer>
     </SectionShell>
   );
