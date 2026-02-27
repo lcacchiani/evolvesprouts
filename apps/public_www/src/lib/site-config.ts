@@ -26,7 +26,13 @@ function readOptionalEnv(name: string): string | undefined {
 
 function parseConfiguredUrl(value: string): URL | null {
   const normalizedValue = value.trim();
-  if (!normalizedValue || normalizedValue.startsWith('//')) {
+  if (
+    !normalizedValue
+    || normalizedValue.startsWith('//')
+    || normalizedValue.startsWith('/')
+    || normalizedValue.startsWith('?')
+    || normalizedValue.startsWith('#')
+  ) {
     return null;
   }
 
@@ -34,6 +40,18 @@ function parseConfiguredUrl(value: string): URL | null {
     return new URL(normalizedValue);
   } catch {
     if (/^[a-z][a-z0-9+.-]*:/i.test(normalizedValue)) {
+      return null;
+    }
+
+    const hostCandidate = normalizedValue
+      .split(/[/?#]/, 1)[0]
+      ?.toLowerCase()
+      .trim() ?? '';
+    const isLocalhostCandidate =
+      hostCandidate === 'localhost' || /^localhost:\d+$/.test(hostCandidate);
+    const isDottedHostnameCandidate =
+      hostCandidate.includes('.') && /^[a-z0-9.-]+(?::\d+)?$/.test(hostCandidate);
+    if (!isLocalhostCandidate && !isDottedHostnameCandidate) {
       return null;
     }
 

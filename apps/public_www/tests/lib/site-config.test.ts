@@ -68,4 +68,11 @@ describe('site-config', () => {
     expect(siteConfig.instagramUrl).toBe('https://instagram.com/evolvesprouts');
     expect(siteConfig.linkedinUrl).toBe('https://www.linkedin.com/company/evolve-sprouts');
   });
+
+  it('rejects schemeless values that are not host-like URLs', () => {
+    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'not-a-url';
+
+    const siteConfig = resolvePublicSiteConfig();
+    expect(siteConfig.whatsappUrl).toBeUndefined();
+  });
 });
