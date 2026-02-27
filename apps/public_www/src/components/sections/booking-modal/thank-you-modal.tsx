@@ -263,7 +263,7 @@ export function MyBestAuntieThankYouModal({
                         className='h-6 w-6 shrink-0 es-mask-calendar-heading'
                         aria-hidden='true'
                       />
-                      {summary?.scheduleDateLabel ?? summary?.monthLabel ?? ''}
+                      {summary?.scheduleDateLabel ?? ''}
                     </span>
                     <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                       <Image
@@ -279,7 +279,7 @@ export function MyBestAuntieThankYouModal({
                 </div>
                 <div className='text-left sm:text-right'>
                   <span className='text-sm font-medium leading-none es-text-muted'>
-                    {summary?.packageLabel ?? ''}
+                    {summary?.childAgeGroup ?? ''}
                   </span>
                   <p className='mt-2 text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
                     {formatCurrencyHkd(summary?.totalAmount ?? 0)}

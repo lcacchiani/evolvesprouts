@@ -86,6 +86,46 @@ function formatNextCohortLabel(
 
 const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
 
+type BookingCohort = MyBestAuntieBookingContent['cohorts'][number];
+
+interface BookingDateOption {
+  id: string;
+  label: string;
+  availabilityLabel: string;
+  cohort: BookingCohort;
+}
+
+function getPrimarySessionSortValue(cohort: BookingCohort): number {
+  const isoDate = cohort.sessions[0]?.isoDate?.trim() ?? '';
+  if (!isoDate) {
+    return Number.POSITIVE_INFINITY;
+  }
+  const parsedDate = Date.parse(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(parsedDate)) {
+    return Number.POSITIVE_INFINITY;
+  }
+  return parsedDate;
+}
+
+function sortCohortsByPrimarySession(
+  leftCohort: BookingCohort,
+  rightCohort: BookingCohort,
+): number {
+  const dateDifference =
+    getPrimarySessionSortValue(leftCohort) -
+    getPrimarySessionSortValue(rightCohort);
+
+  if (dateDifference !== 0) {
+    return dateDifference;
+  }
+
+  return leftCohort.dateLabel.localeCompare(rightCohort.dateLabel);
+}
+
+function getPrimarySessionDateTimeLabel(cohort: BookingCohort | null): string {
+  return cohort?.sessions[0]?.dateTimeLabel ?? '';
+}
+
 export function MyBestAuntieBooking({
   locale,
   content,
@@ -96,16 +136,20 @@ export function MyBestAuntieBooking({
     useState<ReservationSummary | null>(null);
 
   const ageOptions = content.ageOptions ?? [];
-  const dateOptions =
-    content.dateOptions.length > 0
-      ? content.dateOptions
-      : content.paymentModal.monthOptions.map((option) => ({
-          id: option.id,
-          label: option.label,
-          availabilityLabel: content.availabilityLabel,
-        }));
+  const sortedCohorts = [...(content.cohorts ?? [])].sort(
+    sortCohortsByPrimarySession,
+  );
 
   const [selectedAgeId, setSelectedAgeId] = useState(ageOptions[0]?.id ?? '');
+  const cohortsForSelectedAge = sortedCohorts.filter((cohort) => {
+    return cohort.ageGroupId === selectedAgeId;
+  });
+  const dateOptions: BookingDateOption[] = cohortsForSelectedAge.map((cohort) => ({
+    id: cohort.id,
+    label: cohort.dateLabel,
+    availabilityLabel: cohort.spacesLeftText,
+    cohort,
+  }));
   const [selectedDateId, setSelectedDateId] = useState(dateOptions[0]?.id ?? '');
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const {
@@ -120,36 +164,28 @@ export function MyBestAuntieBooking({
     minItemsForNavigation: 3,
   });
 
+  useEffect(() => {
+    const availableDateIds = new Set(dateOptions.map((option) => option.id));
+    if (selectedDateId && availableDateIds.has(selectedDateId)) {
+      return;
+    }
+    setSelectedDateId(dateOptions[0]?.id ?? '');
+  }, [dateOptions, selectedDateId]);
+
   const selectedAgeOption =
     ageOptions.find((option) => option.id === selectedAgeId) ?? ageOptions[0];
   const selectedDateOption =
     dateOptions.find((option) => option.id === selectedDateId) ?? dateOptions[0];
-  const selectedAgeIndex = ageOptions.findIndex(
-    (option) => option.id === selectedAgeOption?.id,
-  );
-  const nextCohortDateOption =
-    selectedAgeIndex >= 0 ? dateOptions[selectedAgeIndex] : dateOptions[0];
-
-  const modalMonthId =
-    selectedDateOption?.id ?? content.paymentModal.monthOptions[0]?.id ?? '';
-  const firstCoursePart = content.paymentModal.parts[0];
-  const firstMonthId = content.paymentModal.monthOptions[0]?.id ?? '';
-  const nextCohortMonthId = nextCohortDateOption?.id ?? firstMonthId;
-  const firstCohortDate = firstCoursePart
-    ? Object.entries(firstCoursePart.dateByMonth).find(
-        ([monthId]) => monthId === nextCohortMonthId,
-      )?.[1]
-    : undefined;
-  const nextCohortDate =
-    firstCohortDate ??
-    nextCohortDateOption?.label ??
-    content.scheduleDate;
+  const selectedCohort = selectedDateOption?.cohort ?? dateOptions[0]?.cohort ?? null;
+  const nextCohortDate = getPrimarySessionDateTimeLabel(selectedCohort);
   const nextCohortLabel = formatNextCohortLabel(
     content.scheduleLabel,
     selectedAgeOption?.label ?? '',
     locale,
   );
-  const nextCohortPreview = formatCohortPreviewLabel(nextCohortDate);
+  const nextCohortPreview = nextCohortDate
+    ? formatCohortPreviewLabel(nextCohortDate)
+    : content.noCohortsLabel;
 
   useEffect(() => {
     const selectedDateCard = dateCardRefs.current[selectedDateId];
@@ -326,8 +362,12 @@ export function MyBestAuntieBooking({
             <ButtonPrimitive
               variant='primary'
               onClick={() => {
+                if (!selectedCohort) {
+                  return;
+                }
                 setIsPaymentModalOpen(true);
               }}
+              disabled={!selectedCohort}
               className='mt-7'
             >
               {content.confirmAndPayLabel}
@@ -339,7 +379,7 @@ export function MyBestAuntieBooking({
       {isPaymentModalOpen && (
         <MyBestAuntieBookingModal
           content={content.paymentModal}
-          initialMonthId={modalMonthId}
+          selectedCohort={selectedCohort}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
           learnMoreLabel={content.learnMoreLabel}
           learnMoreHref={content.learnMoreHref}

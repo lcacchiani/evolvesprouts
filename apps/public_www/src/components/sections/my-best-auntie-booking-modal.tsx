@@ -4,7 +4,6 @@ import {
   useId,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 
 import {
@@ -22,7 +21,6 @@ import {
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
 import type { MyBestAuntieBookingContent } from '@/content';
 import {
-  extractIsoDateFromPartDate,
   extractTimeRangeFromPartDate,
 } from '@/components/sections/booking-modal/helpers';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
@@ -33,8 +31,6 @@ export interface ReservationSummary {
   attendeeEmail: string;
   attendeePhone: string;
   childAgeGroup: string;
-  packageLabel: string;
-  monthLabel: string;
   paymentMethod: string;
   totalAmount: number;
   courseLabel: string;
@@ -44,7 +40,7 @@ export interface ReservationSummary {
 
 interface MyBestAuntieBookingModalProps {
   content: MyBestAuntieBookingContent['paymentModal'];
-  initialMonthId?: string;
+  selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
   selectedAgeGroupLabel?: string;
   learnMoreLabel?: string;
   learnMoreHref?: string;
@@ -54,23 +50,13 @@ interface MyBestAuntieBookingModalProps {
 
 export function MyBestAuntieBookingModal({
   content,
-  initialMonthId,
+  selectedCohort,
   selectedAgeGroupLabel = '',
   learnMoreLabel = '',
   learnMoreHref = '#',
   onClose,
   onSubmitReservation,
 }: MyBestAuntieBookingModalProps) {
-  const firstMonthId = content.monthOptions[0]?.id ?? '';
-  const firstPackageId = content.packageOptions[0]?.id ?? '';
-  const resolvedMonthId = content.monthOptions.some(
-    (option) => option.id === initialMonthId,
-  )
-    ? (initialMonthId ?? firstMonthId)
-    : firstMonthId;
-
-  const [selectedMonthId] = useState(resolvedMonthId);
-  const [selectedPackageId] = useState(firstPackageId);
   const modalPanelRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogTitleId = useId();
@@ -84,39 +70,25 @@ export function MyBestAuntieBookingModal({
     restoreFocus: true,
   });
 
-  const selectedMonth =
-    content.monthOptions.find((option) => option.id === selectedMonthId) ??
-    content.monthOptions[0];
-  const selectedPackage =
-    content.packageOptions.find((option) => option.id === selectedPackageId) ??
-    content.packageOptions[0];
-
-  const originalAmount = selectedPackage?.price ?? 0;
+  const originalAmount = selectedCohort?.costHkd ?? 0;
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
-    const activeMonthId = selectedMonth?.id ?? '';
-
-    return content.parts.map((part) => {
-      const matchedDateEntry = Object.entries(part.dateByMonth).find(
-        ([monthId]) => monthId === activeMonthId,
-      );
-
+    return (selectedCohort?.sessions ?? []).map((part) => {
       return {
-        date: matchedDateEntry?.[1] ?? '',
+        date: part.dateTimeLabel,
         description: part.description,
       };
     });
-  }, [content.parts, selectedMonth?.id]);
+  }, [selectedCohort]);
 
   const selectedTimeLabel = useMemo(() => {
     return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');
   }, [activePartRows]);
-  const selectedCohortDate = useMemo(() => {
-    return extractIsoDateFromPartDate(
-      activePartRows[0]?.date ?? '',
-      selectedMonth?.label ?? '',
-    );
-  }, [activePartRows, selectedMonth?.label]);
+  const selectedCohortDate = selectedCohort?.sessions[0]?.isoDate ?? '';
+  const selectedCohortDateLabel = selectedCohort?.dateLabel ?? '';
+  const selectedVenueName = selectedCohort?.venue.name ?? '';
+  const selectedVenueAddress = selectedCohort?.venue.address ?? '';
+  const selectedVenueDirectionHref = selectedCohort?.venue.directionHref ?? '#';
 
   return (
     <ModalOverlay onClose={onClose}>
@@ -141,16 +113,18 @@ export function MyBestAuntieBookingModal({
               content={content}
               activePartRows={activePartRows}
               originalAmount={originalAmount}
+              venueName={selectedVenueName}
+              venueAddress={selectedVenueAddress}
+              directionHref={selectedVenueDirectionHref}
               learnMoreLabel={learnMoreLabel}
               learnMoreHref={learnMoreHref}
             />
             <BookingReservationForm
               content={content}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
-              selectedMonthLabel={selectedMonth?.label ?? ''}
+              selectedCohortDateLabel={selectedCohortDateLabel}
               selectedCohortDate={selectedCohortDate}
-              selectedPackageLabel={selectedPackage?.label ?? ''}
-              selectedPackagePrice={originalAmount}
+              selectedCohortPrice={originalAmount}
               scheduleTimeLabel={selectedTimeLabel}
               descriptionId={dialogDescriptionId}
               onSubmitReservation={onSubmitReservation}

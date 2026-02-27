@@ -159,10 +159,8 @@
     "eyebrow": "Book Your Spot",
     "title": "My Best Auntie Training Course",
     "description": "Reserve your seat and complete payment securely in one flow.",
-    "availabilityLabel": "30 Spots Left!",
     "scheduleLabel": "Next Cohort",
-    "scheduleDate": "Apr, 2026",
-    "scheduleTime": "12:00 pm - 2:00 pm",
+    "noCohortsLabel": "No upcoming cohorts for this age group yet.",
     "ageSelectorLabel": "What's the age group of your child?",
     "ageOptions": [
       {
@@ -182,107 +180,218 @@
       }
     ],
     "dateSelectorLabel": "Select from Available Date",
-    "dateOptions": [
+    "cohorts": [
       {
-        "id": "apr-2026",
-        "label": "Apr, 2026",
-        "availabilityLabel": "30 Spots Left!"
+        "id": "0-1-apr-2026",
+        "ageGroupId": "0-1",
+        "dateLabel": "Apr, 2026",
+        "spacesTotal": 30,
+        "spacesLeftText": "30 spots left",
+        "costHkd": 9000,
+        "venue": {
+          "name": "Goldwin Heights",
+          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
+          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
+        },
+        "sessions": [
+          {
+            "id": "part-1",
+            "dateTimeLabel": "Apr 08 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-04-08",
+            "description": "Starting with a parent call, followed by a 1:1 session."
+          },
+          {
+            "id": "part-2",
+            "dateTimeLabel": "Apr 15 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-04-15",
+            "description": "Hands-on role play for practical routines and communication."
+          },
+          {
+            "id": "part-3",
+            "dateTimeLabel": "Apr 22 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-04-22",
+            "description": "Action plan check-in to apply strategies at home with confidence."
+          }
+        ]
       },
       {
-        "id": "may-2026",
-        "label": "May, 2026",
-        "availabilityLabel": "18 Spots Left!"
+        "id": "0-1-may-2026",
+        "ageGroupId": "0-1",
+        "dateLabel": "May, 2026",
+        "spacesTotal": 30,
+        "spacesLeftText": "18 spots left",
+        "costHkd": 9000,
+        "venue": {
+          "name": "Goldwin Heights",
+          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
+          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
+        },
+        "sessions": [
+          {
+            "id": "part-1",
+            "dateTimeLabel": "May 08 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-05-08",
+            "description": "Starting with a parent call, followed by a 1:1 session."
+          },
+          {
+            "id": "part-2",
+            "dateTimeLabel": "May 15 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-05-15",
+            "description": "Hands-on role play for practical routines and communication."
+          },
+          {
+            "id": "part-3",
+            "dateTimeLabel": "May 22 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-05-22",
+            "description": "Action plan check-in to apply strategies at home with confidence."
+          }
+        ]
       },
       {
-        "id": "jun-2026",
-        "label": "Jun, 2026",
-        "availabilityLabel": "12 Spots Left!"
+        "id": "0-1-jun-2026",
+        "ageGroupId": "0-1",
+        "dateLabel": "Jun, 2026",
+        "spacesTotal": 30,
+        "spacesLeftText": "12 spots left",
+        "costHkd": 9000,
+        "venue": {
+          "name": "Goldwin Heights",
+          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
+          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
+        },
+        "sessions": [
+          {
+            "id": "part-1",
+            "dateTimeLabel": "Jun 08 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-06-08",
+            "description": "Starting with a parent call, followed by a 1:1 session."
+          },
+          {
+            "id": "part-2",
+            "dateTimeLabel": "Jun 15 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-06-15",
+            "description": "Hands-on role play for practical routines and communication."
+          },
+          {
+            "id": "part-3",
+            "dateTimeLabel": "Jun 22 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-06-22",
+            "description": "Action plan check-in to apply strategies at home with confidence."
+          }
+        ]
+      },
+      {
+        "id": "1-3-may-2026",
+        "ageGroupId": "1-3",
+        "dateLabel": "May, 2026",
+        "spacesTotal": 30,
+        "spacesLeftText": "14 spots left",
+        "costHkd": 9000,
+        "venue": {
+          "name": "Goldwin Heights",
+          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
+          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
+        },
+        "sessions": [
+          {
+            "id": "part-1",
+            "dateTimeLabel": "May 10 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-05-10",
+            "description": "Starting with a parent call, followed by a 1:1 session."
+          },
+          {
+            "id": "part-2",
+            "dateTimeLabel": "May 17 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-05-17",
+            "description": "Hands-on role play for practical routines and communication."
+          },
+          {
+            "id": "part-3",
+            "dateTimeLabel": "May 24 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-05-24",
+            "description": "Action plan check-in to apply strategies at home with confidence."
+          }
+        ]
+      },
+      {
+        "id": "1-3-jun-2026",
+        "ageGroupId": "1-3",
+        "dateLabel": "Jun, 2026",
+        "spacesTotal": 30,
+        "spacesLeftText": "9 spots left",
+        "costHkd": 9000,
+        "venue": {
+          "name": "Goldwin Heights",
+          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
+          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
+        },
+        "sessions": [
+          {
+            "id": "part-1",
+            "dateTimeLabel": "Jun 10 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-06-10",
+            "description": "Starting with a parent call, followed by a 1:1 session."
+          },
+          {
+            "id": "part-2",
+            "dateTimeLabel": "Jun 17 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-06-17",
+            "description": "Hands-on role play for practical routines and communication."
+          },
+          {
+            "id": "part-3",
+            "dateTimeLabel": "Jun 24 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-06-24",
+            "description": "Action plan check-in to apply strategies at home with confidence."
+          }
+        ]
+      },
+      {
+        "id": "3-6-jul-2026",
+        "ageGroupId": "3-6",
+        "dateLabel": "Jul, 2026",
+        "spacesTotal": 24,
+        "spacesLeftText": "6 spots left",
+        "costHkd": 9000,
+        "venue": {
+          "name": "Goldwin Heights",
+          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
+          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
+        },
+        "sessions": [
+          {
+            "id": "part-1",
+            "dateTimeLabel": "Jul 09 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-07-09",
+            "description": "Starting with a parent call, followed by a 1:1 session."
+          },
+          {
+            "id": "part-2",
+            "dateTimeLabel": "Jul 16 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-07-16",
+            "description": "Hands-on role play for practical routines and communication."
+          },
+          {
+            "id": "part-3",
+            "dateTimeLabel": "Jul 23 @ 12:00 pm - 2:00 pm",
+            "isoDate": "2026-07-23",
+            "description": "Action plan check-in to apply strategies at home with confidence."
+          }
+        ]
       }
     ],
     "confirmAndPayLabel": "Confirm and Pay!",
     "learnMoreLabel": "Learn More About Course",
     "learnMoreHref": "/services/my-best-auntie-training-course",
-    "summary": {
-      "pricingTitle": "Pricing",
-      "totalAmountLabel": "Total Amount",
-      "startingFromLabel": "Starting from",
-      "refundHint": "Full refund up to 7 days prior.",
-      "locationTitle": "Location",
-      "locationName": "Goldwin Heights",
-      "locationAddress": "2 Seymour Road, Mid-Levels, Hong Kong",
-      "directionLabel": "Get Direction",
-      "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
-      "reservationTitle": "Reservation",
-      "reservationDescription": "Complete the short reservation form in the payment modal."
-    },
     "paymentModal": {
       "closeLabel": "Close",
       "thankYouLead": "Thanks for your interest!",
       "title": "My Best Auntie Training Course.",
-      "monthLabel": "Month",
-      "monthOptions": [
-        {
-          "id": "apr-2026",
-          "label": "Apr, 2026"
-        },
-        {
-          "id": "may-2026",
-          "label": "May, 2026"
-        },
-        {
-          "id": "jun-2026",
-          "label": "Jun, 2026"
-        }
-      ],
-      "parts": [
-        {
-          "dateByMonth": {
-            "apr-2026": "Apr 08 @ 12:00 pm - 2:00 pm",
-            "may-2026": "May 08 @ 12:00 pm - 2:00 pm",
-            "jun-2026": "Jun 08 @ 12:00 pm - 2:00 pm"
-          },
-          "description": "Starting with a parent call, followed by a 1:1 session."
-        },
-        {
-          "dateByMonth": {
-            "apr-2026": "Apr 15 @ 12:00 pm - 2:00 pm",
-            "may-2026": "May 15 @ 12:00 pm - 2:00 pm",
-            "jun-2026": "Jun 15 @ 12:00 pm - 2:00 pm"
-          },
-          "description": "Hands-on role play for practical routines and communication."
-        },
-        {
-          "dateByMonth": {
-            "apr-2026": "Apr 22 @ 12:00 pm - 2:00 pm",
-            "may-2026": "May 22 @ 12:00 pm - 2:00 pm",
-            "jun-2026": "Jun 22 @ 12:00 pm - 2:00 pm"
-          },
-          "description": "Action plan check-in to apply strategies at home with confidence."
-        }
-      ],
-      "packageLabel": "Package",
-      "packageOptions": [
-        {
-          "id": "standard",
-          "label": "Standard Package",
-          "description": "6-hour interactive training plus workbook support.",
-          "price": 9000
-        },
-        {
-          "id": "elite",
-          "label": "Elite Package",
-          "description": "Training, workbook support, and post-course auntie review.",
-          "price": 18000
-        }
-      ],
       "pricingTitle": "Pricing",
       "totalAmountLabel": "Total Amount",
       "refundHint": "Full refund up to 7 days prior.",
       "locationTitle": "Location",
-      "locationName": "Goldwin Heights",
-      "locationAddress": "2 Seymour Road, Mid-Levels, Hong Kong",
       "directionLabel": "Get Direction",
-      "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong",
       "reservationTitle": "Reservation",
       "reservationDescription": "Please complete your details. We will send payment confirmation by email.",
       "selectedAgeGroupLabel": "Child age group",

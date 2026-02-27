@@ -16,6 +16,9 @@ interface BookingEventDetailsProps {
   content: MyBestAuntieBookingContent['paymentModal'];
   activePartRows: BookingEventDetailPart[];
   originalAmount: number;
+  venueName: string;
+  venueAddress: string;
+  directionHref: string;
   learnMoreLabel: string;
   learnMoreHref: string;
 }
@@ -71,6 +74,9 @@ export function BookingEventDetails({
   content,
   activePartRows,
   originalAmount,
+  venueName,
+  venueAddress,
+  directionHref,
   learnMoreLabel,
   learnMoreHref,
 }: BookingEventDetailsProps) {
@@ -188,13 +194,13 @@ export function BookingEventDetails({
             </span>
             <div>
               <p className='text-lg font-semibold leading-6 es-text-heading'>
-                {content.locationName}
+                {venueName}
               </p>
               <p className='mt-1 text-base font-semibold leading-6 es-text-heading'>
-                {content.locationAddress}
+                {venueAddress}
               </p>
               <SmartLink
-                href={content.directionHref}
+                href={directionHref}
                 className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
               >
                 {({ isExternalHttp }) => (
