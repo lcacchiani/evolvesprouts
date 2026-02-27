@@ -117,11 +117,11 @@ export function SproutsSquadCommunity({
             >
               <form
                 onSubmit={handleSubmit}
+                noValidate
                 className='flex min-h-0 flex-col gap-3 overflow-hidden'
               >
                 <input
                   type='email'
-                  required
                   autoComplete='email'
                   value={email}
                   onChange={(event) => {
@@ -131,7 +131,7 @@ export function SproutsSquadCommunity({
                     setIsEmailTouched(true);
                   }}
                   placeholder={content.emailPlaceholder}
-                  className={`es-focus-ring es-form-input ${
+                  className={`es-form-input es-sprouts-community-email-input ${
                     hasEmailError ? 'es-form-input-error' : ''
                   }`}
                   aria-label={content.emailPlaceholder}

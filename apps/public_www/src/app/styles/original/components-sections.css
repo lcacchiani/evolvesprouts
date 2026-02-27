@@ -273,6 +273,25 @@
     letter-spacing: 0.4px;
   }
 
+  .es-sprouts-community-email-input {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .es-sprouts-community-email-input:focus,
+  .es-sprouts-community-email-input:focus-visible,
+  .es-sprouts-community-email-input:invalid {
+    outline: none;
+    box-shadow: none;
+    border-color: var(--es-color-border-input);
+  }
+
+  .es-sprouts-community-email-input.es-form-input-error:focus,
+  .es-sprouts-community-email-input.es-form-input-error:focus-visible,
+  .es-sprouts-community-email-input.es-form-input-error:invalid {
+    border-color: var(--es-color-text-danger, #B42318);
+  }
+
   .es-why-us-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');

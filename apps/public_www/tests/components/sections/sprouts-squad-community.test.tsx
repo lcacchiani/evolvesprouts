@@ -73,12 +73,38 @@ describe('SproutsSquadCommunity section', () => {
     expect(
       screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: enContent.sproutsSquadCommunity.ctaLabel }),
-    ).toBeInTheDocument();
+    const emailInput = screen.getByPlaceholderText(
+      enContent.sproutsSquadCommunity.emailPlaceholder,
+    );
+    expect(emailInput).toHaveClass('es-sprouts-community-email-input');
+    expect(emailInput).not.toHaveAttribute('required');
+
+    const submitButton = screen.getByRole('button', {
+      name: enContent.sproutsSquadCommunity.ctaLabel,
+    });
+    expect(submitButton).toBeInTheDocument();
+    expect(submitButton.closest('form')).toHaveAttribute('novalidate');
     expect(
       screen.queryByRole('link', { name: enContent.sproutsSquadCommunity.ctaLabel }),
     ).not.toBeInTheDocument();
+  });
+
+  it('shows email validation error when submit is clicked with empty email', () => {
+    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+
+    const emailInput = screen.getByPlaceholderText(
+      enContent.sproutsSquadCommunity.emailPlaceholder,
+    );
+    const submitButton = screen.getByRole('button', {
+      name: enContent.sproutsSquadCommunity.ctaLabel,
+    });
+
+    fireEvent.click(submitButton);
+
+    expect(
+      screen.getByText(enContent.sproutsSquadCommunity.emailValidationMessage),
+    ).toBeInTheDocument();
+    expect(emailInput).toHaveAttribute('aria-invalid', 'true');
   });
 
   it('shows email validation error for invalid email', () => {
