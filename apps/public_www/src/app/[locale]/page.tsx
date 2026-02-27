@@ -22,8 +22,8 @@ export async function generateMetadata({
     title: content.seo.home.title,
     description: content.seo.home.description,
     socialImage: {
-      url: content.seo.defaultSocialImage,
-      alt: content.seo.defaultSocialImageAlt,
+      url: content.seo.socialImages.home.url,
+      alt: content.seo.socialImages.home.alt,
     },
   });
 }

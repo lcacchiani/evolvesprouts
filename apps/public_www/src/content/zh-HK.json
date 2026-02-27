@@ -79,6 +79,28 @@
     "fallbackDescription": "將你的家庭助手培訓成以蒙特梭利為導向的兒童成長夥伴。為香港0-6歲孩子家庭提供姨姨培訓課程。",
     "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
     "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利姨姨培訓",
+    "socialImages": {
+      "home": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 香港蒙特梭利姨姨培訓"
+      },
+      "about": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "關於 Evolve Sprouts 的香港蒙特梭利家庭支援"
+      },
+      "contact": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "聯絡 Evolve Sprouts 獲取香港蒙特梭利姨姨培訓支援"
+      },
+      "events": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 香港蒙特梭利活動"
+      },
+      "trainingCourse": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "我的最佳姨姨培訓課程（香港蒙特梭利）"
+      }
+    },
     "home": {
       "title": "Evolve Sprouts | 香港蒙特梭利姨姨培訓",
       "description": "將你的家庭助手培訓成以蒙特梭利為導向的兒童成長夥伴。為香港0-6歲孩子家庭提供姨姨培訓課程。"
@@ -950,35 +972,5 @@
       "privacy": "私隱政策",
       "terms": "服務條款"
     }
-  },
-  "courseHighlightsOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "banner": {
-    "title": "banner",
-    "description": "",
-    "items": []
-  },
-  "realStories": {
-    "title": "Real Stories",
-    "description": "",
-    "items": []
-  },
-  "freeResources": {
-    "title": "Free Resources ",
-    "description": "",
-    "items": []
-  },
-  "whyJoiningOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "courseModule": {
-    "title": "Course module",
-    "description": "",
-    "items": []
   }
 }

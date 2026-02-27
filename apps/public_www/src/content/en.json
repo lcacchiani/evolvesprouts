@@ -79,6 +79,28 @@
     "fallbackDescription": "Transform your domestic helper into a Montessori-guided child development partner. Training courses for families with children aged 0-6 in Hong Kong.",
     "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
     "defaultSocialImageAlt": "Evolve Sprouts Montessori auntie training in Hong Kong",
+    "socialImages": {
+      "home": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts Montessori auntie training in Hong Kong"
+      },
+      "about": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "About Evolve Sprouts Montessori family support in Hong Kong"
+      },
+      "contact": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Contact Evolve Sprouts for Montessori auntie training in Hong Kong"
+      },
+      "events": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts Montessori events in Hong Kong"
+      },
+      "trainingCourse": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "My Best Auntie Montessori training course in Hong Kong"
+      }
+    },
     "home": {
       "title": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
       "description": "Transform your domestic helper into a Montessori-guided child development partner. Training courses for families with children aged 0-6 in Hong Kong."
@@ -379,7 +401,7 @@
   },
   "courseHighlights": {
     "eyebrow": "Course Highlights",
-    "title": "Why Joining Our Courses",
+    "title": "Why Join Our Courses",
     "description": "The program serious families choose when they want real change",
     "ctaLabel": "Get Started—Train Auntie Today",
     "ctaHref": "/services/my-best-auntie-training-course",
@@ -950,35 +972,5 @@
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
     }
-  },
-  "courseHighlightsOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "banner": {
-    "title": "banner",
-    "description": "",
-    "items": []
-  },
-  "realStories": {
-    "title": "Real Stories",
-    "description": "",
-    "items": []
-  },
-  "freeResources": {
-    "title": "Free Resources ",
-    "description": "",
-    "items": []
-  },
-  "whyJoiningOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "courseModule": {
-    "title": "Course module",
-    "description": "",
-    "items": []
   }
 }

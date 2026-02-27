@@ -25,8 +25,8 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
     title,
     description,
     socialImage: {
-      url: content.seo.defaultSocialImage,
-      alt: content.seo.defaultSocialImageAlt,
+      url: content.seo.socialImages.about.url,
+      alt: content.seo.socialImages.about.alt,
     },
   });
 }

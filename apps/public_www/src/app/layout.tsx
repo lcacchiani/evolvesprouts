@@ -34,7 +34,7 @@ const lato = Lato({
   weight: ['400', '700'],
   style: ['normal'],
   display: 'swap',
-  preload: false,
+  preload: true,
 });
 
 const poppins = Poppins({
@@ -43,7 +43,7 @@ const poppins = Poppins({
   weight: ['500', '600', '700'],
   style: ['normal'],
   display: 'swap',
-  preload: false,
+  preload: true,
 });
 
 const DOCUMENT_LOCALE_DIRECTIONS = Object.fromEntries(

@@ -79,6 +79,28 @@
     "fallbackDescription": "将你的家庭助手培养成以蒙特梭利为导向的儿童成长伙伴。为香港0-6岁儿童家庭提供阿姨培训课程。",
     "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
     "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利阿姨培训",
+    "socialImages": {
+      "home": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 香港蒙特梭利阿姨培训"
+      },
+      "about": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "关于 Evolve Sprouts 的香港蒙特梭利家庭支持"
+      },
+      "contact": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "联系 Evolve Sprouts 获取香港蒙特梭利阿姨培训支持"
+      },
+      "events": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 香港蒙特梭利活动"
+      },
+      "trainingCourse": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "我的最佳阿姨培训课程（香港蒙特梭利）"
+      }
+    },
     "home": {
       "title": "Evolve Sprouts | 香港蒙特梭利阿姨培训",
       "description": "将你的家庭助手培养成以蒙特梭利为导向的儿童成长伙伴。为香港0-6岁儿童家庭提供阿姨培训课程。"
@@ -950,35 +972,5 @@
       "privacy": "隐私政策",
       "terms": "服务条款"
     }
-  },
-  "courseHighlightsOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "banner": {
-    "title": "banner",
-    "description": "",
-    "items": []
-  },
-  "realStories": {
-    "title": "Real Stories",
-    "description": "",
-    "items": []
-  },
-  "freeResources": {
-    "title": "Free Resources ",
-    "description": "",
-    "items": []
-  },
-  "whyJoiningOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "courseModule": {
-    "title": "Course module",
-    "description": "",
-    "items": []
   }
 }
