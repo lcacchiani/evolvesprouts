@@ -264,6 +264,15 @@
     );
   }
 
+  .es-sprouts-community-support-paragraph {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-weight: var(--figma-fontweights-400, 400);
+    font-size: clamp(1rem, 1.8vw, 19px);
+    line-height: clamp(1.45rem, 2.6vw, 33px);
+    letter-spacing: 0.4px;
+  }
+
   .es-why-us-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
