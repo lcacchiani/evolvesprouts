@@ -13,7 +13,7 @@ export function PrivacyPolicy({ content }: PrivacyPolicyProps) {
       id='privacy-policy'
       ariaLabel={content.title}
       dataFigmaNode='privacy-policy'
-      className='es-section-bg-overlay'
+      className='es-section-bg-overlay es-bg-surface-white'
     >
       <SectionContainer>
         <SectionHeader
