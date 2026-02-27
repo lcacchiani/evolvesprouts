@@ -5,7 +5,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { HeroBanner } from '@/components/sections/hero-banner';
 import enContent from '@/content/en.json';
-import { ROUTES } from '@/lib/routes';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -36,8 +35,11 @@ vi.mock('next/link', () => ({
 }));
 
 describe('HeroBanner section', () => {
-  it('uses migrated class-based styling and keeps highlighted headline word', () => {
-    const { container } = render(<HeroBanner content={enContent.hero} />);
+  it('uses migrated class-based styling and renders the provided CTA href', () => {
+    const ctaHref = 'https://wa.me/123456?text=Hello';
+    const { container } = render(
+      <HeroBanner content={enContent.hero} ctaHref={ctaHref} />,
+    );
 
     const section = container.querySelector('section[data-figma-node="banner"]');
     expect(section).not.toBeNull();
@@ -58,7 +60,7 @@ describe('HeroBanner section', () => {
     expect(subheadline.className).toContain('es-hero-subheadline');
 
     const cta = screen.getByRole('link', { name: enContent.hero.cta });
-    expect(cta).toHaveAttribute('href', ROUTES.servicesMyBestAuntieTrainingCourse);
+    expect(cta).toHaveAttribute('href', ctaHref);
     const supportingParagraph = screen.getByText(enContent.hero.supportingParagraph);
     expect(supportingParagraph).toBeInTheDocument();
     expect(supportingParagraph.className).toContain('es-hero-subheadline');

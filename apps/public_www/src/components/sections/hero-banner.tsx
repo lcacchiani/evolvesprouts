@@ -13,6 +13,7 @@ import { ROUTES } from '@/lib/routes';
 
 interface HeroBannerProps {
   content: HeroContent;
+  ctaHref?: string;
 }
 
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
@@ -38,7 +39,9 @@ function renderHeadline(headline: string): ReactNode {
   ));
 }
 
-export function HeroBanner({ content }: HeroBannerProps) {
+export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
+  const resolvedCtaHref = ctaHref?.trim() || ROUTES.servicesMyBestAuntieTrainingCourse;
+
   return (
     <SectionShell
       id='hero-banner'
@@ -67,7 +70,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
               descriptionClassName={`mt-4 sm:mt-6 ${HERO_BODY_TEXT_CLASSNAME}`}
             />
             <SectionCtaAnchor
-              href={ROUTES.servicesMyBestAuntieTrainingCourse}
+              href={resolvedCtaHref}
               className='mt-6'
             >
               {content.cta}

@@ -1,35 +1,36 @@
-import { EmptyPagePlaceholder } from '@/components/pages/empty-page-placeholder';
-import { PlaceholderPageLayout } from '@/components/shared/placeholder-page-layout';
+import { TermsAndConditionsPageSections } from '@/components/pages/terms-and-conditions';
 import {
-  createPlaceholderPage,
   generateLocaleStaticParams,
   getFooterLinkLabel,
   type LocaleRouteProps,
+  resolveLocalePageContext,
 } from '@/lib/locale-page';
 import { ROUTES } from '@/lib/routes';
-
-const TERMS_PLACEHOLDER_OPTIONS = {
-  path: ROUTES.terms,
-  fallbackTitle: 'Terms & Conditions',
-  labelResolver: getFooterLinkLabel,
-} as const;
-const termsPlaceholderPage = createPlaceholderPage(TERMS_PLACEHOLDER_OPTIONS);
+import { buildLocalizedMetadata } from '@/lib/seo';
 
 export { generateLocaleStaticParams as generateStaticParams };
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
-  return termsPlaceholderPage.generateMetadata({ params });
+  const { locale, content } = await resolveLocalePageContext(params);
+  const title = content.termsAndConditions.title || getFooterLinkLabel(
+    content,
+    ROUTES.terms,
+    'Terms and Conditions',
+  );
+
+  return buildLocalizedMetadata({
+    locale,
+    path: ROUTES.terms,
+    title,
+    description: content.termsAndConditions.intro,
+    socialImage: {
+      url: content.seo.socialImages.home.url,
+      alt: content.seo.socialImages.home.alt,
+    },
+  });
 }
 
 export default async function TermsPage({ params }: LocaleRouteProps) {
-  const { content, title } = await termsPlaceholderPage.resolveProps(params);
-
-  return (
-    <PlaceholderPageLayout
-      navbarContent={content.navbar}
-      footerContent={content.footer}
-    >
-      <EmptyPagePlaceholder title={title} />
-    </PlaceholderPageLayout>
-  );
+  const { content } = await resolveLocalePageContext(params);
+  return <TermsAndConditionsPageSections content={content} />;
 }

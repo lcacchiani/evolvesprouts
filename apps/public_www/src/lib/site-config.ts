@@ -52,6 +52,28 @@ function normalizeConfiguredUrl(value: string | undefined): string | undefined {
   return parsedUrl.toString();
 }
 
+export function buildWhatsappPrefilledHref(
+  baseWhatsappUrl: string | undefined,
+  message: string | undefined,
+): string {
+  const normalizedBaseUrl = normalizeConfiguredUrl(baseWhatsappUrl);
+  if (!normalizedBaseUrl) {
+    return '';
+  }
+
+  const parsedUrl = parseConfiguredUrl(normalizedBaseUrl);
+  if (!parsedUrl) {
+    return '';
+  }
+
+  const normalizedMessage = message?.trim() ?? '';
+  if (normalizedMessage) {
+    parsedUrl.searchParams.set('text', normalizedMessage);
+  }
+
+  return parsedUrl.toString();
+}
+
 export function resolvePublicSiteConfig(): PublicSiteConfig {
   return {
     instagramUrl: normalizeConfiguredUrl(readOptionalEnv(INSTAGRAM_URL_ENV_NAME)),
