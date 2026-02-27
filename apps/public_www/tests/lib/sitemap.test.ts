@@ -21,6 +21,14 @@ describe('sitemap', () => {
     }
   });
 
+  it('adds lastModified for every sitemap entry', () => {
+    const entries = sitemap();
+
+    for (const entry of entries) {
+      expect(entry.lastModified).toBeInstanceOf(Date);
+    }
+  });
+
   it('excludes placeholder localized routes', () => {
     const entries = sitemap();
     const urls = new Set(entries.map((entry) => entry.url));

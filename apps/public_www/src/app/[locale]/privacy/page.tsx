@@ -1,35 +1,36 @@
-import { EmptyPagePlaceholder } from '@/components/pages/empty-page-placeholder';
-import { PlaceholderPageLayout } from '@/components/shared/placeholder-page-layout';
+import { PrivacyPolicyPageSections } from '@/components/pages/privacy-policy';
 import {
-  createPlaceholderPage,
   generateLocaleStaticParams,
   getFooterLinkLabel,
   type LocaleRouteProps,
+  resolveLocalePageContext,
 } from '@/lib/locale-page';
 import { ROUTES } from '@/lib/routes';
-
-const PRIVACY_PLACEHOLDER_OPTIONS = {
-  path: ROUTES.privacy,
-  fallbackTitle: 'Privacy Policy',
-  labelResolver: getFooterLinkLabel,
-} as const;
-const privacyPlaceholderPage = createPlaceholderPage(PRIVACY_PLACEHOLDER_OPTIONS);
+import { buildLocalizedMetadata } from '@/lib/seo';
 
 export { generateLocaleStaticParams as generateStaticParams };
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
-  return privacyPlaceholderPage.generateMetadata({ params });
+  const { locale, content } = await resolveLocalePageContext(params);
+  const title = content.privacyPolicy.title || getFooterLinkLabel(
+    content,
+    ROUTES.privacy,
+    'Privacy Policy',
+  );
+
+  return buildLocalizedMetadata({
+    locale,
+    path: ROUTES.privacy,
+    title,
+    description: content.privacyPolicy.intro,
+    socialImage: {
+      url: content.seo.socialImages.home.url,
+      alt: content.seo.socialImages.home.alt,
+    },
+  });
 }
 
 export default async function PrivacyPage({ params }: LocaleRouteProps) {
-  const { content, title } = await privacyPlaceholderPage.resolveProps(params);
-
-  return (
-    <PlaceholderPageLayout
-      navbarContent={content.navbar}
-      footerContent={content.footer}
-    >
-      <EmptyPagePlaceholder title={title} />
-    </PlaceholderPageLayout>
-  );
+  const { content } = await resolveLocalePageContext(params);
+  return <PrivacyPolicyPageSections content={content} />;
 }

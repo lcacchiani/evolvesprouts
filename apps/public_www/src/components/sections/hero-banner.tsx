@@ -13,9 +13,11 @@ import { ROUTES } from '@/lib/routes';
 
 interface HeroBannerProps {
   content: HeroContent;
+  ctaHref?: string;
 }
 
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
+const HERO_IMAGE_ALT = 'Montessori auntie training for Hong Kong families';
 const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
 const HERO_BODY_TEXT_CLASSNAME = 'max-w-[458px] es-hero-subheadline';
 
@@ -37,7 +39,9 @@ function renderHeadline(headline: string): ReactNode {
   ));
 }
 
-export function HeroBanner({ content }: HeroBannerProps) {
+export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
+  const resolvedCtaHref = ctaHref?.trim() || ROUTES.servicesMyBestAuntieTrainingCourse;
+
   return (
     <SectionShell
       id='hero-banner'
@@ -66,7 +70,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
               descriptionClassName={`mt-4 sm:mt-6 ${HERO_BODY_TEXT_CLASSNAME}`}
             />
             <SectionCtaAnchor
-              href={ROUTES.servicesMyBestAuntieTrainingCourse}
+              href={resolvedCtaHref}
               className='mt-6'
             >
               {content.cta}
@@ -79,7 +83,7 @@ export function HeroBanner({ content }: HeroBannerProps) {
         <div className='mx-auto w-full max-w-[573px] lg:ml-auto lg:mr-0'>
           <Image
             src={HERO_IMAGE_SRC}
-            alt=''
+            alt={HERO_IMAGE_ALT}
             width={764}
             height={841}
             priority

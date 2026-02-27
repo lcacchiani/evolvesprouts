@@ -19,6 +19,8 @@ const PROTOCOL_RELATIVE_URL_REGEX = /^\/\//;
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
 const MAILTO_PROTOCOL_REGEX = /^mailto:/i;
 const TEL_PROTOCOL_REGEX = /^tel:/i;
+const GENERIC_SOCIAL_PROFILE_ROOT_REGEX =
+  /^https:\/\/(?:www\.)?(linkedin\.com|instagram\.com)\/?$/i;
 
 function getTypeName(value) {
   if (Array.isArray(value)) {
@@ -268,12 +270,40 @@ function validateInternalRouteHref(value, keyPath, errors, routePaths) {
   }
 }
 
+function isNavigationOrFooterHrefPath(keyPath) {
+  return (
+    keyPath.includes('.navbar.menuItems[')
+    || keyPath.includes('.footer.quickLinks.items[')
+    || keyPath.includes('.footer.services.items[')
+    || keyPath.includes('.footer.aboutUs.items[')
+    || keyPath.includes('.footer.connectOn.items[')
+  );
+}
+
+function validateSeoHrefPolicy(value, keyPath, errors) {
+  const normalizedValue = value.trim();
+
+  if (normalizedValue === '#' && isNavigationOrFooterHrefPath(keyPath)) {
+    errors.push(`${keyPath}: placeholder href "#" is not allowed in navigation/footer links`);
+  }
+
+  if (
+    keyPath.includes('.footer.connectOn.items[')
+    && GENERIC_SOCIAL_PROFILE_ROOT_REGEX.test(normalizedValue)
+  ) {
+    errors.push(
+      `${keyPath}: generic social root URL is not allowed; configure the company profile URL or use an internal fallback`,
+    );
+  }
+}
+
 function validateSemanticRules(value, keyPath, errors, routePaths) {
   if (typeof value === 'string') {
     const keyName = keyPath.split('.').pop()?.toLowerCase() ?? '';
     if (keyName === 'href' || keyName.endsWith('href')) {
       validateHrefValue(value, keyPath, errors);
       validateInternalRouteHref(value, keyPath, errors, routePaths);
+      validateSeoHrefPolicy(value, keyPath, errors);
     }
     if (
       keyName === 'email' ||

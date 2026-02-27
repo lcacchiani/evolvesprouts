@@ -4,16 +4,17 @@ import { usePathname } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SmartLink } from '@/components/shared/smart-link';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { FaqContent } from '@/content';
+import type { FaqContent, Locale } from '@/content';
 import {
   getLocaleFromPath,
   localizePath,
 } from '@/lib/locale-routing';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, type AppRoutePath } from '@/lib/routes';
 
 interface FaqProps {
   content: FaqContent;
@@ -26,6 +27,19 @@ interface FaqQuestion {
 }
 
 const CONTACT_CARD_CTA_LABEL = 'Contact Us';
+const FAQ_RELATED_LINK_LABELS: Record<Locale, string> = {
+  en: 'Learn more',
+  'zh-CN': '了解更多',
+  'zh-HK': '了解更多',
+};
+const FAQ_RELATED_ROUTE_BY_LABEL_ID: Partial<Record<string, AppRoutePath>> = {
+  general: ROUTES.about,
+  discipline: ROUTES.servicesMyBestAuntieTrainingCourse,
+  support: ROUTES.contact,
+  pricing: ROUTES.servicesMyBestAuntieTrainingCourse,
+  trust: ROUTES.about,
+  enrolment: ROUTES.contact,
+};
 
 function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
@@ -105,19 +119,40 @@ function isContactUsPromptQuestion(
   return /contact us/i.test(question.answer);
 }
 
+function resolveRelatedLink(
+  question: FaqQuestion,
+  locale: Locale,
+): { href: string; label: string } | null {
+  const route = question.labelIds
+    .map((labelId) => FAQ_RELATED_ROUTE_BY_LABEL_ID[labelId])
+    .find((candidateRoute): candidateRoute is AppRoutePath => Boolean(candidateRoute));
+
+  if (!route) {
+    return null;
+  }
+
+  return {
+    href: localizePath(route, locale),
+    label: FAQ_RELATED_LINK_LABELS[locale],
+  };
+}
+
 function FaqItems({
   items,
   allLabelIds,
   contactCardCtaHref,
+  locale,
 }: {
   items: FaqQuestion[];
   allLabelIds: Set<string>;
   contactCardCtaHref: string;
+  locale: Locale;
 }) {
   return (
     <ul className='grid grid-cols-1 gap-5 md:grid-cols-2'>
       {items.map((item, index) => {
         const isContactCard = isContactUsPromptQuestion(item, allLabelIds);
+        const relatedLink = resolveRelatedLink(item, locale);
 
         if (isContactCard) {
           return (
@@ -148,6 +183,16 @@ function FaqItems({
                 <p className='whitespace-pre-line es-faq-answer'>
                   {item.answer}
                 </p>
+                {relatedLink ? (
+                  <p className='mt-4'>
+                    <SmartLink
+                      href={relatedLink.href}
+                      className='inline-flex text-sm font-semibold es-text-brand underline underline-offset-4'
+                    >
+                      {relatedLink.label}
+                    </SmartLink>
+                  </p>
+                ) : null}
               </div>
             </article>
           </li>
@@ -238,6 +283,7 @@ export function Faq({ content }: FaqProps) {
               items={visibleQuestions}
               allLabelIds={allLabelIds}
               contactCardCtaHref={contactCardCtaHref}
+              locale={locale}
             />
           )}
         </div>

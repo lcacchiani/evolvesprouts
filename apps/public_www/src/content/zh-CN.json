@@ -9,33 +9,33 @@
     "logoSrc": "/images/evolvesprouts-logo.svg",
     "menuItems": [
       {
-        "label": "Home",
+        "label": "首页",
         "href": "/"
       },
       {
-        "label": "Training Courses",
+        "label": "培训课程",
         "href": "/services/my-best-auntie-training-course",
         "children": [
           {
-            "label": "Auntie Training",
+            "label": "阿姨培训",
             "href": "/services/my-best-auntie-training-course"
           },
           {
-            "label": "Montessori Training",
-            "href": "#"
+            "label": "蒙特梭利培训",
+            "href": "/services/my-best-auntie-training-course"
           }
         ]
       },
       {
-        "label": "About Us",
+        "label": "关于我们",
         "href": "/about-us"
       },
       {
-        "label": "Events",
+        "label": "活动",
         "href": "/events"
       },
       {
-        "label": "Contact Us",
+        "label": "联系我们",
         "href": "/contact-us"
       }
     ],
@@ -70,9 +70,50 @@
   },
   "hero": {
     "headline": "将阿姨培养成你孩子的蒙特梭利成长伙伴",
-    "subheadline": "通过每天照顾孩子的人，帮助孩子成长。",
+    "subheadline": "通过每天照顾孩子的人，帮助香港孩子成长。",
     "cta": "预约免费入门咨询",
+    "ctaPrefillMessage": "你好，我想预约一个免费咨询！",
     "supportingParagraph": "通过蒙特梭利与正向教育支持香港家庭，培训阿姨陪伴孩子成长。"
+  },
+  "seo": {
+    "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利阿姨培训",
+    "fallbackDescription": "将你的家庭助手培养成以蒙特梭利为导向的儿童成长伙伴。为香港0-6岁儿童家庭提供阿姨培训课程。",
+    "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
+    "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利阿姨培训",
+    "socialImages": {
+      "home": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 香港蒙特梭利阿姨培训"
+      },
+      "about": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "关于 Evolve Sprouts 的香港蒙特梭利家庭支持"
+      },
+      "contact": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "联系 Evolve Sprouts 获取香港蒙特梭利阿姨培训支持"
+      },
+      "events": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 香港蒙特梭利活动"
+      },
+      "trainingCourse": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "我的最佳阿姨培训课程（香港蒙特梭利）"
+      }
+    },
+    "home": {
+      "title": "Evolve Sprouts | 香港蒙特梭利阿姨培训",
+      "description": "将你的家庭助手培养成以蒙特梭利为导向的儿童成长伙伴。为香港0-6岁儿童家庭提供阿姨培训课程。"
+    },
+    "trainingCourse": {
+      "title": "我的最佳阿姨培训课程",
+      "description": "为家庭助手打造的6小时互动式蒙特梭利培训课程。学习可落地的日常流程、温和界限与儿童主导策略，特别适合香港家庭。"
+    },
+    "organizationDescription": "为香港0-6岁儿童家庭提供蒙特梭利导向的家庭支持与阿姨培训。",
+    "localBusinessName": "Evolve Sprouts",
+    "localBusinessDescription": "面向香港家庭的蒙特梭利阿姨培训与家长支持服务。",
+    "localBusinessAreaServed": "香港"
   },
   "idaIntro": {
     "text": "我叫 Ida，我是一名蒙特梭利认证从业者，也是两个孩子的妈妈。",
@@ -407,7 +448,7 @@
     "nextButtonLabel": "下一条见证",
     "items": [
       {
-        "quote": "1) Ida 太棒了，她帮助我理解如何以蒙特梭利的方式布置家里，同时不打乱我原有的风格。",
+        "quote": "Ida 太棒了，她帮助我理解如何以蒙特梭利的方式布置家里，同时不打乱我原有的风格。",
         "author": "Mary Lo",
         "role": "两孩妈妈",
         "mainImageSrc": "/images/testimonials/story-1-main.webp",
@@ -849,6 +890,122 @@
     "title": "页面未找到",
     "description": "抱歉，您输入的页面键无效。"
   },
+  "termsAndConditions": {
+    "eyebrow": "法律条款",
+    "title": "条款与条件",
+    "intro": "本条款与条件适用于您使用 Evolve Sprouts 网站及其服务，包括咨询、培训、工作坊和数字资源。",
+    "lastUpdatedLabel": "最后更新",
+    "lastUpdatedValue": "2026年2月27日",
+    "sections": [
+      {
+        "heading": "1. 接受条款",
+        "paragraphs": [
+          "当您访问本网站或预订服务时，即表示您同意受本条款与条件约束。",
+          "若您不同意本条款，请勿使用本网站或我们的服务。"
+        ]
+      },
+      {
+        "heading": "2. 服务与适用资格",
+        "paragraphs": [
+          "Evolve Sprouts 提供以蒙特梭利理念为基础的家庭教育与支持服务，面向家长及照护者。",
+          "您确认提交的预订与沟通信息真实、准确且完整。"
+        ]
+      },
+      {
+        "heading": "3. 预订、付款与退款",
+        "paragraphs": [
+          "仅在 Evolve Sprouts 收到并确认付款后，预订才视为最终成立。",
+          "退款窗口、取消条款及套餐包含内容，以您预订时页面公示信息为准。"
+        ]
+      },
+      {
+        "heading": "4. 用户责任",
+        "paragraphs": [
+          "您不得滥用网站、提交违法内容，或干扰服务的安全性与可用性。",
+          "您不得尝试未经授权访问网站系统、付款流程或数据。"
+        ]
+      },
+      {
+        "heading": "5. 知识产权",
+        "paragraphs": [
+          "除另有说明外，网站内容、品牌标识、课程资料及可下载资源均归 Evolve Sprouts 所有。",
+          "未经事先书面许可，任何内容均不得复制、再分发或用于商业用途。"
+        ]
+      },
+      {
+        "heading": "6. 责任限制与免责声明",
+        "paragraphs": [
+          "我们的服务仅用于教育与信息分享，不构成医疗、法律、心理或其他受监管专业意见的替代。",
+          "在法律允许范围内，Evolve Sprouts 不对因使用网站或服务产生的间接或后果性损失承担责任。"
+        ]
+      },
+      {
+        "heading": "7. 适用法律与管辖",
+        "paragraphs": [
+          "本条款与条件受香港法律管辖并依其解释。",
+          "因本条款产生或与之相关的争议，由香港法院专属管辖。"
+        ]
+      }
+    ],
+    "languagePrevailsClause": "如本条款与条件的不同语言版本存在不一致，以英文版本为准。"
+  },
+  "privacyPolicy": {
+    "eyebrow": "法律条款",
+    "title": "隐私政策",
+    "intro": "本隐私政策说明 Evolve Sprouts 如何收集、使用、保存并保护您通过网站与服务提交的个人数据。",
+    "lastUpdatedLabel": "最后更新",
+    "lastUpdatedValue": "2026年2月27日",
+    "sections": [
+      {
+        "heading": "1. 我们收集的数据",
+        "paragraphs": [
+          "我们可能收集您主动提交的个人信息，如姓名、电子邮箱、电话号码、预订信息及留言内容。",
+          "我们也可能收集用于安全、分析与服务稳定性的技术使用数据。"
+        ]
+      },
+      {
+        "heading": "2. 数据使用方式",
+        "paragraphs": [
+          "我们使用您的数据回复咨询、处理预约、交付服务并提供客户支持。",
+          "在法律允许范围内，我们也可能使用联系方式发送与服务相关的更新信息。"
+        ]
+      },
+      {
+        "heading": "3. 法律依据与合规",
+        "paragraphs": [
+          "我们依据香港适用的隐私要求处理个人数据，包括《个人资料（私隐）条例》（PDPO）。",
+          "在法律要求的情况下，我们会在收集或处理个人信息前取得您的同意。"
+        ]
+      },
+      {
+        "heading": "4. 数据共享与处理方",
+        "paragraphs": [
+          "我们不会出售个人数据。",
+          "我们可能仅在运营所需范围内，与受信任的服务提供商（如支付、表单安全和托管服务）共享数据，并采取适当保障措施。"
+        ]
+      },
+      {
+        "heading": "5. 数据保存与安全",
+        "paragraphs": [
+          "我们仅在实现服务交付、履行法律义务及满足合理业务需要期间保留个人数据。",
+          "我们采取技术与组织措施，防止个人数据被未经授权访问、披露或丢失。"
+        ]
+      },
+      {
+        "heading": "6. 您的权利",
+        "paragraphs": [
+          "在适用法律允许范围内，您可请求查阅并更正我们持有的个人数据。",
+          "当同意是处理依据时，您也可联系我们撤回对特定数据用途的同意。"
+        ]
+      },
+      {
+        "heading": "7. 联系方式",
+        "paragraphs": [
+          "如有隐私相关请求，请通过 Contact Us 页面联系 Evolve Sprouts。"
+        ]
+      }
+    ]
+  },
   "footer": {
     "brand": "Evolve Sprouts",
     "communityHeading": "加入我们的 Sprouts Squad 社区！",
@@ -904,7 +1061,7 @@
         },
         {
           "label": "通讯",
-          "href": "#"
+          "href": "/contact-us"
         },
         {
           "label": "隐私政策",
@@ -917,50 +1074,20 @@
       "items": [
         {
           "label": "Linkedin",
-          "href": "https://linkedin.com",
+          "href": "/contact-us",
           "icon": "linkedin"
         },
         {
           "label": "Instagram",
-          "href": "https://instagram.com",
+          "href": "/contact-us",
           "icon": "instagram"
         }
       ]
     },
-    "copyright": "© 2025 Evolve Sprouts",
+    "copyright": "© Evolve Sprouts",
     "links": {
       "privacy": "隐私政策",
       "terms": "服务条款"
     }
-  },
-  "courseHighlightsOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "banner": {
-    "title": "banner",
-    "description": "",
-    "items": []
-  },
-  "realStories": {
-    "title": "Real Stories",
-    "description": "",
-    "items": []
-  },
-  "freeResources": {
-    "title": "Free Resources ",
-    "description": "",
-    "items": []
-  },
-  "whyJoiningOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "courseModule": {
-    "title": "Course module",
-    "description": "",
-    "items": []
   }
 }

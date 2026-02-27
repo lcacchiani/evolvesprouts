@@ -5,15 +5,27 @@ import { describe, expect, it, vi } from 'vitest';
 import { HomePageSections } from '@/components/pages/homepage';
 import enContent from '@/content/en.json';
 
+const heroBannerPropsSpy = vi.fn<
+  [{ content: { headline: string }; ctaHref?: string }],
+  void
+>();
+
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({ children }: { children: ReactNode }) => (
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
 vi.mock('@/components/sections/hero-banner', () => ({
-  HeroBanner: ({ content }: { content: { headline: string } }) => (
-    <section data-testid='hero-banner'>{content.headline}</section>
-  ),
+  HeroBanner: ({
+    content,
+    ctaHref,
+  }: {
+    content: { headline: string };
+    ctaHref?: string;
+  }) => {
+    heroBannerPropsSpy({ content, ctaHref });
+    return <section data-testid='hero-banner'>{content.headline}</section>;
+  },
 }));
 vi.mock('@/components/sections/ida-intro', () => ({
   IdaIntro: ({ content }: { content: { text: string } }) => (
@@ -54,6 +66,7 @@ vi.mock('@/components/sections/sprouts-squad-community', () => ({
 
 describe('HomePageSections', () => {
   it('composes homepage sections with the expected content slices', () => {
+    heroBannerPropsSpy.mockClear();
     render(<HomePageSections content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
@@ -69,5 +82,15 @@ describe('HomePageSections', () => {
     expect(
       screen.getByTestId('my-best-auntie-overview'),
     ).toHaveTextContent('Best Auntie Training Course Designed by Ida');
+    expect(heroBannerPropsSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ctaHref: expect.stringContaining('https://wa.me/'),
+      }),
+    );
+    expect(heroBannerPropsSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ctaHref: expect.stringContaining('text='),
+      }),
+    );
   });
 });

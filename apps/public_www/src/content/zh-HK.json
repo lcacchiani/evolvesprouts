@@ -9,33 +9,33 @@
     "logoSrc": "/images/evolvesprouts-logo.svg",
     "menuItems": [
       {
-        "label": "Home",
+        "label": "首頁",
         "href": "/"
       },
       {
-        "label": "Training Courses",
+        "label": "培訓課程",
         "href": "/services/my-best-auntie-training-course",
         "children": [
           {
-            "label": "Auntie Training",
+            "label": "姨姨培訓",
             "href": "/services/my-best-auntie-training-course"
           },
           {
-            "label": "Montessori Training",
-            "href": "#"
+            "label": "蒙特梭利培訓",
+            "href": "/services/my-best-auntie-training-course"
           }
         ]
       },
       {
-        "label": "About Us",
+        "label": "關於我們",
         "href": "/about-us"
       },
       {
-        "label": "Events",
+        "label": "活動",
         "href": "/events"
       },
       {
-        "label": "Contact Us",
+        "label": "聯絡我們",
         "href": "/contact-us"
       }
     ],
@@ -70,9 +70,50 @@
   },
   "hero": {
     "headline": "將姨姨培訓成你孩子的蒙特梭利成長夥伴",
-    "subheadline": "透過每天照顧孩子的人，幫助孩子成長。",
+    "subheadline": "透過每天照顧孩子的人，幫助香港孩子成長。",
     "cta": "預約免費入門諮詢",
+    "ctaPrefillMessage": "你好，我想預約一節免費諮詢！",
     "supportingParagraph": "以蒙特梭利與正向教育支援香港家庭，培訓姨姨陪伴孩子成長。"
+  },
+  "seo": {
+    "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利姨姨培訓",
+    "fallbackDescription": "將你的家庭助手培訓成以蒙特梭利為導向的兒童成長夥伴。為香港0-6歲孩子家庭提供姨姨培訓課程。",
+    "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
+    "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利姨姨培訓",
+    "socialImages": {
+      "home": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 香港蒙特梭利姨姨培訓"
+      },
+      "about": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "關於 Evolve Sprouts 的香港蒙特梭利家庭支援"
+      },
+      "contact": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "聯絡 Evolve Sprouts 獲取香港蒙特梭利姨姨培訓支援"
+      },
+      "events": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 香港蒙特梭利活動"
+      },
+      "trainingCourse": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "我的最佳姨姨培訓課程（香港蒙特梭利）"
+      }
+    },
+    "home": {
+      "title": "Evolve Sprouts | 香港蒙特梭利姨姨培訓",
+      "description": "將你的家庭助手培訓成以蒙特梭利為導向的兒童成長夥伴。為香港0-6歲孩子家庭提供姨姨培訓課程。"
+    },
+    "trainingCourse": {
+      "title": "我的最佳姨姨培訓課程",
+      "description": "為家庭助手而設的6小時互動式蒙特梭利培訓課程。學習可即時落地的日常流程、溫和界線與兒童主導策略，特別適合香港家庭。"
+    },
+    "organizationDescription": "為香港0-6歲孩子家庭提供蒙特梭利導向的家庭支持與姨姨培訓。",
+    "localBusinessName": "Evolve Sprouts",
+    "localBusinessDescription": "面向香港家庭的蒙特梭利姨姨培訓與家長支持服務。",
+    "localBusinessAreaServed": "香港"
   },
   "idaIntro": {
     "text": "我叫 Ida，我是一位蒙特梭利認證導師，也是兩個孩子的媽媽。",
@@ -407,7 +448,7 @@
     "nextButtonLabel": "下一則見證",
     "items": [
       {
-        "quote": "1) Ida 非常出色，她幫助我了解如何以蒙特梭利方式佈置家居，同時不會打亂我原有的風格。",
+        "quote": "Ida 非常出色，她幫助我了解如何以蒙特梭利方式佈置家居，同時不會打亂我原有的風格。",
         "author": "Mary Lo",
         "role": "兩孩媽媽",
         "mainImageSrc": "/images/testimonials/story-1-main.webp",
@@ -849,6 +890,122 @@
     "title": "頁面未找到",
     "description": "抱歉，你輸入的頁面鍵無效。"
   },
+  "termsAndConditions": {
+    "eyebrow": "法律條款",
+    "title": "條款與細則",
+    "intro": "本條款與細則適用於你使用 Evolve Sprouts 網站及服務，包括諮詢、培訓、工作坊和數碼資源。",
+    "lastUpdatedLabel": "最後更新",
+    "lastUpdatedValue": "2026年2月27日",
+    "sections": [
+      {
+        "heading": "1. 接受條款",
+        "paragraphs": [
+          "當你使用本網站或預約服務，即表示你同意受本條款與細則約束。",
+          "如你不同意本條款，請不要使用本網站或我們的服務。"
+        ]
+      },
+      {
+        "heading": "2. 服務與適用資格",
+        "paragraphs": [
+          "Evolve Sprouts 提供以蒙特梭利理念為基礎的家庭教育與支援服務，面向家長及照顧者。",
+          "你確認提交的預約及聯絡資料真實、準確並完整。"
+        ]
+      },
+      {
+        "heading": "3. 預約、付款與退款",
+        "paragraphs": [
+          "只有在 Evolve Sprouts 收到並確認付款後，預約才視為成立。",
+          "退款時限、取消條款及套餐內容，以你預約時頁面公示資訊為準。"
+        ]
+      },
+      {
+        "heading": "4. 用戶責任",
+        "paragraphs": [
+          "你不得濫用網站、提交違法內容，或干擾服務的安全性與可用性。",
+          "你不得嘗試未經授權存取網站系統、付款流程或資料。"
+        ]
+      },
+      {
+        "heading": "5. 知識產權",
+        "paragraphs": [
+          "除另有說明外，網站內容、品牌、課程材料及可下載資源均屬 Evolve Sprouts 所有。",
+          "未經事先書面許可，任何內容不得複製、再分發或作商業用途。"
+        ]
+      },
+      {
+        "heading": "6. 免責與責任限制",
+        "paragraphs": [
+          "我們的服務屬教育與資訊性質，並不取代醫療、法律、心理或其他受監管的專業意見。",
+          "在法律允許範圍內，Evolve Sprouts 不就使用網站或服務所引致的間接或後果性損失承擔責任。"
+        ]
+      },
+      {
+        "heading": "7. 適用法律及司法管轄",
+        "paragraphs": [
+          "本條款與細則受香港法律管轄並按其解釋。",
+          "因本條款引起或與之相關的任何爭議，均受香港法院專屬管轄。"
+        ]
+      }
+    ],
+    "languagePrevailsClause": "如本條款與細則的不同語言版本有任何不一致，概以英文版本為準。"
+  },
+  "privacyPolicy": {
+    "eyebrow": "法律條款",
+    "title": "私隱政策",
+    "intro": "本私隱政策說明 Evolve Sprouts 如何收集、使用、保存及保護你透過網站與服務提交的個人資料。",
+    "lastUpdatedLabel": "最後更新",
+    "lastUpdatedValue": "2026年2月27日",
+    "sections": [
+      {
+        "heading": "1. 我們收集的資料",
+        "paragraphs": [
+          "我們可能收集你主動提交的個人資料，例如姓名、電郵地址、電話號碼、預約資料及留言內容。",
+          "我們亦可能收集用於安全、分析及服務穩定性的技術使用資料。"
+        ]
+      },
+      {
+        "heading": "2. 資料用途",
+        "paragraphs": [
+          "我們使用你的資料回覆查詢、處理預約、提供服務及客戶支援。",
+          "在法律允許下，我們亦可能使用聯絡資料發送與服務相關的更新資訊。"
+        ]
+      },
+      {
+        "heading": "3. 法律依據與合規",
+        "paragraphs": [
+          "我們按照香港適用的私隱要求處理個人資料，包括《個人資料（私隱）條例》（PDPO）。",
+          "在法律要求的情況下，我們會於收集或處理個人資料前取得你的同意。"
+        ]
+      },
+      {
+        "heading": "4. 資料共享與處理方",
+        "paragraphs": [
+          "我們不會出售個人資料。",
+          "我們只會在營運所需範圍內，與受信任服務供應商（如支付、表單安全及託管服務）共享資料，並採取適當保障措施。"
+        ]
+      },
+      {
+        "heading": "5. 資料保存與安全",
+        "paragraphs": [
+          "我們只會在提供服務、履行法律責任及合理業務需要期間保留個人資料。",
+          "我們採取技術及組織措施，以防止個人資料被未經授權存取、披露或遺失。"
+        ]
+      },
+      {
+        "heading": "6. 你的權利",
+        "paragraphs": [
+          "在適用法律允許範圍內，你可要求查閱及更正我們持有的個人資料。",
+          "如同意為處理依據，你亦可聯絡我們撤回對特定資料用途的同意。"
+        ]
+      },
+      {
+        "heading": "7. 聯絡方式",
+        "paragraphs": [
+          "如有私隱相關要求，請透過 Contact Us 頁面聯絡 Evolve Sprouts。"
+        ]
+      }
+    ]
+  },
   "footer": {
     "brand": "Evolve Sprouts",
     "communityHeading": "加入我們的 Sprouts Squad 社區！",
@@ -904,7 +1061,7 @@
         },
         {
           "label": "通訊",
-          "href": "#"
+          "href": "/contact-us"
         },
         {
           "label": "私隱政策",
@@ -917,50 +1074,20 @@
       "items": [
         {
           "label": "Linkedin",
-          "href": "https://linkedin.com",
+          "href": "/contact-us",
           "icon": "linkedin"
         },
         {
           "label": "Instagram",
-          "href": "https://instagram.com",
+          "href": "/contact-us",
           "icon": "instagram"
         }
       ]
     },
-    "copyright": "© 2025 Evolve Sprouts",
+    "copyright": "© Evolve Sprouts",
     "links": {
       "privacy": "私隱政策",
       "terms": "服務條款"
     }
-  },
-  "courseHighlightsOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "banner": {
-    "title": "banner",
-    "description": "",
-    "items": []
-  },
-  "realStories": {
-    "title": "Real Stories",
-    "description": "",
-    "items": []
-  },
-  "freeResources": {
-    "title": "Free Resources ",
-    "description": "",
-    "items": []
-  },
-  "whyJoiningOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "courseModule": {
-    "title": "Course module",
-    "description": "",
-    "items": []
   }
 }

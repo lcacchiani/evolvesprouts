@@ -22,7 +22,7 @@
           },
           {
             "label": "Montessori Training",
-            "href": "#"
+            "href": "/services/my-best-auntie-training-course"
           }
         ]
       },
@@ -70,9 +70,50 @@
   },
   "hero": {
     "headline": "Transform Auntie Into Your Child’s Montessori Ally",
-    "subheadline": "Helping your child grow — through the people who care for them every day.",
+    "subheadline": "Helping Hong Kong children grow — through the people who care for them every day.",
     "cta": "Book your Free Intro Session",
+    "ctaPrefillMessage": "Hi, I'd like to book a free session!",
     "supportingParagraph": "Supporting families in Hong Kong through Montessori & Positive Education. Training aunties to nurture children’s growth."
+  },
+  "seo": {
+    "fallbackTitle": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
+    "fallbackDescription": "Transform your domestic helper into a Montessori-guided child development partner. Training courses for families with children aged 0-6 in Hong Kong.",
+    "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
+    "defaultSocialImageAlt": "Evolve Sprouts Montessori auntie training in Hong Kong",
+    "socialImages": {
+      "home": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts Montessori auntie training in Hong Kong"
+      },
+      "about": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "About Evolve Sprouts Montessori family support in Hong Kong"
+      },
+      "contact": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Contact Evolve Sprouts for Montessori auntie training in Hong Kong"
+      },
+      "events": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts Montessori events in Hong Kong"
+      },
+      "trainingCourse": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "My Best Auntie Montessori training course in Hong Kong"
+      }
+    },
+    "home": {
+      "title": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
+      "description": "Transform your domestic helper into a Montessori-guided child development partner. Training courses for families with children aged 0-6 in Hong Kong."
+    },
+    "trainingCourse": {
+      "title": "My Best Auntie Training Course",
+      "description": "A 6-hour interactive Montessori training course for your domestic helper. Learn practical routines, gentle discipline, and child-led strategies for Hong Kong families."
+    },
+    "organizationDescription": "Montessori-informed family support and auntie training for families with children aged 0-6 in Hong Kong.",
+    "localBusinessName": "Evolve Sprouts",
+    "localBusinessDescription": "Montessori auntie training and parent support for families in Hong Kong.",
+    "localBusinessAreaServed": "Hong Kong"
   },
   "idaIntro": {
     "text": "Hello! My name is Ida, founder of Evolve Sprouts. I'm a Montessori-certified practitioner and mum of 2.",
@@ -361,7 +402,7 @@
   },
   "courseHighlights": {
     "eyebrow": "Course Highlights",
-    "title": "Why Joining Our Courses",
+    "title": "Why Join Our Courses",
     "description": "The program serious families choose when they want real change",
     "ctaLabel": "Get Started—Train Auntie Today",
     "ctaHref": "/services/my-best-auntie-training-course",
@@ -407,7 +448,7 @@
     "nextButtonLabel": "Next testimonial",
     "items": [
       {
-        "quote": "1) Ida was fantastic, she helped me understand how I could set up my home in a Montessori way without disrupting my style.",
+        "quote": "Ida was fantastic, she helped me understand how I could set up my home in a Montessori way without disrupting my style.",
         "author": "Mary Lo",
         "role": "Mom of 2",
         "mainImageSrc": "/images/testimonials/story-1-main.webp",
@@ -849,6 +890,122 @@
     "title": "Page not found",
     "description": "Sorry, the page key you entered is invalid."
   },
+  "termsAndConditions": {
+    "eyebrow": "Legal",
+    "title": "Terms and Conditions",
+    "intro": "These Terms and Conditions govern your use of the Evolve Sprouts website and services, including consultations, training, workshops, and digital resources.",
+    "lastUpdatedLabel": "Last updated",
+    "lastUpdatedValue": "27 February 2026",
+    "sections": [
+      {
+        "heading": "1. Acceptance of Terms",
+        "paragraphs": [
+          "By accessing this website or booking a service, you agree to be bound by these Terms and Conditions.",
+          "If you do not agree with these terms, please do not use the website or our services."
+        ]
+      },
+      {
+        "heading": "2. Services and Eligibility",
+        "paragraphs": [
+          "Evolve Sprouts provides Montessori-informed education and family support services for parents and caregivers.",
+          "You confirm that information submitted for booking and communication is accurate and complete."
+        ]
+      },
+      {
+        "heading": "3. Booking, Payments, and Refunds",
+        "paragraphs": [
+          "Bookings are only confirmed after payment has been received and acknowledged by Evolve Sprouts.",
+          "Any published refund windows, cancellation terms, and package inclusions apply as described at the time of booking."
+        ]
+      },
+      {
+        "heading": "4. User Responsibilities",
+        "paragraphs": [
+          "You agree not to misuse the website, submit unlawful content, or interfere with the security and availability of services.",
+          "You must not attempt unauthorized access to website systems, payment flows, or data."
+        ]
+      },
+      {
+        "heading": "5. Intellectual Property",
+        "paragraphs": [
+          "All website content, branding, course materials, and downloadable resources remain the property of Evolve Sprouts unless otherwise stated.",
+          "No content may be reproduced, redistributed, or commercially used without prior written permission."
+        ]
+      },
+      {
+        "heading": "6. Liability and Disclaimers",
+        "paragraphs": [
+          "Our services are educational and informational and do not replace medical, legal, psychological, or other regulated professional advice.",
+          "To the maximum extent permitted by law, Evolve Sprouts is not liable for indirect or consequential loss arising from use of the website or services."
+        ]
+      },
+      {
+        "heading": "7. Governing Law and Jurisdiction",
+        "paragraphs": [
+          "These Terms and Conditions are governed by the laws of Hong Kong.",
+          "Any dispute arising from these terms shall be subject to the exclusive jurisdiction of the courts of Hong Kong."
+        ]
+      }
+    ],
+    "languagePrevailsClause": "If there is any inconsistency between language versions of these Terms and Conditions, the English version prevails."
+  },
+  "privacyPolicy": {
+    "eyebrow": "Legal",
+    "title": "Privacy Policy",
+    "intro": "This Privacy Policy explains how Evolve Sprouts collects, uses, stores, and protects personal data provided through our website and services.",
+    "lastUpdatedLabel": "Last updated",
+    "lastUpdatedValue": "27 February 2026",
+    "sections": [
+      {
+        "heading": "1. Data We Collect",
+        "paragraphs": [
+          "We may collect personal details you submit, such as your name, email address, phone number, booking information, and message content.",
+          "We may also collect technical usage data needed for security, analytics, and service reliability."
+        ]
+      },
+      {
+        "heading": "2. How We Use Data",
+        "paragraphs": [
+          "We use your data to respond to inquiries, process reservations, deliver services, and provide customer support.",
+          "Where permitted by law, we may also use contact information to send relevant service updates and communications."
+        ]
+      },
+      {
+        "heading": "3. Legal Basis and Compliance",
+        "paragraphs": [
+          "We process personal data in accordance with applicable Hong Kong privacy requirements, including the Personal Data (Privacy) Ordinance (PDPO).",
+          "Where required, we obtain consent before collecting or processing personal information."
+        ]
+      },
+      {
+        "heading": "4. Data Sharing and Processors",
+        "paragraphs": [
+          "We do not sell personal data.",
+          "We may share data with trusted service providers (such as payment, form security, and hosting providers) strictly for operational purposes under appropriate safeguards."
+        ]
+      },
+      {
+        "heading": "5. Data Retention and Security",
+        "paragraphs": [
+          "We retain personal data only for as long as reasonably necessary for service delivery, legal obligations, and legitimate business needs.",
+          "We maintain technical and organizational safeguards to protect personal data against unauthorized access, disclosure, or loss."
+        ]
+      },
+      {
+        "heading": "6. Your Rights",
+        "paragraphs": [
+          "Subject to applicable law, you may request access to and correction of your personal data held by us.",
+          "You may also contact us to withdraw consent for specific data uses where consent is the legal basis."
+        ]
+      },
+      {
+        "heading": "7. Contact",
+        "paragraphs": [
+          "For privacy-related requests, please contact Evolve Sprouts through the Contact Us page."
+        ]
+      }
+    ]
+  },
   "footer": {
     "brand": "Evolve Sprouts",
     "communityHeading": "Join our Sprouts Squad community!",
@@ -904,7 +1061,7 @@
         },
         {
           "label": "Newsletter",
-          "href": "#"
+          "href": "/contact-us"
         },
         {
           "label": "Privacy Policy",
@@ -917,50 +1074,20 @@
       "items": [
         {
           "label": "Linkedin",
-          "href": "https://linkedin.com",
+          "href": "/contact-us",
           "icon": "linkedin"
         },
         {
           "label": "Instagram",
-          "href": "https://instagram.com",
+          "href": "/contact-us",
           "icon": "instagram"
         }
       ]
     },
-    "copyright": "© 2025 Evolve Sprouts",
+    "copyright": "© Evolve Sprouts",
     "links": {
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
     }
-  },
-  "courseHighlightsOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "banner": {
-    "title": "banner",
-    "description": "",
-    "items": []
-  },
-  "realStories": {
-    "title": "Real Stories",
-    "description": "",
-    "items": []
-  },
-  "freeResources": {
-    "title": "Free Resources ",
-    "description": "",
-    "items": []
-  },
-  "whyJoiningOurCourses": {
-    "title": "Why Joining Our Courses",
-    "description": "",
-    "items": []
-  },
-  "courseModule": {
-    "title": "Course module",
-    "description": "",
-    "items": []
   }
 }

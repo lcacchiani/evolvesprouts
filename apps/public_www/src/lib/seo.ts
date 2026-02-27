@@ -64,7 +64,7 @@ function resolveSiteOrigin(): string {
 
 export const SITE_ORIGIN = resolveSiteOrigin();
 export const SITE_HOST = new URL(SITE_ORIGIN).hostname;
-export const DEFAULT_SOCIAL_IMAGE = '/images/evolvesprouts-logo.svg';
+export const DEFAULT_SOCIAL_IMAGE = '/images/seo/evolvesprouts-og-default.png';
 const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
 const PAGE_TITLE_SEPARATOR = ' - ';
 
@@ -92,6 +92,10 @@ interface LocalizedMetadataOptions {
   path: string;
   title: string;
   description: string;
+  socialImage?: {
+    url: string;
+    alt?: string;
+  };
   robots?: {
     index: boolean;
     follow: boolean;
@@ -121,10 +125,13 @@ export function buildLocalizedMetadata({
   path,
   title,
   description,
+  socialImage,
   robots,
 }: LocalizedMetadataOptions): Metadata {
   const localizedPath = localizePath(path, locale);
   const pageTitle = buildPageTitle(title, path);
+  const socialImageUrl = socialImage?.url || DEFAULT_SOCIAL_IMAGE;
+  const socialImageAlt = socialImage?.alt || SITE_TITLE_SUFFIX;
 
   return {
     title: pageTitle,
@@ -142,8 +149,8 @@ export function buildLocalizedMetadata({
       locale,
       images: [
         {
-          url: DEFAULT_SOCIAL_IMAGE,
-          alt: SITE_TITLE_SUFFIX,
+          url: socialImageUrl,
+          alt: socialImageAlt,
         },
       ],
     },
@@ -151,7 +158,7 @@ export function buildLocalizedMetadata({
       card: 'summary_large_image',
       title: pageTitle,
       description,
-      images: [DEFAULT_SOCIAL_IMAGE],
+      images: [socialImageUrl],
     },
     robots: {
       index: robots?.index ?? true,
