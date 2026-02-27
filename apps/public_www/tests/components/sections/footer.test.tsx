@@ -133,4 +133,23 @@ describe('Footer external links', () => {
     expect(desktopColumns[2]?.className).not.toContain('lg:pl-6');
     expect(desktopColumns[3]?.className).toContain('lg:pl-6');
   });
+
+  it('keeps connect links visible with internal fallback hrefs when env social URLs are missing', () => {
+    delete process.env.NEXT_PUBLIC_LINKEDIN_URL;
+    delete process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+
+    render(<Footer content={enContent.footer} />);
+
+    const linkedInLinks = screen.getAllByRole('link', { name: 'Linkedin' });
+    expect(linkedInLinks.length).toBeGreaterThan(0);
+    for (const link of linkedInLinks) {
+      expect(link).toHaveAttribute('href', '/contact-us');
+    }
+
+    const instagramLinks = screen.getAllByRole('link', { name: 'Instagram' });
+    expect(instagramLinks.length).toBeGreaterThan(0);
+    for (const link of instagramLinks) {
+      expect(link).toHaveAttribute('href', '/contact-us');
+    }
+  });
 });

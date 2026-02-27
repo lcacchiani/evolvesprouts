@@ -55,7 +55,7 @@ function resolveConnectOnHref(
     }
 
     if (item.href.startsWith('/')) {
-      return undefined;
+      return item.href;
     }
 
     if (
@@ -74,7 +74,7 @@ function resolveConnectOnHref(
     }
 
     if (item.href.startsWith('/')) {
-      return undefined;
+      return item.href;
     }
 
     if (
