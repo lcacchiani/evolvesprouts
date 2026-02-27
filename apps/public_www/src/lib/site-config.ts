@@ -25,10 +25,23 @@ function readOptionalEnv(name: string): string | undefined {
 }
 
 function parseConfiguredUrl(value: string): URL | null {
-  try {
-    return new URL(value);
-  } catch {
+  const normalizedValue = value.trim();
+  if (!normalizedValue || normalizedValue.startsWith('//')) {
     return null;
+  }
+
+  try {
+    return new URL(normalizedValue);
+  } catch {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(normalizedValue)) {
+      return null;
+    }
+
+    try {
+      return new URL(`https://${normalizedValue}`);
+    } catch {
+      return null;
+    }
   }
 }
 
