@@ -155,11 +155,24 @@ the infrastructure for per-page images in the future.
 |---|---|---|---|
 | Blog/content marketing section | Tier 3 (M4) | Not done | Major feature — appropriate to track as separate work |
 | Per-page unique OG images (distinct URLs) | Tier 2 (M6) | Infrastructure done, images not yet created | All pages currently share one PNG; alt text varies per page |
-| Cookie consent banner | Tier 3 | Not done | Compliance feature |
 | Workshops page still placeholder | Tier 1 (original) | Not done | Only remaining placeholder page |
 | Google Reviews / Trustpilot widget | Tier 3 | Not done | Third-party integration |
 | Video content | Tier 3 | Not done | Content production |
-| Location map on Contact page | Tier 3 | Not done | UX enhancement |
+
+### TODOs (Tracked for Future Work)
+
+1. **Cookie consent banner:** Required under PDPO (Hong Kong) and GDPR (if
+   serving EU visitors). The site uses Google Tag Manager and Cloudflare
+   Turnstile, both of which set cookies. A consent management solution
+   (e.g., Cookiebot, OneTrust, or a custom lightweight banner) should be
+   implemented before production launch to ensure compliance.
+
+2. **FAQ schema duplication across pages:** The same full FAQ JSON-LD is
+   rendered on both the About Us page and the Training Course page. Google
+   may flag this as duplicate structured data. Consider either:
+   - Rendering FAQ schema on only one page (About Us is the natural home).
+   - Splitting the FAQ questions by topic — general/trust questions on
+     About Us, pricing/enrollment questions on the Training Course page.
 
 ### Minor Observations
 
@@ -177,13 +190,6 @@ the infrastructure for per-page images in the future.
 3. **Workshops page** (`/services/workshops`) is the only route still in
    `PLACEHOLDER_ROUTE_PATHS`. It is excluded from the sitemap and has
    `noindex` metadata. This is correct handling for an unpublished page.
-
-4. **FAQ duplicate schema on two pages:** The same FAQ JSON-LD is rendered on
-   both the About Us page and the Training Course page. Google may flag this
-   as duplicate FAQ structured data. Consider rendering FAQ schema only on
-   the page with the most relevant context (e.g., About Us for general
-   questions, Training Course for pricing/enrollment questions), or
-   splitting the FAQ content between pages.
 
 ---
 
