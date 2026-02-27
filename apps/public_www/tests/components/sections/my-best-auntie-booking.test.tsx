@@ -48,6 +48,14 @@ function getPrimarySessionDateTimeLabel(cohort: BookingCohort): string {
   return cohort.sessions[0]?.dateTimeLabel ?? '';
 }
 
+function formatCohortPrice(cohort: BookingCohort): string {
+  return new Intl.NumberFormat('en-HK', {
+    style: 'currency',
+    currency: cohort.priceCurrency,
+    maximumFractionDigits: 0,
+  }).format(cohort.price);
+}
+
 describe('MyBestAuntieBooking section', () => {
   it('updates date cards by selected age group and keeps cohort date in subtitle-lg style', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
@@ -76,6 +84,7 @@ describe('MyBestAuntieBooking section', () => {
     const formattedSecondAgeSecondCohortDate = formatCohortPreviewLabel(
       getPrimarySessionDateTimeLabel(secondAgeSecondCohort),
     );
+    const firstCohortPriceLabel = formatCohortPrice(firstAgeFirstCohort);
     const nextCohortCard = screen.getByTestId('my-best-auntie-next-cohort-card');
     expect(nextCohortCard.className).toContain('rounded-inner');
     expect(nextCohortCard.className).toContain('border');
@@ -91,6 +100,7 @@ describe('MyBestAuntieBooking section', () => {
     expect(screen.getByText(formattedFirstCohortDate).className).toContain(
       'es-type-subtitle-lg',
     );
+    expect(within(nextCohortCard).getByText(firstCohortPriceLabel)).toBeInTheDocument();
     const dateSelectorRegion = screen.getByRole('region', {
       name: enContent.myBestAuntieBooking.dateSelectorLabel,
     });
@@ -169,6 +179,7 @@ describe('MyBestAuntieBooking section', () => {
       }),
     ).toBeDisabled();
     expect(screen.getByText(contentWithoutThreeToSix.noCohortsLabel)).toBeInTheDocument();
+    expect(screen.queryByText('HK$9,000')).not.toBeInTheDocument();
   });
 
   it('removes right-column selector shadows, keeps date cards in two lines, keeps CTA width to copy, and hides date arrows for three dates', () => {

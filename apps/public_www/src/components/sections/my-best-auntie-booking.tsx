@@ -126,6 +126,24 @@ function getPrimarySessionDateTimeLabel(cohort: BookingCohort | null): string {
   return cohort?.sessions[0]?.dateTimeLabel ?? '';
 }
 
+function formatCohortPrice(
+  price: number,
+  priceCurrency: string,
+  locale: Locale,
+): string {
+  const numberFormatLocale = locale === 'en' ? 'en-HK' : locale;
+
+  try {
+    return new Intl.NumberFormat(numberFormatLocale, {
+      style: 'currency',
+      currency: priceCurrency,
+      maximumFractionDigits: 0,
+    }).format(price);
+  } catch {
+    return `${priceCurrency} ${price}`;
+  }
+}
+
 export function MyBestAuntieBooking({
   locale,
   content,
@@ -181,6 +199,13 @@ export function MyBestAuntieBooking({
   const nextCohortPreview = nextCohortDate
     ? formatCohortPreviewLabel(nextCohortDate)
     : content.noCohortsLabel;
+  const nextCohortPriceLabel = selectedCohort
+    ? formatCohortPrice(
+        selectedCohort.price,
+        selectedCohort.priceCurrency,
+        locale,
+      )
+    : '';
 
   useEffect(() => {
     const selectedDateCard = dateCardRefs.current[selectedDateId];
@@ -226,6 +251,11 @@ export function MyBestAuntieBooking({
                 <p className='es-type-subtitle-lg mt-1 es-text-heading-alt'>
                   {nextCohortPreview}
                 </p>
+                {nextCohortPriceLabel ? (
+                  <p className='mt-1 text-base font-semibold es-text-heading-alt'>
+                    {nextCohortPriceLabel}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
