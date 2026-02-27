@@ -13,7 +13,7 @@ export function TermsAndConditions({ content }: TermsAndConditionsProps) {
       id='terms-and-conditions'
       ariaLabel={content.title}
       dataFigmaNode='terms-and-conditions'
-      className='es-section-bg-overlay'
+      className='es-section-bg-overlay es-bg-surface-white'
     >
       <SectionContainer>
         <SectionHeader

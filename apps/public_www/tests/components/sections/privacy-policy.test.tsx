@@ -8,6 +8,11 @@ describe('PrivacyPolicy section', () => {
   it('renders title and all configured policy section headings', () => {
     render(<PrivacyPolicy content={enContent.privacyPolicy} />);
 
+    const section = screen.getByRole('region', {
+      name: enContent.privacyPolicy.title,
+    });
+    expect(section.className).toContain('es-bg-surface-white');
+
     expect(
       screen.getByRole('heading', { name: enContent.privacyPolicy.title }),
     ).toBeInTheDocument();

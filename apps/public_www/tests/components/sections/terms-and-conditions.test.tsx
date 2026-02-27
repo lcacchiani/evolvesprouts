@@ -8,6 +8,11 @@ describe('TermsAndConditions section', () => {
   it('renders title, sections, and language precedence clause', () => {
     render(<TermsAndConditions content={enContent.termsAndConditions} />);
 
+    const section = screen.getByRole('region', {
+      name: enContent.termsAndConditions.title,
+    });
+    expect(section.className).toContain('es-bg-surface-white');
+
     expect(
       screen.getByRole('heading', { name: enContent.termsAndConditions.title }),
     ).toBeInTheDocument();
