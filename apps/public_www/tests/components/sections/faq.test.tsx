@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -103,23 +103,36 @@ describe('Faq section', () => {
     expect(searchWrapper?.className).toContain('es-bg-surface-neutral');
   });
 
-  it('adds localized internal links for FAQ answer discovery', () => {
+  it('clears search and shows cards for the selected topic when clicking a label', () => {
     render(<Faq content={enContent.faq} />);
 
-    const learnMoreLinks = screen.getAllByRole('link', {
-      name: '了解更多',
+    const secondLabel = enContent.faq.labels[1];
+    if (!secondLabel) {
+      throw new Error('Expected second FAQ label in fixture');
+    }
+
+    const searchInput = screen.getByRole('textbox', {
+      name: enContent.faq.searchPlaceholder,
+    }) as HTMLInputElement;
+    fireEvent.change(searchInput, {
+      target: { value: 'zzzzzzzz-no-results' },
     });
-    expect(
-      learnMoreLinks.some(
-        (link) => link.getAttribute('href') === '/zh-CN/about-us',
-      ),
-    ).toBe(true);
-    expect(
-      learnMoreLinks.some(
-        (link) =>
-          typeof link.getAttribute('href') === 'string'
-          && link.getAttribute('href')?.startsWith('/zh-CN/'),
-      ),
-    ).toBe(true);
+    expect(searchInput.value).toBe('zzzzzzzz-no-results');
+    expect(screen.getByText(enContent.faq.emptySearchResultsLabel)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: secondLabel.label }));
+
+    expect(searchInput.value).toBe('');
+    expect(screen.queryByText(enContent.faq.emptySearchResultsLabel)).toBeNull();
+
+    const visibleQuestionHeadings = screen.getAllByRole('heading', { level: 3 });
+    expect(visibleQuestionHeadings.length).toBeGreaterThan(0);
+
+    for (const heading of visibleQuestionHeadings) {
+      const text = heading.textContent;
+      const question = enContent.faq.questions.find((entry) => entry.question === text);
+      expect(question).toBeDefined();
+      expect(question?.labelIds).toContain(secondLabel.id);
+    }
   });
 });
