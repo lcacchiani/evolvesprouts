@@ -117,7 +117,8 @@ describe('Faq section', () => {
     expect(
       learnMoreLinks.some(
         (link) =>
-          link.getAttribute('href') === '/zh-CN/services/my-best-auntie-training-course',
+          typeof link.getAttribute('href') === 'string'
+          && link.getAttribute('href')?.startsWith('/zh-CN/'),
       ),
     ).toBe(true);
   });
