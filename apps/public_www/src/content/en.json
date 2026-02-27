@@ -505,6 +505,14 @@
       "eyebrow": "Contact Us",
       "title": "Let’s Grow Together!",
       "description": "Hi there! Whether you’re curious about Montessori philosophy, have a question about our workshops or training courses, or just want to share ideas about child development — we are all ears.",
+      "contactMethodsTitle": "How you can get in touch with us:",
+      "contactMethodLinks": {
+        "email": "Via email",
+        "whatsapp": "Via WhatsApp",
+        "instagram": "Via Instagram",
+        "linkedin": "Via LinkedIn",
+        "form": "Form on this page"
+      },
       "emailLabel": "Email Us @",
       "emailAddress": "ida@evolvesprouts.com",
       "promiseTitle": "I Promise…",

@@ -6,6 +6,10 @@ import enContent from '@/content/en.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const originalContactEmail = process.env.NEXT_PUBLIC_EMAIL;
+const originalWhatsappUrl = process.env.NEXT_PUBLIC_WHATSAPP_URL;
+const originalInstagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+const originalLinkedinUrl = process.env.NEXT_PUBLIC_LINKEDIN_URL;
 
 vi.mock('@/components/shared/turnstile-captcha', () => ({
   TurnstileCaptcha: ({
@@ -54,6 +58,10 @@ const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 describe('ContactUsForm section', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
+    process.env.NEXT_PUBLIC_EMAIL = 'hello@example.com';
+    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
+    process.env.NEXT_PUBLIC_INSTAGRAM_URL = 'https://www.instagram.com/evolvesprouts';
+    process.env.NEXT_PUBLIC_LINKEDIN_URL = 'https://www.linkedin.com/company/evolve-sprouts';
   });
 
   afterEach(() => {
@@ -62,10 +70,30 @@ describe('ContactUsForm section', () => {
 
     if (originalTurnstileSiteKey === undefined) {
       delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-      return;
+    } else {
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
     }
 
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
+    if (typeof originalContactEmail === 'string') {
+      process.env.NEXT_PUBLIC_EMAIL = originalContactEmail;
+    } else {
+      delete process.env.NEXT_PUBLIC_EMAIL;
+    }
+    if (typeof originalWhatsappUrl === 'string') {
+      process.env.NEXT_PUBLIC_WHATSAPP_URL = originalWhatsappUrl;
+    } else {
+      delete process.env.NEXT_PUBLIC_WHATSAPP_URL;
+    }
+    if (typeof originalInstagramUrl === 'string') {
+      process.env.NEXT_PUBLIC_INSTAGRAM_URL = originalInstagramUrl;
+    } else {
+      delete process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+    }
+    if (typeof originalLinkedinUrl === 'string') {
+      process.env.NEXT_PUBLIC_LINKEDIN_URL = originalLinkedinUrl;
+    } else {
+      delete process.env.NEXT_PUBLIC_LINKEDIN_URL;
+    }
   });
 
   it('uses class-based decorative background styling on the section container', () => {
@@ -96,6 +124,83 @@ describe('ContactUsForm section', () => {
     expect(leftColumn?.className).not.toContain('px-6');
     expect(leftColumn?.className).not.toContain('sm:px-8');
     expect(leftColumn?.className).not.toContain('lg:px-10');
+  });
+
+  it('renders icon-based contact methods linked from environment configuration', () => {
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    const list = screen.getByRole('list', {
+      name: enContent.contactUs.contactUsForm.contactMethodsTitle,
+    });
+    expect(list).toBeInTheDocument();
+
+    const emailLink = screen.getByRole('link', {
+      name: enContent.contactUs.contactUsForm.contactMethodLinks.email,
+    });
+    const whatsappLink = screen.getByRole('link', {
+      name: enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
+    });
+    const instagramLink = screen.getByRole('link', {
+      name: enContent.contactUs.contactUsForm.contactMethodLinks.instagram,
+    });
+    const linkedInLink = screen.getByRole('link', {
+      name: enContent.contactUs.contactUsForm.contactMethodLinks.linkedin,
+    });
+    const formLink = screen.getByRole('link', {
+      name: enContent.contactUs.contactUsForm.contactMethodLinks.form,
+    });
+
+    expect(emailLink).toHaveAttribute('href', 'mailto:hello@example.com');
+    expect(whatsappLink).toHaveAttribute(
+      'href',
+      'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
+    );
+    expect(instagramLink).toHaveAttribute('href', 'https://www.instagram.com/evolvesprouts');
+    expect(linkedInLink).toHaveAttribute(
+      'href',
+      'https://www.linkedin.com/company/evolve-sprouts',
+    );
+    expect(formLink).toHaveAttribute('href', '#contact-form');
+
+    for (const link of [emailLink, whatsappLink, instagramLink, linkedInLink, formLink]) {
+      expect(link.querySelector('svg')).not.toBeNull();
+    }
+  });
+
+  it('omits channels that are missing or invalid in environment configuration', () => {
+    delete process.env.NEXT_PUBLIC_EMAIL;
+    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'not-a-url';
+    delete process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+    delete process.env.NEXT_PUBLIC_LINKEDIN_URL;
+
+    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+
+    expect(
+      screen.queryByRole('link', {
+        name: enContent.contactUs.contactUsForm.contactMethodLinks.email,
+      }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('link', {
+        name: enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
+      }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('link', {
+        name: enContent.contactUs.contactUsForm.contactMethodLinks.instagram,
+      }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('link', {
+        name: enContent.contactUs.contactUsForm.contactMethodLinks.linkedin,
+      }),
+    ).toBeNull();
+
+    expect(
+      screen.getByRole('link', {
+        name: enContent.contactUs.contactUsForm.contactMethodLinks.form,
+      }),
+    ).toHaveAttribute('href', '#contact-form');
   });
 
   it('uses the same input styling pattern as the booking form', () => {
