@@ -294,7 +294,8 @@ describe('MyBestAuntieBooking section', () => {
         dateLabel: 'Aug, 2026',
         spacesTotal: 24,
         spacesLeftText: '8 spots left',
-        costHkd: 9000,
+        cost: 9000,
+        costCurrency: 'HKD',
         venue: {
           name: 'Goldwin Heights',
           address: '2 Seymour Road, Mid-Levels, Hong Kong',
@@ -328,7 +329,8 @@ describe('MyBestAuntieBooking section', () => {
         dateLabel: 'Sep, 2026',
         spacesTotal: 24,
         spacesLeftText: '4 spots left',
-        costHkd: 9000,
+        cost: 9000,
+        costCurrency: 'HKD',
         venue: {
           name: 'Goldwin Heights',
           address: '2 Seymour Road, Mid-Levels, Hong Kong',

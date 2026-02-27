@@ -139,8 +139,11 @@ export function MyBestAuntieBooking({
   const sortedCohorts = [...(content.cohorts ?? [])].sort(
     sortCohortsByPrimarySession,
   );
+  const initialAgeId = ageOptions[0]?.id ?? '';
+  const initialDateId =
+    sortedCohorts.find((cohort) => cohort.ageGroupId === initialAgeId)?.id ?? '';
 
-  const [selectedAgeId, setSelectedAgeId] = useState(ageOptions[0]?.id ?? '');
+  const [selectedAgeId, setSelectedAgeId] = useState(initialAgeId);
   const cohortsForSelectedAge = sortedCohorts.filter((cohort) => {
     return cohort.ageGroupId === selectedAgeId;
   });
@@ -150,7 +153,7 @@ export function MyBestAuntieBooking({
     availabilityLabel: cohort.spacesLeftText,
     cohort,
   }));
-  const [selectedDateId, setSelectedDateId] = useState(dateOptions[0]?.id ?? '');
+  const [selectedDateId, setSelectedDateId] = useState(initialDateId);
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const {
     carouselRef: dateCarouselRef,
@@ -163,14 +166,6 @@ export function MyBestAuntieBooking({
     itemCount: dateOptions.length,
     minItemsForNavigation: 3,
   });
-
-  useEffect(() => {
-    const availableDateIds = new Set(dateOptions.map((option) => option.id));
-    if (selectedDateId && availableDateIds.has(selectedDateId)) {
-      return;
-    }
-    setSelectedDateId(dateOptions[0]?.id ?? '');
-  }, [dateOptions, selectedDateId]);
 
   const selectedAgeOption =
     ageOptions.find((option) => option.id === selectedAgeId) ?? ageOptions[0];
@@ -256,6 +251,10 @@ export function MyBestAuntieBooking({
                       aria-pressed={isSelected}
                       onClick={() => {
                         setSelectedAgeId(option.id);
+                        const nextDateId =
+                          sortedCohorts.find((cohort) => cohort.ageGroupId === option.id)
+                            ?.id ?? '';
+                        setSelectedDateId(nextDateId);
                       }}
                       className={`${BOOKING_SELECTOR_CARD_CLASSNAME} text-left`}
                     >

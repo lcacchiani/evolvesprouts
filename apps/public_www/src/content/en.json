@@ -187,7 +187,8 @@
         "dateLabel": "Apr, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "30 spots left",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "2 Seymour Road, Mid-Levels, Hong Kong",
@@ -220,7 +221,8 @@
         "dateLabel": "May, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "18 spots left",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "2 Seymour Road, Mid-Levels, Hong Kong",
@@ -253,7 +255,8 @@
         "dateLabel": "Jun, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "12 spots left",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "2 Seymour Road, Mid-Levels, Hong Kong",
@@ -286,7 +289,8 @@
         "dateLabel": "May, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "14 spots left",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "2 Seymour Road, Mid-Levels, Hong Kong",
@@ -319,7 +323,8 @@
         "dateLabel": "Jun, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "9 spots left",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "2 Seymour Road, Mid-Levels, Hong Kong",
@@ -352,7 +357,8 @@
         "dateLabel": "Jul, 2026",
         "spacesTotal": 24,
         "spacesLeftText": "6 spots left",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "2 Seymour Road, Mid-Levels, Hong Kong",

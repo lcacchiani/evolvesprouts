@@ -187,7 +187,8 @@
         "dateLabel": "2026年4月",
         "spacesTotal": 30,
         "spacesLeftText": "剩餘 30 個名額",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "香港半山西摩道 2 號",
@@ -220,7 +221,8 @@
         "dateLabel": "2026年5月",
         "spacesTotal": 30,
         "spacesLeftText": "剩餘 18 個名額",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "香港半山西摩道 2 號",
@@ -253,7 +255,8 @@
         "dateLabel": "2026年6月",
         "spacesTotal": 30,
         "spacesLeftText": "剩餘 12 個名額",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "香港半山西摩道 2 號",
@@ -286,7 +289,8 @@
         "dateLabel": "2026年5月",
         "spacesTotal": 30,
         "spacesLeftText": "剩餘 14 個名額",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "香港半山西摩道 2 號",
@@ -319,7 +323,8 @@
         "dateLabel": "2026年6月",
         "spacesTotal": 30,
         "spacesLeftText": "剩餘 9 個名額",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "香港半山西摩道 2 號",
@@ -352,7 +357,8 @@
         "dateLabel": "2026年7月",
         "spacesTotal": 24,
         "spacesLeftText": "剩餘 6 個名額",
-        "costHkd": 9000,
+        "cost": 9000,
+        "costCurrency": "HKD",
         "venue": {
           "name": "Goldwin Heights",
           "address": "香港半山西摩道 2 號",
