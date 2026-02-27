@@ -50,6 +50,11 @@ Public WWW CRM API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_FPS_MERCHANT_NAME` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_GTM_ID`
+- GitHub variable `NEXT_PUBLIC_WHATSAPP_URL`
+- GitHub variable `NEXT_PUBLIC_INSTAGRAM_URL`
+- GitHub variable `NEXT_PUBLIC_LINKEDIN_URL`
+- GitHub variable `NEXT_PUBLIC_BUSINESS_ADDRESS`
+- GitHub variable `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`
 
 `NEXT_PUBLIC_SITE_ORIGIN` is resolved automatically in CI from
 `backend/infrastructure/params/production.json` (`PublicWwwDomainName`) to keep
