@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -10,6 +11,15 @@ const originalContactEmail = process.env.NEXT_PUBLIC_EMAIL;
 const originalWhatsappUrl = process.env.NEXT_PUBLIC_WHATSAPP_URL;
 const originalInstagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL;
 const originalLinkedinUrl = process.env.NEXT_PUBLIC_LINKEDIN_URL;
+
+vi.mock('next/image', () => ({
+  default: ({
+    alt,
+    ...props
+  }: {
+    alt?: string;
+  } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
+}));
 
 vi.mock('@/components/shared/turnstile-captcha', () => ({
   TurnstileCaptcha: ({
@@ -161,10 +171,23 @@ describe('ContactUsForm section', () => {
       'https://www.linkedin.com/company/evolve-sprouts',
     );
     expect(formLink).toHaveAttribute('href', '#contact-form');
-
-    for (const link of [emailLink, whatsappLink, instagramLink, linkedInLink, formLink]) {
-      expect(link.querySelector('svg')).not.toBeNull();
-    }
+    expect(screen.getByTestId('contact-method-icon-email').querySelector('img')).toHaveAttribute(
+      'src',
+      '/images/contact-email.svg',
+    );
+    expect(
+      screen.getByTestId('contact-method-icon-whatsapp').querySelector('img'),
+    ).toHaveAttribute('src', '/images/contact-whatsapp.svg');
+    expect(
+      screen.getByTestId('contact-method-icon-instagram').querySelector('img'),
+    ).toHaveAttribute('src', '/images/contact-instagram.svg');
+    expect(
+      screen.getByTestId('contact-method-icon-linkedin').querySelector('img'),
+    ).toHaveAttribute('src', '/images/contact-linkedin.svg');
+    expect(screen.getByTestId('contact-method-icon-form').querySelector('img')).toHaveAttribute(
+      'src',
+      '/images/contact-form.svg',
+    );
   });
 
   it('omits channels that are missing or invalid in environment configuration', () => {

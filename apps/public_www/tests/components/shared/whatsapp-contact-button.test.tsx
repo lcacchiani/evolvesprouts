@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { render, screen } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -17,6 +18,15 @@ vi.mock('@/components/shared/smart-link', () => ({
       {children}
     </a>
   ),
+}));
+
+vi.mock('next/image', () => ({
+  default: ({
+    alt,
+    ...props
+  }: {
+    alt?: string;
+  } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 
 describe('WhatsappContactButton', () => {
@@ -41,7 +51,7 @@ describe('WhatsappContactButton', () => {
       'href',
       'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
     );
-    expect(link.querySelector('svg')).not.toBeNull();
+    expect(link.querySelector('img')).toHaveAttribute('src', '/images/contact-whatsapp.svg');
     expect(link.className).toContain('es-whatsapp-contact-button-safe-bottom');
     expect(link.className).toContain('right-[30px]');
   });
