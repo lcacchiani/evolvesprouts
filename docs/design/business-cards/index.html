@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolve Sprouts — Business Card Designs</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f0ebe6;
+    font-family: 'Lato', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 20px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #174879;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 16px;
+    color: #4A4A4A;
+    margin-bottom: 48px;
+    text-align: center;
+    max-width: 500px;
+    line-height: 1.6;
+  }
+  .designs {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    width: 100%;
+    max-width: 600px;
+  }
+  a.design-card {
+    display: block;
+    text-decoration: none;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  a.design-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+  }
+  .design-num {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ED622E;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .design-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #174879;
+    margin-bottom: 8px;
+  }
+  .design-desc {
+    font-size: 14px;
+    color: #4A4A4A;
+    line-height: 1.6;
+  }
+  .swatch-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+</style>
+</head>
+<body>
+  <h1>Business Card Designs</h1>
+  <p class="subtitle">Three original concepts for Evolve Sprouts, each rooted in the brand's color palette, typography, and organic identity. Click to view.</p>
+
+  <div class="designs">
+    <a class="design-card" href="design-1-organic-growth.html">
+      <div class="design-num">Design 1</div>
+      <div class="design-name">Organic Growth</div>
+      <div class="design-desc">Clean white canvas with a living gradient accent bar transitioning from orange to green. Minimalist and professional with subtle leaf watermarks.</div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#FFFFFF"></div>
+        <div class="swatch" style="background:#ED622E"></div>
+        <div class="swatch" style="background:#5D9D49"></div>
+        <div class="swatch" style="background:#FFF0E5"></div>
+        <div class="swatch" style="background:#174879"></div>
+      </div>
+    </a>
+
+    <a class="design-card" href="design-2-warm-embrace.html">
+      <div class="design-num">Design 2</div>
+      <div class="design-name">Warm Embrace</div>
+      <div class="design-desc">Centered hero layout bathed in warm peach gradients. Scattered leaf motifs, circular icons, and a bold orange website pill. Playful and inviting.</div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#FFF9F4"></div>
+        <div class="swatch" style="background:#FFEEE3"></div>
+        <div class="swatch" style="background:#F6DECD"></div>
+        <div class="swatch" style="background:#ED622E"></div>
+        <div class="swatch" style="background:#5D9D49"></div>
+      </div>
+    </a>
+
+    <a class="design-card" href="design-3-bold-sprout.html">
+      <div class="design-num">Design 3</div>
+      <div class="design-name">Bold Sprout</div>
+      <div class="design-desc">High-contrast navy-and-orange split with a dramatic diagonal. The most corporate-forward design with geometric texture and a structured sidebar back.</div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#174879"></div>
+        <div class="swatch" style="background:#ED622E"></div>
+        <div class="swatch" style="background:#FFFFFF"></div>
+        <div class="swatch" style="background:#5D9D49"></div>
+        <div class="swatch" style="background:#A8CB44"></div>
+      </div>
+    </a>
+  </div>
+</body>
+</html>
