@@ -1,13 +1,21 @@
-import type { JsonLdObject, JsonLdValue } from '@/lib/structured-data';
+import type { JsonLdValue } from '@/lib/structured-data';
 
 interface StructuredDataScriptProps {
   id: string;
-  data: JsonLdObject | JsonLdObject[] | JsonLdValue;
+  data: JsonLdValue;
 }
 
-function isEmptyStructuredData(value: JsonLdObject | JsonLdObject[]): boolean {
+function isEmptyStructuredData(value: JsonLdValue): boolean {
+  if (value === null) {
+    return true;
+  }
+
   if (Array.isArray(value)) {
-    return value.length === 0;
+    return value.length === 0 || value.every((entry) => isEmptyStructuredData(entry));
+  }
+
+  if (typeof value !== 'object') {
+    return false;
   }
 
   return Object.keys(value).length === 0;
@@ -17,11 +25,7 @@ export function StructuredDataScript({
   id,
   data,
 }: StructuredDataScriptProps) {
-  if (
-    !data
-    || (typeof data === 'object' && !Array.isArray(data) && isEmptyStructuredData(data))
-    || (Array.isArray(data) && isEmptyStructuredData(data))
-  ) {
+  if (isEmptyStructuredData(data)) {
     return null;
   }
 
