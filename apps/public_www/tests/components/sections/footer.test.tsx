@@ -77,6 +77,14 @@ describe('Footer external links', () => {
       expect(externalIcon).not.toBeNull();
       expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
     }
+    const linkedInSocialIcons = document.querySelectorAll(
+      'img[src="/images/contact-linkedin.svg"]',
+    );
+    expect(linkedInSocialIcons.length).toBeGreaterThan(0);
+    const instagramSocialIcons = document.querySelectorAll(
+      'img[src="/images/contact-instagram.svg"]',
+    );
+    expect(instagramSocialIcons.length).toBeGreaterThan(0);
     expect(screen.queryByRole('link', { name: 'Facebook' })).toBeNull();
     expect(screen.queryByRole('link', { name: /Tiktok/i })).toBeNull();
 

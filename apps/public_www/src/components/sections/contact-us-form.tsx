@@ -1,9 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import {
   buildSectionSplitLayoutClassName,
@@ -13,6 +15,7 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 
 interface ContactUsFormProps {
@@ -34,6 +37,27 @@ const PHONE_ERROR_MESSAGE_ID = 'contact-us-form-phone-error';
 const CAPTCHA_ERROR_MESSAGE_ID = 'contact-us-form-captcha-error';
 const SUBMIT_ERROR_MESSAGE_ID = 'contact-us-form-submit-error';
 const CONTACT_US_API_PATH = '/v1/contact-us';
+type ContactMethodKey =
+  | 'email'
+  | 'whatsapp'
+  | 'instagram'
+  | 'linkedin'
+  | 'form';
+
+const CONTACT_METHOD_ICON_SOURCES: Record<ContactMethodKey, string> = {
+  email: '/images/contact-email.svg',
+  whatsapp: '/images/contact-whatsapp.svg',
+  instagram: '/images/contact-instagram.svg',
+  linkedin: '/images/contact-linkedin.svg',
+  form: '/images/contact-form.svg',
+};
+
+interface ContactMethodLinkItem {
+  key: ContactMethodKey;
+  href: string;
+  label: string;
+  iconSrc: string;
+}
 
 function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
@@ -57,6 +81,7 @@ function sanitizeMultilineValue(value: string): string {
 }
 
 export function ContactUsForm({ content }: ContactUsFormProps) {
+  const publicSiteConfig = resolvePublicSiteConfig();
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [formState, setFormState] = useState<FormState>({
@@ -87,6 +112,45 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
         ? content.captchaRequiredError
         : '';
   const isSubmitDisabled = isCaptchaUnavailable || isSubmitting;
+  const contactMethodLinks: ContactMethodLinkItem[] = [];
+  if (publicSiteConfig.contactEmail) {
+    contactMethodLinks.push({
+      key: 'email',
+      href: `mailto:${publicSiteConfig.contactEmail}`,
+      label: content.contactMethodLinks.mail,
+      iconSrc: CONTACT_METHOD_ICON_SOURCES.email,
+    });
+  }
+  if (publicSiteConfig.whatsappUrl) {
+    contactMethodLinks.push({
+      key: 'whatsapp',
+      href: publicSiteConfig.whatsappUrl,
+      label: content.contactMethodLinks.whatsapp,
+      iconSrc: CONTACT_METHOD_ICON_SOURCES.whatsapp,
+    });
+  }
+  if (publicSiteConfig.instagramUrl) {
+    contactMethodLinks.push({
+      key: 'instagram',
+      href: publicSiteConfig.instagramUrl,
+      label: content.contactMethodLinks.instagram,
+      iconSrc: CONTACT_METHOD_ICON_SOURCES.instagram,
+    });
+  }
+  if (publicSiteConfig.linkedinUrl) {
+    contactMethodLinks.push({
+      key: 'linkedin',
+      href: publicSiteConfig.linkedinUrl,
+      label: content.contactMethodLinks.linkedin,
+      iconSrc: CONTACT_METHOD_ICON_SOURCES.linkedin,
+    });
+  }
+  contactMethodLinks.push({
+    key: 'form',
+    href: '#contact-form',
+    label: content.contactMethodLinks.form,
+    iconSrc: CONTACT_METHOD_ICON_SOURCES.form,
+  });
 
   function updateField(field: keyof FormState, value: string) {
     setFormState((currentState) => ({
@@ -173,14 +237,46 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
         className={buildSectionSplitLayoutClassName('es-section-split-layout--contact-us')}
       >
         <div className='relative z-10 flex h-full items-start overflow-hidden py-8 lg:pt-[25%]'>
-          <SectionHeader
-            title={content.title}
-            titleAs='h1'
-            align='left'
-            titleClassName='es-section-heading'
-            description={content.description}
-            descriptionClassName='mt-4 es-section-body text-[1.05rem] leading-8'
-          />
+          <div>
+            <SectionHeader
+              title={content.title}
+              titleAs='h1'
+              align='left'
+              titleClassName='es-section-heading'
+              description={content.description}
+              descriptionClassName='mt-4 es-section-body text-[1.05rem] leading-8'
+            />
+            <div className='mt-6'>
+              <p className='text-sm font-semibold es-text-heading'>
+                {content.contactMethodsTitle}
+              </p>
+              <ul className='mt-3 space-y-2' aria-label={content.contactMethodsTitle}>
+                {contactMethodLinks.map((method) => (
+                  <li key={method.key}>
+                    <SmartLink
+                      href={method.href}
+                      className='inline-flex items-center gap-2 text-sm leading-6 text-[color:var(--site-primary-text)] transition-opacity hover:opacity-80'
+                    >
+                      <span
+                        aria-hidden='true'
+                        data-testid={`contact-method-icon-${method.key}`}
+                        className='inline-flex h-4 w-4 shrink-0 items-center justify-center es-text-heading'
+                      >
+                        <Image
+                          src={method.iconSrc}
+                          alt=''
+                          width={16}
+                          height={16}
+                          className='h-4 w-4'
+                        />
+                      </span>
+                      <span>{method.label}</span>
+                    </SmartLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
 
         <div
