@@ -31,40 +31,60 @@ function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): st
   return `${scheduleLabel} for ${ageGroupLabel} age group`;
 }
 
+type BookingContent = typeof enContent.myBestAuntieBooking;
+type BookingCohort = BookingContent['cohorts'][number];
+
+function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
+  return content.cohorts
+    .filter((cohort) => cohort.ageGroupId === ageGroupId)
+    .sort((left, right) => {
+      const leftDate = Date.parse(`${left.sessions[0]?.isoDate ?? ''}T00:00:00Z`);
+      const rightDate = Date.parse(`${right.sessions[0]?.isoDate ?? ''}T00:00:00Z`);
+      return leftDate - rightDate;
+    });
+}
+
+function getPrimarySessionDateTimeLabel(cohort: BookingCohort): string {
+  return cohort.sessions[0]?.dateTimeLabel ?? '';
+}
+
+function formatCohortPrice(cohort: BookingCohort): string {
+  return new Intl.NumberFormat('en-HK', {
+    style: 'currency',
+    currency: cohort.priceCurrency,
+    maximumFractionDigits: 0,
+  }).format(cohort.price);
+}
+
 describe('MyBestAuntieBooking section', () => {
-  it('updates next cohort from age selection only and keeps cohort date in subtitle-lg style', () => {
+  it('updates date cards by selected age group and keeps cohort date in subtitle-lg style', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
     const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
     const secondAgeOption = enContent.myBestAuntieBooking.ageOptions[1];
-    const firstDateOption = enContent.myBestAuntieBooking.dateOptions[0];
-    const secondDateOption = enContent.myBestAuntieBooking.dateOptions[1];
-    const thirdDateOption = enContent.myBestAuntieBooking.dateOptions[2];
-    const firstMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[0]?.id;
-    const secondMonthId = enContent.myBestAuntieBooking.paymentModal.monthOptions[1]?.id;
-    const firstCohortDate =
-      firstMonthId
-        ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[firstMonthId]
-        : undefined;
-    const secondCohortDate =
-      secondMonthId
-        ? enContent.myBestAuntieBooking.paymentModal.parts[0]?.dateByMonth[secondMonthId]
-        : undefined;
+    if (!firstAgeOption || !secondAgeOption) {
+      throw new Error('Test content must include age options.');
+    }
+    const firstAgeCohorts = getCohortsForAge(enContent.myBestAuntieBooking, firstAgeOption.id);
+    const secondAgeCohorts = getCohortsForAge(enContent.myBestAuntieBooking, secondAgeOption.id);
+    const firstAgeFirstCohort = firstAgeCohorts[0];
+    const secondAgeFirstCohort = secondAgeCohorts[0];
+    const secondAgeSecondCohort = secondAgeCohorts[1];
 
-    if (
-      !firstAgeOption ||
-      !secondAgeOption ||
-      !firstDateOption ||
-      !secondDateOption ||
-      !thirdDateOption ||
-      !firstCohortDate ||
-      !secondCohortDate
-    ) {
+    if (!firstAgeFirstCohort || !secondAgeFirstCohort || !secondAgeSecondCohort) {
       throw new Error('Test content must include age and cohort mappings.');
     }
 
-    const formattedFirstCohortDate = formatCohortPreviewLabel(firstCohortDate);
-    const formattedSecondCohortDate = formatCohortPreviewLabel(secondCohortDate);
+    const formattedFirstCohortDate = formatCohortPreviewLabel(
+      getPrimarySessionDateTimeLabel(firstAgeFirstCohort),
+    );
+    const formattedSecondCohortDate = formatCohortPreviewLabel(
+      getPrimarySessionDateTimeLabel(secondAgeFirstCohort),
+    );
+    const formattedSecondAgeSecondCohortDate = formatCohortPreviewLabel(
+      getPrimarySessionDateTimeLabel(secondAgeSecondCohort),
+    );
+    const firstCohortPriceLabel = formatCohortPrice(firstAgeFirstCohort);
     const nextCohortCard = screen.getByTestId('my-best-auntie-next-cohort-card');
     expect(nextCohortCard.className).toContain('rounded-inner');
     expect(nextCohortCard.className).toContain('border');
@@ -80,13 +100,15 @@ describe('MyBestAuntieBooking section', () => {
     expect(screen.getByText(formattedFirstCohortDate).className).toContain(
       'es-type-subtitle-lg',
     );
-    expect(
-      screen.queryByText(enContent.myBestAuntieBooking.scheduleTime),
-    ).not.toBeInTheDocument();
+    expect(within(nextCohortCard).getByText(firstCohortPriceLabel)).toBeInTheDocument();
+    const dateSelectorRegion = screen.getByRole('region', {
+      name: enContent.myBestAuntieBooking.dateSelectorLabel,
+    });
+    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(3);
 
     expect(
-      screen.getByRole('button', {
-        name: new RegExp(firstDateOption.label),
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(firstAgeFirstCohort.dateLabel),
       }).className,
     ).toContain('es-btn--state-active');
 
@@ -105,29 +127,59 @@ describe('MyBestAuntieBooking section', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
+    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(2);
     expect(
-      screen.getByRole('button', {
-        name: new RegExp(firstDateOption.label),
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(secondAgeFirstCohort.dateLabel),
       }).className,
     ).toContain('es-btn--state-active');
     expect(
-      screen.getByRole('button', {
-        name: new RegExp(secondDateOption.label),
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(secondAgeSecondCohort.dateLabel),
       }).className,
     ).toContain('es-btn--state-inactive');
 
     fireEvent.click(
-      screen.getByRole('button', {
-        name: new RegExp(thirdDateOption.label),
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(secondAgeSecondCohort.dateLabel),
       }),
     );
 
     expect(
-      screen.getByRole('button', {
-        name: new RegExp(thirdDateOption.label),
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(secondAgeSecondCohort.dateLabel),
       }).className,
     ).toContain('es-btn--state-active');
-    expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
+    expect(screen.getByText(formattedSecondAgeSecondCohortDate)).toBeInTheDocument();
+  });
+
+  it('shows no date cards for age groups without cohorts and disables CTA', () => {
+    const contentWithoutThreeToSix = JSON.parse(
+      JSON.stringify(enContent.myBestAuntieBooking),
+    ) as BookingContent;
+    contentWithoutThreeToSix.cohorts = contentWithoutThreeToSix.cohorts.filter((cohort) => {
+      return cohort.ageGroupId !== '3-6';
+    });
+
+    render(<MyBestAuntieBooking locale='en' content={contentWithoutThreeToSix} />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: '3-6',
+      }),
+    );
+
+    const dateSelectorRegion = screen.getByRole('region', {
+      name: contentWithoutThreeToSix.dateSelectorLabel,
+    });
+    expect(within(dateSelectorRegion).queryAllByRole('button')).toHaveLength(0);
+    expect(
+      screen.getByRole('button', {
+        name: contentWithoutThreeToSix.confirmAndPayLabel,
+      }),
+    ).toBeDisabled();
+    expect(screen.getByText(contentWithoutThreeToSix.noCohortsLabel)).toBeInTheDocument();
+    expect(screen.queryByText('HK$9,000')).not.toBeInTheDocument();
   });
 
   it('removes right-column selector shadows, keeps date cards in two lines, keeps CTA width to copy, and hides date arrows for three dates', () => {
@@ -147,12 +199,19 @@ describe('MyBestAuntieBooking section', () => {
     expect(ctaButton.className).not.toContain('w-full');
     expect(ctaButton.className).toContain('es-btn--primary');
 
-    const secondDateOption = enContent.myBestAuntieBooking.dateOptions[1];
+    const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
+    if (!firstAgeOption) {
+      throw new Error('Test content must include first age option.');
+    }
+    const secondDateOption = getCohortsForAge(
+      enContent.myBestAuntieBooking,
+      firstAgeOption.id,
+    )[1];
     if (!secondDateOption) {
       throw new Error('Test content must include second date option.');
     }
     const secondDateButton = screen.getByRole('button', {
-      name: new RegExp(secondDateOption.label),
+      name: new RegExp(secondDateOption.dateLabel),
     });
     expect(secondDateButton.className).toContain('es-btn--selection');
     expect(secondDateButton.className).toContain('es-btn--state-inactive');
@@ -164,8 +223,8 @@ describe('MyBestAuntieBooking section', () => {
     const availabilityLine = secondDateCardContent?.lastElementChild;
     expect(dateLine?.className).toContain('justify-center');
     expect(availabilityLine?.className).toContain('text-center');
-    expect(dateLine?.textContent).toContain(secondDateOption.label);
-    expect(availabilityLine?.textContent).toContain(secondDateOption.availabilityLabel);
+    expect(dateLine?.textContent).toContain(secondDateOption.dateLabel);
+    expect(availabilityLine?.textContent).toContain(secondDateOption.spacesLeftText);
 
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
@@ -175,8 +234,14 @@ describe('MyBestAuntieBooking section', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
     const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
-    const firstDateOption = enContent.myBestAuntieBooking.dateOptions[0];
-    if (!firstAgeOption || !firstDateOption) {
+    if (!firstAgeOption) {
+      throw new Error('Test content must include first age option.');
+    }
+    const firstDateOption = getCohortsForAge(
+      enContent.myBestAuntieBooking,
+      firstAgeOption.id,
+    )[0];
+    if (!firstDateOption) {
       throw new Error('Test content must include first age and date options.');
     }
 
@@ -187,7 +252,7 @@ describe('MyBestAuntieBooking section', () => {
       name: enContent.myBestAuntieBooking.dateSelectorLabel,
     });
     const firstDateButton = within(dateSelectorRegion).getByRole('button', {
-      name: new RegExp(firstDateOption.label),
+      name: new RegExp(firstDateOption.dateLabel),
     });
 
     for (const button of [firstAgeButton, firstDateButton]) {
@@ -203,6 +268,9 @@ describe('MyBestAuntieBooking section', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
     const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
+    if (!firstAgeOption) {
+      throw new Error('Test content must include first age option.');
+    }
     const firstAgeButton = screen.getByRole('button', {
       name: firstAgeOption.label,
     });
@@ -228,28 +296,80 @@ describe('MyBestAuntieBooking section', () => {
   it('shows edge-overlapped arrows only when more dates are available to scroll', () => {
     const extendedBookingContent = JSON.parse(
       JSON.stringify(enContent.myBestAuntieBooking),
-    ) as typeof enContent.myBestAuntieBooking;
+    ) as BookingContent;
 
-    (extendedBookingContent as any).dateOptions.push(
+    extendedBookingContent.cohorts.push(
       {
-        id: 'jul-2026',
-        label: 'Jul, 2026',
-        availabilityLabel: '8 Spots Left!',
+        id: '0-1-aug-2026',
+        ageGroupId: '0-1',
+        dateLabel: 'Aug, 2026',
+        spacesTotal: 24,
+        spacesLeftText: '8 spots left',
+        price: 9000,
+        priceCurrency: 'HKD',
+        venue: {
+          name: 'Goldwin Heights',
+          address: '2 Seymour Road, Mid-Levels, Hong Kong',
+          directionHref:
+            'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
+        },
+        sessions: [
+          {
+            id: 'part-1',
+            dateTimeLabel: 'Aug 09 @ 12:00 pm - 2:00 pm',
+            isoDate: '2026-08-09',
+            description: 'Starting with a parent call, followed by a 1:1 session.',
+          },
+          {
+            id: 'part-2',
+            dateTimeLabel: 'Aug 16 @ 12:00 pm - 2:00 pm',
+            isoDate: '2026-08-16',
+            description: 'Hands-on role play for practical routines and communication.',
+          },
+          {
+            id: 'part-3',
+            dateTimeLabel: 'Aug 23 @ 12:00 pm - 2:00 pm',
+            isoDate: '2026-08-23',
+            description: 'Action plan check-in to apply strategies at home with confidence.',
+          },
+        ],
       },
       {
-        id: 'aug-2026',
-        label: 'Aug, 2026',
-        availabilityLabel: '4 Spots Left!',
+        id: '0-1-sep-2026',
+        ageGroupId: '0-1',
+        dateLabel: 'Sep, 2026',
+        spacesTotal: 24,
+        spacesLeftText: '4 spots left',
+        price: 9000,
+        priceCurrency: 'HKD',
+        venue: {
+          name: 'Goldwin Heights',
+          address: '2 Seymour Road, Mid-Levels, Hong Kong',
+          directionHref:
+            'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
+        },
+        sessions: [
+          {
+            id: 'part-1',
+            dateTimeLabel: 'Sep 09 @ 12:00 pm - 2:00 pm',
+            isoDate: '2026-09-09',
+            description: 'Starting with a parent call, followed by a 1:1 session.',
+          },
+          {
+            id: 'part-2',
+            dateTimeLabel: 'Sep 16 @ 12:00 pm - 2:00 pm',
+            isoDate: '2026-09-16',
+            description: 'Hands-on role play for practical routines and communication.',
+          },
+          {
+            id: 'part-3',
+            dateTimeLabel: 'Sep 23 @ 12:00 pm - 2:00 pm',
+            isoDate: '2026-09-23',
+            description: 'Action plan check-in to apply strategies at home with confidence.',
+          },
+        ],
       },
     );
-    (extendedBookingContent as any).paymentModal.monthOptions.push(
-      { id: 'jul-2026', label: 'Jul, 2026' },
-      { id: 'aug-2026', label: 'Aug, 2026' },
-    );
-    for (const part of (extendedBookingContent as any).paymentModal.parts) {
-      part.dateByMonth['jul-2026'] = part.dateByMonth['jun-2026'];
-      part.dateByMonth['aug-2026'] = part.dateByMonth['jun-2026'];
-    }
 
     render(<MyBestAuntieBooking locale='en' content={extendedBookingContent} />);
 

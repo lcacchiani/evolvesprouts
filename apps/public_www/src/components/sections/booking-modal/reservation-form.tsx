@@ -31,10 +31,9 @@ import { ServerSubmissionResult } from '@/lib/server-submission-result';
 interface BookingReservationFormProps {
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedAgeGroupLabel: string;
-  selectedMonthLabel: string;
+  selectedCohortDateLabel: string;
   selectedCohortDate: string;
-  selectedPackageLabel: string;
-  selectedPackagePrice: number;
+  selectedCohortPrice: number;
   scheduleTimeLabel: string;
   descriptionId: string;
   onSubmitReservation: (summary: ReservationSummary) => void;
@@ -59,10 +58,9 @@ function isValidEmail(value: string): boolean {
 export function BookingReservationForm({
   content,
   selectedAgeGroupLabel,
-  selectedMonthLabel,
+  selectedCohortDateLabel,
   selectedCohortDate,
-  selectedPackageLabel,
-  selectedPackagePrice,
+  selectedCohortPrice,
   scheduleTimeLabel,
   descriptionId,
   onSubmitReservation,
@@ -87,7 +85,7 @@ export function BookingReservationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  const originalAmount = selectedPackagePrice;
+  const originalAmount = selectedCohortPrice;
   const totalAmount = useMemo(() => {
     return applyDiscount(originalAmount, discountRule);
   }, [discountRule, originalAmount]);
@@ -167,8 +165,7 @@ export function BookingReservationForm({
       return;
     }
     if (
-      !selectedPackageLabel ||
-      !selectedMonthLabel ||
+      !selectedCohortDateLabel ||
       isSubmitDisabled
     ) {
       return;
@@ -179,12 +176,10 @@ export function BookingReservationForm({
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: sanitizeSingleLineValue(phone),
       childAgeGroup: sanitizeSingleLineValue(selectedAgeGroupLabel),
-      packageLabel: sanitizeSingleLineValue(selectedPackageLabel),
-      monthLabel: sanitizeSingleLineValue(selectedMonthLabel),
       paymentMethod: sanitizeSingleLineValue(content.paymentMethodValue),
       totalAmount,
       courseLabel: sanitizeSingleLineValue(content.title),
-      scheduleDateLabel: sanitizeSingleLineValue(selectedMonthLabel),
+      scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel),
       scheduleTimeLabel: sanitizeSingleLineValue(scheduleTimeLabel),
     };
     const crmApiClient = createPublicCrmApiClient();
@@ -195,7 +190,7 @@ export function BookingReservationForm({
 
     const normalizedCohortDate =
       sanitizeSingleLineValue(selectedCohortDate) ||
-      sanitizeSingleLineValue(selectedMonthLabel);
+      sanitizeSingleLineValue(selectedCohortDateLabel);
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,

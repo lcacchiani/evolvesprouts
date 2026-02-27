@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { type AnchorHTMLAttributes, type ReactNode } from 'react';
+import { type AnchorHTMLAttributes, type ComponentProps, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { originalFpsMerchantName, originalFpsMobileNumber } = vi.hoisted(() => {
@@ -104,8 +104,10 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
   ),
 }));
 
-const bookingModalContent = enContent.myBestAuntieBooking.paymentModal;
+const bookingContent = enContent.myBestAuntieBooking;
+const bookingModalContent = bookingContent.paymentModal;
 const thankYouModalContent = enContent.myBestAuntieBooking.thankYouModal;
+const selectedCohort = bookingContent.cohorts[0];
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
@@ -117,15 +119,31 @@ const reservationSummary: ReservationSummary = {
   attendeeName: 'Test User',
   attendeeEmail: 'test@example.com',
   attendeePhone: '12345678',
-  childAgeGroup: '18-24 months',
-  packageLabel: 'Standard Package',
-  monthLabel: 'April',
+  childAgeGroup: '1-3',
   paymentMethod: 'Pay via FPS QR',
   totalAmount: 9000,
   courseLabel: 'My Best Auntie',
-  scheduleDateLabel: 'April',
+  scheduleDateLabel: 'Apr, 2026',
   scheduleTimeLabel: '12:00 pm - 2:00 pm',
 };
+
+if (!selectedCohort) {
+  throw new Error('Test content must include at least one cohort.');
+}
+
+function renderBookingModal(
+  props: Partial<ComponentProps<typeof MyBestAuntieBookingModal>> = {},
+) {
+  return render(
+    <MyBestAuntieBookingModal
+      content={bookingModalContent}
+      selectedCohort={selectedCohort}
+      onClose={() => {}}
+      onSubmitReservation={() => {}}
+      {...props}
+    />,
+  );
+}
 
 beforeEach(() => {
   process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = testTurnstileSiteKey;
@@ -158,13 +176,7 @@ afterEach(() => {
 
 describe('my-best-auntie booking modals footer content', () => {
   it('exposes labelled dialog semantics for booking and thank-you modals', () => {
-    const bookingModalView = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const bookingModalView = renderBookingModal();
 
     const bookingDialog = screen.getByRole('dialog', {
       name: bookingModalContent.title,
@@ -198,14 +210,9 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('hides child age group and renders payment option label in booking modal', () => {
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        selectedAgeGroupLabel='18-24 months'
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+    });
 
     expect(
       screen.queryByText(bookingModalContent.selectedAgeGroupLabel),
@@ -227,13 +234,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('does not render course schedule heading and uses shared calendar icon in booking modal', () => {
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal();
 
     expect(screen.queryByText('Course Schedule')).not.toBeInTheDocument();
     expect(container.querySelectorAll('span.es-mask-calendar-heading').length).toBeGreaterThan(
@@ -242,13 +243,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('validates reservation email only after blur', () => {
-    render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    renderBookingModal();
 
     const emailField = screen.getByLabelText(
       new RegExp(bookingModalContent.emailLabel),
@@ -261,35 +256,14 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(emailField).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('does not render the month/package selector box in booking modal', () => {
-    render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
-
-    expect(
-      screen.queryByRole('heading', { name: bookingModalContent.monthLabel }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('heading', { name: bookingModalContent.packageLabel }),
-    ).not.toBeInTheDocument();
-
-    for (const option of bookingModalContent.packageOptions) {
-      expect(screen.queryByText(option.description)).not.toBeInTheDocument();
-    }
+  it('does not render legacy month/package selector controls in booking modal', () => {
+    const { container } = renderBookingModal();
+    expect(container.querySelectorAll('button[aria-pressed="true"]')).toHaveLength(0);
+    expect(container.querySelectorAll('button[aria-pressed="false"]')).toHaveLength(0);
   });
 
   it('renders topics textarea and required acknowledgement checkboxes', () => {
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal();
 
     const topicsField = screen.getByLabelText(bookingModalContent.topicsInterestLabel);
     expect(topicsField.tagName).toBe('TEXTAREA');
@@ -397,13 +371,7 @@ describe('my-best-auntie booking modals footer content', () => {
       value: 10,
     });
 
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal();
 
     const pricingSection = screen
       .getByRole('heading', { name: bookingModalContent.pricingTitle })
@@ -430,8 +398,8 @@ describe('my-best-auntie booking modals footer content', () => {
       name: bookingModalContent.locationTitle,
     });
     expect(locationHeading.className).toContain('text-2xl');
-    expect(screen.getByText(bookingModalContent.locationName).className).toContain('text-lg');
-    expect(screen.getByText(bookingModalContent.locationAddress).className).toContain('text-base');
+    expect(screen.getByText(selectedCohort.venue.name).className).toContain('text-lg');
+    expect(screen.getByText(selectedCohort.venue.address).className).toContain('text-base');
     expect(screen.getByRole('link', { name: bookingModalContent.directionLabel }).className)
       .toContain('text-base');
 
@@ -483,14 +451,9 @@ describe('my-best-auntie booking modals footer content', () => {
       request: requestSpy,
     });
 
-    render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        selectedAgeGroupLabel='18-24 months'
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+    });
 
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
       target: { value: 'Test User' },
@@ -544,13 +507,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('uses my best auntie overview icons for all course part chips', () => {
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal();
 
     const partIcons = Array.from(
       container.querySelectorAll('img[data-course-part-icon="true"]'),
@@ -564,13 +521,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('renders timeline segments, 50px part spacing, and numeric part chips', () => {
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal();
     const timelineList = container.querySelector('ul.space-y-\\[50px\\]');
     expect(timelineList).not.toBeNull();
 
@@ -660,13 +611,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('does not render booking modal copyright footer section', () => {
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal();
 
     expect(screen.queryByText('2026 Evolve Sprouts')).not.toBeInTheDocument();
     expect(screen.queryByText(/©/u)).not.toBeInTheDocument();
@@ -674,13 +619,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('renders modal column logos as section backgrounds instead of image elements', () => {
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal();
 
     expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
     expect(
@@ -692,19 +631,13 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('renders shared external link icon and updated booking icons', () => {
-    const { container } = render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    const { container } = renderBookingModal();
 
     const directionLink = screen.getByRole('link', {
       name: bookingModalContent.directionLabel,
     });
 
-    expect(directionLink).toHaveAttribute('href', bookingModalContent.directionHref);
+    expect(directionLink).toHaveAttribute('href', selectedCohort.venue.directionHref);
     expect(directionLink).toHaveTextContent(bookingModalContent.directionLabel);
     expect(screen.getByText(bookingModalContent.directionLabel).className).toContain(
       'es-link-external-label',
@@ -772,13 +705,7 @@ describe('my-best-auntie booking modals footer content', () => {
       value: 10,
     });
 
-    render(
-      <MyBestAuntieBookingModal
-        content={bookingModalContent}
-        onClose={() => {}}
-        onSubmitReservation={() => {}}
-      />,
-    );
+    renderBookingModal();
 
     const discountInput = screen.getByPlaceholderText(
       bookingModalContent.discountCodePlaceholder,
