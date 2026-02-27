@@ -883,7 +883,13 @@
   "sproutsSquadCommunity": {
     "heading": "Join our Sprouts Squad community!",
     "ctaLabel": "Sign Up to Our Monthly Newsletter",
-    "ctaHref": "/contact-us"
+    "ctaHref": "/contact-us",
+    "supportParagraph": "Ready to be part of our community? Enter your email and your journey will start here!",
+    "emailPlaceholder": "Email address",
+    "emailValidationMessage": "Please enter a valid email address.",
+    "prefilledMessage": "Newsletter join",
+    "submitErrorMessage": "something went wrong, try a bit later",
+    "successMessage": "Thank you for being part of our community! You will start receiving our monthly newsletters"
   },
   "whoops": {
     "code": "404",

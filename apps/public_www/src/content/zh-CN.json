@@ -883,7 +883,13 @@
   "sproutsSquadCommunity": {
     "heading": "加入我们的 Sprouts Squad 社区！",
     "ctaLabel": "订阅我们的每月通讯",
-    "ctaHref": "/contact-us"
+    "ctaHref": "/contact-us",
+    "supportParagraph": "准备好成为我们社区的一员了吗？输入你的邮箱，你的旅程将从这里开始！",
+    "emailPlaceholder": "邮箱地址",
+    "emailValidationMessage": "请输入有效的邮箱地址。",
+    "prefilledMessage": "Newsletter join",
+    "submitErrorMessage": "出了点问题，请稍后再试。",
+    "successMessage": "感谢你成为我们社区的一员！你将开始收到我们的每月电子通讯。"
   },
   "whoops": {
     "code": "404",
