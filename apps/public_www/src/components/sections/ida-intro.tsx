@@ -45,7 +45,7 @@ export function IdaIntro({ content }: IdaIntroProps) {
           'es-section-split-layout--hero items-center',
         )}
       >
-        <div className='relative max-w-[620px] lg:pb-4 lg:pr-8'>
+        <div className='relative max-w-[620px] lg:order-2 lg:pb-4 lg:pl-8 xl:pl-[110px]'>
           <div className='relative z-10'>
             <SectionHeader
               title={
@@ -65,7 +65,7 @@ export function IdaIntro({ content }: IdaIntroProps) {
           </div>
         </div>
 
-        <div className='mx-auto w-full max-w-[573px] lg:ml-auto lg:mr-0'>
+        <div className='mx-auto w-full max-w-[573px] lg:order-1 lg:ml-0 lg:mr-auto'>
           <Image
             src='/images/about-us/ida-degregorio-evolvesprouts-3.webp'
             alt={content.imageAlt}
