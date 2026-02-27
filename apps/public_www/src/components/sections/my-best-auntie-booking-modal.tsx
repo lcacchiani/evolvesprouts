@@ -70,7 +70,7 @@ export function MyBestAuntieBookingModal({
     restoreFocus: true,
   });
 
-  const originalAmount = selectedCohort?.cost ?? 0;
+  const originalAmount = selectedCohort?.price ?? 0;
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
     return (selectedCohort?.sessions ?? []).map((part) => {
