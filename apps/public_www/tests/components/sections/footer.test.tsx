@@ -1,7 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
 import { render, screen } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 import { Footer } from '@/components/sections/footer';
 import enContent from '@/content/en.json';
@@ -31,6 +38,28 @@ vi.mock('next/link', () => ({
 }));
 
 describe('Footer external links', () => {
+  const originalLinkedinUrl = process.env.NEXT_PUBLIC_LINKEDIN_URL;
+  const originalInstagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_LINKEDIN_URL = 'https://www.linkedin.com/company/evolve-sprouts';
+    process.env.NEXT_PUBLIC_INSTAGRAM_URL = 'https://www.instagram.com/evolvesprouts';
+  });
+
+  afterEach(() => {
+    if (typeof originalLinkedinUrl === 'string') {
+      process.env.NEXT_PUBLIC_LINKEDIN_URL = originalLinkedinUrl;
+    } else {
+      delete process.env.NEXT_PUBLIC_LINKEDIN_URL;
+    }
+
+    if (typeof originalInstagramUrl === 'string') {
+      process.env.NEXT_PUBLIC_INSTAGRAM_URL = originalInstagramUrl;
+    } else {
+      delete process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+    }
+  });
+
   it('adds the shared external icon to social links only', () => {
     render(<Footer content={enContent.footer} />);
 

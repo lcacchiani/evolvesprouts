@@ -9,33 +9,33 @@
     "logoSrc": "/images/evolvesprouts-logo.svg",
     "menuItems": [
       {
-        "label": "Home",
+        "label": "首頁",
         "href": "/"
       },
       {
-        "label": "Training Courses",
+        "label": "培訓課程",
         "href": "/services/my-best-auntie-training-course",
         "children": [
           {
-            "label": "Auntie Training",
+            "label": "姨姨培訓",
             "href": "/services/my-best-auntie-training-course"
           },
           {
-            "label": "Montessori Training",
-            "href": "#"
+            "label": "蒙特梭利培訓",
+            "href": "/services/my-best-auntie-training-course"
           }
         ]
       },
       {
-        "label": "About Us",
+        "label": "關於我們",
         "href": "/about-us"
       },
       {
-        "label": "Events",
+        "label": "活動",
         "href": "/events"
       },
       {
-        "label": "Contact Us",
+        "label": "聯絡我們",
         "href": "/contact-us"
       }
     ],
@@ -70,9 +70,27 @@
   },
   "hero": {
     "headline": "將姨姨培訓成你孩子的蒙特梭利成長夥伴",
-    "subheadline": "透過每天照顧孩子的人，幫助孩子成長。",
+    "subheadline": "透過每天照顧孩子的人，幫助香港孩子成長。",
     "cta": "預約免費入門諮詢",
     "supportingParagraph": "以蒙特梭利與正向教育支援香港家庭，培訓姨姨陪伴孩子成長。"
+  },
+  "seo": {
+    "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利姨姨培訓",
+    "fallbackDescription": "將你的家庭助手培訓成以蒙特梭利為導向的兒童成長夥伴。為香港0-6歲孩子家庭提供姨姨培訓課程。",
+    "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
+    "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利姨姨培訓",
+    "home": {
+      "title": "Evolve Sprouts | 香港蒙特梭利姨姨培訓",
+      "description": "將你的家庭助手培訓成以蒙特梭利為導向的兒童成長夥伴。為香港0-6歲孩子家庭提供姨姨培訓課程。"
+    },
+    "trainingCourse": {
+      "title": "我的最佳姨姨培訓課程",
+      "description": "為家庭助手而設的6小時互動式蒙特梭利培訓課程。學習可即時落地的日常流程、溫和界線與兒童主導策略，特別適合香港家庭。"
+    },
+    "organizationDescription": "為香港0-6歲孩子家庭提供蒙特梭利導向的家庭支持與姨姨培訓。",
+    "localBusinessName": "Evolve Sprouts",
+    "localBusinessDescription": "面向香港家庭的蒙特梭利姨姨培訓與家長支持服務。",
+    "localBusinessAreaServed": "香港"
   },
   "idaIntro": {
     "text": "我叫 Ida，我是一位蒙特梭利認證導師，也是兩個孩子的媽媽。",
@@ -904,7 +922,7 @@
         },
         {
           "label": "通訊",
-          "href": "#"
+          "href": "/contact-us"
         },
         {
           "label": "私隱政策",
@@ -917,12 +935,12 @@
       "items": [
         {
           "label": "Linkedin",
-          "href": "https://linkedin.com",
+          "href": "/contact-us",
           "icon": "linkedin"
         },
         {
           "label": "Instagram",
-          "href": "https://instagram.com",
+          "href": "/contact-us",
           "icon": "instagram"
         }
       ]

@@ -19,8 +19,12 @@ export async function generateMetadata({
   return buildLocalizedMetadata({
     locale,
     path: ROUTES.home,
-    title: content.navbar.brand,
-    description: content.hero.subheadline,
+    title: content.seo.home.title,
+    description: content.seo.home.description,
+    socialImage: {
+      url: content.seo.defaultSocialImage,
+      alt: content.seo.defaultSocialImageAlt,
+    },
   });
 }
 

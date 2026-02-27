@@ -5,6 +5,7 @@ import { ExternalLinkInlineContent } from '@/components/shared/external-link-ico
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { FooterContent } from '@/content';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 interface FooterProps {
   content: FooterContent;
@@ -24,6 +25,88 @@ function resolveCurrentYearCopyright(value: string): string {
 
   const normalizedValue = value.replace(/^©\s*/, '').trim();
   return `© ${currentYear} ${normalizedValue}`;
+}
+
+interface SocialHrefConfig {
+  instagramUrl?: string;
+  linkedinUrl?: string;
+}
+
+function isGenericSocialRootHref(href: string, host: string): boolean {
+  try {
+    const parsedUrl = new URL(href);
+    if (parsedUrl.hostname.toLowerCase() !== host) {
+      return false;
+    }
+
+    return parsedUrl.pathname === '' || parsedUrl.pathname === '/';
+  } catch {
+    return false;
+  }
+}
+
+function resolveConnectOnHref(
+  item: FooterLinkItem,
+  socialHrefConfig: SocialHrefConfig,
+): string | undefined {
+  if (item.icon === 'instagram') {
+    if (socialHrefConfig.instagramUrl) {
+      return socialHrefConfig.instagramUrl;
+    }
+
+    if (item.href.startsWith('/')) {
+      return undefined;
+    }
+
+    if (
+      isGenericSocialRootHref(item.href, 'instagram.com')
+      || isGenericSocialRootHref(item.href, 'www.instagram.com')
+    ) {
+      return undefined;
+    }
+
+    return item.href;
+  }
+
+  if (item.icon === 'linkedin') {
+    if (socialHrefConfig.linkedinUrl) {
+      return socialHrefConfig.linkedinUrl;
+    }
+
+    if (item.href.startsWith('/')) {
+      return undefined;
+    }
+
+    if (
+      isGenericSocialRootHref(item.href, 'linkedin.com')
+      || isGenericSocialRootHref(item.href, 'www.linkedin.com')
+    ) {
+      return undefined;
+    }
+
+    return item.href;
+  }
+
+  return item.href;
+}
+
+function resolveConnectOnItems(
+  items: FooterLinkItem[],
+  socialHrefConfig: SocialHrefConfig,
+): FooterLinkItem[] {
+  return items
+    .map((item) => {
+      const href = resolveConnectOnHref(item, socialHrefConfig);
+      if (!href) {
+        return null;
+      }
+
+      return {
+        ...item,
+        href,
+      };
+    })
+    .filter((item): item is FooterLinkItem => item !== null);
 }
 
 const FOOTER_LOGO_CLASSNAME =
@@ -188,6 +271,11 @@ function FooterMobileAccordion({
 }
 
 export function Footer({ content }: FooterProps) {
+  const publicSiteConfig = resolvePublicSiteConfig();
+  const connectOnItems = resolveConnectOnItems(content.connectOn.items, {
+    instagramUrl: publicSiteConfig.instagramUrl,
+    linkedinUrl: publicSiteConfig.linkedinUrl,
+  });
   const copyrightText = resolveCurrentYearCopyright(content.copyright);
 
   return (
@@ -231,7 +319,7 @@ export function Footer({ content }: FooterProps) {
             />
             <FooterDesktopColumn
               title={content.connectOn.title}
-              items={content.connectOn.items}
+              items={connectOnItems}
               hasSocialIcons
               className='lg:pl-6'
             />
@@ -262,7 +350,7 @@ export function Footer({ content }: FooterProps) {
             />
             <FooterMobileAccordion
               title={content.connectOn.title}
-              items={content.connectOn.items}
+              items={connectOnItems}
               hasSocialIcons
             />
           </div>

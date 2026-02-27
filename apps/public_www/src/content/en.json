@@ -22,7 +22,7 @@
           },
           {
             "label": "Montessori Training",
-            "href": "#"
+            "href": "/services/my-best-auntie-training-course"
           }
         ]
       },
@@ -70,9 +70,27 @@
   },
   "hero": {
     "headline": "Transform Auntie Into Your Child’s Montessori Ally",
-    "subheadline": "Helping your child grow — through the people who care for them every day.",
+    "subheadline": "Helping Hong Kong children grow — through the people who care for them every day.",
     "cta": "Book your Free Intro Session",
     "supportingParagraph": "Supporting families in Hong Kong through Montessori & Positive Education. Training aunties to nurture children’s growth."
+  },
+  "seo": {
+    "fallbackTitle": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
+    "fallbackDescription": "Transform your domestic helper into a Montessori-guided child development partner. Training courses for families with children aged 0-6 in Hong Kong.",
+    "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
+    "defaultSocialImageAlt": "Evolve Sprouts Montessori auntie training in Hong Kong",
+    "home": {
+      "title": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
+      "description": "Transform your domestic helper into a Montessori-guided child development partner. Training courses for families with children aged 0-6 in Hong Kong."
+    },
+    "trainingCourse": {
+      "title": "My Best Auntie Training Course",
+      "description": "A 6-hour interactive Montessori training course for your domestic helper. Learn practical routines, gentle discipline, and child-led strategies for Hong Kong families."
+    },
+    "organizationDescription": "Montessori-informed family support and auntie training for families with children aged 0-6 in Hong Kong.",
+    "localBusinessName": "Evolve Sprouts",
+    "localBusinessDescription": "Montessori auntie training and parent support for families in Hong Kong.",
+    "localBusinessAreaServed": "Hong Kong"
   },
   "idaIntro": {
     "text": "Hello! My name is Ida, founder of Evolve Sprouts. I'm a Montessori-certified practitioner and mum of 2.",
@@ -904,7 +922,7 @@
         },
         {
           "label": "Newsletter",
-          "href": "#"
+          "href": "/contact-us"
         },
         {
           "label": "Privacy Policy",
@@ -917,12 +935,12 @@
       "items": [
         {
           "label": "Linkedin",
-          "href": "https://linkedin.com",
+          "href": "/contact-us",
           "icon": "linkedin"
         },
         {
           "label": "Instagram",
-          "href": "https://instagram.com",
+          "href": "/contact-us",
           "icon": "instagram"
         }
       ]

@@ -75,6 +75,27 @@ describe('seo metadata builder', () => {
     });
   });
 
+  it('uses page-level social image overrides when provided', () => {
+    const metadata = buildLocalizedMetadata({
+      locale: 'en',
+      path: '/events',
+      title: 'Events',
+      description: 'Upcoming events',
+      socialImage: {
+        url: '/images/seo/custom-og.png',
+        alt: 'Custom OG image',
+      },
+    });
+
+    expect(metadata.openGraph?.images?.[0]).toMatchObject({
+      url: '/images/seo/custom-og.png',
+      alt: 'Custom OG image',
+    });
+    expect(metadata.twitter).toMatchObject({
+      images: ['/images/seo/custom-og.png'],
+    });
+  });
+
   it('normalizes valid HTTPS origins for site metadata', () => {
     expect(normalizeSiteOrigin('https://example.com/')).toBe('https://example.com');
   });

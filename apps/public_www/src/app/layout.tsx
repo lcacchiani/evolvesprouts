@@ -3,12 +3,17 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from '@/content';
+import enContent from '@/content/en.json';
 import {
   getDirectionForLocale,
   type DocumentDirection,
 } from '@/lib/locale-document';
 import { GoogleTagManager } from '@/components/shared/google-tag-manager';
-import { SITE_HOST, SITE_ORIGIN } from '@/lib/seo';
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  SITE_HOST,
+  SITE_ORIGIN,
+} from '@/lib/seo';
 import './globals.css';
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || '';
@@ -47,11 +52,29 @@ const DOCUMENT_LOCALE_DIRECTIONS = Object.fromEntries(
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
-  title: 'Evolve Sprouts',
-  description: 'Evolve Sprouts public website.',
+  title: enContent.seo.fallbackTitle,
+  description: enContent.seo.fallbackDescription,
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
+  },
+  openGraph: {
+    title: enContent.seo.fallbackTitle,
+    description: enContent.seo.fallbackDescription,
+    siteName: 'Evolve Sprouts',
+    type: 'website',
+    images: [
+      {
+        url: DEFAULT_SOCIAL_IMAGE,
+        alt: enContent.seo.defaultSocialImageAlt,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: enContent.seo.fallbackTitle,
+    description: enContent.seo.fallbackDescription,
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
 };
 
