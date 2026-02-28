@@ -15,11 +15,17 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
-import { resolvePublicSiteConfig } from '@/lib/site-config';
+import type { PublicSiteConfig } from '@/lib/site-config';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
+
+export type ContactUsFormContactConfig = Pick<
+  PublicSiteConfig,
+  'contactEmail' | 'whatsappUrl' | 'instagramUrl' | 'linkedinUrl'
+>;
 
 interface ContactUsFormProps {
   content: ContactUsContent['contactUsForm'];
+  contactConfig: ContactUsFormContactConfig;
 }
 
 interface FormState {
@@ -80,8 +86,7 @@ function sanitizeMultilineValue(value: string): string {
   return value.replaceAll(/\r\n/g, '\n').replaceAll(/\r/g, '\n').trim();
 }
 
-export function ContactUsForm({ content }: ContactUsFormProps) {
-  const publicSiteConfig = resolvePublicSiteConfig();
+export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [formState, setFormState] = useState<FormState>({
@@ -113,34 +118,34 @@ export function ContactUsForm({ content }: ContactUsFormProps) {
         : '';
   const isSubmitDisabled = isCaptchaUnavailable || isSubmitting;
   const contactMethodLinks: ContactMethodLinkItem[] = [];
-  if (publicSiteConfig.contactEmail) {
+  if (contactConfig.contactEmail) {
     contactMethodLinks.push({
       key: 'email',
-      href: `mailto:${publicSiteConfig.contactEmail}`,
+      href: `mailto:${contactConfig.contactEmail}`,
       label: content.contactMethodLinks.mail,
       iconSrc: CONTACT_METHOD_ICON_SOURCES.email,
     });
   }
-  if (publicSiteConfig.whatsappUrl) {
+  if (contactConfig.whatsappUrl) {
     contactMethodLinks.push({
       key: 'whatsapp',
-      href: publicSiteConfig.whatsappUrl,
+      href: contactConfig.whatsappUrl,
       label: content.contactMethodLinks.whatsapp,
       iconSrc: CONTACT_METHOD_ICON_SOURCES.whatsapp,
     });
   }
-  if (publicSiteConfig.instagramUrl) {
+  if (contactConfig.instagramUrl) {
     contactMethodLinks.push({
       key: 'instagram',
-      href: publicSiteConfig.instagramUrl,
+      href: contactConfig.instagramUrl,
       label: content.contactMethodLinks.instagram,
       iconSrc: CONTACT_METHOD_ICON_SOURCES.instagram,
     });
   }
-  if (publicSiteConfig.linkedinUrl) {
+  if (contactConfig.linkedinUrl) {
     contactMethodLinks.push({
       key: 'linkedin',
-      href: publicSiteConfig.linkedinUrl,
+      href: contactConfig.linkedinUrl,
       label: content.contactMethodLinks.linkedin,
       iconSrc: CONTACT_METHOD_ICON_SOURCES.linkedin,
     });
