@@ -26,7 +26,7 @@ def get_database_url() -> str:
     )
     password = secret.get("password")
     host = os.getenv("DATABASE_HOST") or secret.get("host")
-    if _use_iam_auth():
+    if use_iam_auth():
         host = os.getenv("DATABASE_PROXY_ENDPOINT") or host
     port = os.getenv("DATABASE_PORT") or secret.get("port") or 5432
     database = (
@@ -39,11 +39,11 @@ def get_database_url() -> str:
     if not username or not host:
         raise RuntimeError("Secret is missing database connection fields")
 
-    use_iam_auth = _use_iam_auth()
-    if not use_iam_auth and not password:
+    use_iam = use_iam_auth()
+    if not use_iam and not password:
         raise RuntimeError("Password is required for non-IAM authentication")
 
-    if use_iam_auth:
+    if use_iam:
         token = _generate_iam_token(host, int(port), str(username))
         return (
             "postgresql+psycopg://"
@@ -58,7 +58,7 @@ def get_database_url() -> str:
     )
 
 
-def _use_iam_auth() -> bool:
+def use_iam_auth() -> bool:
     """Return True if IAM auth is enabled."""
 
     return str(os.getenv("DATABASE_IAM_AUTH", "")).lower() in {"1", "true", "yes"}

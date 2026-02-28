@@ -21,6 +21,7 @@ from app.db.models import (
 from app.exceptions import ValidationError
 from app.services.aws_clients import get_s3_client
 from app.services.cloudfront_signing import generate_signed_download_url
+from app.utils import require_env
 
 _MAX_FILE_NAME_LENGTH = 255
 _MAX_MIME_TYPE_LENGTH = 127
@@ -341,10 +342,7 @@ def serialize_grant(grant: AssetAccessGrant) -> dict[str, Any]:
 
 
 def _require_assets_bucket_name() -> str:
-    value = os.getenv("CLIENT_ASSETS_BUCKET_NAME", "").strip()
-    if not value:
-        raise RuntimeError("CLIENT_ASSETS_BUCKET_NAME is required")
-    return value
+    return require_env("CLIENT_ASSETS_BUCKET_NAME")
 
 
 def _presign_ttl_seconds() -> int:

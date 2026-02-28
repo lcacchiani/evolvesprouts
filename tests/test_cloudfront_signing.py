@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 
+from app.exceptions import ConfigurationError
 from app.services import cloudfront_signing
 
 
@@ -119,3 +120,18 @@ def test_load_private_key_requires_pem_field(monkeypatch: Any) -> None:
     monkeypatch.setattr(cloudfront_signing, "get_secret_json", lambda _: {})
     with pytest.raises(RuntimeError, match="private_key_pem"):
         cloudfront_signing._load_private_key("arn:example")
+
+
+def test_generate_signed_download_url_requires_configured_env(monkeypatch: Any) -> None:
+    monkeypatch.delenv("ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN", raising=False)
+    monkeypatch.delenv("ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID", raising=False)
+    monkeypatch.delenv(
+        "ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN",
+        raising=False,
+    )
+
+    with pytest.raises(ConfigurationError, match="ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN"):
+        cloudfront_signing.generate_signed_download_url(
+            s3_key="assets/doc.pdf",
+            expires_at=datetime(2035, 1, 1, 12, 0, tzinfo=UTC),
+        )

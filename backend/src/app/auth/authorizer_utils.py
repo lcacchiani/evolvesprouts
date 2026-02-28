@@ -76,4 +76,3 @@ def build_iam_policy(
         },
         "context": dict(context),
     }
-

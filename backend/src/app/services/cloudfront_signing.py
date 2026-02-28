@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 from app.services.secrets import get_secret_json
+from app.utils import require_env
 
 _PRIVATE_KEY_FIELDS = ("private_key_pem", "privateKeyPem", "private_key")
 _DEFAULT_SIGNER_CACHE_TTL_SECONDS = 300
@@ -35,9 +36,9 @@ def generate_signed_download_url(*, s3_key: str, expires_at: datetime) -> str:
     if expires_at.tzinfo is None:
         raise RuntimeError("expires_at must be timezone-aware")
 
-    distribution_domain = _required_env("ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN")
-    key_pair_id = _required_env("ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID")
-    secret_arn = _required_env("ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN")
+    distribution_domain = require_env("ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN")
+    key_pair_id = require_env("ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID")
+    secret_arn = require_env("ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN")
 
     normalized_key = s3_key.strip().lstrip("/")
     if not normalized_key:
@@ -111,13 +112,6 @@ def _load_private_key(secret_arn: str) -> rsa.RSAPrivateKey:
     if not isinstance(loaded_key, rsa.RSAPrivateKey):
         raise RuntimeError("CloudFront signer private key must be an RSA key")
     return loaded_key
-
-
-def _required_env(name: str) -> str:
-    value = os.getenv(name, "").strip()
-    if not value:
-        raise RuntimeError(f"{name} is required")
-    return value
 
 
 def _signer_cache_ttl_seconds() -> int:

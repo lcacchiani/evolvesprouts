@@ -1,5 +1,8 @@
 """Utility modules for the backend application."""
 
+import os
+
+from app.exceptions import ConfigurationError
 from app.utils.parsers import (
     parse_datetime,
     parse_decimal,
@@ -19,14 +22,23 @@ from app.utils.validators import (
     validate_uuid,
 )
 from app.utils.logging import (
+    clear_request_context,
     configure_logging,
     get_logger,
     hash_for_correlation,
     mask_email,
     mask_pii,
     set_request_context,
-    clear_request_context,
 )
+
+
+def require_env(name: str) -> str:
+    """Read a required environment variable or raise ConfigurationError."""
+    value = os.getenv(name, "").strip()
+    if not value:
+        raise ConfigurationError(name)
+    return value
+
 
 __all__ = [
     "clear_request_context",
@@ -42,6 +54,7 @@ __all__ = [
     "parse_decimal",
     "parse_enum",
     "parse_int",
+    "require_env",
     "sanitize_string",
     "set_request_context",
     "validate_content_type",

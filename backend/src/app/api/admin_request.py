@@ -117,14 +117,6 @@ def _parse_group_name(event: Mapping[str, Any]) -> str:
     return group or os.getenv("ADMIN_GROUP") or "admin"
 
 
-def _require_env(name: str) -> str:
-    """Return a required environment variable value."""
-    value = os.getenv(name)
-    if not value:
-        raise RuntimeError(f"{name} is required")
-    return value
-
-
 def _parse_cursor(value: Optional[str]) -> Optional[UUID]:
     """Parse cursor for admin listing."""
     if value is None or value == "":
