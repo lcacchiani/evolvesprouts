@@ -135,6 +135,12 @@ describe('ContactUsForm section', () => {
       name: enContent.contactUs.contactUsForm.contactMethodsTitle,
     });
     expect(list).toBeInTheDocument();
+    const contactMethodsTitle = screen.getByText(
+      enContent.contactUs.contactUsForm.contactMethodsTitle,
+    );
+    expect(contactMethodsTitle.className).toContain('es-section-body');
+    expect(contactMethodsTitle.className).toContain('text-[1.05rem]');
+    expect(contactMethodsTitle.className).toContain('leading-8');
 
     const emailLink = screen.getByRole('link', {
       name: enContent.contactUs.contactUsForm.contactMethodLinks.mail,

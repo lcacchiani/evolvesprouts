@@ -253,7 +253,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
               descriptionClassName='mt-4 es-section-body text-[1.05rem] leading-8'
             />
             <div className='mt-6'>
-              <p className='text-sm font-semibold es-text-heading'>
+              <p className='es-section-body text-[1.05rem] leading-8'>
                 {content.contactMethodsTitle}
               </p>
               <ul className='mt-3 space-y-2' aria-label={content.contactMethodsTitle}>
