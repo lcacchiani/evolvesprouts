@@ -9,12 +9,13 @@ from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 
-from app.api.admin_request import _encode_cursor, _parse_uuid
+from app.api.admin_request import _parse_uuid
 from app.api.assets.assets_common import (
     build_s3_key,
     delete_s3_object,
     extract_identity,
     generate_upload_url,
+    paginate_response,
     parse_admin_asset_list_filters,
     parse_create_asset_payload,
     parse_cursor,
@@ -113,19 +114,11 @@ def _list_assets(event: Mapping[str, Any]) -> dict[str, Any]:
             visibility=visibility,
             asset_type=asset_type,
         )
-        page_items = list(assets[:limit])
-        next_cursor = (
-            _encode_cursor(page_items[-1].id)
-            if len(assets) > limit and page_items
-            else None
-        )
-        return json_response(
-            200,
-            {
-                "items": [serialize_asset(asset) for asset in page_items],
-                "next_cursor": next_cursor,
-            },
+        return paginate_response(
+            items=assets,
+            limit=limit,
             event=event,
+            serializer=serialize_asset,
         )
 
 

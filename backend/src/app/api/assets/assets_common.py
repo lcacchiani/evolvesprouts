@@ -4,12 +4,18 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping, Optional, TypeVar
 from uuid import UUID, uuid4
 
-from app.api.admin_request import _parse_body, _parse_cursor, _query_param
+from app.api.admin_request import (
+    _encode_cursor,
+    _parse_body,
+    _parse_cursor,
+    _query_param,
+)
 from app.api.admin_validators import _validate_string_length
 from app.db.models import (
     AccessGrantType,
@@ -21,7 +27,7 @@ from app.db.models import (
 from app.exceptions import ValidationError
 from app.services.aws_clients import get_s3_client
 from app.services.cloudfront_signing import generate_signed_download_url
-from app.utils import require_env
+from app.utils import json_response, require_env
 
 _MAX_FILE_NAME_LENGTH = 255
 _MAX_MIME_TYPE_LENGTH = 127
@@ -33,6 +39,7 @@ _DEFAULT_DOWNLOAD_LINK_EXPIRY_DAYS = 9999
 _MIN_DOWNLOAD_LINK_EXPIRY_DAYS = 1
 _MAX_DOWNLOAD_LINK_EXPIRY_DAYS = 36500
 _FILENAME_SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
+T = TypeVar("T")
 
 
 @dataclass(frozen=True)
@@ -240,6 +247,28 @@ def parse_grant_type(value: str) -> AccessGrantType:
             "grant_type must be one of all_authenticated, organization, user",
             field="grant_type",
         ) from exc
+
+
+def paginate_response(
+    *,
+    items: Sequence[T],
+    limit: int,
+    event: Mapping[str, Any],
+    serializer: Callable[[T], dict[str, Any]],
+) -> dict[str, Any]:
+    """Build a standard paginated API response payload."""
+    page_items = list(items[:limit])
+    next_cursor = (
+        _encode_cursor(page_items[-1].id) if len(items) > limit and page_items else None
+    )
+    return json_response(
+        200,
+        {
+            "items": [serializer(item) for item in page_items],
+            "next_cursor": next_cursor,
+        },
+        event=event,
+    )
 
 
 def build_s3_key(asset_id: UUID, file_name: str) -> str:

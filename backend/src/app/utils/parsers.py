@@ -132,20 +132,19 @@ def collect_query_params(event: Mapping[str, Any]) -> dict[str, list[str]]:
         Dictionary mapping parameter names to lists of values.
     """
     params: dict[str, list[str]] = {}
-    single = event.get("queryStringParameters") or {}
     multi = event.get("multiValueQueryStringParameters") or {}
-
-    for key, value in single.items():
-        if value is None:
-            continue
-        params.setdefault(key, []).append(value)
-
-    for key, values in multi.items():
-        if not values:
-            continue
-        for value in values:
-            if value is None:
+    if multi:
+        for key, values in multi.items():
+            if not values:
                 continue
-            params.setdefault(key, []).append(value)
+            filtered = [value for value in values if value is not None]
+            if filtered:
+                params[key] = filtered
+        return params
+
+    single = event.get("queryStringParameters") or {}
+    for key, value in single.items():
+        if value is not None:
+            params[key] = [value]
 
     return params
