@@ -13,4 +13,9 @@ describe('formatCurrencyHkd', () => {
     expect(formatCurrencyHkd(8999.6)).toBe('HK$9,000');
     expect(formatCurrencyHkd(1999.4)).toBe('HK$1,999');
   });
+
+  it('formats HKD values using locale-aware output', () => {
+    expect(formatCurrencyHkd(9000, 'zh-CN')).toBe('HK$9,000');
+    expect(formatCurrencyHkd(9000, 'zh-HK')).toBe('HK$9,000');
+  });
 });

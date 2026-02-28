@@ -1,0 +1,276 @@
+import Image from 'next/image';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { type Locale, type NavbarContent } from '@/content';
+import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
+import { localizeHref, normalizeLocalizedPath } from '@/lib/locale-routing';
+
+type MenuItem = NavbarContent['menuItems'][number];
+type SubmenuItem = NonNullable<MenuItem['children']>[number];
+
+const NAV_TOP_LEVEL_LINK_CLASSNAME = 'justify-center transition-colors';
+const NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME =
+  `${NAV_TOP_LEVEL_LINK_CLASSNAME} pr-10`;
+const NAV_SUBMENU_LINK_CLASSNAME = '';
+const NAV_LANGUAGE_CHEVRON_ICON_SRC = '/images/chevron.svg';
+
+function isHrefActive(currentPath: string, href: string): boolean {
+  const targetPath = normalizeLocalizedPath(href);
+
+  if (targetPath === '#') {
+    return false;
+  }
+
+  if (targetPath === '/') {
+    return currentPath === '/';
+  }
+
+  return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
+}
+
+function isMenuItemActive(currentPath: string, item: MenuItem): boolean {
+  if (isHrefActive(currentPath, item.href)) {
+    return true;
+  }
+
+  if (!item.children) {
+    return false;
+  }
+
+  return item.children.some((child) => isHrefActive(currentPath, child.href));
+}
+
+interface TopLevelMenuLinkProps {
+  item: MenuItem;
+  isActive: boolean;
+  className: string;
+  locale: Locale;
+}
+
+function TopLevelMenuLink({
+  item,
+  isActive,
+  className,
+  locale,
+}: TopLevelMenuLinkProps) {
+  return (
+    <ButtonPrimitive
+      variant='pill'
+      state={isActive ? 'active' : 'inactive'}
+      href={localizeHref(item.href, locale)}
+      className={className}
+    >
+      {item.label}
+    </ButtonPrimitive>
+  );
+}
+
+interface SubmenuLinksProps {
+  items: readonly SubmenuItem[];
+  currentPath: string;
+  listClassName: string;
+  linkClassName: string;
+  locale: Locale;
+  onNavigate?: () => void;
+  id?: string;
+  isOpen?: boolean;
+}
+
+function SubmenuLinks({
+  items,
+  currentPath,
+  listClassName,
+  linkClassName,
+  locale,
+  onNavigate,
+  id,
+  isOpen,
+}: SubmenuLinksProps) {
+  return (
+    <ul
+      id={id}
+      className={listClassName}
+      aria-hidden={isOpen === false ? true : undefined}
+    >
+      {items.map((item) => (
+        <li key={item.label}>
+          <ButtonPrimitive
+            variant='submenu'
+            state={isHrefActive(currentPath, item.href) ? 'active' : 'inactive'}
+            href={localizeHref(item.href, locale)}
+            className={linkClassName}
+            onClick={onNavigate}
+            tabIndex={isOpen === false ? -1 : undefined}
+          >
+            {item.label}
+          </ButtonPrimitive>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function DesktopMenuItem({
+  item,
+  currentPath,
+  locale,
+}: {
+  item: MenuItem;
+  currentPath: string;
+  locale: Locale;
+}) {
+  const itemIsActive = isMenuItemActive(currentPath, item);
+  const hasChildren = Boolean(item.children);
+
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
+  const submenuListId = useId();
+  const submenuWrapperRef = useRef<HTMLLIElement | null>(null);
+  const submenuToggleButtonRef = useRef<HTMLButtonElement | null>(null);
+  const isSubmenuOpenedByHoverRef = useRef(false);
+  const closeSubmenu = useCallback(
+    ({ restoreFocus = true }: { restoreFocus?: boolean } = {}) => {
+      isSubmenuOpenedByHoverRef.current = false;
+
+      if (restoreFocus) {
+        const activeElement = document.activeElement;
+        if (
+          activeElement instanceof HTMLElement &&
+          submenuWrapperRef.current?.contains(activeElement) &&
+          activeElement !== submenuToggleButtonRef.current
+        ) {
+          submenuToggleButtonRef.current?.focus();
+        }
+      }
+
+      setIsSubmenuOpen(false);
+    },
+    [setIsSubmenuOpen],
+  );
+
+  useOutsideClickClose({
+    ref: submenuWrapperRef,
+    onOutsideClick: closeSubmenu,
+    isActive: hasChildren && isSubmenuOpen,
+  });
+
+  useEffect(() => {
+    if (!hasChildren || !isSubmenuOpen) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        closeSubmenu();
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [closeSubmenu, hasChildren, isSubmenuOpen]);
+
+  if (!item.children) {
+    return (
+      <li>
+        <TopLevelMenuLink
+          item={item}
+          isActive={itemIsActive}
+          locale={locale}
+          className={NAV_TOP_LEVEL_LINK_CLASSNAME}
+        />
+      </li>
+    );
+  }
+
+  return (
+    <li
+      ref={submenuWrapperRef}
+      className='relative'
+      onMouseEnter={() => {
+        isSubmenuOpenedByHoverRef.current = true;
+        setIsSubmenuOpen(true);
+      }}
+      onMouseLeave={() => {
+        closeSubmenu();
+      }}
+    >
+      <ButtonPrimitive
+        buttonRef={submenuToggleButtonRef}
+        variant='pill'
+        state={itemIsActive ? 'active' : 'inactive'}
+        className={NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME}
+        aria-expanded={isSubmenuOpen}
+        aria-controls={submenuListId}
+        aria-label={`Toggle ${item.label} submenu`}
+        onClick={() => {
+          setIsSubmenuOpen((value) => {
+            if (!value) {
+              isSubmenuOpenedByHoverRef.current = false;
+              return true;
+            }
+
+            if (isSubmenuOpenedByHoverRef.current) {
+              isSubmenuOpenedByHoverRef.current = false;
+              return true;
+            }
+
+            return false;
+          });
+        }}
+      >
+        {item.label}
+      </ButtonPrimitive>
+      <span
+        aria-hidden='true'
+        className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-transform ${isSubmenuOpen ? 'rotate-180' : ''}`}
+      >
+        <Image
+          src={NAV_LANGUAGE_CHEVRON_ICON_SRC}
+          alt=''
+          aria-hidden='true'
+          width={20}
+          height={20}
+          className='h-5 w-5'
+        />
+      </span>
+      <SubmenuLinks
+        items={item.children}
+        currentPath={currentPath}
+        locale={locale}
+        onNavigate={() => {
+          closeSubmenu();
+        }}
+        id={submenuListId}
+        isOpen={isSubmenuOpen}
+        listClassName={`absolute left-0 top-full z-50 w-[192px] space-y-[3px] rounded-none bg-transparent pt-1 shadow-[0_6px_14px_rgba(230,230,230,0.3)] transition-opacity duration-200 ease-out ${isSubmenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+        linkClassName={NAV_SUBMENU_LINK_CLASSNAME}
+      />
+    </li>
+  );
+}
+
+export function DesktopMenuItems({
+  items,
+  currentPath,
+  locale,
+}: {
+  items: readonly MenuItem[];
+  currentPath: string;
+  locale: Locale;
+}) {
+  return (
+    <ul className='hidden flex-1 items-center justify-center gap-[6px] lg:flex'>
+      {items.map((item) => (
+        <DesktopMenuItem
+          key={item.label}
+          item={item}
+          currentPath={currentPath}
+          locale={locale}
+        />
+      ))}
+    </ul>
+  );
+}

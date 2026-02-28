@@ -147,6 +147,10 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
     content.eyebrow || fallbackCourseHighlightsCopy.eyebrow;
   const ctaLabel = content.ctaLabel || fallbackCourseHighlightsCopy.ctaLabel;
   const ctaHref = content.ctaHref || fallbackCourseHighlightsCopy.ctaHref;
+  const scrollLeftAriaLabel =
+    content.scrollLeftAriaLabel?.trim() || 'Scroll course highlights left';
+  const scrollRightAriaLabel =
+    content.scrollRightAriaLabel?.trim() || 'Scroll course highlights right';
   const benefitCards = getBenefitCards(content);
   const {
     carouselRef,
@@ -217,7 +221,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
               onClick={() => {
                 handleCarouselNavigation('prev');
               }}
-              aria-label='Scroll course highlights left'
+              aria-label={scrollLeftAriaLabel}
               className='absolute left-0 top-1/2 z-20 -translate-x-1/3 -translate-y-1/2 md:hidden'
             >
               <ArrowIcon direction='left' />
@@ -230,7 +234,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
               onClick={() => {
                 handleCarouselNavigation('next');
               }}
-              aria-label='Scroll course highlights right'
+              aria-label={scrollRightAriaLabel}
               className='absolute right-0 top-1/2 z-20 translate-x-1/3 -translate-y-1/2 md:hidden'
             >
               <ArrowIcon direction='right' />

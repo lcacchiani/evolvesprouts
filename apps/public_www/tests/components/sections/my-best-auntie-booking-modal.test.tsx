@@ -249,10 +249,12 @@ describe('my-best-auntie booking modals footer content', () => {
       new RegExp(bookingModalContent.emailLabel),
     );
     fireEvent.change(emailField, { target: { value: 'invalid-email' } });
-    expect(screen.queryByText('Please enter a valid email address.')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(bookingModalContent.emailValidationError),
+    ).not.toBeInTheDocument();
 
     fireEvent.blur(emailField);
-    expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+    expect(screen.getByText(bookingModalContent.emailValidationError)).toBeInTheDocument();
     expect(emailField).toHaveAttribute('aria-invalid', 'true');
   });
 

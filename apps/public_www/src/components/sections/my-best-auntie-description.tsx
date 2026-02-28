@@ -66,6 +66,10 @@ export function MyBestAuntieDescription({
   content,
 }: MyBestAuntieDescriptionProps) {
   const cards = content.items.slice(0, 6);
+  const previousButtonAriaLabel =
+    content.previousButtonAriaLabel?.trim() || 'Previous highlight cards';
+  const nextButtonAriaLabel =
+    content.nextButtonAriaLabel?.trim() || 'Next highlight cards';
   const {
     carouselRef,
     hasNavigation: hasMultipleCards,
@@ -105,7 +109,7 @@ export function MyBestAuntieDescription({
                 onClick={() => {
                   scrollByDirection('prev');
                 }}
-                aria-label='Previous highlight cards'
+                aria-label={previousButtonAriaLabel}
                 disabled={!canScrollPrevious}
                 className='disabled:cursor-not-allowed'
               >
@@ -116,7 +120,7 @@ export function MyBestAuntieDescription({
                 onClick={() => {
                   scrollByDirection('next');
                 }}
-                aria-label='Next highlight cards'
+                aria-label={nextButtonAriaLabel}
                 disabled={!canScrollNext}
                 className='disabled:cursor-not-allowed'
               >

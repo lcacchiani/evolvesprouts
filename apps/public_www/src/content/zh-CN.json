@@ -66,7 +66,10 @@
           "flagSrc": "/images/flags/hong-kong.svg"
         }
       ]
-    }
+    },
+    "openNavigationMenuAriaLabel": "打开导航菜单",
+    "closeNavigationMenuAriaLabel": "关闭导航菜单",
+    "mobileNavigationMenuAriaLabel": "移动端导航菜单"
   },
   "hero": {
     "headline": "将阿姨培养成你孩子的蒙特梭利成长伙伴",
@@ -421,7 +424,9 @@
       "captchaLabel": "请完成 CAPTCHA 验证",
       "captchaRequiredError": "提交前请先完成 CAPTCHA 验证。",
       "captchaLoadError": "CAPTCHA 加载失败，请刷新后重试。",
-      "captchaUnavailableError": "CAPTCHA 暂时不可用，请稍后再试。"
+      "captchaUnavailableError": "CAPTCHA 暂时不可用，请稍后再试。",
+      "emailValidationError": "请输入有效的邮箱地址。",
+      "submitErrorMessage": "暂时无法提交预约，请稍后重试。"
     },
     "thankYouModal": {
       "closeLabel": "关闭",
@@ -483,18 +488,20 @@
         "ctaLabel": "咨询教练支持",
         "ctaHref": "/contact-us"
       }
-    ]
+    ],
+    "previousButtonAriaLabel": "上一组亮点卡片",
+    "nextButtonAriaLabel": "下一组亮点卡片"
   },
   "resources": {
     "eyebrow": "我们的资源",
     "mediaBadgeLabel": "我们的资源",
     "title": "温和育儿免费资源",
     "description": "访问我们的免费学习资料库。",
-    "cardTitle": "Free Guide: 4 Simple Ways to Teach Patience to Young Children",
-    "cardDescription": "Gentle Strategies for Busy Parents",
-    "mediaTitleLine1": "Teach Patience",
-    "mediaTitleLine2": "to Young Children",
-    "ctaLabel": "Get 4 Ways to Teach Patience",
+    "cardTitle": "免费指南：4 个教孩子学会耐心的简单方法",
+    "cardDescription": "送给忙碌家长的温和实用策略",
+    "mediaTitleLine1": "教孩子学会耐心",
+    "mediaTitleLine2": "从日常小事开始",
+    "ctaLabel": "获取 4 个耐心培养方法",
     "ctaHref": "https://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
@@ -510,9 +517,9 @@
       "cardPosition": "left"
     },
     "items": [
-      "The “First…Then” Trick: Links waiting to a clear, concrete action.",
-      "Make Time Visible: Use a visual timer for results.",
-      "Stay Consistent: Set 2-3 non-negotiable waits daily."
+      "“先……再……”技巧：把等待和清晰、具体的行动连接起来。",
+      "让时间看得见：使用可视化计时器帮助孩子等待。",
+      "保持一致：每天设置 2-3 个不可协商的等待时刻。"
     ]
   },
   "courseHighlights": {
@@ -553,14 +560,16 @@
         "title": "对齐不可妥协",
         "description": "当父母与阿姨不一致，受影响的是孩子。我们同时与双方合作——让引导始终一致、公平、可预期。"
       }
-    ]
+    ],
+    "scrollLeftAriaLabel": "向左滚动课程亮点",
+    "scrollRightAriaLabel": "向右滚动课程亮点"
   },
   "testimonials": {
     "title": "来自香港家长的真实故事",
     "description": "",
-    "badgeLabel": "家长见证",
-    "previousButtonLabel": "上一条见证",
-    "nextButtonLabel": "下一条见证",
+    "badgeLabel": "家长反馈",
+    "previousButtonLabel": "上一条评价",
+    "nextButtonLabel": "下一条评价",
     "items": [
       {
         "quote": "Ida 太棒了，她帮助我理解如何以蒙特梭利的方式布置家里，同时不打乱我原有的风格。",
@@ -652,7 +661,9 @@
       "captchaLoadError": "CAPTCHA 加载失败，请刷新后重试。",
       "captchaUnavailableError": "CAPTCHA 暂时不可用，请稍后再试。",
       "subject": "网站联系表单",
-      "requiredHint": "* 必填项"
+      "requiredHint": "* 必填项",
+      "emailValidationError": "请输入有效的邮箱地址。",
+      "phoneValidationError": "请输入有效的电话号码。"
     },
     "reachOut": {
       "eyebrow": "为什么找我们",
@@ -1001,7 +1012,8 @@
           "enrolment"
         ]
       }
-    ]
+    ],
+    "contactCardCtaLabel": "联系我们"
   },
   "sproutsSquadCommunity": {
     "heading": "加入我们的 Sprouts Squad 社区！",

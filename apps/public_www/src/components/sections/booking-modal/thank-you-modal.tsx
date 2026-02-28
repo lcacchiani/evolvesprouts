@@ -167,7 +167,7 @@ export function MyBestAuntieThankYouModal({
       paymentMethodLabel: content.paymentMethodLabel,
       paymentMethod: summary.paymentMethod,
       totalLabel: content.totalLabel,
-      totalAmountLabel: formatCurrencyHkd(summary.totalAmount),
+      totalAmountLabel: formatCurrencyHkd(summary.totalAmount, locale),
     });
     popup.focus();
     popup.print();
@@ -282,7 +282,7 @@ export function MyBestAuntieThankYouModal({
                     {summary?.childAgeGroup ?? ''}
                   </span>
                   <p className='mt-2 text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
-                    {formatCurrencyHkd(summary?.totalAmount ?? 0)}
+                    {formatCurrencyHkd(summary?.totalAmount ?? 0, locale)}
                   </p>
                 </div>
               </div>
@@ -310,7 +310,7 @@ export function MyBestAuntieThankYouModal({
                   {content.totalLabel}
                 </dt>
                 <dd className='text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
-                  {formatCurrencyHkd(summary?.totalAmount ?? 0)}
+                  {formatCurrencyHkd(summary?.totalAmount ?? 0, locale)}
                 </dd>
               </div>
             </dl>

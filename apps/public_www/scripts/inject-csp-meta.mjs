@@ -75,6 +75,7 @@ function buildCspDirectiveBase(hasGtm) {
 const HEAD_OPENING_TAG_REGEX = /<head\b[^>]*>/i;
 const EXISTING_CSP_META_REGEX =
   /<meta\s+http-equiv=["']Content-Security-Policy["'][^>]*>/i;
+const DEFAULT_DOCUMENT_LOCALE = 'en';
 
 function toSha256HashSource(value) {
   const digest = createHash('sha256').update(value, 'utf8').digest('base64');
@@ -82,7 +83,12 @@ function toSha256HashSource(value) {
 }
 
 function escapeHtmlAttribute(value) {
-  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function collectUniqueInlineBodies(values) {
@@ -177,6 +183,55 @@ function collectQueuedNextInlineScripts(inlineScriptBodies) {
   }
 
   return queuedBodies;
+}
+
+function parseLocaleDirections(serializedDirections) {
+  const fallbackDirections = {
+    [DEFAULT_DOCUMENT_LOCALE]: 'ltr',
+  };
+  if (!serializedDirections) {
+    return fallbackDirections;
+  }
+
+  try {
+    const parsedDirections = JSON.parse(serializedDirections);
+    if (!parsedDirections || typeof parsedDirections !== 'object') {
+      return fallbackDirections;
+    }
+
+    return {
+      ...fallbackDirections,
+      ...parsedDirections,
+    };
+  } catch {
+    return fallbackDirections;
+  }
+}
+
+function applyLocalizedDocumentAttributes(html) {
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
+  const rootElement = document.documentElement;
+  const defaultLocale =
+    rootElement.getAttribute('data-default-locale')?.trim() || DEFAULT_DOCUMENT_LOCALE;
+  const localeDirections = parseLocaleDirections(
+    rootElement.getAttribute('data-locale-directions'),
+  );
+  const localeMarker = document.querySelector('[data-locale]');
+  const candidateLocale = localeMarker?.getAttribute('data-locale')?.trim() ?? '';
+  const hasCandidateLocale = Object.prototype.hasOwnProperty.call(
+    localeDirections,
+    candidateLocale,
+  );
+  const locale = hasCandidateLocale ? candidateLocale : defaultLocale;
+  const direction = localeDirections[locale] === 'rtl' ? 'rtl' : 'ltr';
+
+  rootElement.lang = locale;
+  rootElement.setAttribute('dir', direction);
+
+  const localizedHtml = dom.serialize();
+  dom.window.close();
+  return localizedHtml;
 }
 
 function buildCspValue(html) {
@@ -286,13 +341,14 @@ async function main() {
 
   for (const htmlPath of htmlFiles) {
     const html = await readFile(htmlPath, 'utf8');
+    const localizedHtml = applyLocalizedDocumentAttributes(html);
     const {
       cspValue,
       scriptHashCount,
       styleHashCount,
       styleAttributeHashCount,
-    } = buildCspValue(html);
-    const updatedHtml = applyCspMetaTag(html, cspValue);
+    } = buildCspValue(localizedHtml);
+    const updatedHtml = applyCspMetaTag(localizedHtml, cspValue);
 
     if (updatedHtml !== html) {
       await writeFile(htmlPath, updatedHtml, 'utf8');

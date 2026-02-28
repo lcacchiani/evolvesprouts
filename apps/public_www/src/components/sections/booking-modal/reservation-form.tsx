@@ -1,27 +1,17 @@
-import {
-  type FormEvent,
-  useMemo,
-  useState,
-} from 'react';
+import { type FormEvent, useMemo, useState } from 'react';
 
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
+import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-modal/reservation-form-discount-code-input';
+import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
+import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';
+import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SmartLink } from '@/components/shared/smart-link';
-import {
-  DiscountBadge,
-  FpsQrCode,
-} from '@/components/sections/booking-modal/shared';
-import type { MyBestAuntieBookingContent } from '@/content';
+import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
-import {
-  createPublicCrmApiClient,
-} from '@/lib/crm-api-client';
-import {
-  type DiscountRule,
-  validateDiscountCode,
-} from '@/lib/discounts-data';
-import { formatCurrencyHkd } from '@/lib/format';
+import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
 import {
   submitReservation,
   type ReservationSubmissionPayload,
@@ -29,6 +19,7 @@ import {
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 
 interface BookingReservationFormProps {
+  locale: Locale;
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedAgeGroupLabel: string;
   selectedCohortDateLabel: string;
@@ -39,12 +30,8 @@ interface BookingReservationFormProps {
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
 
-const DISCOUNT_ERROR_MESSAGE_ID = 'booking-modal-discount-error-message';
 const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
-const EMAIL_ERROR_MESSAGE_ID = 'booking-modal-email-error-message';
-const RESERVATION_SUBMIT_ERROR_MESSAGE =
-  'Unable to submit reservation right now. Please try again.';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function sanitizeSingleLineValue(value: string): string {
@@ -56,6 +43,7 @@ function isValidEmail(value: string): boolean {
 }
 
 export function BookingReservationForm({
+  locale,
   content,
   selectedAgeGroupLabel,
   selectedCohortDateLabel,
@@ -90,8 +78,6 @@ export function BookingReservationForm({
     return applyDiscount(originalAmount, discountRule);
   }, [discountRule, originalAmount]);
   const discountAmount = Math.max(0, originalAmount - totalAmount);
-  const hasDiscount = discountAmount > 0;
-  const hasConfirmedPriceDifference = totalAmount !== originalAmount;
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const hasCaptchaValidationError = isCaptchaTouched && !captchaToken;
   const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
@@ -136,10 +122,7 @@ export function BookingReservationForm({
     setIsDiscountValidationSubmitting(true);
     setDiscountError('');
     try {
-      const validatedRule = await validateDiscountCode(
-        crmApiClient,
-        normalizedCode,
-      );
+      const validatedRule = await validateDiscountCode(crmApiClient, normalizedCode);
       if (!validatedRule) {
         setDiscountRule(null);
         setDiscountError(content.invalidDiscountLabel);
@@ -164,10 +147,7 @@ export function BookingReservationForm({
     if (!isValidEmail(email)) {
       return;
     }
-    if (
-      !selectedCohortDateLabel ||
-      isSubmitDisabled
-    ) {
+    if (!selectedCohortDateLabel || isSubmitDisabled) {
       return;
     }
 
@@ -184,7 +164,7 @@ export function BookingReservationForm({
     };
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
-      setSubmitError(RESERVATION_SUBMIT_ERROR_MESSAGE);
+      setSubmitError(content.submitErrorMessage);
       return;
     }
 
@@ -212,7 +192,7 @@ export function BookingReservationForm({
           payload: reservationPayload,
           turnstileToken: captchaToken,
         }),
-      failureMessage: RESERVATION_SUBMIT_ERROR_MESSAGE,
+      failureMessage: content.submitErrorMessage,
     });
     if (submissionResult.isSuccess) {
       onSubmitReservation(reservationSummary);
@@ -233,152 +213,43 @@ export function BookingReservationForm({
         </p>
 
         <form className='relative z-10 mt-4 space-y-3' onSubmit={handleSubmit}>
-          <label className='block'>
-            <span className='mb-1 block text-sm font-semibold es-text-heading'>
-              {content.fullNameLabel}
-              <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-                *
-              </span>
-            </span>
-            <input
-              type='text'
-              required
-              autoComplete='name'
-              value={fullName}
-              onChange={(event) => {
-                setFullName(event.target.value);
-              }}
-              className='es-focus-ring es-form-input'
-            />
-          </label>
-          <label className='block'>
-            <span className='mb-1 block text-sm font-semibold es-text-heading'>
-              {content.emailLabel}
-              <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-                *
-              </span>
-            </span>
-            <input
-              type='email'
-              required
-              autoComplete='email'
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-              }}
-              onBlur={() => {
-                setIsEmailTouched(true);
-              }}
-              className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
-              aria-invalid={hasEmailError}
-              aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
-            />
-            {hasEmailError ? (
-              <p
-                id={EMAIL_ERROR_MESSAGE_ID}
-                className='text-sm font-semibold es-text-danger-strong'
-                role='alert'
-              >
-                Please enter a valid email address.
-              </p>
-            ) : null}
-          </label>
-          <label className='block'>
-            <span className='mb-1 block text-sm font-semibold es-text-heading'>
-              {content.phoneLabel}
-              <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-                *
-              </span>
-            </span>
-            <input
-              type='tel'
-              required
-              autoComplete='tel'
-              value={phone}
-              onChange={(event) => {
-                setPhone(event.target.value);
-              }}
-              className='es-focus-ring es-form-input'
-            />
-          </label>
-          <label className='block'>
-            <span className='mb-1 block text-sm font-semibold es-text-heading'>
-              {content.topicsInterestLabel}
-            </span>
-            <textarea
-              value={interestedTopics}
-              onChange={(event) => {
-                setInterestedTopics(event.target.value);
-              }}
-              placeholder={content.topicsInterestPlaceholder}
-              rows={3}
-              className='es-focus-ring es-form-input resize-y'
-            />
-          </label>
+          <ReservationFormFields
+            content={content}
+            fullName={fullName}
+            email={email}
+            phone={phone}
+            interestedTopics={interestedTopics}
+            hasEmailError={hasEmailError}
+            onFullNameChange={setFullName}
+            onEmailChange={setEmail}
+            onEmailBlur={() => {
+              setIsEmailTouched(true);
+            }}
+            onPhoneChange={setPhone}
+            onTopicsChange={setInterestedTopics}
+          />
 
-          <div className='grid grid-cols-[1fr_auto] gap-2'>
-            <label>
-              <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                {content.discountCodeLabel}
-              </span>
-              <input
-                type='text'
-                value={discountCode}
-                disabled={Boolean(discountRule)}
-                aria-invalid={Boolean(discountError)}
-                aria-describedby={discountError ? DISCOUNT_ERROR_MESSAGE_ID : undefined}
-                onChange={(event) => {
-                  setDiscountCode(event.target.value);
-                  setDiscountError('');
-                }}
-                placeholder={content.discountCodePlaceholder}
-                className='es-focus-ring es-form-input'
-              />
-            </label>
-            <ButtonPrimitive
-              variant='outline'
-              onClick={handleApplyDiscount}
-              disabled={Boolean(discountRule) || isDiscountValidationSubmitting}
-              className='mt-6 h-[50px] rounded-control px-4 text-sm font-semibold'
-            >
-              {content.applyDiscountLabel}
-            </ButtonPrimitive>
-          </div>
+          <ReservationFormDiscountCodeInput
+            content={content}
+            discountCode={discountCode}
+            discountError={discountError}
+            hasDiscountRule={Boolean(discountRule)}
+            isDiscountValidationSubmitting={isDiscountValidationSubmitting}
+            onDiscountCodeChange={(value) => {
+              setDiscountCode(value);
+              setDiscountError('');
+            }}
+            onApplyDiscount={handleApplyDiscount}
+          />
 
-          {discountRule ? (
-            <DiscountBadge label={content.discountAppliedLabel} />
-          ) : null}
-          {discountError ? (
-            <p
-              id={DISCOUNT_ERROR_MESSAGE_ID}
-              className='text-sm font-semibold es-text-danger-strong'
-              role='alert'
-            >
-              {discountError}
-            </p>
-          ) : null}
+          {discountRule ? <DiscountBadge label={content.discountAppliedLabel} /> : null}
 
-          <div
-            data-booking-price-breakdown='true'
-            className='my-3 space-y-2 py-1'
-          >
-            <div className='flex items-center justify-between text-sm font-semibold es-text-body'>
-              <span>Price</span>
-              <span className='font-bold es-text-heading'>{formatCurrencyHkd(originalAmount)}</span>
-            </div>
-            {hasDiscount ? (
-              <div className='flex items-center justify-between text-sm font-semibold es-text-success'>
-                <span>Discount</span>
-                <span>-{formatCurrencyHkd(discountAmount)}</span>
-              </div>
-            ) : null}
-            {hasConfirmedPriceDifference ? (
-              <div className='flex items-center justify-between border-t es-border-divider pt-2 text-sm font-bold es-text-heading'>
-                <span>Confirmed Price</span>
-                <span>{formatCurrencyHkd(totalAmount)}</span>
-              </div>
-            ) : null}
-          </div>
+          <ReservationFormPriceBreakdown
+            locale={locale}
+            originalAmount={originalAmount}
+            discountAmount={discountAmount}
+            totalAmount={totalAmount}
+          />
 
           <div data-booking-fps-block='true' className='w-full space-y-2 py-1'>
             <p className='text-sm font-semibold es-text-heading'>

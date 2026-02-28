@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SmartLink } from '@/components/shared/smart-link';
-import type { MyBestAuntieBookingContent } from '@/content';
+import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
 
 export interface BookingEventDetailPart {
@@ -12,6 +12,7 @@ export interface BookingEventDetailPart {
 }
 
 interface BookingEventDetailsProps {
+  locale: Locale;
   headingId: string;
   content: MyBestAuntieBookingContent['paymentModal'];
   activePartRows: BookingEventDetailPart[];
@@ -70,6 +71,7 @@ function getPartGapConnectorClassName(index: number): string {
 }
 
 export function BookingEventDetails({
+  locale,
   headingId,
   content,
   activePartRows,
@@ -172,7 +174,7 @@ export function BookingEventDetails({
                 {content.totalAmountLabel}
               </p>
               <p className='mt-2 text-[26px] font-bold leading-none es-text-heading'>
-                {formatCurrencyHkd(originalAmount)}
+                {formatCurrencyHkd(originalAmount, locale)}
               </p>
               <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
                 {content.refundHint}

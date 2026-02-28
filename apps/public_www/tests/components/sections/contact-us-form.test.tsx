@@ -279,8 +279,12 @@ describe('ContactUsForm section', () => {
     fireEvent.blur(phoneInput);
     fireEvent.click(submitButton);
 
-    expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
-    expect(screen.getByText('Please enter a valid phone number.')).toBeInTheDocument();
+    expect(
+      screen.getByText(enContent.contactUs.contactUsForm.emailValidationError),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(enContent.contactUs.contactUsForm.phoneValidationError),
+    ).toBeInTheDocument();
     expect(emailInput).toHaveAttribute('aria-invalid', 'true');
     expect(phoneInput).toHaveAttribute('aria-invalid', 'true');
     expect(emailInput).toHaveAttribute(
@@ -301,10 +305,14 @@ describe('ContactUsForm section', () => {
     );
 
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-    expect(screen.queryByText('Please enter a valid email address.')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(enContent.contactUs.contactUsForm.emailValidationError),
+    ).not.toBeInTheDocument();
 
     fireEvent.blur(emailInput);
-    expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+    expect(
+      screen.getByText(enContent.contactUs.contactUsForm.emailValidationError),
+    ).toBeInTheDocument();
   });
 
   it('requires CAPTCHA verification before form submission', () => {

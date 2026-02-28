@@ -541,24 +541,24 @@
   }
 
   @media (hover: hover) {
-    .es-btn--pill:hover {
-      background-color: var(--es-color-brand-orange-soft) !important;
+    .es-btn.es-btn--pill:hover {
+      background-color: var(--es-color-brand-orange-soft);
       color: var(
         --figma-colors-join-our-sprouts-squad-community,
         #333333
-      ) !important;
+      );
     }
 
-    .es-btn--pill.es-navbar-mobile-pill-reset:hover {
-      background-color: transparent !important;
+    .es-btn.es-btn--pill.es-navbar-mobile-pill-reset:hover {
+      background-color: transparent;
     }
 
-    .es-btn--submenu:hover {
-      background-color: var(--es-color-brand-orange-soft) !important;
+    .es-btn.es-btn--submenu:hover {
+      background-color: var(--es-color-brand-orange-soft);
       color: var(
         --figma-colors-join-our-sprouts-squad-community,
         #333333
-      ) !important;
+      );
     }
   }
 

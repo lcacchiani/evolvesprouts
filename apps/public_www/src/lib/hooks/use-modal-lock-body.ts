@@ -7,6 +7,8 @@ interface UseModalLockBodyOptions {
   onEscape: () => void;
 }
 
+// Module-scoped state coordinates body scroll locking across all mounted modals.
+// The final modal to release its token restores the original body overflow value.
 const activeBodyLockTokens = new Set<string>();
 let previousBodyOverflow = '';
 

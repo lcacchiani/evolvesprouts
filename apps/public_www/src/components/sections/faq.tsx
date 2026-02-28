@@ -25,8 +25,6 @@ interface FaqQuestion {
   labelIds: string[];
 }
 
-const CONTACT_CARD_CTA_LABEL = 'Contact Us';
-
 function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -109,10 +107,12 @@ function FaqItems({
   items,
   allLabelIds,
   contactCardCtaHref,
+  contactCardCtaLabel,
 }: {
   items: FaqQuestion[];
   allLabelIds: Set<string>;
   contactCardCtaHref: string;
+  contactCardCtaLabel: string;
 }) {
   return (
     <ul className='grid grid-cols-1 gap-5 md:grid-cols-2'>
@@ -133,7 +133,7 @@ function FaqItems({
                   href={contactCardCtaHref}
                   className='mt-6 w-full sm:w-fit sm:min-w-[190px]'
                 >
-                  {CONTACT_CARD_CTA_LABEL}
+                  {contactCardCtaLabel}
                 </SectionCtaAnchor>
               </article>
             </li>
@@ -163,6 +163,8 @@ export function Faq({ content }: FaqProps) {
   const questions = content.questions;
   const locale = getLocaleFromPath(pathname ?? '/');
   const contactCardCtaHref = localizePath(ROUTES.contact, locale);
+  const contactCardCtaLabel =
+    content.contactCardCtaLabel?.trim() || 'Contact Us';
   const allLabelIds = useMemo(
     () => new Set(labels.map((entry) => entry.id)),
     [labels],
@@ -239,6 +241,7 @@ export function Faq({ content }: FaqProps) {
               items={visibleQuestions}
               allLabelIds={allLabelIds}
               contactCardCtaHref={contactCardCtaHref}
+              contactCardCtaLabel={contactCardCtaLabel}
             />
           )}
         </div>

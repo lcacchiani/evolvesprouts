@@ -1,12 +1,17 @@
 'use client';
 
-import Image from 'next/image';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
 
-import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import { SmartLink } from '@/components/shared/smart-link';
-import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
+import {
+  ContactFormFields,
+  type ContactUsFormState,
+} from '@/components/sections/contact-us-form-fields';
+import {
+  ContactMethodList,
+  type ContactMethodLinkItem,
+} from '@/components/sections/contact-us-form-contact-method-list';
+import { ContactFormSuccess } from '@/components/sections/contact-us-form-success';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -28,20 +33,8 @@ interface ContactUsFormProps {
   contactConfig: ContactUsFormContactConfig;
 }
 
-interface FormState {
-  firstName: string;
-  email: string;
-  phone: string;
-  message: string;
-}
-
-const MESSAGE_MAX_LENGTH = 5000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
-const EMAIL_ERROR_MESSAGE_ID = 'contact-us-form-email-error';
-const PHONE_ERROR_MESSAGE_ID = 'contact-us-form-phone-error';
-const CAPTCHA_ERROR_MESSAGE_ID = 'contact-us-form-captcha-error';
-const SUBMIT_ERROR_MESSAGE_ID = 'contact-us-form-submit-error';
 const CONTACT_US_API_PATH = '/v1/contact-us';
 type ContactMethodKey =
   | 'email'
@@ -57,13 +50,6 @@ const CONTACT_METHOD_ICON_SOURCES: Record<ContactMethodKey, string> = {
   linkedin: '/images/contact-linkedin.svg',
   form: '/images/contact-form.svg',
 };
-
-interface ContactMethodLinkItem {
-  key: ContactMethodKey;
-  href: string;
-  label: string;
-  iconSrc: string;
-}
 
 function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
@@ -89,7 +75,7 @@ function sanitizeMultilineValue(value: string): string {
 export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
-  const [formState, setFormState] = useState<FormState>({
+  const [formState, setFormState] = useState<ContactUsFormState>({
     firstName: '',
     email: '',
     phone: '',
@@ -157,7 +143,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
     iconSrc: CONTACT_METHOD_ICON_SOURCES.form,
   });
 
-  function updateField(field: keyof FormState, value: string) {
+  function updateField(field: keyof ContactUsFormState, value: string) {
     setFormState((currentState) => ({
       ...currentState,
       [field]: value,
@@ -251,36 +237,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
               description={content.description}
               descriptionClassName='mt-4 es-section-body text-[1.05rem] leading-8'
             />
-            <div className='mt-6'>
-              <p className='text-sm font-semibold es-text-heading'>
-                {content.contactMethodsTitle}
-              </p>
-              <ul className='mt-3 space-y-2' aria-label={content.contactMethodsTitle}>
-                {contactMethodLinks.map((method) => (
-                  <li key={method.key}>
-                    <SmartLink
-                      href={method.href}
-                      className='inline-flex items-center gap-2 text-sm leading-6 text-[color:var(--site-primary-text)] transition-opacity hover:opacity-80'
-                    >
-                      <span
-                        aria-hidden='true'
-                        data-testid={`contact-method-icon-${method.key}`}
-                        className='inline-flex h-4 w-4 shrink-0 items-center justify-center es-text-heading'
-                      >
-                        <Image
-                          src={method.iconSrc}
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='h-4 w-4'
-                        />
-                      </span>
-                      <span>{method.label}</span>
-                    </SmartLink>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ContactMethodList title={content.contactMethodsTitle} methods={contactMethodLinks} />
           </div>
         </div>
 
@@ -314,167 +271,39 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
           </div>
 
           {hasSuccessfulSubmission ? (
-            <div className='relative z-10 rounded-2xl es-bg-surface-muted px-5 py-6 text-center'>
-              <h3 className='text-2xl font-semibold es-text-heading'>
-                {content.successTitle}
-              </h3>
-              <p className='mt-3 text-base leading-7 text-[color:var(--site-primary-text)]'>
-                {content.successDescription}
-              </p>
-            </div>
+            <ContactFormSuccess
+              title={content.successTitle}
+              description={content.successDescription}
+            />
           ) : (
-            <form onSubmit={handleSubmit} className='relative z-10 space-y-3'>
-              <label className='block'>
-                <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                  {content.firstNameLabel}
-                </span>
-                <input
-                  type='text'
-                  autoComplete='given-name'
-                  value={formState.firstName}
-                  onChange={(event) => {
-                    updateField('firstName', event.target.value);
-                  }}
-                  className='es-focus-ring es-form-input'
-                />
-              </label>
-
-              <label className='block'>
-                <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                  {content.emailFieldLabel}
-                  <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-                    *
-                  </span>
-                </span>
-                <input
-                  type='email'
-                  required
-                  autoComplete='email'
-                  value={formState.email}
-                  onChange={(event) => {
-                    updateField('email', event.target.value);
-                  }}
-                  onBlur={() => {
-                    setIsEmailTouched(true);
-                  }}
-                  className={`es-focus-ring es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
-                  aria-invalid={hasEmailError}
-                  aria-describedby={hasEmailError ? EMAIL_ERROR_MESSAGE_ID : undefined}
-                />
-                {hasEmailError ? (
-                  <p
-                    id={EMAIL_ERROR_MESSAGE_ID}
-                    className='text-sm es-text-danger'
-                    role='alert'
-                  >
-                    Please enter a valid email address.
-                  </p>
-                ) : null}
-              </label>
-
-              <label className='block'>
-                <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                  {content.phoneLabel}
-                </span>
-                <input
-                  type='tel'
-                  autoComplete='tel'
-                  value={formState.phone}
-                  onChange={(event) => {
-                    updateField('phone', event.target.value);
-                  }}
-                  onBlur={() => {
-                    setIsPhoneTouched(true);
-                  }}
-                  className='es-focus-ring es-form-input'
-                  aria-invalid={hasPhoneError}
-                  aria-describedby={hasPhoneError ? PHONE_ERROR_MESSAGE_ID : undefined}
-                />
-                {hasPhoneError ? (
-                  <p
-                    id={PHONE_ERROR_MESSAGE_ID}
-                    className='text-sm es-text-danger'
-                    role='alert'
-                  >
-                    Please enter a valid phone number.
-                  </p>
-                ) : null}
-              </label>
-
-              <label className='block'>
-                <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                  {content.messageLabel}
-                  <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
-                    *
-                  </span>
-                </span>
-                <textarea
-                  required
-                  rows={6}
-                  maxLength={MESSAGE_MAX_LENGTH}
-                  value={formState.message}
-                  onChange={(event) => {
-                    updateField('message', event.target.value);
-                  }}
-                  placeholder={content.messagePlaceholder}
-                  className='es-focus-ring es-form-input min-h-[152px] resize-y'
-                />
-              </label>
-
-              <label className='block'>
-                <span className='mb-1 block text-sm font-semibold es-text-heading'>
-                  {content.captchaLabel}
-                </span>
-                <TurnstileCaptcha
-                  siteKey={turnstileSiteKey}
-                  widgetAction='contact_us_form_submit'
-                  onTokenChange={(token) => {
-                    setCaptchaToken(token);
-                    if (token) {
-                      setIsCaptchaTouched(false);
-                      setHasCaptchaLoadError(false);
-                    }
-                  }}
-                  onLoadError={() => {
-                    setHasCaptchaLoadError(true);
-                  }}
-                />
-              </label>
-              {captchaErrorMessage ? (
-                <p
-                  id={CAPTCHA_ERROR_MESSAGE_ID}
-                  className='text-sm es-text-danger'
-                  role='alert'
-                >
-                  {captchaErrorMessage}
-                </p>
-              ) : null}
-
-              <ButtonPrimitive
-                variant='primary'
-                type='submit'
-                disabled={isSubmitDisabled}
-                className='mt-2 w-full'
-                aria-describedby={
-                  captchaErrorMessage
-                    ? CAPTCHA_ERROR_MESSAGE_ID
-                    : submitErrorMessage
-                      ? SUBMIT_ERROR_MESSAGE_ID
-                      : undefined
+            <ContactFormFields
+              content={content}
+              formState={formState}
+              hasEmailError={hasEmailError}
+              hasPhoneError={hasPhoneError}
+              captchaErrorMessage={captchaErrorMessage}
+              submitErrorMessage={submitErrorMessage}
+              turnstileSiteKey={turnstileSiteKey}
+              isSubmitDisabled={isSubmitDisabled}
+              onSubmit={handleSubmit}
+              onUpdateField={updateField}
+              onEmailBlur={() => {
+                setIsEmailTouched(true);
+              }}
+              onPhoneBlur={() => {
+                setIsPhoneTouched(true);
+              }}
+              onCaptchaTokenChange={(token) => {
+                setCaptchaToken(token);
+                if (token) {
+                  setIsCaptchaTouched(false);
+                  setHasCaptchaLoadError(false);
                 }
-              >
-                {content.submitLabel}
-              </ButtonPrimitive>
-              {submitErrorMessage ? (
-                <p
-                  id={SUBMIT_ERROR_MESSAGE_ID}
-                  className='text-sm es-text-danger'
-                  role='alert'
-                >
-                  {submitErrorMessage}
-                </p>
-              ) : null}
-            </form>
+              }}
+              onCaptchaLoadError={() => {
+                setHasCaptchaLoadError(true);
+              }}
+            />
           )}
         </div>
       </SectionContainer>

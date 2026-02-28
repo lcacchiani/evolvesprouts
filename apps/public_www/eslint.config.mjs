@@ -1,6 +1,7 @@
 import { fixupConfigRules } from '@eslint/compat';
 import * as espree from 'espree';
 import nextConfig from 'eslint-config-next';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 const eslintConfig = [
   ...fixupConfigRules(nextConfig),
@@ -12,8 +13,15 @@ const eslintConfig = [
   },
   {
     files: ['**/*.{ts,tsx,js,jsx,mjs,cjs}'],
+    plugins: {
+      'jsx-a11y': jsxA11y,
+    },
     rules: {
+      ...jsxA11y.configs.recommended.rules,
       'react/no-danger': 'error',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
       'no-restricted-imports': [
         'error',
         {
@@ -44,7 +52,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ['node_modules/**', 'e2e/**', 'playwright.config.ts'],
+    ignores: ['node_modules/**'],
   },
 ];
 
