@@ -37,6 +37,7 @@ from botocore.exceptions import ClientError
 
 from app.services.aws_clients import get_client
 from app.utils.logging import configure_logging, get_logger
+from app.utils.retry import run_with_retry
 
 configure_logging()
 logger = get_logger(__name__)
@@ -102,11 +103,14 @@ def _create_api_key(
     Returns:
         The new API key ID.
     """
-    response = apigw_client.create_api_key(
+    response = run_with_retry(
+        apigw_client.create_api_key,
         name=key_name,
         value=key_value,
         enabled=True,
         description=description,
+        logger=logger,
+        operation_name="apigateway.create_api_key",
     )
     return response["id"]
 
@@ -123,10 +127,13 @@ def _associate_key_with_usage_plan(
         usage_plan_id: Usage plan ID
         key_id: API key ID to associate
     """
-    apigw_client.create_usage_plan_key(
+    run_with_retry(
+        apigw_client.create_usage_plan_key,
         usagePlanId=usage_plan_id,
         keyId=key_id,
         keyType="API_KEY",
+        logger=logger,
+        operation_name="apigateway.create_usage_plan_key",
     )
 
 
@@ -137,11 +144,14 @@ def _disable_api_key(apigw_client: Any, key_id: str) -> None:
         apigw_client: API Gateway client
         key_id: API key ID to disable
     """
-    apigw_client.update_api_key(
+    run_with_retry(
+        apigw_client.update_api_key,
         apiKey=key_id,
         patchOperations=[
             {"op": "replace", "path": "/enabled", "value": "false"},
         ],
+        logger=logger,
+        operation_name="apigateway.update_api_key",
     )
 
 
@@ -152,7 +162,12 @@ def _delete_api_key(apigw_client: Any, key_id: str) -> None:
         apigw_client: API Gateway client
         key_id: API key ID to delete
     """
-    apigw_client.delete_api_key(apiKey=key_id)
+    run_with_retry(
+        apigw_client.delete_api_key,
+        apiKey=key_id,
+        logger=logger,
+        operation_name="apigateway.delete_api_key",
+    )
 
 
 def _store_key_in_secrets_manager(
@@ -179,9 +194,12 @@ def _store_key_in_secrets_manager(
         }
     )
 
-    secrets_client.put_secret_value(
+    run_with_retry(
+        secrets_client.put_secret_value,
         SecretId=secret_arn,
         SecretString=secret_value,
+        logger=logger,
+        operation_name="secretsmanager.put_secret_value",
     )
 
 
@@ -199,7 +217,12 @@ def _get_old_key_info_from_secret(
         Dict with api_key_id and rotated_at if found, None otherwise.
     """
     try:
-        response = secrets_client.get_secret_value(SecretId=secret_arn)
+        response = run_with_retry(
+            secrets_client.get_secret_value,
+            SecretId=secret_arn,
+            logger=logger,
+            operation_name="secretsmanager.get_secret_value",
+        )
         secret_string = response.get("SecretString")
         if secret_string:
             return json.loads(secret_string)

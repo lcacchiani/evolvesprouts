@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 from app.services.secrets import get_secret_json
-from app.utils import require_env
+from app.utils import require_env, run_with_retry
 
 _PRIVATE_KEY_FIELDS = ("private_key_pem", "privateKeyPem", "private_key")
 _DEFAULT_SIGNER_CACHE_TTL_SECONDS = 300
@@ -91,7 +91,11 @@ def _get_signer(*, key_pair_id: str, secret_arn: str) -> CloudFrontSigner:
 
 
 def _load_private_key(secret_arn: str) -> rsa.RSAPrivateKey:
-    payload = get_secret_json(secret_arn)
+    payload = run_with_retry(
+        get_secret_json,
+        secret_arn,
+        operation_name="secretsmanager.get_secret_json",
+    )
 
     private_key_pem: str | None = None
     for field in _PRIVATE_KEY_FIELDS:

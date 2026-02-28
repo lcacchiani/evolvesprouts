@@ -30,6 +30,7 @@ from app.utils.logging import (
     mask_pii,
     set_request_context,
 )
+from app.utils.retry import run_with_retry
 
 
 def require_env(name: str) -> str:
@@ -55,6 +56,7 @@ __all__ = [
     "parse_enum",
     "parse_int",
     "require_env",
+    "run_with_retry",
     "sanitize_string",
     "set_request_context",
     "validate_content_type",
