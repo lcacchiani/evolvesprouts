@@ -21,10 +21,12 @@ vi.mock('@/components/shared/smart-link', () => ({
     ...props
   }: {
     href: string;
-    children: ReactNode;
+    children: ReactNode | ((args: { isExternalHttp: boolean }) => ReactNode);
   } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a href={href} {...props}>
-      {children}
+      {typeof children === 'function'
+        ? children({ isExternalHttp: /^https?:\/\//i.test(href) })
+        : children}
     </a>
   ),
 }));
@@ -62,9 +64,19 @@ describe('ContactMethodList', () => {
       'href',
       'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
     );
-    expect(screen.getByTestId('contact-method-icon-email').querySelector('img')).toHaveAttribute(
-      'src',
-      '/images/contact-email.svg',
-    );
+    const emailLink = screen.getByRole('link', { name: 'Email us' });
+    const whatsappLink = screen.getByRole('link', { name: 'WhatsApp' });
+
+    expect(emailLink.className).toContain('es-section-body');
+    expect(emailLink.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
+    expect(whatsappLink.querySelector('svg[data-external-link-icon="true"]')).not.toBeNull();
+
+    const emailIcon = screen.getByTestId('contact-method-icon-email').querySelector('img');
+    const whatsappIcon = screen
+      .getByTestId('contact-method-icon-whatsapp')
+      .querySelector('img');
+    expect(emailIcon).toHaveAttribute('src', '/images/contact-email.svg');
+    expect(whatsappIcon).toHaveAttribute('src', '/images/contact-whatsapp.svg');
+    expect(whatsappIcon?.className).toContain('es-contact-us-contact-method-icon--whatsapp');
   });
 });
