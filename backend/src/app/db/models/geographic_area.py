@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List
 
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey, Integer, Text, text

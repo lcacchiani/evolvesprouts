@@ -83,7 +83,7 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
         user_sub = claims.sub
         email = claims.email
         user_groups = set(claims.groups)
-        organization_ids = _extract_organization_ids(claims.raw_claims)
+        organization_ids = extract_organization_ids(claims.raw_claims)
 
         # Check if user is in any of the allowed groups
         matching_groups = user_groups & allowed_groups

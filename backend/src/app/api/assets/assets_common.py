@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import os
 import re
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, TypeVar
-from collections.abc import Mapping
+from typing import Any
 from uuid import UUID, uuid4
 
 from app.api.admin_request import (
@@ -40,7 +39,6 @@ _DEFAULT_DOWNLOAD_LINK_EXPIRY_DAYS = 9999
 _MIN_DOWNLOAD_LINK_EXPIRY_DAYS = 1
 _MAX_DOWNLOAD_LINK_EXPIRY_DAYS = 36500
 _FILENAME_SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
-T = TypeVar("T")
 
 
 @dataclass(frozen=True)
@@ -291,10 +289,10 @@ def parse_grant_type(value: str) -> AccessGrantType:
 
 def paginate_response(
     *,
-    items: Sequence[T],
+    items: Sequence[Any],
     limit: int,
     event: Mapping[str, Any],
-    serializer: Callable[[T], dict[str, Any]],
+    serializer: Callable[[Any], dict[str, Any]],
 ) -> dict[str, Any]:
     """Build a standard paginated API response payload."""
     page_items = list(items[:limit])

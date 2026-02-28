@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import psycopg
@@ -16,17 +17,32 @@ logger = get_logger(__name__)
 def _run_with_retry(func: Any, *args: Any) -> None:
     """Retry migration operations to wait for DB readiness."""
     func_name = getattr(func, "__name__", str(func))
-    run_with_retry(
-        func,
-        *args,
-        max_attempts=10,
-        base_delay_seconds=5.0,
-        max_delay_seconds=30.0,
-        should_retry=lambda _exc: True,  # pragma: no cover - operational resilience
-        logger=logger,
-        operation_name=func_name,
-    )
+    try:
+        run_with_retry(
+            func,
+            *args,
+            max_attempts=10,
+            base_delay_seconds=5.0,
+            max_delay_seconds=30.0,
+            should_retry=lambda _exc: True,  # pragma: no cover - operational resilience
+            logger=logger,
+            operation_name=func_name,
+        )
+    except Exception as exc:
+        # Guard against leaking credentials from connection/DSN error strings.
+        safe_message = _sanitize_error_message(str(exc))
+        if safe_message == str(exc):
+            raise
+        raise RuntimeError(safe_message) from exc
+
     logger.info(f"Operation {func_name} completed successfully")
+
+
+def _sanitize_error_message(msg: str) -> str:
+    """Remove potential credentials from migration error messages."""
+    msg = re.sub(r"://[^:]+:[^@]+@", "://***:***@", msg)
+    msg = re.sub(r"password=[A-Za-z0-9+/=]{20,}", "password=***REDACTED***", msg)
+    return msg
 
 
 def _escape_config(value: str) -> str:

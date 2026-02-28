@@ -9,8 +9,8 @@ from app.exceptions import ConfigurationError
 from app.utils import require_env
 
 
-def test_require_env_returns_stripped_value(monkeypatch: Any) -> None:
-    monkeypatch.setenv("EXAMPLE_REQUIRED_ENV", "  configured-value  ")
+def test_require_env_returns_stripped_value(mock_env: Any) -> None:
+    mock_env(EXAMPLE_REQUIRED_ENV="  configured-value  ")
     assert require_env("EXAMPLE_REQUIRED_ENV") == "configured-value"
 
 

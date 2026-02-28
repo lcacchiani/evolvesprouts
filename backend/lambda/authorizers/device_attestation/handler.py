@@ -12,7 +12,6 @@ SECURITY NOTES:
 from __future__ import annotations
 
 import os
-from typing import Any, Dict
 
 from app.auth.authorizer_utils import build_iam_policy, get_header_case_insensitive
 from app.auth.attestation import is_attestation_enabled, verify_attestation_token

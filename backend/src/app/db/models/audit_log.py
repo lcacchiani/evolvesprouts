@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List
 
 import sqlalchemy as sa
 from sqlalchemy import Text, text

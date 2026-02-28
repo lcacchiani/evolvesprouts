@@ -68,7 +68,7 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
         user_sub = claims.sub
         email = claims.email
         user_groups = claims.groups
-        organization_ids = _extract_organization_ids(claims.raw_claims)
+        organization_ids = extract_organization_ids(claims.raw_claims)
 
         logger.info(
             f"Access granted for authenticated user {user_sub[:8]}*** "
