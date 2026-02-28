@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';

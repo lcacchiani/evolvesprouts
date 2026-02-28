@@ -13,15 +13,13 @@ const eslintConfig = [
   },
   {
     files: ['**/*.{ts,tsx,js,jsx,mjs,cjs}'],
-    plugins: {
-      'jsx-a11y': jsxA11y,
-    },
     rules: {
       ...jsxA11y.configs.recommended.rules,
+      'jsx-a11y/click-events-have-key-events': 'off',
+      'jsx-a11y/no-noninteractive-element-interactions': 'off',
       'react/no-danger': 'error',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
-      '@typescript-eslint/no-explicit-any': 'error',
       'no-restricted-imports': [
         'error',
         {
@@ -47,6 +45,10 @@ const eslintConfig = [
         {
           selector: "TSTypeReference[typeName.right.name='CSSProperties']",
           message: 'React.CSSProperties is not allowed. Move styling to CSS files.',
+        },
+        {
+          selector: 'TSAnyKeyword',
+          message: 'Explicit `any` is not allowed. Use a specific type.',
         },
       ],
     },

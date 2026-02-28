@@ -7,7 +7,7 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { EventsContent, Locale } from '@/content';
+import type { EventsContent } from '@/content';
 import {
   createPublicCrmApiClient,
   isAbortRequestError,
@@ -22,7 +22,7 @@ import {
 
 interface EventsProps {
   content: EventsContent;
-  locale?: Locale;
+  locale?: string;
 }
 
 interface LoadingGearIconProps {
