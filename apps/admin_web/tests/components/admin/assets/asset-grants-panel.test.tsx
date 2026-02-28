@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -64,12 +64,12 @@ describe('AssetGrantsPanel', () => {
     const user = userEvent.setup();
     const { onCreateGrant } = renderPanel();
 
-    await user.selectOptions(screen.getByLabelText('Grant type *'), 'organization');
-    await user.click(screen.getByRole('button', { name: 'Add grant' }));
+    const grantTypeSelect = screen.getByLabelText('Grant type *');
+    await user.selectOptions(grantTypeSelect, 'organization');
+    expect((grantTypeSelect as HTMLSelectElement).value).toBe('organization');
+    expect(screen.getByLabelText('Grantee ID *')).toBeRequired();
 
-    expect(
-      screen.getByText('Grantee ID is required for organization and user grants.')
-    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Add grant' }));
     expect(onCreateGrant).not.toHaveBeenCalled();
 
     await user.type(screen.getByLabelText('Grantee ID *'), 'org-42');
@@ -86,7 +86,8 @@ describe('AssetGrantsPanel', () => {
     const { onDeleteGrant } = renderPanel({ grants: [GRANT] });
 
     await user.click(screen.getByRole('button', { name: 'Revoke' }));
-    await user.click(screen.getByRole('button', { name: 'Revoke' }));
+    const dialog = screen.getByRole('alertdialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Revoke' }));
 
     expect(onDeleteGrant).toHaveBeenCalledWith('asset-1', 'grant-1');
   });

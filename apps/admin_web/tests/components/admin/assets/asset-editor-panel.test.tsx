@@ -97,8 +97,8 @@ describe('AssetEditorPanel', () => {
     expect(onCreate).not.toHaveBeenCalled();
 
     const fileInput = screen.getByLabelText('Upload PDF file');
-    const txtFile = new File(['hello'], 'notes.txt', { type: 'text/plain' });
-    await user.upload(fileInput, txtFile);
+    const invalidPdfFile = new File(['hello'], 'notes.pdf', { type: 'text/plain' });
+    await user.upload(fileInput, invalidPdfFile);
     await user.click(screen.getByRole('button', { name: 'Create asset' }));
 
     expect(screen.getByText('Only PDF files are allowed.')).toBeInTheDocument();

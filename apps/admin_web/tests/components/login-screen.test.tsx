@@ -43,7 +43,13 @@ describe('LoginScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Email me a verification code' }));
 
     expect(screen.getByText('Enter a valid email address.')).toBeInTheDocument();
-    expect(authContext.sendPasswordlessCode).toHaveBeenCalledWith('not-an-email');
+    expect(authContext.sendPasswordlessCode).not.toHaveBeenCalled();
+
+    await user.clear(screen.getByLabelText('Work email *'));
+    await user.type(screen.getByLabelText('Work email *'), 'admin@example.com');
+    await user.click(screen.getByRole('button', { name: 'Email me a verification code' }));
+
+    expect(authContext.sendPasswordlessCode).toHaveBeenCalledWith('admin@example.com');
   });
 
   it('shows verification code flow when challenge is active', async () => {
