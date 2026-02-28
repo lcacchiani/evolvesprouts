@@ -49,7 +49,10 @@ describe('SproutsSquadCommunity section', () => {
     expect(section.className).toContain('es-sprouts-community-section');
 
     expect(container.querySelector('.es-sprouts-community-overlay')).not.toBeNull();
-    expect(container.querySelector('img.es-sprouts-community-logo')).not.toBeNull();
+    const sectionLogo = container.querySelector('img.es-sprouts-community-logo');
+    expect(sectionLogo).not.toBeNull();
+    expect(sectionLogo?.className).toContain('hidden');
+    expect(sectionLogo?.className).toContain('sm:block');
     expect(
       container.querySelector('img[src="/images/footer-community-bg.webp"]'),
     ).toBeNull();
