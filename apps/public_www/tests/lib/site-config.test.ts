@@ -5,16 +5,25 @@ import {
   resolvePublicSiteConfig,
 } from '@/lib/site-config';
 
-const CONTACT_EMAIL_ENV_NAME = 'NEXT_PUBLIC_EMAIL';
-const originalContactEmail = process.env[CONTACT_EMAIL_ENV_NAME];
+const ENV_KEYS = [
+  'NEXT_PUBLIC_EMAIL',
+  'NEXT_PUBLIC_WHATSAPP_URL',
+  'NEXT_PUBLIC_INSTAGRAM_URL',
+  'NEXT_PUBLIC_LINKEDIN_URL',
+] as const;
+const originalEnvValues = Object.fromEntries(
+  ENV_KEYS.map((key) => [key, process.env[key]]),
+) as Record<(typeof ENV_KEYS)[number], string | undefined>;
 
 afterEach(() => {
-  if (typeof originalContactEmail === 'string') {
-    process.env[CONTACT_EMAIL_ENV_NAME] = originalContactEmail;
-    return;
+  for (const key of ENV_KEYS) {
+    const originalValue = originalEnvValues[key];
+    if (typeof originalValue === 'string') {
+      process.env[key] = originalValue;
+    } else {
+      delete process.env[key];
+    }
   }
-
-  delete process.env[CONTACT_EMAIL_ENV_NAME];
 });
 
 describe('site-config', () => {
@@ -47,5 +56,23 @@ describe('site-config', () => {
 
     const siteConfig = resolvePublicSiteConfig();
     expect(siteConfig.contactEmail).toBeUndefined();
+  });
+
+  it('normalizes schemeless social URLs by prepending https', () => {
+    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'wa.me/message/ZQHVW4DEORD5A1?src=qr';
+    process.env.NEXT_PUBLIC_INSTAGRAM_URL = 'instagram.com/evolvesprouts';
+    process.env.NEXT_PUBLIC_LINKEDIN_URL = 'www.linkedin.com/company/evolve-sprouts';
+
+    const siteConfig = resolvePublicSiteConfig();
+    expect(siteConfig.whatsappUrl).toBe('https://wa.me/message/ZQHVW4DEORD5A1?src=qr');
+    expect(siteConfig.instagramUrl).toBe('https://instagram.com/evolvesprouts');
+    expect(siteConfig.linkedinUrl).toBe('https://www.linkedin.com/company/evolve-sprouts');
+  });
+
+  it('rejects schemeless values that are not host-like URLs', () => {
+    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'not-a-url';
+
+    const siteConfig = resolvePublicSiteConfig();
+    expect(siteConfig.whatsappUrl).toBeUndefined();
   });
 });
