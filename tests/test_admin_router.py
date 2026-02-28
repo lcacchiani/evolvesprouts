@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from app.api.admin import _safe_handler
+from app.api.admin import _match_handler, _safe_handler
 
 
 def test_safe_handler_hides_internal_exception_details() -> None:
@@ -14,3 +14,24 @@ def test_safe_handler_hides_internal_exception_details() -> None:
     body = json.loads(response["body"])
     assert body == {"error": "Internal server error"}
     assert "detail" not in body
+
+
+def test_match_handler_routes_asset_prefix_paths() -> None:
+    event = {"headers": {}}
+    routes = (
+        "/v1/admin/assets/abc",
+        "/v1/user/assets/abc/download",
+        "/v1/assets/share/token-123",
+        "/v1/assets/public/abc/download",
+    )
+    for path in routes:
+        handler = _match_handler(event=event, method="GET", path=path)
+        assert handler is not None
+
+
+def test_match_handler_treats_reservations_as_exact_path_only() -> None:
+    event = {"headers": {}}
+    assert _match_handler(event=event, method="POST", path="/v1/reservations") is not None
+    assert (
+        _match_handler(event=event, method="POST", path="/v1/reservations/extra") is None
+    )

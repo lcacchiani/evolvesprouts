@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 import json
 import os
-from typing import Any, Mapping, Optional, Tuple
+from typing import Any, Mapping, Optional
 from uuid import UUID
 
 from app.exceptions import ValidationError
@@ -26,59 +26,6 @@ def parse_body(event: Mapping[str, Any]) -> dict[str, Any]:
         return json.loads(raw)
     except json.JSONDecodeError as exc:
         raise ValidationError("Request body must be valid JSON") from exc
-
-
-def _parse_path(path: str) -> Tuple[str, str, Optional[str], Optional[str]]:
-    """Parse base path, resource name, and id from the request path.
-
-    Returns:
-        Tuple of (base_path, resource, resource_id, sub_resource)
-        base_path is either "admin", "manager", or "user"
-    """
-    parts = [segment for segment in path.split("/") if segment]
-    parts = _strip_version_prefix(parts)
-
-    if not parts:
-        return "", "", None, None
-
-    base_path = parts[0]
-
-    # Handle /v1/admin/... paths
-    if base_path == "admin":
-        if len(parts) < 2:
-            return base_path, "", None, None
-        resource = parts[1]
-        resource_id = parts[2] if len(parts) > 2 else None
-        sub_resource = parts[3] if len(parts) > 3 else None
-        return base_path, resource, resource_id, sub_resource
-
-    # Handle /v1/manager/... paths
-    if base_path == "manager":
-        resource = parts[1] if len(parts) > 1 else ""
-        resource_id = parts[2] if len(parts) > 2 else None
-        sub_resource = parts[3] if len(parts) > 3 else None
-        return base_path, resource, resource_id, sub_resource
-
-    # Handle /v1/user/... paths
-    if base_path == "user":
-        resource = parts[1] if len(parts) > 1 else ""
-        resource_id = parts[2] if len(parts) > 2 else None
-        sub_resource = parts[3] if len(parts) > 3 else None
-        return base_path, resource, resource_id, sub_resource
-
-    return "", "", None, None
-
-
-def _strip_version_prefix(parts: list[str]) -> list[str]:
-    """Drop an optional version prefix from path segments."""
-    if parts and _is_version_segment(parts[0]):
-        return parts[1:]
-    return parts
-
-
-def _is_version_segment(segment: str) -> bool:
-    """Return True if the path segment matches v{number}."""
-    return segment.startswith("v") and segment[1:].isdigit()
 
 
 def query_param(event: Mapping[str, Any], name: str) -> Optional[str]:

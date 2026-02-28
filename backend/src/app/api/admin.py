@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 from app.api.assets import (
     handle_admin_assets_request,
@@ -20,6 +20,58 @@ configure_logging()
 logger = get_logger(__name__)
 
 __all__ = ["lambda_handler"]
+RouteFactory = Callable[[Mapping[str, Any], str, str], Callable[[], dict[str, Any]]]
+
+
+def _reservation_factory(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> Callable[[], dict[str, Any]]:
+    del path
+    return lambda: _handle_public_reservation(event, method)
+
+
+def _admin_assets_factory(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> Callable[[], dict[str, Any]]:
+    return lambda: handle_admin_assets_request(event, method, path)
+
+
+def _user_assets_factory(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> Callable[[], dict[str, Any]]:
+    return lambda: handle_user_assets_request(event, method, path)
+
+
+def _share_assets_factory(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> Callable[[], dict[str, Any]]:
+    return lambda: handle_share_assets_request(event, method, path)
+
+
+def _public_assets_factory(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> Callable[[], dict[str, Any]]:
+    return lambda: handle_public_assets_request(event, method, path)
+
+
+_ROUTES: tuple[tuple[str, bool, RouteFactory], ...] = (
+    ("/v1/reservations", True, _reservation_factory),
+    ("/www/v1/reservations", True, _reservation_factory),
+    ("/v1/admin/assets", False, _admin_assets_factory),
+    ("/v1/user/assets", False, _user_assets_factory),
+    ("/v1/assets/share", False, _share_assets_factory),
+    ("/v1/assets/public", False, _public_assets_factory),
+)
 
 
 def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
@@ -76,52 +128,15 @@ def _match_handler(
     path: str,
 ) -> Any:
     """Return the request handler for a known route, if any."""
-    if _is_public_reservation_path(path):
-        return lambda: _handle_public_reservation(event, method)
-    if _is_admin_assets_path(path):
-        return lambda: handle_admin_assets_request(event, method, path)
-    if _is_user_assets_path(path):
-        return lambda: handle_user_assets_request(event, method, path)
-    if _is_share_assets_path(path):
-        return lambda: handle_share_assets_request(event, method, path)
-    if _is_public_assets_path(path):
-        return lambda: handle_public_assets_request(event, method, path)
+    normalized_path = path.rstrip("/")
+    for route_path, exact, route_factory in _ROUTES:
+        if _path_matches(normalized_path, route_path, exact=exact):
+            return route_factory(event, method, normalized_path)
     return None
 
 
-def _is_public_reservation_path(path: str) -> bool:
-    """Return whether the request targets the public reservations endpoint."""
-    normalized_path = path.rstrip("/")
-    return normalized_path in ("/v1/reservations", "/www/v1/reservations")
-
-
-def _is_admin_assets_path(path: str) -> bool:
-    """Return whether the path targets /v1/admin/assets routes."""
-    normalized_path = path.rstrip("/")
-    return normalized_path == "/v1/admin/assets" or normalized_path.startswith(
-        "/v1/admin/assets/"
-    )
-
-
-def _is_user_assets_path(path: str) -> bool:
-    """Return whether the path targets /v1/user/assets routes."""
-    normalized_path = path.rstrip("/")
-    return normalized_path == "/v1/user/assets" or normalized_path.startswith(
-        "/v1/user/assets/"
-    )
-
-
-def _is_public_assets_path(path: str) -> bool:
-    """Return whether the path targets /v1/assets/public routes."""
-    normalized_path = path.rstrip("/")
-    return normalized_path == "/v1/assets/public" or normalized_path.startswith(
-        "/v1/assets/public/"
-    )
-
-
-def _is_share_assets_path(path: str) -> bool:
-    """Return whether the path targets /v1/assets/share routes."""
-    normalized_path = path.rstrip("/")
-    return normalized_path == "/v1/assets/share" or normalized_path.startswith(
-        "/v1/assets/share/"
-    )
+def _path_matches(path: str, route_path: str, *, exact: bool) -> bool:
+    """Return whether a path matches a route path."""
+    if exact:
+        return path == route_path
+    return path == route_path or path.startswith(route_path + "/")
