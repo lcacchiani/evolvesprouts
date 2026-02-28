@@ -16,10 +16,16 @@ def _parse_body(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse JSON request body."""
     raw = event.get("body") or ""
     if event.get("isBase64Encoded"):
-        raw = base64.b64decode(raw).decode("utf-8")
+        try:
+            raw = base64.b64decode(raw).decode("utf-8")
+        except (ValueError, UnicodeDecodeError) as exc:
+            raise ValidationError("Request body is not valid base64") from exc
     if not raw:
         raise ValidationError("Request body is required")
-    return json.loads(raw)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValidationError("Request body must be valid JSON") from exc
 
 
 def _parse_path(path: str) -> Tuple[str, str, Optional[str], Optional[str]]:

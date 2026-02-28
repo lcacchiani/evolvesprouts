@@ -66,9 +66,7 @@ def _safe_handler(
         return json_response(400, {"error": str(exc)}, event=event)
     except Exception as exc:  # pragma: no cover
         logger.exception("Unexpected error in handler")
-        return json_response(
-            500, {"error": "Internal server error", "detail": str(exc)}, event=event
-        )
+        return json_response(500, {"error": "Internal server error"}, event=event)
 
 
 def _match_handler(
