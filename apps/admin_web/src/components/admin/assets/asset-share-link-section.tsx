@@ -11,9 +11,11 @@ import {
   rotateAdminAssetShareLink,
 } from '@/lib/assets-api';
 
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { CopyIcon, DeleteIcon, RotateIcon } from '@/components/icons/action-icons';
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -32,6 +34,7 @@ function parseAllowedDomainList(input: string): string[] {
 }
 
 export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminAsset }) {
+  const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [isCopyingLink, setIsCopyingLink] = useState(false);
   const [isRotatingLink, setIsRotatingLink] = useState(false);
   const [isRevokingLink, setIsRevokingLink] = useState(false);
@@ -115,9 +118,13 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
   };
 
   const handleRotateAssetLink = async () => {
-    const confirmed = window.confirm(
-      'Rotate this share link? Previously copied links will stop working.'
-    );
+    const confirmed = await requestConfirm({
+      title: 'Rotate share link',
+      description: 'Rotate this share link? Previously copied links will stop working.',
+      confirmLabel: 'Rotate',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
     if (!confirmed) {
       return;
     }
@@ -169,9 +176,13 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
   };
 
   const handleRevokeAssetLink = async () => {
-    const confirmed = window.confirm(
-      'Revoke this share link? Anyone with the current link will lose access.'
-    );
+    const confirmed = await requestConfirm({
+      title: 'Revoke share link',
+      description: 'Revoke this share link? Anyone with the current link will lose access.',
+      confirmLabel: 'Revoke',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
     if (!confirmed) {
       return;
     }
@@ -198,83 +209,86 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
     isCopyingLink || isRotatingLink || isRevokingLink || isSavingLinkPolicy;
 
   return (
-    <div className='space-y-3'>
-      {linkError ? (
-        <StatusBanner variant='error' title='Asset link'>
-          {linkError}
-        </StatusBanner>
-      ) : null}
-      {linkNotice ? <StatusBanner variant='success'>{linkNotice}</StatusBanner> : null}
+    <>
+      <div className='space-y-3'>
+        {linkError ? (
+          <StatusBanner variant='error' title='Asset link'>
+            {linkError}
+          </StatusBanner>
+        ) : null}
+        {linkNotice ? <StatusBanner variant='success'>{linkNotice}</StatusBanner> : null}
 
-      <div className='space-y-2'>
-        <Label>Links</Label>
-        <div className='flex items-center gap-2'>
-          <Button
-            type='button'
-            size='sm'
-            variant='secondary'
-            className='h-9 w-9 p-0'
-            onClick={() => void handleCopyAssetLink()}
-            disabled={areLinkButtonsDisabled}
-            title={isCopyingLink ? 'Copying link' : isLinkCopied ? 'Link copied' : 'Copy link'}
-            aria-label={isCopyingLink ? 'Copying link' : isLinkCopied ? 'Link copied' : 'Copy link'}
-          >
-            <CopyIcon className='h-4 w-4' />
-          </Button>
-          <Button
-            type='button'
-            size='sm'
-            variant='outline'
-            className='h-9 w-9 p-0'
-            onClick={() => void handleRotateAssetLink()}
-            disabled={areLinkButtonsDisabled}
-            title={isRotatingLink ? 'Rotating link' : 'Rotate link'}
-            aria-label={isRotatingLink ? 'Rotating link' : 'Rotate link'}
-          >
-            <RotateIcon className='h-4 w-4' />
-          </Button>
-          <Button
-            type='button'
-            size='sm'
-            variant='danger'
-            className='h-9 w-9 p-0'
-            onClick={() => void handleRevokeAssetLink()}
-            disabled={areLinkButtonsDisabled}
-            title={isRevokingLink ? 'Revoking link' : 'Delete link'}
-            aria-label={isRevokingLink ? 'Revoking link' : 'Delete link'}
-          >
-            <DeleteIcon className='h-4 w-4' />
-          </Button>
+        <div className='space-y-2'>
+          <Label>Links</Label>
+          <div className='flex items-center gap-2'>
+            <Button
+              type='button'
+              size='sm'
+              variant='secondary'
+              className='h-9 w-9 p-0'
+              onClick={() => void handleCopyAssetLink()}
+              disabled={areLinkButtonsDisabled}
+              title={isCopyingLink ? 'Copying link' : isLinkCopied ? 'Link copied' : 'Copy link'}
+              aria-label={isCopyingLink ? 'Copying link' : isLinkCopied ? 'Link copied' : 'Copy link'}
+            >
+              <CopyIcon className='h-4 w-4' />
+            </Button>
+            <Button
+              type='button'
+              size='sm'
+              variant='outline'
+              className='h-9 w-9 p-0'
+              onClick={() => void handleRotateAssetLink()}
+              disabled={areLinkButtonsDisabled}
+              title={isRotatingLink ? 'Rotating link' : 'Rotate link'}
+              aria-label={isRotatingLink ? 'Rotating link' : 'Rotate link'}
+            >
+              <RotateIcon className='h-4 w-4' />
+            </Button>
+            <Button
+              type='button'
+              size='sm'
+              variant='danger'
+              className='h-9 w-9 p-0'
+              onClick={() => void handleRevokeAssetLink()}
+              disabled={areLinkButtonsDisabled}
+              title={isRevokingLink ? 'Revoking link' : 'Delete link'}
+              aria-label={isRevokingLink ? 'Revoking link' : 'Delete link'}
+            >
+              <DeleteIcon className='h-4 w-4' />
+            </Button>
+          </div>
+        </div>
+
+        <div className='space-y-2'>
+          <div className='flex flex-wrap items-center justify-between gap-2'>
+            <Label htmlFor='asset-share-allowed-domains'>Share-link domain allowlist</Label>
+            <Button
+              type='button'
+              size='sm'
+              variant='secondary'
+              onClick={() => void handleSaveLinkPolicy()}
+              disabled={areLinkButtonsDisabled}
+              title={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
+              aria-label={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
+            >
+              Save policy
+            </Button>
+          </div>
+          <Textarea
+            id='asset-share-allowed-domains'
+            rows={3}
+            value={allowedDomainsInput}
+            onChange={(event) => setAllowedDomainsInput(event.target.value)}
+            placeholder='example.com'
+          />
+          <p className='text-xs text-slate-600'>
+            One domain per line (or comma-separated). Share links resolve only when Referer/Origin
+            matches one of these domains.
+          </p>
         </div>
       </div>
-
-      <div className='space-y-2'>
-        <div className='flex flex-wrap items-center justify-between gap-2'>
-          <Label htmlFor='asset-share-allowed-domains'>Share-link domain allowlist</Label>
-          <Button
-            type='button'
-            size='sm'
-            variant='secondary'
-            onClick={() => void handleSaveLinkPolicy()}
-            disabled={areLinkButtonsDisabled}
-            title={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
-            aria-label={isSavingLinkPolicy ? 'Saving policy' : 'Save domain policy'}
-          >
-            Save policy
-          </Button>
-        </div>
-        <Textarea
-          id='asset-share-allowed-domains'
-          rows={3}
-          value={allowedDomainsInput}
-          onChange={(event) => setAllowedDomainsInput(event.target.value)}
-          placeholder='example.com'
-        />
-        <p className='text-xs text-slate-600'>
-          One domain per line (or comma-separated). Share links resolve only when Referer/Origin
-          matches one of these domains.
-        </p>
-      </div>
-    </div>
+      <ConfirmDialog {...confirmDialogProps} />
+    </>
   );
 }
