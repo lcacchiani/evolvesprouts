@@ -51,6 +51,43 @@ function formatTimestamp(value?: string): string | null {
   return `${localTimestamp} ${formatGmtOffset(parsedDate)}`;
 }
 
+function MenuIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden='true'
+    >
+      <line x1='3' y1='6' x2='21' y2='6' />
+      <line x1='3' y1='12' x2='21' y2='12' />
+      <line x1='3' y1='18' x2='21' y2='18' />
+    </svg>
+  );
+}
+
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden='true'
+    >
+      <line x1='18' y1='6' x2='6' y2='18' />
+      <line x1='6' y1='6' x2='18' y2='18' />
+    </svg>
+  );
+}
+
 export function AppShell({
   navItems,
   activeKey,
@@ -69,6 +106,12 @@ export function AppShell({
 
   return (
     <div className='min-h-screen bg-slate-50 text-slate-900'>
+      <a
+        href='#main-content'
+        className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:shadow-lg'
+      >
+        Skip to main content
+      </a>
       <header className='sticky top-0 z-30 border-b border-slate-200 bg-white'>
         <div className='mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6'>
           <div className='flex items-center gap-3'>
@@ -79,7 +122,11 @@ export function AppShell({
               aria-expanded={isMobileMenuOpen}
               aria-label='Toggle navigation'
             >
-              <span className='text-lg leading-none'>{isMobileMenuOpen ? '×' : '☰'}</span>
+              {isMobileMenuOpen ? (
+                <CloseIcon className='h-4 w-4' />
+              ) : (
+                <MenuIcon className='h-4 w-4' />
+              )}
             </button>
             <Image
               src='/images/evolvesprouts-logo.svg'
@@ -140,7 +187,9 @@ export function AppShell({
           </nav>
         </aside>
 
-        <main className='min-w-0'>{children}</main>
+        <main id='main-content' className='min-w-0'>
+          {children}
+        </main>
       </div>
     </div>
   );

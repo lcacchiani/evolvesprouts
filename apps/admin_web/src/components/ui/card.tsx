@@ -1,6 +1,5 @@
-'use client';
-
 import type { ReactNode } from 'react';
+import { clsx } from 'clsx';
 
 export interface CardProps {
   title?: string;
@@ -13,11 +12,14 @@ export function Card({
   title,
   description,
   children,
-  className = '',
+  className,
 }: CardProps) {
   return (
     <section
-      className={`rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:rounded-xl sm:p-6 ${className}`}
+      className={clsx(
+        'rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:rounded-xl sm:p-6',
+        className
+      )}
     >
       {(title || description) && (
         <header className='mb-3 sm:mb-4'>

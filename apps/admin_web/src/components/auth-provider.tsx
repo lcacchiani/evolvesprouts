@@ -3,7 +3,7 @@
 import type { CognitoUser } from 'amazon-cognito-identity-js';
 import type { ReactNode } from 'react';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import {
   completeLogin,
@@ -119,15 +119,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [configErrors]);
 
-  const login = async (options?: LoginOptions) => {
+  const login = useCallback(async (options?: LoginOptions) => {
     await startLogin(options);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     startLogout();
-  };
+  }, []);
 
-  const sendPasswordlessCode = async (email: string) => {
+  const sendPasswordlessCode = useCallback(async (email: string) => {
     const normalizedEmail = email.toLowerCase().trim();
     if (!normalizedEmail) {
       setPasswordlessError('Please enter your email address.');
@@ -152,69 +152,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPasswordlessError(message);
       setPasswordlessStatus('error');
     }
-  };
+  }, []);
 
-  const verifyPasswordlessCode = async (code: string) => {
-    if (!cognitoUser) {
-      setPasswordlessError('Session expired. Please request a new code.');
-      setPasswordlessStatus('error');
-      return;
-    }
+  const verifyPasswordlessCode = useCallback(
+    async (code: string) => {
+      if (!cognitoUser) {
+        setPasswordlessError('Session expired. Please request a new code.');
+        setPasswordlessStatus('error');
+        return;
+      }
 
-    const trimmedCode = code.trim();
-    if (!trimmedCode) {
-      setPasswordlessError('Please enter the verification code.');
-      setPasswordlessStatus('error');
-      return;
-    }
+      const trimmedCode = code.trim();
+      if (!trimmedCode) {
+        setPasswordlessError('Please enter the verification code.');
+        setPasswordlessStatus('error');
+        return;
+      }
 
-    setPasswordlessError('');
-    setPasswordlessStatus('verifying');
+      setPasswordlessError('');
+      setPasswordlessStatus('verifying');
 
-    try {
-      const tokens = await respondToPasswordlessChallenge(cognitoUser, trimmedCode);
-      storeTokensFromPasswordless(tokens);
-      const profile = getUserProfile({
-        accessToken: tokens.accessToken,
-        idToken: tokens.idToken,
-        refreshToken: tokens.refreshToken,
-        expiresAt: tokens.expiresAt,
-      });
+      try {
+        const tokens = await respondToPasswordlessChallenge(cognitoUser, trimmedCode);
+        storeTokensFromPasswordless(tokens);
+        const profile = getUserProfile({
+          accessToken: tokens.accessToken,
+          idToken: tokens.idToken,
+          refreshToken: tokens.refreshToken,
+          expiresAt: tokens.expiresAt,
+        });
 
-      setUser(profile);
-      setStatus('authenticated');
-      setPasswordlessStatus('idle');
-      setCognitoUser(null);
-      setPasswordlessEmail('');
-    } catch (verifyError) {
-      const message =
-        verifyError instanceof Error ? verifyError.message : 'Failed to verify code.';
-      setPasswordlessError(message);
-      setPasswordlessStatus('challenge');
-    }
-  };
+        setUser(profile);
+        setStatus('authenticated');
+        setPasswordlessStatus('idle');
+        setCognitoUser(null);
+        setPasswordlessEmail('');
+      } catch (verifyError) {
+        const message =
+          verifyError instanceof Error ? verifyError.message : 'Failed to verify code.';
+        setPasswordlessError(message);
+        setPasswordlessStatus('challenge');
+      }
+    },
+    [cognitoUser]
+  );
 
-  const resetPasswordless = () => {
+  const resetPasswordless = useCallback(() => {
     setPasswordlessStatus('idle');
     setPasswordlessError('');
     setPasswordlessEmail('');
     setCognitoUser(null);
-  };
+  }, []);
 
-  const value: AuthContextValue = {
-    status,
-    user,
-    configErrors,
-    error,
-    login,
-    logout,
-    passwordlessStatus,
-    passwordlessError,
-    passwordlessEmail,
-    sendPasswordlessCode,
-    verifyPasswordlessCode,
-    resetPasswordless,
-  };
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      status,
+      user,
+      configErrors,
+      error,
+      login,
+      logout,
+      passwordlessStatus,
+      passwordlessError,
+      passwordlessEmail,
+      sendPasswordlessCode,
+      verifyPasswordlessCode,
+      resetPasswordless,
+    }),
+    [
+      status,
+      user,
+      configErrors,
+      error,
+      login,
+      logout,
+      passwordlessStatus,
+      passwordlessError,
+      passwordlessEmail,
+      sendPasswordlessCode,
+      verifyPasswordlessCode,
+      resetPasswordless,
+    ]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

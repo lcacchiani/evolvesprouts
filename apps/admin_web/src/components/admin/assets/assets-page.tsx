@@ -8,6 +8,9 @@ import { StatusBanner } from '@/components/status-banner';
 import { useAdminAssets } from '@/hooks/use-admin-assets';
 import { getAdminApiConfigError } from '@/lib/config';
 
+const DEFAULT_ASSET_TYPE = 'document' as const;
+const DEFAULT_CONTENT_TYPE = 'application/pdf' as const;
+
 export function AssetsPage() {
   const adminApiConfigError = getAdminApiConfigError();
   const {
@@ -68,8 +71,8 @@ export function AssetsPage() {
               await createAssetEntry(
                 {
                   ...payload,
-                  assetType: 'document',
-                  contentType: 'application/pdf',
+                  assetType: DEFAULT_ASSET_TYPE,
+                  contentType: DEFAULT_CONTENT_TYPE,
                 },
                 file
               );
@@ -81,8 +84,8 @@ export function AssetsPage() {
             try {
               await updateAssetEntry(assetId, {
                 ...payload,
-                assetType: 'document',
-                contentType: 'application/pdf',
+                assetType: DEFAULT_ASSET_TYPE,
+                contentType: DEFAULT_CONTENT_TYPE,
               });
             } catch {
               // The hook stores the actionable error state for UI display.

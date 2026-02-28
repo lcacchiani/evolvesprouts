@@ -1,6 +1,7 @@
 'use client';
 
 import type { ButtonHTMLAttributes } from 'react';
+import { clsx } from 'clsx';
 
 const baseStyles =
   'inline-flex items-center justify-center rounded-md text-sm ' +
@@ -30,12 +31,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Button({
   variant = 'primary',
   size = 'md',
-  className = '',
+  className,
   ...props
 }: ButtonProps) {
   return (
     <button
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={clsx(baseStyles, variantStyles[variant], sizeStyles[size], className)}
       {...props}
     />
   );

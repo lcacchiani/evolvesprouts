@@ -1,4 +1,5 @@
 import { AdminApiError, adminApiRequest } from './api-admin-client';
+import { isRecord } from './type-guards';
 
 import type {
   AdminAsset,
@@ -15,9 +16,39 @@ import { ACCESS_GRANT_TYPES, ASSET_TYPES, ASSET_VISIBILITIES } from '@/types/ass
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
+type ApiAsset = ApiSchemas['Asset'];
+type ApiAssetResponse = ApiSchemas['AssetResponse'];
+type ApiAssetListResponse = ApiSchemas['AssetListResponse'];
+type ApiAssetGrant = ApiSchemas['AssetGrant'];
+type ApiAssetGrantResponse = ApiSchemas['AssetGrantResponse'];
+type ApiAssetGrantListResponse = ApiSchemas['AssetGrantListResponse'];
 type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
+type ApiCreateAssetResponse = ApiSchemas['CreateAssetResponse'];
 type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
+type ApiAssetShareLinkResponse = ApiSchemas['AssetShareLinkResponse'];
 type ApiAssetShareLinkPolicyRequest = ApiSchemas['AssetShareLinkPolicyRequest'];
+
+type ApiDataWrapper<T> = {
+  data: T;
+};
+
+type ApiAssetListPayload =
+  | ApiAssetListResponse
+  | ApiAsset[]
+  | ApiDataWrapper<ApiAssetListResponse | ApiAsset[]>;
+type ApiAssetPayload = ApiAssetResponse | ApiAsset | ApiDataWrapper<ApiAssetResponse | ApiAsset>;
+type ApiAssetGrantListPayload =
+  | ApiAssetGrantListResponse
+  | ApiAssetGrant[]
+  | ApiDataWrapper<ApiAssetGrantListResponse | ApiAssetGrant[]>;
+type ApiAssetGrantPayload =
+  | ApiAssetGrantResponse
+  | ApiAssetGrant
+  | ApiDataWrapper<ApiAssetGrantResponse | ApiAssetGrant>;
+type ApiCreateAssetPayload = ApiCreateAssetResponse | ApiDataWrapper<ApiCreateAssetResponse>;
+type ApiAssetShareLinkPayload =
+  | ApiAssetShareLinkResponse
+  | ApiDataWrapper<ApiAssetShareLinkResponse>;
 
 export interface CreateAdminAssetResult {
   asset: AdminAsset | null;
@@ -34,17 +65,31 @@ export interface AssetShareLinkPolicyInput {
   allowedDomains: string[];
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+function unwrapPayload<T>(payload: T | ApiDataWrapper<T>): T {
+  if (isRecord(payload) && 'data' in payload) {
+    return payload.data as T;
+  }
+  return payload;
 }
 
-function pickFirst(record: Record<string, unknown>, keys: string[]): unknown {
-  for (const key of keys) {
-    if (Object.prototype.hasOwnProperty.call(record, key)) {
-      return record[key];
-    }
-  }
-  return undefined;
+function isApiAsset(value: unknown): value is ApiAsset {
+  return isRecord(value) && typeof value.id === 'string';
+}
+
+function isApiAssetResponse(value: unknown): value is ApiAssetResponse {
+  return isRecord(value) && isApiAsset(value.asset);
+}
+
+function isApiAssetGrant(value: unknown): value is ApiAssetGrant {
+  return isRecord(value) && typeof value.id === 'string';
+}
+
+function isApiAssetGrantResponse(value: unknown): value is ApiAssetGrantResponse {
+  return isRecord(value) && isApiAssetGrant(value.grant);
+}
+
+function isApiAssetShareLinkResponse(value: unknown): value is ApiAssetShareLinkResponse {
+  return isRecord(value) && typeof value.share_url === 'string';
 }
 
 function asString(value: unknown): string | null {
@@ -93,120 +138,105 @@ function parseGrantType(value: unknown): AssetGrant['grantType'] {
   return 'user';
 }
 
-function payloadRoot(payload: unknown): unknown {
-  if (isRecord(payload) && isRecord(payload.data)) {
-    return payload.data;
-  }
-  return payload;
-}
-
-function parseAsset(value: unknown): AdminAsset | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const id = asString(pickFirst(value, ['id']));
-  if (!id) {
-    return null;
-  }
-
+function parseAsset(value: ApiAsset): AdminAsset {
   return {
-    id,
-    title: asString(pickFirst(value, ['title'])) ?? 'Untitled asset',
-    description: asNullableString(pickFirst(value, ['description'])),
-    assetType: parseAssetType(pickFirst(value, ['assetType', 'asset_type'])),
-    s3Key: asString(pickFirst(value, ['s3Key', 's3_key'])) ?? '',
-    fileName: asString(pickFirst(value, ['fileName', 'file_name'])) ?? '',
-    contentType: asNullableString(pickFirst(value, ['contentType', 'content_type'])),
-    visibility: parseVisibility(pickFirst(value, ['visibility'])),
-    createdBy: asNullableString(pickFirst(value, ['createdBy', 'created_by'])),
-    createdAt: asNullableString(pickFirst(value, ['createdAt', 'created_at'])),
-    updatedAt: asNullableString(pickFirst(value, ['updatedAt', 'updated_at'])),
+    id: asString(value.id) ?? '',
+    title: asString(value.title) ?? 'Untitled asset',
+    description: asNullableString(value.description ?? null),
+    assetType: parseAssetType(value.asset_type),
+    s3Key: asString(value.s3_key) ?? '',
+    fileName: asString(value.file_name) ?? '',
+    contentType: asNullableString(value.content_type ?? null),
+    visibility: parseVisibility(value.visibility),
+    createdBy: asNullableString(value.created_by ?? null),
+    createdAt: asNullableString(value.created_at ?? null),
+    updatedAt: asNullableString(value.updated_at ?? null),
   };
 }
 
-function parseGrant(value: unknown): AssetGrant | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const id = asString(pickFirst(value, ['id']));
-  if (!id) {
-    return null;
-  }
-
+function parseGrant(value: ApiAssetGrant): AssetGrant {
   return {
-    id,
-    assetId: asString(pickFirst(value, ['assetId', 'asset_id'])) ?? '',
-    grantType: parseGrantType(pickFirst(value, ['grantType', 'grant_type'])),
-    granteeId: asNullableString(pickFirst(value, ['granteeId', 'grantee_id'])),
-    grantedBy: asNullableString(pickFirst(value, ['grantedBy', 'granted_by'])),
-    createdAt: asNullableString(pickFirst(value, ['createdAt', 'created_at'])),
+    id: asString(value.id) ?? '',
+    assetId: asString(value.asset_id) ?? '',
+    grantType: parseGrantType(value.grant_type),
+    granteeId: asNullableString(value.grantee_id ?? null),
+    grantedBy: asNullableString(value.granted_by ?? null),
+    createdAt: asNullableString(value.created_at ?? null),
   };
 }
 
-function extractListItems(
-  payload: unknown,
-  keys: string[]
-): { items: unknown[]; nextCursor: string | null } {
-  const root = payloadRoot(payload);
-
+function extractAssetList(payload: ApiAssetListPayload): {
+  items: AdminAsset[];
+  nextCursor: string | null;
+} {
+  const root = unwrapPayload(payload);
   if (Array.isArray(root)) {
-    return { items: root, nextCursor: null };
+    return {
+      items: root.filter(isApiAsset).map((entry) => parseAsset(entry)),
+      nextCursor: null,
+    };
   }
 
   if (!isRecord(root)) {
     return { items: [], nextCursor: null };
   }
 
-  const maybeItems = pickFirst(root, keys);
-  const items = Array.isArray(maybeItems) ? maybeItems : [];
-  const nextCursor =
-    asString(pickFirst(root, ['nextCursor', 'next_cursor', 'cursor'])) ??
-    asString(pickFirst(isRecord(payload) ? payload : {}, ['nextCursor', 'next_cursor', 'cursor'])) ??
-    null;
+  const items = Array.isArray(root.items)
+    ? root.items.filter((entry): entry is ApiAsset => isApiAsset(entry)).map((entry) => parseAsset(entry))
+    : [];
 
-  return { items, nextCursor };
+  return {
+    items,
+    nextCursor: asString((root as ApiAssetListResponse).next_cursor) ?? null,
+  };
 }
 
-function extractAsset(payload: unknown): AdminAsset | null {
-  const root = payloadRoot(payload);
-  const direct = parseAsset(root);
-  if (direct) {
-    return direct;
+function extractAsset(payload: ApiAssetPayload): AdminAsset | null {
+  const root = unwrapPayload(payload);
+
+  if (isApiAsset(root)) {
+    return parseAsset(root);
   }
 
-  if (!isRecord(root)) {
-    return null;
+  if (isApiAssetResponse(root)) {
+    return parseAsset(root.asset);
   }
 
-  return (
-    parseAsset(pickFirst(root, ['asset', 'item'])) ??
-    parseAsset(pickFirst(root, ['result'])) ??
-    null
-  );
+  return null;
 }
 
-function extractGrant(payload: unknown): AssetGrant | null {
-  const root = payloadRoot(payload);
-  const direct = parseGrant(root);
-  if (direct) {
-    return direct;
+function extractGrantList(payload: ApiAssetGrantListPayload): AssetGrant[] {
+  const root = unwrapPayload(payload);
+  if (Array.isArray(root)) {
+    return root
+      .filter((entry): entry is ApiAssetGrant => isApiAssetGrant(entry))
+      .map((entry) => parseGrant(entry));
   }
 
-  if (!isRecord(root)) {
-    return null;
+  if (!isRecord(root) || !Array.isArray(root.items)) {
+    return [];
   }
 
-  return (
-    parseGrant(pickFirst(root, ['grant', 'item'])) ??
-    parseGrant(pickFirst(root, ['result'])) ??
-    null
-  );
+  return root.items
+    .filter((entry): entry is ApiAssetGrant => isApiAssetGrant(entry))
+    .map((entry) => parseGrant(entry));
 }
 
-function extractHeaders(value: unknown): Record<string, string> {
-  if (!isRecord(value)) {
+function extractGrant(payload: ApiAssetGrantPayload): AssetGrant | null {
+  const root = unwrapPayload(payload);
+  if (isApiAssetGrant(root)) {
+    return parseGrant(root);
+  }
+
+  if (isApiAssetGrantResponse(root)) {
+    return parseGrant(root.grant);
+  }
+
+  return null;
+}
+
+function extractHeaders(value: Record<string, string> | null | undefined): Record<string, string> {
+  if (!value || !isRecord(value)) {
     return {};
   }
 
@@ -255,17 +285,20 @@ export async function listAdminAssets(
 
   const queryString = params.toString();
   const endpointPath = queryString ? `/v1/admin/assets?${queryString}` : '/v1/admin/assets';
-  const payload = await adminApiRequest<unknown>({ endpointPath, method: 'GET' });
-  const list = extractListItems(payload, ['items', 'assets', 'results']);
+  const payload = await adminApiRequest<ApiAssetListPayload>({
+    endpointPath,
+    method: 'GET',
+  });
+  const list = extractAssetList(payload);
 
   return {
-    items: list.items.map((entry) => parseAsset(entry)).filter((entry): entry is AdminAsset => !!entry),
+    items: list.items,
     nextCursor: list.nextCursor,
   };
 }
 
 export async function getAdminAsset(assetId: string): Promise<AdminAsset | null> {
-  const payload = await adminApiRequest<unknown>({
+  const payload = await adminApiRequest<ApiAssetPayload>({
     endpointPath: `/v1/admin/assets/${assetId}`,
     method: 'GET',
   });
@@ -275,33 +308,23 @@ export async function getAdminAsset(assetId: string): Promise<AdminAsset | null>
 export async function createAdminAsset(
   input: UpsertAdminAssetInput
 ): Promise<CreateAdminAssetResult> {
-  const payload = await adminApiRequest<unknown>({
+  const payload = await adminApiRequest<ApiCreateAssetPayload>({
     endpointPath: '/v1/admin/assets',
     method: 'POST',
     body: normalizeAssetInput(input),
     expectedSuccessStatuses: [200, 201],
   });
 
-  const root = payloadRoot(payload);
-  const rootRecord = isRecord(root) ? root : {};
+  const root = unwrapPayload(payload);
   const upload: CreatedAssetUpload = {
-    uploadUrl:
-      asString(
-        pickFirst(rootRecord, [
-          'uploadUrl',
-          'upload_url',
-          'presignedUrl',
-          'presigned_url',
-          'url',
-        ])
-      ) ?? null,
-    uploadMethod: asString(pickFirst(rootRecord, ['uploadMethod', 'upload_method'])) ?? 'PUT',
-    uploadHeaders: extractHeaders(pickFirst(rootRecord, ['uploadHeaders', 'upload_headers'])),
-    expiresAt: asNullableString(pickFirst(rootRecord, ['expiresAt', 'expires_at'])),
+    uploadUrl: asString(root.upload_url) ?? null,
+    uploadMethod: asString(root.upload_method) ?? 'PUT',
+    uploadHeaders: extractHeaders(root.upload_headers),
+    expiresAt: asNullableString(root.expires_at ?? null),
   };
 
   return {
-    asset: extractAsset(payload),
+    asset: isApiAsset(root.asset) ? parseAsset(root.asset) : null,
     upload,
   };
 }
@@ -310,7 +333,7 @@ export async function updateAdminAsset(
   assetId: string,
   input: UpsertAdminAssetInput
 ): Promise<AdminAsset | null> {
-  const payload = await adminApiRequest<unknown>({
+  const payload = await adminApiRequest<ApiAssetPayload>({
     endpointPath: `/v1/admin/assets/${assetId}`,
     method: 'PUT',
     body: normalizeAssetInput(input),
@@ -327,13 +350,12 @@ export async function deleteAdminAsset(assetId: string): Promise<void> {
 }
 
 export async function listAdminAssetGrants(assetId: string): Promise<AssetGrant[]> {
-  const payload = await adminApiRequest<unknown>({
+  const payload = await adminApiRequest<ApiAssetGrantListPayload>({
     endpointPath: `/v1/admin/assets/${assetId}/grants`,
     method: 'GET',
   });
 
-  const list = extractListItems(payload, ['items', 'grants', 'results']);
-  return list.items.map((entry) => parseGrant(entry)).filter((entry): entry is AssetGrant => !!entry);
+  return extractGrantList(payload);
 }
 
 export async function createAdminAssetGrant(
@@ -345,7 +367,7 @@ export async function createAdminAssetGrant(
     grantee_id: input.granteeId?.trim() || null,
   };
 
-  const payload = await adminApiRequest<unknown>({
+  const payload = await adminApiRequest<ApiAssetGrantPayload>({
     endpointPath: `/v1/admin/assets/${assetId}/grants`,
     method: 'POST',
     body: requestBody,
@@ -363,25 +385,22 @@ export async function deleteAdminAssetGrant(assetId: string, grantId: string): P
   });
 }
 
-function parseAssetShareLink(payload: unknown, fallbackAssetId: string): AssetShareLink {
-  const root = payloadRoot(payload);
-  const rootRecord = isRecord(root) ? root : {};
+function parseAssetShareLink(payload: ApiAssetShareLinkPayload, fallbackAssetId: string): AssetShareLink {
+  const root = unwrapPayload(payload);
 
-  const shareUrl =
-    asString(pickFirst(rootRecord, ['shareUrl', 'share_url', 'url'])) ??
-    asString(pickFirst(isRecord(payload) ? payload : {}, ['shareUrl', 'share_url', 'url']));
+  if (!isApiAssetShareLinkResponse(root)) {
+    throw new Error('Share URL was not returned by the API.');
+  }
+
+  const shareUrl = asString(root.share_url);
   if (!shareUrl) {
     throw new Error('Share URL was not returned by the API.');
   }
 
-  const allowedDomains = asStringArray(
-    pickFirst(rootRecord, ['allowedDomains', 'allowed_domains'])
-  );
-
   return {
-    assetId: asString(pickFirst(rootRecord, ['assetId', 'asset_id'])) ?? fallbackAssetId,
+    assetId: asString(root.asset_id) ?? fallbackAssetId,
     shareUrl,
-    allowedDomains,
+    allowedDomains: asStringArray(root.allowed_domains),
   };
 }
 
@@ -400,7 +419,7 @@ export async function getOrCreateAdminAssetShareLink(
   assetId: string,
   input?: AssetShareLinkPolicyInput
 ): Promise<AssetShareLink> {
-  const payload = await adminApiRequest<unknown>({
+  const payload = await adminApiRequest<ApiAssetShareLinkPayload>({
     endpointPath: `/v1/admin/assets/${assetId}/share-link`,
     method: 'POST',
     body: normalizeShareLinkPolicyInput(input),
@@ -411,7 +430,7 @@ export async function getOrCreateAdminAssetShareLink(
 
 export async function getAdminAssetShareLink(assetId: string): Promise<AssetShareLink | null> {
   try {
-    const payload = await adminApiRequest<unknown>({
+    const payload = await adminApiRequest<ApiAssetShareLinkPayload>({
       endpointPath: `/v1/admin/assets/${assetId}/share-link`,
       method: 'GET',
       expectedSuccessStatuses: [200],
@@ -429,7 +448,7 @@ export async function rotateAdminAssetShareLink(
   assetId: string,
   input?: AssetShareLinkPolicyInput
 ): Promise<AssetShareLink> {
-  const payload = await adminApiRequest<unknown>({
+  const payload = await adminApiRequest<ApiAssetShareLinkPayload>({
     endpointPath: `/v1/admin/assets/${assetId}/share-link/rotate`,
     method: 'POST',
     body: normalizeShareLinkPolicyInput(input),

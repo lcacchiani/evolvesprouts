@@ -1,6 +1,5 @@
-'use client';
-
 import type { ReactNode } from 'react';
+import { clsx } from 'clsx';
 
 const variantStyles = {
   info: 'border-blue-200 bg-blue-50 text-blue-900',
@@ -22,9 +21,7 @@ export function StatusBanner({
   const hasTitle = Boolean(title?.trim());
 
   return (
-    <div
-      className={`w-full rounded-lg border px-3 py-2.5 sm:px-4 sm:py-3 ${variantStyles[variant]}`}
-    >
+    <div className={clsx('w-full rounded-lg border px-3 py-2.5 sm:px-4 sm:py-3', variantStyles[variant])}>
       {hasTitle ? <p className='text-xs font-semibold sm:text-sm'>{title}</p> : null}
       <p className={hasTitle ? 'mt-1 text-xs sm:text-sm' : 'text-xs sm:text-sm'}>{children}</p>
     </div>
