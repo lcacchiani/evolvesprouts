@@ -1,5 +1,3 @@
-'use client';
-
 import { AdminApiError } from '@/lib/api-admin-client';
 
 export function toAdminAssetErrorMessage(error: unknown, fallbackMessage: string): string {

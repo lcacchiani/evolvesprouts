@@ -4,21 +4,13 @@ import type { ComponentProps } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { AssetListPanel } from '@/components/admin/assets/asset-list-panel';
-import type { AdminAsset } from '@/types/assets';
+import { createAdminAssetFixture } from '../../../fixtures/assets';
 
-const FIXTURE_ASSET: AdminAsset = {
-  id: 'asset-1',
+const FIXTURE_ASSET = createAdminAssetFixture({
   title: 'Infant Nutrition Guide',
-  description: null,
-  assetType: 'document',
   s3Key: 'assets/infant-nutrition-guide.pdf',
   fileName: 'infant-nutrition-guide.pdf',
-  contentType: 'application/pdf',
-  visibility: 'restricted',
-  createdBy: 'admin@example.com',
-  createdAt: '2026-02-27T00:00:00.000Z',
-  updatedAt: '2026-02-27T00:00:00.000Z',
-};
+});
 
 function renderPanel(overrides: Partial<ComponentProps<typeof AssetListPanel>> = {}) {
   const onQueryChange = vi.fn();

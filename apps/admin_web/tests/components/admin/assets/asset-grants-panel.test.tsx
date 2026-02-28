@@ -4,30 +4,11 @@ import type { ComponentProps } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { AssetGrantsPanel } from '@/components/admin/assets/asset-grants-panel';
-import type { AdminAsset, AssetGrant } from '@/types/assets';
+import { createAdminAssetFixture, createAssetGrantFixture } from '../../../fixtures/assets';
 
-const SELECTED_ASSET: AdminAsset = {
-  id: 'asset-1',
-  title: 'Infant Guide',
-  description: null,
-  assetType: 'document',
-  s3Key: 'assets/infant-guide.pdf',
-  fileName: 'infant-guide.pdf',
-  contentType: 'application/pdf',
-  visibility: 'restricted',
-  createdBy: 'admin@example.com',
-  createdAt: '2026-02-27T00:00:00.000Z',
-  updatedAt: '2026-02-27T00:00:00.000Z',
-};
+const SELECTED_ASSET = createAdminAssetFixture();
 
-const GRANT: AssetGrant = {
-  id: 'grant-1',
-  assetId: 'asset-1',
-  grantType: 'organization',
-  granteeId: 'org-1',
-  grantedBy: 'admin@example.com',
-  createdAt: '2026-02-27T00:00:00.000Z',
-};
+const GRANT = createAssetGrantFixture();
 
 function renderPanel(overrides: Partial<ComponentProps<typeof AssetGrantsPanel>> = {}) {
   const onCreateGrant = vi.fn().mockResolvedValue(undefined);

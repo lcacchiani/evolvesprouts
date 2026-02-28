@@ -23,21 +23,11 @@ vi.mock('@/lib/assets-api', () => ({
 }));
 
 import { AssetEditorPanel } from '@/components/admin/assets/asset-editor-panel';
-import type { AdminAsset } from '@/types/assets';
+import { createAdminAssetFixture } from '../../../fixtures/assets';
 
-const SELECTED_ASSET: AdminAsset = {
-  id: 'asset-1',
-  title: 'Infant Guide',
+const SELECTED_ASSET = createAdminAssetFixture({
   description: 'Original description',
-  assetType: 'document',
-  s3Key: 'assets/infant-guide.pdf',
-  fileName: 'infant-guide.pdf',
-  contentType: 'application/pdf',
-  visibility: 'restricted',
-  createdBy: 'admin@example.com',
-  createdAt: '2026-02-27T00:00:00.000Z',
-  updatedAt: '2026-02-27T00:00:00.000Z',
-};
+});
 
 function renderEditor(overrides: Partial<ComponentProps<typeof AssetEditorPanel>> = {}) {
   const onCreate = vi.fn().mockResolvedValue(undefined);
