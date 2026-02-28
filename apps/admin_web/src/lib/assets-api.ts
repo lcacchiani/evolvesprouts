@@ -1,4 +1,5 @@
 import { AdminApiError, adminApiRequest } from './api-admin-client';
+import { isRecord } from './type-guards';
 
 import type {
   AdminAsset,
@@ -32,10 +33,6 @@ export interface AssetShareLink {
 
 export interface AssetShareLinkPolicyInput {
   allowedDomains: string[];
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function pickFirst(record: Record<string, unknown>, keys: string[]): unknown {

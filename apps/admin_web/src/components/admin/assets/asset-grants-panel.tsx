@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { formatDate, toTitleCase } from '@/lib/format';
 
 interface AssetGrantsPanelProps {
   selectedAsset: AdminAsset | null;
@@ -23,24 +24,6 @@ interface AssetGrantsPanelProps {
   isDeletingGrantId: string | null;
   onCreateGrant: (assetId: string, input: CreateAssetGrantInput) => Promise<void>;
   onDeleteGrant: (assetId: string, grantId: string) => Promise<void>;
-}
-
-function toTitleCase(value: string): string {
-  return value
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
-function formatDate(value: string | null): string {
-  if (!value) {
-    return '—';
-  }
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return value;
-  }
-  return parsedDate.toLocaleString();
 }
 
 export function AssetGrantsPanel({

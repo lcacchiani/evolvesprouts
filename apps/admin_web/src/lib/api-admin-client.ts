@@ -1,5 +1,6 @@
 import { ensureFreshTokens } from './auth';
 import { getAdminApiBaseUrl } from './config';
+import { isRecord } from './type-guards';
 
 export type AdminApiMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -39,10 +40,6 @@ function normalizeEndpointPath(endpointPath: string): string {
   }
 
   return normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function extractErrorMessage(statusCode: number, payload: unknown): string {

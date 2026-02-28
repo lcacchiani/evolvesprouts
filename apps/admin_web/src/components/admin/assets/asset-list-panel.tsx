@@ -6,11 +6,13 @@ import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
 import { ASSET_VISIBILITIES } from '@/types/assets';
 
+import { DeleteIcon } from '@/components/icons/action-icons';
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { formatDate, toTitleCase } from '@/lib/format';
 
 export interface AssetListPanelProps {
   assets: AdminAsset[];
@@ -29,44 +31,6 @@ export interface AssetListPanelProps {
   onLoadMore: () => Promise<void>;
   onSelectAsset: (assetId: string) => void;
   onDeleteAsset: (assetId: string) => Promise<void>;
-}
-
-function formatDate(value: string | null): string {
-  if (!value) {
-    return '—';
-  }
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return value;
-  }
-  return parsedDate.toLocaleString();
-}
-
-function toTitleCase(value: string): string {
-  return value
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
-function DeleteIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox='0 0 24 24'
-      fill='none'
-      stroke='currentColor'
-      strokeWidth='2'
-      strokeLinecap='round'
-      strokeLinejoin='round'
-      aria-hidden='true'
-    >
-      <polyline points='3 6 5 6 21 6' />
-      <path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' />
-      <line x1='10' y1='11' x2='10' y2='17' />
-      <line x1='14' y1='11' x2='14' y2='17' />
-    </svg>
-  );
 }
 
 export function AssetListPanel({

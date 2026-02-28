@@ -18,7 +18,6 @@ import type {
   AssetGrant,
   AssetVisibility,
   CreateAssetGrantInput,
-  CreatedAssetUpload,
   ListAdminAssetsInput,
   UpsertAdminAssetInput,
 } from '@/types/assets';
@@ -31,6 +30,7 @@ const DEFAULT_FILTERS: Filters = {
   query: '',
   visibility: '',
 };
+const ASSET_LIST_TYPE_FILTER = 'document' as const;
 
 function toErrorMessage(error: unknown, fallbackMessage: string): string {
   if (error instanceof AdminApiError) {
@@ -60,7 +60,6 @@ export function useAdminAssets() {
   const [assetMutationError, setAssetMutationError] = useState('');
   const [isSavingAsset, setIsSavingAsset] = useState(false);
   const [isDeletingAssetId, setIsDeletingAssetId] = useState<string | null>(null);
-  const [lastCreatedUpload, setLastCreatedUpload] = useState<CreatedAssetUpload | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>('idle');
   const [uploadError, setUploadError] = useState('');
   const [pendingUpload, setPendingUpload] = useState<{
@@ -101,7 +100,7 @@ export function useAdminAssets() {
       try {
         const response = await listAdminAssets({
           ...effectiveFilters,
-          assetType: 'document',
+          assetType: ASSET_LIST_TYPE_FILTER,
           cursor: null,
           limit: 25,
         });
@@ -144,7 +143,7 @@ export function useAdminAssets() {
     try {
       const response = await listAdminAssets({
         ...filtersRef.current,
-        assetType: 'document',
+        assetType: ASSET_LIST_TYPE_FILTER,
         cursor: nextCursor,
         limit: 25,
       });
@@ -191,7 +190,6 @@ export function useAdminAssets() {
     setSelectedAssetId(assetId);
     setAssetMutationError('');
     setGrantMutationError('');
-    setLastCreatedUpload(null);
     setUploadState('idle');
     setUploadError('');
     setPendingUpload(null);
@@ -200,7 +198,6 @@ export function useAdminAssets() {
   const clearSelectedAsset = useCallback(() => {
     setSelectedAssetId(null);
     setGrantMutationError('');
-    setLastCreatedUpload(null);
     setUploadState('idle');
     setUploadError('');
     setPendingUpload(null);
@@ -218,7 +215,6 @@ export function useAdminAssets() {
         const result = await createAdminAsset(input);
         const createdAsset = result.asset;
         const upload = result.upload;
-        setLastCreatedUpload(upload.uploadUrl ? upload : null);
 
         if (createdAsset) {
           setAssets((previous) => [createdAsset, ...previous]);
@@ -263,7 +259,6 @@ export function useAdminAssets() {
     async (assetId: string, input: UpsertAdminAssetInput) => {
       setIsSavingAsset(true);
       setAssetMutationError('');
-      setLastCreatedUpload(null);
       setUploadState('idle');
       setUploadError('');
       setPendingUpload(null);
@@ -291,7 +286,6 @@ export function useAdminAssets() {
   const deleteAssetEntry = useCallback(async (assetId: string) => {
     setIsDeletingAssetId(assetId);
     setAssetMutationError('');
-    setLastCreatedUpload(null);
     setUploadState('idle');
     setUploadError('');
     setPendingUpload(null);
@@ -401,7 +395,6 @@ export function useAdminAssets() {
     assetMutationError,
     isSavingAsset,
     isDeletingAssetId,
-    lastCreatedUpload,
     uploadState,
     uploadError,
     hasPendingUpload: Boolean(pendingUpload?.upload.uploadUrl),
@@ -426,6 +419,5 @@ export function useAdminAssets() {
     createGrantEntry,
     deleteGrantEntry,
     retryPendingUpload,
-    clearLastCreatedUpload: () => setLastCreatedUpload(null),
   };
 }

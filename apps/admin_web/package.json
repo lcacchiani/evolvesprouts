@@ -8,7 +8,8 @@
     "start": "next start",
     "generate:admin-api-types": "openapi-typescript ../../docs/api/admin.yaml -o src/types/generated/admin-api.generated.ts",
     "check:admin-api-types": "node ./scripts/check-admin-api-types.mjs",
-    "lint": "npm run check:admin-api-types && eslint --max-warnings=0 ."
+    "lint": "npm run check:admin-api-types && eslint --max-warnings=0 .",
+    "test": "vitest run"
   },
   "dependencies": {
     "amazon-cognito-identity-js": "^6.3.16",
@@ -19,15 +20,21 @@
   "devDependencies": {
     "@eslint/compat": "^2.0.2",
     "@tailwindcss/postcss": "^4.2.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.3.0",
     "@types/react": "^19.2.14",
+    "@vitejs/plugin-react": "^5.1.4",
     "autoprefixer": "^10.4.24",
     "eslint": "^10.0.2",
     "eslint-config-next": "^16.1.6",
+    "jsdom": "^28.1.0",
     "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "overrides": {
     "typescript-eslint": "8.55.1-alpha.4",
