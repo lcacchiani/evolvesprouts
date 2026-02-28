@@ -45,8 +45,11 @@ export class CrmApiRequestError extends Error {
 }
 
 export const CRM_GET_CACHE_TTL_MS = 5 * 60 * 1000;
+export const CRM_GET_CACHE_MAX_ENTRIES = 100;
+const CRM_GET_CACHE_SWEEP_WRITE_INTERVAL = 25;
 
 const getRequestCache = new Map<string, CachedGetEntry>();
+let getCacheWriteCount = 0;
 const WWW_PROXY_ALLOWED_HOSTS_ENV_NAME = 'NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS';
 const CRM_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_WWW_CRM_API_BASE_URL';
 const WWW_API_PATH_PREFIX = '/www';
@@ -190,6 +193,40 @@ function buildGetCacheKey(apiKey: string, requestUrl: string): string {
   return `${apiKey}::${requestUrl}`;
 }
 
+function pruneExpiredGetCacheEntries(now: number): void {
+  for (const [cacheKey, cacheEntry] of getRequestCache.entries()) {
+    if (cacheEntry.expiresAt <= now) {
+      getRequestCache.delete(cacheKey);
+    }
+  }
+}
+
+function evictOldestGetCacheEntry(): void {
+  const oldestCacheEntry = getRequestCache.keys().next();
+  if (oldestCacheEntry.done) {
+    return;
+  }
+
+  getRequestCache.delete(oldestCacheEntry.value);
+}
+
+function setGetCacheEntry(cacheKey: string, payload: unknown): void {
+  const now = Date.now();
+  getRequestCache.set(cacheKey, {
+    payload,
+    expiresAt: now + CRM_GET_CACHE_TTL_MS,
+  });
+
+  getCacheWriteCount += 1;
+  if (getCacheWriteCount % CRM_GET_CACHE_SWEEP_WRITE_INTERVAL === 0) {
+    pruneExpiredGetCacheEntries(now);
+  }
+
+  while (getRequestCache.size > CRM_GET_CACHE_MAX_ENTRIES) {
+    evictOldestGetCacheEntry();
+  }
+}
+
 export function buildCrmApiUrl(baseUrl: string, endpointPath: string): string {
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
   const normalizedPath = normalizeEndpointPath(endpointPath);
@@ -220,6 +257,9 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
         const now = Date.now();
         const cachedEntry = getRequestCache.get(cacheKey);
         if (cachedEntry && cachedEntry.expiresAt > now) {
+          // Refresh insertion order so active keys remain in cache during eviction.
+          getRequestCache.delete(cacheKey);
+          getRequestCache.set(cacheKey, cachedEntry);
           return cachedEntry.payload;
         }
         if (cachedEntry) {
@@ -272,10 +312,7 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
       }
 
       if (method === 'GET') {
-        getRequestCache.set(cacheKey, {
-          payload,
-          expiresAt: Date.now() + CRM_GET_CACHE_TTL_MS,
-        });
+        setGetCacheEntry(cacheKey, payload);
       } else {
         getRequestCache.delete(cacheKey);
       }
@@ -297,5 +334,10 @@ export function isAbortRequestError(error: unknown): boolean {
 }
 
 export function clearCrmApiGetCacheForTests(): void {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('clearCrmApiGetCacheForTests() can only run in test mode.');
+  }
+
   getRequestCache.clear();
+  getCacheWriteCount = 0;
 }

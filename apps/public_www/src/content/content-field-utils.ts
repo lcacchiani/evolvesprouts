@@ -1,3 +1,5 @@
+type UnknownObject = { [key: string]: unknown };
+
 export function readOptionalText(value: unknown): string | undefined {
   if (typeof value !== 'string') {
     return undefined;
@@ -7,16 +9,20 @@ export function readOptionalText(value: unknown): string | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
-export function toRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+function isUnknownObject(value: unknown): value is UnknownObject {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+export function toRecord(value: unknown): UnknownObject | null {
+  if (!isUnknownObject(value)) {
     return null;
   }
 
-  return value as Record<string, unknown>;
+  return value;
 }
 
 export function readCandidateText(
-  record: Record<string, unknown>,
+  record: UnknownObject,
   keys: readonly string[],
 ): string | undefined {
   for (const key of keys) {

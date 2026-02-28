@@ -23,8 +23,10 @@ import {
 } from '@/components/sections/navbar/language-selector';
 import {
   DesktopMenuItems,
+} from '@/components/sections/navbar/desktop-menu-items';
+import {
   MobileMenuItems,
-} from '@/components/sections/navbar/menu-items';
+} from '@/components/sections/navbar/mobile-menu-items';
 import {
   type NavbarContent,
 } from '@/content';
@@ -100,6 +102,9 @@ export function Navbar({ content }: NavbarProps) {
   const localizedHomeHref = localizePath(ROUTES.home, currentLocale);
   const localizedBookNowHref = localizeHref(content.bookNow.href, currentLocale);
   const languageSelector = resolveLanguageSelectorContent(content);
+  const openNavigationMenuAriaLabel = content.openNavigationMenuAriaLabel.trim();
+  const closeNavigationMenuAriaLabel = content.closeNavigationMenuAriaLabel.trim();
+  const mobileNavigationMenuAriaLabel = content.mobileNavigationMenuAriaLabel.trim();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileMenuRendered, setIsMobileMenuRendered] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -280,11 +285,11 @@ export function Navbar({ content }: NavbarProps) {
               aria-controls='mobile-navigation-drawer'
               aria-expanded={isMobileMenuOpen}
               aria-haspopup='dialog'
-              aria-label='Open navigation menu'
+              aria-label={openNavigationMenuAriaLabel}
               onClick={openMobileMenu}
               className={NAV_OPEN_MENU_BUTTON_CLASSNAME}
             >
-              <span className='sr-only'>Open navigation menu</span>
+              <span className='sr-only'>{openNavigationMenuAriaLabel}</span>
               <span aria-hidden='true' className={NAV_HAMBURGER_ICON_CLASSNAME} />
             </ButtonPrimitive>
           </div>
@@ -294,7 +299,7 @@ export function Navbar({ content }: NavbarProps) {
         <div className='fixed inset-0 z-[60] lg:hidden'>
           <OverlayBackdrop
             tabIndex={-1}
-            ariaLabel='Close navigation menu'
+            ariaLabel={closeNavigationMenuAriaLabel}
             className={`absolute inset-0 bg-black/35 transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
             onClick={closeMobileMenu}
           />
@@ -304,7 +309,7 @@ export function Navbar({ content }: NavbarProps) {
             panelRef={mobileNavigationDrawerRef}
             role='dialog'
             aria-modal='true'
-            aria-label='Mobile navigation menu'
+            aria-label={mobileNavigationMenuAriaLabel}
             className={`${MOBILE_PANEL_WIDTH_CLASS} es-navbar-surface`}
           >
             <div className='flex items-center justify-between px-4 py-4'>
@@ -324,7 +329,7 @@ export function Navbar({ content }: NavbarProps) {
               <ButtonPrimitive
                 variant='icon'
                 buttonRef={mobileMenuCloseButtonRef}
-                aria-label='Close navigation menu'
+                aria-label={closeNavigationMenuAriaLabel}
                 onClick={closeMobileMenu}
                 className={NAV_CLOSE_MENU_BUTTON_CLASSNAME}
               >

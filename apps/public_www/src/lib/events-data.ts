@@ -14,6 +14,7 @@ export interface SortOption {
 
 type EventStatus = 'open' | 'fully_booked';
 type EventFilterValue = 'upcoming' | 'past';
+type SupportedLocale = 'en' | 'zh-CN' | 'zh-HK';
 
 export const EVENTS_API_PATH = '/v1/calendar/events';
 
@@ -32,25 +33,55 @@ export interface EventCardData {
   timestamp: number | null;
 }
 
-const UTC_MONTH_NAMES = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-] as const;
-
 const DEFAULT_SORT_OPTIONS: readonly SortOption[] = [
   { value: 'upcoming', label: 'Upcoming Events' },
   { value: 'past', label: 'Past Events' },
 ];
+
+const DATE_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
+const TIME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
+
+function resolveEventsLocale(locale?: string): SupportedLocale {
+  if (locale === 'zh-CN' || locale === 'zh-HK') {
+    return locale;
+  }
+
+  return 'en';
+}
+
+function getDateFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
+  const formatterKey = locale;
+  const cachedFormatter = DATE_FORMATTER_CACHE.get(formatterKey);
+  if (cachedFormatter) {
+    return cachedFormatter;
+  }
+
+  const nextFormatter = new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+  DATE_FORMATTER_CACHE.set(formatterKey, nextFormatter);
+  return nextFormatter;
+}
+
+function getTimeFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
+  const formatterKey = locale;
+  const cachedFormatter = TIME_FORMATTER_CACHE.get(formatterKey);
+  if (cachedFormatter) {
+    return cachedFormatter;
+  }
+
+  const nextFormatter = new Intl.DateTimeFormat(locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'UTC',
+  });
+  TIME_FORMATTER_CACHE.set(formatterKey, nextFormatter);
+  return nextFormatter;
+}
 
 function sanitizeExternalHref(value: string | undefined): string {
   const href = readOptionalText(value);
@@ -75,34 +106,28 @@ function parseTimestamp(value: string | undefined): number | null {
   return parsedTimestamp;
 }
 
-function formatUtcDateLabel(isoDateTime: string): string {
+function formatUtcDateLabel(isoDateTime: string, locale: SupportedLocale): string {
   const date = new Date(isoDateTime);
   if (Number.isNaN(date.getTime())) {
     return '';
   }
 
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const monthName = UTC_MONTH_NAMES[date.getUTCMonth()] ?? '';
-  const year = date.getUTCFullYear();
-
-  return `${day} ${monthName} ${year}`;
+  return getDateFormatter(locale).format(date);
 }
 
-function formatUtcTimeLabel(isoDateTime: string): string {
+function formatUtcTimeLabel(isoDateTime: string, locale: SupportedLocale): string {
   const date = new Date(isoDateTime);
   if (Number.isNaN(date.getTime())) {
     return '';
   }
 
-  const rawHours = date.getUTCHours();
-  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-  const period = rawHours >= 12 ? 'PM' : 'AM';
-  const hours = rawHours % 12 || 12;
-
-  return `${hours}:${minutes} ${period}`;
+  return getTimeFormatter(locale).format(date);
 }
 
-function resolveDateTimeDetails(record: Record<string, unknown>): {
+function resolveDateTimeDetails(
+  record: Record<string, unknown>,
+  locale: SupportedLocale,
+): {
   dateLabel?: string;
   timeLabel?: string;
   timestamp: number | null;
@@ -131,9 +156,9 @@ function resolveDateTimeDetails(record: Record<string, unknown>): {
     return { timestamp: null };
   }
 
-  const dateLabel = formatUtcDateLabel(startDateTime);
-  const startTimeLabel = formatUtcTimeLabel(startDateTime);
-  const endTimeLabel = endDateTime ? formatUtcTimeLabel(endDateTime) : '';
+  const dateLabel = formatUtcDateLabel(startDateTime, locale);
+  const startTimeLabel = formatUtcTimeLabel(startDateTime, locale);
+  const endTimeLabel = endDateTime ? formatUtcTimeLabel(endDateTime, locale) : '';
   const timeLabel =
     startTimeLabel && endTimeLabel
       ? `${startTimeLabel} - ${endTimeLabel}`
@@ -343,6 +368,7 @@ function normalizeEventCard(
   value: unknown,
   index: number,
   content: EventsContent,
+  locale: SupportedLocale,
 ): EventCardData | null {
   const record = toRecord(value);
   if (!record) {
@@ -354,7 +380,7 @@ function normalizeEventCard(
     return null;
   }
 
-  const dateTimeDetails = resolveDateTimeDetails(record);
+  const dateTimeDetails = resolveDateTimeDetails(record, locale);
   const summary = readCandidateText(record, [
     'summary',
     'description',
@@ -446,11 +472,13 @@ function normalizeEventCard(
 export function normalizeEvents(
   payload: unknown,
   content: EventsContent,
+  locale?: string,
 ): EventCardData[] {
   const eventsArray = findEventsArray(payload);
+  const normalizedLocale = resolveEventsLocale(locale);
 
   return eventsArray
-    .map((item, index) => normalizeEventCard(item, index, content))
+    .map((item, index) => normalizeEventCard(item, index, content, normalizedLocale))
     .filter((item): item is EventCardData => item !== null);
 }
 

@@ -1,15 +1,10 @@
-import Image from 'next/image';
-
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
-import {
-  buildSectionSplitLayoutClassName,
-  SectionContainer,
-} from '@/components/sections/shared/section-container';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { FreeResourcesOverlayLayout } from '@/components/sections/free-resources-overlay-layout';
+import { FreeResourcesSplitLayout } from '@/components/sections/free-resources-split-layout';
 import {
-  readCandidateText,
-  readCandidateTextFromUnknown,
   readOptionalText,
   readStringUnion,
   toRecord,
@@ -48,53 +43,30 @@ const HEADER_ALIGNMENT_VALUES = ['left', 'center'] as const;
 const LAYOUT_VARIANT_VALUES = ['split', 'overlay'] as const;
 const HORIZONTAL_POSITION_VALUES = ['left', 'right'] as const;
 
-const RESOURCE_IMAGE_SRC = '/images/family.webp';
 const GREEN_ACCENT = 'var(--es-color-accent-green, #5D9D49)';
 
 function readSectionConfig(
-  customContent: Record<string, unknown>,
+  content: ResourcesContent,
 ): ResourceSectionConfig {
-  const headerAlignmentValue =
-    readCandidateTextFromUnknown(customContent.sectionConfig, [
-      'headerAlignment',
-      'headingAlignment',
-      'titleAlignment',
-    ]) ??
-    readCandidateText(customContent, [
-      'headerAlignment',
-      'headingAlignment',
-      'titleAlignment',
-    ]);
-  const layoutVariantValue =
-    readCandidateTextFromUnknown(customContent.sectionConfig, [
-      'layoutVariant',
-      'layout',
-    ]) ??
-    readCandidateText(customContent, ['layoutVariant', 'layout']);
-  const imagePositionValue =
-    readCandidateTextFromUnknown(customContent.sectionConfig, [
-      'imagePosition',
-      'mediaPosition',
-    ]) ??
-    readCandidateText(customContent, ['imagePosition', 'mediaPosition']);
-  const cardPositionValue =
-    readCandidateTextFromUnknown(customContent.sectionConfig, [
-      'cardPosition',
-      'textCardPosition',
-    ]) ??
-    readCandidateText(customContent, ['cardPosition', 'textCardPosition']);
+  const sectionConfig = content.sectionConfig;
 
   return {
     headerAlignment: readStringUnion(
-      headerAlignmentValue,
+      sectionConfig?.headerAlignment,
       HEADER_ALIGNMENT_VALUES,
     ),
-    layoutVariant: readStringUnion(layoutVariantValue, LAYOUT_VARIANT_VALUES),
+    layoutVariant: readStringUnion(
+      sectionConfig?.layoutVariant,
+      LAYOUT_VARIANT_VALUES,
+    ),
     imagePosition: readStringUnion(
-      imagePositionValue,
+      sectionConfig?.imagePosition,
       HORIZONTAL_POSITION_VALUES,
     ),
-    cardPosition: readStringUnion(cardPositionValue, HORIZONTAL_POSITION_VALUES),
+    cardPosition: readStringUnion(
+      sectionConfig?.cardPosition,
+      HORIZONTAL_POSITION_VALUES,
+    ),
   };
 }
 
@@ -259,26 +231,20 @@ function ResourceCardContent({
 export function FreeResourcesForGentleParenting({
   content,
 }: FreeResourcesForGentleParentingProps) {
-  const customContent = content as Record<string, unknown>;
-  const sectionConfig = readSectionConfig(customContent);
-  const eyebrowLabel =
-    readOptionalText(customContent.eyebrow) ?? content.title;
-  const cardTitle =
-    readOptionalText(customContent.cardTitle) ?? content.title;
+  const sectionConfig = readSectionConfig(content);
+  const eyebrowLabel = readOptionalText(content.eyebrow) ?? content.title;
+  const cardTitle = readOptionalText(content.cardTitle) ?? content.title;
   const cardDescription =
-    readOptionalText(customContent.cardDescription) ??
+    readOptionalText(content.cardDescription) ??
     content.description;
-  const ctaLabel =
-    readOptionalText(customContent.ctaLabel) ??
-    `${content.title} PDF`;
-  const ctaHref =
-    readOptionalText(customContent.ctaHref) ?? '#resources';
+  const ctaLabel = readOptionalText(content.ctaLabel) ?? `${content.title} PDF`;
+  const ctaHref = readOptionalText(content.ctaHref) ?? '#resources';
   const checklistItems = resolveChecklistItems(content.items);
   const mediaTitleLine1 =
-    readOptionalText(customContent.mediaTitleLine1) ??
+    readOptionalText(content.mediaTitleLine1) ??
     'Teach Patience';
   const mediaTitleLine2 =
-    readOptionalText(customContent.mediaTitleLine2) ??
+    readOptionalText(content.mediaTitleLine2) ??
     'to Young Children';
   const mediaAltText = `${mediaTitleLine1} ${mediaTitleLine2}`;
 
@@ -297,6 +263,15 @@ export function FreeResourcesForGentleParenting({
       : 'es-free-resources-media-pane--bleed-left';
   const overlayCardAlignmentClassName =
     overlayCardPosition === 'left' ? 'justify-start' : 'justify-end';
+  const cardContent = (
+    <ResourceCardContent
+      cardTitle={cardTitle}
+      cardDescription={cardDescription}
+      checklistItems={checklistItems}
+      ctaLabel={ctaLabel}
+      ctaHref={ctaHref}
+    />
+  );
 
   return (
     <SectionShell
@@ -316,99 +291,22 @@ export function FreeResourcesForGentleParenting({
         <div className='mt-10 sm:mt-12 lg:mt-14'>
           <div className='overflow-hidden rounded-panel'>
             {isOverlayLayout ? (
-              <div
-                data-testid='free-resource-layout'
-                data-layout='overlay'
-                className='relative overflow-hidden rounded-2xl border border-black/5 es-free-resources-pattern-bg'
-              >
-                <div
-                  className='relative min-h-[465px] overflow-hidden sm:min-h-[525px] lg:min-h-[555px]'
-                  data-testid='free-resource-media-pane'
-                >
-                  <Image
-                    src={RESOURCE_IMAGE_SRC}
-                    alt={mediaAltText}
-                    fill
-                    className='object-cover'
-                    sizes='100vw'
-                  />
-
-                  <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
-                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
-                      <p className='whitespace-nowrap es-free-resources-media-pill-text'>
-                        {mediaTitleLine1}
-                      </p>
-                    </div>
-                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
-                      <p className='whitespace-nowrap es-free-resources-media-pill-text'>
-                        {mediaTitleLine2}
-                      </p>
-                    </div>
-                  </div>
-
-                </div>
-
-                <div
-                  data-testid='free-resource-overlay-card-wrapper'
-                  className={`absolute inset-4 z-20 flex items-start sm:inset-6 lg:inset-8 ${overlayCardAlignmentClassName}`}
-                >
-                  <article
-                    className='relative flex w-full max-w-[530px] min-h-[420px] flex-col overflow-hidden rounded-2xl p-6 sm:min-h-[460px] sm:p-8'
-                  >
-                    <ResourceCardContent
-                      cardTitle={cardTitle}
-                      cardDescription={cardDescription}
-                      checklistItems={checklistItems}
-                      ctaLabel={ctaLabel}
-                      ctaHref={ctaHref}
-                    />
-                  </article>
-                </div>
-              </div>
+              <FreeResourcesOverlayLayout
+                mediaAltText={mediaAltText}
+                mediaTitleLine1={mediaTitleLine1}
+                mediaTitleLine2={mediaTitleLine2}
+                overlayCardAlignmentClassName={overlayCardAlignmentClassName}
+                cardContent={cardContent}
+              />
             ) : (
-              <div
-                data-testid='free-resource-layout'
-                data-layout='split'
-                className={buildSectionSplitLayoutClassName(
-                  'es-section-split-layout--free-resources overflow-hidden rounded-2xl border border-black/5 es-free-resources-pattern-bg',
-                )}
-              >
-                <div
-                  data-testid='free-resource-text-pane'
-                  className={`relative z-10 p-4 sm:p-6 lg:p-[35px] ${splitTextPaneOrderClassName}`}
-                >
-                  <article
-                    className='relative flex h-full min-h-[278px] flex-col overflow-hidden rounded-2xl p-6 sm:min-h-[330px] sm:p-8 lg:min-h-[387px]'
-                  >
-                    <ResourceCardContent
-                      cardTitle={cardTitle}
-                      cardDescription={cardDescription}
-                      checklistItems={checklistItems}
-                      ctaLabel={ctaLabel}
-                      ctaHref={ctaHref}
-                    />
-                  </article>
-                </div>
-
-                <div
-                  data-testid='free-resource-media-pane'
-                  className={`es-free-resources-media-pane ${splitMediaBleedClassName} relative z-0 min-h-[210px] overflow-visible sm:min-h-[278px] lg:min-h-[440px] ${splitMediaPaneOrderClassName}`}
-                >
-                  <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
-                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
-                      <p className='whitespace-nowrap es-free-resources-media-pill-text'>
-                        {mediaTitleLine1}
-                      </p>
-                    </div>
-                    <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
-                      <p className='whitespace-nowrap es-free-resources-media-pill-text'>
-                        {mediaTitleLine2}
-                      </p>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
+              <FreeResourcesSplitLayout
+                mediaTitleLine1={mediaTitleLine1}
+                mediaTitleLine2={mediaTitleLine2}
+                splitTextPaneOrderClassName={splitTextPaneOrderClassName}
+                splitMediaPaneOrderClassName={splitMediaPaneOrderClassName}
+                splitMediaBleedClassName={splitMediaBleedClassName}
+                cardContent={cardContent}
+              />
             )}
           </div>
         </div>

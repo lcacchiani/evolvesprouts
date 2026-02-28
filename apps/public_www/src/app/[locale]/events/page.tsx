@@ -26,6 +26,7 @@ export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale
 const EVENTS_FETCH_TIMEOUT_MS = 5000;
 
 async function resolveServerSideEvents(
+  locale: string,
   content: SiteContent,
 ): Promise<EventCardData[]> {
   const crmApiClient = createPublicCrmApiClient();
@@ -40,12 +41,13 @@ async function resolveServerSideEvents(
 
   try {
     const payload = await fetchEventsPayload(crmApiClient, controller.signal);
-    return normalizeEvents(payload, content.events);
+    return normalizeEvents(payload, content.events, locale);
   } catch (error) {
     if (isAbortRequestError(error)) {
       return [];
     }
 
+    console.error('[events] Failed to fetch events payload.', error);
     return [];
   } finally {
     clearTimeout(timeout);
@@ -72,7 +74,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
 export default async function EventsPage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const pageTitle = getMenuLabel(content, ROUTES.events, 'Events');
-  const eventsForSchema = await resolveServerSideEvents(content);
+  const eventsForSchema = await resolveServerSideEvents(locale, content);
 
   return (
     <>

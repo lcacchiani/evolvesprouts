@@ -220,39 +220,41 @@ export function LanguageSelectorButton({
           />
         </span>
       </ButtonPrimitive>
-      <ul
+      <div
         id={languageMenuId}
         role='menu'
         aria-label={languageSelector.menuAriaLabel}
         aria-hidden={!isMenuOpen}
         className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} top-[calc(100%+0.5rem)] z-[70] min-w-[153px] space-y-1 rounded-xl bg-white p-2 shadow-xl transition-opacity duration-200 ease-out ${isBorderlessMenu ? '' : 'border border-black/10'} ${isMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
       >
-        {languageSelector.options.map((option) => {
-          const isCurrent = option.locale === currentLocale;
-          return (
-            <li key={option.locale}>
-              <Link
-                role='menuitem'
-                href={localizePath(currentPathname, option.locale)}
-                className={buildLanguageOptionClassName(isCurrent)}
-                onClick={() => {
-                  closeMenu();
-                }}
-                tabIndex={isMenuOpen ? undefined : -1}
-              >
-                <Image
-                  src={option.flagSrc}
-                  alt={`${option.label} flag`}
-                  width={22}
-                  height={22}
-                  className='h-[22px] w-[22px] rounded-full object-cover'
-                />
-                <span>{option.label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+        <ul>
+          {languageSelector.options.map((option) => {
+            const isCurrent = option.locale === currentLocale;
+            return (
+              <li key={option.locale}>
+                <Link
+                  role='menuitem'
+                  href={localizePath(currentPathname, option.locale)}
+                  className={buildLanguageOptionClassName(isCurrent)}
+                  onClick={() => {
+                    closeMenu();
+                  }}
+                  tabIndex={isMenuOpen ? undefined : -1}
+                >
+                  <Image
+                    src={option.flagSrc}
+                    alt={`${option.label} flag`}
+                    width={22}
+                    height={22}
+                    className='h-[22px] w-[22px] rounded-full object-cover'
+                  />
+                  <span>{option.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 }

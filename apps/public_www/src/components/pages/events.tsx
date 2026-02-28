@@ -13,7 +13,7 @@ export function EventsPageSections({ content }: EventsPageSectionsProps) {
       navbarContent={content.navbar}
       footerContent={content.footer}
     >
-      <Events content={content.events} />
+      <Events content={content.events} locale={content.meta.locale} />
       <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
     </PageLayout>
   );

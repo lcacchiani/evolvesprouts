@@ -88,7 +88,7 @@ describe('events-data', () => {
     expect(events[0]).toMatchObject({
       title: 'TEST Creative Writing Masterclass',
       status: 'fully_booked',
-      dateLabel: '05 Dec 2025',
+      dateLabel: 'Dec 05, 2025',
       timeLabel: '10:00 AM - 1:00 PM',
       locationName:
         'H210, 2/F, PMQ, Mid-Levels, Central and Western, Hong Kong Island',
@@ -108,7 +108,7 @@ describe('events-data', () => {
     expect(events[1]).toMatchObject({
       title: 'TEST Data Science Intensive Touch',
       status: 'open',
-      dateLabel: '15 Dec 2025',
+      dateLabel: 'Dec 15, 2025',
       timeLabel: '9:00 AM - 12:00 PM',
       locationName: 'Virtual Meeting',
       ctaHref: 'https://meet.example.com/data-science',
@@ -120,6 +120,28 @@ describe('events-data', () => {
       'TEST In-Person',
       'TEST Workshop Category',
     ]);
+  });
+
+  it('formats event dates and times using locale-aware labels', () => {
+    const payload = {
+      data: [
+        {
+          title: 'Locale-aware event',
+          dates: [
+            {
+              start_datetime: '2025-12-05T10:00:00Z',
+              end_datetime: '2025-12-05T13:00:00Z',
+            },
+          ],
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events, 'zh-HK');
+    expect(events[0]).toMatchObject({
+      dateLabel: '2025年12月05日',
+      timeLabel: '上午10:00 - 下午1:00',
+    });
   });
 
   it('resolves dropdown options to upcoming and past only', () => {

@@ -19,7 +19,7 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
-import type { MyBestAuntieBookingContent } from '@/content';
+import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
   extractTimeRangeFromPartDate,
 } from '@/components/sections/booking-modal/helpers';
@@ -39,6 +39,7 @@ export interface ReservationSummary {
 }
 
 interface MyBestAuntieBookingModalProps {
+  locale?: Locale;
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
   selectedAgeGroupLabel?: string;
@@ -49,6 +50,7 @@ interface MyBestAuntieBookingModalProps {
 }
 
 export function MyBestAuntieBookingModal({
+  locale = 'en',
   content,
   selectedCohort,
   selectedAgeGroupLabel = '',
@@ -109,6 +111,7 @@ export function MyBestAuntieBookingModal({
         <OverlayScrollableBody className='pb-5 sm:pb-8'>
           <div className='relative z-10 flex flex-col gap-8 pb-9 lg:flex-row lg:gap-10 lg:pb-[72px]'>
             <BookingEventDetails
+              locale={locale}
               headingId={dialogTitleId}
               content={content}
               activePartRows={activePartRows}
@@ -120,6 +123,7 @@ export function MyBestAuntieBookingModal({
               learnMoreHref={learnMoreHref}
             />
             <BookingReservationForm
+              locale={locale}
               content={content}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
               selectedCohortDateLabel={selectedCohortDateLabel}

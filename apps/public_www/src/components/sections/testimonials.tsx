@@ -154,27 +154,10 @@ export function Testimonials({ content }: TestimonialsProps) {
     swipeThresholdPx: SWIPE_THRESHOLD_PX,
   });
   const activeStory = storiesToRender[activeIndex];
-  const testimonialsRecord = content as Record<string, unknown>;
-  const badgeLabel =
-    readCandidateText(testimonialsRecord, [
-      'badgeLabel',
-      'badge',
-      'eyebrow',
-      'label',
-    ]) ?? content.title;
+  const badgeLabel = content.badgeLabel.trim() || content.title;
   const descriptionText = content.description.trim();
-  const previousButtonLabel =
-    readCandidateText(testimonialsRecord, [
-      'previousButtonLabel',
-      'previousAriaLabel',
-      'previousLabel',
-    ]) ?? 'Previous testimonial';
-  const nextButtonLabel =
-    readCandidateText(testimonialsRecord, [
-      'nextButtonLabel',
-      'nextAriaLabel',
-      'nextLabel',
-    ]) ?? 'Next testimonial';
+  const previousButtonLabel = content.previousButtonLabel.trim();
+  const nextButtonLabel = content.nextButtonLabel.trim();
 
   return (
     <SectionShell

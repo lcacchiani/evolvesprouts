@@ -54,6 +54,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
   minScrollStepPx = DEFAULT_MIN_SCROLL_STEP_PX,
 }: UseHorizontalCarouselOptions): UseHorizontalCarouselResult<T> {
   const carouselRef = useRef<T | null>(null);
+  const rafIdRef = useRef<number | null>(null);
   const hasNavigation = itemCount > minItemsForNavigation;
   const [canScrollPrevious, setCanScrollPrevious] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(hasNavigation);
@@ -126,7 +127,12 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       });
 
       if (typeof window !== 'undefined') {
-        window.requestAnimationFrame(() => {
+        if (rafIdRef.current !== null) {
+          window.cancelAnimationFrame(rafIdRef.current);
+        }
+
+        rafIdRef.current = window.requestAnimationFrame(() => {
+          rafIdRef.current = null;
           updateNavigationState();
         });
       }
@@ -140,7 +146,11 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       return;
     }
 
-    const frameId = window.requestAnimationFrame(() => {
+    if (rafIdRef.current !== null) {
+      window.cancelAnimationFrame(rafIdRef.current);
+    }
+    rafIdRef.current = window.requestAnimationFrame(() => {
+      rafIdRef.current = null;
       updateNavigationState();
     });
 
@@ -152,7 +162,10 @@ export function useHorizontalCarousel<T extends HTMLElement>({
     window.addEventListener('resize', handleScroll);
 
     return () => {
-      window.cancelAnimationFrame(frameId);
+      if (rafIdRef.current !== null) {
+        window.cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
       carouselElement.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };

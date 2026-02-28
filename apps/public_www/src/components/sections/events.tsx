@@ -22,6 +22,7 @@ import {
 
 interface EventsProps {
   content: EventsContent;
+  locale?: string;
 }
 
 interface LoadingGearIconProps {
@@ -75,7 +76,7 @@ function LoadingGearIcon({ className }: LoadingGearIconProps) {
   );
 }
 
-export function Events({ content }: EventsProps) {
+export function Events({ content, locale = 'en' }: EventsProps) {
   const sortOptions = useMemo(() => resolveSortOptions(content), [content]);
   const defaultSortOptionValue = sortOptions[0]?.value ?? 'upcoming';
   const [activeFilter, setActiveFilter] = useState<string>(defaultSortOptionValue);
@@ -105,7 +106,7 @@ export function Events({ content }: EventsProps) {
 
     fetchEventsPayload(crmApiClient, controller.signal)
       .then((payload) => {
-        const normalizedEvents = normalizeEvents(payload, content);
+        const normalizedEvents = normalizeEvents(payload, content, locale);
         setEvents(normalizedEvents);
       })
       .catch((error) => {
@@ -125,7 +126,7 @@ export function Events({ content }: EventsProps) {
     return () => {
       controller.abort();
     };
-  }, [content]);
+  }, [content, locale]);
 
   const visibleEvents = useMemo(() => {
     return sortEvents(events, activeFilter);

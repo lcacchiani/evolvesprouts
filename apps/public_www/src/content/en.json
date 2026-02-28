@@ -66,7 +66,10 @@
           "flagSrc": "/images/flags/hong-kong.svg"
         }
       ]
-    }
+    },
+    "openNavigationMenuAriaLabel": "Open navigation menu",
+    "closeNavigationMenuAriaLabel": "Close navigation menu",
+    "mobileNavigationMenuAriaLabel": "Mobile navigation menu"
   },
   "hero": {
     "headline": "Transform Auntie Into Your Child’s Montessori Ally",
@@ -413,6 +416,9 @@
       "applyDiscountLabel": "Apply",
       "invalidDiscountLabel": "Invalid discount code",
       "discountAppliedLabel": "Discount applied",
+      "priceBreakdownPriceLabel": "Price",
+      "priceBreakdownDiscountLabel": "Discount",
+      "priceBreakdownConfirmedPriceLabel": "Confirmed Price",
       "pendingReservationAcknowledgementLabel": "I understand that my reservation is pending until payment is confirmed",
       "termsAgreementLabel": "I agree with this",
       "termsLinkLabel": "Terms & Conditions",
@@ -421,7 +427,9 @@
       "captchaLabel": "Please complete CAPTCHA verification",
       "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
-      "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later."
+      "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
+      "emailValidationError": "Please enter a valid email address.",
+      "submitErrorMessage": "Unable to submit reservation right now. Please try again."
     },
     "thankYouModal": {
       "closeLabel": "Close",
@@ -483,7 +491,9 @@
         "ctaLabel": "Ask About Coaching",
         "ctaHref": "/contact-us"
       }
-    ]
+    ],
+    "previousButtonAriaLabel": "Previous highlight cards",
+    "nextButtonAriaLabel": "Next highlight cards"
   },
   "resources": {
     "eyebrow": "Our Resources",
@@ -553,7 +563,9 @@
         "title": "Alignment Is Non-Negotiable",
         "description": "When parents and aunties are misaligned, children suffer. We work with both — so guidance is consistent, fair, and predictable."
       }
-    ]
+    ],
+    "scrollLeftAriaLabel": "Scroll course highlights left",
+    "scrollRightAriaLabel": "Scroll course highlights right"
   },
   "testimonials": {
     "title": "Real Stories from Parents in Hong Kong",
@@ -652,7 +664,9 @@
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
       "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
       "subject": "Website Contact Form",
-      "requiredHint": "* Required fields"
+      "requiredHint": "* Required fields",
+      "emailValidationError": "Please enter a valid email address.",
+      "phoneValidationError": "Please enter a valid phone number."
     },
     "reachOut": {
       "eyebrow": "Why Us",
@@ -1001,7 +1015,8 @@
           "enrolment"
         ]
       }
-    ]
+    ],
+    "contactCardCtaLabel": "Contact Us"
   },
   "sproutsSquadCommunity": {
     "heading": "Join our Sprouts Squad community!",

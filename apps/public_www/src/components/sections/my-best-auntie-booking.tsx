@@ -407,6 +407,7 @@ export function MyBestAuntieBooking({
 
       {isPaymentModalOpen && (
         <MyBestAuntieBookingModal
+          locale={locale}
           content={content.paymentModal}
           selectedCohort={selectedCohort}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}

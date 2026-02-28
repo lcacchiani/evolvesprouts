@@ -3,12 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CrmApiRequestError,
   CRM_GET_CACHE_TTL_MS,
+  CRM_GET_CACHE_MAX_ENTRIES,
   buildCrmApiUrl,
   clearCrmApiGetCacheForTests,
   createCrmApiClient,
 } from '@/lib/crm-api-client';
 
 afterEach(() => {
+  vi.stubEnv('NODE_ENV', 'test');
   clearCrmApiGetCacheForTests();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -178,6 +180,44 @@ describe('crm-api-client', () => {
     expect(refreshedResponse).toEqual({ data: ['second'] });
   });
 
+  it('evicts oldest GET cache entries after reaching max size', async () => {
+    const fetchSpy = vi.fn(async (requestUrl: string) => {
+      return new Response(JSON.stringify({ requestUrl }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const client = createCrmApiClient({
+      baseUrl: 'https://api.evolvesprouts.com/www',
+      apiKey: 'public-key',
+    });
+    if (!client) {
+      throw new Error('Expected CRM API client to be configured');
+    }
+
+    for (let index = 0; index <= CRM_GET_CACHE_MAX_ENTRIES; index += 1) {
+      await client.request({
+        endpointPath: `/v1/events/${index}`,
+        method: 'GET',
+      });
+    }
+
+    expect(fetchSpy).toHaveBeenCalledTimes(CRM_GET_CACHE_MAX_ENTRIES + 1);
+
+    await client.request({
+      endpointPath: '/v1/events/0',
+      method: 'GET',
+    });
+    await client.request({
+      endpointPath: `/v1/events/${CRM_GET_CACHE_MAX_ENTRIES}`,
+      method: 'GET',
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(CRM_GET_CACHE_MAX_ENTRIES + 2);
+  });
+
   it('sends JSON bodies for POST and PUT requests', async () => {
     const fetchSpy = vi.fn();
     fetchSpy.mockResolvedValueOnce(
@@ -268,5 +308,12 @@ describe('crm-api-client', () => {
         expectedSuccessStatuses: [200, 202],
       }),
     ).rejects.toBeInstanceOf(CrmApiRequestError);
+  });
+
+  it('rejects cache clear helper outside test environment', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    expect(() => clearCrmApiGetCacheForTests()).toThrow(
+      'clearCrmApiGetCacheForTests() can only run in test mode.',
+    );
   });
 });

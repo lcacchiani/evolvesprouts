@@ -13,7 +13,12 @@ const eslintConfig = [
   {
     files: ['**/*.{ts,tsx,js,jsx,mjs,cjs}'],
     rules: {
+      'jsx-a11y/click-events-have-key-events': 'error',
+      'jsx-a11y/no-noninteractive-element-interactions': 'error',
+      'jsx-a11y/no-noninteractive-element-to-interactive-role': 'error',
       'react/no-danger': 'error',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'error',
       'no-restricted-imports': [
         'error',
         {
@@ -40,11 +45,15 @@ const eslintConfig = [
           selector: "TSTypeReference[typeName.right.name='CSSProperties']",
           message: 'React.CSSProperties is not allowed. Move styling to CSS files.',
         },
+        {
+          selector: 'TSAnyKeyword',
+          message: 'Explicit `any` is not allowed. Use a specific type.',
+        },
       ],
     },
   },
   {
-    ignores: ['node_modules/**', 'e2e/**', 'playwright.config.ts'],
+    ignores: ['node_modules/**'],
   },
 ];
 

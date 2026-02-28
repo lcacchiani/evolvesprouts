@@ -1,6 +1,12 @@
 'use client';
 
-import { type MouseEvent, useCallback, useRef, useState } from 'react';
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  useCallback,
+  useRef,
+  useState,
+} from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -23,7 +29,7 @@ export interface CourseHighlightCardProps {
 }
 
 const INTERACTIVE_ELEMENT_SELECTOR =
-  'button, a, input, select, textarea, [role="button"]';
+  'button, a, input, select, textarea';
 
 function isDesktopHoverMode(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -43,7 +49,7 @@ export function CourseHighlightCard({
   tone,
 }: CourseHighlightCardProps) {
   const [isActive, setIsActive] = useState(false);
-  const articleRef = useRef<HTMLElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const toneClassMap: Record<CourseHighlightCardTone, string> = {
     gold: 'es-course-highlight-card--gold',
     green: 'es-course-highlight-card--green',
@@ -56,7 +62,7 @@ export function CourseHighlightCard({
   }, []);
 
   useOutsideClickClose({
-    ref: articleRef,
+    ref: cardRef,
     onOutsideClick: handleDismiss,
     isActive,
   });
@@ -81,6 +87,27 @@ export function CourseHighlightCard({
     [],
   );
 
+  const handleCardSurfaceKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLElement>) => {
+      const keyTarget = event.target as HTMLElement | null;
+      if (keyTarget?.closest(INTERACTIVE_ELEMENT_SELECTOR)) {
+        return;
+      }
+
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+
+      if (isDesktopHoverMode()) {
+        return;
+      }
+
+      event.preventDefault();
+      setIsActive((prev) => !prev);
+    },
+    [],
+  );
+
   // Build conditional class fragments for the active (tapped) state.
   // Pointer hover continues to work independently via group-hover:*.
   const overlayActive = isActive
@@ -94,9 +121,13 @@ export function CourseHighlightCard({
     : 'opacity-0 transition-none';
 
   return (
-    <article
-      ref={articleRef}
+    <div
+      ref={cardRef}
+      role='button'
+      tabIndex={0}
+      aria-expanded={isActive}
       onClick={handleCardSurfaceClick}
+      onKeyDown={handleCardSurfaceKeyDown}
       className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-card p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8 ${toneClassName}`}
     >
       {/* Dark overlay — activated by pointer hover or tap */}
@@ -163,6 +194,6 @@ export function CourseHighlightCard({
           )}
         </div>
       </div>
-    </article>
+    </div>
   );
 }
