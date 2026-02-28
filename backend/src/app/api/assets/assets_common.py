@@ -182,12 +182,51 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def parse_update_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
-    """Parse and validate update asset request payload.
-
-    For now, update requires the same metadata fields as create to keep request
-    handling deterministic and avoid partial-update ambiguity.
-    """
+    """Parse and validate full update asset request payload."""
     return parse_create_asset_payload(event)
+
+
+def parse_partial_update_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
+    """Parse and validate partial update payload for PATCH requests."""
+    body = parse_body(event)
+    payload: dict[str, Any] = {}
+
+    if _has_any_field(body, "title"):
+        payload["title"] = _required_text(body, "title", max_length=255)
+    if _has_any_field(body, "description"):
+        payload["description"] = _optional_text(body, "description", max_length=5000)
+    if _has_any_field(body, "file_name", "fileName"):
+        payload["file_name"] = _required_text(
+            body,
+            "file_name",
+            "fileName",
+            max_length=_MAX_FILE_NAME_LENGTH,
+        )
+    if _has_any_field(body, "asset_type", "assetType"):
+        asset_type_raw = _optional_field(body, "asset_type", "assetType")
+        if not asset_type_raw:
+            raise ValidationError("asset_type is required", field="asset_type")
+        payload["asset_type"] = parse_asset_type(asset_type_raw)
+    if _has_any_field(body, "content_type", "contentType"):
+        payload["content_type"] = _optional_text(
+            body,
+            "content_type",
+            "contentType",
+            max_length=_MAX_MIME_TYPE_LENGTH,
+        )
+    if _has_any_field(body, "visibility"):
+        visibility_raw = _optional_field(body, "visibility")
+        if not visibility_raw:
+            raise ValidationError("visibility is required", field="visibility")
+        payload["visibility"] = parse_asset_visibility(visibility_raw)
+
+    if not payload:
+        raise ValidationError(
+            "At least one updatable field is required",
+            field="body",
+        )
+
+    return payload
 
 
 def parse_grant_payload(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -422,6 +461,10 @@ def _optional_field(body: Mapping[str, Any], *keys: str) -> Any:
         if key in body:
             return body.get(key)
     return None
+
+
+def _has_any_field(body: Mapping[str, Any], *keys: str) -> bool:
+    return any(key in body for key in keys)
 
 
 def _to_optional_string(value: Any) -> str | None:

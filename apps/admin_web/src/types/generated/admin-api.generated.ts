@@ -220,7 +220,37 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
+        /** Partially update admin asset */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Asset identifier. */
+                    id: components["parameters"]["AssetId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PartialUpdateAssetRequest"];
+                };
+            };
+            responses: {
+                /** @description Asset update response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssetResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         trace?: never;
     };
     "/v1/admin/assets/{id}/grants": {
@@ -674,6 +704,16 @@ export interface components {
             visibility: "public" | "restricted";
         };
         UpdateAssetRequest: components["schemas"]["CreateAssetRequest"];
+        PartialUpdateAssetRequest: {
+            title?: string;
+            description?: string | null;
+            /** @enum {string} */
+            asset_type?: "guide" | "video" | "pdf" | "document";
+            file_name?: string;
+            content_type?: string | null;
+            /** @enum {string} */
+            visibility?: "public" | "restricted";
+        };
         CreateAssetResponse: {
             asset: components["schemas"]["Asset"];
             /** Format: uri */

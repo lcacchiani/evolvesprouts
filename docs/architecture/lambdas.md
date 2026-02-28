@@ -32,7 +32,8 @@ their primary responsibilities.
 - Purpose: asset metadata CRUD, grant management, stable share-link lifecycle
   (read/create/rotate/revoke + domain allowlist policy), share-link source-domain
   enforcement, conditional JWT authentication for restricted share-link
-  resolutions, and signed upload/download URL generation in
+  resolutions, PATCH partial metadata updates on `/v1/admin/assets/{id}`, and
+  signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check

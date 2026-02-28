@@ -22,6 +22,7 @@ from app.api.assets.assets_common import (
     parse_cursor,
     parse_grant_payload,
     parse_limit,
+    parse_partial_update_asset_payload,
     parse_update_asset_payload,
     serialize_asset,
     serialize_grant,
@@ -68,7 +69,9 @@ def handle_admin_assets_request(
         if method == "GET":
             return _get_asset(event, asset_id)
         if method == "PUT":
-            return _update_asset(event, asset_id)
+            return _update_asset(event, asset_id, partial=False)
+        if method == "PATCH":
+            return _update_asset(event, asset_id, partial=True)
         if method == "DELETE":
             return _delete_asset(event, asset_id)
         return json_response(405, {"error": "Method not allowed"}, event=event)
@@ -166,8 +169,17 @@ def _get_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
         return json_response(200, {"asset": serialize_asset(asset)}, event=event)
 
 
-def _update_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
-    payload = parse_update_asset_payload(event)
+def _update_asset(
+    event: Mapping[str, Any],
+    asset_id: UUID,
+    *,
+    partial: bool,
+) -> dict[str, Any]:
+    payload = (
+        parse_partial_update_asset_payload(event)
+        if partial
+        else parse_update_asset_payload(event)
+    )
     identity = extract_identity(event)
     request_id = _request_id(event)
 
@@ -182,12 +194,12 @@ def _update_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
 
         updated = repository.update_asset(
             asset,
-            title=payload["title"],
-            description=payload["description"],
-            asset_type=payload["asset_type"],
-            file_name=payload["file_name"],
-            content_type=payload["content_type"],
-            visibility=payload["visibility"],
+            title=payload.get("title"),
+            description=payload.get("description"),
+            asset_type=payload.get("asset_type"),
+            file_name=payload.get("file_name"),
+            content_type=payload.get("content_type"),
+            visibility=payload.get("visibility"),
         )
         session.commit()
         return json_response(200, {"asset": serialize_asset(updated)}, event=event)

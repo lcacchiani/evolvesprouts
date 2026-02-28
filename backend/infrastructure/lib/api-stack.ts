@@ -1780,6 +1780,10 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
+    adminAssetById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
     adminAssetById.addMethod("DELETE", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,

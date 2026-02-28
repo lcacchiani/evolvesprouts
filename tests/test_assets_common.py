@@ -4,8 +4,14 @@ import json
 from dataclasses import dataclass
 from uuid import UUID, uuid4
 
+import pytest
+
 from app.api.admin_request import parse_cursor
-from app.api.assets.assets_common import paginate_response
+from app.api.assets.assets_common import (
+    paginate_response,
+    parse_partial_update_asset_payload,
+)
+from app.exceptions import ValidationError
 
 
 @dataclass(frozen=True)
@@ -52,3 +58,21 @@ def test_paginate_response_returns_null_cursor_for_last_page() -> None:
 
     body = json.loads(response["body"])
     assert body["next_cursor"] is None
+
+
+def test_parse_partial_update_asset_payload_requires_updatable_field() -> None:
+    event = {
+        "body": "{}",
+        "isBase64Encoded": False,
+    }
+    with pytest.raises(ValidationError, match="At least one updatable field is required"):
+        parse_partial_update_asset_payload(event)
+
+
+def test_parse_partial_update_asset_payload_accepts_subset_fields() -> None:
+    event = {
+        "body": json.dumps({"title": "Updated title"}),
+        "isBase64Encoded": False,
+    }
+    payload = parse_partial_update_asset_payload(event)
+    assert payload == {"title": "Updated title"}
