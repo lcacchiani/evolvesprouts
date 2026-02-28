@@ -2,15 +2,20 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ContactUsForm } from '@/components/sections/contact-us-form';
+import {
+  ContactUsForm,
+  type ContactUsFormContactConfig,
+} from '@/components/sections/contact-us-form';
 import enContent from '@/content/en.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-const originalContactEmail = process.env.NEXT_PUBLIC_EMAIL;
-const originalWhatsappUrl = process.env.NEXT_PUBLIC_WHATSAPP_URL;
-const originalInstagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL;
-const originalLinkedinUrl = process.env.NEXT_PUBLIC_LINKEDIN_URL;
+const defaultContactConfig: ContactUsFormContactConfig = {
+  contactEmail: 'hello@example.com',
+  whatsappUrl: 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
+  instagramUrl: 'https://www.instagram.com/evolvesprouts',
+  linkedinUrl: 'https://www.linkedin.com/company/evolve-sprouts',
+};
 
 vi.mock('next/image', () => ({
   default: ({
@@ -65,13 +70,20 @@ vi.mock('@/lib/crm-api-client', async () => {
 
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 
+function renderContactUsForm(
+  contactConfig: ContactUsFormContactConfig = defaultContactConfig,
+) {
+  return render(
+    <ContactUsForm
+      content={enContent.contactUs.contactUsForm}
+      contactConfig={contactConfig}
+    />,
+  );
+}
+
 describe('ContactUsForm section', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
-    process.env.NEXT_PUBLIC_EMAIL = 'hello@example.com';
-    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
-    process.env.NEXT_PUBLIC_INSTAGRAM_URL = 'https://www.instagram.com/evolvesprouts';
-    process.env.NEXT_PUBLIC_LINKEDIN_URL = 'https://www.linkedin.com/company/evolve-sprouts';
   });
 
   afterEach(() => {
@@ -84,30 +96,10 @@ describe('ContactUsForm section', () => {
       process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
     }
 
-    if (typeof originalContactEmail === 'string') {
-      process.env.NEXT_PUBLIC_EMAIL = originalContactEmail;
-    } else {
-      delete process.env.NEXT_PUBLIC_EMAIL;
-    }
-    if (typeof originalWhatsappUrl === 'string') {
-      process.env.NEXT_PUBLIC_WHATSAPP_URL = originalWhatsappUrl;
-    } else {
-      delete process.env.NEXT_PUBLIC_WHATSAPP_URL;
-    }
-    if (typeof originalInstagramUrl === 'string') {
-      process.env.NEXT_PUBLIC_INSTAGRAM_URL = originalInstagramUrl;
-    } else {
-      delete process.env.NEXT_PUBLIC_INSTAGRAM_URL;
-    }
-    if (typeof originalLinkedinUrl === 'string') {
-      process.env.NEXT_PUBLIC_LINKEDIN_URL = originalLinkedinUrl;
-    } else {
-      delete process.env.NEXT_PUBLIC_LINKEDIN_URL;
-    }
   });
 
   it('uses class-based decorative background styling on the section container', () => {
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     const sectionContainer = document.getElementById('contact-us-form');
     expect(sectionContainer).not.toBeNull();
@@ -121,7 +113,7 @@ describe('ContactUsForm section', () => {
   });
 
   it('does not apply horizontal padding to the left content column', () => {
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     const splitLayout = document.querySelector(
       '#contact-us-form .es-section-split-layout--contact-us',
@@ -136,8 +128,8 @@ describe('ContactUsForm section', () => {
     expect(leftColumn?.className).not.toContain('lg:px-10');
   });
 
-  it('renders icon-based contact methods linked from environment configuration', () => {
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+  it('renders icon-based contact methods linked from provided contact configuration', () => {
+    renderContactUsForm();
 
     const list = screen.getByRole('list', {
       name: enContent.contactUs.contactUsForm.contactMethodsTitle,
@@ -190,13 +182,13 @@ describe('ContactUsForm section', () => {
     );
   });
 
-  it('omits channels that are missing or invalid in environment configuration', () => {
-    delete process.env.NEXT_PUBLIC_EMAIL;
-    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'not-a-url';
-    delete process.env.NEXT_PUBLIC_INSTAGRAM_URL;
-    delete process.env.NEXT_PUBLIC_LINKEDIN_URL;
-
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+  it('omits channels that are missing in the provided contact configuration', () => {
+    renderContactUsForm({
+      contactEmail: undefined,
+      whatsappUrl: undefined,
+      instagramUrl: undefined,
+      linkedinUrl: undefined,
+    });
 
     expect(
       screen.queryByRole('link', {
@@ -227,7 +219,7 @@ describe('ContactUsForm section', () => {
   });
 
   it('uses the same input styling pattern as the booking form', () => {
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     const firstNameInput = screen.getByLabelText(
       enContent.contactUs.contactUsForm.firstNameLabel,
@@ -248,7 +240,7 @@ describe('ContactUsForm section', () => {
   });
 
   it('renders promise items as plain text without bullets or indentation', () => {
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     const promiseList = screen
       .getByRole('heading', {
@@ -269,7 +261,7 @@ describe('ContactUsForm section', () => {
   });
 
   it('shows linked validation feedback for invalid email and phone values', () => {
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
@@ -302,7 +294,7 @@ describe('ContactUsForm section', () => {
   });
 
   it('validates email only after blur instead of while typing', () => {
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
@@ -316,7 +308,7 @@ describe('ContactUsForm section', () => {
   });
 
   it('requires CAPTCHA verification before form submission', () => {
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     const emailInput = screen.getByLabelText(
       new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
@@ -349,7 +341,7 @@ describe('ContactUsForm section', () => {
       request,
     });
 
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     const firstNameInput = screen.getByLabelText(
       enContent.contactUs.contactUsForm.firstNameLabel,
@@ -406,7 +398,7 @@ describe('ContactUsForm section', () => {
       request,
     });
 
-    render(<ContactUsForm content={enContent.contactUs.contactUsForm} />);
+    renderContactUsForm();
 
     fireEvent.change(
       screen.getByLabelText(new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel)),
