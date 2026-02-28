@@ -51,8 +51,8 @@ describe('SproutsSquadCommunity section', () => {
     expect(container.querySelector('.es-sprouts-community-overlay')).not.toBeNull();
     const sectionLogo = container.querySelector('img.es-sprouts-community-logo');
     expect(sectionLogo).not.toBeNull();
-    expect(sectionLogo?.className).toContain('hidden');
-    expect(sectionLogo?.className).toContain('sm:block');
+    expect(sectionLogo?.className).toContain('invisible');
+    expect(sectionLogo?.className).toContain('sm:visible');
     expect(
       container.querySelector('img[src="/images/footer-community-bg.webp"]'),
     ).toBeNull();

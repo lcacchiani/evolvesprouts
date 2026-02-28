@@ -96,7 +96,7 @@ export function SproutsSquadCommunity({
             alt=''
             width={250}
             height={250}
-            className='hidden h-auto w-[250px] es-sprouts-community-logo sm:block'
+            className='block h-auto w-[250px] es-sprouts-community-logo invisible sm:visible'
           />
           <SectionHeader
             title={content.heading}
