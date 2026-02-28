@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import {
@@ -260,22 +261,32 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                   <li key={method.key}>
                     <SmartLink
                       href={method.href}
-                      className='inline-flex items-center gap-2 text-sm leading-6 text-[color:var(--site-primary-text)] transition-opacity hover:opacity-80'
+                      className='inline-flex items-center gap-2 es-section-body text-[1.05rem] leading-8 transition-opacity hover:opacity-80'
                     >
-                      <span
-                        aria-hidden='true'
-                        data-testid={`contact-method-icon-${method.key}`}
-                        className='inline-flex h-4 w-4 shrink-0 items-center justify-center es-text-heading'
-                      >
-                        <Image
-                          src={method.iconSrc}
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='h-4 w-4'
-                        />
-                      </span>
-                      <span>{method.label}</span>
+                      {({ isExternalHttp }) => (
+                        <>
+                          <span
+                            aria-hidden='true'
+                            data-testid={`contact-method-icon-${method.key}`}
+                            className='inline-flex h-4 w-4 shrink-0 items-center justify-center es-text-heading'
+                          >
+                            <Image
+                              src={method.iconSrc}
+                              alt=''
+                              width={16}
+                              height={16}
+                              className={
+                                method.key === 'whatsapp'
+                                  ? 'h-4 w-4 es-contact-us-contact-method-icon--whatsapp'
+                                  : 'h-4 w-4'
+                              }
+                            />
+                          </span>
+                          <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
+                            {method.label}
+                          </ExternalLinkInlineContent>
+                        </>
+                      )}
                     </SmartLink>
                   </li>
                 ))}
