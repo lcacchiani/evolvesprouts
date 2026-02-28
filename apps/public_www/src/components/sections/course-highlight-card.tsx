@@ -1,6 +1,12 @@
 'use client';
 
-import { type MouseEvent, useCallback, useRef, useState } from 'react';
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  useCallback,
+  useRef,
+  useState,
+} from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -81,6 +87,27 @@ export function CourseHighlightCard({
     [],
   );
 
+  const handleCardSurfaceKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLElement>) => {
+      const keyTarget = event.target as HTMLElement | null;
+      if (keyTarget?.closest(INTERACTIVE_ELEMENT_SELECTOR)) {
+        return;
+      }
+
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+
+      if (isDesktopHoverMode()) {
+        return;
+      }
+
+      event.preventDefault();
+      setIsActive((prev) => !prev);
+    },
+    [],
+  );
+
   // Build conditional class fragments for the active (tapped) state.
   // Pointer hover continues to work independently via group-hover:*.
   const overlayActive = isActive
@@ -96,7 +123,11 @@ export function CourseHighlightCard({
   return (
     <article
       ref={articleRef}
+      role='button'
+      tabIndex={0}
+      aria-expanded={isActive}
       onClick={handleCardSurfaceClick}
+      onKeyDown={handleCardSurfaceKeyDown}
       className={`group relative isolate flex min-h-[320px] overflow-hidden rounded-card p-5 sm:min-h-[345px] sm:p-7 lg:min-h-[457px] lg:p-8 ${toneClassName}`}
     >
       {/* Dark overlay — activated by pointer hover or tap */}

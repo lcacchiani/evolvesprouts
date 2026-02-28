@@ -66,10 +66,8 @@ export function MyBestAuntieDescription({
   content,
 }: MyBestAuntieDescriptionProps) {
   const cards = content.items.slice(0, 6);
-  const previousButtonAriaLabel =
-    content.previousButtonAriaLabel?.trim() || 'Previous highlight cards';
-  const nextButtonAriaLabel =
-    content.nextButtonAriaLabel?.trim() || 'Next highlight cards';
+  const previousButtonAriaLabel = content.previousButtonAriaLabel.trim();
+  const nextButtonAriaLabel = content.nextButtonAriaLabel.trim();
   const {
     carouselRef,
     hasNavigation: hasMultipleCards,

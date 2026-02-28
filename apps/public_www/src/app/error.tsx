@@ -1,20 +1,30 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
-import { DEFAULT_LOCALE, getContent } from '@/content';
+import { getContent, type Locale } from '@/content';
+import { getLocaleFromPath } from '@/lib/locale-routing';
 
 interface RootErrorPageProps {
   error: Error & { digest?: string };
   reset: () => void;
 }
 
-const content = getContent(DEFAULT_LOCALE);
+const RETRY_LABELS: Record<Locale, string> = {
+  en: 'Try again',
+  'zh-CN': '重试',
+  'zh-HK': '重試',
+};
 
 export default function RootErrorPage({ error, reset }: RootErrorPageProps) {
+  const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname ?? '/');
+  const content = getContent(locale);
+
   useEffect(() => {
-    console.error('[root-error-boundary]', error);
-  }, [error]);
+    console.error(`[root-error-boundary:${locale}]`, error);
+  }, [error, locale]);
 
   return (
     <main className='mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center gap-4 px-6 py-16 text-center'>
@@ -27,7 +37,7 @@ export default function RootErrorPage({ error, reset }: RootErrorPageProps) {
         onClick={reset}
         className='es-focus-ring mt-2 inline-flex min-h-11 items-center justify-center rounded-control px-6 py-2 text-base font-semibold es-btn es-btn--primary'
       >
-        Try again
+        {RETRY_LABELS[locale]}
       </button>
     </main>
   );

@@ -102,12 +102,9 @@ export function Navbar({ content }: NavbarProps) {
   const localizedHomeHref = localizePath(ROUTES.home, currentLocale);
   const localizedBookNowHref = localizeHref(content.bookNow.href, currentLocale);
   const languageSelector = resolveLanguageSelectorContent(content);
-  const openNavigationMenuAriaLabel =
-    content.openNavigationMenuAriaLabel?.trim() || 'Open navigation menu';
-  const closeNavigationMenuAriaLabel =
-    content.closeNavigationMenuAriaLabel?.trim() || 'Close navigation menu';
-  const mobileNavigationMenuAriaLabel =
-    content.mobileNavigationMenuAriaLabel?.trim() || 'Mobile navigation menu';
+  const openNavigationMenuAriaLabel = content.openNavigationMenuAriaLabel.trim();
+  const closeNavigationMenuAriaLabel = content.closeNavigationMenuAriaLabel.trim();
+  const mobileNavigationMenuAriaLabel = content.mobileNavigationMenuAriaLabel.trim();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileMenuRendered, setIsMobileMenuRendered] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);

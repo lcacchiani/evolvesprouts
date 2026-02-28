@@ -245,6 +245,7 @@ export function BookingReservationForm({
           {discountRule ? <DiscountBadge label={content.discountAppliedLabel} /> : null}
 
           <ReservationFormPriceBreakdown
+            content={content}
             locale={locale}
             originalAmount={originalAmount}
             discountAmount={discountAmount}

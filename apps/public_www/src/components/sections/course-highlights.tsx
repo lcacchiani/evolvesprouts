@@ -147,10 +147,8 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
     content.eyebrow || fallbackCourseHighlightsCopy.eyebrow;
   const ctaLabel = content.ctaLabel || fallbackCourseHighlightsCopy.ctaLabel;
   const ctaHref = content.ctaHref || fallbackCourseHighlightsCopy.ctaHref;
-  const scrollLeftAriaLabel =
-    content.scrollLeftAriaLabel?.trim() || 'Scroll course highlights left';
-  const scrollRightAriaLabel =
-    content.scrollRightAriaLabel?.trim() || 'Scroll course highlights right';
+  const scrollLeftAriaLabel = content.scrollLeftAriaLabel.trim();
+  const scrollRightAriaLabel = content.scrollRightAriaLabel.trim();
   const benefitCards = getBenefitCards(content);
   const {
     carouselRef,

@@ -163,8 +163,7 @@ export function Faq({ content }: FaqProps) {
   const questions = content.questions;
   const locale = getLocaleFromPath(pathname ?? '/');
   const contactCardCtaHref = localizePath(ROUTES.contact, locale);
-  const contactCardCtaLabel =
-    content.contactCardCtaLabel?.trim() || 'Contact Us';
+  const contactCardCtaLabel = content.contactCardCtaLabel.trim();
   const allLabelIds = useMemo(
     () => new Set(labels.map((entry) => entry.id)),
     [labels],

@@ -154,11 +154,10 @@ export function Testimonials({ content }: TestimonialsProps) {
     swipeThresholdPx: SWIPE_THRESHOLD_PX,
   });
   const activeStory = storiesToRender[activeIndex];
-  const badgeLabel = content.badgeLabel?.trim() || content.title;
+  const badgeLabel = content.badgeLabel.trim() || content.title;
   const descriptionText = content.description.trim();
-  const previousButtonLabel =
-    content.previousButtonLabel?.trim() || 'Previous testimonial';
-  const nextButtonLabel = content.nextButtonLabel?.trim() || 'Next testimonial';
+  const previousButtonLabel = content.previousButtonLabel.trim();
+  const nextButtonLabel = content.nextButtonLabel.trim();
 
   return (
     <SectionShell
