@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
-from typing import Optional
+
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -23,8 +23,8 @@ class HealthCheck:
 
     name: str
     healthy: bool
-    latency_ms: Optional[float] = None
-    error: Optional[str] = None
+    latency_ms: float | None = None
+    error: str | None = None
     details: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

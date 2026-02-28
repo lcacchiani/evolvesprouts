@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Optional
+
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
@@ -37,10 +37,10 @@ class AssetRepository(BaseRepository[Asset]):
         self,
         *,
         limit: int = 50,
-        cursor: Optional[UUID] = None,
-        query: Optional[str] = None,
-        visibility: Optional[AssetVisibility] = None,
-        asset_type: Optional[AssetType] = None,
+        cursor: UUID | None = None,
+        query: str | None = None,
+        visibility: AssetVisibility | None = None,
+        asset_type: AssetType | None = None,
     ) -> Sequence[Asset]:
         """List assets with optional filtering and cursor pagination."""
         statement = select(Asset)
@@ -66,7 +66,7 @@ class AssetRepository(BaseRepository[Asset]):
         self,
         *,
         limit: int = 50,
-        cursor: Optional[UUID] = None,
+        cursor: UUID | None = None,
     ) -> Sequence[Asset]:
         """List public assets only."""
         statement = select(Asset).where(Asset.visibility == AssetVisibility.PUBLIC)
@@ -82,7 +82,7 @@ class AssetRepository(BaseRepository[Asset]):
         organization_ids: set[str],
         is_admin_or_manager: bool,
         limit: int = 50,
-        cursor: Optional[UUID] = None,
+        cursor: UUID | None = None,
     ) -> Sequence[Asset]:
         """List assets visible to a specific authenticated user."""
         if is_admin_or_manager:
@@ -111,7 +111,7 @@ class AssetRepository(BaseRepository[Asset]):
         self,
         *,
         asset: Asset,
-        user_sub: Optional[str],
+        user_sub: str | None,
         organization_ids: set[str],
         is_admin_or_manager: bool,
         is_authenticated: bool,
@@ -142,11 +142,11 @@ class AssetRepository(BaseRepository[Asset]):
         *,
         asset_id: UUID,
         title: str,
-        description: Optional[str],
+        description: str | None,
         asset_type: AssetType,
         s3_key: str,
         file_name: str,
-        content_type: Optional[str],
+        content_type: str | None,
         visibility: AssetVisibility,
         created_by: str,
     ) -> Asset:
@@ -168,13 +168,13 @@ class AssetRepository(BaseRepository[Asset]):
         self,
         asset: Asset,
         *,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        asset_type: Optional[AssetType] = None,
-        file_name: Optional[str] = None,
-        content_type: Optional[str] = None,
-        visibility: Optional[AssetVisibility] = None,
-        s3_key: Optional[str] = None,
+        title: str | None = None,
+        description: str | None = None,
+        asset_type: AssetType | None = None,
+        file_name: str | None = None,
+        content_type: str | None = None,
+        visibility: AssetVisibility | None = None,
+        s3_key: str | None = None,
     ) -> Asset:
         """Update mutable asset fields."""
         if title is not None:
@@ -207,7 +207,7 @@ class AssetRepository(BaseRepository[Asset]):
         *,
         asset_id: UUID,
         grant_id: UUID,
-    ) -> Optional[AssetAccessGrant]:
+    ) -> AssetAccessGrant | None:
         """Get a grant by ID scoped to an asset."""
         statement = select(AssetAccessGrant).where(
             and_(AssetAccessGrant.asset_id == asset_id, AssetAccessGrant.id == grant_id)
@@ -219,7 +219,7 @@ class AssetRepository(BaseRepository[Asset]):
         *,
         asset_id: UUID,
         grant_type: AccessGrantType,
-        grantee_id: Optional[str],
+        grantee_id: str | None,
         granted_by: str,
     ) -> AssetAccessGrant:
         """Create and persist an access grant."""
@@ -244,8 +244,8 @@ class AssetRepository(BaseRepository[Asset]):
         *,
         asset_id: UUID,
         grant_type: AccessGrantType,
-        grantee_id: Optional[str],
-    ) -> Optional[AssetAccessGrant]:
+        grantee_id: str | None,
+    ) -> AssetAccessGrant | None:
         """Find an existing grant by unique key."""
         normalized_grantee = grantee_id or ""
         statement = select(AssetAccessGrant).where(
@@ -257,12 +257,12 @@ class AssetRepository(BaseRepository[Asset]):
         )
         return self._session.execute(statement).scalar_one_or_none()
 
-    def get_share_link(self, *, asset_id: UUID) -> Optional[AssetShareLink]:
+    def get_share_link(self, *, asset_id: UUID) -> AssetShareLink | None:
         """Return the share link for a specific asset, if present."""
         statement = select(AssetShareLink).where(AssetShareLink.asset_id == asset_id)
         return self._session.execute(statement).scalar_one_or_none()
 
-    def get_share_link_by_token(self, *, token: str) -> Optional[AssetShareLink]:
+    def get_share_link_by_token(self, *, token: str) -> AssetShareLink | None:
         """Return a share link by bearer token."""
         statement = select(AssetShareLink).where(AssetShareLink.share_token == token)
         return self._session.execute(statement).scalar_one_or_none()
@@ -292,7 +292,7 @@ class AssetRepository(BaseRepository[Asset]):
         share_link: AssetShareLink,
         *,
         share_token: str,
-        allowed_domains: Optional[Sequence[str]] = None,
+        allowed_domains: Sequence[str] | None = None,
     ) -> AssetShareLink:
         """Rotate an existing share-link token."""
         share_link.share_token = share_token

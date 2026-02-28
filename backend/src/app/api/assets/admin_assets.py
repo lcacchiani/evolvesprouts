@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import base64
 import json
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
@@ -475,7 +476,7 @@ def _parse_optional_json_body(event: Mapping[str, Any]) -> Mapping[str, Any] | N
     return parsed_body
 
 
-def _request_id(event: Mapping[str, Any]) -> Optional[str]:
+def _request_id(event: Mapping[str, Any]) -> str | None:
     request_context = event.get("requestContext")
     if not isinstance(request_context, Mapping):
         return None

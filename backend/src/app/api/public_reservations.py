@@ -5,7 +5,8 @@ from __future__ import annotations
 import os
 from decimal import Decimal
 from decimal import InvalidOperation
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Mapping
 
 from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_email, validate_string_length

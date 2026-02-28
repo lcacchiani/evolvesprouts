@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 from typing import Any
-from typing import Optional
+
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -22,7 +22,7 @@ _ENGINE_CACHE: dict[str, Engine] = {}
 
 def get_engine(
     use_cache: bool = True,
-    pool_class: Optional[type] = None,
+    pool_class: type | None = None,
 ) -> Engine:
     """Get or create a SQLAlchemy engine.
 
@@ -80,7 +80,7 @@ def _get_connect_args() -> dict[str, str]:
 
 def _get_pool_settings(
     use_iam_auth: bool,
-    pool_class: Optional[type],
+    pool_class: type | None,
 ) -> dict[str, Any]:
     """Return connection pool settings tuned for Lambda.
 

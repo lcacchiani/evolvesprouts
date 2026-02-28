@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List
 
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey, Integer, Text, text
@@ -22,7 +22,7 @@ class GeographicArea(Base):
         primary_key=True,
         server_default=text("gen_random_uuid()"),
     )
-    parent_id: Mapped[Optional[str]] = mapped_column(
+    parent_id: Mapped[str | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("geographic_areas.id", ondelete="CASCADE"),
         nullable=True,
@@ -41,7 +41,7 @@ class GeographicArea(Base):
         nullable=False,
         comment="country | region | city | district",
     )
-    code: Mapped[Optional[str]] = mapped_column(
+    code: Mapped[str | None] = mapped_column(
         Text(),
         nullable=True,
         comment="ISO 3166-1 alpha-2 for countries (HK, SG, AE)",
@@ -58,11 +58,11 @@ class GeographicArea(Base):
         server_default=text("0"),
     )
 
-    parent: Mapped[Optional["GeographicArea"]] = relationship(
+    parent: Mapped[GeographicArea | None] = relationship(
         remote_side="GeographicArea.id",
         back_populates="children",
     )
-    children: Mapped[List["GeographicArea"]] = relationship(
+    children: Mapped[list[GeographicArea]] = relationship(
         back_populates="parent",
         cascade="all, delete-orphan",
         order_by="GeographicArea.display_order",

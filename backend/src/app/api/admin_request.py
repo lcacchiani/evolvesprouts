@@ -5,7 +5,8 @@ from __future__ import annotations
 import base64
 import json
 import os
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 from uuid import UUID
 
 from app.exceptions import ValidationError
@@ -28,7 +29,7 @@ def parse_body(event: Mapping[str, Any]) -> dict[str, Any]:
         raise ValidationError("Request body must be valid JSON") from exc
 
 
-def query_param(event: Mapping[str, Any], name: str) -> Optional[str]:
+def query_param(event: Mapping[str, Any], name: str) -> str | None:
     """Return a query parameter value."""
     params = collect_query_params(event)
     return first_param(params, name)
@@ -64,7 +65,7 @@ def _parse_group_name(event: Mapping[str, Any]) -> str:
     return group or os.getenv("ADMIN_GROUP") or "admin"
 
 
-def parse_cursor(value: Optional[str]) -> Optional[UUID]:
+def parse_cursor(value: str | None) -> UUID | None:
     """Parse cursor for admin listing."""
     if value is None or value == "":
         return None

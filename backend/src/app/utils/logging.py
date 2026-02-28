@@ -21,8 +21,7 @@ from contextvars import ContextVar
 from datetime import datetime
 from datetime import timezone
 from typing import Any
-from typing import MutableMapping
-from typing import Optional
+from collections.abc import MutableMapping
 
 
 def mask_email(email: str) -> str:
@@ -164,7 +163,7 @@ class ContextLogger(logging.LoggerAdapter):
         return msg, kwargs
 
 
-def configure_logging(level: Optional[str] = None) -> None:
+def configure_logging(level: str | None = None) -> None:
     """Configure structured logging for Lambda execution.
 
     Args:
@@ -208,8 +207,8 @@ def get_logger(name: str, **extra: Any) -> ContextLogger:
 
 
 def set_request_context(
-    req_id: Optional[str] = None,
-    corr_id: Optional[str] = None,
+    req_id: str | None = None,
+    corr_id: str | None = None,
 ) -> None:
     """Set request context for logging.
 
@@ -259,7 +258,7 @@ def log_lambda_event(
 def log_response(
     logger: ContextLogger,
     status_code: int,
-    duration_ms: Optional[float] = None,
+    duration_ms: float | None = None,
 ) -> None:
     """Log Lambda response details.
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 
 from app.templates.types import EmailContent
 
@@ -131,10 +130,10 @@ def render_new_suggestion_email(
     ticket_id: str,
     suggester_email: str,
     organization_name: str,
-    description: Optional[str],
-    district: Optional[str],
-    address: Optional[str],
-    additional_notes: Optional[str],
+    description: str | None,
+    district: str | None,
+    address: str | None,
+    additional_notes: str | None,
     submitted_at: str,
 ) -> EmailContent:
     """Render the new organization suggestion notification email."""
@@ -181,10 +180,10 @@ def build_new_suggestion_template_data(
     ticket_id: str,
     suggester_email: str,
     organization_name: str,
-    description: Optional[str],
-    district: Optional[str],
-    address: Optional[str],
-    additional_notes: Optional[str],
+    description: str | None,
+    district: str | None,
+    address: str | None,
+    additional_notes: str | None,
     submitted_at: str,
 ) -> dict[str, str]:
     """Build template data for a new organization suggestion."""

@@ -7,7 +7,8 @@ import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Mapping, Optional, TypeVar
+from typing import Any, TypeVar
+from collections.abc import Mapping
 from uuid import UUID, uuid4
 
 from app.api.admin_request import (
@@ -46,7 +47,7 @@ T = TypeVar("T")
 class RequestIdentity:
     """Caller identity extracted from API Gateway authorizer context."""
 
-    user_sub: Optional[str]
+    user_sub: str | None
     groups: set[str]
     organization_ids: set[str]
 
@@ -94,7 +95,7 @@ def parse_limit(event: Mapping[str, Any], default: int = 25) -> int:
     return parsed
 
 
-def parse_cursor(event: Mapping[str, Any]) -> Optional[UUID]:
+def parse_cursor(event: Mapping[str, Any]) -> UUID | None:
     """Parse cursor query parameter."""
     return parse_admin_cursor(query_param(event, "cursor"))
 
@@ -134,18 +135,18 @@ def extract_identity(event: Mapping[str, Any]) -> RequestIdentity:
 
 def parse_admin_asset_list_filters(
     event: Mapping[str, Any],
-) -> tuple[Optional[str], Optional[AssetVisibility], Optional[AssetType]]:
+) -> tuple[str | None, AssetVisibility | None, AssetType | None]:
     """Parse admin list filter query parameters."""
     query = query_param(event, "query")
     query = query.strip() if query else None
 
     visibility_raw = query_param(event, "visibility")
-    visibility: Optional[AssetVisibility] = None
+    visibility: AssetVisibility | None = None
     if visibility_raw:
         visibility = parse_asset_visibility(visibility_raw)
 
     asset_type_raw = query_param(event, "asset_type")
-    asset_type: Optional[AssetType] = None
+    asset_type: AssetType | None = None
     if asset_type_raw:
         asset_type = parse_asset_type(asset_type_raw)
 
@@ -287,7 +288,7 @@ def sanitize_file_name(file_name: str) -> str:
     return cleaned[:_MAX_FILE_NAME_LENGTH] if cleaned else "asset"
 
 
-def generate_upload_url(*, s3_key: str, content_type: Optional[str]) -> dict[str, Any]:
+def generate_upload_url(*, s3_key: str, content_type: str | None) -> dict[str, Any]:
     """Generate a presigned PUT URL for upload."""
     bucket_name = _require_assets_bucket_name()
     ttl_seconds = _presign_ttl_seconds()
@@ -411,9 +412,7 @@ def _required_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str:
     return normalized
 
 
-def _optional_text(
-    body: Mapping[str, Any], *keys: str, max_length: int
-) -> Optional[str]:
+def _optional_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str | None:
     value = _optional_field(body, *keys)
     return validate_string_length(value, keys[0], max_length=max_length, required=False)
 
@@ -425,7 +424,7 @@ def _optional_field(body: Mapping[str, Any], *keys: str) -> Any:
     return None
 
 
-def _to_optional_string(value: Any) -> Optional[str]:
+def _to_optional_string(value: Any) -> str | None:
     if value is None:
         return None
     if isinstance(value, str):
@@ -434,13 +433,13 @@ def _to_optional_string(value: Any) -> Optional[str]:
     return str(value).strip() or None
 
 
-def _parse_csv_set(value: Optional[str]) -> set[str]:
+def _parse_csv_set(value: str | None) -> set[str]:
     if not value:
         return set()
     return {item.strip() for item in value.split(",") if item.strip()}
 
 
-def _extract_claim(claims: Any, key: str) -> Optional[str]:
+def _extract_claim(claims: Any, key: str) -> str | None:
     if not isinstance(claims, Mapping):
         return None
     value = claims.get(key)

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Mapping
 
 
 def get_header_case_insensitive(headers: Mapping[str, Any], name: str) -> str:
