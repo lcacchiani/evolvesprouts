@@ -13,11 +13,13 @@ import {
   updateAdminAsset,
 } from '@/lib/assets-api';
 import { AdminApiError } from '@/lib/api-admin-client';
+import { useDebouncedCallback } from '@/hooks/use-debounced-callback';
 import type {
   AdminAsset,
   AssetGrant,
   AssetVisibility,
   CreateAssetGrantInput,
+  CreatedAssetUpload,
   ListAdminAssetsInput,
   UpsertAdminAssetInput,
 } from '@/types/assets';
@@ -160,6 +162,10 @@ export function useAdminAssets() {
     void refreshAssets();
   }, [refreshAssets]);
 
+  const debouncedRefresh = useDebouncedCallback((nextFilters: Partial<Filters>) => {
+    void refreshAssets(nextFilters);
+  }, 350);
+
   const setQueryFilter = useCallback(
     (query: string) => {
       const nextFilters = {
@@ -168,9 +174,9 @@ export function useAdminAssets() {
       };
       filtersRef.current = nextFilters;
       setFilters(nextFilters);
-      void refreshAssets(nextFilters);
+      debouncedRefresh(nextFilters);
     },
-    [refreshAssets]
+    [debouncedRefresh]
   );
 
   const setVisibilityFilter = useCallback(

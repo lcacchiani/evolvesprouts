@@ -1,6 +1,6 @@
 'use client';
 
-import type { MouseEvent } from 'react';
+import type { KeyboardEvent, MouseEvent } from 'react';
 
 import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
@@ -48,6 +48,16 @@ export function AssetListPanel({
   onSelectAsset,
   onDeleteAsset,
 }: AssetListPanelProps) {
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, assetId: string) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onSelectAsset(assetId);
+    }
+  };
+
   const handleDeleteAsset = async (asset: AdminAsset, event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     const confirmed = window.confirm(
@@ -125,6 +135,9 @@ export function AssetListPanel({
                       isSelected ? 'bg-slate-100' : ''
                     }`}
                     onClick={() => onSelectAsset(asset.id)}
+                    onKeyDown={(event) => handleRowKeyDown(event, asset.id)}
+                    tabIndex={0}
+                    role='row'
                     aria-selected={isSelected}
                   >
                     <td className='px-4 py-3'>

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
+import { clsx } from 'clsx';
 
 import { Button } from './button';
 
@@ -36,13 +37,9 @@ export function FileUploadButton({
 }: FileUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const containerClasses = ['flex flex-wrap items-center gap-2', containerClassName]
-    .filter(Boolean)
-    .join(' ');
-
-  const buttonClasses = ['w-fit', buttonClassName].filter(Boolean).join(' ');
-
-  const fileNameClasses = ['text-sm text-slate-600', fileNameClassName].filter(Boolean).join(' ');
+  const containerClasses = clsx('flex flex-wrap items-center gap-2', containerClassName);
+  const buttonClasses = clsx('w-fit', buttonClassName);
+  const fileNameClasses = clsx('text-sm text-slate-600', fileNameClassName);
 
   const trimmedFileName = selectedFileName?.trim();
   const fileNameText = trimmedFileName && trimmedFileName.length > 0 ? trimmedFileName : emptyLabel;
