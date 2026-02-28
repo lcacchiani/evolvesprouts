@@ -32,7 +32,8 @@ their primary responsibilities.
 - Purpose: asset metadata CRUD, grant management, stable share-link lifecycle
   (read/create/rotate/revoke + domain allowlist policy), share-link source-domain
   enforcement, conditional JWT authentication for restricted share-link
-  resolutions, and signed upload/download URL generation in
+  resolutions, PATCH partial metadata updates on `/v1/admin/assets/{id}`, and
+  signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check
@@ -116,6 +117,8 @@ their primary responsibilities.
 - Handler: backend/lambda/api_key_rotation/handler.py
 - Trigger: EventBridge scheduled rule (every 90 days)
 - Purpose: rotate the API Gateway API key to limit exposure from compromise
+- Reliability: retries transient API Gateway and Secrets Manager failures with
+  exponential backoff + jitter
 - VPC: Yes
 - Permissions: API Gateway key management, Secrets Manager read/write
 - Environment:
@@ -130,6 +133,8 @@ their primary responsibilities.
 - Handler: backend/lambda/manager_request_processor/handler.py
 - Trigger: SQS queue (subscribed to SNS booking request topic)
 - Purpose: process async booking submissions from the SNS topic
+- Reliability: retries transient SES send failures when dispatching
+  notifications
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: SES send email

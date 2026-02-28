@@ -7,13 +7,12 @@ for specific entity types.
 from __future__ import annotations
 
 from typing import Generic
-from typing import Optional
-from typing import Sequence
-from typing import Type
+
+from collections.abc import Sequence
 from typing import TypeVar
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.base import Base
@@ -31,7 +30,7 @@ class BaseRepository(Generic[T]):
         T: The SQLAlchemy model type this repository manages.
     """
 
-    def __init__(self, session: Session, model: Type[T]):
+    def __init__(self, session: Session, model: type[T]):
         """Initialize the repository.
 
         Args:
@@ -46,7 +45,7 @@ class BaseRepository(Generic[T]):
         """Get the current session."""
         return self._session
 
-    def get_by_id(self, entity_id: UUID) -> Optional[T]:
+    def get_by_id(self, entity_id: UUID) -> T | None:
         """Get an entity by its primary key.
 
         Args:
@@ -60,7 +59,7 @@ class BaseRepository(Generic[T]):
     def get_all(
         self,
         limit: int = 50,
-        cursor: Optional[UUID] = None,
+        cursor: UUID | None = None,
     ) -> Sequence[T]:
         """Get all entities with cursor pagination.
 
@@ -145,7 +144,5 @@ class BaseRepository(Generic[T]):
         Returns:
             Total number of entities.
         """
-        from sqlalchemy import func
-
         result = self._session.execute(select(func.count()).select_from(self._model))
         return result.scalar() or 0

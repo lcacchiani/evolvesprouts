@@ -9,7 +9,7 @@ info:
     The current API Gateway deployment exposes:
     - `GET /health`
     - `GET|POST /v1/admin/assets`
-    - `GET|PUT|DELETE /v1/admin/assets/{id}`
+    - `GET|PUT|PATCH|DELETE /v1/admin/assets/{id}`
     - `GET|POST /v1/admin/assets/{id}/grants`
     - `DELETE /v1/admin/assets/{id}/grants/{grantId}`
     - `GET|POST|DELETE /v1/admin/assets/{id}/share-link`
@@ -123,6 +123,29 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateAssetRequest"
+      responses:
+        "200":
+          description: Asset update response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Partially update admin asset
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateAssetRequest"
       responses:
         "200":
           description: Asset update response.
@@ -580,6 +603,29 @@ components:
     UpdateAssetRequest:
       allOf:
         - $ref: "#/components/schemas/CreateAssetRequest"
+    PartialUpdateAssetRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        asset_type:
+          type: string
+          enum: [guide, video, pdf, document]
+        file_name:
+          type: string
+          maxLength: 255
+        content_type:
+          type: string
+          maxLength: 127
+          nullable: true
+        visibility:
+          type: string
+          enum: [public, restricted]
     CreateAssetResponse:
       type: object
       required:

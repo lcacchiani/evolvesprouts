@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Mapping, Optional
+from typing import Any
+from collections.abc import Mapping
 from urllib.parse import urlencode
 
 from app.services.aws_proxy import AwsProxyError, http_invoke
@@ -27,7 +28,7 @@ def extract_turnstile_token(event: Mapping[str, Any]) -> str:
     return ""
 
 
-def extract_client_ip(event: Mapping[str, Any]) -> Optional[str]:
+def extract_client_ip(event: Mapping[str, Any]) -> str | None:
     """Extract the caller IP from API Gateway event data."""
     headers = event.get("headers") or {}
     if isinstance(headers, Mapping):
@@ -56,7 +57,7 @@ def extract_client_ip(event: Mapping[str, Any]) -> Optional[str]:
     return None
 
 
-def verify_turnstile_token(token: str, remote_ip: Optional[str] = None) -> bool:
+def verify_turnstile_token(token: str, remote_ip: str | None = None) -> bool:
     """Verify a Turnstile response token with Cloudflare."""
     normalized_token = token.strip()
     if not normalized_token:

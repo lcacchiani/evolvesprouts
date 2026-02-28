@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any
+from collections.abc import Mapping, Sequence
 
 import jwt
 

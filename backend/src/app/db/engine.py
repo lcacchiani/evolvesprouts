@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import os
 from typing import Any
-from typing import Optional
+
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
 
-from app.db.connection import get_database_url
+from app.db.connection import get_database_url, use_iam_auth
 
 # Module-level engine cache for connection reuse across Lambda invocations
 _ENGINE_CACHE: dict[str, Engine] = {}
@@ -22,7 +22,7 @@ _ENGINE_CACHE: dict[str, Engine] = {}
 
 def get_engine(
     use_cache: bool = True,
-    pool_class: Optional[type] = None,
+    pool_class: type | None = None,
 ) -> Engine:
     """Get or create a SQLAlchemy engine.
 
@@ -37,10 +37,10 @@ def get_engine(
     Returns:
         A configured SQLAlchemy engine.
     """
-    use_iam_auth = _use_iam_auth()
+    use_iam = use_iam_auth()
 
     # IAM auth tokens expire, so don't cache the engine
-    if use_iam_auth:
+    if use_iam:
         use_cache = False
         pool_class = NullPool
 
@@ -49,7 +49,7 @@ def get_engine(
         return _ENGINE_CACHE[cache_key]
 
     database_url = get_database_url()
-    pool_settings = _get_pool_settings(use_iam_auth, pool_class)
+    pool_settings = _get_pool_settings(use_iam, pool_class)
 
     engine = create_engine(
         database_url,
@@ -72,11 +72,6 @@ def clear_engine_cache() -> None:
     _ENGINE_CACHE.clear()
 
 
-def _use_iam_auth() -> bool:
-    """Return True if IAM authentication is enabled."""
-    return str(os.getenv("DATABASE_IAM_AUTH", "")).lower() in {"1", "true", "yes"}
-
-
 def _get_connect_args() -> dict[str, str]:
     """Return connection arguments for the database driver."""
     sslmode = os.getenv("DATABASE_SSLMODE", "require")
@@ -85,7 +80,7 @@ def _get_connect_args() -> dict[str, str]:
 
 def _get_pool_settings(
     use_iam_auth: bool,
-    pool_class: Optional[type],
+    pool_class: type | None,
 ) -> dict[str, Any]:
     """Return connection pool settings tuned for Lambda.
 

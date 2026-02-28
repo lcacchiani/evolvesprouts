@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Mapping
+from typing import Any
+from collections.abc import Mapping
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.api.admin_request import _encode_cursor, _parse_uuid
+from app.api.admin_request import parse_uuid
 from app.api.assets.assets_common import (
     RequestIdentity,
     extract_identity,
     generate_download_url,
+    paginate_response,
     parse_cursor,
     parse_limit,
     signed_link_no_cache_headers,
@@ -25,10 +27,10 @@ from app.utils import json_response
 
 
 def handle_user_assets_request(
-    event: Mapping[str, object],
+    event: Mapping[str, Any],
     method: str,
     path: str,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Handle /v1/user/assets* routes."""
     parts = split_route_parts(path)
     if len(parts) < 2 or parts[0] != "user" or parts[1] != "assets":
@@ -42,15 +44,15 @@ def handle_user_assets_request(
         return _list_accessible_assets(event, identity)
 
     if len(parts) == 4 and parts[3] == "download" and method == "GET":
-        asset_id = _parse_uuid(parts[2])
+        asset_id = parse_uuid(parts[2])
         return _download_asset(event, asset_id, identity)
 
     return json_response(405, {"error": "Method not allowed"}, event=event)
 
 
 def _list_accessible_assets(
-    event: Mapping[str, object], identity: RequestIdentity
-) -> dict[str, object]:
+    event: Mapping[str, Any], identity: RequestIdentity
+) -> dict[str, Any]:
     if not identity.user_sub:
         raise ValidationError("Authenticated user is required", field="authorization")
 
@@ -66,27 +68,19 @@ def _list_accessible_assets(
             limit=limit + 1,
             cursor=cursor,
         )
-        page_items = list(assets[:limit])
-        next_cursor = (
-            _encode_cursor(page_items[-1].id)
-            if len(assets) > limit and page_items
-            else None
-        )
-        return json_response(
-            200,
-            {
-                "items": [serialize_asset(asset) for asset in page_items],
-                "next_cursor": next_cursor,
-            },
+        return paginate_response(
+            items=assets,
+            limit=limit,
             event=event,
+            serializer=serialize_asset,
         )
 
 
 def _download_asset(
-    event: Mapping[str, object],
+    event: Mapping[str, Any],
     asset_id: UUID,
     identity: RequestIdentity,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     with Session(get_engine()) as session:
         repository = AssetRepository(session)
         asset = repository.get_by_id(asset_id)

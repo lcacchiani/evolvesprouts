@@ -143,19 +143,19 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.14"
+          python-version: "3.12"
 
-      - name: Install pytest
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest
-
-      - name: Install backend dependencies
-        run: |
-          if [ -f "backend/requirements.txt" ]; then
+          if [ -f "backend/pyproject.toml" ]; then
+            python -m pip install -e "backend[test]"
+          elif [ -f "backend/requirements.txt" ]; then
             python -m pip install -r backend/requirements.txt
+            python -m pip install pytest
           else
-            echo "No backend/requirements.txt found"
+            echo "Missing backend dependency manifest"
+            exit 1
           fi
 
       - name: Run Python tests

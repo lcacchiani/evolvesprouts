@@ -32,6 +32,7 @@ from app.templates import (
     render_new_suggestion_email,
 )
 from app.utils.logging import configure_logging, get_logger
+from app.utils.retry import run_with_retry
 
 # Configure logging
 configure_logging()
@@ -262,19 +263,25 @@ def _send_notification_email(ticket: Ticket) -> None:
             return
 
         if template_name:
-            send_templated_email(
+            run_with_retry(
+                send_templated_email,
                 source=sender_email,
                 to_addresses=[support_email],
                 template_name=template_name,
                 template_data=template_data,
+                logger=logger,
+                operation_name="ses.send_templated_email",
             )
         else:
-            send_email(
+            run_with_retry(
+                send_email,
                 source=sender_email,
                 to_addresses=[support_email],
                 subject=email_content.subject,
                 body_text=email_content.body_text,
                 body_html=email_content.body_html,
+                logger=logger,
+                operation_name="ses.send_email",
             )
         logger.info(f"Notification email sent for {ticket.ticket_id}")
 

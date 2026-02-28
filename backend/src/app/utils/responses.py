@@ -6,8 +6,8 @@ import json
 import os
 from dataclasses import asdict
 from typing import Any
-from typing import Mapping
-from typing import Optional
+from collections.abc import Mapping
+
 
 from pydantic import BaseModel
 
@@ -91,7 +91,7 @@ def get_security_headers() -> dict[str, str]:
 
 
 def get_cors_headers(
-    event: Optional[Mapping[str, Any]] = None,
+    event: Mapping[str, Any] | None = None,
 ) -> dict[str, str]:
     """Get CORS headers for the response.
 
@@ -118,7 +118,7 @@ def get_cors_headers(
     # If the request origin is in our allowed list, return it
     # Otherwise, return the first allowed origin (for non-browser clients)
     if request_origin and request_origin in allowed_origins:
-        allow_origin: Optional[str] = request_origin
+        allow_origin: str | None = request_origin
     elif allowed_origins:
         # For requests without an Origin header (like curl), we can't
         # return a specific origin. Return the first one for preflight
@@ -143,8 +143,8 @@ def get_cors_headers(
 def json_response(
     status_code: int,
     body: Any,
-    headers: Optional[dict[str, str]] = None,
-    event: Optional[Mapping[str, Any]] = None,
+    headers: dict[str, str] | None = None,
+    event: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create a JSON API Gateway response.
 
@@ -202,8 +202,8 @@ def _serialize_body(body: Any) -> Any:
 def error_response(
     status_code: int,
     message: str,
-    detail: Optional[str] = None,
-    event: Optional[Mapping[str, Any]] = None,
+    detail: str | None = None,
+    event: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create an error response.
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Numeric, Text, text
 from sqlalchemy.dialects.postgresql import UUID
@@ -33,9 +33,9 @@ class Location(Base):
         nullable=False,
         comment="FK to geographic_areas leaf node",
     )
-    address: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
-    lat: Mapped[Optional[Decimal]] = mapped_column(Numeric(9, 6), nullable=True)
-    lng: Mapped[Optional[Decimal]] = mapped_column(Numeric(9, 6), nullable=True)
+    address: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    lat: Mapped[Decimal | None] = mapped_column(Numeric(9, 6), nullable=True)
+    lng: Mapped[Decimal | None] = mapped_column(Numeric(9, 6), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         nullable=False,
@@ -47,4 +47,4 @@ class Location(Base):
         server_default=text("now()"),
     )
 
-    area: Mapped["GeographicArea"] = relationship()
+    area: Mapped[GeographicArea] = relationship()

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Optional
-from typing import Sequence
+
+from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -37,7 +37,7 @@ class LocationRepository(BaseRepository[Location]):
     def find_by_address_case_insensitive(
         self,
         address: str,
-    ) -> Optional[Location]:
+    ) -> Location | None:
         """Find a location by case-insensitive address."""
         normalized = address.strip()
         query = select(Location).where(

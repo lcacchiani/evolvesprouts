@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import time
+import re
 from typing import Any
 
 import psycopg
 from sqlalchemy.engine import make_url
 
 from app.utils.logging import get_logger
+from app.utils.retry import run_with_retry
 
 logger = get_logger(__name__)
 
@@ -16,43 +17,31 @@ logger = get_logger(__name__)
 def _run_with_retry(func: Any, *args: Any) -> None:
     """Retry migration operations to wait for DB readiness."""
     func_name = getattr(func, "__name__", str(func))
-    max_attempts = 10
-    delay = 5.0
-    last_error: Exception | None = None
-    for attempt in range(max_attempts):
-        try:
-            func(*args)
-            logger.info(f"Operation {func_name} completed successfully")
-            return
-        except Exception as exc:  # pragma: no cover - best effort retry
-            error_type = type(exc).__name__
-            error_msg = str(exc)
-            safe_msg = _sanitize_error_message(error_msg)
-            logger.warning(
-                f"Attempt {attempt + 1}/{max_attempts} for {func_name} failed",
-                extra={
-                    "attempt": attempt + 1,
-                    "max_attempts": max_attempts,
-                    "error_type": error_type,
-                    "error_message": safe_msg,
-                    "function": func_name,
-                },
-            )
-            last_error = exc
-            if attempt < max_attempts - 1:
-                logger.info(f"Retrying {func_name} in {delay:.1f} seconds...")
-                time.sleep(delay)
-                delay = min(delay * 1.5, 30.0)
-    if last_error:
-        raise last_error
+    try:
+        run_with_retry(
+            func,
+            *args,
+            max_attempts=10,
+            base_delay_seconds=5.0,
+            max_delay_seconds=30.0,
+            should_retry=lambda _exc: True,  # pragma: no cover - operational resilience
+            logger=logger,
+            operation_name=func_name,
+        )
+    except Exception as exc:
+        # Guard against leaking credentials from connection/DSN error strings.
+        safe_message = _sanitize_error_message(str(exc))
+        if safe_message == str(exc):
+            raise
+        raise RuntimeError(safe_message) from exc
+
+    logger.info(f"Operation {func_name} completed successfully")
 
 
 def _sanitize_error_message(msg: str) -> str:
-    """Remove potential secrets from error messages."""
-    import re
-
+    """Remove potential credentials from migration error messages."""
     msg = re.sub(r"://[^:]+:[^@]+@", "://***:***@", msg)
-    msg = re.sub(r"password=[A-Za-z0-9+/=]{50,}", "password=***REDACTED***", msg)
+    msg = re.sub(r"password=[A-Za-z0-9+/=]{20,}", "password=***REDACTED***", msg)
     return msg
 
 

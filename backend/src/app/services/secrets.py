@@ -4,17 +4,33 @@ from __future__ import annotations
 
 import base64
 import json
+import time
+from dataclasses import dataclass
 from typing import Any
 
 from app.services.aws_clients import get_secretsmanager_client
 
-_SECRET_CACHE: dict[str, dict[str, Any]] = {}
+_CACHE_TTL_SECONDS = 300
+
+
+@dataclass(frozen=True)
+class _CacheEntry:
+    value: dict[str, Any]
+    loaded_at_monotonic: float
+
+
+_SECRET_CACHE: dict[str, _CacheEntry] = {}
 
 
 def get_secret_json(secret_arn: str) -> dict[str, Any]:
     """Fetch a secret from AWS Secrets Manager and parse JSON."""
-    if secret_arn in _SECRET_CACHE:
-        return _SECRET_CACHE[secret_arn]
+    cache_entry = _SECRET_CACHE.get(secret_arn)
+    now = time.monotonic()
+    if (
+        cache_entry is not None
+        and now - cache_entry.loaded_at_monotonic <= _CACHE_TTL_SECONDS
+    ):
+        return cache_entry.value
 
     client = get_secretsmanager_client()
     response = client.get_secret_value(SecretId=secret_arn)
@@ -25,7 +41,10 @@ def get_secret_json(secret_arn: str) -> dict[str, Any]:
         raise RuntimeError("Secret value is empty")
 
     secret_payload = json.loads(secret_str)
-    _SECRET_CACHE[secret_arn] = secret_payload
+    _SECRET_CACHE[secret_arn] = _CacheEntry(
+        value=secret_payload,
+        loaded_at_monotonic=now,
+    )
     return secret_payload
 
 

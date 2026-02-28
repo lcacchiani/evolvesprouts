@@ -7,7 +7,8 @@ import os
 import re
 import secrets
 from urllib.parse import urlparse
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Mapping
 
 from app.exceptions import ValidationError
 

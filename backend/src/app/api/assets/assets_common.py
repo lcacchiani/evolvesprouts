@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Mapping, Optional
+from typing import Any
 from uuid import UUID, uuid4
 
-from app.api.admin_request import _parse_body, _parse_cursor, _query_param
-from app.api.admin_validators import _validate_string_length
+from app.api.admin_request import (
+    encode_cursor,
+    parse_body,
+    parse_cursor as parse_admin_cursor,
+    query_param,
+)
+from app.api.admin_validators import validate_string_length
 from app.db.models import (
     AccessGrantType,
     Asset,
@@ -21,6 +27,7 @@ from app.db.models import (
 from app.exceptions import ValidationError
 from app.services.aws_clients import get_s3_client
 from app.services.cloudfront_signing import generate_signed_download_url
+from app.utils import json_response, require_env
 
 _MAX_FILE_NAME_LENGTH = 255
 _MAX_MIME_TYPE_LENGTH = 127
@@ -38,7 +45,7 @@ _FILENAME_SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
 class RequestIdentity:
     """Caller identity extracted from API Gateway authorizer context."""
 
-    user_sub: Optional[str]
+    user_sub: str | None
     groups: set[str]
     organization_ids: set[str]
 
@@ -74,7 +81,7 @@ def split_route_parts(path: str) -> list[str]:
 
 def parse_limit(event: Mapping[str, Any], default: int = 25) -> int:
     """Parse and validate list page size."""
-    raw_value = _query_param(event, "limit")
+    raw_value = query_param(event, "limit")
     if not raw_value:
         return default
     try:
@@ -86,9 +93,9 @@ def parse_limit(event: Mapping[str, Any], default: int = 25) -> int:
     return parsed
 
 
-def parse_cursor(event: Mapping[str, Any]) -> Optional[UUID]:
+def parse_cursor(event: Mapping[str, Any]) -> UUID | None:
     """Parse cursor query parameter."""
-    return _parse_cursor(_query_param(event, "cursor"))
+    return parse_admin_cursor(query_param(event, "cursor"))
 
 
 def extract_identity(event: Mapping[str, Any]) -> RequestIdentity:
@@ -126,18 +133,18 @@ def extract_identity(event: Mapping[str, Any]) -> RequestIdentity:
 
 def parse_admin_asset_list_filters(
     event: Mapping[str, Any],
-) -> tuple[Optional[str], Optional[AssetVisibility], Optional[AssetType]]:
+) -> tuple[str | None, AssetVisibility | None, AssetType | None]:
     """Parse admin list filter query parameters."""
-    query = _query_param(event, "query")
+    query = query_param(event, "query")
     query = query.strip() if query else None
 
-    visibility_raw = _query_param(event, "visibility")
-    visibility: Optional[AssetVisibility] = None
+    visibility_raw = query_param(event, "visibility")
+    visibility: AssetVisibility | None = None
     if visibility_raw:
         visibility = parse_asset_visibility(visibility_raw)
 
-    asset_type_raw = _query_param(event, "asset_type")
-    asset_type: Optional[AssetType] = None
+    asset_type_raw = query_param(event, "asset_type")
+    asset_type: AssetType | None = None
     if asset_type_raw:
         asset_type = parse_asset_type(asset_type_raw)
 
@@ -146,7 +153,7 @@ def parse_admin_asset_list_filters(
 
 def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate create asset request payload."""
-    body = _parse_body(event)
+    body = parse_body(event)
     title = _required_text(body, "title", max_length=255)
     description = _optional_text(body, "description", max_length=5000)
     file_name = _required_text(
@@ -173,17 +180,56 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def parse_update_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
-    """Parse and validate update asset request payload.
-
-    For now, update requires the same metadata fields as create to keep request
-    handling deterministic and avoid partial-update ambiguity.
-    """
+    """Parse and validate full update asset request payload."""
     return parse_create_asset_payload(event)
+
+
+def parse_partial_update_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
+    """Parse and validate partial update payload for PATCH requests."""
+    body = parse_body(event)
+    payload: dict[str, Any] = {}
+
+    if _has_any_field(body, "title"):
+        payload["title"] = _required_text(body, "title", max_length=255)
+    if _has_any_field(body, "description"):
+        payload["description"] = _optional_text(body, "description", max_length=5000)
+    if _has_any_field(body, "file_name", "fileName"):
+        payload["file_name"] = _required_text(
+            body,
+            "file_name",
+            "fileName",
+            max_length=_MAX_FILE_NAME_LENGTH,
+        )
+    if _has_any_field(body, "asset_type", "assetType"):
+        asset_type_raw = _optional_field(body, "asset_type", "assetType")
+        if not asset_type_raw:
+            raise ValidationError("asset_type is required", field="asset_type")
+        payload["asset_type"] = parse_asset_type(asset_type_raw)
+    if _has_any_field(body, "content_type", "contentType"):
+        payload["content_type"] = _optional_text(
+            body,
+            "content_type",
+            "contentType",
+            max_length=_MAX_MIME_TYPE_LENGTH,
+        )
+    if _has_any_field(body, "visibility"):
+        visibility_raw = _optional_field(body, "visibility")
+        if not visibility_raw:
+            raise ValidationError("visibility is required", field="visibility")
+        payload["visibility"] = parse_asset_visibility(visibility_raw)
+
+    if not payload:
+        raise ValidationError(
+            "At least one updatable field is required",
+            field="body",
+        )
+
+    return payload
 
 
 def parse_grant_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate create grant payload."""
-    body = _parse_body(event)
+    body = parse_body(event)
     grant_type_raw = _optional_field(body, "grant_type", "grantType")
     if not grant_type_raw:
         raise ValidationError("grant_type is required", field="grant_type")
@@ -241,6 +287,28 @@ def parse_grant_type(value: str) -> AccessGrantType:
         ) from exc
 
 
+def paginate_response(
+    *,
+    items: Sequence[Any],
+    limit: int,
+    event: Mapping[str, Any],
+    serializer: Callable[[Any], dict[str, Any]],
+) -> dict[str, Any]:
+    """Build a standard paginated API response payload."""
+    page_items = list(items[:limit])
+    next_cursor = (
+        encode_cursor(page_items[-1].id) if len(items) > limit and page_items else None
+    )
+    return json_response(
+        200,
+        {
+            "items": [serializer(item) for item in page_items],
+            "next_cursor": next_cursor,
+        },
+        event=event,
+    )
+
+
 def build_s3_key(asset_id: UUID, file_name: str) -> str:
     """Build canonical S3 object key for a new asset."""
     sanitized = sanitize_file_name(file_name)
@@ -257,7 +325,7 @@ def sanitize_file_name(file_name: str) -> str:
     return cleaned[:_MAX_FILE_NAME_LENGTH] if cleaned else "asset"
 
 
-def generate_upload_url(*, s3_key: str, content_type: Optional[str]) -> dict[str, Any]:
+def generate_upload_url(*, s3_key: str, content_type: str | None) -> dict[str, Any]:
     """Generate a presigned PUT URL for upload."""
     bucket_name = _require_assets_bucket_name()
     ttl_seconds = _presign_ttl_seconds()
@@ -341,10 +409,7 @@ def serialize_grant(grant: AssetAccessGrant) -> dict[str, Any]:
 
 
 def _require_assets_bucket_name() -> str:
-    value = os.getenv("CLIENT_ASSETS_BUCKET_NAME", "").strip()
-    if not value:
-        raise RuntimeError("CLIENT_ASSETS_BUCKET_NAME is required")
-    return value
+    return require_env("CLIENT_ASSETS_BUCKET_NAME")
 
 
 def _presign_ttl_seconds() -> int:
@@ -376,7 +441,7 @@ def _download_link_expiry_days() -> int:
 
 def _required_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str:
     value = _optional_field(body, *keys)
-    normalized = _validate_string_length(
+    normalized = validate_string_length(
         value, keys[0], max_length=max_length, required=True
     )
     if normalized is None:
@@ -384,13 +449,9 @@ def _required_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str:
     return normalized
 
 
-def _optional_text(
-    body: Mapping[str, Any], *keys: str, max_length: int
-) -> Optional[str]:
+def _optional_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str | None:
     value = _optional_field(body, *keys)
-    return _validate_string_length(
-        value, keys[0], max_length=max_length, required=False
-    )
+    return validate_string_length(value, keys[0], max_length=max_length, required=False)
 
 
 def _optional_field(body: Mapping[str, Any], *keys: str) -> Any:
@@ -400,7 +461,11 @@ def _optional_field(body: Mapping[str, Any], *keys: str) -> Any:
     return None
 
 
-def _to_optional_string(value: Any) -> Optional[str]:
+def _has_any_field(body: Mapping[str, Any], *keys: str) -> bool:
+    return any(key in body for key in keys)
+
+
+def _to_optional_string(value: Any) -> str | None:
     if value is None:
         return None
     if isinstance(value, str):
@@ -409,13 +474,13 @@ def _to_optional_string(value: Any) -> Optional[str]:
     return str(value).strip() or None
 
 
-def _parse_csv_set(value: Optional[str]) -> set[str]:
+def _parse_csv_set(value: str | None) -> set[str]:
     if not value:
         return set()
     return {item.strip() for item in value.split(",") if item.strip()}
 
 
-def _extract_claim(claims: Any, key: str) -> Optional[str]:
+def _extract_claim(claims: Any, key: str) -> str | None:
     if not isinstance(claims, Mapping):
         return None
     value = claims.get(key)

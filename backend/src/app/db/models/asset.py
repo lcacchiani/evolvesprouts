@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Iterable, Optional
+
+from collections.abc import Iterable
 from uuid import UUID
 
 from sqlalchemy import Enum, ForeignKey, Index, String, Text, text
@@ -39,7 +40,7 @@ class Asset(Base):
         server_default=text("gen_random_uuid()"),
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     asset_type: Mapped[AssetType] = mapped_column(
         Enum(
             AssetType,
@@ -51,7 +52,7 @@ class Asset(Base):
     )
     s3_key: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    content_type: Mapped[Optional[str]] = mapped_column(String(127), nullable=True)
+    content_type: Mapped[str | None] = mapped_column(String(127), nullable=True)
     visibility: Mapped[AssetVisibility] = mapped_column(
         Enum(
             AssetVisibility,
@@ -73,11 +74,11 @@ class Asset(Base):
         server_default=text("now()"),
     )
 
-    access_grants: Mapped[list["AssetAccessGrant"]] = relationship(
+    access_grants: Mapped[list[AssetAccessGrant]] = relationship(
         back_populates="asset",
         cascade="all, delete-orphan",
     )
-    share_link: Mapped[Optional["AssetShareLink"]] = relationship(
+    share_link: Mapped[AssetShareLink | None] = relationship(
         back_populates="asset",
         cascade="all, delete-orphan",
         uselist=False,
@@ -119,7 +120,7 @@ class AssetAccessGrant(Base):
         ),
         nullable=False,
     )
-    grantee_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    grantee_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     granted_by: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
@@ -127,7 +128,7 @@ class AssetAccessGrant(Base):
         server_default=text("now()"),
     )
 
-    asset: Mapped["Asset"] = relationship(
+    asset: Mapped[Asset] = relationship(
         "Asset",
         back_populates="access_grants",
         primaryjoin="AssetAccessGrant.asset_id == Asset.id",
@@ -172,7 +173,7 @@ class AssetShareLink(Base):
         server_default=text("now()"),
     )
 
-    asset: Mapped["Asset"] = relationship(
+    asset: Mapped[Asset] = relationship(
         "Asset",
         back_populates="share_link",
         primaryjoin="AssetShareLink.asset_id == Asset.id",

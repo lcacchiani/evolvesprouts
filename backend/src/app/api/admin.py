@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Callable, Mapping
 
 from app.api.assets import (
     handle_admin_assets_request,
@@ -13,7 +14,12 @@ from app.api.assets import (
 from app.api.public_reservations import _handle_public_reservation
 from app.exceptions import AppError, ValidationError
 from app.utils import json_response
-from app.utils.logging import configure_logging, get_logger, set_request_context
+from app.utils.logging import (
+    clear_request_context,
+    configure_logging,
+    get_logger,
+    set_request_context,
+)
 from app.utils.responses import validate_content_type
 
 configure_logging()
@@ -21,34 +27,56 @@ logger = get_logger(__name__)
 
 __all__ = ["lambda_handler"]
 
+_ROUTES: tuple[
+    tuple[str, bool, Callable[[Mapping[str, Any], str, str], dict[str, Any]]],
+    ...,
+] = (
+    (
+        "/v1/reservations",
+        True,
+        lambda event, method, _path: _handle_public_reservation(event, method),
+    ),
+    (
+        "/www/v1/reservations",
+        True,
+        lambda event, method, _path: _handle_public_reservation(event, method),
+    ),
+    ("/v1/admin/assets", False, handle_admin_assets_request),
+    ("/v1/user/assets", False, handle_user_assets_request),
+    ("/v1/assets/share", False, handle_share_assets_request),
+    ("/v1/assets/public", False, handle_public_assets_request),
+)
+
 
 def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
     """Handle requests routed to the admin Lambda."""
     request_id = event.get("requestContext", {}).get("requestId", "")
     set_request_context(req_id=request_id)
-
-    method = event.get("httpMethod", "")
-    path = event.get("path", "")
-
     try:
-        validate_content_type(event)
-    except ValidationError as exc:
-        logger.warning(f"Content-Type validation failed: {exc.message}")
-        return json_response(exc.status_code, exc.to_dict(), event=event)
+        method = event.get("httpMethod", "")
+        path = event.get("path", "")
 
-    logger.info(
-        f"Admin request: {method} {path}",
-        extra={
-            "path": path,
-            "method": method,
-        },
-    )
+        try:
+            validate_content_type(event)
+        except ValidationError as exc:
+            logger.warning(f"Content-Type validation failed: {exc.message}")
+            return json_response(exc.status_code, exc.to_dict(), event=event)
 
-    handler = _match_handler(event=event, method=method, path=path)
-    if handler is not None:
-        return _safe_handler(handler, event)
+        logger.info(
+            f"Admin request: {method} {path}",
+            extra={
+                "path": path,
+                "method": method,
+            },
+        )
 
-    return json_response(404, {"error": "Not found"}, event=event)
+        handler = _match_handler(event=event, method=method, path=path)
+        if handler is not None:
+            return _safe_handler(handler, event)
+
+        return json_response(404, {"error": "Not found"}, event=event)
+    finally:
+        clear_request_context()
 
 
 def _safe_handler(
@@ -64,11 +92,9 @@ def _safe_handler(
     except ValueError as exc:
         logger.warning(f"Value error: {exc}")
         return json_response(400, {"error": str(exc)}, event=event)
-    except Exception as exc:  # pragma: no cover
+    except Exception:  # pragma: no cover
         logger.exception("Unexpected error in handler")
-        return json_response(
-            500, {"error": "Internal server error", "detail": str(exc)}, event=event
-        )
+        return json_response(500, {"error": "Internal server error"}, event=event)
 
 
 def _match_handler(
@@ -78,52 +104,15 @@ def _match_handler(
     path: str,
 ) -> Any:
     """Return the request handler for a known route, if any."""
-    if _is_public_reservation_path(path):
-        return lambda: _handle_public_reservation(event, method)
-    if _is_admin_assets_path(path):
-        return lambda: handle_admin_assets_request(event, method, path)
-    if _is_user_assets_path(path):
-        return lambda: handle_user_assets_request(event, method, path)
-    if _is_share_assets_path(path):
-        return lambda: handle_share_assets_request(event, method, path)
-    if _is_public_assets_path(path):
-        return lambda: handle_public_assets_request(event, method, path)
+    normalized_path = path.rstrip("/")
+    for route_path, exact, route_handler in _ROUTES:
+        if _path_matches(normalized_path, route_path, exact=exact):
+            return lambda handler=route_handler: handler(event, method, normalized_path)
     return None
 
 
-def _is_public_reservation_path(path: str) -> bool:
-    """Return whether the request targets the public reservations endpoint."""
-    normalized_path = path.rstrip("/")
-    return normalized_path in ("/v1/reservations", "/www/v1/reservations")
-
-
-def _is_admin_assets_path(path: str) -> bool:
-    """Return whether the path targets /v1/admin/assets routes."""
-    normalized_path = path.rstrip("/")
-    return normalized_path == "/v1/admin/assets" or normalized_path.startswith(
-        "/v1/admin/assets/"
-    )
-
-
-def _is_user_assets_path(path: str) -> bool:
-    """Return whether the path targets /v1/user/assets routes."""
-    normalized_path = path.rstrip("/")
-    return normalized_path == "/v1/user/assets" or normalized_path.startswith(
-        "/v1/user/assets/"
-    )
-
-
-def _is_public_assets_path(path: str) -> bool:
-    """Return whether the path targets /v1/assets/public routes."""
-    normalized_path = path.rstrip("/")
-    return normalized_path == "/v1/assets/public" or normalized_path.startswith(
-        "/v1/assets/public/"
-    )
-
-
-def _is_share_assets_path(path: str) -> bool:
-    """Return whether the path targets /v1/assets/share routes."""
-    normalized_path = path.rstrip("/")
-    return normalized_path == "/v1/assets/share" or normalized_path.startswith(
-        "/v1/assets/share/"
-    )
+def _path_matches(path: str, route_path: str, *, exact: bool) -> bool:
+    """Return whether a path matches a route path."""
+    if exact:
+        return path == route_path
+    return path == route_path or path.startswith(route_path + "/")
