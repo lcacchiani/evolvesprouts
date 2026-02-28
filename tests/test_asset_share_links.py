@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 
+from app.auth.authorizer_utils import extract_bearer_token
 from app.api.assets import share_assets
 from app.api.assets.assets_common import signed_link_no_cache_headers
 from app.api.assets.share_links import (
@@ -136,13 +137,13 @@ def test_extract_request_source_domain_returns_none_for_invalid_header() -> None
 
 
 def test_extract_bearer_token_reads_authorization_header() -> None:
-    event = {"headers": {"Authorization": "Bearer abc.def.ghi"}}
-    assert share_assets._extract_bearer_token(event) == "abc.def.ghi"
+    headers = {"Authorization": "Bearer abc.def.ghi"}
+    assert extract_bearer_token(headers) == "abc.def.ghi"
 
 
 def test_extract_bearer_token_accepts_non_bearer_value() -> None:
-    event = {"headers": {"authorization": "raw-token"}}
-    assert share_assets._extract_bearer_token(event) == "raw-token"
+    headers = {"authorization": "raw-token"}
+    assert extract_bearer_token(headers) == "raw-token"
 
 
 def test_restricted_share_authentication_accepts_valid_token(monkeypatch: Any) -> None:

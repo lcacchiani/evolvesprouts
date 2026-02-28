@@ -16,6 +16,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.auth.authorizer_utils import (
+    build_iam_policy,
+    extract_bearer_token,
+    extract_organization_ids,
+)
 from app.auth.jwt_validator import (
     JWTValidationError,
     decode_and_verify_token,
@@ -24,84 +29,6 @@ from app.utils.logging import configure_logging, get_logger
 
 configure_logging()
 logger = get_logger(__name__)
-
-
-def _extract_organization_ids(raw_claims: dict[str, Any]) -> set[str]:
-    """Extract organization IDs from common Cognito custom-claim keys."""
-    claim_value = (
-        raw_claims.get("custom:organization_ids")
-        or raw_claims.get("custom:organization_id")
-        or raw_claims.get("organization_ids")
-        or raw_claims.get("organization_id")
-    )
-    if claim_value is None:
-        return set()
-    if isinstance(claim_value, list):
-        values = [str(item).strip() for item in claim_value]
-    else:
-        values = [part.strip() for part in str(claim_value).split(",")]
-    return {value for value in values if value}
-
-
-def _get_header(headers: dict[str, Any], name: str) -> str:
-    """Get a header value case-insensitively."""
-    for key, value in headers.items():
-        if key.lower() == name.lower():
-            return str(value)
-    return ""
-
-
-def _extract_token(headers: dict[str, Any]) -> str | None:
-    """Extract the JWT token from the Authorization header."""
-    auth_header = _get_header(headers, "authorization")
-    if not auth_header:
-        return None
-
-    # Handle "Bearer <token>" format
-    if auth_header.lower().startswith("bearer "):
-        return auth_header[7:].strip()
-
-    return auth_header.strip()
-
-
-def _policy(
-    effect: str,
-    method_arn: str,
-    principal_id: str,
-    context: dict[str, Any],
-) -> dict[str, Any]:
-    """Build an IAM policy document for API Gateway.
-
-    For Allow policies, we allow all methods on this API to enable
-    policy caching across endpoints.
-    """
-    # For Allow, broaden the resource to enable caching
-    if effect == "Allow":
-        # Convert specific method ARN to wildcard for caching
-        # arn:aws:execute-api:region:account:api-id/stage/METHOD/path
-        # -> arn:aws:execute-api:region:account:api-id/stage/*
-        parts = method_arn.split("/")
-        if len(parts) >= 2:
-            resource = "/".join(parts[:2]) + "/*"
-        else:
-            resource = method_arn
-    else:
-        resource = method_arn
-
-    return {
-        "principalId": principal_id,
-        "policyDocument": {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Action": "execute-api:Invoke",
-                    "Effect": effect,
-                    "Resource": resource,
-                }
-            ],
-        },
-        "context": context,
-    }
 
 
 def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
@@ -124,10 +51,15 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     method_arn = event.get("methodArn", "")
 
     # Extract token from Authorization header
-    token = _extract_token(headers)
+    token = extract_bearer_token(headers)
     if not token:
         logger.warning("Missing or invalid Authorization header")
-        return _policy("Deny", method_arn, "anonymous", {"reason": "missing_token"})
+        return build_iam_policy(
+            "Deny",
+            method_arn,
+            "anonymous",
+            {"reason": "missing_token"},
+        )
 
     try:
         # Verify and decode the JWT token with signature validation
@@ -143,7 +75,7 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
             f"(groups: {', '.join(user_groups) if user_groups else 'none'})"
         )
 
-        return _policy(
+        return build_iam_policy(
             "Allow",
             method_arn,
             user_sub,
@@ -157,8 +89,13 @@ def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
 
     except JWTValidationError as exc:
         logger.warning(f"JWT validation failed: {exc.message} (reason: {exc.reason})")
-        return _policy("Deny", method_arn, "invalid", {"reason": exc.reason})
+        return build_iam_policy("Deny", method_arn, "invalid", {"reason": exc.reason})
     except Exception as exc:
         # SECURITY: Don't expose internal error details
         logger.warning(f"Token validation failed: {type(exc).__name__}")
-        return _policy("Deny", method_arn, "invalid", {"reason": "invalid_token"})
+        return build_iam_policy(
+            "Deny",
+            method_arn,
+            "invalid",
+            {"reason": "invalid_token"},
+        )
