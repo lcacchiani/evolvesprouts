@@ -9,18 +9,10 @@ from app.exceptions import ConfigurationError
 from app.services import cloudfront_signing
 
 
-class _DummySigner:
-    def __init__(self) -> None:
-        self.resource_url: str | None = None
-        self.date_less_than: datetime | None = None
-
-    def generate_presigned_url(self, resource_url: str, date_less_than: datetime) -> str:
-        self.resource_url = resource_url
-        self.date_less_than = date_less_than
-        return "https://signed.example.com/download"
-
-
-def test_generate_signed_download_url_uses_cloudfront_signer(monkeypatch: Any) -> None:
+def test_generate_signed_download_url_uses_cloudfront_signer(
+    monkeypatch: Any,
+    cloudfront_dummy_signer: Any,
+) -> None:
     monkeypatch.setenv("ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN", "d111111abcdef8.cloudfront.net")
     monkeypatch.setenv("ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID", "K123EXAMPLE")
     monkeypatch.setenv(
@@ -28,13 +20,12 @@ def test_generate_signed_download_url_uses_cloudfront_signer(monkeypatch: Any) -
         "arn:aws:secretsmanager:ap-southeast-1:111111111111:secret:cf/private",
     )
 
-    dummy = _DummySigner()
     captured: dict[str, str] = {}
 
-    def fake_get_signer(*, key_pair_id: str, secret_arn: str) -> _DummySigner:
+    def fake_get_signer(*, key_pair_id: str, secret_arn: str) -> Any:
         captured["key_pair_id"] = key_pair_id
         captured["secret_arn"] = secret_arn
-        return dummy
+        return cloudfront_dummy_signer
 
     monkeypatch.setattr(cloudfront_signing, "_get_signer", fake_get_signer)
 
@@ -50,14 +41,15 @@ def test_generate_signed_download_url_uses_cloudfront_signer(monkeypatch: Any) -
         "secret_arn": "arn:aws:secretsmanager:ap-southeast-1:111111111111:secret:cf/private",
     }
     assert (
-        dummy.resource_url
+        cloudfront_dummy_signer.resource_url
         == "https://d111111abcdef8.cloudfront.net/assets/guide%20one.pdf"
     )
-    assert dummy.date_less_than == expires_at
+    assert cloudfront_dummy_signer.date_less_than == expires_at
 
 
 def test_generate_signed_download_url_requires_timezone_aware_datetime(
     monkeypatch: Any,
+    cloudfront_dummy_signer: Any,
 ) -> None:
     monkeypatch.setenv("ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN", "d111111abcdef8.cloudfront.net")
     monkeypatch.setenv("ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID", "K123EXAMPLE")
@@ -65,7 +57,11 @@ def test_generate_signed_download_url_requires_timezone_aware_datetime(
         "ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN",
         "arn:aws:secretsmanager:ap-southeast-1:111111111111:secret:cf/private",
     )
-    monkeypatch.setattr(cloudfront_signing, "_get_signer", lambda **_: _DummySigner())
+    monkeypatch.setattr(
+        cloudfront_signing,
+        "_get_signer",
+        lambda **_: cloudfront_dummy_signer,
+    )
 
     with pytest.raises(RuntimeError, match="timezone-aware"):
         cloudfront_signing.generate_signed_download_url(
@@ -74,22 +70,11 @@ def test_generate_signed_download_url_requires_timezone_aware_datetime(
         )
 
 
-def test_get_signer_uses_sha1_for_cloudfront_compatibility(monkeypatch: Any) -> None:
+def test_get_signer_uses_sha1_for_cloudfront_compatibility(
+    monkeypatch: Any,
+    cloudfront_fake_private_key: Any,
+) -> None:
     cloudfront_signing.clear_signer_cache()
-
-    class _FakePrivateKey:
-        def __init__(self) -> None:
-            self.message: bytes | None = None
-            self.padding_name: str | None = None
-            self.algorithm_name: str | None = None
-
-        def sign(self, message: bytes, applied_padding: Any, algorithm: Any) -> bytes:
-            self.message = message
-            self.padding_name = type(applied_padding).__name__
-            self.algorithm_name = type(algorithm).__name__
-            return b"signature"
-
-    fake_key = _FakePrivateKey()
     captured: dict[str, Any] = {}
 
     class _CapturingSigner:
@@ -97,7 +82,11 @@ def test_get_signer_uses_sha1_for_cloudfront_compatibility(monkeypatch: Any) -> 
             captured["key_pair_id"] = key_pair_id
             captured["signer"] = signer
 
-    monkeypatch.setattr(cloudfront_signing, "_load_private_key", lambda _: fake_key)
+    monkeypatch.setattr(
+        cloudfront_signing,
+        "_load_private_key",
+        lambda _: cloudfront_fake_private_key,
+    )
     monkeypatch.setattr(cloudfront_signing, "CloudFrontSigner", _CapturingSigner)
 
     signer = cloudfront_signing._get_signer(
@@ -109,9 +98,9 @@ def test_get_signer_uses_sha1_for_cloudfront_compatibility(monkeypatch: Any) -> 
 
     signature = captured["signer"](b"payload")
     assert signature == b"signature"
-    assert fake_key.message == b"payload"
-    assert fake_key.padding_name == "PKCS1v15"
-    assert fake_key.algorithm_name == "SHA1"
+    assert cloudfront_fake_private_key.message == b"payload"
+    assert cloudfront_fake_private_key.padding_name == "PKCS1v15"
+    assert cloudfront_fake_private_key.algorithm_name == "SHA1"
 
     cloudfront_signing.clear_signer_cache()
 

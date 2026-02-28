@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.services.aws_proxy import AwsProxyError
 from app.services.turnstile import (
     extract_client_ip,
     extract_turnstile_token,
@@ -44,25 +43,25 @@ def test_verify_turnstile_token_returns_false_without_secret(
 
 def test_verify_turnstile_token_returns_true_on_success(
     monkeypatch: Any,
+    turnstile_http_success_response: Any,
 ) -> None:
     monkeypatch.setenv("TURNSTILE_SECRET_KEY", "test-secret")
-
-    def fake_http_invoke(**_: Any) -> dict[str, Any]:
-        return {"status": 200, "body": '{"success": true}'}
-
-    monkeypatch.setattr("app.services.turnstile.http_invoke", fake_http_invoke)
+    monkeypatch.setattr(
+        "app.services.turnstile.http_invoke",
+        turnstile_http_success_response,
+    )
 
     assert verify_turnstile_token("token", remote_ip="203.0.113.10") is True
 
 
 def test_verify_turnstile_token_returns_false_on_proxy_error(
     monkeypatch: Any,
+    turnstile_http_proxy_error: Any,
 ) -> None:
     monkeypatch.setenv("TURNSTILE_SECRET_KEY", "test-secret")
-
-    def fake_http_invoke(**_: Any) -> dict[str, Any]:
-        raise AwsProxyError("ProxyError", "blocked")
-
-    monkeypatch.setattr("app.services.turnstile.http_invoke", fake_http_invoke)
+    monkeypatch.setattr(
+        "app.services.turnstile.http_invoke",
+        turnstile_http_proxy_error,
+    )
 
     assert verify_turnstile_token("token") is False
