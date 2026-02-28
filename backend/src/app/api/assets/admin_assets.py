@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 
-from app.api.admin_request import _parse_uuid
+from app.api.admin_request import parse_uuid
 from app.api.assets.assets_common import (
     build_s3_key,
     delete_s3_object,
@@ -62,7 +62,7 @@ def handle_admin_assets_request(
             return _create_asset(event, identity.user_sub)
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
-    asset_id = _parse_uuid(parts[2])
+    asset_id = parse_uuid(parts[2])
     if len(parts) == 3:
         if method == "GET":
             return _get_asset(event, asset_id)
@@ -80,7 +80,7 @@ def handle_admin_assets_request(
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 5 and parts[3] == "grants" and method == "DELETE":
-        grant_id = _parse_uuid(parts[4])
+        grant_id = parse_uuid(parts[4])
         return _delete_grant(event, asset_id, grant_id)
 
     if len(parts) == 4 and parts[3] == "share-link":

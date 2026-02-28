@@ -12,7 +12,7 @@ from app.exceptions import ValidationError
 from app.utils.parsers import collect_query_params, first_param
 
 
-def _parse_body(event: Mapping[str, Any]) -> dict[str, Any]:
+def parse_body(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse JSON request body."""
     raw = event.get("body") or ""
     if event.get("isBase64Encoded"):
@@ -81,13 +81,13 @@ def _is_version_segment(segment: str) -> bool:
     return segment.startswith("v") and segment[1:].isdigit()
 
 
-def _query_param(event: Mapping[str, Any], name: str) -> Optional[str]:
+def query_param(event: Mapping[str, Any], name: str) -> Optional[str]:
     """Return a query parameter value."""
     params = collect_query_params(event)
     return first_param(params, name)
 
 
-def _parse_uuid(value: str) -> UUID:
+def parse_uuid(value: str) -> UUID:
     """Parse a UUID string."""
     try:
         return UUID(value)
@@ -99,7 +99,7 @@ def _to_uuid(value: UUID | str) -> UUID:
     """Normalize a UUID from UUID or string input."""
     if isinstance(value, UUID):
         return value
-    return _parse_uuid(value)
+    return parse_uuid(value)
 
 
 def _parse_group_name(event: Mapping[str, Any]) -> str:
@@ -117,7 +117,7 @@ def _parse_group_name(event: Mapping[str, Any]) -> str:
     return group or os.getenv("ADMIN_GROUP") or "admin"
 
 
-def _parse_cursor(value: Optional[str]) -> Optional[UUID]:
+def parse_cursor(value: Optional[str]) -> Optional[UUID]:
     """Parse cursor for admin listing."""
     if value is None or value == "":
         return None
@@ -128,7 +128,7 @@ def _parse_cursor(value: Optional[str]) -> Optional[UUID]:
         raise ValidationError("Invalid cursor", field="cursor") from exc
 
 
-def _encode_cursor(value: Any) -> str:
+def encode_cursor(value: Any) -> str:
     """Encode admin cursor."""
     payload = json.dumps({"id": str(value)}).encode("utf-8")
     encoded = base64.urlsafe_b64encode(payload).decode("utf-8")

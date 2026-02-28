@@ -81,7 +81,7 @@ def _valid_currencies() -> frozenset[str]:
     return frozenset(codes)
 
 
-def _validate_string_length(
+def validate_string_length(
     value: Any,
     field_name: str,
     max_length: int,
@@ -184,7 +184,7 @@ def _validate_social_value(value: Any, field_name: str) -> Optional[str]:
     return value
 
 
-def _validate_email(value: Any) -> Optional[str]:
+def validate_email(value: Any) -> Optional[str]:
     """Validate email address."""
     if value is None:
         return None
@@ -394,7 +394,7 @@ def _validate_translations_map(
         code = _validate_language_code(str(key), f"{field_name}.{key}")
         if code == "en":
             continue
-        text = _validate_string_length(raw, f"{field_name}.{code}", max_length)
+        text = validate_string_length(raw, f"{field_name}.{code}", max_length)
         if text is None:
             continue
         cleaned[code] = text

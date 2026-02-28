@@ -11,12 +11,12 @@ from typing import Any, Mapping, Optional, TypeVar
 from uuid import UUID, uuid4
 
 from app.api.admin_request import (
-    _encode_cursor,
-    _parse_body,
-    _parse_cursor,
-    _query_param,
+    encode_cursor,
+    parse_body,
+    parse_cursor as parse_admin_cursor,
+    query_param,
 )
-from app.api.admin_validators import _validate_string_length
+from app.api.admin_validators import validate_string_length
 from app.db.models import (
     AccessGrantType,
     Asset,
@@ -82,7 +82,7 @@ def split_route_parts(path: str) -> list[str]:
 
 def parse_limit(event: Mapping[str, Any], default: int = 25) -> int:
     """Parse and validate list page size."""
-    raw_value = _query_param(event, "limit")
+    raw_value = query_param(event, "limit")
     if not raw_value:
         return default
     try:
@@ -96,7 +96,7 @@ def parse_limit(event: Mapping[str, Any], default: int = 25) -> int:
 
 def parse_cursor(event: Mapping[str, Any]) -> Optional[UUID]:
     """Parse cursor query parameter."""
-    return _parse_cursor(_query_param(event, "cursor"))
+    return parse_admin_cursor(query_param(event, "cursor"))
 
 
 def extract_identity(event: Mapping[str, Any]) -> RequestIdentity:
@@ -136,15 +136,15 @@ def parse_admin_asset_list_filters(
     event: Mapping[str, Any],
 ) -> tuple[Optional[str], Optional[AssetVisibility], Optional[AssetType]]:
     """Parse admin list filter query parameters."""
-    query = _query_param(event, "query")
+    query = query_param(event, "query")
     query = query.strip() if query else None
 
-    visibility_raw = _query_param(event, "visibility")
+    visibility_raw = query_param(event, "visibility")
     visibility: Optional[AssetVisibility] = None
     if visibility_raw:
         visibility = parse_asset_visibility(visibility_raw)
 
-    asset_type_raw = _query_param(event, "asset_type")
+    asset_type_raw = query_param(event, "asset_type")
     asset_type: Optional[AssetType] = None
     if asset_type_raw:
         asset_type = parse_asset_type(asset_type_raw)
@@ -154,7 +154,7 @@ def parse_admin_asset_list_filters(
 
 def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate create asset request payload."""
-    body = _parse_body(event)
+    body = parse_body(event)
     title = _required_text(body, "title", max_length=255)
     description = _optional_text(body, "description", max_length=5000)
     file_name = _required_text(
@@ -191,7 +191,7 @@ def parse_update_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
 
 def parse_grant_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate create grant payload."""
-    body = _parse_body(event)
+    body = parse_body(event)
     grant_type_raw = _optional_field(body, "grant_type", "grantType")
     if not grant_type_raw:
         raise ValidationError("grant_type is required", field="grant_type")
@@ -259,7 +259,7 @@ def paginate_response(
     """Build a standard paginated API response payload."""
     page_items = list(items[:limit])
     next_cursor = (
-        _encode_cursor(page_items[-1].id) if len(items) > limit and page_items else None
+        encode_cursor(page_items[-1].id) if len(items) > limit and page_items else None
     )
     return json_response(
         200,
@@ -403,7 +403,7 @@ def _download_link_expiry_days() -> int:
 
 def _required_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str:
     value = _optional_field(body, *keys)
-    normalized = _validate_string_length(
+    normalized = validate_string_length(
         value, keys[0], max_length=max_length, required=True
     )
     if normalized is None:
@@ -415,9 +415,7 @@ def _optional_text(
     body: Mapping[str, Any], *keys: str, max_length: int
 ) -> Optional[str]:
     value = _optional_field(body, *keys)
-    return _validate_string_length(
-        value, keys[0], max_length=max_length, required=False
-    )
+    return validate_string_length(value, keys[0], max_length=max_length, required=False)
 
 
 def _optional_field(body: Mapping[str, Any], *keys: str) -> Any:

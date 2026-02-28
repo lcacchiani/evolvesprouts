@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from uuid import UUID, uuid4
 
-from app.api.admin_request import _parse_cursor
+from app.api.admin_request import parse_cursor
 from app.api.assets.assets_common import paginate_response
 
 
@@ -35,7 +35,7 @@ def test_paginate_response_returns_next_cursor_for_remaining_items() -> None:
     body = json.loads(response["body"])
     assert len(body["items"]) == 2
     assert body["next_cursor"] is not None
-    assert _parse_cursor(body["next_cursor"]) == items[1].id
+    assert parse_cursor(body["next_cursor"]) == items[1].id
 
 
 def test_paginate_response_returns_null_cursor_for_last_page() -> None:

@@ -7,8 +7,8 @@ from decimal import Decimal
 from decimal import InvalidOperation
 from typing import Any, Mapping
 
-from app.api.admin_request import _parse_body
-from app.api.admin_validators import _validate_email, _validate_string_length
+from app.api.admin_request import parse_body
+from app.api.admin_validators import validate_email, validate_string_length
 from app.exceptions import ValidationError
 from app.services.email import send_email
 from app.services.turnstile import (
@@ -54,7 +54,7 @@ def _handle_public_reservation(
             event=event,
         )
 
-    body = _parse_body(event)
+    body = parse_body(event)
     reservation_payload = _validate_reservation_payload(body)
     try:
         _send_reservation_email(reservation_payload)
@@ -96,7 +96,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "attendeeName",
         _MAX_NAME_LENGTH,
     )
-    attendee_email = _validate_email(body.get("attendeeEmail"))
+    attendee_email = validate_email(body.get("attendeeEmail"))
     if attendee_email is None:
         raise ValidationError("attendeeEmail is required", field="attendeeEmail")
 
@@ -207,7 +207,7 @@ def _send_reservation_email(reservation_payload: Mapping[str, Any]) -> None:
 
 def _require_text(value: Any, field_name: str, max_length: int) -> str:
     """Validate and require a non-empty string field."""
-    normalized = _validate_string_length(
+    normalized = validate_string_length(
         value,
         field_name=field_name,
         max_length=max_length,
@@ -220,7 +220,7 @@ def _require_text(value: Any, field_name: str, max_length: int) -> str:
 
 def _optional_text(value: Any, field_name: str, max_length: int) -> str | None:
     """Validate an optional text field."""
-    return _validate_string_length(
+    return validate_string_length(
         value,
         field_name=field_name,
         max_length=max_length,

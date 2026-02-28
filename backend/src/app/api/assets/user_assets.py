@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.api.admin_request import _parse_uuid
+from app.api.admin_request import parse_uuid
 from app.api.assets.assets_common import (
     RequestIdentity,
     extract_identity,
@@ -43,7 +43,7 @@ def handle_user_assets_request(
         return _list_accessible_assets(event, identity)
 
     if len(parts) == 4 and parts[3] == "download" and method == "GET":
-        asset_id = _parse_uuid(parts[2])
+        asset_id = parse_uuid(parts[2])
         return _download_asset(event, asset_id, identity)
 
     return json_response(405, {"error": "Method not allowed"}, event=event)
