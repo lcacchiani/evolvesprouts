@@ -83,7 +83,15 @@ describe('ContactFormFields', () => {
     fireEvent.blur(screen.getByLabelText(/Phone Number/i));
     fireEvent.click(screen.getByTestId('captcha-solve'));
     fireEvent.click(screen.getByTestId('captcha-fail'));
-    fireEvent.submit(screen.getByRole('button', { name: /Submit/i }).closest('form')!);
+
+    const submitButton = screen.getByRole('button', {
+      name: enContent.contactUs.contactUsForm.submitLabel,
+    });
+    const parentForm = submitButton.closest('form');
+    if (!parentForm) {
+      throw new Error('Expected contact form wrapper to exist');
+    }
+    fireEvent.submit(parentForm);
 
     expect(onUpdateField).toHaveBeenCalledWith('email', 'valid@example.com');
     expect(onUpdateField).toHaveBeenCalledWith('phone', '91234567');

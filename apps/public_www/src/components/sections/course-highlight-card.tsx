@@ -29,7 +29,7 @@ export interface CourseHighlightCardProps {
 }
 
 const INTERACTIVE_ELEMENT_SELECTOR =
-  'button, a, input, select, textarea, [role="button"]';
+  'button, a, input, select, textarea';
 
 function isDesktopHoverMode(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -49,7 +49,7 @@ export function CourseHighlightCard({
   tone,
 }: CourseHighlightCardProps) {
   const [isActive, setIsActive] = useState(false);
-  const articleRef = useRef<HTMLElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const toneClassMap: Record<CourseHighlightCardTone, string> = {
     gold: 'es-course-highlight-card--gold',
     green: 'es-course-highlight-card--green',
@@ -62,7 +62,7 @@ export function CourseHighlightCard({
   }, []);
 
   useOutsideClickClose({
-    ref: articleRef,
+    ref: cardRef,
     onOutsideClick: handleDismiss,
     isActive,
   });
@@ -121,8 +121,8 @@ export function CourseHighlightCard({
     : 'opacity-0 transition-none';
 
   return (
-    <article
-      ref={articleRef}
+    <div
+      ref={cardRef}
       role='button'
       tabIndex={0}
       aria-expanded={isActive}
@@ -194,6 +194,6 @@ export function CourseHighlightCard({
           )}
         </div>
       </div>
-    </article>
+    </div>
   );
 }

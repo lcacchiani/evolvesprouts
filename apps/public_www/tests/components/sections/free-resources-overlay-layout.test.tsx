@@ -7,9 +7,11 @@ import { FreeResourcesOverlayLayout } from '@/components/sections/free-resources
 vi.mock('next/image', () => ({
   default: ({
     alt,
+    fill: _fill,
     ...props
   }: {
     alt?: string;
+    fill?: boolean;
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 

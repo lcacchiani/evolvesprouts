@@ -76,7 +76,7 @@ describe('CourseHighlightCard description visibility transition', () => {
     const heading = screen.getByRole('heading', {
       name: 'Age Specific Strategies',
     });
-    const card = heading.closest('article');
+    const card = heading.closest('[role="button"]');
     const description = screen.getByText('Practical scripts and examples');
     const toggleButton = screen.getByRole('button', {
       name: 'Show details for Age Specific Strategies',
@@ -149,7 +149,7 @@ describe('CourseHighlightCard description visibility transition', () => {
     const heading = screen.getByRole('heading', {
       name: 'Age Specific Strategies',
     });
-    const card = heading.closest('article');
+    const card = heading.closest('[role="button"]');
     const toggleButton = screen.getByRole('button', {
       name: 'Show details for Age Specific Strategies',
     });
@@ -186,7 +186,7 @@ describe('CourseHighlightCard description visibility transition', () => {
     const heading = screen.getByRole('heading', {
       name: 'Age Specific Strategies',
     });
-    const card = heading.closest('article');
+    const card = heading.closest('[role="button"]');
     const toggleButton = screen.getByRole('button', {
       name: 'Show details for Age Specific Strategies',
     });
@@ -220,7 +220,7 @@ describe('CourseHighlightCard description visibility transition', () => {
     const heading = screen.getByRole('heading', {
       name: 'Age Specific Strategies',
     });
-    const card = heading.closest('article');
+    const card = heading.closest('[role="button"]');
     const toggleButton = screen.getByRole('button', {
       name: 'Show details for Age Specific Strategies',
     });

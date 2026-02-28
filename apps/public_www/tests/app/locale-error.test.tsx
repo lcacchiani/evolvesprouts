@@ -39,6 +39,7 @@ describe('Locale error boundary page', () => {
 
   it('falls back to English labels for unknown locale params', () => {
     mockedUseParams.mockReturnValue({ locale: 'fr' });
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     render(<LocaleErrorPage error={new Error('fallback')} reset={vi.fn()} />);
 
