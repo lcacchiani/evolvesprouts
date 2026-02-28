@@ -1,7 +1,6 @@
 import { fixupConfigRules } from '@eslint/compat';
 import * as espree from 'espree';
 import nextConfig from 'eslint-config-next';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 const eslintConfig = [
   ...fixupConfigRules(nextConfig),
@@ -14,7 +13,9 @@ const eslintConfig = [
   {
     files: ['**/*.{ts,tsx,js,jsx,mjs,cjs}'],
     rules: {
-      ...jsxA11y.configs.recommended.rules,
+      'jsx-a11y/click-events-have-key-events': 'error',
+      'jsx-a11y/no-noninteractive-element-interactions': 'error',
+      'jsx-a11y/no-noninteractive-element-to-interactive-role': 'error',
       'react/no-danger': 'error',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',

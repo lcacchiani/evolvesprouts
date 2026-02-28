@@ -186,6 +186,8 @@ function DesktopMenuItem({
   }
 
   return (
+    // Hover listeners live on the list item to keep button + flyout synced.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li
       ref={submenuWrapperRef}
       className='relative'
