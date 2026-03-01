@@ -12,6 +12,22 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
 - Enum `asset_type`: `guide`, `video`, `pdf`, `document`.
 - Enum `asset_visibility`: `public`, `restricted`.
 - Enum `access_grant_type`: `all_authenticated`, `organization`, `user`.
+- Enum `contact_type`: `parent`, `child`, `helper`, `professional`, `other`.
+- Enum `contact_source`: `free_guide`, `newsletter`, `contact_form`,
+  `reservation`, `referral`, `instagram`, `manual`.
+- Enum `relationship_type`: `prospect`, `client`, `past_client`, `partner`,
+  `vendor`, `other`.
+- Enum `mailchimp_sync_status`: `pending`, `synced`, `failed`, `unsubscribed`.
+- Enum `family_role`: `parent`, `child`, `helper`, `guardian`, `other`.
+- Enum `organization_type`: `school`, `company`, `community_group`, `ngo`, `other`.
+- Enum `organization_role`: `admin`, `staff`, `teacher`, `member`, `client`,
+  `partner`, `other`.
+- Enum `lead_type`: `free_guide`, `event_inquiry`, `program_enrollment`,
+  `consultation`, `partnership`, `other`.
+- Enum `funnel_stage`: `new`, `contacted`, `engaged`, `qualified`, `converted`,
+  `lost`.
+- Enum `lead_event_type`: `created`, `stage_changed`, `note_added`, `email_sent`,
+  `email_opened`, `guide_downloaded`, `assigned`, `converted`, `lost`.
 
 ## Table: assets
 
@@ -106,3 +122,58 @@ Indexes:
   include a valid Cognito bearer token.
 - Admin APIs can create/reuse, rotate, revoke, and update source-domain
   allowlist policy per asset.
+
+## CRM tables (free-guide lead capture)
+
+### `contacts`
+
+- Purpose: canonical contact profile for CRM and campaign sync.
+- Key fields: `email`, `first_name`, `contact_type`, `source`,
+  `mailchimp_status`.
+- Key indexes: case-insensitive unique email/instagram indexes and source/type
+  indexes.
+
+### `families` and `family_members`
+
+- `families` stores household-level entities.
+- `family_members` links contacts to families with role metadata.
+- `family_members` rows are deleted automatically when either parent record is
+  deleted (`ON DELETE CASCADE`).
+
+### `organizations` and `organization_members`
+
+- `organizations` stores external organization entities.
+- `organization_members` links contacts to organizations with role/title.
+- Membership rows use `ON DELETE CASCADE`.
+
+### `tags`, `contact_tags`, `family_tags`, `organization_tags`
+
+- `tags` stores reusable labels.
+- Junction tables model many-to-many tagging across contacts/families/orgs.
+- Junction rows use composite primary keys and cascade deletion.
+
+### `sales_leads`
+
+- Purpose: lead lifecycle tracking for contacts/families/organizations.
+- Includes `lead_type`, `funnel_stage`, optional `asset_id`.
+- `sales_leads_guide_dedup_idx` enforces idempotency for free-guide processing
+  by unique (`contact_id`, `lead_type`, `asset_id`) when `asset_id` is present.
+
+### `sales_lead_events`
+
+- Immutable event log for lead lifecycle transitions and actions.
+- Rows cascade delete with parent lead (`lead_id` FK with `ON DELETE CASCADE`).
+
+### `crm_notes`
+
+- Free-form notes linked to contacts/families/organizations/leads.
+- Uses `ON DELETE SET NULL` for parent references so note history can be kept.
+- Constraint `crm_notes_has_parent` enforces that at least one parent reference
+  is present.
+
+## Shared update trigger
+
+- Function: `set_updated_at()`.
+- Applied to: `contacts`, `families`, `organizations`, `sales_leads`,
+  `crm_notes`.
+- Behavior: updates `updated_at` to `now()` before each UPDATE.

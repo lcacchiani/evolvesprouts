@@ -505,7 +505,12 @@
     "mediaTitleLine1": "教孩子学会耐心",
     "mediaTitleLine2": "从日常小事开始",
     "ctaLabel": "获取 4 个耐心培养方法",
-    "ctaHref": "https://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1",
+    "formFirstNameLabel": "名字",
+    "formEmailLabel": "邮箱",
+    "formSubmitLabel": "发送免费指南给我",
+    "formSuccessTitle": "请查收你的邮箱！",
+    "formSuccessBody": "我们已将下载链接发送到你的邮箱。",
+    "formErrorMessage": "暂时无法提交，请检查信息后重试。",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
       "_valueCombinations": [

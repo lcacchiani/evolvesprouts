@@ -11,6 +11,7 @@ from app.api.assets import (
     handle_share_assets_request,
     handle_user_assets_request,
 )
+from app.api.public_media import handle_media_request
 from app.api.public_reservations import _handle_public_reservation
 from app.exceptions import AppError, ValidationError
 from app.utils import json_response
@@ -40,6 +41,11 @@ _ROUTES: tuple[
         "/www/v1/reservations",
         True,
         lambda event, method, _path: _handle_public_reservation(event, method),
+    ),
+    (
+        "/v1/media-request",
+        True,
+        lambda event, method, _path: handle_media_request(event, method),
     ),
     ("/v1/admin/assets", False, handle_admin_assets_request),
     ("/v1/user/assets", False, handle_user_assets_request),

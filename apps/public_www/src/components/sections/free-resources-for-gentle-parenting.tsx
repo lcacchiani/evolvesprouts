@@ -1,4 +1,4 @@
-import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { MediaForm } from '@/components/sections/media-form';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -36,7 +36,12 @@ interface ResourceCardContentProps {
   cardDescription?: string;
   checklistItems: ChecklistEntry[];
   ctaLabel: string;
-  ctaHref: string;
+  formFirstNameLabel: string;
+  formEmailLabel: string;
+  formSubmitLabel: string;
+  formSuccessTitle: string;
+  formSuccessBody: string;
+  formErrorMessage: string;
 }
 
 const HEADER_ALIGNMENT_VALUES = ['left', 'center'] as const;
@@ -181,7 +186,12 @@ function ResourceCardContent({
   cardDescription,
   checklistItems,
   ctaLabel,
-  ctaHref,
+  formFirstNameLabel,
+  formEmailLabel,
+  formSubmitLabel,
+  formSuccessTitle,
+  formSuccessBody,
+  formErrorMessage,
 }: ResourceCardContentProps) {
   return (
     <>
@@ -218,12 +228,15 @@ function ResourceCardContent({
         </ul>
       )}
 
-      <SectionCtaAnchor
-        href={ctaHref}
-        className='mt-auto w-full max-w-[360px]'
-      >
-        {ctaLabel}
-      </SectionCtaAnchor>
+      <MediaForm
+        ctaLabel={ctaLabel}
+        formFirstNameLabel={formFirstNameLabel}
+        formEmailLabel={formEmailLabel}
+        formSubmitLabel={formSubmitLabel}
+        formSuccessTitle={formSuccessTitle}
+        formSuccessBody={formSuccessBody}
+        formErrorMessage={formErrorMessage}
+      />
     </>
   );
 }
@@ -238,7 +251,20 @@ export function FreeResourcesForGentleParenting({
     readOptionalText(content.cardDescription) ??
     content.description;
   const ctaLabel = readOptionalText(content.ctaLabel) ?? `${content.title} PDF`;
-  const ctaHref = readOptionalText(content.ctaHref) ?? '#resources';
+  const formFirstNameLabel =
+    readOptionalText(content.formFirstNameLabel) ?? 'First name';
+  const formEmailLabel =
+    readOptionalText(content.formEmailLabel) ?? 'Email';
+  const formSubmitLabel =
+    readOptionalText(content.formSubmitLabel) ?? 'Send Me the Media';
+  const formSuccessTitle =
+    readOptionalText(content.formSuccessTitle) ?? 'Check Your Email!';
+  const formSuccessBody =
+    readOptionalText(content.formSuccessBody) ??
+    'Check your email for the download link.';
+  const formErrorMessage =
+    readOptionalText(content.formErrorMessage) ??
+    'Unable to submit right now. Please try again.';
   const checklistItems = resolveChecklistItems(content.items);
   const mediaTitleLine1 =
     readOptionalText(content.mediaTitleLine1) ??
@@ -269,7 +295,12 @@ export function FreeResourcesForGentleParenting({
       cardDescription={cardDescription}
       checklistItems={checklistItems}
       ctaLabel={ctaLabel}
-      ctaHref={ctaHref}
+      formFirstNameLabel={formFirstNameLabel}
+      formEmailLabel={formEmailLabel}
+      formSubmitLabel={formSubmitLabel}
+      formSuccessTitle={formSuccessTitle}
+      formSuccessBody={formSuccessBody}
+      formErrorMessage={formErrorMessage}
     />
   );
 
