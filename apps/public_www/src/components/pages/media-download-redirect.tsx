@@ -39,7 +39,7 @@ function buildShareUrl(baseUrl: string, token: string): string {
   return new URL(`/v1/assets/share/${token}`, `${baseUrl}/`).toString();
 }
 
-export function FreeGuideDownloadRedirectPage() {
+export function MediaDownloadRedirectPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token')?.trim() ?? '';
   const hasValidToken = TOKEN_PATTERN.test(token);
@@ -71,7 +71,7 @@ export function FreeGuideDownloadRedirectPage() {
       <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
         <h1 className='text-3xl font-bold es-text-heading'>Invalid download link</h1>
         <p className='mt-4 text-base leading-7 es-text-body'>
-          This free-guide link is missing a valid token. Please request the guide again.
+          This media link is missing a valid token. Please request the media again.
         </p>
       </main>
     );
@@ -99,7 +99,7 @@ export function FreeGuideDownloadRedirectPage() {
         href={destinationUrl}
         className='mt-5 text-base font-semibold underline underline-offset-4 es-text-brand'
       >
-        Download the guide manually
+        Download the media manually
       </a>
     </main>
   );

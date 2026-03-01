@@ -213,10 +213,10 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  /www/v1/free-guide-request:
+  /www/v1/media-request:
     post:
-      summary: Submit free-guide request
-      description: Submit a free-guide lead form from `public_www`.
+      summary: Submit media request
+      description: Submit a media lead form from `public_www`.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []
@@ -227,10 +227,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/FreeGuideRequestSubmissionRequest"
+              $ref: "#/components/schemas/MediaRequestSubmissionRequest"
       responses:
         "202":
-          description: Free-guide request accepted.
+          description: Media request accepted.
           content:
             application/json:
               schema:
@@ -483,7 +483,7 @@ components:
         message:
           type: string
           maxLength: 5000
-    FreeGuideRequestSubmissionRequest:
+    MediaRequestSubmissionRequest:
       type: object
       required:
         - first_name

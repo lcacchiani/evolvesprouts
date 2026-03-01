@@ -1,4 +1,4 @@
-"""Lambda handler for processing free-guide requests from SQS."""
+"""Lambda handler for processing media requests from SQS."""
 
 from __future__ import annotations
 
@@ -29,20 +29,20 @@ from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.services.email import send_email
 from app.services.mailchimp import MailchimpApiError, add_subscriber_with_tag
-from app.templates.free_guide_lead import render_sales_notification_email
+from app.templates.media_lead import render_sales_notification_email
 from app.utils.logging import configure_logging, get_logger, mask_email
 from app.utils.retry import run_with_retry
 
 configure_logging()
 logger = get_logger(__name__)
 
-_EVENT_TYPE = "free_guide_request.submitted"
+_EVENT_TYPE = "media_request.submitted"
 _SYSTEM_ACTOR = "system"
-_DEFAULT_GUIDE_NAME = "4 Ways to Teach Patience to Young Children"
+_DEFAULT_MEDIA_NAME = "4 Ways to Teach Patience to Young Children"
 
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
-    """Process free-guide request messages delivered through SQS."""
+    """Process media request messages delivered through SQS."""
     processed = 0
     skipped = 0
 
@@ -66,7 +66,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             logger.error(f"Failed to parse SQS/SNS payload: {exc}")
             raise
         except Exception:
-            logger.exception("Failed to process free-guide message")
+            logger.exception("Failed to process media message")
             raise
 
     result = {
@@ -74,7 +74,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         "body": json.dumps({"processed": processed, "skipped": skipped}),
     }
     logger.info(
-        "Free-guide processing complete",
+        "Media processing complete",
         extra={"processed": processed, "skipped": skipped},
     )
     return result
@@ -117,7 +117,7 @@ def _process_message(message: dict[str, Any]) -> bool:
         )
         if existing_lead is not None:
             logger.info(
-                "Skipping duplicate free-guide lead",
+                "Skipping duplicate media lead",
                 extra={
                     "contact_id": str(contact.id),
                     "lead_id": str(existing_lead.id),
@@ -171,7 +171,7 @@ def _process_message(message: dict[str, Any]) -> bool:
 
         session.commit()
         logger.info(
-            "Processed free-guide lead",
+            "Processed media lead",
             extra={
                 "contact_id": str(contact.id),
                 "lead_id": str(lead.id),
@@ -301,7 +301,7 @@ def _send_sales_notification(
     email_content = render_sales_notification_email(
         first_name=first_name,
         email=email,
-        guide_name=_DEFAULT_GUIDE_NAME,
+        media_name=_DEFAULT_MEDIA_NAME,
         submitted_at=submitted_at,
     )
     try:
@@ -317,7 +317,7 @@ def _send_sales_notification(
         )
     except Exception:
         logger.exception(
-            "Failed to send free-guide sales notification",
+            "Failed to send media sales notification",
             extra={"lead_email": mask_email(email)},
         )
 

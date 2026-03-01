@@ -1298,7 +1298,7 @@ export class ApiStack extends cdk.Stack {
       new snsSubscriptions.SqsSubscription(freeGuideQueue)
     );
     freeGuideTopic.grantPublish(adminFunction);
-    adminFunction.addEnvironment("FREE_GUIDE_TOPIC_ARN", freeGuideTopic.topicArn);
+    adminFunction.addEnvironment("MEDIA_REQUEST_TOPIC_ARN", freeGuideTopic.topicArn);
 
     const freeGuideRequestProcessor = createPythonFunction(
       "FreeGuideRequestProcessor",
@@ -1933,8 +1933,8 @@ export class ApiStack extends cdk.Stack {
       sourceArn: api.arnForExecuteApi(),
     });
 
-    const freeGuideRequest = v1.addResource("free-guide-request");
-    freeGuideRequest.addMethod("POST", adminIntegration, {
+    const mediaRequest = v1.addResource("media-request");
+    mediaRequest.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });

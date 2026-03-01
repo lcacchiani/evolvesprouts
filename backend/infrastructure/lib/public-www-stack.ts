@@ -304,11 +304,11 @@ function handler(event) {
       '/www/v1/discounts/validate': true,
       '/www/v1/reservations': true,
       '/www/v1/contact-us': true,
-      '/www/v1/free-guide-request': true
+      '/www/v1/media-request': true
     }
   };
   var rewriteTargets = {
-    'POST:/www/v1/free-guide-request': '/v1/free-guide-request'
+    'POST:/www/v1/media-request': '/v1/media-request'
   };
 
   if (allowlist[method] && allowlist[method][uri]) {

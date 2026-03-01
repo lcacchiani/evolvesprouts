@@ -71,16 +71,16 @@ Example:
 Current event types:
 - `booking_request.submitted`
 - `organization_suggestion.submitted`
-- `free_guide_request.submitted`
+- `media_request.submitted`
 
-## Free guide messaging flow
+## Media messaging flow
 
-Free-guide leads use a dedicated SNS/SQS pipeline to keep website submissions
+Media leads use a dedicated SNS/SQS pipeline to keep website submissions
 responsive while decoupling downstream processing.
 
 ### SNS Topic: `evolvesprouts-free-guide-events`
 
-- Receives free-guide lead events from `POST /v1/free-guide-request`.
+- Receives media lead events from `POST /v1/media-request`.
 - Fans out to subscribed SQS queue.
 
 ### SQS Queue: `evolvesprouts-free-guide-queue`
@@ -137,7 +137,7 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `backend/infrastructure/lib/api-stack.ts` | CDK infrastructure |
 | `backend/src/app/api/admin.py` | API handler with SNS publish |
 | `backend/lambda/manager_request_processor/handler.py` | SQS booking request processor |
-| `backend/lambda/free_guide_processor/handler.py` | SQS free-guide request processor |
+| `backend/lambda/free_guide_processor/handler.py` | SQS media request processor |
 | `backend/src/app/db/repositories/ticket.py` | Repository with `find_by_ticket_id` |
 
 ## Environment Variables
@@ -147,7 +147,7 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | Variable | Description |
 |----------|-------------|
 | `BOOKING_REQUEST_TOPIC_ARN` | SNS topic ARN (required) |
-| `FREE_GUIDE_TOPIC_ARN` | SNS topic ARN for free-guide events (required) |
+| `MEDIA_REQUEST_TOPIC_ARN` | SNS topic ARN for media events (required) |
 
 ### Processor Lambda
 

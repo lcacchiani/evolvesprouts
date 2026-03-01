@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { FreeGuideDownloadRedirectPage } from '@/components/pages/free-guide-download-redirect';
+import { MediaDownloadRedirectPage } from '@/components/pages/media-download-redirect';
 
 function DownloadPageFallback() {
   return (
@@ -10,10 +10,10 @@ function DownloadPageFallback() {
   );
 }
 
-export default function GuideDownloadPage() {
+export default function MediaDownloadPage() {
   return (
     <Suspense fallback={<DownloadPageFallback />}>
-      <FreeGuideDownloadRedirectPage />
+      <MediaDownloadRedirectPage />
     </Suspense>
   );
 }

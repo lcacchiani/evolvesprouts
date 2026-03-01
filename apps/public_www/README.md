@@ -103,7 +103,7 @@ CSP generation also derives `connect-src` API origins from this variable.
 Use Cloudflare Turnstile test key `1x00000000000000000000AA` for local-only
 testing.
 Set `NEXT_PUBLIC_ASSET_SHARE_BASE_URL` to the media/share base URL used by the
-guide download redirect pages (for example `https://media.evolvesprouts.com`).
+media download redirect pages (for example `https://media.evolvesprouts.com`).
 
 ## Build
 

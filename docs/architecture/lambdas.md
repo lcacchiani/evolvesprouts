@@ -23,7 +23,7 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/free-guide-request`, `/v1/admin/assets/*`, `/v1/user/assets/*`,
+  `/v1/media-request`, `/v1/admin/assets/*`, `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
@@ -33,7 +33,7 @@ their primary responsibilities.
   (read/create/rotate/revoke + domain allowlist policy), share-link source-domain
   enforcement, conditional JWT authentication for restricted share-link
   resolutions, PATCH partial metadata updates on `/v1/admin/assets/{id}`,
-  free-guide lead capture event publishing on `/v1/free-guide-request`, and
+  media lead capture event publishing on `/v1/media-request`, and
   signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
@@ -148,7 +148,7 @@ their primary responsibilities.
 - Function: FreeGuideRequestProcessor
 - Handler: backend/lambda/free_guide_processor/handler.py
 - Trigger: SQS queue (`evolvesprouts-free-guide-queue`)
-- Purpose: process free-guide lead captures and fan out actions
+- Purpose: process media lead captures and fan out actions
 - Actions: contact upsert in DB, idempotent sales lead creation, Mailchimp sync,
   and SES notification to sales/support
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)

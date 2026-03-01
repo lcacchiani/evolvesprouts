@@ -1,4 +1,4 @@
-import { FreeGuideForm } from '@/components/sections/free-guide-form';
+import { MediaForm } from '@/components/sections/media-form';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -228,7 +228,7 @@ function ResourceCardContent({
         </ul>
       )}
 
-      <FreeGuideForm
+      <MediaForm
         ctaLabel={ctaLabel}
         formFirstNameLabel={formFirstNameLabel}
         formEmailLabel={formEmailLabel}
@@ -256,7 +256,7 @@ export function FreeResourcesForGentleParenting({
   const formEmailLabel =
     readOptionalText(content.formEmailLabel) ?? 'Email';
   const formSubmitLabel =
-    readOptionalText(content.formSubmitLabel) ?? 'Send Me the Free Guide';
+    readOptionalText(content.formSubmitLabel) ?? 'Send Me the Media';
   const formSuccessTitle =
     readOptionalText(content.formSuccessTitle) ?? 'Check Your Email!';
   const formSuccessBody =

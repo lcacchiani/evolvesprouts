@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSearchParams } from 'next/navigation';
 
-import { FreeGuideDownloadRedirectPage } from '@/components/pages/free-guide-download-redirect';
+import { MediaDownloadRedirectPage } from '@/components/pages/media-download-redirect';
 
 vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(),
@@ -17,7 +17,7 @@ function mockToken(tokenValue: string | null) {
   } as unknown as ReturnType<typeof useSearchParams>);
 }
 
-describe('FreeGuideDownloadRedirectPage', () => {
+describe('MediaDownloadRedirectPage', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -36,7 +36,7 @@ describe('FreeGuideDownloadRedirectPage', () => {
     process.env.NEXT_PUBLIC_ASSET_SHARE_BASE_URL = 'https://media.evolvesprouts.com';
     mockToken('invalid');
 
-    render(<FreeGuideDownloadRedirectPage />);
+    render(<MediaDownloadRedirectPage />);
 
     expect(screen.getByText('Invalid download link')).toBeInTheDocument();
   });
@@ -45,7 +45,7 @@ describe('FreeGuideDownloadRedirectPage', () => {
     delete process.env.NEXT_PUBLIC_ASSET_SHARE_BASE_URL;
     mockToken('A'.repeat(24));
 
-    render(<FreeGuideDownloadRedirectPage />);
+    render(<MediaDownloadRedirectPage />);
 
     expect(
       screen.getByText('Download temporarily unavailable'),
@@ -57,10 +57,10 @@ describe('FreeGuideDownloadRedirectPage', () => {
     process.env.NEXT_PUBLIC_ASSET_SHARE_BASE_URL = 'https://media.evolvesprouts.com';
     mockToken(token);
 
-    render(<FreeGuideDownloadRedirectPage />);
+    render(<MediaDownloadRedirectPage />);
 
     expect(screen.getByText('Preparing your download...')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Download the guide manually' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Download the media manually' })).toHaveAttribute(
       'href',
       `https://media.evolvesprouts.com/v1/assets/share/${token}`,
     );

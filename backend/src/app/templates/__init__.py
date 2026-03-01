@@ -4,7 +4,7 @@ from app.templates.access_request import (
     build_new_request_template_data,
     render_new_request_email,
 )
-from app.templates.free_guide_lead import (
+from app.templates.media_lead import (
     build_sales_notification_template_data,
     render_sales_notification_email,
 )

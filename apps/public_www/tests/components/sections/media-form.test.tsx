@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { FreeGuideForm } from '@/components/sections/free-guide-form';
+import { MediaForm } from '@/components/sections/media-form';
 import enContent from '@/content/en.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
@@ -50,10 +50,10 @@ vi.mock('@/lib/crm-api-client', async () => {
 
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 
-function renderFreeGuideForm() {
+function renderMediaForm() {
   const resourcesContent = enContent.resources;
   return render(
-    <FreeGuideForm
+    <MediaForm
       ctaLabel={resourcesContent.ctaLabel}
       formFirstNameLabel={resourcesContent.formFirstNameLabel}
       formEmailLabel={resourcesContent.formEmailLabel}
@@ -65,7 +65,7 @@ function renderFreeGuideForm() {
   );
 }
 
-describe('FreeGuideForm', () => {
+describe('MediaForm', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
   });
@@ -81,7 +81,7 @@ describe('FreeGuideForm', () => {
   });
 
   it('renders the CTA button before the form opens', () => {
-    renderFreeGuideForm();
+    renderMediaForm();
 
     expect(
       screen.getByRole('button', { name: enContent.resources.ctaLabel }),
@@ -92,7 +92,7 @@ describe('FreeGuideForm', () => {
   });
 
   it('opens the form when CTA is clicked', () => {
-    renderFreeGuideForm();
+    renderMediaForm();
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
 
@@ -105,7 +105,7 @@ describe('FreeGuideForm', () => {
   it('submits valid payload and renders success message', async () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({ request });
-    renderFreeGuideForm();
+    renderMediaForm();
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     fireEvent.change(
@@ -122,7 +122,7 @@ describe('FreeGuideForm', () => {
 
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith({
-        endpointPath: '/v1/free-guide-request',
+        endpointPath: '/v1/media-request',
         method: 'POST',
         body: {
           first_name: 'Ida',
@@ -144,7 +144,7 @@ describe('FreeGuideForm', () => {
   it('shows submit error when API request fails', async () => {
     const request = vi.fn().mockRejectedValue(new Error('failed'));
     mockedCreateCrmApiClient.mockReturnValue({ request });
-    renderFreeGuideForm();
+    renderMediaForm();
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     fireEvent.change(

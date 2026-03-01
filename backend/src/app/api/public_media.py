@@ -1,4 +1,4 @@
-"""Public free-guide lead capture endpoint handlers."""
+"""Public media lead capture endpoint handlers."""
 
 from __future__ import annotations
 
@@ -23,14 +23,14 @@ from app.utils.logging import get_logger, mask_email
 logger = get_logger(__name__)
 
 _MAX_FIRST_NAME_LENGTH = 100
-_EVENT_TYPE = "free_guide_request.submitted"
+_EVENT_TYPE = "media_request.submitted"
 
 
-def handle_free_guide_request(
+def handle_media_request(
     event: Mapping[str, Any],
     method: str,
 ) -> dict[str, Any]:
-    """Handle free-guide form submissions from the public website."""
+    """Handle media form submissions from the public website."""
     if method != "POST":
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
@@ -54,9 +54,9 @@ def handle_free_guide_request(
     first_name = _validate_first_name(body.get("first_name"))
     email = _validate_required_email(body.get("email"))
 
-    topic_arn = os.getenv("FREE_GUIDE_TOPIC_ARN", "").strip()
+    topic_arn = os.getenv("MEDIA_REQUEST_TOPIC_ARN", "").strip()
     if not topic_arn:
-        logger.error("FREE_GUIDE_TOPIC_ARN is not configured")
+        logger.error("MEDIA_REQUEST_TOPIC_ARN is not configured")
         return json_response(
             500,
             {"error": "Service configuration error. Please contact support."},
@@ -85,7 +85,7 @@ def handle_free_guide_request(
         )
     except Exception:
         logger.exception(
-            "Failed to publish free-guide request",
+            "Failed to publish media request",
             extra={"lead_email": mask_email(email)},
         )
         return json_response(
@@ -95,7 +95,7 @@ def handle_free_guide_request(
         )
 
     logger.info(
-        "Free-guide request accepted",
+        "Media request accepted",
         extra={
             "lead_email": mask_email(email),
             "request_id": request_id,

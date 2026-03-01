@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { FreeGuideDownloadRedirectPage } from '@/components/pages/free-guide-download-redirect';
+import { MediaDownloadRedirectPage } from '@/components/pages/media-download-redirect';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
 
@@ -12,10 +12,10 @@ function LocalizedDownloadPageFallback() {
   );
 }
 
-export default function LocalizedGuideDownloadPage() {
+export default function LocalizedMediaDownloadPage() {
   return (
     <Suspense fallback={<LocalizedDownloadPageFallback />}>
-      <FreeGuideDownloadRedirectPage />
+      <MediaDownloadRedirectPage />
     </Suspense>
   );
 }

@@ -1,17 +1,17 @@
-"""Free-guide lead notification email templates."""
+"""Media lead notification email templates."""
 
 from __future__ import annotations
 
 from app.templates.types import EmailContent
 
-SUBJECT_TEMPLATE = "[Evolve Sprouts] New Free Guide Lead: {first_name}"
+SUBJECT_TEMPLATE = "[Evolve Sprouts] New Media Lead: {first_name}"
 
 TEXT_TEMPLATE = """
-[Evolve Sprouts] New Free Guide Lead
+[Evolve Sprouts] New Media Lead
 
 First Name: {first_name}
 Email: {email}
-Guide: {guide_name}
+Media: {media_name}
 Submitted At: {submitted_at}
 
 Please follow up with this lead in CRM.
@@ -26,13 +26,13 @@ HTML_TEMPLATE = """
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 style="margin: 0 0 10px 0; color: #1a1a1a;">[Evolve Sprouts] New Free Guide Lead</h2>
+        <h2 style="margin: 0 0 10px 0; color: #1a1a1a;">[Evolve Sprouts] New Media Lead</h2>
         <p style="margin: 0; font-size: 14px; color: #666;">
             Lead Name: <strong>{first_name}</strong>
         </p>
     </div>
 
-    <p style="margin-bottom: 20px;">A new free-guide lead was captured from the public website.</p>
+    <p style="margin-bottom: 20px;">A new media lead was captured from the public website.</p>
 
     <table style="border-collapse: collapse; width: 100%; margin-bottom: 20px;">
         <tr>
@@ -53,10 +53,10 @@ HTML_TEMPLATE = """
         </tr>
         <tr>
             <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold; background-color: #f8f9fa;">
-                Guide
+                Media
             </td>
             <td style="padding: 12px; border: 1px solid #dee2e6;">
-                {guide_name}
+                {media_name}
             </td>
         </tr>
         <tr>
@@ -89,14 +89,14 @@ def build_sales_notification_template_data(
     *,
     first_name: str,
     email: str,
-    guide_name: str,
+    media_name: str,
     submitted_at: str,
 ) -> dict[str, str]:
-    """Build template data for a free-guide sales notification."""
+    """Build template data for a media sales notification."""
     return {
         "first_name": first_name,
         "email": email,
-        "guide_name": guide_name,
+        "media_name": media_name,
         "submitted_at": submitted_at,
     }
 
@@ -105,14 +105,14 @@ def render_sales_notification_email(
     *,
     first_name: str,
     email: str,
-    guide_name: str,
+    media_name: str,
     submitted_at: str,
 ) -> EmailContent:
-    """Render free-guide sales notification email content."""
+    """Render media sales notification email content."""
     data = build_sales_notification_template_data(
         first_name=first_name,
         email=email,
-        guide_name=guide_name,
+        media_name=media_name,
         submitted_at=submitted_at,
     )
     return EmailContent(

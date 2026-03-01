@@ -9,7 +9,7 @@ import { mergeClassNames } from '@/lib/class-name-utils';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 
-interface FreeGuideFormProps {
+interface MediaFormProps {
   ctaLabel: string;
   formFirstNameLabel: string;
   formEmailLabel: string;
@@ -21,8 +21,8 @@ interface FreeGuideFormProps {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const FREE_GUIDE_REQUEST_API_PATH = '/v1/free-guide-request';
-const FREE_GUIDE_FORM_ERROR_ID = 'free-guide-form-error';
+const MEDIA_REQUEST_API_PATH = '/v1/media-request';
+const MEDIA_FORM_ERROR_ID = 'media-form-error';
 
 function sanitizeSingleLineValue(value: string): string {
   return value.replaceAll(/\s+/g, ' ').trim();
@@ -32,7 +32,7 @@ function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
 }
 
-export function FreeGuideForm({
+export function MediaForm({
   ctaLabel,
   formFirstNameLabel,
   formEmailLabel,
@@ -41,7 +41,7 @@ export function FreeGuideForm({
   formSuccessBody,
   formErrorMessage,
   className,
-}: FreeGuideFormProps) {
+}: MediaFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -91,7 +91,7 @@ export function FreeGuideForm({
       const submissionResult = await ServerSubmissionResult.resolve({
         request: () =>
           crmApiClient.request({
-            endpointPath: FREE_GUIDE_REQUEST_API_PATH,
+            endpointPath: MEDIA_REQUEST_API_PATH,
             method: 'POST',
             body: {
               first_name: normalizedFirstName,
@@ -143,11 +143,11 @@ export function FreeGuideForm({
       noValidate
     >
       <div>
-        <label className='mb-1 block text-sm font-semibold es-text-heading' htmlFor='free-guide-first-name'>
+        <label className='mb-1 block text-sm font-semibold es-text-heading' htmlFor='media-first-name'>
           {formFirstNameLabel}
         </label>
         <input
-          id='free-guide-first-name'
+          id='media-first-name'
           type='text'
           autoComplete='given-name'
           value={firstName}
@@ -159,18 +159,18 @@ export function FreeGuideForm({
           }}
           className='es-form-input'
           aria-invalid={hasFirstNameError}
-          aria-describedby={shouldShowSubmitError ? FREE_GUIDE_FORM_ERROR_ID : undefined}
+          aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
           required
           disabled={isSubmitting}
         />
       </div>
 
       <div>
-        <label className='mb-1 block text-sm font-semibold es-text-heading' htmlFor='free-guide-email'>
+        <label className='mb-1 block text-sm font-semibold es-text-heading' htmlFor='media-email'>
           {formEmailLabel}
         </label>
         <input
-          id='free-guide-email'
+          id='media-email'
           type='email'
           autoComplete='email'
           value={email}
@@ -182,7 +182,7 @@ export function FreeGuideForm({
           }}
           className='es-form-input'
           aria-invalid={hasEmailError}
-          aria-describedby={shouldShowSubmitError ? FREE_GUIDE_FORM_ERROR_ID : undefined}
+          aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
           required
           disabled={isSubmitting}
         />
@@ -190,7 +190,7 @@ export function FreeGuideForm({
 
       <TurnstileCaptcha
         siteKey={turnstileSiteKey}
-        widgetAction='free_guide_submit'
+        widgetAction='media_submit'
         size='normal'
         onTokenChange={(token) => {
           setCaptchaToken(token);
@@ -209,13 +209,13 @@ export function FreeGuideForm({
         type='submit'
         className='w-full'
         disabled={isSubmitDisabled}
-        aria-describedby={shouldShowSubmitError ? FREE_GUIDE_FORM_ERROR_ID : undefined}
+        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
       >
         {isSubmitting ? `${formSubmitLabel}...` : formSubmitLabel}
       </ButtonPrimitive>
 
       {shouldShowSubmitError ? (
-        <p id={FREE_GUIDE_FORM_ERROR_ID} className='text-sm font-semibold es-text-danger-strong' role='alert'>
+        <p id={MEDIA_FORM_ERROR_ID} className='text-sm font-semibold es-text-danger-strong' role='alert'>
           {submitErrorMessage || formErrorMessage}
         </p>
       ) : null}
