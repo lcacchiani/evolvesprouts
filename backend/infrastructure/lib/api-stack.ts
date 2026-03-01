@@ -752,14 +752,65 @@ export class ApiStack extends cdk.Stack {
     // ---------------------------------------------------------------------
     // Lambda Functions
     // ---------------------------------------------------------------------
+
+    // Shared KMS keys for all Lambda functions to avoid per-function key
+    // proliferation.  Each CMK costs $1/month; sharing two keys across all
+    // functions instead of creating two per function saves ~$28/month.
+    const sharedLambdaEnvEncryptionKey = new kms.Key(
+      this,
+      "SharedLambdaEnvEncryptionKey",
+      {
+        enableKeyRotation: true,
+        description:
+          "Shared KMS key for Lambda environment variable encryption",
+      }
+    );
+
+    const sharedLambdaLogEncryptionKey = new kms.Key(
+      this,
+      "SharedLambdaLogEncryptionKey",
+      {
+        enableKeyRotation: true,
+        description: "Shared KMS key for Lambda CloudWatch log encryption",
+      }
+    );
+
+    sharedLambdaLogEncryptionKey.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:Describe*",
+        ],
+        principals: [
+          new iam.ServicePrincipal(
+            `logs.${cdk.Stack.of(this).region}.amazonaws.com`
+          ),
+        ],
+        resources: ["*"],
+        conditions: {
+          ArnLike: {
+            "kms:EncryptionContext:aws:logs:arn": `arn:aws:logs:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:*`,
+          },
+        },
+      })
+    );
+
     const lambdaFactory = new PythonLambdaFactory(this, {
       vpc,
       securityGroups: [lambdaSecurityGroup],
+      environmentEncryptionKey: sharedLambdaEnvEncryptionKey,
+      logEncryptionKey: sharedLambdaLogEncryptionKey,
     });
 
     // Factory for Lambda functions that run outside VPC (for authorizers that
     // need to fetch JWKS from public Cognito endpoints)
-    const noVpcLambdaFactory = new PythonLambdaFactory(this, {});
+    const noVpcLambdaFactory = new PythonLambdaFactory(this, {
+      environmentEncryptionKey: sharedLambdaEnvEncryptionKey,
+      logEncryptionKey: sharedLambdaLogEncryptionKey,
+    });
 
     // Helper to create Lambda functions using the factory
     // Function names use the standard prefix for consistent naming and
