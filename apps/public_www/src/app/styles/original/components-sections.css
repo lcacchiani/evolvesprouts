@@ -20,8 +20,12 @@
     }
   }
 
-  .es-connect-section {
-    background-color: var(--es-color-surface-white, #FFFFFF);
+  .es-connect-section,
+  .es-reach-out-section,
+  .es-my-journey-section,
+  .es-testimonials-section,
+  .es-faq-section,
+  .es-my-best-auntie-overview-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -150px;
     --es-section-bg-size: 900px auto;
@@ -32,6 +36,18 @@
       black 18%,
       transparent 20%
     );
+  }
+
+  .es-connect-section,
+  .es-reach-out-section,
+  .es-my-journey-section,
+  .es-testimonials-section,
+  .es-faq-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-my-best-auntie-overview-section {
+    background-color: var(--figma-colors-desktop, #FFFFFF);
   }
 
   .es-connect-card-title {
@@ -66,20 +82,6 @@
       in srgb,
       var(--es-color-brand-orange, #C84A16) 10%,
       transparent
-    );
-  }
-
-  .es-reach-out-section {
-    background-color: var(--es-color-surface-white, #FFFFFF);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -150px;
-    --es-section-bg-size: 900px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(
-      to bottom,
-      black 18%,
-      transparent 20%
     );
   }
 
@@ -193,20 +195,6 @@
     }
   }
 
-  .es-my-journey-section {
-    background-color: var(--es-color-surface-white, #FFFFFF);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -150px;
-    --es-section-bg-size: 900px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(
-      to bottom,
-      black 18%,
-      transparent 20%
-    );
-  }
-
   .es-my-journey-tag {
     color: var(--es-color-brand-orange, #C84A16);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
@@ -292,14 +280,26 @@
     border-color: var(--es-color-text-danger, #B42318);
   }
 
-  .es-why-us-section {
-    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  .es-why-us-section,
+  .es-course-highlights-section,
+  .es-my-best-auntie-description-section,
+  .es-my-history-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -900px;
     --es-section-bg-size: 2000px auto;
     --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
       saturate(250%);
     --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+  }
+
+  .es-why-us-section,
+  .es-course-highlights-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  }
+
+  .es-my-best-auntie-description-section,
+  .es-my-history-section {
+    background-color: var(--es-color-surface-muted, #F8F8F8);
   }
 
   .es-why-us-hero-card {
@@ -325,12 +325,9 @@
   .es-why-us-intro-subtitle {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.05rem, 1.9vw, 18px);
     font-weight: 600;
     line-height: 1.25;
-  }
-
-  .es-why-us-intro-subtitle {
-    font-size: clamp(1.05rem, 1.9vw, 18px);
   }
 
   .es-course-highlight-title {
@@ -376,16 +373,6 @@
     background-color: var(--figma-colors-frame-2147235242, #174879);
   }
 
-  .es-course-highlights-section {
-    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -900px;
-    --es-section-bg-size: 2000px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
-  }
-
   .es-course-highlights-overlay {
     background: radial-gradient(
         circle at 16% 22%,
@@ -397,16 +384,6 @@
         rgba(231, 108, 61, 0.16) 0%,
         rgba(231, 108, 61, 0) 52%
       );
-  }
-
-  .es-my-best-auntie-description-section {
-    background-color: var(--es-color-surface-muted, #F8F8F8);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -900px;
-    --es-section-bg-size: 2000px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
   }
 
   .es-my-best-auntie-description-card {
@@ -429,16 +406,6 @@
     line-height: 26px;
   }
 
-  .es-my-history-section {
-    background-color: var(--es-color-surface-muted, #F8F8F8);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -900px;
-    --es-section-bg-size: 2000px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
-  }
-
   .es-ida-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
@@ -454,7 +421,8 @@
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
-  .es-hero-frame-bg {
+  .es-hero-frame-bg,
+  .es-contact-us-left-decor {
     background-image: url('/images/evolvesprouts-logo.svg');
     width: 1125px;
     height: 563px;
@@ -489,17 +457,6 @@
 
   .es-contact-us-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
-  }
-
-  .es-contact-us-left-decor {
-    background-image: url('/images/evolvesprouts-logo.svg');
-    width: 1125px;
-    height: 563px;
-    background-size: cover;
-    background-position: -563px -75px;
-    filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%);
-    mask-image: linear-gradient(to bottom, black 60%, transparent 90%);
-    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 90%);
   }
 
   .es-contact-us-form-panel {
@@ -557,20 +514,6 @@
     line-height: calc(var(--figma-lineheights-2025-evolvesprouts, 28) * 1px);
   }
 
-  .es-testimonials-section {
-    background-color: var(--es-color-surface-white, #FFFFFF);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -150px;
-    --es-section-bg-size: 900px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(
-      to bottom,
-      black 18%,
-      transparent 20%
-    );
-  }
-
   .es-testimonials-quote {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
@@ -603,20 +546,6 @@
 
   .es-testimonials-avatar-fallback {
     background-color: var(--figma-colors-frame-2147235267, #F6DECD);
-  }
-
-  .es-faq-section {
-    background-color: var(--es-color-surface-white, #FFFFFF);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -150px;
-    --es-section-bg-size: 900px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(
-      to bottom,
-      black 18%,
-      transparent 20%
-    );
   }
 
   .es-faq-contact-card {
@@ -846,13 +775,7 @@
   .es-mask-calendar-current,
   .es-mask-calendar-heading {
     mask-image: url('/images/calendar.svg');
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
     -webkit-mask-image: url('/images/calendar.svg');
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    -webkit-mask-size: contain;
   }
 
   .es-mask-calendar-current {
@@ -861,17 +784,6 @@
 
   .es-mask-calendar-heading {
     background-color: var(--es-color-text-heading, #333333);
-  }
-
-  .es-mask-cubes-current,
-  .es-mask-credit-card-danger,
-  .es-mask-target-danger {
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    -webkit-mask-size: contain;
   }
 
   .es-mask-cubes-current {
@@ -941,13 +853,17 @@
     letter-spacing: 0;
   }
 
-  .es-events-card-tag {
+  .es-events-card-tag,
+  .es-events-detail-chip {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
     font-size: 11px;
     font-weight: 500;
     line-height: 1;
     letter-spacing: 0;
+  }
+
+  .es-events-card-tag {
     text-transform: uppercase;
   }
 
@@ -966,15 +882,6 @@
     font-size: 16px;
     font-weight: 400;
     line-height: 1.6;
-    letter-spacing: 0;
-  }
-
-  .es-events-detail-chip {
-    color: var(--site-heading-text);
-    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    line-height: 1;
     letter-spacing: 0;
   }
 
@@ -1119,20 +1026,6 @@
       --es-free-resources-bleed-top: clamp(84px, 9vw, 190px);
       --es-free-resources-bg-size: 100% auto;
     }
-  }
-
-  .es-my-best-auntie-overview-section {
-    background-color: var(--figma-colors-desktop, #FFFFFF);
-    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
-    --es-section-bg-position: center -150px;
-    --es-section-bg-size: 900px auto;
-    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
-      saturate(250%);
-    --es-section-bg-mask-image: linear-gradient(
-      to bottom,
-      black 18%,
-      transparent 20%
-    );
   }
 
   .es-my-best-auntie-overview-card--gold {
