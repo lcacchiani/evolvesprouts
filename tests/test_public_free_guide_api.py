@@ -1,0 +1,116 @@
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from app.api.public_free_guide import handle_free_guide_request
+
+
+def test_free_guide_request_rejects_non_post(api_gateway_event: Any) -> None:
+    event = api_gateway_event(method="GET", path="/v1/free-guide-request")
+
+    response = handle_free_guide_request(event, "GET")
+
+    assert response["statusCode"] == 405
+    assert json.loads(response["body"]) == {"error": "Method not allowed"}
+
+
+def test_free_guide_request_requires_turnstile_header(api_gateway_event: Any) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/free-guide-request",
+        body=json.dumps({"first_name": "Ida", "email": "ida@example.com"}),
+    )
+
+    response = handle_free_guide_request(event, "POST")
+
+    assert response["statusCode"] == 400
+    assert json.loads(response["body"]) == {"error": "Missing X-Turnstile-Token header"}
+
+
+def test_free_guide_request_rejects_failed_turnstile(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/free-guide-request",
+        body=json.dumps({"first_name": "Ida", "email": "ida@example.com"}),
+        headers={"X-Turnstile-Token": "test-token"},
+    )
+    monkeypatch.setattr(
+        "app.api.public_free_guide.verify_turnstile_token",
+        lambda *_args, **_kwargs: False,
+    )
+
+    response = handle_free_guide_request(event, "POST")
+
+    assert response["statusCode"] == 403
+    assert json.loads(response["body"]) == {"error": "Captcha verification failed"}
+
+
+def test_free_guide_request_returns_500_without_topic(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/free-guide-request",
+        body=json.dumps({"first_name": "Ida", "email": "ida@example.com"}),
+        headers={"X-Turnstile-Token": "test-token"},
+    )
+    monkeypatch.delenv("FREE_GUIDE_TOPIC_ARN", raising=False)
+    monkeypatch.setattr(
+        "app.api.public_free_guide.verify_turnstile_token",
+        lambda *_args, **_kwargs: True,
+    )
+
+    response = handle_free_guide_request(event, "POST")
+
+    assert response["statusCode"] == 500
+    assert json.loads(response["body"]) == {
+        "error": "Service configuration error. Please contact support."
+    }
+
+
+def test_free_guide_request_publishes_to_sns(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/free-guide-request",
+        body=json.dumps({"first_name": " Ida ", "email": "IDA@Example.com"}),
+        headers={"X-Turnstile-Token": "test-token"},
+    )
+
+    class _FakeSnsClient:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, Any]] = []
+
+        def publish(self, **kwargs: Any) -> dict[str, str]:
+            self.calls.append(kwargs)
+            return {"MessageId": "abc123"}
+
+    fake_sns_client = _FakeSnsClient()
+    monkeypatch.setenv("FREE_GUIDE_TOPIC_ARN", "arn:aws:sns:ap-southeast-1:123:topic")
+    monkeypatch.setattr(
+        "app.api.public_free_guide.verify_turnstile_token",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        "app.api.public_free_guide.get_sns_client",
+        lambda: fake_sns_client,
+    )
+
+    response = handle_free_guide_request(event, "POST")
+
+    assert response["statusCode"] == 202
+    assert json.loads(response["body"]) == {"message": "Request accepted"}
+    assert len(fake_sns_client.calls) == 1
+    assert fake_sns_client.calls[0]["TopicArn"] == "arn:aws:sns:ap-southeast-1:123:topic"
+
+    published_message = json.loads(fake_sns_client.calls[0]["Message"])
+    assert published_message["event_type"] == "free_guide_request.submitted"
+    assert published_message["first_name"] == "Ida"
+    assert published_message["email"] == "ida@example.com"

@@ -71,6 +71,38 @@ Example:
 Current event types:
 - `booking_request.submitted`
 - `organization_suggestion.submitted`
+- `free_guide_request.submitted`
+
+## Free guide messaging flow
+
+Free-guide leads use a dedicated SNS/SQS pipeline to keep website submissions
+responsive while decoupling downstream processing.
+
+### SNS Topic: `evolvesprouts-free-guide-events`
+
+- Receives free-guide lead events from `POST /v1/free-guide-request`.
+- Fans out to subscribed SQS queue.
+
+### SQS Queue: `evolvesprouts-free-guide-queue`
+
+- Subscribes to free-guide SNS topic.
+- 60 second visibility timeout.
+- 3 retry attempts before DLQ.
+- KMS encryption using the shared queue key.
+
+### Dead Letter Queue: `evolvesprouts-free-guide-dlq`
+
+- Receives free-guide messages that fail processing 3 times.
+- 14 day retention for investigation.
+- CloudWatch alarm triggers when messages appear.
+
+### Processor Lambda: `FreeGuideRequestProcessor`
+
+- Triggered by `evolvesprouts-free-guide-queue`.
+- Upserts contact and inserts idempotent lead rows.
+- Applies the configured free-guide tag to the contact.
+- Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction`.
+- Sends an SES notification to sales/support.
 
 ## API Behavior
 
@@ -105,6 +137,7 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `backend/infrastructure/lib/api-stack.ts` | CDK infrastructure |
 | `backend/src/app/api/admin.py` | API handler with SNS publish |
 | `backend/lambda/manager_request_processor/handler.py` | SQS booking request processor |
+| `backend/lambda/free_guide_processor/handler.py` | SQS free-guide request processor |
 | `backend/src/app/db/repositories/ticket.py` | Repository with `find_by_ticket_id` |
 
 ## Environment Variables
@@ -114,6 +147,7 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | Variable | Description |
 |----------|-------------|
 | `BOOKING_REQUEST_TOPIC_ARN` | SNS topic ARN (required) |
+| `FREE_GUIDE_TOPIC_ARN` | SNS topic ARN for free-guide events (required) |
 
 ### Processor Lambda
 
@@ -125,6 +159,12 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `SES_SENDER_EMAIL` | Verified SES sender address |
 | `SES_TEMPLATE_NEW_ACCESS_REQUEST` | Optional SES template for access requests |
 | `SES_TEMPLATE_NEW_SUGGESTION` | Optional SES template for suggestions |
+| `MAILCHIMP_API_SECRET_ARN` | Existing secret ARN for Mailchimp API key |
+| `MAILCHIMP_LIST_ID` | Mailchimp list ID |
+| `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
+| `FREE_GUIDE_TAG` | Mailchimp/CRM tag to apply |
+| `FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID` | Asset UUID for free-guide lead dedupe |
+| `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for HTTP proxy calls |
 
 ## Stack Outputs
 
@@ -133,6 +173,9 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `BookingRequestTopicArn` | SNS topic ARN |
 | `BookingRequestQueueUrl` | SQS queue URL |
 | `BookingRequestDLQUrl` | Dead letter queue URL |
+| `FreeGuideTopicArn` | SNS topic ARN for free-guide events |
+| `FreeGuideQueueUrl` | SQS queue URL for free-guide processing |
+| `FreeGuideDLQUrl` | Dead letter queue URL for failed free-guide requests |
 
 ## Monitoring
 

@@ -505,7 +505,12 @@
     "mediaTitleLine1": "Teach Patience",
     "mediaTitleLine2": "to Young Children",
     "ctaLabel": "Get 4 Ways to Teach Patience",
-    "ctaHref": "https://media.evolvesprouts.com/v1/assets/share/JJCS9GZJZzkT26WMgQyTWsTWk3ep1cr1",
+    "formFirstNameLabel": "First name",
+    "formEmailLabel": "Email",
+    "formSubmitLabel": "Send Me the Free Guide",
+    "formSuccessTitle": "Check Your Email!",
+    "formSuccessBody": "Check your email for the download link!",
+    "formErrorMessage": "Unable to submit right now. Please check your details and try again.",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
       "_valueCombinations": [

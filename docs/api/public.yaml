@@ -213,6 +213,39 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /www/v1/free-guide-request:
+    post:
+      summary: Submit free-guide request
+      description: Submit a free-guide lead form from `public_www`.
+      security:
+        - ApiKeyAuth: []
+          TurnstileToken: []
+      parameters:
+        - $ref: "#/components/parameters/TurnstileTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FreeGuideRequestSubmissionRequest"
+      responses:
+        "202":
+          description: Free-guide request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -450,6 +483,19 @@ components:
         message:
           type: string
           maxLength: 5000
+    FreeGuideRequestSubmissionRequest:
+      type: object
+      required:
+        - first_name
+        - email
+      properties:
+        first_name:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 320
     ReservationSubmissionAccepted:
       type: object
       required:

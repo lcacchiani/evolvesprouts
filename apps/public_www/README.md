@@ -84,6 +84,7 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+- `NEXT_PUBLIC_ASSET_SHARE_BASE_URL`
 - `NEXT_PUBLIC_EMAIL`
 - `NEXT_PUBLIC_WHATSAPP_URL`
 - `NEXT_PUBLIC_INSTAGRAM_URL`
@@ -101,6 +102,8 @@ switch to `/www` proxy routing on approved hosts.
 CSP generation also derives `connect-src` API origins from this variable.
 Use Cloudflare Turnstile test key `1x00000000000000000000AA` for local-only
 testing.
+Set `NEXT_PUBLIC_ASSET_SHARE_BASE_URL` to the media/share base URL used by the
+guide download redirect pages (for example `https://media.evolvesprouts.com`).
 
 ## Build
 

@@ -42,6 +42,8 @@ Public WWW CloudFront includes:
   using HTTPS-only origin policy, disabled caching, and
   `OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER` so API key headers and
   query parameters pass through while preserving the API origin host header.
+  - Viewer-request allowlist includes `/www/v1/free-guide-request` and rewrites
+    that path to `/v1/free-guide-request` before forwarding to the API origin.
 - Response headers policy for browser hardening:
   `Strict-Transport-Security`, `X-Content-Type-Options`,
   `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`,
@@ -157,7 +159,7 @@ Default share-link allowlist values are injected into
 | Interface Endpoint | `SnsEndpoint` | SNS | For notifications |
 | Interface Endpoint | `RdsEndpoint` | RDS | For IAM authentication tokens |
 | Interface Endpoint | `ApiGatewayEndpoint` | API Gateway | For API key rotation |
-| Interface Endpoint | `SqsEndpoint` | SQS | For booking request queue |
+| Interface Endpoint | `SqsEndpoint` | SQS | For booking and free-guide queues |
 | Interface Endpoint | `LambdaEndpoint` | Lambda | For invoking the AWS API proxy from in-VPC Lambdas |
 
 **Note:** Cognito IDP VPC endpoint is **not** included because Cognito
@@ -288,6 +290,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `AwsApiProxyFunction` | `lambda/aws_proxy/handler.lambda_handler` | 256 MB | 15s | No | AWS/HTTP proxy for in-VPC Lambdas |
 | `ApiKeyRotationFunction` | `lambda/api_key_rotation/handler.lambda_handler` | 256 MB | 60s | Yes | Scheduled API key rotation |
 | `BookingRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
+| `FreeGuideRequestProcessor` | `lambda/free_guide_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered free-guide processor |
 
 ### Lambda Resources Per Function
 
@@ -314,7 +317,7 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking request topic, SES send email, S3 read/write for client assets |
+| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking and free-guide topics, SES send email, S3 read/write for client assets |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
@@ -322,6 +325,7 @@ For each function above, the following resources are created:
 | `AdminBootstrapFunction` | Cognito `AdminCreateUser`, `AdminUpdateUserAttributes`, `AdminSetUserPassword`, `AdminAddUserToGroup`, CloudFormation invoke permission |
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
 | `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
+| `FreeGuideRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email, read Mailchimp secret, invoke `AwsApiProxyFunction` |
 
 **Lambda Log Groups:**
 - Explicitly created by CDK with KMS encryption
@@ -364,6 +368,7 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | Resource Path | Method | Authorization | Integration | Notes |
 |--------------|--------|---------------|-------------|-------|
 | `/health` | GET | IAM | `HealthCheckFunction` | Health check |
+| `/v1/free-guide-request` | POST | None + API key | `EvolvesproutsAdminFunction` | Publishes `free_guide_request.submitted` to SNS |
 | `/v1/admin/assets` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}` | GET, PUT, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/grants` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
@@ -474,6 +479,10 @@ configured by stack custom resources (including retention and KMS association).
 | `SupportEmail` | String | No | No | Email to receive booking request notifications |
 | `SesSenderEmail` | String | No | No | SES-verified sender email for notifications |
 | `TurnstileSecretKey` | String | No | Yes | Cloudflare Turnstile secret key |
+| `MailchimpApiSecretArn` | String | Yes | Yes | Existing Secrets Manager ARN for Mailchimp API key |
+| `MailchimpListId` | String | Yes | No | Mailchimp audience/list ID |
+| `MailchimpServerPrefix` | String | Yes | No | Mailchimp server prefix (for example `us21`) |
+| `FourWaysPatienceFreeGuideAssetId` | String | Yes | No | Asset UUID used for free-guide lead dedupe |
 | `ApiCustomDomainName` | String | No | No | Custom domain for the API (default: empty) |
 | `ApiCustomDomainCertificateArn` | String | No | No | ACM certificate ARN for API custom domain |
 | `NominatimUserAgent` | String | No | No | User-Agent for Nominatim geocoding requests |
@@ -506,6 +515,9 @@ configured by stack custom resources (including retention and KMS association).
 | `BookingRequestTopicArn` | SNS topic ARN | Booking request events topic |
 | `BookingRequestQueueUrl` | SQS queue URL | Booking request processing queue |
 | `BookingRequestDLQUrl` | SQS DLQ URL | Failed booking request messages |
+| `FreeGuideTopicArn` | SNS topic ARN | Free-guide request events topic |
+| `FreeGuideQueueUrl` | SQS queue URL | Free-guide request processing queue |
+| `FreeGuideDLQUrl` | SQS DLQ URL | Failed free-guide request messages |
 | `CognitoCustomDomainCloudFront` | CloudFront distribution | Custom auth domain target (conditional) |
 | `ApiCustomDomainTarget` | CNAME target | API custom domain DNS target (conditional) |
 | `ApiCustomDomainUrl` | Custom domain URL | API custom domain URL (conditional) |

@@ -458,6 +458,36 @@ export class ApiStack extends cdk.Stack {
         description: "Cloudflare Turnstile server-side secret key",
       }
     );
+    const mailchimpApiSecretArn = new cdk.CfnParameter(
+      this,
+      "MailchimpApiSecretArn",
+      {
+        type: "String",
+        noEcho: true,
+        description:
+          "Existing Secrets Manager ARN containing the Mailchimp API key",
+      }
+    );
+    const mailchimpListId = new cdk.CfnParameter(this, "MailchimpListId", {
+      type: "String",
+      description: "Mailchimp audience/list ID for free-guide subscribers",
+    });
+    const mailchimpServerPrefix = new cdk.CfnParameter(
+      this,
+      "MailchimpServerPrefix",
+      {
+        type: "String",
+        description: "Mailchimp API server prefix (for example us21)",
+      }
+    );
+    const fourWaysPatienceFreeGuideAssetId = new cdk.CfnParameter(
+      this,
+      "FourWaysPatienceFreeGuideAssetId",
+      {
+        type: "String",
+        description: "Asset UUID for the 4 Ways Patience free guide",
+      }
+    );
 
     // ---------------------------------------------------------------------
     // API Custom Domain Parameters (Optional)
@@ -1110,6 +1140,7 @@ export class ApiStack extends cdk.Stack {
     const allowedProxyHttpUrls = [
       "https://nominatim.openstreetmap.org/search",
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      `https://${mailchimpServerPrefix.valueAsString}.api.mailchimp.com/3.0/`,
     ];
 
     const awsProxyFunction = createPythonFunction("AwsApiProxyFunction", {
@@ -1144,6 +1175,11 @@ export class ApiStack extends cdk.Stack {
       resource: "identity",
       resourceName: sesSenderEmail.valueAsString,
     });
+    const mailchimpApiSecret = secretsmanager.Secret.fromSecretCompleteArn(
+      this,
+      "MailchimpApiSecret",
+      mailchimpApiSecretArn.valueAsString
+    );
 
     // -------------------------------------------------------------------------
     // Booking Request Messaging (SNS + SQS)
@@ -1224,6 +1260,93 @@ export class ApiStack extends cdk.Stack {
       alarmName: name("booking-request-dlq-alarm"),
       alarmDescription: "Booking request messages failed processing and landed in DLQ",
       metric: bookingRequestDLQ.metricApproximateNumberOfMessagesVisible({
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // -------------------------------------------------------------------------
+    // Free Guide Request Messaging (SNS + SQS)
+    // -------------------------------------------------------------------------
+
+    const freeGuideDLQ = new sqs.Queue(this, "FreeGuideDLQ", {
+      queueName: name("free-guide-dlq"),
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const freeGuideQueue = new sqs.Queue(this, "FreeGuideQueue", {
+      queueName: name("free-guide-queue"),
+      visibilityTimeout: cdk.Duration.seconds(60),
+      deadLetterQueue: {
+        queue: freeGuideDLQ,
+        maxReceiveCount: 3,
+      },
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const freeGuideTopic = new sns.Topic(this, "FreeGuideTopic", {
+      topicName: name("free-guide-events"),
+      masterKey: sqsEncryptionKey,
+    });
+
+    freeGuideTopic.addSubscription(
+      new snsSubscriptions.SqsSubscription(freeGuideQueue)
+    );
+    freeGuideTopic.grantPublish(adminFunction);
+    adminFunction.addEnvironment("FREE_GUIDE_TOPIC_ARN", freeGuideTopic.topicArn);
+
+    const freeGuideRequestProcessor = createPythonFunction(
+      "FreeGuideRequestProcessor",
+      {
+        handler: "lambda/free_guide_processor/handler.lambda_handler",
+        timeout: cdk.Duration.seconds(30),
+        environment: {
+          DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
+          DATABASE_NAME: "evolvesprouts",
+          DATABASE_USERNAME: "evolvesprouts_admin",
+          DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
+          DATABASE_IAM_AUTH: "true",
+          SES_SENDER_EMAIL: sesSenderEmail.valueAsString,
+          SUPPORT_EMAIL: supportEmail.valueAsString,
+          MAILCHIMP_API_SECRET_ARN: mailchimpApiSecret.secretArn,
+          MAILCHIMP_LIST_ID: mailchimpListId.valueAsString,
+          MAILCHIMP_SERVER_PREFIX: mailchimpServerPrefix.valueAsString,
+          FREE_GUIDE_TAG: "free-guide-patience",
+          FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID:
+            fourWaysPatienceFreeGuideAssetId.valueAsString,
+          AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
+        },
+      }
+    );
+
+    database.grantAdminUserSecretRead(freeGuideRequestProcessor);
+    database.grantConnect(freeGuideRequestProcessor, "evolvesprouts_admin");
+
+    freeGuideRequestProcessor.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ses:SendEmail", "ses:SendRawEmail"],
+        resources: [sesSenderIdentityArn],
+      })
+    );
+    mailchimpApiSecret.grantRead(freeGuideRequestProcessor);
+    awsProxyFunction.grantInvoke(freeGuideRequestProcessor);
+
+    freeGuideRequestProcessor.addEventSource(
+      new lambdaEventSources.SqsEventSource(freeGuideQueue, {
+        batchSize: 1,
+      })
+    );
+
+    const freeGuideDlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "FreeGuideDLQAlarm", {
+      alarmName: name("free-guide-dlq-alarm"),
+      alarmDescription:
+        "Free guide request messages failed processing and landed in DLQ",
+      metric: freeGuideDLQ.metricApproximateNumberOfMessagesVisible({
         period: cdk.Duration.minutes(5),
       }),
       threshold: 1,
@@ -1810,6 +1933,12 @@ export class ApiStack extends cdk.Stack {
       sourceArn: api.arnForExecuteApi(),
     });
 
+    const freeGuideRequest = v1.addResource("free-guide-request");
+    freeGuideRequest.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+
     // Admin asset routes
     const admin = v1.addResource("admin");
     const adminAssets = admin.addResource("assets");
@@ -2141,6 +2270,21 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "BookingRequestDLQUrl", {
       value: bookingRequestDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed booking requests",
+    });
+
+    new cdk.CfnOutput(this, "FreeGuideTopicArn", {
+      value: freeGuideTopic.topicArn,
+      description: "SNS topic ARN for free guide request events",
+    });
+
+    new cdk.CfnOutput(this, "FreeGuideQueueUrl", {
+      value: freeGuideQueue.queueUrl,
+      description: "SQS queue URL for free guide request processing",
+    });
+
+    new cdk.CfnOutput(this, "FreeGuideDLQUrl", {
+      value: freeGuideDLQ.queueUrl,
+      description: "SQS dead letter queue URL for failed free guide requests",
     });
 
     const customAuthDomainOutput = new cdk.CfnOutput(

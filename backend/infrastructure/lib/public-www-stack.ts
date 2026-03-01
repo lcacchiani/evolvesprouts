@@ -303,11 +303,19 @@ function handler(event) {
     'POST': {
       '/www/v1/discounts/validate': true,
       '/www/v1/reservations': true,
-      '/www/v1/contact-us': true
+      '/www/v1/contact-us': true,
+      '/www/v1/free-guide-request': true
     }
+  };
+  var rewriteTargets = {
+    'POST:/www/v1/free-guide-request': '/v1/free-guide-request'
   };
 
   if (allowlist[method] && allowlist[method][uri]) {
+    var rewriteKey = method + ':' + uri;
+    if (rewriteTargets[rewriteKey]) {
+      request.uri = rewriteTargets[rewriteKey];
+    }
     return request;
   }
 
