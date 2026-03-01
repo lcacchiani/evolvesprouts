@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -18,8 +19,14 @@ interface SproutsSquadCommunityProps {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMAIL_ERROR_MESSAGE_ID = 'sprouts-community-email-error';
+const CAPTCHA_ERROR_MESSAGE_ID = 'sprouts-community-captcha-error';
 const SUBMIT_ERROR_MESSAGE_ID = 'sprouts-community-submit-error';
 const CONTACT_US_API_PATH = '/v1/contact-us';
+const FALLBACK_CAPTCHA_REQUIRED_ERROR =
+  'Please complete CAPTCHA verification before submitting.';
+const FALLBACK_CAPTCHA_LOAD_ERROR = 'CAPTCHA failed to load. Please refresh and try again.';
+const FALLBACK_CAPTCHA_UNAVAILABLE_ERROR =
+  'CAPTCHA is temporarily unavailable. Please try again later.';
 
 function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
@@ -28,21 +35,48 @@ function isValidEmail(value: string): boolean {
 export function SproutsSquadCommunity({
   content,
 }: SproutsSquadCommunityProps) {
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
+  const [isFormVisible, setIsFormVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
+  const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
+  const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrorMessage, setSubmitErrorMessage] = useState('');
   const [hasSuccessfulSubmission, setHasSuccessfulSubmission] = useState(false);
 
+  const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
+  const isCaptchaUnavailable = !isCaptchaConfigured || hasCaptchaLoadError;
   const hasEmailError = isEmailTouched && !isValidEmail(email);
+  const hasCaptchaError = isCaptchaTouched && !captchaToken;
+  const submitCtaLabel = content.formSubmitLabel ?? content.ctaLabel;
+
+  const captchaErrorMessage = (() => {
+    if (hasCaptchaError) {
+      return content.captchaRequiredError ?? FALLBACK_CAPTCHA_REQUIRED_ERROR;
+    }
+    if (hasCaptchaLoadError) {
+      return content.captchaLoadError ?? FALLBACK_CAPTCHA_LOAD_ERROR;
+    }
+    if (!isCaptchaConfigured) {
+      return content.captchaUnavailableError ?? FALLBACK_CAPTCHA_UNAVAILABLE_ERROR;
+    }
+    return '';
+  })();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitErrorMessage('');
     setIsEmailTouched(true);
+    setIsCaptchaTouched(true);
 
-    if (!isValidEmail(email) || !crmApiClient) {
+    if (!isValidEmail(email) || !captchaToken) {
+      return;
+    }
+    if (!crmApiClient || isCaptchaUnavailable) {
+      setSubmitErrorMessage(content.submitErrorMessage);
       return;
     }
 
@@ -62,6 +96,7 @@ export function SproutsSquadCommunity({
               email_address: normalizedEmail,
               message: content.prefilledMessage,
             },
+            turnstileToken: captchaToken,
             expectedSuccessStatuses: [200, 202],
           }),
         failureMessage: content.submitErrorMessage,
@@ -120,6 +155,20 @@ export function SproutsSquadCommunity({
                 noValidate
                 className='flex min-h-0 flex-col gap-3 overflow-hidden'
               >
+                {!isFormVisible ? (
+                  <ButtonPrimitive
+                    variant='primary'
+                    type='button'
+                    onClick={() => {
+                      setIsFormVisible(true);
+                    }}
+                    disabled={isSubmitting || hasSuccessfulSubmission}
+                  >
+                    {content.ctaLabel}
+                  </ButtonPrimitive>
+                ) : null}
+                {isFormVisible ? (
+                  <>
                 <input
                   type='email'
                   autoComplete='email'
@@ -139,7 +188,9 @@ export function SproutsSquadCommunity({
                   aria-describedby={
                     hasEmailError
                       ? EMAIL_ERROR_MESSAGE_ID
-                      : submitErrorMessage
+                      : captchaErrorMessage
+                        ? CAPTCHA_ERROR_MESSAGE_ID
+                        : submitErrorMessage
                         ? SUBMIT_ERROR_MESSAGE_ID
                         : undefined
                   }
@@ -150,12 +201,36 @@ export function SproutsSquadCommunity({
                     {content.emailValidationMessage}
                   </p>
                 ) : null}
+                <TurnstileCaptcha
+                  siteKey={turnstileSiteKey}
+                  widgetAction='sprouts_squad_community_submit'
+                  onTokenChange={(token) => {
+                    setCaptchaToken(token);
+                    if (token) {
+                      setHasCaptchaLoadError(false);
+                      setIsCaptchaTouched(false);
+                    }
+                  }}
+                  onLoadError={() => {
+                    setHasCaptchaLoadError(true);
+                    setSubmitErrorMessage(content.captchaLoadError ?? FALLBACK_CAPTCHA_LOAD_ERROR);
+                  }}
+                />
+                {captchaErrorMessage ? (
+                  <p
+                    id={CAPTCHA_ERROR_MESSAGE_ID}
+                    className='text-sm es-text-danger'
+                    role='alert'
+                  >
+                    {captchaErrorMessage}
+                  </p>
+                ) : null}
                 <ButtonPrimitive
                   variant='primary'
                   type='submit'
-                  disabled={isSubmitting || hasSuccessfulSubmission}
+                  disabled={isSubmitting || hasSuccessfulSubmission || isCaptchaUnavailable}
                 >
-                  {content.ctaLabel}
+                  {isSubmitting ? `${submitCtaLabel}...` : submitCtaLabel}
                 </ButtonPrimitive>
                 {submitErrorMessage ? (
                   <p
@@ -165,6 +240,8 @@ export function SproutsSquadCommunity({
                   >
                     {submitErrorMessage}
                   </p>
+                ) : null}
+                  </>
                 ) : null}
               </form>
             </div>

@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+
 import { MediaForm } from '@/components/sections/media-form';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -42,6 +46,8 @@ interface ResourceCardContentProps {
   formSuccessTitle: string;
   formSuccessBody: string;
   formErrorMessage: string;
+  showChecklist: boolean;
+  onFormOpened: () => void;
 }
 
 const HEADER_ALIGNMENT_VALUES = ['left', 'center'] as const;
@@ -192,6 +198,8 @@ function ResourceCardContent({
   formSuccessTitle,
   formSuccessBody,
   formErrorMessage,
+  showChecklist,
+  onFormOpened,
 }: ResourceCardContentProps) {
   return (
     <>
@@ -205,7 +213,7 @@ function ResourceCardContent({
         </p>
       )}
 
-      {checklistItems.length > 0 && (
+      {showChecklist && checklistItems.length > 0 && (
         <ul className='mb-7 mt-7 space-y-3 sm:mb-8 sm:mt-8'>
           {checklistItems.map((item) => (
             <li
@@ -236,6 +244,7 @@ function ResourceCardContent({
         formSuccessTitle={formSuccessTitle}
         formSuccessBody={formSuccessBody}
         formErrorMessage={formErrorMessage}
+        onFormOpened={onFormOpened}
       />
     </>
   );
@@ -244,6 +253,7 @@ function ResourceCardContent({
 export function FreeResourcesForGentleParenting({
   content,
 }: FreeResourcesForGentleParentingProps) {
+  const [hasOpenedMediaForm, setHasOpenedMediaForm] = useState(false);
   const sectionConfig = readSectionConfig(content);
   const eyebrowLabel = readOptionalText(content.eyebrow) ?? content.title;
   const cardTitle = readOptionalText(content.cardTitle) ?? content.title;
@@ -301,6 +311,10 @@ export function FreeResourcesForGentleParenting({
       formSuccessTitle={formSuccessTitle}
       formSuccessBody={formSuccessBody}
       formErrorMessage={formErrorMessage}
+      showChecklist={!hasOpenedMediaForm}
+      onFormOpened={() => {
+        setHasOpenedMediaForm(true);
+      }}
     />
   );
 

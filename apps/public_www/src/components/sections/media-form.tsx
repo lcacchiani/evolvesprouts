@@ -18,6 +18,7 @@ interface MediaFormProps {
   formSuccessBody: string;
   formErrorMessage: string;
   className?: string;
+  onFormOpened?: () => void;
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,6 +42,7 @@ export function MediaForm({
   formSuccessBody,
   formErrorMessage,
   className,
+  onFormOpened,
 }: MediaFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
@@ -68,6 +70,11 @@ export function MediaForm({
     hasFirstNameError ||
     hasEmailError ||
     isCaptchaUnavailable;
+
+  function handleOpenForm() {
+    setIsFormVisible(true);
+    onFormOpened?.();
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -127,9 +134,7 @@ export function MediaForm({
       <ButtonPrimitive
         variant='primary'
         className={mergeClassNames('mt-auto w-full max-w-[360px]', className)}
-        onClick={() => {
-          setIsFormVisible(true);
-        }}
+        onClick={handleOpenForm}
       >
         {ctaLabel}
       </ButtonPrimitive>
@@ -142,51 +147,45 @@ export function MediaForm({
       className={mergeClassNames('mt-auto w-full max-w-[420px] space-y-3', className)}
       noValidate
     >
-      <div>
-        <label className='mb-1 block text-sm font-semibold es-text-heading' htmlFor='media-first-name'>
-          {formFirstNameLabel}
-        </label>
-        <input
-          id='media-first-name'
-          type='text'
-          autoComplete='given-name'
-          value={firstName}
-          onChange={(event) => {
-            setFirstName(event.target.value);
-          }}
-          onBlur={() => {
-            setIsFirstNameTouched(true);
-          }}
-          className='es-form-input'
-          aria-invalid={hasFirstNameError}
-          aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
-          required
-          disabled={isSubmitting}
-        />
-      </div>
+      <input
+        id='media-first-name'
+        type='text'
+        autoComplete='given-name'
+        value={firstName}
+        onChange={(event) => {
+          setFirstName(event.target.value);
+        }}
+        onBlur={() => {
+          setIsFirstNameTouched(true);
+        }}
+        placeholder={formFirstNameLabel}
+        className={`es-form-input ${hasFirstNameError ? 'es-form-input-error' : ''}`}
+        aria-label={formFirstNameLabel}
+        aria-invalid={hasFirstNameError}
+        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
+        required
+        disabled={isSubmitting}
+      />
 
-      <div>
-        <label className='mb-1 block text-sm font-semibold es-text-heading' htmlFor='media-email'>
-          {formEmailLabel}
-        </label>
-        <input
-          id='media-email'
-          type='email'
-          autoComplete='email'
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value);
-          }}
-          onBlur={() => {
-            setIsEmailTouched(true);
-          }}
-          className='es-form-input'
-          aria-invalid={hasEmailError}
-          aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
-          required
-          disabled={isSubmitting}
-        />
-      </div>
+      <input
+        id='media-email'
+        type='email'
+        autoComplete='email'
+        value={email}
+        onChange={(event) => {
+          setEmail(event.target.value);
+        }}
+        onBlur={() => {
+          setIsEmailTouched(true);
+        }}
+        placeholder={formEmailLabel}
+        className={`es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
+        aria-label={formEmailLabel}
+        aria-invalid={hasEmailError}
+        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
+        required
+        disabled={isSubmitting}
+      />
 
       <TurnstileCaptcha
         siteKey={turnstileSiteKey}

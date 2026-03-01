@@ -87,7 +87,7 @@ describe('MediaForm', () => {
       screen.getByRole('button', { name: enContent.resources.ctaLabel }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByLabelText(enContent.resources.formFirstNameLabel),
+      screen.queryByPlaceholderText(enContent.resources.formFirstNameLabel),
     ).not.toBeInTheDocument();
   });
 
@@ -97,9 +97,9 @@ describe('MediaForm', () => {
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
 
     expect(
-      screen.getByLabelText(enContent.resources.formFirstNameLabel),
+      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(enContent.resources.formEmailLabel)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(enContent.resources.formEmailLabel)).toBeInTheDocument();
   });
 
   it('submits valid payload and renders success message', async () => {
@@ -109,10 +109,10 @@ describe('MediaForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     fireEvent.change(
-      screen.getByLabelText(enContent.resources.formFirstNameLabel),
+      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
       { target: { value: ' Ida ' } },
     );
-    fireEvent.change(screen.getByLabelText(enContent.resources.formEmailLabel), {
+    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
       target: { value: 'IDA@Example.com' },
     });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -148,10 +148,10 @@ describe('MediaForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     fireEvent.change(
-      screen.getByLabelText(enContent.resources.formFirstNameLabel),
+      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
       { target: { value: 'Ida' } },
     );
-    fireEvent.change(screen.getByLabelText(enContent.resources.formEmailLabel), {
+    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
       target: { value: 'ida@example.com' },
     });
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
