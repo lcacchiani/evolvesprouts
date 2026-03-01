@@ -91,7 +91,9 @@ class ContactRepository(BaseRepository[Contact]):
             return created_contact, True
 
         should_update = False
-        if _should_replace_first_name(existing_contact.first_name, normalized_first_name):
+        if _should_replace_first_name(
+            existing_contact.first_name, normalized_first_name
+        ):
             existing_contact.first_name = normalized_first_name
             should_update = True
 
@@ -99,7 +101,10 @@ class ContactRepository(BaseRepository[Contact]):
             if existing_contact.source != source:
                 existing_contact.source = source
                 should_update = True
-            if normalized_source_detail and existing_contact.source_detail != normalized_source_detail:
+            if (
+                normalized_source_detail
+                and existing_contact.source_detail != normalized_source_detail
+            ):
                 existing_contact.source_detail = normalized_source_detail
                 should_update = True
         elif (

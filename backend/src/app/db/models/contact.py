@@ -16,7 +16,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
 
 from app.db.base import Base
-from app.db.models.enums import ContactSource, ContactType, MailchimpSyncStatus, RelationshipType
+from app.db.models.enums import (
+    ContactSource,
+    ContactType,
+    MailchimpSyncStatus,
+    RelationshipType,
+)
 
 if TYPE_CHECKING:
     from app.db.models.crm_note import CrmNote

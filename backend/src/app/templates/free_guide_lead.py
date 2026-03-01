@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from app.templates.types import EmailContent
-from app.utils.logging import mask_email
 
 SUBJECT_TEMPLATE = "[Evolve Sprouts] New Free Guide Lead: {first_name}"
 
@@ -11,7 +10,7 @@ TEXT_TEMPLATE = """
 [Evolve Sprouts] New Free Guide Lead
 
 First Name: {first_name}
-Email: {masked_email}
+Email: {email}
 Guide: {guide_name}
 Submitted At: {submitted_at}
 
@@ -49,7 +48,7 @@ HTML_TEMPLATE = """
                 Email
             </td>
             <td style="padding: 12px; border: 1px solid #dee2e6;">
-                {masked_email}
+                {email}
             </td>
         </tr>
         <tr>
@@ -96,7 +95,7 @@ def build_sales_notification_template_data(
     """Build template data for a free-guide sales notification."""
     return {
         "first_name": first_name,
-        "masked_email": mask_email(email),
+        "email": email,
         "guide_name": guide_name,
         "submitted_at": submitted_at,
     }

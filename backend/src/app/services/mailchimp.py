@@ -156,9 +156,7 @@ def add_subscriber_with_tag(
             "Authorization": auth_header,
             "Content-Type": "application/json",
         },
-        body=json.dumps(
-            {"tags": [{"name": normalized_tag_name, "status": "active"}]}
-        ),
+        body=json.dumps({"tags": [{"name": normalized_tag_name, "status": "active"}]}),
         timeout=10,
     )
     tags_status = _status_code(tags_response)
