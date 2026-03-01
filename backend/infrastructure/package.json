@@ -9,14 +9,16 @@
     "cdk": "cdk",
     "synth": "cdk synth",
     "deploy": "cdk deploy",
-    "test:infra": "ts-node scripts/assert-existing-db.ts"
+    "test:infra": "ts-node scripts/assert-existing-db.ts",
+    "postinstall": "node scripts/patch-bundled-minimatch.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "aws-cdk-lib": "^2.240.0",
-    "constructs": "^10.4.5"
+    "constructs": "^10.4.5",
+    "minimatch": "10.2.4"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",
