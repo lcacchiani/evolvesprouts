@@ -50,6 +50,10 @@ export interface PythonLambdaProps {
   reservedConcurrentExecutions?: number;
   /** KMS key to encrypt environment variables. */
   environmentEncryptionKey?: kms.IKey;
+  /** KMS key to encrypt CloudWatch log group. When provided, the construct
+   *  uses this key directly and assumes the caller has already granted the
+   *  CloudWatch Logs service principal access. */
+  logEncryptionKey?: kms.IKey;
   /** Dead letter queue for failed invocations. */
   deadLetterQueue?: sqs.IQueue;
 }
@@ -147,36 +151,7 @@ export class PythonLambda extends Construct {
         retentionPeriod: cdk.Duration.days(14),
       });
 
-    // SECURITY: KMS key for CloudWatch log encryption
-    // Checkov requires CloudWatch Log Groups to be encrypted with KMS
-    const logEncryptionKey = new kms.Key(this, "LogEncryptionKey", {
-      enableKeyRotation: true,
-      description: "KMS key for Lambda CloudWatch log encryption",
-    });
-
-    // Grant CloudWatch Logs service permission to use the key
-    logEncryptionKey.addToResourcePolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "kms:Encrypt*",
-          "kms:Decrypt*",
-          "kms:ReEncrypt*",
-          "kms:GenerateDataKey*",
-          "kms:Describe*",
-        ],
-        principals: [
-          new iam.ServicePrincipal(
-            `logs.${cdk.Stack.of(this).region}.amazonaws.com`
-          ),
-        ],
-        resources: ["*"],
-        conditions: {
-          ArnLike: {
-            "kms:EncryptionContext:aws:logs:arn": `arn:aws:logs:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:*`,
-          },
-        },
-      })
-    );
+    const logEncryptionKey = props.logEncryptionKey ?? this.createLogEncryptionKey();
 
     // Standard 90-day log retention for all Lambda functions
     // SECURITY: Encrypted with KMS key
@@ -252,6 +227,43 @@ export class PythonLambda extends Construct {
       },
     });
 
+  }
+
+  /**
+   * Create a per-function KMS key for CloudWatch log encryption with the
+   * required service principal grant.  Used as a fallback when no shared
+   * key is provided via props.
+   */
+  private createLogEncryptionKey(): kms.IKey {
+    const key = new kms.Key(this, "LogEncryptionKey", {
+      enableKeyRotation: true,
+      description: "KMS key for Lambda CloudWatch log encryption",
+    });
+
+    key.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:Describe*",
+        ],
+        principals: [
+          new iam.ServicePrincipal(
+            `logs.${cdk.Stack.of(this).region}.amazonaws.com`
+          ),
+        ],
+        resources: ["*"],
+        conditions: {
+          ArnLike: {
+            "kms:EncryptionContext:aws:logs:arn": `arn:aws:logs:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:*`,
+          },
+        },
+      })
+    );
+
+    return key;
   }
 
   /**
