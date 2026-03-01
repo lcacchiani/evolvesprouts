@@ -1,4 +1,4 @@
-"""Add CRM schema tables for free-guide lead capture.
+"""Add CRM schema tables for media lead capture.
 
 Seed-data assessment:
 1. Compatibility with existing seed SQL:
@@ -14,8 +14,11 @@ Seed-data assessment:
 5. Enum/allowed-value changes validated in seed rows:
    - Existing enums are unchanged; only new enums are introduced.
 6. FK/cascade changes validated for insert order and references:
-   - New FKs reference existing `locations` and `assets` tables plus new CRM
-     tables created in dependency order.
+   - New FKs reference existing `assets` tables plus new CRM tables created in
+     dependency order.
+   - `locations` FKs are created only when a `locations` table already exists
+     in the target database, to preserve compatibility for fresh deployments
+     where location tables are not yet present in this migration chain.
 
 Result: No seed updates are required for this migration.
 """
@@ -37,6 +40,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Create CRM enums, tables, indexes, and update triggers."""
     bind = op.get_bind()
+    locations_table_exists = sa.inspect(bind).has_table("locations")
 
     contact_type_enum = postgresql.ENUM(
         "parent",
@@ -162,6 +166,49 @@ def upgrade() -> None:
         """
     )
 
+    contact_location_column = (
+        sa.Column(
+            "location_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("locations.id", ondelete="SET NULL"),
+            nullable=True,
+        )
+        if locations_table_exists
+        else sa.Column(
+            "location_id",
+            postgresql.UUID(as_uuid=True),
+            nullable=True,
+        )
+    )
+    family_location_column = (
+        sa.Column(
+            "location_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("locations.id", ondelete="SET NULL"),
+            nullable=True,
+        )
+        if locations_table_exists
+        else sa.Column(
+            "location_id",
+            postgresql.UUID(as_uuid=True),
+            nullable=True,
+        )
+    )
+    organization_location_column = (
+        sa.Column(
+            "location_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("locations.id", ondelete="SET NULL"),
+            nullable=True,
+        )
+        if locations_table_exists
+        else sa.Column(
+            "location_id",
+            postgresql.UUID(as_uuid=True),
+            nullable=True,
+        )
+    )
+
     op.create_table(
         "contacts",
         sa.Column(
@@ -183,12 +230,7 @@ def upgrade() -> None:
             server_default=sa.text("'prospect'"),
         ),
         sa.Column("date_of_birth", sa.Date(), nullable=True),
-        sa.Column(
-            "location_id",
-            postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("locations.id", ondelete="SET NULL"),
-            nullable=True,
-        ),
+        contact_location_column,
         sa.Column("source", contact_source_enum, nullable=False),
         sa.Column("source_detail", sa.Text(), nullable=True),
         sa.Column("source_metadata", postgresql.JSONB(), nullable=True),
@@ -263,12 +305,7 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("'prospect'"),
         ),
-        sa.Column(
-            "location_id",
-            postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("locations.id", ondelete="SET NULL"),
-            nullable=True,
-        ),
+        family_location_column,
         sa.Column("archived_at", sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column(
             "created_at",
@@ -309,12 +346,7 @@ def upgrade() -> None:
             server_default=sa.text("'prospect'"),
         ),
         sa.Column("website", sa.String(500), nullable=True),
-        sa.Column(
-            "location_id",
-            postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("locations.id", ondelete="SET NULL"),
-            nullable=True,
-        ),
+        organization_location_column,
         sa.Column("archived_at", sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column(
             "created_at",

@@ -144,10 +144,10 @@ their primary responsibilities.
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`
 
-### Free guide request processor
-- Function: FreeGuideRequestProcessor
-- Handler: backend/lambda/free_guide_processor/handler.py
-- Trigger: SQS queue (`evolvesprouts-free-guide-queue`)
+### Media request processor
+- Function: MediaRequestProcessor
+- Handler: backend/lambda/media_processor/handler.py
+- Trigger: SQS queue (`evolvesprouts-media-queue`)
 - Purpose: process media lead captures and fan out actions
 - Actions: contact upsert in DB, idempotent sales lead creation, Mailchimp sync,
   and SES notification to sales/support
@@ -160,7 +160,7 @@ their primary responsibilities.
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
-    `MAILCHIMP_SERVER_PREFIX`, `FREE_GUIDE_TAG`
+    `MAILCHIMP_SERVER_PREFIX`, `MEDIA_TAG`
   - `FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID`, `AWS_PROXY_FUNCTION_ARN`
 
 ### AWS / HTTP proxy

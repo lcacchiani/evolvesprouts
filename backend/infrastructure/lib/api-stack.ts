@@ -470,7 +470,7 @@ export class ApiStack extends cdk.Stack {
     );
     const mailchimpListId = new cdk.CfnParameter(this, "MailchimpListId", {
       type: "String",
-      description: "Mailchimp audience/list ID for free-guide subscribers",
+      description: "Mailchimp audience/list ID for media subscribers",
     });
     const mailchimpServerPrefix = new cdk.CfnParameter(
       this,
@@ -485,7 +485,7 @@ export class ApiStack extends cdk.Stack {
       "FourWaysPatienceFreeGuideAssetId",
       {
         type: "String",
-        description: "Asset UUID for the 4 Ways Patience free guide",
+        description: "Asset UUID for the 4 Ways Patience media item",
       }
     );
 
@@ -1268,42 +1268,42 @@ export class ApiStack extends cdk.Stack {
     });
 
     // -------------------------------------------------------------------------
-    // Free Guide Request Messaging (SNS + SQS)
+    // Media Request Messaging (SNS + SQS)
     // -------------------------------------------------------------------------
 
-    const freeGuideDLQ = new sqs.Queue(this, "FreeGuideDLQ", {
-      queueName: name("free-guide-dlq"),
+    const mediaDLQ = new sqs.Queue(this, "MediaDLQ", {
+      queueName: name("media-dlq"),
       retentionPeriod: cdk.Duration.days(14),
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
-    const freeGuideQueue = new sqs.Queue(this, "FreeGuideQueue", {
-      queueName: name("free-guide-queue"),
+    const mediaQueue = new sqs.Queue(this, "MediaQueue", {
+      queueName: name("media-queue"),
       visibilityTimeout: cdk.Duration.seconds(60),
       deadLetterQueue: {
-        queue: freeGuideDLQ,
+        queue: mediaDLQ,
         maxReceiveCount: 3,
       },
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
-    const freeGuideTopic = new sns.Topic(this, "FreeGuideTopic", {
-      topicName: name("free-guide-events"),
+    const mediaTopic = new sns.Topic(this, "MediaTopic", {
+      topicName: name("media-events"),
       masterKey: sqsEncryptionKey,
     });
 
-    freeGuideTopic.addSubscription(
-      new snsSubscriptions.SqsSubscription(freeGuideQueue)
+    mediaTopic.addSubscription(
+      new snsSubscriptions.SqsSubscription(mediaQueue)
     );
-    freeGuideTopic.grantPublish(adminFunction);
-    adminFunction.addEnvironment("MEDIA_REQUEST_TOPIC_ARN", freeGuideTopic.topicArn);
+    mediaTopic.grantPublish(adminFunction);
+    adminFunction.addEnvironment("MEDIA_REQUEST_TOPIC_ARN", mediaTopic.topicArn);
 
-    const freeGuideRequestProcessor = createPythonFunction(
-      "FreeGuideRequestProcessor",
+    const mediaRequestProcessor = createPythonFunction(
+      "MediaRequestProcessor",
       {
-        handler: "lambda/free_guide_processor/handler.lambda_handler",
+        handler: "lambda/media_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(30),
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
@@ -1316,7 +1316,7 @@ export class ApiStack extends cdk.Stack {
           MAILCHIMP_API_SECRET_ARN: mailchimpApiSecret.secretArn,
           MAILCHIMP_LIST_ID: mailchimpListId.valueAsString,
           MAILCHIMP_SERVER_PREFIX: mailchimpServerPrefix.valueAsString,
-          FREE_GUIDE_TAG: "free-guide-patience",
+          MEDIA_TAG: "media-patience",
           FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID:
             fourWaysPatienceFreeGuideAssetId.valueAsString,
           AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
@@ -1324,29 +1324,29 @@ export class ApiStack extends cdk.Stack {
       }
     );
 
-    database.grantAdminUserSecretRead(freeGuideRequestProcessor);
-    database.grantConnect(freeGuideRequestProcessor, "evolvesprouts_admin");
+    database.grantAdminUserSecretRead(mediaRequestProcessor);
+    database.grantConnect(mediaRequestProcessor, "evolvesprouts_admin");
 
-    freeGuideRequestProcessor.addToRolePolicy(
+    mediaRequestProcessor.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
         resources: [sesSenderIdentityArn],
       })
     );
-    mailchimpApiSecret.grantRead(freeGuideRequestProcessor);
-    awsProxyFunction.grantInvoke(freeGuideRequestProcessor);
+    mailchimpApiSecret.grantRead(mediaRequestProcessor);
+    awsProxyFunction.grantInvoke(mediaRequestProcessor);
 
-    freeGuideRequestProcessor.addEventSource(
-      new lambdaEventSources.SqsEventSource(freeGuideQueue, {
+    mediaRequestProcessor.addEventSource(
+      new lambdaEventSources.SqsEventSource(mediaQueue, {
         batchSize: 1,
       })
     );
 
-    const freeGuideDlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "FreeGuideDLQAlarm", {
-      alarmName: name("free-guide-dlq-alarm"),
+    const mediaDlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "MediaDLQAlarm", {
+      alarmName: name("media-dlq-alarm"),
       alarmDescription:
-        "Free guide request messages failed processing and landed in DLQ",
-      metric: freeGuideDLQ.metricApproximateNumberOfMessagesVisible({
+        "Media request messages failed processing and landed in DLQ",
+      metric: mediaDLQ.metricApproximateNumberOfMessagesVisible({
         period: cdk.Duration.minutes(5),
       }),
       threshold: 1,
@@ -2272,19 +2272,19 @@ export class ApiStack extends cdk.Stack {
       description: "SQS dead letter queue URL for failed booking requests",
     });
 
-    new cdk.CfnOutput(this, "FreeGuideTopicArn", {
-      value: freeGuideTopic.topicArn,
-      description: "SNS topic ARN for free guide request events",
+    new cdk.CfnOutput(this, "MediaTopicArn", {
+      value: mediaTopic.topicArn,
+      description: "SNS topic ARN for media request events",
     });
 
-    new cdk.CfnOutput(this, "FreeGuideQueueUrl", {
-      value: freeGuideQueue.queueUrl,
-      description: "SQS queue URL for free guide request processing",
+    new cdk.CfnOutput(this, "MediaQueueUrl", {
+      value: mediaQueue.queueUrl,
+      description: "SQS queue URL for media request processing",
     });
 
-    new cdk.CfnOutput(this, "FreeGuideDLQUrl", {
-      value: freeGuideDLQ.queueUrl,
-      description: "SQS dead letter queue URL for failed free guide requests",
+    new cdk.CfnOutput(this, "MediaDLQUrl", {
+      value: mediaDLQ.queueUrl,
+      description: "SQS dead letter queue URL for failed media requests",
     });
 
     const customAuthDomainOutput = new cdk.CfnOutput(

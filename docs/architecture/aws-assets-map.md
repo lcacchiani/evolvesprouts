@@ -290,7 +290,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `AwsApiProxyFunction` | `lambda/aws_proxy/handler.lambda_handler` | 256 MB | 15s | No | AWS/HTTP proxy for in-VPC Lambdas |
 | `ApiKeyRotationFunction` | `lambda/api_key_rotation/handler.lambda_handler` | 256 MB | 60s | Yes | Scheduled API key rotation |
 | `BookingRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
-| `FreeGuideRequestProcessor` | `lambda/free_guide_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor |
+| `MediaRequestProcessor` | `lambda/media_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor |
 
 ### Lambda Resources Per Function
 
@@ -325,7 +325,7 @@ For each function above, the following resources are created:
 | `AdminBootstrapFunction` | Cognito `AdminCreateUser`, `AdminUpdateUserAttributes`, `AdminSetUserPassword`, `AdminAddUserToGroup`, CloudFormation invoke permission |
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
 | `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
-| `FreeGuideRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email, read Mailchimp secret, invoke `AwsApiProxyFunction` |
+| `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email, read Mailchimp secret, invoke `AwsApiProxyFunction` |
 
 **Lambda Log Groups:**
 - Explicitly created by CDK with KMS encryption
@@ -515,9 +515,9 @@ configured by stack custom resources (including retention and KMS association).
 | `BookingRequestTopicArn` | SNS topic ARN | Booking request events topic |
 | `BookingRequestQueueUrl` | SQS queue URL | Booking request processing queue |
 | `BookingRequestDLQUrl` | SQS DLQ URL | Failed booking request messages |
-| `FreeGuideTopicArn` | SNS topic ARN | Media request events topic |
-| `FreeGuideQueueUrl` | SQS queue URL | Media request processing queue |
-| `FreeGuideDLQUrl` | SQS DLQ URL | Failed media request messages |
+| `MediaTopicArn` | SNS topic ARN | Media request events topic |
+| `MediaQueueUrl` | SQS queue URL | Media request processing queue |
+| `MediaDLQUrl` | SQS DLQ URL | Failed media request messages |
 | `CognitoCustomDomainCloudFront` | CloudFront distribution | Custom auth domain target (conditional) |
 | `ApiCustomDomainTarget` | CNAME target | API custom domain DNS target (conditional) |
 | `ApiCustomDomainUrl` | Custom domain URL | API custom domain URL (conditional) |

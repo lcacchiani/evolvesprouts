@@ -123,7 +123,7 @@ Indexes:
 - Admin APIs can create/reuse, rotate, revoke, and update source-domain
   allowlist policy per asset.
 
-## CRM tables (free-guide lead capture)
+## CRM tables (media lead capture)
 
 ### `contacts`
 
@@ -156,7 +156,7 @@ Indexes:
 
 - Purpose: lead lifecycle tracking for contacts/families/organizations.
 - Includes `lead_type`, `funnel_stage`, optional `asset_id`.
-- `sales_leads_guide_dedup_idx` enforces idempotency for free-guide processing
+- `sales_leads_guide_dedup_idx` enforces idempotency for media processing
   by unique (`contact_id`, `lead_type`, `asset_id`) when `asset_id` is present.
 
 ### `sales_lead_events`
