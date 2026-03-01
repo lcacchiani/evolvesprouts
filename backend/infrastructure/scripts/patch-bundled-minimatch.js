@@ -6,7 +6,7 @@
  * version) over the bundled copy to resolve ReDoS advisories
  * GHSA-7r86-cg39-jmmj and GHSA-23c5-xmqv-rm74.
  *
- * Remove this workaround once aws-cdk-lib ships with minimatch >= 10.2.3.
+ * TODO: Remove this workaround once aws-cdk-lib ships with minimatch >= 10.2.3.
  */
 
 const fs = require("fs");
