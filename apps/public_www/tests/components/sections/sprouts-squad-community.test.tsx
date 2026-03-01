@@ -1,10 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import enContent from '@/content/en.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+
+const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 vi.mock('next/image', () => ({
   default: ({
@@ -17,6 +19,37 @@ vi.mock('next/image', () => ({
     fill?: boolean;
     priority?: boolean;
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
+}));
+
+vi.mock('@/components/shared/turnstile-captcha', () => ({
+  TurnstileCaptcha: ({
+    onTokenChange,
+    onLoadError,
+  }: {
+    onTokenChange: (token: string | null) => void;
+    onLoadError: () => void;
+  }) => (
+    <div data-testid='mock-turnstile-captcha'>
+      <button
+        data-testid='mock-turnstile-captcha-solve'
+        type='button'
+        onClick={() => {
+          onTokenChange('mock-turnstile-token');
+        }}
+      >
+        Solve CAPTCHA
+      </button>
+      <button
+        data-testid='mock-turnstile-captcha-fail'
+        type='button'
+        onClick={() => {
+          onLoadError();
+        }}
+      >
+        Fail CAPTCHA
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock('@/lib/crm-api-client', async () => {
@@ -33,12 +66,21 @@ vi.mock('@/lib/crm-api-client', async () => {
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 
 describe('SproutsSquadCommunity section', () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-turnstile-site-key';
+  });
+
   afterEach(() => {
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
+    if (originalTurnstileSiteKey === undefined) {
+      delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    } else {
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
+    }
   });
 
-  it('uses migrated section/overlay/logo classes and renders newsletter form', () => {
+  it('uses migrated section/overlay/logo classes and renders CTA-first state', () => {
     const { container } = render(
       <SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />,
     );
@@ -73,33 +115,53 @@ describe('SproutsSquadCommunity section', () => {
       'es-sprouts-community-support-paragraph',
     );
 
-    expect(
-      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
-    ).toBeInTheDocument();
-    const emailInput = screen.getByPlaceholderText(
-      enContent.sproutsSquadCommunity.emailPlaceholder,
-    );
-    expect(emailInput).toHaveClass('es-sprouts-community-email-input');
-    expect(emailInput).not.toHaveAttribute('required');
-
-    const submitButton = screen.getByRole('button', {
+    const initialCtaButton = screen.getByRole('button', {
       name: enContent.sproutsSquadCommunity.ctaLabel,
     });
-    expect(submitButton).toBeInTheDocument();
-    expect(submitButton.closest('form')).toHaveAttribute('novalidate');
+    expect(initialCtaButton).toBeInTheDocument();
+    expect(initialCtaButton.closest('form')).toHaveAttribute('novalidate');
+    expect(
+      screen.queryByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: enContent.sproutsSquadCommunity.ctaLabel }),
     ).not.toBeInTheDocument();
   });
 
-  it('shows email validation error when submit is clicked with empty email', () => {
+  it('reveals email input and captcha after initial CTA click', () => {
     render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+
+    expect(
+      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.formSubmitLabel,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows email validation error when form submit is clicked with empty email', () => {
+    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
 
     const emailInput = screen.getByPlaceholderText(
       enContent.sproutsSquadCommunity.emailPlaceholder,
     );
     const submitButton = screen.getByRole('button', {
-      name: enContent.sproutsSquadCommunity.ctaLabel,
+      name: enContent.sproutsSquadCommunity.formSubmitLabel,
     });
 
     fireEvent.click(submitButton);
@@ -110,14 +172,20 @@ describe('SproutsSquadCommunity section', () => {
     expect(emailInput).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('shows email validation error for invalid email', () => {
+  it('shows email validation error for invalid email after CTA reveal', () => {
     render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
 
     const emailInput = screen.getByPlaceholderText(
       enContent.sproutsSquadCommunity.emailPlaceholder,
     );
     const submitButton = screen.getByRole('button', {
-      name: enContent.sproutsSquadCommunity.ctaLabel,
+      name: enContent.sproutsSquadCommunity.formSubmitLabel,
     });
 
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
@@ -130,19 +198,50 @@ describe('SproutsSquadCommunity section', () => {
     expect(emailInput).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('submits newsletter payload and shows success state', async () => {
-    const request = vi.fn().mockResolvedValue(null);
-    mockedCreateCrmApiClient.mockReturnValue({ request });
-
+  it('shows captcha-required error when token is missing', async () => {
     render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
 
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
     fireEvent.change(
       screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
       { target: { value: 'community@example.com' } },
     );
     fireEvent.click(
       screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.formSubmitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(enContent.sproutsSquadCommunity.captchaRequiredError),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('submits payload with turnstile token and shows success state', async () => {
+    const request = vi.fn().mockResolvedValue(null);
+    mockedCreateCrmApiClient.mockReturnValue({ request });
+
+    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
         name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
+      { target: { value: 'community@example.com' } },
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.formSubmitLabel,
       }),
     );
 
@@ -154,6 +253,7 @@ describe('SproutsSquadCommunity section', () => {
           email_address: 'community@example.com',
           message: enContent.sproutsSquadCommunity.prefilledMessage,
         },
+        turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],
       });
       expect(
@@ -168,13 +268,19 @@ describe('SproutsSquadCommunity section', () => {
 
     render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
 
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
     fireEvent.change(
       screen.getByPlaceholderText(enContent.sproutsSquadCommunity.emailPlaceholder),
       { target: { value: 'community@example.com' } },
     );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
     fireEvent.click(
       screen.getByRole('button', {
-        name: enContent.sproutsSquadCommunity.ctaLabel,
+        name: enContent.sproutsSquadCommunity.formSubmitLabel,
       }),
     );
 

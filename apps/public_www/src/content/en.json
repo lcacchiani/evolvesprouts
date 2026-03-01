@@ -1026,12 +1026,16 @@
   "sproutsSquadCommunity": {
     "heading": "Join our Sprouts Squad community!",
     "ctaLabel": "Sign Up to Our Monthly Newsletter",
+    "formSubmitLabel": "Join Sprouts Squad",
     "ctaHref": "/contact-us",
     "supportParagraph": "Ready to be part of our community? Enter your email and your journey will start here!",
     "emailPlaceholder": "Email address",
     "emailValidationMessage": "Please enter a valid email address.",
     "prefilledMessage": "Newsletter join",
     "submitErrorMessage": "something went wrong, try a bit later",
+    "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
+    "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
+    "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
     "successMessage": "Thank you for being part of our community! You will start receiving our monthly newsletters"
   },
   "whoops": {

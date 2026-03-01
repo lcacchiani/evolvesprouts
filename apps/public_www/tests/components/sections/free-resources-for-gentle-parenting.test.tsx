@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { FreeResourcesForGentleParenting } from '@/components/sections/free-resources-for-gentle-parenting';
@@ -119,6 +119,16 @@ describe('Free resources for gentle parenting section', () => {
       expect(item.className).toContain('rounded-xl');
       expect(item.className).toContain('bg-white');
     });
+  });
+
+  it('hides the checklist after the first CTA reveals the form', () => {
+    const { container } = render(
+      <FreeResourcesForGentleParenting content={enContent.resources} />,
+    );
+
+    expect(container.querySelector('ul')).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+    expect(container.querySelector('ul')).toBeNull();
   });
 
   it('supports left heading alignment from locale config', () => {

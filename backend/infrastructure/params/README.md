@@ -23,6 +23,18 @@ public website stacks:
 Use these to ensure CloudFront-signed asset links are generated with your
 custom media subdomain.
 
+## Media lead pipeline parameters
+
+The backend stack also requires Mailchimp/media lead parameters:
+
+- `MailchimpApiSecretArn`
+- `MailchimpListId`
+- `MailchimpServerPrefix`
+- `FourWaysPatienceFreeGuideAssetId`
+
+`production.json` uses placeholder values that resolve from GitHub variables
+and secrets during CI deploy.
+
 ## Local deploy
 
 ```bash
