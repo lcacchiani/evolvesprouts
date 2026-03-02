@@ -32,6 +32,7 @@ describe('FreeResourcesSplitLayout', () => {
     const mediaPillStack =
       screen.getByText('Teach Patience').parentElement?.parentElement;
     expect(mediaPillStack?.className).toContain('top-[50%]');
+    expect(mediaPillStack?.className).toContain('sm:top-[10%]');
     expect(screen.getByText('Teach Patience')).toBeInTheDocument();
     expect(screen.getByText('to Young Children')).toBeInTheDocument();
     expect(screen.getByText('Split card content')).toBeInTheDocument();
