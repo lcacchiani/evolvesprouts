@@ -42,8 +42,8 @@ Public WWW CloudFront includes:
   using HTTPS-only origin policy, disabled caching, and
   `OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER` so API key headers and
   query parameters pass through while preserving the API origin host header.
-  - Viewer-request allowlist includes `/www/v1/media-request` and rewrites
-    that path to `/v1/media-request` before forwarding to the API origin.
+  - Viewer-request allowlist gates allowed public API method/path pairs
+    (e.g. `/www/v1/media-request`, `/www/v1/reservations`).
 - Response headers policy for browser hardening:
   `Strict-Transport-Security`, `X-Content-Type-Options`,
   `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`,

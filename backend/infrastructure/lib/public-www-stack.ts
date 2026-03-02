@@ -307,15 +307,7 @@ function handler(event) {
       '/www/v1/media-request': true
     }
   };
-  var rewriteTargets = {
-    'POST:/www/v1/media-request': '/v1/media-request'
-  };
-
   if (allowlist[method] && allowlist[method][uri]) {
-    var rewriteKey = method + ':' + uri;
-    if (rewriteTargets[rewriteKey]) {
-      request.uri = rewriteTargets[rewriteKey];
-    }
     return request;
   }
 

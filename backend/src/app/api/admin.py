@@ -50,6 +50,11 @@ _ROUTES: tuple[
         lambda event, method, _path: handle_media_request(event, method),
     ),
     (
+        "/www/v1/media-request",
+        True,
+        lambda event, method, _path: handle_media_request(event, method),
+    ),
+    (
         "/v1/admin/geographic-areas",
         False,
         handle_admin_geographic_areas_request,
