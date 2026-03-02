@@ -8,6 +8,9 @@ info:
 
     The current API Gateway deployment exposes:
     - `GET /health`
+    - `GET /v1/admin/geographic-areas`
+    - `GET|POST /v1/admin/locations`
+    - `GET|PUT|PATCH|DELETE /v1/admin/locations/{id}`
     - `GET|POST /v1/admin/assets`
     - `GET|PUT|PATCH|DELETE /v1/admin/assets/{id}`
     - `GET|POST /v1/admin/assets/{id}/grants`
@@ -325,6 +328,190 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/geographic-areas:
+    get:
+      summary: List geographic areas
+      description: |
+        Returns geographic areas used for address/location selection.
+        Use `parent_id` to fetch direct children, or `flat=true` to return a
+        flattened tree.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: parent_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: flat
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: active_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Geographic area list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeographicAreaListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/locations:
+    get:
+      summary: List locations
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: area_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Location list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocationListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create location
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLocationRequest"
+      responses:
+        "201":
+          description: Location create response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/locations/{id}:
+    parameters:
+      - $ref: "#/components/parameters/LocationId"
+    get:
+      summary: Get location
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Location response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update location
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLocationRequest"
+      responses:
+        "200":
+          description: Location update response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Partially update location
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateLocationRequest"
+      responses:
+        "200":
+          description: Location update response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete location
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Location deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /v1/user/assets:
     get:
       summary: List user assets
@@ -400,6 +587,14 @@ components:
       schema:
         type: string
       description: Asset grant identifier.
+    LocationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Location identifier.
 
   responses:
     BadRequest:
@@ -573,6 +768,148 @@ components:
           description: |
             Domain allowlist for share-link resolution, for example
             `www.example.com`.
+    GeographicArea:
+      type: object
+      required:
+        - id
+        - name
+        - name_translations
+        - level
+        - active
+        - display_order
+      properties:
+        id:
+          type: string
+          format: uuid
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        name_translations:
+          type: object
+          additionalProperties:
+            type: string
+        level:
+          type: string
+          enum: [country, region, city, district]
+        code:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+        display_order:
+          type: integer
+    GeographicAreaListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeographicArea"
+    Location:
+      type: object
+      required:
+        - id
+        - area_id
+      properties:
+        id:
+          type: string
+          format: uuid
+        area_id:
+          type: string
+          format: uuid
+        address:
+          type: string
+          nullable: true
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lng:
+          type: number
+          format: double
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    LocationResponse:
+      type: object
+      required:
+        - location
+      properties:
+        location:
+          $ref: "#/components/schemas/Location"
+    LocationListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Location"
+        next_cursor:
+          type: string
+          nullable: true
+    CreateLocationRequest:
+      type: object
+      required:
+        - area_id
+      properties:
+        area_id:
+          type: string
+          format: uuid
+        address:
+          type: string
+          maxLength: 500
+          nullable: true
+        lat:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          nullable: true
+        lng:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          nullable: true
+    UpdateLocationRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreateLocationRequest"
+    PartialUpdateLocationRequest:
+      type: object
+      minProperties: 1
+      properties:
+        area_id:
+          type: string
+          format: uuid
+        address:
+          type: string
+          maxLength: 500
+          nullable: true
+        lat:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          nullable: true
+        lng:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          nullable: true
     CreateAssetRequest:
       type: object
       required:

@@ -23,18 +23,21 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/media-request`, `/v1/admin/assets/*`, `/v1/user/assets/*`,
+  `/v1/media-request`, `/v1/admin/geographic-areas`,
+  `/v1/admin/locations/*`, `/v1/admin/assets/*`,
+  `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
   API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
-- Purpose: asset metadata CRUD, grant management, stable share-link lifecycle
-  (read/create/rotate/revoke + domain allowlist policy), share-link source-domain
-  enforcement, conditional JWT authentication for restricted share-link
-  resolutions, PATCH partial metadata updates on `/v1/admin/assets/{id}`,
-  media lead capture event publishing on `/v1/media-request`, and
-  signed upload/download URL generation in
+- Purpose: asset metadata CRUD, geographic area browsing, location CRUD,
+  grant management,
+  stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
+  policy), share-link source-domain enforcement, conditional JWT
+  authentication for restricted share-link resolutions, PATCH partial metadata
+  updates on `/v1/admin/assets/{id}`, media lead capture event publishing on
+  `/v1/media-request`, and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check

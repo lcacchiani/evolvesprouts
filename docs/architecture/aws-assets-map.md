@@ -369,8 +369,11 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 |--------------|--------|---------------|-------------|-------|
 | `/health` | GET | IAM | `HealthCheckFunction` | Health check |
 | `/v1/media-request` | POST | None + API key | `EvolvesproutsAdminFunction` | Publishes `media_request.submitted` to SNS |
+| `/v1/admin/geographic-areas` | GET | Admin Group | `EvolvesproutsAdminFunction` | Geographic area lookup for address selection |
+| `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
+| `/v1/admin/locations/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
-| `/v1/admin/assets/{id}` | GET, PUT, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
+| `/v1/admin/assets/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/grants` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/grants/{grantId}` | DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/share-link` | GET, POST, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Stable bearer link read/create/revoke |
