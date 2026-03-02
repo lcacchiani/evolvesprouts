@@ -138,6 +138,9 @@ describe('ContactUsForm section', () => {
     expect(list.className).toContain('flex-wrap');
     expect(list.className).toContain('max-w-full');
     expect(list.className).not.toContain('overflow-x-auto');
+    for (const listItem of list.querySelectorAll('li')) {
+      expect(listItem.className).toContain('m-[10px]');
+    }
     const contactMethodsTitle = screen.getByText(
       enContent.contactUs.contactUsForm.contactMethodsTitle,
     );
@@ -183,12 +186,16 @@ describe('ContactUsForm section', () => {
       enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
       enContent.contactUs.contactUsForm.contactMethodLinks.mail,
     ]);
-    for (const link of [emailLink, whatsappLink, instagramLink, linkedInLink, formLink]) {
+    for (const link of [emailLink, whatsappLink, instagramLink, formLink]) {
       expect(link.className).toContain('w-[100px]');
       expect(link.className).toContain('flex-col');
       expect(link.className).toContain('items-center');
       expect(link.getAttribute('aria-label')).not.toBeNull();
     }
+    expect(linkedInLink.className).toContain('w-auto');
+    expect(linkedInLink.className).toContain('flex-col');
+    expect(linkedInLink.className).toContain('items-center');
+    expect(linkedInLink.getAttribute('aria-label')).not.toBeNull();
     expect(screen.getByTestId('contact-method-icon-email').querySelector('img')).toHaveAttribute(
       'src',
       '/images/contact-email.svg',
@@ -205,6 +212,14 @@ describe('ContactUsForm section', () => {
     expect(
       screen.getByTestId('contact-method-icon-linkedin').querySelector('img'),
     ).toHaveAttribute('src', '/images/contact-linkedin.png');
+    const linkedInIcon = screen.getByTestId('contact-method-icon-linkedin').querySelector('img');
+    const linkedInIconContainer = screen.getByTestId('contact-method-icon-linkedin');
+    expect(linkedInIconContainer.className).toContain('h-[100px]');
+    expect(linkedInIconContainer.className).toContain('w-auto');
+    expect(linkedInIcon).toHaveAttribute('width', '635');
+    expect(linkedInIcon).toHaveAttribute('height', '540');
+    expect(linkedInIcon?.className).toContain('h-[100px]');
+    expect(linkedInIcon?.className).toContain('w-auto');
     expect(screen.getByTestId('contact-method-icon-form').querySelector('img')).toHaveAttribute(
       'src',
       '/images/contact-form.svg',
