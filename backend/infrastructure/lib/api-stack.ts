@@ -791,6 +791,7 @@ export class ApiStack extends cdk.Stack {
       "SharedLambdaEnvEncryptionKey",
       {
         enableKeyRotation: true,
+        alias: name("lambda-env-encryption-key"),
         description:
           "Shared KMS key for Lambda environment variable encryption",
       }
@@ -801,6 +802,7 @@ export class ApiStack extends cdk.Stack {
       "SharedLambdaLogEncryptionKey",
       {
         enableKeyRotation: true,
+        alias: name("lambda-log-encryption-key"),
         description: "Shared KMS key for Lambda CloudWatch log encryption",
       }
     );
@@ -1187,6 +1189,7 @@ export class ApiStack extends cdk.Stack {
 
     const sqsEncryptionKey = new kms.Key(this, "SqsEncryptionKey", {
       enableKeyRotation: true,
+      alias: name("sqs-encryption-key"),
       description: "KMS key for SQS queue encryption",
     });
 
@@ -1603,6 +1606,7 @@ export class ApiStack extends cdk.Stack {
 
     const apiLogEncryptionKey = new kms.Key(this, "ApiLogEncryptionKey", {
       enableKeyRotation: true,
+      alias: name("api-log-encryption-key"),
       description: "KMS key for API Gateway CloudWatch log encryption",
     });
 
@@ -1856,6 +1860,7 @@ export class ApiStack extends cdk.Stack {
 
     const secretsEncryptionKey = new kms.Key(this, "SecretsEncryptionKey", {
       enableKeyRotation: true,
+      alias: name("secrets-encryption-key"),
       description: "KMS key for Secrets Manager encryption",
     });
 

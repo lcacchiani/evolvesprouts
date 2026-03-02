@@ -222,6 +222,7 @@ export class DatabaseConstruct extends Construct {
     const secretEncryptionKeyResource = needsManagedSecret
       ? new kms.Key(this, "DatabaseSecretKey", {
           enableKeyRotation: true,
+          alias: name("database-secret-key"),
         })
       : undefined;
     const secretEncryptionKey = secretEncryptionKeyResource

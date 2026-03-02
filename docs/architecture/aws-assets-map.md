@@ -77,6 +77,28 @@ Created once per account/region when `cdk bootstrap` runs. Not part of the main 
 
 ---
 
+## Shared KMS Encryption Keys
+
+Customer-managed KMS keys created in the `evolvesprouts` stack. Each key has
+automatic annual rotation enabled and a human-readable alias.
+
+| Resource Type | Logical ID | Alias | Purpose |
+|--------------|------------|-------|---------|
+| KMS Key | `SharedLambdaEnvEncryptionKey` | `alias/evolvesprouts-lambda-env-encryption-key` | Lambda environment variable encryption (shared across all functions) |
+| KMS Key | `SharedLambdaLogEncryptionKey` | `alias/evolvesprouts-lambda-log-encryption-key` | Lambda CloudWatch log encryption (shared across all functions) |
+| KMS Key | `SqsEncryptionKey` | `alias/evolvesprouts-sqs-encryption-key` | SQS queue encryption (booking request and media queues) |
+| KMS Key | `ApiLogEncryptionKey` | `alias/evolvesprouts-api-log-encryption-key` | API Gateway CloudWatch access log encryption |
+| KMS Key | `SecretsEncryptionKey` | `alias/evolvesprouts-secrets-encryption-key` | Secrets Manager encryption (API key rotation secret) |
+
+**Conditional key** (in `DatabaseConstruct`, created only when managing DB
+credentials):
+
+| Resource Type | Logical ID | Alias | Purpose |
+|--------------|------------|-------|---------|
+| KMS Key | `DatabaseSecretKey` | `alias/evolvesprouts-database-secret-key` | Database credentials secret encryption |
+
+---
+
 ## Application S3 Buckets
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
@@ -185,7 +207,7 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
 | KMS Key | `DatabaseSecretKey` | Auto-generated | Encrypts database secret (rotation enabled) |
-| KMS Alias | `DatabaseSecretKeyAlias*` | Auto-generated | Alias for the key |
+| KMS Alias | `DatabaseSecretKeyAlias*` | `alias/evolvesprouts-database-secret-key` | Alias for the key |
 
 ### RDS Aurora PostgreSQL Serverless v2
 
