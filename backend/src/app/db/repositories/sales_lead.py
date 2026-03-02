@@ -24,7 +24,7 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
         lead_type: LeadType,
         asset_id: UUID,
     ) -> SalesLead | None:
-        """Return an existing lead for idempotent free-guide processing."""
+        """Return an existing lead for idempotent media processing."""
         statement = select(SalesLead).where(
             and_(
                 SalesLead.contact_id == contact_id,

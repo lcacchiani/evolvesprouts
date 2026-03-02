@@ -123,7 +123,47 @@ Indexes:
 - Admin APIs can create/reuse, rotate, revoke, and update source-domain
   allowlist policy per asset.
 
-## CRM tables (free-guide lead capture)
+## Table: geographic_areas
+
+Purpose: Hierarchical geographic areas used to classify addresses and drive
+location selection in admin workflows.
+
+Columns:
+- `id` (UUID, PK, default `gen_random_uuid()`)
+- `parent_id` (UUID, FK → geographic_areas.id, nullable, cascade delete)
+- `name` (text, required)
+- `name_translations` (jsonb, required, default `{}`)
+- `level` (text, required) — `country | region | city | district`
+- `code` (text, nullable) — ISO country code for country rows
+- `active` (boolean, required, default `true`)
+- `display_order` (integer, required, default `0`)
+
+Constraints:
+- Unique on (`parent_id`, `name`) via `uq_geo_area_parent_name`
+
+Indexes:
+- `geo_areas_parent_idx` on `parent_id`
+- `geo_areas_level_idx` on `level`
+- `geo_areas_code_idx` on `code`
+
+## Table: locations
+
+Purpose: Canonical address/location records referenced by contacts, families,
+and organizations.
+
+Columns:
+- `id` (UUID, PK, default `gen_random_uuid()`)
+- `area_id` (UUID, FK → geographic_areas.id, required)
+- `address` (text, nullable)
+- `lat` (numeric(9,6), nullable)
+- `lng` (numeric(9,6), nullable)
+- `created_at` (timestamptz, default `now()`)
+- `updated_at` (timestamptz, default `now()`)
+
+Indexes:
+- `locations_area_idx` on `area_id`
+
+## CRM tables (media lead capture)
 
 ### `contacts`
 
@@ -143,6 +183,8 @@ Indexes:
 ### `organizations` and `organization_members`
 
 - `organizations` stores external organization entities.
+- `organizations.location_id` optionally links an organization to a canonical
+  row in `locations` for address management.
 - `organization_members` links contacts to organizations with role/title.
 - Membership rows use `ON DELETE CASCADE`.
 
@@ -156,7 +198,7 @@ Indexes:
 
 - Purpose: lead lifecycle tracking for contacts/families/organizations.
 - Includes `lead_type`, `funnel_stage`, optional `asset_id`.
-- `sales_leads_guide_dedup_idx` enforces idempotency for free-guide processing
+- `sales_leads_guide_dedup_idx` enforces idempotency for media processing
   by unique (`contact_id`, `lead_type`, `asset_id`) when `asset_id` is present.
 
 ### `sales_lead_events`

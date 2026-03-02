@@ -78,29 +78,29 @@ Current event types:
 Media leads use a dedicated SNS/SQS pipeline to keep website submissions
 responsive while decoupling downstream processing.
 
-### SNS Topic: `evolvesprouts-free-guide-events`
+### SNS Topic: `evolvesprouts-media-events`
 
 - Receives media lead events from `POST /v1/media-request`.
 - Fans out to subscribed SQS queue.
 
-### SQS Queue: `evolvesprouts-free-guide-queue`
+### SQS Queue: `evolvesprouts-media-queue`
 
-- Subscribes to free-guide SNS topic.
+- Subscribes to media SNS topic.
 - 60 second visibility timeout.
 - 3 retry attempts before DLQ.
 - KMS encryption using the shared queue key.
 
-### Dead Letter Queue: `evolvesprouts-free-guide-dlq`
+### Dead Letter Queue: `evolvesprouts-media-dlq`
 
-- Receives free-guide messages that fail processing 3 times.
+- Receives media messages that fail processing 3 times.
 - 14 day retention for investigation.
 - CloudWatch alarm triggers when messages appear.
 
-### Processor Lambda: `FreeGuideRequestProcessor`
+### Processor Lambda: `MediaRequestProcessor`
 
-- Triggered by `evolvesprouts-free-guide-queue`.
+- Triggered by `evolvesprouts-media-queue`.
 - Upserts contact and inserts idempotent lead rows.
-- Applies the configured free-guide tag to the contact.
+- Applies the configured media tag to the contact.
 - Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction`.
 - Sends an SES notification to sales/support.
 
@@ -137,7 +137,7 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `backend/infrastructure/lib/api-stack.ts` | CDK infrastructure |
 | `backend/src/app/api/admin.py` | API handler with SNS publish |
 | `backend/lambda/manager_request_processor/handler.py` | SQS booking request processor |
-| `backend/lambda/free_guide_processor/handler.py` | SQS media request processor |
+| `backend/lambda/media_processor/handler.py` | SQS media request processor |
 | `backend/src/app/db/repositories/ticket.py` | Repository with `find_by_ticket_id` |
 
 ## Environment Variables
@@ -162,8 +162,8 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `MAILCHIMP_API_SECRET_ARN` | Existing secret ARN for Mailchimp API key |
 | `MAILCHIMP_LIST_ID` | Mailchimp list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
-| `FREE_GUIDE_TAG` | Mailchimp/CRM tag to apply |
-| `FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID` | Asset UUID for free-guide lead dedupe |
+| `MEDIA_TAG` | Mailchimp/CRM tag to apply |
+| `FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID` | Asset UUID for 4 Ways Patience media dedupe |
 | `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for HTTP proxy calls |
 
 ## Stack Outputs
@@ -173,9 +173,9 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `BookingRequestTopicArn` | SNS topic ARN |
 | `BookingRequestQueueUrl` | SQS queue URL |
 | `BookingRequestDLQUrl` | Dead letter queue URL |
-| `FreeGuideTopicArn` | SNS topic ARN for free-guide events |
-| `FreeGuideQueueUrl` | SQS queue URL for free-guide processing |
-| `FreeGuideDLQUrl` | Dead letter queue URL for failed free-guide requests |
+| `MediaTopicArn` | SNS topic ARN for media events |
+| `MediaQueueUrl` | SQS queue URL for media processing |
+| `MediaDLQUrl` | Dead letter queue URL for failed media requests |
 
 ## Monitoring
 

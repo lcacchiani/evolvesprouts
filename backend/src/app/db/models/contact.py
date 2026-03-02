@@ -26,6 +26,7 @@ from app.db.models.enums import (
 if TYPE_CHECKING:
     from app.db.models.crm_note import CrmNote
     from app.db.models.family import Family, FamilyMember
+    from app.db.models.location import Location
     from app.db.models.organization import Organization, OrganizationMember
     from app.db.models.sales_lead import SalesLead
     from app.db.models.tag import ContactTag, Tag
@@ -178,6 +179,10 @@ class Contact(Base):
         "Organization",
         secondary="organization_members",
         viewonly=True,
+    )
+    location: Mapped[Location | None] = relationship(
+        "Location",
+        back_populates="contacts",
     )
     tags: Mapped[list[Tag]] = relationship(
         "Tag",

@@ -14,7 +14,10 @@ from sqlalchemy.types import TIMESTAMP
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.db.models.contact import Contact
+    from app.db.models.family import Family
     from app.db.models.geographic_area import GeographicArea
+    from app.db.models.organization import Organization
 
 
 class Location(Base):
@@ -48,3 +51,15 @@ class Location(Base):
     )
 
     area: Mapped[GeographicArea] = relationship()
+    contacts: Mapped[list[Contact]] = relationship(
+        "Contact",
+        back_populates="location",
+    )
+    families: Mapped[list[Family]] = relationship(
+        "Family",
+        back_populates="location",
+    )
+    organizations: Mapped[list[Organization]] = relationship(
+        "Organization",
+        back_populates="location",
+    )

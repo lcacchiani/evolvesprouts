@@ -19,6 +19,7 @@ from app.db.models.enums import FamilyRole, RelationshipType
 if TYPE_CHECKING:
     from app.db.models.contact import Contact
     from app.db.models.crm_note import CrmNote
+    from app.db.models.location import Location
     from app.db.models.sales_lead import SalesLead
     from app.db.models.tag import FamilyTag, Tag
 
@@ -92,6 +93,10 @@ class Family(Base):
         "Contact",
         secondary="family_members",
         viewonly=True,
+    )
+    location: Mapped[Location | None] = relationship(
+        "Location",
+        back_populates="families",
     )
     tags: Mapped[list[Tag]] = relationship(
         "Tag",

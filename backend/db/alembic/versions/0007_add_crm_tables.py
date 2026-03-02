@@ -1,21 +1,25 @@
-"""Add CRM schema tables for free-guide lead capture.
+"""Add CRM schema tables for media lead capture.
 
 Seed-data assessment:
 1. Compatibility with existing seed SQL:
    - `backend/db/seed/seed_data.sql` currently contains no inserts for
-     `assets`, `locations`, or CRM tables introduced by this migration.
+     `assets`, `geographic_areas`, `locations`, or CRM tables introduced
+     by this migration.
 2. New NOT NULL/CHECK-constrained columns handled in seed data:
    - New constrained columns are introduced only in new tables and do not
      impact existing seed statements.
 3. Renamed/dropped columns reflected in seed data:
    - No existing columns are renamed or dropped.
 4. New tables evaluated for seed rows:
+   - Geographic areas are seeded in-migration so location selection is usable
+     immediately after deploy.
    - New CRM tables do not require mandatory bootstrap rows.
 5. Enum/allowed-value changes validated in seed rows:
    - Existing enums are unchanged; only new enums are introduced.
 6. FK/cascade changes validated for insert order and references:
-   - New FKs reference existing `locations` and `assets` tables plus new CRM
-     tables created in dependency order.
+   - New FKs reference existing `assets` and migration-created
+     `geographic_areas`/`locations` plus new CRM tables created in dependency
+     order.
 
 Result: No seed updates are required for this migration.
 """
@@ -23,6 +27,7 @@ Result: No seed updates are required for this migration.
 from __future__ import annotations
 
 from typing import Sequence, Union
+from uuid import uuid4
 
 from alembic import op
 import sqlalchemy as sa
@@ -32,6 +37,60 @@ revision: str = "0007_add_crm_tables"
 down_revision: Union[str, None] = "0006_drop_share_domain_default"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
+
+def _build_geographic_seed_data() -> list[dict[str, object]]:
+    """Build baseline geographic area rows."""
+    rows: list[dict[str, object]] = []
+
+    hk_id = uuid4()
+    rows.append(
+        {
+            "id": hk_id,
+            "parent_id": None,
+            "name": "Hong Kong",
+            "name_translations": {},
+            "level": "country",
+            "code": "HK",
+            "active": True,
+            "display_order": 1,
+        }
+    )
+    hk_districts = [
+        "Central and Western",
+        "Eastern",
+        "Southern",
+        "Wan Chai",
+        "Kowloon City",
+        "Kwun Tong",
+        "Sham Shui Po",
+        "Wong Tai Sin",
+        "Yau Tsim Mong",
+        "Islands",
+        "Kwai Tsing",
+        "North",
+        "Sai Kung",
+        "Sha Tin",
+        "Tai Po",
+        "Tsuen Wan",
+        "Tuen Mun",
+        "Yuen Long",
+    ]
+    for index, district in enumerate(hk_districts, start=1):
+        rows.append(
+            {
+                "id": uuid4(),
+                "parent_id": hk_id,
+                "name": district,
+                "name_translations": {},
+                "level": "district",
+                "code": None,
+                "active": True,
+                "display_order": index,
+            }
+        )
+
+    return rows
 
 
 def upgrade() -> None:
@@ -159,6 +218,113 @@ def upgrade() -> None:
             RETURN NEW;
         END;
         $$ LANGUAGE plpgsql;
+        """
+    )
+
+    op.create_table(
+        "geographic_areas",
+        sa.Column(
+            "id",
+            postgresql.UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
+        sa.Column(
+            "parent_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("geographic_areas.id", ondelete="CASCADE"),
+            nullable=True,
+            comment="NULL for root (country) nodes",
+        ),
+        sa.Column("name", sa.Text(), nullable=False),
+        sa.Column(
+            "name_translations",
+            postgresql.JSONB(),
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+            comment="Language map for non-English name translations",
+        ),
+        sa.Column(
+            "level",
+            sa.Text(),
+            nullable=False,
+            comment="country | region | city | district",
+        ),
+        sa.Column(
+            "code",
+            sa.Text(),
+            nullable=True,
+            comment="ISO 3166-1 alpha-2 for countries",
+        ),
+        sa.Column(
+            "active",
+            sa.Boolean(),
+            nullable=False,
+            server_default=sa.text("true"),
+            comment="Only active countries (and their children) are shown",
+        ),
+        sa.Column(
+            "display_order",
+            sa.Integer(),
+            nullable=False,
+            server_default=sa.text("0"),
+        ),
+        sa.UniqueConstraint("parent_id", "name", name="uq_geo_area_parent_name"),
+    )
+    op.create_index("geo_areas_parent_idx", "geographic_areas", ["parent_id"])
+    op.create_index("geo_areas_level_idx", "geographic_areas", ["level"])
+    op.create_index("geo_areas_code_idx", "geographic_areas", ["code"])
+
+    geo_table = sa.table(
+        "geographic_areas",
+        sa.column("id", postgresql.UUID),
+        sa.column("parent_id", postgresql.UUID),
+        sa.column("name", sa.Text),
+        sa.column("name_translations", postgresql.JSONB),
+        sa.column("level", sa.Text),
+        sa.column("code", sa.Text),
+        sa.column("active", sa.Boolean),
+        sa.column("display_order", sa.Integer),
+    )
+    op.bulk_insert(geo_table, _build_geographic_seed_data())
+
+    op.create_table(
+        "locations",
+        sa.Column(
+            "id",
+            postgresql.UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
+        sa.Column(
+            "area_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("geographic_areas.id"),
+            nullable=False,
+            comment="FK to geographic_areas leaf node",
+        ),
+        sa.Column("address", sa.Text(), nullable=True),
+        sa.Column("lat", sa.Numeric(9, 6), nullable=True),
+        sa.Column("lng", sa.Numeric(9, 6), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+    )
+    op.create_index("locations_area_idx", "locations", ["area_id"])
+    op.execute(
+        """
+        CREATE TRIGGER locations_set_updated_at
+        BEFORE UPDATE ON locations
+        FOR EACH ROW EXECUTE FUNCTION set_updated_at();
         """
     )
 
@@ -743,6 +909,15 @@ def downgrade() -> None:
     op.drop_index("contacts_instagram_unique_idx", table_name="contacts")
     op.drop_index("contacts_email_unique_idx", table_name="contacts")
     op.drop_table("contacts")
+
+    op.execute("DROP TRIGGER IF EXISTS locations_set_updated_at ON locations")
+    op.drop_index("locations_area_idx", table_name="locations")
+    op.drop_table("locations")
+
+    op.drop_index("geo_areas_code_idx", table_name="geographic_areas")
+    op.drop_index("geo_areas_level_idx", table_name="geographic_areas")
+    op.drop_index("geo_areas_parent_idx", table_name="geographic_areas")
+    op.drop_table("geographic_areas")
 
     op.execute("DROP FUNCTION IF EXISTS set_updated_at")
 

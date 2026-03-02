@@ -20,6 +20,9 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
     event = {"headers": {}}
     routes = (
         "/v1/admin/assets/abc",
+        "/v1/admin/geographic-areas",
+        "/v1/admin/locations",
+        "/v1/admin/locations/abc",
         "/v1/user/assets/abc/download",
         "/v1/assets/share/token-123",
         "/v1/assets/public/abc/download",

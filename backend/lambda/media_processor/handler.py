@@ -95,7 +95,7 @@ def _process_message(message: dict[str, Any]) -> bool:
     submitted_at = _normalize_submitted_at(message.get("submitted_at"))
     request_id = _optional_text(message.get("request_id"))
 
-    tag_name = _required_env("FREE_GUIDE_TAG")
+    tag_name = _required_env("MEDIA_TAG")
     asset_id = _required_uuid_env("FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID")
 
     with Session(get_engine()) as session:

@@ -23,18 +23,21 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/media-request`, `/v1/admin/assets/*`, `/v1/user/assets/*`,
+  `/v1/media-request`, `/v1/admin/geographic-areas`,
+  `/v1/admin/locations/*`, `/v1/admin/assets/*`,
+  `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
   API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
-- Purpose: asset metadata CRUD, grant management, stable share-link lifecycle
-  (read/create/rotate/revoke + domain allowlist policy), share-link source-domain
-  enforcement, conditional JWT authentication for restricted share-link
-  resolutions, PATCH partial metadata updates on `/v1/admin/assets/{id}`,
-  media lead capture event publishing on `/v1/media-request`, and
-  signed upload/download URL generation in
+- Purpose: asset metadata CRUD, geographic area browsing, location CRUD,
+  grant management,
+  stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
+  policy), share-link source-domain enforcement, conditional JWT
+  authentication for restricted share-link resolutions, PATCH partial metadata
+  updates on `/v1/admin/assets/{id}`, media lead capture event publishing on
+  `/v1/media-request`, and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check
@@ -144,10 +147,10 @@ their primary responsibilities.
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`
 
-### Free guide request processor
-- Function: FreeGuideRequestProcessor
-- Handler: backend/lambda/free_guide_processor/handler.py
-- Trigger: SQS queue (`evolvesprouts-free-guide-queue`)
+### Media request processor
+- Function: MediaRequestProcessor
+- Handler: backend/lambda/media_processor/handler.py
+- Trigger: SQS queue (`evolvesprouts-media-queue`)
 - Purpose: process media lead captures and fan out actions
 - Actions: contact upsert in DB, idempotent sales lead creation, Mailchimp sync,
   and SES notification to sales/support
@@ -160,7 +163,7 @@ their primary responsibilities.
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `SES_SENDER_EMAIL`, `SUPPORT_EMAIL`
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
-    `MAILCHIMP_SERVER_PREFIX`, `FREE_GUIDE_TAG`
+    `MAILCHIMP_SERVER_PREFIX`, `MEDIA_TAG`
   - `FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID`, `AWS_PROXY_FUNCTION_ARN`
 
 ### AWS / HTTP proxy
