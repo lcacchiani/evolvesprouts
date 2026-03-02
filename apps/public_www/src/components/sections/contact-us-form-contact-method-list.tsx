@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { ContactUsContent } from '@/content';
 
@@ -28,9 +27,10 @@ export function ContactMethodList({ title, methods }: ContactMethodListProps) {
           <li key={method.key}>
             <SmartLink
               href={method.href}
-              className='inline-flex w-[100px] flex-col items-center gap-3 text-center es-section-body text-[1.05rem] leading-8 transition-opacity hover:opacity-80'
+              aria-label={method.label}
+              className='inline-flex w-[100px] flex-col items-center gap-3 text-center transition-opacity hover:opacity-80'
             >
-              {({ isExternalHttp }) => (
+              {() => (
                 <>
                   <span
                     aria-hidden='true'
@@ -45,9 +45,6 @@ export function ContactMethodList({ title, methods }: ContactMethodListProps) {
                       className='h-[100px] w-[100px]'
                     />
                   </span>
-                  <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
-                    {method.label}
-                  </ExternalLinkInlineContent>
                 </>
               )}
             </SmartLink>
