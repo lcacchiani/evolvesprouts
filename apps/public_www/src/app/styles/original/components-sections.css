@@ -416,6 +416,24 @@
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
 
+  .es-ida-intro-image-wrap {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .es-ida-intro-image-wrap::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 72% auto;
+    filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%);
+  }
+
   .es-hero-section {
     padding-top: 0;
     background-color: var(--es-color-surface-white, #FFFFFF);

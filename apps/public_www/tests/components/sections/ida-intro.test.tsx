@@ -32,6 +32,9 @@ describe('IdaIntro', () => {
       'href',
       content.ctaHref,
     );
-    expect(screen.getByRole('img', { name: content.imageAlt })).toBeInTheDocument();
+    const image = screen.getByRole('img', { name: content.imageAlt });
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveClass('relative', 'z-10');
+    expect(image.closest('div')).toHaveClass('es-ida-intro-image-wrap', 'max-w-[400px]');
   });
 });
