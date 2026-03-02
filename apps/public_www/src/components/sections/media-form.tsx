@@ -61,16 +61,17 @@ export function MediaForm({
 
   const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
   const isCaptchaUnavailable = !isCaptchaConfigured || hasCaptchaLoadError;
+  const isServiceUnavailable = !crmApiClient || isCaptchaUnavailable;
   const hasFirstNameError = isFirstNameTouched && !sanitizeSingleLineValue(firstName);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const hasCaptchaError = isCaptchaTouched && !captchaToken;
-  const isSubmitDisabled = isSubmitting || isCaptchaUnavailable;
+  const isSubmitDisabled = isSubmitting || isServiceUnavailable;
   const shouldShowSubmitError =
     !!submitErrorMessage ||
     hasCaptchaError ||
     hasFirstNameError ||
     hasEmailError ||
-    isCaptchaUnavailable;
+    isServiceUnavailable;
 
   useEffect(() => {
     if (!isFormVisible) {
@@ -104,7 +105,7 @@ export function MediaForm({
     if (!normalizedFirstName || !isValidEmail(normalizedEmail) || !captchaToken) {
       return;
     }
-    if (!crmApiClient || isCaptchaUnavailable) {
+    if (isServiceUnavailable) {
       setSubmitErrorMessage(formErrorMessage);
       return;
     }
