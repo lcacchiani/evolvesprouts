@@ -113,6 +113,13 @@ describe('Footer external links', () => {
     expect(
       mobileFooterSection?.querySelector('div.pointer-events-none'),
     ).not.toBeNull();
+    const mobileLogo = mobileFooterSection?.querySelector(
+      'img[src="/images/evolvesprouts-logo.svg"]',
+    ) as HTMLImageElement | null;
+    expect(mobileLogo).not.toBeNull();
+    expect(mobileLogo?.className).toContain('-mt-[100px]');
+    expect(mobileLogo?.className).toContain('mb-0');
+    expect(mobileLogo?.className).toContain('sm:-my-[100px]');
 
     const cssFallbackElements = document.querySelectorAll(
       '[data-css-fallback="hide-when-css-missing"]',

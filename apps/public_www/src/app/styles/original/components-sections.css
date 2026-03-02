@@ -411,9 +411,16 @@
   }
 
   .es-ida-intro-section {
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-top: 60px;
+    padding-bottom: 60px;
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  }
+
+  @media (min-width: 640px) {
+    .es-ida-intro-section {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
   }
 
   .es-ida-intro-image-wrap {
