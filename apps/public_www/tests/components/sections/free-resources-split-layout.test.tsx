@@ -29,6 +29,9 @@ describe('FreeResourcesSplitLayout', () => {
     expect(screen.getByTestId('free-resource-media-pane').className).toContain(
       'es-free-resources-media-pane--bleed-right',
     );
+    const mediaPillStack =
+      screen.getByText('Teach Patience').parentElement?.parentElement;
+    expect(mediaPillStack?.className).toContain('top-[50%]');
     expect(screen.getByText('Teach Patience')).toBeInTheDocument();
     expect(screen.getByText('to Young Children')).toBeInTheDocument();
     expect(screen.getByText('Split card content')).toBeInTheDocument();
