@@ -683,7 +683,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.innerHTML).not.toContain('border-t border-black/10');
   });
 
-  it('uses shared calendar icon in thank-you modal summary chip', () => {
+  it('uses shared calendar icon and renders prefixed thank-you chips', () => {
     const { container } = render(
       <MyBestAuntieThankYouModal
         locale='en'
@@ -695,6 +695,35 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     expect(container.querySelector('span.es-mask-calendar-heading')).not.toBeNull();
+    expect(
+      screen.getByText((_, element) => {
+        const text = element?.textContent ?? '';
+        return (
+          element?.tagName.toLowerCase() === 'p' &&
+          text.includes(thankYouModalContent.subtitle) &&
+          text.includes(reservationSummary.attendeeEmail)
+        );
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.childAgeGroup}`,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(`${thankYouModalContent.amountPrefix}HK$9,000`),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => {
+        return content.startsWith(thankYouModalContent.transactionDatePrefix);
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `${thankYouModalContent.paymentMethodPrefix}${reservationSummary.paymentMethod}`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(thankYouModalContent.totalLabel)).not.toBeInTheDocument();
   });
 
   it('allows only one discount code to be applied at a time', async () => {
