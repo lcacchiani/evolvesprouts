@@ -431,7 +431,7 @@ allowlist (`CORS_ALLOWED_ORIGINS` plus required defaults).
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| API Key | `PublicWwwApiKey` | `evolvesprouts-public-www-key` | Value from `PublicApiKeyValue` parameter |
+| API Key | `PublicWwwApiKey` | Auto-generated | Value from `PublicApiKeyValue` parameter |
 | Usage Plan | `PublicWwwUsagePlan` | `evolvesprouts-public-www-plan` | Linked to API key and `prod` stage |
 
 ### API Gateway IAM Roles
