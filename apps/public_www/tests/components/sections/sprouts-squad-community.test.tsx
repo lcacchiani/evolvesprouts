@@ -148,6 +148,30 @@ describe('SproutsSquadCommunity section', () => {
     ).toBeInTheDocument();
   });
 
+  it('fades in revealed fields after the initial CTA click', async () => {
+    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: enContent.sproutsSquadCommunity.ctaLabel,
+      }),
+    );
+
+    const emailInput = screen.getByPlaceholderText(
+      enContent.sproutsSquadCommunity.emailPlaceholder,
+    );
+    const form = emailInput.closest('form');
+    if (!form) {
+      throw new Error('Expected sprouts community form to render after CTA click');
+    }
+    expect(form).toHaveClass('transition-opacity');
+    expect(form).toHaveClass('duration-300');
+
+    await waitFor(() => {
+      expect(form).toHaveClass('opacity-100');
+    });
+  });
+
   it('shows email validation error when form submit is clicked with empty email', () => {
     render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
 

@@ -56,6 +56,10 @@ describe('ContactMethodList', () => {
     expect(
       screen.getByRole('list', { name: 'Contact methods' }),
     ).toBeInTheDocument();
+    const list = screen.getByRole('list', { name: 'Contact methods' });
+    expect(list.className).toContain('flex');
+    expect(list.className).toContain('flex-nowrap');
+    expect(list.className).toContain('overflow-x-auto');
     expect(screen.getByRole('link', { name: 'Email us' })).toHaveAttribute(
       'href',
       'mailto:hello@example.com',
@@ -68,6 +72,8 @@ describe('ContactMethodList', () => {
     const whatsappLink = screen.getByRole('link', { name: 'WhatsApp' });
 
     expect(emailLink.className).toContain('es-section-body');
+    expect(emailLink.className).toContain('flex-col');
+    expect(emailLink.className).toContain('text-center');
     expect(emailLink.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
     expect(whatsappLink.querySelector('svg[data-external-link-icon="true"]')).not.toBeNull();
 
@@ -75,7 +81,14 @@ describe('ContactMethodList', () => {
     const whatsappIcon = screen
       .getByTestId('contact-method-icon-whatsapp')
       .querySelector('img');
+    const emailIconContainer = screen.getByTestId('contact-method-icon-email');
+    expect(emailIconContainer.className).toContain('h-[100px]');
+    expect(emailIconContainer.className).toContain('w-[100px]');
     expect(emailIcon).toHaveAttribute('src', '/images/contact-email.svg');
+    expect(emailIcon).toHaveAttribute('width', '100');
+    expect(emailIcon).toHaveAttribute('height', '100');
+    expect(emailIcon?.className).toContain('h-[100px]');
+    expect(emailIcon?.className).toContain('w-[100px]');
     expect(whatsappIcon).toHaveAttribute('src', '/images/contact-whatsapp.svg');
     expect(whatsappIcon?.className).toContain('es-contact-us-contact-method-icon--whatsapp');
   });

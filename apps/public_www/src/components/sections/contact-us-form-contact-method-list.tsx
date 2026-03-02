@@ -20,29 +20,32 @@ export function ContactMethodList({ title, methods }: ContactMethodListProps) {
   return (
     <div className='mt-6'>
       <p className='es-section-body text-[1.05rem] leading-8'>{title}</p>
-      <ul className='mt-3 space-y-2' aria-label={title}>
+      <ul
+        className='mt-4 flex flex-nowrap items-start gap-4 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+        aria-label={title}
+      >
         {methods.map((method) => (
-          <li key={method.key}>
+          <li key={method.key} className='shrink-0'>
             <SmartLink
               href={method.href}
-              className='inline-flex items-center gap-2 es-section-body text-[1.05rem] leading-8 transition-opacity hover:opacity-80'
+              className='inline-flex min-w-[100px] flex-col items-center gap-3 text-center es-section-body text-[1.05rem] leading-8 transition-opacity hover:opacity-80'
             >
               {({ isExternalHttp }) => (
                 <>
                   <span
                     aria-hidden='true'
                     data-testid={`contact-method-icon-${method.key}`}
-                    className='inline-flex h-4 w-4 shrink-0 items-center justify-center es-text-heading'
+                    className='inline-flex h-[100px] w-[100px] shrink-0 items-center justify-center es-text-heading'
                   >
                     <Image
                       src={method.iconSrc}
                       alt=''
-                      width={16}
-                      height={16}
+                      width={100}
+                      height={100}
                       className={
                         method.key === 'whatsapp'
-                          ? 'h-4 w-4 es-contact-us-contact-method-icon--whatsapp'
-                          : 'h-4 w-4'
+                          ? 'h-[100px] w-[100px] es-contact-us-contact-method-icon--whatsapp'
+                          : 'h-[100px] w-[100px]'
                       }
                     />
                   </span>

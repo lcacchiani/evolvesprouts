@@ -190,7 +190,8 @@ export function MyBestAuntieBooking({
   const selectedDateOption =
     dateOptions.find((option) => option.id === selectedDateId) ?? dateOptions[0];
   const selectedCohort = selectedDateOption?.cohort ?? dateOptions[0]?.cohort ?? null;
-  const nextCohortDate = getPrimarySessionDateTimeLabel(selectedCohort);
+  const nextCohortForSelectedAge = cohortsForSelectedAge[0] ?? null;
+  const nextCohortDate = getPrimarySessionDateTimeLabel(nextCohortForSelectedAge);
   const nextCohortLabel = formatNextCohortLabel(
     content.scheduleLabel,
     selectedAgeOption?.label ?? '',
@@ -199,10 +200,10 @@ export function MyBestAuntieBooking({
   const nextCohortPreview = nextCohortDate
     ? formatCohortPreviewLabel(nextCohortDate)
     : content.noCohortsLabel;
-  const nextCohortPriceLabel = selectedCohort
+  const nextCohortPriceLabel = nextCohortForSelectedAge
     ? formatCohortPrice(
-        selectedCohort.price,
-        selectedCohort.priceCurrency,
+        nextCohortForSelectedAge.price,
+        nextCohortForSelectedAge.priceCurrency,
         locale,
       )
     : '';
