@@ -98,9 +98,19 @@ function normalizeConfiguredEmail(value: string | undefined): string | undefined
   return normalized;
 }
 
+function isWhatsappShortLink(url: URL): boolean {
+  return url.hostname === 'wa.me' && url.pathname.startsWith('/message/');
+}
+
+function normalizePhoneForWhatsapp(phone: string | undefined): string {
+  if (!phone) return '';
+  return phone.replace(/\D/g, '');
+}
+
 export function buildWhatsappPrefilledHref(
   baseWhatsappUrl: string | undefined,
   message: string | undefined,
+  phoneNumber?: string,
 ): string {
   const normalizedBaseUrl = normalizeConfiguredUrl(baseWhatsappUrl);
   if (!normalizedBaseUrl) {
@@ -113,10 +123,21 @@ export function buildWhatsappPrefilledHref(
   }
 
   const normalizedMessage = message?.trim() ?? '';
-  if (normalizedMessage) {
-    parsedUrl.searchParams.set('text', normalizedMessage);
+  if (!normalizedMessage) {
+    return parsedUrl.toString();
   }
 
+  if (isWhatsappShortLink(parsedUrl)) {
+    const digits = normalizePhoneForWhatsapp(phoneNumber);
+    if (!digits) {
+      return parsedUrl.toString();
+    }
+    const directUrl = new URL(`https://wa.me/${digits}`);
+    directUrl.searchParams.set('text', normalizedMessage);
+    return directUrl.toString();
+  }
+
+  parsedUrl.searchParams.set('text', normalizedMessage);
   return parsedUrl.toString();
 }
 
