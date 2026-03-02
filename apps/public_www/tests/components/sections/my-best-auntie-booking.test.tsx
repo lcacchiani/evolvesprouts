@@ -150,7 +150,8 @@ describe('MyBestAuntieBooking section', () => {
         name: new RegExp(secondAgeSecondCohort.dateLabel),
       }).className,
     ).toContain('es-btn--state-active');
-    expect(screen.getByText(formattedSecondAgeSecondCohortDate)).toBeInTheDocument();
+    expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
+    expect(screen.queryByText(formattedSecondAgeSecondCohortDate)).not.toBeInTheDocument();
   });
 
   it('shows no date cards for age groups without cohorts and disables CTA', () => {
