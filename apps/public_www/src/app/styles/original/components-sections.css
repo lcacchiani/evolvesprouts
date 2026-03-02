@@ -430,8 +430,7 @@
     background-image: url('/images/evolvesprouts-logo.svg');
     background-repeat: no-repeat;
     background-position: center;
-    background-size: 72% auto;
-    filter: sepia(1) opacity(7%) hue-rotate(-50deg) saturate(250%);
+    background-size: 130%;
   }
 
   .es-hero-section {
