@@ -119,7 +119,7 @@ describe('Footer external links', () => {
     expect(mobileLogo).not.toBeNull();
     expect(mobileLogo?.className).toContain('-mt-[100px]');
     expect(mobileLogo?.className).toContain('-mb-[50px]');
-    expect(mobileLogo?.className).toContain('sm:-my-[100px]');
+    expect(mobileLogo?.className).toContain('lg:-my-[100px]');
 
     const cssFallbackElements = document.querySelectorAll(
       '[data-css-fallback="hide-when-css-missing"]',
