@@ -262,23 +262,6 @@ export function MyBestAuntieThankYouModal({
         </header>
 
         <OverlayScrollableBody>
-          <Image
-            src='/images/evolvesprouts-logo.svg'
-            alt=''
-            width={1488}
-            height={855}
-            className='pointer-events-none absolute left-1/2 top-0 hidden w-[600px] -translate-x-1/2 -translate-y-[90px] lg:block'
-            aria-hidden='true'
-          />
-          <Image
-            src='/images/evolvesprouts-logo.svg'
-            alt=''
-            width={1196}
-            height={568}
-            className='pointer-events-none absolute left-1/2 top-0 hidden w-[488px] -translate-x-1/2 -translate-y-10 lg:block'
-            aria-hidden='true'
-          />
-
           <div className='relative z-10 flex flex-col items-center pt-0 text-center sm:pt-6 lg:pt-14'>
             <div className='flex h-[100px] w-[100px] items-center justify-center rounded-full es-bg-surface-success-soft'>
               <Image
@@ -312,15 +295,6 @@ export function MyBestAuntieThankYouModal({
           </div>
 
           <section className='relative z-10 mx-auto mt-10 max-w-[713px] overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
-            <Image
-              src='/images/evolvesprouts-logo.svg'
-              alt=''
-              width={319}
-              height={359}
-              className='pointer-events-none absolute -right-3 -top-6 hidden w-[250px] lg:block'
-              aria-hidden='true'
-            />
-
             <div className='relative z-10 border-b es-divider-blue pb-8'>
               <div className='flex flex-wrap gap-2'>
                 {trainingChipText ? (
