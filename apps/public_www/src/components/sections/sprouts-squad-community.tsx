@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -38,6 +38,7 @@ export function SproutsSquadCommunity({
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isFormFadingIn, setIsFormFadingIn] = useState(false);
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
@@ -65,6 +66,21 @@ export function SproutsSquadCommunity({
     }
     return '';
   })();
+
+  useEffect(() => {
+    if (!isFormVisible) {
+      setIsFormFadingIn(false);
+      return;
+    }
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      setIsFormFadingIn(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, [isFormVisible]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -153,7 +169,13 @@ export function SproutsSquadCommunity({
               <form
                 onSubmit={handleSubmit}
                 noValidate
-                className='flex min-h-0 flex-col gap-3 overflow-hidden'
+                className={`flex min-h-0 flex-col gap-3 overflow-hidden transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+                  isFormVisible
+                    ? isFormFadingIn
+                      ? 'opacity-100'
+                      : 'opacity-0'
+                    : 'opacity-100'
+                }`}
               >
                 {!isFormVisible ? (
                   <ButtonPrimitive
