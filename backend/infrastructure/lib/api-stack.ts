@@ -1173,6 +1173,12 @@ export class ApiStack extends cdk.Stack {
       })
     );
 
+    adminFunction.addEnvironment(
+      "AWS_PROXY_FUNCTION_ARN",
+      awsProxyFunction.functionArn
+    );
+    awsProxyFunction.grantInvoke(adminFunction);
+
     const sesSenderIdentityArn = cdk.Stack.of(this).formatArn({
       service: "ses",
       resource: "identity",

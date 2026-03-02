@@ -36,7 +36,8 @@ their primary responsibilities.
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
   authentication for restricted share-link resolutions, PATCH partial metadata
-  updates on `/v1/admin/assets/{id}`, media lead capture event publishing on
+  updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
+  verification (via `AwsApiProxyFunction`) and SNS event publishing on
   `/v1/media-request`, and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
