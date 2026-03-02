@@ -707,12 +707,22 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.childAgeGroup}`,
+        `${thankYouModalContent.trainingPrefix}${reservationSummary.courseLabel}`,
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(`${thankYouModalContent.amountPrefix}HK$9,000`),
+      screen.getByText(
+        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.childAgeGroup}`,
+      ),
     ).toBeInTheDocument();
+    expect(container.querySelector('img[src="/images/baby.svg"]')).not.toBeNull();
+    expect(container.querySelector('img[src="/images/dollar-symbol.svg"]')).not.toBeNull();
+    const amountChip = screen.getByText(`${thankYouModalContent.amountPrefix}HK$9,000`);
+    expect(
+      amountChip,
+    ).toBeInTheDocument();
+    expect(amountChip.className).toContain('font-medium');
+    expect(amountChip.className).not.toContain('font-semibold');
     expect(
       screen.getByText((content) => {
         return content.startsWith(thankYouModalContent.transactionDatePrefix);

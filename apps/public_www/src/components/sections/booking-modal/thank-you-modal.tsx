@@ -30,6 +30,8 @@ export interface MyBestAuntieThankYouModalProps {
 }
 
 const PRINT_WINDOW_FEATURES = 'noopener,noreferrer,width=880,height=700';
+const BABY_ICON_SOURCE = '/images/baby.svg';
+const DOLLAR_SYMBOL_ICON_SOURCE = '/images/dollar-symbol.svg';
 
 function formatPrefixedValue(prefix: string, value: string): string {
   const normalizedValue = value.trim();
@@ -66,7 +68,7 @@ function renderPrintDocument({
   title,
   subtitle,
   attendeeEmail,
-  courseLabel,
+  trainingChipText,
   scheduleDateLabel,
   scheduleTimeLabel,
   childAgeGroupChipText,
@@ -80,7 +82,7 @@ function renderPrintDocument({
   title: string;
   subtitle: string;
   attendeeEmail: string;
-  courseLabel: string;
+  trainingChipText: string;
   scheduleDateLabel: string;
   scheduleTimeLabel: string;
   childAgeGroupChipText: string;
@@ -102,7 +104,6 @@ function renderPrintDocument({
     'h1 { margin: 0 0 8px; }' +
     'p { margin: 0 0 8px; }' +
     '.card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }' +
-    '.course { margin: 0 0 12px; }' +
     '.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }' +
     '.chips + .chips { margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd; }' +
     '.chip { display: inline-flex; align-items: center; border: 1px solid #ddd; border-radius: 999px; padding: 8px 14px; background: #fff; font-weight: 600; }';
@@ -120,12 +121,13 @@ function renderPrintDocument({
   const card = popupDocument.createElement('div');
   card.className = 'card';
 
-  const courseHeading = popupDocument.createElement('h2');
-  courseHeading.className = 'course';
-  courseHeading.textContent = courseLabel;
-
   const summaryChips = popupDocument.createElement('div');
   summaryChips.className = 'chips';
+  appendPrintChip({
+    popupDocument,
+    container: summaryChips,
+    value: trainingChipText,
+  });
   appendPrintChip({
     popupDocument,
     container: summaryChips,
@@ -160,7 +162,7 @@ function renderPrintDocument({
     value: paymentMethodChipText,
   });
 
-  card.append(courseHeading, summaryChips);
+  card.append(summaryChips);
   if (transactionChips.childElementCount > 0) {
     card.append(transactionChips);
   }
@@ -191,6 +193,7 @@ export function MyBestAuntieThankYouModal({
   const transactionDate = resolveLocalizedDate(locale);
   const attendeeEmail = summary?.attendeeEmail ?? content.noEmailFallback;
   const courseLabel = summary?.courseLabel ?? content.courseLabel;
+  const trainingChipText = formatPrefixedValue(content.trainingPrefix, courseLabel);
   const scheduleDateLabel = summary?.scheduleDateLabel?.trim() ?? '';
   const scheduleTimeLabel = summary?.scheduleTimeLabel?.trim() ?? '';
   const paymentMethod = summary?.paymentMethod?.trim() ?? '';
@@ -228,7 +231,7 @@ export function MyBestAuntieThankYouModal({
       title: content.title,
       subtitle: content.subtitle,
       attendeeEmail,
-      courseLabel,
+      trainingChipText,
       scheduleDateLabel,
       scheduleTimeLabel,
       childAgeGroupChipText,
@@ -319,10 +322,12 @@ export function MyBestAuntieThankYouModal({
             />
 
             <div className='relative z-10 border-b es-divider-blue pb-8'>
-              <h4 className='text-xl font-semibold leading-none es-text-heading sm:text-2xl'>
-                {courseLabel}
-              </h4>
-              <div className='mt-4 flex flex-wrap gap-2'>
+              <div className='flex flex-wrap gap-2'>
+                {trainingChipText ? (
+                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    {trainingChipText}
+                  </span>
+                ) : null}
                 {scheduleDateLabel ? (
                   <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
                     <span
@@ -345,12 +350,26 @@ export function MyBestAuntieThankYouModal({
                   </span>
                 ) : null}
                 {childAgeGroupChipText ? (
-                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                  <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    <Image
+                      src={BABY_ICON_SOURCE}
+                      alt=''
+                      width={24}
+                      height={24}
+                      aria-hidden='true'
+                    />
                     {childAgeGroupChipText}
                   </span>
                 ) : null}
                 {amountChipText ? (
-                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold es-text-heading'>
+                  <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    <Image
+                      src={DOLLAR_SYMBOL_ICON_SOURCE}
+                      alt=''
+                      width={24}
+                      height={24}
+                      aria-hidden='true'
+                    />
                     {amountChipText}
                   </span>
                 ) : null}

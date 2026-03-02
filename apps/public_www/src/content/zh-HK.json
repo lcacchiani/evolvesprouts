@@ -444,6 +444,7 @@
       "paymentMethodPrefix": "付款方式：",
       "childAgeGroupPrefix": "孩子年齡組別：",
       "amountPrefix": "金額：",
+      "trainingPrefix": "培訓：",
       "printLabel": "列印",
       "backHomeLabel": "返回首頁",
       "noEmailFallback": "你的電郵地址"

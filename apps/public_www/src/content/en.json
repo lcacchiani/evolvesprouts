@@ -444,6 +444,7 @@
       "paymentMethodPrefix": "Payment method: ",
       "childAgeGroupPrefix": "Child age group: ",
       "amountPrefix": "Amount: ",
+      "trainingPrefix": "Training: ",
       "printLabel": "Print",
       "backHomeLabel": "Back To Home",
       "noEmailFallback": "your email address"
