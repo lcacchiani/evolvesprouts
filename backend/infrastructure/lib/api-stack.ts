@@ -1851,7 +1851,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     const publicWwwApiKey = new apigateway.ApiKey(this, "PublicWwwApiKey", {
-      apiKeyName: name("public-www-key"),
       value: publicApiKeyValue.valueAsString,
     });
     const publicWwwUsagePlan = api.addUsagePlan("PublicWwwUsagePlan", {
