@@ -58,8 +58,8 @@ describe('ContactMethodList', () => {
     ).toBeInTheDocument();
     const list = screen.getByRole('list', { name: 'Contact methods' });
     expect(list.className).toContain('flex');
-    expect(list.className).toContain('flex-nowrap');
-    expect(list.className).toContain('overflow-x-auto');
+    expect(list.className).toContain('flex-wrap');
+    expect(list.className).toContain('max-w-full');
     expect(screen.getByRole('link', { name: 'Email us' })).toHaveAttribute(
       'href',
       'mailto:hello@example.com',
@@ -74,6 +74,7 @@ describe('ContactMethodList', () => {
     expect(emailLink.className).toContain('es-section-body');
     expect(emailLink.className).toContain('flex-col');
     expect(emailLink.className).toContain('text-center');
+    expect(emailLink.className).toContain('w-[100px]');
     expect(emailLink.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
     expect(whatsappLink.querySelector('svg[data-external-link-icon="true"]')).not.toBeNull();
 

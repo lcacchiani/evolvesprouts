@@ -21,14 +21,14 @@ export function ContactMethodList({ title, methods }: ContactMethodListProps) {
     <div className='mt-6'>
       <p className='es-section-body text-[1.05rem] leading-8'>{title}</p>
       <ul
-        className='mt-4 flex flex-nowrap items-start gap-4 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+        className='mt-4 flex max-w-full flex-wrap items-start gap-4'
         aria-label={title}
       >
         {methods.map((method) => (
-          <li key={method.key} className='shrink-0'>
+          <li key={method.key}>
             <SmartLink
               href={method.href}
-              className='inline-flex min-w-[100px] flex-col items-center gap-3 text-center es-section-body text-[1.05rem] leading-8 transition-opacity hover:opacity-80'
+              className='inline-flex w-[100px] flex-col items-center gap-3 text-center es-section-body text-[1.05rem] leading-8 transition-opacity hover:opacity-80'
             >
               {({ isExternalHttp }) => (
                 <>

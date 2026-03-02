@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -128,13 +128,16 @@ describe('ContactUsForm section', () => {
     expect(leftColumn?.className).not.toContain('lg:px-10');
   });
 
-  it('renders icon-based contact methods linked from provided contact configuration', () => {
+  it('renders icon-based contact methods in the configured order with official assets', () => {
     renderContactUsForm();
 
     const list = screen.getByRole('list', {
       name: enContent.contactUs.contactUsForm.contactMethodsTitle,
     });
     expect(list).toBeInTheDocument();
+    expect(list.className).toContain('flex-wrap');
+    expect(list.className).toContain('max-w-full');
+    expect(list.className).not.toContain('overflow-x-auto');
     const contactMethodsTitle = screen.getByText(
       enContent.contactUs.contactUsForm.contactMethodsTitle,
     );
@@ -169,6 +172,13 @@ describe('ContactUsForm section', () => {
       'https://www.linkedin.com/company/evolve-sprouts',
     );
     expect(formLink).toHaveAttribute('href', '#contact-form');
+    expect(within(list).getAllByRole('link').map((link) => link.textContent?.trim())).toEqual([
+      enContent.contactUs.contactUsForm.contactMethodLinks.form,
+      enContent.contactUs.contactUsForm.contactMethodLinks.instagram,
+      enContent.contactUs.contactUsForm.contactMethodLinks.linkedin,
+      enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
+      enContent.contactUs.contactUsForm.contactMethodLinks.mail,
+    ]);
     for (const link of [emailLink, whatsappLink, instagramLink, linkedInLink, formLink]) {
       expect(link.className).toContain('es-section-body');
       expect(link.className).toContain('text-[1.05rem]');
@@ -185,10 +195,10 @@ describe('ContactUsForm section', () => {
     expect(whatsappIcon?.className).toContain('es-contact-us-contact-method-icon--whatsapp');
     expect(
       screen.getByTestId('contact-method-icon-instagram').querySelector('img'),
-    ).toHaveAttribute('src', '/images/contact-instagram.svg');
+    ).toHaveAttribute('src', '/images/contact-instagram.png');
     expect(
       screen.getByTestId('contact-method-icon-linkedin').querySelector('img'),
-    ).toHaveAttribute('src', '/images/contact-linkedin.svg');
+    ).toHaveAttribute('src', '/images/contact-linkedin.png');
     expect(screen.getByTestId('contact-method-icon-form').querySelector('img')).toHaveAttribute(
       'src',
       '/images/contact-form.svg',
