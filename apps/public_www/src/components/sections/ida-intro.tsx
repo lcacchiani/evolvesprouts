@@ -65,7 +65,7 @@ export function IdaIntro({ content }: IdaIntroProps) {
           </div>
         </div>
 
-        <div className='mx-auto w-full max-w-[573px] lg:order-1 lg:ml-0 lg:mr-auto'>
+        <div className='es-ida-intro-image-wrap mx-auto w-full max-w-[400px] lg:order-1 lg:ml-0 lg:mr-auto'>
           <Image
             src='/images/about-us/ida-degregorio-evolvesprouts-3.webp'
             alt={content.imageAlt}
@@ -73,8 +73,8 @@ export function IdaIntro({ content }: IdaIntroProps) {
             height={841}
             priority
             fetchPriority='high'
-            sizes='(max-width: 640px) 92vw, (max-width: 1024px) 70vw, 764px'
-            className='h-auto w-full'
+            sizes='(max-width: 640px) 92vw, 400px'
+            className='relative z-10 h-auto w-full'
           />
         </div>
       </SectionContainer>
