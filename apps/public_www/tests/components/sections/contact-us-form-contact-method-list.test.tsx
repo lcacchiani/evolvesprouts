@@ -71,12 +71,13 @@ describe('ContactMethodList', () => {
     const emailLink = screen.getByRole('link', { name: 'Email us' });
     const whatsappLink = screen.getByRole('link', { name: 'WhatsApp' });
 
-    expect(emailLink.className).toContain('es-section-body');
+    expect(emailLink).toHaveAttribute('aria-label', 'Email us');
+    expect(whatsappLink).toHaveAttribute('aria-label', 'WhatsApp');
     expect(emailLink.className).toContain('flex-col');
     expect(emailLink.className).toContain('text-center');
     expect(emailLink.className).toContain('w-[100px]');
-    expect(emailLink.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
-    expect(whatsappLink.querySelector('svg[data-external-link-icon="true"]')).not.toBeNull();
+    expect(screen.queryByText('Email us')).toBeNull();
+    expect(screen.queryByText('WhatsApp')).toBeNull();
 
     const emailIcon = screen.getByTestId('contact-method-icon-email').querySelector('img');
     const whatsappIcon = screen

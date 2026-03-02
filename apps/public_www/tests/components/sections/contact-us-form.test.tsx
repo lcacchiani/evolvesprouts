@@ -172,7 +172,11 @@ describe('ContactUsForm section', () => {
       'https://www.linkedin.com/company/evolve-sprouts',
     );
     expect(formLink).toHaveAttribute('href', '#contact-form');
-    expect(within(list).getAllByRole('link').map((link) => link.textContent?.trim())).toEqual([
+    expect(
+      within(list)
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('aria-label')),
+    ).toEqual([
       enContent.contactUs.contactUsForm.contactMethodLinks.form,
       enContent.contactUs.contactUsForm.contactMethodLinks.instagram,
       enContent.contactUs.contactUsForm.contactMethodLinks.linkedin,
@@ -180,9 +184,10 @@ describe('ContactUsForm section', () => {
       enContent.contactUs.contactUsForm.contactMethodLinks.mail,
     ]);
     for (const link of [emailLink, whatsappLink, instagramLink, linkedInLink, formLink]) {
-      expect(link.className).toContain('es-section-body');
-      expect(link.className).toContain('text-[1.05rem]');
-      expect(link.className).toContain('leading-8');
+      expect(link.className).toContain('w-[100px]');
+      expect(link.className).toContain('flex-col');
+      expect(link.className).toContain('items-center');
+      expect(link.getAttribute('aria-label')).not.toBeNull();
     }
     expect(screen.getByTestId('contact-method-icon-email').querySelector('img')).toHaveAttribute(
       'src',
@@ -204,11 +209,21 @@ describe('ContactUsForm section', () => {
       'src',
       '/images/contact-form.svg',
     );
-    expect(emailLink.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
-    expect(formLink.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
-    expect(whatsappLink.querySelector('svg[data-external-link-icon="true"]')).not.toBeNull();
-    expect(instagramLink.querySelector('svg[data-external-link-icon="true"]')).not.toBeNull();
-    expect(linkedInLink.querySelector('svg[data-external-link-icon="true"]')).not.toBeNull();
+    expect(
+      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.form),
+    ).toBeNull();
+    expect(
+      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.instagram),
+    ).toBeNull();
+    expect(
+      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.linkedin),
+    ).toBeNull();
+    expect(
+      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp),
+    ).toBeNull();
+    expect(
+      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.mail),
+    ).toBeNull();
   });
 
   it('omits channels that are missing in the provided contact configuration', () => {
