@@ -31,28 +31,32 @@ export interface MyBestAuntieThankYouModalProps {
 
 const PRINT_WINDOW_FEATURES = 'noopener,noreferrer,width=880,height=700';
 
-function appendPrintSummaryRow({
+function formatPrefixedValue(prefix: string, value: string): string {
+  const normalizedValue = value.trim();
+  if (!normalizedValue) {
+    return '';
+  }
+
+  return `${prefix}${normalizedValue}`;
+}
+
+function appendPrintChip({
   popupDocument,
   container,
-  label,
   value,
 }: {
   popupDocument: Document;
   container: HTMLElement;
-  label: string;
   value: string;
 }): void {
-  const row = popupDocument.createElement('div');
-  row.className = 'row';
+  if (!value) {
+    return;
+  }
 
-  const labelElement = popupDocument.createElement('span');
-  labelElement.textContent = label;
-
-  const valueElement = popupDocument.createElement('strong');
-  valueElement.textContent = value;
-
-  row.append(labelElement, valueElement);
-  container.append(row);
+  const chip = popupDocument.createElement('span');
+  chip.className = 'chip';
+  chip.textContent = value;
+  container.append(chip);
 }
 
 function renderPrintDocument({
@@ -60,23 +64,29 @@ function renderPrintDocument({
   locale,
   successLabel,
   title,
-  transactionDateLabel,
-  transactionDate,
-  paymentMethodLabel,
-  paymentMethod,
-  totalLabel,
-  totalAmountLabel,
+  subtitle,
+  attendeeEmail,
+  courseLabel,
+  scheduleDateLabel,
+  scheduleTimeLabel,
+  childAgeGroupChipText,
+  amountChipText,
+  transactionDateChipText,
+  paymentMethodChipText,
 }: {
   popupDocument: Document;
   locale: Locale;
   successLabel: string;
   title: string;
-  transactionDateLabel: string;
-  transactionDate: string;
-  paymentMethodLabel: string;
-  paymentMethod: string;
-  totalLabel: string;
-  totalAmountLabel: string;
+  subtitle: string;
+  attendeeEmail: string;
+  courseLabel: string;
+  scheduleDateLabel: string;
+  scheduleTimeLabel: string;
+  childAgeGroupChipText: string;
+  amountChipText: string;
+  transactionDateChipText: string;
+  paymentMethodChipText: string;
 }): void {
   popupDocument.title = successLabel;
   popupDocument.documentElement.lang = locale;
@@ -90,39 +100,72 @@ function renderPrintDocument({
   styleElement.textContent =
     'body { font-family: "Poppins", sans-serif; margin: 24px; color: #333; }' +
     'h1 { margin: 0 0 8px; }' +
+    'p { margin: 0 0 8px; }' +
     '.card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }' +
-    '.row { display: flex; justify-content: space-between; margin: 8px 0; }';
+    '.course { margin: 0 0 12px; }' +
+    '.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }' +
+    '.chips + .chips { margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd; }' +
+    '.chip { display: inline-flex; align-items: center; border: 1px solid #ddd; border-radius: 999px; padding: 8px 14px; background: #fff; font-weight: 600; }';
   popupDocument.head.append(metaCharset, styleElement);
 
   const heading = popupDocument.createElement('h1');
   heading.textContent = successLabel;
 
-  const subtitle = popupDocument.createElement('p');
-  subtitle.textContent = title;
+  const titleText = popupDocument.createElement('p');
+  titleText.textContent = title;
+
+  const subtitleText = popupDocument.createElement('p');
+  subtitleText.textContent = `${subtitle} ${attendeeEmail}`;
 
   const card = popupDocument.createElement('div');
   card.className = 'card';
 
-  appendPrintSummaryRow({
+  const courseHeading = popupDocument.createElement('h2');
+  courseHeading.className = 'course';
+  courseHeading.textContent = courseLabel;
+
+  const summaryChips = popupDocument.createElement('div');
+  summaryChips.className = 'chips';
+  appendPrintChip({
     popupDocument,
-    container: card,
-    label: transactionDateLabel,
-    value: transactionDate,
+    container: summaryChips,
+    value: scheduleDateLabel,
   });
-  appendPrintSummaryRow({
+  appendPrintChip({
     popupDocument,
-    container: card,
-    label: paymentMethodLabel,
-    value: paymentMethod,
+    container: summaryChips,
+    value: scheduleTimeLabel,
   });
-  appendPrintSummaryRow({
+  appendPrintChip({
     popupDocument,
-    container: card,
-    label: totalLabel,
-    value: totalAmountLabel,
+    container: summaryChips,
+    value: childAgeGroupChipText,
+  });
+  appendPrintChip({
+    popupDocument,
+    container: summaryChips,
+    value: amountChipText,
   });
 
-  popupDocument.body.append(heading, subtitle, card);
+  const transactionChips = popupDocument.createElement('div');
+  transactionChips.className = 'chips';
+  appendPrintChip({
+    popupDocument,
+    container: transactionChips,
+    value: transactionDateChipText,
+  });
+  appendPrintChip({
+    popupDocument,
+    container: transactionChips,
+    value: paymentMethodChipText,
+  });
+
+  card.append(courseHeading, summaryChips);
+  if (transactionChips.childElementCount > 0) {
+    card.append(transactionChips);
+  }
+
+  popupDocument.body.append(heading, titleText, subtitleText, card);
 }
 
 export function MyBestAuntieThankYouModal({
@@ -146,6 +189,27 @@ export function MyBestAuntieThankYouModal({
   });
 
   const transactionDate = resolveLocalizedDate(locale);
+  const attendeeEmail = summary?.attendeeEmail ?? content.noEmailFallback;
+  const courseLabel = summary?.courseLabel ?? content.courseLabel;
+  const scheduleDateLabel = summary?.scheduleDateLabel?.trim() ?? '';
+  const scheduleTimeLabel = summary?.scheduleTimeLabel?.trim() ?? '';
+  const paymentMethod = summary?.paymentMethod?.trim() ?? '';
+  const childAgeGroupChipText = formatPrefixedValue(
+    content.childAgeGroupPrefix,
+    summary?.childAgeGroup ?? '',
+  );
+  const amountChipText = formatPrefixedValue(
+    content.amountPrefix,
+    summary ? formatCurrencyHkd(summary.totalAmount, locale) : '',
+  );
+  const transactionDateChipText = formatPrefixedValue(
+    content.transactionDatePrefix,
+    transactionDate,
+  );
+  const paymentMethodChipText = formatPrefixedValue(
+    content.paymentMethodPrefix,
+    paymentMethod,
+  );
 
   function handlePrint() {
     if (!summary) {
@@ -162,12 +226,15 @@ export function MyBestAuntieThankYouModal({
       locale,
       successLabel: content.successLabel,
       title: content.title,
-      transactionDateLabel: content.transactionDateLabel,
-      transactionDate,
-      paymentMethodLabel: content.paymentMethodLabel,
-      paymentMethod: summary.paymentMethod,
-      totalLabel: content.totalLabel,
-      totalAmountLabel: formatCurrencyHkd(summary.totalAmount, locale),
+      subtitle: content.subtitle,
+      attendeeEmail,
+      courseLabel,
+      scheduleDateLabel,
+      scheduleTimeLabel,
+      childAgeGroupChipText,
+      amountChipText,
+      transactionDateChipText,
+      paymentMethodChipText,
     });
     popup.focus();
     popup.print();
@@ -234,9 +301,9 @@ export function MyBestAuntieThankYouModal({
               className='mt-3 text-lg leading-7 es-my-best-auntie-thank-you-body'
             >
               {content.subtitle}
-              <br />
+              {' '}
               <span className='font-semibold es-text-emphasis'>
-                {summary?.attendeeEmail ?? content.noEmailFallback}
+                {attendeeEmail}
               </span>
             </p>
           </div>
@@ -252,68 +319,58 @@ export function MyBestAuntieThankYouModal({
             />
 
             <div className='relative z-10 border-b es-divider-blue pb-8'>
-              <div className='flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between'>
-                <div>
-                  <h4 className='text-xl font-semibold leading-none es-text-heading sm:text-2xl'>
-                    {summary?.courseLabel ?? content.courseLabel}
-                  </h4>
-                  <div className='mt-4 flex flex-wrap gap-2'>
-                    <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                      <span
-                        className='h-6 w-6 shrink-0 es-mask-calendar-heading'
-                        aria-hidden='true'
-                      />
-                      {summary?.scheduleDateLabel ?? ''}
-                    </span>
-                    <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                      <Image
-                        src='/images/clock.svg'
-                        alt=''
-                        width={24}
-                        height={24}
-                        aria-hidden='true'
-                      />
-                      {summary?.scheduleTimeLabel ?? ''}
-                    </span>
-                  </div>
-                </div>
-                <div className='text-left sm:text-right'>
-                  <span className='text-sm font-medium leading-none es-text-muted'>
-                    {summary?.childAgeGroup ?? ''}
+              <h4 className='text-xl font-semibold leading-none es-text-heading sm:text-2xl'>
+                {courseLabel}
+              </h4>
+              <div className='mt-4 flex flex-wrap gap-2'>
+                {scheduleDateLabel ? (
+                  <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    <span
+                      className='h-6 w-6 shrink-0 es-mask-calendar-heading'
+                      aria-hidden='true'
+                    />
+                    {scheduleDateLabel}
                   </span>
-                  <p className='mt-2 text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
-                    {formatCurrencyHkd(summary?.totalAmount ?? 0, locale)}
-                  </p>
-                </div>
+                ) : null}
+                {scheduleTimeLabel ? (
+                  <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    <Image
+                      src='/images/clock.svg'
+                      alt=''
+                      width={24}
+                      height={24}
+                      aria-hidden='true'
+                    />
+                    {scheduleTimeLabel}
+                  </span>
+                ) : null}
+                {childAgeGroupChipText ? (
+                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    {childAgeGroupChipText}
+                  </span>
+                ) : null}
+                {amountChipText ? (
+                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold es-text-heading'>
+                    {amountChipText}
+                  </span>
+                ) : null}
               </div>
             </div>
 
-            <dl className='relative z-10 space-y-7 border-b es-divider-blue py-8'>
-              <div className='flex items-center justify-between gap-4'>
-                <dt className='text-lg font-medium es-text-subtle sm:text-[22px]'>
-                  {content.transactionDateLabel}
-                </dt>
-                <dd className='text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
-                  {transactionDate}
-                </dd>
+            <div className='relative z-10 border-b es-divider-blue py-8'>
+              <div className='flex flex-wrap gap-2'>
+                {transactionDateChipText ? (
+                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    {transactionDateChipText}
+                  </span>
+                ) : null}
+                {paymentMethodChipText ? (
+                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
+                    {paymentMethodChipText}
+                  </span>
+                ) : null}
               </div>
-              <div className='flex items-center justify-between gap-4'>
-                <dt className='text-lg font-medium es-text-subtle sm:text-[22px]'>
-                  {content.paymentMethodLabel}
-                </dt>
-                <dd className='text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
-                  {summary?.paymentMethod ?? ''}
-                </dd>
-              </div>
-              <div className='flex items-center justify-between gap-4'>
-                <dt className='text-lg font-medium es-text-subtle sm:text-[22px]'>
-                  {content.totalLabel}
-                </dt>
-                <dd className='text-2xl font-bold leading-none es-text-heading sm:text-[30px]'>
-                  {formatCurrencyHkd(summary?.totalAmount ?? 0, locale)}
-                </dd>
-              </div>
-            </dl>
+            </div>
 
             <div className='relative z-10 pt-7'>
               <div className='flex flex-wrap justify-end gap-3'>
