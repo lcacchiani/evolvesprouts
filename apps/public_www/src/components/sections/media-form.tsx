@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
@@ -47,6 +47,7 @@ export function MediaForm({
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isFormFadingIn, setIsFormFadingIn] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,6 +71,21 @@ export function MediaForm({
     hasFirstNameError ||
     hasEmailError ||
     isCaptchaUnavailable;
+
+  useEffect(() => {
+    if (!isFormVisible) {
+      setIsFormFadingIn(false);
+      return;
+    }
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      setIsFormFadingIn(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, [isFormVisible]);
 
   function handleOpenForm() {
     setIsFormVisible(true);
@@ -144,7 +160,11 @@ export function MediaForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className={mergeClassNames('mt-auto w-full max-w-[420px] space-y-3', className)}
+      className={mergeClassNames(
+        'mt-7 w-full max-w-[420px] space-y-3 opacity-0 transition-opacity duration-300 ease-out motion-reduce:transition-none',
+        isFormFadingIn ? 'opacity-100' : null,
+        className,
+      )}
       noValidate
     >
       <input

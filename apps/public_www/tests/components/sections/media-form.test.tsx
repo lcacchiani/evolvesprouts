@@ -102,6 +102,27 @@ describe('MediaForm', () => {
     expect(screen.getByPlaceholderText(enContent.resources.formEmailLabel)).toBeInTheDocument();
   });
 
+  it('adds top spacing and fades in the form when CTA is clicked', async () => {
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+
+    const firstNameInput = screen.getByPlaceholderText(
+      enContent.resources.formFirstNameLabel,
+    );
+    const form = firstNameInput.closest('form');
+    if (!form) {
+      throw new Error('Expected media form to render after CTA click');
+    }
+    expect(form).toHaveClass('mt-7');
+    expect(form).toHaveClass('transition-opacity');
+    expect(form).toHaveClass('duration-300');
+
+    await waitFor(() => {
+      expect(form).toHaveClass('opacity-100');
+    });
+  });
+
   it('submits valid payload and renders success message', async () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({ request });
