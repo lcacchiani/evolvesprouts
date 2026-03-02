@@ -681,6 +681,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText(/©/u)).not.toBeInTheDocument();
     expect(container.innerHTML).not.toContain('border-t border-black/10');
+    expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
   });
 
   it('uses shared calendar icon and renders prefixed thank-you chips', () => {
