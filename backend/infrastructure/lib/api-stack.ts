@@ -1092,6 +1092,7 @@ export class ApiStack extends cdk.Stack {
     const adminFunction = createPythonFunction("EvolvesproutsAdminFunction", {
       handler: "lambda/admin/handler.lambda_handler",
       environment: {
+        TURNSTILE_SECRET_KEY: turnstileSecretKey.valueAsString,
         DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
         DATABASE_NAME: "evolvesprouts",
         DATABASE_USERNAME: "evolvesprouts_admin",
