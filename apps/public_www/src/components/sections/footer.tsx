@@ -114,7 +114,7 @@ function resolveConnectOnItems(
 }
 
 const FOOTER_LOGO_CLASSNAME =
-  'h-auto w-full max-w-[500px] mx-auto -mt-[100px] mb-0 sm:-my-[100px]';
+  'h-auto w-full max-w-[500px] mx-auto -mt-[100px] mb-[50px] sm:-my-[100px]';
 const socialIconAssets: Partial<Record<string, SocialIconAsset>> = {
   linkedin: {
     src: '/images/contact-linkedin.svg',

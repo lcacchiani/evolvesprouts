@@ -118,7 +118,7 @@ describe('Footer external links', () => {
     ) as HTMLImageElement | null;
     expect(mobileLogo).not.toBeNull();
     expect(mobileLogo?.className).toContain('-mt-[100px]');
-    expect(mobileLogo?.className).toContain('mb-0');
+    expect(mobileLogo?.className).toContain('mb-[50px]');
     expect(mobileLogo?.className).toContain('sm:-my-[100px]');
 
     const cssFallbackElements = document.querySelectorAll(
