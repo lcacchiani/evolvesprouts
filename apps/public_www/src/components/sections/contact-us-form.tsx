@@ -46,8 +46,8 @@ type ContactMethodKey =
 const CONTACT_METHOD_ICON_SOURCES: Record<ContactMethodKey, string> = {
   email: '/images/contact-email.svg',
   whatsapp: '/images/contact-whatsapp.svg',
-  instagram: '/images/contact-instagram.svg',
-  linkedin: '/images/contact-linkedin.svg',
+  instagram: '/images/contact-instagram.png',
+  linkedin: '/images/contact-linkedin.png',
   form: '/images/contact-form.svg',
 };
 
@@ -103,23 +103,14 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
         ? content.captchaRequiredError
         : '';
   const isSubmitDisabled = isCaptchaUnavailable || isSubmitting;
-  const contactMethodLinks: ContactMethodLinkItem[] = [];
-  if (contactConfig.contactEmail) {
-    contactMethodLinks.push({
-      key: 'email',
-      href: `mailto:${contactConfig.contactEmail}`,
-      label: content.contactMethodLinks.mail,
-      iconSrc: CONTACT_METHOD_ICON_SOURCES.email,
-    });
-  }
-  if (contactConfig.whatsappUrl) {
-    contactMethodLinks.push({
-      key: 'whatsapp',
-      href: contactConfig.whatsappUrl,
-      label: content.contactMethodLinks.whatsapp,
-      iconSrc: CONTACT_METHOD_ICON_SOURCES.whatsapp,
-    });
-  }
+  const contactMethodLinks: ContactMethodLinkItem[] = [
+    {
+      key: 'form',
+      href: '#contact-form',
+      label: content.contactMethodLinks.form,
+      iconSrc: CONTACT_METHOD_ICON_SOURCES.form,
+    },
+  ];
   if (contactConfig.instagramUrl) {
     contactMethodLinks.push({
       key: 'instagram',
@@ -136,13 +127,22 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
       iconSrc: CONTACT_METHOD_ICON_SOURCES.linkedin,
     });
   }
-  contactMethodLinks.push({
-    key: 'form',
-    href: '#contact-form',
-    label: content.contactMethodLinks.form,
-    iconSrc: CONTACT_METHOD_ICON_SOURCES.form,
-  });
-
+  if (contactConfig.whatsappUrl) {
+    contactMethodLinks.push({
+      key: 'whatsapp',
+      href: contactConfig.whatsappUrl,
+      label: content.contactMethodLinks.whatsapp,
+      iconSrc: CONTACT_METHOD_ICON_SOURCES.whatsapp,
+    });
+  }
+  if (contactConfig.contactEmail) {
+    contactMethodLinks.push({
+      key: 'email',
+      href: `mailto:${contactConfig.contactEmail}`,
+      label: content.contactMethodLinks.mail,
+      iconSrc: CONTACT_METHOD_ICON_SOURCES.email,
+    });
+  }
   function updateField(field: keyof ContactUsFormState, value: string) {
     setFormState((currentState) => ({
       ...currentState,
