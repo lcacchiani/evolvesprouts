@@ -1,9 +1,20 @@
 import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { HomePageSections } from '@/components/pages/homepage';
 import enContent from '@/content/en.json';
+
+const PHONE_ENV_KEY = 'NEXT_PUBLIC_BUSINESS_PHONE_NUMBER';
+const originalPhoneEnv = process.env[PHONE_ENV_KEY];
+
+afterEach(() => {
+  if (typeof originalPhoneEnv === 'string') {
+    process.env[PHONE_ENV_KEY] = originalPhoneEnv;
+  } else {
+    delete process.env[PHONE_ENV_KEY];
+  }
+});
 
 const heroBannerPropsSpy = vi.fn<
   [{ content: { headline: string }; ctaHref?: string }],
@@ -66,6 +77,7 @@ vi.mock('@/components/sections/sprouts-squad-community', () => ({
 
 describe('HomePageSections', () => {
   it('composes homepage sections with the expected content slices', () => {
+    process.env[PHONE_ENV_KEY] = '+852 9876 5432';
     heroBannerPropsSpy.mockClear();
     render(<HomePageSections content={enContent} />);
 
@@ -84,7 +96,7 @@ describe('HomePageSections', () => {
     ).toHaveTextContent('Best Auntie Training Course Designed by Ida');
     expect(heroBannerPropsSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        ctaHref: expect.stringContaining('https://wa.me/'),
+        ctaHref: expect.stringContaining('https://wa.me/85298765432'),
       }),
     );
     expect(heroBannerPropsSpy).toHaveBeenCalledWith(

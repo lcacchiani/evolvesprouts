@@ -27,17 +27,41 @@ afterEach(() => {
 });
 
 describe('site-config', () => {
-  it('builds a WhatsApp href with prefilled text while preserving existing query params', () => {
+  it('builds a direct wa.me/<phone> href when base URL is a short link and phone is provided', () => {
+    const href = buildWhatsappPrefilledHref(
+      'https://wa.me/message/ABCDEFG?src=qr',
+      "Hi, I'd like to book a free session!",
+      '+852 9876 5432',
+    );
+
+    const parsed = new URL(href);
+    expect(parsed.pathname).toBe('/85298765432');
+    expect(parsed.searchParams.get('text')).toBe(
+      "Hi, I'd like to book a free session!",
+    );
+  });
+
+  it('returns the short link URL unchanged when no phone number is provided', () => {
     const href = buildWhatsappPrefilledHref(
       'https://wa.me/message/ABCDEFG?src=qr',
       "Hi, I'd like to book a free session!",
     );
 
     const parsed = new URL(href);
+    expect(parsed.pathname).toBe('/message/ABCDEFG');
     expect(parsed.searchParams.get('src')).toBe('qr');
-    expect(parsed.searchParams.get('text')).toBe(
-      "Hi, I'd like to book a free session!",
+    expect(parsed.searchParams.has('text')).toBe(false);
+  });
+
+  it('appends text param to direct wa.me/<phone> URLs without needing a separate phone number', () => {
+    const href = buildWhatsappPrefilledHref(
+      'https://wa.me/85298765432',
+      'Hello!',
     );
+
+    const parsed = new URL(href);
+    expect(parsed.pathname).toBe('/85298765432');
+    expect(parsed.searchParams.get('text')).toBe('Hello!');
   });
 
   it('returns an empty value when the base WhatsApp URL is invalid', () => {

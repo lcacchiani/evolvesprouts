@@ -22,6 +22,7 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
   const heroCtaHref = buildWhatsappPrefilledHref(
     baseWhatsappHref,
     content.hero.ctaPrefillMessage,
+    siteConfig.businessPhoneNumber,
   ) || baseWhatsappHref;
 
   return (
