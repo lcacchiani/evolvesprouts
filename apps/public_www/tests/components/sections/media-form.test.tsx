@@ -186,4 +186,15 @@ describe('MediaForm', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('disables submit and shows error when CRM API client is unavailable', () => {
+    mockedCreateCrmApiClient.mockReturnValue(null);
+    renderMediaForm();
+
+    fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
+
+    const submitButton = screen.getByRole('button', { name: enContent.resources.formSubmitLabel });
+    expect(submitButton).toBeDisabled();
+    expect(screen.getByText(enContent.resources.formErrorMessage)).toBeInTheDocument();
+  });
 });
