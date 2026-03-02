@@ -42,11 +42,7 @@ export function ContactMethodList({ title, methods }: ContactMethodListProps) {
                       alt=''
                       width={100}
                       height={100}
-                      className={
-                        method.key === 'whatsapp'
-                          ? 'h-[100px] w-[100px] es-contact-us-contact-method-icon--whatsapp'
-                          : 'h-[100px] w-[100px]'
-                      }
+                      className='h-[100px] w-[100px]'
                     />
                   </span>
                   <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>

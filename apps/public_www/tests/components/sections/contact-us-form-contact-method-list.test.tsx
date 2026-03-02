@@ -91,6 +91,7 @@ describe('ContactMethodList', () => {
     expect(emailIcon?.className).toContain('h-[100px]');
     expect(emailIcon?.className).toContain('w-[100px]');
     expect(whatsappIcon).toHaveAttribute('src', '/images/contact-whatsapp.svg');
-    expect(whatsappIcon?.className).toContain('es-contact-us-contact-method-icon--whatsapp');
+    expect(whatsappIcon?.className).toContain('h-[100px]');
+    expect(whatsappIcon?.className).toContain('w-[100px]');
   });
 });

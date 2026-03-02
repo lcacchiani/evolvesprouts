@@ -192,7 +192,8 @@ describe('ContactUsForm section', () => {
       .getByTestId('contact-method-icon-whatsapp')
       .querySelector('img');
     expect(whatsappIcon).toHaveAttribute('src', '/images/contact-whatsapp.svg');
-    expect(whatsappIcon?.className).toContain('es-contact-us-contact-method-icon--whatsapp');
+    expect(whatsappIcon?.className).toContain('h-[100px]');
+    expect(whatsappIcon?.className).toContain('w-[100px]');
     expect(
       screen.getByTestId('contact-method-icon-instagram').querySelector('img'),
     ).toHaveAttribute('src', '/images/contact-instagram.png');

@@ -471,10 +471,6 @@
     background-image: url('/images/vector-blue-line.svg');
   }
 
-  .es-contact-us-contact-method-icon--whatsapp {
-    filter: grayscale(1) contrast(2);
-  }
-
   .es-footer-root {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
