@@ -40,7 +40,7 @@ export function FreeResourcesSplitLayout({
         data-testid='free-resource-media-pane'
         className={`es-free-resources-media-pane ${splitMediaBleedClassName} relative z-0 min-h-[210px] overflow-visible sm:min-h-[278px] lg:min-h-[440px] ${splitMediaPaneOrderClassName}`}
       >
-        <div className='absolute left-1/2 top-[10%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
+        <div className='absolute left-1/2 top-[50%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:gap-3'>
           <div className='rounded-full bg-white/95 px-5 py-2 shadow-pill sm:px-6'>
             <p className='whitespace-nowrap es-free-resources-media-pill-text'>
               {mediaTitleLine1}

@@ -962,7 +962,7 @@
     background-image: url('/images/family.webp');
     background-position: bottom;
     background-repeat: no-repeat;
-    background-size: var(--es-free-resources-bg-size, 50% auto);
+    background-size: var(--es-free-resources-bg-size, 75% auto);
   }
 
   .es-free-resources-media-pane--bleed-left::before {
