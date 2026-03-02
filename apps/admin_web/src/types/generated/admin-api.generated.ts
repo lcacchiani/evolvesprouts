@@ -532,6 +532,253 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/geographic-areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List geographic areas
+         * @description Returns geographic areas used for address/location selection.
+         *     Use `parent_id` to fetch direct children, or `flat=true` to return a
+         *     flattened tree.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    parent_id?: string;
+                    flat?: boolean;
+                    active_only?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Geographic area list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GeographicAreaListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List locations */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                    area_id?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Location list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        /** Create location */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateLocationRequest"];
+                };
+            };
+            responses: {
+                /** @description Location create response. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/locations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Location identifier. */
+                id: components["parameters"]["LocationId"];
+            };
+            cookie?: never;
+        };
+        /** Get location */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Location identifier. */
+                    id: components["parameters"]["LocationId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Location response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        /** Update location */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Location identifier. */
+                    id: components["parameters"]["LocationId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateLocationRequest"];
+                };
+            };
+            responses: {
+                /** @description Location update response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        post?: never;
+        /** Delete location */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Location identifier. */
+                    id: components["parameters"]["LocationId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Location deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Partially update location */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Location identifier. */
+                    id: components["parameters"]["LocationId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PartialUpdateLocationRequest"];
+                };
+            };
+            responses: {
+                /** @description Location update response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
     "/v1/user/assets": {
         parameters: {
             query?: never;
@@ -693,6 +940,65 @@ export interface components {
              */
             allowed_domains: string[];
         };
+        GeographicArea: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            parent_id?: string | null;
+            name: string;
+            name_translations: {
+                [key: string]: string;
+            };
+            /** @enum {string} */
+            level: "country" | "region" | "city" | "district";
+            code?: string | null;
+            active: boolean;
+            display_order: number;
+        };
+        GeographicAreaListResponse: {
+            items: components["schemas"]["GeographicArea"][];
+        };
+        Location: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            area_id: string;
+            address?: string | null;
+            /** Format: double */
+            lat?: number | null;
+            /** Format: double */
+            lng?: number | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+        };
+        LocationResponse: {
+            location: components["schemas"]["Location"];
+        };
+        LocationListResponse: {
+            items: components["schemas"]["Location"][];
+            next_cursor?: string | null;
+        };
+        CreateLocationRequest: {
+            /** Format: uuid */
+            area_id: string;
+            address?: string | null;
+            /** Format: double */
+            lat?: number | null;
+            /** Format: double */
+            lng?: number | null;
+        };
+        UpdateLocationRequest: components["schemas"]["CreateLocationRequest"];
+        PartialUpdateLocationRequest: {
+            /** Format: uuid */
+            area_id?: string;
+            address?: string | null;
+            /** Format: double */
+            lat?: number | null;
+            /** Format: double */
+            lng?: number | null;
+        };
         CreateAssetRequest: {
             title: string;
             description?: string | null;
@@ -777,6 +1083,8 @@ export interface components {
         AssetId: string;
         /** @description Asset grant identifier. */
         GrantId: string;
+        /** @description Location identifier. */
+        LocationId: string;
     };
     requestBodies: never;
     headers: never;
