@@ -3,6 +3,7 @@
 import { Fragment, type KeyboardEvent, type ReactNode, useState } from 'react';
 import Image from 'next/image';
 
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -197,6 +198,8 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
       : DEFAULT_STEP_ICONS[index] ?? 'foundation',
   }));
 
+  const computedCtaLabel = content.ctaLabel.trim().replace(/\s*>$/, '');
+
   function handleToggleModule(step: string) {
     setExpandedModuleStep((previousStep) =>
       previousStep === step ? null : step,
@@ -331,13 +334,20 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           </div>
         </div>
 
-        {content.description && (
-          <div className='mx-auto mt-12 max-w-[760px] text-center lg:mt-16'>
+        <div className='mx-auto mt-12 max-w-[760px] text-center lg:mt-16'>
+          {content.description && (
             <p className='es-type-body-italic text-balance'>
               {content.description}
             </p>
-          </div>
-        )}
+          )}
+
+          <SectionCtaAnchor
+            href={content.ctaHref}
+            className='mt-8 w-full max-w-[491px] lg:mt-10'
+          >
+            {computedCtaLabel}
+          </SectionCtaAnchor>
+        </div>
       </SectionContainer>
     </SectionShell>
   );

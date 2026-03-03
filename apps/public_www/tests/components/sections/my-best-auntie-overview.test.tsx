@@ -29,11 +29,6 @@ describe('MyBestAuntieOverview section', () => {
       name: /best auntie training/i,
     });
     expect(section.className).toContain('es-my-best-auntie-overview-section');
-    expect(
-      screen.queryByRole('link', {
-        name: enContent.myBestAuntieOverview.ctaLabel,
-      }),
-    ).not.toBeInTheDocument();
     const mobileCarouselWrapper = container.querySelector('div.-mx-1.md\\:hidden');
     expect(mobileCarouselWrapper).toHaveAttribute(
       'data-css-fallback',

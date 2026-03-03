@@ -545,34 +545,44 @@
     "supportChipLabel": "Connect Now",
     "items": [
       {
-        "id": "age-specific",
-        "title": "Calm Is Built, Not Hoped For",
-        "description": "Children are not \"naturally difficult.\" Chaos comes from unclear guidance and inconsistent adults. We train aunties to build calm through structure, limits, and preparation."
+        "id": "group-auntie-training-sessions",
+        "title": "Group Aunties Training Sessions",
+        "description": "Three live, small-group sessions exclusively for aunties. They learn child development, guidance, and independence in a respectful space without employer pressure. Strong foundations, shared experiences, practical clarity."
       },
       {
-        "id": "small-group-learning",
-        "title": "Your Auntie Is a Daily Educator",
-        "description": "Whether trained or not, your auntie is shaping your child every day. We ensure she models independence, respect, and emotional regulation — not control or passivity."
+        "id": "private-coaching-family-specific",
+        "title": "Private 1:1 Coaching (Family-Specific)",
+        "description": "Three tailored sessions inside your real routines. We observe, align expectations, adjust responses, and coach precise language. Group learning builds knowledge. Private coaching makes it work in your home."
       },
       {
-        "id": "montessori-positive-discipline",
-        "title": "Security Alone Creates Dependence",
-        "description": "Comfort without limits creates reliance, not confidence. Children need clear boundaries, responsibility, and expectations to grow. We teach aunties how to provide all three."
+        "id": "parent-strategy-calls",
+        "title": "Parent Strategy Calls",
+        "description": "We step back, assess progress, and realign direction. You will know what is working, what needs adjusting, and how to prevent small issues becoming long-term patterns."
       },
       {
-        "id": "ongoing-support",
-        "title": "We Work Where Problems Actually Happen",
-        "description": "Courses fail when they stay theoretical. We observe your child in your home, during real routines and real stress — and intervene with precision."
+        "id": "auntie-whatsapp-community",
+        "title": "Auntie WhatsApp Community",
+        "description": "A private support group for enrolled aunties. Real-time guidance, peer discussion, and expert moderation. Learning continues between sessions so consistency does not collapse under daily pressure."
       },
       {
-        "id": "ready-to-use-tools",
-        "title": "Progress Must Be Visible",
-        "description": "If nothing changes, training failed. Our families see measurable shifts in behavior, routines, and atmosphere — tracked weekly and reviewed together."
+        "id": "scripts-tools-real-life-examples",
+        "title": "Scripts, Tools & Real-Life Examples",
+        "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behavior."
       },
       {
-        "id": "guaranteed-confidence",
-        "title": "Alignment Is Non-Negotiable",
-        "description": "When parents and aunties are misaligned, children suffer. We work with both — so guidance is consistent, fair, and predictable."
+        "id": "whatsapp-support-for-parents",
+        "title": "WhatsApp Support for Parents",
+        "description": "Direct access for questions between sessions. Early guidance prevents escalation and keeps everyone aligned."
+      },
+      {
+        "id": "written-reports-after-private-session",
+        "title": "Written Reports After Each Private Session",
+        "description": "Clear written summaries after every private visit. Observations, focus areas, and immediate next steps. No confusion. No misalignment."
+      },
+      {
+        "id": "final-programme-report",
+        "title": "Final Programme Report",
+        "description": "A consolidated reference at programme completion. Clear progress overview and future guidance for the next developmental stage."
       }
     ],
     "scrollLeftAriaLabel": "Scroll course highlights left",
