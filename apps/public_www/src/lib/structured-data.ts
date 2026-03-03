@@ -18,6 +18,7 @@ const OFFER_AVAILABILITY_IN_STOCK = `${SCHEMA_CONTEXT}/InStock`;
 const OFFER_AVAILABILITY_SOLD_OUT = `${SCHEMA_CONTEXT}/SoldOut`;
 const ORGANIZATION_SCHEMA_ID = `${SITE_ORIGIN}#organization`;
 const LOCAL_BUSINESS_SCHEMA_ID = `${SITE_ORIGIN}#local-business`;
+const WEBSITE_SCHEMA_ID = `${SITE_ORIGIN}#website`;
 
 function buildCourseSchemaId(locale: Locale): string {
   return `${toLocalizedAbsoluteUrl(ROUTES.servicesMyBestAuntieTrainingCourse, locale)}#course`;
@@ -126,6 +127,28 @@ export function buildLocalBusinessSchema({
     areaServed: content.seo.localBusinessAreaServed,
     sameAs: resolveSocialProfiles(),
     parentOrganization: {
+      '@id': ORGANIZATION_SCHEMA_ID,
+    },
+  });
+}
+
+export function buildWebSiteSchema({
+  locale,
+  content,
+}: SharedStructuredDataOptions): JsonLdObject {
+  return compactJsonLdObject({
+    '@context': SCHEMA_CONTEXT,
+    '@type': 'WebSite',
+    '@id': WEBSITE_SCHEMA_ID,
+    name: content.navbar.brand,
+    url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
+    description: content.seo.organizationDescription,
+    inLanguage: [
+      { '@type': 'Language', name: 'English', alternateName: 'en' },
+      { '@type': 'Language', name: 'Chinese (Simplified)', alternateName: 'zh-CN' },
+      { '@type': 'Language', name: 'Chinese (Traditional)', alternateName: 'zh-HK' },
+    ],
+    publisher: {
       '@id': ORGANIZATION_SCHEMA_ID,
     },
   });

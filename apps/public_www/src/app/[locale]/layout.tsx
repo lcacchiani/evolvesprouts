@@ -14,6 +14,7 @@ import { resolvePublicSiteConfig } from '@/lib/site-config';
 import {
   buildLocalBusinessSchema,
   buildOrganizationSchema,
+  buildWebSiteSchema,
 } from '@/lib/structured-data';
 
 interface LocaleLayoutProps {
@@ -79,6 +80,13 @@ export default async function LocaleLayout({
       <StructuredDataScript
         id={`local-business-jsonld-${locale}`}
         data={buildLocalBusinessSchema({
+          locale,
+          content,
+        })}
+      />
+      <StructuredDataScript
+        id={`website-jsonld-${locale}`}
+        data={buildWebSiteSchema({
           locale,
           content,
         })}
