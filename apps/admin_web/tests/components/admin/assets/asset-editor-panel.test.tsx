@@ -138,6 +138,31 @@ describe('AssetEditorPanel', () => {
     expect(allowlistInput.closest('div')).toHaveClass('lg:col-span-2');
   });
 
+  it('removes share-link helper copy and keeps save policy below textarea', async () => {
+    renderEditor({ selectedAsset: SELECTED_ASSET });
+
+    await waitFor(() => {
+      expect(mockGetAdminAssetShareLink).toHaveBeenCalledWith('asset-1');
+    });
+
+    expect(
+      screen.queryByText(
+        'One domain per line (or comma-separated). Share links resolve only when Referer/Origin matches one of these domains.'
+      )
+    ).not.toBeInTheDocument();
+
+    const allowlistInput = screen.getByLabelText('Share-link domain allowlist');
+    const savePolicyButton = screen.getByRole('button', { name: 'Save domain policy' });
+    const savePolicyRow = savePolicyButton.closest('div');
+    expect(savePolicyRow).toHaveClass('flex');
+    expect(savePolicyRow).toHaveClass('justify-end');
+
+    const allDivs = Array.from(document.querySelectorAll('div'));
+    const inputIndex = allDivs.findIndex((element) => element.contains(allowlistInput));
+    const buttonRowIndex = allDivs.findIndex((element) => element === savePolicyRow);
+    expect(buttonRowIndex).toBeGreaterThan(inputIndex);
+  });
+
   it('runs copy, rotate, and revoke share-link actions', async () => {
     const user = userEvent.setup();
     renderEditor({ selectedAsset: SELECTED_ASSET });
