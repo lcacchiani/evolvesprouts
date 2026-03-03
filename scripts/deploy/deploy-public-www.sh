@@ -75,6 +75,24 @@ function validate_release_id() {
   fi
 }
 
+function assert_wildcard_invalidation_limit() {
+  local max_wildcard_paths=15
+  local wildcard_count=0
+  local invalidation_path
+
+  for invalidation_path in "$@"; do
+    if [[ "$invalidation_path" == *"*"* ]]; then
+      wildcard_count=$((wildcard_count + 1))
+    fi
+  done
+
+  if [ "$wildcard_count" -gt "$max_wildcard_paths" ]; then
+    echo "CloudFront allows at most $max_wildcard_paths wildcard invalidation paths in progress."
+    echo "Configured invalidation request has $wildcard_count wildcard paths."
+    return 1
+  fi
+}
+
 function validate_maintenance_contact_settings() {
   if [ -z "${NEXT_PUBLIC_EMAIL:-}" ]; then
     echo "NEXT_PUBLIC_EMAIL is required for maintenance mode deployment."
@@ -149,10 +167,8 @@ function invalidate_distribution() {
         "/en*"
         "/zh-CN*"
         "/zh-HK*"
-        "/about-us*"
         "/about*"
         "/book*"
-        "/contact-us*"
         "/contact*"
         "/events*"
         "/media*"
@@ -165,6 +181,7 @@ function invalidate_distribution() {
         "/sitemap.xml"
       )
     fi
+    assert_wildcard_invalidation_limit "${invalidation_paths[@]}" || return 1
     local max_attempts=5
     local retry_delay_seconds=20
     local attempt=1
