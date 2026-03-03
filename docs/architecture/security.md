@@ -231,8 +231,12 @@ CloudFront Function with a **default-deny** policy.
 
 Security model:
 
-- Only explicitly approved method+path pairs are forwarded to the API origin
-  host resolved from `PublicWwwCrmApiBaseUrl`.
+- Only explicitly approved method+path pairs are forwarded.
+  - Most `/www/*` routes use the API origin host resolved from
+    `PublicWwwCrmApiBaseUrl`.
+  - `POST /www/v1/media-request` uses the execute-api origin resolved from
+    `PublicWwwMediaRequestApiBaseUrl`, with a viewer-request URI rewrite to
+    `/v1/media-request`.
 - Requests that are not allowlisted are blocked at CloudFront with a `403`
   before reaching the API origin.
 - The policy is applied to both production and staging public website
