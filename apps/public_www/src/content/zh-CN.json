@@ -586,39 +586,39 @@
     "nextButtonLabel": "下一条评价",
     "items": [
       {
-        "quote": "Taking part in the toddler healthy eating course was a truly rewarding experience for me and my fellow mum friends. Ida's passion for child development shines through every session, and her Montessori-based strategies are practical and easy to implement at home. I left feeling confident and inspired to build healthy, enjoyable mealtime routines for my little one.",
+        "quote": "参加这次幼儿健康饮食课程，对我和几位妈妈朋友来说都是一次非常有收获的体验。Ida 对儿童发展的热情在每一节课中都能感受到，她基于蒙特梭利的方法既实用又容易在家执行。课程结束后，我更有信心，也更受启发，想为孩子建立健康又愉快的用餐日常。",
         "author": "Yen",
-        "service": "Toddler Healthy Eating Workshop",
+        "service": "幼儿健康饮食工作坊",
         "mainImageSrc": "/images/testimonials/yen.webp"
       },
       {
-        "quote": "This course beautifully explores how to support babies in building a healthy relationship with food and a positive mealtime experience for both child and caregiver. The insights shared were thoughtful, practical, and easy to bring into everyday life. I feel genuinely inspired and excited to create many meaningful dining moments with my baby.",
+        "quote": "这门课程很好地讲解了如何帮助宝宝与食物建立健康关系，并让孩子和照护者都拥有积极的用餐体验。分享的内容有洞见、很实用，也很容易融入日常生活。让我深受启发，也很期待和宝宝创造更多有意义的用餐时光。",
         "author": "Yana",
-        "service": "Toddler Healthy Eating Workshop",
+        "service": "幼儿健康饮食工作坊",
         "mainImageSrc": "/images/testimonials/yana.webp"
       },
       {
-        "quote": "Thank you so much for taking Jenelyn's caregiving skills to the next level! I've already noticed a real improvement in how she engages with our child, and the changes have been wonderful to witness. It's not always an easy journey, but the results speak for themselves — we are truly grateful.",
+        "quote": "非常感谢你让 Jenelyn 的照护能力更上一层楼！我已经明显看到她与孩子互动方式有了很大提升，这些变化真的令人欣喜。这个过程并不总是容易，但成果已经说明一切——我们由衷感激。",
         "author": "Sarah",
-        "service": "My Best Auntie Training Course",
+        "service": "My Best Auntie 培训课程",
         "mainImageSrc": "/images/testimonials/sarah.webp"
       },
       {
-        "quote": "Our caregiver came back from the course excited, motivated, and full of fresh ideas. I'm already noticing a wonderful shift in her approach — from the language she uses to how she handles toddler moments with calm and patience. The reminder that children mirror the behaviour they see has resonated with our whole family.",
+        "quote": "我们的照护者上完课程后，带着满满的热情、动力和新点子回来。我已经明显感受到她在方式上的美好转变——从用词到她在幼儿情绪时刻中的冷静与耐心。孩子会模仿所见行为这一提醒，也让我们全家都很有共鸣。",
         "author": "Gabriella",
-        "service": "My Best Auntie Training Course",
+        "service": "My Best Auntie 培训课程",
         "mainImageSrc": "/images/testimonials/gabriella.webp"
       },
       {
-        "quote": "My auntie recently completed the pilot programme for 0-12 months, and we couldn't be more grateful for such a wonderful course. She came back with a wealth of ideas that we've already started putting into practice at home. As first-time parents, the detailed course notes were a brilliant bonus — it felt like we were learning right alongside her.",
+        "quote": "我家的姨姨最近完成了 0-12 个月试点课程，我们真的非常感激有这样优秀的一门课。她带回了许多想法，我们已经开始在家实践。作为新手父母，详尽的课程笔记更是额外惊喜——感觉就像我们也在和她一起学习。",
         "author": "Emma",
-        "service": "My Best Auntie 0-12 Training Course",
+        "service": "My Best Auntie 0-12 个月培训课程",
         "mainImageSrc": "/images/testimonials/emma.webp"
       },
       {
-        "quote": "After attending the course, our caregiver returned with a real understanding of how to raise an independent, calm toddler — and the difference has been remarkable. I've also had the pleasure of collaborating with Ida professionally on a workshop, and both experiences have been outstanding. The community she creates for caregivers to connect and grow is truly one of a kind.",
-        "author": "A happy parent",
-        "service": "My Best Auntie Training Course",
+        "quote": "参加课程后，我们的照护者真正理解了如何培养一个独立、平和的幼儿，变化非常明显。我也曾在工作坊中与 Ida 有专业合作，两次经历都非常出色。她为照护者打造的交流与成长社群，确实独一无二。",
+        "author": "一位开心家长",
+        "service": "My Best Auntie 培训课程",
         "mainImageSrc": "/images/testimonials/happy-parent-1.webp"
       }
     ]
