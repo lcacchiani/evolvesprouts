@@ -357,7 +357,7 @@ def _resolve_media_resource(message: dict[str, Any]) -> tuple[str, UUID, str]:
 
 
 def _mailchimp_tag_for_resource(resource_key: str) -> str:
-    return f"public-www-free-guide-{resource_key}-requested"
+    return f"public-www-media-{resource_key}-requested"
 
 
 def _required_media_default_resource_key() -> str:

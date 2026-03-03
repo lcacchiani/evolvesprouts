@@ -84,7 +84,7 @@ def test_media_request_publishes_to_sns(
             {
                 "first_name": " Ida ",
                 "email": "IDA@Example.com",
-                "resource_key": " Public Website: Patience Guide ",
+                "resource_key": " Public Website: Patience Media ",
             }
         ),
         headers={"X-Turnstile-Token": "test-token"},
@@ -120,4 +120,4 @@ def test_media_request_publishes_to_sns(
     assert published_message["event_type"] == "media_request.submitted"
     assert published_message["first_name"] == "Ida"
     assert published_message["email"] == "ida@example.com"
-    assert published_message["resource_key"] == "public-website-patience-guide"
+    assert published_message["resource_key"] == "public-website-patience-media"

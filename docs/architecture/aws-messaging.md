@@ -100,7 +100,7 @@ responsive while decoupling downstream processing.
 
 - Triggered by `evolvesprouts-media-queue`.
 - Upserts contact and inserts idempotent lead rows.
-- Applies a resource-specific tag (`public-www-free-guide-<resource_key>-requested`) to the contact.
+- Applies a resource-specific tag (`public-www-media-<resource_key>-requested`) to the contact.
 - Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction`.
 - Sends an SES notification to sales/support.
 

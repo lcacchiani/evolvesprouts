@@ -149,7 +149,7 @@ describe('MediaForm', () => {
         body: {
           first_name: 'Ida',
           email: 'ida@example.com',
-          resource_key: 'patience-guide',
+          resource_key: 'patience-media',
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [202],
