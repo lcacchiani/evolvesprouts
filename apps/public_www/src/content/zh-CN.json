@@ -545,34 +545,44 @@
     "supportChipLabel": "立即联系",
     "items": [
       {
-        "id": "age-specific",
-        "title": "平静是建立出来的，不是靠期待",
-        "description": "孩子并不是“天生难带”。混乱来自指导不清和照护者不一致。我们训练阿姨通过结构、边界和准备来建立平静。"
+        "id": "group-auntie-training-sessions",
+        "title": "阿姨小组培训课",
+        "description": "三节线下小班课，仅面向阿姨。在被尊重、没有雇主压力的空间里，学习儿童发展、引导方法与独立能力培养。打好基础，共享经验，清晰实用。"
       },
       {
-        "id": "small-group-learning",
-        "title": "你的阿姨每天都在教育孩子",
-        "description": "无论是否受过训练，阿姨每天都在塑造你的孩子。我们确保她示范独立、尊重与情绪调节——而不是控制或被动。"
+        "id": "private-coaching-family-specific",
+        "title": "私人 1:1 指导（按家庭定制）",
+        "description": "三节围绕你家真实日常定制的指导。我们会观察、对齐期待、调整回应，并示范精准表达。小组学习建立知识，私人指导让方法在你家真正落地。"
       },
       {
-        "id": "montessori-positive-discipline",
-        "title": "只有安全感会带来依赖",
-        "description": "只有安稳却没有边界，会培养依赖而不是自信。孩子成长需要清晰边界、责任与明确期待。我们教阿姨如何同时做到这三点。"
+        "id": "parent-strategy-calls",
+        "title": "家长策略通话",
+        "description": "我们会退一步，评估进展并重新校准方向。你会清楚知道什么有效、什么需要调整，以及如何避免小问题演变为长期模式。"
       },
       {
-        "id": "ongoing-support",
-        "title": "我们在问题真正发生的地方工作",
-        "description": "课程停留在理论就会失效。我们在你家中、在真实日常与真实压力下观察孩子——并进行精准干预。"
+        "id": "auntie-whatsapp-community",
+        "title": "阿姨 WhatsApp 社群",
+        "description": "面向已报名阿姨的私密支持群组。实时指导、同伴讨论与专家主持。学习在课与课之间持续进行，让一致性不在日常压力下崩塌。"
       },
       {
-        "id": "ready-to-use-tools",
-        "title": "进步必须看得见",
-        "description": "如果没有变化，训练就是失败。我们的家庭能看到行为、日常流程和家庭氛围的可量化变化——每周追踪并共同复盘。"
+        "id": "scripts-tools-real-life-examples",
+        "title": "话术、工具与真实案例",
+        "description": "可直接使用的实战话术，覆盖真实情境。学会不靠吼叫也能引导、不靠惩罚也能转移，并能平静回应抗拒。正确的话语方式会改变行为。"
       },
       {
-        "id": "guaranteed-confidence",
-        "title": "对齐不可妥协",
-        "description": "当父母与阿姨不一致，受影响的是孩子。我们同时与双方合作——让引导始终一致、公平、可预期。"
+        "id": "whatsapp-support-for-parents",
+        "title": "家长 WhatsApp 支持",
+        "description": "课与课之间可直接提问。及早指导可防止升级，并让所有照护者保持一致。"
+      },
+      {
+        "id": "written-reports-after-private-session",
+        "title": "每次私人指导后的书面报告",
+        "description": "每次私人到访后提供清晰的书面总结。包括观察要点、聚焦方向和可立即执行的下一步。不混乱，不错位。"
+      },
+      {
+        "id": "final-programme-report",
+        "title": "最终课程总结报告",
+        "description": "在课程结束时提供整合参考报告。清晰呈现进展，并给出下一发展阶段的后续建议。"
       }
     ],
     "scrollLeftAriaLabel": "向左滚动课程亮点",
