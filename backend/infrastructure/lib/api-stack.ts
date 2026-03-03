@@ -1326,7 +1326,7 @@ export class ApiStack extends cdk.Stack {
           MAILCHIMP_API_SECRET_ARN: mailchimpApiSecret.secretArn,
           MAILCHIMP_LIST_ID: mailchimpListId.valueAsString,
           MAILCHIMP_SERVER_PREFIX: mailchimpServerPrefix.valueAsString,
-          MEDIA_TAG: "media-patience",
+          MEDIA_TAG: "public-www-free-guide-4-ways-patience-requested",
           FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID:
             fourWaysPatienceFreeGuideAssetId.valueAsString,
           AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
