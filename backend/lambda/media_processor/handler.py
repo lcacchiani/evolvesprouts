@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
@@ -25,6 +26,7 @@ from app.db.models import (
     SalesLeadEvent,
     Tag,
 )
+from app.db.repositories.asset import AssetRepository
 from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.services.email import send_email
@@ -38,7 +40,9 @@ logger = get_logger(__name__)
 
 _EVENT_TYPE = "media_request.submitted"
 _SYSTEM_ACTOR = "system"
-_DEFAULT_MEDIA_NAME = "4 Ways to Teach Patience to Young Children"
+_DEFAULT_MEDIA_NAME = "Free Guide"
+_MAX_RESOURCE_KEY_LENGTH = 64
+_RESOURCE_KEY_SANITIZE_PATTERN = re.compile(r"[^a-z0-9]+")
 
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
@@ -95,10 +99,10 @@ def _process_message(message: dict[str, Any]) -> bool:
     submitted_at = _normalize_submitted_at(message.get("submitted_at"))
     request_id = _optional_text(message.get("request_id"))
 
-    tag_name = _required_env("MEDIA_TAG")
-    asset_id = _required_uuid_env("FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID")
-
     with Session(get_engine()) as session:
+        resource_key, asset_id, tag_name, media_name = _resolve_media_resource(
+            session=session, message=message
+        )
         contact_repo = ContactRepository(session)
         sales_lead_repo = SalesLeadRepository(session)
 
@@ -122,12 +126,16 @@ def _process_message(message: dict[str, Any]) -> bool:
                     "contact_id": str(contact.id),
                     "lead_id": str(existing_lead.id),
                     "lead_email": mask_email(email),
+                    "resource_key": resource_key,
                 },
             )
             session.commit()
             return False
 
-        metadata: dict[str, object] = {"event_type": _EVENT_TYPE}
+        metadata: dict[str, object] = {
+            "event_type": _EVENT_TYPE,
+            "resource_key": resource_key,
+        }
         if request_id:
             metadata["request_id"] = request_id
 
@@ -158,6 +166,7 @@ def _process_message(message: dict[str, Any]) -> bool:
                 event_type=LeadEventType.EMAIL_SENT,
                 metadata={
                     "provider": "mailchimp",
+                    "resource_key": resource_key,
                     "tag_name": tag_name,
                 },
                 created_by=_SYSTEM_ACTOR,
@@ -166,6 +175,7 @@ def _process_message(message: dict[str, Any]) -> bool:
         _send_sales_notification(
             first_name=first_name,
             email=email,
+            media_name=media_name,
             submitted_at=submitted_at,
         )
 
@@ -176,6 +186,7 @@ def _process_message(message: dict[str, Any]) -> bool:
                 "contact_id": str(contact.id),
                 "lead_id": str(lead.id),
                 "lead_email": mask_email(email),
+                "resource_key": resource_key,
             },
         )
         return True
@@ -288,6 +299,7 @@ def _send_sales_notification(
     *,
     first_name: str,
     email: str,
+    media_name: str,
     submitted_at: str,
 ) -> None:
     sender_email = os.getenv("SES_SENDER_EMAIL", "").strip()
@@ -301,7 +313,7 @@ def _send_sales_notification(
     email_content = render_sales_notification_email(
         first_name=first_name,
         email=email,
-        media_name=_DEFAULT_MEDIA_NAME,
+        media_name=media_name,
         submitted_at=submitted_at,
     )
     try:
@@ -322,19 +334,71 @@ def _send_sales_notification(
         )
 
 
+def _resolve_media_resource(
+    *,
+    session: Session,
+    message: dict[str, Any],
+) -> tuple[str, UUID, str, str]:
+    default_resource_key = _required_media_default_resource_key()
+    asset_repository = AssetRepository(session)
+
+    requested_resource_key = _normalize_resource_key(message.get("resource_key"))
+    resolved_resource_key = requested_resource_key or default_resource_key
+    resolved_asset = asset_repository.find_by_resource_key(resolved_resource_key)
+    if resolved_asset is None and resolved_resource_key != default_resource_key:
+        logger.warning(
+            "Unknown media resource key, using default",
+            extra={
+                "resource_key": resolved_resource_key,
+                "default_resource_key": default_resource_key,
+            },
+        )
+        resolved_resource_key = default_resource_key
+        resolved_asset = asset_repository.find_by_resource_key(resolved_resource_key)
+
+    if resolved_asset is None:
+        raise RuntimeError(
+            f"No media asset found for resource key '{resolved_resource_key}'"
+        )
+
+    media_name = _optional_text(resolved_asset.title) or _DEFAULT_MEDIA_NAME
+
+    return (
+        resolved_resource_key,
+        resolved_asset.id,
+        _mailchimp_tag_for_resource(resolved_resource_key),
+        media_name,
+    )
+
+
+def _mailchimp_tag_for_resource(resource_key: str) -> str:
+    return f"public-www-media-{resource_key}-requested"
+
+
+def _required_media_default_resource_key() -> str:
+    normalized_key = _normalize_resource_key(
+        _required_env("MEDIA_DEFAULT_RESOURCE_KEY")
+    )
+    if normalized_key is None:
+        raise RuntimeError("MEDIA_DEFAULT_RESOURCE_KEY must include letters or numbers")
+    return normalized_key
+
+
+def _normalize_resource_key(value: Any) -> str | None:
+    normalized_value = _optional_text(value)
+    if normalized_value is None:
+        return None
+
+    slug = _RESOURCE_KEY_SANITIZE_PATTERN.sub("-", normalized_value.lower()).strip("-")
+    slug = slug[:_MAX_RESOURCE_KEY_LENGTH].strip("-")
+    return slug or None
+
+
 def _required_env(name: str) -> str:
     value = os.getenv(name, "").strip()
     if not value:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
-
-
-def _required_uuid_env(name: str) -> UUID:
-    value = _required_env(name)
-    try:
-        return UUID(value)
-    except ValueError as exc:
-        raise RuntimeError(f"Invalid UUID for {name}") from exc
 
 
 def _required_text(value: Any, *, field: str) -> str:

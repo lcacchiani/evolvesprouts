@@ -40,6 +40,7 @@ interface ResourceCardContentProps {
   cardDescription?: string;
   checklistItems: ChecklistEntry[];
   ctaLabel: string;
+  resourceKey: string;
   formFirstNameLabel: string;
   formEmailLabel: string;
   formSubmitLabel: string;
@@ -192,6 +193,7 @@ function ResourceCardContent({
   cardDescription,
   checklistItems,
   ctaLabel,
+  resourceKey,
   formFirstNameLabel,
   formEmailLabel,
   formSubmitLabel,
@@ -238,6 +240,7 @@ function ResourceCardContent({
 
       <MediaForm
         ctaLabel={ctaLabel}
+        resourceKey={resourceKey}
         formFirstNameLabel={formFirstNameLabel}
         formEmailLabel={formEmailLabel}
         formSubmitLabel={formSubmitLabel}
@@ -261,6 +264,8 @@ export function FreeResourcesForGentleParenting({
     readOptionalText(content.cardDescription) ??
     content.description;
   const ctaLabel = readOptionalText(content.ctaLabel) ?? `${content.title} PDF`;
+  const resourceKey =
+    readOptionalText(content.resourceKey) ?? 'patience-free-guide';
   const formFirstNameLabel =
     readOptionalText(content.formFirstNameLabel) ?? 'First name';
   const formEmailLabel =
@@ -305,6 +310,7 @@ export function FreeResourcesForGentleParenting({
       cardDescription={cardDescription}
       checklistItems={checklistItems}
       ctaLabel={ctaLabel}
+      resourceKey={resourceKey}
       formFirstNameLabel={formFirstNameLabel}
       formEmailLabel={formEmailLabel}
       formSubmitLabel={formSubmitLabel}

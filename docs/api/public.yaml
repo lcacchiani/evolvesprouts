@@ -496,6 +496,10 @@ components:
           type: string
           format: email
           maxLength: 320
+        resource_key:
+          type: string
+          maxLength: 200
+          description: Optional free-resource identifier used for downstream CRM tagging.
     ReservationSubmissionAccepted:
       type: object
       required:

@@ -645,6 +645,10 @@ components:
         content_type:
           type: string
           nullable: true
+        resource_key:
+          type: string
+          nullable: true
+          description: Optional normalized key used to map public media submissions to this asset.
         visibility:
           type: string
           enum: [public, restricted]
@@ -930,6 +934,10 @@ components:
         file_name:
           type: string
           maxLength: 255
+        resource_key:
+          type: string
+          maxLength: 200
+          nullable: true
         content_type:
           type: string
           maxLength: 127
@@ -956,6 +964,10 @@ components:
         file_name:
           type: string
           maxLength: 255
+        resource_key:
+          type: string
+          maxLength: 200
+          nullable: true
         content_type:
           type: string
           maxLength: 127

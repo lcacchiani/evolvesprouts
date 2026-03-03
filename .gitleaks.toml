@@ -1,0 +1,11 @@
+title = "Evolve Sprouts gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow non-secret media resource taxonomy keys"
+regexTarget = "match"
+regexes = [
+  '''\b4-ways-patience\b''',
+]

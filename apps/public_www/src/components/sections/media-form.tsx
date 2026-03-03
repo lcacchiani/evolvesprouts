@@ -17,6 +17,7 @@ interface MediaFormProps {
   formSuccessTitle: string;
   formSuccessBody: string;
   formErrorMessage: string;
+  resourceKey?: string;
   className?: string;
   onFormOpened?: () => void;
 }
@@ -24,6 +25,7 @@ interface MediaFormProps {
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MEDIA_REQUEST_API_PATH = '/v1/media-request';
 const MEDIA_FORM_ERROR_ID = 'media-form-error';
+const MAX_RESOURCE_KEY_LENGTH = 64;
 
 function sanitizeSingleLineValue(value: string): string {
   return value.replaceAll(/\s+/g, ' ').trim();
@@ -31,6 +33,16 @@ function sanitizeSingleLineValue(value: string): string {
 
 function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
+}
+
+function normalizeResourceKey(value: string): string {
+  const slug = value
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '')
+    .slice(0, MAX_RESOURCE_KEY_LENGTH)
+    .replaceAll(/-+$/g, '');
+  return slug;
 }
 
 export function MediaForm({
@@ -41,6 +53,7 @@ export function MediaForm({
   formSuccessTitle,
   formSuccessBody,
   formErrorMessage,
+  resourceKey,
   className,
   onFormOpened,
 }: MediaFormProps) {
@@ -112,15 +125,21 @@ export function MediaForm({
 
     setIsSubmitting(true);
     try {
+      const requestBody: Record<string, string> = {
+        first_name: normalizedFirstName,
+        email: normalizedEmail,
+      };
+      const normalizedResourceKey = normalizeResourceKey(resourceKey ?? '');
+      if (normalizedResourceKey) {
+        requestBody.resource_key = normalizedResourceKey;
+      }
+
       const submissionResult = await ServerSubmissionResult.resolve({
         request: () =>
           crmApiClient.request({
             endpointPath: MEDIA_REQUEST_API_PATH,
             method: 'POST',
-            body: {
-              first_name: normalizedFirstName,
-              email: normalizedEmail,
-            },
+            body: requestBody,
             turnstileToken: captchaToken,
             expectedSuccessStatuses: [202],
           }),

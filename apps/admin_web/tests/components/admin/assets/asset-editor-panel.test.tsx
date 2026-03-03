@@ -109,6 +109,7 @@ describe('AssetEditorPanel', () => {
         title: 'Updated title',
         description: 'Original description',
         fileName: 'infant-guide.pdf',
+        resourceKey: null,
         visibility: 'restricted',
       });
     });

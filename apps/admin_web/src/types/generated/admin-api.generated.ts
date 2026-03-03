@@ -880,6 +880,8 @@ export interface components {
             s3_key: string;
             file_name: string;
             content_type?: string | null;
+            /** @description Optional normalized key used to map public media submissions to this asset. */
+            resource_key?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
             created_by?: string | null;
@@ -1005,6 +1007,7 @@ export interface components {
             /** @enum {string} */
             asset_type: "guide" | "video" | "pdf" | "document";
             file_name: string;
+            resource_key?: string | null;
             content_type?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
@@ -1016,6 +1019,7 @@ export interface components {
             /** @enum {string} */
             asset_type?: "guide" | "video" | "pdf" | "document";
             file_name?: string;
+            resource_key?: string | null;
             content_type?: string | null;
             /** @enum {string} */
             visibility?: "public" | "restricted";

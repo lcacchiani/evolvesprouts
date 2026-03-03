@@ -480,12 +480,13 @@ export class ApiStack extends cdk.Stack {
         description: "Mailchimp API server prefix (for example us21)",
       }
     );
-    const fourWaysPatienceFreeGuideAssetId = new cdk.CfnParameter(
+    const mediaDefaultResourceKey = new cdk.CfnParameter(
       this,
-      "FourWaysPatienceFreeGuideAssetId",
+      "MediaDefaultResourceKey",
       {
         type: "String",
-        description: "Asset UUID for the 4 Ways Patience media item",
+        description:
+          "Default media resource key used when media submissions omit resource_key",
       }
     );
 
@@ -1326,9 +1327,7 @@ export class ApiStack extends cdk.Stack {
           MAILCHIMP_API_SECRET_ARN: mailchimpApiSecret.secretArn,
           MAILCHIMP_LIST_ID: mailchimpListId.valueAsString,
           MAILCHIMP_SERVER_PREFIX: mailchimpServerPrefix.valueAsString,
-          MEDIA_TAG: "media-patience",
-          FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID:
-            fourWaysPatienceFreeGuideAssetId.valueAsString,
+          MEDIA_DEFAULT_RESOURCE_KEY: mediaDefaultResourceKey.valueAsString,
           AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
         },
       }

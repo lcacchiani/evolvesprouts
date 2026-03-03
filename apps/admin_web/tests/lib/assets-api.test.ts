@@ -63,6 +63,7 @@ describe('assets-api', () => {
       assetType: 'document',
       s3Key: 'assets/infant-guide.pdf',
       fileName: 'infant-guide.pdf',
+      resourceKey: null,
       visibility: 'restricted',
     });
 
@@ -124,6 +125,7 @@ describe('assets-api', () => {
           description: null,
           asset_type: 'document',
           file_name: 'nutrition.pdf',
+          resource_key: null,
           content_type: 'application/pdf',
           visibility: 'public',
         },

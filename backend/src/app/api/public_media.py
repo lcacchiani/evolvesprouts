@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import json
 import os
+import re
 from typing import Any
 from collections.abc import Mapping
 
@@ -23,7 +24,9 @@ from app.utils.logging import get_logger, mask_email
 logger = get_logger(__name__)
 
 _MAX_FIRST_NAME_LENGTH = 100
+_MAX_RESOURCE_KEY_LENGTH = 64
 _EVENT_TYPE = "media_request.submitted"
+_RESOURCE_KEY_SANITIZE_PATTERN = re.compile(r"[^a-z0-9]+")
 
 
 def handle_media_request(
@@ -53,6 +56,7 @@ def handle_media_request(
     body = parse_body(event)
     first_name = _validate_first_name(body.get("first_name"))
     email = _validate_required_email(body.get("email"))
+    resource_key = _validate_optional_resource_key(body.get("resource_key"))
 
     topic_arn = os.getenv("MEDIA_REQUEST_TOPIC_ARN", "").strip()
     if not topic_arn:
@@ -71,6 +75,8 @@ def handle_media_request(
         "submitted_at": datetime.now(timezone.utc).isoformat(),
         "request_id": request_id,
     }
+    if resource_key is not None:
+        message_payload["resource_key"] = resource_key
 
     try:
         get_sns_client().publish(
@@ -125,3 +131,24 @@ def _validate_required_email(value: Any) -> str:
     if normalized_value is None:
         raise ValidationError("email is required", field="email")
     return normalized_value
+
+
+def _slugify_resource_key(value: str) -> str:
+    slug = _RESOURCE_KEY_SANITIZE_PATTERN.sub("-", value.lower()).strip("-")
+    return slug[:_MAX_RESOURCE_KEY_LENGTH].strip("-")
+
+
+def _validate_optional_resource_key(value: Any) -> str | None:
+    normalized_value = validate_string_length(
+        value,
+        field_name="resource_key",
+        max_length=200,
+        required=False,
+    )
+    if normalized_value is None:
+        return None
+
+    resource_key = _slugify_resource_key(normalized_value)
+    if not resource_key:
+        raise ValidationError("resource_key is invalid", field="resource_key")
+    return resource_key

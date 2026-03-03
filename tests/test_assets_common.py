@@ -9,6 +9,7 @@ import pytest
 from app.api.admin_request import parse_cursor
 from app.api.assets.assets_common import (
     paginate_response,
+    parse_create_asset_payload,
     parse_partial_update_asset_payload,
 )
 from app.exceptions import ValidationError
@@ -76,3 +77,33 @@ def test_parse_partial_update_asset_payload_accepts_subset_fields() -> None:
     }
     payload = parse_partial_update_asset_payload(event)
     assert payload == {"title": "Updated title"}
+
+
+def test_parse_create_asset_payload_normalizes_resource_key() -> None:
+    event = {
+        "body": json.dumps(
+            {
+                "title": "Patience Guide",
+                "file_name": "patience-guide.pdf",
+                "asset_type": "document",
+                "visibility": "restricted",
+                "resource_key": "  Patience Free Guide  ",
+            }
+        ),
+        "isBase64Encoded": False,
+    }
+
+    payload = parse_create_asset_payload(event)
+
+    assert payload["resource_key"] == "patience-free-guide"
+
+
+def test_parse_partial_update_asset_payload_supports_clearing_resource_key() -> None:
+    event = {
+        "body": json.dumps({"resource_key": "   "}),
+        "isBase64Encoded": False,
+    }
+
+    payload = parse_partial_update_asset_payload(event)
+
+    assert payload == {"resource_key": None}
