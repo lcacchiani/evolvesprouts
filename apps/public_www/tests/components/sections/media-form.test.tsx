@@ -55,6 +55,7 @@ function renderMediaForm() {
   return render(
     <MediaForm
       ctaLabel={resourcesContent.ctaLabel}
+      resourceKey={resourcesContent.resourceKey}
       formFirstNameLabel={resourcesContent.formFirstNameLabel}
       formEmailLabel={resourcesContent.formEmailLabel}
       formSubmitLabel={resourcesContent.formSubmitLabel}
@@ -148,6 +149,7 @@ describe('MediaForm', () => {
         body: {
           first_name: 'Ida',
           email: 'ida@example.com',
+          resource_key: '4-ways-patience',
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [202],

@@ -510,7 +510,8 @@ configured by stack custom resources (including retention and KMS association).
 | `MailchimpApiSecretArn` | String | Yes | Yes | Existing Secrets Manager ARN for Mailchimp API key |
 | `MailchimpListId` | String | Yes | No | Mailchimp audience/list ID |
 | `MailchimpServerPrefix` | String | Yes | No | Mailchimp server prefix (for example `us21`) |
-| `FourWaysPatienceFreeGuideAssetId` | String | Yes | No | Asset UUID used for media lead dedupe |
+| `MediaDefaultResourceKey` | String | Yes | No | Default media resource key used when request payload omits `resource_key` |
+| `MediaResourceAssetIdsJson` | String | Yes | No | JSON object mapping media resource keys to asset UUIDs |
 | `ApiCustomDomainName` | String | No | No | Custom domain for the API (default: empty) |
 | `ApiCustomDomainCertificateArn` | String | No | No | ACM certificate ARN for API custom domain |
 | `NominatimUserAgent` | String | No | No | User-Agent for Nominatim geocoding requests |

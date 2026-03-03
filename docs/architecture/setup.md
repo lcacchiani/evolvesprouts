@@ -80,6 +80,10 @@ For the OIDC provider itself, add the same tags:
 - `NEXT_PUBLIC_ADMIN_API_BASE_URL` (execute-api base URL for Public WWW media request proxy routing)
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS` (comma-separated hostname allowlist for `/www` proxy rewrites)
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (for Public WWW booking form)
+- `CDK_PARAM_MAILCHIMP_LIST_ID`
+- `CDK_PARAM_MAILCHIMP_SERVER_PREFIX`
+- `CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY`
+- `CDK_PARAM_MEDIA_RESOURCE_ASSET_IDS_JSON` (JSON object of `resource_key -> asset UUID`)
 - `NEXT_PUBLIC_FPS_MERCHANT_NAME` (for Public WWW payment display)
 - `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (for Public WWW payment display)
 - `NEXT_PUBLIC_GTM_ID` (optional GTM container ID)
@@ -109,6 +113,7 @@ For the OIDC provider itself, add the same tags:
 - `CDK_PARAM_GOOGLE_CLIENT_SECRET`
 - `CDK_PARAM_PUBLIC_API_KEY_VALUE`
 - `CDK_PARAM_TURNSTILE_SECRET_KEY`
+- `CDK_PARAM_MAILCHIMP_API_SECRET_ARN`
 - `CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD` (optional)
 - `NEXT_PUBLIC_WWW_CRM_API_KEY` (Public WWW browser API key)
 - `AMPLIFY_API_KEY`

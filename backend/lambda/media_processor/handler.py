@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
@@ -38,7 +39,9 @@ logger = get_logger(__name__)
 
 _EVENT_TYPE = "media_request.submitted"
 _SYSTEM_ACTOR = "system"
-_DEFAULT_MEDIA_NAME = "4 Ways to Teach Patience to Young Children"
+_DEFAULT_MEDIA_NAME = "Free Guide"
+_MAX_RESOURCE_KEY_LENGTH = 64
+_RESOURCE_KEY_SANITIZE_PATTERN = re.compile(r"[^a-z0-9]+")
 
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
@@ -94,9 +97,7 @@ def _process_message(message: dict[str, Any]) -> bool:
     email = _required_email(message.get("email"))
     submitted_at = _normalize_submitted_at(message.get("submitted_at"))
     request_id = _optional_text(message.get("request_id"))
-
-    tag_name = _required_env("MEDIA_TAG")
-    asset_id = _required_uuid_env("FOUR_WAYS_PATIENCE_FREE_GUIDE_ASSET_ID")
+    resource_key, asset_id, tag_name = _resolve_media_resource(message)
 
     with Session(get_engine()) as session:
         contact_repo = ContactRepository(session)
@@ -122,12 +123,16 @@ def _process_message(message: dict[str, Any]) -> bool:
                     "contact_id": str(contact.id),
                     "lead_id": str(existing_lead.id),
                     "lead_email": mask_email(email),
+                    "resource_key": resource_key,
                 },
             )
             session.commit()
             return False
 
-        metadata: dict[str, object] = {"event_type": _EVENT_TYPE}
+        metadata: dict[str, object] = {
+            "event_type": _EVENT_TYPE,
+            "resource_key": resource_key,
+        }
         if request_id:
             metadata["request_id"] = request_id
 
@@ -158,6 +163,7 @@ def _process_message(message: dict[str, Any]) -> bool:
                 event_type=LeadEventType.EMAIL_SENT,
                 metadata={
                     "provider": "mailchimp",
+                    "resource_key": resource_key,
                     "tag_name": tag_name,
                 },
                 created_by=_SYSTEM_ACTOR,
@@ -176,6 +182,7 @@ def _process_message(message: dict[str, Any]) -> bool:
                 "contact_id": str(contact.id),
                 "lead_id": str(lead.id),
                 "lead_email": mask_email(email),
+                "resource_key": resource_key,
             },
         )
         return True
@@ -322,19 +329,90 @@ def _send_sales_notification(
         )
 
 
+def _resolve_media_resource(message: dict[str, Any]) -> tuple[str, UUID, str]:
+    default_resource_key = _required_media_default_resource_key()
+    resource_assets = _required_media_resource_asset_ids()
+    if default_resource_key not in resource_assets:
+        raise RuntimeError(
+            "MEDIA_RESOURCE_ASSET_IDS_JSON is missing the default resource key"
+        )
+
+    requested_resource_key = _normalize_resource_key(message.get("resource_key"))
+    resource_key = requested_resource_key or default_resource_key
+    if resource_key not in resource_assets:
+        logger.warning(
+            "Unknown media resource key, using default",
+            extra={
+                "resource_key": resource_key,
+                "default_resource_key": default_resource_key,
+            },
+        )
+        resource_key = default_resource_key
+
+    return (
+        resource_key,
+        resource_assets[resource_key],
+        _mailchimp_tag_for_resource(resource_key),
+    )
+
+
+def _mailchimp_tag_for_resource(resource_key: str) -> str:
+    return f"public-www-free-guide-{resource_key}-requested"
+
+
+def _required_media_default_resource_key() -> str:
+    normalized_key = _normalize_resource_key(
+        _required_env("MEDIA_DEFAULT_RESOURCE_KEY")
+    )
+    if normalized_key is None:
+        raise RuntimeError("MEDIA_DEFAULT_RESOURCE_KEY must include letters or numbers")
+    return normalized_key
+
+
+def _required_media_resource_asset_ids() -> dict[str, UUID]:
+    raw_mapping = _required_env("MEDIA_RESOURCE_ASSET_IDS_JSON")
+    try:
+        parsed_mapping = json.loads(raw_mapping)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("MEDIA_RESOURCE_ASSET_IDS_JSON must be valid JSON") from exc
+
+    if not isinstance(parsed_mapping, dict) or not parsed_mapping:
+        raise RuntimeError("MEDIA_RESOURCE_ASSET_IDS_JSON must be a non-empty object")
+
+    resource_assets: dict[str, UUID] = {}
+    for raw_key, raw_asset_id in parsed_mapping.items():
+        normalized_key = _normalize_resource_key(raw_key)
+        if normalized_key is None:
+            raise RuntimeError("MEDIA_RESOURCE_ASSET_IDS_JSON contains an invalid key")
+        if not isinstance(raw_asset_id, str) or not raw_asset_id.strip():
+            raise RuntimeError(
+                "MEDIA_RESOURCE_ASSET_IDS_JSON values must be non-empty UUID strings"
+            )
+        try:
+            resource_assets[normalized_key] = UUID(raw_asset_id.strip())
+        except ValueError as exc:
+            raise RuntimeError(
+                "MEDIA_RESOURCE_ASSET_IDS_JSON contains an invalid asset UUID"
+            ) from exc
+
+    return resource_assets
+
+
+def _normalize_resource_key(value: Any) -> str | None:
+    normalized_value = _optional_text(value)
+    if normalized_value is None:
+        return None
+
+    slug = _RESOURCE_KEY_SANITIZE_PATTERN.sub("-", normalized_value.lower()).strip("-")
+    slug = slug[:_MAX_RESOURCE_KEY_LENGTH].strip("-")
+    return slug or None
+
+
 def _required_env(name: str) -> str:
     value = os.getenv(name, "").strip()
     if not value:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
-
-
-def _required_uuid_env(name: str) -> UUID:
-    value = _required_env(name)
-    try:
-        return UUID(value)
-    except ValueError as exc:
-        raise RuntimeError(f"Invalid UUID for {name}") from exc
 
 
 def _required_text(value: Any, *, field: str) -> str:

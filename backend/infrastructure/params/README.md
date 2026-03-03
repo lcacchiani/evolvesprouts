@@ -30,7 +30,8 @@ The backend stack also requires Mailchimp/media lead parameters:
 - `MailchimpApiSecretArn`
 - `MailchimpListId`
 - `MailchimpServerPrefix`
-- `FourWaysPatienceFreeGuideAssetId`
+- `MediaDefaultResourceKey`
+- `MediaResourceAssetIdsJson`
 
 `production.json` uses placeholder values that resolve from GitHub variables
 and secrets during CI deploy.
