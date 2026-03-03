@@ -127,6 +127,17 @@ describe('AssetEditorPanel', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('renders share-link domain allowlist as a full-width row in edit mode', async () => {
+    renderEditor({ selectedAsset: SELECTED_ASSET });
+
+    await waitFor(() => {
+      expect(mockGetAdminAssetShareLink).toHaveBeenCalledWith('asset-1');
+    });
+
+    const allowlistInput = screen.getByLabelText('Share-link domain allowlist');
+    expect(allowlistInput.closest('div')).toHaveClass('lg:col-span-2');
+  });
+
   it('runs copy, rotate, and revoke share-link actions', async () => {
     const user = userEvent.setup();
     renderEditor({ selectedAsset: SELECTED_ASSET });
