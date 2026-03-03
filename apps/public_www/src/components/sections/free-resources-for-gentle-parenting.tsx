@@ -264,7 +264,8 @@ export function FreeResourcesForGentleParenting({
     readOptionalText(content.cardDescription) ??
     content.description;
   const ctaLabel = readOptionalText(content.ctaLabel) ?? `${content.title} PDF`;
-  const resourceKey = readOptionalText(content.resourceKey) ?? 'patience-media';
+  const resourceKey =
+    readOptionalText(content.resourceKey) ?? 'patience-free-guide';
   const formFirstNameLabel =
     readOptionalText(content.formFirstNameLabel) ?? 'First name';
   const formEmailLabel =
