@@ -260,8 +260,15 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
       </div>
 
       <div className='space-y-2 lg:col-span-2'>
-        <div className='flex flex-wrap items-center justify-between gap-2'>
-          <Label htmlFor='asset-share-allowed-domains'>Share-link domain allowlist</Label>
+        <Label htmlFor='asset-share-allowed-domains'>Share-link domain allowlist</Label>
+        <Textarea
+          id='asset-share-allowed-domains'
+          rows={3}
+          value={allowedDomainsInput}
+          onChange={(event) => setAllowedDomainsInput(event.target.value)}
+          placeholder='example.com'
+        />
+        <div className='flex justify-end'>
           <Button
             type='button'
             size='sm'
@@ -274,17 +281,6 @@ export function AssetShareLinkSection({ selectedAsset }: { selectedAsset: AdminA
             Save policy
           </Button>
         </div>
-        <Textarea
-          id='asset-share-allowed-domains'
-          rows={3}
-          value={allowedDomainsInput}
-          onChange={(event) => setAllowedDomainsInput(event.target.value)}
-          placeholder='example.com'
-        />
-        <p className='text-xs text-slate-600'>
-          One domain per line (or comma-separated). Share links resolve only when Referer/Origin
-          matches one of these domains.
-        </p>
       </div>
       <ConfirmDialog {...confirmDialogProps} />
     </>
