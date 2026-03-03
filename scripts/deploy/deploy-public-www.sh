@@ -155,6 +155,7 @@ function invalidate_distribution() {
         "/contact-us*"
         "/contact*"
         "/events*"
+        "/media*"
         "/newsletter*"
         "/privacy*"
         "/resources*"
