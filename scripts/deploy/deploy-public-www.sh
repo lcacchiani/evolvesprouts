@@ -675,12 +675,10 @@ if [ "$DEPLOY_ENVIRONMENT" = "staging" ]; then
   enforce_staging_robots_txt "$TARGET_BUCKET_NAME"
 fi
 
-if [ "$DEPLOY_ENVIRONMENT" = "production" ]; then
-  apply_www_proxy_mode \
-    "$STACK_NAME" \
-    "$TARGET_DISTRIBUTION_ID" \
-    "$DEPLOY_ENVIRONMENT" \
-    "normal"
-fi
+apply_www_proxy_mode \
+  "$STACK_NAME" \
+  "$TARGET_DISTRIBUTION_ID" \
+  "$DEPLOY_ENVIRONMENT" \
+  "normal"
 
 invalidate_distribution "$TARGET_DISTRIBUTION_ID"

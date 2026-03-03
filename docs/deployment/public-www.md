@@ -83,6 +83,7 @@ Workflow: `.github/workflows/deploy-public-www.yml`
   - store immutable snapshot in `releases/<release_id>/`
   - preserve existing `_next/static` hashed assets to avoid stale HTML
     requesting deleted chunks
+  - re-apply `/www/*` CloudFront proxy allowlist behavior
   - invalidate staging CloudFront (including `/_next/static/*` to clear
     stale asset error responses)
 
