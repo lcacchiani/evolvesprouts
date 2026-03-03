@@ -35,9 +35,7 @@ describe('Testimonials section', () => {
     expect(
       screen.getByAltText(`${firstStory.author} testimonial image`).className,
     ).toContain('rounded-card-lg');
-    expect(screen.getByAltText(`${firstStory.author} avatar`).className).toContain(
-      'rounded-card-lg',
-    );
+    expect(screen.queryByAltText(`${firstStory.author} avatar`)).not.toBeInTheDocument();
     expect(container.querySelector('.es-testimonial-quote-icon')).not.toBeNull();
   });
 

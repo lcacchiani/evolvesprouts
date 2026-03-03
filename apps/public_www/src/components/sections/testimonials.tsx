@@ -29,7 +29,6 @@ interface NormalizedStory {
   author?: string;
   role?: string;
   mainImageSrc?: string;
-  avatarImageSrc?: string;
 }
 
 const SWIPE_THRESHOLD_PX = 48;
@@ -61,12 +60,6 @@ function normalizeStory(item: unknown): NormalizedStory | null {
       'slideImageSrc',
       'imageSrc',
       'image',
-    ]),
-    avatarImageSrc: readCandidateText(record, [
-      'avatarImageSrc',
-      'authorImageSrc',
-      'userImageSrc',
-      'avatar',
     ]),
   };
 
@@ -225,23 +218,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                   </div>
 
                   {(activeStory.author || activeStory.role) && (
-                    <div className='relative mt-6 flex items-center gap-4 sm:mt-8 sm:gap-6'>
-                      {activeStory.avatarImageSrc ? (
-                        <Image
-                          src={activeStory.avatarImageSrc}
-                          alt={`${activeStory.author ?? 'Parent'} avatar`}
-                          width={100}
-                          height={100}
-                          className='h-[82px] w-[71px] shrink-0 rounded-card-lg object-cover sm:h-[100px] sm:w-[100px]'
-                        />
-                      ) : (
-                        <span
-                          className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-card-lg sm:h-[100px] sm:w-[100px] es-testimonials-avatar-fallback'
-                        >
-                          <ParentIcon />
-                        </span>
-                      )}
-
+                    <div className='relative mt-6 sm:mt-8'>
                       <div className='min-w-0 lg:pr-[170px]'>
                         {activeStory.author && (
                           <p className='es-testimonials-author'>{activeStory.author}</p>
