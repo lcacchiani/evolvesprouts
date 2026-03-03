@@ -54,7 +54,7 @@ function normalizeStory(item: unknown): NormalizedStory | null {
       'content',
     ]),
     author: readCandidateText(record, ['author', 'name', 'parentName']),
-    service: readCandidateText(record, ['service', 'role', 'subtitle', 'title']),
+    service: readCandidateText(record, ['service', 'subtitle', 'title']),
     mainImageSrc: readCandidateText(record, [
       'mainImageSrc',
       'slideImageSrc',
