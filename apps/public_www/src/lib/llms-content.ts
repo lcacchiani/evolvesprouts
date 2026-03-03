@@ -1,0 +1,354 @@
+import type { SiteContent } from '@/content';
+import { INDEXED_ROUTE_PATHS, ROUTES } from '@/lib/routes';
+import { SITE_ORIGIN, localizePath } from '@/lib/seo';
+
+function siteUrl(path: string): string {
+  return `${SITE_ORIGIN}${localizePath(path, 'en')}`;
+}
+
+function lines(...parts: string[]): string {
+  return parts.join('\n');
+}
+
+function bulletList(items: readonly string[]): string {
+  return items.map((item) => `- ${item}`).join('\n');
+}
+
+function linkedBullet(label: string, path: string, description: string): string {
+  return `- [${label}](${siteUrl(path)}): ${description}`;
+}
+
+interface PageDescriptor {
+  label: string;
+  path: string;
+  description: string;
+}
+
+function resolvePageDescriptors(content: SiteContent): PageDescriptor[] {
+  return [
+    {
+      label: 'Home',
+      path: ROUTES.home,
+      description: content.seo.home.description,
+    },
+    {
+      label: content.seo.trainingCourse.title,
+      path: ROUTES.servicesMyBestAuntieTrainingCourse,
+      description: content.seo.trainingCourse.description,
+    },
+    {
+      label: 'About Us',
+      path: ROUTES.about,
+      description: content.ida.subtitle,
+    },
+    {
+      label: 'Events',
+      path: ROUTES.events,
+      description: content.events.description,
+    },
+    {
+      label: 'Contact Us',
+      path: ROUTES.contact,
+      description: content.contactUs.contactUsForm.description,
+    },
+  ];
+}
+
+function buildPageLinksSection(pages: PageDescriptor[]): string {
+  return pages
+    .map((page) => linkedBullet(page.label, page.path, page.description))
+    .join('\n');
+}
+
+function buildFaqSummaryLink(content: SiteContent): string {
+  return linkedBullet(
+    'FAQ',
+    `${ROUTES.about}#faq`,
+    `Frequently asked questions about services, pricing, Montessori approach, helper training, and suitability for Hong Kong families.`,
+  );
+}
+
+function buildKeyInformation(content: SiteContent): string {
+  const items = [
+    `**Location**: Hong Kong`,
+    `**Area served**: ${content.seo.localBusinessAreaServed}`,
+    `**Languages**: English, Simplified Chinese (简体中文), Traditional Chinese (繁體中文)`,
+    `**Founded by**: Ida De Gregorio, Montessori-certified practitioner`,
+    `**Target audience**: Families with children aged 0-6 in Hong Kong, especially those working with domestic helpers`,
+  ];
+  return bulletList(items);
+}
+
+function buildServicesSection(content: SiteContent): string {
+  const courseItems = content.myBestAuntieDescription.items;
+  const courseInclusions = courseItems
+    .map((item) => item.title.toLowerCase())
+    .join(', ');
+
+  const items = [
+    `**${content.seo.trainingCourse.title}**: ${content.seo.trainingCourse.description} Includes ${courseInclusions}.`,
+    `**Consultation sessions**: Personalised family support and guidance.`,
+    `**Home setup guidance**: Practical Montessori-adapted space setup for small Hong Kong apartments.`,
+    `**Parent support**: Ongoing coaching and resources for families.`,
+    `**Free resources**: ${content.resources.description}`,
+    `**Community newsletter**: ${content.footer.communityHeading}`,
+  ];
+  return bulletList(items);
+}
+
+function buildNotDoSection(): string {
+  const items = [
+    'Evolve Sprouts does not provide childcare or nanny placement services.',
+    'Evolve Sprouts does not offer online-only training courses (training is in-person in Hong Kong).',
+    'Evolve Sprouts is not a Montessori school or daycare facility.',
+    'Evolve Sprouts does not guarantee specific child behavior outcomes.',
+  ];
+  return bulletList(items);
+}
+
+function buildContactSection(content: SiteContent): string {
+  const email = content.contactUs.contactUsForm.emailAddress;
+  const items = [
+    `**Email**: ${email}`,
+    `**WhatsApp**: Available via website contact button`,
+    `**Website**: ${SITE_ORIGIN}`,
+    `**Response time**: 24-48 hours`,
+  ];
+  return bulletList(items);
+}
+
+export function buildLlmsTxt(content: SiteContent): string {
+  const brand = content.navbar.brand;
+  const orgDescription = content.seo.organizationDescription;
+  const pages = resolvePageDescriptors(content);
+
+  return lines(
+    `# ${brand}`,
+    '',
+    `> ${orgDescription}`,
+    '',
+    '## What We Do',
+    '',
+    buildPageLinksSection(pages),
+    buildFaqSummaryLink(content),
+    '',
+    '## Key Information',
+    '',
+    buildKeyInformation(content),
+    '',
+    '## Services',
+    '',
+    buildServicesSection(content),
+    '',
+    '## What We Do Not Do',
+    '',
+    buildNotDoSection(),
+    '',
+    '## Contact',
+    '',
+    buildContactSection(content),
+    '',
+    '## Optional',
+    '',
+    linkedBullet('Privacy Policy', ROUTES.privacy, content.privacyPolicy.intro),
+    linkedBullet('Terms and Conditions', ROUTES.terms, content.termsAndConditions.intro),
+    `- [Extended AI context](${SITE_ORIGIN}/llms-full.txt): Comprehensive content including full FAQ, course details, and testimonials for deeper AI understanding.`,
+    '',
+  );
+}
+
+function buildFounderSection(content: SiteContent): string {
+  return lines(
+    '### The Founder: Ida De Gregorio',
+    '',
+    content.ida.subtitle,
+    content.ida.description,
+    '',
+    content.myHistory.description,
+  );
+}
+
+function buildPillarsSection(content: SiteContent): string {
+  return content.whyUs.pillars
+    .map((pillar, index) => `${index + 1}. **${pillar.title}**: ${pillar.description}`)
+    .join('\n');
+}
+
+function buildCourseModulesSection(content: SiteContent): string {
+  return content.myBestAuntieOverview.modules
+    .map(
+      (mod) =>
+        `- **${mod.week} (${mod.title})**: ${mod.activity}`,
+    )
+    .join('\n');
+}
+
+function buildCourseInclusionsSection(content: SiteContent): string {
+  return content.myBestAuntieDescription.items
+    .map((item) => `- **${item.title}**: ${item.description}`)
+    .join('\n');
+}
+
+function buildCourseHighlightsSection(content: SiteContent): string {
+  return content.courseHighlights.items
+    .map((item) => `- **${item.title}**: ${item.description}`)
+    .join('\n');
+}
+
+function buildFullFaqSection(content: SiteContent): string {
+  const groupedByLabel = new Map<string, typeof content.faq.questions>();
+
+  for (const label of content.faq.labels) {
+    groupedByLabel.set(label.id, []);
+  }
+
+  for (const question of content.faq.questions) {
+    const primaryLabelId = question.labelIds[0];
+    if (primaryLabelId && groupedByLabel.has(primaryLabelId)) {
+      groupedByLabel.get(primaryLabelId)!.push(question);
+    }
+  }
+
+  const sections: string[] = [];
+  for (const label of content.faq.labels) {
+    const questions = groupedByLabel.get(label.id);
+    if (!questions || questions.length === 0) continue;
+
+    sections.push(`### ${label.label}`);
+    sections.push('');
+    for (const q of questions) {
+      sections.push(`**Q: ${q.question}**`);
+      sections.push(`A: ${q.answer}`);
+      sections.push('');
+    }
+  }
+
+  return sections.join('\n');
+}
+
+function buildTestimonialsSection(content: SiteContent): string {
+  return content.testimonials.items
+    .filter((t) => t.quote.length > 0)
+    .slice(0, 8)
+    .map(
+      (t) =>
+        `- "${t.quote.length > 300 ? `${t.quote.slice(0, 297)}...` : t.quote}" — ${t.author}, ${t.role}`,
+    )
+    .join('\n\n');
+}
+
+function buildSitePagesSection(): string {
+  const pageLabels: Record<string, string> = {
+    '/': 'Home',
+    '/about-us': 'About Us',
+    '/events': 'Events',
+    '/contact-us': 'Contact Us',
+    '/privacy': 'Privacy Policy',
+    '/terms': 'Terms and Conditions',
+    '/services/my-best-auntie-training-course': 'My Best Auntie Training Course',
+  };
+
+  return INDEXED_ROUTE_PATHS.map(
+    (path) => `- [${pageLabels[path] ?? path}](${siteUrl(path)})`,
+  ).join('\n');
+}
+
+function buildMultilingualSection(): string {
+  return lines(
+    '### Multilingual Versions',
+    '',
+    'The site is available in three languages:',
+    `- English: ${SITE_ORIGIN}/en/`,
+    `- Simplified Chinese (简体中文): ${SITE_ORIGIN}/zh-CN/`,
+    `- Traditional Chinese (繁體中文): ${SITE_ORIGIN}/zh-HK/`,
+  );
+}
+
+export function buildLlmsFullTxt(content: SiteContent): string {
+  const brand = content.navbar.brand;
+  const orgDescription = content.seo.organizationDescription;
+  const email = content.contactUs.contactUsForm.emailAddress;
+
+  return lines(
+    `# ${brand} — Full AI Context`,
+    '',
+    `> ${orgDescription}`,
+    '',
+    '---',
+    '',
+    `## About ${brand}`,
+    '',
+    buildFounderSection(content),
+    '',
+    '### Mission',
+    '',
+    content.whyUs.communityText,
+    '',
+    '### Core Pillars',
+    '',
+    buildPillarsSection(content),
+    '',
+    '---',
+    '',
+    `## ${content.seo.trainingCourse.title}`,
+    '',
+    '### Overview',
+    '',
+    `${content.myBestAuntieOverview.description} ${content.seo.trainingCourse.description}`,
+    '',
+    '### Course Structure',
+    '',
+    buildCourseModulesSection(content),
+    '',
+    '### What Is Included',
+    '',
+    buildCourseInclusionsSection(content),
+    '',
+    '### Course Highlights: Why Families Choose This Course',
+    '',
+    buildCourseHighlightsSection(content),
+    '',
+    '---',
+    '',
+    '## Other Services',
+    '',
+    buildServicesSection(content),
+    '',
+    '---',
+    '',
+    '## Frequently Asked Questions',
+    '',
+    buildFullFaqSection(content),
+    '---',
+    '',
+    '## Testimonials',
+    '',
+    buildTestimonialsSection(content),
+    '',
+    '---',
+    '',
+    '## Contact Information',
+    '',
+    bulletList([
+      `**Email**: ${email}`,
+      `**WhatsApp**: Available via website contact button`,
+      `**Website**: ${SITE_ORIGIN}`,
+      `**Response time**: 24-48 hours`,
+    ]),
+    '',
+    '---',
+    '',
+    '## What Evolve Sprouts Does Not Do',
+    '',
+    buildNotDoSection(),
+    '',
+    '---',
+    '',
+    '## Site Pages',
+    '',
+    buildSitePagesSection(),
+    '',
+    buildMultilingualSection(),
+    '',
+  );
+}
