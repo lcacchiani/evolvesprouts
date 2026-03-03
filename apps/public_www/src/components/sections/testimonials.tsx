@@ -27,7 +27,7 @@ interface TestimonialsProps {
 interface NormalizedStory {
   quote?: string;
   author?: string;
-  role?: string;
+  service?: string;
   mainImageSrc?: string;
 }
 
@@ -54,7 +54,7 @@ function normalizeStory(item: unknown): NormalizedStory | null {
       'content',
     ]),
     author: readCandidateText(record, ['author', 'name', 'parentName']),
-    role: readCandidateText(record, ['role', 'subtitle', 'title']),
+    service: readCandidateText(record, ['service', 'role', 'subtitle', 'title']),
     mainImageSrc: readCandidateText(record, [
       'mainImageSrc',
       'slideImageSrc',
@@ -217,17 +217,17 @@ export function Testimonials({ content }: TestimonialsProps) {
                     </p>
                   </div>
 
-                  {(activeStory.author || activeStory.role) && (
+                  {(activeStory.author || activeStory.service) && (
                     <div className='relative mt-6 sm:mt-8'>
                       <div className='min-w-0 lg:pr-[170px]'>
                         {activeStory.author && (
                           <p className='es-testimonials-author'>{activeStory.author}</p>
                         )}
-                        {activeStory.role && (
+                        {activeStory.service && (
                           <p
                             className={`max-w-[190px] es-testimonials-meta ${activeStory.author ? 'mt-1' : ''}`}
                           >
-                            {activeStory.role}
+                            {activeStory.service}
                           </p>
                         )}
                       </div>
@@ -255,7 +255,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                     </div>
                   )}
 
-                  {hasMultipleStories && !activeStory.author && !activeStory.role && (
+                  {hasMultipleStories && !activeStory.author && !activeStory.service && (
                     <div className='mt-6 hidden justify-end lg:flex'>
                       <div className='flex items-center gap-[14px]'>
                         <ButtonPrimitive
