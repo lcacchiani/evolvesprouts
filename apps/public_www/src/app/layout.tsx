@@ -40,7 +40,7 @@ const lato = Lato({
 const poppins = Poppins({
   subsets: ['latin'],
   variable: '--font-poppins',
-  weight: ['500', '600', '700'],
+  weight: ['600', '700'],
   style: ['normal'],
   display: 'swap',
   preload: true,
@@ -105,8 +105,7 @@ export default function RootLayout({
       <body className='antialiased'>
         {/* eslint-disable-next-line @next/next/no-sync-scripts -- must run before hydration without inline wrappers */}
         <script src='/scripts/set-locale-document-attributes.js' />
-        {/* eslint-disable-next-line @next/next/no-sync-scripts -- ensures duplicated responsive content is reduced when stylesheet loading fails */}
-        <script src='/scripts/hide-css-sensitive-duplicates.js' />
+        <script src='/scripts/hide-css-sensitive-duplicates.js' defer />
         <a
           href='#main-content'
           className='sr-only fixed left-4 top-4 z-[80] rounded-md bg-black px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black'
