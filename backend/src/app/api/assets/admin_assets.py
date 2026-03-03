@@ -144,6 +144,7 @@ def _create_asset(event: Mapping[str, Any], created_by: str) -> dict[str, Any]:
             asset_type=payload["asset_type"],
             s3_key=s3_key,
             file_name=payload["file_name"],
+            resource_key=payload["resource_key"],
             content_type=payload["content_type"],
             visibility=payload["visibility"],
             created_by=created_by,
@@ -198,6 +199,8 @@ def _update_asset(
             description=payload.get("description"),
             asset_type=payload.get("asset_type"),
             file_name=payload.get("file_name"),
+            resource_key=payload.get("resource_key"),
+            update_resource_key=(not partial) or ("resource_key" in payload),
             content_type=payload.get("content_type"),
             visibility=payload.get("visibility"),
         )

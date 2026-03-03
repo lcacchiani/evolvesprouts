@@ -40,6 +40,7 @@ Columns:
 - `asset_type` (enum `asset_type`, required) — categorization
 - `s3_key` (varchar, unique, required) — object key in S3
 - `file_name` (varchar(255), required) — original filename
+- `resource_key` (varchar(64), optional) — normalized key for media form mapping
 - `content_type` (varchar(127), optional) — MIME type
 - `visibility` (enum `asset_visibility`, required) — access level
 - `created_by` (varchar(128), required) — Cognito sub of uploader
@@ -52,6 +53,7 @@ Indexes:
 - `assets_visibility_idx` on `visibility`
 - `assets_asset_type_idx` on `asset_type`
 - `assets_created_by_idx` on `created_by`
+- `assets_resource_key_unique_idx` unique index on `resource_key` where non-null
 - Unique constraint on `s3_key`
 
 ## Table: asset_access_grants

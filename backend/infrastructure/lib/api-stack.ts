@@ -489,15 +489,6 @@ export class ApiStack extends cdk.Stack {
           "Default media resource key used when media submissions omit resource_key",
       }
     );
-    const mediaResourceAssetIdsJson = new cdk.CfnParameter(
-      this,
-      "MediaResourceAssetIdsJson",
-      {
-        type: "String",
-        description:
-          "JSON object mapping media resource keys to asset UUIDs for lead dedupe",
-      }
-    );
 
     // ---------------------------------------------------------------------
     // API Custom Domain Parameters (Optional)
@@ -1337,7 +1328,6 @@ export class ApiStack extends cdk.Stack {
           MAILCHIMP_LIST_ID: mailchimpListId.valueAsString,
           MAILCHIMP_SERVER_PREFIX: mailchimpServerPrefix.valueAsString,
           MEDIA_DEFAULT_RESOURCE_KEY: mediaDefaultResourceKey.valueAsString,
-          MEDIA_RESOURCE_ASSET_IDS_JSON: mediaResourceAssetIdsJson.valueAsString,
           AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
         },
       }

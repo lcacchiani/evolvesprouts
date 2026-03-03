@@ -7,6 +7,7 @@ const DEFAULT_ADMIN_ASSET: AdminAsset = {
   assetType: 'document',
   s3Key: 'assets/infant-guide.pdf',
   fileName: 'infant-guide.pdf',
+  resourceKey: null,
   contentType: 'application/pdf',
   visibility: 'restricted',
   createdBy: 'admin@example.com',

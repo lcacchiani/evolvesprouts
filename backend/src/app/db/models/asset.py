@@ -32,6 +32,12 @@ class Asset(Base):
         Index("assets_visibility_idx", "visibility"),
         Index("assets_asset_type_idx", "asset_type"),
         Index("assets_created_by_idx", "created_by"),
+        Index(
+            "assets_resource_key_unique_idx",
+            "resource_key",
+            unique=True,
+            postgresql_where=text("resource_key IS NOT NULL"),
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -52,6 +58,7 @@ class Asset(Base):
     )
     s3_key: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    resource_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     content_type: Mapped[str | None] = mapped_column(String(127), nullable=True)
     visibility: Mapped[AssetVisibility] = mapped_column(
         Enum(

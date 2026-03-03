@@ -146,6 +146,7 @@ function parseAsset(value: ApiAsset): AdminAsset {
     assetType: parseAssetType(value.asset_type),
     s3Key: asString(value.s3_key) ?? '',
     fileName: asString(value.file_name) ?? '',
+    resourceKey: asNullableString(value.resource_key ?? null),
     contentType: asNullableString(value.content_type ?? null),
     visibility: parseVisibility(value.visibility),
     createdBy: asNullableString(value.created_by ?? null),
@@ -251,6 +252,7 @@ function extractHeaders(value: Record<string, string> | null | undefined): Recor
 
 function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetRequest {
   const trimmedDescription = input.description?.trim() ?? '';
+  const trimmedResourceKey = input.resourceKey?.trim() ?? '';
   const trimmedContentType = input.contentType?.trim() ?? '';
 
   return {
@@ -258,6 +260,7 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetReques
     description: trimmedDescription || null,
     asset_type: input.assetType,
     file_name: input.fileName.trim(),
+    resource_key: trimmedResourceKey || null,
     content_type: trimmedContentType || null,
     visibility: input.visibility,
   };

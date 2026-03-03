@@ -31,6 +31,7 @@ interface AssetEditorPanelProps {
       title: string;
       description: string | null;
       fileName: string;
+      resourceKey: string | null;
       visibility: AssetVisibility;
     },
     file: File
@@ -41,6 +42,7 @@ interface AssetEditorPanelProps {
       title: string;
       description: string | null;
       fileName: string;
+      resourceKey: string | null;
       visibility: AssetVisibility;
     }
   ) => Promise<void>;
@@ -50,21 +52,35 @@ interface AssetEditorPanelProps {
 interface AssetFormState {
   title: string;
   description: string;
+  resourceKey: string;
   visibility: AssetVisibility;
 }
 
 const EMPTY_ASSET_FORM: AssetFormState = {
   title: '',
   description: '',
+  resourceKey: '',
   visibility: 'restricted',
 };
+
+const RESOURCE_KEY_MAX_LENGTH = 64;
 
 function toFormState(asset: AdminAsset): AssetFormState {
   return {
     title: asset.title,
     description: asset.description ?? '',
+    resourceKey: asset.resourceKey ?? '',
     visibility: asset.visibility,
   };
+}
+
+function normalizeResourceKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '')
+    .slice(0, RESOURCE_KEY_MAX_LENGTH)
+    .replaceAll(/-+$/g, '');
 }
 
 export function AssetEditorPanel({
@@ -129,13 +145,21 @@ export function AssetEditorPanel({
       title: string;
       description: string | null;
       fileName: string;
+      resourceKey: string | null;
       visibility: AssetVisibility;
     } = {
       title,
       description: formState.description.trim() || null,
       fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
+      resourceKey: null,
       visibility: formState.visibility,
     };
+    const normalizedResourceKey = normalizeResourceKey(formState.resourceKey);
+    if (formState.resourceKey.trim() && !normalizedResourceKey) {
+      setFormError('Resource key tag must include letters or numbers.');
+      return;
+    }
+    payload.resourceKey = normalizedResourceKey || null;
 
     if (isEditMode && selectedAsset) {
       await onUpdate(selectedAsset.id, payload);
@@ -229,6 +253,23 @@ export function AssetEditorPanel({
                 </option>
               ))}
             </Select>
+          </div>
+          <div className='space-y-2'>
+            <Label htmlFor='asset-resource-key'>Resource key tag</Label>
+            <Input
+              id='asset-resource-key'
+              value={formState.resourceKey}
+              onChange={(event) =>
+                setFormState((previous) => ({
+                  ...previous,
+                  resourceKey: event.target.value,
+                }))
+              }
+              placeholder='patience-free-guide'
+            />
+            <p className='text-xs text-slate-600'>
+              Optional slug for mapping public media form submissions to this asset.
+            </p>
           </div>
           {!isEditMode ? (
             <div className='space-y-2'>

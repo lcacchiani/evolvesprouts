@@ -26,6 +26,7 @@ from app.db.models import (
     SalesLeadEvent,
     Tag,
 )
+from app.db.repositories.asset import AssetRepository
 from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.services.email import send_email
@@ -97,9 +98,11 @@ def _process_message(message: dict[str, Any]) -> bool:
     email = _required_email(message.get("email"))
     submitted_at = _normalize_submitted_at(message.get("submitted_at"))
     request_id = _optional_text(message.get("request_id"))
-    resource_key, asset_id, tag_name = _resolve_media_resource(message)
 
     with Session(get_engine()) as session:
+        resource_key, asset_id, tag_name, media_name = _resolve_media_resource(
+            session=session, message=message
+        )
         contact_repo = ContactRepository(session)
         sales_lead_repo = SalesLeadRepository(session)
 
@@ -172,6 +175,7 @@ def _process_message(message: dict[str, Any]) -> bool:
         _send_sales_notification(
             first_name=first_name,
             email=email,
+            media_name=media_name,
             submitted_at=submitted_at,
         )
 
@@ -295,6 +299,7 @@ def _send_sales_notification(
     *,
     first_name: str,
     email: str,
+    media_name: str,
     submitted_at: str,
 ) -> None:
     sender_email = os.getenv("SES_SENDER_EMAIL", "").strip()
@@ -308,7 +313,7 @@ def _send_sales_notification(
     email_content = render_sales_notification_email(
         first_name=first_name,
         email=email,
-        media_name=_DEFAULT_MEDIA_NAME,
+        media_name=media_name,
         submitted_at=submitted_at,
     )
     try:
@@ -329,30 +334,40 @@ def _send_sales_notification(
         )
 
 
-def _resolve_media_resource(message: dict[str, Any]) -> tuple[str, UUID, str]:
+def _resolve_media_resource(
+    *,
+    session: Session,
+    message: dict[str, Any],
+) -> tuple[str, UUID, str, str]:
     default_resource_key = _required_media_default_resource_key()
-    resource_assets = _required_media_resource_asset_ids()
-    if default_resource_key not in resource_assets:
-        raise RuntimeError(
-            "MEDIA_RESOURCE_ASSET_IDS_JSON is missing the default resource key"
-        )
+    asset_repository = AssetRepository(session)
 
     requested_resource_key = _normalize_resource_key(message.get("resource_key"))
-    resource_key = requested_resource_key or default_resource_key
-    if resource_key not in resource_assets:
+    resolved_resource_key = requested_resource_key or default_resource_key
+    resolved_asset = asset_repository.find_by_resource_key(resolved_resource_key)
+    if resolved_asset is None and resolved_resource_key != default_resource_key:
         logger.warning(
             "Unknown media resource key, using default",
             extra={
-                "resource_key": resource_key,
+                "resource_key": resolved_resource_key,
                 "default_resource_key": default_resource_key,
             },
         )
-        resource_key = default_resource_key
+        resolved_resource_key = default_resource_key
+        resolved_asset = asset_repository.find_by_resource_key(resolved_resource_key)
+
+    if resolved_asset is None:
+        raise RuntimeError(
+            f"No media asset found for resource key '{resolved_resource_key}'"
+        )
+
+    media_name = _optional_text(resolved_asset.title) or _DEFAULT_MEDIA_NAME
 
     return (
-        resource_key,
-        resource_assets[resource_key],
-        _mailchimp_tag_for_resource(resource_key),
+        resolved_resource_key,
+        resolved_asset.id,
+        _mailchimp_tag_for_resource(resolved_resource_key),
+        media_name,
     )
 
 
@@ -367,35 +382,6 @@ def _required_media_default_resource_key() -> str:
     if normalized_key is None:
         raise RuntimeError("MEDIA_DEFAULT_RESOURCE_KEY must include letters or numbers")
     return normalized_key
-
-
-def _required_media_resource_asset_ids() -> dict[str, UUID]:
-    raw_mapping = _required_env("MEDIA_RESOURCE_ASSET_IDS_JSON")
-    try:
-        parsed_mapping = json.loads(raw_mapping)
-    except json.JSONDecodeError as exc:
-        raise RuntimeError("MEDIA_RESOURCE_ASSET_IDS_JSON must be valid JSON") from exc
-
-    if not isinstance(parsed_mapping, dict) or not parsed_mapping:
-        raise RuntimeError("MEDIA_RESOURCE_ASSET_IDS_JSON must be a non-empty object")
-
-    resource_assets: dict[str, UUID] = {}
-    for raw_key, raw_asset_id in parsed_mapping.items():
-        normalized_key = _normalize_resource_key(raw_key)
-        if normalized_key is None:
-            raise RuntimeError("MEDIA_RESOURCE_ASSET_IDS_JSON contains an invalid key")
-        if not isinstance(raw_asset_id, str) or not raw_asset_id.strip():
-            raise RuntimeError(
-                "MEDIA_RESOURCE_ASSET_IDS_JSON values must be non-empty UUID strings"
-            )
-        try:
-            resource_assets[normalized_key] = UUID(raw_asset_id.strip())
-        except ValueError as exc:
-            raise RuntimeError(
-                "MEDIA_RESOURCE_ASSET_IDS_JSON contains an invalid asset UUID"
-            ) from exc
-
-    return resource_assets
 
 
 def _normalize_resource_key(value: Any) -> str | None:

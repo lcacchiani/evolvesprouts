@@ -34,7 +34,6 @@
   "MailchimpListId": "<FROM_GITHUB_VAR: CDK_PARAM_MAILCHIMP_LIST_ID>",
   "MailchimpServerPrefix": "<FROM_GITHUB_VAR: CDK_PARAM_MAILCHIMP_SERVER_PREFIX>",
   "MediaDefaultResourceKey": "<FROM_GITHUB_VAR: CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY>",
-  "MediaResourceAssetIdsJson": "<FROM_GITHUB_VAR: CDK_PARAM_MEDIA_RESOURCE_ASSET_IDS_JSON>",
   "NominatimUserAgent": "EvolveSproutsAdminWeb/1.0 (https://admin.evolvesprouts.com)",
   "NominatimReferer": "https://admin.evolvesprouts.com",
   "AssetDownloadCloudFrontPublicKeyPem": "<FROM_GITHUB_SECRET: CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PUBLIC_KEY_PEM>",

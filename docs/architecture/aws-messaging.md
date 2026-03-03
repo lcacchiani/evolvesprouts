@@ -100,6 +100,7 @@ responsive while decoupling downstream processing.
 
 - Triggered by `evolvesprouts-media-queue`.
 - Upserts contact and inserts idempotent lead rows.
+- Resolves media asset IDs by matching `resource_key` against `assets.resource_key`.
 - Applies a resource-specific tag (`public-www-media-<resource_key>-requested`) to the contact.
 - Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction`.
 - Sends an SES notification to sales/support.
@@ -163,7 +164,6 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `MAILCHIMP_LIST_ID` | Mailchimp list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
 | `MEDIA_DEFAULT_RESOURCE_KEY` | Default resource key used when request payload omits `resource_key` |
-| `MEDIA_RESOURCE_ASSET_IDS_JSON` | JSON object mapping resource keys to asset UUIDs for lead dedupe |
 | `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for HTTP proxy calls |
 
 ## Stack Outputs

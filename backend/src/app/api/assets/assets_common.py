@@ -31,6 +31,7 @@ from app.utils import json_response, require_env
 
 _MAX_FILE_NAME_LENGTH = 255
 _MAX_MIME_TYPE_LENGTH = 127
+_MAX_RESOURCE_KEY_LENGTH = 64
 _MAX_PRINCIPAL_ID_LENGTH = 128
 _DEFAULT_PRESIGN_TTL_SECONDS = 900
 _MIN_PRESIGN_TTL_SECONDS = 60
@@ -39,6 +40,7 @@ _DEFAULT_DOWNLOAD_LINK_EXPIRY_DAYS = 9999
 _MIN_DOWNLOAD_LINK_EXPIRY_DAYS = 1
 _MAX_DOWNLOAD_LINK_EXPIRY_DAYS = 36500
 _FILENAME_SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
+_RESOURCE_KEY_SANITIZE_RE = re.compile(r"[^a-z0-9]+")
 
 
 @dataclass(frozen=True)
@@ -159,6 +161,7 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     file_name = _required_text(
         body, "file_name", "fileName", max_length=_MAX_FILE_NAME_LENGTH
     )
+    resource_key = _optional_resource_key(body, "resource_key", "resourceKey")
     asset_type = parse_asset_type(
         _optional_field(body, "asset_type", "assetType") or "document"
     )
@@ -173,6 +176,7 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
         "title": title,
         "description": description,
         "file_name": file_name,
+        "resource_key": resource_key,
         "asset_type": asset_type,
         "content_type": content_type,
         "visibility": visibility,
@@ -199,6 +203,10 @@ def parse_partial_update_asset_payload(event: Mapping[str, Any]) -> dict[str, An
             "file_name",
             "fileName",
             max_length=_MAX_FILE_NAME_LENGTH,
+        )
+    if _has_any_field(body, "resource_key", "resourceKey"):
+        payload["resource_key"] = _optional_resource_key(
+            body, "resource_key", "resourceKey"
         )
     if _has_any_field(body, "asset_type", "assetType"):
         asset_type_raw = _optional_field(body, "asset_type", "assetType")
@@ -388,6 +396,7 @@ def serialize_asset(asset: Asset) -> dict[str, Any]:
         "asset_type": asset.asset_type.value,
         "s3_key": asset.s3_key,
         "file_name": asset.file_name,
+        "resource_key": asset.resource_key,
         "content_type": asset.content_type,
         "visibility": asset.visibility.value,
         "created_by": asset.created_by,
@@ -452,6 +461,19 @@ def _required_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str:
 def _optional_text(body: Mapping[str, Any], *keys: str, max_length: int) -> str | None:
     value = _optional_field(body, *keys)
     return validate_string_length(value, keys[0], max_length=max_length, required=False)
+
+
+def _optional_resource_key(body: Mapping[str, Any], *keys: str) -> str | None:
+    value = _optional_field(body, *keys)
+    normalized = validate_string_length(value, keys[0], max_length=200, required=False)
+    if normalized is None:
+        return None
+
+    slug = _RESOURCE_KEY_SANITIZE_RE.sub("-", normalized.lower()).strip("-")
+    slug = slug[:_MAX_RESOURCE_KEY_LENGTH].strip("-")
+    if not slug:
+        raise ValidationError("resource_key is invalid", field=keys[0])
+    return slug
 
 
 def _optional_field(body: Mapping[str, Any], *keys: str) -> Any:

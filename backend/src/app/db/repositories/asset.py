@@ -57,6 +57,7 @@ class AssetRepository(BaseRepository[Asset]):
                 or_(
                     Asset.title.ilike(pattern, escape="\\"),
                     Asset.file_name.ilike(pattern, escape="\\"),
+                    Asset.resource_key.ilike(pattern, escape="\\"),
                 )
             )
         statement = statement.order_by(Asset.id).limit(limit)
@@ -146,6 +147,7 @@ class AssetRepository(BaseRepository[Asset]):
         asset_type: AssetType,
         s3_key: str,
         file_name: str,
+        resource_key: str | None,
         content_type: str | None,
         visibility: AssetVisibility,
         created_by: str,
@@ -158,6 +160,7 @@ class AssetRepository(BaseRepository[Asset]):
             asset_type=asset_type,
             s3_key=s3_key,
             file_name=file_name,
+            resource_key=resource_key,
             content_type=content_type,
             visibility=visibility,
             created_by=created_by,
@@ -172,6 +175,8 @@ class AssetRepository(BaseRepository[Asset]):
         description: str | None = None,
         asset_type: AssetType | None = None,
         file_name: str | None = None,
+        resource_key: str | None = None,
+        update_resource_key: bool = False,
         content_type: str | None = None,
         visibility: AssetVisibility | None = None,
         s3_key: str | None = None,
@@ -185,6 +190,8 @@ class AssetRepository(BaseRepository[Asset]):
             asset.asset_type = asset_type
         if file_name is not None:
             asset.file_name = file_name
+        if update_resource_key:
+            asset.resource_key = resource_key
         if content_type is not None:
             asset.content_type = content_type
         if visibility is not None:
@@ -192,6 +199,17 @@ class AssetRepository(BaseRepository[Asset]):
         if s3_key is not None:
             asset.s3_key = s3_key
         return self.update(asset)
+
+    def find_by_resource_key(self, resource_key: str) -> Asset | None:
+        """Return an asset by normalized media resource key."""
+        normalized_key = resource_key.strip().lower()
+        if not normalized_key:
+            return None
+
+        statement = select(Asset).where(
+            func.lower(Asset.resource_key) == normalized_key
+        )
+        return self._session.execute(statement).scalar_one_or_none()
 
     def list_grants(self, *, asset_id: UUID) -> Sequence[AssetAccessGrant]:
         """List all grants for an asset."""
