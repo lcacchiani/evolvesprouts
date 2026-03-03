@@ -119,8 +119,7 @@ export default function RootLayout({
         >
           Staging
         </div>
-        {/* eslint-disable-next-line @next/next/no-sync-scripts -- keeps staging badge bootstrap external and CSP-safe */}
-        <script src='/scripts/show-staging-badge.js' />
+        <script src='/scripts/show-staging-badge.js' defer />
         <GoogleTagManager />
         {children}
       </body>
