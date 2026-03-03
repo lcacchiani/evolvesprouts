@@ -32,7 +32,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add optional resource key lookup column to assets."""
-    op.add_column("assets", sa.Column("resource_key", sa.String(length=64), nullable=True))
+    op.add_column(
+        "assets", sa.Column("resource_key", sa.String(length=64), nullable=True)
+    )
     op.create_index(
         "assets_resource_key_unique_idx",
         "assets",
