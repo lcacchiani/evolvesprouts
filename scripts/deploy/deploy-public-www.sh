@@ -371,7 +371,7 @@ function resolve_www_allowlist_function_arn() {
     function_name="${function_name##*/}"
   fi
 
-  if [[ ! "$function_name" =~ ^[A-Za-z0-9-_]{1,64}$ ]]; then
+  if [[ ! "$function_name" =~ ^[A-Za-z0-9_-]{1,64}$ ]]; then
     echo "Resolved invalid CloudFront function name: '$function_name'" >&2
     echo "Raw stack resource identifier: '$function_resource_id'" >&2
     exit 1
