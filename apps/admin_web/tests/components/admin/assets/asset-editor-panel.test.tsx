@@ -115,6 +115,18 @@ describe('AssetEditorPanel', () => {
     });
   });
 
+  it('removes the deprecated resource-key helper copy', async () => {
+    renderEditor({ selectedAsset: SELECTED_ASSET });
+
+    await waitFor(() => {
+      expect(mockGetAdminAssetShareLink).toHaveBeenCalledWith('asset-1');
+    });
+
+    expect(
+      screen.queryByText('Optional slug for mapping public media form submissions to this asset.')
+    ).not.toBeInTheDocument();
+  });
+
   it('runs copy, rotate, and revoke share-link actions', async () => {
     const user = userEvent.setup();
     renderEditor({ selectedAsset: SELECTED_ASSET });
