@@ -217,6 +217,11 @@ function prepare_maintenance_build_dir() {
     exit 1
   fi
 
+  if [ ! -f "$APP_DIR/public/images/contact-email.svg" ]; then
+    echo "Contact email icon source not found at $APP_DIR/public/images/contact-email.svg"
+    exit 1
+  fi
+
   if [ ! -f "$APP_DIR/public/favicon.ico" ]; then
     echo "Favicon source not found at $APP_DIR/public/favicon.ico"
     exit 1
@@ -229,6 +234,9 @@ function prepare_maintenance_build_dir() {
   cp \
     "$APP_DIR/public/images/evolvesprouts-logo.svg" \
     "$maintenance_build_dir/images/evolvesprouts-logo.svg"
+  cp \
+    "$APP_DIR/public/images/contact-email.svg" \
+    "$maintenance_build_dir/images/contact-email.svg"
   cp \
     "$APP_DIR/public/favicon.ico" \
     "$maintenance_build_dir/favicon.ico"
