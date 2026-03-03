@@ -39,13 +39,13 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 - `PublicWwwStagingDomainName`: `www-staging.evolvesprouts.com`
 - `PublicWwwStagingCertificateArn`: ACM certificate ARN for staging
 - `PublicWwwCrmApiBaseUrl`: `<FROM_GITHUB_VAR: NEXT_PUBLIC_WWW_CRM_API_BASE_URL>`
-- `PublicWwwMediaRequestApiBaseUrl`: `<FROM_GITHUB_VAR: NEXT_PUBLIC_ADMIN_BASE_API_URL>`
+- `PublicWwwMediaRequestApiBaseUrl`: `<FROM_GITHUB_VAR: NEXT_PUBLIC_ADMIN_API_BASE_URL>`
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1)
 
 Public WWW CRM API configuration is provided at build time via:
 
 - GitHub variable `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
-- GitHub variable `NEXT_PUBLIC_ADMIN_BASE_API_URL`
+- GitHub variable `NEXT_PUBLIC_ADMIN_API_BASE_URL`
 - GitHub variable `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - GitHub variable `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
