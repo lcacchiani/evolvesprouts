@@ -11,6 +11,8 @@ interface WebsiteEnvironmentConfig {
   readonly domainName: string;
   readonly certificateArn: string;
   readonly apiOriginDomainName: string;
+  readonly mediaRequestApiOriginDomainName: string;
+  readonly mediaRequestApiOriginPath: string;
   readonly bucketNamePrefix: string;
   readonly loggingBucketNamePrefix: string;
   readonly addNoIndexHeader: boolean;
@@ -94,6 +96,24 @@ export class PublicWwwStack extends cdk.Stack {
     const publicWwwApiOriginDomainName = resolveApiOriginDomainName(
       publicWwwCrmApiBaseUrl.valueAsString,
     );
+    const publicWwwMediaRequestApiBaseUrl = new cdk.CfnParameter(
+      this,
+      "PublicWwwMediaRequestApiBaseUrl",
+      {
+        type: "String",
+        description:
+          "Absolute HTTPS execute-api base URL for media requests (for example https://abc123.execute-api.ap-southeast-1.amazonaws.com/prod).",
+        allowedPattern: "^https://[^/]+/[^/]+/?$",
+        constraintDescription:
+          "Must be an absolute HTTPS URL ending in a single stage path segment (for example /prod).",
+      },
+    );
+    const publicWwwMediaRequestApiOriginDomainName = resolveApiOriginDomainName(
+      publicWwwMediaRequestApiBaseUrl.valueAsString,
+    );
+    const publicWwwMediaRequestApiOriginPath = resolveApiOriginPath(
+      publicWwwMediaRequestApiBaseUrl.valueAsString,
+    );
 
     const wafWebAclArn = new cdk.CfnParameter(this, "WafWebAclArn", {
       type: "String",
@@ -116,6 +136,8 @@ export class PublicWwwStack extends cdk.Stack {
       domainName: productionDomainName.valueAsString,
       certificateArn: productionCertificateArn.valueAsString,
       apiOriginDomainName: publicWwwApiOriginDomainName,
+      mediaRequestApiOriginDomainName: publicWwwMediaRequestApiOriginDomainName,
+      mediaRequestApiOriginPath: publicWwwMediaRequestApiOriginPath,
       bucketNamePrefix: "evolvesprouts-public-www",
       loggingBucketNamePrefix: "evolvesprouts-public-www-logs",
       addNoIndexHeader: false,
@@ -132,6 +154,8 @@ export class PublicWwwStack extends cdk.Stack {
       domainName: stagingDomainName.valueAsString,
       certificateArn: stagingCertificateArn.valueAsString,
       apiOriginDomainName: publicWwwApiOriginDomainName,
+      mediaRequestApiOriginDomainName: publicWwwMediaRequestApiOriginDomainName,
+      mediaRequestApiOriginPath: publicWwwMediaRequestApiOriginPath,
       bucketNamePrefix: "evolvesprouts-staging-www",
       loggingBucketNamePrefix: "evolvesprouts-staging-www-logs",
       addNoIndexHeader: true,
@@ -252,6 +276,13 @@ export class PublicWwwStack extends cdk.Stack {
     const wwwApiOrigin = new origins.HttpOrigin(config.apiOriginDomainName, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
     });
+    const mediaRequestApiOrigin = new origins.HttpOrigin(
+      config.mediaRequestApiOriginDomainName,
+      {
+        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+        originPath: config.mediaRequestApiOriginPath,
+      },
+    );
     const pathRewriteFunction = new cloudfront.Function(
       this,
       `${config.idPrefix}PathRewriteFunction`,
@@ -303,11 +334,42 @@ function handler(event) {
     'POST': {
       '/www/v1/discounts/validate': true,
       '/www/v1/reservations': true,
-      '/www/v1/contact-us': true,
-      '/www/v1/media-request': true
+      '/www/v1/contact-us': true
     }
   };
   if (allowlist[method] && allowlist[method][uri]) {
+    return request;
+  }
+
+  return {
+    statusCode: 403,
+    statusDescription: 'Forbidden',
+    headers: {
+      'content-type': { value: 'application/json; charset=utf-8' },
+      'cache-control': { value: 'no-store' }
+    },
+    body: '{"message":"Forbidden"}'
+  };
+}
+`),
+      },
+    );
+    const mediaRequestProxyFunction = new cloudfront.Function(
+      this,
+      `${config.idPrefix}MediaRequestProxyFunction`,
+      {
+        comment:
+          "Allow /www/v1/media-request and rewrite path for execute-api origin.",
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
+        code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var method = request.method || '';
+  var uri = request.uri || '';
+  var isAllowedMethod = method === 'POST' || method === 'OPTIONS';
+
+  if (uri === '/www/v1/media-request' && isAllowedMethod) {
+    request.uri = '/v1/media-request';
     return request;
   }
 
@@ -425,6 +487,21 @@ function handler(event) {
           ],
         },
         additionalBehaviors: {
+          "www/v1/media-request": {
+            origin: mediaRequestApiOrigin,
+            viewerProtocolPolicy:
+              cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+            cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+            originRequestPolicy:
+              cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+            functionAssociations: [
+              {
+                function: mediaRequestProxyFunction,
+                eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+              },
+            ],
+          },
           "www/*": {
             origin: wwwApiOrigin,
             viewerProtocolPolicy:
@@ -466,4 +543,11 @@ function resolveApiOriginDomainName(apiBaseUrl: string): string {
     0,
     cdk.Fn.split("/", cdk.Fn.select(1, cdk.Fn.split("://", apiBaseUrl))),
   );
+}
+
+function resolveApiOriginPath(apiBaseUrl: string): string {
+  return `/${cdk.Fn.select(
+    1,
+    cdk.Fn.split("/", cdk.Fn.select(1, cdk.Fn.split("://", apiBaseUrl))),
+  )}`;
 }
