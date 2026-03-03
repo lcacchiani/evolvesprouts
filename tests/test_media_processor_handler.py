@@ -27,11 +27,11 @@ def _load_handler_module() -> Any:
 
 def test_resolve_media_resource_uses_requested_resource_key(monkeypatch: Any) -> None:
     handler = _load_handler_module()
-    monkeypatch.setenv("MEDIA_DEFAULT_RESOURCE_KEY", "4-ways-patience")
+    monkeypatch.setenv("MEDIA_DEFAULT_RESOURCE_KEY", "patience-guide")
     monkeypatch.setenv(
         "MEDIA_RESOURCE_ASSET_IDS_JSON",
         (
-            '{"4-ways-patience":"11111111-1111-1111-1111-111111111111",'
+            '{"patience-guide":"11111111-1111-1111-1111-111111111111",'
             '"sleep-routines":"22222222-2222-2222-2222-222222222222"}'
         ),
     )
@@ -49,33 +49,33 @@ def test_resolve_media_resource_uses_default_when_resource_key_missing(
     monkeypatch: Any,
 ) -> None:
     handler = _load_handler_module()
-    monkeypatch.setenv("MEDIA_DEFAULT_RESOURCE_KEY", "4-ways-patience")
+    monkeypatch.setenv("MEDIA_DEFAULT_RESOURCE_KEY", "patience-guide")
     monkeypatch.setenv(
         "MEDIA_RESOURCE_ASSET_IDS_JSON",
-        '{"4-ways-patience":"11111111-1111-1111-1111-111111111111"}',
+        '{"patience-guide":"11111111-1111-1111-1111-111111111111"}',
     )
 
     resource_key, asset_id, tag_name = handler._resolve_media_resource({})
 
-    assert resource_key == "4-ways-patience"
+    assert resource_key == "patience-guide"
     assert asset_id == UUID("11111111-1111-1111-1111-111111111111")
-    assert tag_name == "public-www-free-guide-4-ways-patience-requested"
+    assert tag_name == "public-www-free-guide-patience-guide-requested"
 
 
 def test_resolve_media_resource_falls_back_to_default_for_unknown_key(
     monkeypatch: Any,
 ) -> None:
     handler = _load_handler_module()
-    monkeypatch.setenv("MEDIA_DEFAULT_RESOURCE_KEY", "4-ways-patience")
+    monkeypatch.setenv("MEDIA_DEFAULT_RESOURCE_KEY", "patience-guide")
     monkeypatch.setenv(
         "MEDIA_RESOURCE_ASSET_IDS_JSON",
-        '{"4-ways-patience":"11111111-1111-1111-1111-111111111111"}',
+        '{"patience-guide":"11111111-1111-1111-1111-111111111111"}',
     )
 
     resource_key, asset_id, tag_name = handler._resolve_media_resource(
         {"resource_key": "not-in-map"}
     )
 
-    assert resource_key == "4-ways-patience"
+    assert resource_key == "patience-guide"
     assert asset_id == UUID("11111111-1111-1111-1111-111111111111")
-    assert tag_name == "public-www-free-guide-4-ways-patience-requested"
+    assert tag_name == "public-www-free-guide-patience-guide-requested"
