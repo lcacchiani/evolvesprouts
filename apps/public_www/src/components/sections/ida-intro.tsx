@@ -71,8 +71,6 @@ export function IdaIntro({ content }: IdaIntroProps) {
             alt={content.imageAlt}
             width={764}
             height={841}
-            priority
-            fetchPriority='high'
             sizes='(max-width: 640px) 92vw, 400px'
             className='relative z-10 h-auto w-full'
           />
