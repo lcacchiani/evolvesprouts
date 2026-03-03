@@ -267,9 +267,6 @@ export function AssetEditorPanel({
               }
               placeholder='patience-free-guide'
             />
-            <p className='text-xs text-slate-600'>
-              Optional slug for mapping public media form submissions to this asset.
-            </p>
           </div>
           {!isEditMode ? (
             <div className='space-y-2'>
@@ -288,13 +285,13 @@ export function AssetEditorPanel({
               />
             </div>
           ) : selectedAsset ? (
-            <div className='space-y-3 lg:col-span-2'>
-              <div className='space-y-2'>
-                <Label htmlFor='asset-file-name'>File</Label>
-                <Input id='asset-file-name' value={selectedAsset.fileName || '—'} disabled readOnly />
-                <p className='text-xs text-slate-600'>File replacement is not supported in edit mode.</p>
-              </div>
-              <AssetShareLinkSection selectedAsset={selectedAsset} />
+            <AssetShareLinkSection selectedAsset={selectedAsset} />
+          ) : null}
+          {isEditMode && selectedAsset ? (
+            <div className='space-y-2 lg:col-span-2'>
+              <Label htmlFor='asset-file-name'>File</Label>
+              <Input id='asset-file-name' value={selectedAsset.fileName || '—'} disabled readOnly />
+              <p className='text-xs text-slate-600'>File replacement is not supported in edit mode.</p>
             </div>
           ) : null}
         </div>
