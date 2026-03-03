@@ -27,7 +27,7 @@
     color: var(--site-heading-text);
     font-family: var(--site-heading-font);
     font-size: clamp(1rem, 1.8vw, 18px);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.4;
     letter-spacing: 0;
   }
