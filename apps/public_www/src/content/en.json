@@ -586,54 +586,39 @@
     "nextButtonLabel": "Next testimonial",
     "items": [
       {
-        "quote": "Ida was fantastic, she helped me understand how I could set up my home in a Montessori way without disrupting my style.",
-        "author": "Mary Lo",
-        "role": "Mom of 2",
-        "mainImageSrc": "/images/testimonials/story-1-main.webp",
-        "avatarImageSrc": "/images/testimonials/story-1-avatar.webp"
-      },
-      {
-        "quote": "Taking part in the toddler healthy eating course was such a rewarding experience for me and my fellow mom friends! Ida's passion for child development and happiness truly shone through, and her expertise in Montessori principles made the strategies practical and easy to implement. I left feeling confident and inspired to create healthy, enjoyable mealtime routines for my child. Thank you, Ida!!",
+        "quote": "Taking part in the toddler healthy eating course was a truly rewarding experience for me and my fellow mum friends. Ida's passion for child development shines through every session, and her Montessori-based strategies are practical and easy to implement at home. I left feeling confident and inspired to build healthy, enjoyable mealtime routines for my little one.",
         "author": "Yen",
-        "role": "Mom of 1",
-        "mainImageSrc": "/images/testimonials/story-2-main.webp",
-        "avatarImageSrc": "/images/testimonials/story-2-avatar.webp"
+        "service": "Toddler Healthy Eating Workshop",
+        "mainImageSrc": "/images/testimonials/story-2-main.webp"
       },
       {
-        "quote": "Thank you so much for bringing jenelyn to another level 🤣🤣🤣 I can see her improvement after joining the course. To be honest, that isn’t easy but I see her changes 🙏🏻🙏🏻🙏🏻thanks so much!",
-        "author": "Sarah",
-        "role": "Mom of 1",
-        "mainImageSrc": "/images/testimonials/story-3-main.webp",
-        "avatarImageSrc": "/images/testimonials/story-3-avatar.webp"
-      },
-      {
-        "quote": "My aunties came back very excited and motivated! I’m already seeing more awareness of the language Lizel is using as well as approach to toddler outbursts (if we want kids to use polite language, we must demonstrate & utilise it ourselves!)",
-        "author": "Gabriella",
-        "role": "Mum of 3",
-        "mainImageSrc": "/images/testimonials/story-4-main.webp",
-        "avatarImageSrc": "/images/testimonials/story-4-avatar.webp"
-      },
-      {
-        "quote": "The seminar talks about how to support our baby to build a healthy relationship with food, and to create a good experience with mealtime for both baby and the caregiver. I feel positive to try these new ways to build many meaningful dining experience with my baby ❤️",
+        "quote": "This course beautifully explores how to support babies in building a healthy relationship with food and a positive mealtime experience for both child and caregiver. The insights shared were thoughtful, practical, and easy to bring into everyday life. I feel genuinely inspired and excited to create many meaningful dining moments with my baby.",
         "author": "Yana",
-        "role": "Mum of 1"
+        "service": "Toddler Healthy Eating Workshop",
+        "mainImageSrc": "/images/testimonials/story-1-main.webp"
       },
       {
-        "quote": "Hello Ida, my auntie Cristine recently completed your pilot programme for 0-12 month! Thank you so much for this wonderful course. It's given her lots of fantastic ideas which we've been implementing! The course notes were very helpful, as it allowed us parents to learn things too (we're first time parents so every day is a school day!)",
+        "quote": "Thank you so much for taking Jenelyn's caregiving skills to the next level! I've already noticed a real improvement in how she engages with our child, and the changes have been wonderful to witness. It's not always an easy journey, but the results speak for themselves — we are truly grateful.",
+        "author": "Sarah",
+        "service": "My Best Auntie Training Course",
+        "mainImageSrc": "/images/testimonials/story-3-main.webp"
+      },
+      {
+        "quote": "Our caregiver came back from the course excited, motivated, and full of fresh ideas. I'm already noticing a wonderful shift in her approach — from the language she uses to how she handles toddler moments with calm and patience. The reminder that children mirror the behaviour they see has resonated with our whole family.",
+        "author": "Gabriella",
+        "service": "My Best Auntie Training Course",
+        "mainImageSrc": "/images/testimonials/story-4-main.webp"
+      },
+      {
+        "quote": "My auntie recently completed the pilot programme for 0-12 months, and we couldn't be more grateful for such a wonderful course. She came back with a wealth of ideas that we've already started putting into practice at home. As first-time parents, the detailed course notes were a brilliant bonus — it felt like we were learning right alongside her.",
         "author": "Emma",
-        "role": "Mum of 1",
+        "service": "My Best Auntie 0-12 Training Course",
         "mainImageSrc": "/images/testimonials/story-6-main.webp"
       },
       {
-        "quote": "Thanks Ida for the class, we can really see the changes from Emely!",
-        "author": "Joyce",
-        "role": "Mum of 1",
-        "mainImageSrc": "/images/testimonials/story-7-main.webp"
-      },
-      {
-        "quote": "Hi! My auntie attended the course and came back with real life understanding of how to raise an independent calm toddler. I have also worked with Ida on a professional level creating a workshop we've created together on raising independent intuitive eaters and both experiences have been great. Would recommend! (My auntie herself loved the experience too, there is no other place for them to connect and ask questions about how to raise children and communicate with their employers so this was really great for us!)",
-        "author": "Mira",
-        "role": "Mum of 1",
+        "quote": "After attending the course, our caregiver returned with a real understanding of how to raise an independent, calm toddler — and the difference has been remarkable. I've also had the pleasure of collaborating with Ida professionally on a workshop, and both experiences have been outstanding. The community she creates for caregivers to connect and grow is truly one of a kind.",
+        "author": "A happy parent",
+        "service": "My Best Auntie Training Course",
         "mainImageSrc": "/images/testimonials/story-8-main.webp"
       }
     ]

@@ -586,54 +586,39 @@
     "nextButtonLabel": "下一条评价",
     "items": [
       {
-        "quote": "Ida 太棒了，她帮助我理解如何以蒙特梭利的方式布置家里，同时不打乱我原有的风格。",
-        "author": "Mary Lo",
-        "role": "两孩妈妈",
-        "mainImageSrc": "/images/testimonials/story-1-main.webp",
-        "avatarImageSrc": "/images/testimonials/story-1-avatar.webp"
-      },
-      {
-        "quote": "参加这个幼儿健康饮食课程对我和几位妈妈朋友来说是非常有收获的体验！Ida 对儿童发展与幸福的热情真的很打动人，而她在蒙特梭利理念上的专业，让这些策略既实用又容易执行。课程后我更有信心，也很受启发，去为孩子建立健康又愉快的用餐日常。谢谢你，Ida!!",
+        "quote": "Taking part in the toddler healthy eating course was a truly rewarding experience for me and my fellow mum friends. Ida's passion for child development shines through every session, and her Montessori-based strategies are practical and easy to implement at home. I left feeling confident and inspired to build healthy, enjoyable mealtime routines for my little one.",
         "author": "Yen",
-        "role": "一孩妈妈",
-        "mainImageSrc": "/images/testimonials/story-2-main.webp",
-        "avatarImageSrc": "/images/testimonials/story-2-avatar.webp"
+        "service": "Toddler Healthy Eating Workshop",
+        "mainImageSrc": "/images/testimonials/story-2-main.webp"
       },
       {
-        "quote": "非常感谢你把 Jenelyn 带到另一个层次 🤣🤣🤣 我看得到她参加课程后的进步。老实说，这并不容易，但我确实看到了她的改变 🙏🏻🙏🏻🙏🏻真的非常感谢！",
-        "author": "Sarah",
-        "role": "一孩妈妈",
-        "mainImageSrc": "/images/testimonials/story-3-main.webp",
-        "avatarImageSrc": "/images/testimonials/story-3-avatar.webp"
-      },
-      {
-        "quote": "我的阿姨们回来时非常兴奋和有动力！我已经看到 Lizel 在用语上更有意识，处理幼儿情绪爆发的方法也更好（如果我们希望孩子说话有礼貌，就要先由我们示范并实践！）",
-        "author": "Gabriella",
-        "role": "三孩妈妈",
-        "mainImageSrc": "/images/testimonials/story-4-main.webp",
-        "avatarImageSrc": "/images/testimonials/story-4-avatar.webp"
-      },
-      {
-        "quote": "这个讲座谈到如何帮助宝宝建立健康的饮食关系，并为宝宝与照护者创造良好的用餐体验。我很积极地想尝试这些新方法，和宝宝一起建立更多有意义的用餐时光 ❤️",
+        "quote": "This course beautifully explores how to support babies in building a healthy relationship with food and a positive mealtime experience for both child and caregiver. The insights shared were thoughtful, practical, and easy to bring into everyday life. I feel genuinely inspired and excited to create many meaningful dining moments with my baby.",
         "author": "Yana",
-        "role": "一孩妈妈"
+        "service": "Toddler Healthy Eating Workshop",
+        "mainImageSrc": "/images/testimonials/story-1-main.webp"
       },
       {
-        "quote": "Hello Ida，我们的阿姨 Cristine 最近完成了你们的 0-12 个月试点课程！非常感谢这个很棒的课程。这让她有很多很好的点子，而我们也一直在实践！课程笔记也非常有帮助，让我们家长也能一起学习（我们是新手爸妈，所以每天都在上课！）",
+        "quote": "Thank you so much for taking Jenelyn's caregiving skills to the next level! I've already noticed a real improvement in how she engages with our child, and the changes have been wonderful to witness. It's not always an easy journey, but the results speak for themselves — we are truly grateful.",
+        "author": "Sarah",
+        "service": "My Best Auntie Training Course",
+        "mainImageSrc": "/images/testimonials/story-3-main.webp"
+      },
+      {
+        "quote": "Our caregiver came back from the course excited, motivated, and full of fresh ideas. I'm already noticing a wonderful shift in her approach — from the language she uses to how she handles toddler moments with calm and patience. The reminder that children mirror the behaviour they see has resonated with our whole family.",
+        "author": "Gabriella",
+        "service": "My Best Auntie Training Course",
+        "mainImageSrc": "/images/testimonials/story-4-main.webp"
+      },
+      {
+        "quote": "My auntie recently completed the pilot programme for 0-12 months, and we couldn't be more grateful for such a wonderful course. She came back with a wealth of ideas that we've already started putting into practice at home. As first-time parents, the detailed course notes were a brilliant bonus — it felt like we were learning right alongside her.",
         "author": "Emma",
-        "role": "一孩妈妈",
+        "service": "My Best Auntie 0-12 Training Course",
         "mainImageSrc": "/images/testimonials/story-6-main.webp"
       },
       {
-        "quote": "谢谢你，Ida，这堂课真的很有帮助，我们真的看到了 Emely 的改变！",
-        "author": "Joyce",
-        "role": "一孩妈妈",
-        "mainImageSrc": "/images/testimonials/story-7-main.webp"
-      },
-      {
-        "quote": "你好！我的阿姨参加课程后，带回了很多贴地的理解，知道怎样培养一个独立而平静的幼儿。我也曾在专业层面和 Ida 合作，一起设计过一场关于培养独立且具直觉饮食能力孩子的工作坊，两次经验都非常好。很推荐！（我的阿姨本人也很喜欢这个体验，因为几乎没有其他地方能让她们彼此交流，并就如何育儿和与雇主沟通去提问，所以这对我们来说真的很好！）",
-        "author": "Mira",
-        "role": "一孩妈妈",
+        "quote": "After attending the course, our caregiver returned with a real understanding of how to raise an independent, calm toddler — and the difference has been remarkable. I've also had the pleasure of collaborating with Ida professionally on a workshop, and both experiences have been outstanding. The community she creates for caregivers to connect and grow is truly one of a kind.",
+        "author": "A happy parent",
+        "service": "My Best Auntie Training Course",
         "mainImageSrc": "/images/testimonials/story-8-main.webp"
       }
     ]

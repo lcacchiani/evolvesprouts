@@ -45,8 +45,10 @@ describe('maintenance static site assets', () => {
     expect(indexHtml).toContain('__NEXT_PUBLIC_EMAIL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_WHATSAPP_URL__');
     expect(indexHtml).toContain('__NEXT_PUBLIC_INSTAGRAM_URL__');
+    expect(indexHtml).toContain('/images/contact-email.svg');
     expect(indexHtml).toContain('/images/whatsapp-official-logo.png');
     expect(indexHtml).toContain('/images/instagram-official-logo.png');
+    expect(indexHtml).toContain('maintenance__contact-icon--email');
     expect(indexHtml).toContain('maintenance__contact-icon--whatsapp');
     expect(indexHtml).toContain('maintenance__contact-icon--instagram');
     expect(indexHtml).toContain('aria-label="Email Evolve Sprouts"');
@@ -71,11 +73,13 @@ describe('maintenance static site assets', () => {
     );
   });
 
-  it('sources favicon from public assets during maintenance deploy', () => {
+  it('sources maintenance favicon and contact-email icon from public assets during deploy', () => {
     const maintenanceFaviconPath = path.join(maintenanceDirectory, 'favicon.ico');
     const deployScript = readMaintenanceDeployScript();
 
     expect(fs.existsSync(maintenanceFaviconPath)).toBe(false);
+    expect(deployScript).toContain('$APP_DIR/public/images/contact-email.svg');
+    expect(deployScript).toContain('$maintenance_build_dir/images/contact-email.svg');
     expect(deployScript).toContain('$APP_DIR/public/favicon.ico');
     expect(deployScript).toContain('$maintenance_build_dir/favicon.ico');
   });

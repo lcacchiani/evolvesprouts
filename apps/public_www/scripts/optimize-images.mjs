@@ -24,10 +24,6 @@ const FILE_OVERRIDES = {
   'testimonials/story-6-main.png': { width: 1200, quality: 82 },
   'testimonials/story-7-main.png': { width: 1200, quality: 82 },
   'testimonials/story-8-main.png': { width: 1200, quality: 82 },
-  'testimonials/story-1-avatar.png': { width: 240, quality: 85 },
-  'testimonials/story-2-avatar.png': { width: 240, quality: 85 },
-  'testimonials/story-3-avatar.png': { width: 240, quality: 85 },
-  'testimonials/story-4-avatar.png': { width: 240, quality: 85 },
 };
 
 async function collectPngFiles(directory) {

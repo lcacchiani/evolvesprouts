@@ -32,12 +32,14 @@ jobs:
         run: |
           PRODUCTION_SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwDomainName', '')).strip())")"
           STAGING_SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwStagingDomainName', '')).strip())")"
-          if [ -z "$PRODUCTION_SITE_DOMAIN" ] || [ -z "$STAGING_SITE_DOMAIN" ]; then
-            echo "PublicWwwDomainName is required in backend/infrastructure/params/production.json"
+          ASSET_SHARE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('AssetDownloadCustomDomainName', '')).strip())")"
+          if [ -z "$PRODUCTION_SITE_DOMAIN" ] || [ -z "$STAGING_SITE_DOMAIN" ] || [ -z "$ASSET_SHARE_DOMAIN" ]; then
+            echo "PublicWwwDomainName, PublicWwwStagingDomainName, and AssetDownloadCustomDomainName are required in backend/infrastructure/params/production.json"
             exit 1
           fi
           echo "production_site_origin=https://${PRODUCTION_SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "staging_site_origin=https://${STAGING_SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "asset_share_base_url=https://${ASSET_SHARE_DOMAIN}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -82,6 +84,7 @@ jobs:
           NEXT_PUBLIC_WWW_CRM_API_BASE_URL: ${{ vars.NEXT_PUBLIC_WWW_CRM_API_BASE_URL }}
           NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS: ${{ vars.NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS }}
           NEXT_PUBLIC_WWW_CRM_API_KEY: ${{ secrets.NEXT_PUBLIC_WWW_CRM_API_KEY }}
+          NEXT_PUBLIC_ASSET_SHARE_BASE_URL: ${{ steps.resolve_public_site_domains.outputs.asset_share_base_url }}
           NEXT_PUBLIC_GTM_ID: ${{ vars.NEXT_PUBLIC_GTM_ID }}
           NEXT_PUBLIC_EMAIL: ${{ vars.NEXT_PUBLIC_EMAIL }}
           NEXT_PUBLIC_WHATSAPP_URL: ${{ vars.NEXT_PUBLIC_WHATSAPP_URL }}

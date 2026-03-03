@@ -14,7 +14,13 @@ export const DEFAULT_LOCALE: Locale = 'en';
  * Site content type — derived from the English JSON (source of truth).
  * All locale files must conform to this shape.
  */
-export type SiteContent = typeof enContent;
+type BaseSiteContent = typeof enContent;
+type LegacyCompatibleTestimonials = Omit<BaseSiteContent['testimonials'], 'items'> & {
+  items: Array<BaseSiteContent['testimonials']['items'][number] & { role?: string }>;
+};
+export type SiteContent = Omit<BaseSiteContent, 'testimonials'> & {
+  testimonials: LegacyCompatibleTestimonials;
+};
 
 /**
  * Narrow types for individual sections.

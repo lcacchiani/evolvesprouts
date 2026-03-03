@@ -27,9 +27,8 @@ interface TestimonialsProps {
 interface NormalizedStory {
   quote?: string;
   author?: string;
-  role?: string;
+  service?: string;
   mainImageSrc?: string;
-  avatarImageSrc?: string;
 }
 
 const SWIPE_THRESHOLD_PX = 48;
@@ -55,18 +54,12 @@ function normalizeStory(item: unknown): NormalizedStory | null {
       'content',
     ]),
     author: readCandidateText(record, ['author', 'name', 'parentName']),
-    role: readCandidateText(record, ['role', 'subtitle', 'title']),
+    service: readCandidateText(record, ['service', 'subtitle', 'title']),
     mainImageSrc: readCandidateText(record, [
       'mainImageSrc',
       'slideImageSrc',
       'imageSrc',
       'image',
-    ]),
-    avatarImageSrc: readCandidateText(record, [
-      'avatarImageSrc',
-      'authorImageSrc',
-      'userImageSrc',
-      'avatar',
     ]),
   };
 
@@ -224,33 +217,17 @@ export function Testimonials({ content }: TestimonialsProps) {
                     </p>
                   </div>
 
-                  {(activeStory.author || activeStory.role) && (
-                    <div className='relative mt-6 flex items-center gap-4 sm:mt-8 sm:gap-6'>
-                      {activeStory.avatarImageSrc ? (
-                        <Image
-                          src={activeStory.avatarImageSrc}
-                          alt={`${activeStory.author ?? 'Parent'} avatar`}
-                          width={100}
-                          height={100}
-                          className='h-[82px] w-[71px] shrink-0 rounded-card-lg object-cover sm:h-[100px] sm:w-[100px]'
-                        />
-                      ) : (
-                        <span
-                          className='inline-flex h-[82px] w-[71px] shrink-0 items-center justify-center rounded-card-lg sm:h-[100px] sm:w-[100px] es-testimonials-avatar-fallback'
-                        >
-                          <ParentIcon />
-                        </span>
-                      )}
-
+                  {(activeStory.author || activeStory.service) && (
+                    <div className='relative mt-6 sm:mt-8'>
                       <div className='min-w-0 lg:pr-[170px]'>
                         {activeStory.author && (
                           <p className='es-testimonials-author'>{activeStory.author}</p>
                         )}
-                        {activeStory.role && (
+                        {activeStory.service && (
                           <p
                             className={`max-w-[190px] es-testimonials-meta ${activeStory.author ? 'mt-1' : ''}`}
                           >
-                            {activeStory.role}
+                            {activeStory.service}
                           </p>
                         )}
                       </div>
@@ -278,7 +255,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                     </div>
                   )}
 
-                  {hasMultipleStories && !activeStory.author && !activeStory.role && (
+                  {hasMultipleStories && !activeStory.author && !activeStory.service && (
                     <div className='mt-6 hidden justify-end lg:flex'>
                       <div className='flex items-center gap-[14px]'>
                         <ButtonPrimitive
