@@ -411,6 +411,7 @@
       "topicsInterestPlaceholder": "請輸入你感興趣的主題",
       "paymentMethodLabel": "付款方式",
       "paymentMethodValue": "以 FPS 二維碼付款",
+      "paymentFpsQrInstruction": "使用你常用的銀行應用程式掃描此 FPS 二維碼。",
       "paymentMethodBankTransferValue": "銀行轉帳",
       "paymentBankNameLabel": "銀行名稱",
       "paymentBankAccountHolderLabel": "戶口名稱",

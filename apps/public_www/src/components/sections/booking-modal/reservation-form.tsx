@@ -304,17 +304,17 @@ export function BookingReservationForm({
             </p>
             <div
               data-booking-payment-options='true'
-              className='rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+              className='h-[140px] rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
             >
               <div
                 data-booking-payment-options-columns='true'
-                className='grid grid-cols-5 gap-3'
+                className='grid h-full grid-cols-5 gap-3'
               >
                 <div
                   data-booking-payment-options-column-left='true'
                   className='col-span-1'
                 >
-                  <div className='flex flex-col gap-2'>
+                  <div className='flex h-full flex-col justify-center gap-2'>
                     <label
                       className={`es-focus-ring flex h-11 w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
                         selectedPaymentMethod === PAYMENT_METHOD_FPS
@@ -377,14 +377,26 @@ export function BookingReservationForm({
                 </div>
                 <div
                   data-booking-payment-options-column-right='true'
-                  className='col-span-4'
+                  className='col-span-4 flex h-full items-center'
                 >
                   {selectedPaymentMethod === PAYMENT_METHOD_FPS ? (
-                    <div data-booking-payment-details='fps' className='h-full'>
+                    <div
+                      data-booking-payment-details='fps'
+                      className='flex h-full w-full items-center justify-between gap-3'
+                    >
+                      <p
+                        data-booking-payment-fps-copy='true'
+                        className='text-sm leading-[1.45] es-text-heading'
+                      >
+                        {content.paymentFpsQrInstruction}
+                      </p>
                       <FpsQrCode amount={totalAmount} />
                     </div>
                   ) : (
-                    <div data-booking-payment-details='bank-transfer' className='h-full'>
+                    <div
+                      data-booking-payment-details='bank-transfer'
+                      className='flex h-full w-full items-center'
+                    >
                       <dl className='space-y-2'>
                         {getBankTransferDetails(content).map((bankDetail) => (
                           <div key={bankDetail.label} className='space-y-0.5'>
