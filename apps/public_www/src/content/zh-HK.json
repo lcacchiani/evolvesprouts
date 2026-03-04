@@ -456,45 +456,59 @@
     "items": [
       {
         "icon": "live-training",
-        "title": "現場實戰訓練",
-        "description": "以真實幼兒情境進行角色練習，讓姨姨學會更平靜、清晰地回應日常挑戰。",
-        "ctaLabel": "查看培訓形式",
-        "ctaHref": "/about-us"
+        "title": "姨姨小組培訓課",
+        "description": "三節現場小班課，只開放予姨姨參與。在被尊重、沒有僱主壓力的空間中，學習兒童發展、引導方法與培養獨立。穩固基礎、共享經驗、實用而清晰。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
         "icon": "auntie-review",
-        "title": "課後姨姨復盤",
-        "description": "透過課後回顧與重點調整，持續優化執行方式，讓照顧節奏更穩定。",
-        "ctaLabel": "了解復盤流程",
-        "ctaHref": "/contact-us"
+        "title": "私人 1:1 指導（按家庭而設）",
+        "description": "三節按你家庭真實日常度身訂造的指導。我們會觀察、對齊期望、調整回應，並示範精準用語。小組學習建立知識；私人指導讓方法在你家真正落地。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
         "icon": "workbook",
-        "title": "家庭流程工作簿",
-        "description": "提供可直接套用的檢查表、話術與日常流程範本，方便姨姨即學即用。",
-        "ctaLabel": "預覽教材",
-        "ctaHref": "/resources"
+        "title": "家長策略通話",
+        "description": "我們會抽離一步，評估進度並重新校準方向。你會清楚知道哪些有效、哪些要調整，以及如何避免小問題演變成長期模式。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/services/my-best-auntie-training-course"
+      },
+      {
+        "icon": "auntie-review",
+        "title": "姨姨 WhatsApp 社群",
+        "description": "專為已報讀姨姨而設的私密支援群組。即時指導、同儕交流與專家主持。學習在課與課之間持續，讓一致性不會在日常壓力下瓦解。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/services/my-best-auntie-training-course"
+      },
+      {
+        "icon": "workbook",
+        "title": "話術、工具與真實案例",
+        "description": "可即用的實戰用語，應對真實情境。學會不靠喝罵也能引導、不靠懲罰也能轉移，並能平靜回應抗拒。對的說話方式，會改變行為。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
         "icon": "live-training",
-        "title": "居家環境設定指引",
-        "description": "一步一步教你建立清晰的玩樂、睡眠與轉換區域，提升孩子日常配合度。",
-        "ctaLabel": "查看環境建議",
-        "ctaHref": "/resources"
-      },
-      {
-        "icon": "workbook",
-        "title": "溝通話術工具包",
-        "description": "涵蓋過渡時刻、界線設定與情緒引導的實用話術，幫助姨姨更有方向。",
-        "ctaLabel": "查看話術示例",
-        "ctaHref": "/resources"
+        "title": "家長 WhatsApp 支援",
+        "description": "課與課之間可直接提問。及早指導可防止問題升級，並讓所有照顧者保持一致。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
         "icon": "auntie-review",
-        "title": "信心加強教練支援",
-        "description": "透過短頻快跟進，協助姨姨持續修正與落地，讓好習慣真正維持下去。",
-        "ctaLabel": "查詢教練支援",
-        "ctaHref": "/contact-us"
+        "title": "每次私人指導後的書面報告",
+        "description": "每次私人到訪後提供清晰書面摘要。包括觀察重點、聚焦範圍與可立即執行的下一步。無混亂，無錯位。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/services/my-best-auntie-training-course"
+      },
+      {
+        "icon": "workbook",
+        "title": "最終課程總結報告",
+        "description": "在課程完成時提供整合版參考報告。清楚總結進展並提供下一發展階段的後續建議。",
+        "ctaLabel": "了解更多",
+        "ctaHref": "/services/my-best-auntie-training-course"
       }
     ],
     "previousButtonAriaLabel": "上一組亮點卡片",
@@ -545,44 +559,34 @@
     "supportChipLabel": "立即聯絡",
     "items": [
       {
-        "id": "group-auntie-training-sessions",
-        "title": "姨姨小組培訓課",
-        "description": "三節現場小班課，只開放予姨姨參與。在被尊重、沒有僱主壓力的空間中，學習兒童發展、引導方法與培養獨立。穩固基礎、共享經驗、實用而清晰。"
+        "id": "age-specific",
+        "title": "平靜是建立出來的，不是靠期待",
+        "description": "孩子並不是「天生難湊」。混亂來自指引不清和照顧者不一致。我們訓練姨姨透過結構、界線和準備去建立平靜。"
       },
       {
-        "id": "private-coaching-family-specific",
-        "title": "私人 1:1 指導（按家庭而設）",
-        "description": "三節按你家庭真實日常度身訂造的指導。我們會觀察、對齊期望、調整回應，並示範精準用語。小組學習建立知識；私人指導讓方法在你家真正落地。"
+        "id": "small-group-learning",
+        "title": "你的姨姨每天都在教育孩子",
+        "description": "無論有沒有受過訓練，姨姨每天都在塑造你的孩子。我們確保她示範獨立、尊重和情緒調節——而不是控制或被動。"
       },
       {
-        "id": "parent-strategy-calls",
-        "title": "家長策略通話",
-        "description": "我們會抽離一步，評估進度並重新校準方向。你會清楚知道哪些有效、哪些要調整，以及如何避免小問題演變成長期模式。"
+        "id": "montessori-positive-discipline",
+        "title": "只有安全感會帶來依賴",
+        "description": "只有安穩而沒有界線，會培養依賴而不是自信。孩子成長需要清晰界線、責任和明確期望。我們教姨姨如何同時做到這三點。"
       },
       {
-        "id": "auntie-whatsapp-community",
-        "title": "姨姨 WhatsApp 社群",
-        "description": "專為已報讀姨姨而設的私密支援群組。即時指導、同儕交流與專家主持。學習在課與課之間持續，讓一致性不會在日常壓力下瓦解。"
+        "id": "ongoing-support",
+        "title": "我們在問題真正發生的地方工作",
+        "description": "課程停留於理論就會失效。我們在你家中、在真實日常與真實壓力下觀察孩子——並作出精準介入。"
       },
       {
-        "id": "scripts-tools-real-life-examples",
-        "title": "話術、工具與真實案例",
-        "description": "可即用的實戰用語，應對真實情境。學會不靠喝罵也能引導、不靠懲罰也能轉移，並能平靜回應抗拒。對的說話方式，會改變行為。"
+        "id": "ready-to-use-tools",
+        "title": "進步必須看得見",
+        "description": "如果沒有改變，訓練就是失敗。我們的家庭會看到行為、日常流程和家庭氣氛的可量化變化——每週追蹤並一起檢視。"
       },
       {
-        "id": "whatsapp-support-for-parents",
-        "title": "家長 WhatsApp 支援",
-        "description": "課與課之間可直接提問。及早指導可防止問題升級，並讓所有照顧者保持一致。"
-      },
-      {
-        "id": "written-reports-after-private-session",
-        "title": "每次私人指導後的書面報告",
-        "description": "每次私人到訪後提供清晰書面摘要。包括觀察重點、聚焦範圍與可立即執行的下一步。無混亂，無錯位。"
-      },
-      {
-        "id": "final-programme-report",
-        "title": "最終課程總結報告",
-        "description": "在課程完成時提供整合版參考報告。清楚總結進展並提供下一發展階段的後續建議。"
+        "id": "guaranteed-confidence",
+        "title": "對齊不可妥協",
+        "description": "當父母和姨姨不一致，受影響的是孩子。我們同時與雙方合作——讓引導始終一致、公平、可預期。"
       }
     ],
     "scrollLeftAriaLabel": "向左捲動課程亮點",

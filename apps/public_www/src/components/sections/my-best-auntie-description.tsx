@@ -65,7 +65,7 @@ function readIconSrc(icon: string): string {
 export function MyBestAuntieDescription({
   content,
 }: MyBestAuntieDescriptionProps) {
-  const cards = content.items.slice(0, 6);
+  const cards = content.items;
   const previousButtonAriaLabel = content.previousButtonAriaLabel.trim();
   const nextButtonAriaLabel = content.nextButtonAriaLabel.trim();
   const {
@@ -159,15 +159,6 @@ export function MyBestAuntieDescription({
                   <p className='mt-3 es-my-best-auntie-description-card-description'>
                     {item.description}
                   </p>
-                  <div className='mt-auto pt-8'>
-                    <ButtonPrimitive
-                      href={item.ctaHref}
-                      variant='outline'
-                      className='min-h-[52px] w-full rounded-control px-6 text-center text-lg font-semibold leading-none transition-colors duration-200'
-                    >
-                      {item.ctaLabel}
-                    </ButtonPrimitive>
-                  </div>
                 </article>
               </li>
             ))}

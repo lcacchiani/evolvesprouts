@@ -68,9 +68,12 @@ describe('CourseHighlights', () => {
       screen.getByRole('heading', { name: enContent.courseHighlights.title }),
     ).toBeInTheDocument();
     expect(screen.getByText(enContent.courseHighlights.eyebrow)).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: enContent.courseHighlights.ctaLabel }),
+    ).toHaveAttribute('href', enContent.courseHighlights.ctaHref);
 
     const cards = screen.getAllByRole('button', { name: /show details for/i });
-    expect(cards).toHaveLength(8);
+    expect(cards).toHaveLength(6);
     expect(document.querySelectorAll('.es-course-highlight-card--green').length).toBeGreaterThan(
       0,
     );
