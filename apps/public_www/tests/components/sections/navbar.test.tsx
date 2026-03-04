@@ -119,6 +119,11 @@ describe('Navbar desktop submenu accessibility', () => {
     const submenuLink = within(submenu as HTMLElement).getByRole('link', {
       name: 'Auntie Training',
     });
+    expect(
+      within(submenu as HTMLElement).queryByRole('link', {
+        name: 'Montessori Training',
+      }),
+    ).toBeNull();
     submenuLink.focus();
     expect(submenuLink).toHaveFocus();
 
