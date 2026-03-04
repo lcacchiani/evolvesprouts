@@ -156,9 +156,7 @@ export function BookingReservationForm({
       return;
     }
 
-    const crmApiClient = createPublicCrmApiClient({
-      preferSameOriginProxy: false,
-    });
+    const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient) {
       setDiscountRule(null);
       setDiscountError(content.invalidDiscountLabel);
