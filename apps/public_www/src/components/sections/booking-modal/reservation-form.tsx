@@ -316,7 +316,7 @@ export function BookingReservationForm({
                 >
                   <div className='flex h-full flex-col justify-start gap-2 pt-1'>
                     <label
-                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-start justify-center rounded-lg border p-2 pt-1 ${
+                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
                         selectedPaymentMethod === PAYMENT_METHOD_FPS
                           ? 'border-black/20 es-bg-surface-muted'
                           : 'border-transparent'
@@ -344,7 +344,7 @@ export function BookingReservationForm({
                       />
                     </label>
                     <label
-                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-start justify-center rounded-lg border p-2 pt-1 ${
+                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
                         selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER
                           ? 'border-black/20 es-bg-surface-muted'
                           : 'border-transparent'
@@ -398,9 +398,13 @@ export function BookingReservationForm({
                       className='flex h-full w-full flex-col items-center justify-center'
                     >
                       <dl className='space-y-2 text-center'>
-                        {getBankTransferDetails(content).map((bankDetail) => (
+                        {getBankTransferDetails(content).map((bankDetail, bankDetailIndex) => (
                           <div key={bankDetail.label} className='flex flex-col items-center space-y-0.5'>
-                            <dt className='text-xs font-semibold uppercase tracking-wide es-text-heading'>
+                            <dt
+                              className={`text-xs font-semibold uppercase tracking-wide es-text-heading ${
+                                bankDetailIndex > 0 ? 'pt-[10px]' : ''
+                              }`}
+                            >
                               {bankDetail.label}
                             </dt>
                             <dd className='text-sm font-semibold es-text-heading'>
