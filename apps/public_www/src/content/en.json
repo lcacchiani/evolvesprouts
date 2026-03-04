@@ -119,7 +119,8 @@
     "localBusinessAreaServed": "Hong Kong"
   },
   "idaIntro": {
-    "text": "Hello! My name is Ida, founder of Evolve Sprouts. I'm a Montessori-certified practitioner and mum of 2.",
+    "heading": "Hello! My name is Ida, founder of Evolve Sprouts",
+    "body": "I'm a Montessori-certified practitioner and mum of 2.",
     "ctaLabel": "Read more about me",
     "ctaHref": "/about-us",
     "imageAlt": "Ida De Gregorio from Evolve Sprouts"

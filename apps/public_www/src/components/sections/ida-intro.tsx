@@ -15,6 +15,7 @@ interface IdaIntroProps {
 }
 
 const INTRO_HIGHLIGHT_WORD = 'Evolve Sprouts';
+const IDA_INTRO_CTA_CLASSNAME = 'mt-auto w-full max-w-[360px]';
 
 function renderIntroText(text: string): ReactNode {
   const sections = text.split(INTRO_HIGHLIGHT_WORD);
@@ -36,7 +37,7 @@ export function IdaIntro({ content }: IdaIntroProps) {
   return (
     <SectionShell
       id='ida-intro'
-      ariaLabel={content.text}
+      ariaLabel={content.heading}
       dataFigmaNode='ida-intro'
       className='es-ida-section es-ida-intro-section overflow-hidden'
     >
@@ -48,21 +49,22 @@ export function IdaIntro({ content }: IdaIntroProps) {
         <div className='relative max-w-[620px] lg:order-2 lg:pb-4 lg:pl-8 xl:pl-[110px]'>
           <div className='relative z-10'>
             <SectionHeader
-              title={
-                <span className='es-type-body block max-w-[720px] font-normal'>
-                  {renderIntroText(content.text)}
-                </span>
-              }
+              title={renderIntroText(content.heading)}
               titleAs='h2'
               align='left'
+              titleClassName='es-type-subtitle max-w-[720px]'
+              description={content.body}
+              descriptionClassName='mt-4 max-w-[720px] es-type-body'
             />
-            <SectionCtaAnchor
-              href={content.ctaHref}
-              variant='outline'
-              className='mt-8'
-            >
-              {content.ctaLabel}
-            </SectionCtaAnchor>
+            <div className='mt-8'>
+              <SectionCtaAnchor
+                href={content.ctaHref}
+                variant='outline'
+                className={IDA_INTRO_CTA_CLASSNAME}
+              >
+                {content.ctaLabel}
+              </SectionCtaAnchor>
+            </div>
           </div>
         </div>
 
