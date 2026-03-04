@@ -412,23 +412,32 @@ describe('my-best-auntie booking modals footer content', () => {
     ) as HTMLImageElement | null;
     expect(fpsIcon).not.toBeNull();
     expect(fpsIcon?.getAttribute('src')).toContain('/images/fps-logo.svg');
-    expect(paymentOptions?.querySelector('div[data-booking-payment-details="fps"]')).not.toBeNull();
+    expect(fpsIcon?.className).toContain('h-[30px]');
+    const fpsPaymentDetails = paymentOptions?.querySelector(
+      'div[data-booking-payment-details="fps"]',
+    ) as HTMLDivElement | null;
+    expect(fpsPaymentDetails).not.toBeNull();
+    expect(fpsPaymentDetails?.className).toContain('h-full');
+    expect(fpsPaymentDetails?.className).not.toContain('py-');
+    expect(fpsPaymentDetails?.className).not.toContain('px-');
+    expect(fpsPaymentDetails?.className).not.toContain('bg-');
     expect(
       paymentOptions?.querySelector('div[data-booking-payment-details="bank-transfer"]'),
     ).toBeNull();
 
-    const fpsLayout = paymentBlock?.querySelector('img[alt="FPS"]')?.parentElement as
+    expect(paymentBlock?.querySelector('img[alt="FPS"]')).toBeNull();
+    const qrCodeContainer = paymentBlock?.querySelector(
+      'div[aria-label="FPS payment QR code"]',
+    ) as HTMLDivElement | null;
+    const fpsLayout = qrCodeContainer?.parentElement as
       | HTMLDivElement
       | null;
     expect(fpsLayout).not.toBeNull();
-    expect(fpsLayout?.className).toContain('justify-start');
-    expect(fpsLayout?.className).toContain('gap-5');
+    expect(fpsLayout?.className).toContain('justify-center');
+    expect(fpsLayout?.className).not.toContain('justify-start');
+    expect(fpsLayout?.className).not.toContain('gap-');
     expect(fpsLayout?.className).not.toContain('border');
     expect(fpsLayout?.className).not.toContain('bg-');
-
-    const qrCodeContainer = fpsLayout?.querySelector(
-      'div[aria-label="FPS payment QR code"]',
-    ) as HTMLDivElement | null;
     expect(qrCodeContainer).not.toBeNull();
     expect(qrCodeContainer?.className).not.toContain('border');
     expect(qrCodeContainer?.className).not.toContain('bg-');
@@ -651,6 +660,14 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(
       screen.getByText(bookingModalContent.paymentBankAccountNumberLabel),
     ).toBeInTheDocument();
+    const bankTransferPaymentDetails = container.querySelector(
+      'div[data-booking-payment-details="bank-transfer"]',
+    ) as HTMLDivElement | null;
+    expect(bankTransferPaymentDetails).not.toBeNull();
+    expect(bankTransferPaymentDetails?.className).toContain('h-full');
+    expect(bankTransferPaymentDetails?.className).not.toContain('px-');
+    expect(bankTransferPaymentDetails?.className).not.toContain('py-');
+    expect(bankTransferPaymentDetails?.className).not.toContain('bg-');
     expect(screen.getByText(testBankName)).toBeInTheDocument();
     expect(screen.getByText(testBankAccountHolder)).toBeInTheDocument();
     expect(screen.getByText(testBankAccountNumber)).toBeInTheDocument();

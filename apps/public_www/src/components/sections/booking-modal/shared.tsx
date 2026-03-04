@@ -13,7 +13,6 @@ import {
 } from 'react';
 
 const FPS_GENERATOR_SCRIPT_SOURCE = '/scripts/fps-generator.js';
-const FPS_LOGO_SOURCE = '/images/fps-logo.svg';
 const CLOSE_ICON_SOURCE = '/images/close.svg';
 const FPS_MERCHANT_NAME = process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME ?? '';
 const FPS_MOBILE_NUMBER = process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER ?? '';
@@ -212,15 +211,8 @@ export function FpsQrCode({ amount }: { amount: number }) {
   return (
     <div
       ref={qrCodeContainerRef}
-      className='flex w-full items-center justify-start gap-5 py-1 text-center'
+      className='flex w-full items-center justify-center text-center'
     >
-      <Image
-        src={FPS_LOGO_SOURCE}
-        alt='FPS'
-        width={92}
-        height={86}
-        className='h-auto w-[92px] shrink-0'
-      />
       <div
         aria-label='FPS payment QR code'
         className='flex h-[128px] w-[128px] shrink-0 items-center justify-center'

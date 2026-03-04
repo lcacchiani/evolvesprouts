@@ -340,7 +340,7 @@ export function BookingReservationForm({
                         aria-hidden='true'
                         width={32}
                         height={18}
-                        className='h-[18px] w-auto shrink-0'
+                        className='h-[30px] w-auto shrink-0'
                       />
                     </label>
                     <label
@@ -380,14 +380,11 @@ export function BookingReservationForm({
                   className='col-span-4'
                 >
                   {selectedPaymentMethod === PAYMENT_METHOD_FPS ? (
-                    <div data-booking-payment-details='fps' className='h-full py-1'>
+                    <div data-booking-payment-details='fps' className='h-full'>
                       <FpsQrCode amount={totalAmount} />
                     </div>
                   ) : (
-                    <div
-                      data-booking-payment-details='bank-transfer'
-                      className='h-full rounded-[10px] es-bg-surface-muted px-3 py-2'
-                    >
+                    <div data-booking-payment-details='bank-transfer' className='h-full'>
                       <dl className='space-y-2'>
                         {getBankTransferDetails(content).map((bankDetail) => (
                           <div key={bankDetail.label} className='space-y-0.5'>
