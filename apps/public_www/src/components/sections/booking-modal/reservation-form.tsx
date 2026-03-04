@@ -33,6 +33,12 @@ interface BookingReservationFormProps {
 const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PAYMENT_METHOD_FPS = 'fps_qr';
+const PAYMENT_METHOD_BANK_TRANSFER = 'bank_transfer';
+
+type PaymentMethodOption =
+  | typeof PAYMENT_METHOD_FPS
+  | typeof PAYMENT_METHOD_BANK_TRANSFER;
 
 function sanitizeSingleLineValue(value: string): string {
   return value.replaceAll(/\s+/g, ' ').trim();
@@ -40,6 +46,17 @@ function sanitizeSingleLineValue(value: string): string {
 
 function isValidEmail(value: string): boolean {
   return EMAIL_PATTERN.test(value.trim());
+}
+
+function getPaymentMethodLabel(
+  content: MyBestAuntieBookingContent['paymentModal'],
+  selectedPaymentMethod: PaymentMethodOption,
+): string {
+  if (selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER) {
+    return content.paymentMethodBankTransferValue;
+  }
+
+  return content.paymentMethodValue;
 }
 
 export function BookingReservationForm({
@@ -72,6 +89,9 @@ export function BookingReservationForm({
   const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethodOption>(
+    PAYMENT_METHOD_FPS,
+  );
 
   const originalAmount = selectedCohortPrice;
   const totalAmount = useMemo(() => {
@@ -156,7 +176,9 @@ export function BookingReservationForm({
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: sanitizeSingleLineValue(phone),
       childAgeGroup: sanitizeSingleLineValue(selectedAgeGroupLabel),
-      paymentMethod: sanitizeSingleLineValue(content.paymentMethodValue),
+      paymentMethod: sanitizeSingleLineValue(
+        getPaymentMethodLabel(content, selectedPaymentMethod),
+      ),
       totalAmount,
       courseLabel: sanitizeSingleLineValue(content.title),
       scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel),
@@ -252,10 +274,70 @@ export function BookingReservationForm({
             totalAmount={totalAmount}
           />
 
-          <div data-booking-fps-block='true' className='w-full space-y-2 py-1'>
+          <div data-booking-payment='true' className='w-full space-y-2 py-1'>
             <p className='text-sm font-semibold es-text-heading'>
               {content.paymentMethodLabel}
             </p>
+            <div
+              data-booking-payment-options='true'
+              className='rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+            >
+              <ul className='space-y-2'>
+                <li>
+                  <label className='flex items-center gap-2.5'>
+                    <input
+                      type='radio'
+                      name='booking-payment-method'
+                      value={PAYMENT_METHOD_FPS}
+                      checked={selectedPaymentMethod === PAYMENT_METHOD_FPS}
+                      onChange={() => {
+                        setSelectedPaymentMethod(PAYMENT_METHOD_FPS);
+                      }}
+                      className='es-focus-ring h-4 w-4 shrink-0 es-accent-brand'
+                    />
+                    <span className='text-sm font-semibold es-text-heading'>
+                      {content.paymentMethodValue}
+                    </span>
+                  </label>
+                </li>
+                <li>
+                  <label className='flex items-center gap-2.5'>
+                    <input
+                      type='radio'
+                      name='booking-payment-method'
+                      value={PAYMENT_METHOD_BANK_TRANSFER}
+                      checked={selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER}
+                      onChange={() => {
+                        setSelectedPaymentMethod(PAYMENT_METHOD_BANK_TRANSFER);
+                      }}
+                      className='es-focus-ring h-4 w-4 shrink-0 es-accent-brand'
+                    />
+                    <span className='inline-flex items-center gap-2 text-sm font-semibold es-text-heading'>
+                      <svg
+                        data-booking-bank-icon='true'
+                        aria-hidden='true'
+                        viewBox='0 0 24 24'
+                        className='h-5 w-5 shrink-0'
+                        fill='none'
+                        stroke='currentColor'
+                        strokeWidth='1.8'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                      >
+                        <path d='m3 9.5 9-5.5 9 5.5' />
+                        <path d='M4 10h16' />
+                        <path d='M6.5 10v7.5' />
+                        <path d='M10.5 10v7.5' />
+                        <path d='M13.5 10v7.5' />
+                        <path d='M17.5 10v7.5' />
+                        <path d='M3.5 19.5h17' />
+                      </svg>
+                      <span>{content.paymentMethodBankTransferValue}</span>
+                    </span>
+                  </label>
+                </li>
+              </ul>
+            </div>
             <FpsQrCode amount={totalAmount} />
           </div>
 

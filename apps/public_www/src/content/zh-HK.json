@@ -411,6 +411,7 @@
       "topicsInterestPlaceholder": "請輸入你感興趣的主題",
       "paymentMethodLabel": "付款方式",
       "paymentMethodValue": "以 FPS 二維碼付款",
+      "paymentMethodBankTransferValue": "銀行轉帳",
       "discountCodeLabel": "優惠碼",
       "discountCodePlaceholder": "輸入優惠碼",
       "applyDiscountLabel": "套用",
