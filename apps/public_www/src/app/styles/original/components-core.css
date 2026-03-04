@@ -298,6 +298,17 @@
     color: var(--es-color-brand-orange);
   }
 
+  .es-turnstile-captcha,
+  .es-turnstile-captcha > div,
+  .es-turnstile-captcha iframe {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .es-turnstile-captcha iframe {
+    max-width: none !important;
+  }
+
   .es-accent-brand {
     accent-color: var(--es-color-brand-orange);
   }
