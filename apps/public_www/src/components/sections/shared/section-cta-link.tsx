@@ -3,7 +3,10 @@ import type {
   ReactNode,
 } from 'react';
 
-import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import {
+  ButtonPrimitive,
+  type ButtonPrimitiveVariant,
+} from '@/components/shared/button-primitive';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 
 const BASE_SECTION_CTA_CLASSNAME =
@@ -16,6 +19,7 @@ interface SectionCtaProps
   > {
   href: string;
   className?: string;
+  variant?: ButtonPrimitiveVariant;
   openInNewTab?: boolean;
   children: ReactNode;
 }
@@ -51,6 +55,7 @@ function CtaChevronIcon() {
 export function SectionCtaAnchor({
   href,
   className,
+  variant = 'primary',
   openInNewTab,
   children,
   ...anchorProps
@@ -58,7 +63,7 @@ export function SectionCtaAnchor({
   return (
     <ButtonPrimitive
       href={href}
-      variant='primary'
+      variant={variant}
       className={buildClassName(className)}
       openInNewTab={openInNewTab}
       {...anchorProps}

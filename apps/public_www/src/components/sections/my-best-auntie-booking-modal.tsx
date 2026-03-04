@@ -43,8 +43,6 @@ interface MyBestAuntieBookingModalProps {
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
   selectedAgeGroupLabel?: string;
-  learnMoreLabel?: string;
-  learnMoreHref?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -54,8 +52,6 @@ export function MyBestAuntieBookingModal({
   content,
   selectedCohort,
   selectedAgeGroupLabel = '',
-  learnMoreLabel = '',
-  learnMoreHref = '#',
   onClose,
   onSubmitReservation,
 }: MyBestAuntieBookingModalProps) {
@@ -119,8 +115,6 @@ export function MyBestAuntieBookingModal({
               venueName={selectedVenueName}
               venueAddress={selectedVenueAddress}
               directionHref={selectedVenueDirectionHref}
-              learnMoreLabel={learnMoreLabel}
-              learnMoreHref={learnMoreHref}
             />
             <BookingReservationForm
               locale={locale}

@@ -58,6 +58,7 @@ export function IdaIntro({ content }: IdaIntroProps) {
             />
             <SectionCtaAnchor
               href={content.ctaHref}
+              variant='outline'
               className='mt-8'
             >
               {content.ctaLabel}

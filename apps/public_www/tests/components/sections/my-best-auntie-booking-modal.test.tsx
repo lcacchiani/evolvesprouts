@@ -893,6 +893,11 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(
       termsLink.querySelector('svg[data-external-link-icon="true"]'),
     ).toBeNull();
+    expect(
+      screen.queryByRole('link', {
+        name: bookingContent.learnMoreLabel,
+      }),
+    ).toBeNull();
 
     expect(container.querySelector('span.es-mask-credit-card-danger')).not.toBeNull();
     expect(container.querySelector('span.es-mask-target-danger')).not.toBeNull();
