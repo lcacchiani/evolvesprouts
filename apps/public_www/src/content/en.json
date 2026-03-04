@@ -456,45 +456,59 @@
     "items": [
       {
         "icon": "live-training",
-        "title": "Live Practice Training",
-        "description": "Interactive sessions where aunties role-play common toddler moments and practice calm, Montessori-aligned responses.",
-        "ctaLabel": "See Training Format",
-        "ctaHref": "/about-us"
+        "title": "Group Aunties Training Sessions",
+        "description": "Three live, small-group sessions exclusively for aunties. They learn child development, guidance, and independence in a respectful space without employer pressure. Strong foundations, shared experiences, practical clarity.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
         "icon": "auntie-review",
-        "title": "Post-Course Auntie Review",
-        "description": "A structured follow-up review to refine techniques, troubleshoot daily friction points, and reinforce consistency.",
-        "ctaLabel": "How Review Works",
-        "ctaHref": "/contact-us"
+        "title": "Private 1:1 Coaching (Family-Specific)",
+        "description": "Three tailored sessions inside your real routines. We observe, align expectations, adjust responses, and coach precise language. Group learning builds knowledge. Private coaching makes it work in your home.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
         "icon": "workbook",
-        "title": "Family Routine Workbook",
-        "description": "Ready-to-use checklists, scripts, and routine templates that make daily caregiving easier to run at home.",
-        "ctaLabel": "Preview Materials",
-        "ctaHref": "/resources"
+        "title": "Parent Strategy Calls",
+        "description": "We step back, assess progress, and realign direction. You will know what is working, what needs adjusting, and how to prevent small issues becoming long-term patterns.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/services/my-best-auntie-training-course"
+      },
+      {
+        "icon": "auntie-review",
+        "title": "Auntie WhatsApp Community",
+        "description": "A private support group for enrolled aunties. Real-time guidance, peer discussion, and expert moderation. Learning continues between sessions so consistency does not collapse under daily pressure.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/services/my-best-auntie-training-course"
+      },
+      {
+        "icon": "workbook",
+        "title": "Scripts, Tools & Real-Life Examples",
+        "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behavior.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
         "icon": "live-training",
-        "title": "Home Setup Walkthrough",
-        "description": "A practical home setup guide that helps aunties prepare clear play, sleep, and transition spaces for better flow.",
-        "ctaLabel": "View Setup Tips",
-        "ctaHref": "/resources"
-      },
-      {
-        "icon": "workbook",
-        "title": "Communication Scripts Toolkit",
-        "description": "Simple scripts for transitions, boundaries, and emotional coaching so aunties can respond with clarity and confidence.",
-        "ctaLabel": "See Script Samples",
-        "ctaHref": "/resources"
+        "title": "WhatsApp Support for Parents",
+        "description": "Direct access for questions between sessions. Early guidance prevents escalation and keeps everyone aligned.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
         "icon": "auntie-review",
-        "title": "Confidence Booster Coaching",
-        "description": "Focused coaching touchpoints that keep implementation on track and help aunties stay steady as children grow.",
-        "ctaLabel": "Ask About Coaching",
-        "ctaHref": "/contact-us"
+        "title": "Written Reports After Each Private Session",
+        "description": "Clear written summaries after every private visit. Observations, focus areas, and immediate next steps. No confusion. No misalignment.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/services/my-best-auntie-training-course"
+      },
+      {
+        "icon": "workbook",
+        "title": "Final Programme Report",
+        "description": "A consolidated reference at programme completion. Clear progress overview and future guidance for the next developmental stage.",
+        "ctaLabel": "Learn More",
+        "ctaHref": "/services/my-best-auntie-training-course"
       }
     ],
     "previousButtonAriaLabel": "Previous highlight cards",
@@ -545,44 +559,34 @@
     "supportChipLabel": "Connect Now",
     "items": [
       {
-        "id": "group-auntie-training-sessions",
-        "title": "Group Aunties Training Sessions",
-        "description": "Three live, small-group sessions exclusively for aunties. They learn child development, guidance, and independence in a respectful space without employer pressure. Strong foundations, shared experiences, practical clarity."
+        "id": "age-specific",
+        "title": "Calm Is Built, Not Hoped For",
+        "description": "Children are not \"naturally difficult.\" Chaos comes from unclear guidance and inconsistent adults. We train aunties to build calm through structure, limits, and preparation."
       },
       {
-        "id": "private-coaching-family-specific",
-        "title": "Private 1:1 Coaching (Family-Specific)",
-        "description": "Three tailored sessions inside your real routines. We observe, align expectations, adjust responses, and coach precise language. Group learning builds knowledge. Private coaching makes it work in your home."
+        "id": "small-group-learning",
+        "title": "Your Auntie Is a Daily Educator",
+        "description": "Whether trained or not, your auntie is shaping your child every day. We ensure she models independence, respect, and emotional regulation — not control or passivity."
       },
       {
-        "id": "parent-strategy-calls",
-        "title": "Parent Strategy Calls",
-        "description": "We step back, assess progress, and realign direction. You will know what is working, what needs adjusting, and how to prevent small issues becoming long-term patterns."
+        "id": "montessori-positive-discipline",
+        "title": "Security Alone Creates Dependence",
+        "description": "Comfort without limits creates reliance, not confidence. Children need clear boundaries, responsibility, and expectations to grow. We teach aunties how to provide all three."
       },
       {
-        "id": "auntie-whatsapp-community",
-        "title": "Auntie WhatsApp Community",
-        "description": "A private support group for enrolled aunties. Real-time guidance, peer discussion, and expert moderation. Learning continues between sessions so consistency does not collapse under daily pressure."
+        "id": "ongoing-support",
+        "title": "We Work Where Problems Actually Happen",
+        "description": "Courses fail when they stay theoretical. We observe your child in your home, during real routines and real stress — and intervene with precision."
       },
       {
-        "id": "scripts-tools-real-life-examples",
-        "title": "Scripts, Tools & Real-Life Examples",
-        "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behavior."
+        "id": "ready-to-use-tools",
+        "title": "Progress Must Be Visible",
+        "description": "If nothing changes, training failed. Our families see measurable shifts in behavior, routines, and atmosphere — tracked weekly and reviewed together."
       },
       {
-        "id": "whatsapp-support-for-parents",
-        "title": "WhatsApp Support for Parents",
-        "description": "Direct access for questions between sessions. Early guidance prevents escalation and keeps everyone aligned."
-      },
-      {
-        "id": "written-reports-after-private-session",
-        "title": "Written Reports After Each Private Session",
-        "description": "Clear written summaries after every private visit. Observations, focus areas, and immediate next steps. No confusion. No misalignment."
-      },
-      {
-        "id": "final-programme-report",
-        "title": "Final Programme Report",
-        "description": "A consolidated reference at programme completion. Clear progress overview and future guidance for the next developmental stage."
+        "id": "guaranteed-confidence",
+        "title": "Alignment Is Non-Negotiable",
+        "description": "When parents and aunties are misaligned, children suffer. We work with both — so guidance is consistent, fair, and predictable."
       }
     ],
     "scrollLeftAriaLabel": "Scroll course highlights left",

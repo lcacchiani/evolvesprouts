@@ -53,6 +53,14 @@ describe('MyBestAuntieDescription section', () => {
   it('renders highlight cards without box shadow', () => {
     render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
 
+    const cardHeadings = screen.getAllByRole('heading', { level: 3 });
+    expect(cardHeadings).toHaveLength(enContent.myBestAuntieDescription.items.length);
+    expect(
+      screen.queryByRole('link', {
+        name: enContent.myBestAuntieDescription.items[0]?.ctaLabel,
+      }),
+    ).not.toBeInTheDocument();
+
     const firstCardTitle = enContent.myBestAuntieDescription.items[0]?.title;
     expect(firstCardTitle).toBeDefined();
 

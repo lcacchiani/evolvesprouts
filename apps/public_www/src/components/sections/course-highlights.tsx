@@ -1,6 +1,7 @@
 'use client';
 
 import { CourseHighlightCard } from '@/components/sections/course-highlight-card';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -37,60 +38,46 @@ const fallbackCourseHighlightsCopy = enContent.courseHighlights;
 
 const benefitCardMeta: BenefitCardMeta[] = [
   {
-    id: 'group-auntie-training-sessions',
+    id: 'age-specific',
     imageSrc: '/images/course-highlights/course-card-1.webp',
     imageWidth: 344,
     imageHeight: 309,
     imageClassName: 'h-[235px] sm:h-[265px] lg:h-[305px]',
   },
   {
-    id: 'private-coaching-family-specific',
+    id: 'small-group-learning',
     imageSrc: '/images/course-highlights/course-card-2.webp',
     imageWidth: 433,
     imageHeight: 424,
     imageClassName: 'h-[250px] sm:h-[285px] lg:h-[328px]',
   },
   {
-    id: 'parent-strategy-calls',
+    id: 'montessori-positive-discipline',
     imageSrc: '/images/course-highlights/course-card-3.webp',
     imageWidth: 282,
     imageHeight: 335,
     imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
   },
   {
-    id: 'auntie-whatsapp-community',
+    id: 'ongoing-support',
     imageSrc: '/images/course-highlights/course-card-4.webp',
     imageWidth: 308,
     imageHeight: 323,
     imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
   },
   {
-    id: 'scripts-tools-real-life-examples',
+    id: 'ready-to-use-tools',
     imageSrc: '/images/course-highlights/course-card-5.webp',
     imageWidth: 472,
     imageHeight: 457,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
   },
   {
-    id: 'whatsapp-support-for-parents',
+    id: 'guaranteed-confidence',
     imageSrc: '/images/course-highlights/course-card-6.webp',
     imageWidth: 433,
     imageHeight: 443,
     imageClassName: 'h-[245px] sm:h-[282px] lg:h-[320px]',
-  },
-  {
-    id: 'written-reports-after-private-session',
-    imageSrc: '/images/course-highlights/course-card-3.webp',
-    imageWidth: 282,
-    imageHeight: 335,
-    imageClassName: 'h-[230px] sm:h-[265px] lg:h-[305px]',
-  },
-  {
-    id: 'final-programme-report',
-    imageSrc: '/images/course-highlights/course-card-4.webp',
-    imageWidth: 308,
-    imageHeight: 323,
-    imageClassName: 'h-[230px] sm:h-[258px] lg:h-[294px]',
   },
 ];
 
@@ -158,6 +145,8 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
     content.description || fallbackCourseHighlightsCopy.description;
   const sectionEyebrow =
     content.eyebrow || fallbackCourseHighlightsCopy.eyebrow;
+  const ctaLabel = content.ctaLabel || fallbackCourseHighlightsCopy.ctaLabel;
+  const ctaHref = content.ctaHref || fallbackCourseHighlightsCopy.ctaHref;
   const scrollLeftAriaLabel = content.scrollLeftAriaLabel.trim();
   const scrollRightAriaLabel = content.scrollRightAriaLabel.trim();
   const benefitCards = getBenefitCards(content);
@@ -258,6 +247,15 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
             </p>
           </div>
         )}
+
+        <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
+          <SectionCtaAnchor
+            href={ctaHref}
+            className='w-full max-w-[488px]'
+          >
+            {ctaLabel}
+          </SectionCtaAnchor>
+        </div>
       </SectionContainer>
     </SectionShell>
   );
