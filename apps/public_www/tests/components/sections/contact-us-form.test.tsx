@@ -187,7 +187,7 @@ describe('ContactUsForm section', () => {
       enContent.contactUs.contactUsForm.contactMethodLinks.mail,
     ]);
     for (const link of [emailLink, whatsappLink, instagramLink, formLink]) {
-      expect(link.className).toContain('w-[100px]');
+      expect(link.className).toContain('w-[50px]');
       expect(link.className).toContain('flex-col');
       expect(link.className).toContain('items-center');
       expect(link.getAttribute('aria-label')).not.toBeNull();
@@ -204,8 +204,8 @@ describe('ContactUsForm section', () => {
       .getByTestId('contact-method-icon-whatsapp')
       .querySelector('img');
     expect(whatsappIcon).toHaveAttribute('src', '/images/contact-whatsapp.svg');
-    expect(whatsappIcon?.className).toContain('h-[100px]');
-    expect(whatsappIcon?.className).toContain('w-[100px]');
+    expect(whatsappIcon?.className).toContain('h-[50px]');
+    expect(whatsappIcon?.className).toContain('w-[50px]');
     expect(
       screen.getByTestId('contact-method-icon-instagram').querySelector('img'),
     ).toHaveAttribute('src', '/images/contact-instagram.png');
@@ -214,11 +214,11 @@ describe('ContactUsForm section', () => {
     ).toHaveAttribute('src', '/images/contact-linkedin.png');
     const linkedInIcon = screen.getByTestId('contact-method-icon-linkedin').querySelector('img');
     const linkedInIconContainer = screen.getByTestId('contact-method-icon-linkedin');
-    expect(linkedInIconContainer.className).toContain('h-[100px]');
+    expect(linkedInIconContainer.className).toContain('h-[50px]');
     expect(linkedInIconContainer.className).toContain('w-auto');
     expect(linkedInIcon).toHaveAttribute('width', '635');
     expect(linkedInIcon).toHaveAttribute('height', '540');
-    expect(linkedInIcon?.className).toContain('h-[100px]');
+    expect(linkedInIcon?.className).toContain('h-[50px]');
     expect(linkedInIcon?.className).toContain('w-auto');
     expect(screen.getByTestId('contact-method-icon-form').querySelector('img')).toHaveAttribute(
       'src',
