@@ -22,7 +22,7 @@ export function ReservationFormPriceBreakdown({
   return (
     <div
       data-booking-price-breakdown='true'
-      className='my-3 space-y-2 rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+      className='mt-[60px] space-y-2 rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
     >
       <div className='flex items-center justify-between text-sm font-semibold es-text-body'>
         <span>{content.priceBreakdownPriceLabel}</span>

@@ -209,7 +209,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toContain(thankYouModalContent.subtitle);
   });
 
-  it('hides child age group and renders payment option label in booking modal', () => {
+  it('hides child age group and renders payment option radios in booking modal', () => {
     const { container } = renderBookingModal({
       selectedAgeGroupLabel: '18-24 months',
     });
@@ -221,15 +221,24 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(
       screen.getByText(bookingModalContent.paymentMethodLabel),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText(bookingModalContent.paymentMethodValue),
-    ).not.toBeInTheDocument();
+    const fpsPaymentOption = screen.getByRole('radio', {
+      name: bookingModalContent.paymentMethodValue,
+    });
+    expect(fpsPaymentOption).toBeInTheDocument();
+    expect(fpsPaymentOption).toBeChecked();
+    const bankTransferOption = screen.getByRole('radio', {
+      name: bookingModalContent.paymentMethodBankTransferValue,
+    });
+    expect(bankTransferOption).toBeInTheDocument();
+    expect(bankTransferOption).not.toBeChecked();
 
-    const fpsBlock = container.querySelector(
-      'div[data-booking-fps-block="true"]',
+    const paymentBlock = container.querySelector(
+      'div[data-booking-payment="true"]',
     ) as HTMLDivElement | null;
-    expect(fpsBlock).not.toBeNull();
-    expect(within(fpsBlock as HTMLDivElement).getByText(bookingModalContent.paymentMethodLabel))
+    expect(paymentBlock).not.toBeNull();
+    expect(
+      within(paymentBlock as HTMLDivElement).getByText(bookingModalContent.paymentMethodLabel),
+    )
       .toBeInTheDocument();
   });
 
@@ -308,17 +317,43 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(termsWrapperClassName).not.toContain('border');
     expect(termsWrapperClassName).not.toContain('bg-');
 
-    const fpsBlock = container.querySelector(
-      'div[data-booking-fps-block="true"]',
+    const paymentBlock = container.querySelector(
+      'div[data-booking-payment="true"]',
     ) as HTMLDivElement | null;
-    expect(fpsBlock).not.toBeNull();
-    expect(fpsBlock?.className).toContain('w-full');
-    expect(fpsBlock?.className).not.toContain('border');
-    expect(fpsBlock?.className).not.toContain('bg-');
-    expect(within(fpsBlock as HTMLDivElement).getByText(bookingModalContent.paymentMethodLabel))
+    expect(paymentBlock).not.toBeNull();
+    expect(paymentBlock?.className).toContain('w-full');
+    expect(paymentBlock?.className).not.toContain('border');
+    expect(paymentBlock?.className).not.toContain('bg-');
+    expect(
+      within(paymentBlock as HTMLDivElement).getByText(bookingModalContent.paymentMethodLabel),
+    )
       .toBeInTheDocument();
+    const paymentOptions = paymentBlock?.querySelector(
+      'div[data-booking-payment-options="true"]',
+    ) as HTMLDivElement | null;
+    expect(paymentOptions).not.toBeNull();
+    expect(paymentOptions?.className).toContain('rounded-[14px]');
+    expect(paymentOptions?.className).toContain('border');
+    expect(paymentOptions?.className).toContain('es-border-input');
+    expect(paymentOptions?.className).toContain('es-bg-surface-white');
+    expect(paymentOptions?.className).toContain('p-[10px]');
+    expect(paymentOptions?.querySelectorAll('li')).toHaveLength(2);
 
-    const fpsLayout = fpsBlock?.querySelector('img[alt="FPS"]')?.parentElement as
+    const fpsPaymentOption = screen.getByRole('radio', {
+      name: bookingModalContent.paymentMethodValue,
+    });
+    const bankTransferOption = screen.getByRole('radio', {
+      name: bookingModalContent.paymentMethodBankTransferValue,
+    });
+    expect(fpsPaymentOption).toBeChecked();
+    expect(bankTransferOption).not.toBeChecked();
+    const bankIcon = paymentOptions?.querySelector(
+      'img[data-booking-bank-icon="true"]',
+    ) as HTMLImageElement | null;
+    expect(bankIcon).not.toBeNull();
+    expect(bankIcon?.getAttribute('src')).toContain('/images/bank.svg');
+
+    const fpsLayout = paymentBlock?.querySelector('img[alt="FPS"]')?.parentElement as
       | HTMLDivElement
       | null;
     expect(fpsLayout).not.toBeNull();
@@ -353,13 +388,13 @@ describe('my-best-auntie booking modals footer content', () => {
     const requiredMarkers = screen.getAllByText('*');
     expect(requiredMarkers).toHaveLength(5);
 
-    const fpsBeforeAcknowledgements =
-      fpsBlock?.compareDocumentPosition(acknowledgementsBlock ?? fpsBlock) ??
+    const paymentBeforeAcknowledgements =
+      paymentBlock?.compareDocumentPosition(acknowledgementsBlock ?? paymentBlock) ??
       Node.DOCUMENT_POSITION_DISCONNECTED;
     const acknowledgementsBeforeSubmit =
       acknowledgementsBlock?.compareDocumentPosition(submitButton) ??
       Node.DOCUMENT_POSITION_DISCONNECTED;
-    expect(fpsBeforeAcknowledgements & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(paymentBeforeAcknowledgements & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(acknowledgementsBeforeSubmit & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
@@ -452,12 +487,14 @@ describe('my-best-auntie booking modals footer content', () => {
 
   it('submits reservation payload with required snake_case fields', async () => {
     const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
+    const onSubmitReservation = vi.fn();
     mockedCreateCrmApiClient.mockReturnValue({
       request: requestSpy,
     });
 
     renderBookingModal({
       selectedAgeGroupLabel: '18-24 months',
+      onSubmitReservation,
     });
 
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
@@ -508,6 +545,75 @@ describe('my-best-auntie booking modals footer content', () => {
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],
       });
+    });
+    await waitFor(() => {
+      expect(onSubmitReservation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethod: bookingModalContent.paymentMethodValue,
+        }),
+      );
+    });
+  });
+
+  it('submits selected bank transfer payment method in reservation summary', async () => {
+    const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
+    const onSubmitReservation = vi.fn();
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: requestSpy,
+    });
+
+    const { container } = renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+      onSubmitReservation,
+    });
+
+    const bankTransferOption = screen.getByRole('radio', {
+      name: bookingModalContent.paymentMethodBankTransferValue,
+    });
+    fireEvent.click(bankTransferOption);
+    expect(bankTransferOption).toBeChecked();
+    expect(
+      screen.getByRole('radio', {
+        name: bookingModalContent.paymentMethodValue,
+      }),
+    ).not.toBeChecked();
+    expect(container.querySelector('div[aria-label="FPS payment QR code"]')).not.toBeNull();
+
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
+      target: { value: 'ida@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
+      target: { value: 'Need details' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.submitLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(onSubmitReservation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethod: bookingModalContent.paymentMethodBankTransferValue,
+        }),
+      );
     });
   });
 

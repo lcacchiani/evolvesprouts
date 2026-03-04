@@ -411,6 +411,7 @@
       "topicsInterestPlaceholder": "请输入你感兴趣的主题",
       "paymentMethodLabel": "付款方式",
       "paymentMethodValue": "通过 FPS 二维码付款",
+      "paymentMethodBankTransferValue": "银行转账",
       "discountCodeLabel": "优惠码",
       "discountCodePlaceholder": "输入优惠码",
       "applyDiscountLabel": "应用",
