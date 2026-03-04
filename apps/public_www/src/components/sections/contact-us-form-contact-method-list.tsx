@@ -25,11 +25,11 @@ export function ContactMethodList({ title, methods }: ContactMethodListProps) {
       >
         {methods.map((method) => {
           const isLinkedInIcon = method.key === 'linkedin';
-          const linkWidthClassName = isLinkedInIcon ? 'w-auto' : 'w-[100px]';
-          const iconContainerWidthClassName = isLinkedInIcon ? 'w-auto' : 'w-[100px]';
-          const imageWidth = isLinkedInIcon ? 635 : 100;
-          const imageHeight = isLinkedInIcon ? 540 : 100;
-          const imageWidthClassName = isLinkedInIcon ? 'w-auto' : 'w-[100px]';
+          const linkWidthClassName = isLinkedInIcon ? 'w-auto' : 'w-[50px]';
+          const iconContainerWidthClassName = isLinkedInIcon ? 'w-auto' : 'w-[50px]';
+          const imageWidth = isLinkedInIcon ? 635 : 50;
+          const imageHeight = isLinkedInIcon ? 540 : 50;
+          const imageWidthClassName = isLinkedInIcon ? 'w-auto' : 'w-[50px]';
 
           return (
             <li key={method.key} className='m-[10px]'>
@@ -43,14 +43,14 @@ export function ContactMethodList({ title, methods }: ContactMethodListProps) {
                     <span
                       aria-hidden='true'
                       data-testid={`contact-method-icon-${method.key}`}
-                      className={`inline-flex h-[100px] ${iconContainerWidthClassName} shrink-0 items-center justify-center es-text-heading`}
+                      className={`inline-flex h-[50px] ${iconContainerWidthClassName} shrink-0 items-center justify-center es-text-heading`}
                     >
                       <Image
                         src={method.iconSrc}
                         alt=''
                         width={imageWidth}
                         height={imageHeight}
-                        className={`h-[100px] ${imageWidthClassName}`}
+                        className={`h-[50px] ${imageWidthClassName}`}
                       />
                     </span>
                   </>
