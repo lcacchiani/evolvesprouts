@@ -1,7 +1,5 @@
 'use client';
 
-import Image from 'next/image';
-
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -17,20 +15,21 @@ interface MyBestAuntieDescriptionProps {
   content: MyBestAuntieDescriptionContent;
 }
 
-const CARD_ICON_FALLBACK =
-  '/images/training.svg';
+const CARD_ICON_FALLBACK_CLASS = 'es-my-best-auntie-description-icon--training';
 const CONTROL_ICON = TEXT_ICON_COLOR;
 const CONTROL_ICON_DISABLED = TEXT_NEUTRAL_STRONG_COLOR;
+const CARD_ICON_TONES = ['green', 'blue', 'red'] as const;
 
-const iconByKey: Record<string, string> = {
-  training: '/images/training.svg',
-  coaching: '/images/coaching.svg',
-  call: '/images/call.svg',
-  community: '/images/community.svg',
-  toolbox: '/images/toolbox.svg',
-  support: '/images/support.svg',
-  review: '/images/review.svg',
-  graduate: '/images/graduation.svg',
+const iconMaskClassByKey: Record<string, string> = {
+  training: 'es-my-best-auntie-description-icon--training',
+  coaching: 'es-my-best-auntie-description-icon--coaching',
+  call: 'es-my-best-auntie-description-icon--call',
+  community: 'es-my-best-auntie-description-icon--community',
+  toolbox: 'es-my-best-auntie-description-icon--toolbox',
+  support: 'es-my-best-auntie-description-icon--support',
+  review: 'es-my-best-auntie-description-icon--review',
+  graduate: 'es-my-best-auntie-description-icon--graduation',
+  graduation: 'es-my-best-auntie-description-icon--graduation',
 };
 
 function ArrowIcon({
@@ -62,9 +61,9 @@ function ArrowIcon({
   );
 }
 
-function readIconSrc(icon: string): string {
+function readIconMaskClass(icon: string): string {
   const normalizedKey = icon.trim().toLowerCase();
-  return iconByKey[normalizedKey] ?? CARD_ICON_FALLBACK;
+  return iconMaskClassByKey[normalizedKey] ?? CARD_ICON_FALLBACK_CLASS;
 }
 
 export function MyBestAuntieDescription({
@@ -149,13 +148,10 @@ export function MyBestAuntieDescription({
                   className='flex h-full min-h-[450px] flex-col rounded-card-xl p-6 sm:p-8 es-my-best-auntie-description-card'
                 >
                   <div className='inline-flex h-[100px] w-[100px] items-center justify-center rounded-full es-bg-surface-muted'>
-                    <Image
-                      src={readIconSrc(item.icon)}
-                      alt=''
+                    <span
                       aria-hidden='true'
-                      width={50}
-                      height={50}
-                      className='h-[50px] w-[50px] object-contain'
+                      data-testid='my-best-auntie-description-icon'
+                      className={`es-my-best-auntie-description-icon ${readIconMaskClass(item.icon)} es-my-best-auntie-description-icon-tone--${CARD_ICON_TONES[index % CARD_ICON_TONES.length]}`}
                     />
                   </div>
                   <h3 className='mt-6 es-my-best-auntie-description-card-title'>

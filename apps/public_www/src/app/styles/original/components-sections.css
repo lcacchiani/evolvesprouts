@@ -390,6 +390,71 @@
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
+  .es-my-best-auntie-description-icon {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    -webkit-mask-size: contain;
+  }
+
+  .es-my-best-auntie-description-icon-tone--green {
+    color: #5C9C48;
+  }
+
+  .es-my-best-auntie-description-icon-tone--blue {
+    color: #164878;
+  }
+
+  .es-my-best-auntie-description-icon-tone--red {
+    color: var(--es-color-booking-highlight-icon, #B42318);
+  }
+
+  .es-my-best-auntie-description-icon--training {
+    mask-image: url('/images/training.svg');
+    -webkit-mask-image: url('/images/training.svg');
+  }
+
+  .es-my-best-auntie-description-icon--coaching {
+    mask-image: url('/images/coaching.svg');
+    -webkit-mask-image: url('/images/coaching.svg');
+  }
+
+  .es-my-best-auntie-description-icon--call {
+    mask-image: url('/images/call.svg');
+    -webkit-mask-image: url('/images/call.svg');
+  }
+
+  .es-my-best-auntie-description-icon--community {
+    mask-image: url('/images/community.svg');
+    -webkit-mask-image: url('/images/community.svg');
+  }
+
+  .es-my-best-auntie-description-icon--toolbox {
+    mask-image: url('/images/toolbox.svg');
+    -webkit-mask-image: url('/images/toolbox.svg');
+  }
+
+  .es-my-best-auntie-description-icon--support {
+    mask-image: url('/images/support.svg');
+    -webkit-mask-image: url('/images/support.svg');
+  }
+
+  .es-my-best-auntie-description-icon--review {
+    mask-image: url('/images/review.svg');
+    -webkit-mask-image: url('/images/review.svg');
+  }
+
+  .es-my-best-auntie-description-icon--graduation {
+    mask-image: url('/images/graduation.svg');
+    -webkit-mask-image: url('/images/graduation.svg');
+  }
+
   .es-my-best-auntie-description-card-title {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
