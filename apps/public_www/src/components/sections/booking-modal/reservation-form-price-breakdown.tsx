@@ -20,7 +20,10 @@ export function ReservationFormPriceBreakdown({
   const hasConfirmedPriceDifference = totalAmount !== originalAmount;
 
   return (
-    <div data-booking-price-breakdown='true' className='my-3 space-y-2 py-1'>
+    <div
+      data-booking-price-breakdown='true'
+      className='my-3 space-y-2 rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+    >
       <div className='flex items-center justify-between text-sm font-semibold es-text-body'>
         <span>{content.priceBreakdownPriceLabel}</span>
         <span className='font-bold es-text-heading'>{formatCurrencyHkd(originalAmount, locale)}</span>

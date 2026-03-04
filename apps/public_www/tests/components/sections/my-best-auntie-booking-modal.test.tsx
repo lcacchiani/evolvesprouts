@@ -435,8 +435,11 @@ describe('my-best-auntie booking modals footer content', () => {
       'div[data-booking-price-breakdown="true"]',
     ) as HTMLDivElement | null;
     expect(priceBreakdown).not.toBeNull();
-    expect(priceBreakdown?.className).not.toContain('border');
-    expect(priceBreakdown?.className).not.toContain('bg-');
+    expect(priceBreakdown?.className).toContain('rounded-[14px]');
+    expect(priceBreakdown?.className).toContain('border');
+    expect(priceBreakdown?.className).toContain('es-border-input');
+    expect(priceBreakdown?.className).toContain('es-bg-surface-white');
+    expect(priceBreakdown?.className).toContain('p-[10px]');
     expect(within(priceBreakdown as HTMLDivElement).getByText('Price')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('Discount')).toBeInTheDocument();
     expect(within(priceBreakdown as HTMLDivElement).getByText('Confirmed Price')).toBeInTheDocument();
