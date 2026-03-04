@@ -240,7 +240,7 @@ export function TurnstileCaptcha({
   return (
     <div
       ref={widgetContainerRef}
-      className={mergeClassNames('min-h-[65px]', className)}
+      className={mergeClassNames('es-turnstile-captcha min-h-[65px]', className)}
       data-testid='turnstile-captcha'
     />
   );
