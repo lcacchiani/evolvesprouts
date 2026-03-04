@@ -15,7 +15,7 @@ interface IdaIntroProps {
 }
 
 const INTRO_HIGHLIGHT_WORD = 'Evolve Sprouts';
-const IDA_INTRO_CTA_CLASSNAME = 'mt-auto w-full max-w-[360px]';
+const IDA_INTRO_CTA_CLASSNAME = 'mt-auto max-w-[360px] es-btn--outline';
 
 function renderIntroText(text: string): ReactNode {
   const sections = text.split(INTRO_HIGHLIGHT_WORD);
@@ -52,14 +52,14 @@ export function IdaIntro({ content }: IdaIntroProps) {
               title={renderIntroText(content.heading)}
               titleAs='h2'
               align='left'
-              titleClassName='es-type-subtitle max-w-[720px]'
+              titleClassName='max-w-[720px]'
               description={content.body}
               descriptionClassName='mt-4 max-w-[720px] es-type-body'
             />
             <div className='mt-8'>
               <SectionCtaAnchor
                 href={content.ctaHref}
-                variant='outline'
+                variant='primary'
                 className={IDA_INTRO_CTA_CLASSNAME}
               >
                 {content.ctaLabel}
