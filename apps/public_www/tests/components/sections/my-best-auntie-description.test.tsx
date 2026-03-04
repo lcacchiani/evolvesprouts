@@ -1,22 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { MyBestAuntieDescription } from '@/components/sections/my-best-auntie-description';
 import enContent from '@/content/en.json';
-
-vi.mock('next/image', () => ({
-  default: ({
-    alt,
-    fill: _fill,
-    priority: _priority,
-    ...props
-  }: {
-    alt?: string;
-    fill?: boolean;
-    priority?: boolean;
-  } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
-}));
 
 describe('MyBestAuntieDescription section', () => {
   it('uses migrated section background class and left-aligned heading', () => {
@@ -76,5 +62,40 @@ describe('MyBestAuntieDescription section', () => {
 
     const cardBody = cardArticle?.querySelector('p');
     expect(cardBody?.className).toContain('es-my-best-auntie-description-card-description');
+  });
+
+  it('applies icon masks and repeats green-blue-red tones', () => {
+    const { container } = render(
+      <MyBestAuntieDescription content={enContent.myBestAuntieDescription} />,
+    );
+
+    const icons = container.querySelectorAll('.es-my-best-auntie-description-icon');
+    expect(icons).toHaveLength(enContent.myBestAuntieDescription.items.length);
+
+    const expectedMaskClasses = [
+      'es-my-best-auntie-description-icon--training',
+      'es-my-best-auntie-description-icon--coaching',
+      'es-my-best-auntie-description-icon--call',
+      'es-my-best-auntie-description-icon--community',
+      'es-my-best-auntie-description-icon--toolbox',
+      'es-my-best-auntie-description-icon--support',
+      'es-my-best-auntie-description-icon--review',
+      'es-my-best-auntie-description-icon--graduation',
+    ];
+    const expectedToneClasses = [
+      'es-my-best-auntie-description-icon-tone--green',
+      'es-my-best-auntie-description-icon-tone--blue',
+      'es-my-best-auntie-description-icon-tone--red',
+      'es-my-best-auntie-description-icon-tone--green',
+      'es-my-best-auntie-description-icon-tone--blue',
+      'es-my-best-auntie-description-icon-tone--red',
+      'es-my-best-auntie-description-icon-tone--green',
+      'es-my-best-auntie-description-icon-tone--blue',
+    ];
+
+    icons.forEach((icon, index) => {
+      expect(icon.className).toContain(expectedMaskClasses[index]);
+      expect(icon.className).toContain(expectedToneClasses[index]);
+    });
   });
 });
