@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { type FormEvent, useMemo, useState } from 'react';
 
 import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
@@ -33,6 +34,7 @@ interface BookingReservationFormProps {
 const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const BANK_ICON_SOURCE = '/images/bank.svg';
 const PAYMENT_METHOD_FPS = 'fps_qr';
 const PAYMENT_METHOD_BANK_TRANSFER = 'bank_transfer';
 
@@ -313,25 +315,15 @@ export function BookingReservationForm({
                       className='es-focus-ring h-4 w-4 shrink-0 es-accent-brand'
                     />
                     <span className='inline-flex items-center gap-2 text-sm font-semibold es-text-heading'>
-                      <svg
+                      <Image
+                        src={BANK_ICON_SOURCE}
+                        alt=''
                         data-booking-bank-icon='true'
                         aria-hidden='true'
-                        viewBox='0 0 24 24'
+                        width={20}
+                        height={20}
                         className='h-5 w-5 shrink-0'
-                        fill='none'
-                        stroke='currentColor'
-                        strokeWidth='1.8'
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                      >
-                        <path d='m3 9.5 9-5.5 9 5.5' />
-                        <path d='M4 10h16' />
-                        <path d='M6.5 10v7.5' />
-                        <path d='M10.5 10v7.5' />
-                        <path d='M13.5 10v7.5' />
-                        <path d='M17.5 10v7.5' />
-                        <path d='M3.5 19.5h17' />
-                      </svg>
+                      />
                       <span>{content.paymentMethodBankTransferValue}</span>
                     </span>
                   </label>

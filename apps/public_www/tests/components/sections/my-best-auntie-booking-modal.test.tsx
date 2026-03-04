@@ -347,7 +347,11 @@ describe('my-best-auntie booking modals footer content', () => {
     });
     expect(fpsPaymentOption).toBeChecked();
     expect(bankTransferOption).not.toBeChecked();
-    expect(paymentOptions?.querySelector('svg[data-booking-bank-icon="true"]')).not.toBeNull();
+    const bankIcon = paymentOptions?.querySelector(
+      'img[data-booking-bank-icon="true"]',
+    ) as HTMLImageElement | null;
+    expect(bankIcon).not.toBeNull();
+    expect(bankIcon?.getAttribute('src')).toContain('/images/bank.svg');
 
     const fpsLayout = paymentBlock?.querySelector('img[alt="FPS"]')?.parentElement as
       | HTMLDivElement
