@@ -38,9 +38,19 @@ describe('Testimonials section', () => {
     expect(firstStoryImage.className).toContain('rounded-card-lg');
     expect(firstStoryImage).toHaveAttribute('sizes', '200px');
     expect(firstStoryImage.parentElement?.className).toContain('max-w-[200px]');
+    expect(firstStoryImage.parentElement?.className).toContain('lg:mt-[70px]');
     expect(firstStoryImage.parentElement?.className).toContain('aspect-square');
     expect(screen.queryByAltText(`${firstStory.author} avatar`)).not.toBeInTheDocument();
     expect(container.querySelector('.es-testimonial-quote-icon')).not.toBeNull();
+
+    const splitLayout = container.querySelector('.es-section-split-layout--testimonials');
+    const rightColumnClassName = splitLayout?.children[1]?.className ?? '';
+    expect(rightColumnClassName).toContain('px-6');
+    expect(rightColumnClassName).toContain('sm:px-9');
+    expect(rightColumnClassName).not.toContain('p-6');
+    expect(rightColumnClassName).not.toContain('sm:p-9');
+    expect(rightColumnClassName).not.toContain('lg:pb-10');
+    expect(rightColumnClassName).not.toContain('lg:pt-12');
   });
 
   it('renders one active story at a time and swaps content when navigating', () => {

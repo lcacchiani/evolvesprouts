@@ -188,7 +188,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                   'es-section-split-layout--testimonials',
                 )}
               >
-                <div className='relative mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-card-lg es-bg-surface-peach lg:mx-0'>
+                <div className='relative mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-card-lg es-bg-surface-peach lg:mx-0 lg:mt-[70px]'>
                   {activeStory.mainImageSrc ? (
                     <Image
                       src={activeStory.mainImageSrc}
@@ -206,7 +206,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                   )}
                 </div>
 
-                <div className='flex flex-col p-6 sm:p-9 lg:px-12 lg:pb-10 lg:pt-12'>
+                <div className='flex flex-col px-6 sm:px-9 lg:px-12'>
                   <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
                     <span
                       aria-hidden='true'
