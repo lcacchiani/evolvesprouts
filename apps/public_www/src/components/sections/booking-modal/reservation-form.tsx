@@ -34,7 +34,12 @@ interface BookingReservationFormProps {
 const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const FPS_ICON_SOURCE = '/images/fps-logo.svg';
 const BANK_ICON_SOURCE = '/images/bank.svg';
+const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME ?? '';
+const BANK_ACCOUNT_HOLDER = process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER ?? '';
+const BANK_ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? '';
+const BANK_DETAIL_PLACEHOLDER = '--';
 const PAYMENT_METHOD_FPS = 'fps_qr';
 const PAYMENT_METHOD_BANK_TRANSFER = 'bank_transfer';
 
@@ -59,6 +64,23 @@ function getPaymentMethodLabel(
   }
 
   return content.paymentMethodValue;
+}
+
+function getBankTransferDetails(content: MyBestAuntieBookingContent['paymentModal']) {
+  return [
+    {
+      label: content.paymentBankNameLabel,
+      value: BANK_NAME.trim() || BANK_DETAIL_PLACEHOLDER,
+    },
+    {
+      label: content.paymentBankAccountHolderLabel,
+      value: BANK_ACCOUNT_HOLDER.trim() || BANK_DETAIL_PLACEHOLDER,
+    },
+    {
+      label: content.paymentBankAccountNumberLabel,
+      value: BANK_ACCOUNT_NUMBER.trim() || BANK_DETAIL_PLACEHOLDER,
+    },
+  ];
 }
 
 export function BookingReservationForm({
@@ -284,37 +306,63 @@ export function BookingReservationForm({
               data-booking-payment-options='true'
               className='rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
             >
-              <ul className='space-y-2'>
-                <li>
-                  <label className='flex items-center gap-2.5'>
-                    <input
-                      type='radio'
-                      name='booking-payment-method'
-                      value={PAYMENT_METHOD_FPS}
-                      checked={selectedPaymentMethod === PAYMENT_METHOD_FPS}
-                      onChange={() => {
-                        setSelectedPaymentMethod(PAYMENT_METHOD_FPS);
-                      }}
-                      className='es-focus-ring h-4 w-4 shrink-0 es-accent-brand'
-                    />
-                    <span className='text-sm font-semibold es-text-heading'>
-                      {content.paymentMethodValue}
-                    </span>
-                  </label>
-                </li>
-                <li>
-                  <label className='flex items-center gap-2.5'>
-                    <input
-                      type='radio'
-                      name='booking-payment-method'
-                      value={PAYMENT_METHOD_BANK_TRANSFER}
-                      checked={selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER}
-                      onChange={() => {
-                        setSelectedPaymentMethod(PAYMENT_METHOD_BANK_TRANSFER);
-                      }}
-                      className='es-focus-ring h-4 w-4 shrink-0 es-accent-brand'
-                    />
-                    <span className='inline-flex items-center gap-2 text-sm font-semibold es-text-heading'>
+              <div
+                data-booking-payment-options-columns='true'
+                className='grid grid-cols-5 gap-3'
+              >
+                <div
+                  data-booking-payment-options-column-left='true'
+                  className='col-span-1'
+                >
+                  <div className='flex flex-col gap-2'>
+                    <label
+                      className={`es-focus-ring flex h-11 w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
+                        selectedPaymentMethod === PAYMENT_METHOD_FPS
+                          ? 'border-black/20 es-bg-surface-muted'
+                          : 'border-transparent'
+                      }`}
+                    >
+                      <input
+                        type='radio'
+                        name='booking-payment-method'
+                        value={PAYMENT_METHOD_FPS}
+                        checked={selectedPaymentMethod === PAYMENT_METHOD_FPS}
+                        onChange={() => {
+                          setSelectedPaymentMethod(PAYMENT_METHOD_FPS);
+                        }}
+                        className='sr-only'
+                      />
+                      <span className='sr-only'>{content.paymentMethodValue}</span>
+                      <Image
+                        src={FPS_ICON_SOURCE}
+                        alt=''
+                        data-booking-fps-icon='true'
+                        aria-hidden='true'
+                        width={32}
+                        height={18}
+                        className='h-[18px] w-auto shrink-0'
+                      />
+                    </label>
+                    <label
+                      className={`es-focus-ring flex h-11 w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
+                        selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER
+                          ? 'border-black/20 es-bg-surface-muted'
+                          : 'border-transparent'
+                      }`}
+                    >
+                      <input
+                        type='radio'
+                        name='booking-payment-method'
+                        value={PAYMENT_METHOD_BANK_TRANSFER}
+                        checked={selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER}
+                        onChange={() => {
+                          setSelectedPaymentMethod(PAYMENT_METHOD_BANK_TRANSFER);
+                        }}
+                        className='sr-only'
+                      />
+                      <span className='sr-only'>
+                        {content.paymentMethodBankTransferValue}
+                      </span>
                       <Image
                         src={BANK_ICON_SOURCE}
                         alt=''
@@ -324,13 +372,39 @@ export function BookingReservationForm({
                         height={20}
                         className='h-5 w-5 shrink-0'
                       />
-                      <span>{content.paymentMethodBankTransferValue}</span>
-                    </span>
-                  </label>
-                </li>
-              </ul>
+                    </label>
+                  </div>
+                </div>
+                <div
+                  data-booking-payment-options-column-right='true'
+                  className='col-span-4'
+                >
+                  {selectedPaymentMethod === PAYMENT_METHOD_FPS ? (
+                    <div data-booking-payment-details='fps' className='h-full py-1'>
+                      <FpsQrCode amount={totalAmount} />
+                    </div>
+                  ) : (
+                    <div
+                      data-booking-payment-details='bank-transfer'
+                      className='h-full rounded-[10px] es-bg-surface-muted px-3 py-2'
+                    >
+                      <dl className='space-y-2'>
+                        {getBankTransferDetails(content).map((bankDetail) => (
+                          <div key={bankDetail.label} className='space-y-0.5'>
+                            <dt className='text-xs font-semibold uppercase tracking-wide es-text-heading'>
+                              {bankDetail.label}
+                            </dt>
+                            <dd className='text-sm font-semibold es-text-heading'>
+                              {bankDetail.value}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <FpsQrCode amount={totalAmount} />
           </div>
 
           <div data-booking-acknowledgements='true' className='space-y-2'>

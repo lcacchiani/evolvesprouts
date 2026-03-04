@@ -3,16 +3,31 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { type AnchorHTMLAttributes, type ComponentProps, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { originalFpsMerchantName, originalFpsMobileNumber } = vi.hoisted(() => {
+const {
+  originalFpsMerchantName,
+  originalFpsMobileNumber,
+  originalBankName,
+  originalBankAccountHolder,
+  originalBankAccountNumber,
+} = vi.hoisted(() => {
   const originalFpsMerchantName = process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME;
   const originalFpsMobileNumber = process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER;
+  const originalBankName = process.env.NEXT_PUBLIC_BANK_NAME;
+  const originalBankAccountHolder = process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER;
+  const originalBankAccountNumber = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER;
 
   process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME = 'Test FPS Merchant';
   process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = '85200000000';
+  process.env.NEXT_PUBLIC_BANK_NAME = 'Test Bank';
+  process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER = 'Test Account Holder';
+  process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER = '123-456-789';
 
   return {
     originalFpsMerchantName,
     originalFpsMobileNumber,
+    originalBankName,
+    originalBankAccountHolder,
+    originalBankAccountNumber,
   };
 });
 
@@ -113,6 +128,9 @@ const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
 const testFpsMerchantName = 'Test FPS Merchant';
 const testFpsMobileNumber = '85200000000';
+const testBankName = 'Test Bank';
+const testBankAccountHolder = 'Test Account Holder';
+const testBankAccountNumber = '123-456-789';
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 const reservationSummary: ReservationSummary = {
@@ -149,6 +167,9 @@ beforeEach(() => {
   process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = testTurnstileSiteKey;
   process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME = testFpsMerchantName;
   process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = testFpsMobileNumber;
+  process.env.NEXT_PUBLIC_BANK_NAME = testBankName;
+  process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER = testBankAccountHolder;
+  process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER = testBankAccountNumber;
 });
 
 afterEach(() => {
@@ -171,6 +192,24 @@ afterEach(() => {
     delete process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER;
   } else {
     process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = originalFpsMobileNumber;
+  }
+
+  if (originalBankName === undefined) {
+    delete process.env.NEXT_PUBLIC_BANK_NAME;
+  } else {
+    process.env.NEXT_PUBLIC_BANK_NAME = originalBankName;
+  }
+
+  if (originalBankAccountHolder === undefined) {
+    delete process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER;
+  } else {
+    process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER = originalBankAccountHolder;
+  }
+
+  if (originalBankAccountNumber === undefined) {
+    delete process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER;
+  } else {
+    process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER = originalBankAccountNumber;
   }
 });
 
@@ -209,7 +248,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toContain(thankYouModalContent.subtitle);
   });
 
-  it('hides child age group and renders payment option radios in booking modal', () => {
+  it('hides child age group and renders icon-based payment option radios in booking modal', () => {
     const { container } = renderBookingModal({
       selectedAgeGroupLabel: '18-24 months',
     });
@@ -337,7 +376,23 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(paymentOptions?.className).toContain('es-border-input');
     expect(paymentOptions?.className).toContain('es-bg-surface-white');
     expect(paymentOptions?.className).toContain('p-[10px]');
-    expect(paymentOptions?.querySelectorAll('li')).toHaveLength(2);
+    const paymentOptionsColumns = paymentOptions?.querySelector(
+      'div[data-booking-payment-options-columns="true"]',
+    ) as HTMLDivElement | null;
+    expect(paymentOptionsColumns).not.toBeNull();
+    expect(paymentOptionsColumns?.className).toContain('grid');
+    expect(paymentOptionsColumns?.className).toContain('grid-cols-5');
+    const paymentOptionsLeftColumn = paymentOptions?.querySelector(
+      'div[data-booking-payment-options-column-left="true"]',
+    ) as HTMLDivElement | null;
+    const paymentOptionsRightColumn = paymentOptions?.querySelector(
+      'div[data-booking-payment-options-column-right="true"]',
+    ) as HTMLDivElement | null;
+    expect(paymentOptionsLeftColumn).not.toBeNull();
+    expect(paymentOptionsLeftColumn?.className).toContain('col-span-1');
+    expect(paymentOptionsRightColumn).not.toBeNull();
+    expect(paymentOptionsRightColumn?.className).toContain('col-span-4');
+    expect(paymentOptions?.querySelectorAll('li')).toHaveLength(0);
 
     const fpsPaymentOption = screen.getByRole('radio', {
       name: bookingModalContent.paymentMethodValue,
@@ -352,6 +407,15 @@ describe('my-best-auntie booking modals footer content', () => {
     ) as HTMLImageElement | null;
     expect(bankIcon).not.toBeNull();
     expect(bankIcon?.getAttribute('src')).toContain('/images/bank.svg');
+    const fpsIcon = paymentOptions?.querySelector(
+      'img[data-booking-fps-icon="true"]',
+    ) as HTMLImageElement | null;
+    expect(fpsIcon).not.toBeNull();
+    expect(fpsIcon?.getAttribute('src')).toContain('/images/fps-logo.svg');
+    expect(paymentOptions?.querySelector('div[data-booking-payment-details="fps"]')).not.toBeNull();
+    expect(
+      paymentOptions?.querySelector('div[data-booking-payment-details="bank-transfer"]'),
+    ).toBeNull();
 
     const fpsLayout = paymentBlock?.querySelector('img[alt="FPS"]')?.parentElement as
       | HTMLDivElement
@@ -577,7 +641,19 @@ describe('my-best-auntie booking modals footer content', () => {
         name: bookingModalContent.paymentMethodValue,
       }),
     ).not.toBeChecked();
-    expect(container.querySelector('div[aria-label="FPS payment QR code"]')).not.toBeNull();
+    expect(container.querySelector('div[aria-label="FPS payment QR code"]')).toBeNull();
+    expect(
+      screen.getByText(bookingModalContent.paymentBankNameLabel),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(bookingModalContent.paymentBankAccountHolderLabel),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(bookingModalContent.paymentBankAccountNumberLabel),
+    ).toBeInTheDocument();
+    expect(screen.getByText(testBankName)).toBeInTheDocument();
+    expect(screen.getByText(testBankAccountHolder)).toBeInTheDocument();
+    expect(screen.getByText(testBankAccountNumber)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
       target: { value: 'Test User' },
