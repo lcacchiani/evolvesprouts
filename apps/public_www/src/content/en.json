@@ -757,58 +757,57 @@
   },
   "ida": {
     "title": "Hello, fellow parents!",
-    "subtitle": "My name is Ida, founder of Evolve Sprouts-and above all, a mum navigating the same joys and challenges you are.",
-    "description": "I am a mother to two bright sparks: Mia, my spirited 5-year-old, and Eva, our miracle.",
+    "subtitle": "My name is Ida — founder of Evolve Sprouts, AMI Montessori educator, and a mum navigating the same joys and challenges you are.",
+    "description": "Born in Italy, raising my family in Hong Kong for seven years. Mum to Mia (5) and Eva, our September 2024 miracle. Driven, like you, by a fierce love to give my children the very best.",
     "ctaLabel": "Let's connect!",
     "ctaHref": "/contact-us"
   },
   "myHistory": {
-    "eyebrow": "My History",
-    "title": "A Brief History: From Passion to Purpose",
-    "subtitle": "Like many of you, my path has not been linear.",
-    "description": "I started my career in media and communication, working in hospitality across the UK and Hong Kong. Four years ago, I made a leap of faith and left my corporate role to pursue my deepest passion: reimagining education."
+    "eyebrow": "My Story",
+    "title": "From the boardroom to the classroom.",
+    "subtitle": "I left a career in media and hospitality to earn a Master’s in Education from HKU, an AMI Montessori Assistant diploma (0–3) from London, and an AMI Montessori Diploma (3–6) from San Diego. I also hold certifications in Child Nutrition from Stanford and specialist training in Montessori emotional well-being.",
+    "description": "For three years I’ve worked hands-on with children aged 1–6 at Hong Kong’s International Montessori School — and every day, I bring that experience home to my own girls."
   },
   "myJourney": {
-    "eyebrow": "My Journey",
-    "title": "My Montessori Journey: A Parent's Transformation",
+    "eyebrow": "My Montessori Journey",
+    "title": "Parenting isn’t about perfection. It’s about progress.",
     "cards": [
       {
-        "tag": "Humans Capable",
-        "description": "Seeing my children blossom into curious, confident little humans-capable of pouring their own water, resolving conflicts with kindness, and embracing mistakes as part of learning-opened my eyes. But this journey was not without struggles."
+        "tag": "Progress at Home",
+        "description": "Watching my daughters pour their own water, resolve conflicts with kindness, and embrace mistakes as learning — that didn’t happen without struggle."
       },
       {
-        "tag": "Montessori",
-        "description": "My true Montessori journey began at home. As a mother to Mia and Eva, I witnessed something extraordinary: respect, independence, and child-led learning did not just shape their growth-they transformed mine."
+        "tag": "Growth in Me",
+        "description": "I’ve cried after losing my temper. I’ve doubted every choice. Montessori didn’t just shape my children’s growth — it transformed mine."
       }
     ]
   },
   "whyUs": {
     "eyebrow": "Why Us",
-    "title": "Why Evolve Sprouts Exists: You're Not Alone",
-    "introTitle": "But here's what I learned:",
+    "title": "Why Evolve Sprouts Exists: You’re Not Alone",
+    "introTitle": "I created Evolve Sprouts because I needed what so many of us crave: a village.",
     "introItems": [
       "Doing things differently is hard.",
-      "It is hard to drown out the noise of comparison.",
-      "It is hard to trust your instincts when the world says: Hurry up.",
-      "It is hard to create calm in Hong Kong's relentless pace."
+      "It’s hard to trust your instincts when the world says hurry up.",
+      "It’s hard to find calm inside Hong Kong’s relentless pace."
     ],
-    "communityText": "That is why Evolve Sprouts is not just about workshops-it is about building a community for parents like you and me.",
+    "communityText": "That’s why Evolve Sprouts is not just about workshops — it’s about building a community for parents like you and me.",
     "pillars": [
       {
         "title": "Training Course for your Auntie",
-        "description": "Ensure your children grow up with your values and principles by training your auntie with our specialised course for Hong Kong families."
+        "description": "A specialised course designed for Hong Kong families — train your helper to understand Montessori principles, communicate calmly with toddlers, and raise your children with your values."
       },
       {
         "title": "Practical Tools",
-        "description": "From small-space Montessori setups to real-life scripts for difficult moments, you will leave with clear actions you can apply immediately."
+        "description": "Real-life scripts, small-space Montessori setups, and clear actions you can use the same day."
       },
       {
         "title": "Emotional Support",
-        "description": "A safe and non-judgmental space to share struggles, ask questions, and feel seen."
+        "description": "A safe, non-judgmental space to share the hard moments and feel genuinely seen."
       },
       {
         "title": "Shared Learning",
-        "description": "Stories and strategies from families walking this same path-messy moments and all."
+        "description": "Stories and strategies from families on the same path — messy moments and all."
       }
     ]
   },
@@ -1031,14 +1030,14 @@
     "contactCardCtaLabel": "Contact Us"
   },
   "sproutsSquadCommunity": {
-    "heading": "Join our Sprouts Squad community!",
-    "ctaLabel": "Sign Up to Our Monthly Newsletter",
-    "formSubmitLabel": "Join Sprouts Squad",
-    "ctaHref": "/contact-us",
-    "supportParagraph": "Ready to be part of our community? Enter your email and your journey will start here!",
+    "heading": "Let's Grow Together",
+    "ctaLabel": "Explore our workshops",
+    "formSubmitLabel": "Explore our workshops",
+    "ctaHref": "/services/workshops",
+    "supportParagraph": "If you've ever felt overwhelmed, isolated in your choices, or quietly wondered if you're enough — you belong here. With warmth and solidarity, Ida 🌱",
     "emailPlaceholder": "Email address",
     "emailValidationMessage": "Please enter a valid email address.",
-    "prefilledMessage": "Newsletter join",
+    "prefilledMessage": "Workshop interest from About Us page",
     "submitErrorMessage": "something went wrong, try a bit later",
     "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
     "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",

@@ -756,59 +756,58 @@
     }
   },
   "ida": {
-    "title": "你好，亲爱的父母们！",
-    "subtitle": "我是 Ida，Evolve Sprouts 的创办人，更重要的是一位和你一样在育儿路上经历喜悦与挑战的妈妈。",
-    "description": "我是两个小太阳的妈妈：活力十足的 5 岁女儿 Mia，以及我们的奇迹宝宝 Eva。",
+    "title": "你好，各位家长！",
+    "subtitle": "我叫 Ida——Evolve Sprouts 创始人、AMI 蒙特梭利教育者，也是一位和你一样经历育儿喜悦与挑战的妈妈。",
+    "description": "我出生于意大利，在香港生活了七年并在这里建立家庭。我是 Mia（5岁）和 Eva 的妈妈，Eva 是我们在 2024 年 9 月迎来的奇迹。和你一样，我也怀着一份强烈的爱，想把最好的给孩子。",
     "ctaLabel": "我们聊聊吧！",
     "ctaHref": "/contact-us"
   },
   "myHistory": {
     "eyebrow": "我的故事",
-    "title": "简短经历：从热爱到使命",
-    "subtitle": "和许多家长一样，我的成长路径并不是一条直线。",
-    "description": "我的职业起点在媒体与传播领域，也曾在英国和香港的酒店业工作。四年前，我做出一个重要决定：离开企业岗位，投入我最热爱的事情-重新想象教育。"
+    "title": "从董事会走进课堂。",
+    "subtitle": "我曾在媒体与酒店行业发展，后来转身投入教育，先后取得香港大学教育硕士、伦敦 AMI 蒙特梭利助教文凭（0-3），以及圣地亚哥 AMI 蒙特梭利文凭（3-6）。我还获得了斯坦福儿童营养认证，并接受了蒙特梭利情绪健康专项培训。",
+    "description": "过去三年，我一直在香港国际蒙特梭利学校与 1-6 岁儿童进行一线工作——而每天，我都把这些经验带回家，陪伴我的两个女儿成长。"
   },
   "myJourney": {
-    "eyebrow": "我的旅程",
-    "title": "我的蒙特梭利旅程：一个家长的转变",
+    "eyebrow": "我的蒙特梭利旅程",
+    "title": "育儿不在于完美，而在于进步。",
     "cards": [
       {
-        "tag": "孩子有能力",
-        "description": "当我看到孩子们变得好奇、自信，能够自己倒水、用温和方式解决冲突，并把错误当作学习的一部分时，我被深深触动。但这段旅程也并不轻松。"
+        "tag": "家庭中的进步",
+        "description": "看着女儿们自己倒水、用善意化解冲突、把错误当作学习——这一切并不是没有挣扎就能做到。"
       },
       {
-        "tag": "蒙特梭利",
-        "description": "我真正的蒙特梭利旅程始于家中。作为 Mia 和 Eva 的妈妈，我见证了尊重、独立和以孩子为中心的学习，不仅塑造了她们的成长，也改变了我。"
+        "tag": "我的成长",
+        "description": "我也曾在失去耐心后落泪，也曾怀疑过每一个选择。蒙特梭利不仅塑造了孩子的成长，也改变了我。"
       }
     ]
   },
   "whyUs": {
     "eyebrow": "为什么是我们",
     "title": "Evolve Sprouts 为什么存在：你并不孤单",
-    "introTitle": "这是我一路走来最深的体会：",
+    "introTitle": "我创立 Evolve Sprouts，是因为我也需要许多家长都在渴望的东西：一个互相支持的村落。",
     "introItems": [
-      "想用不同方式养育孩子，真的很难。",
-      "要不被比较和外界声音影响，很难。",
-      "当世界都在催你快一点时，相信自己的节奏很难。",
-      "在香港快节奏生活中创造平静，很难。"
+      "想走不一样的育儿路，很难。",
+      "当世界催你快一点时，要相信自己的直觉，很难。",
+      "在香港高压节奏里找到平静，很难。"
     ],
-    "communityText": "这就是为什么 Evolve Sprouts 不只是工作坊-我们更想建立一个彼此支持、共同成长的家长社区。",
+    "communityText": "这就是为什么 Evolve Sprouts 不只是工作坊——更是一个为你我而建的家长社群。",
     "pillars": [
       {
-        "title": "姨姨培训课程",
-        "description": "通过为香港家庭量身打造的课程，帮助姨姨和你在价值观与育儿原则上保持一致，让孩子在同一套稳定方式中成长。"
+        "title": "阿姨培训课程",
+        "description": "专为香港家庭设计的课程——帮助你的阿姨理解蒙特梭利原则、用平和方式与幼儿沟通，并按你的价值观养育孩子。"
       },
       {
-        "title": "可落地工具",
-        "description": "从小户型蒙特梭利环境设计，到高压情境下可直接使用的沟通脚本，给你可以马上实践的方案。"
+        "title": "实用工具",
+        "description": "真实场景沟通脚本、小空间蒙特梭利布置，以及你当天就能用上的清晰行动。"
       },
       {
         "title": "情绪支持",
-        "description": "一个安全、无评判的空间，让你能放心说出困惑、提问并获得理解。"
+        "description": "一个安全、无评判的空间，让你分享艰难时刻，并被真正看见。"
       },
       {
         "title": "共同学习",
-        "description": "来自真实家庭的经验与策略，包含那些不完美但真实的育儿时刻。"
+        "description": "来自同行家庭的故事与策略——包括那些真实而混乱的时刻。"
       }
     ]
   },
@@ -1031,14 +1030,14 @@
     "contactCardCtaLabel": "联系我们"
   },
   "sproutsSquadCommunity": {
-    "heading": "加入我们的 Sprouts Squad 社区！",
-    "ctaLabel": "订阅我们的每月通讯",
-    "formSubmitLabel": "加入 Sprouts Squad",
-    "ctaHref": "/contact-us",
-    "supportParagraph": "准备好成为我们社区的一员了吗？输入你的邮箱，你的旅程将从这里开始！",
+    "heading": "让我们一起成长",
+    "ctaLabel": "探索我们的工作坊",
+    "formSubmitLabel": "探索我们的工作坊",
+    "ctaHref": "/services/workshops",
+    "supportParagraph": "如果你曾感到不知所措、在育儿选择中感到孤单，或曾悄悄怀疑自己是否足够好——你属于这里。带着温暖与同行，Ida 🌱",
     "emailPlaceholder": "邮箱地址",
     "emailValidationMessage": "请输入有效的邮箱地址。",
-    "prefilledMessage": "Newsletter join",
+    "prefilledMessage": "我想了解你们的工作坊",
     "submitErrorMessage": "出了点问题，请稍后再试。",
     "captchaRequiredError": "提交前请先完成 CAPTCHA 验证。",
     "captchaLoadError": "CAPTCHA 加载失败，请刷新页面后重试。",
