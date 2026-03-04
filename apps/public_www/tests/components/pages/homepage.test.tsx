@@ -39,8 +39,11 @@ vi.mock('@/components/sections/hero-banner', () => ({
   },
 }));
 vi.mock('@/components/sections/ida-intro', () => ({
-  IdaIntro: ({ content }: { content: { text: string } }) => (
-    <section data-testid='ida-intro'>{content.text}</section>
+  IdaIntro: ({ content }: { content: { heading: string; body: string } }) => (
+    <section data-testid='ida-intro'>
+      <h2>{content.heading}</h2>
+      <p>{content.body}</p>
+    </section>
   ),
 }));
 vi.mock('@/components/sections/my-best-auntie-overview', () => ({
@@ -90,7 +93,8 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
     expect(screen.getByText(enContent.hero.headline)).toBeInTheDocument();
-    expect(screen.getByText(enContent.idaIntro.text)).toBeInTheDocument();
+    expect(screen.getByText(enContent.idaIntro.heading)).toBeInTheDocument();
+    expect(screen.getByText(enContent.idaIntro.body)).toBeInTheDocument();
     expect(
       screen.getByTestId('my-best-auntie-overview'),
     ).toHaveTextContent('Best Auntie Training Course Designed by Ida');

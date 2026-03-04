@@ -119,7 +119,8 @@
     "localBusinessAreaServed": "香港"
   },
   "idaIntro": {
-    "text": "我叫 Ida，我是一位蒙特梭利認證導師，也是兩個孩子的媽媽。",
+    "heading": "你好！我叫 Ida，是 Evolve Sprouts 的創辦人",
+    "body": "我是一位蒙特梭利認證導師，也是兩個孩子的媽媽。",
     "ctaLabel": "了解更多關於我",
     "ctaHref": "/about-us",
     "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
