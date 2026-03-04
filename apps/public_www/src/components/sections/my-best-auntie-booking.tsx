@@ -412,8 +412,6 @@ export function MyBestAuntieBooking({
           content={content.paymentModal}
           selectedCohort={selectedCohort}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
-          learnMoreLabel={content.learnMoreLabel}
-          learnMoreHref={content.learnMoreHref}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}

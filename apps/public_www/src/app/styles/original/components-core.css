@@ -535,11 +535,6 @@
     object-fit: contain;
   }
 
-  .es-link-external-label {
-    text-decoration-line: underline;
-    text-underline-offset: 4px;
-  }
-
   .es-link-external-label--with-icon > .es-link-external-icon {
     margin-left: 3px;
   }

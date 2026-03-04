@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
@@ -20,8 +19,6 @@ interface BookingEventDetailsProps {
   venueName: string;
   venueAddress: string;
   directionHref: string;
-  learnMoreLabel: string;
-  learnMoreHref: string;
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
@@ -79,8 +76,6 @@ export function BookingEventDetails({
   venueName,
   venueAddress,
   directionHref,
-  learnMoreLabel,
-  learnMoreHref,
 }: BookingEventDetailsProps) {
   return (
     <div className='es-my-best-auntie-booking-modal-details-column w-full lg:w-[calc(50%-20px)]'>
@@ -215,17 +210,6 @@ export function BookingEventDetails({
           </div>
         </div>
 
-        {learnMoreLabel ? (
-          <div className='mt-8'>
-            <ButtonPrimitive
-              href={learnMoreHref}
-              variant='outline'
-              className='h-[56px] rounded-control px-7 text-base font-semibold'
-            >
-              {learnMoreLabel}
-            </ButtonPrimitive>
-          </div>
-        ) : null}
       </section>
     </div>
   );

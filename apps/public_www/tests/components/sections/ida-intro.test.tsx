@@ -28,10 +28,9 @@ describe('IdaIntro', () => {
       'es-ida-intro-section',
     );
     expect(screen.getByText('Evolve Sprouts')).toHaveClass('es-hero-highlight-word');
-    expect(screen.getByRole('link', { name: content.ctaLabel })).toHaveAttribute(
-      'href',
-      content.ctaHref,
-    );
+    const ctaLink = screen.getByRole('link', { name: content.ctaLabel });
+    expect(ctaLink).toHaveAttribute('href', content.ctaHref);
+    expect(ctaLink.className).toContain('es-btn--outline');
     const image = screen.getByRole('img', { name: content.imageAlt });
     expect(image).toBeInTheDocument();
     expect(image).toHaveClass('relative', 'z-10');
