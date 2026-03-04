@@ -23,9 +23,14 @@ const CONTROL_ICON = TEXT_ICON_COLOR;
 const CONTROL_ICON_DISABLED = TEXT_NEUTRAL_STRONG_COLOR;
 
 const iconByKey: Record<string, string> = {
-  'live-training': '/images/training.svg',
-  'auntie-review': '/images/review.svg',
-  workbook: '/images/workbook.svg',
+  training: '/images/training.svg',
+  coaching: '/images/coaching.svg',
+  call: '/images/call.svg',
+  community: '/images/community.svg',
+  toolbox: '/images/toolbox.svg',
+  support: '/images/support.svg',
+  review: '/images/review.svg',
+  graduate: '/images/graduation.svg',
 };
 
 function ArrowIcon({

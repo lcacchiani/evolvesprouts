@@ -455,56 +455,56 @@
     "title": "你會在我的最佳姨姨培訓課程中獲得甚麼？",
     "items": [
       {
-        "icon": "live-training",
+        "icon": "training",
         "title": "姨姨小組培訓課",
         "description": "三節現場小班課，只開放予姨姨參與。在被尊重、沒有僱主壓力的空間中，學習兒童發展、引導方法與培養獨立。穩固基礎、共享經驗、實用而清晰。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "coaching",
         "title": "私人 1:1 指導（按家庭而設）",
         "description": "三節按你家庭真實日常度身訂造的指導。我們會觀察、對齊期望、調整回應，並示範精準用語。小組學習建立知識；私人指導讓方法在你家真正落地。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "call",
         "title": "家長策略通話",
         "description": "我們會抽離一步，評估進度並重新校準方向。你會清楚知道哪些有效、哪些要調整，以及如何避免小問題演變成長期模式。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "community",
         "title": "姨姨 WhatsApp 社群",
         "description": "專為已報讀姨姨而設的私密支援群組。即時指導、同儕交流與專家主持。學習在課與課之間持續，讓一致性不會在日常壓力下瓦解。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "toolbox",
         "title": "話術、工具與真實案例",
         "description": "可即用的實戰用語，應對真實情境。學會不靠喝罵也能引導、不靠懲罰也能轉移，並能平靜回應抗拒。對的說話方式，會改變行為。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "live-training",
+        "icon": "support",
         "title": "家長 WhatsApp 支援",
         "description": "課與課之間可直接提問。及早指導可防止問題升級，並讓所有照顧者保持一致。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "review",
         "title": "每次私人指導後的書面報告",
         "description": "每次私人到訪後提供清晰書面摘要。包括觀察重點、聚焦範圍與可立即執行的下一步。無混亂，無錯位。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "graduate",
         "title": "最終課程總結報告",
         "description": "在課程完成時提供整合版參考報告。清楚總結進展並提供下一發展階段的後續建議。",
         "ctaLabel": "了解更多",

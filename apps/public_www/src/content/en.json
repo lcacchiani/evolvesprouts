@@ -455,56 +455,56 @@
     "title": "What Do You Get in the My Best Auntie Training Course?",
     "items": [
       {
-        "icon": "live-training",
+        "icon": "training",
         "title": "Group Aunties Training Sessions",
         "description": "Three live, small-group sessions exclusively for aunties. They learn child development, guidance, and independence in a respectful space without employer pressure. Strong foundations, shared experiences, practical clarity.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "coaching",
         "title": "Private 1:1 Coaching (Family-Specific)",
         "description": "Three tailored sessions inside your real routines. We observe, align expectations, adjust responses, and coach precise language. Group learning builds knowledge. Private coaching makes it work in your home.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "call",
         "title": "Parent Strategy Calls",
         "description": "We step back, assess progress, and realign direction. You will know what is working, what needs adjusting, and how to prevent small issues becoming long-term patterns.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "community",
         "title": "Auntie WhatsApp Community",
         "description": "A private support group for enrolled aunties. Real-time guidance, peer discussion, and expert moderation. Learning continues between sessions so consistency does not collapse under daily pressure.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "toolbox",
         "title": "Scripts, Tools & Real-Life Examples",
         "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behavior.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "live-training",
+        "icon": "support",
         "title": "WhatsApp Support for Parents",
         "description": "Direct access for questions between sessions. Early guidance prevents escalation and keeps everyone aligned.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "review",
         "title": "Written Reports After Each Private Session",
         "description": "Clear written summaries after every private visit. Observations, focus areas, and immediate next steps. No confusion. No misalignment.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "graduate",
         "title": "Final Programme Report",
         "description": "A consolidated reference at programme completion. Clear progress overview and future guidance for the next developmental stage.",
         "ctaLabel": "Learn More",

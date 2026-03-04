@@ -455,56 +455,56 @@
     "title": "你将在我的最佳阿姨培训课程中获得什么？",
     "items": [
       {
-        "icon": "live-training",
+        "icon": "training",
         "title": "阿姨小组培训课",
         "description": "三节线下小班课，仅面向阿姨。在被尊重、没有雇主压力的空间里，学习儿童发展、引导方法与独立能力培养。打好基础，共享经验，清晰实用。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "coaching",
         "title": "私人 1:1 指导（按家庭定制）",
         "description": "三节围绕你家真实日常定制的指导。我们会观察、对齐期待、调整回应，并示范精准表达。小组学习建立知识，私人指导让方法在你家真正落地。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "call",
         "title": "家长策略通话",
         "description": "我们会退一步，评估进展并重新校准方向。你会清楚知道什么有效、什么需要调整，以及如何避免小问题演变为长期模式。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "community",
         "title": "阿姨 WhatsApp 社群",
         "description": "面向已报名阿姨的私密支持群组。实时指导、同伴讨论与专家主持。学习在课与课之间持续进行，让一致性不在日常压力下崩塌。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "toolbox",
         "title": "话术、工具与真实案例",
         "description": "可直接使用的实战话术，覆盖真实情境。学会不靠吼叫也能引导、不靠惩罚也能转移，并能平静回应抗拒。正确的话语方式会改变行为。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "live-training",
+        "icon": "support",
         "title": "家长 WhatsApp 支持",
         "description": "课与课之间可直接提问。及早指导可防止升级，并让所有照护者保持一致。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "auntie-review",
+        "icon": "review",
         "title": "每次私人指导后的书面报告",
         "description": "每次私人到访后提供清晰的书面总结。包括观察要点、聚焦方向和可立即执行的下一步。不混乱，不错位。",
         "ctaLabel": "了解更多",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
       {
-        "icon": "workbook",
+        "icon": "graduate",
         "title": "最终课程总结报告",
         "description": "在课程结束时提供整合参考报告。清晰呈现进展，并给出下一发展阶段的后续建议。",
         "ctaLabel": "了解更多",
