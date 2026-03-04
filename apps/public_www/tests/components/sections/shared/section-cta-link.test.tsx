@@ -47,6 +47,21 @@ describe('SectionCtaAnchor', () => {
     expect(link.querySelector('path[d="M7 4L13 10L7 16"]')).not.toBeNull();
   });
 
+  it('uses currentColor for outline chevron stroke', () => {
+    render(
+      <SectionCtaAnchor href='/about-us' variant='outline'>
+        About us
+      </SectionCtaAnchor>,
+    );
+
+    const link = screen.getByRole('link', { name: 'About us' });
+    const chevronPath = link.querySelector('path[d="M7 4L13 10L7 16"]');
+
+    expect(link.className).toContain('es-btn--outline');
+    expect(chevronPath).not.toBeNull();
+    expect(chevronPath?.getAttribute('stroke')).toBe('currentColor');
+  });
+
   it('keeps non-HTTP protocols without external indicator styling', () => {
     render(<SectionCtaAnchor href='mailto:ida@example.com'>Email us</SectionCtaAnchor>);
 

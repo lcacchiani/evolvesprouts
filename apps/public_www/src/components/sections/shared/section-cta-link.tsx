@@ -43,7 +43,7 @@ function CtaChevronIcon() {
     >
       <path
         d='M7 4L13 10L7 16'
-        stroke='var(--es-color-surface-white, #FFFFFF)'
+        stroke='currentColor'
         strokeWidth='2.2'
         strokeLinecap='round'
         strokeLinejoin='round'
