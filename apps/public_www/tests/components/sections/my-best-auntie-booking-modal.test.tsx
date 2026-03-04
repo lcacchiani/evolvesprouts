@@ -421,10 +421,10 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(fpsIcon?.className).toContain('h-[36px]');
     const fpsOptionWrapperClassName = fpsPaymentOption.closest('label')?.className ?? '';
     expect(fpsOptionWrapperClassName).toContain('h-[53px]');
-    expect(fpsOptionWrapperClassName).toContain('items-start');
+    expect(fpsOptionWrapperClassName).toContain('items-center');
     const bankOptionWrapperClassName = bankTransferOption.closest('label')?.className ?? '';
     expect(bankOptionWrapperClassName).toContain('h-[53px]');
-    expect(bankOptionWrapperClassName).toContain('items-start');
+    expect(bankOptionWrapperClassName).toContain('items-center');
     const fpsPaymentDetails = paymentOptions?.querySelector(
       'div[data-booking-payment-details="fps"]',
     ) as HTMLDivElement | null;
@@ -690,6 +690,13 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(bankTransferPaymentDetails?.className).not.toContain('bg-');
     const bankTransferDetailsList = bankTransferPaymentDetails?.querySelector('dl');
     expect(bankTransferDetailsList?.className).toContain('text-center');
+    const bankTransferDetailTerms = Array.from(
+      bankTransferPaymentDetails?.querySelectorAll('dt') ?? [],
+    );
+    expect(bankTransferDetailTerms).toHaveLength(3);
+    expect(bankTransferDetailTerms[0]?.className).not.toContain('pt-[10px]');
+    expect(bankTransferDetailTerms[1]?.className).toContain('pt-[10px]');
+    expect(bankTransferDetailTerms[2]?.className).toContain('pt-[10px]');
     expect(screen.getByText(testBankName)).toBeInTheDocument();
     expect(screen.getByText(testBankAccountHolder)).toBeInTheDocument();
     expect(screen.getByText(testBankAccountNumber)).toBeInTheDocument();
