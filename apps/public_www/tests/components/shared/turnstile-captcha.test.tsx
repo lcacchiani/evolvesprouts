@@ -24,6 +24,21 @@ afterEach(() => {
 });
 
 describe('TurnstileCaptcha script loading', () => {
+  it('keeps shared captcha class hooks on the widget container', () => {
+    const { getByTestId } = render(
+      <TurnstileCaptcha
+        siteKey=''
+        className='custom-captcha-class'
+        onTokenChange={vi.fn()}
+        onLoadError={vi.fn()}
+      />,
+    );
+
+    const captchaElement = getByTestId('turnstile-captcha');
+    expect(captchaElement.className).toContain('es-turnstile-captcha');
+    expect(captchaElement.className).toContain('custom-captcha-class');
+  });
+
   it('sets default script src when an existing script has no src', async () => {
     const existingScriptElement = appendExistingTurnstileScript();
     const onTokenChange = vi.fn();
