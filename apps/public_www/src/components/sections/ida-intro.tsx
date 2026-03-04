@@ -15,7 +15,7 @@ interface IdaIntroProps {
 }
 
 const INTRO_HIGHLIGHT_WORD = 'Evolve Sprouts';
-const IDA_INTRO_CTA_CLASSNAME = 'mt-auto max-w-[360px] es-button--primary';
+const IDA_INTRO_CTA_CLASSNAME = 'mt-auto max-w-[360px] es-btn--outline';
 
 function renderIntroText(text: string): ReactNode {
   const sections = text.split(INTRO_HIGHLIGHT_WORD);

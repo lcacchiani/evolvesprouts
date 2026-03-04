@@ -31,7 +31,7 @@ describe('IdaIntro', () => {
     const ctaLink = screen.getByRole('link', { name: content.ctaLabel });
     expect(ctaLink).toHaveAttribute('href', content.ctaHref);
     expect(ctaLink.className).toContain('es-btn--primary');
-    expect(ctaLink.className).toContain('es-button--primary');
+    expect(ctaLink.className).toContain('es-btn--outline');
     expect(ctaLink.className).toContain('mt-auto');
     expect(ctaLink.className).not.toContain('w-full');
     expect(ctaLink.className).toContain('max-w-[360px]');

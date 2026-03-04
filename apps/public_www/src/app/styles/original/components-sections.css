@@ -599,7 +599,6 @@
     line-height: calc(var(--figma-lineheights-2025-evolvesprouts, 28) * 1px);
   }
 
-  .es-testimonial-quote,
   .es-testimonials-quote {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
