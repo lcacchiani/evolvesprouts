@@ -304,7 +304,7 @@ export function BookingReservationForm({
             </p>
             <div
               data-booking-payment-options='true'
-              className='h-[140px] rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+              className='h-[200px] rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
             >
               <div
                 data-booking-payment-options-columns='true'
@@ -314,9 +314,9 @@ export function BookingReservationForm({
                   data-booking-payment-options-column-left='true'
                   className='col-span-1'
                 >
-                  <div className='flex h-full flex-col justify-center gap-2'>
+                  <div className='flex h-full flex-col justify-start gap-2 pt-1'>
                     <label
-                      className={`es-focus-ring flex h-11 w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
+                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-start justify-center rounded-lg border p-2 pt-1 ${
                         selectedPaymentMethod === PAYMENT_METHOD_FPS
                           ? 'border-black/20 es-bg-surface-muted'
                           : 'border-transparent'
@@ -340,11 +340,11 @@ export function BookingReservationForm({
                         aria-hidden='true'
                         width={32}
                         height={18}
-                        className='h-[30px] w-auto shrink-0'
+                        className='h-[36px] w-auto shrink-0'
                       />
                     </label>
                     <label
-                      className={`es-focus-ring flex h-11 w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
+                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-start justify-center rounded-lg border p-2 pt-1 ${
                         selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER
                           ? 'border-black/20 es-bg-surface-muted'
                           : 'border-transparent'
@@ -370,7 +370,7 @@ export function BookingReservationForm({
                         aria-hidden='true'
                         width={20}
                         height={20}
-                        className='h-5 w-5 shrink-0'
+                        className='h-6 w-6 shrink-0'
                       />
                     </label>
                   </div>
@@ -382,24 +382,24 @@ export function BookingReservationForm({
                   {selectedPaymentMethod === PAYMENT_METHOD_FPS ? (
                     <div
                       data-booking-payment-details='fps'
-                      className='flex h-full w-full items-center justify-between gap-3'
+                      className='flex h-full w-full flex-col items-center justify-center gap-2'
                     >
+                      <FpsQrCode amount={totalAmount} />
                       <p
                         data-booking-payment-fps-copy='true'
-                        className='text-sm leading-[1.45] es-text-heading'
+                        className='text-center text-sm leading-[1.45] es-text-heading'
                       >
                         {content.paymentFpsQrInstruction}
                       </p>
-                      <FpsQrCode amount={totalAmount} />
                     </div>
                   ) : (
                     <div
                       data-booking-payment-details='bank-transfer'
-                      className='flex h-full w-full items-center'
+                      className='flex h-full w-full flex-col items-center justify-center'
                     >
-                      <dl className='space-y-2'>
+                      <dl className='space-y-2 text-center'>
                         {getBankTransferDetails(content).map((bankDetail) => (
-                          <div key={bankDetail.label} className='space-y-0.5'>
+                          <div key={bankDetail.label} className='flex flex-col items-center space-y-0.5'>
                             <dt className='text-xs font-semibold uppercase tracking-wide es-text-heading'>
                               {bankDetail.label}
                             </dt>
