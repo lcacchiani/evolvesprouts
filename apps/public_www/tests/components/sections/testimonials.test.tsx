@@ -32,9 +32,13 @@ describe('Testimonials section', () => {
     expect(mobileControls).not.toBeNull();
 
     const firstStory = enContent.testimonials.items[0];
-    expect(
-      screen.getByAltText(`${firstStory.author} testimonial image`).className,
-    ).toContain('rounded-card-lg');
+    const firstStoryImage = screen.getByAltText(
+      `${firstStory.author} testimonial image`,
+    );
+    expect(firstStoryImage.className).toContain('rounded-card-lg');
+    expect(firstStoryImage).toHaveAttribute('sizes', '200px');
+    expect(firstStoryImage.parentElement?.className).toContain('max-w-[200px]');
+    expect(firstStoryImage.parentElement?.className).toContain('aspect-square');
     expect(screen.queryByAltText(`${firstStory.author} avatar`)).not.toBeInTheDocument();
     expect(container.querySelector('.es-testimonial-quote-icon')).not.toBeNull();
   });

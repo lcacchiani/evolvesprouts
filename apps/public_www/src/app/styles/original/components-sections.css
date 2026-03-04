@@ -187,7 +187,7 @@
     }
 
     .es-section-split-layout--testimonials {
-      grid-template-columns: minmax(0, 500px) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
     }
 
     .es-section-split-layout--free-resources {
