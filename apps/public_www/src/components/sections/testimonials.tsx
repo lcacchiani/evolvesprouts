@@ -188,18 +188,18 @@ export function Testimonials({ content }: TestimonialsProps) {
                   'es-section-split-layout--testimonials',
                 )}
               >
-                <div className='relative min-h-[195px] overflow-hidden rounded-card-lg es-bg-surface-peach sm:min-h-[270px] lg:min-h-[405px]'>
+                <div className='relative mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-card-lg es-bg-surface-peach lg:mx-0'>
                   {activeStory.mainImageSrc ? (
                     <Image
                       src={activeStory.mainImageSrc}
                       alt={`${activeStory.author ?? 'Parent'} testimonial image`}
                       fill
-                      sizes='(min-width: 1024px) 500px, 100vw'
+                      sizes='200px'
                       className='rounded-card-lg object-cover'
                     />
                   ) : (
                     <div
-                      className='flex h-full min-h-[195px] items-center justify-center rounded-card-lg sm:min-h-[270px] lg:min-h-[405px] es-testimonials-image-fallback'
+                      className='flex h-full w-full items-center justify-center rounded-card-lg es-testimonials-image-fallback'
                     >
                       <ParentIcon />
                     </div>
