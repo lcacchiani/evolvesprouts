@@ -546,6 +546,9 @@ describe('my-best-auntie booking modals footer content', () => {
     fireEvent.click(applyButton);
 
     await waitFor(() => {
+      expect(mockedCreateCrmApiClient).toHaveBeenCalledWith({
+        preferSameOriginProxy: false,
+      });
       expect(mockedValidateDiscountCode).toHaveBeenCalledWith(
         expect.objectContaining({ request: expect.any(Function) }),
         'SAVE10',

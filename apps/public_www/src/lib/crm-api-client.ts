@@ -3,6 +3,7 @@ export type CrmApiMethod = 'GET' | 'POST' | 'PUT';
 export interface CrmApiClientConfig {
   baseUrl: string;
   apiKey: string;
+  preferSameOriginProxy?: boolean;
 }
 
 export interface CrmApiRequestOptions {
@@ -54,7 +55,12 @@ const WWW_PROXY_ALLOWED_HOSTS_ENV_NAME = 'NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS';
 const CRM_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_WWW_CRM_API_BASE_URL';
 const WWW_API_PATH_PREFIX = '/www';
 
-function normalizeBaseUrl(baseUrl: string): string {
+interface CrmApiUrlOptions {
+  preferSameOriginProxy?: boolean;
+}
+
+function normalizeBaseUrl(baseUrl: string, options: CrmApiUrlOptions = {}): string {
+  const shouldPreferSameOriginProxy = options.preferSameOriginProxy ?? true;
   const normalizedBaseUrl = baseUrl.trim();
   if (!normalizedBaseUrl) {
     return '';
@@ -86,7 +92,10 @@ function normalizeBaseUrl(baseUrl: string): string {
   if (normalizedPathname !== WWW_API_PATH_PREFIX) {
     return '';
   }
-  if (shouldUsePublicWwwProxy(parsedUrl.hostname, normalizedPathname)) {
+  if (
+    shouldPreferSameOriginProxy &&
+    shouldUsePublicWwwProxy(parsedUrl.hostname, normalizedPathname)
+  ) {
     return normalizedPathname;
   }
 
@@ -227,8 +236,12 @@ function setGetCacheEntry(cacheKey: string, payload: unknown): void {
   }
 }
 
-export function buildCrmApiUrl(baseUrl: string, endpointPath: string): string {
-  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+export function buildCrmApiUrl(
+  baseUrl: string,
+  endpointPath: string,
+  options: CrmApiUrlOptions = {},
+): string {
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl, options);
   const normalizedPath = normalizeEndpointPath(endpointPath);
   if (!normalizedBaseUrl || !normalizedPath) {
     return '';
@@ -239,7 +252,10 @@ export function buildCrmApiUrl(baseUrl: string, endpointPath: string): string {
 
 export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | null {
   const normalizedApiKey = config.apiKey.trim();
-  const normalizedBaseUrl = normalizeBaseUrl(config.baseUrl);
+  const shouldPreferSameOriginProxy = config.preferSameOriginProxy ?? true;
+  const normalizedBaseUrl = normalizeBaseUrl(config.baseUrl, {
+    preferSameOriginProxy: shouldPreferSameOriginProxy,
+  });
   if (!normalizedApiKey || !normalizedBaseUrl) {
     return null;
   }
@@ -247,7 +263,9 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
   return {
     async request(options: CrmApiRequestOptions): Promise<unknown> {
       const method = options.method ?? 'GET';
-      const requestUrl = buildCrmApiUrl(normalizedBaseUrl, options.endpointPath);
+      const requestUrl = buildCrmApiUrl(normalizedBaseUrl, options.endpointPath, {
+        preferSameOriginProxy: shouldPreferSameOriginProxy,
+      });
       if (!requestUrl) {
         throw new Error('CRM API endpoint path is invalid');
       }
@@ -322,10 +340,11 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
   };
 }
 
-export function createPublicCrmApiClient(): CrmApiClient | null {
+export function createPublicCrmApiClient(options: CrmApiUrlOptions = {}): CrmApiClient | null {
   return createCrmApiClient({
     baseUrl: process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '',
     apiKey: process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '',
+    preferSameOriginProxy: options.preferSameOriginProxy,
   });
 }
 

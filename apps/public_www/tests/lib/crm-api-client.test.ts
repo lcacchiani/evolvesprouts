@@ -58,6 +58,16 @@ describe('crm-api-client', () => {
     );
   });
 
+  it('keeps absolute API URL when same-origin proxy rewrite is disabled', () => {
+    vi.stubGlobal('location', new URL('https://www-staging.evolvesprouts.com/en/events'));
+
+    expect(
+      buildCrmApiUrl('https://api.evolvesprouts.com/www', '/v1/discounts', {
+        preferSameOriginProxy: false,
+      }),
+    ).toBe('https://api.evolvesprouts.com/www/v1/discounts');
+  });
+
   it('does not rewrite absolute URLs when proxy host allowlist is unset', () => {
     vi.stubEnv('NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS', '');
     vi.stubGlobal('location', new URL('https://www-staging.evolvesprouts.com/en/events'));
