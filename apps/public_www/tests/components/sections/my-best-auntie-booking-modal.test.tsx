@@ -376,6 +376,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(paymentOptions?.className).toContain('es-border-input');
     expect(paymentOptions?.className).toContain('es-bg-surface-white');
     expect(paymentOptions?.className).toContain('p-[10px]');
+    expect(paymentOptions?.className).toContain('h-[140px]');
     const paymentOptionsColumns = paymentOptions?.querySelector(
       'div[data-booking-payment-options-columns="true"]',
     ) as HTMLDivElement | null;
@@ -392,6 +393,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(paymentOptionsLeftColumn?.className).toContain('col-span-1');
     expect(paymentOptionsRightColumn).not.toBeNull();
     expect(paymentOptionsRightColumn?.className).toContain('col-span-4');
+    expect(paymentOptionsRightColumn?.className).toContain('items-center');
     expect(paymentOptions?.querySelectorAll('li')).toHaveLength(0);
 
     const fpsPaymentOption = screen.getByRole('radio', {
@@ -418,9 +420,15 @@ describe('my-best-auntie booking modals footer content', () => {
     ) as HTMLDivElement | null;
     expect(fpsPaymentDetails).not.toBeNull();
     expect(fpsPaymentDetails?.className).toContain('h-full');
+    expect(fpsPaymentDetails?.className).toContain('justify-between');
     expect(fpsPaymentDetails?.className).not.toContain('py-');
     expect(fpsPaymentDetails?.className).not.toContain('px-');
     expect(fpsPaymentDetails?.className).not.toContain('bg-');
+    expect(
+      within(fpsPaymentDetails as HTMLDivElement).getByText(
+        bookingModalContent.paymentFpsQrInstruction,
+      ),
+    ).toBeInTheDocument();
     expect(
       paymentOptions?.querySelector('div[data-booking-payment-details="bank-transfer"]'),
     ).toBeNull();

@@ -411,6 +411,7 @@
       "topicsInterestPlaceholder": "Share your questions here",
       "paymentMethodLabel": "Payment options",
       "paymentMethodValue": "Pay via FPS QR",
+      "paymentFpsQrInstruction": "Scan this FPS QR code using your preferred banking app.",
       "paymentMethodBankTransferValue": "Bank Transfer",
       "paymentBankNameLabel": "Bank name",
       "paymentBankAccountHolderLabel": "Account holder",

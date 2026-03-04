@@ -211,7 +211,7 @@ export function FpsQrCode({ amount }: { amount: number }) {
   return (
     <div
       ref={qrCodeContainerRef}
-      className='flex w-full items-center justify-center text-center'
+      className='flex shrink-0 items-center justify-center text-center'
     >
       <div
         aria-label='FPS payment QR code'
