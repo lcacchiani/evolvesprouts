@@ -101,6 +101,19 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
   /v1/mailchimp/webhook:
+    get:
+      summary: Mailchimp webhook URL verification
+      description: |
+        Lightweight endpoint that Mailchimp calls with a GET request when
+        validating the webhook URL during webhook creation.  Returns 200
+        with no side-effects.
+      responses:
+        "200":
+          description: Verification acknowledged.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
     post:
       summary: Receive Mailchimp audience webhook event
       description: |

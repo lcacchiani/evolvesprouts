@@ -8,10 +8,18 @@ from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
 from app.db.models.enums import MailchimpSyncStatus
 
 
-def test_mailchimp_webhook_rejects_non_post(api_gateway_event: Any) -> None:
+def test_mailchimp_webhook_allows_get_verification(api_gateway_event: Any) -> None:
     event = api_gateway_event(method="GET", path="/v1/mailchimp/webhook")
 
     response = handle_mailchimp_webhook(event, "GET")
+
+    assert response["statusCode"] == 200
+
+
+def test_mailchimp_webhook_rejects_unsupported_method(api_gateway_event: Any) -> None:
+    event = api_gateway_event(method="PUT", path="/v1/mailchimp/webhook")
+
+    response = handle_mailchimp_webhook(event, "PUT")
 
     assert response["statusCode"] == 405
 
@@ -66,6 +74,25 @@ def test_mailchimp_webhook_updates_contact_status(
     assert response["statusCode"] == 200
     assert contact.mailchimp_status == MailchimpSyncStatus.UNSUBSCRIBED
     assert contact.mailchimp_subscriber_id == "mailchimp-subscriber-id"
+
+
+def test_mailchimp_webhook_accepts_post_without_content_type(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    _patch_contact_lookup(monkeypatch, {})
+    monkeypatch.setenv("MAILCHIMP_WEBHOOK_SECRET", "correct-secret")
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/mailchimp/webhook",
+        query_params={"token": "correct-secret"},
+        body="type=subscribe&data%5Bemail%5D=nobody%40example.com",
+    )
+
+    response = handle_mailchimp_webhook(event, "POST")
+
+    assert response["statusCode"] == 200
 
 
 def test_mailchimp_webhook_ignores_missing_contact(

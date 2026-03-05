@@ -1964,6 +1964,9 @@ export class ApiStack extends cdk.Stack {
     mailchimpWebhook.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
     });
+    mailchimpWebhook.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+    });
 
     // Admin asset routes
     const admin = v1.addResource("admin");

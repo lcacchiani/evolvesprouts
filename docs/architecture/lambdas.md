@@ -24,7 +24,7 @@ their primary responsibilities.
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
   `/v1/media-request`, `/v1/admin/geographic-areas`,
-  `/v1/mailchimp/webhook`,
+  `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
