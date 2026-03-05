@@ -69,6 +69,19 @@ describe('LoginScreen', () => {
     expect(authContext.resetPasswordless).toHaveBeenCalledTimes(1);
   });
 
+  it('does not show email-required validation when Google login is clicked', async () => {
+    const user = userEvent.setup();
+    const authContext = createAuthContext();
+    mockUseAuth.mockReturnValue(authContext);
+
+    render(<LoginScreen />);
+
+    await user.click(screen.getByRole('button', { name: 'Continue with Google' }));
+
+    expect(authContext.login).toHaveBeenCalledWith({ provider: 'Google', returnTo: '/' });
+    expect(screen.queryByText('Enter your work email.')).not.toBeInTheDocument();
+  });
+
   it('triggers Google login and respects disabled state from config errors', async () => {
     const user = userEvent.setup();
     const enabledAuthContext = createAuthContext();
