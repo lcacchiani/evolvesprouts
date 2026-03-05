@@ -120,6 +120,15 @@ def _process_message(message: dict[str, Any]) -> bool:
             asset_id,
         )
         if existing_lead is not None:
+            _ensure_contact_tag(session, contact_id=contact.id, tag_name=tag_name)
+            should_retry_sync = _should_retry_mailchimp_sync(contact)
+            was_mailchimp_synced = False
+            if should_retry_sync:
+                was_mailchimp_synced = _sync_contact_to_mailchimp(
+                    contact=contact,
+                    first_name=first_name,
+                    tag_name=tag_name,
+                )
             logger.info(
                 "Skipping duplicate media lead",
                 extra={
@@ -127,6 +136,8 @@ def _process_message(message: dict[str, Any]) -> bool:
                     "lead_id": str(existing_lead.id),
                     "lead_email": mask_email(email),
                     "resource_key": resource_key,
+                    "mailchimp_sync_retried": should_retry_sync,
+                    "mailchimp_sync_result": was_mailchimp_synced,
                 },
             )
             session.commit()
@@ -242,6 +253,15 @@ def _is_retryable_mailchimp_exception(exc: Exception) -> bool:
     if isinstance(exc, MailchimpApiError):
         return exc.status == 429 or exc.status >= 500
     return isinstance(exc, (ConnectionError, TimeoutError))
+
+
+def _should_retry_mailchimp_sync(contact: Contact) -> bool:
+    if (
+        contact.mailchimp_status == MailchimpSyncStatus.SYNCED
+        and contact.mailchimp_subscriber_id
+    ):
+        return False
+    return True
 
 
 def _create_sales_lead_event(

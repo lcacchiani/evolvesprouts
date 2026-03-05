@@ -33,6 +33,7 @@
   "MailchimpApiSecretArn": "<FROM_GITHUB_SECRET: CDK_PARAM_MAILCHIMP_API_SECRET_ARN>",
   "MailchimpListId": "<FROM_GITHUB_VAR: CDK_PARAM_MAILCHIMP_LIST_ID>",
   "MailchimpServerPrefix": "<FROM_GITHUB_VAR: CDK_PARAM_MAILCHIMP_SERVER_PREFIX>",
+  "MailchimpWebhookSecret": "<FROM_GITHUB_SECRET: CDK_PARAM_MAILCHIMP_WEBHOOK_SECRET>",
   "MediaDefaultResourceKey": "<FROM_GITHUB_VAR: CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY>",
   "NominatimUserAgent": "EvolveSproutsAdminWeb/1.0 (https://admin.evolvesprouts.com)",
   "NominatimReferer": "https://admin.evolvesprouts.com",

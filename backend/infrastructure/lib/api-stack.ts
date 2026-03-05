@@ -480,6 +480,17 @@ export class ApiStack extends cdk.Stack {
         description: "Mailchimp API server prefix (for example us21)",
       }
     );
+    const mailchimpWebhookSecret = new cdk.CfnParameter(
+      this,
+      "MailchimpWebhookSecret",
+      {
+        type: "String",
+        noEcho: true,
+        default: "",
+        description:
+          "Shared secret token required by the public Mailchimp webhook endpoint",
+      }
+    );
     const mediaDefaultResourceKey = new cdk.CfnParameter(
       this,
       "MediaDefaultResourceKey",
@@ -1112,6 +1123,7 @@ export class ApiStack extends cdk.Stack {
         ASSET_DOWNLOAD_CLOUDFRONT_KEY_PAIR_ID: assetDownloadPublicKey.publicKeyId,
         ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
+        MAILCHIMP_WEBHOOK_SECRET: mailchimpWebhookSecret.valueAsString,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
@@ -1947,6 +1959,10 @@ export class ApiStack extends cdk.Stack {
     mediaRequest.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
+    });
+    const mailchimpWebhook = v1.addResource("mailchimp").addResource("webhook");
+    mailchimpWebhook.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
     });
 
     // Admin asset routes

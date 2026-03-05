@@ -24,6 +24,7 @@ their primary responsibilities.
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
   `/v1/media-request`, `/v1/admin/geographic-areas`,
+  `/v1/mailchimp/webhook`,
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
@@ -38,7 +39,8 @@ their primary responsibilities.
   authentication for restricted share-link resolutions, PATCH partial metadata
   updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
   verification (via `AwsApiProxyFunction`) and SNS event publishing on
-  `/v1/media-request`, and signed upload/download URL generation in
+  `/v1/media-request`, Mailchimp webhook ingestion and contact sync-status
+  reconciliation on `/v1/mailchimp/webhook`, and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check

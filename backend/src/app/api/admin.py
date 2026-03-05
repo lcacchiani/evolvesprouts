@@ -14,6 +14,7 @@ from app.api.assets import (
 from app.api.admin_geographic_areas import handle_admin_geographic_areas_request
 from app.api.admin_locations import handle_admin_locations_request
 from app.api.public_media import handle_media_request
+from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
 from app.api.public_reservations import _handle_public_reservation
 from app.exceptions import AppError, ValidationError
 from app.utils import json_response
@@ -50,6 +51,11 @@ _ROUTES: tuple[
         lambda event, method, _path: handle_media_request(event, method),
     ),
     (
+        "/v1/mailchimp/webhook",
+        True,
+        lambda event, method, _path: handle_mailchimp_webhook(event, method),
+    ),
+    (
         "/www/v1/media-request",
         True,
         lambda event, method, _path: handle_media_request(event, method),
@@ -80,7 +86,8 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         path = event.get("path", "")
 
         try:
-            validate_content_type(event)
+            if _requires_json_content_type(path, method):
+                validate_content_type(event)
         except ValidationError as exc:
             logger.warning(f"Content-Type validation failed: {exc.message}")
             return json_response(exc.status_code, exc.to_dict(), event=event)
@@ -139,3 +146,13 @@ def _path_matches(path: str, route_path: str, *, exact: bool) -> bool:
     if exact:
         return path == route_path
     return path == route_path or path.startswith(route_path + "/")
+
+
+def _requires_json_content_type(path: str, method: str) -> bool:
+    """Return whether route requires application/json body validation."""
+    if method not in ("POST", "PUT", "PATCH"):
+        return False
+
+    normalized_path = path.rstrip("/")
+    non_json_routes = {"/v1/mailchimp/webhook"}
+    return normalized_path not in non_json_routes

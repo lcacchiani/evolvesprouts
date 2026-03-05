@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from app.api.admin import _match_handler, _safe_handler
+from app.api.admin import _match_handler, _requires_json_content_type, _safe_handler
 
 
 def test_safe_handler_hides_internal_exception_details() -> None:
@@ -27,6 +27,7 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/v1/assets/share/token-123",
         "/v1/assets/public/abc/download",
         "/v1/media-request",
+        "/v1/mailchimp/webhook",
         "/www/v1/media-request",
     )
     for path in routes:
@@ -39,6 +40,10 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
     assert _match_handler(event=event, method="POST", path="/v1/reservations") is not None
     assert _match_handler(event=event, method="POST", path="/v1/media-request") is not None
     assert (
+        _match_handler(event=event, method="POST", path="/v1/mailchimp/webhook")
+        is not None
+    )
+    assert (
         _match_handler(event=event, method="POST", path="/www/v1/media-request")
         is not None
     )
@@ -50,6 +55,15 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is None
     )
     assert (
+        _match_handler(event=event, method="POST", path="/v1/mailchimp/webhook/extra")
+        is None
+    )
+    assert (
         _match_handler(event=event, method="POST", path="/www/v1/media-request/extra")
         is None
     )
+
+
+def test_requires_json_content_type_skips_mailchimp_webhook() -> None:
+    assert _requires_json_content_type("/v1/mailchimp/webhook", "POST") is False
+    assert _requires_json_content_type("/v1/media-request", "POST") is True

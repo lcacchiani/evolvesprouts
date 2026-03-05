@@ -100,6 +100,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /v1/mailchimp/webhook:
+    post:
+      summary: Receive Mailchimp audience webhook event
+      description: |
+        Public webhook endpoint for Mailchimp audience events.
+        Requests must include a shared secret token in the `token` query
+        parameter, and payloads are submitted as
+        `application/x-www-form-urlencoded`.
+      parameters:
+        - $ref: "#/components/parameters/MailchimpWebhookToken"
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/MailchimpWebhookRequest"
+      responses:
+        "200":
+          description: Webhook processed or ignored.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Missing or invalid webhook token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /www/v1/calendar/events:
     get:
       summary: List public website events
@@ -283,6 +321,13 @@ components:
       schema:
         type: string
       description: Cloudflare Turnstile response token.
+    MailchimpWebhookToken:
+      name: token
+      in: query
+      required: true
+      schema:
+        type: string
+      description: Shared secret token configured for Mailchimp webhook requests.
 
   responses:
     BadRequest:
@@ -500,6 +545,25 @@ components:
           type: string
           maxLength: 200
           description: Optional free-resource identifier used for downstream CRM tagging.
+    MailchimpWebhookRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [subscribe, unsubscribe, cleaned, profile, upemail]
+        "data[email]":
+          type: string
+          format: email
+          maxLength: 320
+        "data[new_email]":
+          type: string
+          format: email
+          maxLength: 320
+        "data[id]":
+          type: string
+          maxLength: 64
     ReservationSubmissionAccepted:
       type: object
       required:
