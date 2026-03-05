@@ -1124,6 +1124,8 @@ export class ApiStack extends cdk.Stack {
         ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
         MAILCHIMP_WEBHOOK_SECRET: mailchimpWebhookSecret.valueAsString,
+        COGNITO_USER_POOL_ID: userPool.userPoolId,
+        ADMIN_GROUP: adminGroupName,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
@@ -1145,6 +1147,7 @@ export class ApiStack extends cdk.Stack {
     // -----------------------------------------------------------------
     const allowedProxyActions = [
       "cognito-idp:list_users",
+      "cognito-idp:list_users_in_group",
       "cognito-idp:admin_get_user",
       "cognito-idp:admin_delete_user",
       "cognito-idp:admin_add_user_to_group",
@@ -1174,6 +1177,7 @@ export class ApiStack extends cdk.Stack {
       new iam.PolicyStatement({
         actions: [
           "cognito-idp:ListUsers",
+          "cognito-idp:ListUsersInGroup",
           "cognito-idp:AdminGetUser",
           "cognito-idp:AdminDeleteUser",
           "cognito-idp:AdminAddUserToGroup",
@@ -2068,6 +2072,48 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
     adminLocationById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin lead routes
+    const adminLeads = admin.addResource("leads");
+    adminLeads.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminLeads.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLeadAnalytics = adminLeads.addResource("analytics");
+    adminLeadAnalytics.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLeadExport = adminLeads.addResource("export");
+    adminLeadExport.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLeadById = adminLeads.addResource("{id}");
+    adminLeadById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminLeadById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLeadNotes = adminLeadById.addResource("notes");
+    adminLeadNotes.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin users route for assignee picker
+    const adminUsers = admin.addResource("users");
+    adminUsers.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });

@@ -14,7 +14,8 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
 - Enum `access_grant_type`: `all_authenticated`, `organization`, `user`.
 - Enum `contact_type`: `parent`, `child`, `helper`, `professional`, `other`.
 - Enum `contact_source`: `free_guide`, `newsletter`, `contact_form`,
-  `reservation`, `referral`, `instagram`, `manual`.
+  `reservation`, `referral`, `instagram`, `manual`, `whatsapp`,
+  `linkedin`, `event`, `phone_call`, `public_website`.
 - Enum `relationship_type`: `prospect`, `client`, `past_client`, `partner`,
   `vendor`, `other`.
 - Enum `mailchimp_sync_status`: `pending`, `synced`, `failed`, `unsubscribed`.

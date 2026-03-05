@@ -63,6 +63,11 @@ class ContactSource(str, enum.Enum):
     RESERVATION = "reservation"
     REFERRAL = "referral"
     INSTAGRAM = "instagram"
+    WHATSAPP = "whatsapp"
+    LINKEDIN = "linkedin"
+    EVENT = "event"
+    PHONE_CALL = "phone_call"
+    PUBLIC_WEBSITE = "public_website"
     MANUAL = "manual"
 
 

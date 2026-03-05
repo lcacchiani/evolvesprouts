@@ -26,6 +26,7 @@ their primary responsibilities.
   `/v1/media-request`, `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
+  `/v1/admin/leads/*`, `/v1/admin/users`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
@@ -33,6 +34,8 @@ their primary responsibilities.
   device attestation + API key for `/v1/assets/public/*`,
   API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
 - Purpose: asset metadata CRUD, geographic area browsing, location CRUD,
+  sales pipeline lead management (list/detail/create/update/notes/export/analytics),
+  and admin-user listing for lead assignment,
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
@@ -178,7 +181,7 @@ their primary responsibilities.
 - VPC: **No** (runs outside VPC for internet access)
 - Allow-lists:
   - `ALLOWED_ACTIONS`: comma-separated `service:action` pairs for AWS
-    API calls (e.g. `cognito-idp:list_users`)
+    API calls (e.g. `cognito-idp:list_users`, `cognito-idp:list_users_in_group`)
   - `ALLOWED_HTTP_URLS`: comma-separated URL prefixes for outbound HTTP
     requests (e.g. `https://api.example.com/v1/`)
 - Security: only invocable by Lambdas granted `lambda:InvokeFunction`;

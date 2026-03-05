@@ -1,0 +1,108 @@
+'use client';
+
+import { LeadExportButton } from './lead-export-button';
+
+import type { LeadListFilters } from '@/types/leads';
+import type { DateRange } from '@/hooks/use-lead-analytics';
+import type { SalesView } from '@/hooks/use-sales-page';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+
+export interface SalesHeaderProps {
+  activeView: SalesView;
+  dateRange: DateRange;
+  onDateRangeChange: (nextDateRange: DateRange) => void;
+  onRefresh: () => Promise<void> | void;
+  onNewLead: () => void;
+  filters: LeadListFilters;
+}
+
+function formatDateForInput(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
+function buildPresetDateRange(value: string): DateRange {
+  const now = new Date();
+  if (value === 'week') {
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    return { dateFrom: formatDateForInput(weekStart), dateTo: formatDateForInput(now) };
+  }
+  if (value === 'month') {
+    return {
+      dateFrom: formatDateForInput(new Date(now.getFullYear(), now.getMonth(), 1)),
+      dateTo: formatDateForInput(now),
+    };
+  }
+  if (value === 'quarter') {
+    const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+    return {
+      dateFrom: formatDateForInput(new Date(now.getFullYear(), quarterStartMonth, 1)),
+      dateTo: formatDateForInput(now),
+    };
+  }
+  if (value === 'year') {
+    return {
+      dateFrom: formatDateForInput(new Date(now.getFullYear(), 0, 1)),
+      dateTo: formatDateForInput(now),
+    };
+  }
+  return { dateFrom: null, dateTo: null };
+}
+
+export function SalesHeader({
+  activeView,
+  dateRange,
+  onDateRangeChange,
+  onRefresh,
+  onNewLead,
+  filters,
+}: SalesHeaderProps) {
+  const title = activeView === 'analytics' ? 'Sales Analytics' : 'Sales Pipeline';
+
+  return (
+    <div className='flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:rounded-xl sm:p-5'>
+      <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
+        <h1 className='text-xl font-semibold text-slate-900'>{title}</h1>
+        <div className='flex flex-wrap gap-2'>
+          <Button type='button' variant='ghost' onClick={() => void onRefresh()}>
+            Refresh
+          </Button>
+          <LeadExportButton filters={filters} />
+          <Button type='button' onClick={onNewLead}>
+            New lead
+          </Button>
+        </div>
+      </div>
+      <div className='grid grid-cols-1 gap-2 md:grid-cols-[180px_1fr_1fr]'>
+        <Select
+          aria-label='Date range preset'
+          onChange={(event) => onDateRangeChange(buildPresetDateRange(event.target.value))}
+          defaultValue='all'
+        >
+          <option value='all'>All time</option>
+          <option value='week'>This week</option>
+          <option value='month'>This month</option>
+          <option value='quarter'>This quarter</option>
+          <option value='year'>This year</option>
+        </Select>
+        <Input
+          type='date'
+          value={dateRange.dateFrom ?? ''}
+          onChange={(event) =>
+            onDateRangeChange({ ...dateRange, dateFrom: event.target.value || null })
+          }
+        />
+        <Input
+          type='date'
+          value={dateRange.dateTo ?? ''}
+          onChange={(event) =>
+            onDateRangeChange({ ...dateRange, dateTo: event.target.value || null })
+          }
+        />
+      </div>
+    </div>
+  );
+}

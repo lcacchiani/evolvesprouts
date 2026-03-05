@@ -3,17 +3,21 @@
 import { useState } from 'react';
 
 import { AssetsPage } from '../components/admin/assets/assets-page';
+import { SalesPage } from '../components/admin/sales/sales-page';
 import { AppShell } from '../components/app-shell';
 import { AuthProvider, useAuth } from '../components/auth-provider';
 import { LoginScreen } from '../components/login-screen';
 import { StatusBanner } from '../components/status-banner';
 
-const NAV_ITEMS = [{ key: 'assets', label: 'Client assets' }] as const;
+const NAV_ITEMS = [
+  { key: 'sales', label: 'Sales' },
+  { key: 'assets', label: 'Client assets' },
+] as const;
 
 function LoginGate() {
   const { status, user, logout } = useAuth();
   const [activeSectionKey, setActiveSectionKey] = useState<(typeof NAV_ITEMS)[number]['key']>(
-    'assets'
+    'sales'
   );
 
   if (status === 'loading') {
@@ -36,7 +40,7 @@ function LoginGate() {
         userEmail={user?.email}
         lastAuthTime={user?.lastAuthTime}
       >
-        <AssetsPage />
+        {activeSectionKey === 'sales' ? <SalesPage /> : <AssetsPage />}
       </AppShell>
     );
   }

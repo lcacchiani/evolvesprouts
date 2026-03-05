@@ -779,6 +779,334 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List admin users
+         * @description Returns users in the admin Cognito group for assignee selection.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Admin user list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminUserListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List sales leads */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                    stage?: string;
+                    source?: string;
+                    lead_type?: string;
+                    assigned_to?: string;
+                    unassigned?: boolean;
+                    date_from?: string;
+                    date_to?: string;
+                    search?: string;
+                    sort?: "created_at" | "updated_at" | "funnel_stage" | "contact_name";
+                    sort_dir?: "asc" | "desc";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Lead list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeadListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        /** Create sales lead */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateLeadRequest"];
+                };
+            };
+            responses: {
+                /** @description Lead create response. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeadDetailResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/leads/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lead analytics summary */
+        get: {
+            parameters: {
+                query?: {
+                    date_from?: string;
+                    date_to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Lead analytics response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeadAnalyticsResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/leads/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export leads as CSV */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description CSV export generated. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/csv": string;
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/leads/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Sales lead identifier. */
+                id: components["parameters"]["LeadId"];
+            };
+            cookie?: never;
+        };
+        /** Get lead detail */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sales lead identifier. */
+                    id: components["parameters"]["LeadId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Lead detail response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeadDetailResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update lead stage or assignee */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sales lead identifier. */
+                    id: components["parameters"]["LeadId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateLeadRequest"];
+                };
+            };
+            responses: {
+                /** @description Lead update response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeadDetailResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
+    "/v1/admin/leads/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Sales lead identifier. */
+                id: components["parameters"]["LeadId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add lead note */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sales lead identifier. */
+                    id: components["parameters"]["LeadId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateLeadNoteRequest"];
+                };
+            };
+            responses: {
+                /** @description Lead note created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            note: components["schemas"]["LeadNote"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/user/assets": {
         parameters: {
             query?: never;
@@ -942,6 +1270,143 @@ export interface components {
              */
             allowed_domains: string[];
         };
+        /** @enum {string} */
+        FunnelStage: "new" | "contacted" | "engaged" | "qualified" | "converted" | "lost";
+        /** @enum {string} */
+        LeadType: "free_guide" | "event_inquiry" | "program_enrollment" | "consultation" | "partnership" | "other";
+        /** @enum {string} */
+        LeadEventType: "created" | "stage_changed" | "note_added" | "email_sent" | "email_opened" | "guide_downloaded" | "assigned" | "converted" | "lost";
+        /** @enum {string} */
+        ContactSource: "free_guide" | "newsletter" | "contact_form" | "reservation" | "referral" | "instagram" | "manual" | "whatsapp" | "linkedin" | "event" | "phone_call" | "public_website";
+        LeadContact: {
+            /** Format: uuid */
+            id?: string | null;
+            first_name?: string | null;
+            last_name?: string | null;
+            email?: string | null;
+            phone?: string | null;
+            instagram_handle?: string | null;
+            /** @enum {string|null} */
+            source?: "free_guide" | "newsletter" | "contact_form" | "reservation" | "referral" | "instagram" | "manual" | "whatsapp" | "linkedin" | "event" | "phone_call" | "public_website" | null;
+            source_detail?: string | null;
+            contact_type?: string | null;
+            relationship_type?: string | null;
+        };
+        LeadEvent: {
+            /** Format: uuid */
+            id: string;
+            event_type: components["schemas"]["LeadEventType"];
+            /** @enum {string|null} */
+            from_stage?: "new" | "contacted" | "engaged" | "qualified" | "converted" | "lost" | null;
+            /** @enum {string|null} */
+            to_stage?: "new" | "contacted" | "engaged" | "qualified" | "converted" | "lost" | null;
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            created_by?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
+        };
+        LeadNote: {
+            /** Format: uuid */
+            id: string;
+            content: string;
+            created_by: string;
+            /** Format: date-time */
+            created_at?: string | null;
+        };
+        LeadSummary: {
+            /** Format: uuid */
+            id: string;
+            contact: components["schemas"]["LeadContact"];
+            lead_type: components["schemas"]["LeadType"];
+            funnel_stage: components["schemas"]["FunnelStage"];
+            assigned_to?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+            /** Format: date-time */
+            converted_at?: string | null;
+            /** Format: date-time */
+            lost_at?: string | null;
+            lost_reason?: string | null;
+            days_in_stage?: number;
+            /** Format: date-time */
+            last_activity_at?: string | null;
+            tags: string[];
+        };
+        LeadDetail: components["schemas"]["LeadSummary"] & {
+            family?: Record<string, never> | null;
+            organization?: Record<string, never> | null;
+            events?: components["schemas"]["LeadEvent"][];
+            notes?: components["schemas"]["LeadNote"][];
+        };
+        LeadListResponse: {
+            items: components["schemas"]["LeadSummary"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        LeadDetailResponse: {
+            lead: components["schemas"]["LeadDetail"];
+        };
+        CreateLeadRequest: {
+            first_name: string;
+            last_name?: string | null;
+            email?: string | null;
+            phone?: string | null;
+            instagram_handle?: string | null;
+            source: components["schemas"]["ContactSource"];
+            source_detail?: string | null;
+            lead_type: components["schemas"]["LeadType"];
+            contact_type?: string | null;
+            assigned_to?: string | null;
+            note?: string | null;
+        };
+        UpdateLeadRequest: {
+            funnel_stage?: components["schemas"]["FunnelStage"];
+            assigned_to?: string | null;
+            lost_reason?: string | null;
+        };
+        CreateLeadNoteRequest: {
+            content: string;
+        };
+        LeadAnalyticsResponse: {
+            funnel: {
+                [key: string]: number;
+            };
+            conversion_rate?: number;
+            avg_days_to_convert?: number | null;
+            leads_this_week?: number;
+            leads_this_month?: number;
+            source_breakdown?: {
+                [key: string]: number;
+            };
+            stage_conversion_rates?: {
+                [key: string]: number;
+            };
+            avg_days_in_stage?: {
+                [key: string]: number;
+            };
+            leads_over_time?: {
+                period: string;
+                count: number;
+            }[];
+            assignee_stats?: {
+                assigned_to: string | null;
+                total: number;
+                converted: number;
+                conversion_rate: number;
+            }[];
+        };
+        AdminUser: {
+            sub: string;
+            email?: string | null;
+            name?: string | null;
+        };
+        AdminUserListResponse: {
+            items: components["schemas"]["AdminUser"][];
+        };
         GeographicArea: {
             /** Format: uuid */
             id: string;
@@ -1089,6 +1554,8 @@ export interface components {
         GrantId: string;
         /** @description Location identifier. */
         LocationId: string;
+        /** @description Sales lead identifier. */
+        LeadId: string;
     };
     requestBodies: never;
     headers: never;
