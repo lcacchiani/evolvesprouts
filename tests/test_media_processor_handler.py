@@ -6,6 +6,7 @@ from typing import Any
 from uuid import UUID
 
 import pytest
+from app.db.models.enums import MailchimpSyncStatus
 
 
 def _load_handler_module() -> Any:
@@ -131,3 +132,34 @@ def _patch_asset_repository(
             return self._assets.get(resource_key)
 
     monkeypatch.setattr(handler, "AssetRepository", _FakeAssetRepository)
+
+
+def test_should_retry_mailchimp_sync_true_when_not_synced() -> None:
+    handler = _load_handler_module()
+    contact = _FakeContactForMailchimp(
+        mailchimp_status=MailchimpSyncStatus.FAILED,
+        mailchimp_subscriber_id=None,
+    )
+
+    assert handler._should_retry_mailchimp_sync(contact) is True
+
+
+def test_should_retry_mailchimp_sync_false_when_synced_with_subscriber_id() -> None:
+    handler = _load_handler_module()
+    contact = _FakeContactForMailchimp(
+        mailchimp_status=MailchimpSyncStatus.SYNCED,
+        mailchimp_subscriber_id="abc123",
+    )
+
+    assert handler._should_retry_mailchimp_sync(contact) is False
+
+
+class _FakeContactForMailchimp:
+    def __init__(
+        self,
+        *,
+        mailchimp_status: MailchimpSyncStatus,
+        mailchimp_subscriber_id: str | None,
+    ) -> None:
+        self.mailchimp_status = mailchimp_status
+        self.mailchimp_subscriber_id = mailchimp_subscriber_id

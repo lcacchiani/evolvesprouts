@@ -30,6 +30,7 @@ The backend stack also requires Mailchimp/media lead parameters:
 - `MailchimpApiSecretArn`
 - `MailchimpListId`
 - `MailchimpServerPrefix`
+- `MailchimpWebhookSecret`
 - `MediaDefaultResourceKey`
 
 `MediaDefaultResourceKey` should match the `resource_key` value saved on the
