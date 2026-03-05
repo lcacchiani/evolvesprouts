@@ -159,4 +159,4 @@ pull requests for dependency updates:
 - API Gateway method caching enabled for `GET /v1/assets/public` (5-minute TTL).
 - Cache keys include all query parameters for the cached method.
 - Client-side caching with stale-while-revalidate in Flutter (planned).
-- See [`docs/architecture/cloudflare-optimization.md`](cloudflare-optimization.md) for edge caching strategy.
+- Cloudflare proxies production public website and API traffic at the edge.
