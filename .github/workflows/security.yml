@@ -135,20 +135,36 @@ jobs:
           output_file_path: console,backend/infrastructure/checkov-results.sarif
 
       - name: Filter in-source suppressed Checkov findings
+        id: filter_checkov_sarif
         if: always()
         run: |
           python - <<'PY'
           import json
+          import os
           from pathlib import Path
 
           sarif_path = Path("backend/infrastructure/checkov-results.sarif")
           if not sarif_path.exists():
               print("checkov-results.sarif not found; skipping suppression filter.")
+              payload = {"version": "2.1.0", "runs": []}
+              output_path = Path(os.environ["RUNNER_TEMP"]) / "checkov-results.filtered.sarif"
+              output_path.write_text(json.dumps(payload), encoding="utf-8")
+              output_file = os.environ.get("GITHUB_OUTPUT")
+              if output_file:
+                  with open(output_file, "a", encoding="utf-8") as fh:
+                      fh.write(f"filtered_sarif={output_path}\n")
               raise SystemExit(0)
           if sarif_path.is_dir():
               candidates = sorted(sarif_path.glob("*.sarif"))
               if not candidates:
                   print("No SARIF files found in checkov-results.sarif directory; skipping suppression filter.")
+                  payload = {"version": "2.1.0", "runs": []}
+                  output_path = Path(os.environ["RUNNER_TEMP"]) / "checkov-results.filtered.sarif"
+                  output_path.write_text(json.dumps(payload), encoding="utf-8")
+                  output_file = os.environ.get("GITHUB_OUTPUT")
+                  if output_file:
+                      with open(output_file, "a", encoding="utf-8") as fh:
+                          fh.write(f"filtered_sarif={output_path}\n")
                   raise SystemExit(0)
               sarif_path = candidates[0]
 
@@ -165,14 +181,19 @@ jobs:
                   kept.append(result)
               run["results"] = kept
 
-          sarif_path.write_text(json.dumps(payload), encoding="utf-8")
+          output_path = Path(os.environ["RUNNER_TEMP"]) / "checkov-results.filtered.sarif"
+          output_path.write_text(json.dumps(payload), encoding="utf-8")
+          output_file = os.environ.get("GITHUB_OUTPUT")
+          if output_file:
+              with open(output_file, "a", encoding="utf-8") as fh:
+                  fh.write(f"filtered_sarif={output_path}\n")
           print(f"Removed {removed} in-source suppressed Checkov findings from SARIF.")
           PY
 
       - name: Upload SARIF results
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: backend/infrastructure/checkov-results.sarif
+          sarif_file: ${{ steps.filter_checkov_sarif.outputs.filtered_sarif }}
 
   # CodeQL analysis for Python
   codeql:
