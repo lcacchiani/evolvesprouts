@@ -7,6 +7,7 @@ making business logic independent of the persistence layer.
 from app.db.repositories.base import BaseRepository
 from app.db.repositories.asset import AssetRepository
 from app.db.repositories.contact import ContactRepository
+from app.db.repositories.crm_note import CrmNoteRepository
 from app.db.repositories.geographic_area import GeographicAreaRepository
 from app.db.repositories.location import LocationRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
@@ -16,6 +17,7 @@ __all__ = [
     "BaseRepository",
     "AssetRepository",
     "ContactRepository",
+    "CrmNoteRepository",
     "GeographicAreaRepository",
     "LocationRepository",
     "SalesLeadRepository",

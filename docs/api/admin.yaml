@@ -11,6 +11,12 @@ info:
     - `GET /v1/admin/geographic-areas`
     - `GET|POST /v1/admin/locations`
     - `GET|PUT|PATCH|DELETE /v1/admin/locations/{id}`
+    - `GET /v1/admin/users`
+    - `GET|POST /v1/admin/leads`
+    - `GET|PATCH /v1/admin/leads/{id}`
+    - `POST /v1/admin/leads/{id}/notes`
+    - `GET /v1/admin/leads/analytics`
+    - `GET /v1/admin/leads/export`
     - `GET|POST /v1/admin/assets`
     - `GET|PUT|PATCH|DELETE /v1/admin/assets/{id}`
     - `GET|POST /v1/admin/assets/{id}/grants`
@@ -512,6 +518,265 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/users:
+    get:
+      summary: List admin users
+      description: Returns users in the admin Cognito group for assignee selection.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Admin user list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/leads:
+    get:
+      summary: List sales leads
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: stage
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: lead_type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: assigned_to
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: unassigned
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: date_from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: date_to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [created_at, updated_at, funnel_stage, contact_name]
+            default: created_at
+        - name: sort_dir
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        "200":
+          description: Lead list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create sales lead
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLeadRequest"
+      responses:
+        "201":
+          description: Lead create response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadDetailResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/leads/analytics:
+    get:
+      summary: Lead analytics summary
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: date_from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: date_to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Lead analytics response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadAnalyticsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/leads/export:
+    get:
+      summary: Export leads as CSV
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: CSV export generated.
+          content:
+            text/csv:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/leads/{id}:
+    parameters:
+      - $ref: "#/components/parameters/LeadId"
+    get:
+      summary: Get lead detail
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Lead detail response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadDetailResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update lead stage or assignee
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLeadRequest"
+      responses:
+        "200":
+          description: Lead update response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadDetailResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/leads/{id}/notes:
+    parameters:
+      - $ref: "#/components/parameters/LeadId"
+    post:
+      summary: Add lead note
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLeadNoteRequest"
+      responses:
+        "201":
+          description: Lead note created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [note]
+                properties:
+                  note:
+                    $ref: "#/components/schemas/LeadNote"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /v1/user/assets:
     get:
       summary: List user assets
@@ -595,6 +860,14 @@ components:
         type: string
         format: uuid
       description: Location identifier.
+    LeadId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Sales lead identifier.
 
   responses:
     BadRequest:
@@ -772,6 +1045,364 @@ components:
           description: |
             Domain allowlist for share-link resolution, for example
             `www.example.com`.
+    FunnelStage:
+      type: string
+      enum: [new, contacted, engaged, qualified, converted, lost]
+    LeadType:
+      type: string
+      enum: [free_guide, event_inquiry, program_enrollment, consultation, partnership, other]
+    LeadEventType:
+      type: string
+      enum:
+        [
+          created,
+          stage_changed,
+          note_added,
+          email_sent,
+          email_opened,
+          guide_downloaded,
+          assigned,
+          converted,
+          lost,
+        ]
+    ContactSource:
+      type: string
+      enum:
+        [
+          free_guide,
+          newsletter,
+          contact_form,
+          reservation,
+          referral,
+          instagram,
+          manual,
+          whatsapp,
+          linkedin,
+          event,
+          phone_call,
+          public_website,
+        ]
+    LeadContact:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        instagram_handle:
+          type: string
+          nullable: true
+        source:
+          type: string
+          enum:
+            [
+              free_guide,
+              newsletter,
+              contact_form,
+              reservation,
+              referral,
+              instagram,
+              manual,
+              whatsapp,
+              linkedin,
+              event,
+              phone_call,
+              public_website,
+            ]
+          nullable: true
+        source_detail:
+          type: string
+          nullable: true
+        contact_type:
+          type: string
+          nullable: true
+        relationship_type:
+          type: string
+          nullable: true
+    LeadEvent:
+      type: object
+      required:
+        - id
+        - event_type
+      properties:
+        id:
+          type: string
+          format: uuid
+        event_type:
+          $ref: "#/components/schemas/LeadEventType"
+        from_stage:
+          type: string
+          enum: [new, contacted, engaged, qualified, converted, lost]
+          nullable: true
+        to_stage:
+          type: string
+          enum: [new, contacted, engaged, qualified, converted, lost]
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+        created_by:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    LeadNote:
+      type: object
+      required:
+        - id
+        - content
+        - created_by
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        created_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    LeadSummary:
+      type: object
+      required:
+        - id
+        - contact
+        - lead_type
+        - funnel_stage
+        - tags
+      properties:
+        id:
+          type: string
+          format: uuid
+        contact:
+          $ref: "#/components/schemas/LeadContact"
+        lead_type:
+          $ref: "#/components/schemas/LeadType"
+        funnel_stage:
+          $ref: "#/components/schemas/FunnelStage"
+        assigned_to:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        converted_at:
+          type: string
+          format: date-time
+          nullable: true
+        lost_at:
+          type: string
+          format: date-time
+          nullable: true
+        lost_reason:
+          type: string
+          nullable: true
+        days_in_stage:
+          type: integer
+        last_activity_at:
+          type: string
+          format: date-time
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+    LeadDetail:
+      allOf:
+        - $ref: "#/components/schemas/LeadSummary"
+        - type: object
+          properties:
+            family:
+              type: object
+              nullable: true
+            organization:
+              type: object
+              nullable: true
+            events:
+              type: array
+              items:
+                $ref: "#/components/schemas/LeadEvent"
+            notes:
+              type: array
+              items:
+                $ref: "#/components/schemas/LeadNote"
+    LeadListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeadSummary"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+    LeadDetailResponse:
+      type: object
+      required:
+        - lead
+      properties:
+        lead:
+          $ref: "#/components/schemas/LeadDetail"
+    CreateLeadRequest:
+      type: object
+      required:
+        - first_name
+        - source
+        - lead_type
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        instagram_handle:
+          type: string
+          nullable: true
+        source:
+          $ref: "#/components/schemas/ContactSource"
+        source_detail:
+          type: string
+          nullable: true
+        lead_type:
+          $ref: "#/components/schemas/LeadType"
+        contact_type:
+          type: string
+          nullable: true
+        assigned_to:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+    UpdateLeadRequest:
+      type: object
+      minProperties: 1
+      properties:
+        funnel_stage:
+          $ref: "#/components/schemas/FunnelStage"
+        assigned_to:
+          type: string
+          nullable: true
+        lost_reason:
+          type: string
+          nullable: true
+    CreateLeadNoteRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+    LeadAnalyticsResponse:
+      type: object
+      required:
+        - funnel
+      properties:
+        funnel:
+          type: object
+          additionalProperties:
+            type: integer
+        conversion_rate:
+          type: number
+        avg_days_to_convert:
+          type: number
+          nullable: true
+        leads_this_week:
+          type: integer
+        leads_this_month:
+          type: integer
+        source_breakdown:
+          type: object
+          additionalProperties:
+            type: integer
+        stage_conversion_rates:
+          type: object
+          additionalProperties:
+            type: number
+        avg_days_in_stage:
+          type: object
+          additionalProperties:
+            type: number
+        leads_over_time:
+          type: array
+          items:
+            type: object
+            required: [period, count]
+            properties:
+              period:
+                type: string
+              count:
+                type: integer
+        assignee_stats:
+          type: array
+          items:
+            type: object
+            required: [assigned_to, total, converted, conversion_rate]
+            properties:
+              assigned_to:
+                type: string
+                nullable: true
+              total:
+                type: integer
+              converted:
+                type: integer
+              conversion_rate:
+                type: number
+    AdminUser:
+      type: object
+      required:
+        - sub
+      properties:
+        sub:
+          type: string
+        email:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+    AdminUserListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUser"
     GeographicArea:
       type: object
       required:

@@ -2,7 +2,7 @@ import { ensureFreshTokens } from './auth';
 import { getAdminApiBaseUrl } from './config';
 import { isRecord } from './type-guards';
 
-export type AdminApiMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export type AdminApiMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface AdminApiRequestOptions {
   endpointPath: string;

@@ -13,9 +13,14 @@ _SOURCE_PRIORITY: dict[ContactSource, int] = {
     ContactSource.FREE_GUIDE: 10,
     ContactSource.NEWSLETTER: 20,
     ContactSource.INSTAGRAM: 30,
+    ContactSource.WHATSAPP: 35,
     ContactSource.RESERVATION: 40,
     ContactSource.CONTACT_FORM: 50,
     ContactSource.REFERRAL: 60,
+    ContactSource.LINKEDIN: 65,
+    ContactSource.EVENT: 70,
+    ContactSource.PHONE_CALL: 80,
+    ContactSource.PUBLIC_WEBSITE: 90,
     ContactSource.MANUAL: 100,
 }
 

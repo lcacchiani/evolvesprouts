@@ -343,7 +343,7 @@ For each function above, the following resources are created:
 | Function | Additional Permissions |
 |----------|------------------------|
 | `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking and media topics, SES send email, S3 read/write for client assets |
-| `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
+| `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `ListUsersInGroup`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
 | `AuthCreateChallengeFunction` | SES `SendEmail`, `SendRawEmail` for the configured email address |
@@ -397,6 +397,12 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/geographic-areas` | GET | Admin Group | `EvolvesproutsAdminFunction` | Geographic area lookup for address selection |
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/locations/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
+| `/v1/admin/users` | GET | Admin Group | `EvolvesproutsAdminFunction` | Assignee lookup for sales lead workflows |
+| `/v1/admin/leads` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | Lead list/create |
+| `/v1/admin/leads/analytics` | GET | Admin Group | `EvolvesproutsAdminFunction` | Funnel analytics and KPI summary |
+| `/v1/admin/leads/export` | GET | Admin Group | `EvolvesproutsAdminFunction` | CSV lead export |
+| `/v1/admin/leads/{id}` | GET, PATCH | Admin Group | `EvolvesproutsAdminFunction` | Lead detail/stage+assignee updates |
+| `/v1/admin/leads/{id}/notes` | POST | Admin Group | `EvolvesproutsAdminFunction` | Immutable note append |
 | `/v1/admin/assets` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/grants` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
