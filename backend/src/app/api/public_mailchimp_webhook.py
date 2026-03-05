@@ -22,8 +22,10 @@ logger = get_logger(__name__)
 _SUPPORTED_EVENT_TYPES = frozenset(
     {"subscribe", "unsubscribe", "cleaned", "profile", "upemail"}
 )
-_WEBHOOK_TOKEN_QUERY_KEY = "token"
-_WEBHOOK_SECRET_ENV_NAME = "MAILCHIMP_WEBHOOK_SECRET"
+_WEBHOOK_TOKEN_QUERY_KEY = "token"  # nosec B105 - static query parameter name
+_WEBHOOK_SECRET_ENV_NAME = (  # nosec B105 - env var key, not a secret value
+    "MAILCHIMP_WEBHOOK_SECRET"
+)
 _TOKEN_HEADER_CANDIDATES = ("x-mailchimp-webhook-token", "x-webhook-token")
 
 
@@ -158,8 +160,8 @@ def _has_form_content_type(event: Mapping[str, Any]) -> bool:
     for key, value in headers.items():
         if str(key).lower() != "content-type":
             continue
-        return str(value).strip().lower().startswith(
-            "application/x-www-form-urlencoded"
+        return (
+            str(value).strip().lower().startswith("application/x-www-form-urlencoded")
         )
     return False
 
@@ -179,7 +181,9 @@ def _parse_form_payload(event: Mapping[str, Any]) -> dict[str, str]:
     return {key: values[0] if values else "" for key, values in parsed.items()}
 
 
-def _resolve_webhook_email(payload: Mapping[str, str], *, event_type: str) -> str | None:
+def _resolve_webhook_email(
+    payload: Mapping[str, str], *, event_type: str
+) -> str | None:
     if event_type == "upemail":
         return _optional_email(payload.get("data[new_email]")) or _optional_email(
             payload.get("data[email]")
