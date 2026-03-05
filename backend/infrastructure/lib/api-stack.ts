@@ -1961,12 +1961,18 @@ export class ApiStack extends cdk.Stack {
       apiKeyRequired: true,
     });
     const mailchimpWebhook = v1.addResource("mailchimp").addResource("webhook");
-    mailchimpWebhook.addMethod("POST", adminIntegration, {
+    const mailchimpWebhookPostMethod = mailchimpWebhook.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
     });
-    mailchimpWebhook.addMethod("GET", adminIntegration, {
+    const mailchimpWebhookGetMethod = mailchimpWebhook.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
     });
+    // This endpoint is intentionally public for Mailchimp callbacks and is
+    // protected in-app with mandatory shared-secret verification.
+    addCheckovMethodSuppression(mailchimpWebhookPostMethod, "CKV_AWS_59",
+      "Public Mailchimp webhook endpoint; access is validated via MAILCHIMP_WEBHOOK_SECRET in Lambda handler.");
+    addCheckovMethodSuppression(mailchimpWebhookGetMethod, "CKV_AWS_59",
+      "Public Mailchimp webhook verification endpoint; access is validated via MAILCHIMP_WEBHOOK_SECRET in Lambda handler.");
 
     // Admin asset routes
     const admin = v1.addResource("admin");
@@ -2446,6 +2452,15 @@ function buildCorsOriginOverrideTemplate(allowedOrigins: string[]): string {
     "  #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin)",
     "#end",
   ].join("\n");
+}
+
+function addCheckovMethodSuppression(
+  method: apigateway.Method,
+  id: string,
+  comment: string
+): void {
+  const cfnMethod = method.node.defaultChild as apigateway.CfnMethod | undefined;
+  cfnMethod?.addMetadata("checkov", { skip: [{ id, comment }] });
 }
 
 function parseOptionalPort(value: string | undefined): number | undefined {
