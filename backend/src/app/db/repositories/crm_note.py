@@ -24,4 +24,4 @@ class CrmNoteRepository(BaseRepository[CrmNote]):
             .where(CrmNote.lead_id == lead_id)
             .order_by(CrmNote.created_at.desc())
         )
-        return self._session.execute(statement).scalars().all()
+        return list(self._session.execute(statement).scalars().all())

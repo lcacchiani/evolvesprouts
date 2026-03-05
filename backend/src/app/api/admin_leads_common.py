@@ -167,6 +167,8 @@ def serialize_lead_summary(lead: SalesLead) -> dict[str, Any]:
     """Serialize lead list row payload."""
     computed_days_in_stage = getattr(lead, "_computed_days_in_stage", None)
     computed_last_activity_at = getattr(lead, "_computed_last_activity_at", None)
+    days_in_stage: int
+    last_activity_at: str | None
     if computed_days_in_stage is not None and computed_last_activity_at is not None:
         days_in_stage = int(computed_days_in_stage)
         if isinstance(computed_last_activity_at, datetime):

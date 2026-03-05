@@ -8,11 +8,14 @@ from uuid import UUID
 
 from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.models.contact import Contact
 from app.db.models.enums import ContactSource, FunnelStage, LeadEventType, LeadType
 from app.db.models.sales_lead import SalesLead, SalesLeadEvent
 from app.db.repositories.base import BaseRepository
+
+FilterCondition = ColumnElement[bool]
 
 
 def _escape_like_pattern(pattern: str) -> str:
@@ -268,7 +271,7 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
         date_to: datetime | None = None,
     ) -> dict[str, object]:
         """Return aggregate sales lead analytics for dashboard widgets."""
-        conditions: list[object] = []
+        conditions: list[FilterCondition] = []
         if date_from is not None:
             conditions.append(SalesLead.created_at >= date_from)
         if date_to is not None:
@@ -485,8 +488,8 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
         date_from: datetime | None = None,
         date_to: datetime | None = None,
         search: str | None = None,
-    ) -> tuple[list[object], bool]:
-        conditions: list[object] = []
+    ) -> tuple[list[FilterCondition], bool]:
+        conditions: list[FilterCondition] = []
         requires_contact_join = False
 
         if stage:

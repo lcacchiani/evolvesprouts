@@ -1,16 +1,19 @@
 'use client';
 
+import { useState } from 'react';
+
 import type { AdminUser, FunnelStage } from '@/types/leads';
 import { FUNNEL_STAGES } from '@/types/leads';
 
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 export interface LeadsBulkActionsProps {
   selectedCount: number;
   users: AdminUser[];
   onBulkAssign: (assignedTo: string | null) => void;
-  onBulkStageChange: (stage: FunnelStage) => void;
+  onBulkStageChange: (stage: FunnelStage, lostReason?: string) => void;
 }
 
 export function LeadsBulkActions({
@@ -19,6 +22,9 @@ export function LeadsBulkActions({
   onBulkAssign,
   onBulkStageChange,
 }: LeadsBulkActionsProps) {
+  const [pendingStage, setPendingStage] = useState<FunnelStage | ''>('');
+  const [lostReason, setLostReason] = useState('');
+
   if (selectedCount <= 0) {
     return null;
   }
@@ -37,12 +43,20 @@ export function LeadsBulkActions({
           ))}
         </Select>
         <Select
+          value={pendingStage}
           onChange={(event) => {
-            if (event.target.value) {
-              onBulkStageChange(event.target.value as FunnelStage);
+            const stage = event.target.value as FunnelStage | '';
+            if (!stage) {
+              setPendingStage('');
+              return;
+            }
+            setPendingStage(stage);
+            if (stage !== 'lost') {
+              onBulkStageChange(stage);
+              setPendingStage('');
+              setLostReason('');
             }
           }}
-          defaultValue=''
         >
           <option value=''>Set stage...</option>
           {FUNNEL_STAGES.map((stage) => (
@@ -55,6 +69,38 @@ export function LeadsBulkActions({
           Clear assignee
         </Button>
       </div>
+      {pendingStage === 'lost' ? (
+        <div className='mt-2 space-y-2'>
+          <Textarea
+            value={lostReason}
+            onChange={(event) => setLostReason(event.target.value)}
+            placeholder='Lost reason (required for bulk lost)'
+          />
+          <div className='flex gap-2'>
+            <Button
+              type='button'
+              disabled={lostReason.trim().length === 0}
+              onClick={() => {
+                onBulkStageChange('lost', lostReason.trim());
+                setLostReason('');
+                setPendingStage('');
+              }}
+            >
+              Confirm lost stage
+            </Button>
+            <Button
+              type='button'
+              variant='ghost'
+              onClick={() => {
+                setLostReason('');
+                setPendingStage('');
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

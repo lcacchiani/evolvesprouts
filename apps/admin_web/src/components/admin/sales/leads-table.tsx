@@ -79,14 +79,10 @@ export function LeadsTable({
           void onBulkAssign(selectedIds, normalizedAssignedTo);
           setSelectedIds([]);
         }}
-        onBulkStageChange={(stage) => {
-          const lostReason =
-            stage === 'lost'
-              ? window.prompt('Please enter a lost reason for selected leads:')?.trim()
-              : undefined;
-          if (stage === 'lost' && !lostReason) {
-            return;
-          }
+        onBulkStageChange={(
+          stage,
+          lostReason
+        ) => {
           void onBulkStageChange(selectedIds, stage, lostReason);
           setSelectedIds([]);
         }}
