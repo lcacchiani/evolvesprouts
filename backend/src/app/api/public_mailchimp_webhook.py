@@ -34,6 +34,8 @@ def handle_mailchimp_webhook(
     method: str,
 ) -> dict[str, Any]:
     """Handle Mailchimp webhook events and reconcile contact sync status."""
+    if method in {"GET", "HEAD"}:
+        return json_response(200, {"message": "ok"}, event=event)
     if method != "POST":
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
@@ -50,13 +52,6 @@ def handle_mailchimp_webhook(
     if not provided_secret or not hmac.compare_digest(provided_secret, expected_secret):
         logger.warning("Rejected Mailchimp webhook due to invalid secret")
         return json_response(401, {"error": "Unauthorized"}, event=event)
-
-    if not _has_form_content_type(event):
-        return json_response(
-            400,
-            {"error": "Content-Type must be application/x-www-form-urlencoded"},
-            event=event,
-        )
 
     payload = _parse_form_payload(event)
     event_type = _optional_text(payload.get("type"))
@@ -153,17 +148,6 @@ def _extract_webhook_secret(event: Mapping[str, Any]) -> str:
             if header_secret:
                 return header_secret
     return ""
-
-
-def _has_form_content_type(event: Mapping[str, Any]) -> bool:
-    headers = event.get("headers") or {}
-    for key, value in headers.items():
-        if str(key).lower() != "content-type":
-            continue
-        return (
-            str(value).strip().lower().startswith("application/x-www-form-urlencoded")
-        )
-    return False
 
 
 def _parse_form_payload(event: Mapping[str, Any]) -> dict[str, str]:
