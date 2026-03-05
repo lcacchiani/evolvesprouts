@@ -4,10 +4,7 @@ import { useCallback, useState } from 'react';
 
 import { createLead, createLeadNote, updateLead } from '@/lib/leads-api';
 import type { ContactSource, FunnelStage, LeadDetail, LeadType } from '@/types/leads';
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
+import { toErrorMessage } from './hook-errors';
 
 interface MutationOptions {
   onSuccess?: (leadId?: string) => Promise<void> | void;

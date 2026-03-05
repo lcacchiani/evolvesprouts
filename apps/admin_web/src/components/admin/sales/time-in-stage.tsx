@@ -1,27 +1,39 @@
+'use client';
+
 import { Card } from '@/components/ui/card';
 import { toTitleCase } from '@/lib/format';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export interface TimeInStageProps {
   values: Record<string, number>;
 }
 
 export function TimeInStage({ values }: TimeInStageProps) {
-  const entries = Object.entries(values);
+  const entries = Object.entries(values).map(([stage, days]) => ({
+    stage,
+    label: toTitleCase(stage),
+    days,
+  }));
 
   return (
     <Card title='Time in stage'>
-      <div className='space-y-2'>
-        {entries.length === 0 ? (
-          <p className='text-sm text-slate-600'>No stage timing data.</p>
-        ) : (
-          entries.map(([stage, days]) => (
-            <div key={stage} className='flex items-center justify-between rounded-md border border-slate-200 px-3 py-2'>
-              <span className='text-sm text-slate-700'>{toTitleCase(stage)}</span>
-              <span className='text-sm font-semibold text-slate-900'>{days.toFixed(1)} days</span>
-            </div>
-          ))
-        )}
-      </div>
+      {entries.length === 0 ? (
+        <p className='text-sm text-slate-600'>No stage timing data.</p>
+      ) : (
+        <div className='h-72'>
+          <ResponsiveContainer width='100%' height='100%'>
+            <BarChart data={entries} layout='vertical' margin={{ top: 8, right: 12, left: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray='3 3' />
+              <XAxis type='number' />
+              <YAxis type='category' dataKey='label' width={120} />
+              <Tooltip
+                formatter={(value) => [`${Number(value ?? 0).toFixed(1)} days`, 'Average']}
+              />
+              <Bar dataKey='days' fill='#7c3aed' radius={[0, 6, 6, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </Card>
   );
 }

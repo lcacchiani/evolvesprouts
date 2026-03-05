@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { CONTACT_SOURCES, LEAD_TYPES } from '@/types/leads';
 import type { AdminUser, ContactSource, LeadType } from '@/types/leads';
 
+import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ export interface CreateLeadDialogProps {
   open: boolean;
   users: AdminUser[];
   isLoading: boolean;
+  error: string;
   onClose: () => void;
   onCreate: (payload: {
     first_name: string;
@@ -32,7 +34,14 @@ export interface CreateLeadDialogProps {
   }) => Promise<void> | void;
 }
 
-export function CreateLeadDialog({ open, users, isLoading, onClose, onCreate }: CreateLeadDialogProps) {
+export function CreateLeadDialog({
+  open,
+  users,
+  isLoading,
+  error,
+  onClose,
+  onCreate,
+}: CreateLeadDialogProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -60,6 +69,11 @@ export function CreateLeadDialog({ open, users, isLoading, onClose, onCreate }: 
     >
       <div className='w-full max-w-2xl'>
         <Card title='Create lead' className='space-y-3'>
+          {error ? (
+            <StatusBanner variant='error' title='Create lead'>
+              {error}
+            </StatusBanner>
+          ) : null}
           <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
             <Input
               value={firstName}
@@ -123,31 +137,35 @@ export function CreateLeadDialog({ open, users, isLoading, onClose, onCreate }: 
               type='button'
               disabled={isLoading || firstName.trim().length === 0}
               onClick={async () => {
-                await onCreate({
-                  first_name: firstName.trim(),
-                  last_name: lastName.trim() || null,
-                  email: email.trim() || null,
-                  phone: phone.trim() || null,
-                  instagram_handle: instagramHandle.trim() || null,
-                  source,
-                  source_detail: sourceDetail.trim() || null,
-                  lead_type: leadType,
-                  contact_type: contactType || null,
-                  assigned_to: assignedTo || null,
-                  note: note.trim() || null,
-                });
-                setFirstName('');
-                setLastName('');
-                setEmail('');
-                setPhone('');
-                setInstagramHandle('');
-                setSource('manual');
-                setSourceDetail('');
-                setLeadType('consultation');
-                setContactType('parent');
-                setAssignedTo('');
-                setNote('');
-                onClose();
+                try {
+                  await onCreate({
+                    first_name: firstName.trim(),
+                    last_name: lastName.trim() || null,
+                    email: email.trim() || null,
+                    phone: phone.trim() || null,
+                    instagram_handle: instagramHandle.trim() || null,
+                    source,
+                    source_detail: sourceDetail.trim() || null,
+                    lead_type: leadType,
+                    contact_type: contactType || null,
+                    assigned_to: assignedTo || null,
+                    note: note.trim() || null,
+                  });
+                  setFirstName('');
+                  setLastName('');
+                  setEmail('');
+                  setPhone('');
+                  setInstagramHandle('');
+                  setSource('manual');
+                  setSourceDetail('');
+                  setLeadType('consultation');
+                  setContactType('parent');
+                  setAssignedTo('');
+                  setNote('');
+                  onClose();
+                } catch {
+                  // Keep dialog open so the user can correct and retry.
+                }
               }}
             >
               Create lead

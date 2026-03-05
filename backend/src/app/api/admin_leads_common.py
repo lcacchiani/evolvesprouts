@@ -18,7 +18,13 @@ from app.api.admin_validators import (
     validate_string_length,
 )
 from app.db.models import Contact, CrmNote, SalesLead, SalesLeadEvent
-from app.db.models.enums import ContactSource, ContactType, FunnelStage, LeadEventType, LeadType
+from app.db.models.enums import (
+    ContactSource,
+    ContactType,
+    FunnelStage,
+    LeadEventType,
+    LeadType,
+)
 from app.exceptions import ValidationError
 
 _LIST_LEADS_DEFAULT_LIMIT = 50
@@ -54,11 +60,17 @@ def parse_lead_filters(event: Mapping[str, Any]) -> dict[str, Any]:
         "cursor_created_at": cursor_created_at,
         "cursor_id": cursor_id,
         "stage": _parse_enum_list(query_param(event, "stage"), FunnelStage, "stage"),
-        "source": _parse_enum_list(query_param(event, "source"), ContactSource, "source"),
-        "lead_type": _parse_enum_list(query_param(event, "lead_type"), LeadType, "lead_type"),
+        "source": _parse_enum_list(
+            query_param(event, "source"), ContactSource, "source"
+        ),
+        "lead_type": _parse_enum_list(
+            query_param(event, "lead_type"), LeadType, "lead_type"
+        ),
         "assigned_to": _parse_optional_text(query_param(event, "assigned_to")),
         "unassigned": _parse_bool(query_param(event, "unassigned"), default=False),
-        "date_from": parse_optional_datetime(query_param(event, "date_from"), "date_from"),
+        "date_from": parse_optional_datetime(
+            query_param(event, "date_from"), "date_from"
+        ),
         "date_to": parse_optional_datetime(query_param(event, "date_to"), "date_to"),
         "search": _parse_optional_text(query_param(event, "search")),
         "sort": sort,
@@ -82,10 +94,15 @@ def parse_create_lead_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "first_name": first_name,
         "last_name": validate_string_length(
-            body.get("last_name"), "last_name", max_length=MAX_NAME_LENGTH, required=False
+            body.get("last_name"),
+            "last_name",
+            max_length=MAX_NAME_LENGTH,
+            required=False,
         ),
         "email": email,
-        "phone": validate_string_length(body.get("phone"), "phone", max_length=32, required=False),
+        "phone": validate_string_length(
+            body.get("phone"), "phone", max_length=32, required=False
+        ),
         "instagram_handle": validate_string_length(
             body.get("instagram_handle"),
             "instagram_handle",
@@ -148,11 +165,24 @@ def parse_update_lead_payload(body: Mapping[str, Any]) -> dict[str, Any]:
 
 def serialize_lead_summary(lead: SalesLead) -> dict[str, Any]:
     """Serialize lead list row payload."""
-    events = sorted(
-        lead.events,
-        key=lambda item: item.created_at or datetime.min.replace(tzinfo=UTC),
-        reverse=True,
-    )
+    computed_days_in_stage = getattr(lead, "_computed_days_in_stage", None)
+    computed_last_activity_at = getattr(lead, "_computed_last_activity_at", None)
+    if computed_days_in_stage is not None and computed_last_activity_at is not None:
+        days_in_stage = int(computed_days_in_stage)
+        if isinstance(computed_last_activity_at, datetime):
+            last_activity_at = computed_last_activity_at.isoformat()
+        else:
+            last_activity_at = (
+                str(computed_last_activity_at) if computed_last_activity_at else None
+            )
+    else:
+        events = sorted(
+            lead.events,
+            key=lambda item: item.created_at or datetime.min.replace(tzinfo=UTC),
+            reverse=True,
+        )
+        days_in_stage = _compute_days_in_stage(lead, events)
+        last_activity_at = _last_activity_at(lead, events)
     return {
         "id": str(lead.id),
         "contact": _serialize_contact(lead.contact),
@@ -164,8 +194,8 @@ def serialize_lead_summary(lead: SalesLead) -> dict[str, Any]:
         "converted_at": lead.converted_at.isoformat() if lead.converted_at else None,
         "lost_at": lead.lost_at.isoformat() if lead.lost_at else None,
         "lost_reason": lead.lost_reason,
-        "days_in_stage": _compute_days_in_stage(lead, events),
-        "last_activity_at": _last_activity_at(lead, events),
+        "days_in_stage": days_in_stage,
+        "last_activity_at": last_activity_at,
         "tags": _extract_contact_tags(lead.contact),
     }
 
@@ -208,7 +238,9 @@ def parse_optional_datetime(raw_value: str | None, field: str) -> datetime | Non
         normalized = raw_value.replace("Z", "+00:00")
         parsed = datetime.fromisoformat(normalized)
     except ValueError as exc:
-        raise ValidationError(f"{field} must be a valid ISO datetime", field=field) from exc
+        raise ValidationError(
+            f"{field} must be a valid ISO datetime", field=field
+        ) from exc
     return _normalize_datetime(parsed)
 
 
@@ -217,7 +249,10 @@ def encode_lead_cursor(lead: SalesLead) -> str | None:
     if not lead.created_at:
         return None
     payload = json.dumps(
-        {"created_at": _normalize_datetime(lead.created_at).isoformat(), "id": str(lead.id)}
+        {
+            "created_at": _normalize_datetime(lead.created_at).isoformat(),
+            "id": str(lead.id),
+        }
     ).encode("utf-8")
     encoded = base64.urlsafe_b64encode(payload).decode("utf-8")
     return encoded.rstrip("=")
@@ -349,7 +384,9 @@ def _parse_enum_value(raw_value: Any, enum_type: Any, field: str) -> Any:
         raise ValidationError(f"Invalid value for {field}", field=field) from exc
 
 
-def _parse_optional_enum_value(raw_value: Any, enum_type: Any, field: str) -> Any | None:
+def _parse_optional_enum_value(
+    raw_value: Any, enum_type: Any, field: str
+) -> Any | None:
     if raw_value is None:
         return None
     normalized = str(raw_value).strip()

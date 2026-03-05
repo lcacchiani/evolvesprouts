@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { getLeadAnalytics } from '@/lib/leads-api';
 import type { LeadAnalytics } from '@/types/leads';
+import { toErrorMessage } from './hook-errors';
 
 export interface DateRange {
   dateFrom: string | null;
@@ -14,10 +15,6 @@ const DEFAULT_DATE_RANGE: DateRange = {
   dateFrom: null,
   dateTo: null,
 };
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
 
 export function useLeadAnalytics() {
   const [dateRange, setDateRange] = useState<DateRange>(DEFAULT_DATE_RANGE);

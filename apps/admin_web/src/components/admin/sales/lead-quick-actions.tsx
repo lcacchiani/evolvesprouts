@@ -11,7 +11,7 @@ export interface LeadQuickActionsProps {
   users: AdminUser[];
   isLoading: boolean;
   onMarkConverted: () => Promise<void> | void;
-  onMarkLost: () => Promise<void> | void;
+  onMarkLost: (lostReason: string) => Promise<void> | void;
   onAssign: (assignedTo: string | null) => Promise<void> | void;
 }
 
@@ -37,7 +37,18 @@ export function LeadQuickActions({
         <Button type='button' variant='outline' disabled={isLoading} onClick={() => void onMarkConverted()}>
           Mark converted
         </Button>
-        <Button type='button' variant='danger' disabled={isLoading} onClick={() => void onMarkLost()}>
+        <Button
+          type='button'
+          variant='danger'
+          disabled={isLoading}
+          onClick={() => {
+            const lostReason = window.prompt('Why was this lead lost?')?.trim();
+            if (!lostReason) {
+              return;
+            }
+            void onMarkLost(lostReason);
+          }}
+        >
           Mark lost
         </Button>
       </div>

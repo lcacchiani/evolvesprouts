@@ -30,7 +30,11 @@ export interface LeadsTableProps {
   ) => void;
   onClearFilters: () => void;
   onBulkAssign: (leadIds: string[], assignedTo: string | null) => Promise<void> | void;
-  onBulkStageChange: (leadIds: string[], stage: FunnelStage) => Promise<void> | void;
+  onBulkStageChange: (
+    leadIds: string[],
+    stage: FunnelStage,
+    lostReason?: string
+  ) => Promise<void> | void;
 }
 
 export function LeadsTable({
@@ -76,7 +80,14 @@ export function LeadsTable({
           setSelectedIds([]);
         }}
         onBulkStageChange={(stage) => {
-          void onBulkStageChange(selectedIds, stage);
+          const lostReason =
+            stage === 'lost'
+              ? window.prompt('Please enter a lost reason for selected leads:')?.trim()
+              : undefined;
+          if (stage === 'lost' && !lostReason) {
+            return;
+          }
+          void onBulkStageChange(selectedIds, stage, lostReason);
           setSelectedIds([]);
         }}
       />
@@ -128,6 +139,7 @@ export function LeadsTable({
                 <LeadsTableRow
                   key={lead.id}
                   lead={lead}
+                  users={users}
                   isSelected={selectedLeadId === lead.id}
                   isChecked={selectedSet.has(lead.id)}
                   onSelect={onSelectLead}

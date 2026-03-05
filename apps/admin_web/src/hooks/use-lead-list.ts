@@ -6,11 +6,8 @@ import { listLeads } from '@/lib/leads-api';
 import { DEFAULT_LEAD_LIST_FILTERS } from '@/types/leads';
 import type { LeadListFilters, LeadSummary } from '@/types/leads';
 
+import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
 
 export function useLeadList() {
   const [filters, setFilters] = useState<LeadListFilters>(DEFAULT_LEAD_LIST_FILTERS);

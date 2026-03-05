@@ -27,9 +27,13 @@ from app.api.admin_validators import MAX_DESCRIPTION_LENGTH, validate_string_len
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Contact, CrmNote
+from app.db.models import Contact, CrmNote, SalesLead
 from app.db.models.enums import FunnelStage, LeadEventType
-from app.db.repositories import ContactRepository, CrmNoteRepository, SalesLeadRepository
+from app.db.repositories import (
+    ContactRepository,
+    CrmNoteRepository,
+    SalesLeadRepository,
+)
 from app.exceptions import NotFoundError, ValidationError
 from app.utils import json_response
 from app.utils.responses import get_cors_headers, get_security_headers
@@ -362,30 +366,26 @@ def _get_analytics(event: Mapping[str, Any]) -> dict[str, Any]:
             datetime.min.time(),
             tzinfo=UTC,
         )
-        leads_this_week = repository.count_leads(date_from=week_start)
-        leads_this_month = repository.count_leads(date_from=month_start)
-        funnel = base["funnel"]
-        assert isinstance(funnel, dict)
-        new_count = int(funnel.get(FunnelStage.NEW.value, 0))
-        contacted_count = int(funnel.get(FunnelStage.CONTACTED.value, 0))
-        engaged_count = int(funnel.get(FunnelStage.ENGAGED.value, 0))
-        qualified_count = int(funnel.get(FunnelStage.QUALIFIED.value, 0))
-        converted_count = int(funnel.get(FunnelStage.CONVERTED.value, 0))
-
-        stage_conversion_rates = {
-            "new_to_contacted": (contacted_count / new_count) if new_count else 0.0,
-            "contacted_to_engaged": (engaged_count / contacted_count) if contacted_count else 0.0,
-            "engaged_to_qualified": (qualified_count / engaged_count) if engaged_count else 0.0,
-            "qualified_to_converted": (converted_count / qualified_count) if qualified_count else 0.0,
-        }
+        week_window_start = _max_datetime(date_from, week_start)
+        week_window_end = _min_datetime(date_to, now)
+        month_window_start = _max_datetime(date_from, month_start)
+        month_window_end = _min_datetime(date_to, now)
+        leads_this_week = _count_in_window(
+            repository,
+            date_from=week_window_start,
+            date_to=week_window_end,
+        )
+        leads_this_month = _count_in_window(
+            repository,
+            date_from=month_window_start,
+            date_to=month_window_end,
+        )
         return json_response(
             200,
             {
                 **base,
                 "leads_this_week": leads_this_week,
                 "leads_this_month": leads_this_month,
-                "stage_conversion_rates": stage_conversion_rates,
-                "avg_days_in_stage": {},
             },
             event=event,
         )
@@ -395,20 +395,6 @@ def _export_leads(event: Mapping[str, Any]) -> dict[str, Any]:
     filters = parse_lead_filters(event)
     with Session(get_engine()) as session:
         repository = SalesLeadRepository(session)
-        rows = repository.list_leads(
-            limit=5000,
-            stage=filters["stage"],
-            source=filters["source"],
-            lead_type=filters["lead_type"],
-            assigned_to=filters["assigned_to"],
-            unassigned=filters["unassigned"],
-            date_from=filters["date_from"],
-            date_to=filters["date_to"],
-            search=filters["search"],
-            sort=filters["sort"],
-            sort_dir=filters["sort_dir"],
-        )
-
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(
@@ -428,26 +414,51 @@ def _export_leads(event: Mapping[str, Any]) -> dict[str, Any]:
                 "Tags",
             ]
         )
-        for lead in rows:
-            summary = serialize_lead_summary(lead)
-            contact = summary["contact"]
-            writer.writerow(
-                [
-                    summary["id"],
-                    contact["first_name"],
-                    contact["last_name"],
-                    contact["email"],
-                    contact["phone"],
-                    contact["source"],
-                    summary["lead_type"],
-                    summary["funnel_stage"],
-                    summary["assigned_to"],
-                    summary["created_at"],
-                    summary["last_activity_at"],
-                    summary["days_in_stage"],
-                    ",".join(summary["tags"]),
-                ]
+        cursor_created_at: datetime | None = None
+        cursor_id: UUID | None = None
+        while True:
+            rows = repository.list_leads(
+                limit=500,
+                stage=filters["stage"],
+                source=filters["source"],
+                lead_type=filters["lead_type"],
+                assigned_to=filters["assigned_to"],
+                unassigned=filters["unassigned"],
+                date_from=filters["date_from"],
+                date_to=filters["date_to"],
+                search=filters["search"],
+                sort="created_at",
+                sort_dir="desc",
+                cursor_created_at=cursor_created_at,
+                cursor_id=cursor_id,
             )
+            if not rows:
+                break
+
+            for lead in rows:
+                summary = serialize_lead_summary(lead)
+                contact = summary["contact"]
+                writer.writerow(
+                    [
+                        summary["id"],
+                        contact["first_name"],
+                        contact["last_name"],
+                        contact["email"],
+                        contact["phone"],
+                        contact["source"],
+                        summary["lead_type"],
+                        summary["funnel_stage"],
+                        summary["assigned_to"],
+                        summary["created_at"],
+                        summary["last_activity_at"],
+                        summary["days_in_stage"],
+                        ",".join(summary["tags"]),
+                    ]
+                )
+            if len(rows) < 500:
+                break
+            cursor_created_at = rows[-1].created_at
+            cursor_id = rows[-1].id
 
         filename = f"leads-export-{datetime.now(UTC).date().isoformat()}.csv"
         response_headers = {
@@ -461,3 +472,26 @@ def _export_leads(event: Mapping[str, Any]) -> dict[str, Any]:
             "headers": response_headers,
             "body": output.getvalue(),
         }
+
+
+def _max_datetime(first: datetime | None, second: datetime) -> datetime:
+    if first is None:
+        return second
+    return first if first >= second else second
+
+
+def _min_datetime(first: datetime | None, second: datetime) -> datetime:
+    if first is None:
+        return second
+    return first if first <= second else second
+
+
+def _count_in_window(
+    repository: SalesLeadRepository,
+    *,
+    date_from: datetime,
+    date_to: datetime,
+) -> int:
+    if date_from > date_to:
+        return 0
+    return repository.count_leads(date_from=date_from, date_to=date_to)

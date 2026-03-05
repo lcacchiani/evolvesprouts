@@ -1,5 +1,6 @@
 import { ensureFreshTokens } from './auth';
 import { adminApiRequest } from './api-admin-client';
+import { asNullableString, unwrapPayload } from './api-payload';
 import { getAdminApiBaseUrl } from './config';
 import { isRecord } from './type-guards';
 
@@ -24,8 +25,6 @@ type ApiUpdateLeadRequest = ApiSchemas['UpdateLeadRequest'];
 type ApiCreateLeadNoteRequest = ApiSchemas['CreateLeadNoteRequest'];
 type ApiLeadAnalyticsResponse = ApiSchemas['LeadAnalyticsResponse'];
 
-type ApiDataWrapper<T> = { data: T };
-
 export interface LeadListParams extends Partial<LeadListFilters> {
   cursor?: string | null;
   limit?: number;
@@ -34,20 +33,6 @@ export interface LeadListParams extends Partial<LeadListFilters> {
 export interface AnalyticsParams {
   dateFrom?: string | null;
   dateTo?: string | null;
-}
-
-function unwrapPayload<T>(payload: T | ApiDataWrapper<T>): T {
-  if (isRecord(payload) && 'data' in payload) {
-    return payload.data as T;
-  }
-  return payload;
-}
-
-function asNullableString(value: unknown): string | null {
-  if (typeof value === 'string') {
-    return value;
-  }
-  return null;
 }
 
 function asNumber(value: unknown, fallback = 0): number {
@@ -192,7 +177,7 @@ function buildLeadListQuery(params: LeadListParams): string {
 export async function listLeads(
   params: LeadListParams
 ): Promise<{ items: LeadSummary[]; nextCursor: string | null; totalCount: number }> {
-  const payload = await adminApiRequest<ApiLeadListResponse | ApiDataWrapper<ApiLeadListResponse>>({
+  const payload = await adminApiRequest<ApiLeadListResponse>({
     endpointPath: `/v1/admin/leads${buildLeadListQuery(params)}`,
     method: 'GET',
   });
@@ -205,7 +190,7 @@ export async function listLeads(
 }
 
 export async function getLead(id: string): Promise<LeadDetail | null> {
-  const payload = await adminApiRequest<ApiLeadDetailResponse | ApiDataWrapper<ApiLeadDetailResponse>>({
+  const payload = await adminApiRequest<ApiLeadDetailResponse>({
     endpointPath: `/v1/admin/leads/${id}`,
     method: 'GET',
   });
@@ -214,7 +199,7 @@ export async function getLead(id: string): Promise<LeadDetail | null> {
 }
 
 export async function createLead(body: ApiCreateLeadRequest): Promise<LeadDetail | null> {
-  const payload = await adminApiRequest<ApiLeadDetailResponse | ApiDataWrapper<ApiLeadDetailResponse>>({
+  const payload = await adminApiRequest<ApiLeadDetailResponse>({
     endpointPath: '/v1/admin/leads',
     method: 'POST',
     body,
@@ -225,7 +210,7 @@ export async function createLead(body: ApiCreateLeadRequest): Promise<LeadDetail
 }
 
 export async function updateLead(id: string, body: ApiUpdateLeadRequest): Promise<LeadDetail | null> {
-  const payload = await adminApiRequest<ApiLeadDetailResponse | ApiDataWrapper<ApiLeadDetailResponse>>({
+  const payload = await adminApiRequest<ApiLeadDetailResponse>({
     endpointPath: `/v1/admin/leads/${id}`,
     method: 'PATCH',
     body,
@@ -238,9 +223,7 @@ export async function createLeadNote(
   leadId: string,
   body: ApiCreateLeadNoteRequest
 ): Promise<LeadNote | null> {
-  const payload = await adminApiRequest<
-    { note?: ApiSchemas['LeadNote'] } | ApiDataWrapper<{ note?: ApiSchemas['LeadNote'] }>
-  >({
+  const payload = await adminApiRequest<{ note?: ApiSchemas['LeadNote'] }>({
     endpointPath: `/v1/admin/leads/${leadId}/notes`,
     method: 'POST',
     body,
@@ -260,9 +243,7 @@ export async function getLeadAnalytics(params: AnalyticsParams): Promise<LeadAna
   }
   const queryString = query.toString();
   const endpointPath = queryString ? `/v1/admin/leads/analytics?${queryString}` : '/v1/admin/leads/analytics';
-  const payload = await adminApiRequest<
-    ApiLeadAnalyticsResponse | ApiDataWrapper<ApiLeadAnalyticsResponse>
-  >({
+  const payload = await adminApiRequest<ApiLeadAnalyticsResponse>({
     endpointPath,
     method: 'GET',
   });

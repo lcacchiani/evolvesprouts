@@ -1,6 +1,6 @@
 'use client';
 
-import type { LeadSummary } from '@/types/leads';
+import type { AdminUser, LeadSummary } from '@/types/leads';
 
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/format';
@@ -9,14 +9,24 @@ import { getStageBadgeClass } from './stage-utils';
 
 export interface LeadsTableRowProps {
   lead: LeadSummary;
+  users: AdminUser[];
   isSelected: boolean;
   isChecked: boolean;
   onSelect: (leadId: string) => void;
   onCheck: (leadId: string, checked: boolean) => void;
 }
 
+function resolveAssigneeLabel(assignedTo: string | null, users: AdminUser[]): string {
+  if (!assignedTo) {
+    return 'Unassigned';
+  }
+  const user = users.find((entry) => entry.sub === assignedTo);
+  return user?.name || user?.email || assignedTo;
+}
+
 export function LeadsTableRow({
   lead,
+  users,
   isSelected,
   isChecked,
   onSelect,
@@ -47,7 +57,9 @@ export function LeadsTableRow({
           {lead.funnelStage}
         </span>
       </td>
-      <td className='px-3 py-2 text-sm text-slate-700'>{lead.assignedTo ?? 'Unassigned'}</td>
+      <td className='px-3 py-2 text-sm text-slate-700'>
+        {resolveAssigneeLabel(lead.assignedTo, users)}
+      </td>
       <td className='px-3 py-2 text-sm text-slate-700'>{formatDate(lead.createdAt)}</td>
       <td className='px-3 py-2 text-sm text-slate-700'>
         <span className={lead.daysInStage > 7 ? 'font-semibold text-amber-700' : ''}>

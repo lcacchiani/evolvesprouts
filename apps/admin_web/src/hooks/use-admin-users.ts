@@ -4,10 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { listAdminUsers } from '@/lib/users-api';
 import type { AdminUser } from '@/types/leads';
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
+import { toErrorMessage } from './hook-errors';
 
 export function useAdminUsers() {
   const [users, setUsers] = useState<AdminUser[]>([]);

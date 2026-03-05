@@ -36,35 +36,43 @@ export function LeadDetailPanel({
   }
 
   return (
-    <aside className='fixed inset-y-0 right-0 z-40 w-full max-w-2xl overflow-y-auto border-l border-slate-200 bg-slate-50 p-4 shadow-xl'>
-      <div className='mb-3 flex items-center justify-between'>
-        <h2 className='text-lg font-semibold text-slate-900'>Lead details</h2>
-        <Button type='button' variant='ghost' onClick={onClose}>
-          ✕
-        </Button>
-      </div>
-      {!lead ? (
-        <p className='text-sm text-slate-600'>No lead selected.</p>
-      ) : (
-        <div className='space-y-4'>
-          <LeadInfoSection lead={lead} />
-          <StageControl
-            currentStage={lead.funnelStage}
-            isLoading={isLoading}
-            onUpdateStage={onUpdateStage}
-          />
-          <LeadQuickActions
-            lead={lead}
-            users={users}
-            isLoading={isLoading}
-            onMarkConverted={() => onUpdateStage('converted')}
-            onMarkLost={() => onUpdateStage('lost', 'Lost from quick action')}
-            onAssign={onAssign}
-          />
-          <NotesSection notes={lead.notes} users={users} isLoading={isLoading} onAddNote={onAddNote} />
-          <ActivityTimeline events={lead.events} users={users} />
+    <div className='fixed inset-0 z-40'>
+      <button
+        type='button'
+        className='absolute inset-0 bg-slate-900/30'
+        aria-label='Close lead details'
+        onClick={onClose}
+      />
+      <aside className='absolute inset-y-0 right-0 w-full max-w-2xl overflow-y-auto border-l border-slate-200 bg-slate-50 p-4 shadow-xl'>
+        <div className='mb-3 flex items-center justify-between'>
+          <h2 className='text-lg font-semibold text-slate-900'>Lead details</h2>
+          <Button type='button' variant='ghost' aria-label='Close lead details' onClick={onClose}>
+            ✕
+          </Button>
         </div>
-      )}
-    </aside>
+        {!lead ? (
+          <p className='text-sm text-slate-600'>No lead selected.</p>
+        ) : (
+          <div className='space-y-4'>
+            <LeadInfoSection lead={lead} />
+            <StageControl
+              currentStage={lead.funnelStage}
+              isLoading={isLoading}
+              onUpdateStage={onUpdateStage}
+            />
+            <LeadQuickActions
+              lead={lead}
+              users={users}
+              isLoading={isLoading}
+              onMarkConverted={() => onUpdateStage('converted')}
+              onMarkLost={(lostReason) => onUpdateStage('lost', lostReason)}
+              onAssign={onAssign}
+            />
+            <NotesSection notes={lead.notes} users={users} isLoading={isLoading} onAddNote={onAddNote} />
+            <ActivityTimeline events={lead.events} users={users} />
+          </div>
+        )}
+      </aside>
+    </div>
   );
 }

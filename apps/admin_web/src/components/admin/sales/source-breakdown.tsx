@@ -1,27 +1,40 @@
+'use client';
+
 import { Card } from '@/components/ui/card';
 import { toTitleCase } from '@/lib/format';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export interface SourceBreakdownProps {
   sourceBreakdown: Record<string, number>;
 }
 
 export function SourceBreakdown({ sourceBreakdown }: SourceBreakdownProps) {
-  const entries = Object.entries(sourceBreakdown).sort((a, b) => b[1] - a[1]);
+  const entries = Object.entries(sourceBreakdown)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([source, count]) => ({
+      source,
+      label: toTitleCase(source),
+      count,
+    }));
 
   return (
     <Card title='Source breakdown'>
-      <div className='space-y-2'>
-        {entries.length === 0 ? (
-          <p className='text-sm text-slate-600'>No source data available.</p>
-        ) : (
-          entries.map(([source, count]) => (
-            <div key={source} className='flex items-center justify-between rounded-md border border-slate-200 px-3 py-2'>
-              <span className='text-sm text-slate-700'>{toTitleCase(source)}</span>
-              <span className='text-sm font-semibold text-slate-900'>{count}</span>
-            </div>
-          ))
-        )}
-      </div>
+      {entries.length === 0 ? (
+        <p className='text-sm text-slate-600'>No source data available.</p>
+      ) : (
+        <div className='h-72'>
+          <ResponsiveContainer width='100%' height='100%'>
+            <BarChart data={entries} layout='vertical' margin={{ top: 8, right: 12, left: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray='3 3' />
+              <XAxis type='number' />
+              <YAxis type='category' dataKey='label' width={120} />
+              <Tooltip formatter={(value) => [`${Number(value ?? 0)}`, 'Leads']} />
+              <Bar dataKey='count' fill='#64748b' radius={[0, 6, 6, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </Card>
   );
 }

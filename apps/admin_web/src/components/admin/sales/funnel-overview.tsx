@@ -1,6 +1,7 @@
 import { FunnelChart } from './funnel-chart';
 import { KpiCards } from './kpi-cards';
 import { SourceBreakdown } from './source-breakdown';
+import { EMPTY_ANALYTICS } from './analytics-defaults';
 
 import type { FunnelStage, LeadAnalytics } from '@/types/leads';
 
@@ -9,19 +10,6 @@ export interface FunnelOverviewProps {
   selectedStage: FunnelStage | null;
   onSelectStage: (stage: FunnelStage | null) => void;
 }
-
-const EMPTY_ANALYTICS: LeadAnalytics = {
-  funnel: {},
-  conversionRate: 0,
-  avgDaysToConvert: null,
-  leadsThisWeek: 0,
-  leadsThisMonth: 0,
-  sourceBreakdown: {},
-  stageConversionRates: {},
-  avgDaysInStage: {},
-  leadsOverTime: [],
-  assigneeStats: [],
-};
 
 export function FunnelOverview({ analytics, selectedStage, onSelectStage }: FunnelOverviewProps) {
   const data = analytics ?? EMPTY_ANALYTICS;

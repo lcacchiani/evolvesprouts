@@ -1,26 +1,38 @@
+'use client';
+
 import { Card } from '@/components/ui/card';
 import { toTitleCase } from '@/lib/format';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export interface ConversionFunnelProps {
   rates: Record<string, number>;
 }
 
 export function ConversionFunnel({ rates }: ConversionFunnelProps) {
-  const entries = Object.entries(rates);
+  const entries = Object.entries(rates).map(([key, value]) => ({
+    key,
+    label: toTitleCase(key),
+    percentage: value * 100,
+  }));
   return (
     <Card title='Conversion funnel'>
-      <div className='space-y-2'>
-        {entries.length === 0 ? (
-          <p className='text-sm text-slate-600'>No conversion data.</p>
-        ) : (
-          entries.map(([key, value]) => (
-            <div key={key} className='flex items-center justify-between rounded-md border border-slate-200 px-3 py-2'>
-              <span className='text-sm text-slate-700'>{toTitleCase(key)}</span>
-              <span className='text-sm font-semibold text-slate-900'>{(value * 100).toFixed(1)}%</span>
-            </div>
-          ))
-        )}
-      </div>
+      {entries.length === 0 ? (
+        <p className='text-sm text-slate-600'>No conversion data.</p>
+      ) : (
+        <div className='h-72'>
+          <ResponsiveContainer width='100%' height='100%'>
+            <BarChart data={entries} margin={{ top: 8, right: 12, left: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray='3 3' />
+              <XAxis dataKey='label' interval={0} angle={-15} textAnchor='end' height={70} />
+              <YAxis unit='%' />
+              <Tooltip
+                formatter={(value) => [`${Number(value ?? 0).toFixed(1)}%`, 'Rate']}
+              />
+              <Bar dataKey='percentage' fill='#10b981' radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </Card>
   );
 }

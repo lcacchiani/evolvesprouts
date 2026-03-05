@@ -133,7 +133,47 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
             search=search,
         )
 
-        statement = select(SalesLead)
+        last_activity_subquery = (
+            select(
+                SalesLeadEvent.lead_id.label("lead_id"),
+                func.max(SalesLeadEvent.created_at).label("last_activity_at"),
+            )
+            .group_by(SalesLeadEvent.lead_id)
+            .subquery()
+        )
+        stage_entered_at_subquery = (
+            select(func.max(SalesLeadEvent.created_at))
+            .where(
+                and_(
+                    SalesLeadEvent.lead_id == SalesLead.id,
+                    SalesLeadEvent.event_type == LeadEventType.STAGE_CHANGED,
+                    SalesLeadEvent.to_stage == SalesLead.funnel_stage,
+                )
+            )
+            .correlate(SalesLead)
+            .scalar_subquery()
+        )
+        computed_days_in_stage = func.floor(
+            func.extract(
+                "epoch",
+                func.now()
+                - func.coalesce(stage_entered_at_subquery, SalesLead.created_at),  # type: ignore[operator]
+            )
+            / 86400.0
+        )
+        statement = select(
+            SalesLead,
+            func.coalesce(
+                last_activity_subquery.c.last_activity_at,
+                SalesLead.updated_at,
+                SalesLead.created_at,
+            ).label("computed_last_activity_at"),
+            computed_days_in_stage.label("computed_days_in_stage"),
+        ).join(
+            last_activity_subquery,
+            SalesLead.id == last_activity_subquery.c.lead_id,
+            isouter=True,
+        )
         if requires_contact_join:
             statement = statement.join(
                 Contact,
@@ -142,7 +182,6 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
             )
         statement = statement.options(
             joinedload(SalesLead.contact).joinedload(Contact.tags),
-            selectinload(SalesLead.events),
         )
         if conditions:
             statement = statement.where(*conditions)
@@ -179,7 +218,13 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
         secondary_id_order = SalesLead.id.desc() if is_desc else SalesLead.id.asc()
         primary_order = sort_column.desc() if is_desc else sort_column.asc()
         statement = statement.order_by(primary_order, secondary_id_order).limit(limit)
-        return self._session.execute(statement).scalars().unique().all()
+        rows = self._session.execute(statement).unique().all()
+        leads: list[SalesLead] = []
+        for lead, last_activity_at, days_in_stage in rows:
+            setattr(lead, "_computed_last_activity_at", last_activity_at)
+            setattr(lead, "_computed_days_in_stage", int(days_in_stage or 0))
+            leads.append(lead)
+        return leads
 
     def count_leads(
         self,
@@ -228,6 +273,7 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
             conditions.append(SalesLead.created_at >= date_from)
         if date_to is not None:
             conditions.append(SalesLead.created_at <= date_to)
+        scoped_lead_ids_subquery = select(SalesLead.id).where(*conditions).subquery()
 
         stage_counts_raw = self._session.execute(
             select(SalesLead.funnel_stage, func.count(SalesLead.id))
@@ -322,11 +368,99 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
                 }
             )
 
+        reached_stage_counts_raw = self._session.execute(
+            select(
+                SalesLeadEvent.to_stage,
+                func.count(func.distinct(SalesLeadEvent.lead_id)),
+            )
+            .where(
+                SalesLeadEvent.event_type.in_(
+                    [LeadEventType.CREATED, LeadEventType.STAGE_CHANGED]
+                ),
+                SalesLeadEvent.to_stage.is_not(None),
+                SalesLeadEvent.lead_id.in_(select(scoped_lead_ids_subquery.c.id)),
+            )
+            .group_by(SalesLeadEvent.to_stage)
+        ).all()
+        reached_stage_counts: dict[str, int] = {}
+        for to_stage, reached_count in reached_stage_counts_raw:
+            if to_stage is None:
+                continue
+            reached_stage_counts[to_stage.value] = int(reached_count or 0)
+
+        new_reached = reached_stage_counts.get(FunnelStage.NEW.value, 0)
+        contacted_reached = reached_stage_counts.get(FunnelStage.CONTACTED.value, 0)
+        engaged_reached = reached_stage_counts.get(FunnelStage.ENGAGED.value, 0)
+        qualified_reached = reached_stage_counts.get(FunnelStage.QUALIFIED.value, 0)
+        converted_reached = reached_stage_counts.get(FunnelStage.CONVERTED.value, 0)
+        stage_conversion_rates = {
+            "new_to_contacted": (contacted_reached / new_reached)
+            if new_reached
+            else 0.0,
+            "contacted_to_engaged": (
+                engaged_reached / contacted_reached if contacted_reached else 0.0
+            ),
+            "engaged_to_qualified": (
+                qualified_reached / engaged_reached if engaged_reached else 0.0
+            ),
+            "qualified_to_converted": (
+                converted_reached / qualified_reached if qualified_reached else 0.0
+            ),
+        }
+
+        lead_stage_timeline_subquery = (
+            select(
+                SalesLeadEvent.lead_id.label("lead_id"),
+                SalesLeadEvent.created_at.label("created_at"),
+                SalesLeadEvent.from_stage.label("from_stage"),
+                func.lag(SalesLeadEvent.created_at)
+                .over(
+                    partition_by=SalesLeadEvent.lead_id,
+                    order_by=SalesLeadEvent.created_at,
+                )
+                .label("previous_created_at"),
+            )
+            .where(
+                SalesLeadEvent.event_type.in_(
+                    [LeadEventType.CREATED, LeadEventType.STAGE_CHANGED]
+                ),
+                SalesLeadEvent.lead_id.in_(select(scoped_lead_ids_subquery.c.id)),
+            )
+            .subquery()
+        )
+        avg_days_in_stage_raw = self._session.execute(
+            select(
+                lead_stage_timeline_subquery.c.from_stage,
+                (
+                    func.avg(
+                        func.extract(
+                            "epoch",
+                            lead_stage_timeline_subquery.c.created_at
+                            - lead_stage_timeline_subquery.c.previous_created_at,  # type: ignore[operator]
+                        )
+                    )
+                    / 86400.0
+                ).label("avg_days"),
+            )
+            .where(
+                lead_stage_timeline_subquery.c.from_stage.is_not(None),
+                lead_stage_timeline_subquery.c.previous_created_at.is_not(None),
+            )
+            .group_by(lead_stage_timeline_subquery.c.from_stage)
+        ).all()
+        avg_days_in_stage: dict[str, float] = {}
+        for from_stage, avg_days in avg_days_in_stage_raw:
+            if from_stage is None or avg_days is None:
+                continue
+            avg_days_in_stage[from_stage.value] = float(avg_days)
+
         return {
             "funnel": stage_counts,
             "conversion_rate": conversion_rate,
             "avg_days_to_convert": avg_days_to_convert,
             "source_breakdown": source_breakdown,
+            "stage_conversion_rates": stage_conversion_rates,
+            "avg_days_in_stage": avg_days_in_stage,
             "leads_over_time": leads_over_time,
             "assignee_stats": assignee_stats,
         }

@@ -1,4 +1,5 @@
 import { AssigneeLeaderboard } from './assignee-leaderboard';
+import { EMPTY_ANALYTICS } from './analytics-defaults';
 import { ConversionFunnel } from './conversion-funnel';
 import { LeadsOverTime } from './leads-over-time';
 import { TimeInStage } from './time-in-stage';
@@ -9,19 +10,6 @@ export interface AnalyticsViewProps {
   analytics: LeadAnalytics | null;
   users: AdminUser[];
 }
-
-const EMPTY_ANALYTICS: LeadAnalytics = {
-  funnel: {},
-  conversionRate: 0,
-  avgDaysToConvert: null,
-  leadsThisWeek: 0,
-  leadsThisMonth: 0,
-  sourceBreakdown: {},
-  stageConversionRates: {},
-  avgDaysInStage: {},
-  leadsOverTime: [],
-  assigneeStats: [],
-};
 
 export function AnalyticsView({ analytics, users }: AnalyticsViewProps) {
   const data = analytics ?? EMPTY_ANALYTICS;

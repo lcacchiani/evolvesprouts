@@ -89,9 +89,9 @@ export function SalesPage() {
                 await state.mutations.assignLead(leadId, assignedTo);
               }
             }}
-            onBulkStageChange={async (leadIds, stage) => {
+            onBulkStageChange={async (leadIds, stage, lostReason) => {
               for (const leadId of leadIds) {
-                await state.mutations.updateStage(leadId, stage);
+                await state.mutations.updateStage(leadId, stage, lostReason);
               }
             }}
           />
@@ -129,6 +129,7 @@ export function SalesPage() {
         open={state.isCreateDialogOpen}
         users={state.adminUsers.users}
         isLoading={state.mutations.isLoading}
+        error={state.mutations.error}
         onClose={state.closeCreateDialog}
         onCreate={async (payload) => {
           await state.mutations.createLeadEntry(payload);

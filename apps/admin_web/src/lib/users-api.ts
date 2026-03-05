@@ -1,4 +1,5 @@
 import { adminApiRequest } from './api-admin-client';
+import { asNullableString, unwrapPayload } from './api-payload';
 import { isRecord } from './type-guards';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -6,26 +7,9 @@ import type { AdminUser } from '@/types/leads';
 
 type ApiSchemas = components['schemas'];
 type ApiAdminUserListResponse = ApiSchemas['AdminUserListResponse'];
-type ApiDataWrapper<T> = { data: T };
-
-function unwrapPayload<T>(payload: T | ApiDataWrapper<T>): T {
-  if (isRecord(payload) && 'data' in payload) {
-    return payload.data as T;
-  }
-  return payload;
-}
-
-function asNullableString(value: unknown): string | null {
-  if (typeof value === 'string') {
-    return value;
-  }
-  return null;
-}
 
 export async function listAdminUsers(): Promise<{ items: AdminUser[] }> {
-  const payload = await adminApiRequest<
-    ApiAdminUserListResponse | ApiDataWrapper<ApiAdminUserListResponse>
-  >({
+  const payload = await adminApiRequest<ApiAdminUserListResponse>({
     endpointPath: '/v1/admin/users',
     method: 'GET',
   });

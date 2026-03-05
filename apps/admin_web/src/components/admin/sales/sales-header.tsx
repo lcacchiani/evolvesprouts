@@ -61,6 +61,8 @@ export function SalesHeader({
   filters,
 }: SalesHeaderProps) {
   const title = activeView === 'analytics' ? 'Sales Analytics' : 'Sales Pipeline';
+  const presetValue =
+    dateRange.dateFrom === null && dateRange.dateTo === null ? 'all' : 'custom';
 
   return (
     <div className='flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:rounded-xl sm:p-5'>
@@ -79,10 +81,13 @@ export function SalesHeader({
       <div className='grid grid-cols-1 gap-2 md:grid-cols-[180px_1fr_1fr]'>
         <Select
           aria-label='Date range preset'
+          value={presetValue}
           onChange={(event) => onDateRangeChange(buildPresetDateRange(event.target.value))}
-          defaultValue='all'
         >
           <option value='all'>All time</option>
+          <option value='custom' disabled>
+            Custom range
+          </option>
           <option value='week'>This week</option>
           <option value='month'>This month</option>
           <option value='quarter'>This quarter</option>

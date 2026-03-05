@@ -4,10 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getLead } from '@/lib/leads-api';
 import type { LeadDetail, LeadEvent, LeadNote } from '@/types/leads';
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
+import { toErrorMessage } from './hook-errors';
 
 export function useLeadDetail(leadId: string | null) {
   const [lead, setLead] = useState<LeadDetail | null>(null);
