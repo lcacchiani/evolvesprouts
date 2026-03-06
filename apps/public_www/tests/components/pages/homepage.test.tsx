@@ -20,11 +20,22 @@ const heroBannerPropsSpy = vi.fn<
   [{ content: { headline: string }; ctaHref?: string }],
   void
 >();
+const pageLayoutPropsSpy = vi.fn<
+  [{ navbarContent: { bookNow: { href: string; label: string } } }],
+  void
+>();
 
 vi.mock('@/components/shared/page-layout', () => ({
-  PageLayout: ({ children }: { children: ReactNode }) => (
-    <div data-testid='page-layout'>{children}</div>
-  ),
+  PageLayout: ({
+    children,
+    navbarContent,
+  }: {
+    children: ReactNode;
+    navbarContent: { bookNow: { href: string; label: string } };
+  }) => {
+    pageLayoutPropsSpy({ navbarContent });
+    return <div data-testid='page-layout'>{children}</div>;
+  },
 }));
 vi.mock('@/components/sections/hero-banner', () => ({
   HeroBanner: ({
@@ -82,6 +93,7 @@ describe('HomePageSections', () => {
   it('composes homepage sections with the expected content slices', () => {
     process.env[PHONE_ENV_KEY] = '+852 9876 5432';
     heroBannerPropsSpy.mockClear();
+    pageLayoutPropsSpy.mockClear();
     render(<HomePageSections content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
@@ -108,5 +120,12 @@ describe('HomePageSections', () => {
         ctaHref: expect.stringContaining('text='),
       }),
     );
+    expect(heroBannerPropsSpy).toHaveBeenCalledTimes(1);
+    expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
+
+    const heroProps = heroBannerPropsSpy.mock.calls[0][0];
+    const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
+    expect(pageLayoutProps.navbarContent.bookNow.href).toBe(heroProps.ctaHref);
+    expect(pageLayoutProps.navbarContent.bookNow.label).toBe(enContent.hero.cta);
   });
 });
