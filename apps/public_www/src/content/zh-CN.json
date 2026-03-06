@@ -595,6 +595,41 @@
     "scrollLeftAriaLabel": "向左滚动课程亮点",
     "scrollRightAriaLabel": "向右滚动课程亮点"
   },
+  "realTalk": {
+    "eyebrow": "真实对话",
+    "title": "听起来熟悉吗？",
+    "description": "你的阿姨并没有做错什么。她只是按自己熟悉的方式在做。这个课程会给她更好的方法。",
+    "ctaLabel": "立即开始—今天就培训阿姨",
+    "ctaHref": "/services/my-best-auntie-training-course",
+    "items": [
+      {
+        "id": "ipad-when-crying",
+        "title": "他一哭，她马上把 iPad 递给他。"
+      },
+      {
+        "id": "spoon-fed-at-three",
+        "title": "她还在喂他吃饭。他都三岁了。"
+      },
+      {
+        "id": "monster-threat-at-meals",
+        "title": "她说：“你不吃，怪物就会来。”"
+      },
+      {
+        "id": "no-shoes-independence",
+        "title": "她什么都替他们做。他们连自己的鞋都不会穿。"
+      },
+      {
+        "id": "rules-change-when-i-leave",
+        "title": "她真的很好——但我一离开，规矩就变了。"
+      },
+      {
+        "id": "out-of-ideas",
+        "title": "你想想办法。"
+      }
+    ],
+    "scrollLeftAriaLabel": "向左滚动真实对话",
+    "scrollRightAriaLabel": "向右滚动真实对话"
+  },
   "testimonials": {
     "title": "来自香港家长的真实故事",
     "description": "",

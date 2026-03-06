@@ -2,6 +2,7 @@ import type { Locale, SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import { CourseHighlights } from '@/components/sections/course-highlights';
+import { RealTalk } from '@/components/sections/real-talk';
 import { HeroBanner } from '@/components/sections/hero-banner';
 import { IdaIntro } from '@/components/sections/ida-intro';
 import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overview';
@@ -74,6 +75,7 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
       footerContent={content.footer}
     >
       <HeroBanner content={content.hero} ctaHref={heroCtaHref} />
+      <RealTalk content={content.realTalk} />
       <IdaIntro content={content.idaIntro} />
       <MyBestAuntieOverview content={content.myBestAuntieOverview} />
       <CourseHighlights content={content.courseHighlights} />

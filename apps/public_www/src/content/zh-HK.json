@@ -595,6 +595,41 @@
     "scrollLeftAriaLabel": "向左捲動課程亮點",
     "scrollRightAriaLabel": "向右捲動課程亮點"
   },
+  "realTalk": {
+    "eyebrow": "真實對話",
+    "title": "聽起來熟悉嗎？",
+    "description": "你的姨姨沒有做錯任何事。她只是用自己熟悉的方法在做。這個課程會給她更好的方法。",
+    "ctaLabel": "立即開始—今天就培訓姨姨",
+    "ctaHref": "/services/my-best-auntie-training-course",
+    "items": [
+      {
+        "id": "ipad-when-crying",
+        "title": "他一哭，她就立刻把 iPad 遞給他。"
+      },
+      {
+        "id": "spoon-fed-at-three",
+        "title": "她還在餵他吃飯。他都三歲了。"
+      },
+      {
+        "id": "monster-threat-at-meals",
+        "title": "她說：「你不吃，怪物就會來。」"
+      },
+      {
+        "id": "no-shoes-independence",
+        "title": "她什麼都替他們做。他們連自己的鞋都不會穿。"
+      },
+      {
+        "id": "rules-change-when-i-leave",
+        "title": "她真的很好——但我一離開，規矩就變了。"
+      },
+      {
+        "id": "out-of-ideas",
+        "title": "你想想辦法。"
+      }
+    ],
+    "scrollLeftAriaLabel": "向左捲動真實對話",
+    "scrollRightAriaLabel": "向右捲動真實對話"
+  },
   "testimonials": {
     "title": "來自香港家長的真實故事",
     "description": "",
