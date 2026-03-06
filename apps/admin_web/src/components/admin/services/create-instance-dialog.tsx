@@ -110,7 +110,7 @@ export function CreateInstanceDialog({
                   title: instanceForm.title.trim() || null,
                   description: instanceForm.description.trim() || null,
                   status: instanceForm.status,
-                  delivery_mode: instanceForm.deliveryMode || null,
+                  delivery_mode: instanceForm.deliveryMode || undefined,
                   location_id: instanceForm.locationId.trim() || null,
                   max_capacity: instanceForm.maxCapacity ? Number(instanceForm.maxCapacity) : null,
                   waitlist_enabled: instanceForm.waitlistEnabled,

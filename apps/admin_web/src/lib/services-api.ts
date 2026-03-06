@@ -93,7 +93,7 @@ function parseServiceDetail(value: unknown): ServiceDetail {
   const trainingDetails = isRecord(item.training_details)
     ? {
         pricingUnit: (asNullableString(item.training_details.pricing_unit) ??
-          'per_person') as ServiceDetail['trainingDetails']['pricingUnit'],
+          'per_person') as NonNullable<ServiceDetail['trainingDetails']>['pricingUnit'],
         defaultPrice: asNullableString(item.training_details.default_price),
         defaultCurrency: asNullableString(item.training_details.default_currency),
       }

@@ -2336,6 +2336,15 @@ components:
         training_details:
           type: object
           nullable: true
+          properties:
+            training_format:
+              $ref: "#/components/schemas/TrainingFormat"
+            price:
+              type: string
+            currency:
+              type: string
+            pricing_unit:
+              $ref: "#/components/schemas/TrainingPricingUnit"
         event_ticket_tiers:
           type: array
           items:
@@ -2343,6 +2352,20 @@ components:
         consultation_details:
           type: object
           nullable: true
+          properties:
+            pricing_model:
+              $ref: "#/components/schemas/ConsultationPricingModel"
+            price:
+              type: string
+              nullable: true
+            currency:
+              type: string
+            package_sessions:
+              type: integer
+              nullable: true
+            calendly_event_url:
+              type: string
+              nullable: true
     UpdateInstanceRequest:
       allOf:
         - $ref: "#/components/schemas/CreateInstanceRequest"
