@@ -24,10 +24,22 @@ export function HomePageSections({ content }: HomePageSectionsProps) {
     content.hero.ctaPrefillMessage,
     siteConfig.businessPhoneNumber,
   ) || baseWhatsappHref;
+  const navbarCtaHref = buildWhatsappPrefilledHref(
+    baseWhatsappHref,
+    content.hero.ctaPrefillMessage,
+    siteConfig.businessPhoneNumber,
+  ) || baseWhatsappHref;
+  const homepageNavbarContent = {
+    ...content.navbar,
+    bookNow: {
+      ...content.navbar.bookNow,
+      href: navbarCtaHref,
+    },
+  };
 
   return (
     <PageLayout
-      navbarContent={content.navbar}
+      navbarContent={homepageNavbarContent}
       footerContent={content.footer}
     >
       <HeroBanner content={content.hero} ctaHref={heroCtaHref} />
