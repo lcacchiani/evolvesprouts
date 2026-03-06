@@ -4,28 +4,56 @@ from app.db.models.asset import Asset, AssetAccessGrant, AssetShareLink
 from app.db.models.audit_log import AuditLog
 from app.db.models.contact import Contact
 from app.db.models.crm_note import CrmNote
+from app.db.models.discount_code import DiscountCode
+from app.db.models.enrollment import Enrollment
 from app.db.models.enums import (
     AccessGrantType,
     AssetType,
     AssetVisibility,
+    ConsultationFormat,
+    ConsultationPricingModel,
     ContactSource,
     ContactType,
+    DiscountType,
+    EnrollmentStatus,
+    EventCategory,
     FamilyRole,
     FunnelStage,
+    InstanceStatus,
     LeadEventType,
     LeadType,
     MailchimpSyncStatus,
     OrganizationRole,
     OrganizationType,
     RelationshipType,
+    ServiceDeliveryMode,
+    ServiceStatus,
+    ServiceType,
     TicketStatus,
     TicketType,
+    TrainingFormat,
+    TrainingPricingUnit,
 )
 from app.db.models.family import Family, FamilyMember
 from app.db.models.geographic_area import GeographicArea
 from app.db.models.location import Location
 from app.db.models.organization import Organization, OrganizationMember
 from app.db.models.sales_lead import SalesLead, SalesLeadEvent
+from app.db.models.service import (
+    ConsultationDetails,
+    EventDetails,
+    Service,
+    ServiceAsset,
+    ServiceTag,
+    TrainingCourseDetails,
+)
+from app.db.models.service_instance import (
+    ConsultationInstanceDetails,
+    EventTicketTier,
+    InstanceSessionSlot,
+    ServiceInstance,
+    TrainingInstanceDetails,
+)
 from app.db.models.tag import ContactTag, FamilyTag, OrganizationTag, Tag
 from app.db.models.ticket import Ticket
 
@@ -37,11 +65,22 @@ __all__ = [
     "AssetType",
     "AssetVisibility",
     "AuditLog",
+    "ConsultationDetails",
+    "ConsultationFormat",
+    "ConsultationInstanceDetails",
+    "ConsultationPricingModel",
     "Contact",
     "ContactSource",
     "ContactTag",
     "ContactType",
     "CrmNote",
+    "DiscountCode",
+    "DiscountType",
+    "Enrollment",
+    "EnrollmentStatus",
+    "EventCategory",
+    "EventDetails",
+    "EventTicketTier",
     "Family",
     "FamilyMember",
     "FamilyRole",
@@ -60,8 +99,21 @@ __all__ = [
     "RelationshipType",
     "SalesLead",
     "SalesLeadEvent",
+    "Service",
+    "ServiceAsset",
+    "ServiceDeliveryMode",
+    "ServiceInstance",
+    "ServiceStatus",
+    "ServiceTag",
+    "ServiceType",
     "Tag",
     "Ticket",
     "TicketStatus",
     "TicketType",
+    "TrainingCourseDetails",
+    "TrainingFormat",
+    "TrainingInstanceDetails",
+    "TrainingPricingUnit",
+    "InstanceSessionSlot",
+    "InstanceStatus",
 ]
