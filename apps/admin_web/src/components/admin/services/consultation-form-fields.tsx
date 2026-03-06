@@ -3,6 +3,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 import { CONSULTATION_FORMATS, CONSULTATION_PRICING_MODELS } from '@/types/services';
 import type { ConsultationFormat, ConsultationPricingModel } from '@/types/services';
@@ -25,6 +26,8 @@ export interface ConsultationFormFieldsProps {
 }
 
 export function ConsultationFormFields({ value, onChange }: ConsultationFormFieldsProps) {
+  const currencyOptions = getCurrencyOptions();
+
   return (
     <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
       <div>
@@ -38,7 +41,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         >
           {CONSULTATION_FORMATS.map((entry) => (
             <option key={entry} value={entry}>
-              {entry}
+              {formatEnumLabel(entry)}
             </option>
           ))}
         </Select>
@@ -54,7 +57,7 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
         >
           {CONSULTATION_PRICING_MODELS.map((entry) => (
             <option key={entry} value={entry}>
-              {entry}
+              {formatEnumLabel(entry)}
             </option>
           ))}
         </Select>
@@ -101,12 +104,17 @@ export function ConsultationFormFields({ value, onChange }: ConsultationFormFiel
       </div>
       <div>
         <Label htmlFor='consultation-currency'>Currency</Label>
-        <Input
+        <Select
           id='consultation-currency'
           value={value.defaultCurrency}
-          onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value.toUpperCase() })}
-          placeholder='HKD'
-        />
+          onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value })}
+        >
+          {currencyOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
       </div>
       <div className='sm:col-span-2'>
         <Label htmlFor='consultation-calendly-url'>Calendly URL</Label>

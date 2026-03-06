@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 import { DISCOUNT_TYPES } from '@/types/services';
 
@@ -36,6 +37,7 @@ export function CreateDiscountCodeDialog({
   const [currency, setCurrency] = useState('HKD');
   const [maxUses, setMaxUses] = useState('');
   const [active, setActive] = useState(true);
+  const currencyOptions = getCurrencyOptions();
 
   return (
     <FormDialog
@@ -73,7 +75,7 @@ export function CreateDiscountCodeDialog({
           >
             {DISCOUNT_TYPES.map((entry) => (
               <option key={entry} value={entry}>
-                {entry}
+                {formatEnumLabel(entry)}
               </option>
             ))}
           </Select>
@@ -86,11 +88,17 @@ export function CreateDiscountCodeDialog({
         </div>
         <div>
           <Label htmlFor='discount-currency'>Currency</Label>
-          <Input
+          <Select
             id='discount-currency'
             value={currency}
-            onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-          />
+            onChange={(event) => setCurrency(event.target.value)}
+          >
+            {currencyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         </div>
         <div>
           <Label htmlFor='discount-max-uses'>Max uses</Label>
@@ -113,8 +121,8 @@ export function CreateDiscountCodeDialog({
           value={active ? 'true' : 'false'}
           onChange={(event) => setActive(event.target.value === 'true')}
         >
-          <option value='true'>true</option>
-          <option value='false'>false</option>
+          <option value='true'>Enabled</option>
+          <option value='false'>Disabled</option>
         </Select>
       </div>
     </FormDialog>
