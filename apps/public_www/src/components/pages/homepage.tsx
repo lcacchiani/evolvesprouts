@@ -1,4 +1,4 @@
-import type { SiteContent } from '@/content';
+import type { Locale, SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import { CourseHighlights } from '@/components/sections/course-highlights';
@@ -7,28 +7,22 @@ import { IdaIntro } from '@/components/sections/ida-intro';
 import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overview';
 import { FreeResourcesForGentleParenting } from '@/components/sections/free-resources-for-gentle-parenting';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
-import {
-  buildWhatsappPrefilledHref,
-  resolvePublicSiteConfig,
-} from '@/lib/site-config';
+import { localizeHref } from '@/lib/locale-routing';
+import { ROUTES } from '@/lib/routes';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 interface HomePageSectionsProps {
+  locale: Locale;
   content: SiteContent;
 }
 
-export function HomePageSections({ content }: HomePageSectionsProps) {
+export function HomePageSections({ locale, content }: HomePageSectionsProps) {
   const siteConfig = resolvePublicSiteConfig();
-  const baseWhatsappHref = siteConfig.whatsappUrl || content.whatsappContact.href;
-  const heroCtaHref = buildWhatsappPrefilledHref(
-    baseWhatsappHref,
-    content.hero.ctaPrefillMessage,
-    siteConfig.businessPhoneNumber,
-  ) || baseWhatsappHref;
-  const navbarCtaHref = buildWhatsappPrefilledHref(
-    baseWhatsappHref,
-    content.hero.ctaPrefillMessage,
-    siteConfig.businessPhoneNumber,
-  ) || baseWhatsappHref;
+  const heroCtaHref = localizeHref(
+    content.hero.ctaHref || ROUTES.servicesMyBestAuntieTrainingCourse,
+    locale,
+  );
+  const navbarCtaHref = siteConfig.whatsappUrl || content.navbar.bookNow.href;
   const homepageNavbarContent = {
     ...content.navbar,
     bookNow: {

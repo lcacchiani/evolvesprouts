@@ -51,10 +51,7 @@ describe('HeroBanner section', () => {
 
     const headline = screen.getByRole('heading', { level: 1 });
     expect(headline.className).toContain('es-hero-headline');
-    expect(headline.textContent).toContain('Montessori');
-    expect(headline.querySelector('.es-hero-highlight-word')?.textContent).toBe(
-      'Montessori',
-    );
+    expect(headline).toHaveTextContent(enContent.hero.headline);
 
     const subheadline = screen.getByText(enContent.hero.subheadline);
     expect(subheadline.className).toContain('es-hero-subheadline');

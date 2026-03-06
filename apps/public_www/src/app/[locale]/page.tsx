@@ -31,7 +31,7 @@ export async function generateMetadata({
 export default async function HomePage({
   params,
 }: LocaleRouteProps) {
-  const { content } = await resolveLocalePageContext(params);
+  const { locale, content } = await resolveLocalePageContext(params);
 
-  return <HomePageSections content={content} />;
+  return <HomePageSections locale={locale} content={content} />;
 }

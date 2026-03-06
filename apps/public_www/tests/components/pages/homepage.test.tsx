@@ -5,14 +5,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HomePageSections } from '@/components/pages/homepage';
 import enContent from '@/content/en.json';
 
-const PHONE_ENV_KEY = 'NEXT_PUBLIC_BUSINESS_PHONE_NUMBER';
-const originalPhoneEnv = process.env[PHONE_ENV_KEY];
+const WHATSAPP_URL_ENV_KEY = 'NEXT_PUBLIC_WHATSAPP_URL';
+const originalWhatsappUrlEnv = process.env[WHATSAPP_URL_ENV_KEY];
 
 afterEach(() => {
-  if (typeof originalPhoneEnv === 'string') {
-    process.env[PHONE_ENV_KEY] = originalPhoneEnv;
+  if (typeof originalWhatsappUrlEnv === 'string') {
+    process.env[WHATSAPP_URL_ENV_KEY] = originalWhatsappUrlEnv;
   } else {
-    delete process.env[PHONE_ENV_KEY];
+    delete process.env[WHATSAPP_URL_ENV_KEY];
   }
 });
 
@@ -91,10 +91,10 @@ vi.mock('@/components/sections/sprouts-squad-community', () => ({
 
 describe('HomePageSections', () => {
   it('composes homepage sections with the expected content slices', () => {
-    process.env[PHONE_ENV_KEY] = '+852 9876 5432';
+    process.env[WHATSAPP_URL_ENV_KEY] = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
-    render(<HomePageSections content={enContent} />);
+    render(<HomePageSections locale='en' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('hero-banner')).toBeInTheDocument();
@@ -112,12 +112,7 @@ describe('HomePageSections', () => {
     ).toHaveTextContent('Best Auntie Training Course Designed by Ida');
     expect(heroBannerPropsSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        ctaHref: expect.stringContaining('https://wa.me/85298765432'),
-      }),
-    );
-    expect(heroBannerPropsSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ctaHref: expect.stringContaining('text='),
+        ctaHref: '/en/services/my-best-auntie-training-course',
       }),
     );
     expect(heroBannerPropsSpy).toHaveBeenCalledTimes(1);
@@ -125,7 +120,10 @@ describe('HomePageSections', () => {
 
     const heroProps = heroBannerPropsSpy.mock.calls[0][0];
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
-    expect(pageLayoutProps.navbarContent.bookNow.href).toBe(heroProps.ctaHref);
+    expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
+      'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
+    );
+    expect(pageLayoutProps.navbarContent.bookNow.href).not.toBe(heroProps.ctaHref);
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       enContent.navbar.bookNow.label,
     );

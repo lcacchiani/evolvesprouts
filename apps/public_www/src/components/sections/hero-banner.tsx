@@ -40,7 +40,10 @@ function renderHeadline(headline: string): ReactNode {
 }
 
 export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
-  const resolvedCtaHref = ctaHref?.trim() || ROUTES.servicesMyBestAuntieTrainingCourse;
+  const resolvedCtaHref =
+    ctaHref?.trim()
+    || content.ctaHref?.trim()
+    || ROUTES.servicesMyBestAuntieTrainingCourse;
 
   return (
     <SectionShell
