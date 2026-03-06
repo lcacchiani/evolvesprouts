@@ -18,11 +18,15 @@ interface HeroBannerProps {
 
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
 const HERO_IMAGE_ALT = 'Montessori auntie training for Hong Kong families';
-const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
 const HERO_BODY_TEXT_CLASSNAME = 'max-w-[458px] es-hero-subheadline';
 
-function renderHeadline(headline: string): ReactNode {
-  const sections = headline.split(HEADLINE_HIGHLIGHT_WORD);
+function renderHeadline(headline: string, highlightPhrase?: string): ReactNode {
+  const normalizedHighlightPhrase = highlightPhrase?.trim();
+  if (!normalizedHighlightPhrase) {
+    return headline;
+  }
+
+  const sections = headline.split(normalizedHighlightPhrase);
   if (sections.length === 1) {
     return headline;
   }
@@ -32,7 +36,7 @@ function renderHeadline(headline: string): ReactNode {
       {section}
       {index < sections.length - 1 && (
         <span className='es-hero-highlight-word'>
-          {HEADLINE_HIGHLIGHT_WORD}
+          {normalizedHighlightPhrase}
         </span>
       )}
     </Fragment>
@@ -64,7 +68,7 @@ export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8'>
           <div className='relative z-10'>
             <SectionHeader
-              title={renderHeadline(content.headline)}
+              title={renderHeadline(content.headline, content.highlightPhrase)}
               titleAs='h1'
               align='left'
               className='max-w-[610px]'
