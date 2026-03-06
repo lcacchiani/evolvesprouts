@@ -101,6 +101,7 @@ vi.mock('@/components/sections/sprouts-squad-community', () => ({
 describe('HomePageSections', () => {
   it('composes homepage sections with the expected content slices', () => {
     process.env[WHATSAPP_URL_ENV_KEY] = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
+    delete process.env[BUSINESS_PHONE_ENV_KEY];
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
     render(<HomePageSections locale='en' content={enContent} />);
