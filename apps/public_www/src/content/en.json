@@ -36,8 +36,8 @@
       }
     ],
     "bookNow": {
-      "label": "Train your Auntie Today!",
-      "href": "/services/my-best-auntie-training-course"
+      "label": "Book your Free Intro Session",
+      "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
     },
     "languageSelector": {
       "menuAriaLabel": "Select language",
