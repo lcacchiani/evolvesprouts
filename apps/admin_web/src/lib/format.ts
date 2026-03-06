@@ -37,11 +37,12 @@ export function getCurrencyOptions(): CurrencyOption[] {
     return cachedCurrencyOptions;
   }
 
-  const supportedValuesOf = Intl as Intl & {
+  const intlWithSupportedValues = globalThis.Intl as unknown as {
     supportedValuesOf?: (key: 'currency') => string[];
   };
   const currencyCodes =
-    supportedValuesOf.supportedValuesOf?.('currency')?.map((entry) => entry.toUpperCase()) ?? [DEFAULT_CURRENCY];
+    intlWithSupportedValues.supportedValuesOf?.('currency')?.map((entry) => entry.toUpperCase()) ??
+    [DEFAULT_CURRENCY];
 
   const dedupedCodes = Array.from(new Set([DEFAULT_CURRENCY, ...currencyCodes])).sort();
   const options = dedupedCodes.map((code) => {
