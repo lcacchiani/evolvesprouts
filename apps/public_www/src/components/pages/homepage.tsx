@@ -9,11 +9,40 @@ import { FreeResourcesForGentleParenting } from '@/components/sections/free-reso
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { localizeHref } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
-import { resolvePublicSiteConfig } from '@/lib/site-config';
+import {
+  buildWhatsappPrefilledHref,
+  resolvePublicSiteConfig,
+} from '@/lib/site-config';
 
 interface HomePageSectionsProps {
   locale: Locale;
   content: SiteContent;
+}
+
+function resolveNavbarBookNowHref(bookNow: SiteContent['navbar']['bookNow']): string | undefined {
+  if (
+    'href' in bookNow
+    && typeof bookNow.href === 'string'
+    && bookNow.href.trim() !== ''
+  ) {
+    return bookNow.href;
+  }
+
+  return undefined;
+}
+
+function resolveNavbarBookNowPrefillMessage(
+  bookNow: SiteContent['navbar']['bookNow'],
+): string | undefined {
+  if (
+    'prefillMessage' in bookNow
+    && typeof bookNow.prefillMessage === 'string'
+    && bookNow.prefillMessage.trim() !== ''
+  ) {
+    return bookNow.prefillMessage;
+  }
+
+  return undefined;
 }
 
 export function HomePageSections({ locale, content }: HomePageSectionsProps) {
@@ -22,7 +51,15 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
     content.hero.ctaHref || ROUTES.servicesMyBestAuntieTrainingCourse,
     locale,
   );
-  const navbarCtaHref = siteConfig.whatsappUrl || content.navbar.bookNow.href;
+  const baseNavbarCtaHref = siteConfig.whatsappUrl
+    || resolveNavbarBookNowHref(content.navbar.bookNow)
+    || content.whatsappContact.href
+    || ROUTES.servicesMyBestAuntieTrainingCourse;
+  const navbarCtaHref = buildWhatsappPrefilledHref(
+    baseNavbarCtaHref,
+    resolveNavbarBookNowPrefillMessage(content.navbar.bookNow),
+    siteConfig.businessPhoneNumber,
+  ) || baseNavbarCtaHref;
   const homepageNavbarContent = {
     ...content.navbar,
     bookNow: {

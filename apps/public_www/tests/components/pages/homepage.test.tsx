@@ -4,15 +4,24 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { HomePageSections } from '@/components/pages/homepage';
 import enContent from '@/content/en.json';
+import zhHKContent from '@/content/zh-HK.json';
 
 const WHATSAPP_URL_ENV_KEY = 'NEXT_PUBLIC_WHATSAPP_URL';
+const BUSINESS_PHONE_ENV_KEY = 'NEXT_PUBLIC_BUSINESS_PHONE_NUMBER';
 const originalWhatsappUrlEnv = process.env[WHATSAPP_URL_ENV_KEY];
+const originalBusinessPhoneEnv = process.env[BUSINESS_PHONE_ENV_KEY];
 
 afterEach(() => {
   if (typeof originalWhatsappUrlEnv === 'string') {
     process.env[WHATSAPP_URL_ENV_KEY] = originalWhatsappUrlEnv;
   } else {
     delete process.env[WHATSAPP_URL_ENV_KEY];
+  }
+
+  if (typeof originalBusinessPhoneEnv === 'string') {
+    process.env[BUSINESS_PHONE_ENV_KEY] = originalBusinessPhoneEnv;
+  } else {
+    delete process.env[BUSINESS_PHONE_ENV_KEY];
   }
 });
 
@@ -126,6 +135,27 @@ describe('HomePageSections', () => {
     expect(pageLayoutProps.navbarContent.bookNow.href).not.toBe(heroProps.ctaHref);
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       enContent.navbar.bookNow.label,
+    );
+  });
+
+  it('uses locale navbar prefill message when business phone is configured', () => {
+    process.env[WHATSAPP_URL_ENV_KEY] = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
+    process.env[BUSINESS_PHONE_ENV_KEY] = '+852 9447 9843';
+    heroBannerPropsSpy.mockClear();
+    pageLayoutPropsSpy.mockClear();
+
+    render(<HomePageSections locale='zh-HK' content={zhHKContent} />);
+
+    expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
+    const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
+    const parsedNavbarHref = new URL(pageLayoutProps.navbarContent.bookNow.href);
+
+    expect(parsedNavbarHref.pathname).toBe('/85294479843');
+    expect(parsedNavbarHref.searchParams.get('text')).toBe(
+      zhHKContent.navbar.bookNow.prefillMessage,
+    );
+    expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
+      zhHKContent.navbar.bookNow.label,
     );
   });
 });
