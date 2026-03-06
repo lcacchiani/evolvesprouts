@@ -22,16 +22,22 @@ from app.db.models import (
     TrainingPricingUnit,
 )
 from app.exceptions import ValidationError
+from app.utils.logging import get_logger
 
 _MAX_CURRENCY_LENGTH = 3
 
 EnumType = TypeVar("EnumType")
+logger = get_logger(__name__)
 
 
 def parse_service_type_details(
     service_type: ServiceType, body: Mapping[str, Any]
 ) -> dict[str, Any]:
     """Parse service type-specific details."""
+    logger.debug(
+        "Parsing service type details",
+        extra={"service_type": service_type.value},
+    )
     if service_type == ServiceType.TRAINING_COURSE:
         source = extract_obj(body, "training_details")
         return {
@@ -66,6 +72,18 @@ def parse_service_type_details(
         }
 
     source = extract_obj(body, "consultation_details")
+    duration_minutes = parse_optional_int(
+        source.get("duration_minutes")
+        if "duration_minutes" in source
+        else body.get("duration_minutes"),
+        "duration_minutes",
+        minimum=1,
+    )
+    if duration_minutes is None:
+        raise ValidationError(
+            "duration_minutes is required for consultation services",
+            field="duration_minutes",
+        )
     return {
         "consultation_format": parse_required_enum(
             source.get("consultation_format") or body.get("consultation_format"),
@@ -79,13 +97,7 @@ def parse_service_type_details(
             "max_group_size",
             minimum=1,
         ),
-        "duration_minutes": parse_optional_int(
-            source.get("duration_minutes")
-            if "duration_minutes" in source
-            else body.get("duration_minutes"),
-            "duration_minutes",
-            minimum=1,
-        ),
+        "duration_minutes": duration_minutes,
         "pricing_model": parse_optional_enum(
             source.get("pricing_model") or body.get("pricing_model"),
             ConsultationPricingModel,
@@ -131,6 +143,10 @@ def parse_instance_type_details(
     service_type: ServiceType, body: Mapping[str, Any]
 ) -> dict[str, Any]:
     """Parse instance type-specific details."""
+    logger.debug(
+        "Parsing instance type details",
+        extra={"service_type": service_type.value},
+    )
     if service_type == ServiceType.TRAINING_COURSE:
         source = extract_obj(body, "training_details")
         return {

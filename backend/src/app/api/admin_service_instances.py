@@ -33,6 +33,9 @@ from app.db.models import (
 from app.db.repositories import ServiceInstanceRepository, ServiceRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.utils import json_response
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def handle_admin_service_instances_request(
@@ -42,6 +45,10 @@ def handle_admin_service_instances_request(
     service_id: UUID,
 ) -> dict[str, Any]:
     """Handle nested service-instance routes."""
+    logger.info(
+        "Handling admin service-instances route",
+        extra={"method": method, "path": path, "service_id": str(service_id)},
+    )
     parts = split_route_parts(path)
     if len(parts) < 4 or parts[0] != "admin" or parts[1] != "services":
         return json_response(404, {"error": "Not found"}, event=event)
@@ -71,15 +78,6 @@ def handle_admin_service_instances_request(
                 service_id=service_id,
                 instance_id=instance_id,
                 actor_sub=identity.user_sub,
-                partial=False,
-            )
-        if method == "PATCH":
-            return _update_instance(
-                event,
-                service_id=service_id,
-                instance_id=instance_id,
-                actor_sub=identity.user_sub,
-                partial=True,
             )
         if method == "DELETE":
             return _delete_instance(
@@ -99,6 +97,10 @@ def handle_admin_service_instances_request(
 def _list_instances(event: Mapping[str, Any], *, service_id: UUID) -> dict[str, Any]:
     filters = parse_instance_filters(event)
     limit = filters["limit"]
+    logger.info(
+        "Listing service instances",
+        extra={"service_id": str(service_id), "limit": limit},
+    )
     with Session(get_engine()) as session:
         service_repository = ServiceRepository(session)
         service = service_repository.get_by_id(service_id)
@@ -113,6 +115,10 @@ def _list_instances(event: Mapping[str, Any], *, service_id: UUID) -> dict[str, 
             cursor_created_at=filters["cursor_created_at"],
             cursor_id=filters["cursor_id"],
         )
+        total_count = repository.count_instances(
+            service_id=service_id,
+            status=filters["status"],
+        )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
         next_cursor = (
@@ -123,7 +129,7 @@ def _list_instances(event: Mapping[str, Any], *, service_id: UUID) -> dict[str, 
             {
                 "items": [serialize_instance(row) for row in page_rows],
                 "next_cursor": next_cursor,
-                "total_count": len(page_rows),
+                "total_count": total_count,
             },
             event=event,
         )
@@ -136,6 +142,10 @@ def _create_instance(
     actor_sub: str,
 ) -> dict[str, Any]:
     body = parse_body(event)
+    logger.info(
+        "Creating service instance",
+        extra={"service_id": str(service_id), "actor_sub": actor_sub},
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         service_repository = ServiceRepository(session)
@@ -188,6 +198,10 @@ def _get_instance(
     service_id: UUID,
     instance_id: UUID,
 ) -> dict[str, Any]:
+    logger.info(
+        "Getting service instance",
+        extra={"service_id": str(service_id), "instance_id": str(instance_id)},
+    )
     with Session(get_engine()) as session:
         repository = ServiceInstanceRepository(session)
         instance = repository.get_by_id_with_details(instance_id)
@@ -204,9 +218,16 @@ def _update_instance(
     service_id: UUID,
     instance_id: UUID,
     actor_sub: str,
-    partial: bool,
 ) -> dict[str, Any]:
     body = parse_body(event)
+    logger.info(
+        "Updating service instance",
+        extra={
+            "service_id": str(service_id),
+            "instance_id": str(instance_id),
+            "actor_sub": actor_sub,
+        },
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         service_repository = ServiceRepository(session)
@@ -218,7 +239,7 @@ def _update_instance(
         instance = instance_repository.get_by_id_with_details(instance_id)
         if instance is None or instance.service_id != service_id:
             raise NotFoundError("ServiceInstance", str(instance_id))
-        payload = parse_update_instance_payload(body, service, partial=partial)
+        payload = parse_update_instance_payload(body, service)
 
         if "title" in payload:
             instance.title = payload["title"]
@@ -275,6 +296,14 @@ def _delete_instance(
     instance_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
+    logger.info(
+        "Deleting service instance",
+        extra={
+            "service_id": str(service_id),
+            "instance_id": str(instance_id),
+            "actor_sub": actor_sub,
+        },
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = ServiceInstanceRepository(session)

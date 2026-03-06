@@ -11,6 +11,9 @@ from uuid import UUID
 
 from app.db.models import DiscountCode, Enrollment, Service, ServiceInstance
 from app.exceptions import ValidationError
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def request_id(event: Mapping[str, Any]) -> str:
@@ -70,6 +73,9 @@ def parse_created_cursor(cursor: str | None) -> tuple[datetime | None, UUID | No
         )
         return _normalize_datetime(parsed_created_at), UUID(str(row_id_raw))
     except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        logger.warning(
+            "Invalid pagination cursor", extra={"cursor_length": len(cursor)}
+        )
         raise ValidationError("Invalid cursor", field="cursor") from exc
 
 

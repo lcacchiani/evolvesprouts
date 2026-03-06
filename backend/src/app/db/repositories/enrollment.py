@@ -11,6 +11,12 @@ from sqlalchemy.orm import Session, joinedload
 from app.db.models import Enrollment, EnrollmentStatus, ServiceInstance
 from app.db.repositories.base import BaseRepository
 
+_CAPACITY_ENROLLMENT_STATUSES = (
+    EnrollmentStatus.REGISTERED,
+    EnrollmentStatus.CONFIRMED,
+    EnrollmentStatus.COMPLETED,
+)
+
 
 class EnrollmentRepository(BaseRepository[Enrollment]):
     """Repository for enrollment CRUD and list methods."""
@@ -54,7 +60,7 @@ class EnrollmentRepository(BaseRepository[Enrollment]):
         statement = statement.order_by(
             Enrollment.created_at.desc(), Enrollment.id.desc()
         ).limit(limit)
-        return list(self._session.execute(statement).scalars().all())
+        return list(self._session.execute(statement).unique().scalars().all())
 
     def count_enrollments(
         self,
@@ -73,20 +79,24 @@ class EnrollmentRepository(BaseRepository[Enrollment]):
 
     def create_enrollment(self, enrollment: Enrollment) -> Enrollment:
         """Create enrollment with capacity guard where required."""
-        instance_statement = select(ServiceInstance).where(
-            ServiceInstance.id == enrollment.instance_id
+        # Lock the instance row so capacity checks and inserts are serialized.
+        instance_statement = (
+            select(ServiceInstance)
+            .where(ServiceInstance.id == enrollment.instance_id)
+            .with_for_update()
         )
         instance = self._session.execute(instance_statement).scalar_one_or_none()
         if instance is None:
             raise ValueError("Service instance not found")
 
         if instance.max_capacity is not None:
-            active_count = self.count_enrollments(
-                instance_id=instance.id,
-                status=EnrollmentStatus.CONFIRMED,
-            ) + self.count_enrollments(
-                instance_id=instance.id,
-                status=EnrollmentStatus.REGISTERED,
+            active_count_statement = (
+                select(func.count(Enrollment.id))
+                .where(Enrollment.instance_id == instance.id)
+                .where(Enrollment.status.in_(_CAPACITY_ENROLLMENT_STATUSES))
+            )
+            active_count = int(
+                self._session.execute(active_count_statement).scalar_one_or_none() or 0
             )
             if active_count >= instance.max_capacity:
                 if instance.waitlist_enabled:

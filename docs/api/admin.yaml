@@ -16,7 +16,7 @@ info:
     - `GET|PUT|PATCH|DELETE /v1/admin/services/{id}`
     - `POST /v1/admin/services/{id}/cover-image`
     - `GET|POST /v1/admin/services/{id}/instances`
-    - `GET|PUT|PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}`
+    - `GET|PUT|DELETE /v1/admin/services/{id}/instances/{instanceId}`
     - `GET|POST /v1/admin/services/{id}/instances/{instanceId}/enrollments`
     - `PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}`
     - `GET|POST /v1/admin/discount-codes`
@@ -1039,29 +1039,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateInstanceRequest"
-      responses:
-        "200":
-          description: Service instance response.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InstanceResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    patch:
-      summary: Partially update service instance
-      security:
-        - AdminBearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PartialUpdateInstanceRequest"
       responses:
         "200":
           description: Service instance response.
@@ -2369,52 +2346,8 @@ components:
     UpdateInstanceRequest:
       allOf:
         - $ref: "#/components/schemas/CreateInstanceRequest"
-    PartialUpdateInstanceRequest:
-      type: object
-      minProperties: 1
-      properties:
-        title:
-          type: string
-          nullable: true
-        description:
-          type: string
-          nullable: true
-        cover_image_s3_key:
-          type: string
-          nullable: true
-        status:
-          $ref: "#/components/schemas/InstanceStatus"
-        delivery_mode:
-          $ref: "#/components/schemas/ServiceDeliveryMode"
-        location_id:
-          type: string
-          format: uuid
-          nullable: true
-        max_capacity:
-          type: integer
-          nullable: true
-        waitlist_enabled:
-          type: boolean
-        instructor_id:
-          type: string
-          nullable: true
-        notes:
-          type: string
-          nullable: true
-        session_slots:
-          type: array
-          items:
-            $ref: "#/components/schemas/SessionSlot"
-        training_details:
-          type: object
-          nullable: true
-        event_ticket_tiers:
-          type: array
-          items:
-            $ref: "#/components/schemas/EventTicketTier"
-        consultation_details:
-          type: object
-          nullable: true
+      required:
+        - status
     Enrollment:
       type: object
       required: [id, instance_id, status]

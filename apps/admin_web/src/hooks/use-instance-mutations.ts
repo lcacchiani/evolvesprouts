@@ -49,11 +49,10 @@ export function useInstanceMutations(options: UseInstanceMutationsOptions = {}) 
     async (
       serviceId: string,
       instanceId: string,
-      payload: ApiSchemas['UpdateInstanceRequest'] | ApiSchemas['PartialUpdateInstanceRequest'],
-      partial = false
+      payload: ApiSchemas['UpdateInstanceRequest']
     ) =>
       runWithState(async () => {
-        const updated = await updateInstance(serviceId, instanceId, payload, partial);
+        const updated = await updateInstance(serviceId, instanceId, payload);
         await options.onSuccess?.(updated?.id ?? instanceId);
         return updated;
       }),

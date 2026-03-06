@@ -1536,39 +1536,7 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Partially update service instance */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Service identifier. */
-                    id: components["parameters"]["ServiceId"];
-                    /** @description Service instance identifier. */
-                    instanceId: components["parameters"]["InstanceId"];
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["PartialUpdateInstanceRequest"];
-                };
-            };
-            responses: {
-                /** @description Service instance response. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["InstanceResponse"];
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/services/{id}/instances/{instanceId}/enrollments": {
@@ -2377,24 +2345,7 @@ export interface components {
             event_ticket_tiers?: components["schemas"]["EventTicketTier"][];
             consultation_details?: Record<string, never> | null;
         };
-        UpdateInstanceRequest: components["schemas"]["CreateInstanceRequest"];
-        PartialUpdateInstanceRequest: {
-            title?: string | null;
-            description?: string | null;
-            cover_image_s3_key?: string | null;
-            status?: components["schemas"]["InstanceStatus"];
-            delivery_mode?: components["schemas"]["ServiceDeliveryMode"];
-            /** Format: uuid */
-            location_id?: string | null;
-            max_capacity?: number | null;
-            waitlist_enabled?: boolean;
-            instructor_id?: string | null;
-            notes?: string | null;
-            session_slots?: components["schemas"]["SessionSlot"][];
-            training_details?: Record<string, never> | null;
-            event_ticket_tiers?: components["schemas"]["EventTicketTier"][];
-            consultation_details?: Record<string, never> | null;
-        };
+        UpdateInstanceRequest: WithRequired<components["schemas"]["CreateInstanceRequest"], "status">;
         Enrollment: {
             /** Format: uuid */
             id: string;
@@ -2691,4 +2642,7 @@ export interface components {
     pathItems: never;
 }
 export type $defs = Record<string, never>;
+type WithRequired<T, K extends keyof T> = T & {
+    [P in K]-?: T[P];
+};
 export type operations = Record<string, never>;

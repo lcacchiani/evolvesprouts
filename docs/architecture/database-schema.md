@@ -273,5 +273,6 @@ Indexes:
 
 - Function: `set_updated_at()`.
 - Applied to: `contacts`, `families`, `organizations`, `sales_leads`,
-  `crm_notes`.
+  `crm_notes`, `services`, `service_instances`, `discount_codes`,
+  `enrollments`.
 - Behavior: updates `updated_at` to `now()` before each UPDATE.

@@ -23,9 +23,12 @@ from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Enrollment
 from app.db.models.enums import EnrollmentStatus
-from app.db.repositories import EnrollmentRepository
+from app.db.repositories import DiscountCodeRepository, EnrollmentRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.utils import json_response
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def handle_admin_enrollments_request(
@@ -35,6 +38,10 @@ def handle_admin_enrollments_request(
     instance_id: UUID,
 ) -> dict[str, Any]:
     """Handle nested enrollment routes under an instance."""
+    logger.info(
+        "Handling admin enrollments route",
+        extra={"method": method, "path": path, "instance_id": str(instance_id)},
+    )
     parts = split_route_parts(path)
     if len(parts) < 6 or parts[0] != "admin" or parts[1] != "services":
         return json_response(404, {"error": "Not found"}, event=event)
@@ -78,6 +85,10 @@ def handle_admin_enrollments_request(
 def _list_enrollments(event: Mapping[str, Any], *, instance_id: UUID) -> dict[str, Any]:
     filters = parse_enrollment_filters(event)
     limit = filters["limit"]
+    logger.info(
+        "Listing enrollments",
+        extra={"instance_id": str(instance_id), "limit": limit},
+    )
     with Session(get_engine()) as session:
         repository = EnrollmentRepository(session)
         rows = repository.list_enrollments(
@@ -111,9 +122,27 @@ def _create_enrollment(
 ) -> dict[str, Any]:
     body = parse_body(event)
     payload = parse_create_enrollment_payload(body)
+    logger.info(
+        "Creating enrollment",
+        extra={
+            "instance_id": str(instance_id),
+            "actor_sub": actor_sub,
+            "discount_code_id": str(payload["discount_code_id"])
+            if payload["discount_code_id"]
+            else None,
+        },
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = EnrollmentRepository(session)
+        discount_code_repository = DiscountCodeRepository(session)
+        discount_code_id = payload["discount_code_id"]
+        if discount_code_id is not None:
+            if not discount_code_repository.validate_and_increment(discount_code_id):
+                raise ValidationError(
+                    "Discount code is invalid, inactive, expired, or exhausted",
+                    field="discount_code_id",
+                )
         enrollment = Enrollment(
             instance_id=instance_id,
             contact_id=payload["contact_id"],
@@ -145,6 +174,14 @@ def _update_enrollment(
 ) -> dict[str, Any]:
     body = parse_body(event)
     payload = parse_update_enrollment_payload(body)
+    logger.info(
+        "Updating enrollment",
+        extra={
+            "instance_id": str(instance_id),
+            "enrollment_id": str(enrollment_id),
+            "actor_sub": actor_sub,
+        },
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = EnrollmentRepository(session)
@@ -181,6 +218,14 @@ def _delete_enrollment(
     enrollment_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
+    logger.info(
+        "Deleting enrollment",
+        extra={
+            "instance_id": str(instance_id),
+            "enrollment_id": str(enrollment_id),
+            "actor_sub": actor_sub,
+        },
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = EnrollmentRepository(session)

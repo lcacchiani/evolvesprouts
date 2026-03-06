@@ -87,6 +87,8 @@ __all__ = [
     "FamilyTag",
     "FunnelStage",
     "GeographicArea",
+    "InstanceSessionSlot",
+    "InstanceStatus",
     "LeadEventType",
     "LeadType",
     "Location",
@@ -114,6 +116,4 @@ __all__ = [
     "TrainingFormat",
     "TrainingInstanceDetails",
     "TrainingPricingUnit",
-    "InstanceSessionSlot",
-    "InstanceStatus",
 ]

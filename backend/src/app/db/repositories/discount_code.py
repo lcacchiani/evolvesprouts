@@ -67,6 +67,34 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
         ).limit(limit)
         return list(self._session.execute(statement).scalars().all())
 
+    def count_codes(
+        self,
+        *,
+        active: bool | None = None,
+        service_id: UUID | None = None,
+        instance_id: UUID | None = None,
+        search: str | None = None,
+    ) -> int:
+        """Count discount codes with the same filters used by list."""
+        statement = select(func.count(DiscountCode.id))
+        if active is not None:
+            statement = statement.where(DiscountCode.active == active)
+        if service_id is not None:
+            statement = statement.where(DiscountCode.service_id == service_id)
+        if instance_id is not None:
+            statement = statement.where(DiscountCode.instance_id == instance_id)
+        if search:
+            escaped = _escape_like_pattern(search.strip())
+            pattern = f"%{escaped}%"
+            statement = statement.where(
+                or_(
+                    DiscountCode.code.ilike(pattern, escape="\\"),
+                    DiscountCode.description.ilike(pattern, escape="\\"),
+                )
+            )
+        count = self._session.execute(statement).scalar_one_or_none()
+        return int(count or 0)
+
     def get_by_code(self, code: str) -> DiscountCode | None:
         """Return one code by case-insensitive key."""
         normalized = code.strip().lower()

@@ -68,6 +68,21 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         ).limit(limit)
         return list(self._session.execute(statement).unique().scalars().all())
 
+    def count_instances(
+        self,
+        *,
+        service_id: UUID,
+        status: InstanceStatus | None = None,
+    ) -> int:
+        """Count instances by service and optional status."""
+        statement = select(func.count(ServiceInstance.id)).where(
+            ServiceInstance.service_id == service_id
+        )
+        if status is not None:
+            statement = statement.where(ServiceInstance.status == status)
+        count = self._session.execute(statement).scalar_one_or_none()
+        return int(count or 0)
+
     def get_by_id_with_details(self, instance_id: UUID) -> ServiceInstance | None:
         """Return one instance with related details and enrollments."""
         statement = (

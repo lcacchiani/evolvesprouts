@@ -13,10 +13,14 @@ from app.db.models import (
     Service,
     ServiceInstance,
 )
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def serialize_service_summary(service: Service) -> dict[str, Any]:
     """Serialize service list row payload."""
+    logger.debug("Serializing service summary", extra={"service_id": str(service.id)})
     return {
         "id": str(service.id),
         "service_type": service.service_type.value,

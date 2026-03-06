@@ -40,6 +40,9 @@ from app.db.repositories import ServiceRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.services.aws_clients import get_s3_client
 from app.utils import json_response, require_env
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def handle_admin_services_request(
@@ -48,6 +51,10 @@ def handle_admin_services_request(
     path: str,
 ) -> dict[str, Any]:
     """Handle /v1/admin/services routes."""
+    logger.info(
+        "Handling admin services route",
+        extra={"method": method, "path": path},
+    )
     parts = split_route_parts(path)
     if len(parts) < 2 or parts[0] != "admin" or parts[1] != "services":
         return json_response(404, {"error": "Not found"}, event=event)
@@ -97,6 +104,7 @@ def handle_admin_services_request(
 def _list_services(event: Mapping[str, Any]) -> dict[str, Any]:
     filters = parse_service_filters(event)
     limit = filters["limit"]
+    logger.info("Listing services", extra={"limit": limit})
     with Session(get_engine()) as session:
         repository = ServiceRepository(session)
         rows = repository.list_services(
@@ -131,6 +139,13 @@ def _list_services(event: Mapping[str, Any]) -> dict[str, Any]:
 def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
     body = parse_body(event)
     payload = parse_create_service_payload(body)
+    logger.info(
+        "Creating service",
+        extra={
+            "actor_sub": actor_sub,
+            "service_type": payload["service_type"].value,
+        },
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = ServiceRepository(session)
@@ -167,6 +182,7 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
 
 
 def _get_service(event: Mapping[str, Any], *, service_id: UUID) -> dict[str, Any]:
+    logger.info("Getting service", extra={"service_id": str(service_id)})
     with Session(get_engine()) as session:
         repository = ServiceRepository(session)
         service = repository.get_by_id_with_details(service_id)
@@ -188,6 +204,14 @@ def _update_service(
 ) -> dict[str, Any]:
     body = parse_body(event)
     payload = parse_update_service_payload(body, partial=partial)
+    logger.info(
+        "Updating service",
+        extra={
+            "service_id": str(service_id),
+            "actor_sub": actor_sub,
+            "partial": partial,
+        },
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = ServiceRepository(session)
@@ -241,6 +265,10 @@ def _delete_service(
     service_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
+    logger.info(
+        "Deleting service",
+        extra={"service_id": str(service_id), "actor_sub": actor_sub},
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = ServiceRepository(session)
@@ -267,6 +295,10 @@ def _create_cover_image_upload(
     )
     normalized_file_name = _sanitize_file_name(file_name)
     s3_key = f"media/services/{service_id}/cover/{uuid4()}-{normalized_file_name}"
+    logger.info(
+        "Creating service cover image upload URL",
+        extra={"service_id": str(service_id), "actor_sub": actor_sub},
+    )
 
     media_bucket = os.getenv("MEDIA_BUCKET_NAME") or require_env(
         "CLIENT_ASSETS_BUCKET_NAME"
@@ -327,7 +359,7 @@ def _build_service_type_details(
             parsed_details["consultation_format"].value
         ),
         max_group_size=parsed_details["max_group_size"],
-        duration_minutes=parsed_details["duration_minutes"] or 60,
+        duration_minutes=parsed_details["duration_minutes"],
         pricing_model=parsed_details["pricing_model"],
         default_hourly_rate=parsed_details["default_hourly_rate"],
         default_package_price=parsed_details["default_package_price"],

@@ -38,14 +38,17 @@ from app.db.models import (
     ServiceType,
 )
 from app.exceptions import ValidationError
+from app.utils.logging import get_logger
 
 _LIST_DEFAULT_LIMIT = 50
 _LIST_MAX_LIMIT = 100
 _MAX_CODE_LENGTH = 50
+logger = get_logger(__name__)
 
 
 def parse_service_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for service list endpoint."""
+    logger.debug("Parsing service list filters")
     limit = _parse_limit(query_param(event, "limit"))
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     return {
@@ -68,6 +71,7 @@ def parse_service_filters(event: Mapping[str, Any]) -> dict[str, Any]:
 
 def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for service instance list endpoint."""
+    logger.debug("Parsing service instance list filters")
     limit = _parse_limit(query_param(event, "limit"))
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     return {
@@ -84,6 +88,7 @@ def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
 
 def parse_enrollment_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for enrollment list endpoint."""
+    logger.debug("Parsing enrollment list filters")
     limit = _parse_limit(query_param(event, "limit"))
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     return {
@@ -100,6 +105,7 @@ def parse_enrollment_filters(event: Mapping[str, Any]) -> dict[str, Any]:
 
 def parse_discount_code_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for discount-code list endpoint."""
+    logger.debug("Parsing discount code list filters")
     limit = _parse_limit(query_param(event, "limit"))
     cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     return {
@@ -247,8 +253,6 @@ def parse_create_instance_payload(
 def parse_update_instance_payload(
     body: Mapping[str, Any],
     service: Service,
-    *,
-    partial: bool,
 ) -> dict[str, Any]:
     """Parse and validate service-instance update payload."""
     if not body:
@@ -308,7 +312,7 @@ def parse_update_instance_payload(
             service.service_type, body
         )
 
-    if not partial and "status" not in payload:
+    if "status" not in payload:
         raise ValidationError("status is required for PUT", field="status")
     if not payload:
         raise ValidationError("At least one updatable field is required", field="body")

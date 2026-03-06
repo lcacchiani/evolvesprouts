@@ -25,7 +25,6 @@ type ApiUpdateServiceRequest = ApiSchemas['UpdateServiceRequest'];
 type ApiPartialUpdateServiceRequest = ApiSchemas['PartialUpdateServiceRequest'];
 type ApiCreateInstanceRequest = ApiSchemas['CreateInstanceRequest'];
 type ApiUpdateInstanceRequest = ApiSchemas['UpdateInstanceRequest'];
-type ApiPartialUpdateInstanceRequest = ApiSchemas['PartialUpdateInstanceRequest'];
 type ApiInstanceListResponse = ApiSchemas['InstanceListResponse'];
 type ApiInstanceResponse = ApiSchemas['InstanceResponse'];
 type ApiEnrollmentListResponse = ApiSchemas['EnrollmentListResponse'];
@@ -406,12 +405,11 @@ export async function createInstance(
 export async function updateInstance(
   serviceId: string,
   instanceId: string,
-  body: ApiUpdateInstanceRequest | ApiPartialUpdateInstanceRequest,
-  partial = false
+  body: ApiUpdateInstanceRequest
 ): Promise<ServiceInstance | null> {
   const payload = await adminApiRequest<ApiInstanceResponse>({
     endpointPath: `/v1/admin/services/${serviceId}/instances/${instanceId}`,
-    method: partial ? 'PATCH' : 'PUT',
+    method: 'PUT',
     body,
   });
   const root = unwrapPayload(payload);

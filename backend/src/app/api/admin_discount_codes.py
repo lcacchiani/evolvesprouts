@@ -24,6 +24,9 @@ from app.db.models import DiscountCode
 from app.db.repositories import DiscountCodeRepository
 from app.exceptions import NotFoundError, ValidationError
 from app.utils import json_response
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def handle_admin_discount_codes_request(
@@ -32,6 +35,10 @@ def handle_admin_discount_codes_request(
     path: str,
 ) -> dict[str, Any]:
     """Handle /v1/admin/discount-codes routes."""
+    logger.info(
+        "Handling admin discount-codes route",
+        extra={"method": method, "path": path},
+    )
     parts = split_route_parts(path)
     if len(parts) < 2 or parts[0] != "admin" or parts[1] != "discount-codes":
         return json_response(404, {"error": "Not found"}, event=event)
@@ -65,6 +72,17 @@ def handle_admin_discount_codes_request(
 def _list_discount_codes(event: Mapping[str, Any]) -> dict[str, Any]:
     filters = parse_discount_code_filters(event)
     limit = filters["limit"]
+    logger.info(
+        "Listing discount codes",
+        extra={
+            "limit": limit,
+            "active": filters["active"],
+            "service_id": str(filters["service_id"]) if filters["service_id"] else None,
+            "instance_id": str(filters["instance_id"])
+            if filters["instance_id"]
+            else None,
+        },
+    )
     with Session(get_engine()) as session:
         repository = DiscountCodeRepository(session)
         rows = repository.list_codes(
@@ -75,6 +93,12 @@ def _list_discount_codes(event: Mapping[str, Any]) -> dict[str, Any]:
             search=filters["search"],
             cursor_created_at=filters["cursor_created_at"],
             cursor_id=filters["cursor_id"],
+        )
+        total_count = repository.count_codes(
+            active=filters["active"],
+            service_id=filters["service_id"],
+            instance_id=filters["instance_id"],
+            search=filters["search"],
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
@@ -88,7 +112,7 @@ def _list_discount_codes(event: Mapping[str, Any]) -> dict[str, Any]:
             {
                 "items": [serialize_discount_code(row) for row in page_rows],
                 "next_cursor": next_cursor,
-                "total_count": len(page_rows),
+                "total_count": total_count,
             },
             event=event,
         )
@@ -99,6 +123,16 @@ def _create_discount_code(
 ) -> dict[str, Any]:
     body = parse_body(event)
     payload = parse_create_discount_code_payload(body)
+    logger.info(
+        "Creating discount code",
+        extra={
+            "actor_sub": actor_sub,
+            "service_id": str(payload["service_id"]) if payload["service_id"] else None,
+            "instance_id": str(payload["instance_id"])
+            if payload["instance_id"]
+            else None,
+        },
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = DiscountCodeRepository(session)
@@ -133,6 +167,10 @@ def _update_discount_code(
 ) -> dict[str, Any]:
     body = parse_body(event)
     payload = parse_update_discount_code_payload(body)
+    logger.info(
+        "Updating discount code",
+        extra={"code_id": str(code_id), "actor_sub": actor_sub},
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = DiscountCodeRepository(session)
@@ -176,6 +214,10 @@ def _delete_discount_code(
     code_id: UUID,
     actor_sub: str,
 ) -> dict[str, Any]:
+    logger.info(
+        "Deleting discount code",
+        extra={"code_id": str(code_id), "actor_sub": actor_sub},
+    )
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id(event))
         repository = DiscountCodeRepository(session)
