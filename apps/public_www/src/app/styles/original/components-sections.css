@@ -328,6 +328,43 @@
     letter-spacing: 0.4px;
   }
 
+  .es-intro-community-layout {
+    display: flex;
+    min-height: 315px;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .es-intro-community-layout-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .es-intro-community-layout-cta {
+    padding-top: 1.75rem;
+  }
+
+  @media (min-width: 640px) {
+    .es-intro-community-layout {
+      min-height: 400px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .es-intro-community-layout {
+      min-height: 555px;
+    }
+
+    .es-intro-community-layout-content {
+      gap: 2.25rem;
+    }
+
+    .es-intro-community-layout-cta {
+      padding-top: 2.25rem;
+    }
+  }
+
   .es-why-us-section,
   .es-course-highlights-section,
   .es-my-best-auntie-description-section,
