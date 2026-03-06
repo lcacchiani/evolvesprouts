@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { AssetsPage } from '../components/admin/assets/assets-page';
 import { SalesPage } from '../components/admin/sales/sales-page';
+import { ServicesPage } from '../components/admin/services/services-page';
 import { AppShell } from '../components/app-shell';
 import { AuthProvider, useAuth } from '../components/auth-provider';
 import { LoginScreen } from '../components/login-screen';
@@ -11,6 +12,7 @@ import { StatusBanner } from '../components/status-banner';
 
 const NAV_ITEMS = [
   { key: 'sales', label: 'Sales' },
+  { key: 'services', label: 'Services' },
   { key: 'assets', label: 'Client assets' },
 ] as const;
 
@@ -40,7 +42,13 @@ function LoginGate() {
         userEmail={user?.email}
         lastAuthTime={user?.lastAuthTime}
       >
-        {activeSectionKey === 'sales' ? <SalesPage /> : <AssetsPage />}
+        {activeSectionKey === 'sales' ? (
+          <SalesPage />
+        ) : activeSectionKey === 'services' ? (
+          <ServicesPage />
+        ) : (
+          <AssetsPage />
+        )}
       </AppShell>
     );
   }

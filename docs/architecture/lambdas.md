@@ -27,6 +27,7 @@ their primary responsibilities.
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
   `/v1/admin/leads/*`, `/v1/admin/users`,
+  `/v1/admin/services/*`, `/v1/admin/discount-codes/*`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,

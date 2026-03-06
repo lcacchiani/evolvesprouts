@@ -1107,6 +1107,743 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List services */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                    service_type?: components["schemas"]["ServiceType"];
+                    status?: components["schemas"]["ServiceStatus"];
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        /** Create service */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateServiceRequest"];
+                };
+            };
+            responses: {
+                /** @description Service created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/services/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Service identifier. */
+                id: components["parameters"]["ServiceId"];
+            };
+            cookie?: never;
+        };
+        /** Get service */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        /** Update service */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateServiceRequest"];
+                };
+            };
+            responses: {
+                /** @description Service response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        post?: never;
+        /** Delete service */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Partially update service */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PartialUpdateServiceRequest"];
+                };
+            };
+            responses: {
+                /** @description Service response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
+    "/v1/admin/services/{id}/cover-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Service identifier. */
+                id: components["parameters"]["ServiceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create service cover-image upload URL */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateServiceCoverImageUploadRequest"];
+                };
+            };
+            responses: {
+                /** @description Cover image upload URL response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceCoverImageUploadResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/services/{id}/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Service identifier. */
+                id: components["parameters"]["ServiceId"];
+            };
+            cookie?: never;
+        };
+        /** List service instances */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service instance list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InstanceListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        /** Create service instance */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateInstanceRequest"];
+                };
+            };
+            responses: {
+                /** @description Service instance created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InstanceResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/services/{id}/instances/{instanceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Service identifier. */
+                id: components["parameters"]["ServiceId"];
+                /** @description Service instance identifier. */
+                instanceId: components["parameters"]["InstanceId"];
+            };
+            cookie?: never;
+        };
+        /** Get service instance */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                    /** @description Service instance identifier. */
+                    instanceId: components["parameters"]["InstanceId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service instance response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InstanceResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        /** Update service instance */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                    /** @description Service instance identifier. */
+                    instanceId: components["parameters"]["InstanceId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateInstanceRequest"];
+                };
+            };
+            responses: {
+                /** @description Service instance response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InstanceResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        post?: never;
+        /** Delete service instance */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                    /** @description Service instance identifier. */
+                    instanceId: components["parameters"]["InstanceId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service instance deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/services/{id}/instances/{instanceId}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Service identifier. */
+                id: components["parameters"]["ServiceId"];
+                /** @description Service instance identifier. */
+                instanceId: components["parameters"]["InstanceId"];
+            };
+            cookie?: never;
+        };
+        /** List instance enrollments */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                    /** @description Service instance identifier. */
+                    instanceId: components["parameters"]["InstanceId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Enrollment list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EnrollmentListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        /** Create instance enrollment */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                    /** @description Service instance identifier. */
+                    instanceId: components["parameters"]["InstanceId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateEnrollmentRequest"];
+                };
+            };
+            responses: {
+                /** @description Enrollment created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EnrollmentResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Service identifier. */
+                id: components["parameters"]["ServiceId"];
+                /** @description Service instance identifier. */
+                instanceId: components["parameters"]["InstanceId"];
+                /** @description Enrollment identifier. */
+                enrollmentId: components["parameters"]["EnrollmentId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete enrollment */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                    /** @description Service instance identifier. */
+                    instanceId: components["parameters"]["InstanceId"];
+                    /** @description Enrollment identifier. */
+                    enrollmentId: components["parameters"]["EnrollmentId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Enrollment deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update enrollment */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Service identifier. */
+                    id: components["parameters"]["ServiceId"];
+                    /** @description Service instance identifier. */
+                    instanceId: components["parameters"]["InstanceId"];
+                    /** @description Enrollment identifier. */
+                    enrollmentId: components["parameters"]["EnrollmentId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateEnrollmentRequest"];
+                };
+            };
+            responses: {
+                /** @description Enrollment response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EnrollmentResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
+    "/v1/admin/discount-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List discount codes */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Discount code list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DiscountCodeListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        /** Create discount code */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateDiscountCodeRequest"];
+                };
+            };
+            responses: {
+                /** @description Discount code created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DiscountCodeResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/discount-codes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Discount code identifier. */
+                id: components["parameters"]["DiscountCodeId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Update discount code */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Discount code identifier. */
+                    id: components["parameters"]["DiscountCodeId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateDiscountCodeRequest"];
+                };
+            };
+            responses: {
+                /** @description Discount code response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DiscountCodeResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        post?: never;
+        /** Delete discount code */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Discount code identifier. */
+                    id: components["parameters"]["DiscountCodeId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Discount code deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/user/assets": {
         parameters: {
             query?: never;
@@ -1399,6 +2136,341 @@ export interface components {
                 conversion_rate: number;
             }[];
         };
+        /** @enum {string} */
+        ServiceType: "training_course" | "event" | "consultation";
+        /** @enum {string} */
+        ServiceStatus: "draft" | "published" | "archived";
+        /** @enum {string} */
+        ServiceDeliveryMode: "online" | "in_person" | "hybrid";
+        /** @enum {string} */
+        TrainingFormat: "group" | "private";
+        /** @enum {string} */
+        TrainingPricingUnit: "per_person" | "per_family";
+        /** @enum {string} */
+        EventCategory: "workshop" | "webinar" | "open_house" | "community_meetup" | "other";
+        /** @enum {string} */
+        ConsultationFormat: "one_on_one" | "group";
+        /** @enum {string} */
+        ConsultationPricingModel: "free" | "hourly" | "package";
+        /** @enum {string} */
+        InstanceStatus: "scheduled" | "open" | "full" | "in_progress" | "completed" | "cancelled";
+        /** @enum {string} */
+        DiscountType: "percentage" | "absolute";
+        /** @enum {string} */
+        EnrollmentStatus: "registered" | "waitlisted" | "confirmed" | "cancelled" | "completed";
+        ServiceTrainingDetails: {
+            pricing_unit?: components["schemas"]["TrainingPricingUnit"];
+            default_price?: string | null;
+            default_currency?: string | null;
+        };
+        ServiceEventDetails: {
+            event_category?: components["schemas"]["EventCategory"];
+        };
+        ServiceConsultationDetails: {
+            consultation_format?: components["schemas"]["ConsultationFormat"];
+            max_group_size?: number | null;
+            duration_minutes?: number | null;
+            pricing_model?: components["schemas"]["ConsultationPricingModel"];
+            default_hourly_rate?: string | null;
+            default_package_price?: string | null;
+            default_package_sessions?: number | null;
+            default_currency?: string | null;
+            calendly_url?: string | null;
+        };
+        ServiceSummary: {
+            /** Format: uuid */
+            id: string;
+            service_type: components["schemas"]["ServiceType"];
+            title: string;
+            description?: string | null;
+            cover_image_s3_key?: string | null;
+            delivery_mode: components["schemas"]["ServiceDeliveryMode"];
+            status: components["schemas"]["ServiceStatus"];
+            created_by?: string;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+        };
+        Service: components["schemas"]["ServiceSummary"] & {
+            tag_ids?: string[];
+            asset_ids?: string[];
+            instances_count?: number;
+            training_details?: components["schemas"]["ServiceTrainingDetails"];
+            event_details?: components["schemas"]["ServiceEventDetails"];
+            consultation_details?: components["schemas"]["ServiceConsultationDetails"];
+        };
+        ServiceListResponse: {
+            items: components["schemas"]["ServiceSummary"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        ServiceResponse: {
+            service: components["schemas"]["Service"];
+        };
+        CreateServiceRequest: {
+            service_type: components["schemas"]["ServiceType"];
+            title: string;
+            description?: string | null;
+            cover_image_s3_key?: string | null;
+            delivery_mode: components["schemas"]["ServiceDeliveryMode"];
+            status?: components["schemas"]["ServiceStatus"];
+            tag_ids?: string[];
+            asset_ids?: string[];
+            training_details?: components["schemas"]["ServiceTrainingDetails"];
+            event_details?: components["schemas"]["ServiceEventDetails"];
+            consultation_details?: components["schemas"]["ServiceConsultationDetails"];
+        };
+        UpdateServiceRequest: components["schemas"]["CreateServiceRequest"];
+        PartialUpdateServiceRequest: {
+            title?: string;
+            description?: string | null;
+            cover_image_s3_key?: string | null;
+            delivery_mode?: components["schemas"]["ServiceDeliveryMode"];
+            status?: components["schemas"]["ServiceStatus"];
+            tag_ids?: string[];
+            asset_ids?: string[];
+            training_details?: components["schemas"]["ServiceTrainingDetails"];
+            event_details?: components["schemas"]["ServiceEventDetails"];
+            consultation_details?: components["schemas"]["ServiceConsultationDetails"];
+        };
+        CreateServiceCoverImageUploadRequest: {
+            file_name: string;
+            content_type?: string | null;
+        };
+        ServiceCoverImageUploadResponse: {
+            /** Format: uri */
+            upload_url: string;
+            upload_method: string;
+            upload_headers?: {
+                [key: string]: string;
+            };
+            s3_key: string;
+            /** Format: date-time */
+            expires_at: string;
+            service?: {
+                /** Format: uuid */
+                id?: string;
+                cover_image_s3_key?: string;
+            };
+        };
+        SessionSlot: {
+            /** Format: uuid */
+            id?: string | null;
+            /** Format: uuid */
+            instance_id?: string | null;
+            /** Format: uuid */
+            location_id?: string | null;
+            /** Format: date-time */
+            starts_at?: string | null;
+            /** Format: date-time */
+            ends_at?: string | null;
+            sort_order?: number | null;
+        };
+        EventTicketTier: {
+            /** Format: uuid */
+            id?: string | null;
+            /** Format: uuid */
+            instance_id?: string | null;
+            name?: string;
+            description?: string | null;
+            price?: string;
+            currency?: string;
+            max_quantity?: number | null;
+            sort_order?: number | null;
+        };
+        ServiceInstance: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            service_id: string;
+            title?: string | null;
+            description?: string | null;
+            cover_image_s3_key?: string | null;
+            status: components["schemas"]["InstanceStatus"];
+            delivery_mode?: components["schemas"]["ServiceDeliveryMode"];
+            /** Format: uuid */
+            location_id?: string | null;
+            max_capacity?: number | null;
+            waitlist_enabled?: boolean;
+            instructor_id?: string | null;
+            notes?: string | null;
+            created_by?: string;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+            resolved_title?: string | null;
+            resolved_description?: string | null;
+            resolved_cover_image_s3_key?: string | null;
+            resolved_delivery_mode?: string | null;
+            session_slots?: components["schemas"]["SessionSlot"][];
+            training_details?: {
+                training_format?: components["schemas"]["TrainingFormat"];
+                price?: string;
+                currency?: string;
+                pricing_unit?: components["schemas"]["TrainingPricingUnit"];
+            } | null;
+            event_ticket_tiers?: components["schemas"]["EventTicketTier"][];
+            consultation_details?: {
+                pricing_model?: components["schemas"]["ConsultationPricingModel"];
+                price?: string | null;
+                currency?: string;
+                package_sessions?: number | null;
+                calendly_event_url?: string | null;
+            } | null;
+        };
+        InstanceListResponse: {
+            items: components["schemas"]["ServiceInstance"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        InstanceResponse: {
+            instance: components["schemas"]["ServiceInstance"];
+        };
+        CreateInstanceRequest: {
+            title?: string | null;
+            description?: string | null;
+            cover_image_s3_key?: string | null;
+            status?: components["schemas"]["InstanceStatus"];
+            delivery_mode?: components["schemas"]["ServiceDeliveryMode"];
+            /** Format: uuid */
+            location_id?: string | null;
+            max_capacity?: number | null;
+            waitlist_enabled?: boolean;
+            instructor_id?: string | null;
+            notes?: string | null;
+            session_slots?: components["schemas"]["SessionSlot"][];
+            training_details?: Record<string, never> | null;
+            event_ticket_tiers?: components["schemas"]["EventTicketTier"][];
+            consultation_details?: Record<string, never> | null;
+        };
+        UpdateInstanceRequest: WithRequired<components["schemas"]["CreateInstanceRequest"], "status">;
+        Enrollment: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            instance_id: string;
+            /** Format: uuid */
+            contact_id?: string | null;
+            /** Format: uuid */
+            family_id?: string | null;
+            /** Format: uuid */
+            organization_id?: string | null;
+            /** Format: uuid */
+            ticket_tier_id?: string | null;
+            /** Format: uuid */
+            discount_code_id?: string | null;
+            status: components["schemas"]["EnrollmentStatus"];
+            amount_paid?: string | null;
+            currency?: string | null;
+            /** Format: date-time */
+            enrolled_at?: string | null;
+            /** Format: date-time */
+            cancelled_at?: string | null;
+            notes?: string | null;
+            created_by?: string;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+        };
+        EnrollmentListResponse: {
+            items: components["schemas"]["Enrollment"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        EnrollmentResponse: {
+            enrollment: components["schemas"]["Enrollment"];
+        };
+        CreateEnrollmentRequest: {
+            /** Format: uuid */
+            contact_id?: string | null;
+            /** Format: uuid */
+            family_id?: string | null;
+            /** Format: uuid */
+            organization_id?: string | null;
+            /** Format: uuid */
+            ticket_tier_id?: string | null;
+            /** Format: uuid */
+            discount_code_id?: string | null;
+            status?: components["schemas"]["EnrollmentStatus"];
+            amount_paid?: string | null;
+            currency?: string | null;
+            notes?: string | null;
+        };
+        UpdateEnrollmentRequest: {
+            status?: components["schemas"]["EnrollmentStatus"];
+            amount_paid?: string | null;
+            currency?: string | null;
+            notes?: string | null;
+        };
+        DiscountCode: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            description?: string | null;
+            discount_type: components["schemas"]["DiscountType"];
+            discount_value: string;
+            currency?: string | null;
+            /** Format: date-time */
+            valid_from?: string | null;
+            /** Format: date-time */
+            valid_until?: string | null;
+            /** Format: uuid */
+            service_id?: string | null;
+            /** Format: uuid */
+            instance_id?: string | null;
+            max_uses?: number | null;
+            current_uses?: number;
+            active: boolean;
+            created_by?: string;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+        };
+        DiscountCodeListResponse: {
+            items: components["schemas"]["DiscountCode"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        DiscountCodeResponse: {
+            discount_code: components["schemas"]["DiscountCode"];
+        };
+        CreateDiscountCodeRequest: {
+            code: string;
+            description?: string | null;
+            discount_type: components["schemas"]["DiscountType"];
+            discount_value: string;
+            currency?: string | null;
+            /** Format: date-time */
+            valid_from?: string | null;
+            /** Format: date-time */
+            valid_until?: string | null;
+            /** Format: uuid */
+            service_id?: string | null;
+            /** Format: uuid */
+            instance_id?: string | null;
+            max_uses?: number | null;
+            active?: boolean | null;
+        };
+        UpdateDiscountCodeRequest: {
+            description?: string | null;
+            discount_type?: components["schemas"]["DiscountType"];
+            discount_value?: string;
+            currency?: string | null;
+            /** Format: date-time */
+            valid_from?: string | null;
+            /** Format: date-time */
+            valid_until?: string | null;
+            /** Format: uuid */
+            service_id?: string | null;
+            /** Format: uuid */
+            instance_id?: string | null;
+            max_uses?: number | null;
+            active?: boolean;
+        };
         AdminUser: {
             sub: string;
             email?: string | null;
@@ -1556,10 +2628,21 @@ export interface components {
         LocationId: string;
         /** @description Sales lead identifier. */
         LeadId: string;
+        /** @description Service identifier. */
+        ServiceId: string;
+        /** @description Service instance identifier. */
+        InstanceId: string;
+        /** @description Enrollment identifier. */
+        EnrollmentId: string;
+        /** @description Discount code identifier. */
+        DiscountCodeId: string;
     };
     requestBodies: never;
     headers: never;
     pathItems: never;
 }
 export type $defs = Record<string, never>;
+type WithRequired<T, K extends keyof T> = T & {
+    [P in K]-?: T[P];
+};
 export type operations = Record<string, never>;

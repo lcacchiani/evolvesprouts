@@ -157,3 +157,94 @@ class LeadEventType(str, enum.Enum):
     ASSIGNED = "assigned"
     CONVERTED = "converted"
     LOST = "lost"
+
+
+class ServiceType(str, enum.Enum):
+    """Discriminator for service categories."""
+
+    TRAINING_COURSE = "training_course"
+    EVENT = "event"
+    CONSULTATION = "consultation"
+
+
+class ServiceStatus(str, enum.Enum):
+    """Lifecycle status for a service template."""
+
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    ARCHIVED = "archived"
+
+
+class ServiceDeliveryMode(str, enum.Enum):
+    """Delivery mode for service templates and instances."""
+
+    ONLINE = "online"
+    IN_PERSON = "in_person"
+    HYBRID = "hybrid"
+
+
+class TrainingFormat(str, enum.Enum):
+    """Training delivery format."""
+
+    GROUP = "group"
+    PRIVATE = "private"
+
+
+class TrainingPricingUnit(str, enum.Enum):
+    """Training pricing granularity."""
+
+    PER_PERSON = "per_person"
+    PER_FAMILY = "per_family"
+
+
+class EventCategory(str, enum.Enum):
+    """Event categorization."""
+
+    WORKSHOP = "workshop"
+    WEBINAR = "webinar"
+    OPEN_HOUSE = "open_house"
+    COMMUNITY_MEETUP = "community_meetup"
+    OTHER = "other"
+
+
+class ConsultationFormat(str, enum.Enum):
+    """Consultation delivery format."""
+
+    ONE_ON_ONE = "one_on_one"
+    GROUP = "group"
+
+
+class ConsultationPricingModel(str, enum.Enum):
+    """Consultation pricing model."""
+
+    FREE = "free"
+    HOURLY = "hourly"
+    PACKAGE = "package"
+
+
+class InstanceStatus(str, enum.Enum):
+    """Lifecycle status for a service instance."""
+
+    SCHEDULED = "scheduled"
+    OPEN = "open"
+    FULL = "full"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class DiscountType(str, enum.Enum):
+    """Discount code type."""
+
+    PERCENTAGE = "percentage"
+    ABSOLUTE = "absolute"
+
+
+class EnrollmentStatus(str, enum.Enum):
+    """Lifecycle status for enrollments."""
+
+    REGISTERED = "registered"
+    WAITLISTED = "waitlisted"
+    CONFIRMED = "confirmed"
+    CANCELLED = "cancelled"
+    COMPLETED = "completed"

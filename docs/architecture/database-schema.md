@@ -29,6 +29,20 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
   `lost`.
 - Enum `lead_event_type`: `created`, `stage_changed`, `note_added`, `email_sent`,
   `email_opened`, `guide_downloaded`, `assigned`, `converted`, `lost`.
+- Enum `service_type`: `training_course`, `event`, `consultation`.
+- Enum `service_status`: `draft`, `published`, `archived`.
+- Enum `service_delivery_mode`: `online`, `in_person`, `hybrid`.
+- Enum `training_format`: `group`, `private`.
+- Enum `training_pricing_unit`: `per_person`, `per_family`.
+- Enum `event_category`: `workshop`, `webinar`, `open_house`,
+  `community_meetup`, `other`.
+- Enum `consultation_format`: `one_on_one`, `group`.
+- Enum `consultation_pricing_model`: `free`, `hourly`, `package`.
+- Enum `instance_status`: `scheduled`, `open`, `full`, `in_progress`,
+  `completed`, `cancelled`.
+- Enum `discount_type`: `percentage`, `absolute`.
+- Enum `enrollment_status`: `registered`, `waitlisted`, `confirmed`,
+  `cancelled`, `completed`.
 
 ## Table: assets
 
@@ -216,9 +230,49 @@ Indexes:
 - Constraint `crm_notes_has_parent` enforces that at least one parent reference
   is present.
 
+## Services tables
+
+### `services` + type-detail tables
+
+- `services` stores reusable templates (title/description/cover image, type,
+  delivery mode, status).
+- Type-specific one-to-one extension tables:
+  - `training_course_details`
+  - `event_details`
+  - `consultation_details`
+
+### `service_instances` + schedule/detail tables
+
+- `service_instances` stores dated offerings linked to a `services` template.
+- Template fields can be overridden per instance (`title`, `description`,
+  `cover_image_s3_key`, `delivery_mode`).
+- Scheduling/detail tables:
+  - `instance_session_slots` (time blocks + optional location)
+  - `training_instance_details`
+  - `event_ticket_tiers`
+  - `consultation_instance_details`
+
+### `discount_codes`
+
+- Global, service-scoped, or instance-scoped promo codes.
+- Supports `percentage` and `absolute` discount types with usage limits and
+  optional validity windows.
+
+### `enrollments`
+
+- Registration/booking rows linked to a `service_instances` row.
+- Supports parent linkage to one of contact/family/organization.
+- Optional links to event ticket tiers and discount codes.
+
+### `service_tags` + `service_assets`
+
+- Junction tables for many-to-many links between services and existing `tags`
+  / `assets` rows.
+
 ## Shared update trigger
 
 - Function: `set_updated_at()`.
 - Applied to: `contacts`, `families`, `organizations`, `sales_leads`,
-  `crm_notes`.
+  `crm_notes`, `services`, `service_instances`, `discount_codes`,
+  `enrollments`.
 - Behavior: updates `updated_at` to `now()` before each UPDATE.
