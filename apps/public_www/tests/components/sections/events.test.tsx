@@ -34,6 +34,15 @@ describe('Events section', () => {
     expect(screen.queryByText(enContent.events.eyebrow)).not.toBeInTheDocument();
   });
 
+  it('removes mobile top padding while preserving responsive section spacing', () => {
+    render(<Events content={enContent.events} />);
+
+    const section = document.getElementById('events');
+    expect(section).not.toBeNull();
+    expect(section?.className).toContain('pt-0');
+    expect(section?.className).toContain('sm:pt-[60px]');
+  });
+
   it('renders an orange spinning gear while events load', () => {
     const pendingRequest = vi.fn(() => new Promise<unknown>(() => {}));
     const mockApiClient: CrmApiClient = {
