@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { FormDialog } from '@/components/ui/form-dialog';
+import { formatEnumLabel } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import { SERVICE_TYPES } from '@/types/services';
@@ -106,7 +107,7 @@ export function CreateServiceDialog({
         >
           {SERVICE_TYPES.map((entry) => (
             <option key={entry} value={entry}>
-              {entry}
+              {formatEnumLabel(entry)}
             </option>
           ))}
         </Select>

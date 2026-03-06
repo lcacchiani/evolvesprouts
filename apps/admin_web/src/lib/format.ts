@@ -5,6 +5,57 @@ export function toTitleCase(value: string): string {
     .join(' ');
 }
 
+const DEFAULT_CURRENCY = 'HKD';
+const DEFAULT_CURRENCY_LABEL = 'Hong Kong Dollar';
+
+type CurrencyOption = {
+  value: string;
+  label: string;
+};
+
+let cachedCurrencyOptions: CurrencyOption[] | null = null;
+
+function getCurrencyName(code: string): string {
+  if (typeof Intl.DisplayNames === 'undefined') {
+    return code;
+  }
+
+  try {
+    const displayNames = new Intl.DisplayNames(['en'], { type: 'currency' });
+    return displayNames.of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
+export function formatEnumLabel(value: string): string {
+  return toTitleCase(value.toLowerCase());
+}
+
+export function getCurrencyOptions(): CurrencyOption[] {
+  if (cachedCurrencyOptions) {
+    return cachedCurrencyOptions;
+  }
+
+  const intlWithSupportedValues = globalThis.Intl as unknown as {
+    supportedValuesOf?: (key: 'currency') => string[];
+  };
+  const currencyCodes =
+    intlWithSupportedValues.supportedValuesOf?.('currency')?.map((entry) => entry.toUpperCase()) ??
+    [DEFAULT_CURRENCY];
+
+  const dedupedCodes = Array.from(new Set([DEFAULT_CURRENCY, ...currencyCodes])).sort();
+  const options = dedupedCodes.map((code) => {
+    if (code === DEFAULT_CURRENCY) {
+      return { value: code, label: `${code} ${DEFAULT_CURRENCY_LABEL}` };
+    }
+    return { value: code, label: `${code} ${getCurrencyName(code)}` };
+  });
+
+  cachedCurrencyOptions = options;
+  return options;
+}
+
 export function formatDate(value: string | null): string {
   if (!value) {
     return '—';

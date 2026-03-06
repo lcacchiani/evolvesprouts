@@ -262,7 +262,6 @@ export function Testimonials({ content }: TestimonialsProps) {
               </div>
             </div>
           )}
-
         </div>
         </div>
       </SectionContainer>

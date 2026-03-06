@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { formatEnumLabel } from '@/lib/format';
 
 import { SERVICE_STATUSES, SERVICE_TYPES } from '@/types/services';
 import type { ServiceListFilters, ServiceSummary } from '@/types/services';
@@ -58,7 +59,7 @@ export function ServiceListPanel({
             <option value=''>All types</option>
             {SERVICE_TYPES.map((entry) => (
               <option key={entry} value={entry}>
-                {entry}
+                {formatEnumLabel(entry)}
               </option>
             ))}
           </Select>
@@ -69,7 +70,7 @@ export function ServiceListPanel({
             <option value=''>All statuses</option>
             {SERVICE_STATUSES.map((entry) => (
               <option key={entry} value={entry}>
-                {entry}
+                {formatEnumLabel(entry)}
               </option>
             ))}
           </Select>

@@ -17,7 +17,7 @@
         "href": "/services/my-best-auntie-training-course",
         "children": [
           {
-            "label": "姨姨培訓",
+            "label": "家傭培訓課程",
             "href": "/services/my-best-auntie-training-course"
           }
         ]
@@ -1073,7 +1073,7 @@
     "ctaLabel": "訂閱我們的每月通訊",
     "formSubmitLabel": "加入 Sprouts Squad",
     "ctaHref": "/contact-us",
-    "supportParagraph": "如果你曾感到不知所措、在育兒選擇中感到孤單，或曾安靜地懷疑自己是否足夠好——你屬於這裡。帶著溫暖與同行的心，Ida 🌱",
+    "supportParagraph": "如果你曾感到不知所措、在育兒選擇中感到孤單，或曾安靜地懷疑自己是否足夠好——你屬於這裡。帶著溫暖與同行的心，Ida",
     "emailPlaceholder": "電郵地址",
     "emailValidationMessage": "請輸入有效的電郵地址。",
     "prefilledMessage": "Newsletter join",
@@ -1082,6 +1082,11 @@
     "captchaLoadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
     "captchaUnavailableError": "CAPTCHA 暫時不可用，請稍後再試。",
     "successMessage": "多謝你成為我哋社群的一員！你將會開始收到我哋每月電子通訊。"
+  },
+  "freeIntroSession": {
+    "heading": "準備好畀你嘅助手所需工具未？",
+    "supportParagraph": "預約一節 15 分鐘免費簡介。無需承諾，只係傾下你家庭嘅情況。",
+    "ctaLabel": "喺 WhatsApp 預約免費簡介"
   },
   "whoops": {
     "code": "404",

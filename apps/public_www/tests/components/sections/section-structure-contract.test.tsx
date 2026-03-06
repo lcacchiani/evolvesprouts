@@ -31,6 +31,7 @@ const pageSectionFiles = [
   'my-best-auntie-booking.tsx',
   'my-best-auntie-description.tsx',
   'sprouts-squad-community.tsx',
+  'free-intro-session.tsx',
 ] as const;
 
 function collectAppSourceFiles(targetDirectory: string): string[] {

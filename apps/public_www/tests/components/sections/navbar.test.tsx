@@ -117,7 +117,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(submenu).not.toHaveAttribute('aria-hidden', 'true');
 
     const submenuLink = within(submenu as HTMLElement).getByRole('link', {
-      name: 'Auntie Training',
+      name: 'Helper Training Course',
     });
     expect(
       within(submenu as HTMLElement).queryByRole('link', {
@@ -192,6 +192,8 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const homeLink = within(drawer).getByRole('link', { name: 'Home' });
     expect(homeLink.className).toContain('es-navbar-mobile-pill-reset');
+    expect(homeLink.className).toContain('w-full');
+    expect(homeLink.className).toContain('justify-start');
 
     const trainingCoursesToggle = within(drawer).getByRole('button', {
       name: 'Toggle Services submenu',
