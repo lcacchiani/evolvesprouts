@@ -410,7 +410,7 @@
   }
 
   .es-real-talk-title {
-    color: var(--figma-colors-desktop, #FFFFFF);
+    color: var(--es-color-surface-white, #FFFFFF);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
     font-size: clamp(1.2rem, 2.5vw, 24px);
     font-weight: var(--figma-fontweights-600, 600);
@@ -423,11 +423,18 @@
   }
 
   .es-real-talk-card--green {
-    background-color: var(--es-color-accent-green, #5D9D49);
+    border: 1px solid var(--es-color-border-deep, #564640);
+    background-color: var(--es-color-surface-deep-1, #483C34);
   }
 
   .es-real-talk-card--blue {
-    background-color: var(--figma-colors-frame-2147235242, #174879);
+    border: 1px solid var(--es-color-border-deep, #564640);
+    background-color: var(--es-color-surface-deep-2, #40332A);
+  }
+
+  .es-real-talk-section .es-type-title,
+  .es-real-talk-section .es-type-body-italic {
+    color: var(--es-color-surface-white, #FFFFFF);
   }
 
   .es-my-best-auntie-description-card {
