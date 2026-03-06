@@ -9,7 +9,7 @@ import {
 } from '@/lib/assets-api';
 import type { AssetGrant, CreateAssetGrantInput } from '@/types/assets';
 
-import { toAdminAssetErrorMessage } from './admin-assets-errors';
+import { toErrorMessage } from './hook-errors';
 
 export interface UseAssetGrantsReturn {
   grants: AssetGrant[];
@@ -40,7 +40,7 @@ export function useAssetGrants(selectedAssetId: string | null): UseAssetGrantsRe
       const nextGrants = await listAdminAssetGrants(assetId);
       setGrants(nextGrants);
     } catch (error) {
-      setGrantsError(toAdminAssetErrorMessage(error, 'Failed to load grants.'));
+      setGrantsError(toErrorMessage(error, 'Failed to load grants.'));
     } finally {
       setIsLoadingGrants(false);
     }
@@ -65,7 +65,7 @@ export function useAssetGrants(selectedAssetId: string | null): UseAssetGrantsRe
         await createAdminAssetGrant(assetId, input);
         await refreshGrants(assetId);
       } catch (error) {
-        setGrantMutationError(toAdminAssetErrorMessage(error, 'Failed to create grant.'));
+        setGrantMutationError(toErrorMessage(error, 'Failed to create grant.'));
         throw error;
       } finally {
         setIsSavingGrant(false);
@@ -82,7 +82,7 @@ export function useAssetGrants(selectedAssetId: string | null): UseAssetGrantsRe
       await deleteAdminAssetGrant(assetId, grantId);
       setGrants((previous) => previous.filter((grant) => grant.id !== grantId));
     } catch (error) {
-      setGrantMutationError(toAdminAssetErrorMessage(error, 'Failed to delete grant.'));
+      setGrantMutationError(toErrorMessage(error, 'Failed to delete grant.'));
       throw error;
     } finally {
       setIsDeletingGrantId(null);

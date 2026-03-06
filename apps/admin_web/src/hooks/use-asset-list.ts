@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { listAdminAssets } from '@/lib/assets-api';
 import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
 
-import { toAdminAssetErrorMessage } from './admin-assets-errors';
+import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
 
 type Filters = Pick<ListAdminAssetsInput, 'query' | 'visibility'>;
@@ -93,7 +93,7 @@ export function useAssetList(): UseAssetListReturn {
       if (requestId !== latestRefreshRequestIdRef.current) {
         return;
       }
-      setAssetsError(toAdminAssetErrorMessage(error, 'Failed to load assets.'));
+      setAssetsError(toErrorMessage(error, 'Failed to load assets.'));
     } finally {
       if (requestId === latestRefreshRequestIdRef.current) {
         setIsLoadingAssets(false);
@@ -120,7 +120,7 @@ export function useAssetList(): UseAssetListReturn {
       setAssets((previous) => [...previous, ...response.items]);
       setNextCursor(response.nextCursor);
     } catch (error) {
-      setAssetsError(toAdminAssetErrorMessage(error, 'Failed to load more assets.'));
+      setAssetsError(toErrorMessage(error, 'Failed to load more assets.'));
     } finally {
       setIsLoadingMoreAssets(false);
     }

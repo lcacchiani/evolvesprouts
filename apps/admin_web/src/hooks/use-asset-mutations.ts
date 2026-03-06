@@ -10,7 +10,7 @@ import {
 } from '@/lib/assets-api';
 import type { AdminAsset, CreatedAssetUpload, UpsertAdminAssetInput } from '@/types/assets';
 
-import { toAdminAssetErrorMessage } from './admin-assets-errors';
+import { toErrorMessage } from './hook-errors';
 
 type UploadState = 'idle' | 'uploading' | 'failed' | 'succeeded';
 
@@ -90,10 +90,10 @@ export function useAssetMutations({
           setPendingUpload(null);
         } catch (uploadFailure) {
           setUploadState('failed');
-          setUploadError(toAdminAssetErrorMessage(uploadFailure, 'File upload failed.'));
+          setUploadError(toErrorMessage(uploadFailure, 'File upload failed.'));
         }
       } catch (error) {
-        setAssetMutationError(toAdminAssetErrorMessage(error, 'Failed to create asset.'));
+        setAssetMutationError(toErrorMessage(error, 'Failed to create asset.'));
         throw error;
       } finally {
         setIsSavingAsset(false);
@@ -114,7 +114,7 @@ export function useAssetMutations({
         const updatedAsset = await updateAdminAsset(assetId, input);
         await applyUpdatedAsset(assetId, updatedAsset);
       } catch (error) {
-        setAssetMutationError(toAdminAssetErrorMessage(error, 'Failed to update asset.'));
+        setAssetMutationError(toErrorMessage(error, 'Failed to update asset.'));
         throw error;
       } finally {
         setIsSavingAsset(false);
@@ -135,7 +135,7 @@ export function useAssetMutations({
         await deleteAdminAsset(assetId);
         applyDeletedAsset(assetId);
       } catch (error) {
-        setAssetMutationError(toAdminAssetErrorMessage(error, 'Failed to delete asset.'));
+        setAssetMutationError(toErrorMessage(error, 'Failed to delete asset.'));
         throw error;
       } finally {
         setIsDeletingAssetId(null);
@@ -163,7 +163,7 @@ export function useAssetMutations({
       setPendingUpload(null);
     } catch (error) {
       setUploadState('failed');
-      setUploadError(toAdminAssetErrorMessage(error, 'File upload failed.'));
+      setUploadError(toErrorMessage(error, 'File upload failed.'));
     }
   }, [pendingUpload]);
 
