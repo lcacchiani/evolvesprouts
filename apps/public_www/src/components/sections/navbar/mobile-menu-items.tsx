@@ -11,7 +11,7 @@ type SubmenuItem = NonNullable<MenuItem['children']>[number];
 const NAV_SUBMENU_LINK_CLASSNAME = '';
 const NAV_MOBILE_PILL_RESET_CLASSNAME = 'es-navbar-mobile-pill-reset';
 const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
-  `w-full ${NAV_MOBILE_PILL_RESET_CLASSNAME}`;
+  `w-full justify-start transition-colors ${NAV_MOBILE_PILL_RESET_CLASSNAME}`;
 export const MOBILE_PRIMARY_ACTION_CLASSNAME =
   `w-full justify-between transition-colors ${NAV_MOBILE_PILL_RESET_CLASSNAME}`;
 const NAV_MOBILE_CHEVRON_ICON_SRC = '/images/chevron.svg';
