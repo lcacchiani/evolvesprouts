@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from uuid import UUID
 
@@ -163,3 +164,92 @@ class _FakeContactForMailchimp:
     ) -> None:
         self.mailchimp_status = mailchimp_status
         self.mailchimp_subscriber_id = mailchimp_subscriber_id
+
+
+def test_process_message_uses_keyword_session_for_contact_tag(
+    monkeypatch: Any,
+) -> None:
+    handler = _load_handler_module()
+    contact = SimpleNamespace(
+        id=UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+        email="parent@example.com",
+        mailchimp_status=MailchimpSyncStatus.SYNCED,
+        mailchimp_subscriber_id="subscriber-123",
+    )
+    existing_lead = SimpleNamespace(id=UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
+    ensure_tag_calls: list[tuple[Any, UUID, str]] = []
+
+    class _FakeSession:
+        def __init__(self, _engine: Any):
+            self.committed = False
+
+        def __enter__(self) -> _FakeSession:
+            return self
+
+        def __exit__(self, _exc_type: Any, _exc: Any, _tb: Any) -> None:
+            return None
+
+        def commit(self) -> None:
+            self.committed = True
+
+    class _FakeContactRepository:
+        def __init__(self, _session: Any):
+            pass
+
+        def upsert_by_email(
+            self,
+            _email: str,
+            *,
+            first_name: str,
+            source: Any,
+            source_detail: str,
+            contact_type: Any,
+        ) -> tuple[Any, bool]:
+            _ = (first_name, source, source_detail, contact_type)
+            return contact, False
+
+    class _FakeSalesLeadRepository:
+        def __init__(self, _session: Any):
+            pass
+
+        def find_by_contact_and_asset(
+            self,
+            _contact_id: UUID,
+            _lead_type: Any,
+            _asset_id: UUID,
+        ) -> Any:
+            return existing_lead
+
+    def _fake_ensure_contact_tag(*, session: Any, contact_id: UUID, tag_name: str) -> None:
+        ensure_tag_calls.append((session, contact_id, tag_name))
+
+    monkeypatch.setattr(handler, "get_engine", lambda: object())
+    monkeypatch.setattr(handler, "Session", _FakeSession)
+    monkeypatch.setattr(handler, "ContactRepository", _FakeContactRepository)
+    monkeypatch.setattr(handler, "SalesLeadRepository", _FakeSalesLeadRepository)
+    monkeypatch.setattr(
+        handler,
+        "_resolve_media_resource",
+        lambda *, session, message: (
+            "sleep-routines",
+            UUID("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+            "public-www-media-sleep-routines-requested",
+            "Sleep Routines Guide",
+        ),
+    )
+    monkeypatch.setattr(handler, "_ensure_contact_tag", _fake_ensure_contact_tag)
+
+    was_processed = handler._process_message(
+        {
+            "first_name": "Parent",
+            "email": "parent@example.com",
+            "submitted_at": "2026-03-03T03:14:00+00:00",
+        }
+    )
+
+    assert was_processed is False
+    assert len(ensure_tag_calls) == 1
+    session_arg, contact_id_arg, tag_name_arg = ensure_tag_calls[0]
+    assert isinstance(session_arg, _FakeSession)
+    assert contact_id_arg == contact.id
+    assert tag_name_arg == "public-www-media-sleep-routines-requested"

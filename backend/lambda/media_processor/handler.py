@@ -120,7 +120,11 @@ def _process_message(message: dict[str, Any]) -> bool:
             asset_id,
         )
         if existing_lead is not None:
-            _ensure_contact_tag(session, contact_id=contact.id, tag_name=tag_name)
+            _ensure_contact_tag(
+                session=session,
+                contact_id=contact.id,
+                tag_name=tag_name,
+            )
             should_retry_sync = _should_retry_mailchimp_sync(contact)
             was_mailchimp_synced = False
             if should_retry_sync:
@@ -164,7 +168,11 @@ def _process_message(message: dict[str, Any]) -> bool:
             created_by=_SYSTEM_ACTOR,
         )
 
-        _ensure_contact_tag(session, contact_id=contact.id, tag_name=tag_name)
+        _ensure_contact_tag(
+            session=session,
+            contact_id=contact.id,
+            tag_name=tag_name,
+        )
         was_mailchimp_synced = _sync_contact_to_mailchimp(
             contact=contact,
             first_name=first_name,
