@@ -36,7 +36,8 @@
       }
     ],
     "bookNow": {
-      "label": "Book your Free Intro Session"
+      "label": "Book your Free Intro Session",
+      "prefillMessage": "Hi, I'd like to book a free session!"
     },
     "languageSelector": {
       "menuAriaLabel": "Select language",

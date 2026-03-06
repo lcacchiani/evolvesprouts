@@ -36,7 +36,8 @@
       }
     ],
     "bookNow": {
-      "label": "預約免費入門諮詢"
+      "label": "預約免費入門諮詢",
+      "prefillMessage": "你好，我想預約一節免費諮詢！"
     },
     "languageSelector": {
       "menuAriaLabel": "選擇語言",

@@ -36,7 +36,8 @@
       }
     ],
     "bookNow": {
-      "label": "预约免费入门咨询"
+      "label": "预约免费入门咨询",
+      "prefillMessage": "你好，我想预约一个免费咨询！"
     },
     "languageSelector": {
       "menuAriaLabel": "选择语言",
