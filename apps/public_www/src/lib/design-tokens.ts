@@ -6,6 +6,7 @@ export const TOKEN_FALLBACK_HEX = {
   '--es-color-brand-peach-border': '#EECAB0',
   '--es-color-booking-highlight-icon': '#B42318',
   '--es-color-border-date': '#CAD6E5',
+  '--es-color-surface-deep': '#3A1F23',
   '--es-color-surface-white': '#FFFFFF',
   '--es-color-text-heading': '#333333',
   '--es-color-text-icon': '#3D3E3D',

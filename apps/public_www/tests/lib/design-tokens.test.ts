@@ -16,6 +16,7 @@ describe('design tokens constants', () => {
     expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange']).toBe('#C84A16');
     expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange-soft']).toBe('#F2A975');
     expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange-strong']).toBe('#ED622E');
+    expect(TOKEN_FALLBACK_HEX['--es-color-surface-deep']).toBe('#3A1F23');
   });
 
   it('builds CSS var expressions with stable fallback values', () => {
