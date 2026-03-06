@@ -2,6 +2,7 @@
 
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { formatEnumLabel } from '@/lib/format';
 
 import { EVENT_CATEGORIES } from '@/types/services';
 import type { EventCategory } from '@/types/services';
@@ -26,7 +27,7 @@ export function EventFormFields({ value, onChange }: EventFormFieldsProps) {
       >
         {EVENT_CATEGORIES.map((entry) => (
           <option key={entry} value={entry}>
-            {entry}
+            {formatEnumLabel(entry)}
           </option>
         ))}
       </Select>

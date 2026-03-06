@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { formatEnumLabel } from '@/lib/format';
 
 import { SERVICE_STATUSES } from '@/types/services';
 import type { ServiceDetail, ServiceStatus } from '@/types/services';
@@ -72,7 +73,7 @@ export function ServiceDetailPanel({
             >
               {SERVICE_STATUSES.map((entry) => (
                 <option key={entry} value={entry}>
-                  {entry}
+                  {formatEnumLabel(entry)}
                 </option>
               ))}
             </Select>

@@ -3,6 +3,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 import { TRAINING_PRICING_UNITS } from '@/types/services';
 import type { TrainingPricingUnit } from '@/types/services';
@@ -19,6 +20,8 @@ export interface TrainingFormFieldsProps {
 }
 
 export function TrainingFormFields({ value, onChange }: TrainingFormFieldsProps) {
+  const currencyOptions = getCurrencyOptions();
+
   return (
     <div className='space-y-3'>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
@@ -33,7 +36,7 @@ export function TrainingFormFields({ value, onChange }: TrainingFormFieldsProps)
           >
             {TRAINING_PRICING_UNITS.map((entry) => (
               <option key={entry} value={entry}>
-                {entry}
+                {formatEnumLabel(entry)}
               </option>
             ))}
           </Select>
@@ -49,12 +52,17 @@ export function TrainingFormFields({ value, onChange }: TrainingFormFieldsProps)
         </div>
         <div>
           <Label htmlFor='training-default-currency'>Currency</Label>
-          <Input
+          <Select
             id='training-default-currency'
             value={value.defaultCurrency}
-            onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value.toUpperCase() })}
-            placeholder='HKD'
-          />
+            onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value })}
+          >
+            {currencyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         </div>
       </div>
     </div>
