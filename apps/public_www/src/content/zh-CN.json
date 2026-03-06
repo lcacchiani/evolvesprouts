@@ -68,11 +68,12 @@
     "mobileNavigationMenuAriaLabel": "移动端导航菜单"
   },
   "hero": {
-    "headline": "将阿姨培养成你孩子的蒙特梭利成长伙伴",
-    "subheadline": "通过每天照顾孩子的人，帮助香港孩子成长。",
-    "cta": "预约免费入门咨询",
+    "headline": "你的阿姨很爱你的孩子，但她需要工具，才能按你的方式养育他们。",
+    "subheadline": "不责备，不评判。只提供每个香港家庭都值得拥有的实用培训。",
+    "cta": "为你的阿姨报名",
+    "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "你好，我想预约一个免费咨询！",
-    "supportingParagraph": "通过蒙特梭利与正向教育支持香港家庭，培训阿姨陪伴孩子成长。"
+    "supportingParagraph": "深受全港家庭信赖。AMI 蒙特梭利认证。为真实生活而设计。"
   },
   "seo": {
     "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利阿姨培训",

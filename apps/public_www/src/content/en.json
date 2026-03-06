@@ -68,11 +68,12 @@
     "mobileNavigationMenuAriaLabel": "Mobile navigation menu"
   },
   "hero": {
-    "headline": "Transform Auntie Into Your Child’s Montessori Ally",
-    "subheadline": "Helping Hong Kong children grow — through the people who care for them every day.",
-    "cta": "Book your Free Intro Session",
+    "headline": "Your auntie loves your child. But she needs the tools to raise them your way.",
+    "subheadline": "No blame. No judgment. Just the practical training every family in Hong Kong deserves.",
+    "cta": "Enrol your helper",
+    "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "Hi, I'd like to book a free session!",
-    "supportingParagraph": "Supporting families in Hong Kong through Montessori & Positive Education. Training aunties to nurture children’s growth."
+    "supportingParagraph": "Trusted by families across Hong Kong. AMI Montessori-certified. Designed for real life."
   },
   "seo": {
     "fallbackTitle": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
