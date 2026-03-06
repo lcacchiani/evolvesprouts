@@ -10,6 +10,7 @@ interface UseHorizontalCarouselOptions {
   scrollThresholdPx?: number;
   scrollStepRatio?: number;
   minScrollStepPx?: number;
+  loop?: boolean;
 }
 
 interface UseHorizontalCarouselResult<T extends HTMLElement> {
@@ -52,6 +53,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
   scrollThresholdPx = DEFAULT_SCROLL_THRESHOLD_PX,
   scrollStepRatio = DEFAULT_SCROLL_STEP_RATIO,
   minScrollStepPx = DEFAULT_MIN_SCROLL_STEP_PX,
+  loop = false,
 }: UseHorizontalCarouselOptions): UseHorizontalCarouselResult<T> {
   const carouselRef = useRef<T | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -74,17 +76,48 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       return;
     }
 
+    if (loop) {
+      setCanScrollPrevious(true);
+      setCanScrollNext(true);
+      return;
+    }
+
     setCanScrollPrevious(carouselElement.scrollLeft > scrollThresholdPx);
     setCanScrollNext(
       carouselElement.scrollLeft < maxScrollLeft - scrollThresholdPx,
     );
-  }, [hasNavigation, scrollThresholdPx]);
+  }, [hasNavigation, loop, scrollThresholdPx]);
 
   const scrollByDirection = useCallback(
     (direction: ScrollDirection) => {
       const carouselElement = carouselRef.current;
       if (!carouselElement) {
         return;
+      }
+
+      const maxScrollLeft = carouselElement.scrollWidth - carouselElement.clientWidth;
+      if (loop && maxScrollLeft > scrollThresholdPx) {
+        if (
+          direction === 'prev' &&
+          carouselElement.scrollLeft <= scrollThresholdPx
+        ) {
+          carouselElement.scrollTo({
+            left: maxScrollLeft,
+            behavior: 'smooth',
+          });
+          return;
+        }
+
+        if (
+          direction === 'next' &&
+          carouselElement.scrollLeft >= maxScrollLeft - scrollThresholdPx
+        ) {
+          carouselElement.scrollTo({
+            left: 0,
+            behavior: 'smooth',
+          });
+          return;
+        }
       }
 
       if (direction === 'prev' && !canScrollPrevious) {
@@ -109,8 +142,10 @@ export function useHorizontalCarousel<T extends HTMLElement>({
     [
       canScrollNext,
       canScrollPrevious,
+      loop,
       minScrollStepPx,
       scrollStepRatio,
+      scrollThresholdPx,
     ],
   );
 

@@ -34,6 +34,8 @@ describe('MyBestAuntieDescription section', () => {
     expect(header.className).toContain('md:flex-row');
     expect(header.className).toContain('md:items-end');
     expect(controls.parentElement).toBe(header);
+    expect(controls.className).toContain('hidden');
+    expect(controls.className).toContain('md:flex');
   });
 
   it('renders highlight cards without box shadow', () => {

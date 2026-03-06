@@ -5,7 +5,6 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type { RealTalkContent } from '@/content';
 import enContent from '@/content/en.json';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
@@ -30,28 +29,6 @@ const orderedCardIds = [
   'rules-change-when-i-leave',
   'out-of-ideas',
 ] as const;
-
-function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
-  const rotationClass = direction === 'left' ? 'rotate-180' : '';
-
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 24 24'
-      className={`h-7 w-7 es-text-icon ${rotationClass}`}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M8 4L16 12L8 20'
-        stroke='currentColor'
-        strokeWidth='2.4'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  );
-}
 
 function getRealTalkCards(content: RealTalkContent): RealTalkCardCopy[] {
   const activeItems = content.items.length > 0
@@ -81,22 +58,13 @@ export function RealTalk({ content }: RealTalkProps) {
   const sectionEyebrow = content.eyebrow || fallbackRealTalkCopy.eyebrow;
   const ctaLabel = content.ctaLabel || fallbackRealTalkCopy.ctaLabel;
   const ctaHref = content.ctaHref || fallbackRealTalkCopy.ctaHref;
-  const scrollLeftAriaLabel = content.scrollLeftAriaLabel.trim();
-  const scrollRightAriaLabel = content.scrollRightAriaLabel.trim();
   const realTalkCards = getRealTalkCards(content);
   const {
     carouselRef,
-    hasNavigation: hasCarouselNavigation,
-    canScrollPrevious,
-    canScrollNext,
-    scrollByDirection,
   } = useHorizontalCarousel<HTMLUListElement>({
     itemCount: realTalkCards.length,
+    loop: true,
   });
-
-  function handleCarouselNavigation(direction: 'prev' | 'next') {
-    scrollByDirection(direction);
-  }
 
   return (
     <SectionShell
@@ -140,32 +108,6 @@ export function RealTalk({ content }: RealTalkProps) {
               })}
             </ul>
           </div>
-
-          {hasCarouselNavigation && canScrollPrevious && (
-            <ButtonPrimitive
-              variant='control'
-              onClick={() => {
-                handleCarouselNavigation('prev');
-              }}
-              aria-label={scrollLeftAriaLabel}
-              className='absolute left-0 top-1/2 z-20 -translate-x-1/3 -translate-y-1/2 md:hidden'
-            >
-              <ArrowIcon direction='left' />
-            </ButtonPrimitive>
-          )}
-
-          {hasCarouselNavigation && canScrollNext && (
-            <ButtonPrimitive
-              variant='control'
-              onClick={() => {
-                handleCarouselNavigation('next');
-              }}
-              aria-label={scrollRightAriaLabel}
-              className='absolute right-0 top-1/2 z-20 translate-x-1/3 -translate-y-1/2 md:hidden'
-            >
-              <ArrowIcon direction='right' />
-            </ButtonPrimitive>
-          )}
         </div>
 
         {sectionDescription && (

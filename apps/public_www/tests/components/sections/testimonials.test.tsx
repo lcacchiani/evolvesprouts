@@ -29,7 +29,7 @@ describe('Testimonials section', () => {
     const mobileControls = container.querySelector(
       '[data-css-fallback="hide-when-css-missing"]',
     );
-    expect(mobileControls).not.toBeNull();
+    expect(mobileControls).toBeNull();
 
     const firstStory = enContent.testimonials.items[0];
     const firstStoryImage = screen.getByAltText(

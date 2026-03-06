@@ -183,6 +183,7 @@ export function MyBestAuntieBooking({
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: dateOptions.length,
     minItemsForNavigation: 3,
+    loop: false,
   });
 
   const selectedAgeOption =
@@ -368,7 +369,7 @@ export function MyBestAuntieBooking({
                       handleDateCarouselNavigation('prev');
                     }}
                     aria-label='Scroll dates left'
-                    className='absolute left-0 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2'
+                    className='absolute left-0 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 md:flex'
                   >
                     <DateArrowIcon direction='left' />
                   </ButtonPrimitive>
@@ -381,7 +382,7 @@ export function MyBestAuntieBooking({
                       handleDateCarouselNavigation('next');
                     }}
                     aria-label='Scroll dates right'
-                    className='absolute right-0 top-1/2 z-20 translate-x-1/2 -translate-y-1/2'
+                    className='absolute right-0 top-1/2 z-20 hidden translate-x-1/2 -translate-y-1/2 md:flex'
                   >
                     <DateArrowIcon direction='right' />
                   </ButtonPrimitive>

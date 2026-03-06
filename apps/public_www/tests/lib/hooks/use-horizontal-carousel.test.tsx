@@ -7,11 +7,13 @@ import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 interface HarnessProps {
   itemCount: number;
   minItemsForNavigation?: number;
+  loop?: boolean;
 }
 
 function HookHarness({
   itemCount,
   minItemsForNavigation,
+  loop,
 }: HarnessProps) {
   const {
     carouselRef,
@@ -23,6 +25,7 @@ function HookHarness({
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount,
     minItemsForNavigation,
+    loop,
   });
   const targetRef = useRef<HTMLDivElement | null>(null);
 
@@ -60,6 +63,9 @@ function defineTrackMetrics(track: HTMLElement, metrics: {
   const scrollBySpy = vi.fn(({ left }: { left: number }) => {
     scrollLeft += left;
   });
+  const scrollToSpy = vi.fn(({ left }: { left: number }) => {
+    scrollLeft = left;
+  });
 
   Object.defineProperty(track, 'clientWidth', {
     configurable: true,
@@ -80,9 +86,14 @@ function defineTrackMetrics(track: HTMLElement, metrics: {
     configurable: true,
     value: scrollBySpy,
   });
+  Object.defineProperty(track, 'scrollTo', {
+    configurable: true,
+    value: scrollToSpy,
+  });
 
   return {
     scrollBySpy,
+    scrollToSpy,
     setScrollLeft: (value: number) => {
       scrollLeft = value;
     },
@@ -137,6 +148,36 @@ describe('useHorizontalCarousel', () => {
 
     expect(scrollBySpy).toHaveBeenCalledWith({
       left: 400,
+      behavior: 'smooth',
+    });
+  });
+
+  it('loops from start/end boundaries when loop mode is enabled', async () => {
+    render(<HookHarness itemCount={5} loop />);
+
+    const track = screen.getByTestId('track');
+    const { scrollToSpy, setScrollLeft } = defineTrackMetrics(track, {
+      clientWidth: 400,
+      scrollWidth: 1000,
+      initialScrollLeft: 0,
+    });
+
+    fireEvent(window, new Event('resize'));
+    await waitFor(() => {
+      expect(screen.getByTestId('state')).toHaveTextContent('true|true|true');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Scroll previous' }));
+    expect(scrollToSpy).toHaveBeenCalledWith({
+      left: 600,
+      behavior: 'smooth',
+    });
+
+    setScrollLeft(600);
+    fireEvent.scroll(track);
+    fireEvent.click(screen.getByRole('button', { name: 'Scroll next' }));
+    expect(scrollToSpy).toHaveBeenCalledWith({
+      left: 0,
       behavior: 'smooth',
     });
   });

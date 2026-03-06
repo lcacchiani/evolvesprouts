@@ -282,29 +282,6 @@ export function Testimonials({ content }: TestimonialsProps) {
             </article>
           </div>
 
-          {hasMultipleStories && (
-            <div
-              data-css-fallback='hide-when-css-missing'
-              className='flex items-center justify-center gap-[14px] px-6 pb-6 pt-5 sm:gap-[18px] sm:px-9 lg:hidden'
-            >
-              <ButtonPrimitive
-                variant='control'
-                onClick={goToPreviousStory}
-                aria-label={previousButtonLabel}
-                className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-              >
-                <ChevronIcon direction='left' />
-              </ButtonPrimitive>
-              <ButtonPrimitive
-                variant='control'
-                onClick={goToNextStory}
-                aria-label={nextButtonLabel}
-                className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-              >
-                <ChevronIcon direction='right' />
-              </ButtonPrimitive>
-            </div>
-          )}
         </div>
         </div>
       </SectionContainer>

@@ -80,6 +80,7 @@ export function MyBestAuntieDescription({
     scrollByDirection,
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: cards.length,
+    loop: false,
   });
 
   return (
@@ -104,7 +105,7 @@ export function MyBestAuntieDescription({
           {hasMultipleCards && (
             <div
               data-testid='my-best-auntie-description-controls'
-              className='flex gap-3 self-end md:self-auto md:pb-2'
+              className='hidden gap-3 self-end md:flex md:self-auto md:pb-2'
             >
               <ButtonPrimitive
                 variant='control'

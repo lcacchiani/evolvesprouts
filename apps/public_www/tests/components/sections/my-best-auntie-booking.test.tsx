@@ -409,6 +409,8 @@ describe('MyBestAuntieBooking section', () => {
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     const rightArrow = screen.getByLabelText('Scroll dates right');
     expect(rightArrow.className).toContain('absolute');
+    expect(rightArrow.className).toContain('hidden');
+    expect(rightArrow.className).toContain('md:flex');
     expect(rightArrow.className).toContain('right-0');
     expect(rightArrow.className).toContain('translate-x-1/2');
 
@@ -416,6 +418,8 @@ describe('MyBestAuntieBooking section', () => {
 
     const leftArrow = screen.getByLabelText('Scroll dates left');
     expect(leftArrow.className).toContain('absolute');
+    expect(leftArrow.className).toContain('hidden');
+    expect(leftArrow.className).toContain('md:flex');
     expect(leftArrow.className).toContain('left-0');
     expect(leftArrow.className).toContain('-translate-x-1/2');
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
