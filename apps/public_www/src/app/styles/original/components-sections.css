@@ -280,6 +280,54 @@
     border-color: var(--es-color-text-danger, #B42318);
   }
 
+  .es-free-intro-session-section {
+    position: relative;
+    padding-bottom: 0;
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+    background-image: url('/images/sprouts-squad-community-bg.webp');
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  .es-free-intro-session-overlay {
+    background: radial-gradient(
+      circle at center top,
+      rgba(255, 255, 255, 0) 15%,
+      rgba(255, 238, 227, 0.74) 68%
+    );
+  }
+
+  .es-free-intro-session-logo {
+    filter: sepia(1) opacity(50%) saturate(150%);
+    margin-bottom: -60px;
+    margin-left: -45px;
+    mask-image: linear-gradient(to bottom, black 50%, transparent 63%);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black 50%,
+      transparent 63%
+    );
+  }
+
+  .es-free-intro-session-heading {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-weight: var(--figma-fontweights-700, 700);
+    letter-spacing: calc(
+      var(--figma-letterspacing-join-our-sprouts-squad-community, 0.77) * 1px
+    );
+  }
+
+  .es-free-intro-session-support-paragraph {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-weight: var(--figma-fontweights-400, 400);
+    font-size: clamp(1rem, 1.8vw, 19px);
+    line-height: clamp(1.45rem, 2.6vw, 33px);
+    letter-spacing: 0.4px;
+  }
+
   .es-why-us-section,
   .es-course-highlights-section,
   .es-my-best-auntie-description-section,
@@ -1237,7 +1285,8 @@
   .es-real-talk-section,
   .es-free-resources-section,
   .es-testimonials-section,
-  .es-sprouts-community-section {
+  .es-sprouts-community-section,
+  .es-free-intro-session-section {
     content-visibility: auto;
     contain-intrinsic-size: auto 600px;
   }

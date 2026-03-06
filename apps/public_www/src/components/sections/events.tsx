@@ -137,7 +137,7 @@ export function Events({ content, locale = 'en' }: EventsProps) {
       id='events'
       ariaLabel={content.title}
       dataFigmaNode='events'
-      className='es-events-section'
+      className='es-events-section pt-0 sm:pt-[60px]'
     >
       <SectionContainer>
         <SectionHeader

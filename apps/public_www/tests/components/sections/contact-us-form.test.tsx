@@ -112,7 +112,7 @@ describe('ContactUsForm section', () => {
     expect(decorativeLayer?.getAttribute('style')).toBeNull();
   });
 
-  it('does not apply horizontal padding to the left content column', () => {
+  it('removes mobile top padding from the left content column', () => {
     renderContactUsForm();
 
     const splitLayout = document.querySelector(
@@ -122,7 +122,10 @@ describe('ContactUsForm section', () => {
 
     const leftColumn = splitLayout?.firstElementChild as HTMLDivElement | null;
     expect(leftColumn).not.toBeNull();
-    expect(leftColumn?.className).toContain('py-8');
+    expect(leftColumn?.className).toContain('pb-8');
+    expect(leftColumn?.className).toContain('lg:pt-[25%]');
+    expect(leftColumn?.className).not.toContain('py-8');
+    expect(leftColumn?.className).not.toContain('pt-8');
     expect(leftColumn?.className).not.toContain('px-6');
     expect(leftColumn?.className).not.toContain('sm:px-8');
     expect(leftColumn?.className).not.toContain('lg:px-10');
