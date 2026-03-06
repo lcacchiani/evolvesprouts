@@ -2341,9 +2341,20 @@ export interface components {
             instructor_id?: string | null;
             notes?: string | null;
             session_slots?: components["schemas"]["SessionSlot"][];
-            training_details?: Record<string, never> | null;
+            training_details?: {
+                training_format?: components["schemas"]["TrainingFormat"];
+                price?: string;
+                currency?: string;
+                pricing_unit?: components["schemas"]["TrainingPricingUnit"];
+            } | null;
             event_ticket_tiers?: components["schemas"]["EventTicketTier"][];
-            consultation_details?: Record<string, never> | null;
+            consultation_details?: {
+                pricing_model?: components["schemas"]["ConsultationPricingModel"];
+                price?: string | null;
+                currency?: string;
+                package_sessions?: number | null;
+                calendly_event_url?: string | null;
+            } | null;
         };
         UpdateInstanceRequest: WithRequired<components["schemas"]["CreateInstanceRequest"], "status">;
         Enrollment: {

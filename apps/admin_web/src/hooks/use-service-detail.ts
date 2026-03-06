@@ -1,48 +1,5 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-
-import { getService } from '@/lib/services-api';
-import type { ServiceDetail } from '@/types/services';
-
-import { toErrorMessage } from './hook-errors';
-
-export function useServiceDetail(serviceId: string | null) {
-  const [service, setService] = useState<ServiceDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const refetch = useCallback(async () => {
-    if (!serviceId) {
-      setService(null);
-      setError('');
-      return;
-    }
-    setIsLoading(true);
-    setError('');
-    try {
-      const response = await getService(serviceId);
-      setService(response);
-    } catch (err) {
-      setError(toErrorMessage(err, 'Failed to load service detail.'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [serviceId]);
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
-
-  return {
-    service,
-    isLoading,
-    error,
-    refetch,
-  };
-}
-'use client';
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getService } from '@/lib/services-api';

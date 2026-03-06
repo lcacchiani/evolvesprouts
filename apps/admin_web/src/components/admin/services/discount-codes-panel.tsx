@@ -27,7 +27,7 @@ export interface DiscountCodesPanelProps {
     value: DiscountCodeFilters[TKey]
   ) => void;
   onLoadMore: () => Promise<void> | void;
-  onCreate: (payload: ApiSchemas['CreateDiscountCodeRequest']) => Promise<void> | void;
+  onCreate: (payload: ApiSchemas['CreateDiscountCodeRequest']) => Promise<unknown> | void;
   onDelete: (codeId: string) => Promise<void> | void;
 }
 
