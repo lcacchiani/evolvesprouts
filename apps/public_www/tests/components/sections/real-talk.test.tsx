@@ -1,47 +1,11 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { RealTalk } from '@/components/sections/real-talk';
 import enContent from '@/content/en.json';
 
-function defineCarouselMetrics(carousel: HTMLElement, metrics: {
-  clientWidth: number;
-  scrollWidth: number;
-  initialScrollLeft?: number;
-}) {
-  let scrollLeft = metrics.initialScrollLeft ?? 0;
-
-  Object.defineProperty(carousel, 'clientWidth', {
-    configurable: true,
-    get: () => metrics.clientWidth,
-  });
-  Object.defineProperty(carousel, 'scrollWidth', {
-    configurable: true,
-    get: () => metrics.scrollWidth,
-  });
-  Object.defineProperty(carousel, 'scrollLeft', {
-    configurable: true,
-    get: () => scrollLeft,
-    set: (value: number) => {
-      scrollLeft = value;
-    },
-  });
-  Object.defineProperty(carousel, 'scrollBy', {
-    configurable: true,
-    value: ({ left }: { left: number }) => {
-      scrollLeft += left;
-    },
-  });
-
-  return {
-    setScrollLeft: (value: number) => {
-      scrollLeft = value;
-    },
-  };
-}
-
 describe('RealTalk', () => {
-  it('falls back to default copy, keeps title-only cards, and enables mobile carousel controls', async () => {
+  it('falls back to default copy, keeps title-only cards, and keeps mobile carousel swipe-only', () => {
     const sparseContent = {
       ...enContent.realTalk,
       eyebrow: '',
@@ -79,30 +43,11 @@ describe('RealTalk', () => {
     expect(carousel.querySelectorAll('img')).toHaveLength(0);
     expect(carousel.className).toContain('snap-mandatory');
     expect(carousel.className).toContain('overflow-x-auto');
-
-    const { setScrollLeft } = defineCarouselMetrics(carousel, {
-      clientWidth: 320,
-      scrollWidth: 1240,
-      initialScrollLeft: 0,
-    });
-
-    fireEvent(window, new Event('resize'));
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: 'Scroll real talk right' }),
-      ).toBeInTheDocument();
-    });
     expect(
       screen.queryByRole('button', { name: 'Scroll real talk left' }),
     ).not.toBeInTheDocument();
-
-    setScrollLeft(420);
-    fireEvent.scroll(carousel);
-
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: 'Scroll real talk left' }),
-      ).toBeInTheDocument();
-    });
+    expect(
+      screen.queryByRole('button', { name: 'Scroll real talk right' }),
+    ).not.toBeInTheDocument();
   });
 });
