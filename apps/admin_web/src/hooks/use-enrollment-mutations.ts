@@ -1,12 +1,12 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { createEnrollment, deleteEnrollment, updateEnrollment } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
 
-import { toErrorMessage } from './hook-errors';
+import { useMutationRunner } from './use-mutation-runner';
 
 type ApiSchemas = components['schemas'];
 
@@ -15,24 +15,8 @@ export interface UseEnrollmentMutationsOptions {
 }
 
 export function useEnrollmentMutations(options: UseEnrollmentMutationsOptions = {}) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const runWithState = useCallback(
-    async <TResult>(work: () => Promise<TResult>): Promise<TResult> => {
-      setIsLoading(true);
-      setError('');
-      try {
-        const result = await work();
-        return result;
-      } catch (err) {
-        setError(toErrorMessage(err, 'Failed to save enrollment changes.'));
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    []
+  const { isLoading, error, runWithState } = useMutationRunner(
+    'Failed to save enrollment changes.'
   );
 
   const createEnrollmentEntry = useCallback(

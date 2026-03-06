@@ -1,18 +1,18 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { createLead, createLeadNote, updateLead } from '@/lib/leads-api';
 import type { ContactSource, FunnelStage, LeadDetail, LeadType } from '@/types/leads';
-import { toErrorMessage } from './hook-errors';
+
+import { useMutationRunner } from './use-mutation-runner';
 
 interface MutationOptions {
   onSuccess?: (leadId?: string) => Promise<void> | void;
 }
 
 export function useLeadMutations({ onSuccess }: MutationOptions = {}) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { isLoading, error, runWithState } = useMutationRunner('Failed to save lead changes.');
 
   const createLeadEntry = useCallback(
     async (body: {
@@ -27,77 +27,45 @@ export function useLeadMutations({ onSuccess }: MutationOptions = {}) {
       contact_type?: string | null;
       assigned_to?: string | null;
       note?: string | null;
-    }): Promise<LeadDetail | null> => {
-      setIsLoading(true);
-      setError('');
-      try {
+    }): Promise<LeadDetail | null> =>
+      runWithState(async () => {
         const created = await createLead(body);
         await onSuccess?.(created?.id);
         return created;
-      } catch (err) {
-        setError(toErrorMessage(err, 'Failed to create lead.'));
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [onSuccess]
+      }),
+    [onSuccess, runWithState]
   );
 
   const updateStage = useCallback(
-    async (id: string, stage: FunnelStage, lostReason?: string): Promise<LeadDetail | null> => {
-      setIsLoading(true);
-      setError('');
-      try {
+    async (id: string, stage: FunnelStage, lostReason?: string): Promise<LeadDetail | null> =>
+      runWithState(async () => {
         const updated = await updateLead(id, {
           funnel_stage: stage,
           lost_reason: lostReason ?? null,
         });
         await onSuccess?.(id);
         return updated;
-      } catch (err) {
-        setError(toErrorMessage(err, 'Failed to update lead stage.'));
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [onSuccess]
+      }),
+    [onSuccess, runWithState]
   );
 
   const assignLead = useCallback(
-    async (id: string, assignedTo: string | null): Promise<LeadDetail | null> => {
-      setIsLoading(true);
-      setError('');
-      try {
+    async (id: string, assignedTo: string | null): Promise<LeadDetail | null> =>
+      runWithState(async () => {
         const updated = await updateLead(id, { assigned_to: assignedTo });
         await onSuccess?.(id);
         return updated;
-      } catch (err) {
-        setError(toErrorMessage(err, 'Failed to assign lead.'));
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [onSuccess]
+      }),
+    [onSuccess, runWithState]
   );
 
   const addNote = useCallback(
-    async (leadId: string, content: string) => {
-      setIsLoading(true);
-      setError('');
-      try {
+    async (leadId: string, content: string) =>
+      runWithState(async () => {
         await createLeadNote(leadId, { content });
         await onSuccess?.(leadId);
-      } catch (err) {
-        setError(toErrorMessage(err, 'Failed to add note.'));
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [onSuccess]
+      }),
+    [onSuccess, runWithState]
   );
 
   return {
