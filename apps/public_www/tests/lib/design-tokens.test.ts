@@ -16,7 +16,10 @@ describe('design tokens constants', () => {
     expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange']).toBe('#C84A16');
     expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange-soft']).toBe('#F2A975');
     expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange-strong']).toBe('#ED622E');
+    expect(TOKEN_FALLBACK_HEX['--es-color-border-deep']).toBe('#564640');
     expect(TOKEN_FALLBACK_HEX['--es-color-surface-deep']).toBe('#3A1F23');
+    expect(TOKEN_FALLBACK_HEX['--es-color-surface-deep-1']).toBe('#483C34');
+    expect(TOKEN_FALLBACK_HEX['--es-color-surface-deep-2']).toBe('#40332A');
   });
 
   it('builds CSS var expressions with stable fallback values', () => {

@@ -18,6 +18,8 @@
     --es-color-brand-peach-border: #EECAB0;
     --es-color-surface-white: #FFFFFF;
     --es-color-surface-deep: #3A1F23;
+    --es-color-surface-deep-1: #483C34;
+    --es-color-surface-deep-2: #40332A;
     --es-color-heading: #333333;
     --es-color-body: #4A4A4A;
     --es-color-surface-muted: #F8F8F8;
@@ -77,6 +79,7 @@
     --es-color-border-date: #CAD6E5;
     --es-color-border-disabled: #D8B8A7;
     --es-color-border-disabled-strong: #D1D5DB;
+    --es-color-border-deep: #564640;
     --es-color-divider-blue: #418CCF3D;
     --es-color-divider-green: #13522799;
     --es-color-whatsapp: #25D366;
