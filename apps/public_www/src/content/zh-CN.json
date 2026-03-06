@@ -595,6 +595,41 @@
     "scrollLeftAriaLabel": "向左滚动课程亮点",
     "scrollRightAriaLabel": "向右滚动课程亮点"
   },
+  "realTalk": {
+    "eyebrow": "真实对话",
+    "title": "真实对话",
+    "description": "当家庭真正想要改变时会选择的课程",
+    "ctaLabel": "立即开始—今天就培训阿姨",
+    "ctaHref": "/services/my-best-auntie-training-course",
+    "items": [
+      {
+        "id": "age-specific",
+        "title": "从照看者到专业引导者"
+      },
+      {
+        "id": "small-group-learning",
+        "title": "打造更平静、更快乐的家庭"
+      },
+      {
+        "id": "montessori-positive-discipline",
+        "title": "每周看见实实在在的改变"
+      },
+      {
+        "id": "ongoing-support",
+        "title": "投资你的安心感"
+      },
+      {
+        "id": "ready-to-use-tools",
+        "title": "赋能阿姨，升级你的家庭照护"
+      },
+      {
+        "id": "guaranteed-confidence",
+        "title": "打造鼓励独立成长的家"
+      }
+    ],
+    "scrollLeftAriaLabel": "向左滚动真实对话",
+    "scrollRightAriaLabel": "向右滚动真实对话"
+  },
   "testimonials": {
     "title": "来自香港家长的真实故事",
     "description": "",

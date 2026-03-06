@@ -386,6 +386,50 @@
       );
   }
 
+  .es-real-talk-section {
+    --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
+    --es-section-bg-position: center -900px;
+    --es-section-bg-size: 2000px auto;
+    --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
+      saturate(250%);
+    --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  }
+
+  .es-real-talk-overlay {
+    background: radial-gradient(
+        circle at 16% 22%,
+        rgba(23, 72, 121, 0.1) 0%,
+        rgba(23, 72, 121, 0) 47%
+      ),
+      radial-gradient(
+        circle at 88% 78%,
+        rgba(231, 108, 61, 0.16) 0%,
+        rgba(231, 108, 61, 0) 52%
+      );
+  }
+
+  .es-real-talk-title {
+    color: var(--figma-colors-desktop, #FFFFFF);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: clamp(1.2rem, 2.5vw, 24px);
+    font-weight: var(--figma-fontweights-600, 600);
+    line-height: clamp(
+      1.65rem,
+      3.3vw,
+      32px
+    );
+    letter-spacing: calc(var(--figma-letterspacing-age-specific-strategies, 0.37) * 1px);
+  }
+
+  .es-real-talk-card--green {
+    background-color: var(--es-color-accent-green, #5D9D49);
+  }
+
+  .es-real-talk-card--blue {
+    background-color: var(--figma-colors-frame-2147235242, #174879);
+  }
+
   .es-my-best-auntie-description-card {
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
@@ -1192,6 +1236,7 @@
   .es-ida-intro-section,
   .es-my-best-auntie-overview-section,
   .es-course-highlights-section,
+  .es-real-talk-section,
   .es-free-resources-section,
   .es-testimonials-section,
   .es-sprouts-community-section {

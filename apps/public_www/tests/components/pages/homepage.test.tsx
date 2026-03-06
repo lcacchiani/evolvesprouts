@@ -58,6 +58,11 @@ vi.mock('@/components/sections/hero-banner', () => ({
     return <section data-testid='hero-banner'>{content.headline}</section>;
   },
 }));
+vi.mock('@/components/sections/real-talk', () => ({
+  RealTalk: ({ content }: { content: { title: string } }) => (
+    <section data-testid='real-talk'>{content.title}</section>
+  ),
+}));
 vi.mock('@/components/sections/ida-intro', () => ({
   IdaIntro: ({ content }: { content: { heading: string; body: string } }) => (
     <section data-testid='ida-intro'>
@@ -108,6 +113,7 @@ describe('HomePageSections', () => {
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('hero-banner')).toBeInTheDocument();
+    expect(screen.getByTestId('real-talk')).toBeInTheDocument();
     expect(screen.getByTestId('ida-intro')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-overview')).toBeInTheDocument();
     expect(screen.getByTestId('course-highlights')).toBeInTheDocument();
@@ -136,6 +142,16 @@ describe('HomePageSections', () => {
     expect(pageLayoutProps.navbarContent.bookNow.href).not.toBe(heroProps.ctaHref);
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       enContent.navbar.bookNow.label,
+    );
+
+    const heroElement = screen.getByTestId('hero-banner');
+    const realTalkElement = screen.getByTestId('real-talk');
+    const idaIntroElement = screen.getByTestId('ida-intro');
+    expect(heroElement.compareDocumentPosition(realTalkElement)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(realTalkElement.compareDocumentPosition(idaIntroElement)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
     );
   });
 
