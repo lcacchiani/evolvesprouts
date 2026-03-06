@@ -135,15 +135,16 @@ export function MyBestAuntieDescription({
 
         <div
           ref={carouselRef}
-          className='scrollbar-hide -mx-1 mt-6 overflow-x-auto px-1 pb-2 scroll-smooth'
+          className='-mx-1 mt-6 snap-x snap-mandatory overflow-x-auto px-1 pb-2 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
           role='region'
+          aria-roledescription='carousel'
           aria-label={`${content.title} slider`}
         >
           <ul className='flex gap-5 sm:gap-6'>
             {cards.map((item, index) => (
               <li
                 key={`${item.title}-${index}`}
-                className='w-[88%] shrink-0 sm:w-[48%] lg:w-[32%]'
+                className='w-[88%] shrink-0 snap-start sm:w-[48%] lg:w-[32%]'
               >
                 <article
                   className='flex h-full min-h-[450px] flex-col rounded-card-xl p-6 sm:p-8 es-my-best-auntie-description-card'

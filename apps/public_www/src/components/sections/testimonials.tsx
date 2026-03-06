@@ -18,7 +18,7 @@ import {
   toRecord,
 } from '@/content/content-field-utils';
 import type { TestimonialsContent } from '@/content';
-import { useSwipePager } from '@/lib/hooks/use-swipe-pager';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface TestimonialsProps {
   content: TestimonialsContent;
@@ -31,7 +31,6 @@ interface NormalizedStory {
   mainImageSrc?: string;
 }
 
-const SWIPE_THRESHOLD_PX = 48;
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
   'es-btn--control';
 
@@ -135,18 +134,13 @@ export function Testimonials({ content }: TestimonialsProps) {
       ? stories
       : [{ quote: content.title } satisfies NormalizedStory];
   const {
-    activeIndex,
-    hasMultiplePages: hasMultipleStories,
-    goToPrevious: goToPreviousStory,
-    goToNext: goToNextStory,
-    handleTouchStart,
-    handleTouchEnd,
-    handleTouchCancel,
-  } = useSwipePager<HTMLDivElement>({
+    carouselRef,
+    hasNavigation: hasMultipleStories,
+    scrollByDirection,
+  } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: storiesToRender.length,
-    swipeThresholdPx: SWIPE_THRESHOLD_PX,
+    loop: true,
   });
-  const activeStory = storiesToRender[activeIndex];
   const badgeLabel = content.badgeLabel.trim() || content.title;
   const descriptionText = content.description.trim();
   const previousButtonLabel = content.previousButtonLabel.trim();
@@ -173,115 +167,101 @@ export function Testimonials({ content }: TestimonialsProps) {
           className='relative mt-10 overflow-hidden bg-white lg:mt-14'
         >
           <div
-            className='overflow-hidden'
+            ref={carouselRef}
+            data-testid='testimonials-carousel-track'
+            role='region'
+            aria-roledescription='carousel'
+            aria-label={`${content.title} carousel`}
+            className='-mx-1 flex min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
             aria-live='polite'
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onTouchCancel={handleTouchCancel}
           >
-            <article
-              key={`${activeStory.author ?? 'story'}-${activeIndex}`}
-              className='min-w-full'
-            >
-              <div
-                className={buildSectionSplitLayoutClassName(
-                  'es-section-split-layout--testimonials',
-                )}
+            {storiesToRender.map((story, index) => (
+              <article
+                key={`${story.author ?? 'story'}-${index}`}
+                className='min-w-full shrink-0 snap-start'
               >
-                <div className='relative mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-card-lg es-bg-surface-peach lg:mx-0 lg:mt-[70px]'>
-                  {activeStory.mainImageSrc ? (
-                    <Image
-                      src={activeStory.mainImageSrc}
-                      alt={`${activeStory.author ?? 'Parent'} testimonial image`}
-                      fill
-                      sizes='200px'
-                      className='rounded-card-lg object-cover'
-                    />
-                  ) : (
-                    <div
-                      className='flex h-full w-full items-center justify-center rounded-card-lg es-testimonials-image-fallback'
-                    >
-                      <ParentIcon />
-                    </div>
+                <div
+                  className={buildSectionSplitLayoutClassName(
+                    'es-section-split-layout--testimonials',
                   )}
-                </div>
-
-                <div className='flex flex-col px-6 sm:px-9 lg:px-12'>
-                  <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
-                    <span
-                      aria-hidden='true'
-                      className='es-testimonial-quote-icon h-9 w-9 sm:h-11 sm:w-11'
-                    />
-                    <p className='w-full text-balance es-testimonials-quote'>
-                      {activeStory.quote ?? content.title}
-                    </p>
+                >
+                  <div className='relative mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-card-lg es-bg-surface-peach lg:mx-0 lg:mt-[70px]'>
+                    {story.mainImageSrc ? (
+                      <Image
+                        src={story.mainImageSrc}
+                        alt={`${story.author ?? 'Parent'} testimonial image`}
+                        fill
+                        sizes='200px'
+                        className='rounded-card-lg object-cover'
+                      />
+                    ) : (
+                      <div
+                        className='flex h-full w-full items-center justify-center rounded-card-lg es-testimonials-image-fallback'
+                      >
+                        <ParentIcon />
+                      </div>
+                    )}
                   </div>
 
-                  {(activeStory.author || activeStory.service) && (
-                    <div className='relative mt-6 sm:mt-8'>
-                      <div className='min-w-0 lg:pr-[170px]'>
-                        {activeStory.author && (
-                          <p className='es-testimonials-author'>{activeStory.author}</p>
-                        )}
-                        {activeStory.service && (
-                          <p
-                            className={`max-w-[190px] es-testimonials-meta ${activeStory.author ? 'mt-1' : ''}`}
-                          >
-                            {activeStory.service}
-                          </p>
-                        )}
-                      </div>
+                  <div className='flex flex-col px-6 sm:px-9 lg:px-12'>
+                    <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
+                      <span
+                        aria-hidden='true'
+                        className='es-testimonial-quote-icon h-9 w-9 sm:h-11 sm:w-11'
+                      />
+                      <p className='w-full text-balance es-testimonials-quote'>
+                        {story.quote ?? content.title}
+                      </p>
+                    </div>
 
-                      {hasMultipleStories && (
-                        <div className='hidden lg:absolute lg:-right-4 lg:top-1/2 lg:flex lg:-translate-y-1/2 lg:items-center lg:gap-[14px]'>
-                          <ButtonPrimitive
-                            variant='control'
-                            onClick={goToPreviousStory}
-                            aria-label={previousButtonLabel}
-                            className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                          >
-                            <ChevronIcon direction='left' />
-                          </ButtonPrimitive>
-                          <ButtonPrimitive
-                            variant='control'
-                            onClick={goToNextStory}
-                            aria-label={nextButtonLabel}
-                            className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                          >
-                            <ChevronIcon direction='right' />
-                          </ButtonPrimitive>
+                    {(story.author || story.service) && (
+                      <div className='relative mt-6 sm:mt-8'>
+                        <div className='min-w-0'>
+                          {story.author && (
+                            <p className='es-testimonials-author'>{story.author}</p>
+                          )}
+                          {story.service && (
+                            <p
+                              className={`max-w-[190px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
+                            >
+                              {story.service}
+                            </p>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
-
-                  {hasMultipleStories && !activeStory.author && !activeStory.service && (
-                    <div className='mt-6 hidden justify-end lg:flex'>
-                      <div className='flex items-center gap-[14px]'>
-                        <ButtonPrimitive
-                          variant='control'
-                          onClick={goToPreviousStory}
-                          aria-label={previousButtonLabel}
-                          className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                        >
-                          <ChevronIcon direction='left' />
-                        </ButtonPrimitive>
-                        <ButtonPrimitive
-                          variant='control'
-                          onClick={goToNextStory}
-                          aria-label={nextButtonLabel}
-                          className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                        >
-                          <ChevronIcon direction='right' />
-                        </ButtonPrimitive>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            ))}
           </div>
 
+          {hasMultipleStories && (
+            <div className='mt-6 hidden justify-end lg:flex'>
+              <div className='flex items-center gap-[14px]'>
+                <ButtonPrimitive
+                  variant='control'
+                  onClick={() => {
+                    scrollByDirection('prev');
+                  }}
+                  aria-label={previousButtonLabel}
+                  className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
+                >
+                  <ChevronIcon direction='left' />
+                </ButtonPrimitive>
+                <ButtonPrimitive
+                  variant='control'
+                  onClick={() => {
+                    scrollByDirection('next');
+                  }}
+                  aria-label={nextButtonLabel}
+                  className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
+                >
+                  <ChevronIcon direction='right' />
+                </ButtonPrimitive>
+              </div>
+            </div>
+          )}
         </div>
         </div>
       </SectionContainer>

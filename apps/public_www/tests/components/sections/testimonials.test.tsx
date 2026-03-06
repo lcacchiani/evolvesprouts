@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Testimonials } from '@/components/sections/testimonials';
@@ -17,6 +17,52 @@ vi.mock('next/image', () => ({
     priority?: boolean;
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
+
+function defineCarouselMetrics(carousel: HTMLElement, metrics: {
+  clientWidth: number;
+  scrollWidth: number;
+  initialScrollLeft?: number;
+}) {
+  let scrollLeft = metrics.initialScrollLeft ?? 0;
+  const scrollBySpy = vi.fn(({ left }: { left: number }) => {
+    scrollLeft += left;
+  });
+  const scrollToSpy = vi.fn(({ left }: { left: number }) => {
+    scrollLeft = left;
+  });
+
+  Object.defineProperty(carousel, 'clientWidth', {
+    configurable: true,
+    get: () => metrics.clientWidth,
+  });
+  Object.defineProperty(carousel, 'scrollWidth', {
+    configurable: true,
+    get: () => metrics.scrollWidth,
+  });
+  Object.defineProperty(carousel, 'scrollLeft', {
+    configurable: true,
+    get: () => scrollLeft,
+    set: (value: number) => {
+      scrollLeft = value;
+    },
+  });
+  Object.defineProperty(carousel, 'scrollBy', {
+    configurable: true,
+    value: scrollBySpy,
+  });
+  Object.defineProperty(carousel, 'scrollTo', {
+    configurable: true,
+    value: scrollToSpy,
+  });
+
+  return {
+    scrollBySpy,
+    scrollToSpy,
+    setScrollLeft: (value: number) => {
+      scrollLeft = value;
+    },
+  };
+}
 
 describe('Testimonials section', () => {
   it('removes outer card border/corner classes and keeps rounded media', () => {
@@ -53,19 +99,42 @@ describe('Testimonials section', () => {
     expect(rightColumnClassName).not.toContain('lg:pt-12');
   });
 
-  it('renders one active story at a time and swaps content when navigating', () => {
+  it('uses snap track navigation with desktop loop controls', async () => {
     const { container } = render(<Testimonials content={enContent.testimonials} />);
-    const firstQuote = enContent.testimonials.items[0].quote;
-    const secondQuote = enContent.testimonials.items[1].quote;
 
-    expect(screen.getByText(firstQuote)).toBeInTheDocument();
-    expect(screen.queryByText(secondQuote)).not.toBeInTheDocument();
-    expect(container.querySelectorAll('article')).toHaveLength(1);
+    const carouselTrack = screen.getByTestId('testimonials-carousel-track');
+    expect(carouselTrack.className).toContain('snap-mandatory');
+    expect(carouselTrack.className).toContain('overflow-x-auto');
+    expect(container.querySelectorAll('article')).toHaveLength(
+      enContent.testimonials.items.length,
+    );
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Next testimonial' })[0]);
+    const { scrollBySpy, scrollToSpy, setScrollLeft } = defineCarouselMetrics(
+      carouselTrack,
+      {
+        clientWidth: 800,
+        scrollWidth: 1600,
+        initialScrollLeft: 0,
+      },
+    );
 
-    expect(screen.queryByText(firstQuote)).not.toBeInTheDocument();
-    expect(screen.getByText(secondQuote)).toBeInTheDocument();
-    expect(container.querySelectorAll('article')).toHaveLength(1);
+    fireEvent(window, new Event('resize'));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Next testimonial' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next testimonial' }));
+    expect(scrollBySpy).toHaveBeenCalledWith({
+      left: 640,
+      behavior: 'smooth',
+    });
+
+    setScrollLeft(800);
+    fireEvent.scroll(carouselTrack);
+    fireEvent.click(screen.getByRole('button', { name: 'Next testimonial' }));
+    expect(scrollToSpy).toHaveBeenCalledWith({
+      left: 0,
+      behavior: 'smooth',
+    });
   });
 });
