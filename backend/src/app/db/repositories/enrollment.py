@@ -45,12 +45,15 @@ class EnrollmentRepository(BaseRepository[Enrollment]):
             statement = statement.where(
                 or_(
                     Enrollment.created_at < cursor_created_at,
-                    and_(Enrollment.created_at == cursor_created_at, Enrollment.id < cursor_id),
+                    and_(
+                        Enrollment.created_at == cursor_created_at,
+                        Enrollment.id < cursor_id,
+                    ),
                 )
             )
-        statement = statement.order_by(Enrollment.created_at.desc(), Enrollment.id.desc()).limit(
-            limit
-        )
+        statement = statement.order_by(
+            Enrollment.created_at.desc(), Enrollment.id.desc()
+        ).limit(limit)
         return list(self._session.execute(statement).scalars().all())
 
     def count_enrollments(

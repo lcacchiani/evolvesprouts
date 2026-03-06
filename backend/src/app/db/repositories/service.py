@@ -72,9 +72,9 @@ class ServiceRepository(BaseRepository[Service]):
                     ),
                 )
             )
-        statement = statement.order_by(Service.created_at.desc(), Service.id.desc()).limit(
-            limit
-        )
+        statement = statement.order_by(
+            Service.created_at.desc(), Service.id.desc()
+        ).limit(limit)
         return list(self._session.execute(statement).unique().scalars().all())
 
     def count_services(

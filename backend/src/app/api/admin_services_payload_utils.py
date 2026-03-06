@@ -8,14 +8,15 @@ from decimal import Decimal, InvalidOperation
 from typing import Any, TypeVar
 from uuid import UUID
 
-from app.api.admin_validators import MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, validate_string_length
+from app.api.admin_validators import (
+    MAX_DESCRIPTION_LENGTH,
+    MAX_NAME_LENGTH,
+    validate_string_length,
+)
 from app.db.models import (
     ConsultationFormat,
     ConsultationPricingModel,
     EventCategory,
-    InstanceStatus,
-    ServiceDeliveryMode,
-    ServiceStatus,
     ServiceType,
     TrainingFormat,
     TrainingPricingUnit,
@@ -118,7 +119,9 @@ def parse_service_type_details(
         )
         or "HKD",
         "calendly_url": parse_optional_text(
-            source.get("calendly_url") if "calendly_url" in source else body.get("calendly_url"),
+            source.get("calendly_url")
+            if "calendly_url" in source
+            else body.get("calendly_url"),
             max_length=500,
         ),
     }
@@ -141,7 +144,9 @@ def parse_instance_type_details(
                 "price",
             ),
             "currency": parse_optional_currency(
-                source.get("currency") if "currency" in source else body.get("currency"),
+                source.get("currency")
+                if "currency" in source
+                else body.get("currency"),
                 "currency",
             )
             or "HKD",
@@ -172,12 +177,16 @@ def parse_instance_type_details(
                 )
             tiers.append(
                 {
-                    "name": parse_required_text(entry.get("name"), "name", max_length=100),
+                    "name": parse_required_text(
+                        entry.get("name"), "name", max_length=100
+                    ),
                     "description": parse_optional_text(
                         entry.get("description"), max_length=MAX_DESCRIPTION_LENGTH
                     ),
                     "price": parse_required_decimal(entry.get("price"), "price"),
-                    "currency": parse_optional_currency(entry.get("currency"), "currency")
+                    "currency": parse_optional_currency(
+                        entry.get("currency"), "currency"
+                    )
                     or "HKD",
                     "max_quantity": parse_optional_int(
                         entry.get("max_quantity"), "max_quantity", minimum=1
@@ -243,13 +252,19 @@ def parse_session_slots(value: Any) -> list[dict[str, Any]]:
                 field="session_slots",
             )
         if ends_at <= starts_at:
-            raise ValidationError("ends_at must be after starts_at", field="session_slots")
+            raise ValidationError(
+                "ends_at must be after starts_at", field="session_slots"
+            )
         slots.append(
             {
-                "location_id": parse_optional_uuid(entry.get("location_id"), "location_id"),
+                "location_id": parse_optional_uuid(
+                    entry.get("location_id"), "location_id"
+                ),
                 "starts_at": starts_at,
                 "ends_at": ends_at,
-                "sort_order": parse_optional_int(entry.get("sort_order"), "sort_order", minimum=0)
+                "sort_order": parse_optional_int(
+                    entry.get("sort_order"), "sort_order", minimum=0
+                )
                 or idx,
             }
         )
@@ -306,7 +321,9 @@ def parse_optional_enum(
     return parse_required_enum(value, enum_cls, field)
 
 
-def parse_optional_int(value: Any, field: str, *, minimum: int | None = None) -> int | None:
+def parse_optional_int(
+    value: Any, field: str, *, minimum: int | None = None
+) -> int | None:
     if value is None or value == "":
         return None
     try:
@@ -344,7 +361,9 @@ def parse_optional_datetime(value: Any, field: str) -> datetime | None:
     try:
         parsed = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
     except ValueError as exc:
-        raise ValidationError(f"{field} must be a valid ISO datetime", field=field) from exc
+        raise ValidationError(
+            f"{field} must be a valid ISO datetime", field=field
+        ) from exc
     return normalize_datetime(parsed)
 
 

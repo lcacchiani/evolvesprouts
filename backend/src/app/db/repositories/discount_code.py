@@ -72,7 +72,9 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
         normalized = code.strip().lower()
         if not normalized:
             return None
-        statement = select(DiscountCode).where(func.lower(DiscountCode.code) == normalized)
+        statement = select(DiscountCode).where(
+            func.lower(DiscountCode.code) == normalized
+        )
         return self._session.execute(statement).scalar_one_or_none()
 
     def validate_and_increment(self, code_id: UUID) -> bool:
@@ -82,7 +84,9 @@ class DiscountCodeRepository(BaseRepository[DiscountCode]):
             update(DiscountCode)
             .where(DiscountCode.id == code_id)
             .where(DiscountCode.active.is_(True))
-            .where(or_(DiscountCode.valid_from.is_(None), DiscountCode.valid_from <= now))
+            .where(
+                or_(DiscountCode.valid_from.is_(None), DiscountCode.valid_from <= now)
+            )
             .where(
                 or_(DiscountCode.valid_until.is_(None), DiscountCode.valid_until >= now)
             )

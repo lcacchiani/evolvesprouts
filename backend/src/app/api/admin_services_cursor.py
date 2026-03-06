@@ -48,9 +48,9 @@ def encode_created_cursor(created_at: datetime | None, row_id: UUID) -> str | No
     if created_at is None:
         return None
     normalized_created = _normalize_datetime(created_at)
-    payload = json.dumps({"created_at": normalized_created.isoformat(), "id": str(row_id)}).encode(
-        "utf-8"
-    )
+    payload = json.dumps(
+        {"created_at": normalized_created.isoformat(), "id": str(row_id)}
+    ).encode("utf-8")
     return base64.urlsafe_b64encode(payload).decode("utf-8").rstrip("=")
 
 
@@ -65,7 +65,9 @@ def parse_created_cursor(cursor: str | None) -> tuple[datetime | None, UUID | No
         row_id_raw = payload["id"]
         if not isinstance(created_at_raw, str):
             raise ValueError("created_at must be a string")
-        parsed_created_at = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
+        parsed_created_at = datetime.fromisoformat(
+            created_at_raw.replace("Z", "+00:00")
+        )
         return _normalize_datetime(parsed_created_at), UUID(str(row_id_raw))
     except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         raise ValidationError("Invalid cursor", field="cursor") from exc

@@ -50,9 +50,13 @@ def handle_admin_discount_codes_request(
     code_id = parse_uuid(parts[2])
     if len(parts) == 3:
         if method == "PUT":
-            return _update_discount_code(event, code_id=code_id, actor_sub=identity.user_sub)
+            return _update_discount_code(
+                event, code_id=code_id, actor_sub=identity.user_sub
+            )
         if method == "DELETE":
-            return _delete_discount_code(event, code_id=code_id, actor_sub=identity.user_sub)
+            return _delete_discount_code(
+                event, code_id=code_id, actor_sub=identity.user_sub
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
@@ -75,7 +79,9 @@ def _list_discount_codes(event: Mapping[str, Any]) -> dict[str, Any]:
         has_more = len(rows) > limit
         page_rows = rows[:limit]
         next_cursor = (
-            encode_discount_code_cursor(page_rows[-1]) if has_more and page_rows else None
+            encode_discount_code_cursor(page_rows[-1])
+            if has_more and page_rows
+            else None
         )
         return json_response(
             200,

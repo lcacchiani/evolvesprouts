@@ -49,7 +49,9 @@ def handle_admin_enrollments_request(
         if method == "GET":
             return _list_enrollments(event, instance_id=instance_id)
         if method == "POST":
-            return _create_enrollment(event, instance_id=instance_id, actor_sub=identity.user_sub)
+            return _create_enrollment(
+                event, instance_id=instance_id, actor_sub=identity.user_sub
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     enrollment_id = parse_uuid(parts[6])

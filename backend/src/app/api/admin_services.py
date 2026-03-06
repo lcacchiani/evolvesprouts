@@ -76,7 +76,9 @@ def handle_admin_services_request(
                 event, service_id=service_id, actor_sub=identity.user_sub, partial=True
             )
         if method == "DELETE":
-            return _delete_service(event, service_id=service_id, actor_sub=identity.user_sub)
+            return _delete_service(
+                event, service_id=service_id, actor_sub=identity.user_sub
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) >= 4 and parts[3] == "instances":
@@ -107,7 +109,9 @@ def _list_services(event: Mapping[str, Any]) -> dict[str, Any]:
         )
         has_more = len(rows) > limit
         page_rows = rows[:limit]
-        next_cursor = encode_service_cursor(page_rows[-1]) if has_more and page_rows else None
+        next_cursor = (
+            encode_service_cursor(page_rows[-1]) if has_more and page_rows else None
+        )
         total_count = repository.count_services(
             service_type=filters["service_type"],
             status=filters["status"],
@@ -144,7 +148,9 @@ def _create_service(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             parsed_details=payload["type_details"],
         )
         created = repository.create_service(service, details)
-        created.service_tags = [ServiceTag(tag_id=tag_id) for tag_id in payload["tag_ids"]]
+        created.service_tags = [
+            ServiceTag(tag_id=tag_id) for tag_id in payload["tag_ids"]
+        ]
         created.service_assets = [
             ServiceAsset(asset_id=asset_id) for asset_id in payload["asset_ids"]
         ]
@@ -200,7 +206,9 @@ def _update_service(
         if "status" in payload:
             service.status = payload["status"]
         if "tag_ids" in payload:
-            service.service_tags = [ServiceTag(tag_id=tag_id) for tag_id in payload["tag_ids"]]
+            service.service_tags = [
+                ServiceTag(tag_id=tag_id) for tag_id in payload["tag_ids"]
+            ]
         if "asset_ids" in payload:
             service.service_assets = [
                 ServiceAsset(asset_id=asset_id) for asset_id in payload["asset_ids"]
@@ -254,11 +262,15 @@ def _create_cover_image_upload(
     file_name = str(body.get("file_name") or "").strip()
     if not file_name:
         raise ValidationError("file_name is required", field="file_name")
-    content_type = str(body.get("content_type") or "").strip() or "application/octet-stream"
+    content_type = (
+        str(body.get("content_type") or "").strip() or "application/octet-stream"
+    )
     normalized_file_name = _sanitize_file_name(file_name)
     s3_key = f"media/services/{service_id}/cover/{uuid4()}-{normalized_file_name}"
 
-    media_bucket = os.getenv("MEDIA_BUCKET_NAME") or require_env("CLIENT_ASSETS_BUCKET_NAME")
+    media_bucket = os.getenv("MEDIA_BUCKET_NAME") or require_env(
+        "CLIENT_ASSETS_BUCKET_NAME"
+    )
     ttl = _presign_ttl_seconds()
     expires_at = datetime.now(UTC) + timedelta(seconds=ttl)
     s3_client = get_s3_client()
@@ -341,7 +353,10 @@ def _apply_service_type_details(*, service: Service, details: Any) -> None:
 
 
 def _sanitize_file_name(file_name: str) -> str:
-    safe = "".join(char if char.isalnum() or char in {".", "-", "_"} else "-" for char in file_name.strip())
+    safe = "".join(
+        char if char.isalnum() or char in {".", "-", "_"} else "-"
+        for char in file_name.strip()
+    )
     safe = safe.strip("-")
     return safe or "cover-image"
 

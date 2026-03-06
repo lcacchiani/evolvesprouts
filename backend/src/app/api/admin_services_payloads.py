@@ -29,7 +29,6 @@ from app.api.admin_services_payload_utils import (
     parse_uuid_list,
 )
 from app.db.models import (
-    ConsultationPricingModel,
     DiscountType,
     EnrollmentStatus,
     InstanceStatus,
@@ -108,7 +107,9 @@ def parse_discount_code_filters(event: Mapping[str, Any]) -> dict[str, Any]:
         "cursor_created_at": cursor_created_at,
         "cursor_id": cursor_id,
         "active": parse_optional_bool(query_param(event, "active"), "active"),
-        "service_id": parse_optional_uuid(query_param(event, "service_id"), "service_id"),
+        "service_id": parse_optional_uuid(
+            query_param(event, "service_id"), "service_id"
+        ),
         "instance_id": parse_optional_uuid(
             query_param(event, "instance_id"), "instance_id"
         ),
@@ -118,12 +119,18 @@ def parse_discount_code_filters(event: Mapping[str, Any]) -> dict[str, Any]:
 
 def parse_create_service_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate service creation payload."""
-    service_type = parse_required_enum(body.get("service_type"), ServiceType, "service_type")
+    service_type = parse_required_enum(
+        body.get("service_type"), ServiceType, "service_type"
+    )
     return {
         "service_type": service_type,
         "title": parse_required_text(body.get("title"), "title", max_length=255),
-        "description": parse_optional_text(body.get("description"), max_length=MAX_DESCRIPTION_LENGTH),
-        "cover_image_s3_key": parse_optional_text(body.get("cover_image_s3_key"), max_length=1024),
+        "description": parse_optional_text(
+            body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
+        ),
+        "cover_image_s3_key": parse_optional_text(
+            body.get("cover_image_s3_key"), max_length=1024
+        ),
         "delivery_mode": parse_required_enum(
             body.get("delivery_mode"),
             ServiceDeliveryMode,
@@ -148,7 +155,9 @@ def parse_update_service_payload(
 
     payload: dict[str, Any] = {}
     if has_field(body, "title"):
-        payload["title"] = parse_required_text(body.get("title"), "title", max_length=255)
+        payload["title"] = parse_required_text(
+            body.get("title"), "title", max_length=255
+        )
     if has_field(body, "description"):
         payload["description"] = parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
@@ -199,12 +208,18 @@ def parse_update_service_payload(
     return payload
 
 
-def parse_create_instance_payload(body: Mapping[str, Any], service: Service) -> dict[str, Any]:
+def parse_create_instance_payload(
+    body: Mapping[str, Any], service: Service
+) -> dict[str, Any]:
     """Parse and validate service-instance creation payload."""
     return {
         "title": parse_optional_text(body.get("title"), max_length=255),
-        "description": parse_optional_text(body.get("description"), max_length=MAX_DESCRIPTION_LENGTH),
-        "cover_image_s3_key": parse_optional_text(body.get("cover_image_s3_key"), max_length=1024),
+        "description": parse_optional_text(
+            body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
+        ),
+        "cover_image_s3_key": parse_optional_text(
+            body.get("cover_image_s3_key"), max_length=1024
+        ),
         "status": parse_optional_enum(body.get("status"), InstanceStatus, "status")
         or InstanceStatus.SCHEDULED,
         "delivery_mode": parse_optional_enum(
@@ -213,11 +228,17 @@ def parse_create_instance_payload(body: Mapping[str, Any], service: Service) -> 
             "delivery_mode",
         ),
         "location_id": parse_optional_uuid(body.get("location_id"), "location_id"),
-        "max_capacity": parse_optional_int(body.get("max_capacity"), "max_capacity", minimum=1),
-        "waitlist_enabled": parse_optional_bool(body.get("waitlist_enabled"), "waitlist_enabled")
+        "max_capacity": parse_optional_int(
+            body.get("max_capacity"), "max_capacity", minimum=1
+        ),
+        "waitlist_enabled": parse_optional_bool(
+            body.get("waitlist_enabled"), "waitlist_enabled"
+        )
         or False,
         "instructor_id": parse_optional_text(body.get("instructor_id"), max_length=128),
-        "notes": parse_optional_text(body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH),
+        "notes": parse_optional_text(
+            body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
+        ),
         "session_slots": parse_session_slots(body.get("session_slots")),
         "type_details": parse_instance_type_details(service.service_type, body),
     }
@@ -244,7 +265,9 @@ def parse_update_instance_payload(
             body.get("cover_image_s3_key"), max_length=1024
         )
     if has_field(body, "status"):
-        payload["status"] = parse_required_enum(body.get("status"), InstanceStatus, "status")
+        payload["status"] = parse_required_enum(
+            body.get("status"), InstanceStatus, "status"
+        )
     if has_field(body, "delivery_mode"):
         payload["delivery_mode"] = parse_optional_enum(
             body.get("delivery_mode"),
@@ -252,7 +275,9 @@ def parse_update_instance_payload(
             "delivery_mode",
         )
     if has_field(body, "location_id"):
-        payload["location_id"] = parse_optional_uuid(body.get("location_id"), "location_id")
+        payload["location_id"] = parse_optional_uuid(
+            body.get("location_id"), "location_id"
+        )
     if has_field(body, "max_capacity"):
         payload["max_capacity"] = parse_optional_int(
             body.get("max_capacity"), "max_capacity", minimum=1
@@ -262,9 +287,13 @@ def parse_update_instance_payload(
             body.get("waitlist_enabled"), "waitlist_enabled"
         )
     if has_field(body, "instructor_id"):
-        payload["instructor_id"] = parse_optional_text(body.get("instructor_id"), max_length=128)
+        payload["instructor_id"] = parse_optional_text(
+            body.get("instructor_id"), max_length=128
+        )
     if has_field(body, "notes"):
-        payload["notes"] = parse_optional_text(body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH)
+        payload["notes"] = parse_optional_text(
+            body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
+        )
     if has_field(body, "session_slots"):
         payload["session_slots"] = parse_session_slots(body.get("session_slots"))
     if has_any_field(
@@ -275,7 +304,9 @@ def parse_update_instance_payload(
         "training_format",
         "pricing_model",
     ):
-        payload["type_details"] = parse_instance_type_details(service.service_type, body)
+        payload["type_details"] = parse_instance_type_details(
+            service.service_type, body
+        )
 
     if not partial and "status" not in payload:
         raise ValidationError("status is required for PUT", field="status")
@@ -289,16 +320,26 @@ def parse_create_enrollment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     payload = {
         "contact_id": parse_optional_uuid(body.get("contact_id"), "contact_id"),
         "family_id": parse_optional_uuid(body.get("family_id"), "family_id"),
-        "organization_id": parse_optional_uuid(body.get("organization_id"), "organization_id"),
-        "ticket_tier_id": parse_optional_uuid(body.get("ticket_tier_id"), "ticket_tier_id"),
-        "discount_code_id": parse_optional_uuid(body.get("discount_code_id"), "discount_code_id"),
+        "organization_id": parse_optional_uuid(
+            body.get("organization_id"), "organization_id"
+        ),
+        "ticket_tier_id": parse_optional_uuid(
+            body.get("ticket_tier_id"), "ticket_tier_id"
+        ),
+        "discount_code_id": parse_optional_uuid(
+            body.get("discount_code_id"), "discount_code_id"
+        ),
         "status": parse_optional_enum(body.get("status"), EnrollmentStatus, "status")
         or EnrollmentStatus.REGISTERED,
         "amount_paid": parse_optional_decimal(body.get("amount_paid"), "amount_paid"),
         "currency": parse_optional_currency(body.get("currency"), "currency"),
-        "notes": parse_optional_text(body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH),
+        "notes": parse_optional_text(
+            body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
+        ),
     }
-    if not any((payload["contact_id"], payload["family_id"], payload["organization_id"])):
+    if not any(
+        (payload["contact_id"], payload["family_id"], payload["organization_id"])
+    ):
         raise ValidationError(
             "One of contact_id, family_id, or organization_id is required",
             field="enrollment",
@@ -316,11 +357,15 @@ def parse_update_enrollment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
             body.get("status"), EnrollmentStatus, "status"
         )
     if has_field(body, "amount_paid"):
-        payload["amount_paid"] = parse_optional_decimal(body.get("amount_paid"), "amount_paid")
+        payload["amount_paid"] = parse_optional_decimal(
+            body.get("amount_paid"), "amount_paid"
+        )
     if has_field(body, "currency"):
         payload["currency"] = parse_optional_currency(body.get("currency"), "currency")
     if has_field(body, "notes"):
-        payload["notes"] = parse_optional_text(body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH)
+        payload["notes"] = parse_optional_text(
+            body.get("notes"), max_length=MAX_DESCRIPTION_LENGTH
+        )
     if not payload:
         raise ValidationError("At least one updatable field is required", field="body")
     return payload
@@ -328,12 +373,20 @@ def parse_update_enrollment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
 
 def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate discount-code create payload."""
-    discount_type = parse_required_enum(body.get("discount_type"), DiscountType, "discount_type")
+    discount_type = parse_required_enum(
+        body.get("discount_type"), DiscountType, "discount_type"
+    )
     payload = {
-        "code": parse_required_text(body.get("code"), "code", max_length=_MAX_CODE_LENGTH),
-        "description": parse_optional_text(body.get("description"), max_length=MAX_DESCRIPTION_LENGTH),
+        "code": parse_required_text(
+            body.get("code"), "code", max_length=_MAX_CODE_LENGTH
+        ),
+        "description": parse_optional_text(
+            body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
+        ),
         "discount_type": discount_type,
-        "discount_value": parse_required_decimal(body.get("discount_value"), "discount_value"),
+        "discount_value": parse_required_decimal(
+            body.get("discount_value"), "discount_value"
+        ),
         "currency": parse_optional_currency(body.get("currency"), "currency"),
         "valid_from": parse_optional_datetime(body.get("valid_from"), "valid_from"),
         "valid_until": parse_optional_datetime(body.get("valid_until"), "valid_until"),
@@ -343,7 +396,9 @@ def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
         "active": parse_optional_bool(body.get("active"), "active"),
     }
     if discount_type == DiscountType.ABSOLUTE and not payload["currency"]:
-        raise ValidationError("currency is required for absolute discounts", field="currency")
+        raise ValidationError(
+            "currency is required for absolute discounts", field="currency"
+        )
     return payload
 
 
@@ -353,7 +408,9 @@ def parse_update_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
         raise ValidationError("At least one field is required", field="body")
     payload: dict[str, Any] = {}
     if has_field(body, "description"):
-        payload["description"] = parse_optional_text(body.get("description"), max_length=MAX_DESCRIPTION_LENGTH)
+        payload["description"] = parse_optional_text(
+            body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
+        )
     if has_field(body, "discount_type"):
         payload["discount_type"] = parse_required_enum(
             body.get("discount_type"), DiscountType, "discount_type"
@@ -365,15 +422,25 @@ def parse_update_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
     if has_field(body, "currency"):
         payload["currency"] = parse_optional_currency(body.get("currency"), "currency")
     if has_field(body, "valid_from"):
-        payload["valid_from"] = parse_optional_datetime(body.get("valid_from"), "valid_from")
+        payload["valid_from"] = parse_optional_datetime(
+            body.get("valid_from"), "valid_from"
+        )
     if has_field(body, "valid_until"):
-        payload["valid_until"] = parse_optional_datetime(body.get("valid_until"), "valid_until")
+        payload["valid_until"] = parse_optional_datetime(
+            body.get("valid_until"), "valid_until"
+        )
     if has_field(body, "service_id"):
-        payload["service_id"] = parse_optional_uuid(body.get("service_id"), "service_id")
+        payload["service_id"] = parse_optional_uuid(
+            body.get("service_id"), "service_id"
+        )
     if has_field(body, "instance_id"):
-        payload["instance_id"] = parse_optional_uuid(body.get("instance_id"), "instance_id")
+        payload["instance_id"] = parse_optional_uuid(
+            body.get("instance_id"), "instance_id"
+        )
     if has_field(body, "max_uses"):
-        payload["max_uses"] = parse_optional_int(body.get("max_uses"), "max_uses", minimum=1)
+        payload["max_uses"] = parse_optional_int(
+            body.get("max_uses"), "max_uses", minimum=1
+        )
     if has_field(body, "active"):
         payload["active"] = parse_required_bool(body.get("active"), "active")
     if not payload:

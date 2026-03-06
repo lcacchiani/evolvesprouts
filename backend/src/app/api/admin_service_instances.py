@@ -25,7 +25,6 @@ from app.db.models import (
     ConsultationInstanceDetails,
     EventTicketTier,
     InstanceSessionSlot,
-    Service,
     ServiceInstance,
     ServiceType,
     TrainingFormat,
@@ -57,7 +56,9 @@ def handle_admin_service_instances_request(
         if method == "GET":
             return _list_instances(event, service_id=service_id)
         if method == "POST":
-            return _create_instance(event, service_id=service_id, actor_sub=identity.user_sub)
+            return _create_instance(
+                event, service_id=service_id, actor_sub=identity.user_sub
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     instance_id = parse_uuid(parts[4])
@@ -159,7 +160,9 @@ def _create_instance(
             notes=payload["notes"],
             created_by=actor_sub,
         )
-        type_details = _build_instance_type_details(service.service_type, payload["type_details"])
+        type_details = _build_instance_type_details(
+            service.service_type, payload["type_details"]
+        )
         slots = [
             InstanceSessionSlot(
                 location_id=item["location_id"],
@@ -174,7 +177,9 @@ def _create_instance(
         with_details = instance_repository.get_by_id_with_details(created.id)
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(created.id))
-        return json_response(201, {"instance": serialize_instance(with_details)}, event=event)
+        return json_response(
+            201, {"instance": serialize_instance(with_details)}, event=event
+        )
 
 
 def _get_instance(
@@ -188,7 +193,9 @@ def _get_instance(
         instance = repository.get_by_id_with_details(instance_id)
         if instance is None or instance.service_id != service_id:
             raise NotFoundError("ServiceInstance", str(instance_id))
-        return json_response(200, {"instance": serialize_instance(instance)}, event=event)
+        return json_response(
+            200, {"instance": serialize_instance(instance)}, event=event
+        )
 
 
 def _update_instance(
@@ -256,7 +263,9 @@ def _update_instance(
         with_details = instance_repository.get_by_id_with_details(updated.id)
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(updated.id))
-        return json_response(200, {"instance": serialize_instance(with_details)}, event=event)
+        return json_response(
+            200, {"instance": serialize_instance(with_details)}, event=event
+        )
 
 
 def _delete_instance(
@@ -277,7 +286,9 @@ def _delete_instance(
         return json_response(204, {}, event=event)
 
 
-def _build_instance_type_details(service_type: ServiceType, parsed: Mapping[str, Any]) -> Any:
+def _build_instance_type_details(
+    service_type: ServiceType, parsed: Mapping[str, Any]
+) -> Any:
     if service_type == ServiceType.TRAINING_COURSE:
         return TrainingInstanceDetails(
             training_format=TrainingFormat(parsed["training_format"].value),
