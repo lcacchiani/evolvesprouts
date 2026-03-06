@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { formatEnumLabel } from '@/lib/format';
 
 import { CreateDiscountCodeDialog } from './create-discount-code-dialog';
 
@@ -92,7 +93,7 @@ export function DiscountCodesPanel({
           {codes.map((code) => (
             <tr key={code.id} className='border-t'>
               <td className='py-2 pr-3'>{code.code}</td>
-              <td className='py-2 pr-3'>{code.discountType}</td>
+              <td className='py-2 pr-3'>{formatEnumLabel(code.discountType)}</td>
               <td className='py-2 pr-3'>
                 {code.discountValue} {code.currency ?? ''}
               </td>

@@ -38,6 +38,8 @@ const DEFAULT_SORT_OPTIONS: readonly SortOption[] = [
   { value: 'past', label: 'Past Events' },
 ];
 
+const UK_EVENTS_LOCALE = 'en-GB';
+const UK_TIME_ZONE = 'Europe/London';
 const DATE_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 const TIME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 
@@ -49,6 +51,31 @@ function resolveEventsLocale(locale?: string): SupportedLocale {
   return 'en';
 }
 
+function resolveDateTimeLocale(locale: SupportedLocale): string {
+  if (locale === 'en') {
+    return UK_EVENTS_LOCALE;
+  }
+
+  return locale;
+}
+
+function formatEnumLikeLabel(value: string): string {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return '';
+  }
+
+  if (/\s/.test(trimmedValue) || !/[_-]/.test(trimmedValue)) {
+    return trimmedValue;
+  }
+
+  return trimmedValue
+    .split(/[_-]+/)
+    .filter((entry) => entry.length > 0)
+    .map((entry) => entry.charAt(0).toUpperCase() + entry.slice(1).toLowerCase())
+    .join(' ');
+}
+
 function getDateFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
   const formatterKey = locale;
   const cachedFormatter = DATE_FORMATTER_CACHE.get(formatterKey);
@@ -56,11 +83,11 @@ function getDateFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
     return cachedFormatter;
   }
 
-  const nextFormatter = new Intl.DateTimeFormat(locale, {
+  const nextFormatter = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
-    timeZone: 'UTC',
+    timeZone: UK_TIME_ZONE,
   });
   DATE_FORMATTER_CACHE.set(formatterKey, nextFormatter);
   return nextFormatter;
@@ -73,12 +100,20 @@ function getTimeFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
     return cachedFormatter;
   }
 
-  const nextFormatter = new Intl.DateTimeFormat(locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: 'UTC',
-  });
+  const nextFormatter =
+    locale === 'en'
+      ? new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone: UK_TIME_ZONE,
+        })
+      : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: UK_TIME_ZONE,
+        });
   TIME_FORMATTER_CACHE.set(formatterKey, nextFormatter);
   return nextFormatter;
 }
@@ -176,20 +211,22 @@ function buildEventsApiUrl(crmApiBaseUrl: string): string {
 }
 
 function normalizeLocationLabel(value: string | undefined): string | undefined {
-  const normalizedValue = readOptionalText(value)?.toLowerCase();
+  const normalizedValue = readOptionalText(value);
   if (!normalizedValue) {
     return undefined;
   }
 
-  if (normalizedValue === 'virtual') {
+  const normalizedKey = normalizedValue.toLowerCase();
+
+  if (normalizedKey === 'virtual') {
     return 'Virtual';
   }
 
-  if (normalizedValue === 'physical') {
-    return 'In-person';
+  if (normalizedKey === 'physical') {
+    return 'In Person';
   }
 
-  return normalizedValue;
+  return formatEnumLikeLabel(normalizedValue);
 }
 
 function isEventFilterValue(value: string): value is EventFilterValue {
@@ -322,9 +359,13 @@ function readTagList(record: Record<string, unknown>): string[] {
     }
 
     for (const tag of collectedTags) {
-      if (!seenTags.has(tag)) {
-        seenTags.add(tag);
-        tags.push(tag);
+      const normalizedTag = formatEnumLikeLabel(tag);
+      if (!normalizedTag) {
+        continue;
+      }
+      if (!seenTags.has(normalizedTag)) {
+        seenTags.add(normalizedTag);
+        tags.push(normalizedTag);
       }
     }
   }

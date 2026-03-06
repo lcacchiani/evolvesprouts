@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { formatDate, formatEnumLabel } from '@/lib/format';
 
 import type { Enrollment } from '@/types/services';
 
@@ -61,11 +62,11 @@ export function EnrollmentListPanel({
               <td className='py-2 pr-3'>
                 {enrollment.contactId ?? enrollment.familyId ?? enrollment.organizationId ?? '-'}
               </td>
-              <td className='py-2 pr-3'>{enrollment.status}</td>
+              <td className='py-2 pr-3'>{formatEnumLabel(enrollment.status)}</td>
               <td className='py-2 pr-3'>
                 {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
               </td>
-              <td className='py-2 pr-3'>{enrollment.enrolledAt ?? '-'}</td>
+              <td className='py-2 pr-3'>{formatDate(enrollment.enrolledAt)}</td>
               <td className='py-2 pr-3'>
                 <div className='flex gap-1'>
                   <Button

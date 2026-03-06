@@ -5,6 +5,18 @@ export function toTitleCase(value: string): string {
     .join(' ');
 }
 
+const UK_LOCALE = 'en-GB';
+const UK_TIME_ZONE = 'Europe/London';
+const UK_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(UK_LOCALE, {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZone: UK_TIME_ZONE,
+});
+
 const DEFAULT_CURRENCY = 'HKD';
 const DEFAULT_CURRENCY_LABEL = 'Hong Kong Dollar';
 
@@ -66,7 +78,7 @@ export function formatDate(value: string | null): string {
     return value;
   }
 
-  return parsedDate.toLocaleString();
+  return UK_DATE_TIME_FORMATTER.format(parsedDate);
 }
 
 export function formatDateForInput(value: Date): string {

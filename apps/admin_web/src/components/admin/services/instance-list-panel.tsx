@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { formatEnumLabel } from '@/lib/format';
 
 import type { ServiceInstance } from '@/types/services';
 
@@ -62,7 +63,7 @@ export function InstanceListPanel({
               onClick={() => onSelectInstance(instance.id)}
             >
               <td className='py-2 pr-3'>{instance.resolvedTitle ?? '-'}</td>
-              <td className='py-2 pr-3'>{instance.status}</td>
+              <td className='py-2 pr-3'>{formatEnumLabel(instance.status)}</td>
               <td className='py-2 pr-3'>
                 {instance.maxCapacity ?? 'unlimited'}
               </td>
