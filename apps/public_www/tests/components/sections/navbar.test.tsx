@@ -104,7 +104,7 @@ describe('Navbar desktop submenu accessibility', () => {
     render(<Navbar content={enContent.navbar} />);
 
     const submenuToggle = screen.getByRole('button', {
-      name: 'Toggle Training Courses submenu',
+      name: 'Toggle Services submenu',
     });
     fireEvent.click(submenuToggle);
 
@@ -140,7 +140,7 @@ describe('Navbar desktop submenu accessibility', () => {
     render(<Navbar content={enContent.navbar} />);
 
     const submenuToggle = screen.getByRole('button', {
-      name: 'Toggle Training Courses submenu',
+      name: 'Toggle Services submenu',
     });
     const submenuWrapper = submenuToggle.closest('li');
 
@@ -194,7 +194,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(homeLink.className).toContain('es-navbar-mobile-pill-reset');
 
     const trainingCoursesToggle = within(drawer).getByRole('button', {
-      name: 'Toggle Training Courses submenu',
+      name: 'Toggle Services submenu',
     });
     expect(trainingCoursesToggle.className).toContain('es-navbar-mobile-pill-reset');
 
