@@ -1,0 +1,145 @@
+'use client';
+
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+
+import { INSTANCE_STATUSES, SERVICE_DELIVERY_MODES } from '@/types/services';
+import type { InstanceStatus, ServiceDeliveryMode } from '@/types/services';
+
+import { SessionSlotEditor } from './session-slot-editor';
+
+import type { SessionSlot } from '@/types/services';
+
+export interface InstanceFormState {
+  title: string;
+  description: string;
+  status: InstanceStatus;
+  deliveryMode: ServiceDeliveryMode | '';
+  locationId: string;
+  maxCapacity: string;
+  waitlistEnabled: boolean;
+  instructorId: string;
+  notes: string;
+  sessionSlots: SessionSlot[];
+}
+
+export interface InstanceFormFieldsProps {
+  value: InstanceFormState;
+  onChange: (value: InstanceFormState) => void;
+}
+
+export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps) {
+  return (
+    <div className='space-y-3'>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+        <div>
+          <Label htmlFor='instance-title'>Title override</Label>
+          <Input
+            id='instance-title'
+            value={value.title}
+            onChange={(event) => onChange({ ...value, title: event.target.value })}
+            placeholder='Leave empty to inherit'
+          />
+        </div>
+        <div>
+          <Label htmlFor='instance-status'>Status</Label>
+          <Select
+            id='instance-status'
+            value={value.status}
+            onChange={(event) => onChange({ ...value, status: event.target.value as InstanceStatus })}
+          >
+            {INSTANCE_STATUSES.map((entry) => (
+              <option key={entry} value={entry}>
+                {entry}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+      <div>
+        <Label htmlFor='instance-description'>Description override</Label>
+        <Textarea
+          id='instance-description'
+          value={value.description}
+          onChange={(event) => onChange({ ...value, description: event.target.value })}
+          rows={2}
+          placeholder='Leave empty to inherit'
+        />
+      </div>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+        <div>
+          <Label htmlFor='instance-delivery-mode'>Delivery mode override</Label>
+          <Select
+            id='instance-delivery-mode'
+            value={value.deliveryMode}
+            onChange={(event) => onChange({ ...value, deliveryMode: event.target.value as ServiceDeliveryMode | '' })}
+          >
+            <option value=''>inherit</option>
+            {SERVICE_DELIVERY_MODES.map((entry) => (
+              <option key={entry} value={entry}>
+                {entry}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor='instance-location-id'>Location</Label>
+          <Input
+            id='instance-location-id'
+            value={value.locationId}
+            onChange={(event) => onChange({ ...value, locationId: event.target.value })}
+            placeholder='Location UUID'
+          />
+        </div>
+        <div>
+          <Label htmlFor='instance-max-capacity'>Max capacity</Label>
+          <Input
+            id='instance-max-capacity'
+            value={value.maxCapacity}
+            onChange={(event) => onChange({ ...value, maxCapacity: event.target.value })}
+            type='number'
+            placeholder='Unlimited if empty'
+          />
+        </div>
+      </div>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+        <div>
+          <Label htmlFor='instance-instructor-id'>Instructor user sub</Label>
+          <Input
+            id='instance-instructor-id'
+            value={value.instructorId}
+            onChange={(event) => onChange({ ...value, instructorId: event.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor='instance-waitlist'>Waitlist enabled</Label>
+          <Select
+            id='instance-waitlist'
+            value={value.waitlistEnabled ? 'true' : 'false'}
+            onChange={(event) =>
+              onChange({ ...value, waitlistEnabled: event.target.value === 'true' })
+            }
+          >
+            <option value='false'>false</option>
+            <option value='true'>true</option>
+          </Select>
+        </div>
+      </div>
+      <div>
+        <Label htmlFor='instance-notes'>Notes</Label>
+        <Textarea
+          id='instance-notes'
+          value={value.notes}
+          onChange={(event) => onChange({ ...value, notes: event.target.value })}
+          rows={2}
+        />
+      </div>
+      <SessionSlotEditor
+        slots={value.sessionSlots}
+        onChange={(sessionSlots) => onChange({ ...value, sessionSlots })}
+      />
+    </div>
+  );
+}

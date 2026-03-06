@@ -1,0 +1,116 @@
+'use client';
+
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+
+import { SERVICE_STATUSES, SERVICE_TYPES } from '@/types/services';
+import type { ServiceListFilters, ServiceSummary } from '@/types/services';
+
+export interface ServiceListPanelProps {
+  services: ServiceSummary[];
+  selectedServiceId: string | null;
+  filters: ServiceListFilters;
+  totalCount: number;
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  error: string;
+  onSelectService: (serviceId: string) => void;
+  onFilterChange: <TKey extends keyof ServiceListFilters>(
+    key: TKey,
+    value: ServiceListFilters[TKey]
+  ) => void;
+  onClearFilters: () => void;
+  onLoadMore: () => Promise<void> | void;
+}
+
+export function ServiceListPanel({
+  services,
+  selectedServiceId,
+  filters,
+  totalCount,
+  isLoading,
+  isLoadingMore,
+  hasMore,
+  error,
+  onSelectService,
+  onFilterChange,
+  onClearFilters,
+  onLoadMore,
+}: ServiceListPanelProps) {
+  return (
+    <Card title={`Services (${totalCount})`}>
+      <div className='mb-3 grid grid-cols-1 gap-2 sm:grid-cols-4'>
+        <Select
+          value={filters.serviceType}
+          onChange={(event) => onFilterChange('serviceType', event.target.value as ServiceListFilters['serviceType'])}
+        >
+          <option value=''>All types</option>
+          {SERVICE_TYPES.map((entry) => (
+            <option key={entry} value={entry}>
+              {entry}
+            </option>
+          ))}
+        </Select>
+        <Select
+          value={filters.status}
+          onChange={(event) => onFilterChange('status', event.target.value as ServiceListFilters['status'])}
+        >
+          <option value=''>All statuses</option>
+          {SERVICE_STATUSES.map((entry) => (
+            <option key={entry} value={entry}>
+              {entry}
+            </option>
+          ))}
+        </Select>
+        <Input
+          value={filters.search}
+          onChange={(event) => onFilterChange('search', event.target.value)}
+          placeholder='Search title/description'
+        />
+        <Button type='button' variant='ghost' onClick={onClearFilters}>
+          Clear
+        </Button>
+      </div>
+      {error ? <p className='mb-2 text-sm text-red-600'>{error}</p> : null}
+      <div className='overflow-x-auto'>
+        <table className='w-full min-w-[720px] text-left text-sm'>
+          <thead className='text-slate-500'>
+            <tr>
+              <th className='py-2 pr-3 font-medium'>Title</th>
+              <th className='py-2 pr-3 font-medium'>Type</th>
+              <th className='py-2 pr-3 font-medium'>Status</th>
+              <th className='py-2 pr-3 font-medium'>Delivery</th>
+              <th className='py-2 pr-3 font-medium'>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {services.map((service) => (
+              <tr
+                key={service.id}
+                className={`cursor-pointer border-t ${selectedServiceId === service.id ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
+                onClick={() => onSelectService(service.id)}
+              >
+                <td className='py-2 pr-3'>{service.title}</td>
+                <td className='py-2 pr-3'>{service.serviceType}</td>
+                <td className='py-2 pr-3'>{service.status}</td>
+                <td className='py-2 pr-3'>{service.deliveryMode}</td>
+                <td className='py-2 pr-3'>{service.createdAt ?? '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {isLoading ? <p className='mt-3 text-sm text-slate-500'>Loading services...</p> : null}
+      {hasMore ? (
+        <div className='mt-3'>
+          <Button type='button' variant='outline' onClick={() => void onLoadMore()} disabled={isLoadingMore}>
+            {isLoadingMore ? 'Loading...' : 'Load more'}
+          </Button>
+        </div>
+      ) : null}
+    </Card>
+  );
+}
