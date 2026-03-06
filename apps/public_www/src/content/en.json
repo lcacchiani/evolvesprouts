@@ -69,6 +69,7 @@
   },
   "hero": {
     "headline": "Your auntie loves your child. But she needs the tools to raise them your way.",
+    "highlightPhrase": "your way",
     "subheadline": "No blame. No judgment. Just the practical training every family in Hong Kong deserves.",
     "cta": "Enrol your helper",
     "ctaHref": "/services/my-best-auntie-training-course",
@@ -117,6 +118,7 @@
   },
   "idaIntro": {
     "heading": "Hello! I'm Ida — AMI Montessori educator, mum of two, and founder of Evolve Sprouts.",
+    "highlightPhrase": "Evolve Sprouts",
     "body": "I left a teacher career to train helpers to raise children with confidence, independence, and warmth. This work is personal to me — because I'm navigating the same journey you are.",
     "ctaLabel": "Read my story",
     "ctaHref": "/about-us",

@@ -1,4 +1,3 @@
-import { Fragment, type ReactNode } from 'react';
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
@@ -7,6 +6,7 @@ import {
   SectionContainer,
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
+import { renderHighlightedText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { HeroContent } from '@/content';
 import { ROUTES } from '@/lib/routes';
@@ -18,26 +18,7 @@ interface HeroBannerProps {
 
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
 const HERO_IMAGE_ALT = 'Montessori auntie training for Hong Kong families';
-const HEADLINE_HIGHLIGHT_WORD = 'Montessori';
 const HERO_BODY_TEXT_CLASSNAME = 'max-w-[458px] es-hero-subheadline';
-
-function renderHeadline(headline: string): ReactNode {
-  const sections = headline.split(HEADLINE_HIGHLIGHT_WORD);
-  if (sections.length === 1) {
-    return headline;
-  }
-
-  return sections.map((section, index) => (
-    <Fragment key={`${section}-${index}`}>
-      {section}
-      {index < sections.length - 1 && (
-        <span className='es-hero-highlight-word'>
-          {HEADLINE_HIGHLIGHT_WORD}
-        </span>
-      )}
-    </Fragment>
-  ));
-}
 
 export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
   const resolvedCtaHref =
@@ -64,7 +45,7 @@ export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8'>
           <div className='relative z-10'>
             <SectionHeader
-              title={renderHeadline(content.headline)}
+              title={renderHighlightedText(content.headline, content.highlightPhrase)}
               titleAs='h1'
               align='left'
               className='max-w-[610px]'

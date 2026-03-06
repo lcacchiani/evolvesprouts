@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { HeroBanner } from '@/components/sections/hero-banner';
 import enContent from '@/content/en.json';
+import zhCNContent from '@/content/zh-CN.json';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -52,6 +53,9 @@ describe('HeroBanner section', () => {
     const headline = screen.getByRole('heading', { level: 1 });
     expect(headline.className).toContain('es-hero-headline');
     expect(headline).toHaveTextContent(enContent.hero.headline);
+    expect(screen.getByText(enContent.hero.highlightPhrase)).toHaveClass(
+      'es-hero-highlight-word',
+    );
 
     const subheadline = screen.getByText(enContent.hero.subheadline);
     expect(subheadline.className).toContain('es-hero-subheadline');
@@ -61,5 +65,13 @@ describe('HeroBanner section', () => {
     const supportingParagraph = screen.getByText(enContent.hero.supportingParagraph);
     expect(supportingParagraph).toBeInTheDocument();
     expect(supportingParagraph.className).toContain('es-hero-subheadline');
+  });
+
+  it('applies locale-specific hero highlight phrase styling', () => {
+    render(<HeroBanner content={zhCNContent.hero} />);
+
+    expect(screen.getByText(zhCNContent.hero.highlightPhrase)).toHaveClass(
+      'es-hero-highlight-word',
+    );
   });
 });

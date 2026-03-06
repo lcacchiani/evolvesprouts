@@ -69,6 +69,7 @@
   },
   "hero": {
     "headline": "你的阿姨很爱你的孩子，但她需要工具，才能按你的方式养育他们。",
+    "highlightPhrase": "你的方式",
     "subheadline": "不责备，不评判。只提供每个香港家庭都值得拥有的实用培训。",
     "cta": "为你的阿姨报名",
     "ctaHref": "/services/my-best-auntie-training-course",
@@ -117,6 +118,7 @@
   },
   "idaIntro": {
     "heading": "你好！我是 Ida——AMI 蒙特梭利教育者、两个孩子的妈妈，也是 Evolve Sprouts 的创始人。",
+    "highlightPhrase": "Evolve Sprouts",
     "body": "我离开教师职业，开始培训阿姨，让她们能以自信、独立与温暖的方式养育孩子。这份工作对我很个人——因为我也在经历和你一样的育儿旅程。",
     "ctaLabel": "阅读我的故事",
     "ctaHref": "/about-us",
