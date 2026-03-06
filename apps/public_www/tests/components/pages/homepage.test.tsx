@@ -126,6 +126,8 @@ describe('HomePageSections', () => {
     const heroProps = heroBannerPropsSpy.mock.calls[0][0];
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     expect(pageLayoutProps.navbarContent.bookNow.href).toBe(heroProps.ctaHref);
-    expect(pageLayoutProps.navbarContent.bookNow.label).toBe(enContent.hero.cta);
+    expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
+      enContent.navbar.bookNow.label,
+    );
   });
 });
