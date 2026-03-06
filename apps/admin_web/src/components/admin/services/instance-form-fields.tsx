@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { formatEnumLabel } from '@/lib/format';
 
 import { INSTANCE_STATUSES, SERVICE_DELIVERY_MODES } from '@/types/services';
 import type { InstanceStatus, ServiceDeliveryMode } from '@/types/services';
@@ -52,7 +53,7 @@ export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps)
           >
             {INSTANCE_STATUSES.map((entry) => (
               <option key={entry} value={entry}>
-                {entry}
+                {formatEnumLabel(entry)}
               </option>
             ))}
           </Select>
@@ -76,10 +77,10 @@ export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps)
             value={value.deliveryMode}
             onChange={(event) => onChange({ ...value, deliveryMode: event.target.value as ServiceDeliveryMode | '' })}
           >
-            <option value=''>inherit</option>
+            <option value=''>Inherit</option>
             {SERVICE_DELIVERY_MODES.map((entry) => (
               <option key={entry} value={entry}>
-                {entry}
+                {formatEnumLabel(entry)}
               </option>
             ))}
           </Select>
@@ -122,8 +123,8 @@ export function InstanceFormFields({ value, onChange }: InstanceFormFieldsProps)
               onChange({ ...value, waitlistEnabled: event.target.value === 'true' })
             }
           >
-            <option value='false'>false</option>
-            <option value='true'>true</option>
+            <option value='false'>Disabled</option>
+            <option value='true'>Enabled</option>
           </Select>
         </div>
       </div>

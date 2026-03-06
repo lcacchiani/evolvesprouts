@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import { ENROLLMENT_STATUSES } from '@/types/services';
@@ -35,6 +36,7 @@ export function CreateEnrollmentDialog({
   const [amountPaid, setAmountPaid] = useState('');
   const [currency, setCurrency] = useState('HKD');
   const [notes, setNotes] = useState('');
+  const currencyOptions = getCurrencyOptions();
 
   return (
     <FormDialog
@@ -86,7 +88,7 @@ export function CreateEnrollmentDialog({
           >
             {ENROLLMENT_STATUSES.map((entry) => (
               <option key={entry} value={entry}>
-                {entry}
+                {formatEnumLabel(entry)}
               </option>
             ))}
           </Select>
@@ -97,11 +99,17 @@ export function CreateEnrollmentDialog({
         </div>
         <div>
           <Label htmlFor='enrollment-currency'>Currency</Label>
-          <Input
+          <Select
             id='enrollment-currency'
             value={currency}
-            onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-          />
+            onChange={(event) => setCurrency(event.target.value)}
+          >
+            {currencyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         </div>
       </div>
       <div>

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -42,5 +42,30 @@ describe('CreateServiceDialog', () => {
         service_type: 'training_course',
       })
     );
+  });
+
+  it('shows readable option labels and HKD currency default', () => {
+    render(
+      <CreateServiceDialog
+        open
+        isLoading={false}
+        error=''
+        onClose={() => undefined}
+        onCreate={async () => undefined}
+      />
+    );
+
+    const serviceTypeSelect = screen.getByLabelText('Service type');
+    expect(within(serviceTypeSelect).getByRole('option', { name: 'Training Course' })).toBeInTheDocument();
+
+    const deliveryModeSelect = screen.getByLabelText('Delivery mode');
+    expect(within(deliveryModeSelect).getByRole('option', { name: 'In Person' })).toBeInTheDocument();
+
+    const pricingUnitSelect = screen.getByLabelText('Pricing unit');
+    expect(within(pricingUnitSelect).getByRole('option', { name: 'Per Person' })).toBeInTheDocument();
+
+    const currencySelect = screen.getByLabelText('Currency');
+    expect(currencySelect).toHaveValue('HKD');
+    expect(within(currencySelect).getByRole('option', { name: 'HKD Hong Kong Dollar' })).toBeInTheDocument();
   });
 });
