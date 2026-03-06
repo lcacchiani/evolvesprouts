@@ -36,8 +36,8 @@
       }
     ],
     "bookNow": {
-      "label": "今天就培训你的阿姨！",
-      "href": "/services/my-best-auntie-training-course"
+      "label": "预约免费入门咨询",
+      "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
     },
     "languageSelector": {
       "menuAriaLabel": "选择语言",
