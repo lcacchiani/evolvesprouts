@@ -9,6 +9,7 @@ import { FreeResourcesForGentleParenting } from '@/components/sections/free-reso
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { localizeHref } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 interface HomePageSectionsProps {
   locale: Locale;
@@ -16,14 +17,23 @@ interface HomePageSectionsProps {
 }
 
 export function HomePageSections({ locale, content }: HomePageSectionsProps) {
+  const siteConfig = resolvePublicSiteConfig();
   const heroCtaHref = localizeHref(
     content.hero.ctaHref || ROUTES.servicesMyBestAuntieTrainingCourse,
     locale,
   );
+  const navbarCtaHref = siteConfig.whatsappUrl || content.navbar.bookNow.href;
+  const homepageNavbarContent = {
+    ...content.navbar,
+    bookNow: {
+      ...content.navbar.bookNow,
+      href: navbarCtaHref,
+    },
+  };
 
   return (
     <PageLayout
-      navbarContent={content.navbar}
+      navbarContent={homepageNavbarContent}
       footerContent={content.footer}
     >
       <HeroBanner content={content.hero} ctaHref={heroCtaHref} />

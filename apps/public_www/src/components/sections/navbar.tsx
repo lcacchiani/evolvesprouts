@@ -94,13 +94,28 @@ function BookNowButton({
   );
 }
 
+function resolveBookNowHref(bookNow: NavbarContent['bookNow']): string {
+  if (
+    'href' in bookNow
+    && typeof bookNow.href === 'string'
+    && bookNow.href.trim() !== ''
+  ) {
+    return bookNow.href;
+  }
+
+  return ROUTES.servicesMyBestAuntieTrainingCourse;
+}
+
 export function Navbar({ content }: NavbarProps) {
   const pathname = usePathname() ?? '/';
   const currentPath = normalizeLocalizedPath(pathname);
   const currentLocale = getLocaleFromPath(pathname);
   const logoSrc = content.logoSrc || LOGO_SRC;
   const localizedHomeHref = localizePath(ROUTES.home, currentLocale);
-  const localizedBookNowHref = localizeHref(content.bookNow.href, currentLocale);
+  const localizedBookNowHref = localizeHref(
+    resolveBookNowHref(content.bookNow),
+    currentLocale,
+  );
   const languageSelector = resolveLanguageSelectorContent(content);
   const openNavigationMenuAriaLabel = content.openNavigationMenuAriaLabel.trim();
   const closeNavigationMenuAriaLabel = content.closeNavigationMenuAriaLabel.trim();

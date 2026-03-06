@@ -36,8 +36,7 @@
       }
     ],
     "bookNow": {
-      "label": "预约免费入门咨询",
-      "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+      "label": "预约免费入门咨询"
     },
     "languageSelector": {
       "menuAriaLabel": "选择语言",

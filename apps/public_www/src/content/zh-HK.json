@@ -36,8 +36,7 @@
       }
     ],
     "bookNow": {
-      "label": "預約免費入門諮詢",
-      "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr"
+      "label": "預約免費入門諮詢"
     },
     "languageSelector": {
       "menuAriaLabel": "選擇語言",

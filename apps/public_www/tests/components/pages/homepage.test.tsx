@@ -1,19 +1,41 @@
 import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { HomePageSections } from '@/components/pages/homepage';
 import enContent from '@/content/en.json';
+
+const WHATSAPP_URL_ENV_KEY = 'NEXT_PUBLIC_WHATSAPP_URL';
+const originalWhatsappUrlEnv = process.env[WHATSAPP_URL_ENV_KEY];
+
+afterEach(() => {
+  if (typeof originalWhatsappUrlEnv === 'string') {
+    process.env[WHATSAPP_URL_ENV_KEY] = originalWhatsappUrlEnv;
+  } else {
+    delete process.env[WHATSAPP_URL_ENV_KEY];
+  }
+});
 
 const heroBannerPropsSpy = vi.fn<
   [{ content: { headline: string }; ctaHref?: string }],
   void
 >();
+const pageLayoutPropsSpy = vi.fn<
+  [{ navbarContent: { bookNow: { href: string; label: string } } }],
+  void
+>();
 
 vi.mock('@/components/shared/page-layout', () => ({
-  PageLayout: ({ children }: { children: ReactNode }) => (
-    <div data-testid='page-layout'>{children}</div>
-  ),
+  PageLayout: ({
+    children,
+    navbarContent,
+  }: {
+    children: ReactNode;
+    navbarContent: { bookNow: { href: string; label: string } };
+  }) => {
+    pageLayoutPropsSpy({ navbarContent });
+    return <div data-testid='page-layout'>{children}</div>;
+  },
 }));
 vi.mock('@/components/sections/hero-banner', () => ({
   HeroBanner: ({
@@ -69,7 +91,9 @@ vi.mock('@/components/sections/sprouts-squad-community', () => ({
 
 describe('HomePageSections', () => {
   it('composes homepage sections with the expected content slices', () => {
+    process.env[WHATSAPP_URL_ENV_KEY] = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
     heroBannerPropsSpy.mockClear();
+    pageLayoutPropsSpy.mockClear();
     render(<HomePageSections locale='en' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
@@ -90,6 +114,18 @@ describe('HomePageSections', () => {
       expect.objectContaining({
         ctaHref: '/en/services/my-best-auntie-training-course',
       }),
+    );
+    expect(heroBannerPropsSpy).toHaveBeenCalledTimes(1);
+    expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
+
+    const heroProps = heroBannerPropsSpy.mock.calls[0][0];
+    const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
+    expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
+      'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
+    );
+    expect(pageLayoutProps.navbarContent.bookNow.href).not.toBe(heroProps.ctaHref);
+    expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
+      enContent.navbar.bookNow.label,
     );
   });
 });
