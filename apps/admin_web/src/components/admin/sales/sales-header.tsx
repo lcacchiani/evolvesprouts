@@ -9,6 +9,7 @@ import type { SalesView } from '@/hooks/use-sales-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { formatDateForInput } from '@/lib/format';
 
 export interface SalesHeaderProps {
   activeView: SalesView;
@@ -17,10 +18,6 @@ export interface SalesHeaderProps {
   onRefresh: () => Promise<void> | void;
   onNewLead: () => void;
   filters: LeadListFilters;
-}
-
-function formatDateForInput(value: Date): string {
-  return value.toISOString().slice(0, 10);
 }
 
 function buildPresetDateRange(value: string): DateRange {

@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { useAdminUsers } from './use-admin-users';
+import { useDialogState } from './use-dialog-state';
 import { useLeadAnalytics } from './use-lead-analytics';
 import { useLeadDetail } from './use-lead-detail';
 import { useLeadList } from './use-lead-list';
@@ -15,7 +16,7 @@ export function useSalesPage() {
   const [selectedLeadIdState, setSelectedLeadIdState] = useState<string | null | undefined>(
     undefined
   );
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateDialogOpen, openCreateDialog, closeCreateDialog] = useDialogState();
 
   const adminUsers = useAdminUsers();
   const leadList = useLeadList();
@@ -49,14 +50,6 @@ export function useSalesPage() {
     () => leadList.leads.find((entry) => entry.id === selectedLeadId) ?? null,
     [leadList.leads, selectedLeadId]
   );
-
-  const openCreateDialog = useCallback(() => {
-    setIsCreateDialogOpen(true);
-  }, []);
-
-  const closeCreateDialog = useCallback(() => {
-    setIsCreateDialogOpen(false);
-  }, []);
 
   return {
     activeView,
