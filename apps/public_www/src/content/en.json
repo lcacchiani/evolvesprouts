@@ -1226,10 +1226,6 @@
         {
           "label": "Contact Us",
           "href": "/contact-us"
-        },
-        {
-          "label": "Book Now",
-          "href": "/services/my-best-auntie-training-course"
         }
       ]
     },
@@ -1237,12 +1233,8 @@
       "title": "Services",
       "items": [
         {
-          "label": "My Best Auntie",
+          "label": "Helper Training Course",
           "href": "/services/my-best-auntie-training-course"
-        },
-        {
-          "label": "Workshops",
-          "href": "/services/workshops"
         },
         {
           "label": "Resources",
@@ -1256,10 +1248,6 @@
         {
           "label": "Who We Are",
           "href": "/about-us"
-        },
-        {
-          "label": "Newsletter",
-          "href": "/contact-us"
         },
         {
           "label": "Privacy Policy",
