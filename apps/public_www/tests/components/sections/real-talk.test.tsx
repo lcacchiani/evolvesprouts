@@ -71,6 +71,9 @@ describe('RealTalk', () => {
     ).not.toBeInTheDocument();
     expect(document.querySelectorAll('.es-real-talk-card--green').length).toBeGreaterThan(0);
     expect(document.querySelectorAll('.es-real-talk-card--blue').length).toBeGreaterThan(0);
+    expect(document.querySelectorAll('.es-testimonial-quote-icon')).toHaveLength(
+      enContent.realTalk.items.length,
+    );
 
     const carousel = screen.getByTestId('real-talk-mobile-carousel');
     expect(carousel.querySelectorAll('img')).toHaveLength(0);

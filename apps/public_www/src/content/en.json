@@ -597,34 +597,34 @@
   },
   "realTalk": {
     "eyebrow": "Real Talk",
-    "title": "Real Talk",
-    "description": "The program serious families choose when they want real change",
+    "title": "Sound Familiar?",
+    "description": "Your helper isn't doing anything wrong. She's doing what she knows. This course gives her something better.",
     "ctaLabel": "Get Started—Train Auntie Today",
     "ctaHref": "/services/my-best-auntie-training-course",
     "items": [
       {
-        "id": "age-specific",
-        "title": "From Supervisor to Skilled Guide"
+        "id": "ipad-when-crying",
+        "title": "She hands him the iPad the second he cries."
       },
       {
-        "id": "small-group-learning",
-        "title": "Build a Calmer, Happier Home"
+        "id": "spoon-fed-at-three",
+        "title": "She still spoon-feeds him. He's three."
       },
       {
-        "id": "montessori-positive-discipline",
-        "title": "See Tangible Changes, Week-by-Week"
+        "id": "monster-threat-at-meals",
+        "title": "She says \"if you don't eat, the monster will come.\""
       },
       {
-        "id": "ongoing-support",
-        "title": "Invest in Your Peace of Mind"
+        "id": "no-shoes-independence",
+        "title": "She does everything for them. They can't even put on their own shoes."
       },
       {
-        "id": "ready-to-use-tools",
-        "title": "Empower Your Helper, Elevate Your Home"
+        "id": "rules-change-when-i-leave",
+        "title": "She's wonderful — but the moment I leave, the rules change."
       },
       {
-        "id": "guaranteed-confidence",
-        "title": "Create a Home Designed for Independence"
+        "id": "out-of-ideas",
+        "title": "Think of something."
       }
     ],
     "scrollLeftAriaLabel": "Scroll real talk left",

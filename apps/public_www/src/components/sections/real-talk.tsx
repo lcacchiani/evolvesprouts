@@ -23,12 +23,12 @@ const CARD_TONES = ['green', 'blue'] as const;
 
 const fallbackRealTalkCopy = enContent.realTalk;
 const orderedCardIds = [
-  'age-specific',
-  'small-group-learning',
-  'montessori-positive-discipline',
-  'ongoing-support',
-  'ready-to-use-tools',
-  'guaranteed-confidence',
+  'ipad-when-crying',
+  'spoon-fed-at-three',
+  'monster-threat-at-meals',
+  'no-shoes-independence',
+  'rules-change-when-i-leave',
+  'out-of-ideas',
 ] as const;
 
 function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
