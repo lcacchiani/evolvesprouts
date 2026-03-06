@@ -12,8 +12,10 @@ from app.api.assets import (
     handle_user_assets_request,
 )
 from app.api.admin_geographic_areas import handle_admin_geographic_areas_request
+from app.api.admin_discount_codes import handle_admin_discount_codes_request
 from app.api.admin_leads import handle_admin_leads_request
 from app.api.admin_locations import handle_admin_locations_request
+from app.api.admin_services import handle_admin_services_request
 from app.api.admin_users import handle_admin_users_request
 from app.api.public_media import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
@@ -81,6 +83,16 @@ _ROUTES: tuple[
         "/v1/admin/users",
         False,
         handle_admin_users_request,
+    ),
+    (
+        "/v1/admin/services",
+        False,
+        handle_admin_services_request,
+    ),
+    (
+        "/v1/admin/discount-codes",
+        False,
+        handle_admin_discount_codes_request,
     ),
     ("/v1/admin/assets", False, handle_admin_assets_request),
     ("/v1/user/assets", False, handle_user_assets_request),
