@@ -46,7 +46,7 @@ export function IdaIntro({ content }: IdaIntroProps) {
           'es-section-split-layout--hero items-center',
         )}
       >
-        <div className='relative max-w-[620px] lg:order-2 lg:pb-4 lg:pl-8 xl:pl-[110px]'>
+        <div className='relative max-w-[620px] lg:order-2 lg:pb-4 lg:pl-8'>
           <div className='relative z-10'>
             <SectionHeader
               title={renderIntroText(content.heading)}
