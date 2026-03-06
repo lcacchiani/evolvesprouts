@@ -80,22 +80,6 @@ vi.mock('@/components/sections/my-best-auntie-overview', () => ({
     <section data-testid='my-best-auntie-overview'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/course-highlights', () => ({
-  CourseHighlights: ({ content }: { content: { title: string } }) => (
-    <section data-testid='course-highlights'>{content.title}</section>
-  ),
-}));
-vi.mock('@/components/sections/free-resources-for-gentle-parenting', () => ({
-  FreeResourcesForGentleParenting: ({
-    content,
-  }: {
-    content: { title: string };
-  }) => (
-    <section data-testid='free-resources-for-gentle-parenting'>
-      {content.title}
-    </section>
-  ),
-}));
 vi.mock('@/components/sections/deferred-testimonials', () => ({
   DeferredTestimonials: ({ content }: { content: { title: string } }) => (
     <section data-testid='deferred-testimonials'>{content.title}</section>
@@ -128,8 +112,6 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('real-talk')).toBeInTheDocument();
     expect(screen.getByTestId('ida-intro')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-overview')).toBeInTheDocument();
-    expect(screen.getByTestId('course-highlights')).toBeInTheDocument();
-    expect(screen.getByTestId('free-resources-for-gentle-parenting')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
     expect(screen.getByText(enContent.hero.headline)).toBeInTheDocument();

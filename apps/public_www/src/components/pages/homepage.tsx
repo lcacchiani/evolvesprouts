@@ -1,12 +1,10 @@
 import type { Locale, SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
-import { CourseHighlights } from '@/components/sections/course-highlights';
 import { RealTalk } from '@/components/sections/real-talk';
 import { HeroBanner } from '@/components/sections/hero-banner';
 import { IdaIntro } from '@/components/sections/ida-intro';
 import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overview';
-import { FreeResourcesForGentleParenting } from '@/components/sections/free-resources-for-gentle-parenting';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { localizeHref } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
@@ -78,8 +76,6 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
       <RealTalk content={content.realTalk} />
       <IdaIntro content={content.idaIntro} />
       <MyBestAuntieOverview content={content.myBestAuntieOverview} />
-      <CourseHighlights content={content.courseHighlights} />
-      <FreeResourcesForGentleParenting content={content.resources} />
       <DeferredTestimonials content={content.testimonials} />
       <FreeIntroSession content={content.freeIntroSession} ctaHref={navbarCtaHref} />
     </PageLayout>
