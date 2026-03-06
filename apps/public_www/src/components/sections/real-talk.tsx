@@ -89,6 +89,9 @@ export function RealTalk({ content }: RealTalkProps) {
             <ul
               ref={carouselRef}
               data-testid='real-talk-mobile-carousel'
+              role='region'
+              aria-roledescription='carousel'
+              aria-label={`${sectionTitle} carousel`}
               className='-mx-1 flex min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:gap-6 md:mx-0 md:grid md:grid-cols-2 md:snap-none md:gap-6 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-3'
             >
               {realTalkCards.map((card, index) => {

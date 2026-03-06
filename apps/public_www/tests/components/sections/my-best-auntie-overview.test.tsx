@@ -25,10 +25,14 @@ describe('MyBestAuntieOverview section', () => {
       <MyBestAuntieOverview content={enContent.myBestAuntieOverview} />,
     );
 
-    const section = screen.getByRole('region', {
-      name: /best auntie training/i,
-    });
-    expect(section.className).toContain('es-my-best-auntie-overview-section');
+    const section = screen
+      .getAllByRole('region', {
+        name: /best auntie training/i,
+      })
+      .find((element) => element.tagName.toLowerCase() === 'section');
+
+    expect(section).toBeDefined();
+    expect(section?.className).toContain('es-my-best-auntie-overview-section');
     const mobileCarouselWrapper = container.querySelector('div.-mx-1.md\\:hidden');
     expect(mobileCarouselWrapper).toHaveAttribute(
       'data-css-fallback',

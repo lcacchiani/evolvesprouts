@@ -207,8 +207,8 @@ export function Faq({ content }: FaqProps) {
           />
         </div>
 
-        <div className='mt-6 overflow-x-auto pb-1 scrollbar-hide'>
-          <div className='flex min-w-max gap-2'>
+        <div className='mt-6 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
+          <div className='flex min-w-max snap-x snap-mandatory gap-2'>
             {labels.map((entry) => {
               const isActive = activeLabelId === entry.id;
 
@@ -221,7 +221,7 @@ export function Faq({ content }: FaqProps) {
                     setSearchValue('');
                     setActiveLabelId(entry.id);
                   }}
-                  className='rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
+                  className='snap-start rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
                 >
                   {entry.label}
                 </ButtonPrimitive>

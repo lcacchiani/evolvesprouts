@@ -271,7 +271,7 @@ export function MyBestAuntieBooking({
               <h3 className='text-sm font-semibold es-text-neutral-strong'>
                 {content.ageSelectorLabel}
               </h3>
-              <div className='mt-3 flex min-w-0 gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
+              <div className='mt-3 flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
                 {ageOptions.map((option) => {
                   const isSelected = option.id === selectedAgeId;
 
@@ -288,7 +288,7 @@ export function MyBestAuntieBooking({
                             ?.id ?? '';
                         setSelectedDateId(nextDateId);
                       }}
-                      className={`${BOOKING_SELECTOR_CARD_CLASSNAME} text-left`}
+                      className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-left`}
                     >
                       <div className='flex items-center justify-start gap-10'>
                         <Image

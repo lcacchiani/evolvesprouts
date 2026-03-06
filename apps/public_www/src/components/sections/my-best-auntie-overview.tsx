@@ -276,12 +276,17 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           </div>
           {/* Mobile carousel (< md) with wave scrolling alongside cards */}
           <div data-css-fallback='hide-when-css-missing' className='-mx-1 md:hidden'>
-            <div className='scrollbar-hide snap-x snap-mandatory overflow-x-auto px-1 pb-2'>
+            <div
+              role='region'
+              aria-roledescription='carousel'
+              aria-label={`${content.title} carousel`}
+              className='snap-x snap-mandatory overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+            >
               <ul className='relative inline-flex gap-4'>
                 {moduleSteps.map((module, index) => (
                   <li
                     key={module.step}
-                    className='w-[80vw] shrink-0 snap-center sm:w-[66vw]'
+                    className='w-[80vw] shrink-0 snap-start sm:w-[66vw]'
                   >
                     <MyBestAuntieOverviewCard
                       module={module}
