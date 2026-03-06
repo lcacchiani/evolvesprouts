@@ -328,14 +328,21 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
             for source, count in source_counts_raw
         }
 
-        leads_over_time_raw = self._session.execute(
+        week_bucket = func.date_trunc("week", SalesLead.created_at).label("week_bucket")
+        leads_over_time_grouped = (
             select(
-                func.to_char(func.date_trunc("week", SalesLead.created_at), "IYYY-IW"),
-                func.count(SalesLead.id),
+                week_bucket,
+                func.count(SalesLead.id).label("lead_count"),
             )
             .where(*conditions)
-            .group_by(func.date_trunc("week", SalesLead.created_at))
-            .order_by(func.date_trunc("week", SalesLead.created_at).asc())
+            .group_by(week_bucket)
+            .subquery()
+        )
+        leads_over_time_raw = self._session.execute(
+            select(
+                func.to_char(leads_over_time_grouped.c.week_bucket, "IYYY-IW"),
+                leads_over_time_grouped.c.lead_count,
+            ).order_by(leads_over_time_grouped.c.week_bucket.asc())
         ).all()
         leads_over_time = [
             {"period": period, "count": int(count)}
