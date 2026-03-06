@@ -6,8 +6,7 @@ import { CONTACT_SOURCES, LEAD_TYPES } from '@/types/leads';
 import type { AdminUser, ContactSource, LeadType } from '@/types/leads';
 
 import { StatusBanner } from '@/components/status-banner';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { FormDialog } from '@/components/ui/form-dialog';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -54,125 +53,109 @@ export function CreateLeadDialog({
   const [assignedTo, setAssignedTo] = useState('');
   const [note, setNote] = useState('');
 
-  if (!open) {
-    return null;
-  }
+  const handleSubmit = async () => {
+    try {
+      await onCreate({
+        first_name: firstName.trim(),
+        last_name: lastName.trim() || null,
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+        instagram_handle: instagramHandle.trim() || null,
+        source,
+        source_detail: sourceDetail.trim() || null,
+        lead_type: leadType,
+        contact_type: contactType || null,
+        assigned_to: assignedTo || null,
+        note: note.trim() || null,
+      });
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPhone('');
+      setInstagramHandle('');
+      setSource('manual');
+      setSourceDetail('');
+      setLeadType('consultation');
+      setContactType('parent');
+      setAssignedTo('');
+      setNote('');
+      onClose();
+    } catch {
+      // Keep dialog open so the user can correct and retry.
+    }
+  };
 
   return (
-    <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4'
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
+    <FormDialog
+      open={open}
+      title='Create lead'
+      isLoading={isLoading}
+      error=''
+      submitLabel='Create lead'
+      submitDisabled={firstName.trim().length === 0}
+      onClose={onClose}
+      onSubmit={handleSubmit}
     >
-      <div className='w-full max-w-2xl'>
-        <Card title='Create lead' className='space-y-3'>
-          {error ? (
-            <StatusBanner variant='error' title='Create lead'>
-              {error}
-            </StatusBanner>
-          ) : null}
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-            <Input
-              value={firstName}
-              onChange={(event) => setFirstName(event.target.value)}
-              placeholder='First name *'
-            />
-            <Input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder='Last name' />
-            <Input value={email} onChange={(event) => setEmail(event.target.value)} type='email' placeholder='Email' />
-            <Input value={phone} onChange={(event) => setPhone(event.target.value)} type='tel' placeholder='Phone' />
-            <Input
-              value={instagramHandle}
-              onChange={(event) => setInstagramHandle(event.target.value)}
-              placeholder='Instagram handle'
-            />
-            <Select value={source} onChange={(event) => setSource(event.target.value as ContactSource)}>
-              {CONTACT_SOURCES.map((sourceOption) => (
-                <option key={sourceOption} value={sourceOption}>
-                  {toTitleCase(sourceOption)}
-                </option>
-              ))}
-            </Select>
-            <Input
-              value={sourceDetail}
-              onChange={(event) => setSourceDetail(event.target.value)}
-              placeholder='Source detail'
-            />
-            <Select value={leadType} onChange={(event) => setLeadType(event.target.value as LeadType)}>
-              {LEAD_TYPES.map((leadTypeOption) => (
-                <option key={leadTypeOption} value={leadTypeOption}>
-                  {toTitleCase(leadTypeOption)}
-                </option>
-              ))}
-            </Select>
-            <Select value={contactType} onChange={(event) => setContactType(event.target.value)}>
-              <option value='parent'>Parent</option>
-              <option value='child'>Child</option>
-              <option value='helper'>Helper</option>
-              <option value='professional'>Professional</option>
-              <option value='other'>Other</option>
-            </Select>
-            <Select value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)}>
-              <option value=''>Unassigned</option>
-              {users.map((user) => (
-                <option key={user.sub} value={user.sub}>
-                  {user.name || user.email || user.sub}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <Textarea
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            placeholder='Initial note'
-            rows={3}
-          />
-          <div className='flex justify-end gap-2'>
-            <Button type='button' variant='secondary' onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              type='button'
-              disabled={isLoading || firstName.trim().length === 0}
-              onClick={async () => {
-                try {
-                  await onCreate({
-                    first_name: firstName.trim(),
-                    last_name: lastName.trim() || null,
-                    email: email.trim() || null,
-                    phone: phone.trim() || null,
-                    instagram_handle: instagramHandle.trim() || null,
-                    source,
-                    source_detail: sourceDetail.trim() || null,
-                    lead_type: leadType,
-                    contact_type: contactType || null,
-                    assigned_to: assignedTo || null,
-                    note: note.trim() || null,
-                  });
-                  setFirstName('');
-                  setLastName('');
-                  setEmail('');
-                  setPhone('');
-                  setInstagramHandle('');
-                  setSource('manual');
-                  setSourceDetail('');
-                  setLeadType('consultation');
-                  setContactType('parent');
-                  setAssignedTo('');
-                  setNote('');
-                  onClose();
-                } catch {
-                  // Keep dialog open so the user can correct and retry.
-                }
-              }}
-            >
-              Create lead
-            </Button>
-          </div>
-        </Card>
+      {error ? (
+        <StatusBanner variant='error' title='Create lead'>
+          {error}
+        </StatusBanner>
+      ) : null}
+      <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+        <Input
+          value={firstName}
+          onChange={(event) => setFirstName(event.target.value)}
+          placeholder='First name *'
+        />
+        <Input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder='Last name' />
+        <Input value={email} onChange={(event) => setEmail(event.target.value)} type='email' placeholder='Email' />
+        <Input value={phone} onChange={(event) => setPhone(event.target.value)} type='tel' placeholder='Phone' />
+        <Input
+          value={instagramHandle}
+          onChange={(event) => setInstagramHandle(event.target.value)}
+          placeholder='Instagram handle'
+        />
+        <Select value={source} onChange={(event) => setSource(event.target.value as ContactSource)}>
+          {CONTACT_SOURCES.map((sourceOption) => (
+            <option key={sourceOption} value={sourceOption}>
+              {toTitleCase(sourceOption)}
+            </option>
+          ))}
+        </Select>
+        <Input
+          value={sourceDetail}
+          onChange={(event) => setSourceDetail(event.target.value)}
+          placeholder='Source detail'
+        />
+        <Select value={leadType} onChange={(event) => setLeadType(event.target.value as LeadType)}>
+          {LEAD_TYPES.map((leadTypeOption) => (
+            <option key={leadTypeOption} value={leadTypeOption}>
+              {toTitleCase(leadTypeOption)}
+            </option>
+          ))}
+        </Select>
+        <Select value={contactType} onChange={(event) => setContactType(event.target.value)}>
+          <option value='parent'>Parent</option>
+          <option value='child'>Child</option>
+          <option value='helper'>Helper</option>
+          <option value='professional'>Professional</option>
+          <option value='other'>Other</option>
+        </Select>
+        <Select value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)}>
+          <option value=''>Unassigned</option>
+          {users.map((user) => (
+            <option key={user.sub} value={user.sub}>
+              {user.name || user.email || user.sub}
+            </option>
+          ))}
+        </Select>
       </div>
-    </div>
+      <Textarea
+        value={note}
+        onChange={(event) => setNote(event.target.value)}
+        placeholder='Initial note'
+        rows={3}
+      />
+    </FormDialog>
   );
 }

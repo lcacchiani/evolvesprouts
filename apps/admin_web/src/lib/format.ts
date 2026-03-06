@@ -17,3 +17,7 @@ export function formatDate(value: string | null): string {
 
   return parsedDate.toLocaleString();
 }
+
+export function formatDateForInput(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
