@@ -49,6 +49,17 @@ describe('MyBestAuntieOverview section', () => {
         expect(heading.className).toContain('es-my-best-auntie-overview-module-title');
       });
     });
+    expect(
+      screen.getByText(enContent.myBestAuntieOverview.subtitle),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(enContent.myBestAuntieOverview.description),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', {
+        name: enContent.myBestAuntieOverview.ctaLabel,
+      }),
+    ).toHaveAttribute('href', enContent.myBestAuntieOverview.ctaHref);
 
     expect(container.querySelector('article.es-my-best-auntie-overview-card--gold')).not.toBeNull();
     expect(container.querySelector('article.es-my-best-auntie-overview-card--red')).not.toBeNull();

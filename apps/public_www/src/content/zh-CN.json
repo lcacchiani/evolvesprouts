@@ -129,8 +129,9 @@
   "myBestAuntieOverview": {
     "eyebrow": "赋能教育",
     "title": "由 Ida 设计的最佳阿姨培训课程",
-    "description": "把您的阿姨培养成蒙特梭利导向的儿童发展伙伴！",
-    "ctaLabel": "立即开始 - 今天就培训阿姨",
+    "subtitle": "9周课程，改变你的家庭日常",
+    "description": "小组课程 + 私人 1:1 指导。HK$9,000 起。",
+    "ctaLabel": "查看完整课程详情",
     "ctaHref": "/services/my-best-auntie-training-course",
     "modules": [
       {
