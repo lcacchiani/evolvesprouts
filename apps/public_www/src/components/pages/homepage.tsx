@@ -1,6 +1,6 @@
 import type { Locale, SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
-import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
+import { FreeIntroSession } from '@/components/sections/free-intro-session';
 import { CourseHighlights } from '@/components/sections/course-highlights';
 import { RealTalk } from '@/components/sections/real-talk';
 import { HeroBanner } from '@/components/sections/hero-banner';
@@ -81,7 +81,7 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
       <CourseHighlights content={content.courseHighlights} />
       <FreeResourcesForGentleParenting content={content.resources} />
       <DeferredTestimonials content={content.testimonials} />
-      <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
+      <FreeIntroSession content={content.freeIntroSession} ctaHref={navbarCtaHref} />
     </PageLayout>
   );
 }

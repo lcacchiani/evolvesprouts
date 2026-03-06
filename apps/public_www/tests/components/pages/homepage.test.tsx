@@ -33,6 +33,10 @@ const pageLayoutPropsSpy = vi.fn<
   [{ navbarContent: { bookNow: { href: string; label: string } } }],
   void
 >();
+const freeIntroSessionPropsSpy = vi.fn<
+  [{ content: { heading: string }; ctaHref: string }],
+  void
+>();
 
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({
@@ -97,10 +101,17 @@ vi.mock('@/components/sections/deferred-testimonials', () => ({
     <section data-testid='deferred-testimonials'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: ({ content }: { content: { heading: string } }) => (
-    <section data-testid='sprouts-squad-community'>{content.heading}</section>
-  ),
+vi.mock('@/components/sections/free-intro-session', () => ({
+  FreeIntroSession: ({
+    content,
+    ctaHref,
+  }: {
+    content: { heading: string };
+    ctaHref: string;
+  }) => {
+    freeIntroSessionPropsSpy({ content, ctaHref });
+    return <section data-testid='free-intro-session'>{content.heading}</section>;
+  },
 }));
 
 describe('HomePageSections', () => {
@@ -109,6 +120,7 @@ describe('HomePageSections', () => {
     delete process.env[BUSINESS_PHONE_ENV_KEY];
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
+    freeIntroSessionPropsSpy.mockClear();
     render(<HomePageSections locale='en' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
@@ -119,7 +131,7 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('course-highlights')).toBeInTheDocument();
     expect(screen.getByTestId('free-resources-for-gentle-parenting')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
-    expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
+    expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
     expect(screen.getByText(enContent.hero.headline)).toBeInTheDocument();
     expect(screen.getByText(enContent.idaIntro.heading)).toBeInTheDocument();
     expect(screen.getByText(enContent.idaIntro.body)).toBeInTheDocument();
@@ -133,9 +145,11 @@ describe('HomePageSections', () => {
     );
     expect(heroBannerPropsSpy).toHaveBeenCalledTimes(1);
     expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
+    expect(freeIntroSessionPropsSpy).toHaveBeenCalledTimes(1);
 
     const heroProps = heroBannerPropsSpy.mock.calls[0][0];
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
+    const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
       'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
     );
@@ -143,6 +157,7 @@ describe('HomePageSections', () => {
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       enContent.navbar.bookNow.label,
     );
+    expect(freeIntroProps.ctaHref).toBe(pageLayoutProps.navbarContent.bookNow.href);
 
     const heroElement = screen.getByTestId('hero-banner');
     const realTalkElement = screen.getByTestId('real-talk');
@@ -160,11 +175,14 @@ describe('HomePageSections', () => {
     process.env[BUSINESS_PHONE_ENV_KEY] = '+852 9447 9843';
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
+    freeIntroSessionPropsSpy.mockClear();
 
     render(<HomePageSections locale='zh-HK' content={zhHKContent} />);
 
     expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
+    expect(freeIntroSessionPropsSpy).toHaveBeenCalledTimes(1);
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
+    const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     const parsedNavbarHref = new URL(pageLayoutProps.navbarContent.bookNow.href);
 
     expect(parsedNavbarHref.pathname).toBe('/85294479843');
@@ -174,5 +192,6 @@ describe('HomePageSections', () => {
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       zhHKContent.navbar.bookNow.label,
     );
+    expect(freeIntroProps.ctaHref).toBe(pageLayoutProps.navbarContent.bookNow.href);
   });
 });
