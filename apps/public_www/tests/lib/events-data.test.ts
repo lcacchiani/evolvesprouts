@@ -88,8 +88,8 @@ describe('events-data', () => {
     expect(events[0]).toMatchObject({
       title: 'TEST Creative Writing Masterclass',
       status: 'fully_booked',
-      dateLabel: 'Dec 05, 2025',
-      timeLabel: '10:00 AM - 1:00 PM',
+      dateLabel: '05 Dec 2025',
+      timeLabel: '10:00 - 13:00',
       locationName:
         'H210, 2/F, PMQ, Mid-Levels, Central and Western, Hong Kong Island',
       ctaHref:
@@ -108,8 +108,8 @@ describe('events-data', () => {
     expect(events[1]).toMatchObject({
       title: 'TEST Data Science Intensive Touch',
       status: 'open',
-      dateLabel: 'Dec 15, 2025',
-      timeLabel: '9:00 AM - 12:00 PM',
+      dateLabel: '15 Dec 2025',
+      timeLabel: '09:00 - 12:00',
       locationName: 'Virtual Meeting',
       ctaHref: 'https://meet.example.com/data-science',
       ctaLabel: enContent.events.card.ctaLabel,
@@ -141,6 +141,27 @@ describe('events-data', () => {
     expect(events[0]).toMatchObject({
       dateLabel: '2025年12月05日',
       timeLabel: '上午10:00 - 下午1:00',
+    });
+  });
+
+  it('normalizes snake_case location labels for display', () => {
+    const payload = {
+      data: [
+        {
+          title: 'Location formatting event',
+          location: 'in_person',
+          dates: [
+            {
+              start_datetime: '2025-12-05T10:00:00Z',
+            },
+          ],
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events);
+    expect(events[0]).toMatchObject({
+      locationName: 'In Person',
     });
   });
 

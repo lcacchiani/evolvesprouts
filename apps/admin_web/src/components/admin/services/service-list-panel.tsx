@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
-import { formatEnumLabel } from '@/lib/format';
+import { formatDate, formatEnumLabel } from '@/lib/format';
 
 import { SERVICE_STATUSES, SERVICE_TYPES } from '@/types/services';
 import type { ServiceListFilters, ServiceSummary } from '@/types/services';
@@ -103,10 +103,10 @@ export function ServiceListPanel({
               onClick={() => onSelectService(service.id)}
             >
               <td className='py-2 pr-3'>{service.title}</td>
-              <td className='py-2 pr-3'>{service.serviceType}</td>
-              <td className='py-2 pr-3'>{service.status}</td>
-              <td className='py-2 pr-3'>{service.deliveryMode}</td>
-              <td className='py-2 pr-3'>{service.createdAt ?? '-'}</td>
+              <td className='py-2 pr-3'>{formatEnumLabel(service.serviceType)}</td>
+              <td className='py-2 pr-3'>{formatEnumLabel(service.status)}</td>
+              <td className='py-2 pr-3'>{formatEnumLabel(service.deliveryMode)}</td>
+              <td className='py-2 pr-3'>{formatDate(service.createdAt)}</td>
             </tr>
           ))}
         </tbody>

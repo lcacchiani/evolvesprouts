@@ -3,7 +3,7 @@
 import type { AdminUser, LeadSummary } from '@/types/leads';
 
 import { Button } from '@/components/ui/button';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatEnumLabel } from '@/lib/format';
 
 import { getStageBadgeClass } from './stage-utils';
 
@@ -49,12 +49,14 @@ export function LeadsTableRow({
         {[lead.contact.firstName, lead.contact.lastName].filter(Boolean).join(' ') || 'Unnamed lead'}
       </td>
       <td className='px-3 py-2 text-sm text-slate-700'>{lead.contact.email ?? '—'}</td>
-      <td className='px-3 py-2 text-sm text-slate-700'>{lead.contact.source ?? '—'}</td>
+      <td className='px-3 py-2 text-sm text-slate-700'>
+        {lead.contact.source ? formatEnumLabel(lead.contact.source) : '—'}
+      </td>
       <td className='px-3 py-2 text-sm'>
         <span
           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${getStageBadgeClass(lead.funnelStage)}`}
         >
-          {lead.funnelStage}
+          {formatEnumLabel(lead.funnelStage)}
         </span>
       </td>
       <td className='px-3 py-2 text-sm text-slate-700'>

@@ -79,8 +79,11 @@ describe('LeadsTable', () => {
   it('renders lead data and supports row selection', async () => {
     const user = userEvent.setup();
     const { onSelectLead } = renderComponent();
+    const table = screen.getByRole('table');
 
     expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+    expect(table).toHaveTextContent('Manual');
+    expect(table).toHaveTextContent('New');
     await user.click(screen.getByText('Jane Doe'));
     expect(onSelectLead).toHaveBeenCalledWith('lead-1');
   });
