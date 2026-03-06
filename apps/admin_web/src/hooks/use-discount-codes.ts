@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   createDiscountCode,
@@ -14,103 +14,35 @@ import type { DiscountCode, DiscountCodeFilters } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { toErrorMessage } from './hook-errors';
-import { useDebouncedCallback } from './use-debounced-callback';
+import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
 
+const DEBOUNCE_KEYS: (keyof DiscountCodeFilters)[] = ['search'];
+
 export function useDiscountCodes() {
-  const [filters, setFilters] = useState<DiscountCodeFilters>(DEFAULT_DISCOUNT_CODE_FILTERS);
-  const filtersRef = useRef<DiscountCodeFilters>(DEFAULT_DISCOUNT_CODE_FILTERS);
-
-  const [codes, setCodes] = useState<DiscountCode[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    filtersRef.current = filters;
-  }, [filters]);
-
-  const refetch = useCallback(async (nextFilters?: Partial<DiscountCodeFilters>) => {
-    const effectiveFilters = { ...filtersRef.current, ...(nextFilters ?? {}) };
-    setIsLoading(true);
-    setError('');
-    try {
-      const response = await listDiscountCodes({
-        ...effectiveFilters,
-        cursor: null,
-        limit: 50,
-      });
-      setCodes(response.items);
-      setNextCursor(response.nextCursor);
-      setTotalCount(response.totalCount);
-    } catch (err) {
-      setError(toErrorMessage(err, 'Failed to load discount codes.'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
-
-  const loadMore = useCallback(async () => {
-    if (!nextCursor) {
-      return;
-    }
-    setIsLoadingMore(true);
-    setError('');
-    try {
-      const response = await listDiscountCodes({
-        ...filtersRef.current,
-        cursor: nextCursor,
-        limit: 50,
-      });
-      setCodes((current) => [...current, ...response.items]);
-      setNextCursor(response.nextCursor);
-      setTotalCount(response.totalCount);
-    } catch (err) {
-      setError(toErrorMessage(err, 'Failed to load more discount codes.'));
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [nextCursor]);
-
-  const debouncedRefresh = useDebouncedCallback((nextFilters: Partial<DiscountCodeFilters>) => {
-    void refetch(nextFilters);
-  }, 300);
-
-  const setFilter = useCallback(
-    <TKey extends keyof DiscountCodeFilters>(key: TKey, value: DiscountCodeFilters[TKey]) => {
-      const nextFilters = {
-        ...filtersRef.current,
-        [key]: value,
-      };
-      filtersRef.current = nextFilters;
-      setFilters(nextFilters);
-      if (key === 'search') {
-        debouncedRefresh(nextFilters);
-      } else {
-        void refetch(nextFilters);
-      }
-    },
-    [debouncedRefresh, refetch]
+  const fetcher = useCallback(
+    (params: DiscountCodeFilters & { cursor: string | null; limit: number }) =>
+      listDiscountCodes(params),
+    []
   );
+
+  const list = usePaginatedList<DiscountCode, DiscountCodeFilters>({
+    fetcher,
+    defaultFilters: DEFAULT_DISCOUNT_CODE_FILTERS,
+    errorPrefix: 'Failed to load discount codes',
+    debounceKeys: DEBOUNCE_KEYS,
+  });
+
+  const { refetch } = list;
+  const [isSaving, setIsSaving] = useState(false);
 
   const mutate = useCallback(async <TResult>(work: () => Promise<TResult>): Promise<TResult> => {
     setIsSaving(true);
-    setError('');
     try {
       const result = await work();
       await refetch();
       return result;
-    } catch (err) {
-      setError(toErrorMessage(err, 'Failed to save discount code changes.'));
-      throw err;
     } finally {
       setIsSaving(false);
     }
@@ -137,17 +69,17 @@ export function useDiscountCodes() {
   );
 
   return {
-    codes,
-    filters,
-    setFilter,
-    isLoading,
-    isLoadingMore,
+    codes: list.items,
+    filters: list.filters,
+    setFilter: list.setFilter,
+    isLoading: list.isLoading,
+    isLoadingMore: list.isLoadingMore,
     isSaving,
-    error,
-    refetch,
-    loadMore,
-    hasMore: Boolean(nextCursor),
-    totalCount,
+    error: list.error,
+    refetch: list.refetch,
+    loadMore: list.loadMore,
+    hasMore: list.hasMore,
+    totalCount: list.totalCount,
     createCode,
     updateCode,
     deleteCode,
