@@ -193,6 +193,7 @@ describe('Navbar desktop submenu accessibility', () => {
     const homeLink = within(drawer).getByRole('link', { name: 'Home' });
     expect(homeLink.className).toContain('es-navbar-mobile-pill-reset');
     expect(homeLink.className).toContain('w-full');
+    expect(homeLink.className).toContain('justify-start');
 
     const trainingCoursesToggle = within(drawer).getByRole('button', {
       name: 'Toggle Services submenu',
