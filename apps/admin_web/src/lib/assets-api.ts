@@ -1,4 +1,5 @@
 import { AdminApiError, adminApiRequest } from './api-admin-client';
+import { type ApiDataWrapper, asNullableString, asTrimmedString, asStringArray } from './api-payload';
 import { isRecord } from './type-guards';
 
 import type {
@@ -27,10 +28,6 @@ type ApiCreateAssetResponse = ApiSchemas['CreateAssetResponse'];
 type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
 type ApiAssetShareLinkResponse = ApiSchemas['AssetShareLinkResponse'];
 type ApiAssetShareLinkPolicyRequest = ApiSchemas['AssetShareLinkPolicyRequest'];
-
-type ApiDataWrapper<T> = {
-  data: T;
-};
 
 type ApiAssetListPayload =
   | ApiAssetListResponse
@@ -65,7 +62,7 @@ export interface AssetShareLinkPolicyInput {
   allowedDomains: string[];
 }
 
-function unwrapPayload<T>(payload: T | ApiDataWrapper<T>): T {
+function unwrapPayload<T>(payload: T | { data: T }): T {
   if (isRecord(payload) && 'data' in payload) {
     return payload.data as T;
   }
@@ -92,31 +89,6 @@ function isApiAssetShareLinkResponse(value: unknown): value is ApiAssetShareLink
   return isRecord(value) && typeof value.share_url === 'string';
 }
 
-function asString(value: unknown): string | null {
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
-  return null;
-}
-
-function asNullableString(value: unknown): string | null {
-  if (typeof value === 'string') {
-    return value;
-  }
-  return null;
-}
-
-function asStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value
-    .filter((entry): entry is string => typeof entry === 'string')
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-}
-
 function parseAssetType(value: unknown): AssetType {
   if (typeof value === 'string' && ASSET_TYPES.includes(value as AssetType)) {
     return value as AssetType;
@@ -140,12 +112,12 @@ function parseGrantType(value: unknown): AssetGrant['grantType'] {
 
 function parseAsset(value: ApiAsset): AdminAsset {
   return {
-    id: asString(value.id) ?? '',
-    title: asString(value.title) ?? 'Untitled asset',
+    id: asTrimmedString(value.id) ?? '',
+    title: asTrimmedString(value.title) ?? 'Untitled asset',
     description: asNullableString(value.description ?? null),
     assetType: parseAssetType(value.asset_type),
-    s3Key: asString(value.s3_key) ?? '',
-    fileName: asString(value.file_name) ?? '',
+    s3Key: asTrimmedString(value.s3_key) ?? '',
+    fileName: asTrimmedString(value.file_name) ?? '',
     resourceKey: asNullableString(value.resource_key ?? null),
     contentType: asNullableString(value.content_type ?? null),
     visibility: parseVisibility(value.visibility),
@@ -157,8 +129,8 @@ function parseAsset(value: ApiAsset): AdminAsset {
 
 function parseGrant(value: ApiAssetGrant): AssetGrant {
   return {
-    id: asString(value.id) ?? '',
-    assetId: asString(value.asset_id) ?? '',
+    id: asTrimmedString(value.id) ?? '',
+    assetId: asTrimmedString(value.asset_id) ?? '',
     grantType: parseGrantType(value.grant_type),
     granteeId: asNullableString(value.grantee_id ?? null),
     grantedBy: asNullableString(value.granted_by ?? null),
@@ -188,7 +160,7 @@ function extractAssetList(payload: ApiAssetListPayload): {
 
   return {
     items,
-    nextCursor: asString((root as ApiAssetListResponse).next_cursor) ?? null,
+    nextCursor: asTrimmedString((root as ApiAssetListResponse).next_cursor) ?? null,
   };
 }
 
@@ -320,8 +292,8 @@ export async function createAdminAsset(
 
   const root = unwrapPayload(payload);
   const upload: CreatedAssetUpload = {
-    uploadUrl: asString(root.upload_url) ?? null,
-    uploadMethod: asString(root.upload_method) ?? 'PUT',
+    uploadUrl: asTrimmedString(root.upload_url) ?? null,
+    uploadMethod: asTrimmedString(root.upload_method) ?? 'PUT',
     uploadHeaders: extractHeaders(root.upload_headers),
     expiresAt: asNullableString(root.expires_at ?? null),
   };
@@ -395,13 +367,13 @@ function parseAssetShareLink(payload: ApiAssetShareLinkPayload, fallbackAssetId:
     throw new Error('Share URL was not returned by the API.');
   }
 
-  const shareUrl = asString(root.share_url);
+  const shareUrl = asTrimmedString(root.share_url);
   if (!shareUrl) {
     throw new Error('Share URL was not returned by the API.');
   }
 
   return {
-    assetId: asString(root.asset_id) ?? fallbackAssetId,
+    assetId: asTrimmedString(root.asset_id) ?? fallbackAssetId,
     shareUrl,
     allowedDomains: asStringArray(root.allowed_domains),
   };

@@ -1,5 +1,5 @@
 import { adminApiRequest } from './api-admin-client';
-import { asNullableString, unwrapPayload } from './api-payload';
+import { asBoolean, asNullableString, asNumber, unwrapPayload } from './api-payload';
 import { isRecord } from './type-guards';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -36,14 +36,6 @@ type ApiDiscountCodeResponse = ApiSchemas['DiscountCodeResponse'];
 type ApiCreateDiscountCodeRequest = ApiSchemas['CreateDiscountCodeRequest'];
 type ApiUpdateDiscountCodeRequest = ApiSchemas['UpdateDiscountCodeRequest'];
 type ApiCreateCoverImageUploadRequest = ApiSchemas['CreateServiceCoverImageUploadRequest'];
-
-function asNumber(value: unknown, fallback = 0): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
-}
-
-function asBoolean(value: unknown, fallback = false): boolean {
-  return typeof value === 'boolean' ? value : fallback;
-}
 
 function parseSessionSlot(value: unknown): SessionSlot {
   const item = isRecord(value) ? value : {};

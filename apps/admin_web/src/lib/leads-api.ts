@@ -1,6 +1,6 @@
 import { ensureFreshTokens } from './auth';
 import { adminApiRequest } from './api-admin-client';
-import { asNullableString, unwrapPayload } from './api-payload';
+import { asNullableString, asNumber, unwrapPayload } from './api-payload';
 import { getAdminApiBaseUrl } from './config';
 import { isRecord } from './type-guards';
 
@@ -33,10 +33,6 @@ export interface LeadListParams extends Partial<LeadListFilters> {
 export interface AnalyticsParams {
   dateFrom?: string | null;
   dateTo?: string | null;
-}
-
-function asNumber(value: unknown, fallback = 0): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
 function asRecordNumber(value: unknown): Record<string, number> {
