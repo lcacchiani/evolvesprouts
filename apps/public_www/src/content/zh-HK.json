@@ -1226,10 +1226,6 @@
         {
           "label": "聯絡我們",
           "href": "/contact-us"
-        },
-        {
-          "label": "立即預約",
-          "href": "/services/my-best-auntie-training-course"
         }
       ]
     },
@@ -1237,12 +1233,8 @@
       "title": "服務",
       "items": [
         {
-          "label": "我的好阿姨",
+          "label": "姨姨培訓課程",
           "href": "/services/my-best-auntie-training-course"
-        },
-        {
-          "label": "工作坊",
-          "href": "/services/workshops"
         },
         {
           "label": "資源",
@@ -1256,10 +1248,6 @@
         {
           "label": "我們是誰",
           "href": "/about-us"
-        },
-        {
-          "label": "通訊",
-          "href": "/contact-us"
         },
         {
           "label": "私隱政策",

@@ -1226,10 +1226,6 @@
         {
           "label": "联系我们",
           "href": "/contact-us"
-        },
-        {
-          "label": "立即预约",
-          "href": "/services/my-best-auntie-training-course"
         }
       ]
     },
@@ -1237,12 +1233,8 @@
       "title": "服务",
       "items": [
         {
-          "label": "我的好阿姨",
+          "label": "阿姨培训课程",
           "href": "/services/my-best-auntie-training-course"
-        },
-        {
-          "label": "工作坊",
-          "href": "/services/workshops"
         },
         {
           "label": "资源",
@@ -1256,10 +1248,6 @@
         {
           "label": "我们是谁",
           "href": "/about-us"
-        },
-        {
-          "label": "通讯",
-          "href": "/contact-us"
         },
         {
           "label": "隐私政策",
