@@ -12,6 +12,15 @@ info:
     - `GET|POST /v1/admin/locations`
     - `GET|PUT|PATCH|DELETE /v1/admin/locations/{id}`
     - `GET /v1/admin/users`
+    - `GET|POST /v1/admin/services`
+    - `GET|PUT|PATCH|DELETE /v1/admin/services/{id}`
+    - `POST /v1/admin/services/{id}/cover-image`
+    - `GET|POST /v1/admin/services/{id}/instances`
+    - `GET|PUT|PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}`
+    - `GET|POST /v1/admin/services/{id}/instances/{instanceId}/enrollments`
+    - `PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}`
+    - `GET|POST /v1/admin/discount-codes`
+    - `PUT|DELETE /v1/admin/discount-codes/{id}`
     - `GET|POST /v1/admin/leads`
     - `GET|PATCH /v1/admin/leads/{id}`
     - `POST /v1/admin/leads/{id}/notes`
@@ -777,6 +786,478 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/services:
+    get:
+      summary: List services
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: service_type
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ServiceType"
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ServiceStatus"
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Service list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create service
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateServiceRequest"
+      responses:
+        "201":
+          description: Service created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/services/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+    get:
+      summary: Get service
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Service response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update service
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateServiceRequest"
+      responses:
+        "200":
+          description: Service response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Partially update service
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateServiceRequest"
+      responses:
+        "200":
+          description: Service response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete service
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Service deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/services/{id}/cover-image:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+    post:
+      summary: Create service cover-image upload URL
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateServiceCoverImageUploadRequest"
+      responses:
+        "200":
+          description: Cover image upload URL response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceCoverImageUploadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/services/{id}/instances:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+    get:
+      summary: List service instances
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Service instance list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create service instance
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInstanceRequest"
+      responses:
+        "201":
+          description: Service instance created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/services/{id}/instances/{instanceId}:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+      - $ref: "#/components/parameters/InstanceId"
+    get:
+      summary: Get service instance
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Service instance response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update service instance
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInstanceRequest"
+      responses:
+        "200":
+          description: Service instance response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Partially update service instance
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateInstanceRequest"
+      responses:
+        "200":
+          description: Service instance response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete service instance
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Service instance deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/services/{id}/instances/{instanceId}/enrollments:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+      - $ref: "#/components/parameters/InstanceId"
+    get:
+      summary: List instance enrollments
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Enrollment list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollmentListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create instance enrollment
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEnrollmentRequest"
+      responses:
+        "201":
+          description: Enrollment created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollmentResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+      - $ref: "#/components/parameters/InstanceId"
+      - $ref: "#/components/parameters/EnrollmentId"
+    patch:
+      summary: Update enrollment
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEnrollmentRequest"
+      responses:
+        "200":
+          description: Enrollment response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollmentResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete enrollment
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Enrollment deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/discount-codes:
+    get:
+      summary: List discount codes
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Discount code list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountCodeListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create discount code
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDiscountCodeRequest"
+      responses:
+        "201":
+          description: Discount code created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountCodeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/discount-codes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/DiscountCodeId"
+    put:
+      summary: Update discount code
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDiscountCodeRequest"
+      responses:
+        "200":
+          description: Discount code response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountCodeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete discount code
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "204":
+          description: Discount code deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /v1/user/assets:
     get:
       summary: List user assets
@@ -868,6 +1349,38 @@ components:
         type: string
         format: uuid
       description: Sales lead identifier.
+    ServiceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Service identifier.
+    InstanceId:
+      name: instanceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Service instance identifier.
+    EnrollmentId:
+      name: enrollmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Enrollment identifier.
+    DiscountCodeId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Discount code identifier.
 
   responses:
     BadRequest:
@@ -1381,6 +1894,798 @@ components:
                 type: integer
               conversion_rate:
                 type: number
+    ServiceType:
+      type: string
+      enum: [training_course, event, consultation]
+    ServiceStatus:
+      type: string
+      enum: [draft, published, archived]
+    ServiceDeliveryMode:
+      type: string
+      enum: [online, in_person, hybrid]
+    TrainingFormat:
+      type: string
+      enum: [group, private]
+    TrainingPricingUnit:
+      type: string
+      enum: [per_person, per_family]
+    EventCategory:
+      type: string
+      enum: [workshop, webinar, open_house, community_meetup, other]
+    ConsultationFormat:
+      type: string
+      enum: [one_on_one, group]
+    ConsultationPricingModel:
+      type: string
+      enum: [free, hourly, package]
+    InstanceStatus:
+      type: string
+      enum: [scheduled, open, full, in_progress, completed, cancelled]
+    DiscountType:
+      type: string
+      enum: [percentage, absolute]
+    EnrollmentStatus:
+      type: string
+      enum: [registered, waitlisted, confirmed, cancelled, completed]
+    ServiceTrainingDetails:
+      type: object
+      properties:
+        pricing_unit:
+          $ref: "#/components/schemas/TrainingPricingUnit"
+        default_price:
+          type: string
+          nullable: true
+        default_currency:
+          type: string
+          nullable: true
+    ServiceEventDetails:
+      type: object
+      properties:
+        event_category:
+          $ref: "#/components/schemas/EventCategory"
+    ServiceConsultationDetails:
+      type: object
+      properties:
+        consultation_format:
+          $ref: "#/components/schemas/ConsultationFormat"
+        max_group_size:
+          type: integer
+          nullable: true
+        duration_minutes:
+          type: integer
+          nullable: true
+        pricing_model:
+          $ref: "#/components/schemas/ConsultationPricingModel"
+        default_hourly_rate:
+          type: string
+          nullable: true
+        default_package_price:
+          type: string
+          nullable: true
+        default_package_sessions:
+          type: integer
+          nullable: true
+        default_currency:
+          type: string
+          nullable: true
+        calendly_url:
+          type: string
+          nullable: true
+    ServiceSummary:
+      type: object
+      required:
+        - id
+        - service_type
+        - title
+        - delivery_mode
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        service_type:
+          $ref: "#/components/schemas/ServiceType"
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        cover_image_s3_key:
+          type: string
+          nullable: true
+        delivery_mode:
+          $ref: "#/components/schemas/ServiceDeliveryMode"
+        status:
+          $ref: "#/components/schemas/ServiceStatus"
+        created_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    Service:
+      allOf:
+        - $ref: "#/components/schemas/ServiceSummary"
+        - type: object
+          properties:
+            tag_ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+            asset_ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+            instances_count:
+              type: integer
+            training_details:
+              $ref: "#/components/schemas/ServiceTrainingDetails"
+            event_details:
+              $ref: "#/components/schemas/ServiceEventDetails"
+            consultation_details:
+              $ref: "#/components/schemas/ServiceConsultationDetails"
+    ServiceListResponse:
+      type: object
+      required: [items, total_count]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServiceSummary"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+    ServiceResponse:
+      type: object
+      required: [service]
+      properties:
+        service:
+          $ref: "#/components/schemas/Service"
+    CreateServiceRequest:
+      type: object
+      required: [service_type, title, delivery_mode]
+      properties:
+        service_type:
+          $ref: "#/components/schemas/ServiceType"
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        cover_image_s3_key:
+          type: string
+          nullable: true
+        delivery_mode:
+          $ref: "#/components/schemas/ServiceDeliveryMode"
+        status:
+          $ref: "#/components/schemas/ServiceStatus"
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        training_details:
+          $ref: "#/components/schemas/ServiceTrainingDetails"
+        event_details:
+          $ref: "#/components/schemas/ServiceEventDetails"
+        consultation_details:
+          $ref: "#/components/schemas/ServiceConsultationDetails"
+    UpdateServiceRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreateServiceRequest"
+    PartialUpdateServiceRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        cover_image_s3_key:
+          type: string
+          nullable: true
+        delivery_mode:
+          $ref: "#/components/schemas/ServiceDeliveryMode"
+        status:
+          $ref: "#/components/schemas/ServiceStatus"
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        training_details:
+          $ref: "#/components/schemas/ServiceTrainingDetails"
+        event_details:
+          $ref: "#/components/schemas/ServiceEventDetails"
+        consultation_details:
+          $ref: "#/components/schemas/ServiceConsultationDetails"
+    CreateServiceCoverImageUploadRequest:
+      type: object
+      required: [file_name]
+      properties:
+        file_name:
+          type: string
+        content_type:
+          type: string
+          nullable: true
+    ServiceCoverImageUploadResponse:
+      type: object
+      required: [upload_url, upload_method, s3_key, expires_at]
+      properties:
+        upload_url:
+          type: string
+          format: uri
+        upload_method:
+          type: string
+        upload_headers:
+          type: object
+          additionalProperties:
+            type: string
+        s3_key:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        service:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            cover_image_s3_key:
+              type: string
+    SessionSlot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+        instance_id:
+          type: string
+          format: uuid
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        sort_order:
+          type: integer
+          nullable: true
+    EventTicketTier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+        instance_id:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: string
+        currency:
+          type: string
+        max_quantity:
+          type: integer
+          nullable: true
+        sort_order:
+          type: integer
+          nullable: true
+    ServiceInstance:
+      type: object
+      required: [id, service_id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        service_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        cover_image_s3_key:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/InstanceStatus"
+        delivery_mode:
+          $ref: "#/components/schemas/ServiceDeliveryMode"
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        max_capacity:
+          type: integer
+          nullable: true
+        waitlist_enabled:
+          type: boolean
+        instructor_id:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        resolved_title:
+          type: string
+          nullable: true
+        resolved_description:
+          type: string
+          nullable: true
+        resolved_cover_image_s3_key:
+          type: string
+          nullable: true
+        resolved_delivery_mode:
+          type: string
+          nullable: true
+        session_slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionSlot"
+        training_details:
+          type: object
+          nullable: true
+          properties:
+            training_format:
+              $ref: "#/components/schemas/TrainingFormat"
+            price:
+              type: string
+            currency:
+              type: string
+            pricing_unit:
+              $ref: "#/components/schemas/TrainingPricingUnit"
+        event_ticket_tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventTicketTier"
+        consultation_details:
+          type: object
+          nullable: true
+          properties:
+            pricing_model:
+              $ref: "#/components/schemas/ConsultationPricingModel"
+            price:
+              type: string
+              nullable: true
+            currency:
+              type: string
+            package_sessions:
+              type: integer
+              nullable: true
+            calendly_event_url:
+              type: string
+              nullable: true
+    InstanceListResponse:
+      type: object
+      required: [items, total_count]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServiceInstance"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+    InstanceResponse:
+      type: object
+      required: [instance]
+      properties:
+        instance:
+          $ref: "#/components/schemas/ServiceInstance"
+    CreateInstanceRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        cover_image_s3_key:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/InstanceStatus"
+        delivery_mode:
+          $ref: "#/components/schemas/ServiceDeliveryMode"
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        max_capacity:
+          type: integer
+          nullable: true
+        waitlist_enabled:
+          type: boolean
+        instructor_id:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        session_slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionSlot"
+        training_details:
+          type: object
+          nullable: true
+        event_ticket_tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventTicketTier"
+        consultation_details:
+          type: object
+          nullable: true
+    UpdateInstanceRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreateInstanceRequest"
+    PartialUpdateInstanceRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        cover_image_s3_key:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/InstanceStatus"
+        delivery_mode:
+          $ref: "#/components/schemas/ServiceDeliveryMode"
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        max_capacity:
+          type: integer
+          nullable: true
+        waitlist_enabled:
+          type: boolean
+        instructor_id:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        session_slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionSlot"
+        training_details:
+          type: object
+          nullable: true
+        event_ticket_tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventTicketTier"
+        consultation_details:
+          type: object
+          nullable: true
+    Enrollment:
+      type: object
+      required: [id, instance_id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        instance_id:
+          type: string
+          format: uuid
+        contact_id:
+          type: string
+          format: uuid
+          nullable: true
+        family_id:
+          type: string
+          format: uuid
+          nullable: true
+        organization_id:
+          type: string
+          format: uuid
+          nullable: true
+        ticket_tier_id:
+          type: string
+          format: uuid
+          nullable: true
+        discount_code_id:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: "#/components/schemas/EnrollmentStatus"
+        amount_paid:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        enrolled_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    EnrollmentListResponse:
+      type: object
+      required: [items, total_count]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Enrollment"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+    EnrollmentResponse:
+      type: object
+      required: [enrollment]
+      properties:
+        enrollment:
+          $ref: "#/components/schemas/Enrollment"
+    CreateEnrollmentRequest:
+      type: object
+      properties:
+        contact_id:
+          type: string
+          format: uuid
+          nullable: true
+        family_id:
+          type: string
+          format: uuid
+          nullable: true
+        organization_id:
+          type: string
+          format: uuid
+          nullable: true
+        ticket_tier_id:
+          type: string
+          format: uuid
+          nullable: true
+        discount_code_id:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: "#/components/schemas/EnrollmentStatus"
+        amount_paid:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+    UpdateEnrollmentRequest:
+      type: object
+      minProperties: 1
+      properties:
+        status:
+          $ref: "#/components/schemas/EnrollmentStatus"
+        amount_paid:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+    DiscountCode:
+      type: object
+      required: [id, code, discount_type, discount_value, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        description:
+          type: string
+          nullable: true
+        discount_type:
+          $ref: "#/components/schemas/DiscountType"
+        discount_value:
+          type: string
+        currency:
+          type: string
+          nullable: true
+        valid_from:
+          type: string
+          format: date-time
+          nullable: true
+        valid_until:
+          type: string
+          format: date-time
+          nullable: true
+        service_id:
+          type: string
+          format: uuid
+          nullable: true
+        instance_id:
+          type: string
+          format: uuid
+          nullable: true
+        max_uses:
+          type: integer
+          nullable: true
+        current_uses:
+          type: integer
+        active:
+          type: boolean
+        created_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    DiscountCodeListResponse:
+      type: object
+      required: [items, total_count]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiscountCode"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+    DiscountCodeResponse:
+      type: object
+      required: [discount_code]
+      properties:
+        discount_code:
+          $ref: "#/components/schemas/DiscountCode"
+    CreateDiscountCodeRequest:
+      type: object
+      required: [code, discount_type, discount_value]
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+          nullable: true
+        discount_type:
+          $ref: "#/components/schemas/DiscountType"
+        discount_value:
+          type: string
+        currency:
+          type: string
+          nullable: true
+        valid_from:
+          type: string
+          format: date-time
+          nullable: true
+        valid_until:
+          type: string
+          format: date-time
+          nullable: true
+        service_id:
+          type: string
+          format: uuid
+          nullable: true
+        instance_id:
+          type: string
+          format: uuid
+          nullable: true
+        max_uses:
+          type: integer
+          nullable: true
+        active:
+          type: boolean
+          nullable: true
+    UpdateDiscountCodeRequest:
+      type: object
+      minProperties: 1
+      properties:
+        description:
+          type: string
+          nullable: true
+        discount_type:
+          $ref: "#/components/schemas/DiscountType"
+        discount_value:
+          type: string
+        currency:
+          type: string
+          nullable: true
+        valid_from:
+          type: string
+          format: date-time
+          nullable: true
+        valid_until:
+          type: string
+          format: date-time
+          nullable: true
+        service_id:
+          type: string
+          format: uuid
+          nullable: true
+        instance_id:
+          type: string
+          format: uuid
+          nullable: true
+        max_uses:
+          type: integer
+          nullable: true
+        active:
+          type: boolean
     AdminUser:
       type: object
       required:
