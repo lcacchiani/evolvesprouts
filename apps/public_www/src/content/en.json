@@ -595,6 +595,41 @@
     "scrollLeftAriaLabel": "Scroll course highlights left",
     "scrollRightAriaLabel": "Scroll course highlights right"
   },
+  "realTalk": {
+    "eyebrow": "Real Talk",
+    "title": "Real Talk",
+    "description": "The program serious families choose when they want real change",
+    "ctaLabel": "Get Started—Train Auntie Today",
+    "ctaHref": "/services/my-best-auntie-training-course",
+    "items": [
+      {
+        "id": "age-specific",
+        "title": "From Supervisor to Skilled Guide"
+      },
+      {
+        "id": "small-group-learning",
+        "title": "Build a Calmer, Happier Home"
+      },
+      {
+        "id": "montessori-positive-discipline",
+        "title": "See Tangible Changes, Week-by-Week"
+      },
+      {
+        "id": "ongoing-support",
+        "title": "Invest in Your Peace of Mind"
+      },
+      {
+        "id": "ready-to-use-tools",
+        "title": "Empower Your Helper, Elevate Your Home"
+      },
+      {
+        "id": "guaranteed-confidence",
+        "title": "Create a Home Designed for Independence"
+      }
+    ],
+    "scrollLeftAriaLabel": "Scroll real talk left",
+    "scrollRightAriaLabel": "Scroll real talk right"
+  },
   "testimonials": {
     "title": "Real Stories from Parents in Hong Kong",
     "description": "",

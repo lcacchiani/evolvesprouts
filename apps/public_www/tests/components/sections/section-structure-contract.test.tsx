@@ -13,6 +13,7 @@ const publicScriptsDirectory = path.resolve(__dirname, '../../../public/scripts'
 
 const pageSectionFiles = [
   'hero-banner.tsx',
+  'real-talk.tsx',
   'ida-intro.tsx',
   'my-best-auntie-overview.tsx',
   'course-highlights.tsx',

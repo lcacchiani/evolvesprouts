@@ -595,6 +595,41 @@
     "scrollLeftAriaLabel": "向左捲動課程亮點",
     "scrollRightAriaLabel": "向右捲動課程亮點"
   },
+  "realTalk": {
+    "eyebrow": "真實對話",
+    "title": "真實對話",
+    "description": "當家庭真正想要改變時會選擇的課程",
+    "ctaLabel": "立即開始—今天就培訓姨姨",
+    "ctaHref": "/services/my-best-auntie-training-course",
+    "items": [
+      {
+        "id": "age-specific",
+        "title": "從照顧者到專業引導者"
+      },
+      {
+        "id": "small-group-learning",
+        "title": "打造更平靜、更快樂的家"
+      },
+      {
+        "id": "montessori-positive-discipline",
+        "title": "每週看見實質改變"
+      },
+      {
+        "id": "ongoing-support",
+        "title": "投資你的安心感"
+      },
+      {
+        "id": "ready-to-use-tools",
+        "title": "賦能姨姨，提升你的家庭照護"
+      },
+      {
+        "id": "guaranteed-confidence",
+        "title": "打造鼓勵獨立成長的家"
+      }
+    ],
+    "scrollLeftAriaLabel": "向左捲動真實對話",
+    "scrollRightAriaLabel": "向右捲動真實對話"
+  },
   "testimonials": {
     "title": "來自香港家長的真實故事",
     "description": "",

@@ -34,6 +34,7 @@ export type MyBestAuntieDescriptionContent =
   SiteContent['myBestAuntieDescription'];
 export type ResourcesContent = SiteContent['resources'];
 export type CourseHighlightsContent = SiteContent['courseHighlights'];
+export type RealTalkContent = SiteContent['realTalk'];
 export type TestimonialsContent = SiteContent['testimonials'];
 export type ContactUsContent = SiteContent['contactUs'];
 export type EventsContent = SiteContent['events'];
