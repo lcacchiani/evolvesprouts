@@ -26,17 +26,13 @@ describe('Ida', () => {
     expect(section?.className).toContain('sm:pt-[60px]');
   });
 
-  it('renders hero copy, CTA, and portrait image', () => {
+  it('renders hero copy and portrait image without a CTA link', () => {
     const content = enContent.ida;
     render(<Ida content={content} />);
 
     expect(screen.getByRole('heading', { name: content.title })).toBeInTheDocument();
     expect(screen.getByText(content.subtitle)).toBeInTheDocument();
-    expect(screen.getByText(content.description)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: content.ctaLabel })).toHaveAttribute(
-      'href',
-      content.ctaHref,
-    );
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
     expect(
       screen.getByRole('img', {
         name: /Ida De Gregorio from Evolve Sprouts/i,

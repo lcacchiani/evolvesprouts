@@ -29,4 +29,17 @@ describe('MyHistory section', () => {
     expect(section.className).toContain('es-section-bg-overlay');
     expect(section.className).toContain('es-my-history-section');
   });
+
+  it('renders each story paragraph from blank-line separated content', () => {
+    render(<MyHistory content={enContent.myHistory} />);
+
+    const paragraphs = enContent.myHistory.description
+      .split(/\n\s*\n/g)
+      .map((paragraph) => paragraph.trim())
+      .filter((paragraph) => paragraph.length > 0);
+
+    for (const paragraph of paragraphs) {
+      expect(screen.getByText(paragraph)).toBeInTheDocument();
+    }
+  });
 });

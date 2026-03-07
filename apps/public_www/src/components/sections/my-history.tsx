@@ -13,6 +13,11 @@ interface MyHistoryProps {
 }
 
 export function MyHistory({ content }: MyHistoryProps) {
+  const storyParagraphs = content.description
+    .split(/\n\s*\n/g)
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph.length > 0);
+
   return (
     <SectionShell
       id='my-history'
@@ -34,9 +39,14 @@ export function MyHistory({ content }: MyHistoryProps) {
             description={content.subtitle}
             descriptionClassName='es-type-subtitle mt-4 max-w-[760px]'
           />
-          <p className='es-type-body mt-4 max-w-[760px]'>
-            {content.description}
-          </p>
+          {storyParagraphs.map((paragraph, index) => (
+            <p
+              key={`${index}-${paragraph.slice(0, 24)}`}
+              className='es-type-body mt-4 max-w-[760px]'
+            >
+              {paragraph}
+            </p>
+          ))}
         </div>
 
         <div>
