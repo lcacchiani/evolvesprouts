@@ -19,7 +19,7 @@ export function Ida({ content }: IdaProps) {
       id='ida'
       ariaLabel={content.title}
       dataFigmaNode='ida'
-      className='es-ida-section overflow-hidden'
+      className='es-ida-section overflow-hidden pt-0 sm:pt-[60px]'
     >
       <SectionContainer
         className={buildSectionSplitLayoutClassName(

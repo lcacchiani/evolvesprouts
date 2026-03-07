@@ -98,6 +98,15 @@ describe('ContactUsForm section', () => {
 
   });
 
+  it('removes mobile top padding while preserving responsive section spacing', () => {
+    renderContactUsForm();
+
+    const section = document.getElementById('contact-us-form');
+    expect(section).not.toBeNull();
+    expect(section?.className).toContain('pt-0');
+    expect(section?.className).toContain('sm:pt-[60px]');
+  });
+
   it('uses class-based decorative background styling on the section container', () => {
     renderContactUsForm();
 
