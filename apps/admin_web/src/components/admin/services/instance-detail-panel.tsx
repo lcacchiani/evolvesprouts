@@ -22,35 +22,30 @@ import { Card } from '@/components/ui/card';
 type ApiSchemas = components['schemas'];
 
 export interface InstanceDetailPanelProps {
-  mode: 'create' | 'edit';
   instance: ServiceInstance | null;
   serviceType: ServiceType | null;
   isLoading: boolean;
   error: string;
-  onStartCreate: () => void;
-  onCancelCreate: () => void;
+  onCancelSelection: () => void;
   onCreate: (payload: ApiSchemas['CreateInstanceRequest']) => Promise<void> | void;
   onUpdate: (
     instanceId: string,
     payload: ApiSchemas['UpdateInstanceRequest']
   ) => Promise<void> | void;
-  onDelete: (instanceId: string) => Promise<void> | void;
 }
 
 export function InstanceDetailPanel({
-  mode,
   instance,
   serviceType,
   isLoading,
   error,
-  onStartCreate,
-  onCancelCreate,
+  onCancelSelection,
   onCreate,
   onUpdate,
-  onDelete,
 }: InstanceDetailPanelProps) {
+  const isEditMode = Boolean(instance);
   const [instanceForm, setInstanceForm] = useState<InstanceFormState>(
-    mode === 'edit' && instance
+    instance
       ? {
           title: instance.title ?? '',
           description: instance.description ?? '',
@@ -66,7 +61,7 @@ export function InstanceDetailPanel({
       : DEFAULT_INSTANCE_FORM
   );
   const [trainingForm, setTrainingForm] = useState<TrainingFormState>(
-    mode === 'edit' && instance
+    instance
       ? {
           pricingUnit: instance.trainingDetails?.pricingUnit ?? 'per_person',
           defaultPrice: instance.trainingDetails?.price ?? '',
@@ -75,14 +70,14 @@ export function InstanceDetailPanel({
       : DEFAULT_TRAINING_FORM
   );
   const [eventForm, setEventForm] = useState<EventFormState>(
-    mode === 'edit' && instance
+    instance
       ? {
           eventCategory: 'workshop',
         }
       : DEFAULT_EVENT_FORM
   );
   const [consultationForm, setConsultationForm] = useState<ConsultationFormState>(
-    mode === 'edit' && instance
+    instance
       ? {
           consultationFormat: 'one_on_one',
           maxGroupSize: '',
@@ -158,30 +153,16 @@ export function InstanceDetailPanel({
 
   return (
     <Card
-      title={mode === 'create' ? 'Create instance' : 'Instance detail'}
+      title='Instances section'
       description={
-        mode === 'create'
-          ? 'Create a new instance inline above the instances list.'
-          : 'Edit the selected instance inline above the instances list.'
+        isEditMode
+          ? 'Update Instance for the selected row, or cancel to return to add mode.'
+          : 'Add Instance for the selected service.'
       }
       className='space-y-4'
     >
-      <div className='flex justify-end gap-2'>
-        {mode === 'create' ? (
-          <Button type='button' variant='secondary' onClick={onCancelCreate} disabled={isLoading}>
-            Cancel
-          </Button>
-        ) : (
-          <Button type='button' onClick={onStartCreate}>
-            New instance
-          </Button>
-        )}
-      </div>
-
       {!serviceType ? (
         <p className='text-sm text-slate-500'>Select a service before creating or editing instances.</p>
-      ) : mode === 'edit' && !instance ? (
-        <p className='text-sm text-slate-500'>Select an instance to edit, or create a new one.</p>
       ) : (
         <>
           <InstanceFormFields value={instanceForm} onChange={setInstanceForm} />
@@ -197,41 +178,37 @@ export function InstanceDetailPanel({
 
           {error ? <p className='text-sm text-red-600'>{error}</p> : null}
 
-          <div className='flex flex-wrap justify-end gap-2'>
-            {mode === 'create' ? (
-              <Button type='button' disabled={isLoading} onClick={() => void onCreate(buildCreatePayload())}>
-                {isLoading ? 'Creating...' : 'Create instance'}
+          <div className='flex flex-wrap justify-start gap-2'>
+            {isEditMode ? (
+              <Button
+                type='button'
+                disabled={isLoading || !instance}
+                onClick={() => {
+                  if (!instance) {
+                    return;
+                  }
+                  void onUpdate(instance.id, buildUpdatePayload());
+                }}
+              >
+                {isLoading ? 'Updating...' : 'Update Instance'}
               </Button>
             ) : (
+              <Button type='button' disabled={isLoading} onClick={() => void onCreate(buildCreatePayload())}>
+                {isLoading ? 'Adding...' : 'Add Instance'}
+              </Button>
+            )}
+            {isEditMode ? (
               <>
                 <Button
                   type='button'
                   variant='secondary'
-                  disabled={isLoading || !instance}
-                  onClick={() => {
-                    if (!instance) {
-                      return;
-                    }
-                    void onUpdate(instance.id, buildUpdatePayload());
-                  }}
+                  disabled={isLoading}
+                  onClick={onCancelSelection}
                 >
-                  Save
-                </Button>
-                <Button
-                  type='button'
-                  variant='danger'
-                  disabled={isLoading || !instance}
-                  onClick={() => {
-                    if (!instance) {
-                      return;
-                    }
-                    void onDelete(instance.id);
-                  }}
-                >
-                  Delete instance
+                  Cancel
                 </Button>
               </>
-            )}
+            ) : null}
           </div>
         </>
       )}

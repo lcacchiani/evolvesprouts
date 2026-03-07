@@ -114,7 +114,6 @@ export function SalesPage() {
             onLoadMore={state.leadList.loadMore}
             onSelectLead={state.setSelectedLeadId}
             onFilterChange={state.leadList.setFilter}
-            onClearFilters={state.leadList.clearFilters}
             onBulkAssign={async (leadIds, assignedTo) => {
               for (const leadId of leadIds) {
                 await state.mutations.assignLead(leadId, assignedTo);

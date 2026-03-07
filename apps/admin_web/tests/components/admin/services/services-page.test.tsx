@@ -93,12 +93,6 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       updateCode: vi.fn().mockResolvedValue(null),
       deleteCode: vi.fn().mockResolvedValue(undefined),
     },
-    isCreateServiceDialogOpen: false,
-    startCreateService: vi.fn(),
-    cancelCreateService: vi.fn(),
-    isCreateInstanceDialogOpen: false,
-    startCreateInstance: vi.fn(),
-    cancelCreateInstance: vi.fn(),
   };
   return {
     state,
@@ -113,28 +107,22 @@ vi.mock('@/hooks/use-services-page', () => ({
 import { ServicesPage } from '@/components/admin/services/services-page';
 
 describe('ServicesPage', () => {
-  it('renders header actions and switches views', async () => {
+  it('renders tabs-only header and switches views', async () => {
     const user = userEvent.setup();
     render(<ServicesPage />);
 
     expect(screen.getByRole('button', { name: 'Catalog' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'New service' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Discount codes' }));
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
-  });
-
-  it('opens create-service editor from header action', async () => {
-    const user = userEvent.setup();
-    render(<ServicesPage />);
-
-    await user.click(screen.getAllByRole('button', { name: 'New service' })[0]);
-    expect(state.startCreateService).toHaveBeenCalledTimes(1);
   });
 
   it('renders service detail before the services list', () => {
     render(<ServicesPage />);
 
-    const detailHeading = screen.getByRole('heading', { name: 'Service detail' });
-    const listHeading = screen.getByRole('heading', { name: /^Services \(/ });
+    const detailHeading = screen.getByRole('heading', { name: 'Services section' });
+    const listHeading = screen.getByRole('heading', { name: 'Existing Services section' });
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -142,8 +130,8 @@ describe('ServicesPage', () => {
   it('renders instance detail before the instances list', () => {
     render(<ServicesPage />);
 
-    const detailHeading = screen.getByRole('heading', { name: 'Instance detail' });
-    const listHeading = screen.getByRole('heading', { name: 'Instances' });
+    const detailHeading = screen.getByRole('heading', { name: 'Instances section' });
+    const listHeading = screen.getByRole('heading', { name: 'Existing Instances section' });
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

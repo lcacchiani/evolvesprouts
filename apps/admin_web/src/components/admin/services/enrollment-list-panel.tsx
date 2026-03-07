@@ -3,11 +3,15 @@
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { DeleteIcon } from '@/components/icons/action-icons';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatDate, formatEnumLabel } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -23,6 +27,7 @@ export interface EnrollmentListPanelProps {
   isLoadingMore: boolean;
   hasMore: boolean;
   error: string;
+  isMutating: boolean;
   onLoadMore: () => Promise<void> | void;
   onCreate: (payload: ApiSchemas['CreateEnrollmentRequest']) => Promise<void> | void;
   onUpdate: (
@@ -39,12 +44,13 @@ export function EnrollmentListPanel({
   isLoadingMore,
   hasMore,
   error,
+  isMutating,
   onLoadMore,
   onCreate,
   onUpdate,
   onDelete,
 }: EnrollmentListPanelProps) {
-  const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
+  const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
   const [contactId, setContactId] = useState('');
   const [familyId, setFamilyId] = useState('');
@@ -58,9 +64,9 @@ export function EnrollmentListPanel({
     () => enrollments.find((entry) => entry.id === selectedEnrollmentId) ?? null,
     [enrollments, selectedEnrollmentId]
   );
+  const isEditMode = Boolean(selectedEnrollment);
 
   const resetCreateForm = () => {
-    setEditorMode('create');
     setSelectedEnrollmentId(null);
     setContactId('');
     setFamilyId('');
@@ -90,7 +96,7 @@ export function EnrollmentListPanel({
 
   const handleSave = async () => {
     try {
-      if (editorMode === 'create') {
+      if (!isEditMode) {
         await onCreate(buildCreatePayload());
         resetCreateForm();
         return;
@@ -104,153 +110,180 @@ export function EnrollmentListPanel({
     }
   };
 
+  const applyEnrollmentSelection = (enrollment: Enrollment) => {
+    setSelectedEnrollmentId(enrollment.id);
+    setContactId(enrollment.contactId ?? '');
+    setFamilyId(enrollment.familyId ?? '');
+    setOrganizationId(enrollment.organizationId ?? '');
+    setStatus(enrollment.status);
+    setAmountPaid(enrollment.amountPaid ?? '');
+    setCurrency(enrollment.currency ?? 'HKD');
+    setNotes(enrollment.notes ?? '');
+  };
+
+  const handleDeleteEnrollment = async (enrollment: Enrollment) => {
+    const confirmed = await requestConfirm({
+      title: 'Delete enrollment',
+      description: `Delete enrollment "${enrollment.id}"? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) {
+      return;
+    }
+    await onDelete(enrollment.id);
+    if (selectedEnrollmentId === enrollment.id) {
+      resetCreateForm();
+    }
+  };
+
   return (
-    <PaginatedTableCard
-      title='Enrollments'
-      isLoading={isLoading}
-      isLoadingMore={isLoadingMore}
-      hasMore={hasMore}
-      error={error}
-      loadingLabel='Loading enrollments...'
-      onLoadMore={onLoadMore}
-      toolbar={
-        <div className='mb-3 space-y-3'>
-          <div className='flex items-center justify-between'>
-            <p className='text-sm text-slate-600'>
-              {editorMode === 'create' ? 'Create enrollment' : 'Edit selected enrollment'}
-            </p>
-            <div className='flex gap-2'>
-              {editorMode === 'edit' ? (
-                <Button type='button' size='sm' variant='secondary' onClick={resetCreateForm}>
-                  Cancel edit
-                </Button>
-              ) : null}
-              <Button type='button' size='sm' onClick={resetCreateForm} disabled={!canCreate}>
-                New enrollment
-              </Button>
-            </div>
-          </div>
-          {!canCreate ? (
-            <p className='text-xs text-slate-500'>
-              Select a service and instance before creating or editing enrollments.
-            </p>
-          ) : null}
-          <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
-            <div>
-              <Label htmlFor='enrollment-contact-id'>Contact ID</Label>
-              <Input id='enrollment-contact-id' value={contactId} onChange={(event) => setContactId(event.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor='enrollment-family-id'>Family ID</Label>
-              <Input id='enrollment-family-id' value={familyId} onChange={(event) => setFamilyId(event.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor='enrollment-organization-id'>Organization ID</Label>
-              <Input
-                id='enrollment-organization-id'
-                value={organizationId}
-                onChange={(event) => setOrganizationId(event.target.value)}
-              />
-            </div>
-          </div>
-          <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
-            <div>
-              <Label htmlFor='enrollment-status'>Status</Label>
-              <Select
-                id='enrollment-status'
-                value={status}
-                onChange={(event) => setStatus(event.target.value as ApiSchemas['EnrollmentStatus'])}
-              >
-                {ENROLLMENT_STATUSES.map((entry) => (
-                  <option key={entry} value={entry}>
-                    {formatEnumLabel(entry)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor='enrollment-amount'>Amount paid</Label>
-              <Input id='enrollment-amount' value={amountPaid} onChange={(event) => setAmountPaid(event.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor='enrollment-currency'>Currency</Label>
-              <Input id='enrollment-currency' value={currency} onChange={(event) => setCurrency(event.target.value)} />
-            </div>
+    <>
+      <Card
+        title='Enrollments section'
+        description={
+          isEditMode
+            ? 'Update Enrollment for the selected row, or cancel to return to add mode.'
+            : 'Add Enrollment for the selected service instance.'
+        }
+        className='space-y-3'
+      >
+        {!canCreate ? (
+          <p className='text-xs text-slate-500'>
+            Select a service and instance before creating or editing enrollments.
+          </p>
+        ) : null}
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+          <div>
+            <Label htmlFor='enrollment-contact-id'>Contact ID</Label>
+            <Input id='enrollment-contact-id' value={contactId} onChange={(event) => setContactId(event.target.value)} />
           </div>
           <div>
-            <Label htmlFor='enrollment-notes'>Notes</Label>
-            <Textarea id='enrollment-notes' value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
+            <Label htmlFor='enrollment-family-id'>Family ID</Label>
+            <Input id='enrollment-family-id' value={familyId} onChange={(event) => setFamilyId(event.target.value)} />
           </div>
-          <div className='flex justify-end gap-2'>
-            {editorMode === 'edit' && selectedEnrollment ? (
-              <Button
-                type='button'
-                size='sm'
-                variant='danger'
-                onClick={async () => {
-                  await onDelete(selectedEnrollment.id);
-                  resetCreateForm();
-                }}
-              >
-                Delete
-              </Button>
-            ) : null}
-            <Button
-              type='button'
-              size='sm'
-              disabled={
-                !canCreate ||
-                (!contactId.trim() && !familyId.trim() && !organizationId.trim()) ||
-                (editorMode === 'edit' && !selectedEnrollment)
-              }
-              onClick={() => void handleSave()}
-            >
-              {editorMode === 'create' ? 'Create enrollment' : 'Save enrollment'}
-            </Button>
+          <div>
+            <Label htmlFor='enrollment-organization-id'>Organization ID</Label>
+            <Input
+              id='enrollment-organization-id'
+              value={organizationId}
+              onChange={(event) => setOrganizationId(event.target.value)}
+            />
           </div>
         </div>
-      }
-    >
-      <table className='w-full min-w-[760px] text-left text-sm'>
-        <thead className='text-slate-500'>
-          <tr>
-            <th className='py-2 pr-3 font-medium'>Parent</th>
-            <th className='py-2 pr-3 font-medium'>Status</th>
-            <th className='py-2 pr-3 font-medium'>Amount</th>
-            <th className='py-2 pr-3 font-medium'>Enrolled at</th>
-          </tr>
-        </thead>
-        <tbody>
-          {enrollments.map((enrollment) => (
-            <tr
-              key={enrollment.id}
-              className={`cursor-pointer border-t ${
-                selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-              }`}
-              onClick={() => {
-                setSelectedEnrollmentId(enrollment.id);
-                setEditorMode('edit');
-                setContactId(enrollment.contactId ?? '');
-                setFamilyId(enrollment.familyId ?? '');
-                setOrganizationId(enrollment.organizationId ?? '');
-                setStatus(enrollment.status);
-                setAmountPaid(enrollment.amountPaid ?? '');
-                setCurrency(enrollment.currency ?? 'HKD');
-                setNotes(enrollment.notes ?? '');
-              }}
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+          <div>
+            <Label htmlFor='enrollment-status'>Status</Label>
+            <Select
+              id='enrollment-status'
+              value={status}
+              onChange={(event) => setStatus(event.target.value as ApiSchemas['EnrollmentStatus'])}
             >
-              <td className='py-2 pr-3'>
-                {enrollment.contactId ?? enrollment.familyId ?? enrollment.organizationId ?? '-'}
-              </td>
-              <td className='py-2 pr-3'>{formatEnumLabel(enrollment.status)}</td>
-              <td className='py-2 pr-3'>
-                {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
-              </td>
-              <td className='py-2 pr-3'>{formatDate(enrollment.enrolledAt)}</td>
+              {ENROLLMENT_STATUSES.map((entry) => (
+                <option key={entry} value={entry}>
+                  {formatEnumLabel(entry)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor='enrollment-amount'>Amount paid</Label>
+            <Input id='enrollment-amount' value={amountPaid} onChange={(event) => setAmountPaid(event.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor='enrollment-currency'>Currency</Label>
+            <Input id='enrollment-currency' value={currency} onChange={(event) => setCurrency(event.target.value)} />
+          </div>
+        </div>
+        <div>
+          <Label htmlFor='enrollment-notes'>Notes</Label>
+          <Textarea id='enrollment-notes' value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
+        </div>
+        <div className='flex justify-start gap-2'>
+          {isEditMode ? (
+            <Button
+              type='button'
+              disabled={isMutating || !selectedEnrollment}
+              onClick={() => void handleSave()}
+            >
+              {isMutating ? 'Updating...' : 'Update Enrollment'}
+            </Button>
+          ) : (
+            <Button
+              type='button'
+              disabled={!canCreate || isMutating || (!contactId.trim() && !familyId.trim() && !organizationId.trim())}
+              onClick={() => void handleSave()}
+            >
+              {isMutating ? 'Adding...' : 'Add Enrollment'}
+            </Button>
+          )}
+          {isEditMode ? (
+            <Button type='button' variant='secondary' disabled={isMutating} onClick={resetCreateForm}>
+              Cancel
+            </Button>
+          ) : null}
+        </div>
+      </Card>
+
+      <PaginatedTableCard
+        title='Existing Enrollments section'
+        isLoading={isLoading}
+        isLoadingMore={isLoadingMore}
+        hasMore={hasMore}
+        error={error}
+        loadingLabel='Loading enrollments...'
+        onLoadMore={onLoadMore}
+      >
+        <table className='w-full min-w-[840px] text-left text-sm'>
+          <thead className='text-slate-500'>
+            <tr>
+              <th className='py-2 pr-3 font-medium'>Parent</th>
+              <th className='py-2 pr-3 font-medium'>Status</th>
+              <th className='py-2 pr-3 font-medium'>Amount</th>
+              <th className='py-2 pr-3 font-medium'>Enrolled at</th>
+              <th className='py-2 pr-3 font-medium text-right'>Operations</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </PaginatedTableCard>
+          </thead>
+          <tbody>
+            {enrollments.map((enrollment) => (
+              <tr
+                key={enrollment.id}
+                className={`cursor-pointer border-t ${
+                  selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                }`}
+                onClick={() => applyEnrollmentSelection(enrollment)}
+              >
+                <td className='py-2 pr-3'>
+                  {enrollment.contactId ?? enrollment.familyId ?? enrollment.organizationId ?? '-'}
+                </td>
+                <td className='py-2 pr-3'>{formatEnumLabel(enrollment.status)}</td>
+                <td className='py-2 pr-3'>
+                  {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
+                </td>
+                <td className='py-2 pr-3'>{formatDate(enrollment.enrolledAt)}</td>
+                <td className='py-2 pr-3 text-right'>
+                  <Button
+                    type='button'
+                    size='sm'
+                    variant='danger'
+                    disabled={isMutating}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void handleDeleteEnrollment(enrollment);
+                    }}
+                    aria-label='Delete enrollment'
+                    title='Delete enrollment'
+                  >
+                    <DeleteIcon className='h-4 w-4' />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </PaginatedTableCard>
+      <ConfirmDialog {...confirmDialogProps} />
+    </>
   );
 }

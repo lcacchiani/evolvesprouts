@@ -92,15 +92,15 @@ describe('services tables value formatting', () => {
         services={[SERVICE_FIXTURE]}
         selectedServiceId={null}
         filters={{ serviceType: '', status: '', search: '' }}
-        totalCount={1}
         isLoading={false}
         isLoadingMore={false}
         hasMore={false}
         error=''
+        isMutating={false}
         onSelectService={vi.fn()}
         onFilterChange={vi.fn()}
-        onClearFilters={vi.fn()}
         onLoadMore={vi.fn()}
+        onDeleteService={vi.fn()}
       />
     );
 
@@ -121,9 +121,10 @@ describe('services tables value formatting', () => {
           isLoadingMore={false}
           hasMore={false}
           error=''
+          isMutating={false}
           onSelectInstance={vi.fn()}
           onLoadMore={vi.fn()}
-          onOpenCreate={vi.fn()}
+          onDeleteInstance={vi.fn()}
         />
         <DiscountCodesPanel
           codes={[DISCOUNT_CODE_FIXTURE]}
@@ -150,13 +151,15 @@ describe('services tables value formatting', () => {
     render(
       <EnrollmentListPanel
         enrollments={[ENROLLMENT_FIXTURE]}
+        canCreate={true}
         isLoading={false}
         isLoadingMore={false}
         hasMore={false}
         error=''
+        isMutating={false}
         onLoadMore={vi.fn()}
-        onOpenCreate={vi.fn()}
-        onUpdateStatus={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
         onDelete={vi.fn()}
       />
     );
