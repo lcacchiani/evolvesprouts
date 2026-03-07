@@ -121,6 +121,19 @@ describe('SproutsSquadCommunity section', () => {
     expect(supportParagraph.className).toContain(
       'es-sprouts-community-support-paragraph',
     );
+    const supportSignature = screen.getByText((_, element) => {
+      if (!element) {
+        return false;
+      }
+
+      return (
+        element.classList.contains('es-sprouts-community-support-paragraph') &&
+        element.textContent === enContent.sproutsSquadCommunity.supportSignature
+      );
+    });
+    expect(supportSignature.className).toContain(
+      'es-sprouts-community-support-paragraph',
+    );
 
     const initialCtaButton = screen.getByRole('button', {
       name: enContent.sproutsSquadCommunity.ctaLabel,
