@@ -50,20 +50,6 @@ export function ServicesPage() {
 
       {state.activeView === 'catalog' ? (
         <>
-          <ServiceListPanel
-            services={state.serviceList.services}
-            selectedServiceId={state.selectedServiceId}
-            filters={state.serviceList.filters}
-            totalCount={state.serviceList.totalCount}
-            isLoading={state.serviceList.isLoading}
-            isLoadingMore={state.serviceList.isLoadingMore}
-            hasMore={state.serviceList.hasMore}
-            error={state.serviceList.error}
-            onSelectService={state.setSelectedServiceId}
-            onFilterChange={state.serviceList.setFilter}
-            onClearFilters={state.serviceList.clearFilters}
-            onLoadMore={state.serviceList.loadMore}
-          />
           <ServiceDetailPanel
             service={state.serviceDetail.service}
             isLoading={state.serviceMutations.isLoading}
@@ -94,6 +80,20 @@ export function ServicesPage() {
                 content_type: contentType,
               });
             }}
+          />
+          <ServiceListPanel
+            services={state.serviceList.services}
+            selectedServiceId={state.selectedServiceId}
+            filters={state.serviceList.filters}
+            totalCount={state.serviceList.totalCount}
+            isLoading={state.serviceList.isLoading}
+            isLoadingMore={state.serviceList.isLoadingMore}
+            hasMore={state.serviceList.hasMore}
+            error={state.serviceList.error}
+            onSelectService={state.setSelectedServiceId}
+            onFilterChange={state.serviceList.setFilter}
+            onClearFilters={state.serviceList.clearFilters}
+            onLoadMore={state.serviceList.loadMore}
           />
           <InstanceListPanel
             instances={state.instanceList.instances}

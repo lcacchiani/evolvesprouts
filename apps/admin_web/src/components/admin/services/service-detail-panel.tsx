@@ -22,26 +22,27 @@ export interface ServiceDetailPanelProps {
   onUploadCover: (fileName: string, contentType: string) => Promise<void> | void;
 }
 
-export function ServiceDetailPanel({
+interface ServiceDetailFormProps {
+  service: ServiceDetail;
+  isLoading,
+  error,
+  onUpdate,
+  onDelete,
+  onUploadCover,
+}
+
+function ServiceDetailForm({
   service,
   isLoading,
   error,
   onUpdate,
   onDelete,
   onUploadCover,
-}: ServiceDetailPanelProps) {
-  const [title, setTitle] = useState(service?.title ?? '');
-  const [description, setDescription] = useState(service?.description ?? '');
-  const [status, setStatus] = useState<ServiceStatus>(service?.status ?? 'draft');
+}: ServiceDetailFormProps) {
+  const [title, setTitle] = useState(service.title);
+  const [description, setDescription] = useState(service.description ?? '');
+  const [status, setStatus] = useState<ServiceStatus>(service.status);
   const [coverFileName, setCoverFileName] = useState('cover-image.jpg');
-
-  if (!service) {
-    return (
-      <Card title='Service detail'>
-        <p className='text-sm text-slate-500'>Select a service to view details.</p>
-      </Card>
-    );
-  }
 
   return (
     <Card title='Service detail'>
@@ -111,5 +112,34 @@ export function ServiceDetailPanel({
         </div>
       </div>
     </Card>
+  );
+}
+
+export function ServiceDetailPanel({
+  service,
+  isLoading,
+  error,
+  onUpdate,
+  onDelete,
+  onUploadCover,
+}: ServiceDetailPanelProps) {
+  if (!service) {
+    return (
+      <Card title='Service detail'>
+        <p className='text-sm text-slate-500'>Select a service to view details.</p>
+      </Card>
+    );
+  }
+
+  return (
+    <ServiceDetailForm
+      key={service.id}
+      service={service}
+      isLoading={isLoading}
+      error={error}
+      onUpdate={onUpdate}
+      onDelete={onDelete}
+      onUploadCover={onUploadCover}
+    />
   );
 }

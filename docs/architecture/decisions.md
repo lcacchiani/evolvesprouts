@@ -319,6 +319,23 @@ share URLs as database-backed bearer tokens.
 - CloudFront public key material is configured in infrastructure; matching
   private key material is stored in AWS Secrets Manager and loaded by Lambda.
 
+## 12) Admin Web Section Ordering
+
+**Decision:** In admin web screens, edit/create sections must appear above list
+sections.
+
+**Why:**
+- Keeps primary task flow consistent with the established Siutindei admin
+  interaction pattern.
+- Makes the edit context visible before browsing/filtering lists.
+- Reduces visual jumps when switching selected items.
+
+**Notes:**
+- Apply this ordering to newly built admin pages and when refactoring existing
+  screens.
+- Service management follows this pattern by rendering Service detail before the
+  Services list.
+
 ## CI/CD Variables and Secrets
 
 **GitHub Variables**

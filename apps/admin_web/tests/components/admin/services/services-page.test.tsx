@@ -129,4 +129,13 @@ describe('ServicesPage', () => {
     await user.click(screen.getByRole('button', { name: 'New service' }));
     expect(state.setIsCreateServiceDialogOpen).toHaveBeenCalledWith(true);
   });
+
+  it('renders service detail before the services list', () => {
+    render(<ServicesPage />);
+
+    const detailHeading = screen.getByRole('heading', { name: 'Service detail' });
+    const listHeading = screen.getByRole('heading', { name: /^Services \(/ });
+
+    expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
