@@ -6,6 +6,7 @@ import {
 } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -166,19 +167,17 @@ export function Testimonials({ content }: TestimonialsProps) {
           data-testid='testimonials-card'
           className='relative mt-10 overflow-hidden bg-white lg:mt-14'
         >
-          <div
-            ref={carouselRef}
-            data-testid='testimonials-carousel-track'
-            role='region'
-            aria-roledescription='carousel'
-            aria-label={`${content.title} carousel`}
-            className='-mx-1 flex min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+          <CarouselTrack
+            carouselRef={carouselRef}
+            testId='testimonials-carousel-track'
+            ariaLabel={`${content.title} carousel`}
+            className='pb-2'
             aria-live='polite'
           >
             {storiesToRender.map((story, index) => (
               <article
                 key={`${story.author ?? 'story'}-${index}`}
-                className='min-w-full max-w-full shrink-0 snap-start'
+                className='flex min-w-full max-w-full shrink-0 snap-start'
               >
                 <div
                   className={buildSectionSplitLayoutClassName(
@@ -234,7 +233,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                 </div>
               </article>
             ))}
-          </div>
+          </CarouselTrack>
 
           {hasMultipleStories && (
             <div className='mt-6 hidden justify-end lg:flex'>

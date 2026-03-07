@@ -39,10 +39,12 @@ describe('RealTalk', () => {
       enContent.realTalk.items.length,
     );
 
-    const carousel = screen.getByTestId('real-talk-mobile-carousel');
-    expect(carousel.querySelectorAll('img')).toHaveLength(0);
-    expect(carousel.className).toContain('snap-mandatory');
-    expect(carousel.className).toContain('overflow-x-auto');
+    const carouselTrack = screen.getByTestId('real-talk-mobile-carousel');
+    expect(carouselTrack.querySelectorAll('img')).toHaveLength(0);
+    expect(carouselTrack.className).toContain('snap-mandatory');
+    expect(carouselTrack.className).toContain('overflow-x-auto');
+    expect(carouselTrack.getAttribute('role')).toBe('region');
+    expect(carouselTrack.getAttribute('aria-roledescription')).toBe('carousel');
     expect(
       screen.queryByRole('button', { name: 'Scroll real talk left' }),
     ).not.toBeInTheDocument();

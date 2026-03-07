@@ -1,6 +1,7 @@
 'use client';
 
 import { CourseHighlightCard } from '@/components/sections/course-highlight-card';
+import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -151,15 +152,13 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         />
 
         <div className='relative mt-12 sm:mt-14 xl:mt-16'>
-          <div className='w-full min-w-0 overflow-hidden md:overflow-visible'>
-            <ul
-              ref={carouselRef}
-              data-testid='course-highlights-mobile-carousel'
-              role='region'
-              aria-roledescription='carousel'
-              aria-label={`${sectionTitle} carousel`}
-              className='-mx-1 flex min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:gap-6 md:mx-0 md:grid md:grid-cols-2 md:snap-none md:gap-6 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-3'
-            >
+          <CarouselTrack
+            carouselRef={carouselRef}
+            testId='course-highlights-mobile-carousel'
+            ariaLabel={`${sectionTitle} carousel`}
+            className='pb-2 md:snap-none md:overflow-visible md:pb-0'
+          >
+            <ul className='flex min-w-0 gap-5 sm:gap-6 md:grid md:grid-cols-2 md:gap-6 xl:grid-cols-3'>
               {benefitCards.map((card, index) => {
                 const tone = CARD_TONES[index % CARD_TONES.length];
 
@@ -182,7 +181,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                 );
               })}
             </ul>
-          </div>
+          </CarouselTrack>
         </div>
 
         {sectionDescription && (

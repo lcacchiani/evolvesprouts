@@ -182,6 +182,57 @@ describe('useHorizontalCarousel', () => {
     });
   });
 
+  it('auto-loops on scroll settle when loop is enabled and user swipes to boundary', () => {
+    vi.useFakeTimers();
+    try {
+      render(<HookHarness itemCount={5} loop />);
+
+      const track = screen.getByTestId('track');
+      const { scrollToSpy, setScrollLeft } = defineTrackMetrics(track, {
+        clientWidth: 400,
+        scrollWidth: 1000,
+        initialScrollLeft: 0,
+      });
+
+      vi.advanceTimersByTime(20);
+
+      setScrollLeft(200);
+      fireEvent.scroll(track);
+      setScrollLeft(400);
+      fireEvent.scroll(track);
+      setScrollLeft(600);
+      fireEvent.scroll(track);
+
+      vi.advanceTimersByTime(500);
+      expect(scrollToSpy).toHaveBeenCalledWith({
+        left: 0,
+        behavior: 'smooth',
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not auto-loop from start on initial render', () => {
+    vi.useFakeTimers();
+    try {
+      render(<HookHarness itemCount={5} loop />);
+
+      const track = screen.getByTestId('track');
+      const { scrollToSpy } = defineTrackMetrics(track, {
+        clientWidth: 400,
+        scrollWidth: 1000,
+        initialScrollLeft: 0,
+      });
+
+      vi.advanceTimersByTime(2000);
+
+      expect(scrollToSpy).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('can scroll an item into view with centered alignment', () => {
     render(<HookHarness itemCount={5} />);
 
