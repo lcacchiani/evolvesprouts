@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -314,53 +315,47 @@ export function MyBestAuntieBooking({
                 {content.dateSelectorLabel}
               </h3>
               <div className='relative mt-3 w-full min-w-0 overflow-visible'>
-                <div
-                  role='region'
-                  aria-roledescription='carousel'
-                  aria-label={content.dateSelectorLabel}
-                  className='w-full min-w-0 overflow-hidden'
+                <CarouselTrack
+                  carouselRef={dateCarouselRef}
+                  testId='my-best-auntie-booking-date-carousel'
+                  ariaLabel={content.dateSelectorLabel}
+                  className='flex min-w-0 gap-3 pb-2 pr-1'
                 >
-                  <div
-                    ref={dateCarouselRef}
-                    data-testid='my-best-auntie-booking-date-carousel'
-                    className='flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-                  >
-                    {dateOptions.map((option) => {
-                      const isSelected = option.id === selectedDateId;
+                  {dateOptions.map((option) => {
+                    const isSelected = option.id === selectedDateId;
 
-                      return (
-                        <ButtonPrimitive
-                          key={option.id}
-                          buttonRef={(element) => {
-                            dateCardRefs.current[option.id] = element;
-                          }}
-                          variant='selection'
-                          state={isSelected ? 'active' : 'inactive'}
-                          aria-pressed={isSelected}
-                          onClick={() => {
-                            setSelectedDateId(option.id);
-                          }}
-                          className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-center`}
-                        >
-                          <div className='flex w-full flex-col items-center gap-2'>
-                            <div className='flex items-center justify-center gap-1.5'>
-                              <span
-                                className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
-                                aria-hidden='true'
-                              />
-                              <p className='text-base font-semibold es-text-heading'>
-                                {option.label}
-                              </p>
-                            </div>
-                            <p className='text-center text-sm es-text-danger-accent'>
-                              {option.availabilityLabel}
+                    return (
+                      <ButtonPrimitive
+                        key={option.id}
+                        buttonRef={(element) => {
+                          dateCardRefs.current[option.id] = element;
+                        }}
+                        variant='selection'
+                        state={isSelected ? 'active' : 'inactive'}
+                        aria-pressed={isSelected}
+                        onClick={() => {
+                          setSelectedDateId(option.id);
+                        }}
+                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-center`}
+                      >
+                        <div className='flex w-full flex-col items-center gap-2'>
+                          <div className='flex items-center justify-center gap-1.5'>
+                            <span
+                              className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                              aria-hidden='true'
+                            />
+                            <p className='text-base font-semibold es-text-heading'>
+                              {option.label}
                             </p>
                           </div>
-                        </ButtonPrimitive>
-                      );
-                    })}
-                  </div>
-                </div>
+                          <p className='text-center text-sm es-text-danger-accent'>
+                            {option.availabilityLabel}
+                          </p>
+                        </div>
+                      </ButtonPrimitive>
+                    );
+                  })}
+                </CarouselTrack>
 
                 {hasDateNavigation && canScrollDateLeft && (
                   <ButtonPrimitive

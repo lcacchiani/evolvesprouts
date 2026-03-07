@@ -43,9 +43,11 @@ describe('CourseHighlights', () => {
     );
     expect(document.querySelectorAll('.es-course-highlight-card--gold')).toHaveLength(0);
 
-    const carousel = screen.getByTestId('course-highlights-mobile-carousel');
-    expect(carousel.className).toContain('snap-mandatory');
-    expect(carousel.className).toContain('overflow-x-auto');
+    const carouselTrack = screen.getByTestId('course-highlights-mobile-carousel');
+    expect(carouselTrack.className).toContain('snap-mandatory');
+    expect(carouselTrack.className).toContain('overflow-x-auto');
+    expect(carouselTrack.getAttribute('role')).toBe('region');
+    expect(carouselTrack.getAttribute('aria-roledescription')).toBe('carousel');
     expect(
       screen.queryByRole('button', { name: 'Scroll course highlights left' }),
     ).not.toBeInTheDocument();

@@ -3,12 +3,14 @@
 import { Fragment, type KeyboardEvent, type ReactNode, useState } from 'react';
 import Image from 'next/image';
 
+import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { MyBestAuntieOverviewContent } from '@/content';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieOverviewProps {
   content: MyBestAuntieOverviewContent;
@@ -188,6 +190,11 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
     null,
   );
 
+  const { carouselRef } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: content.modules.length,
+    loop: true,
+  });
+
   const moduleSteps: ModuleStep[] = content.modules.map((module, index) => ({
     step: module.step,
     title: module.title,
@@ -275,12 +282,11 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
             </svg>
           </div>
           {/* Mobile carousel (< md) with wave scrolling alongside cards */}
-          <div data-css-fallback='hide-when-css-missing' className='-mx-1 md:hidden'>
-            <div
-              role='region'
-              aria-roledescription='carousel'
-              aria-label={`${content.title} carousel`}
-              className='snap-x snap-mandatory overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+          <div data-css-fallback='hide-when-css-missing' className='md:hidden'>
+            <CarouselTrack
+              carouselRef={carouselRef}
+              ariaLabel={`${content.title} carousel`}
+              className='pb-2'
             >
               <ul className='relative inline-flex gap-4'>
                 {moduleSteps.map((module, index) => (
@@ -336,7 +342,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                   </svg>
                 </li>
               </ul>
-            </div>
+            </CarouselTrack>
           </div>
         </div>
 

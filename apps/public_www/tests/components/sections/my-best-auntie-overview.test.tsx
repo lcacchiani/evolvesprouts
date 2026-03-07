@@ -33,11 +33,15 @@ describe('MyBestAuntieOverview section', () => {
 
     expect(section).toBeDefined();
     expect(section?.className).toContain('es-my-best-auntie-overview-section');
-    const mobileCarouselWrapper = container.querySelector('div.-mx-1.md\\:hidden');
+    const mobileCarouselWrapper = container.querySelector('div.md\\:hidden');
     expect(mobileCarouselWrapper).toHaveAttribute(
       'data-css-fallback',
       'hide-when-css-missing',
     );
+    const carouselTrack = mobileCarouselWrapper?.querySelector('[aria-roledescription="carousel"]');
+    expect(carouselTrack).not.toBeNull();
+    expect(carouselTrack?.className).toContain('snap-mandatory');
+    expect(carouselTrack?.className).toContain('overflow-x-auto');
 
     const moduleTitles = enContent.myBestAuntieOverview.modules.map(
       (module) => module.title,
