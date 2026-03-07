@@ -21,20 +21,24 @@ export function useServicesPage() {
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [isCreateServiceDialogOpen, setIsCreateServiceDialogOpen] = useState(false);
   const [isCreateInstanceDialogOpen, setIsCreateInstanceDialogOpen] = useState(false);
-  const [isCreateEnrollmentDialogOpen, setIsCreateEnrollmentDialogOpen] = useState(false);
 
   const serviceList = useServiceList();
 
   const selectedServiceId = useMemo(() => {
+    if (isCreateServiceDialogOpen) {
+      return null;
+    }
     if (selectedServiceIdState !== undefined) {
       return selectedServiceIdState;
     }
     return serviceList.services[0]?.id ?? null;
-  }, [selectedServiceIdState, serviceList.services]);
+  }, [isCreateServiceDialogOpen, selectedServiceIdState, serviceList.services]);
 
   const setSelectedServiceId = useCallback((serviceId: string | null) => {
     setSelectedServiceIdState(serviceId);
     setSelectedInstanceId(null);
+    setIsCreateServiceDialogOpen(false);
+    setIsCreateInstanceDialogOpen(false);
   }, []);
 
   const serviceDetail = useServiceDetail(selectedServiceId);
@@ -78,6 +82,31 @@ export function useServicesPage() {
     [instanceList.instances, selectedInstanceId]
   );
 
+  const setSelectedInstanceIdWithMode = useCallback((instanceId: string | null) => {
+    setSelectedInstanceId(instanceId);
+    setIsCreateInstanceDialogOpen(false);
+  }, []);
+
+  const startCreateService = useCallback(() => {
+    setSelectedServiceIdState(null);
+    setSelectedInstanceId(null);
+    setIsCreateServiceDialogOpen(true);
+    setIsCreateInstanceDialogOpen(false);
+  }, []);
+
+  const cancelCreateService = useCallback(() => {
+    setIsCreateServiceDialogOpen(false);
+  }, []);
+
+  const startCreateInstance = useCallback(() => {
+    setSelectedInstanceId(null);
+    setIsCreateInstanceDialogOpen(true);
+  }, []);
+
+  const cancelCreateInstance = useCallback(() => {
+    setIsCreateInstanceDialogOpen(false);
+  }, []);
+
   return {
     activeView,
     setActiveView,
@@ -85,7 +114,7 @@ export function useServicesPage() {
     setSelectedServiceId,
     selectedService,
     selectedInstanceId,
-    setSelectedInstanceId,
+    setSelectedInstanceId: setSelectedInstanceIdWithMode,
     selectedInstance,
     serviceList,
     serviceDetail,
@@ -96,10 +125,10 @@ export function useServicesPage() {
     enrollmentMutations,
     discountCodes,
     isCreateServiceDialogOpen,
-    setIsCreateServiceDialogOpen,
+    startCreateService,
+    cancelCreateService,
     isCreateInstanceDialogOpen,
-    setIsCreateInstanceDialogOpen,
-    isCreateEnrollmentDialogOpen,
-    setIsCreateEnrollmentDialogOpen,
+    startCreateInstance,
+    cancelCreateInstance,
   };
 }

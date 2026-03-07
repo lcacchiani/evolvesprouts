@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { useAdminUsers } from './use-admin-users';
-import { useDialogState } from './use-dialog-state';
 import { useLeadAnalytics } from './use-lead-analytics';
 import { useLeadDetail } from './use-lead-detail';
 import { useLeadList } from './use-lead-list';
@@ -16,20 +15,33 @@ export function useSalesPage() {
   const [selectedLeadIdState, setSelectedLeadIdState] = useState<string | null | undefined>(
     undefined
   );
-  const [isCreateDialogOpen, openCreateDialog, closeCreateDialog] = useDialogState();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const adminUsers = useAdminUsers();
   const leadList = useLeadList();
 
   const selectedLeadId = useMemo(() => {
+    if (isCreateDialogOpen) {
+      return null;
+    }
     if (selectedLeadIdState !== undefined) {
       return selectedLeadIdState;
     }
     return leadList.leads[0]?.id ?? null;
-  }, [leadList.leads, selectedLeadIdState]);
+  }, [isCreateDialogOpen, leadList.leads, selectedLeadIdState]);
 
   const setSelectedLeadId = useCallback((leadId: string | null) => {
     setSelectedLeadIdState(leadId);
+    setIsCreateDialogOpen(false);
+  }, []);
+
+  const openCreateDialog = useCallback(() => {
+    setSelectedLeadIdState(null);
+    setIsCreateDialogOpen(true);
+  }, []);
+
+  const closeCreateDialog = useCallback(() => {
+    setIsCreateDialogOpen(false);
   }, []);
 
   const leadDetail = useLeadDetail(selectedLeadId);

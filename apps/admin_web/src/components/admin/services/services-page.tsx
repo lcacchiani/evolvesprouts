@@ -4,9 +4,6 @@ import { StatusBanner } from '@/components/status-banner';
 
 import { useServicesPage } from '@/hooks/use-services-page';
 
-import { CreateEnrollmentDialog } from './create-enrollment-dialog';
-import { CreateInstanceDialog } from './create-instance-dialog';
-import { CreateServiceDialog } from './create-service-dialog';
 import { DiscountCodesPanel } from './discount-codes-panel';
 import { EnrollmentListPanel } from './enrollment-list-panel';
 import { InstanceDetailPanel } from './instance-detail-panel';
@@ -45,24 +42,28 @@ export function ServicesPage() {
           await state.enrollmentList.refetch();
           await state.discountCodes.refetch();
         }}
-        onNewService={() => state.setIsCreateServiceDialogOpen(true)}
+        onNewService={state.startCreateService}
       />
 
       {state.activeView === 'catalog' ? (
         <>
           <ServiceDetailPanel
+            key={`${state.isCreateServiceDialogOpen ? 'create' : 'edit'}-${state.selectedServiceId ?? 'none'}`}
+            mode={state.isCreateServiceDialogOpen ? 'create' : 'edit'}
             service={state.serviceDetail.service}
             isLoading={state.serviceMutations.isLoading}
             error={state.serviceMutations.error}
+            onStartCreate={state.startCreateService}
+            onCancelCreate={state.cancelCreateService}
+            onCreate={async (payload) => {
+              await state.serviceMutations.createServiceEntry(payload);
+              state.cancelCreateService();
+            }}
             onUpdate={async (payload) => {
               if (!state.selectedServiceId) {
                 return;
               }
-              await state.serviceMutations.updateServiceEntry(state.selectedServiceId, {
-                title: payload.title,
-                description: payload.description,
-                status: payload.status,
-              }, true);
+              await state.serviceMutations.updateServiceEntry(state.selectedServiceId, payload, true);
             }}
             onDelete={async () => {
               if (!state.selectedServiceId) {
@@ -95,7 +96,36 @@ export function ServicesPage() {
             onClearFilters={state.serviceList.clearFilters}
             onLoadMore={state.serviceList.loadMore}
           />
-          <InstanceDetailPanel instance={state.selectedInstance} />
+          <InstanceDetailPanel
+            key={`${state.isCreateInstanceDialogOpen ? 'create' : 'edit'}-${state.selectedInstanceId ?? 'none'}-${state.selectedService?.serviceType ?? 'none'}`}
+            mode={state.isCreateInstanceDialogOpen ? 'create' : 'edit'}
+            instance={state.selectedInstance}
+            serviceType={state.selectedService?.serviceType ?? null}
+            isLoading={state.instanceMutations.isLoading}
+            error={state.instanceMutations.error}
+            onStartCreate={state.startCreateInstance}
+            onCancelCreate={state.cancelCreateInstance}
+            onCreate={async (payload) => {
+              if (!state.selectedServiceId) {
+                return;
+              }
+              await state.instanceMutations.createInstanceEntry(state.selectedServiceId, payload);
+              state.cancelCreateInstance();
+            }}
+            onUpdate={async (instanceId, payload) => {
+              if (!state.selectedServiceId) {
+                return;
+              }
+              await state.instanceMutations.updateInstanceEntry(state.selectedServiceId, instanceId, payload);
+            }}
+            onDelete={async (instanceId) => {
+              if (!state.selectedServiceId) {
+                return;
+              }
+              await state.instanceMutations.deleteInstanceEntry(state.selectedServiceId, instanceId);
+              state.setSelectedInstanceId(null);
+            }}
+          />
           <InstanceListPanel
             instances={state.instanceList.instances}
             selectedInstanceId={state.selectedInstanceId}
@@ -105,17 +135,27 @@ export function ServicesPage() {
             error={state.instanceList.error}
             onSelectInstance={state.setSelectedInstanceId}
             onLoadMore={state.instanceList.loadMore}
-            onOpenCreate={() => state.setIsCreateInstanceDialogOpen(true)}
+            onOpenCreate={state.startCreateInstance}
           />
           <EnrollmentListPanel
             enrollments={state.enrollmentList.enrollments}
+            canCreate={Boolean(state.selectedServiceId && state.selectedInstanceId)}
             isLoading={state.enrollmentList.isLoading}
             isLoadingMore={state.enrollmentList.isLoadingMore}
             hasMore={state.enrollmentList.hasMore}
             error={state.enrollmentList.error}
             onLoadMore={state.enrollmentList.loadMore}
-            onOpenCreate={() => state.setIsCreateEnrollmentDialogOpen(true)}
-            onUpdateStatus={async (enrollmentId, status) => {
+            onCreate={async (payload) => {
+              if (!state.selectedServiceId || !state.selectedInstanceId) {
+                return;
+              }
+              await state.enrollmentMutations.createEnrollmentEntry(
+                state.selectedServiceId,
+                state.selectedInstanceId,
+                payload
+              );
+            }}
+            onUpdate={async (enrollmentId, payload) => {
               if (!state.selectedServiceId || !state.selectedInstanceId) {
                 return;
               }
@@ -123,7 +163,7 @@ export function ServicesPage() {
                 state.selectedServiceId,
                 state.selectedInstanceId,
                 enrollmentId,
-                { status }
+                payload
               );
             }}
             onDelete={async (enrollmentId) => {
@@ -150,56 +190,10 @@ export function ServicesPage() {
           onFilterChange={state.discountCodes.setFilter}
           onLoadMore={state.discountCodes.loadMore}
           onCreate={state.discountCodes.createCode}
+          onUpdate={state.discountCodes.updateCode}
           onDelete={state.discountCodes.deleteCode}
         />
       )}
-
-      <CreateServiceDialog
-        key={state.isCreateServiceDialogOpen ? 'service-dialog-open' : 'service-dialog-closed'}
-        open={state.isCreateServiceDialogOpen}
-        isLoading={state.serviceMutations.isLoading}
-        error={state.serviceMutations.error}
-        onClose={() => state.setIsCreateServiceDialogOpen(false)}
-        onCreate={async (payload) => {
-          await state.serviceMutations.createServiceEntry(payload);
-          state.setIsCreateServiceDialogOpen(false);
-        }}
-      />
-
-      <CreateInstanceDialog
-        key={state.isCreateInstanceDialogOpen ? 'instance-dialog-open' : 'instance-dialog-closed'}
-        open={state.isCreateInstanceDialogOpen}
-        serviceType={state.selectedService?.serviceType ?? 'training_course'}
-        isLoading={state.instanceMutations.isLoading}
-        error={state.instanceMutations.error}
-        onClose={() => state.setIsCreateInstanceDialogOpen(false)}
-        onCreate={async (payload) => {
-          if (!state.selectedServiceId) {
-            return;
-          }
-          await state.instanceMutations.createInstanceEntry(state.selectedServiceId, payload);
-          state.setIsCreateInstanceDialogOpen(false);
-        }}
-      />
-
-      <CreateEnrollmentDialog
-        key={state.isCreateEnrollmentDialogOpen ? 'enrollment-dialog-open' : 'enrollment-dialog-closed'}
-        open={state.isCreateEnrollmentDialogOpen}
-        isLoading={state.enrollmentMutations.isLoading}
-        error={state.enrollmentMutations.error}
-        onClose={() => state.setIsCreateEnrollmentDialogOpen(false)}
-        onCreate={async (payload) => {
-          if (!state.selectedServiceId || !state.selectedInstanceId) {
-            return;
-          }
-          await state.enrollmentMutations.createEnrollmentEntry(
-            state.selectedServiceId,
-            state.selectedInstanceId,
-            payload
-          );
-          state.setIsCreateEnrollmentDialogOpen(false);
-        }}
-      />
     </div>
   );
 }

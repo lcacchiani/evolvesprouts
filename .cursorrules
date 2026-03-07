@@ -226,6 +226,16 @@ repo root
   - `npm run check:admin-api-types`
 - Keep `npm run lint` enforcing the admin API type drift check.
 
+### Admin Web CRUD UX pattern (MANDATORY for `apps/admin_web/**`)
+
+- For admin CRUD screens with list/table views (for example leads, services,
+  enrollments, and discount codes), create and edit flows must use an inline
+  editor panel placed above the list/table.
+- Do not implement create/edit flows for these admin CRUD screens with modal,
+  dialog, sheet, or drawer patterns.
+- "New" and row selection actions must switch the same inline panel between
+  create and edit modes.
+
 ### Public WWW XSS policy (MANDATORY for `apps/public_www/**`)
 
 - Do not use `dangerouslySetInnerHTML`.

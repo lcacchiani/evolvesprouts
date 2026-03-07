@@ -94,11 +94,11 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       deleteCode: vi.fn().mockResolvedValue(undefined),
     },
     isCreateServiceDialogOpen: false,
-    setIsCreateServiceDialogOpen: vi.fn(),
+    startCreateService: vi.fn(),
+    cancelCreateService: vi.fn(),
     isCreateInstanceDialogOpen: false,
-    setIsCreateInstanceDialogOpen: vi.fn(),
-    isCreateEnrollmentDialogOpen: false,
-    setIsCreateEnrollmentDialogOpen: vi.fn(),
+    startCreateInstance: vi.fn(),
+    cancelCreateInstance: vi.fn(),
   };
   return {
     state,
@@ -122,12 +122,12 @@ describe('ServicesPage', () => {
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
   });
 
-  it('opens create-service dialog from header action', async () => {
+  it('opens create-service editor from header action', async () => {
     const user = userEvent.setup();
     render(<ServicesPage />);
 
-    await user.click(screen.getByRole('button', { name: 'New service' }));
-    expect(state.setIsCreateServiceDialogOpen).toHaveBeenCalledWith(true);
+    await user.click(screen.getAllByRole('button', { name: 'New service' })[0]);
+    expect(state.startCreateService).toHaveBeenCalledTimes(1);
   });
 
   it('renders service detail before the services list', () => {

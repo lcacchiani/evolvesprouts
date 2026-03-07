@@ -93,7 +93,7 @@ describe('SalesPage', () => {
     const user = userEvent.setup();
     render(<SalesPage />);
 
-    await user.click(screen.getByRole('button', { name: 'New lead' }));
+    await user.click(screen.getAllByRole('button', { name: 'New lead' })[0]);
     expect(state.openCreateDialog).toHaveBeenCalledTimes(1);
   });
 });
