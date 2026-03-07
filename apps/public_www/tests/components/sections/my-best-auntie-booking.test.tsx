@@ -261,7 +261,8 @@ describe('MyBestAuntieBooking section', () => {
       expect(button.className).toContain('es-btn--selection');
     }
 
-    expect(firstAgeButton.className).not.toContain('w-[');
+    expect(firstAgeButton.className).toContain('w-[140px]');
+    expect(firstAgeButton.className).toContain('sm:w-[168px]');
     expect(firstAgeButton.className).not.toContain('rounded-lg');
   });
 
@@ -288,7 +289,7 @@ describe('MyBestAuntieBooking section', () => {
     expect(firstAgeIcon?.className).toContain('w-12');
 
     const iconRowClassName = firstAgeIcon?.closest('div')?.className ?? '';
-    expect(iconRowClassName).toContain('gap-10');
+    expect(iconRowClassName).toContain('sm:gap-10');
     expect(iconRowClassName).toContain('justify-start');
     const ageLabelClassName = firstAgeButton.querySelector('span')?.className ?? '';
     expect(ageLabelClassName).toContain('text-lg');

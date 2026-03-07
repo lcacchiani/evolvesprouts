@@ -94,6 +94,13 @@ export function useHorizontalCarousel<T extends HTMLElement>({
     );
   }, [hasNavigation, loop, scrollThresholdPx]);
 
+  const teleportScroll = useCallback((element: HTMLElement, targetLeft: number) => {
+    element.style.scrollSnapType = 'none';
+    element.scrollLeft = targetLeft;
+    void element.offsetHeight;
+    element.style.scrollSnapType = '';
+  }, []);
+
   const beginLoopCooldown = useCallback(() => {
     isAutoScrollingRef.current = true;
     if (loopCooldownTimerRef.current !== null) {
@@ -119,10 +126,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
           carouselElement.scrollLeft <= scrollThresholdPx
         ) {
           beginLoopCooldown();
-          carouselElement.scrollTo({
-            left: maxScrollLeft,
-            behavior: 'smooth',
-          });
+          teleportScroll(carouselElement, maxScrollLeft);
           return;
         }
 
@@ -131,10 +135,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
           carouselElement.scrollLeft >= maxScrollLeft - scrollThresholdPx
         ) {
           beginLoopCooldown();
-          carouselElement.scrollTo({
-            left: 0,
-            behavior: 'smooth',
-          });
+          teleportScroll(carouselElement, 0);
           return;
         }
       }
@@ -166,6 +167,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       minScrollStepPx,
       scrollStepRatio,
       scrollThresholdPx,
+      teleportScroll,
     ],
   );
 
@@ -253,13 +255,13 @@ export function useHorizontalCarousel<T extends HTMLElement>({
           el.scrollLeft >= maxScroll - scrollThresholdPx
         ) {
           beginLoopCooldown();
-          el.scrollTo({ left: 0, behavior: 'smooth' });
+          teleportScroll(el, 0);
         } else if (
           !scrollingForward &&
           el.scrollLeft <= scrollThresholdPx
         ) {
           beginLoopCooldown();
-          el.scrollTo({ left: maxScroll, behavior: 'smooth' });
+          teleportScroll(el, maxScroll);
         }
       }, LOOP_SETTLE_DELAY_MS);
     }
@@ -283,7 +285,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       carouselElement.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [beginLoopCooldown, itemCount, loop, scrollThresholdPx, updateNavigationState]);
+  }, [beginLoopCooldown, itemCount, loop, scrollThresholdPx, teleportScroll, updateNavigationState]);
 
   return {
     carouselRef,

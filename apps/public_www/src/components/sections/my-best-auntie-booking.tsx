@@ -289,9 +289,9 @@ export function MyBestAuntieBooking({
                             ?.id ?? '';
                         setSelectedDateId(nextDateId);
                       }}
-                      className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-left`}
+                      className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] snap-center text-left sm:w-[168px]`}
                     >
-                      <div className='flex items-center justify-start gap-10'>
+                      <div className='flex items-center justify-start gap-4 sm:gap-10'>
                         <Image
                           src={option.iconSrc}
                           alt=''
@@ -336,7 +336,7 @@ export function MyBestAuntieBooking({
                         onClick={() => {
                           setSelectedDateId(option.id);
                         }}
-                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} snap-start text-center`}
+                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] snap-center text-center sm:w-[168px]`}
                       >
                         <div className='flex w-full flex-col items-center gap-2'>
                           <div className='flex items-center justify-center gap-1.5'>

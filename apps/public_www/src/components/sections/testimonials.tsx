@@ -171,13 +171,13 @@ export function Testimonials({ content }: TestimonialsProps) {
             carouselRef={carouselRef}
             testId='testimonials-carousel-track'
             ariaLabel={`${content.title} carousel`}
-            className='pb-2'
+            className='flex gap-4 pb-2'
             aria-live='polite'
           >
             {storiesToRender.map((story, index) => (
               <article
                 key={`${story.author ?? 'story'}-${index}`}
-                className='flex min-w-full max-w-full shrink-0 snap-start'
+                className='flex min-w-full max-w-full shrink-0 snap-center'
               >
                 <div
                   className={buildSectionSplitLayoutClassName(

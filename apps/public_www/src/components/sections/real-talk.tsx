@@ -99,7 +99,7 @@ export function RealTalk({ content }: RealTalkProps) {
                 return (
                   <li
                     key={card.id}
-                    className='w-[84vw] max-w-[360px] shrink-0 snap-start sm:w-[68vw] md:w-auto md:max-w-none md:shrink md:snap-none'
+                    className='w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw] md:w-auto md:max-w-none md:shrink md:snap-none'
                   >
                     <RealTalkCard
                       title={card.title}
