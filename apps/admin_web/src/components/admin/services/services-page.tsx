@@ -95,6 +95,7 @@ export function ServicesPage() {
             onClearFilters={state.serviceList.clearFilters}
             onLoadMore={state.serviceList.loadMore}
           />
+          <InstanceDetailPanel instance={state.selectedInstance} />
           <InstanceListPanel
             instances={state.instanceList.instances}
             selectedInstanceId={state.selectedInstanceId}
@@ -106,7 +107,6 @@ export function ServicesPage() {
             onLoadMore={state.instanceList.loadMore}
             onOpenCreate={() => state.setIsCreateInstanceDialogOpen(true)}
           />
-          <InstanceDetailPanel instance={state.selectedInstance} />
           <EnrollmentListPanel
             enrollments={state.enrollmentList.enrollments}
             isLoading={state.enrollmentList.isLoading}

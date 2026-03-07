@@ -138,4 +138,13 @@ describe('ServicesPage', () => {
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
+
+  it('renders instance detail before the instances list', () => {
+    render(<ServicesPage />);
+
+    const detailHeading = screen.getByRole('heading', { name: 'Instance detail' });
+    const listHeading = screen.getByRole('heading', { name: 'Instances' });
+
+    expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
