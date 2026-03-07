@@ -45,9 +45,17 @@ export function FreeIntroSession({ content, ctaHref }: FreeIntroSessionProps) {
             </p>
           </div>
           <div className='es-intro-community-layout-cta'>
-            <SectionCtaAnchor href={ctaHref} className='w-fit'>
-              {content.ctaLabel}
-            </SectionCtaAnchor>
+            <div className='w-full max-w-[500px] lg:max-w-[410px]'>
+              <SectionCtaAnchor href={ctaHref} className='w-fit'>
+                {content.ctaLabel}
+              </SectionCtaAnchor>
+              <div
+                className='grid grid-rows-[0fr] overflow-hidden'
+                aria-hidden='true'
+              >
+                <div className='min-h-0 overflow-hidden' />
+              </div>
+            </div>
           </div>
         </div>
       </SectionContainer>

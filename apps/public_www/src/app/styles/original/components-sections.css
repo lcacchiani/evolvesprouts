@@ -215,6 +215,7 @@
 
   .es-sprouts-community-section {
     position: relative;
+    padding-top: 40px;
     padding-bottom: 0;
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
     background-image: url('/images/sprouts-squad-community-bg.webp');
@@ -282,6 +283,7 @@
 
   .es-free-intro-session-section {
     position: relative;
+    padding-top: 40px;
     padding-bottom: 0;
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
     background-image: url('/images/sprouts-squad-community-bg.webp');
@@ -326,6 +328,13 @@
     font-size: clamp(1rem, 1.8vw, 19px);
     line-height: clamp(1.45rem, 2.6vw, 33px);
     letter-spacing: 0.4px;
+  }
+
+  @media (min-width: 640px) {
+    .es-sprouts-community-section,
+    .es-free-intro-session-section {
+      padding-top: 60px;
+    }
   }
 
   .es-intro-community-layout {
