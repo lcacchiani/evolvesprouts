@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -14,6 +13,8 @@ interface IdaProps {
 }
 
 export function Ida({ content }: IdaProps) {
+  const description = content.description.trim();
+
   return (
     <SectionShell
       id='ida'
@@ -34,15 +35,11 @@ export function Ida({ content }: IdaProps) {
             description={content.subtitle}
             descriptionClassName='es-type-subtitle mt-4 max-w-[760px]'
           />
-          <p className='es-type-body mt-4 max-w-[720px]'>
-            {content.description}
-          </p>
-          <SectionCtaAnchor
-            href={content.ctaHref}
-            className='mt-8'
-          >
-            {content.ctaLabel}
-          </SectionCtaAnchor>
+          {description ? (
+            <p className='es-type-body mt-4 max-w-[720px]'>
+              {description}
+            </p>
+          ) : null}
         </div>
 
         <div className='order-2 lg:order-1'>
