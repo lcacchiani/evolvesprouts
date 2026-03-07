@@ -24,11 +24,11 @@ export interface ServiceDetailPanelProps {
 
 interface ServiceDetailFormProps {
   service: ServiceDetail;
-  isLoading,
-  error,
-  onUpdate,
-  onDelete,
-  onUploadCover,
+  isLoading: boolean;
+  error: string;
+  onUpdate: ServiceDetailPanelProps['onUpdate'];
+  onDelete: ServiceDetailPanelProps['onDelete'];
+  onUploadCover: ServiceDetailPanelProps['onUploadCover'];
 }
 
 function ServiceDetailForm({
