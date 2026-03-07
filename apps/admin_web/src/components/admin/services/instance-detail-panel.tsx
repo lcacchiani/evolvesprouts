@@ -99,7 +99,7 @@ export function InstanceDetailPanel({
 
   const effectiveServiceType = serviceType ?? 'training_course';
 
-  const buildPayload = (): ApiSchemas['CreateInstanceRequest'] => {
+  const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
     const payload: ApiSchemas['CreateInstanceRequest'] = {
       title: instanceForm.title.trim() || null,
       description: instanceForm.description.trim() || null,
@@ -151,6 +151,11 @@ export function InstanceDetailPanel({
     return payload;
   };
 
+  const buildUpdatePayload = (): ApiSchemas['UpdateInstanceRequest'] => ({
+    ...buildCreatePayload(),
+    status: instanceForm.status,
+  });
+
   return (
     <Card
       title={mode === 'create' ? 'Create instance' : 'Instance detail'}
@@ -194,7 +199,7 @@ export function InstanceDetailPanel({
 
           <div className='flex flex-wrap justify-end gap-2'>
             {mode === 'create' ? (
-              <Button type='button' disabled={isLoading} onClick={() => void onCreate(buildPayload())}>
+              <Button type='button' disabled={isLoading} onClick={() => void onCreate(buildCreatePayload())}>
                 {isLoading ? 'Creating...' : 'Create instance'}
               </Button>
             ) : (
@@ -207,7 +212,7 @@ export function InstanceDetailPanel({
                     if (!instance) {
                       return;
                     }
-                    void onUpdate(instance.id, buildPayload());
+                    void onUpdate(instance.id, buildUpdatePayload());
                   }}
                 >
                   Save
