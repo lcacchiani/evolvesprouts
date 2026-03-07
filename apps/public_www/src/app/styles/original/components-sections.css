@@ -259,6 +259,7 @@
     font-size: clamp(1rem, 1.8vw, 19px);
     line-height: clamp(1.45rem, 2.6vw, 33px);
     letter-spacing: 0.4px;
+    white-space: pre-line;
   }
 
   .es-sprouts-community-email-input {
