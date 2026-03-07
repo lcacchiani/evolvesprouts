@@ -33,14 +33,22 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
 describe('ServiceDetailPanel', () => {
   it('syncs form values when selected service changes', () => {
     const onUpdate = vi.fn();
+    const onCreate = vi.fn();
     const onDelete = vi.fn();
     const onUploadCover = vi.fn();
+    const onStartCreate = vi.fn();
+    const onCancelCreate = vi.fn();
 
     const { rerender } = render(
       <ServiceDetailPanel
+        key='service-1'
+        mode='edit'
         service={buildService()}
         isLoading={false}
         error=''
+        onStartCreate={onStartCreate}
+        onCancelCreate={onCancelCreate}
+        onCreate={onCreate}
         onUpdate={onUpdate}
         onDelete={onDelete}
         onUploadCover={onUploadCover}
@@ -53,6 +61,8 @@ describe('ServiceDetailPanel', () => {
 
     rerender(
       <ServiceDetailPanel
+        key='service-2'
+        mode='edit'
         service={buildService({
           id: 'service-2',
           title: 'Beta service',
@@ -61,6 +71,9 @@ describe('ServiceDetailPanel', () => {
         })}
         isLoading={false}
         error=''
+        onStartCreate={onStartCreate}
+        onCancelCreate={onCancelCreate}
+        onCreate={onCreate}
         onUpdate={onUpdate}
         onDelete={onDelete}
         onUploadCover={onUploadCover}

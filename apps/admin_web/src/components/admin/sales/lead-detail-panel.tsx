@@ -1,78 +1,261 @@
 'use client';
 
+import { useState } from 'react';
+
 import { ActivityTimeline } from './activity-timeline';
 import { LeadInfoSection } from './lead-info-section';
 import { LeadQuickActions } from './lead-quick-actions';
 import { NotesSection } from './notes-section';
 import { StageControl } from './stage-control';
 
-import type { AdminUser, FunnelStage, LeadDetail } from '@/types/leads';
+import { CONTACT_SOURCES, LEAD_TYPES } from '@/types/leads';
+import type { AdminUser, ContactSource, FunnelStage, LeadDetail, LeadType } from '@/types/leads';
 
+import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { toTitleCase } from '@/lib/format';
+
+interface CreateLeadFormState {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  instagramHandle: string;
+  source: ContactSource;
+  sourceDetail: string;
+  leadType: LeadType;
+  contactType: string;
+  assignedTo: string;
+  note: string;
+}
+
+const EMPTY_CREATE_FORM: CreateLeadFormState = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  instagramHandle: '',
+  source: 'manual',
+  sourceDetail: '',
+  leadType: 'consultation',
+  contactType: 'parent',
+  assignedTo: '',
+  note: '',
+};
 
 export interface LeadDetailPanelProps {
-  open: boolean;
+  mode: 'create' | 'edit';
   lead: LeadDetail | null;
   users: AdminUser[];
   isLoading: boolean;
-  onClose: () => void;
+  error: string;
+  onStartCreate: () => void;
+  onCancelCreate: () => void;
+  onCreate: (payload: {
+    first_name: string;
+    last_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    instagram_handle?: string | null;
+    source: ContactSource;
+    source_detail?: string | null;
+    lead_type: LeadType;
+    contact_type?: string | null;
+    assigned_to?: string | null;
+    note?: string | null;
+  }) => Promise<void> | void;
   onUpdateStage: (stage: FunnelStage, lostReason?: string) => Promise<void> | void;
   onAddNote: (content: string) => Promise<void> | void;
   onAssign: (assignedTo: string | null) => Promise<void> | void;
 }
 
 export function LeadDetailPanel({
-  open,
+  mode,
   lead,
   users,
   isLoading,
-  onClose,
+  error,
+  onStartCreate,
+  onCancelCreate,
+  onCreate,
   onUpdateStage,
   onAddNote,
   onAssign,
 }: LeadDetailPanelProps) {
-  if (!open) {
-    return null;
-  }
+  const [createForm, setCreateForm] = useState<CreateLeadFormState>(EMPTY_CREATE_FORM);
+
+  const handleCreate = async () => {
+    try {
+      await onCreate({
+        first_name: createForm.firstName.trim(),
+        last_name: createForm.lastName.trim() || null,
+        email: createForm.email.trim() || null,
+        phone: createForm.phone.trim() || null,
+        instagram_handle: createForm.instagramHandle.trim() || null,
+        source: createForm.source,
+        source_detail: createForm.sourceDetail.trim() || null,
+        lead_type: createForm.leadType,
+        contact_type: createForm.contactType || null,
+        assigned_to: createForm.assignedTo || null,
+        note: createForm.note.trim() || null,
+      });
+      onCancelCreate();
+    } catch {
+      // Keep the form visible to let users correct and retry.
+    }
+  };
 
   return (
-    <div className='fixed inset-0 z-40'>
-      <button
-        type='button'
-        className='absolute inset-0 bg-slate-900/30'
-        aria-label='Close lead details'
-        onClick={onClose}
-      />
-      <aside className='absolute inset-y-0 right-0 w-full max-w-2xl overflow-y-auto border-l border-slate-200 bg-slate-50 p-4 shadow-xl'>
-        <div className='mb-3 flex items-center justify-between'>
-          <h2 className='text-lg font-semibold text-slate-900'>Lead details</h2>
-          <Button type='button' variant='ghost' aria-label='Close lead details' onClick={onClose}>
-            ✕
+    <Card
+      title={mode === 'create' ? 'Create lead' : 'Lead details'}
+      description={mode === 'create' ? 'Create a new lead inline above the pipeline table.' : undefined}
+      className='space-y-4'
+    >
+      <div className='flex justify-end gap-2'>
+        {mode === 'create' ? (
+          <Button type='button' variant='secondary' onClick={onCancelCreate} disabled={isLoading}>
+            Cancel
           </Button>
-        </div>
-        {!lead ? (
-          <p className='text-sm text-slate-600'>No lead selected.</p>
         ) : (
-          <div className='space-y-4'>
-            <LeadInfoSection lead={lead} />
-            <StageControl
-              currentStage={lead.funnelStage}
-              isLoading={isLoading}
-              onUpdateStage={onUpdateStage}
-            />
-            <LeadQuickActions
-              lead={lead}
-              users={users}
-              isLoading={isLoading}
-              onMarkConverted={() => onUpdateStage('converted')}
-              onMarkLost={(lostReason) => onUpdateStage('lost', lostReason)}
-              onAssign={onAssign}
-            />
-            <NotesSection notes={lead.notes} users={users} isLoading={isLoading} onAddNote={onAddNote} />
-            <ActivityTimeline events={lead.events} users={users} />
-          </div>
+          <Button type='button' onClick={onStartCreate}>
+            New lead
+          </Button>
         )}
-      </aside>
-    </div>
+      </div>
+
+      {error ? (
+        <StatusBanner variant='error' title={mode === 'create' ? 'Create lead' : 'Lead'}>
+          {error}
+        </StatusBanner>
+      ) : null}
+
+      {mode === 'create' ? (
+        <div className='space-y-3'>
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+            <Input
+              value={createForm.firstName}
+              onChange={(event) => setCreateForm((previous) => ({ ...previous, firstName: event.target.value }))}
+              placeholder='First name *'
+            />
+            <Input
+              value={createForm.lastName}
+              onChange={(event) => setCreateForm((previous) => ({ ...previous, lastName: event.target.value }))}
+              placeholder='Last name'
+            />
+            <Input
+              value={createForm.email}
+              onChange={(event) => setCreateForm((previous) => ({ ...previous, email: event.target.value }))}
+              type='email'
+              placeholder='Email'
+            />
+            <Input
+              value={createForm.phone}
+              onChange={(event) => setCreateForm((previous) => ({ ...previous, phone: event.target.value }))}
+              type='tel'
+              placeholder='Phone'
+            />
+            <Input
+              value={createForm.instagramHandle}
+              onChange={(event) =>
+                setCreateForm((previous) => ({ ...previous, instagramHandle: event.target.value }))
+              }
+              placeholder='Instagram handle'
+            />
+            <Select
+              value={createForm.source}
+              onChange={(event) =>
+                setCreateForm((previous) => ({ ...previous, source: event.target.value as ContactSource }))
+              }
+            >
+              {CONTACT_SOURCES.map((sourceOption) => (
+                <option key={sourceOption} value={sourceOption}>
+                  {toTitleCase(sourceOption)}
+                </option>
+              ))}
+            </Select>
+            <Input
+              value={createForm.sourceDetail}
+              onChange={(event) =>
+                setCreateForm((previous) => ({ ...previous, sourceDetail: event.target.value }))
+              }
+              placeholder='Source detail'
+            />
+            <Select
+              value={createForm.leadType}
+              onChange={(event) =>
+                setCreateForm((previous) => ({ ...previous, leadType: event.target.value as LeadType }))
+              }
+            >
+              {LEAD_TYPES.map((leadTypeOption) => (
+                <option key={leadTypeOption} value={leadTypeOption}>
+                  {toTitleCase(leadTypeOption)}
+                </option>
+              ))}
+            </Select>
+            <Select
+              value={createForm.contactType}
+              onChange={(event) =>
+                setCreateForm((previous) => ({ ...previous, contactType: event.target.value }))
+              }
+            >
+              <option value='parent'>Parent</option>
+              <option value='child'>Child</option>
+              <option value='helper'>Helper</option>
+              <option value='professional'>Professional</option>
+              <option value='other'>Other</option>
+            </Select>
+            <Select
+              value={createForm.assignedTo}
+              onChange={(event) =>
+                setCreateForm((previous) => ({ ...previous, assignedTo: event.target.value }))
+              }
+            >
+              <option value=''>Unassigned</option>
+              {users.map((user) => (
+                <option key={user.sub} value={user.sub}>
+                  {user.name || user.email || user.sub}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Textarea
+            value={createForm.note}
+            onChange={(event) => setCreateForm((previous) => ({ ...previous, note: event.target.value }))}
+            placeholder='Initial note'
+            rows={3}
+          />
+          <div className='flex justify-end'>
+            <Button
+              type='button'
+              onClick={() => void handleCreate()}
+              disabled={isLoading || createForm.firstName.trim().length === 0}
+            >
+              {isLoading ? 'Creating...' : 'Create lead'}
+            </Button>
+          </div>
+        </div>
+      ) : !lead ? (
+        <p className='text-sm text-slate-600'>Select a lead to view details, or create a new lead.</p>
+      ) : (
+        <div className='space-y-4'>
+          <LeadInfoSection lead={lead} />
+          <StageControl currentStage={lead.funnelStage} isLoading={isLoading} onUpdateStage={onUpdateStage} />
+          <LeadQuickActions
+            lead={lead}
+            users={users}
+            isLoading={isLoading}
+            onMarkConverted={() => onUpdateStage('converted')}
+            onMarkLost={(lostReason) => onUpdateStage('lost', lostReason)}
+            onAssign={onAssign}
+          />
+          <NotesSection notes={lead.notes} users={users} isLoading={isLoading} onAddNote={onAddNote} />
+          <ActivityTimeline events={lead.events} users={users} />
+        </div>
+      )}
+    </Card>
   );
 }

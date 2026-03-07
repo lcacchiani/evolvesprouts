@@ -1,7 +1,6 @@
 'use client';
 
 import { AnalyticsView } from './analytics-view';
-import { CreateLeadDialog } from './create-lead-dialog';
 import { FunnelOverview } from './funnel-overview';
 import { LeadDetailPanel } from './lead-detail-panel';
 import { LeadsTable } from './leads-table';
@@ -70,6 +69,38 @@ export function SalesPage() {
             selectedStage={state.leadList.filters.stage[0] ?? null}
             onSelectStage={(stage) => state.leadList.setFilter('stage', stage ? [stage] : [])}
           />
+          <LeadDetailPanel
+            key={`${state.isCreateDialogOpen ? 'create' : 'edit'}-${state.selectedLeadId ?? 'none'}`}
+            mode={state.isCreateDialogOpen ? 'create' : 'edit'}
+            lead={state.leadDetail.lead}
+            users={state.adminUsers.users}
+            isLoading={state.mutations.isLoading || state.leadDetail.isLoading}
+            error={state.mutations.error}
+            onStartCreate={state.openCreateDialog}
+            onCancelCreate={state.closeCreateDialog}
+            onCreate={async (payload) => {
+              await state.mutations.createLeadEntry(payload);
+              state.closeCreateDialog();
+            }}
+            onUpdateStage={async (stage, lostReason) => {
+              if (!state.selectedLeadId) {
+                return;
+              }
+              await state.mutations.updateStage(state.selectedLeadId, stage, lostReason);
+            }}
+            onAddNote={async (content) => {
+              if (!state.selectedLeadId) {
+                return;
+              }
+              await state.mutations.addNote(state.selectedLeadId, content);
+            }}
+            onAssign={async (assignedTo) => {
+              if (!state.selectedLeadId) {
+                return;
+              }
+              await state.mutations.assignLead(state.selectedLeadId, assignedTo);
+            }}
+          />
           <LeadsTable
             leads={state.leadList.leads}
             filters={state.leadList.filters}
@@ -95,46 +126,10 @@ export function SalesPage() {
               }
             }}
           />
-          <LeadDetailPanel
-            open={Boolean(state.selectedLeadId)}
-            lead={state.leadDetail.lead}
-            users={state.adminUsers.users}
-            isLoading={state.mutations.isLoading || state.leadDetail.isLoading}
-            onClose={() => state.setSelectedLeadId(null)}
-            onUpdateStage={async (stage, lostReason) => {
-              if (!state.selectedLeadId) {
-                return;
-              }
-              await state.mutations.updateStage(state.selectedLeadId, stage, lostReason);
-            }}
-            onAddNote={async (content) => {
-              if (!state.selectedLeadId) {
-                return;
-              }
-              await state.mutations.addNote(state.selectedLeadId, content);
-            }}
-            onAssign={async (assignedTo) => {
-              if (!state.selectedLeadId) {
-                return;
-              }
-              await state.mutations.assignLead(state.selectedLeadId, assignedTo);
-            }}
-          />
         </>
       ) : (
         <AnalyticsView analytics={state.leadAnalytics.analytics} users={state.adminUsers.users} />
       )}
-
-      <CreateLeadDialog
-        open={state.isCreateDialogOpen}
-        users={state.adminUsers.users}
-        isLoading={state.mutations.isLoading}
-        error={state.mutations.error}
-        onClose={state.closeCreateDialog}
-        onCreate={async (payload) => {
-          await state.mutations.createLeadEntry(payload);
-        }}
-      />
     </div>
   );
 }
