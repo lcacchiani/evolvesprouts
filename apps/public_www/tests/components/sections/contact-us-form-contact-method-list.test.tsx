@@ -87,9 +87,9 @@ describe('ContactMethodList', () => {
     expect(whatsappLink).toHaveAttribute('aria-label', 'WhatsApp');
     expect(emailLink.className).toContain('flex-col');
     expect(emailLink.className).toContain('text-center');
-    expect(emailLink.className).toContain('w-[50px]');
+    expect(emailLink.className).toContain('w-[45px]');
     expect(linkedInLink.className).toContain('w-auto');
-    expect(whatsappLink.className).toContain('w-[50px]');
+    expect(whatsappLink.className).toContain('w-[45px]');
     for (const listItem of list.querySelectorAll('li')) {
       expect(listItem.className).toContain('m-[10px]');
     }
@@ -104,22 +104,22 @@ describe('ContactMethodList', () => {
       .querySelector('img');
     const emailIconContainer = screen.getByTestId('contact-method-icon-email');
     const linkedInIconContainer = screen.getByTestId('contact-method-icon-linkedin');
-    expect(emailIconContainer.className).toContain('h-[50px]');
-    expect(emailIconContainer.className).toContain('w-[50px]');
-    expect(linkedInIconContainer.className).toContain('h-[50px]');
+    expect(emailIconContainer.className).toContain('h-[45px]');
+    expect(emailIconContainer.className).toContain('w-[45px]');
+    expect(linkedInIconContainer.className).toContain('h-[45px]');
     expect(linkedInIconContainer.className).toContain('w-auto');
     expect(emailIcon).toHaveAttribute('src', '/images/contact-email.svg');
-    expect(emailIcon).toHaveAttribute('width', '50');
-    expect(emailIcon).toHaveAttribute('height', '50');
-    expect(emailIcon?.className).toContain('h-[50px]');
-    expect(emailIcon?.className).toContain('w-[50px]');
+    expect(emailIcon).toHaveAttribute('width', '45');
+    expect(emailIcon).toHaveAttribute('height', '45');
+    expect(emailIcon?.className).toContain('h-[45px]');
+    expect(emailIcon?.className).toContain('w-[45px]');
     expect(linkedInIcon).toHaveAttribute('src', '/images/contact-linkedin.png');
     expect(linkedInIcon).toHaveAttribute('width', '635');
     expect(linkedInIcon).toHaveAttribute('height', '540');
-    expect(linkedInIcon?.className).toContain('h-[50px]');
+    expect(linkedInIcon?.className).toContain('h-[45px]');
     expect(linkedInIcon?.className).toContain('w-auto');
     expect(whatsappIcon).toHaveAttribute('src', '/images/contact-whatsapp.svg');
-    expect(whatsappIcon?.className).toContain('h-[50px]');
-    expect(whatsappIcon?.className).toContain('w-[50px]');
+    expect(whatsappIcon?.className).toContain('h-[45px]');
+    expect(whatsappIcon?.className).toContain('w-[45px]');
   });
 });
