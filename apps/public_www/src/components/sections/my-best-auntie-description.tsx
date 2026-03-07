@@ -1,6 +1,7 @@
 'use client';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -133,12 +134,10 @@ export function MyBestAuntieDescription({
           )}
         </div>
 
-        <div
-          ref={carouselRef}
-          className='-mx-1 mt-6 snap-x snap-mandatory overflow-x-auto px-1 pb-2 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-          role='region'
-          aria-roledescription='carousel'
-          aria-label={`${content.title} slider`}
+        <CarouselTrack
+          carouselRef={carouselRef}
+          ariaLabel={`${content.title} slider`}
+          className='mt-6 pb-2 scroll-smooth'
         >
           <ul className='flex gap-5 sm:gap-6'>
             {cards.map((item, index) => (
@@ -166,7 +165,7 @@ export function MyBestAuntieDescription({
               </li>
             ))}
           </ul>
-        </div>
+        </CarouselTrack>
       </SectionContainer>
     </SectionShell>
   );

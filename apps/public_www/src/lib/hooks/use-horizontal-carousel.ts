@@ -30,6 +30,8 @@ const DEFAULT_SCROLL_THRESHOLD_PX = 2;
 const DEFAULT_SCROLL_STEP_RATIO = 0.8;
 const DEFAULT_MIN_SCROLL_STEP_PX = 180;
 const DEFAULT_MIN_ITEMS_FOR_NAVIGATION = 1;
+const LOOP_SETTLE_DELAY_MS = 400;
+const LOOP_COOLDOWN_MS = 1500;
 
 function resolveScrollStep(
   carouselElement: HTMLElement,
@@ -57,6 +59,10 @@ export function useHorizontalCarousel<T extends HTMLElement>({
 }: UseHorizontalCarouselOptions): UseHorizontalCarouselResult<T> {
   const carouselRef = useRef<T | null>(null);
   const rafIdRef = useRef<number | null>(null);
+  const isAutoScrollingRef = useRef(false);
+  const lastScrollLeftRef = useRef(-1);
+  const loopSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loopCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasNavigation = itemCount > minItemsForNavigation;
   const [canScrollPrevious, setCanScrollPrevious] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(hasNavigation);
@@ -88,6 +94,17 @@ export function useHorizontalCarousel<T extends HTMLElement>({
     );
   }, [hasNavigation, loop, scrollThresholdPx]);
 
+  const beginLoopCooldown = useCallback(() => {
+    isAutoScrollingRef.current = true;
+    if (loopCooldownTimerRef.current !== null) {
+      clearTimeout(loopCooldownTimerRef.current);
+    }
+    loopCooldownTimerRef.current = setTimeout(() => {
+      loopCooldownTimerRef.current = null;
+      isAutoScrollingRef.current = false;
+    }, LOOP_COOLDOWN_MS);
+  }, []);
+
   const scrollByDirection = useCallback(
     (direction: ScrollDirection) => {
       const carouselElement = carouselRef.current;
@@ -101,6 +118,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
           direction === 'prev' &&
           carouselElement.scrollLeft <= scrollThresholdPx
         ) {
+          beginLoopCooldown();
           carouselElement.scrollTo({
             left: maxScrollLeft,
             behavior: 'smooth',
@@ -112,6 +130,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
           direction === 'next' &&
           carouselElement.scrollLeft >= maxScrollLeft - scrollThresholdPx
         ) {
+          beginLoopCooldown();
           carouselElement.scrollTo({
             left: 0,
             behavior: 'smooth',
@@ -140,6 +159,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       });
     },
     [
+      beginLoopCooldown,
       canScrollNext,
       canScrollPrevious,
       loop,
@@ -191,6 +211,57 @@ export function useHorizontalCarousel<T extends HTMLElement>({
 
     function handleScroll() {
       updateNavigationState();
+
+      if (!loop || isAutoScrollingRef.current) {
+        return;
+      }
+
+      const element = carouselRef.current;
+      if (!element) {
+        return;
+      }
+
+      const currentScrollLeft = element.scrollLeft;
+      const previousScrollLeft = lastScrollLeftRef.current;
+      lastScrollLeftRef.current = currentScrollLeft;
+
+      if (previousScrollLeft < 0) {
+        return;
+      }
+
+      const scrollingForward = currentScrollLeft >= previousScrollLeft;
+
+      if (loopSettleTimerRef.current !== null) {
+        clearTimeout(loopSettleTimerRef.current);
+      }
+
+      loopSettleTimerRef.current = setTimeout(() => {
+        loopSettleTimerRef.current = null;
+
+        const el = carouselRef.current;
+        if (!el || isAutoScrollingRef.current) {
+          return;
+        }
+
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll <= scrollThresholdPx) {
+          return;
+        }
+
+        if (
+          scrollingForward &&
+          el.scrollLeft >= maxScroll - scrollThresholdPx
+        ) {
+          beginLoopCooldown();
+          el.scrollTo({ left: 0, behavior: 'smooth' });
+        } else if (
+          !scrollingForward &&
+          el.scrollLeft <= scrollThresholdPx
+        ) {
+          beginLoopCooldown();
+          el.scrollTo({ left: maxScroll, behavior: 'smooth' });
+        }
+      }, LOOP_SETTLE_DELAY_MS);
     }
 
     carouselElement.addEventListener('scroll', handleScroll, { passive: true });
@@ -201,10 +272,18 @@ export function useHorizontalCarousel<T extends HTMLElement>({
         window.cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
+      if (loopSettleTimerRef.current !== null) {
+        clearTimeout(loopSettleTimerRef.current);
+        loopSettleTimerRef.current = null;
+      }
+      if (loopCooldownTimerRef.current !== null) {
+        clearTimeout(loopCooldownTimerRef.current);
+        loopCooldownTimerRef.current = null;
+      }
       carouselElement.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [itemCount, updateNavigationState]);
+  }, [beginLoopCooldown, itemCount, loop, scrollThresholdPx, updateNavigationState]);
 
   return {
     carouselRef,
