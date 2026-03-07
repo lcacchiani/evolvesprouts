@@ -17,6 +17,15 @@ vi.mock('next/image', () => ({
 }));
 
 describe('Ida', () => {
+  it('removes mobile top padding while preserving responsive section spacing', () => {
+    render(<Ida content={enContent.ida} />);
+
+    const section = document.getElementById('ida');
+    expect(section).not.toBeNull();
+    expect(section?.className).toContain('pt-0');
+    expect(section?.className).toContain('sm:pt-[60px]');
+  });
+
   it('renders hero copy, CTA, and portrait image', () => {
     const content = enContent.ida;
     render(<Ida content={content} />);
