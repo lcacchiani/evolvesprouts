@@ -108,9 +108,16 @@ describe('SproutsSquadCommunity section', () => {
     });
     expect(heading.className).toContain('es-sprouts-community-heading');
 
-    const supportParagraph = screen.getByText(
-      enContent.sproutsSquadCommunity.supportParagraph,
-    );
+    const supportParagraph = screen.getByText((_, element) => {
+      if (!element) {
+        return false;
+      }
+
+      return (
+        element.classList.contains('es-sprouts-community-support-paragraph') &&
+        element.textContent === enContent.sproutsSquadCommunity.supportParagraph
+      );
+    });
     expect(supportParagraph.className).toContain(
       'es-sprouts-community-support-paragraph',
     );
