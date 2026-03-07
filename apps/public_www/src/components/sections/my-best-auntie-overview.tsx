@@ -192,7 +192,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
 
   const { carouselRef } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: content.modules.length,
-    loop: true,
+    loop: false,
   });
 
   const moduleSteps: ModuleStep[] = content.modules.map((module, index) => ({
@@ -292,7 +292,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                 {moduleSteps.map((module, index) => (
                   <li
                     key={module.step}
-                    className='w-[80vw] shrink-0 snap-start sm:w-[66vw]'
+                    className='w-[80vw] shrink-0 snap-center sm:w-[66vw]'
                   >
                     <MyBestAuntieOverviewCard
                       module={module}

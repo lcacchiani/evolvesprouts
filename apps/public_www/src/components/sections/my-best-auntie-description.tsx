@@ -81,7 +81,7 @@ export function MyBestAuntieDescription({
     scrollByDirection,
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: cards.length,
-    loop: false,
+    loop: true,
   });
 
   return (
@@ -143,7 +143,7 @@ export function MyBestAuntieDescription({
             {cards.map((item, index) => (
               <li
                 key={`${item.title}-${index}`}
-                className='w-[88%] shrink-0 snap-start sm:w-[48%] lg:w-[32%]'
+                className='w-[88%] shrink-0 snap-center sm:w-[48%] lg:w-[32%]'
               >
                 <article
                   className='flex h-full min-h-[450px] flex-col rounded-card-xl p-6 sm:p-8 es-my-best-auntie-description-card'

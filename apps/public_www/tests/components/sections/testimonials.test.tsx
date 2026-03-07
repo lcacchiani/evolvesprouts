@@ -109,7 +109,7 @@ describe('Testimonials section', () => {
       enContent.testimonials.items.length,
     );
 
-    const { scrollBySpy, scrollToSpy, setScrollLeft } = defineCarouselMetrics(
+    const { scrollBySpy, setScrollLeft } = defineCarouselMetrics(
       carouselTrack,
       {
         clientWidth: 800,
@@ -132,9 +132,6 @@ describe('Testimonials section', () => {
     setScrollLeft(800);
     fireEvent.scroll(carouselTrack);
     fireEvent.click(screen.getByRole('button', { name: 'Next testimonial' }));
-    expect(scrollToSpy).toHaveBeenCalledWith({
-      left: 0,
-      behavior: 'smooth',
-    });
+    expect(carouselTrack.scrollLeft).toBe(0);
   });
 });

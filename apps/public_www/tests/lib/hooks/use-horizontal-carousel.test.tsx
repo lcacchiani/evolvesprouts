@@ -156,7 +156,7 @@ describe('useHorizontalCarousel', () => {
     render(<HookHarness itemCount={5} loop />);
 
     const track = screen.getByTestId('track');
-    const { scrollToSpy, setScrollLeft } = defineTrackMetrics(track, {
+    const { setScrollLeft } = defineTrackMetrics(track, {
       clientWidth: 400,
       scrollWidth: 1000,
       initialScrollLeft: 0,
@@ -168,18 +168,12 @@ describe('useHorizontalCarousel', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Scroll previous' }));
-    expect(scrollToSpy).toHaveBeenCalledWith({
-      left: 600,
-      behavior: 'smooth',
-    });
+    expect(track.scrollLeft).toBe(600);
 
     setScrollLeft(600);
     fireEvent.scroll(track);
     fireEvent.click(screen.getByRole('button', { name: 'Scroll next' }));
-    expect(scrollToSpy).toHaveBeenCalledWith({
-      left: 0,
-      behavior: 'smooth',
-    });
+    expect(track.scrollLeft).toBe(0);
   });
 
   it('auto-loops on scroll settle when loop is enabled and user swipes to boundary', () => {
@@ -188,7 +182,7 @@ describe('useHorizontalCarousel', () => {
       render(<HookHarness itemCount={5} loop />);
 
       const track = screen.getByTestId('track');
-      const { scrollToSpy, setScrollLeft } = defineTrackMetrics(track, {
+      const { setScrollLeft } = defineTrackMetrics(track, {
         clientWidth: 400,
         scrollWidth: 1000,
         initialScrollLeft: 0,
@@ -204,10 +198,7 @@ describe('useHorizontalCarousel', () => {
       fireEvent.scroll(track);
 
       vi.advanceTimersByTime(500);
-      expect(scrollToSpy).toHaveBeenCalledWith({
-        left: 0,
-        behavior: 'smooth',
-      });
+      expect(track.scrollLeft).toBe(0);
     } finally {
       vi.useRealTimers();
     }
@@ -219,7 +210,7 @@ describe('useHorizontalCarousel', () => {
       render(<HookHarness itemCount={5} loop />);
 
       const track = screen.getByTestId('track');
-      const { scrollToSpy } = defineTrackMetrics(track, {
+      defineTrackMetrics(track, {
         clientWidth: 400,
         scrollWidth: 1000,
         initialScrollLeft: 0,
@@ -227,7 +218,7 @@ describe('useHorizontalCarousel', () => {
 
       vi.advanceTimersByTime(2000);
 
-      expect(scrollToSpy).not.toHaveBeenCalled();
+      expect(track.scrollLeft).toBe(0);
     } finally {
       vi.useRealTimers();
     }
