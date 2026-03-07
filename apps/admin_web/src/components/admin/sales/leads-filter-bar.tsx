@@ -17,7 +17,6 @@ export interface LeadsFilterBarProps {
     key: TKey,
     value: LeadListFilters[TKey]
   ) => void;
-  onClearFilters: () => void;
 }
 
 function toggleArrayValue<TValue>(current: TValue[], value: TValue): TValue[] {
@@ -28,7 +27,6 @@ export function LeadsFilterBar({
   filters,
   users,
   onFilterChange,
-  onClearFilters,
 }: LeadsFilterBarProps) {
   return (
     <div className='space-y-3 rounded-md border border-slate-200 bg-white p-3'>
@@ -118,23 +116,14 @@ export function LeadsFilterBar({
           placeholder='Search by name or email'
           aria-label='Search leads'
         />
-        <div className='flex items-center gap-3'>
-          <label className='inline-flex items-center gap-2 text-sm text-slate-700'>
-            <input
-              type='checkbox'
-              checked={filters.unassigned}
-              onChange={(event) => onFilterChange('unassigned', event.target.checked)}
-            />
-            Unassigned only
-          </label>
-          <button
-            type='button'
-            className='text-sm font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 hover:text-slate-900'
-            onClick={onClearFilters}
-          >
-            Clear all
-          </button>
-        </div>
+        <label className='inline-flex items-center gap-2 text-sm text-slate-700'>
+          <input
+            type='checkbox'
+            checked={filters.unassigned}
+            onChange={(event) => onFilterChange('unassigned', event.target.checked)}
+          />
+          Unassigned only
+        </label>
       </div>
     </div>
   );

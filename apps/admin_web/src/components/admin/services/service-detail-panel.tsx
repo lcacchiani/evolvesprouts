@@ -27,35 +27,28 @@ import { TrainingFormFields, type TrainingFormState } from './training-form-fiel
 type ApiSchemas = components['schemas'];
 
 export interface ServiceDetailPanelProps {
-  mode: 'create' | 'edit';
   service: ServiceDetail | null;
   isLoading: boolean;
   error: string;
-  onStartCreate: () => void;
-  onCancelCreate: () => void;
+  onCancelSelection: () => void;
   onCreate: (payload: ApiSchemas['CreateServiceRequest']) => Promise<void> | void;
   onUpdate: (payload: ApiSchemas['PartialUpdateServiceRequest']) => Promise<void> | void;
-  onDelete: () => Promise<void> | void;
   onUploadCover: (fileName: string, contentType: string) => Promise<void> | void;
 }
 
 export function ServiceDetailPanel({
-  mode,
   service,
   isLoading,
   error,
-  onStartCreate,
-  onCancelCreate,
+  onCancelSelection,
   onCreate,
   onUpdate,
-  onDelete,
   onUploadCover,
 }: ServiceDetailPanelProps) {
-  const [serviceType, setServiceType] = useState<ServiceType>(
-    mode === 'edit' && service ? service.serviceType : 'training_course'
-  );
+  const isEditMode = Boolean(service);
+  const [serviceType, setServiceType] = useState<ServiceType>(service?.serviceType ?? 'training_course');
   const [serviceForm, setServiceForm] = useState<ServiceFormState>(
-    mode === 'edit' && service
+    service
       ? {
           title: service.title,
           description: service.description ?? '',
@@ -65,7 +58,7 @@ export function ServiceDetailPanel({
       : DEFAULT_SERVICE_FORM
   );
   const [trainingForm, setTrainingForm] = useState<TrainingFormState>(
-    mode === 'edit' && service
+    service
       ? {
           pricingUnit: service.trainingDetails?.pricingUnit ?? 'per_person',
           defaultPrice: service.trainingDetails?.defaultPrice ?? '',
@@ -74,14 +67,14 @@ export function ServiceDetailPanel({
       : DEFAULT_TRAINING_FORM
   );
   const [eventForm, setEventForm] = useState<EventFormState>(
-    mode === 'edit' && service
+    service
       ? {
           eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
         }
       : DEFAULT_EVENT_FORM
   );
   const [consultationForm, setConsultationForm] = useState<ConsultationFormState>(
-    mode === 'edit' && service
+    service
       ? {
           consultationFormat: service.consultationDetails?.consultationFormat ?? 'one_on_one',
           maxGroupSize: service.consultationDetails?.maxGroupSize?.toString() ?? '',
@@ -140,125 +133,113 @@ export function ServiceDetailPanel({
 
   return (
     <Card
-      title={mode === 'create' ? 'Create service' : 'Service detail'}
+      title='Services section'
       description={
-        mode === 'create'
-          ? 'Create a new service inline above the services list.'
-          : 'Edit the selected service inline above the services list.'
+        isEditMode
+          ? 'Update Service for the selected row, or cancel to return to add mode.'
+          : 'Add Service using the form below.'
       }
       className='space-y-4'
     >
-      <div className='flex justify-end gap-2'>
-        {mode === 'create' ? (
-          <Button type='button' variant='secondary' onClick={onCancelCreate} disabled={isLoading}>
-            Cancel
+      {!isEditMode ? (
+        <div>
+          <Label htmlFor='service-type'>Service type</Label>
+          <Select
+            id='service-type'
+            value={serviceType}
+            onChange={(event) => setServiceType(event.target.value as ServiceType)}
+          >
+            {SERVICE_TYPES.map((entry) => (
+              <option key={entry} value={entry}>
+                {formatEnumLabel(entry)}
+              </option>
+            ))}
+          </Select>
+        </div>
+      ) : null}
+
+      <ServiceFormFields value={serviceForm} onChange={setServiceForm} />
+
+      {serviceType === 'training_course' ? (
+        <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
+      ) : null}
+      {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}
+      {serviceType === 'consultation' ? (
+        <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
+      ) : null}
+
+      {isEditMode ? (
+        <div>
+          <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
+          <Input
+            id='service-detail-cover-file-name'
+            value={coverFileName}
+            onChange={(event) => setCoverFileName(event.target.value)}
+          />
+        </div>
+      ) : null}
+
+      {error ? <p className='text-sm text-red-600'>{error}</p> : null}
+
+      <div className='flex flex-wrap justify-start gap-2'>
+        {isEditMode ? (
+          <Button
+            type='button'
+            disabled={isLoading || !service}
+            onClick={() => {
+              if (!service) {
+                return;
+              }
+              void onUpdate({
+                title: serviceForm.title.trim(),
+                description: serviceForm.description.trim() || null,
+                delivery_mode: serviceForm.deliveryMode,
+                status: serviceForm.status,
+                ...buildTypeSpecificPayload(service.serviceType),
+              });
+            }}
+          >
+            {isLoading ? 'Updating...' : 'Update Service'}
           </Button>
         ) : (
-          <Button type='button' onClick={onStartCreate}>
-            New service
+          <Button
+            type='button'
+            disabled={isLoading || !serviceForm.title.trim()}
+            onClick={() =>
+              void onCreate({
+                service_type: serviceType,
+                title: serviceForm.title.trim(),
+                description: serviceForm.description.trim() || null,
+                delivery_mode: serviceForm.deliveryMode,
+                status: serviceForm.status,
+                ...buildTypeSpecificPayload(serviceType),
+              })
+            }
+          >
+            {isLoading ? 'Adding...' : 'Add Service'}
           </Button>
         )}
+        {isEditMode ? (
+          <>
+            <Button
+              type='button'
+              variant='secondary'
+              onClick={onCancelSelection}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type='button'
+              variant='outline'
+              disabled={isLoading || !coverFileName.trim() || !service}
+              onClick={() => void onUploadCover(coverFileName.trim(), 'image/jpeg')}
+            >
+              Generate cover upload URL
+            </Button>
+          </>
+        ) : null}
       </div>
-
-      {mode === 'edit' && !service ? (
-        <p className='text-sm text-slate-500'>Select a service to view details, or create a new one.</p>
-      ) : (
-        <>
-          {mode === 'create' ? (
-            <div>
-              <Label htmlFor='service-type'>Service type</Label>
-              <Select
-                id='service-type'
-                value={serviceType}
-                onChange={(event) => setServiceType(event.target.value as ServiceType)}
-              >
-                {SERVICE_TYPES.map((entry) => (
-                  <option key={entry} value={entry}>
-                    {formatEnumLabel(entry)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          ) : null}
-
-          <ServiceFormFields value={serviceForm} onChange={setServiceForm} />
-
-          {serviceType === 'training_course' ? (
-            <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
-          ) : null}
-          {serviceType === 'event' ? <EventFormFields value={eventForm} onChange={setEventForm} /> : null}
-          {serviceType === 'consultation' ? (
-            <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
-          ) : null}
-
-          {mode === 'edit' ? (
-            <div>
-              <Label htmlFor='service-detail-cover-file-name'>Cover image file name</Label>
-              <Input
-                id='service-detail-cover-file-name'
-                value={coverFileName}
-                onChange={(event) => setCoverFileName(event.target.value)}
-              />
-            </div>
-          ) : null}
-
-          {error ? <p className='text-sm text-red-600'>{error}</p> : null}
-
-          <div className='flex flex-wrap justify-end gap-2'>
-            {mode === 'create' ? (
-              <Button
-                type='button'
-                disabled={isLoading || !serviceForm.title.trim()}
-                onClick={() =>
-                  void onCreate({
-                    service_type: serviceType,
-                    title: serviceForm.title.trim(),
-                    description: serviceForm.description.trim() || null,
-                    delivery_mode: serviceForm.deliveryMode,
-                    status: serviceForm.status,
-                    ...buildTypeSpecificPayload(serviceType),
-                  })
-                }
-              >
-                {isLoading ? 'Creating...' : 'Create service'}
-              </Button>
-            ) : (
-              <>
-                <Button
-                  type='button'
-                  variant='secondary'
-                  disabled={isLoading || !service}
-                  onClick={() => {
-                    if (!service) {
-                      return;
-                    }
-                    void onUpdate({
-                      title: serviceForm.title.trim(),
-                      description: serviceForm.description.trim() || null,
-                      delivery_mode: serviceForm.deliveryMode,
-                      status: serviceForm.status,
-                      ...buildTypeSpecificPayload(service.serviceType),
-                    });
-                  }}
-                >
-                  Save
-                </Button>
-                <Button
-                  type='button'
-                  variant='outline'
-                  disabled={isLoading || !coverFileName.trim() || !service}
-                  onClick={() => void onUploadCover(coverFileName.trim(), 'image/jpeg')}
-                >
-                  Generate cover upload URL
-                </Button>
-                <Button type='button' variant='danger' disabled={isLoading || !service} onClick={() => void onDelete()}>
-                  Delete service
-                </Button>
-              </>
-            )}
-          </div>
-        </>
-      )}
     </Card>
   );
 }

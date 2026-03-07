@@ -37,7 +37,6 @@ function renderComponent(overrides: Partial<ComponentProps<typeof LeadsTable>> =
   const onLoadMore = vi.fn().mockResolvedValue(undefined);
   const onSelectLead = vi.fn();
   const onFilterChange = vi.fn();
-  const onClearFilters = vi.fn();
   const onBulkAssign = vi.fn().mockResolvedValue(undefined);
   const onBulkStageChange = vi.fn().mockResolvedValue(undefined);
 
@@ -66,7 +65,6 @@ function renderComponent(overrides: Partial<ComponentProps<typeof LeadsTable>> =
       onLoadMore={onLoadMore}
       onSelectLead={onSelectLead}
       onFilterChange={onFilterChange}
-      onClearFilters={onClearFilters}
       onBulkAssign={onBulkAssign}
       onBulkStageChange={onBulkStageChange}
       {...overrides}

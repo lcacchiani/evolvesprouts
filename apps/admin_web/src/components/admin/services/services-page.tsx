@@ -32,45 +32,25 @@ export function ServicesPage() {
         </StatusBanner>
       ) : null}
 
-      <ServicesHeader
-        activeView={state.activeView}
-        onSetView={state.setActiveView}
-        onRefresh={async () => {
-          await state.serviceList.refetch();
-          await state.serviceDetail.refetch();
-          await state.instanceList.refetch();
-          await state.enrollmentList.refetch();
-          await state.discountCodes.refetch();
-        }}
-        onNewService={state.startCreateService}
-      />
+      <ServicesHeader activeView={state.activeView} onSetView={state.setActiveView} />
 
       {state.activeView === 'catalog' ? (
         <>
           <ServiceDetailPanel
-            key={`${state.isCreateServiceDialogOpen ? 'create' : 'edit'}-${state.selectedServiceId ?? 'none'}`}
-            mode={state.isCreateServiceDialogOpen ? 'create' : 'edit'}
+            key={state.selectedServiceId ?? 'create-service'}
             service={state.serviceDetail.service}
             isLoading={state.serviceMutations.isLoading}
             error={state.serviceMutations.error}
-            onStartCreate={state.startCreateService}
-            onCancelCreate={state.cancelCreateService}
+            onCancelSelection={() => state.setSelectedServiceId(null)}
             onCreate={async (payload) => {
               await state.serviceMutations.createServiceEntry(payload);
-              state.cancelCreateService();
+              state.setSelectedServiceId(null);
             }}
             onUpdate={async (payload) => {
               if (!state.selectedServiceId) {
                 return;
               }
               await state.serviceMutations.updateServiceEntry(state.selectedServiceId, payload, true);
-            }}
-            onDelete={async () => {
-              if (!state.selectedServiceId) {
-                return;
-              }
-              await state.serviceMutations.deleteServiceEntry(state.selectedServiceId);
-              state.setSelectedServiceId(null);
             }}
             onUploadCover={async (fileName, contentType) => {
               if (!state.selectedServiceId) {
@@ -86,44 +66,40 @@ export function ServicesPage() {
             services={state.serviceList.services}
             selectedServiceId={state.selectedServiceId}
             filters={state.serviceList.filters}
-            totalCount={state.serviceList.totalCount}
             isLoading={state.serviceList.isLoading}
             isLoadingMore={state.serviceList.isLoadingMore}
             hasMore={state.serviceList.hasMore}
             error={state.serviceList.error}
+            isMutating={state.serviceMutations.isLoading}
             onSelectService={state.setSelectedServiceId}
             onFilterChange={state.serviceList.setFilter}
-            onClearFilters={state.serviceList.clearFilters}
             onLoadMore={state.serviceList.loadMore}
+            onDeleteService={async (serviceId) => {
+              if (state.selectedServiceId === serviceId) {
+                state.setSelectedServiceId(null);
+              }
+              await state.serviceMutations.deleteServiceEntry(serviceId);
+            }}
           />
           <InstanceDetailPanel
-            key={`${state.isCreateInstanceDialogOpen ? 'create' : 'edit'}-${state.selectedInstanceId ?? 'none'}-${state.selectedService?.serviceType ?? 'none'}`}
-            mode={state.isCreateInstanceDialogOpen ? 'create' : 'edit'}
+            key={`${state.selectedInstanceId ?? 'create-instance'}-${state.selectedService?.serviceType ?? 'none'}`}
             instance={state.selectedInstance}
             serviceType={state.selectedService?.serviceType ?? null}
             isLoading={state.instanceMutations.isLoading}
             error={state.instanceMutations.error}
-            onStartCreate={state.startCreateInstance}
-            onCancelCreate={state.cancelCreateInstance}
+            onCancelSelection={() => state.setSelectedInstanceId(null)}
             onCreate={async (payload) => {
               if (!state.selectedServiceId) {
                 return;
               }
               await state.instanceMutations.createInstanceEntry(state.selectedServiceId, payload);
-              state.cancelCreateInstance();
+              state.setSelectedInstanceId(null);
             }}
             onUpdate={async (instanceId, payload) => {
               if (!state.selectedServiceId) {
                 return;
               }
               await state.instanceMutations.updateInstanceEntry(state.selectedServiceId, instanceId, payload);
-            }}
-            onDelete={async (instanceId) => {
-              if (!state.selectedServiceId) {
-                return;
-              }
-              await state.instanceMutations.deleteInstanceEntry(state.selectedServiceId, instanceId);
-              state.setSelectedInstanceId(null);
             }}
           />
           <InstanceListPanel
@@ -133,9 +109,18 @@ export function ServicesPage() {
             isLoadingMore={state.instanceList.isLoadingMore}
             hasMore={state.instanceList.hasMore}
             error={state.instanceList.error}
+            isMutating={state.instanceMutations.isLoading}
             onSelectInstance={state.setSelectedInstanceId}
             onLoadMore={state.instanceList.loadMore}
-            onOpenCreate={state.startCreateInstance}
+            onDeleteInstance={async (instanceId) => {
+              if (!state.selectedServiceId) {
+                return;
+              }
+              if (state.selectedInstanceId === instanceId) {
+                state.setSelectedInstanceId(null);
+              }
+              await state.instanceMutations.deleteInstanceEntry(state.selectedServiceId, instanceId);
+            }}
           />
           <EnrollmentListPanel
             enrollments={state.enrollmentList.enrollments}
@@ -144,6 +129,7 @@ export function ServicesPage() {
             isLoadingMore={state.enrollmentList.isLoadingMore}
             hasMore={state.enrollmentList.hasMore}
             error={state.enrollmentList.error}
+            isMutating={state.enrollmentMutations.isLoading}
             onLoadMore={state.enrollmentList.loadMore}
             onCreate={async (payload) => {
               if (!state.selectedServiceId || !state.selectedInstanceId) {

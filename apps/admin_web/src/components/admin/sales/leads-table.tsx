@@ -28,7 +28,6 @@ export interface LeadsTableProps {
     key: TKey,
     value: LeadListFilters[TKey]
   ) => void;
-  onClearFilters: () => void;
   onBulkAssign: (leadIds: string[], assignedTo: string | null) => Promise<void> | void;
   onBulkStageChange: (
     leadIds: string[],
@@ -50,7 +49,6 @@ export function LeadsTable({
   onLoadMore,
   onSelectLead,
   onFilterChange,
-  onClearFilters,
   onBulkAssign,
   onBulkStageChange,
 }: LeadsTableProps) {
@@ -69,7 +67,6 @@ export function LeadsTable({
         filters={filters}
         users={users}
         onFilterChange={onFilterChange}
-        onClearFilters={onClearFilters}
       />
       <LeadsBulkActions
         selectedCount={selectedIds.length}

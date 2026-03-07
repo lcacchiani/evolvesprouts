@@ -15,30 +15,15 @@ export type ServicesView = 'catalog' | 'discount-codes';
 
 export function useServicesPage() {
   const [activeView, setActiveView] = useState<ServicesView>('catalog');
-  const [selectedServiceIdState, setSelectedServiceIdState] = useState<string | null | undefined>(
-    undefined
-  );
+  const [selectedServiceIdState, setSelectedServiceIdState] = useState<string | null>(null);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
-  const [isCreateServiceDialogOpen, setIsCreateServiceDialogOpen] = useState(false);
-  const [isCreateInstanceDialogOpen, setIsCreateInstanceDialogOpen] = useState(false);
 
   const serviceList = useServiceList();
-
-  const selectedServiceId = useMemo(() => {
-    if (isCreateServiceDialogOpen) {
-      return null;
-    }
-    if (selectedServiceIdState !== undefined) {
-      return selectedServiceIdState;
-    }
-    return serviceList.services[0]?.id ?? null;
-  }, [isCreateServiceDialogOpen, selectedServiceIdState, serviceList.services]);
+  const selectedServiceId = selectedServiceIdState;
 
   const setSelectedServiceId = useCallback((serviceId: string | null) => {
     setSelectedServiceIdState(serviceId);
     setSelectedInstanceId(null);
-    setIsCreateServiceDialogOpen(false);
-    setIsCreateInstanceDialogOpen(false);
   }, []);
 
   const serviceDetail = useServiceDetail(selectedServiceId);
@@ -50,7 +35,7 @@ export function useServicesPage() {
     onSuccess: async (serviceId) => {
       await serviceList.refetch();
       if (serviceId) {
-        setSelectedServiceIdState(serviceId);
+        setSelectedServiceIdState((current) => (current ? serviceId : current));
       }
       await serviceDetail.refetch();
       await instanceList.refetch();
@@ -61,7 +46,7 @@ export function useServicesPage() {
     onSuccess: async (instanceId) => {
       await instanceList.refetch();
       if (instanceId) {
-        setSelectedInstanceId(instanceId);
+        setSelectedInstanceId((current) => (current ? instanceId : current));
       }
       await enrollmentList.refetch();
     },
@@ -84,27 +69,6 @@ export function useServicesPage() {
 
   const setSelectedInstanceIdWithMode = useCallback((instanceId: string | null) => {
     setSelectedInstanceId(instanceId);
-    setIsCreateInstanceDialogOpen(false);
-  }, []);
-
-  const startCreateService = useCallback(() => {
-    setSelectedServiceIdState(null);
-    setSelectedInstanceId(null);
-    setIsCreateServiceDialogOpen(true);
-    setIsCreateInstanceDialogOpen(false);
-  }, []);
-
-  const cancelCreateService = useCallback(() => {
-    setIsCreateServiceDialogOpen(false);
-  }, []);
-
-  const startCreateInstance = useCallback(() => {
-    setSelectedInstanceId(null);
-    setIsCreateInstanceDialogOpen(true);
-  }, []);
-
-  const cancelCreateInstance = useCallback(() => {
-    setIsCreateInstanceDialogOpen(false);
   }, []);
 
   return {
@@ -124,11 +88,5 @@ export function useServicesPage() {
     enrollmentList,
     enrollmentMutations,
     discountCodes,
-    isCreateServiceDialogOpen,
-    startCreateService,
-    cancelCreateService,
-    isCreateInstanceDialogOpen,
-    startCreateInstance,
-    cancelCreateInstance,
   };
 }
