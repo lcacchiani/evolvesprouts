@@ -99,7 +99,7 @@ describe('Testimonials section', () => {
     expect(rightColumnClassName).not.toContain('lg:pt-12');
   });
 
-  it('uses snap track navigation with desktop loop controls', async () => {
+  it('uses snap track navigation with desktop controls and stops at boundaries', async () => {
     const { container } = render(<Testimonials content={enContent.testimonials} />);
 
     const carouselTrack = screen.getByTestId('testimonials-carousel-track');
@@ -132,6 +132,6 @@ describe('Testimonials section', () => {
     setScrollLeft(800);
     fireEvent.scroll(carouselTrack);
     fireEvent.click(screen.getByRole('button', { name: 'Next testimonial' }));
-    expect(carouselTrack.scrollLeft).toBe(0);
+    expect(carouselTrack.scrollLeft).toBe(800);
   });
 });

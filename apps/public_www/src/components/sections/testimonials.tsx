@@ -140,7 +140,6 @@ export function Testimonials({ content }: TestimonialsProps) {
     scrollByDirection,
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: storiesToRender.length,
-    loop: true,
   });
   const badgeLabel = content.badgeLabel.trim() || content.title;
   const descriptionText = content.description.trim();
@@ -177,7 +176,7 @@ export function Testimonials({ content }: TestimonialsProps) {
             {storiesToRender.map((story, index) => (
               <article
                 key={`${story.author ?? 'story'}-${index}`}
-                className='flex min-w-full max-w-full shrink-0 snap-center'
+                className='flex w-[93%] shrink-0 snap-center lg:w-full'
               >
                 <div
                   className={buildSectionSplitLayoutClassName(

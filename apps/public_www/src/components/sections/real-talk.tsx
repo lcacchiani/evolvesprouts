@@ -64,7 +64,6 @@ export function RealTalk({ content }: RealTalkProps) {
     carouselRef,
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: realTalkCards.length,
-    loop: true,
   });
 
   return (

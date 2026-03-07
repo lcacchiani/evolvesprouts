@@ -130,7 +130,6 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
     carouselRef,
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: benefitCards.length,
-    loop: true,
   });
 
   return (
