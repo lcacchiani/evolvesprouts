@@ -176,7 +176,7 @@ export function Testimonials({ content }: TestimonialsProps) {
             {storiesToRender.map((story, index) => (
               <article
                 key={`${story.author ?? 'story'}-${index}`}
-                className='flex w-[93%] shrink-0 snap-center lg:w-full'
+                className='flex min-w-full max-w-full shrink-0 snap-center'
               >
                 <div
                   className={buildSectionSplitLayoutClassName(
