@@ -128,7 +128,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
   const benefitCards = getBenefitCards(content);
   const {
     carouselRef,
-  } = useHorizontalCarousel<HTMLUListElement>({
+  } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: benefitCards.length,
     loop: true,
   });
