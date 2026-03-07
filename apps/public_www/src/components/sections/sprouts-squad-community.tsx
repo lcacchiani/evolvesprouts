@@ -159,6 +159,9 @@ export function SproutsSquadCommunity({
             <p className='max-w-[500px] es-sprouts-community-support-paragraph'>
               {content.supportParagraph}
             </p>
+            <p className='max-w-[500px] es-sprouts-community-support-paragraph'>
+              {content.supportSignature}
+            </p>
           </div>
           <div className='es-intro-community-layout-cta'>
             <div className='w-full max-w-[500px] lg:max-w-[410px]'>
