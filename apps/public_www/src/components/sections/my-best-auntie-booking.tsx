@@ -344,7 +344,7 @@ export function MyBestAuntieBooking({
                               className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
                               aria-hidden='true'
                             />
-                            <p className='text-base font-semibold es-text-heading'>
+                            <p className='text-base font-semibold es-text-heading whitespace-nowrap'>
                               {option.label}
                             </p>
                           </div>
