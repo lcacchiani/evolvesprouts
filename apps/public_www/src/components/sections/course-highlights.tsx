@@ -150,7 +150,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
           title={sectionTitle}
         />
 
-        <div className='relative'>
+        <div className='relative mt-12 sm:mt-14 xl:mt-16'>
           <CarouselTrack
             carouselRef={carouselRef}
             testId='course-highlights-mobile-carousel'
@@ -184,7 +184,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
         </div>
 
         {sectionDescription && (
-          <div className='mt-9 text-center sm:mt-11 lg:mt-12'>
+          <div className='text-center'>
             <p className='es-type-body-italic mx-auto max-w-[780px] text-balance'>
               {sectionDescription}
             </p>
