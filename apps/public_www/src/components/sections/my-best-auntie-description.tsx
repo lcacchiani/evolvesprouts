@@ -142,7 +142,7 @@ export function MyBestAuntieDescription({
             {cards.map((item, index) => (
               <li
                 key={`${item.title}-${index}`}
-                className='w-[calc(88%-20px)] shrink-0 snap-center sm:w-[48%] lg:w-[32%]'
+                className='w-[calc(88%-20px)] shrink-0 snap-center sm:w-[48%] md:w-[calc((100%-3rem)/3)] md:snap-start'
               >
                 <article
                   className='flex h-full min-h-[450px] flex-col rounded-card-xl p-6 sm:p-8 es-my-best-auntie-description-card'

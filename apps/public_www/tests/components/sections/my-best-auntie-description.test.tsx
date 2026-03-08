@@ -38,6 +38,23 @@ describe('MyBestAuntieDescription section', () => {
     expect(controls.className).toContain('md:flex');
   });
 
+  it('uses fixed 3-up desktop card sizing with start snap', () => {
+    render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
+
+    const firstCardTitle = enContent.myBestAuntieDescription.items[0]?.title;
+    expect(firstCardTitle).toBeDefined();
+
+    const firstCardHeading = screen.getByRole('heading', {
+      level: 3,
+      name: firstCardTitle,
+    });
+    const firstCardListItem = firstCardHeading.closest('li');
+
+    expect(firstCardListItem).not.toBeNull();
+    expect(firstCardListItem?.className).toContain('md:w-[calc((100%-3rem)/3)]');
+    expect(firstCardListItem?.className).toContain('md:snap-start');
+  });
+
   it('renders highlight cards without box shadow', () => {
     render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
 
