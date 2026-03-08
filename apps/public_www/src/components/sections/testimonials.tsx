@@ -2,7 +2,11 @@
 
 import Image from 'next/image';
 import {
+  useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -19,7 +23,6 @@ import {
   toRecord,
 } from '@/content/content-field-utils';
 import type { TestimonialsContent } from '@/content';
-import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface TestimonialsProps {
   content: TestimonialsContent;
@@ -32,8 +35,8 @@ interface NormalizedStory {
   mainImageSrc?: string;
 }
 
-const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME =
-  'es-btn--control';
+const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME = 'es-btn--control';
+const CLONE_SETTLE_DELAY_MS = 120;
 
 function normalizeStory(item: unknown): NormalizedStory | null {
   if (typeof item === 'string') {
@@ -128,23 +131,240 @@ function ParentIcon() {
   );
 }
 
+function wrapIndex(index: number, length: number): number {
+  return ((index % length) + length) % length;
+}
+
+function getSlideItemWidth(carousel: HTMLElement): number {
+  const firstChild = carousel.firstElementChild;
+  if (!firstChild) {
+    return carousel.clientWidth;
+  }
+  const gap = parseFloat(getComputedStyle(carousel).columnGap || '0');
+  return firstChild.clientWidth + gap;
+}
+
+function getActiveDomIndex(carousel: HTMLElement): number {
+  const itemWidth = getSlideItemWidth(carousel);
+  if (itemWidth <= 0) {
+    return 0;
+  }
+  return Math.round(carousel.scrollLeft / itemWidth);
+}
+
+function TestimonialSlide({
+  story,
+  fallbackQuote,
+  isClone,
+}: {
+  story: NormalizedStory;
+  fallbackQuote: string;
+  isClone?: boolean;
+}) {
+  return (
+    <article
+      className='flex min-w-full max-w-full shrink-0 snap-center'
+      aria-hidden={isClone || undefined}
+    >
+      <div
+        className={buildSectionSplitLayoutClassName(
+          'es-section-split-layout--testimonials',
+        )}
+      >
+        <div className='relative mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-card-lg es-bg-surface-peach lg:mx-0 lg:mt-[70px]'>
+          {story.mainImageSrc ? (
+            <Image
+              src={story.mainImageSrc}
+              alt={isClone ? '' : `${story.author ?? 'Parent'} testimonial image`}
+              fill
+              sizes='200px'
+              className='rounded-card-lg object-cover'
+            />
+          ) : (
+            <div className='flex h-full w-full items-center justify-center rounded-card-lg es-testimonials-image-fallback'>
+              <ParentIcon />
+            </div>
+          )}
+        </div>
+
+        <div className='flex flex-col px-6 sm:px-9 lg:px-12'>
+          <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
+            <span
+              aria-hidden='true'
+              className='es-testimonial-quote-icon h-9 w-9 sm:h-11 sm:w-11'
+            />
+            <p className='w-full text-balance es-testimonials-quote'>
+              {story.quote ?? fallbackQuote}
+            </p>
+          </div>
+
+          {(story.author || story.service) && (
+            <div className='relative mt-6 sm:mt-8'>
+              <div className='min-w-0'>
+                {story.author && (
+                  <p className='es-testimonials-author'>{story.author}</p>
+                )}
+                {story.service && (
+                  <p
+                    className={`max-w-[190px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
+                  >
+                    {story.service}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function AuthorStrip({
+  stories,
+  activeIndex,
+}: {
+  stories: NormalizedStory[];
+  activeIndex: number;
+}) {
+  const count = stories.length;
+  const prevIndex = wrapIndex(activeIndex - 1, count);
+  const nextIndex = wrapIndex(activeIndex + 1, count);
+
+  const prevLabel = stories[prevIndex]?.author ?? '';
+  const currentAuthor = stories[activeIndex]?.author ?? '';
+  const currentService = stories[activeIndex]?.service ?? '';
+  const nextLabel = stories[nextIndex]?.author ?? '';
+
+  return (
+    <div
+      data-testid='testimonials-author-strip'
+      className='mt-6 flex items-center justify-between gap-2 px-4 sm:px-6'
+      aria-hidden='true'
+    >
+      <span className='min-w-0 flex-1 truncate text-left text-xs opacity-40 es-text-heading sm:text-sm'>
+        {prevLabel}
+      </span>
+
+      <div className='flex min-w-0 shrink-0 flex-col items-center text-center'>
+        <span className='truncate text-sm font-semibold es-text-heading sm:text-base'>
+          {currentAuthor}
+        </span>
+        {currentService && (
+          <span className='truncate text-xs es-text-neutral-strong sm:text-sm'>
+            {currentService}
+          </span>
+        )}
+      </div>
+
+      <span className='min-w-0 flex-1 truncate text-right text-xs opacity-40 es-text-heading sm:text-sm'>
+        {nextLabel}
+      </span>
+    </div>
+  );
+}
+
 export function Testimonials({ content }: TestimonialsProps) {
   const stories = useMemo(() => normalizeStories(content.items), [content.items]);
   const storiesToRender =
     stories.length > 0
       ? stories
       : [{ quote: content.title } satisfies NormalizedStory];
-  const {
-    carouselRef,
-    hasNavigation: hasMultipleStories,
-    scrollByDirection,
-  } = useHorizontalCarousel<HTMLDivElement>({
-    itemCount: storiesToRender.length,
-  });
+
+  const hasMultipleStories = storiesToRender.length > 1;
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isRepositioningRef = useRef(false);
+  const [activeRealIndex, setActiveRealIndex] = useState(0);
+
+  const realCount = storiesToRender.length;
+
   const badgeLabel = content.badgeLabel.trim() || content.title;
   const descriptionText = content.description.trim();
   const previousButtonLabel = content.previousButtonLabel.trim();
   const nextButtonLabel = content.nextButtonLabel.trim();
+
+  const teleportToDomIndex = useCallback((carousel: HTMLElement, domIndex: number) => {
+    const itemWidth = getSlideItemWidth(carousel);
+    isRepositioningRef.current = true;
+    carousel.style.scrollSnapType = 'none';
+    carousel.scrollLeft = domIndex * itemWidth;
+    void carousel.offsetHeight;
+    carousel.style.scrollSnapType = '';
+    requestAnimationFrame(() => {
+      isRepositioningRef.current = false;
+    });
+  }, []);
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel || !hasMultipleStories) {
+      return;
+    }
+
+    teleportToDomIndex(carousel, 1);
+  }, [hasMultipleStories, teleportToDomIndex]);
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel || !hasMultipleStories) {
+      return;
+    }
+
+    function handleScroll() {
+      const el = carouselRef.current;
+      if (!el || isRepositioningRef.current) {
+        return;
+      }
+
+      const domIndex = getActiveDomIndex(el);
+      const realIndex = domIndex - 1;
+      setActiveRealIndex(wrapIndex(realIndex, realCount));
+
+      if (settleTimerRef.current !== null) {
+        clearTimeout(settleTimerRef.current);
+      }
+
+      settleTimerRef.current = setTimeout(() => {
+        settleTimerRef.current = null;
+        const current = carouselRef.current;
+        if (!current || isRepositioningRef.current) {
+          return;
+        }
+
+        const settledDomIndex = getActiveDomIndex(current);
+
+        if (settledDomIndex === 0) {
+          teleportToDomIndex(current, realCount);
+          setActiveRealIndex(realCount - 1);
+        } else if (settledDomIndex === realCount + 1) {
+          teleportToDomIndex(current, 1);
+          setActiveRealIndex(0);
+        }
+      }, CLONE_SETTLE_DELAY_MS);
+    }
+
+    carousel.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      carousel.removeEventListener('scroll', handleScroll);
+      if (settleTimerRef.current !== null) {
+        clearTimeout(settleTimerRef.current);
+        settleTimerRef.current = null;
+      }
+    };
+  }, [hasMultipleStories, realCount, teleportToDomIndex]);
+
+  function scrollByOne(direction: 'prev' | 'next') {
+    const carousel = carouselRef.current;
+    if (!carousel) {
+      return;
+    }
+
+    const itemWidth = getSlideItemWidth(carousel);
+    const offset = direction === 'prev' ? -itemWidth : itemWidth;
+    carousel.scrollBy({ left: offset, behavior: 'smooth' });
+  }
 
   return (
     <SectionShell
@@ -173,74 +393,44 @@ export function Testimonials({ content }: TestimonialsProps) {
             className='flex gap-4 pb-2'
             aria-live='polite'
           >
+            {hasMultipleStories && (
+              <TestimonialSlide
+                key='clone-last'
+                story={storiesToRender[realCount - 1]}
+                fallbackQuote={content.title}
+                isClone
+              />
+            )}
+
             {storiesToRender.map((story, index) => (
-              <article
+              <TestimonialSlide
                 key={`${story.author ?? 'story'}-${index}`}
-                className='flex min-w-full max-w-full shrink-0 snap-center'
-              >
-                <div
-                  className={buildSectionSplitLayoutClassName(
-                    'es-section-split-layout--testimonials',
-                  )}
-                >
-                  <div className='relative mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-card-lg es-bg-surface-peach lg:mx-0 lg:mt-[70px]'>
-                    {story.mainImageSrc ? (
-                      <Image
-                        src={story.mainImageSrc}
-                        alt={`${story.author ?? 'Parent'} testimonial image`}
-                        fill
-                        sizes='200px'
-                        className='rounded-card-lg object-cover'
-                      />
-                    ) : (
-                      <div
-                        className='flex h-full w-full items-center justify-center rounded-card-lg es-testimonials-image-fallback'
-                      >
-                        <ParentIcon />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className='flex flex-col px-6 sm:px-9 lg:px-12'>
-                    <div className='flex flex-col items-start gap-4 border-b border-[rgba(31,31,31,0.2)] pb-8 sm:gap-5 lg:pb-[52px]'>
-                      <span
-                        aria-hidden='true'
-                        className='es-testimonial-quote-icon h-9 w-9 sm:h-11 sm:w-11'
-                      />
-                      <p className='w-full text-balance es-testimonials-quote'>
-                        {story.quote ?? content.title}
-                      </p>
-                    </div>
-
-                    {(story.author || story.service) && (
-                      <div className='relative mt-6 sm:mt-8'>
-                        <div className='min-w-0'>
-                          {story.author && (
-                            <p className='es-testimonials-author'>{story.author}</p>
-                          )}
-                          {story.service && (
-                            <p
-                              className={`max-w-[190px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
-                            >
-                              {story.service}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </article>
+                story={story}
+                fallbackQuote={content.title}
+              />
             ))}
+
+            {hasMultipleStories && (
+              <TestimonialSlide
+                key='clone-first'
+                story={storiesToRender[0]}
+                fallbackQuote={content.title}
+                isClone
+              />
+            )}
           </CarouselTrack>
 
           {hasMultipleStories && (
-            <div className='mt-6 hidden justify-end lg:flex'>
+            <AuthorStrip stories={storiesToRender} activeIndex={activeRealIndex} />
+          )}
+
+          {hasMultipleStories && (
+            <div className='mt-4 hidden justify-end lg:flex'>
               <div className='flex items-center gap-[14px]'>
                 <ButtonPrimitive
                   variant='control'
                   onClick={() => {
-                    scrollByDirection('prev');
+                    scrollByOne('prev');
                   }}
                   aria-label={previousButtonLabel}
                   className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
@@ -250,7 +440,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                 <ButtonPrimitive
                   variant='control'
                   onClick={() => {
-                    scrollByDirection('next');
+                    scrollByOne('next');
                   }}
                   aria-label={nextButtonLabel}
                   className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
