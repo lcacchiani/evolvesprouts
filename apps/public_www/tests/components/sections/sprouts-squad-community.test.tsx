@@ -93,14 +93,20 @@ describe('SproutsSquadCommunity section', () => {
     expect(container.querySelector('.es-sprouts-community-overlay')).not.toBeNull();
     const sectionLogo = container.querySelector('img.es-sprouts-community-logo');
     expect(sectionLogo).not.toBeNull();
-    expect(sectionLogo?.className).toContain('invisible');
-    expect(sectionLogo?.className).toContain('sm:visible');
+    expect(sectionLogo?.className).toContain('hidden');
+    expect(sectionLogo?.className).toContain('sm:block');
     expect(
       container.querySelector('img[src="/images/footer-community-bg.webp"]'),
     ).toBeNull();
     expect(
       container.querySelector('.es-section-header')?.className,
     ).toContain('es-section-header--left');
+    expect(
+      container.querySelector('.es-section-header')?.className,
+    ).toContain('mt-[75px]');
+    expect(
+      container.querySelector('.es-section-header')?.className,
+    ).toContain('sm:mt-0');
 
     const heading = screen.getByRole('heading', {
       level: 2,

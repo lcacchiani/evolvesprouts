@@ -148,12 +148,12 @@ export function SproutsSquadCommunity({
               alt=''
               width={250}
               height={250}
-              className='block h-auto w-[250px] es-sprouts-community-logo invisible sm:visible'
+              className='h-auto w-[250px] es-sprouts-community-logo hidden sm:block'
             />
             <SectionHeader
               title={content.heading}
               align='left'
-              className='max-w-[620px]'
+              className='mt-[75px] max-w-[620px] sm:mt-0'
               titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
             />
             <p className='max-w-[500px] es-sprouts-community-support-paragraph'>

@@ -32,12 +32,12 @@ export function FreeIntroSession({ content, ctaHref }: FreeIntroSessionProps) {
               alt=''
               width={250}
               height={250}
-              className='block h-auto w-[250px] es-free-intro-session-logo invisible sm:visible'
+              className='h-auto w-[250px] es-free-intro-session-logo hidden sm:block'
             />
             <SectionHeader
               title={content.heading}
               align='left'
-              className='max-w-[620px]'
+              className='mt-[75px] max-w-[620px] sm:mt-0'
               titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-free-intro-session-heading'
             />
             <p className='max-w-[500px] es-free-intro-session-support-paragraph'>
