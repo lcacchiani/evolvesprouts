@@ -809,7 +809,6 @@ describe('my-best-auntie booking modals footer content', () => {
     );
     expect(partChips).toHaveLength(3);
     const firstPartChip = partChips[0] as HTMLSpanElement | undefined;
-    expect(firstPartChip?.className).toContain('self-start');
     expect(firstPartChip?.className).toContain('px-3');
 
     const firstPartItem = firstPartChip?.closest('li') ?? null;
@@ -821,22 +820,24 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(firstPartIcon?.getAttribute('src')).toBe('/images/home.svg');
 
     const firstPartRow = firstPartChip?.closest('div');
-    expect(firstPartRow?.className).toContain('sm:items-start');
+    expect(firstPartRow?.className).toContain('grid-cols-[auto_minmax(0,1fr)]');
+    expect(firstPartRow?.className).toContain('items-center');
 
     const firstPartDateBlock = firstPartItem?.querySelector(
       'div[data-course-part-date-block="true"]',
     ) as HTMLDivElement | null;
     expect(firstPartDateBlock).not.toBeNull();
-    expect(firstPartDateBlock?.className).not.toContain('flex');
+    expect(firstPartDateBlock?.className).toContain('flex');
+    expect(firstPartDateBlock?.className).toContain('items-center');
 
     const firstPartDateIcon = firstPartDateBlock?.querySelector(
       'span[data-course-part-date-icon="true"]',
     ) as HTMLSpanElement | null;
     expect(firstPartDateIcon?.className).toContain('h-6');
-    expect(firstPartDateIcon?.className).toContain('inline-block');
+    expect(firstPartDateIcon?.className).toContain('shrink-0');
 
     const firstPartDateText = firstPartDateBlock?.querySelector('p');
-    expect(firstPartDateText?.className).toContain('mt-1');
+    expect(firstPartDateText?.className).toContain('min-w-0');
 
     const firstConnector = firstPartChip?.querySelector(
       'span[data-course-part-line="gap-connector"]',

@@ -109,10 +109,10 @@ export function BookingEventDetails({
                     )}`}
                   />
                 </span>
-                <div className='relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
+                <div className='relative z-10 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 sm:gap-x-4'>
                   <span
                     data-course-part-chip='true'
-                    className={`relative inline-flex self-start items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
+                    className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
                   >
                     <span
                       data-course-part-line='gap-connector'
@@ -130,21 +130,20 @@ export function BookingEventDetails({
                     />
                   </span>
 
-                  <div className='max-w-[340px]'>
-                    <div data-course-part-date-block='true'>
+                  <div data-course-part-date-block='true' className='flex min-w-0 items-center gap-2'>
                       <span
                         data-course-part-date-icon='true'
-                        className='es-mask-calendar-heading inline-block h-6 w-6 shrink-0'
+                        className='es-mask-calendar-heading h-6 w-6 shrink-0'
                         aria-hidden='true'
                       />
-                      <p className='mt-1 text-[17px] font-semibold leading-6 es-text-heading'>
+                      <p className='min-w-0 text-[17px] font-semibold leading-6 es-text-heading'>
                         {part.date}
                       </p>
-                    </div>
-                    <p className='mt-2 text-[15px] leading-[22px] es-text-body'>
-                      {part.description}
-                    </p>
                   </div>
+
+                  <p className='col-start-2 text-[15px] leading-[22px] es-text-body'>
+                    {part.description}
+                  </p>
                 </div>
               </li>
             );
