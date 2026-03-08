@@ -28,7 +28,7 @@ const orderedCardIds = [
   'monster-threat-at-meals',
   'no-shoes-independence',
   'rules-change-when-i-leave',
-  'out-of-ideas',
+  'picks-him-up-after-fall',
 ] as const;
 
 function getRealTalkCards(content: RealTalkContent): RealTalkCardCopy[] {
