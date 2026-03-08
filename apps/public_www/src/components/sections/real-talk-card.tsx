@@ -13,7 +13,7 @@ export function RealTalkCard({ title, tone }: RealTalkCardProps) {
 
   return (
     <div
-      className={`relative flex min-h-[108px] flex-col overflow-hidden rounded-card p-4 sm:min-h-[115px] sm:p-5 lg:min-h-[152px] lg:p-6 ${toneClassMap[tone]}`}
+      className={`relative flex h-full min-h-[108px] flex-col overflow-hidden rounded-card p-4 sm:min-h-[115px] sm:p-5 lg:min-h-[152px] lg:p-6 ${toneClassMap[tone]}`}
     >
       <span
         aria-hidden='true'
