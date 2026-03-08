@@ -8,12 +8,14 @@ interface HarnessProps {
   itemCount: number;
   minItemsForNavigation?: number;
   loop?: boolean;
+  snapToItem?: boolean;
 }
 
 function HookHarness({
   itemCount,
   minItemsForNavigation,
   loop,
+  snapToItem,
 }: HarnessProps) {
   const {
     carouselRef,
@@ -26,6 +28,7 @@ function HookHarness({
     itemCount,
     minItemsForNavigation,
     loop,
+    snapToItem,
   });
   const targetRef = useRef<HTMLDivElement | null>(null);
 
@@ -240,6 +243,148 @@ describe('useHorizontalCarousel', () => {
       behavior: 'auto',
       block: 'nearest',
       inline: 'center',
+    });
+  });
+
+  describe('snapToItem mode', () => {
+    function buildSnapHarness(itemPositions: number[], containerWidth: number) {
+      render(<HookHarness itemCount={itemPositions.length} snapToItem />);
+
+      const track = screen.getByTestId('track');
+      const totalWidth = itemPositions[itemPositions.length - 1]! + containerWidth / 3;
+      const { scrollToSpy, setScrollLeft } = defineTrackMetrics(track, {
+        clientWidth: containerWidth,
+        scrollWidth: totalWidth,
+        initialScrollLeft: 0,
+      });
+
+      const wrapper = document.createElement('ul');
+      track.appendChild(wrapper);
+
+      itemPositions.forEach((position) => {
+        const item = document.createElement('li');
+        wrapper.appendChild(item);
+        vi.spyOn(item, 'getBoundingClientRect').mockImplementation(() => {
+          const left = position - track.scrollLeft;
+          return {
+            left,
+            right: left + containerWidth / 3,
+            top: 0,
+            bottom: 100,
+            width: containerWidth / 3,
+            height: 100,
+            x: left,
+            y: 0,
+            toJSON: () => ({}),
+          };
+        });
+      });
+
+      vi.spyOn(track, 'getBoundingClientRect').mockImplementation(() => ({
+        left: 0,
+        right: containerWidth,
+        top: 0,
+        bottom: 100,
+        width: containerWidth,
+        height: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }));
+
+      return { track, scrollToSpy, setScrollLeft };
+    }
+
+    it('scrolls to the next item position on next click', async () => {
+      const positions = [0, 375, 750, 1125, 1500, 1875];
+      const { scrollToSpy } = buildSnapHarness(positions, 1100);
+
+      fireEvent(window, new Event('resize'));
+      await waitFor(() => {
+        expect(screen.getByTestId('state')).toHaveTextContent('true|false|true');
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Scroll next' }));
+
+      expect(scrollToSpy).toHaveBeenCalledWith({
+        left: 375,
+        behavior: 'smooth',
+      });
+    });
+
+    it('scrolls to the previous item position on prev click', async () => {
+      const positions = [0, 375, 750, 1125, 1500, 1875];
+      const { scrollToSpy, setScrollLeft } = buildSnapHarness(positions, 1100);
+
+      setScrollLeft(750);
+      fireEvent(window, new Event('resize'));
+      await waitFor(() => {
+        expect(screen.getByTestId('state')).toHaveTextContent('true|true|true');
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Scroll previous' }));
+
+      expect(scrollToSpy).toHaveBeenCalledWith({
+        left: 375,
+        behavior: 'smooth',
+      });
+    });
+
+    it('clamps next scroll to maxScrollLeft', async () => {
+      const positions = [0, 374, 748, 1122, 1496, 1870, 2244, 2618];
+      const containerWidth = 1100;
+      const { track, scrollToSpy, setScrollLeft } = buildSnapHarness(positions, containerWidth);
+      const maxScrollLeft = track.scrollWidth - containerWidth;
+
+      setScrollLeft(1496);
+      fireEvent(window, new Event('resize'));
+      await waitFor(() => {
+        expect(screen.getByTestId('state')).toHaveTextContent('true|true|true');
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Scroll next' }));
+
+      const calledLeft = scrollToSpy.mock.calls[0]?.[0]?.left ?? -1;
+      expect(calledLeft).toBeLessThanOrEqual(maxScrollLeft);
+      expect(calledLeft).toBeGreaterThan(1496);
+    });
+
+    it('does not use scrollBy in snapToItem mode', async () => {
+      const positions = [0, 375, 750];
+      render(<HookHarness itemCount={3} snapToItem />);
+
+      const track = screen.getByTestId('track');
+      const { scrollBySpy } = defineTrackMetrics(track, {
+        clientWidth: 1100,
+        scrollWidth: 1500,
+        initialScrollLeft: 0,
+      });
+
+      const wrapper = document.createElement('ul');
+      track.appendChild(wrapper);
+      positions.forEach((position) => {
+        const item = document.createElement('li');
+        wrapper.appendChild(item);
+        vi.spyOn(item, 'getBoundingClientRect').mockImplementation(() => ({
+          left: position - track.scrollLeft,
+          right: position - track.scrollLeft + 350,
+          top: 0, bottom: 100, width: 350, height: 100, x: position - track.scrollLeft, y: 0,
+          toJSON: () => ({}),
+        }));
+      });
+      vi.spyOn(track, 'getBoundingClientRect').mockImplementation(() => ({
+        left: 0, right: 1100, top: 0, bottom: 100, width: 1100, height: 100, x: 0, y: 0,
+        toJSON: () => ({}),
+      }));
+
+      fireEvent(window, new Event('resize'));
+      await waitFor(() => {
+        expect(screen.getByTestId('state')).toHaveTextContent('true|false|true');
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Scroll next' }));
+
+      expect(scrollBySpy).not.toHaveBeenCalled();
     });
   });
 });

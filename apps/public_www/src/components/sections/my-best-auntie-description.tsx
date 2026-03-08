@@ -81,6 +81,7 @@ export function MyBestAuntieDescription({
     scrollByDirection,
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount: cards.length,
+    snapToItem: true,
   });
 
   return (
