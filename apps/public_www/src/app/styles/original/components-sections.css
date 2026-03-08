@@ -331,6 +331,12 @@
     letter-spacing: 0.4px;
   }
 
+  @media (max-width: 639px) {
+    .es-free-intro-session-section {
+      padding-bottom: 32px;
+    }
+  }
+
   @media (min-width: 640px) {
     .es-sprouts-community-section,
     .es-free-intro-session-section {
@@ -362,10 +368,6 @@
   }
 
   @media (min-width: 1024px) {
-    .es-intro-community-layout {
-      min-height: 555px;
-    }
-
     .es-intro-community-layout-content {
       gap: 2.25rem;
     }
