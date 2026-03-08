@@ -57,6 +57,16 @@ function formatCohortPrice(cohort: BookingCohort): string {
 }
 
 describe('MyBestAuntieBooking section', () => {
+  it('matches contact-us top spacing classes', () => {
+    const { container } = render(
+      <MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />,
+    );
+
+    const section = container.querySelector('section#my-best-auntie-booking');
+    expect(section?.className).toContain('pt-0');
+    expect(section?.className).toContain('sm:pt-[60px]');
+  });
+
   it('updates date cards by selected age group and keeps cohort date in subtitle-lg style', () => {
     render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
 
