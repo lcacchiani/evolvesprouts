@@ -11,6 +11,7 @@ interface UseHorizontalCarouselOptions {
   scrollStepRatio?: number;
   minScrollStepPx?: number;
   loop?: boolean;
+  snapToItem?: boolean;
 }
 
 interface UseHorizontalCarouselResult<T extends HTMLElement> {
@@ -49,6 +50,26 @@ function resolveScrollStep(
   );
 }
 
+function resolveItemScrollPositions(container: HTMLElement): number[] {
+  const wrapper = container.firstElementChild;
+  if (!wrapper) {
+    return [];
+  }
+
+  const containerRect = container.getBoundingClientRect();
+  const currentScrollLeft = container.scrollLeft;
+  const positions: number[] = [];
+
+  for (const child of wrapper.children) {
+    const childRect = child.getBoundingClientRect();
+    positions.push(
+      Math.round(childRect.left - containerRect.left + currentScrollLeft),
+    );
+  }
+
+  return positions;
+}
+
 export function useHorizontalCarousel<T extends HTMLElement>({
   itemCount,
   minItemsForNavigation = DEFAULT_MIN_ITEMS_FOR_NAVIGATION,
@@ -56,6 +77,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
   scrollStepRatio = DEFAULT_SCROLL_STEP_RATIO,
   minScrollStepPx = DEFAULT_MIN_SCROLL_STEP_PX,
   loop = false,
+  snapToItem = false,
 }: UseHorizontalCarouselOptions): UseHorizontalCarouselResult<T> {
   const carouselRef = useRef<T | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -148,6 +170,41 @@ export function useHorizontalCarousel<T extends HTMLElement>({
         return;
       }
 
+      if (snapToItem) {
+        const positions = resolveItemScrollPositions(carouselElement);
+        if (positions.length === 0) {
+          return;
+        }
+
+        const currentLeft = Math.round(carouselElement.scrollLeft);
+
+        if (direction === 'next') {
+          const nextPos = positions.find(
+            (pos) => pos > currentLeft + scrollThresholdPx,
+          );
+          if (nextPos === undefined) {
+            return;
+          }
+          carouselElement.scrollTo({
+            left: Math.min(nextPos, maxScrollLeft),
+            behavior: 'smooth',
+          });
+        } else {
+          const prevPos = positions.findLast(
+            (pos) => pos < currentLeft - scrollThresholdPx,
+          );
+          if (prevPos === undefined) {
+            return;
+          }
+          carouselElement.scrollTo({
+            left: Math.max(prevPos, 0),
+            behavior: 'smooth',
+          });
+        }
+
+        return;
+      }
+
       const scrollStep = resolveScrollStep(carouselElement, {
         scrollStepRatio,
         minScrollStepPx,
@@ -167,6 +224,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       minScrollStepPx,
       scrollStepRatio,
       scrollThresholdPx,
+      snapToItem,
       teleportScroll,
     ],
   );
