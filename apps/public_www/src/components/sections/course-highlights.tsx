@@ -150,7 +150,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
           title={sectionTitle}
         />
 
-        <div className='relative mt-12 sm:mt-14 xl:mt-16'>
+        <div className='relative'>
           <CarouselTrack
             carouselRef={carouselRef}
             testId='course-highlights-mobile-carousel'
