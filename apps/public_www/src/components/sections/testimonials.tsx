@@ -156,10 +156,20 @@ function TestimonialSlide({
   story,
   fallbackQuote,
   isClone,
+  showNavigationControls,
+  onPrevious,
+  onNext,
+  previousButtonLabel,
+  nextButtonLabel,
 }: {
   story: NormalizedStory;
   fallbackQuote: string;
   isClone?: boolean;
+  showNavigationControls: boolean;
+  onPrevious: () => void;
+  onNext: () => void;
+  previousButtonLabel: string;
+  nextButtonLabel: string;
 }) {
   return (
     <article
@@ -198,18 +208,51 @@ function TestimonialSlide({
             </p>
           </div>
 
-          {(story.author || story.service) && (
+          {(story.author || story.service || showNavigationControls) && (
             <div className='relative mt-6 sm:mt-8'>
-              <div className='min-w-0 text-center'>
-                {story.author && (
-                  <p className='es-testimonials-author'>{story.author}</p>
-                )}
-                {story.service && (
-                  <p
-                    className={`mx-auto max-w-[190px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
+              <div
+                data-testid='testimonial-author-row'
+                className='mx-auto flex w-full max-w-[350px] items-center justify-between gap-3'
+              >
+                {showNavigationControls ? (
+                  <ButtonPrimitive
+                    variant='control'
+                    onClick={onPrevious}
+                    aria-label={previousButtonLabel}
+                    className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} hidden shrink-0 sm:inline-flex`}
                   >
-                    {story.service}
-                  </p>
+                    <ChevronIcon direction='left' />
+                  </ButtonPrimitive>
+                ) : (
+                  <div className='hidden h-0 w-[46px] shrink-0 sm:block' aria-hidden='true' />
+                )}
+
+                <div className='min-w-0 flex-1 text-center'>
+                  {story.author && (
+                    <p className='mx-auto max-w-[350px] es-testimonials-author'>
+                      {story.author}
+                    </p>
+                  )}
+                  {story.service && (
+                    <p
+                      className={`mx-auto max-w-[350px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
+                    >
+                      {story.service}
+                    </p>
+                  )}
+                </div>
+
+                {showNavigationControls ? (
+                  <ButtonPrimitive
+                    variant='control'
+                    onClick={onNext}
+                    aria-label={nextButtonLabel}
+                    className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} hidden shrink-0 sm:inline-flex`}
+                  >
+                    <ChevronIcon direction='right' />
+                  </ButtonPrimitive>
+                ) : (
+                  <div className='hidden h-0 w-[46px] shrink-0 sm:block' aria-hidden='true' />
                 )}
               </div>
             </div>
@@ -261,7 +304,7 @@ function AuthorStrip({
   return (
     <div
       data-testid='testimonials-author-strip'
-      className='relative mx-auto mt-6 h-[68px] w-full touch-pan-y'
+      className='relative mx-auto mt-6 h-[68px] w-full touch-pan-y sm:hidden'
       onTouchStart={(e) => {
         touchStartXRef.current = e.touches[0].clientX;
       }}
@@ -451,6 +494,15 @@ export function Testimonials({ content }: TestimonialsProps) {
                 story={storiesToRender[realCount - 1]}
                 fallbackQuote={content.title}
                 isClone
+                showNavigationControls={false}
+                onPrevious={() => {
+                  scrollByOne('prev');
+                }}
+                onNext={() => {
+                  scrollByOne('next');
+                }}
+                previousButtonLabel={previousButtonLabel}
+                nextButtonLabel={nextButtonLabel}
               />
             )}
 
@@ -459,6 +511,15 @@ export function Testimonials({ content }: TestimonialsProps) {
                 key={`${story.author ?? 'story'}-${index}`}
                 story={story}
                 fallbackQuote={content.title}
+                showNavigationControls={hasMultipleStories && index === activeRealIndex}
+                onPrevious={() => {
+                  scrollByOne('prev');
+                }}
+                onNext={() => {
+                  scrollByOne('next');
+                }}
+                previousButtonLabel={previousButtonLabel}
+                nextButtonLabel={nextButtonLabel}
               />
             ))}
 
@@ -468,39 +529,25 @@ export function Testimonials({ content }: TestimonialsProps) {
                 story={storiesToRender[0]}
                 fallbackQuote={content.title}
                 isClone
+                showNavigationControls={false}
+                onPrevious={() => {
+                  scrollByOne('prev');
+                }}
+                onNext={() => {
+                  scrollByOne('next');
+                }}
+                previousButtonLabel={previousButtonLabel}
+                nextButtonLabel={nextButtonLabel}
               />
             )}
           </CarouselTrack>
 
           {hasMultipleStories && (
-            <AuthorStrip stories={storiesToRender} activeIndex={activeRealIndex} onNavigate={navigateByOffset} />
-          )}
-
-          {hasMultipleStories && (
-            <div className='mt-4 hidden justify-end lg:flex'>
-              <div className='flex items-center gap-[14px]'>
-                <ButtonPrimitive
-                  variant='control'
-                  onClick={() => {
-                    scrollByOne('prev');
-                  }}
-                  aria-label={previousButtonLabel}
-                  className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                >
-                  <ChevronIcon direction='left' />
-                </ButtonPrimitive>
-                <ButtonPrimitive
-                  variant='control'
-                  onClick={() => {
-                    scrollByOne('next');
-                  }}
-                  aria-label={nextButtonLabel}
-                  className={TESTIMONIAL_CONTROL_BUTTON_CLASSNAME}
-                >
-                  <ChevronIcon direction='right' />
-                </ButtonPrimitive>
-              </div>
-            </div>
+            <AuthorStrip
+              stories={storiesToRender}
+              activeIndex={activeRealIndex}
+              onNavigate={navigateByOffset}
+            />
           )}
         </div>
         </div>
