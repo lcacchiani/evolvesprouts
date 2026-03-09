@@ -67,18 +67,32 @@ describe('Testimonials section', () => {
     expect(realSlides).toHaveLength(realCount);
   });
 
-  it('renders the author strip with current, previous, and next names', () => {
+  it('renders the author strip with five names and no service text', () => {
     render(<Testimonials content={enContent.testimonials} />);
 
     const strip = screen.getByTestId('testimonials-author-strip');
     expect(strip).toBeInTheDocument();
 
-    const firstAuthor = enContent.testimonials.items[0]?.author ?? '';
-    const lastAuthor =
-      enContent.testimonials.items[enContent.testimonials.items.length - 1]?.author ?? '';
+    const items = enContent.testimonials.items;
+    const count = items.length;
+    const activeIndex = 0;
 
-    expect(strip.textContent).toContain(firstAuthor);
-    expect(strip.textContent).toContain(lastAuthor);
+    const prevPrevAuthor = items[(((activeIndex - 2) % count) + count) % count]?.author ?? '';
+    const prevAuthor = items[(((activeIndex - 1) % count) + count) % count]?.author ?? '';
+    const currentAuthor = items[activeIndex]?.author ?? '';
+    const nextAuthor = items[(activeIndex + 1) % count]?.author ?? '';
+    const nextNextAuthor = items[(activeIndex + 2) % count]?.author ?? '';
+
+    expect(strip.textContent).toContain(prevPrevAuthor);
+    expect(strip.textContent).toContain(prevAuthor);
+    expect(strip.textContent).toContain(currentAuthor);
+    expect(strip.textContent).toContain(nextAuthor);
+    expect(strip.textContent).toContain(nextNextAuthor);
+
+    const currentService = items[activeIndex]?.service ?? '';
+    if (currentService) {
+      expect(strip.textContent).not.toContain(currentService);
+    }
   });
 
   it('uses snap track carousel with desktop arrow controls', () => {
