@@ -156,12 +156,10 @@ function TestimonialSlide({
   story,
   fallbackQuote,
   isClone,
-  showAttribution,
 }: {
   story: NormalizedStory;
   fallbackQuote: string;
   isClone?: boolean;
-  showAttribution?: boolean;
 }) {
   return (
     <article
@@ -200,7 +198,7 @@ function TestimonialSlide({
             </p>
           </div>
 
-          {showAttribution && (story.author || story.service) && (
+          {(story.author || story.service) && (
             <div className='relative mt-6 sm:mt-8'>
               <div className='min-w-0'>
                 {story.author && (
@@ -230,37 +228,37 @@ function AuthorStrip({
   activeIndex: number;
 }) {
   const count = stories.length;
+  const prevIndex = wrapIndex(activeIndex - 1, count);
   const nextIndex = wrapIndex(activeIndex + 1, count);
-  const secondNextIndex = wrapIndex(activeIndex + 2, count);
 
+  const prevLabel = stories[prevIndex]?.author ?? '';
   const currentAuthor = stories[activeIndex]?.author ?? '';
   const currentService = stories[activeIndex]?.service ?? '';
-  const nextAuthor = stories[nextIndex]?.author ?? '';
-  const secondNextAuthor = stories[secondNextIndex]?.author ?? '';
+  const nextLabel = stories[nextIndex]?.author ?? '';
 
   return (
     <div
       data-testid='testimonials-author-strip'
-      className='mt-6 grid grid-cols-4 items-start gap-x-2 px-4 sm:px-6'
+      className='mt-6 flex items-center justify-between gap-2 px-4 sm:px-6'
       aria-hidden='true'
     >
-      <div className='col-span-2 min-w-0 text-left'>
-        <span className='block truncate text-sm font-semibold es-text-heading sm:text-base'>
+      <span className='min-w-0 flex-1 truncate text-left text-xs opacity-40 es-text-heading sm:text-sm'>
+        {prevLabel}
+      </span>
+
+      <div className='flex min-w-0 shrink-0 flex-col items-center text-center'>
+        <span className='truncate text-sm font-semibold es-text-heading sm:text-base'>
           {currentAuthor}
         </span>
         {currentService && (
-          <span className='block truncate text-xs es-text-neutral-strong sm:text-sm'>
+          <span className='truncate text-xs es-text-neutral-strong sm:text-sm'>
             {currentService}
           </span>
         )}
       </div>
 
-      <span className='col-span-1 min-w-0 truncate pt-1 text-left text-[11px] opacity-40 es-text-heading sm:text-xs'>
-        {nextAuthor}
-      </span>
-
-      <span className='col-span-1 min-w-0 truncate pt-1 text-left text-[11px] opacity-40 es-text-heading sm:text-xs'>
-        {secondNextAuthor}
+      <span className='min-w-0 flex-1 truncate text-right text-xs opacity-40 es-text-heading sm:text-sm'>
+        {nextLabel}
       </span>
     </div>
   );
@@ -401,7 +399,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                 story={storiesToRender[realCount - 1]}
                 fallbackQuote={content.title}
                 isClone
-                showAttribution={!hasMultipleStories}
               />
             )}
 
@@ -410,7 +407,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                 key={`${story.author ?? 'story'}-${index}`}
                 story={story}
                 fallbackQuote={content.title}
-                showAttribution={!hasMultipleStories}
               />
             ))}
 
@@ -420,7 +416,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                 story={storiesToRender[0]}
                 fallbackQuote={content.title}
                 isClone
-                showAttribution={!hasMultipleStories}
               />
             )}
           </CarouselTrack>
