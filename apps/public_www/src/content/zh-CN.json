@@ -699,7 +699,7 @@
         "form": "通过本页表单"
       },
       "emailLabel": "邮件联系 @",
-      "emailAddress": "ida@evolvesprouts.com",
+      "emailAddress": "{{CONTACT_EMAIL}}",
       "promiseTitle": "我承诺…",
       "promises": [
         "24-48 小时内回复（没有机器人——由我这个真正热爱儿童发展的真人亲自回复）。",
@@ -755,8 +755,8 @@
         {
           "title": "邮件联系：",
           "description": "欢迎发邮件至",
-          "ctaLabel": "ida@evolvesprouts.com",
-          "ctaHref": "mailto:ida@evolvesprouts.com"
+          "ctaLabel": "{{CONTACT_EMAIL}}",
+          "ctaHref": "mailto:{{CONTACT_EMAIL}}"
         },
         {
           "title": "社交互动：",

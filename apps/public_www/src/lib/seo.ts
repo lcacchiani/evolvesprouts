@@ -11,6 +11,8 @@ import {
 } from '@/lib/locale-routing';
 
 const SITE_ORIGIN_ENV_NAME = 'NEXT_PUBLIC_SITE_ORIGIN';
+let cachedSiteOrigin: string | undefined;
+let cachedSiteHost: string | undefined;
 
 export function normalizeSiteOrigin(rawOrigin: string): string {
   const normalizedOrigin = rawOrigin.trim();
@@ -62,10 +64,24 @@ function resolveSiteOrigin(): string {
   throw new Error(`Missing required environment variable: ${SITE_ORIGIN_ENV_NAME}`);
 }
 
-export const SITE_ORIGIN = resolveSiteOrigin();
-export const SITE_HOST = new URL(SITE_ORIGIN).hostname;
+export function getSiteOrigin(): string {
+  if (!cachedSiteOrigin) {
+    cachedSiteOrigin = resolveSiteOrigin();
+  }
+
+  return cachedSiteOrigin;
+}
+
+export function getSiteHost(): string {
+  if (!cachedSiteHost) {
+    cachedSiteHost = new URL(getSiteOrigin()).hostname;
+  }
+
+  return cachedSiteHost;
+}
+
 export const DEFAULT_SOCIAL_IMAGE = '/images/seo/evolvesprouts-og-default.png';
-const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
+export const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
 const PAGE_TITLE_SEPARATOR = ' - ';
 
 export function localizePath(path: string, locale: Locale): string {

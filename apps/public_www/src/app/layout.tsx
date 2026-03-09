@@ -2,22 +2,23 @@ import { Lato, Poppins } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
+import { DEFAULT_LOCALE, isValidLocale } from '@/content';
 import enContent from '@/content/en.json';
 import { GoogleTagManager } from '@/components/shared/google-tag-manager';
 import {
   DEFAULT_SOCIAL_IMAGE,
-  SITE_HOST,
-  SITE_ORIGIN,
+  getSiteHost,
+  getSiteOrigin,
+  SITE_TITLE_SUFFIX,
 } from '@/lib/seo';
 import './globals.css';
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || '';
-const GTM_ALLOWED_HOSTS = resolveGtmAllowedHosts();
 
 function resolveGtmAllowedHosts(): string {
   const configuredHosts = process.env.NEXT_PUBLIC_GTM_ALLOWED_HOSTS;
   if (!configuredHosts || configuredHosts.trim() === '') {
-    return SITE_HOST;
+    return getSiteHost();
   }
 
   return configuredHosts;
@@ -41,52 +42,63 @@ const poppins = Poppins({
   preload: true,
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_ORIGIN),
-  title: enContent.seo.fallbackTitle,
-  description: enContent.seo.fallbackDescription,
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-  },
-  openGraph: {
+export function generateMetadata(): Metadata {
+  return {
+    metadataBase: new URL(getSiteOrigin()),
     title: enContent.seo.fallbackTitle,
     description: enContent.seo.fallbackDescription,
-    siteName: 'Evolve Sprouts',
-    type: 'website',
-    images: [
-      {
-        url: DEFAULT_SOCIAL_IMAGE,
-        alt: enContent.seo.defaultSocialImageAlt,
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: enContent.seo.fallbackTitle,
-    description: enContent.seo.fallbackDescription,
-    images: [DEFAULT_SOCIAL_IMAGE],
-  },
-};
+    icons: {
+      icon: '/favicon.ico',
+      shortcut: '/favicon.ico',
+    },
+    openGraph: {
+      title: enContent.seo.fallbackTitle,
+      description: enContent.seo.fallbackDescription,
+      siteName: SITE_TITLE_SUFFIX,
+      type: 'website',
+      images: [
+        {
+          url: DEFAULT_SOCIAL_IMAGE,
+          alt: enContent.seo.defaultSocialImageAlt,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: enContent.seo.fallbackTitle,
+      description: enContent.seo.fallbackDescription,
+      images: [DEFAULT_SOCIAL_IMAGE],
+    },
+  };
+}
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: {
+interface RootLayoutProps {
   children: ReactNode;
-}) {
+  params: Promise<{ locale?: string }>;
+}
+
+export default async function RootLayout({
+  children,
+  params,
+}: RootLayoutProps) {
+  const resolvedParams = await params;
+  const localeParam = resolvedParams?.locale;
+  const htmlLang = localeParam && isValidLocale(localeParam) ? localeParam : DEFAULT_LOCALE;
+  const gtmAllowedHosts = resolveGtmAllowedHosts();
+
   return (
     <html
-      lang='en'
+      lang={htmlLang}
       className={`${lato.variable} ${poppins.variable}`}
       {...(GTM_ID
         ? {
             'data-gtm-id': GTM_ID,
-            'data-gtm-allowed-hosts': GTM_ALLOWED_HOSTS,
+            'data-gtm-allowed-hosts': gtmAllowedHosts,
           }
         : {})}
     >

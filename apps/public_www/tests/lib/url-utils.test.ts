@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   getHrefKind,
@@ -7,6 +7,10 @@ import {
   isSameRootDomainHttpHref,
   isUnsafeHref,
 } from '@/lib/url-utils';
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe('url-utils', () => {
   it('detects HTTP and HTTPS links', () => {
@@ -91,5 +95,13 @@ describe('url-utils', () => {
         '',
       ),
     ).toBe(false);
+  });
+
+  it('uses NEXT_PUBLIC_SITE_ORIGIN as strict hostname fallback', () => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_ORIGIN', 'https://www.example.com');
+
+    expect(
+      isSameRootDomainHttpHref('https://media.example.com/path'),
+    ).toBe(true);
   });
 });

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-import { SITE_HOST, SITE_ORIGIN } from '@/lib/seo';
+import { getSiteHost, getSiteOrigin } from '@/lib/seo';
 
 const AI_CRAWLER_USER_AGENTS = [
   'GPTBot',
@@ -23,6 +23,8 @@ const AI_CRAWLER_USER_AGENTS = [
 export const dynamic = 'force-static';
 
 export default function robots(): MetadataRoute.Robots {
+  const siteOrigin = getSiteOrigin();
+  const siteHost = getSiteHost();
   const aiCrawlerRules = AI_CRAWLER_USER_AGENTS.map((userAgent) => ({
     userAgent,
     allow: ['/', '/llms.txt', '/llms-full.txt'],
@@ -36,7 +38,7 @@ export default function robots(): MetadataRoute.Robots {
       },
       ...aiCrawlerRules,
     ],
-    sitemap: `${SITE_ORIGIN}/sitemap.xml`,
-    host: SITE_HOST,
+    sitemap: `${siteOrigin}/sitemap.xml`,
+    host: siteHost,
   };
 }

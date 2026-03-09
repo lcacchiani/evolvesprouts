@@ -1,9 +1,10 @@
 import type { SiteContent } from '@/content';
 import { INDEXED_ROUTE_PATHS, ROUTES } from '@/lib/routes';
-import { SITE_ORIGIN, localizePath } from '@/lib/seo';
+import { getSiteOrigin, localizePath } from '@/lib/seo';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 function siteUrl(path: string): string {
-  return `${SITE_ORIGIN}${localizePath(path, 'en')}`;
+  return `${getSiteOrigin()}${localizePath(path, 'en')}`;
 }
 
 function lines(...parts: string[]): string {
@@ -107,11 +108,12 @@ function buildNotDoSection(): string {
 }
 
 function buildContactSection(content: SiteContent): string {
-  const email = content.contactUs.contactUsForm.emailAddress;
+  const { contactEmail } = resolvePublicSiteConfig();
+  const siteOrigin = getSiteOrigin();
   const items = [
-    `**Email**: ${email}`,
+    `**Email**: ${contactEmail}`,
     `**WhatsApp**: Available via website contact button`,
-    `**Website**: ${SITE_ORIGIN}`,
+    `**Website**: ${siteOrigin}`,
     `**Response time**: 24-48 hours`,
   ];
   return bulletList(items);
@@ -121,6 +123,7 @@ export function buildLlmsTxt(content: SiteContent): string {
   const brand = content.navbar.brand;
   const orgDescription = content.seo.organizationDescription;
   const pages = resolvePageDescriptors(content);
+  const siteOrigin = getSiteOrigin();
 
   return lines(
     `# ${brand}`,
@@ -152,7 +155,7 @@ export function buildLlmsTxt(content: SiteContent): string {
     '',
     linkedBullet('Privacy Policy', ROUTES.privacy, content.privacyPolicy.intro),
     linkedBullet('Terms and Conditions', ROUTES.terms, content.termsAndConditions.intro),
-    `- [Extended AI context](${SITE_ORIGIN}/llms-full.txt): Comprehensive content including full FAQ, course details, and testimonials for deeper AI understanding.`,
+    `- [Extended AI context](${siteOrigin}/llms-full.txt): Comprehensive content including full FAQ, course details, and testimonials for deeper AI understanding.`,
     '',
   );
 }
@@ -254,20 +257,22 @@ function buildSitePagesSection(): string {
 }
 
 function buildMultilingualSection(): string {
+  const siteOrigin = getSiteOrigin();
   return lines(
     '### Multilingual Versions',
     '',
     'The site is available in three languages:',
-    `- English: ${SITE_ORIGIN}/en/`,
-    `- Simplified Chinese (简体中文): ${SITE_ORIGIN}/zh-CN/`,
-    `- Traditional Chinese (繁體中文): ${SITE_ORIGIN}/zh-HK/`,
+    `- English: ${siteOrigin}/en/`,
+    `- Simplified Chinese (简体中文): ${siteOrigin}/zh-CN/`,
+    `- Traditional Chinese (繁體中文): ${siteOrigin}/zh-HK/`,
   );
 }
 
 export function buildLlmsFullTxt(content: SiteContent): string {
   const brand = content.navbar.brand;
   const orgDescription = content.seo.organizationDescription;
-  const email = content.contactUs.contactUsForm.emailAddress;
+  const { contactEmail } = resolvePublicSiteConfig();
+  const siteOrigin = getSiteOrigin();
 
   return lines(
     `# ${brand} — Full AI Context`,
@@ -330,9 +335,9 @@ export function buildLlmsFullTxt(content: SiteContent): string {
     '## Contact Information',
     '',
     bulletList([
-      `**Email**: ${email}`,
+      `**Email**: ${contactEmail}`,
       `**WhatsApp**: Available via website contact button`,
-      `**Website**: ${SITE_ORIGIN}`,
+      `**Website**: ${siteOrigin}`,
       `**Response time**: 24-48 hours`,
     ]),
     '',

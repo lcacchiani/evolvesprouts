@@ -7,7 +7,7 @@ const DANGEROUS_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
 const GENERIC_PROTOCOL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
 const IPV4_ADDRESS_REGEX = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 const INTERNAL_LINK_ROOT_DOMAIN_ENV = 'NEXT_PUBLIC_INTERNAL_LINK_ROOT_DOMAIN';
-const DEFAULT_INTERNAL_LINK_ROOT_DOMAIN = 'evolvesprouts.com';
+const SITE_ORIGIN_ENV = 'NEXT_PUBLIC_SITE_ORIGIN';
 
 export type HrefKind =
   | 'internal'
@@ -101,7 +101,16 @@ function resolveReferenceHostname(currentHostname?: string): string {
     return configuredRootDomain;
   }
 
-  return DEFAULT_INTERNAL_LINK_ROOT_DOMAIN;
+  const configuredSiteOrigin = process.env[SITE_ORIGIN_ENV]?.trim() ?? '';
+  if (!configuredSiteOrigin) {
+    return '';
+  }
+
+  try {
+    return normalizeHostname(new URL(configuredSiteOrigin).hostname);
+  } catch {
+    return '';
+  }
 }
 
 export function isSameRootDomainHttpHref(
