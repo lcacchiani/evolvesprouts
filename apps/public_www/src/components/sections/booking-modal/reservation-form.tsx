@@ -6,6 +6,7 @@ import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-
 import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
 import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';
 import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
+import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
@@ -18,6 +19,7 @@ import {
   type ReservationSubmissionPayload,
 } from '@/lib/reservations-data';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
+import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface BookingReservationFormProps {
   locale: Locale;
@@ -33,7 +35,6 @@ interface BookingReservationFormProps {
 
 const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FPS_ICON_SOURCE = '/images/fps-logo.svg';
 const BANK_ICON_SOURCE = '/images/bank.svg';
 const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME ?? '';
@@ -46,14 +47,6 @@ const PAYMENT_METHOD_BANK_TRANSFER = 'bank_transfer';
 type PaymentMethodOption =
   | typeof PAYMENT_METHOD_FPS
   | typeof PAYMENT_METHOD_BANK_TRANSFER;
-
-function sanitizeSingleLineValue(value: string): string {
-  return value.replaceAll(/\s+/g, ' ').trim();
-}
-
-function isValidEmail(value: string): boolean {
-  return EMAIL_PATTERN.test(value.trim());
-}
 
 function getPaymentMethodLabel(
   content: MyBestAuntieBookingContent['paymentModal'],
@@ -108,11 +101,23 @@ export function BookingReservationForm({
   const [hasPendingReservationAcknowledgement, setHasPendingReservationAcknowledgement] =
     useState(false);
   const [hasTermsAgreement, setHasTermsAgreement] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
-  const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const {
+    captchaToken,
+    clearSubmissionError,
+    handleCaptchaLoadError,
+    handleCaptchaTokenChange,
+    hasCaptchaLoadError,
+    hasCaptchaValidationError,
+    isCaptchaConfigured,
+    isCaptchaUnavailable,
+    isSubmitting,
+    markCaptchaTouched,
+    setSubmissionError,
+    submitErrorMessage,
+    withSubmitting,
+  } = useFormSubmission({
+    turnstileSiteKey,
+  });
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethodOption>(
     PAYMENT_METHOD_FPS,
   );
@@ -123,9 +128,6 @@ export function BookingReservationForm({
   }, [discountRule, originalAmount]);
   const discountAmount = Math.max(0, originalAmount - totalAmount);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
-  const hasCaptchaValidationError = isCaptchaTouched && !captchaToken;
-  const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
-  const isCaptchaUnavailable = !isCaptchaConfigured || hasCaptchaLoadError;
   const captchaErrorMessage = !isCaptchaConfigured
     ? content.captchaUnavailableError
     : hasCaptchaLoadError
@@ -186,8 +188,8 @@ export function BookingReservationForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsEmailTouched(true);
-    setIsCaptchaTouched(true);
-    setSubmitError('');
+    markCaptchaTouched();
+    clearSubmissionError();
     if (!isValidEmail(email)) {
       return;
     }
@@ -210,7 +212,7 @@ export function BookingReservationForm({
     };
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
-      setSubmitError(content.submitErrorMessage);
+      setSubmissionError(content.submitErrorMessage);
       return;
     }
 
@@ -231,21 +233,22 @@ export function BookingReservationForm({
       agreed_to_terms_and_conditions: hasTermsAgreement,
     };
 
-    setIsSubmitting(true);
-    const submissionResult = await ServerSubmissionResult.resolve({
-      request: () =>
-        submitReservation(crmApiClient, {
-          payload: reservationPayload,
-          turnstileToken: captchaToken,
-        }),
-      failureMessage: content.submitErrorMessage,
+    await withSubmitting(async () => {
+      const submissionResult = await ServerSubmissionResult.resolve({
+        request: () =>
+          submitReservation(crmApiClient, {
+            payload: reservationPayload,
+            turnstileToken: captchaToken,
+          }),
+        failureMessage: content.submitErrorMessage,
+      });
+      if (submissionResult.isSuccess) {
+        onSubmitReservation(reservationSummary);
+        return;
+      }
+
+      setSubmissionError(submissionResult.errorMessage);
     });
-    if (submissionResult.isSuccess) {
-      onSubmitReservation(reservationSummary);
-    } else {
-      setSubmitError(submissionResult.errorMessage);
-    }
-    setIsSubmitting(false);
   }
 
   return (
@@ -476,16 +479,8 @@ export function BookingReservationForm({
               siteKey={turnstileSiteKey}
               widgetAction='mba_reservation_submit'
               size='normal'
-              onTokenChange={(token) => {
-                setCaptchaToken(token);
-                if (token) {
-                  setIsCaptchaTouched(false);
-                  setHasCaptchaLoadError(false);
-                }
-              }}
-              onLoadError={() => {
-                setHasCaptchaLoadError(true);
-              }}
+              onTokenChange={handleCaptchaTokenChange}
+              onLoadError={handleCaptchaLoadError}
             />
           </label>
           {captchaErrorMessage ? (
@@ -497,13 +492,13 @@ export function BookingReservationForm({
               {captchaErrorMessage}
             </p>
           ) : null}
-          {submitError ? (
+          {submitErrorMessage ? (
             <p
               id={SUBMIT_ERROR_MESSAGE_ID}
               className='text-sm font-semibold es-text-danger-strong'
               role='alert'
             >
-              {submitError}
+              {submitErrorMessage}
             </p>
           ) : null}
 
@@ -514,7 +509,7 @@ export function BookingReservationForm({
             aria-describedby={
               captchaErrorMessage
                 ? CAPTCHA_ERROR_MESSAGE_ID
-                : submitError
+                : submitErrorMessage
                   ? SUBMIT_ERROR_MESSAGE_ID
                   : undefined
             }

@@ -7,17 +7,18 @@ import Image from 'next/image';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { SproutsSquadCommunityContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
+import { isValidEmail } from '@/lib/validation';
 
 interface SproutsSquadCommunityProps {
   content: SproutsSquadCommunityContent;
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMAIL_ERROR_MESSAGE_ID = 'sprouts-community-email-error';
 const CAPTCHA_ERROR_MESSAGE_ID = 'sprouts-community-captcha-error';
 const SUBMIT_ERROR_MESSAGE_ID = 'sprouts-community-submit-error';
@@ -28,10 +29,6 @@ const FALLBACK_CAPTCHA_LOAD_ERROR = 'CAPTCHA failed to load. Please refresh and 
 const FALLBACK_CAPTCHA_UNAVAILABLE_ERROR =
   'CAPTCHA is temporarily unavailable. Please try again later.';
 
-function isValidEmail(value: string): boolean {
-  return EMAIL_PATTERN.test(value.trim());
-}
-
 export function SproutsSquadCommunity({
   content,
 }: SproutsSquadCommunityProps) {
@@ -41,21 +38,30 @@ export function SproutsSquadCommunity({
   const [isFormFadingIn, setIsFormFadingIn] = useState(false);
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
-  const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
-  const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitErrorMessage, setSubmitErrorMessage] = useState('');
-  const [hasSuccessfulSubmission, setHasSuccessfulSubmission] = useState(false);
-
-  const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
-  const isCaptchaUnavailable = !isCaptchaConfigured || hasCaptchaLoadError;
+  const {
+    captchaToken,
+    clearSubmissionError,
+    handleCaptchaLoadError,
+    handleCaptchaTokenChange,
+    hasCaptchaLoadError,
+    hasCaptchaValidationError,
+    hasSuccessfulSubmission,
+    isCaptchaConfigured,
+    isCaptchaUnavailable,
+    isSubmitting,
+    markCaptchaTouched,
+    markSubmissionSuccess,
+    setSubmissionError,
+    submitErrorMessage,
+    withSubmitting,
+  } = useFormSubmission({
+    turnstileSiteKey,
+  });
   const hasEmailError = isEmailTouched && !isValidEmail(email);
-  const hasCaptchaError = isCaptchaTouched && !captchaToken;
   const submitCtaLabel = content.formSubmitLabel ?? content.ctaLabel;
 
   const captchaErrorMessage = (() => {
-    if (hasCaptchaError) {
+    if (hasCaptchaValidationError) {
       return content.captchaRequiredError ?? FALLBACK_CAPTCHA_REQUIRED_ERROR;
     }
     if (hasCaptchaLoadError) {
@@ -69,7 +75,6 @@ export function SproutsSquadCommunity({
 
   useEffect(() => {
     if (!isFormVisible) {
-      setIsFormFadingIn(false);
       return;
     }
 
@@ -84,15 +89,15 @@ export function SproutsSquadCommunity({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitErrorMessage('');
+    clearSubmissionError();
     setIsEmailTouched(true);
-    setIsCaptchaTouched(true);
+    markCaptchaTouched();
 
     if (!isValidEmail(email) || !captchaToken) {
       return;
     }
     if (!crmApiClient || isCaptchaUnavailable) {
-      setSubmitErrorMessage(content.submitErrorMessage);
+      setSubmissionError(content.submitErrorMessage);
       return;
     }
 
@@ -101,8 +106,7 @@ export function SproutsSquadCommunity({
       return;
     }
 
-    setIsSubmitting(true);
-    try {
+    await withSubmitting(async () => {
       const submissionResult = await ServerSubmissionResult.resolve({
         request: () =>
           crmApiClient.request({
@@ -118,14 +122,12 @@ export function SproutsSquadCommunity({
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
-        setHasSuccessfulSubmission(true);
+        markSubmissionSuccess();
         return;
       }
 
-      setSubmitErrorMessage(submissionResult.errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
+      setSubmissionError(submissionResult.errorMessage);
+    });
   }
 
   return (
@@ -185,6 +187,7 @@ export function SproutsSquadCommunity({
                       variant='primary'
                       type='button'
                       onClick={() => {
+                        setIsFormFadingIn(false);
                         setIsFormVisible(true);
                       }}
                       disabled={isSubmitting || hasSuccessfulSubmission}
@@ -229,16 +232,10 @@ export function SproutsSquadCommunity({
                       <TurnstileCaptcha
                         siteKey={turnstileSiteKey}
                         widgetAction='sprouts_squad_community_submit'
-                        onTokenChange={(token) => {
-                          setCaptchaToken(token);
-                          if (token) {
-                            setHasCaptchaLoadError(false);
-                            setIsCaptchaTouched(false);
-                          }
-                        }}
+                        onTokenChange={handleCaptchaTokenChange}
                         onLoadError={() => {
-                          setHasCaptchaLoadError(true);
-                          setSubmitErrorMessage(content.captchaLoadError ?? FALLBACK_CAPTCHA_LOAD_ERROR);
+                          handleCaptchaLoadError();
+                          setSubmissionError(content.captchaLoadError ?? FALLBACK_CAPTCHA_LOAD_ERROR);
                         }}
                       />
                       {captchaErrorMessage ? (
