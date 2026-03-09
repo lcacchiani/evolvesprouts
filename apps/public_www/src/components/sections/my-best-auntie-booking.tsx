@@ -356,7 +356,7 @@ export function MyBestAuntieBooking({
                                 setSelectedDateId(option.id);
                               }
                         }
-                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] snap-center text-center sm:w-[168px] ${isSoldOut ? 'pointer-events-none opacity-50' : ''}`}
+                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] snap-center text-center sm:w-[168px] ${isSoldOut ? 'pointer-events-none' : ''}`}
                       >
                         {isSoldOut && (
                           <span className='es-cohort-sold-out-stamp' aria-hidden='true'>
@@ -365,7 +365,7 @@ export function MyBestAuntieBooking({
                             </span>
                           </span>
                         )}
-                        <div className='flex w-full flex-col items-center gap-2'>
+                        <div className={`flex w-full flex-col items-center gap-2 ${isSoldOut ? 'opacity-40' : ''}`}>
                           <div className='flex items-center justify-center gap-1.5'>
                             <span
                               className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected && !isSoldOut ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
