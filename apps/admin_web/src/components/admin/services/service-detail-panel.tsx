@@ -137,23 +137,34 @@ export function ServiceDetailPanel({
       description='Add or update a service using the same fields below.'
       className='space-y-4'
     >
-      <div>
-        <Label htmlFor='service-type'>Service type</Label>
-        <Select
-          id='service-type'
-          value={serviceType}
-          onChange={(event) => setServiceType(event.target.value as ServiceType)}
-          disabled={isEditMode}
-        >
-          {SERVICE_TYPES.map((entry) => (
-            <option key={entry} value={entry}>
-              {formatEnumLabel(entry)}
-            </option>
-          ))}
-        </Select>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+        <div>
+          <Label htmlFor='service-type'>Service type</Label>
+          <Select
+            id='service-type'
+            value={serviceType}
+            onChange={(event) => setServiceType(event.target.value as ServiceType)}
+            disabled={isEditMode}
+          >
+            {SERVICE_TYPES.map((entry) => (
+              <option key={entry} value={entry}>
+                {formatEnumLabel(entry)}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor='service-title'>Title</Label>
+          <Input
+            id='service-title'
+            value={serviceForm.title}
+            onChange={(event) => setServiceForm({ ...serviceForm, title: event.target.value })}
+            placeholder='Service title'
+          />
+        </div>
       </div>
 
-      <ServiceFormFields value={serviceForm} onChange={setServiceForm} />
+      <ServiceFormFields value={serviceForm} onChange={setServiceForm} hideTitle />
 
       {serviceType === 'training_course' ? (
         <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
