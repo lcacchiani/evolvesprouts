@@ -67,7 +67,7 @@ describe('Testimonials section', () => {
     expect(realSlides).toHaveLength(realCount);
   });
 
-  it('renders the author strip with five names and no service text', () => {
+  it('renders the author strip with five clickable name buttons in an arc', () => {
     render(<Testimonials content={enContent.testimonials} />);
 
     const strip = screen.getByTestId('testimonials-author-strip');
@@ -88,6 +88,13 @@ describe('Testimonials section', () => {
     expect(strip.textContent).toContain(currentAuthor);
     expect(strip.textContent).toContain(nextAuthor);
     expect(strip.textContent).toContain(nextNextAuthor);
+
+    const buttons = strip.querySelectorAll('button');
+    expect(buttons).toHaveLength(5);
+
+    const currentButton = strip.querySelector('[aria-current="true"]');
+    expect(currentButton).not.toBeNull();
+    expect(currentButton?.textContent).toContain(currentAuthor);
 
     const currentService = items[activeIndex]?.service ?? '';
     if (currentService) {
