@@ -77,50 +77,52 @@ export function InstanceListPanel({
         loadingLabel='Loading instances...'
         onLoadMore={onLoadMore}
       >
-        <table className='w-full min-w-[820px] text-left text-sm'>
-          <thead className='text-slate-500'>
-            <tr>
-              <th className='py-2 pr-3 font-medium'>Title</th>
-              <th className='py-2 pr-3 font-medium'>Status</th>
-              <th className='py-2 pr-3 font-medium'>Capacity</th>
-              <th className='py-2 pr-3 font-medium'>Instructor</th>
-              <th className='py-2 pr-3 font-medium text-right'>Operations</th>
-            </tr>
-          </thead>
-          <tbody>
-            {instances.map((instance) => (
-              <tr
-                key={instance.id}
-                className={`cursor-pointer border-t ${
-                  selectedInstanceId === instance.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                }`}
-                onClick={() => onSelectInstance(instance.id)}
-                onKeyDown={(event) => handleRowKeyDown(event, instance.id)}
-                tabIndex={0}
-                role='row'
-                aria-selected={selectedInstanceId === instance.id}
-              >
-                <td className='py-2 pr-3'>{instance.resolvedTitle ?? '-'}</td>
-                <td className='py-2 pr-3'>{formatEnumLabel(instance.status)}</td>
-                <td className='py-2 pr-3'>{instance.maxCapacity ?? 'unlimited'}</td>
-                <td className='py-2 pr-3'>{instance.instructorId ?? '-'}</td>
-                <td className='py-2 pr-3 text-right'>
-                  <Button
-                    type='button'
-                    size='sm'
-                    variant='danger'
-                    onClick={(event) => void handleDeleteInstance(instance, event)}
-                    disabled={isMutating}
-                    aria-label='Delete instance'
-                    title='Delete instance'
-                  >
-                    <DeleteIcon className='h-4 w-4' />
-                  </Button>
-                </td>
+        <div className='rounded-md border border-slate-200'>
+          <table className='w-full min-w-[820px] divide-y divide-slate-200 text-left'>
+            <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
+              <tr>
+                <th className='px-4 py-3 font-semibold'>Title</th>
+                <th className='px-4 py-3 font-semibold'>Status</th>
+                <th className='px-4 py-3 font-semibold'>Capacity</th>
+                <th className='px-4 py-3 font-semibold'>Instructor</th>
+                <th className='px-4 py-3 font-semibold text-right'>Operations</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className='divide-y divide-slate-200 bg-white text-sm'>
+              {instances.map((instance) => (
+                <tr
+                  key={instance.id}
+                  className={`cursor-pointer transition ${
+                    selectedInstanceId === instance.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                  }`}
+                  onClick={() => onSelectInstance(instance.id)}
+                  onKeyDown={(event) => handleRowKeyDown(event, instance.id)}
+                  tabIndex={0}
+                  role='row'
+                  aria-selected={selectedInstanceId === instance.id}
+                >
+                  <td className='px-4 py-3'>{instance.resolvedTitle ?? '-'}</td>
+                  <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
+                  <td className='px-4 py-3'>{instance.maxCapacity ?? 'unlimited'}</td>
+                  <td className='px-4 py-3'>{instance.instructorId ?? '-'}</td>
+                  <td className='px-4 py-3 text-right'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      onClick={(event) => void handleDeleteInstance(instance, event)}
+                      disabled={isMutating}
+                      aria-label='Delete instance'
+                      title='Delete instance'
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
     </>

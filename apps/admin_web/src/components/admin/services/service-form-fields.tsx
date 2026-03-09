@@ -19,20 +19,23 @@ export interface ServiceFormState {
 export interface ServiceFormFieldsProps {
   value: ServiceFormState;
   onChange: (value: ServiceFormState) => void;
+  hideTitle?: boolean;
 }
 
-export function ServiceFormFields({ value, onChange }: ServiceFormFieldsProps) {
+export function ServiceFormFields({ value, onChange, hideTitle = false }: ServiceFormFieldsProps) {
   return (
     <div className='space-y-3'>
-      <div>
-        <Label htmlFor='service-title'>Title</Label>
-        <Input
-          id='service-title'
-          value={value.title}
-          onChange={(event) => onChange({ ...value, title: event.target.value })}
-          placeholder='Service title'
-        />
-      </div>
+      {!hideTitle ? (
+        <div>
+          <Label htmlFor='service-title'>Title</Label>
+          <Input
+            id='service-title'
+            value={value.title}
+            onChange={(event) => onChange({ ...value, title: event.target.value })}
+            placeholder='Service title'
+          />
+        </div>
+      ) : null}
       <div>
         <Label htmlFor='service-description'>Description</Label>
         <Textarea
