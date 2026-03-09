@@ -225,23 +225,21 @@ function getInitials(name: string): string {
   return letters.slice(0, 2).toUpperCase();
 }
 
-function arcTranslateY(offset: number): string {
-  const abs = Math.abs(offset);
-  if (abs >= 2) return 'translate-y-8';
-  if (abs === 1) return 'translate-y-2';
-  return 'translate-y-0';
+function arcPosition(offset: number): string {
+  switch (offset) {
+    case -2: return '-translate-x-[106px] translate-y-8 opacity-25';
+    case -1: return '-translate-x-[62px] translate-y-2 opacity-60';
+    case 0:  return '-translate-x-[18px] translate-y-0 opacity-100';
+    case 1:  return 'translate-x-[26px] translate-y-2 opacity-60';
+    case 2:  return 'translate-x-[70px] translate-y-8 opacity-25';
+    default: return '-translate-x-[18px] translate-y-0 opacity-0';
+  }
 }
 
-function arcOpacity(offset: number): string {
-  const abs = Math.abs(offset);
-  if (abs >= 2) return 'opacity-25';
-  if (abs === 1) return 'opacity-60';
-  return 'opacity-100';
-}
+const STRIP_SWIPE_THRESHOLD_PX = 30;
 
 const AUTHOR_CIRCLE_BASE =
-  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#D98E50] bg-[#F2A975] text-xs font-semibold transition-all duration-300 ease-in-out es-text-heading';
-
+  'absolute left-1/2 top-0 flex h-9 w-9 items-center justify-center rounded-full border border-[#D98E50] bg-[#F2A975] text-xs font-semibold transition-all duration-300 ease-in-out es-text-heading';
 
 function AuthorStrip({
   stories,
@@ -253,6 +251,7 @@ function AuthorStrip({
   onNavigate: (offset: number) => void;
 }) {
   const count = stories.length;
+  const touchStartXRef = useRef<number | null>(null);
 
   const visibleSlots = [-2, -1, 0, 1, 2].map((offset) => {
     const storyIndex = wrapIndex(activeIndex + offset, count);
@@ -262,7 +261,20 @@ function AuthorStrip({
   return (
     <div
       data-testid='testimonials-author-strip'
-      className='mt-6 flex items-start justify-center gap-2 px-4 pb-10 sm:px-6'
+      className='relative mx-auto mt-6 h-[68px] w-full touch-pan-y'
+      onTouchStart={(e) => {
+        touchStartXRef.current = e.touches[0].clientX;
+      }}
+      onTouchEnd={(e) => {
+        if (touchStartXRef.current === null) return;
+        const delta = e.changedTouches[0].clientX - touchStartXRef.current;
+        touchStartXRef.current = null;
+        if (delta > STRIP_SWIPE_THRESHOLD_PX) onNavigate(-1);
+        else if (delta < -STRIP_SWIPE_THRESHOLD_PX) onNavigate(1);
+      }}
+      onTouchCancel={() => {
+        touchStartXRef.current = null;
+      }}
     >
       {visibleSlots.map(({ storyIndex, offset, author }) => (
         <button
@@ -275,7 +287,7 @@ function AuthorStrip({
               : `Go to ${author}'s testimonial`
           }
           aria-current={offset === 0 ? 'true' : undefined}
-          className={`${AUTHOR_CIRCLE_BASE} ${arcTranslateY(offset)} ${arcOpacity(offset)} ${offset === 0 ? 'cursor-default' : 'cursor-pointer hover:brightness-110'}`}
+          className={`${AUTHOR_CIRCLE_BASE} ${arcPosition(offset)} ${offset === 0 ? 'cursor-default' : 'cursor-pointer hover:brightness-110'}`}
         >
           {getInitials(author)}
         </button>
