@@ -17,7 +17,7 @@ describe('CarouselTrack', () => {
     expect(track).toHaveAttribute('aria-label', 'Sample carousel');
   });
 
-  it('scrolls horizontally while dragging with the primary mouse button', () => {
+  it('scrolls horizontally while dragging with the primary mouse pointer', () => {
     render(
       <CarouselTrack ariaLabel='Sample carousel' testId='carousel-track'>
         <div>Item</div>
@@ -27,16 +27,32 @@ describe('CarouselTrack', () => {
     const track = screen.getByTestId('carousel-track');
     track.scrollLeft = 100;
 
-    fireEvent.mouseDown(track, { button: 0, clientX: 240 });
-    fireEvent.mouseMove(track, { clientX: 200 });
+    fireEvent.pointerDown(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+      button: 0,
+      clientX: 240,
+    });
+    fireEvent.pointerMove(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+      clientX: 200,
+    });
     expect(track.scrollLeft).toBe(140);
 
-    fireEvent.mouseUp(track);
-    fireEvent.mouseMove(track, { clientX: 160 });
+    fireEvent.pointerUp(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+    });
+    fireEvent.pointerMove(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+      clientX: 160,
+    });
     expect(track.scrollLeft).toBe(140);
   });
 
-  it('ignores dragging with non-primary mouse buttons', () => {
+  it('ignores dragging with non-primary mouse pointers', () => {
     render(
       <CarouselTrack ariaLabel='Sample carousel' testId='carousel-track'>
         <div>Item</div>
@@ -46,8 +62,17 @@ describe('CarouselTrack', () => {
     const track = screen.getByTestId('carousel-track');
     track.scrollLeft = 80;
 
-    fireEvent.mouseDown(track, { button: 1, clientX: 240 });
-    fireEvent.mouseMove(track, { clientX: 180 });
+    fireEvent.pointerDown(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+      button: 1,
+      clientX: 240,
+    });
+    fireEvent.pointerMove(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+      clientX: 180,
+    });
 
     expect(track.scrollLeft).toBe(80);
   });
@@ -66,9 +91,21 @@ describe('CarouselTrack', () => {
     const track = screen.getByTestId('carousel-track');
     const button = screen.getByRole('button', { name: 'Select' });
 
-    fireEvent.mouseDown(track, { button: 0, clientX: 200 });
-    fireEvent.mouseMove(track, { clientX: 120 });
-    fireEvent.mouseUp(track);
+    fireEvent.pointerDown(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+      button: 0,
+      clientX: 200,
+    });
+    fireEvent.pointerMove(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+      clientX: 120,
+    });
+    fireEvent.pointerUp(track, {
+      pointerType: 'mouse',
+      pointerId: 1,
+    });
     fireEvent.click(button);
 
     expect(clickSpy).not.toHaveBeenCalled();

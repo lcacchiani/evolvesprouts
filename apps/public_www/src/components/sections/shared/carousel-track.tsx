@@ -3,6 +3,7 @@
 import {
   type HTMLAttributes,
   type MouseEventHandler,
+  type PointerEventHandler,
   type ReactNode,
   type RefObject,
   useCallback,
@@ -26,10 +27,11 @@ export function CarouselTrack({
   className,
   children,
   testId,
-  onMouseDown,
-  onMouseMove,
-  onMouseUp,
-  onMouseLeave,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onPointerLeave,
+  onPointerCancel,
   onClickCapture,
   ...rest
 }: CarouselTrackProps) {
@@ -40,10 +42,14 @@ export function CarouselTrack({
   });
   const suppressClickRef = useRef(false);
 
-  const handleMouseDown = useCallback<MouseEventHandler<HTMLDivElement>>(
+  const handlePointerDown = useCallback<PointerEventHandler<HTMLDivElement>>(
     (event) => {
-      onMouseDown?.(event);
-      if (event.defaultPrevented || event.button !== 0) {
+      onPointerDown?.(event);
+      if (
+        event.defaultPrevented ||
+        event.pointerType !== 'mouse' ||
+        event.button !== 0
+      ) {
         return;
       }
 
@@ -53,15 +59,20 @@ export function CarouselTrack({
         startScrollLeft: event.currentTarget.scrollLeft,
       };
       suppressClickRef.current = false;
+      event.currentTarget.setPointerCapture?.(event.pointerId);
       event.preventDefault();
     },
-    [onMouseDown],
+    [onPointerDown],
   );
 
-  const handleMouseMove = useCallback<MouseEventHandler<HTMLDivElement>>(
+  const handlePointerMove = useCallback<PointerEventHandler<HTMLDivElement>>(
     (event) => {
-      onMouseMove?.(event);
-      if (event.defaultPrevented || !dragStateRef.current.isDragging) {
+      onPointerMove?.(event);
+      if (
+        event.defaultPrevented ||
+        event.pointerType !== 'mouse' ||
+        !dragStateRef.current.isDragging
+      ) {
         return;
       }
 
@@ -72,33 +83,68 @@ export function CarouselTrack({
       event.currentTarget.scrollLeft = dragStateRef.current.startScrollLeft - deltaX;
       event.preventDefault();
     },
-    [onMouseMove],
+    [onPointerMove],
   );
 
-  const endDrag = useCallback(() => {
-    dragStateRef.current.isDragging = false;
-  }, []);
+  const endDrag = useCallback(
+    (target: HTMLDivElement, pointerId: number | null) => {
+      if (
+        pointerId !== null &&
+        target.hasPointerCapture?.(pointerId)
+      ) {
+        target.releasePointerCapture?.(pointerId);
+      }
+      dragStateRef.current.isDragging = false;
+    },
+    [],
+  );
 
-  const handleMouseUp = useCallback<MouseEventHandler<HTMLDivElement>>(
+  const handlePointerUp = useCallback<PointerEventHandler<HTMLDivElement>>(
     (event) => {
-      onMouseUp?.(event);
+      onPointerUp?.(event);
       if (event.defaultPrevented) {
         return;
       }
-      endDrag();
+      if (event.pointerType !== 'mouse') {
+        endDrag(event.currentTarget, null);
+        return;
+      }
+
+      endDrag(event.currentTarget, event.pointerId);
     },
-    [endDrag, onMouseUp],
+    [endDrag, onPointerUp],
   );
 
-  const handleMouseLeave = useCallback<MouseEventHandler<HTMLDivElement>>(
+  const handlePointerLeave = useCallback<PointerEventHandler<HTMLDivElement>>(
     (event) => {
-      onMouseLeave?.(event);
+      onPointerLeave?.(event);
       if (event.defaultPrevented) {
         return;
       }
-      endDrag();
+      if (event.pointerType !== 'mouse') {
+        endDrag(event.currentTarget, null);
+        return;
+      }
+
+      endDrag(event.currentTarget, event.pointerId);
     },
-    [endDrag, onMouseLeave],
+    [endDrag, onPointerLeave],
+  );
+
+  const handlePointerCancel = useCallback<PointerEventHandler<HTMLDivElement>>(
+    (event) => {
+      onPointerCancel?.(event);
+      if (event.defaultPrevented) {
+        return;
+      }
+      if (event.pointerType !== 'mouse') {
+        endDrag(event.currentTarget, null);
+        return;
+      }
+
+      endDrag(event.currentTarget, event.pointerId);
+    },
+    [endDrag, onPointerCancel],
   );
 
   const handleClickCapture = useCallback<MouseEventHandler<HTMLDivElement>>(
@@ -125,10 +171,11 @@ export function CarouselTrack({
       aria-roledescription='carousel'
       aria-label={ariaLabel}
       data-testid={testId}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
+      onPointerCancel={handlePointerCancel}
       onClickCapture={handleClickCapture}
       className={`${CAROUSEL_TRACK_BASE_CLASSES}${className ? ` ${className}` : ''}`}
       {...rest}
