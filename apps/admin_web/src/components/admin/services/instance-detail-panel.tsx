@@ -154,11 +154,7 @@ export function InstanceDetailPanel({
   return (
     <Card
       title='Instances'
-      description={
-        isEditMode
-          ? 'Update Instance for the selected row, or cancel to return to add mode.'
-          : 'Add Instance for the selected service.'
-      }
+      description='Add or update an instance using the same fields below.'
       className='space-y-4'
     >
       {!serviceType ? (

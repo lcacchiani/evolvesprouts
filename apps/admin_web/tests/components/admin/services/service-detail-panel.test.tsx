@@ -110,4 +110,46 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Description')).toHaveValue('');
     expect(screen.getByLabelText('Status')).toHaveValue('draft');
   });
+
+  it('keeps service type visible and read-only in edit mode', () => {
+    const onUpdate = vi.fn();
+    const onCreate = vi.fn();
+    const onUploadCover = vi.fn();
+    const onCancelSelection = vi.fn();
+
+    const { rerender } = render(
+      <ServiceDetailPanel
+        key='create'
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={onCancelSelection}
+        onCreate={onCreate}
+        onUpdate={onUpdate}
+        onUploadCover={onUploadCover}
+      />
+    );
+
+    const createModeServiceType = screen.getByLabelText('Service type');
+    expect(createModeServiceType).toBeEnabled();
+
+    rerender(
+      <ServiceDetailPanel
+        key='edit'
+        service={buildService({
+          serviceType: 'consultation',
+        })}
+        isLoading={false}
+        error=''
+        onCancelSelection={onCancelSelection}
+        onCreate={onCreate}
+        onUpdate={onUpdate}
+        onUploadCover={onUploadCover}
+      />
+    );
+
+    const editModeServiceType = screen.getByLabelText('Service type');
+    expect(editModeServiceType).toBeDisabled();
+    expect(editModeServiceType).toHaveValue('consultation');
+  });
 });
