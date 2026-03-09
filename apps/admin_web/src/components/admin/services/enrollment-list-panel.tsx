@@ -142,11 +142,7 @@ export function EnrollmentListPanel({
     <>
       <Card
         title='Enrollments'
-        description={
-          isEditMode
-            ? 'Update Enrollment for the selected row, or cancel to return to add mode.'
-            : 'Add Enrollment for the selected service instance.'
-        }
+        description='Add or update an enrollment using the same fields below.'
         className='space-y-3'
       >
         {!canCreate ? (
@@ -157,11 +153,21 @@ export function EnrollmentListPanel({
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
           <div>
             <Label htmlFor='enrollment-contact-id'>Contact ID</Label>
-            <Input id='enrollment-contact-id' value={contactId} onChange={(event) => setContactId(event.target.value)} />
+            <Input
+              id='enrollment-contact-id'
+              value={contactId}
+              onChange={(event) => setContactId(event.target.value)}
+              disabled={isEditMode}
+            />
           </div>
           <div>
             <Label htmlFor='enrollment-family-id'>Family ID</Label>
-            <Input id='enrollment-family-id' value={familyId} onChange={(event) => setFamilyId(event.target.value)} />
+            <Input
+              id='enrollment-family-id'
+              value={familyId}
+              onChange={(event) => setFamilyId(event.target.value)}
+              disabled={isEditMode}
+            />
           </div>
           <div>
             <Label htmlFor='enrollment-organization-id'>Organization ID</Label>
@@ -169,9 +175,13 @@ export function EnrollmentListPanel({
               id='enrollment-organization-id'
               value={organizationId}
               onChange={(event) => setOrganizationId(event.target.value)}
+              disabled={isEditMode}
             />
           </div>
         </div>
+        <p className='text-xs text-slate-500'>
+          Contact, family, and organization IDs are set during creation and are read-only when editing.
+        </p>
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
           <div>
             <Label htmlFor='enrollment-status'>Status</Label>

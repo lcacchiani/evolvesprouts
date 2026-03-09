@@ -134,29 +134,24 @@ export function ServiceDetailPanel({
   return (
     <Card
       title='Services'
-      description={
-        isEditMode
-          ? 'Update Service for the selected row, or cancel to return to add mode.'
-          : 'Add Service using the form below.'
-      }
+      description='Add or update a service using the same fields below.'
       className='space-y-4'
     >
-      {!isEditMode ? (
-        <div>
-          <Label htmlFor='service-type'>Service type</Label>
-          <Select
-            id='service-type'
-            value={serviceType}
-            onChange={(event) => setServiceType(event.target.value as ServiceType)}
-          >
-            {SERVICE_TYPES.map((entry) => (
-              <option key={entry} value={entry}>
-                {formatEnumLabel(entry)}
-              </option>
-            ))}
-          </Select>
-        </div>
-      ) : null}
+      <div>
+        <Label htmlFor='service-type'>Service type</Label>
+        <Select
+          id='service-type'
+          value={serviceType}
+          onChange={(event) => setServiceType(event.target.value as ServiceType)}
+          disabled={isEditMode}
+        >
+          {SERVICE_TYPES.map((entry) => (
+            <option key={entry} value={entry}>
+              {formatEnumLabel(entry)}
+            </option>
+          ))}
+        </Select>
+      </div>
 
       <ServiceFormFields value={serviceForm} onChange={setServiceForm} />
 
