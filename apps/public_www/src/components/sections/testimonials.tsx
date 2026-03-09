@@ -220,15 +220,28 @@ function TestimonialSlide({
   );
 }
 
-const AUTHOR_BUTTON_BASE =
-  'truncate rounded-full border border-[#D98E50] bg-[#F2A975] py-1 transition-opacity es-text-heading';
-
-interface AuthorSlot {
-  label: string;
-  offset: number;
-  arc: string;
-  sizing: string;
+function getInitials(name: string): string {
+  const letters = name.replace(/[^a-zA-Z]/g, '');
+  return letters.slice(0, 2).toUpperCase();
 }
+
+function arcTranslateY(offset: number): string {
+  const abs = Math.abs(offset);
+  if (abs >= 2) return 'translate-y-8';
+  if (abs === 1) return 'translate-y-2';
+  return 'translate-y-0';
+}
+
+function arcOpacity(offset: number): string {
+  const abs = Math.abs(offset);
+  if (abs >= 2) return 'opacity-25';
+  if (abs === 1) return 'opacity-60';
+  return 'opacity-100';
+}
+
+const AUTHOR_CIRCLE_BASE =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#D98E50] bg-[#F2A975] text-xs font-semibold transition-all duration-300 ease-in-out es-text-heading';
+
 
 function AuthorStrip({
   stories,
@@ -240,63 +253,31 @@ function AuthorStrip({
   onNavigate: (offset: number) => void;
 }) {
   const count = stories.length;
-  const prevPrevIndex = wrapIndex(activeIndex - 2, count);
-  const prevIndex = wrapIndex(activeIndex - 1, count);
-  const nextIndex = wrapIndex(activeIndex + 1, count);
-  const nextNextIndex = wrapIndex(activeIndex + 2, count);
 
-  const slots: AuthorSlot[] = [
-    {
-      label: stories[prevPrevIndex]?.author ?? '',
-      offset: -2,
-      arc: 'translate-y-4',
-      sizing: 'w-[50px] px-2 text-[10px] opacity-40 hover:opacity-70 cursor-pointer',
-    },
-    {
-      label: stories[prevIndex]?.author ?? '',
-      offset: -1,
-      arc: 'translate-y-1.5',
-      sizing: 'w-[50px] px-2 text-xs opacity-70 hover:opacity-90 cursor-pointer',
-    },
-    {
-      label: stories[activeIndex]?.author ?? '',
-      offset: 0,
-      arc: '',
-      sizing: 'shrink-0 px-4 text-sm font-semibold cursor-default',
-    },
-    {
-      label: stories[nextIndex]?.author ?? '',
-      offset: 1,
-      arc: 'translate-y-1.5',
-      sizing: 'w-[50px] px-2 text-xs opacity-70 hover:opacity-90 cursor-pointer',
-    },
-    {
-      label: stories[nextNextIndex]?.author ?? '',
-      offset: 2,
-      arc: 'translate-y-4',
-      sizing: 'w-[50px] px-2 text-[10px] opacity-40 hover:opacity-70 cursor-pointer',
-    },
-  ];
+  const visibleSlots = [-2, -1, 0, 1, 2].map((offset) => {
+    const storyIndex = wrapIndex(activeIndex + offset, count);
+    return { storyIndex, offset, author: stories[storyIndex]?.author ?? '' };
+  });
 
   return (
     <div
       data-testid='testimonials-author-strip'
-      className='mt-6 flex items-start justify-center gap-2 px-4 pb-5 sm:px-6'
+      className='mt-6 flex items-start justify-center gap-2 px-4 pb-10 sm:px-6'
     >
-      {slots.map((slot) => (
+      {visibleSlots.map(({ storyIndex, offset, author }) => (
         <button
-          key={slot.offset}
+          key={count >= 5 ? storyIndex : `${storyIndex}-${offset}`}
           type='button'
-          onClick={slot.offset !== 0 ? () => onNavigate(slot.offset) : undefined}
+          onClick={offset !== 0 ? () => onNavigate(offset) : undefined}
           aria-label={
-            slot.offset === 0
-              ? `${slot.label} (current)`
-              : `Go to ${slot.label}'s testimonial`
+            offset === 0
+              ? `${author} (current)`
+              : `Go to ${author}'s testimonial`
           }
-          aria-current={slot.offset === 0 ? 'true' : undefined}
-          className={`${AUTHOR_BUTTON_BASE} ${slot.arc} ${slot.sizing}`}
+          aria-current={offset === 0 ? 'true' : undefined}
+          className={`${AUTHOR_CIRCLE_BASE} ${arcTranslateY(offset)} ${arcOpacity(offset)} ${offset === 0 ? 'cursor-default' : 'cursor-pointer hover:brightness-110'}`}
         >
-          {slot.label}
+          {getInitials(author)}
         </button>
       ))}
     </div>

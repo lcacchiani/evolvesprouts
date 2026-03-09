@@ -67,36 +67,30 @@ describe('Testimonials section', () => {
     expect(realSlides).toHaveLength(realCount);
   });
 
-  it('renders the author strip with five clickable name buttons in an arc', () => {
+  it('renders the author strip with five circular initial buttons in an arc', () => {
     render(<Testimonials content={enContent.testimonials} />);
 
     const strip = screen.getByTestId('testimonials-author-strip');
     expect(strip).toBeInTheDocument();
-
-    const items = enContent.testimonials.items;
-    const count = items.length;
-    const activeIndex = 0;
-
-    const prevPrevAuthor = items[(((activeIndex - 2) % count) + count) % count]?.author ?? '';
-    const prevAuthor = items[(((activeIndex - 1) % count) + count) % count]?.author ?? '';
-    const currentAuthor = items[activeIndex]?.author ?? '';
-    const nextAuthor = items[(activeIndex + 1) % count]?.author ?? '';
-    const nextNextAuthor = items[(activeIndex + 2) % count]?.author ?? '';
-
-    expect(strip.textContent).toContain(prevPrevAuthor);
-    expect(strip.textContent).toContain(prevAuthor);
-    expect(strip.textContent).toContain(currentAuthor);
-    expect(strip.textContent).toContain(nextAuthor);
-    expect(strip.textContent).toContain(nextNextAuthor);
 
     const buttons = strip.querySelectorAll('button');
     expect(buttons).toHaveLength(5);
 
     const currentButton = strip.querySelector('[aria-current="true"]');
     expect(currentButton).not.toBeNull();
-    expect(currentButton?.textContent).toContain(currentAuthor);
 
-    const currentService = items[activeIndex]?.service ?? '';
+    const items = enContent.testimonials.items;
+    const currentAuthor = items[0]?.author ?? '';
+    const toInitials = (name: string) =>
+      name.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase();
+
+    expect(currentButton?.textContent).toBe(toInitials(currentAuthor));
+    expect(currentButton?.getAttribute('aria-label')).toContain(currentAuthor);
+
+    const allInitials = Array.from(buttons).map((b) => b.textContent);
+    expect(allInitials.every((t) => t && t.length === 2)).toBe(true);
+
+    const currentService = items[0]?.service ?? '';
     if (currentService) {
       expect(strip.textContent).not.toContain(currentService);
     }
