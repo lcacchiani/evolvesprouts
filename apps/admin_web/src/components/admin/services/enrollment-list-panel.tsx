@@ -141,7 +141,7 @@ export function EnrollmentListPanel({
   return (
     <>
       <Card
-        title='Enrollments section'
+        title='Enrollments'
         description={
           isEditMode
             ? 'Update Enrollment for the selected row, or cancel to return to add mode.'
@@ -227,7 +227,7 @@ export function EnrollmentListPanel({
       </Card>
 
       <PaginatedTableCard
-        title='Existing Enrollments section'
+        title='Existing Enrollments'
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}

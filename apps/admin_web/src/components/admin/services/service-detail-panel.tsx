@@ -133,7 +133,7 @@ export function ServiceDetailPanel({
 
   return (
     <Card
-      title='Services section'
+      title='Services'
       description={
         isEditMode
           ? 'Update Service for the selected row, or cancel to return to add mode.'

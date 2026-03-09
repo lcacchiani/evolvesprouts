@@ -31,13 +31,30 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
 }
 
 describe('ServiceDetailPanel', () => {
-  it('syncs form values when selected service changes', () => {
+  it('initializes form values from service props per mount', () => {
     const onUpdate = vi.fn();
     const onCreate = vi.fn();
     const onUploadCover = vi.fn();
     const onCancelSelection = vi.fn();
 
     const { rerender } = render(
+      <ServiceDetailPanel
+        key='create'
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={onCancelSelection}
+        onCreate={onCreate}
+        onUpdate={onUpdate}
+        onUploadCover={onUploadCover}
+      />
+    );
+
+    expect(screen.getByLabelText('Title')).toHaveValue('');
+    expect(screen.getByLabelText('Description')).toHaveValue('');
+    expect(screen.getByLabelText('Status')).toHaveValue('draft');
+
+    rerender(
       <ServiceDetailPanel
         key='service-1'
         service={buildService()}
@@ -75,5 +92,22 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('Beta service');
     expect(screen.getByLabelText('Description')).toHaveValue('Beta description');
     expect(screen.getByLabelText('Status')).toHaveValue('published');
+
+    rerender(
+      <ServiceDetailPanel
+        key='create-again'
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={onCancelSelection}
+        onCreate={onCreate}
+        onUpdate={onUpdate}
+        onUploadCover={onUploadCover}
+      />
+    );
+
+    expect(screen.getByLabelText('Title')).toHaveValue('');
+    expect(screen.getByLabelText('Description')).toHaveValue('');
+    expect(screen.getByLabelText('Status')).toHaveValue('draft');
   });
 });

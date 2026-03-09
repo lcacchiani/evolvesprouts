@@ -153,7 +153,7 @@ export function InstanceDetailPanel({
 
   return (
     <Card
-      title='Instances section'
+      title='Instances'
       description={
         isEditMode
           ? 'Update Instance for the selected row, or cancel to return to add mode.'
