@@ -17,6 +17,11 @@ export function MyHistory({ content }: MyHistoryProps) {
     .split(/\n\s*\n/g)
     .map((paragraph) => paragraph.trim())
     .filter((paragraph) => paragraph.length > 0);
+  const storyImageSources = [
+    '/images/about-us/ida-degregorio-ims.webp',
+    '/images/about-us/ida-degregorio-my-best-auntie-1.webp',
+    '/images/about-us/ida-degregorio-my-best-auntie-2.webp',
+  ];
 
   return (
     <SectionShell
@@ -49,15 +54,18 @@ export function MyHistory({ content }: MyHistoryProps) {
           ))}
         </div>
 
-        <div>
-          <Image
-            src='/images/about-us/ida-degregorio-evolvesprouts-2.webp'
-            alt='A brief history image from Evolve Sprouts'
-            width={925}
-            height={780}
-            sizes='(min-width: 1280px) 651px, (min-width: 1024px) 44vw, 100vw'
-            className='h-auto w-full max-w-[651px] lg:ml-auto'
-          />
+        <div className='flex flex-col gap-4 lg:ml-auto lg:max-w-[651px]'>
+          {storyImageSources.map((src, index) => (
+            <Image
+              key={src}
+              src={src}
+              alt={`A brief history image from Evolve Sprouts ${index + 1}`}
+              width={1600}
+              height={1200}
+              sizes='(min-width: 1280px) 651px, (min-width: 1024px) 44vw, 100vw'
+              className='h-auto w-full'
+            />
+          ))}
         </div>
       </SectionContainer>
     </SectionShell>

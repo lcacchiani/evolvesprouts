@@ -42,4 +42,24 @@ describe('MyHistory section', () => {
       expect(screen.getByText(paragraph)).toBeInTheDocument();
     }
   });
+
+  it('renders the updated stacked story images', () => {
+    render(<MyHistory content={enContent.myHistory} />);
+
+    expect(
+      screen.getByAltText('A brief history image from Evolve Sprouts 1'),
+    ).toHaveAttribute('src', '/images/about-us/ida-degregorio-ims.webp');
+    expect(
+      screen.getByAltText('A brief history image from Evolve Sprouts 2'),
+    ).toHaveAttribute(
+      'src',
+      '/images/about-us/ida-degregorio-my-best-auntie-1.webp',
+    );
+    expect(
+      screen.getByAltText('A brief history image from Evolve Sprouts 3'),
+    ).toHaveAttribute(
+      'src',
+      '/images/about-us/ida-degregorio-my-best-auntie-2.webp',
+    );
+  });
 });
