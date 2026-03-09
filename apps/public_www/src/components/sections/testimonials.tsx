@@ -220,12 +220,24 @@ function TestimonialSlide({
   );
 }
 
+const AUTHOR_BUTTON_BASE =
+  'truncate rounded-full border border-[#D98E50] bg-[#F2A975] py-1 transition-opacity es-text-heading';
+
+interface AuthorSlot {
+  label: string;
+  offset: number;
+  arc: string;
+  sizing: string;
+}
+
 function AuthorStrip({
   stories,
   activeIndex,
+  onNavigate,
 }: {
   stories: NormalizedStory[];
   activeIndex: number;
+  onNavigate: (offset: number) => void;
 }) {
   const count = stories.length;
   const prevPrevIndex = wrapIndex(activeIndex - 2, count);
@@ -233,35 +245,60 @@ function AuthorStrip({
   const nextIndex = wrapIndex(activeIndex + 1, count);
   const nextNextIndex = wrapIndex(activeIndex + 2, count);
 
-  const prevPrevLabel = stories[prevPrevIndex]?.author ?? '';
-  const prevLabel = stories[prevIndex]?.author ?? '';
-  const currentAuthor = stories[activeIndex]?.author ?? '';
-  const nextLabel = stories[nextIndex]?.author ?? '';
-  const nextNextLabel = stories[nextNextIndex]?.author ?? '';
+  const slots: AuthorSlot[] = [
+    {
+      label: stories[prevPrevIndex]?.author ?? '',
+      offset: -2,
+      arc: 'translate-y-4',
+      sizing: 'w-[50px] px-2 text-[10px] opacity-40 hover:opacity-70 cursor-pointer',
+    },
+    {
+      label: stories[prevIndex]?.author ?? '',
+      offset: -1,
+      arc: 'translate-y-1.5',
+      sizing: 'w-[50px] px-2 text-xs opacity-70 hover:opacity-90 cursor-pointer',
+    },
+    {
+      label: stories[activeIndex]?.author ?? '',
+      offset: 0,
+      arc: '',
+      sizing: 'shrink-0 px-4 text-sm font-semibold cursor-default',
+    },
+    {
+      label: stories[nextIndex]?.author ?? '',
+      offset: 1,
+      arc: 'translate-y-1.5',
+      sizing: 'w-[50px] px-2 text-xs opacity-70 hover:opacity-90 cursor-pointer',
+    },
+    {
+      label: stories[nextNextIndex]?.author ?? '',
+      offset: 2,
+      arc: 'translate-y-4',
+      sizing: 'w-[50px] px-2 text-[10px] opacity-40 hover:opacity-70 cursor-pointer',
+    },
+  ];
 
   return (
     <div
       data-testid='testimonials-author-strip'
-      className='mt-6 flex justify-center px-4 sm:px-6'
-      aria-hidden='true'
+      className='mt-6 flex items-start justify-center gap-2 px-4 pb-5 sm:px-6'
     >
-      <div className='flex items-center gap-1 rounded-full border border-[#D98E50] bg-[#F2A975] px-3 py-2'>
-        <span className='w-[50px] truncate text-center text-[10px] opacity-30 es-text-heading'>
-          {prevPrevLabel}
-        </span>
-        <span className='w-[50px] truncate text-center text-xs opacity-60 es-text-heading'>
-          {prevLabel}
-        </span>
-        <span className='shrink-0 truncate px-3 text-sm font-semibold es-text-heading'>
-          {currentAuthor}
-        </span>
-        <span className='w-[50px] truncate text-center text-xs opacity-60 es-text-heading'>
-          {nextLabel}
-        </span>
-        <span className='w-[50px] truncate text-center text-[10px] opacity-30 es-text-heading'>
-          {nextNextLabel}
-        </span>
-      </div>
+      {slots.map((slot) => (
+        <button
+          key={slot.offset}
+          type='button'
+          onClick={slot.offset !== 0 ? () => onNavigate(slot.offset) : undefined}
+          aria-label={
+            slot.offset === 0
+              ? `${slot.label} (current)`
+              : `Go to ${slot.label}'s testimonial`
+          }
+          aria-current={slot.offset === 0 ? 'true' : undefined}
+          className={`${AUTHOR_BUTTON_BASE} ${slot.arc} ${slot.sizing}`}
+        >
+          {slot.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -368,6 +405,26 @@ export function Testimonials({ content }: TestimonialsProps) {
     carousel.scrollBy({ left: offset, behavior: 'smooth' });
   }
 
+  function navigateByOffset(offset: number) {
+    if (offset === 0) {
+      return;
+    }
+
+    if (Math.abs(offset) === 1) {
+      scrollByOne(offset > 0 ? 'next' : 'prev');
+      return;
+    }
+
+    const carousel = carouselRef.current;
+    if (!carousel) {
+      return;
+    }
+
+    const targetRealIndex = wrapIndex(activeRealIndex + offset, realCount);
+    teleportToDomIndex(carousel, targetRealIndex + 1);
+    setActiveRealIndex(targetRealIndex);
+  }
+
   return (
     <SectionShell
       id='testimonials'
@@ -423,7 +480,7 @@ export function Testimonials({ content }: TestimonialsProps) {
           </CarouselTrack>
 
           {hasMultipleStories && (
-            <AuthorStrip stories={storiesToRender} activeIndex={activeRealIndex} />
+            <AuthorStrip stories={storiesToRender} activeIndex={activeRealIndex} onNavigate={navigateByOffset} />
           )}
 
           {hasMultipleStories && (
