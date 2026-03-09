@@ -72,6 +72,7 @@ describe('Testimonials section', () => {
 
     const strip = screen.getByTestId('testimonials-author-strip');
     expect(strip).toBeInTheDocument();
+    expect(strip.className).toContain('sm:hidden');
 
     const buttons = strip.querySelectorAll('button');
     expect(buttons).toHaveLength(5);
@@ -97,17 +98,37 @@ describe('Testimonials section', () => {
   });
 
   it('uses snap track carousel with desktop arrow controls', () => {
-    render(<Testimonials content={enContent.testimonials} />);
+    const { container } = render(<Testimonials content={enContent.testimonials} />);
 
     const carouselTrack = screen.getByTestId('testimonials-carousel-track');
     expect(carouselTrack.className).toContain('snap-mandatory');
     expect(carouselTrack.className).toContain('overflow-x-auto');
 
-    expect(
-      screen.getByRole('button', { name: 'Next testimonial' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Previous testimonial' }),
-    ).toBeInTheDocument();
+    const nextButton = screen.getByRole('button', { name: 'Next testimonial' });
+    const previousButton = screen.getByRole('button', { name: 'Previous testimonial' });
+
+    expect(nextButton).toBeInTheDocument();
+    expect(previousButton).toBeInTheDocument();
+    expect(nextButton.className).toContain('sm:inline-flex');
+    expect(previousButton.className).toContain('sm:inline-flex');
+
+    const activeSlideAuthorRow = container.querySelector(
+      'article:not([aria-hidden]) [data-testid="testimonial-author-row"]',
+    );
+    expect(activeSlideAuthorRow).not.toBeNull();
+
+    const authorText = container.querySelector(
+      'article:not([aria-hidden]) .es-testimonials-author',
+    );
+    const metaText = container.querySelector(
+      'article:not([aria-hidden]) .es-testimonials-meta',
+    );
+
+    expect(authorText?.className).toContain('max-w-[350px]');
+    expect(metaText?.className).toContain('max-w-[350px]');
+
+    const authorRowChildren = activeSlideAuthorRow?.children ?? [];
+    expect(authorRowChildren[0]?.getAttribute('aria-label')).toBe('Previous testimonial');
+    expect(authorRowChildren[2]?.getAttribute('aria-label')).toBe('Next testimonial');
   });
 });
