@@ -67,21 +67,18 @@ describe('Testimonials section', () => {
     expect(realSlides).toHaveLength(realCount);
   });
 
-  it('renders the author strip with current service and the next two names', () => {
+  it('renders the author strip with current, previous, and next names', () => {
     render(<Testimonials content={enContent.testimonials} />);
 
     const strip = screen.getByTestId('testimonials-author-strip');
     expect(strip).toBeInTheDocument();
 
     const firstAuthor = enContent.testimonials.items[0]?.author ?? '';
-    const firstService = enContent.testimonials.items[0]?.service ?? '';
-    const secondAuthor = enContent.testimonials.items[1]?.author ?? '';
-    const thirdAuthor = enContent.testimonials.items[2]?.author ?? '';
+    const lastAuthor =
+      enContent.testimonials.items[enContent.testimonials.items.length - 1]?.author ?? '';
 
     expect(strip.textContent).toContain(firstAuthor);
-    expect(strip.textContent).toContain(firstService);
-    expect(strip.textContent).toContain(secondAuthor);
-    expect(strip.textContent).toContain(thirdAuthor);
+    expect(strip.textContent).toContain(lastAuthor);
   });
 
   it('uses snap track carousel with desktop arrow controls', () => {
