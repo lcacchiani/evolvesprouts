@@ -200,13 +200,13 @@ function TestimonialSlide({
 
           {(story.author || story.service) && (
             <div className='relative mt-6 sm:mt-8'>
-              <div className='min-w-0'>
+              <div className='min-w-0 text-center'>
                 {story.author && (
                   <p className='es-testimonials-author'>{story.author}</p>
                 )}
                 {story.service && (
                   <p
-                    className={`max-w-[190px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
+                    className={`mx-auto max-w-[190px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
                   >
                     {story.service}
                   </p>
