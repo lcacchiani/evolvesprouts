@@ -463,7 +463,9 @@ describe('MyBestAuntieBooking section', () => {
     });
     expect(soldOutButton.getAttribute('aria-disabled')).toBe('true');
     expect(soldOutButton.className).toContain('pointer-events-none');
-    expect(soldOutButton.className).toContain('opacity-50');
+
+    const soldOutCardContent = soldOutButton.querySelector('div.flex.w-full');
+    expect(soldOutCardContent?.className).toContain('opacity-40');
 
     const stampText = within(soldOutButton).getByText(soldOutContent.soldOutStampLabel);
     expect(stampText).toBeInTheDocument();

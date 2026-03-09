@@ -841,7 +841,6 @@
     border: 3px solid var(--es-color-text-danger, #dc2626);
     border-radius: 6px;
     padding: 0.15rem 0.55rem;
-    opacity: 0.85;
   }
 
   .es-booking-modal-overlay {
