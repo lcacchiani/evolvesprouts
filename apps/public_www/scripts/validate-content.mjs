@@ -12,6 +12,9 @@ const LOCALE_FILES = [
   ['zh-CN', 'zh-CN.json'],
   ['zh-HK', 'zh-HK.json'],
 ];
+const CONTACT_EMAIL_ENV_NAME = 'NEXT_PUBLIC_EMAIL';
+const CONTACT_EMAIL_PLACEHOLDER = '{{CONTACT_EMAIL}}';
+const CONTACT_EMAIL_MAILTO_PLACEHOLDER = `mailto:${CONTACT_EMAIL_PLACEHOLDER}`;
 const EMAIL_VALUE_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_VALUE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
 const DANGEROUS_HREF_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
@@ -143,6 +146,10 @@ function assertLocaleMetadata(content, locale, errors) {
 
 function validateEmailValue(value, keyPath, errors) {
   const normalizedValue = value.trim();
+  if (normalizedValue === CONTACT_EMAIL_PLACEHOLDER) {
+    return;
+  }
+
   if (!EMAIL_VALUE_REGEX.test(normalizedValue)) {
     errors.push(`${keyPath}: invalid email value "${normalizedValue}"`);
   }
@@ -150,6 +157,10 @@ function validateEmailValue(value, keyPath, errors) {
 
 function validateHrefValue(value, keyPath, errors) {
   const normalizedValue = value.trim();
+  if (normalizedValue === CONTACT_EMAIL_MAILTO_PLACEHOLDER) {
+    return;
+  }
+
   if (!normalizedValue) {
     errors.push(`${keyPath}: href cannot be empty`);
     return;
@@ -204,6 +215,15 @@ function validateHrefValue(value, keyPath, errors) {
   }
 
   errors.push(`${keyPath}: unsupported href format "${normalizedValue}"`);
+}
+
+function validateConfiguredContactEmail(errors) {
+  const normalizedValue = process.env[CONTACT_EMAIL_ENV_NAME]?.trim() ?? '';
+  if (!EMAIL_VALUE_REGEX.test(normalizedValue)) {
+    errors.push(
+      `${CONTACT_EMAIL_ENV_NAME} must be configured with a valid email address for content interpolation.`,
+    );
+  }
 }
 
 function normalizeInternalRoutePath(value) {
@@ -350,6 +370,8 @@ async function main() {
   const localeMap = Object.fromEntries(loadedEntries);
   const englishContent = localeMap.en;
   const errors = [];
+
+  validateConfiguredContactEmail(errors);
 
   for (const [locale] of LOCALE_FILES) {
     const localeContent = localeMap[locale];

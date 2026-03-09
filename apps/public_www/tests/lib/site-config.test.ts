@@ -75,11 +75,12 @@ describe('site-config', () => {
     expect(siteConfig.contactEmail).toBe('hello@example.com');
   });
 
-  it('returns no contact email when NEXT_PUBLIC_EMAIL is invalid', () => {
+  it('throws when NEXT_PUBLIC_EMAIL is invalid', () => {
     process.env.NEXT_PUBLIC_EMAIL = 'not-an-email';
 
-    const siteConfig = resolvePublicSiteConfig();
-    expect(siteConfig.contactEmail).toBeUndefined();
+    expect(() => resolvePublicSiteConfig()).toThrow(
+      'NEXT_PUBLIC_EMAIL must be configured with a valid email address.',
+    );
   });
 
   it('normalizes schemeless social URLs by prepending https', () => {

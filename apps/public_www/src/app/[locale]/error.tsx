@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 
 import { DEFAULT_LOCALE, getContent, isValidLocale, type Locale } from '@/content';
+import { reportInternalError } from '@/lib/internal-error-reporting';
 
 interface LocaleErrorPageProps {
   error: Error & { digest?: string };
@@ -30,7 +31,11 @@ export default function LocaleErrorPage({ error, reset }: LocaleErrorPageProps) 
   const content = getContent(locale);
 
   useEffect(() => {
-    console.error(`[locale-error-boundary:${locale}]`, error);
+    reportInternalError({
+      context: 'locale-error-boundary',
+      error,
+      metadata: { locale },
+    });
   }, [error, locale]);
 
   return (

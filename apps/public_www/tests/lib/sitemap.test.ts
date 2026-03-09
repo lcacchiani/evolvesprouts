@@ -7,16 +7,17 @@ import {
   INDEXED_ROUTE_PATHS,
   PLACEHOLDER_ROUTE_PATHS,
 } from '@/lib/routes';
-import { SITE_ORIGIN, localizePath } from '@/lib/seo';
+import { getSiteOrigin, localizePath } from '@/lib/seo';
 
 describe('sitemap', () => {
   it('includes all indexed localized routes', () => {
+    const siteOrigin = getSiteOrigin();
     const entries = sitemap();
     const urls = new Set(entries.map((entry) => entry.url));
 
     for (const locale of SUPPORTED_LOCALES) {
       for (const routePath of INDEXED_ROUTE_PATHS) {
-        expect(urls).toContain(`${SITE_ORIGIN}${localizePath(routePath, locale)}`);
+        expect(urls).toContain(`${siteOrigin}${localizePath(routePath, locale)}`);
       }
     }
   });
@@ -30,20 +31,22 @@ describe('sitemap', () => {
   });
 
   it('excludes placeholder localized routes', () => {
+    const siteOrigin = getSiteOrigin();
     const entries = sitemap();
     const urls = new Set(entries.map((entry) => entry.url));
 
     for (const locale of SUPPORTED_LOCALES) {
       for (const routePath of PLACEHOLDER_ROUTE_PATHS) {
-        expect(urls).not.toContain(`${SITE_ORIGIN}${localizePath(routePath, locale)}`);
+        expect(urls).not.toContain(`${siteOrigin}${localizePath(routePath, locale)}`);
       }
     }
   });
 
   it('keeps robots host aligned with SITE_ORIGIN', () => {
+    const siteOrigin = getSiteOrigin();
     const robotsMetadata = robots();
 
-    expect(robotsMetadata.host).toBe(new URL(SITE_ORIGIN).hostname);
-    expect(robotsMetadata.sitemap).toBe(`${SITE_ORIGIN}/sitemap.xml`);
+    expect(robotsMetadata.host).toBe(new URL(siteOrigin).hostname);
+    expect(robotsMetadata.sitemap).toBe(`${siteOrigin}/sitemap.xml`);
   });
 });

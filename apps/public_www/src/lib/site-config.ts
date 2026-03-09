@@ -9,7 +9,7 @@ export interface PublicSiteConfig {
   instagramUrl?: string;
   linkedinUrl?: string;
   whatsappUrl?: string;
-  contactEmail?: string;
+  contactEmail: string;
   businessAddress?: string;
   businessPhoneNumber?: string;
 }
@@ -98,6 +98,17 @@ function normalizeConfiguredEmail(value: string | undefined): string | undefined
   return normalized;
 }
 
+function resolveRequiredContactEmail(): string {
+  const normalizedEmail = normalizeConfiguredEmail(readOptionalEnv(CONTACT_EMAIL_ENV_NAME));
+  if (!normalizedEmail) {
+    throw new Error(
+      `${CONTACT_EMAIL_ENV_NAME} must be configured with a valid email address.`,
+    );
+  }
+
+  return normalizedEmail;
+}
+
 function isWhatsappShortLink(url: URL): boolean {
   return url.hostname === 'wa.me' && url.pathname.startsWith('/message/');
 }
@@ -146,7 +157,7 @@ export function resolvePublicSiteConfig(): PublicSiteConfig {
     instagramUrl: normalizeConfiguredUrl(readOptionalEnv(INSTAGRAM_URL_ENV_NAME)),
     linkedinUrl: normalizeConfiguredUrl(readOptionalEnv(LINKEDIN_URL_ENV_NAME)),
     whatsappUrl: normalizeConfiguredUrl(readOptionalEnv(WHATSAPP_URL_ENV_NAME)),
-    contactEmail: normalizeConfiguredEmail(readOptionalEnv(CONTACT_EMAIL_ENV_NAME)),
+    contactEmail: resolveRequiredContactEmail(),
     businessAddress: readOptionalEnv(BUSINESS_ADDRESS_ENV_NAME),
     businessPhoneNumber: readOptionalEnv(BUSINESS_PHONE_ENV_NAME),
   };

@@ -15,6 +15,7 @@ import {
   type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { reportInternalError } from '@/lib/internal-error-reporting';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
 import {
@@ -47,7 +48,12 @@ async function resolveServerSideEvents(
       return [];
     }
 
-    console.error('[events] Failed to fetch events payload.', error);
+    // Fail closed for data fetching while preserving page rendering.
+    reportInternalError({
+      context: 'events-page-fetch',
+      error,
+      metadata: { locale },
+    });
     return [];
   } finally {
     clearTimeout(timeout);

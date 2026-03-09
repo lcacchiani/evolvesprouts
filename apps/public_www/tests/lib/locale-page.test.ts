@@ -16,6 +16,7 @@ import {
   createDefaultLocaleRedirectPage,
   createLocaleAliasRedirectPage,
   createPlaceholderPage,
+  createRootRedirectPage,
   getFooterLinkLabel,
 } from '@/lib/locale-page';
 
@@ -32,6 +33,15 @@ describe('locale-page', () => {
       RedirectPage();
     }).toThrow('redirect:/en/about-us');
     expect(redirectMock).toHaveBeenCalledWith('/en/about-us');
+  });
+
+  it('creates a root redirect page to a fixed path', () => {
+    const RedirectPage = createRootRedirectPage('/en#resources');
+
+    expect(() => {
+      RedirectPage();
+    }).toThrow('redirect:/en#resources');
+    expect(redirectMock).toHaveBeenCalledWith('/en#resources');
   });
 
   it('creates a locale-aware alias redirect page for path aliases', async () => {

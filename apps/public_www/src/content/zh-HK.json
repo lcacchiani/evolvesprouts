@@ -699,7 +699,7 @@
         "form": "透過此頁表單"
       },
       "emailLabel": "郵件聯絡 @",
-      "emailAddress": "ida@evolvesprouts.com",
+      "emailAddress": "{{CONTACT_EMAIL}}",
       "promiseTitle": "我承諾…",
       "promises": [
         "24-48 小時內回覆（沒有機器人——由我這位真正熱愛兒童發展的真人親自回覆）。",
@@ -755,8 +755,8 @@
         {
           "title": "郵件聯絡：",
           "description": "歡迎發郵件至",
-          "ctaLabel": "ida@evolvesprouts.com",
-          "ctaHref": "mailto:ida@evolvesprouts.com"
+          "ctaLabel": "{{CONTACT_EMAIL}}",
+          "ctaHref": "mailto:{{CONTACT_EMAIL}}"
         },
         {
           "title": "社交互動：",

@@ -29,7 +29,7 @@ describe('buildLlmsTxt', () => {
   });
 
   it('includes the contact email from content', () => {
-    expect(output).toContain(enContent.contactUs.contactUsForm.emailAddress);
+    expect(output).toContain(process.env.NEXT_PUBLIC_EMAIL ?? '');
   });
 
   it('includes the required llms.txt sections', () => {
@@ -124,7 +124,7 @@ describe('buildLlmsFullTxt', () => {
   });
 
   it('includes the contact email from content', () => {
-    expect(output).toContain(enContent.contactUs.contactUsForm.emailAddress);
+    expect(output).toContain(process.env.NEXT_PUBLIC_EMAIL ?? '');
   });
 
   it('includes multilingual site URLs', () => {

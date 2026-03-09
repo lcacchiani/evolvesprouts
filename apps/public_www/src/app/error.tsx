@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { getContent, type Locale } from '@/content';
+import { reportInternalError } from '@/lib/internal-error-reporting';
 import { getLocaleFromPath } from '@/lib/locale-routing';
 
 interface RootErrorPageProps {
@@ -23,7 +24,11 @@ export default function RootErrorPage({ error, reset }: RootErrorPageProps) {
   const content = getContent(locale);
 
   useEffect(() => {
-    console.error(`[root-error-boundary:${locale}]`, error);
+    reportInternalError({
+      context: 'root-error-boundary',
+      error,
+      metadata: { locale },
+    });
   }, [error, locale]);
 
   return (

@@ -1,7 +1,7 @@
 import type { Locale, SiteContent } from '@/content';
 import type { EventCardData } from '@/lib/events-data';
 import { ROUTES, type AppRoutePath } from '@/lib/routes';
-import { SITE_ORIGIN, localizePath } from '@/lib/seo';
+import { getSiteOrigin, localizePath } from '@/lib/seo';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 export type JsonLdPrimitive = string | number | boolean | null;
@@ -16,9 +16,18 @@ const EVENT_ATTENDANCE_MODE_OFFLINE = `${SCHEMA_CONTEXT}/OfflineEventAttendanceM
 const EVENT_STATUS_SCHEDULED = `${SCHEMA_CONTEXT}/EventScheduled`;
 const OFFER_AVAILABILITY_IN_STOCK = `${SCHEMA_CONTEXT}/InStock`;
 const OFFER_AVAILABILITY_SOLD_OUT = `${SCHEMA_CONTEXT}/SoldOut`;
-const ORGANIZATION_SCHEMA_ID = `${SITE_ORIGIN}#organization`;
-const LOCAL_BUSINESS_SCHEMA_ID = `${SITE_ORIGIN}#local-business`;
-const WEBSITE_SCHEMA_ID = `${SITE_ORIGIN}#website`;
+
+function getOrganizationSchemaId(): string {
+  return `${getSiteOrigin()}#organization`;
+}
+
+function getLocalBusinessSchemaId(): string {
+  return `${getSiteOrigin()}#local-business`;
+}
+
+function getWebsiteSchemaId(): string {
+  return `${getSiteOrigin()}#website`;
+}
 
 function buildCourseSchemaId(locale: Locale): string {
   return `${toLocalizedAbsoluteUrl(ROUTES.servicesMyBestAuntieTrainingCourse, locale)}#course`;
@@ -30,15 +39,16 @@ function buildEventSchemaId(locale: Locale, eventId: string): string {
 }
 
 function toAbsoluteUrl(path: string): string {
+  const siteOrigin = getSiteOrigin();
   try {
-    return new URL(path, SITE_ORIGIN).toString();
+    return new URL(path, siteOrigin).toString();
   } catch {
-    return SITE_ORIGIN;
+    return siteOrigin;
   }
 }
 
 function toLocalizedAbsoluteUrl(routePath: AppRoutePath, locale: Locale): string {
-  return `${SITE_ORIGIN}${localizePath(routePath, locale)}`;
+  return `${getSiteOrigin()}${localizePath(routePath, locale)}`;
 }
 
 function compactJsonLdValue(value: JsonLdValue | undefined): JsonLdValue | undefined {
@@ -89,10 +99,11 @@ export function buildOrganizationSchema({
   locale,
   content,
 }: SharedStructuredDataOptions): JsonLdObject {
+  const organizationSchemaId = getOrganizationSchemaId();
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'Organization',
-    '@id': ORGANIZATION_SCHEMA_ID,
+    '@id': organizationSchemaId,
     name: content.navbar.brand,
     url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
     logo: toAbsoluteUrl(content.navbar.logoSrc || '/images/evolvesprouts-logo.svg'),
@@ -106,11 +117,13 @@ export function buildLocalBusinessSchema({
   content,
 }: SharedStructuredDataOptions): JsonLdObject {
   const { businessAddress, businessPhoneNumber } = resolvePublicSiteConfig();
+  const localBusinessSchemaId = getLocalBusinessSchemaId();
+  const organizationSchemaId = getOrganizationSchemaId();
 
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'LocalBusiness',
-    '@id': LOCAL_BUSINESS_SCHEMA_ID,
+    '@id': localBusinessSchemaId,
     name: content.seo.localBusinessName || content.navbar.brand,
     description: content.seo.localBusinessDescription,
     url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
@@ -127,7 +140,7 @@ export function buildLocalBusinessSchema({
     areaServed: content.seo.localBusinessAreaServed,
     sameAs: resolveSocialProfiles(),
     parentOrganization: {
-      '@id': ORGANIZATION_SCHEMA_ID,
+      '@id': organizationSchemaId,
     },
   });
 }
@@ -136,10 +149,13 @@ export function buildWebSiteSchema({
   locale,
   content,
 }: SharedStructuredDataOptions): JsonLdObject {
+  const websiteSchemaId = getWebsiteSchemaId();
+  const organizationSchemaId = getOrganizationSchemaId();
+
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'WebSite',
-    '@id': WEBSITE_SCHEMA_ID,
+    '@id': websiteSchemaId,
     name: content.navbar.brand,
     url: toLocalizedAbsoluteUrl(ROUTES.home, locale),
     description: content.seo.organizationDescription,
@@ -149,7 +165,7 @@ export function buildWebSiteSchema({
       { '@type': 'Language', name: 'Chinese (Traditional)', alternateName: 'zh-HK' },
     ],
     publisher: {
-      '@id': ORGANIZATION_SCHEMA_ID,
+      '@id': organizationSchemaId,
     },
   });
 }
@@ -201,6 +217,7 @@ export function buildCourseSchema({
   locale,
   content,
 }: SharedStructuredDataOptions): JsonLdObject {
+  const organizationSchemaId = getOrganizationSchemaId();
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'Course',
@@ -209,7 +226,7 @@ export function buildCourseSchema({
     description: content.seo.trainingCourse.description,
     url: toLocalizedAbsoluteUrl(ROUTES.servicesMyBestAuntieTrainingCourse, locale),
     provider: {
-      '@id': ORGANIZATION_SCHEMA_ID,
+      '@id': organizationSchemaId,
     },
   });
 }
@@ -242,6 +259,7 @@ function resolveEventOffer(
   event: EventCardData,
   locale: Locale,
 ): JsonLdObject | undefined {
+  const organizationSchemaId = getOrganizationSchemaId();
   if (!event.ctaHref) {
     return undefined;
   }
@@ -254,7 +272,7 @@ function resolveEventOffer(
       : OFFER_AVAILABILITY_IN_STOCK,
     category: 'Course',
     seller: {
-      '@id': ORGANIZATION_SCHEMA_ID,
+      '@id': organizationSchemaId,
     },
   });
 }
@@ -268,6 +286,7 @@ export function buildEventSchemas({
   locale,
   events,
 }: EventSchemaOptions): JsonLdObject[] {
+  const organizationSchemaId = getOrganizationSchemaId();
   return events
     .filter((event) => event.timestamp !== null)
     .map((event) =>
@@ -283,7 +302,7 @@ export function buildEventSchemas({
         eventAttendanceMode: resolveEventAttendanceMode(event),
         location: resolveEventLocation(event, locale),
         organizer: {
-          '@id': ORGANIZATION_SCHEMA_ID,
+          '@id': organizationSchemaId,
         },
         offers: resolveEventOffer(event, locale),
       }),

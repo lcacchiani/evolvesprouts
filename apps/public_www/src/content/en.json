@@ -699,7 +699,7 @@
         "form": "Form on this page"
       },
       "emailLabel": "Email Us @",
-      "emailAddress": "ida@evolvesprouts.com",
+      "emailAddress": "{{CONTACT_EMAIL}}",
       "promiseTitle": "I Promise…",
       "promises": [
         "To reply within 24-48 hours (no bots here — just me, a real human who loves child development!).",
@@ -755,8 +755,8 @@
         {
           "title": "Email Me:",
           "description": "Drop a line at",
-          "ctaLabel": "ida@evolvesprouts.com",
-          "ctaHref": "mailto:ida@evolvesprouts.com"
+          "ctaLabel": "{{CONTACT_EMAIL}}",
+          "ctaHref": "mailto:{{CONTACT_EMAIL}}"
         },
         {
           "title": "Social Vibes:",

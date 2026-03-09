@@ -1,6 +1,7 @@
 import enContent from './en.json';
 import zhCNContent from './zh-CN.json';
 import zhHKContent from './zh-HK.json';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 /**
  * Supported locales. Add new locales here and provide a matching
@@ -55,16 +56,43 @@ const contentMap = {
   'zh-HK': zhHKContent,
 } satisfies Record<Locale, SiteContent>;
 
+function withConfiguredContactEmail(content: SiteContent): SiteContent {
+  const { contactEmail } = resolvePublicSiteConfig();
+
+  return {
+    ...content,
+    contactUs: {
+      ...content.contactUs,
+      contactUsForm: {
+        ...content.contactUs.contactUsForm,
+        emailAddress: contactEmail,
+      },
+      connect: {
+        ...content.contactUs.connect,
+        cards: content.contactUs.connect.cards.map((card, index) =>
+          index === 0
+            ? {
+                ...card,
+                ctaLabel: contactEmail,
+                ctaHref: `mailto:${contactEmail}`,
+              }
+            : card,
+        ),
+      },
+    },
+  };
+}
+
 /**
  * Returns the full content object for a given locale.
  * Falls back to English if the locale is not found.
  */
 export function getContent(locale: string): SiteContent {
   if (isValidLocale(locale)) {
-    return contentMap[locale];
+    return withConfiguredContactEmail(contentMap[locale]);
   }
 
-  return contentMap[DEFAULT_LOCALE];
+  return withConfiguredContactEmail(contentMap[DEFAULT_LOCALE]);
 }
 
 /**

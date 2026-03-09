@@ -5,9 +5,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
+import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
+import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface MediaFormProps {
   ctaLabel: string;
@@ -22,18 +24,9 @@ interface MediaFormProps {
   onFormOpened?: () => void;
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MEDIA_REQUEST_API_PATH = '/v1/media-request';
 const MEDIA_FORM_ERROR_ID = 'media-form-error';
 const MAX_RESOURCE_KEY_LENGTH = 64;
-
-function sanitizeSingleLineValue(value: string): string {
-  return value.replaceAll(/\s+/g, ' ').trim();
-}
-
-function isValidEmail(value: string): boolean {
-  return EMAIL_PATTERN.test(value.trim());
-}
 
 function normalizeResourceKey(value: string): string {
   const slug = value
@@ -63,32 +56,38 @@ export function MediaForm({
   const [isFormFadingIn, setIsFormFadingIn] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [isFirstNameTouched, setIsFirstNameTouched] = useState(false);
-  const [isCaptchaTouched, setIsCaptchaTouched] = useState(false);
-  const [hasCaptchaLoadError, setHasCaptchaLoadError] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [submitErrorMessage, setSubmitErrorMessage] = useState('');
-  const [hasSubmitted, setHasSubmitted] = useState(false);
-
-  const isCaptchaConfigured = turnstileSiteKey.trim() !== '';
-  const isCaptchaUnavailable = !isCaptchaConfigured || hasCaptchaLoadError;
+  const {
+    captchaToken,
+    clearSubmissionError,
+    handleCaptchaLoadError,
+    handleCaptchaTokenChange,
+    hasCaptchaValidationError,
+    hasSuccessfulSubmission,
+    isCaptchaUnavailable,
+    isSubmitting,
+    markCaptchaTouched,
+    markSubmissionSuccess,
+    setSubmissionError,
+    submitErrorMessage,
+    withSubmitting,
+  } = useFormSubmission({
+    turnstileSiteKey,
+  });
   const isServiceUnavailable = !crmApiClient || isCaptchaUnavailable;
   const hasFirstNameError = isFirstNameTouched && !sanitizeSingleLineValue(firstName);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
-  const hasCaptchaError = isCaptchaTouched && !captchaToken;
   const isSubmitDisabled = isSubmitting || isServiceUnavailable;
   const shouldShowSubmitError =
     !!submitErrorMessage ||
-    hasCaptchaError ||
+    hasCaptchaValidationError ||
     hasFirstNameError ||
     hasEmailError ||
     isServiceUnavailable;
 
   useEffect(() => {
     if (!isFormVisible) {
-      setIsFormFadingIn(false);
       return;
     }
 
@@ -102,16 +101,17 @@ export function MediaForm({
   }, [isFormVisible]);
 
   function handleOpenForm() {
+    setIsFormFadingIn(false);
     setIsFormVisible(true);
     onFormOpened?.();
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitErrorMessage('');
+    clearSubmissionError();
     setIsFirstNameTouched(true);
     setIsEmailTouched(true);
-    setIsCaptchaTouched(true);
+    markCaptchaTouched();
 
     const normalizedFirstName = sanitizeSingleLineValue(firstName);
     const normalizedEmail = sanitizeSingleLineValue(email).toLowerCase();
@@ -119,12 +119,11 @@ export function MediaForm({
       return;
     }
     if (isServiceUnavailable) {
-      setSubmitErrorMessage(formErrorMessage);
+      setSubmissionError(formErrorMessage);
       return;
     }
 
-    setIsSubmitting(true);
-    try {
+    await withSubmitting(async () => {
       const requestBody: Record<string, string> = {
         first_name: normalizedFirstName,
         email: normalizedEmail,
@@ -146,17 +145,15 @@ export function MediaForm({
         failureMessage: formErrorMessage,
       });
       if (submissionResult.isSuccess) {
-        setHasSubmitted(true);
+        markSubmissionSuccess();
         return;
       }
 
-      setSubmitErrorMessage(submissionResult.errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
+      setSubmissionError(submissionResult.errorMessage);
+    });
   }
 
-  if (hasSubmitted) {
+  if (hasSuccessfulSubmission) {
     return (
       <div className={mergeClassNames('mt-auto max-w-[420px] rounded-xl bg-white p-5', className)}>
         <h4 className='text-xl font-bold es-text-heading'>{formSuccessTitle}</h4>
@@ -231,16 +228,8 @@ export function MediaForm({
         siteKey={turnstileSiteKey}
         widgetAction='media_submit'
         size='normal'
-        onTokenChange={(token) => {
-          setCaptchaToken(token);
-          if (token) {
-            setHasCaptchaLoadError(false);
-            setIsCaptchaTouched(false);
-          }
-        }}
-        onLoadError={() => {
-          setHasCaptchaLoadError(true);
-        }}
+        onTokenChange={handleCaptchaTokenChange}
+        onLoadError={handleCaptchaLoadError}
       />
 
       <ButtonPrimitive
