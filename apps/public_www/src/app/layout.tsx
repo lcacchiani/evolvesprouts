@@ -2,12 +2,7 @@ import { Lato, Poppins } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from '@/content';
 import enContent from '@/content/en.json';
-import {
-  getDirectionForLocale,
-  type DocumentDirection,
-} from '@/lib/locale-document';
 import { GoogleTagManager } from '@/components/shared/google-tag-manager';
 import {
   DEFAULT_SOCIAL_IMAGE,
@@ -45,10 +40,6 @@ const poppins = Poppins({
   display: 'swap',
   preload: true,
 });
-
-const DOCUMENT_LOCALE_DIRECTIONS = Object.fromEntries(
-  SUPPORTED_LOCALES.map((locale) => [locale, getDirectionForLocale(locale)]),
-) as Record<Locale, DocumentDirection>;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -91,10 +82,7 @@ export default function RootLayout({
   return (
     <html
       lang='en'
-      suppressHydrationWarning
       className={`${lato.variable} ${poppins.variable}`}
-      data-default-locale={DEFAULT_LOCALE}
-      data-locale-directions={JSON.stringify(DOCUMENT_LOCALE_DIRECTIONS)}
       {...(GTM_ID
         ? {
             'data-gtm-id': GTM_ID,
@@ -103,8 +91,6 @@ export default function RootLayout({
         : {})}
     >
       <body className='antialiased'>
-        {/* eslint-disable-next-line @next/next/no-sync-scripts -- must run before hydration without inline wrappers */}
-        <script src='/scripts/set-locale-document-attributes.js' />
         <script src='/scripts/hide-css-sensitive-duplicates.js' defer />
         <a
           href='#main-content'
