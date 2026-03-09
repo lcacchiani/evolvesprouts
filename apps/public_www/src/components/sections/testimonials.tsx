@@ -242,6 +242,7 @@ function arcOpacity(offset: number): string {
 const AUTHOR_CIRCLE_BASE =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#D98E50] bg-[#F2A975] text-xs font-semibold transition-all duration-300 ease-in-out es-text-heading';
 
+
 function AuthorStrip({
   stories,
   activeIndex,
