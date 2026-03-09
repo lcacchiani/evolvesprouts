@@ -119,7 +119,7 @@ describe('HomePageSections', () => {
     expect(screen.getByText(enContent.idaIntro.body)).toBeInTheDocument();
     expect(
       screen.getByTestId('my-best-auntie-overview'),
-    ).toHaveTextContent('Best Auntie Training Course Designed by Ida');
+    ).toHaveTextContent('My Best Auntie Training Course Designed by Ida');
     expect(heroBannerPropsSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         ctaHref: '/en/services/my-best-auntie-training-course',
