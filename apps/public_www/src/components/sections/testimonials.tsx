@@ -228,38 +228,40 @@ function AuthorStrip({
   activeIndex: number;
 }) {
   const count = stories.length;
+  const prevPrevIndex = wrapIndex(activeIndex - 2, count);
   const prevIndex = wrapIndex(activeIndex - 1, count);
   const nextIndex = wrapIndex(activeIndex + 1, count);
+  const nextNextIndex = wrapIndex(activeIndex + 2, count);
 
+  const prevPrevLabel = stories[prevPrevIndex]?.author ?? '';
   const prevLabel = stories[prevIndex]?.author ?? '';
   const currentAuthor = stories[activeIndex]?.author ?? '';
-  const currentService = stories[activeIndex]?.service ?? '';
   const nextLabel = stories[nextIndex]?.author ?? '';
+  const nextNextLabel = stories[nextNextIndex]?.author ?? '';
 
   return (
     <div
       data-testid='testimonials-author-strip'
-      className='mt-6 flex items-center justify-between gap-2 px-4 sm:px-6'
+      className='mt-6 flex justify-center px-4 sm:px-6'
       aria-hidden='true'
     >
-      <span className='min-w-0 flex-1 truncate text-left text-xs opacity-40 es-text-heading sm:text-sm'>
-        {prevLabel}
-      </span>
-
-      <div className='flex min-w-0 shrink-0 flex-col items-center text-center'>
-        <span className='truncate text-sm font-semibold es-text-heading sm:text-base'>
+      <div className='flex items-center gap-1 rounded-full border border-[#D98E50] bg-[#F2A975] px-3 py-2'>
+        <span className='w-[50px] truncate text-center text-[10px] opacity-30 es-text-heading'>
+          {prevPrevLabel}
+        </span>
+        <span className='w-[50px] truncate text-center text-xs opacity-60 es-text-heading'>
+          {prevLabel}
+        </span>
+        <span className='shrink-0 truncate px-3 text-sm font-semibold es-text-heading'>
           {currentAuthor}
         </span>
-        {currentService && (
-          <span className='truncate text-xs es-text-neutral-strong sm:text-sm'>
-            {currentService}
-          </span>
-        )}
+        <span className='w-[50px] truncate text-center text-xs opacity-60 es-text-heading'>
+          {nextLabel}
+        </span>
+        <span className='w-[50px] truncate text-center text-[10px] opacity-30 es-text-heading'>
+          {nextNextLabel}
+        </span>
       </div>
-
-      <span className='min-w-0 flex-1 truncate text-right text-xs opacity-40 es-text-heading sm:text-sm'>
-        {nextLabel}
-      </span>
     </div>
   );
 }
