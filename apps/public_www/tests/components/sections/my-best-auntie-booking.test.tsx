@@ -317,6 +317,7 @@ describe('MyBestAuntieBooking section', () => {
         dateLabel: 'Aug, 2026',
         spacesTotal: 24,
         spacesLeftText: '8 spots left',
+        isSoldOut: false,
         price: 9000,
         priceCurrency: 'HKD',
         venue: {
@@ -352,6 +353,7 @@ describe('MyBestAuntieBooking section', () => {
         dateLabel: 'Sep, 2026',
         spacesTotal: 24,
         spacesLeftText: '4 spots left',
+        isSoldOut: false,
         price: 9000,
         priceCurrency: 'HKD',
         venue: {
@@ -438,5 +440,43 @@ describe('MyBestAuntieBooking section', () => {
     fireEvent.click(leftArrow);
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Scroll dates right')).toBeInTheDocument();
+  });
+
+  it('renders sold-out date cards as disabled with stamp and skips them for initial selection', () => {
+    const soldOutContent = JSON.parse(
+      JSON.stringify(enContent.myBestAuntieBooking),
+    ) as BookingContent;
+
+    const soldOutCohort = soldOutContent.cohorts.find(
+      (cohort) => cohort.id === '0-1-may-2026',
+    );
+    expect(soldOutCohort?.isSoldOut).toBe(true);
+
+    render(<MyBestAuntieBooking locale='en' content={soldOutContent} />);
+
+    const dateSelectorRegion = screen.getByRole('region', {
+      name: soldOutContent.dateSelectorLabel,
+    });
+
+    const soldOutButton = within(dateSelectorRegion).getByRole('button', {
+      name: new RegExp(soldOutCohort!.dateLabel),
+    });
+    expect(soldOutButton.getAttribute('aria-disabled')).toBe('true');
+    expect(soldOutButton.className).toContain('pointer-events-none');
+    expect(soldOutButton.className).toContain('opacity-50');
+
+    const stampText = within(soldOutButton).getByText(soldOutContent.soldOutStampLabel);
+    expect(stampText).toBeInTheDocument();
+    expect(stampText.className).toContain('es-cohort-sold-out-stamp-text');
+
+    const firstAvailableCohort = getCohortsForAge(soldOutContent, '0-1').find(
+      (cohort) => !cohort.isSoldOut,
+    );
+    expect(firstAvailableCohort).toBeDefined();
+    expect(
+      within(dateSelectorRegion).getByRole('button', {
+        name: new RegExp(firstAvailableCohort!.dateLabel),
+      }).className,
+    ).toContain('es-btn--state-active');
   });
 });
