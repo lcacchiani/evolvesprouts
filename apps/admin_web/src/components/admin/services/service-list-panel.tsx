@@ -76,7 +76,7 @@ export function ServiceListPanel({
   return (
     <>
       <PaginatedTableCard
-        title='Existing Services section'
+        title='Existing Services'
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}

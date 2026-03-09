@@ -121,8 +121,8 @@ describe('ServicesPage', () => {
   it('renders service detail before the services list', () => {
     render(<ServicesPage />);
 
-    const detailHeading = screen.getByRole('heading', { name: 'Services section' });
-    const listHeading = screen.getByRole('heading', { name: 'Existing Services section' });
+    const detailHeading = screen.getByRole('heading', { name: 'Services' });
+    const listHeading = screen.getByRole('heading', { name: 'Existing Services' });
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -130,8 +130,8 @@ describe('ServicesPage', () => {
   it('renders instance detail before the instances list', () => {
     render(<ServicesPage />);
 
-    const detailHeading = screen.getByRole('heading', { name: 'Instances section' });
-    const listHeading = screen.getByRole('heading', { name: 'Existing Instances section' });
+    const detailHeading = screen.getByRole('heading', { name: 'Instances' });
+    const listHeading = screen.getByRole('heading', { name: 'Existing Instances' });
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -45,6 +45,7 @@ export function ServiceDetailPanel({
   onUpdate,
   onUploadCover,
 }: ServiceDetailPanelProps) {
+  const selectedServiceIdRef = useRef<string | null>(service?.id ?? null);
   const isEditMode = Boolean(service);
   const [serviceType, setServiceType] = useState<ServiceType>(service?.serviceType ?? 'training_course');
   const [serviceForm, setServiceForm] = useState<ServiceFormState>(
@@ -90,6 +91,51 @@ export function ServiceDetailPanel({
   );
   const [coverFileName, setCoverFileName] = useState('cover-image.jpg');
 
+  useEffect(() => {
+    const nextSelectedServiceId = service?.id ?? null;
+    if (selectedServiceIdRef.current === nextSelectedServiceId) {
+      return;
+    }
+    selectedServiceIdRef.current = nextSelectedServiceId;
+
+    if (!service) {
+      setServiceType('training_course');
+      setServiceForm(DEFAULT_SERVICE_FORM);
+      setTrainingForm(DEFAULT_TRAINING_FORM);
+      setEventForm(DEFAULT_EVENT_FORM);
+      setConsultationForm(DEFAULT_CONSULTATION_FORM);
+      return;
+    }
+
+    setServiceType(service.serviceType);
+    setServiceForm({
+      title: service.title,
+      description: service.description ?? '',
+      deliveryMode: service.deliveryMode,
+      status: service.status,
+    });
+    setTrainingForm({
+      pricingUnit: service.trainingDetails?.pricingUnit ?? 'per_person',
+      defaultPrice: service.trainingDetails?.defaultPrice ?? '',
+      defaultCurrency: service.trainingDetails?.defaultCurrency ?? 'HKD',
+    });
+    setEventForm({
+      eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
+    });
+    setConsultationForm({
+      consultationFormat: service.consultationDetails?.consultationFormat ?? 'one_on_one',
+      maxGroupSize: service.consultationDetails?.maxGroupSize?.toString() ?? '',
+      durationMinutes: service.consultationDetails?.durationMinutes?.toString() ?? '60',
+      pricingModel: service.consultationDetails?.pricingModel ?? 'free',
+      defaultHourlyRate: service.consultationDetails?.defaultHourlyRate ?? '',
+      defaultPackagePrice: service.consultationDetails?.defaultPackagePrice ?? '',
+      defaultPackageSessions: service.consultationDetails?.defaultPackageSessions?.toString() ?? '',
+      defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
+      calendlyUrl: service.consultationDetails?.calendlyUrl ?? '',
+    });
+    setCoverFileName('cover-image.jpg');
+  }, [service]);
+
   const buildTypeSpecificPayload = (
     currentServiceType: ServiceType
   ):
@@ -133,7 +179,7 @@ export function ServiceDetailPanel({
 
   return (
     <Card
-      title='Services section'
+      title='Services'
       description={
         isEditMode
           ? 'Update Service for the selected row, or cancel to return to add mode.'

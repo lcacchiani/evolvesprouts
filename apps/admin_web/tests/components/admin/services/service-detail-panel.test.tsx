@@ -31,7 +31,7 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
 }
 
 describe('ServiceDetailPanel', () => {
-  it('syncs form values when selected service changes', () => {
+  it('syncs form values when selected service mode changes', () => {
     const onUpdate = vi.fn();
     const onCreate = vi.fn();
     const onUploadCover = vi.fn();
@@ -39,7 +39,24 @@ describe('ServiceDetailPanel', () => {
 
     const { rerender } = render(
       <ServiceDetailPanel
-        key='service-1'
+        key='service-editor'
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={onCancelSelection}
+        onCreate={onCreate}
+        onUpdate={onUpdate}
+        onUploadCover={onUploadCover}
+      />
+    );
+
+    expect(screen.getByLabelText('Title')).toHaveValue('');
+    expect(screen.getByLabelText('Description')).toHaveValue('');
+    expect(screen.getByLabelText('Status')).toHaveValue('draft');
+
+    rerender(
+      <ServiceDetailPanel
+        key='service-editor'
         service={buildService()}
         isLoading={false}
         error=''
@@ -56,7 +73,7 @@ describe('ServiceDetailPanel', () => {
 
     rerender(
       <ServiceDetailPanel
-        key='service-2'
+        key='service-editor'
         service={buildService({
           id: 'service-2',
           title: 'Beta service',
@@ -75,5 +92,22 @@ describe('ServiceDetailPanel', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('Beta service');
     expect(screen.getByLabelText('Description')).toHaveValue('Beta description');
     expect(screen.getByLabelText('Status')).toHaveValue('published');
+
+    rerender(
+      <ServiceDetailPanel
+        key='service-editor'
+        service={null}
+        isLoading={false}
+        error=''
+        onCancelSelection={onCancelSelection}
+        onCreate={onCreate}
+        onUpdate={onUpdate}
+        onUploadCover={onUploadCover}
+      />
+    );
+
+    expect(screen.getByLabelText('Title')).toHaveValue('');
+    expect(screen.getByLabelText('Description')).toHaveValue('');
+    expect(screen.getByLabelText('Status')).toHaveValue('draft');
   });
 });
