@@ -14,6 +14,13 @@ import { ServicesHeader } from './services-header';
 
 export function ServicesPage() {
   const state = useServicesPage();
+  const selectedServiceDetail =
+    state.selectedServiceId && state.serviceDetail.service?.id === state.selectedServiceId
+      ? state.serviceDetail.service
+      : null;
+  const serviceDetailPanelKey = `${state.selectedServiceId ?? 'create-service'}-${
+    selectedServiceDetail ? 'loaded' : 'empty'
+  }`;
   const hasAnyError =
     state.serviceList.error ||
     state.serviceDetail.error ||
@@ -37,8 +44,8 @@ export function ServicesPage() {
       {state.activeView === 'catalog' ? (
         <>
           <ServiceDetailPanel
-            key={state.selectedServiceId ?? 'create-service'}
-            service={state.serviceDetail.service}
+            key={serviceDetailPanelKey}
+            service={selectedServiceDetail}
             isLoading={state.serviceMutations.isLoading}
             error={state.serviceMutations.error}
             onCancelSelection={() => state.setSelectedServiceId(null)}

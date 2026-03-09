@@ -31,7 +31,7 @@ function buildService(overrides: Partial<ServiceDetail> = {}): ServiceDetail {
 }
 
 describe('ServiceDetailPanel', () => {
-  it('syncs form values when selected service mode changes', () => {
+  it('initializes form values from service props per mount', () => {
     const onUpdate = vi.fn();
     const onCreate = vi.fn();
     const onUploadCover = vi.fn();
@@ -39,7 +39,7 @@ describe('ServiceDetailPanel', () => {
 
     const { rerender } = render(
       <ServiceDetailPanel
-        key='service-editor'
+        key='create'
         service={null}
         isLoading={false}
         error=''
@@ -56,7 +56,7 @@ describe('ServiceDetailPanel', () => {
 
     rerender(
       <ServiceDetailPanel
-        key='service-editor'
+        key='service-1'
         service={buildService()}
         isLoading={false}
         error=''
@@ -73,7 +73,7 @@ describe('ServiceDetailPanel', () => {
 
     rerender(
       <ServiceDetailPanel
-        key='service-editor'
+        key='service-2'
         service={buildService({
           id: 'service-2',
           title: 'Beta service',
@@ -95,7 +95,7 @@ describe('ServiceDetailPanel', () => {
 
     rerender(
       <ServiceDetailPanel
-        key='service-editor'
+        key='create-again'
         service={null}
         isLoading={false}
         error=''
