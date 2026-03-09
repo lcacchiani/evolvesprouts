@@ -245,53 +245,55 @@ export function EnrollmentListPanel({
         loadingLabel='Loading enrollments...'
         onLoadMore={onLoadMore}
       >
-        <table className='w-full min-w-[840px] text-left text-sm'>
-          <thead className='text-slate-500'>
-            <tr>
-              <th className='py-2 pr-3 font-medium'>Parent</th>
-              <th className='py-2 pr-3 font-medium'>Status</th>
-              <th className='py-2 pr-3 font-medium'>Amount</th>
-              <th className='py-2 pr-3 font-medium'>Enrolled at</th>
-              <th className='py-2 pr-3 font-medium text-right'>Operations</th>
-            </tr>
-          </thead>
-          <tbody>
-            {enrollments.map((enrollment) => (
-              <tr
-                key={enrollment.id}
-                className={`cursor-pointer border-t ${
-                  selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                }`}
-                onClick={() => applyEnrollmentSelection(enrollment)}
-              >
-                <td className='py-2 pr-3'>
-                  {enrollment.contactId ?? enrollment.familyId ?? enrollment.organizationId ?? '-'}
-                </td>
-                <td className='py-2 pr-3'>{formatEnumLabel(enrollment.status)}</td>
-                <td className='py-2 pr-3'>
-                  {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
-                </td>
-                <td className='py-2 pr-3'>{formatDate(enrollment.enrolledAt)}</td>
-                <td className='py-2 pr-3 text-right'>
-                  <Button
-                    type='button'
-                    size='sm'
-                    variant='danger'
-                    disabled={isMutating}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void handleDeleteEnrollment(enrollment);
-                    }}
-                    aria-label='Delete enrollment'
-                    title='Delete enrollment'
-                  >
-                    <DeleteIcon className='h-4 w-4' />
-                  </Button>
-                </td>
+        <div className='rounded-md border border-slate-200'>
+          <table className='w-full min-w-[840px] divide-y divide-slate-200 text-left'>
+            <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
+              <tr>
+                <th className='px-4 py-3 font-semibold'>Parent</th>
+                <th className='px-4 py-3 font-semibold'>Status</th>
+                <th className='px-4 py-3 font-semibold'>Amount</th>
+                <th className='px-4 py-3 font-semibold'>Enrolled at</th>
+                <th className='px-4 py-3 font-semibold text-right'>Operations</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className='divide-y divide-slate-200 bg-white text-sm'>
+              {enrollments.map((enrollment) => (
+                <tr
+                  key={enrollment.id}
+                  className={`cursor-pointer transition ${
+                    selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                  }`}
+                  onClick={() => applyEnrollmentSelection(enrollment)}
+                >
+                  <td className='px-4 py-3'>
+                    {enrollment.contactId ?? enrollment.familyId ?? enrollment.organizationId ?? '-'}
+                  </td>
+                  <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
+                  <td className='px-4 py-3'>
+                    {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
+                  </td>
+                  <td className='px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
+                  <td className='px-4 py-3 text-right'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='danger'
+                      disabled={isMutating}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleDeleteEnrollment(enrollment);
+                      }}
+                      aria-label='Delete enrollment'
+                      title='Delete enrollment'
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
     </>
