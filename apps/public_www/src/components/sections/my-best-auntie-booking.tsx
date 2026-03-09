@@ -93,6 +93,7 @@ interface BookingDateOption {
   id: string;
   label: string;
   availabilityLabel: string;
+  isSoldOut: boolean;
   cohort: BookingCohort;
 }
 
@@ -121,6 +122,17 @@ function sortCohortsByPrimarySession(
   }
 
   return leftCohort.dateLabel.localeCompare(rightCohort.dateLabel);
+}
+
+function findPreferredCohortId(
+  cohorts: BookingCohort[],
+  ageGroupId: string,
+): string {
+  const ageGroupCohorts = cohorts.filter(
+    (cohort) => cohort.ageGroupId === ageGroupId,
+  );
+  const available = ageGroupCohorts.find((cohort) => !cohort.isSoldOut);
+  return available?.id ?? ageGroupCohorts[0]?.id ?? '';
 }
 
 function getPrimarySessionDateTimeLabel(cohort: BookingCohort | null): string {
@@ -160,7 +172,7 @@ export function MyBestAuntieBooking({
   );
   const initialAgeId = ageOptions[0]?.id ?? '';
   const initialDateId =
-    sortedCohorts.find((cohort) => cohort.ageGroupId === initialAgeId)?.id ?? '';
+    findPreferredCohortId(sortedCohorts, initialAgeId);
 
   const [selectedAgeId, setSelectedAgeId] = useState(initialAgeId);
   const cohortsForSelectedAge = sortedCohorts.filter((cohort) => {
@@ -170,6 +182,7 @@ export function MyBestAuntieBooking({
     id: cohort.id,
     label: cohort.dateLabel,
     availabilityLabel: cohort.spacesLeftText,
+    isSoldOut: cohort.isSoldOut,
     cohort,
   }));
   const [selectedDateId, setSelectedDateId] = useState(initialDateId);
@@ -284,9 +297,10 @@ export function MyBestAuntieBooking({
                       aria-pressed={isSelected}
                       onClick={() => {
                         setSelectedAgeId(option.id);
-                        const nextDateId =
-                          sortedCohorts.find((cohort) => cohort.ageGroupId === option.id)
-                            ?.id ?? '';
+                        const nextDateId = findPreferredCohortId(
+                          sortedCohorts,
+                          option.id,
+                        );
                         setSelectedDateId(nextDateId);
                       }}
                       className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] snap-center text-left sm:w-[168px]`}
@@ -323,6 +337,7 @@ export function MyBestAuntieBooking({
                 >
                   {dateOptions.map((option) => {
                     const isSelected = option.id === selectedDateId;
+                    const isSoldOut = option.isSoldOut;
 
                     return (
                       <ButtonPrimitive
@@ -331,17 +346,29 @@ export function MyBestAuntieBooking({
                           dateCardRefs.current[option.id] = element;
                         }}
                         variant='selection'
-                        state={isSelected ? 'active' : 'inactive'}
-                        aria-pressed={isSelected}
-                        onClick={() => {
-                          setSelectedDateId(option.id);
-                        }}
-                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} w-[140px] snap-center text-center sm:w-[168px]`}
+                        state={isSoldOut ? 'inactive' : isSelected ? 'active' : 'inactive'}
+                        aria-pressed={isSoldOut ? undefined : isSelected}
+                        aria-disabled={isSoldOut || undefined}
+                        onClick={
+                          isSoldOut
+                            ? undefined
+                            : () => {
+                                setSelectedDateId(option.id);
+                              }
+                        }
+                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] snap-center text-center sm:w-[168px] ${isSoldOut ? 'pointer-events-none opacity-50' : ''}`}
                       >
+                        {isSoldOut && (
+                          <span className='es-cohort-sold-out-stamp' aria-hidden='true'>
+                            <span className='es-cohort-sold-out-stamp-text'>
+                              {content.soldOutStampLabel}
+                            </span>
+                          </span>
+                        )}
                         <div className='flex w-full flex-col items-center gap-2'>
                           <div className='flex items-center justify-center gap-1.5'>
                             <span
-                              className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                              className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected && !isSoldOut ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
                               aria-hidden='true'
                             />
                             <p className='text-base font-semibold es-text-heading whitespace-nowrap'>
@@ -388,12 +415,12 @@ export function MyBestAuntieBooking({
             <ButtonPrimitive
               variant='primary'
               onClick={() => {
-                if (!selectedCohort) {
+                if (!selectedCohort || selectedCohort.isSoldOut) {
                   return;
                 }
                 setIsPaymentModalOpen(true);
               }}
-              disabled={!selectedCohort}
+              disabled={!selectedCohort || selectedCohort.isSoldOut}
               className='mt-7'
             >
               {content.confirmAndPayLabel}

@@ -184,6 +184,7 @@
       }
     ],
     "dateSelectorLabel": "Select from Available Date",
+    "soldOutStampLabel": "Sold Out",
     "cohorts": [
       {
         "id": "0-1-apr-2026",
@@ -191,6 +192,7 @@
         "dateLabel": "Apr, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "30 spots left",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -225,6 +227,7 @@
         "dateLabel": "May, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "18 spots left",
+        "isSoldOut": true,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -259,6 +262,7 @@
         "dateLabel": "Jun, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "12 spots left",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -293,6 +297,7 @@
         "dateLabel": "May, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "14 spots left",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -327,6 +332,7 @@
         "dateLabel": "Jun, 2026",
         "spacesTotal": 30,
         "spacesLeftText": "9 spots left",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -361,6 +367,7 @@
         "dateLabel": "Jul, 2026",
         "spacesTotal": 24,
         "spacesLeftText": "6 spots left",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {

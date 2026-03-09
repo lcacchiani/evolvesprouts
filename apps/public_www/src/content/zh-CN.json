@@ -184,6 +184,7 @@
       }
     ],
     "dateSelectorLabel": "选择可用日期",
+    "soldOutStampLabel": "已售罄",
     "cohorts": [
       {
         "id": "0-1-apr-2026",
@@ -191,6 +192,7 @@
         "dateLabel": "2026年4月",
         "spacesTotal": 30,
         "spacesLeftText": "剩余 30 个名额",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -225,6 +227,7 @@
         "dateLabel": "2026年5月",
         "spacesTotal": 30,
         "spacesLeftText": "剩余 18 个名额",
+        "isSoldOut": true,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -259,6 +262,7 @@
         "dateLabel": "2026年6月",
         "spacesTotal": 30,
         "spacesLeftText": "剩余 12 个名额",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -293,6 +297,7 @@
         "dateLabel": "2026年5月",
         "spacesTotal": 30,
         "spacesLeftText": "剩余 14 个名额",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -327,6 +332,7 @@
         "dateLabel": "2026年6月",
         "spacesTotal": 30,
         "spacesLeftText": "剩余 9 个名额",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
@@ -361,6 +367,7 @@
         "dateLabel": "2026年7月",
         "spacesTotal": 24,
         "spacesLeftText": "剩余 6 个名额",
+        "isSoldOut": false,
         "price": 9000,
         "priceCurrency": "HKD",
         "venue": {
