@@ -8,12 +8,12 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { MyBestAuntieOverviewContent } from '@/content';
+import type { MyBestAuntieOutlineContent } from '@/content';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
-interface MyBestAuntieOverviewProps {
-  content: MyBestAuntieOverviewContent;
+interface MyBestAuntieOutlineProps {
+  content: MyBestAuntieOutlineContent;
 }
 
 type ModuleIconVariant =
@@ -84,7 +84,7 @@ function getModuleTone(index: number): ModuleToneVariant {
   return MODULE_TONES[index % MODULE_TONES.length];
 }
 
-function MyBestAuntieOverviewCard({
+function MyBestAuntieOutlineCard({
   module,
   index,
   showFullActivity,
@@ -135,11 +135,11 @@ function MyBestAuntieOverviewCard({
   return (
     <article
       {...interactionProps}
-      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-card-xl px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-overview-card es-my-best-auntie-overview-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
+      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-card-xl px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-outline-card es-my-best-auntie-outline-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
     >
       <div
         aria-hidden='true'
-        className={`pointer-events-none absolute -right-8 top-10 h-36 w-36 rounded-full blur-3xl es-my-best-auntie-overview-icon-glow es-my-best-auntie-overview-icon-glow--${tone}`}
+        className={`pointer-events-none absolute -right-8 top-10 h-36 w-36 rounded-full blur-3xl es-my-best-auntie-outline-icon-glow es-my-best-auntie-outline-icon-glow--${tone}`}
       />
       <div className='relative flex flex-1 flex-col items-center text-center'>
         <span
@@ -154,15 +154,15 @@ function MyBestAuntieOverviewCard({
             className='h-[44px] w-[44px]'
           />
         </span>
-        <h3 className='mt-5 es-my-best-auntie-overview-module-title'>
+        <h3 className='mt-5 es-my-best-auntie-outline-module-title'>
           {module.title}
         </h3>
-        <p className='mt-2 es-my-best-auntie-overview-module-week'>
+        <p className='mt-2 es-my-best-auntie-outline-module-week'>
           {module.week}
         </p>
         {module.activity && (
           <p
-            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-overview-activity ${isDescriptionVisible ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
+            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-outline-activity ${isDescriptionVisible ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
           >
             {module.activity}
           </p>
@@ -171,10 +171,10 @@ function MyBestAuntieOverviewCard({
           <div className='relative'>
             <span
               aria-hidden='true'
-              className={`pointer-events-none absolute left-1/2 z-0 w-2 -translate-x-1/2 rounded-full es-my-best-auntie-overview-count-line es-my-best-auntie-overview-count-line--${tone} ${countLineSizeClassName}`}
+              className={`pointer-events-none absolute left-1/2 z-0 w-2 -translate-x-1/2 rounded-full es-my-best-auntie-outline-count-line es-my-best-auntie-outline-count-line--${tone} ${countLineSizeClassName}`}
             />
             <span className='relative z-20 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full es-bg-heading shadow-[0_3px_6px_rgba(0,0,0,0.32)]'>
-              <span className={`es-my-best-auntie-overview-count-text es-my-best-auntie-overview-count-text--${tone}`}>
+              <span className={`es-my-best-auntie-outline-count-text es-my-best-auntie-outline-count-text--${tone}`}>
                 {module.step}
               </span>
             </span>
@@ -185,7 +185,7 @@ function MyBestAuntieOverviewCard({
   );
 }
 
-export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
+export function MyBestAuntieOutline({ content }: MyBestAuntieOutlineProps) {
   const [expandedModuleStep, setExpandedModuleStep] = useState<string | null>(
     null,
   );
@@ -217,8 +217,8 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
     <SectionShell
       id='courses'
       ariaLabel={content.title}
-      dataFigmaNode='my-best-auntie-overview'
-      className='es-section-bg-overlay es-my-best-auntie-overview-section'
+      dataFigmaNode='my-best-auntie-outline'
+      className='es-section-bg-overlay es-my-best-auntie-outline-section'
     >
       <SectionContainer>
         <SectionHeader
@@ -232,7 +232,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
           <ul className='relative hidden gap-6 md:grid md:grid-cols-3'>
             {moduleSteps.map((module, index) => (
               <li key={module.step}>
-                <MyBestAuntieOverviewCard
+                <MyBestAuntieOutlineCard
                   module={module}
                   index={index}
                   showFullActivity={false}
@@ -294,7 +294,7 @@ export function MyBestAuntieOverview({ content }: MyBestAuntieOverviewProps) {
                     key={module.step}
                     className='w-[80vw] shrink-0 snap-center sm:w-[66vw]'
                   >
-                    <MyBestAuntieOverviewCard
+                    <MyBestAuntieOutlineCard
                       module={module}
                       index={index}
                       showFullActivity

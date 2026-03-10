@@ -35,7 +35,7 @@ import {
   MyBestAuntieBookingModal,
   MyBestAuntieThankYouModal,
   type ReservationSummary,
-} from '@/components/sections/my-best-auntie-booking-modal';
+} from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import enContent from '@/content/en.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
@@ -740,7 +740,7 @@ describe('my-best-auntie booking modals footer content', () => {
     });
   });
 
-  it('uses my best auntie overview icons for all course part chips', () => {
+  it('uses my best auntie outline icons for all course part chips', () => {
     const { container } = renderBookingModal();
 
     const partIcons = Array.from(

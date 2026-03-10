@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { MyBestAuntieDescription } from '@/components/sections/my-best-auntie-description';
+import { MyBestAuntieDescription } from '@/components/sections/my-best-auntie/my-best-auntie-description';
 import enContent from '@/content/en.json';
 
 describe('MyBestAuntieDescription section', () => {

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { type FormEvent, useMemo, useState } from 'react';
 
-import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
+import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-modal/reservation-form-discount-code-input';
 import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
 import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';

@@ -75,9 +75,9 @@ vi.mock('@/components/sections/ida-intro', () => ({
     </section>
   ),
 }));
-vi.mock('@/components/sections/my-best-auntie-overview', () => ({
-  MyBestAuntieOverview: ({ content }: { content: { title: string } }) => (
-    <section data-testid='my-best-auntie-overview'>{content.title}</section>
+vi.mock('@/components/sections/my-best-auntie/my-best-auntie-outline', () => ({
+  MyBestAuntieOutline: ({ content }: { content: { title: string } }) => (
+    <section data-testid='my-best-auntie-outline'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/deferred-testimonials', () => ({
@@ -111,14 +111,14 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('hero-banner')).toBeInTheDocument();
     expect(screen.getByTestId('real-talk')).toBeInTheDocument();
     expect(screen.getByTestId('ida-intro')).toBeInTheDocument();
-    expect(screen.getByTestId('my-best-auntie-overview')).toBeInTheDocument();
+    expect(screen.getByTestId('my-best-auntie-outline')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
     expect(screen.getByText(enContent.hero.title)).toBeInTheDocument();
     expect(screen.getByText(enContent.idaIntro.title)).toBeInTheDocument();
     expect(screen.getByText(enContent.idaIntro.description)).toBeInTheDocument();
     expect(
-      screen.getByTestId('my-best-auntie-overview'),
+      screen.getByTestId('my-best-auntie-outline'),
     ).toHaveTextContent('My Best Auntie Training Course Designed by Ida');
     expect(heroBannerPropsSpy).toHaveBeenCalledWith(
       expect.objectContaining({

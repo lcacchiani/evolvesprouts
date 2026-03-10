@@ -182,7 +182,7 @@ function buildPillarsSection(content: SiteContent): string {
 }
 
 function buildCourseModulesSection(content: SiteContent): string {
-  return content.myBestAuntieOverview.modules
+  return content.myBestAuntieOutline.modules
     .map(
       (mod) =>
         `- **${mod.week} (${mod.title})**: ${mod.activity}`,
@@ -303,9 +303,9 @@ export function buildLlmsFullTxt(content: SiteContent): string {
     '',
     `## ${content.seo.trainingCourse.title}`,
     '',
-    '### Overview',
+    '### Outline',
     '',
-    `${content.myBestAuntieOverview.description} ${content.seo.trainingCourse.description}`,
+    `${content.myBestAuntieOutline.description} ${content.seo.trainingCourse.description}`,
     '',
     '### Course Structure',
     '',
