@@ -109,10 +109,8 @@ describe('Testimonials section', () => {
 
     expect(nextButton).toBeInTheDocument();
     expect(previousButton).toBeInTheDocument();
-    expect(nextButton.className).toContain('sm:inline-flex');
-    expect(previousButton.className).toContain('sm:inline-flex');
-    expect(nextButton.className).toContain('touch-none');
-    expect(previousButton.className).toContain('touch-none');
+    const desktopControls = screen.getByTestId('testimonials-desktop-controls');
+    expect(desktopControls.className).toContain('sm:block');
 
     const activeSlideAuthorRow = container.querySelector(
       'article:not([aria-hidden]) [data-testid="testimonial-author-row"]',
@@ -129,8 +127,8 @@ describe('Testimonials section', () => {
     expect(authorText?.className).toContain('max-w-[350px]');
     expect(metaText?.className).toContain('max-w-[350px]');
 
-    const authorRowChildren = activeSlideAuthorRow?.children ?? [];
-    expect(authorRowChildren[0]?.getAttribute('aria-label')).toBe('Previous testimonial');
-    expect(authorRowChildren[2]?.getAttribute('aria-label')).toBe('Next testimonial');
+    const activeSlide = container.querySelector('article:not([aria-hidden])');
+    expect(activeSlide?.contains(previousButton)).toBe(false);
+    expect(activeSlide?.contains(nextButton)).toBe(false);
   });
 });
