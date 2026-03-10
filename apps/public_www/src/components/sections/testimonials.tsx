@@ -219,7 +219,7 @@ function TestimonialSlide({
                     variant='control'
                     onClick={onPrevious}
                     aria-label={previousButtonLabel}
-                    className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} hidden shrink-0 sm:inline-flex`}
+                    className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} touch-none hidden shrink-0 sm:inline-flex`}
                   >
                     <ChevronIcon direction='left' />
                   </ButtonPrimitive>
@@ -247,7 +247,7 @@ function TestimonialSlide({
                     variant='control'
                     onClick={onNext}
                     aria-label={nextButtonLabel}
-                    className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} hidden shrink-0 sm:inline-flex`}
+                    className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} touch-none hidden shrink-0 sm:inline-flex`}
                   >
                     <ChevronIcon direction='right' />
                   </ButtonPrimitive>
