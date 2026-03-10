@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import type { ComponentProps, ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -11,12 +17,16 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next/image', () => ({
   default: function MockImage(props: ComponentProps<'img'>) {
+    const {
+      src,
+      alt,
+      ...rest
+    } = props;
     return (
       <div
-        data-next-image-src={
-          typeof props.src === 'string' ? props.src : 'non-string-src'
-        }
-        data-next-image-alt={props.alt ?? ''}
+        data-next-image-src={typeof src === 'string' ? src : 'non-string-src'}
+        data-next-image-alt={alt ?? ''}
+        {...rest}
       />
     );
   },
@@ -54,8 +64,9 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const header = document.querySelector('header[data-figma-node="navbar"]');
     expect(header?.className).toContain('es-navbar-surface');
-    expect(header?.className).toContain('relative');
-    expect(header?.className).toContain('z-30');
+    expect(header?.className).toContain('sticky');
+    expect(header?.className).toContain('top-0');
+    expect(header?.className).toContain('z-40');
 
     const languageSelectors = screen.getAllByRole('button', {
       name: /Selected language: English/i,
@@ -69,7 +80,13 @@ describe('Navbar desktop submenu accessibility', () => {
     ).closest('div');
     expect(languageSelectorWrapper?.className).toContain('items-center');
 
-    const desktopBookNowLink = screen.getByRole('link', {
+    const desktopActionsContainer = document.querySelector(
+      'div.hidden.items-center.gap-3.lg\\:flex',
+    );
+    expect(desktopActionsContainer).not.toBeNull();
+    const desktopBookNowLink = within(
+      desktopActionsContainer as HTMLElement,
+    ).getByRole('link', {
       name: enContent.navbar.bookNow.label,
     });
     expect(desktopBookNowLink).toBeInTheDocument();
@@ -155,7 +172,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(submenuToggle).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('styles mobile navbar controls and keeps language selector outside the drawer', async () => {
+  it('styles mobile navbar controls and keeps CTA outside the drawer', async () => {
     render(<Navbar content={enContent.navbar} />);
 
     const openMenuButton = screen.getByRole('button', {
@@ -168,16 +185,14 @@ describe('Navbar desktop submenu accessibility', () => {
       'data-css-fallback',
       'hide-when-css-missing',
     );
-
-    const languageSelectors = screen.getAllByRole('button', {
-      name: /Selected language: English/i,
-    });
-    const mobileLanguageSelector = languageSelectors.find((button) =>
-      button.className.includes('rounded-[14px]'),
+    const mobileTopBarCta = within(mobileControlsContainer as HTMLElement).getByRole(
+      'link',
+      {
+        name: enContent.navbar.bookNow.label,
+      },
     );
-    expect(mobileLanguageSelector).toBeDefined();
-    expect(mobileLanguageSelector?.className).toContain('es-border-soft');
-    expect(mobileLanguageSelector?.className).toContain('bg-transparent');
+    expect(mobileTopBarCta).toBeInTheDocument();
+    expect(mobileTopBarCta.className).toContain('h-11');
 
     fireEvent.click(openMenuButton);
 
@@ -187,6 +202,11 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(
       within(drawer).queryByRole('button', {
         name: /Selected language: English/i,
+      }),
+    ).toBeNull();
+    expect(
+      within(drawer).queryByRole('link', {
+        name: enContent.navbar.bookNow.label,
       }),
     ).toBeNull();
 
@@ -200,10 +220,31 @@ describe('Navbar desktop submenu accessibility', () => {
     });
     expect(trainingCoursesToggle.className).toContain('es-navbar-mobile-pill-reset');
 
-    const mobileBookNowLink = within(drawer).getByRole('link', {
-      name: enContent.navbar.bookNow.label,
-    });
-    expect(mobileBookNowLink).toBeInTheDocument();
+  });
 
+  it('condenses sticky navbar and logo classes after scrolling', async () => {
+    render(<Navbar content={enContent.navbar} />);
+
+    const nav = screen.getByRole('navigation');
+    expect(nav.className).toContain('min-h-[115px]');
+    expect(nav.className).not.toContain('min-h-[60px]');
+
+    const logo = document.querySelector(
+      'div[data-next-image-src="/images/evolvesprouts-logo.svg"][data-next-image-alt="Evolve Sprouts"]',
+    );
+    expect(logo?.className).toContain('es-navbar-logo');
+    expect(logo?.className).not.toContain('es-navbar-logo--condensed');
+
+    Object.defineProperty(window, 'scrollY', {
+      value: 120,
+      writable: true,
+      configurable: true,
+    });
+    fireEvent.scroll(window);
+
+    await waitFor(() => {
+      expect(nav.className).toContain('min-h-[60px]');
+    });
+    expect(logo?.className).toContain('es-navbar-logo--condensed');
   });
 });
