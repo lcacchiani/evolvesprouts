@@ -156,20 +156,10 @@ function TestimonialSlide({
   story,
   fallbackQuote,
   isClone,
-  showNavigationControls,
-  onPrevious,
-  onNext,
-  previousButtonLabel,
-  nextButtonLabel,
 }: {
   story: NormalizedStory;
   fallbackQuote: string;
   isClone?: boolean;
-  showNavigationControls: boolean;
-  onPrevious: () => void;
-  onNext: () => void;
-  previousButtonLabel: string;
-  nextButtonLabel: string;
 }) {
   return (
     <article
@@ -208,51 +198,23 @@ function TestimonialSlide({
             </p>
           </div>
 
-          {(story.author || story.service || showNavigationControls) && (
+          {(story.author || story.service) && (
             <div className='relative mt-6 sm:mt-8'>
               <div
                 data-testid='testimonial-author-row'
-                className='mx-auto flex w-full max-w-[350px] items-center justify-between gap-3'
+                className='mx-auto w-full max-w-[350px] text-center'
               >
-                {showNavigationControls ? (
-                  <ButtonPrimitive
-                    variant='control'
-                    onClick={onPrevious}
-                    aria-label={previousButtonLabel}
-                    className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} touch-none hidden shrink-0 sm:inline-flex`}
-                  >
-                    <ChevronIcon direction='left' />
-                  </ButtonPrimitive>
-                ) : (
-                  <div className='hidden h-0 w-[46px] shrink-0 sm:block' aria-hidden='true' />
+                {story.author && (
+                  <p className='mx-auto max-w-[350px] es-testimonials-author'>
+                    {story.author}
+                  </p>
                 )}
-
-                <div className='min-w-0 flex-1 text-center'>
-                  {story.author && (
-                    <p className='mx-auto max-w-[350px] es-testimonials-author'>
-                      {story.author}
-                    </p>
-                  )}
-                  {story.service && (
-                    <p
-                      className={`mx-auto max-w-[350px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
-                    >
-                      {story.service}
-                    </p>
-                  )}
-                </div>
-
-                {showNavigationControls ? (
-                  <ButtonPrimitive
-                    variant='control'
-                    onClick={onNext}
-                    aria-label={nextButtonLabel}
-                    className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} touch-none hidden shrink-0 sm:inline-flex`}
+                {story.service && (
+                  <p
+                    className={`mx-auto max-w-[350px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
                   >
-                    <ChevronIcon direction='right' />
-                  </ButtonPrimitive>
-                ) : (
-                  <div className='hidden h-0 w-[46px] shrink-0 sm:block' aria-hidden='true' />
+                    {story.service}
+                  </p>
                 )}
               </div>
             </div>
@@ -260,6 +222,44 @@ function TestimonialSlide({
         </div>
       </div>
     </article>
+  );
+}
+
+function DesktopTestimonialControls({
+  onPrevious,
+  onNext,
+  previousButtonLabel,
+  nextButtonLabel,
+}: {
+  onPrevious: () => void;
+  onNext: () => void;
+  previousButtonLabel: string;
+  nextButtonLabel: string;
+}) {
+  return (
+    <div
+      data-testid='testimonials-desktop-controls'
+      className='pointer-events-none absolute inset-x-0 bottom-6 hidden sm:block'
+    >
+      <div className='mx-auto flex w-full max-w-[350px] items-center justify-between gap-3'>
+        <ButtonPrimitive
+          variant='control'
+          onClick={onPrevious}
+          aria-label={previousButtonLabel}
+          className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} pointer-events-auto shrink-0`}
+        >
+          <ChevronIcon direction='left' />
+        </ButtonPrimitive>
+        <ButtonPrimitive
+          variant='control'
+          onClick={onNext}
+          aria-label={nextButtonLabel}
+          className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} pointer-events-auto shrink-0`}
+        >
+          <ChevronIcon direction='right' />
+        </ButtonPrimitive>
+      </div>
+    </div>
   );
 }
 
@@ -494,15 +494,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                 story={storiesToRender[realCount - 1]}
                 fallbackQuote={content.title}
                 isClone
-                showNavigationControls={false}
-                onPrevious={() => {
-                  scrollByOne('prev');
-                }}
-                onNext={() => {
-                  scrollByOne('next');
-                }}
-                previousButtonLabel={previousButtonLabel}
-                nextButtonLabel={nextButtonLabel}
               />
             )}
 
@@ -511,15 +502,6 @@ export function Testimonials({ content }: TestimonialsProps) {
                 key={`${story.author ?? 'story'}-${index}`}
                 story={story}
                 fallbackQuote={content.title}
-                showNavigationControls={hasMultipleStories && index === activeRealIndex}
-                onPrevious={() => {
-                  scrollByOne('prev');
-                }}
-                onNext={() => {
-                  scrollByOne('next');
-                }}
-                previousButtonLabel={previousButtonLabel}
-                nextButtonLabel={nextButtonLabel}
               />
             ))}
 
@@ -529,18 +511,22 @@ export function Testimonials({ content }: TestimonialsProps) {
                 story={storiesToRender[0]}
                 fallbackQuote={content.title}
                 isClone
-                showNavigationControls={false}
-                onPrevious={() => {
-                  scrollByOne('prev');
-                }}
-                onNext={() => {
-                  scrollByOne('next');
-                }}
-                previousButtonLabel={previousButtonLabel}
-                nextButtonLabel={nextButtonLabel}
               />
             )}
           </CarouselTrack>
+
+          {hasMultipleStories && (
+            <DesktopTestimonialControls
+              onPrevious={() => {
+                scrollByOne('prev');
+              }}
+              onNext={() => {
+                scrollByOne('next');
+              }}
+              previousButtonLabel={previousButtonLabel}
+              nextButtonLabel={nextButtonLabel}
+            />
+          )}
 
           {hasMultipleStories && (
             <AuthorStrip
