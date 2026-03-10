@@ -56,6 +56,7 @@ const NAV_MOBILE_TOPBAR_BOOK_BUTTON_CLASSNAME =
 const NAV_MOBILE_CONTROL_BASE_CLASSNAME = 'border es-border-soft es-text-brand';
 const NAV_MOBILE_DRAWER_LANGUAGE_BUTTON_CLASSNAME =
   `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-transparent h-11 gap-2 rounded-[14px] px-2.5`;
+const NAV_MOBILE_DRAWER_BOOK_BUTTON_CLASSNAME = 'mt-6 w-full';
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
   `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-[#F6DECD] h-11 w-11 rounded-[14px]`;
 const NAV_HAMBURGER_ICON_CLASSNAME = 'es-navbar-hamburger-icon h-4 w-4';
@@ -418,6 +419,12 @@ export function Navbar({ content }: NavbarProps) {
                   languageSelector={languageSelector}
                   menuAlign='left'
                   className={NAV_MOBILE_DRAWER_LANGUAGE_BUTTON_CLASSNAME}
+                />
+                <BookNowButton
+                  href={localizedBookNowHref}
+                  label={content.bookNow.label}
+                  onClick={closeMobileMenu}
+                  className={NAV_MOBILE_DRAWER_BOOK_BUTTON_CLASSNAME}
                 />
               </div>
             </div>
