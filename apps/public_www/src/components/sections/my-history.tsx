@@ -92,7 +92,7 @@ export function MyHistory({ content }: MyHistoryProps) {
                       width={1600}
                       height={1200}
                       sizes='100vw'
-                      className='mt-4 h-auto w-full lg:hidden'
+                      className='mt-4 h-auto w-full rounded-card-sm border es-border-warm-3 brightness-[1.1] contrast-[1.15] saturate-[1.05] lg:hidden'
                     />
                   );
                 })}
@@ -110,7 +110,7 @@ export function MyHistory({ content }: MyHistoryProps) {
               width={1600}
               height={1200}
               sizes='(min-width: 1280px) 651px, (min-width: 1024px) 44vw, 100vw'
-              className='h-auto w-full'
+              className='h-auto w-full rounded-card-sm border es-border-warm-3 brightness-[1.1] contrast-[1.15] saturate-[1.05]'
             />
           ))}
         </div>

@@ -36,6 +36,12 @@ describe('MyJourney section', () => {
       'src',
       '/images/contact-us/my-journey.webp',
     );
+    expect(image.className).toContain('rounded-card-sm');
+    expect(image.className).toContain('border');
+    expect(image.className).toContain('es-border-warm-3');
+    expect(image.className).toContain('brightness-[1.1]');
+    expect(image.className).toContain('contrast-[1.15]');
+    expect(image.className).toContain('saturate-[1.05]');
     expect(screen.getByText(enContent.myJourney.description)).toBeInTheDocument();
 
     const firstCard = screen
