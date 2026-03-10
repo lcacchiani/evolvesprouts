@@ -2,7 +2,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie-booking';
+import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import enContent from '@/content/en.json';
 
 vi.mock('next/image', () => ({

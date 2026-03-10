@@ -25,7 +25,7 @@
   .es-my-journey-section,
   .es-testimonials-section,
   .es-faq-section,
-  .es-my-best-auntie-overview-section {
+  .es-my-best-auntie-outline-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -150px;
     --es-section-bg-size: 900px auto;
@@ -46,7 +46,7 @@
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
-  .es-my-best-auntie-overview-section {
+  .es-my-best-auntie-outline-section {
     background-color: var(--figma-colors-desktop, #FFFFFF);
   }
 
@@ -1257,31 +1257,31 @@
     }
   }
 
-  .es-my-best-auntie-overview-card--gold {
+  .es-my-best-auntie-outline-card--gold {
     background: var(--es-gradient-card-yellow);
   }
 
-  .es-my-best-auntie-overview-card--red {
+  .es-my-best-auntie-outline-card--red {
     background: var(--es-gradient-card-pink);
   }
 
-  .es-my-best-auntie-overview-card--blue {
+  .es-my-best-auntie-outline-card--blue {
     background: var(--es-gradient-card-blue);
   }
 
-  .es-my-best-auntie-overview-icon-glow--gold {
+  .es-my-best-auntie-outline-icon-glow--gold {
     background-color: rgba(247, 198, 0, 0.25);
   }
 
-  .es-my-best-auntie-overview-icon-glow--red {
+  .es-my-best-auntie-outline-icon-glow--red {
     background-color: rgba(227, 24, 27, 0.22);
   }
 
-  .es-my-best-auntie-overview-icon-glow--blue {
+  .es-my-best-auntie-outline-icon-glow--blue {
     background-color: rgba(69, 146, 222, 0.24);
   }
 
-  .es-my-best-auntie-overview-module-title {
+  .es-my-best-auntie-outline-module-title {
     color: var(--figma-colors-week-01-04, #313131);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
     font-size: clamp(1.15rem, 1.9vw, 21px);
@@ -1289,7 +1289,7 @@
     line-height: 1.2;
   }
 
-  .es-my-best-auntie-overview-module-week {
+  .es-my-best-auntie-outline-module-week {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
     font-size: clamp(1.1rem, 1.7vw, 17px);
@@ -1298,7 +1298,7 @@
     letter-spacing: 0.3px;
   }
 
-  .es-my-best-auntie-overview-activity {
+  .es-my-best-auntie-outline-activity {
     color: var(--site-primary-text);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
     font-size: clamp(0.875rem, 2vw, 16px);
@@ -1306,40 +1306,40 @@
     line-height: 1.45;
   }
 
-  .es-my-best-auntie-overview-count-line--gold {
+  .es-my-best-auntie-outline-count-line--gold {
     background: var(--es-gradient-module-line-gold);
   }
 
-  .es-my-best-auntie-overview-count-line--red {
+  .es-my-best-auntie-outline-count-line--red {
     background: var(--es-gradient-module-line-red);
   }
 
-  .es-my-best-auntie-overview-count-line--blue {
+  .es-my-best-auntie-outline-count-line--blue {
     background: var(--es-gradient-module-line-blue);
   }
 
-  .es-my-best-auntie-overview-count-text {
+  .es-my-best-auntie-outline-count-text {
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
     font-size: 16px;
     font-weight: 700;
     line-height: 1;
   }
 
-  .es-my-best-auntie-overview-count-text--gold {
+  .es-my-best-auntie-outline-count-text--gold {
     color: var(--es-color-module-count-gold, #D7AB0A);
   }
 
-  .es-my-best-auntie-overview-count-text--red {
+  .es-my-best-auntie-outline-count-text--red {
     color: var(--es-color-module-count-red, #E3181B);
   }
 
-  .es-my-best-auntie-overview-count-text--blue {
+  .es-my-best-auntie-outline-count-text--blue {
     color: var(--es-color-module-count-blue, #4592DE);
   }
 
   .es-ida-intro-section,
   .es-my-best-auntie-hero-section,
-  .es-my-best-auntie-overview-section,
+  .es-my-best-auntie-outline-section,
   .es-course-highlights-section,
   .es-real-talk-section,
   .es-free-resources-section,

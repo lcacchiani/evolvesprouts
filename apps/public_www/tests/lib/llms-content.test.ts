@@ -88,7 +88,7 @@ describe('buildLlmsFullTxt', () => {
   });
 
   it('includes course module details from content', () => {
-    for (const mod of enContent.myBestAuntieOverview.modules) {
+    for (const mod of enContent.myBestAuntieOutline.modules) {
       expect(output).toContain(mod.title);
       expect(output).toContain(mod.activity);
     }

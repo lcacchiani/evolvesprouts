@@ -11,14 +11,14 @@ import {
   SectionContainer,
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
-import type { ReservationSummary } from '@/components/sections/my-best-auntie-booking-modal';
+import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
-    import('@/components/sections/my-best-auntie-booking-modal').then(
+    import('@/components/sections/my-best-auntie/my-best-auntie-booking-modal').then(
       (module) => module.MyBestAuntieBookingModal,
     ),
   { ssr: false },
@@ -26,7 +26,7 @@ const MyBestAuntieBookingModal = dynamic(
 
 const MyBestAuntieThankYouModal = dynamic(
   () =>
-    import('@/components/sections/my-best-auntie-booking-modal').then(
+    import('@/components/sections/my-best-auntie/my-best-auntie-booking-modal').then(
       (module) => module.MyBestAuntieThankYouModal,
     ),
   { ssr: false },

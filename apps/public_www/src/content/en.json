@@ -139,13 +139,13 @@
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
     "ariaLabel": "Contact us on WhatsApp"
   },
-  "myBestAuntieOverview": {
-    "eyebrow": "Empowering Education",
+  "myBestAuntieOutline": {
+    "eyebrow": "Course Outline",
     "title": "My Best Auntie Training Course Designed by Ida",
     "subtitle": "A 9-Week Programme That Changes Your Home.",
     "description": "Group sessions + private 1:1 coaching. Starting from HK$9,000.",
     "ctaLabel": "See full course details",
-    "ctaHref": "/services/my-best-auntie-training-course",
+    "ctaHref": "#my-best-auntie-booking",
     "modules": [
       {
         "step": "1",
@@ -536,7 +536,9 @@
       }
     ],
     "previousButtonAriaLabel": "Previous highlight cards",
-    "nextButtonAriaLabel": "Next highlight cards"
+    "nextButtonAriaLabel": "Next highlight cards",
+    "ctaLabel": "Book your spot now!",
+    "ctaHref": "#my-best-auntie-booking"
   },
   "resources": {
     "eyebrow": "Our Resources",

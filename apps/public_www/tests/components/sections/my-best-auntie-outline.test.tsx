@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overview';
+import { MyBestAuntieOutline } from '@/components/sections/my-best-auntie/my-best-auntie-outline';
 import enContent from '@/content/en.json';
 
 vi.mock('next/image', () => ({
@@ -19,10 +19,10 @@ vi.mock('next/image', () => ({
   },
 }));
 
-describe('MyBestAuntieOverview section', () => {
+describe('MyBestAuntieOutline section', () => {
   it('uses migrated section and module tone classes', () => {
     const { container } = render(
-      <MyBestAuntieOverview content={enContent.myBestAuntieOverview} />,
+      <MyBestAuntieOutline content={enContent.myBestAuntieOutline} />,
     );
 
     const section = screen
@@ -32,7 +32,7 @@ describe('MyBestAuntieOverview section', () => {
       .find((element) => element.tagName.toLowerCase() === 'section');
 
     expect(section).toBeDefined();
-    expect(section?.className).toContain('es-my-best-auntie-overview-section');
+    expect(section?.className).toContain('es-my-best-auntie-outline-section');
     const mobileCarouselWrapper = container.querySelector('div.md\\:hidden');
     expect(mobileCarouselWrapper).toHaveAttribute(
       'data-css-fallback',
@@ -43,7 +43,7 @@ describe('MyBestAuntieOverview section', () => {
     expect(carouselTrack?.className).toContain('snap-mandatory');
     expect(carouselTrack?.className).toContain('overflow-x-auto');
 
-    const moduleTitles = enContent.myBestAuntieOverview.modules.map(
+    const moduleTitles = enContent.myBestAuntieOutline.modules.map(
       (module) => module.title,
     );
 
@@ -54,35 +54,35 @@ describe('MyBestAuntieOverview section', () => {
       });
       expect(headings.length).toBeGreaterThan(0);
       headings.forEach((heading) => {
-        expect(heading.className).toContain('es-my-best-auntie-overview-module-title');
+        expect(heading.className).toContain('es-my-best-auntie-outline-module-title');
       });
     });
     expect(
-      screen.getByText(enContent.myBestAuntieOverview.subtitle),
+      screen.getByText(enContent.myBestAuntieOutline.subtitle),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.myBestAuntieOverview.description),
+      screen.getByText(enContent.myBestAuntieOutline.description),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', {
-        name: enContent.myBestAuntieOverview.ctaLabel,
+        name: enContent.myBestAuntieOutline.ctaLabel,
       }),
-    ).toHaveAttribute('href', enContent.myBestAuntieOverview.ctaHref);
+    ).toHaveAttribute('href', enContent.myBestAuntieOutline.ctaHref);
 
-    expect(container.querySelector('article.es-my-best-auntie-overview-card--gold')).not.toBeNull();
-    expect(container.querySelector('article.es-my-best-auntie-overview-card--red')).not.toBeNull();
-    expect(container.querySelector('article.es-my-best-auntie-overview-card--blue')).not.toBeNull();
+    expect(container.querySelector('article.es-my-best-auntie-outline-card--gold')).not.toBeNull();
+    expect(container.querySelector('article.es-my-best-auntie-outline-card--red')).not.toBeNull();
+    expect(container.querySelector('article.es-my-best-auntie-outline-card--blue')).not.toBeNull();
     expect(
-      container.querySelector('span.es-my-best-auntie-overview-count-line--gold'),
+      container.querySelector('span.es-my-best-auntie-outline-count-line--gold'),
     ).not.toBeNull();
     expect(
-      container.querySelector('span.es-my-best-auntie-overview-count-text--red'),
+      container.querySelector('span.es-my-best-auntie-outline-count-text--red'),
     ).not.toBeNull();
     expect(
-      container.querySelector('span.es-my-best-auntie-overview-count-text--blue'),
+      container.querySelector('span.es-my-best-auntie-outline-count-text--blue'),
     ).not.toBeNull();
 
-    const moduleIcons = enContent.myBestAuntieOverview.modules.map(
+    const moduleIcons = enContent.myBestAuntieOutline.modules.map(
       (module) => module.icon,
     );
     moduleIcons.forEach((iconName) => {
@@ -105,7 +105,7 @@ describe('MyBestAuntieOverview section', () => {
 
   it('reveals the desktop card description when clicked', () => {
     const { container } = render(
-      <MyBestAuntieOverview content={enContent.myBestAuntieOverview} />,
+      <MyBestAuntieOutline content={enContent.myBestAuntieOutline} />,
     );
 
     const desktopGrid = Array.from(container.querySelectorAll('ul')).find(
@@ -118,10 +118,10 @@ describe('MyBestAuntieOverview section', () => {
     expect(firstCard?.getAttribute('role')).toBe('button');
 
     const description = firstCard?.querySelector(
-      'p.es-my-best-auntie-overview-activity',
+      'p.es-my-best-auntie-outline-activity',
     );
     const countLine = firstCard?.querySelector(
-      'span.es-my-best-auntie-overview-count-line',
+      'span.es-my-best-auntie-outline-count-line',
     );
     expect(description).not.toBeNull();
     expect(countLine).not.toBeNull();

@@ -10,12 +10,12 @@ vi.mock('@/components/shared/page-layout', () => ({
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
-vi.mock('@/components/sections/my-best-auntie-hero', () => ({
+vi.mock('@/components/sections/my-best-auntie/my-best-auntie-hero', () => ({
   MyBestAuntieHero: ({ content }: { content: { title: string } }) => (
     <section data-testid='my-best-auntie-hero'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/my-best-auntie-booking', () => ({
+vi.mock('@/components/sections/my-best-auntie/my-best-auntie-booking', () => ({
   MyBestAuntieBooking: ({
     content,
     locale,
@@ -28,9 +28,14 @@ vi.mock('@/components/sections/my-best-auntie-booking', () => ({
     </section>
   ),
 }));
-vi.mock('@/components/sections/my-best-auntie-description', () => ({
+vi.mock('@/components/sections/my-best-auntie/my-best-auntie-description', () => ({
   MyBestAuntieDescription: ({ content }: { content: { title: string } }) => (
     <section data-testid='my-best-auntie-description'>{content.title}</section>
+  ),
+}));
+vi.mock('@/components/sections/my-best-auntie/my-best-auntie-outline', () => ({
+  MyBestAuntieOutline: ({ content }: { content: { title: string } }) => (
+    <section data-testid='my-best-auntie-outline'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/faq', () => ({
@@ -55,15 +60,31 @@ describe('MyBestAuntie page', () => {
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-hero')).toBeInTheDocument();
-    expect(screen.getByTestId('my-best-auntie-booking')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-description')).toBeInTheDocument();
-    expect(screen.getByTestId('faq')).toBeInTheDocument();
+    expect(screen.getByTestId('my-best-auntie-outline')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
+    expect(screen.getByTestId('my-best-auntie-booking')).toBeInTheDocument();
+    expect(screen.getByTestId('faq')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
     expect(screen.getByTestId('page-layout').firstElementChild).toHaveAttribute(
       'data-testid',
       'my-best-auntie-hero',
     );
+    expect(
+      screen.getByTestId('my-best-auntie-description').compareDocumentPosition(
+        screen.getByTestId('my-best-auntie-outline'),
+      ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      screen.getByTestId('deferred-testimonials').compareDocumentPosition(
+        screen.getByTestId('my-best-auntie-booking'),
+      ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      screen.getByTestId('my-best-auntie-booking').compareDocumentPosition(
+        screen.getByTestId('faq'),
+      ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
       screen.getByText(`${enContent.myBestAuntieBooking.title} (zh-HK)`),
     ).toBeInTheDocument();
