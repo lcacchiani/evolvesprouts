@@ -80,6 +80,11 @@ export function getSiteHost(): string {
   return cachedSiteHost;
 }
 
+export function _resetSeoCacheForTests(): void {
+  cachedSiteOrigin = undefined;
+  cachedSiteHost = undefined;
+}
+
 export const DEFAULT_SOCIAL_IMAGE = '/images/seo/evolvesprouts-og-default.png';
 export const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
 const PAGE_TITLE_SEPARATOR = ' - ';

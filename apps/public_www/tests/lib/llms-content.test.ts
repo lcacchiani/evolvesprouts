@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import enContent from '@/content/en.json';
 import { buildLlmsFullTxt, buildLlmsTxt } from '@/lib/llms-content';
 
+const TEST_CONTACT_EMAIL = process.env.NEXT_PUBLIC_EMAIL ?? 'tests@example.com';
+
 describe('buildLlmsTxt', () => {
   const output = buildLlmsTxt(enContent);
 
@@ -28,8 +30,8 @@ describe('buildLlmsTxt', () => {
     expect(output).toContain(enContent.events.description);
   });
 
-  it('includes the contact email from content', () => {
-    expect(output).toContain(process.env.NEXT_PUBLIC_EMAIL ?? '');
+  it('includes the contact email from config', () => {
+    expect(output).toContain(TEST_CONTACT_EMAIL);
   });
 
   it('includes the required llms.txt sections', () => {
@@ -123,8 +125,8 @@ describe('buildLlmsFullTxt', () => {
     expect(output).toContain(firstTestimonial.author);
   });
 
-  it('includes the contact email from content', () => {
-    expect(output).toContain(process.env.NEXT_PUBLIC_EMAIL ?? '');
+  it('includes the contact email from config', () => {
+    expect(output).toContain(TEST_CONTACT_EMAIL);
   });
 
   it('includes multilingual site URLs', () => {
