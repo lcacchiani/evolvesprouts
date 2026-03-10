@@ -610,6 +610,27 @@
     background-size: 130%;
   }
 
+  .es-my-best-auntie-hero-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  }
+
+  .es-my-best-auntie-hero-image-wrap {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .es-my-best-auntie-hero-image-wrap::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 130%;
+  }
+
   .es-hero-section {
     padding-top: 0;
     background-color: var(--es-color-surface-white, #FFFFFF);
@@ -1317,6 +1338,7 @@
   }
 
   .es-ida-intro-section,
+  .es-my-best-auntie-hero-section,
   .es-my-best-auntie-overview-section,
   .es-course-highlights-section,
   .es-real-talk-section,

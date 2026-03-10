@@ -10,6 +10,11 @@ vi.mock('@/components/shared/page-layout', () => ({
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
+vi.mock('@/components/sections/my-best-auntie-hero', () => ({
+  MyBestAuntieHero: ({ content }: { content: { title: string } }) => (
+    <section data-testid='my-best-auntie-hero'>{content.title}</section>
+  ),
+}));
 vi.mock('@/components/sections/my-best-auntie-booking', () => ({
   MyBestAuntieBooking: ({
     content,
@@ -49,11 +54,16 @@ describe('MyBestAuntie page', () => {
     render(<MyBestAuntie locale='zh-HK' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
+    expect(screen.getByTestId('my-best-auntie-hero')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-booking')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-description')).toBeInTheDocument();
     expect(screen.getByTestId('faq')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
+    expect(screen.getByTestId('page-layout').firstElementChild).toHaveAttribute(
+      'data-testid',
+      'my-best-auntie-hero',
+    );
     expect(
       screen.getByText(`${enContent.myBestAuntieBooking.title} (zh-HK)`),
     ).toBeInTheDocument();

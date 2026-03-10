@@ -28,6 +28,7 @@ const pageSectionFiles = [
   'reach-out.tsx',
   'connect.tsx',
   'events.tsx',
+  'my-best-auntie-hero.tsx',
   'my-best-auntie-booking.tsx',
   'my-best-auntie-description.tsx',
   'sprouts-squad-community.tsx',

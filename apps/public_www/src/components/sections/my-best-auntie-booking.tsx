@@ -248,7 +248,7 @@ export function MyBestAuntieBooking({
           <div className='space-y-5 max-w-[620px] lg:pr-8'>
             <SectionHeader
               title={content.title}
-              titleAs='h1'
+              titleAs='h2'
               align='left'
               className='max-w-[620px]'
               titleClassName='es-my-best-auntie-booking-heading'

@@ -127,6 +127,13 @@
     "ctaHref": "/about-us",
     "imageAlt": "Ida De Gregorio from Evolve Sprouts"
   },
+  "myBestAuntieHero": {
+    "title": "A practical training course built for Hong Kong helpers",
+    "body": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on course designed specifically for domestic helpers in Hong Kong - with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn - and your trust that she's capable of so much more.",
+    "ctaLabel": "Book your spot now!",
+    "ctaHref": "#my-best-auntie-booking",
+    "imageAlt": "Ida De Gregorio from Evolve Sprouts"
+  },
   "whatsappContact": {
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
     "ariaLabel": "Contact us on WhatsApp"
