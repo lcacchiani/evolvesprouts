@@ -13,7 +13,7 @@
         "href": "/"
       },
       {
-        "label": "Services",
+        "label": "Our Services",
         "href": "/services/my-best-auntie-training-course",
         "children": [
           {
@@ -71,7 +71,7 @@
     "headline": "Your auntie loves your child. But she needs the tools to raise them your way.",
     "highlightPhrase": "your way",
     "subheadline": "No blame. No judgment. Just the practical training every family in Hong Kong deserves.",
-    "cta": "Enrol your helper",
+    "cta": "Train your helper today",
     "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "Hi, I'd like to book a free session!",
     "supportingParagraph": "Trusted by families across Hong Kong. AMI Montessori-certified. Designed for real life."
@@ -816,7 +816,8 @@
   },
   "myJourney": {
     "eyebrow": "My Montessori Journey",
-    "title": "Parenting isn’t about perfection. It’s about progress.",
+    "title": "Parenting isn't about perfection. It's about progress.",
+    "description": "As a mum of two, I've learned that the best parenting happens when we slow down, listen, and give our children space to grow. Montessori principles have transformed how I approach motherhood — and how I help other families do the same.",
     "cards": [
       {
         "tag": "Progress at Home",
@@ -825,6 +826,10 @@
       {
         "tag": "Growth in Me",
         "description": "I’ve cried after losing my temper. I’ve doubted every choice. Montessori didn’t just shape my children’s growth — it transformed mine."
+      },
+      {
+        "tag": "What It Taught Me",
+        "description": "Replace guilt with grace. See misbehaviour as unmet needs, not defiance. Build a home where both children and parents feel truly seen — not perfect, just growing."
       }
     ]
   },
