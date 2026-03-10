@@ -7,6 +7,7 @@ import {
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { resolveMyBestAuntieHeroDescription } from '@/content/copy-normalizers';
 import type { MyBestAuntieHeroContent } from '@/content';
 
 interface MyBestAuntieHeroProps {
@@ -16,6 +17,8 @@ interface MyBestAuntieHeroProps {
 const MY_BEST_AUNTIE_HERO_CTA_CLASSNAME = 'mt-auto max-w-[360px]';
 
 export function MyBestAuntieHero({ content }: MyBestAuntieHeroProps) {
+  const description = resolveMyBestAuntieHeroDescription(content);
+
   return (
     <SectionShell
       id='my-best-auntie-hero'
@@ -38,7 +41,7 @@ export function MyBestAuntieHero({ content }: MyBestAuntieHeroProps) {
               description={content.subtitle}
               descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
             />
-            <p className='mt-4 max-w-[720px] es-type-body'>{content.body}</p>
+            <p className='mt-4 max-w-[720px] es-type-body'>{description}</p>
             <div className='mt-8'>
               <SectionCtaAnchor
                 href={content.ctaHref}

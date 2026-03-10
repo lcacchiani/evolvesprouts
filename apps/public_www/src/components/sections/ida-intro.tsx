@@ -8,6 +8,7 @@ import {
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { renderHighlightedText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { resolveIdaIntroCopy } from '@/content/copy-normalizers';
 import type { IdaIntroContent } from '@/content';
 
 interface IdaIntroProps {
@@ -17,10 +18,12 @@ interface IdaIntroProps {
 const IDA_INTRO_CTA_CLASSNAME = 'mt-auto max-w-[360px] es-btn--outline';
 
 export function IdaIntro({ content }: IdaIntroProps) {
+  const copy = resolveIdaIntroCopy(content);
+
   return (
     <SectionShell
       id='ida-intro'
-      ariaLabel={content.heading}
+      ariaLabel={copy.title}
       dataFigmaNode='ida-intro'
       className='es-ida-section es-ida-intro-section overflow-hidden'
     >
@@ -32,11 +35,11 @@ export function IdaIntro({ content }: IdaIntroProps) {
         <div className='relative max-w-[620px] lg:order-2 lg:pb-4 lg:pl-8'>
           <div className='relative z-10'>
             <SectionHeader
-              title={renderHighlightedText(content.heading, content.highlightPhrase)}
+              title={renderHighlightedText(copy.title, content.highlightPhrase)}
               titleAs='h2'
               align='left'
               titleClassName='max-w-[720px]'
-              description={content.body}
+              description={copy.description}
               descriptionClassName='mt-4 max-w-[720px] es-type-body'
             />
             <div className='mt-8'>

@@ -21,8 +21,8 @@ vi.mock('@/components/sections/reach-out', () => ({
   ),
 }));
 vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: ({ content }: { content: { heading: string } }) => (
-    <section data-testid='sprouts-squad-community'>{content.heading}</section>
+  SproutsSquadCommunity: ({ content }: { content: { title: string } }) => (
+    <section data-testid='sprouts-squad-community'>{content.title}</section>
   ),
 }));
 

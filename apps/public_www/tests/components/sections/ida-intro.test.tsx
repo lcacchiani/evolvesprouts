@@ -22,12 +22,12 @@ describe('IdaIntro', () => {
     const content = enContent.idaIntro;
     render(<IdaIntro content={content} />);
 
-    const heading = screen.getByRole('heading', { name: content.heading });
+    const heading = screen.getByRole('heading', { name: content.title });
     expect(heading).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: content.heading })).toHaveClass(
+    expect(screen.getByRole('region', { name: content.title })).toHaveClass(
       'es-ida-intro-section',
     );
-    expect(screen.getByText(content.body)).toBeInTheDocument();
+    expect(screen.getByText(content.description)).toBeInTheDocument();
     expect(screen.getByText(content.highlightPhrase)).toHaveClass(
       'es-hero-highlight-word',
     );

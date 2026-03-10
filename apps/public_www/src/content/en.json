@@ -71,13 +71,13 @@
     "mobileNavigationMenuAriaLabel": "Mobile navigation menu"
   },
   "hero": {
-    "headline": "Your auntie loves your child. But she needs the tools to raise them your way.",
+    "title": "Your auntie loves your child. But she needs the tools to raise them your way.",
     "highlightPhrase": "your way",
-    "subheadline": "No blame. No judgment. Just the practical training every family in Hong Kong deserves.",
+    "subtitle": "No blame. No judgment. Just the practical training every family in Hong Kong deserves.",
     "cta": "Train your helper today",
     "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "Hi, I'd like to book a free session!",
-    "supportingParagraph": "Trusted by families across Hong Kong. AMI Montessori-certified. Designed for real life."
+    "description": "Trusted by families across Hong Kong. AMI Montessori-certified. Designed for real life."
   },
   "seo": {
     "fallbackTitle": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
@@ -120,17 +120,17 @@
     "localBusinessAreaServed": "Hong Kong"
   },
   "idaIntro": {
-    "heading": "Hello! I'm Ida — AMI Montessori educator, mum of two, and founder of Evolve Sprouts.",
+    "title": "Hello! I'm Ida — AMI Montessori educator, mum of two, and founder of Evolve Sprouts.",
     "highlightPhrase": "Evolve Sprouts",
-    "body": "I left a teacher career to train helpers to raise children with confidence, independence, and warmth. This work is personal to me — because I'm navigating the same journey you are.",
+    "description": "I left a teacher career to train helpers to raise children with confidence, independence, and warmth. This work is personal to me — because I'm navigating the same journey you are.",
     "ctaLabel": "Read my story",
     "ctaHref": "/about-us",
     "imageAlt": "Ida De Gregorio from Evolve Sprouts"
   },
   "myBestAuntieHero": {
     "title": "My Best Auntie Training Course",
-    "subtitle": "A practical training course built for Hong Kong helpers",
-    "body": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on course designed specifically for domestic helpers in Hong Kong - with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn - and your trust that she's capable of so much more.",
+    "subtitle": "A practical training course built for Hong Kong helpers.",
+    "description": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on course designed specifically for domestic helpers in Hong Kong - with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn - and your trust that she's capable of so much more.",
     "ctaLabel": "Book your spot now!",
     "ctaHref": "#my-best-auntie-booking",
     "imageAlt": "Ida De Gregorio from Evolve Sprouts"
@@ -142,7 +142,7 @@
   "myBestAuntieOverview": {
     "eyebrow": "Empowering Education",
     "title": "My Best Auntie Training Course Designed by Ida",
-    "subtitle": "A 9-Week Programme That Changes Your Home",
+    "subtitle": "A 9-Week Programme That Changes Your Home.",
     "description": "Group sessions + private 1:1 coaching. Starting from HK$9,000.",
     "ctaLabel": "See full course details",
     "ctaHref": "/services/my-best-auntie-training-course",
@@ -458,7 +458,7 @@
     "thankYouModal": {
       "closeLabel": "Close",
       "title": "We will get in touch shortly",
-      "subtitle": "A confirmation email has been sent to",
+      "subtitle": "A confirmation email has been sent to.",
       "successLabel": "Thank You!",
       "courseLabel": "My Best Auntie Training Course.",
       "transactionDateLabel": "Transaction Date",
@@ -1088,11 +1088,11 @@
     "contactCardCtaLabel": "Contact Us"
   },
   "sproutsSquadCommunity": {
-    "heading": "Let's Grow Together",
+    "title": "Let's Grow Together",
     "ctaLabel": "Sign Up to Our Monthly Newsletter",
     "formSubmitLabel": "Join Sprouts Squad",
     "ctaHref": "/contact-us",
-    "supportParagraph": "If you've ever felt overwhelmed, isolated in your choices, or quietly wondered if you're enough — you belong here.\n\nWith warmth and solidarity, Ida.",
+    "description": "If you've ever felt overwhelmed, isolated in your choices, or quietly wondered if you're enough — you belong here.\n\nWith warmth and solidarity, Ida.",
     "emailPlaceholder": "Email address",
     "emailValidationMessage": "Please enter a valid email address.",
     "prefilledMessage": "Newsletter join",
@@ -1103,8 +1103,8 @@
     "successMessage": "Thank you for being part of our community! You will start receiving our monthly newsletters"
   },
   "freeIntroSession": {
-    "heading": "Ready to give your helper the tools she needs?",
-    "supportParagraph": "Book a free 15-minute intro session. No commitment. Just a conversation about your family.",
+    "title": "Ready to give your helper the tools she needs?",
+    "description": "Book a free 15-minute intro session. No commitment. Just a conversation about your family.",
     "ctaLabel": "Book Free Intro on WhatsApp"
   },
   "whoops": {
@@ -1115,7 +1115,7 @@
   "termsAndConditions": {
     "eyebrow": "Legal",
     "title": "Terms and Conditions",
-    "intro": "These Terms and Conditions govern your use of the Evolve Sprouts website and services, including consultations, training, workshops, and digital resources.",
+    "description": "These Terms and Conditions govern your use of the Evolve Sprouts website and services, including consultations, training, workshops, and digital resources.",
     "lastUpdatedLabel": "Last updated",
     "lastUpdatedValue": "27 February 2026",
     "sections": [
@@ -1174,7 +1174,7 @@
   "privacyPolicy": {
     "eyebrow": "Legal",
     "title": "Privacy Policy",
-    "intro": "This Privacy Policy explains how Evolve Sprouts collects, uses, stores, and protects personal data provided through our website and services.",
+    "description": "This Privacy Policy explains how Evolve Sprouts collects, uses, stores, and protects personal data provided through our website and services.",
     "lastUpdatedLabel": "Last updated",
     "lastUpdatedValue": "27 February 2026",
     "sections": [

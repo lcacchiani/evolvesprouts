@@ -52,17 +52,17 @@ describe('HeroBanner section', () => {
 
     const headline = screen.getByRole('heading', { level: 1 });
     expect(headline.className).toContain('es-hero-headline');
-    expect(headline).toHaveTextContent(enContent.hero.headline);
+    expect(headline).toHaveTextContent(enContent.hero.title);
     expect(screen.getByText(enContent.hero.highlightPhrase)).toHaveClass(
       'es-hero-highlight-word',
     );
 
-    const subheadline = screen.getByText(enContent.hero.subheadline);
+    const subheadline = screen.getByText(enContent.hero.subtitle);
     expect(subheadline.className).toContain('es-hero-subheadline');
 
     const cta = screen.getByRole('link', { name: enContent.hero.cta });
     expect(cta).toHaveAttribute('href', ctaHref);
-    const supportingParagraph = screen.getByText(enContent.hero.supportingParagraph);
+    const supportingParagraph = screen.getByText(enContent.hero.description);
     expect(supportingParagraph).toBeInTheDocument();
     expect(supportingParagraph.className).toContain('es-hero-subheadline');
   });

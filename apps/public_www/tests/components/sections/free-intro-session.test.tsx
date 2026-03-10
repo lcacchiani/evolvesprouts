@@ -25,9 +25,9 @@ describe('FreeIntroSession section', () => {
     render(<FreeIntroSession content={enContent.freeIntroSession} ctaHref={ctaHref} />);
 
     expect(
-      screen.getByRole('heading', { level: 2, name: enContent.freeIntroSession.heading }),
+      screen.getByRole('heading', { level: 2, name: enContent.freeIntroSession.title }),
     ).toBeInTheDocument();
-    expect(screen.getByText(enContent.freeIntroSession.supportParagraph)).toBeInTheDocument();
+    expect(screen.getByText(enContent.freeIntroSession.description)).toBeInTheDocument();
 
     const cta = screen.getByRole('link', { name: enContent.freeIntroSession.ctaLabel });
     expect(cta).toBeInTheDocument();

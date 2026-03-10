@@ -25,6 +25,15 @@ const MAILTO_PROTOCOL_REGEX = /^mailto:/i;
 const TEL_PROTOCOL_REGEX = /^tel:/i;
 const GENERIC_SOCIAL_PROFILE_ROOT_REGEX =
   /^https:\/\/(?:www\.)?(linkedin\.com|instagram\.com)\/?$/i;
+const LEGACY_SECTION_ROOT_KEYS = {
+  hero: ['headline', 'subheadline', 'supportingParagraph'],
+  idaIntro: ['heading', 'body'],
+  myBestAuntieHero: ['body'],
+  sproutsSquadCommunity: ['heading', 'supportParagraph'],
+  freeIntroSession: ['heading', 'supportParagraph'],
+  termsAndConditions: ['intro'],
+  privacyPolicy: ['intro'],
+};
 
 function getTypeName(value) {
   if (Array.isArray(value)) {
@@ -362,6 +371,24 @@ function validateSemanticRules(value, keyPath, errors, routePaths) {
   }
 }
 
+function validateNoLegacySectionRootKeys(content, locale, errors) {
+  for (const [sectionKey, legacyKeys] of Object.entries(LEGACY_SECTION_ROOT_KEYS)) {
+    const sectionValue = content[sectionKey];
+    if (!sectionValue || typeof sectionValue !== 'object' || Array.isArray(sectionValue)) {
+      errors.push(`${locale}: missing or invalid section "${sectionKey}"`);
+      continue;
+    }
+
+    for (const legacyKey of legacyKeys) {
+      if (legacyKey in sectionValue) {
+        errors.push(
+          `${locale}.${sectionKey}: legacy key "${legacyKey}" is not allowed; use canonical copy keys`,
+        );
+      }
+    }
+  }
+}
+
 async function loadJson(filePath) {
   const raw = await readFile(filePath, 'utf8');
   return JSON.parse(raw);
@@ -388,6 +415,7 @@ async function main() {
     validateShape(englishContent, localeContent, locale, errors);
     assertLocaleMetadata(localeContent, locale, errors);
     validateSemanticRules(localeContent, locale, errors, localeRoutePaths);
+    validateNoLegacySectionRootKeys(localeContent, locale, errors);
   }
 
   if (errors.length > 0) {

@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 const heroBannerPropsSpy = vi.fn<
-  [{ content: { headline: string }; ctaHref?: string }],
+  [{ content: { title: string }; ctaHref?: string }],
   void
 >();
 const pageLayoutPropsSpy = vi.fn<
@@ -34,7 +34,7 @@ const pageLayoutPropsSpy = vi.fn<
   void
 >();
 const freeIntroSessionPropsSpy = vi.fn<
-  [{ content: { heading: string }; ctaHref: string }],
+  [{ content: { title: string }; ctaHref: string }],
   void
 >();
 
@@ -55,11 +55,11 @@ vi.mock('@/components/sections/hero-banner', () => ({
     content,
     ctaHref,
   }: {
-    content: { headline: string };
+    content: { title: string };
     ctaHref?: string;
   }) => {
     heroBannerPropsSpy({ content, ctaHref });
-    return <section data-testid='hero-banner'>{content.headline}</section>;
+    return <section data-testid='hero-banner'>{content.title}</section>;
   },
 }));
 vi.mock('@/components/sections/real-talk', () => ({
@@ -68,10 +68,10 @@ vi.mock('@/components/sections/real-talk', () => ({
   ),
 }));
 vi.mock('@/components/sections/ida-intro', () => ({
-  IdaIntro: ({ content }: { content: { heading: string; body: string } }) => (
+  IdaIntro: ({ content }: { content: { title: string; description: string } }) => (
     <section data-testid='ida-intro'>
-      <h2>{content.heading}</h2>
-      <p>{content.body}</p>
+      <h2>{content.title}</h2>
+      <p>{content.description}</p>
     </section>
   ),
 }));
@@ -90,11 +90,11 @@ vi.mock('@/components/sections/free-intro-session', () => ({
     content,
     ctaHref,
   }: {
-    content: { heading: string };
+    content: { title: string };
     ctaHref: string;
   }) => {
     freeIntroSessionPropsSpy({ content, ctaHref });
-    return <section data-testid='free-intro-session'>{content.heading}</section>;
+    return <section data-testid='free-intro-session'>{content.title}</section>;
   },
 }));
 
@@ -114,9 +114,9 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('my-best-auntie-overview')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
-    expect(screen.getByText(enContent.hero.headline)).toBeInTheDocument();
-    expect(screen.getByText(enContent.idaIntro.heading)).toBeInTheDocument();
-    expect(screen.getByText(enContent.idaIntro.body)).toBeInTheDocument();
+    expect(screen.getByText(enContent.hero.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.idaIntro.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.idaIntro.description)).toBeInTheDocument();
     expect(
       screen.getByTestId('my-best-auntie-overview'),
     ).toHaveTextContent('My Best Auntie Training Course Designed by Ida');

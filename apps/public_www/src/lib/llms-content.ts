@@ -1,4 +1,5 @@
 import type { SiteContent } from '@/content';
+import { resolvePolicyDescription } from '@/content/copy-normalizers';
 import { INDEXED_ROUTE_PATHS, ROUTES } from '@/lib/routes';
 import { getSiteOrigin, localizePath } from '@/lib/seo';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
@@ -125,6 +126,9 @@ export function buildLlmsTxt(content: SiteContent): string {
   const pages = resolvePageDescriptors(content);
   const siteOrigin = getSiteOrigin();
 
+  const privacyDescription = resolvePolicyDescription(content.privacyPolicy);
+  const termsDescription = resolvePolicyDescription(content.termsAndConditions);
+
   return lines(
     `# ${brand}`,
     '',
@@ -153,8 +157,8 @@ export function buildLlmsTxt(content: SiteContent): string {
     '',
     '## Optional',
     '',
-    linkedBullet('Privacy Policy', ROUTES.privacy, content.privacyPolicy.intro),
-    linkedBullet('Terms and Conditions', ROUTES.terms, content.termsAndConditions.intro),
+    linkedBullet('Privacy Policy', ROUTES.privacy, privacyDescription),
+    linkedBullet('Terms and Conditions', ROUTES.terms, termsDescription),
     `- [Extended AI context](${siteOrigin}/llms-full.txt): Comprehensive content including full FAQ, course details, and testimonials for deeper AI understanding.`,
     '',
   );

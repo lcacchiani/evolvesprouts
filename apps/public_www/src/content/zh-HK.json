@@ -71,13 +71,13 @@
     "mobileNavigationMenuAriaLabel": "流動版導覽選單"
   },
   "hero": {
-    "headline": "你的姨姨很愛你的孩子，但她需要工具，才能按你的方式培育孩子。",
+    "title": "你的姨姨很愛你的孩子，但她需要工具，才能按你的方式培育孩子。",
     "highlightPhrase": "你的方式",
-    "subheadline": "不責怪，不批判。只提供每個香港家庭都值得擁有的實用培訓。",
+    "subtitle": "不責怪，不批判。只提供每個香港家庭都值得擁有的實用培訓。",
     "cta": "今日就培訓你的姨姨",
     "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "你好，我想預約一節免費諮詢！",
-    "supportingParagraph": "深受全港家庭信賴。AMI 蒙特梭利認證。為真實生活而設。"
+    "description": "深受全港家庭信賴。AMI 蒙特梭利認證。為真實生活而設。"
   },
   "seo": {
     "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利姨姨培訓",
@@ -120,17 +120,17 @@
     "localBusinessAreaServed": "香港"
   },
   "idaIntro": {
-    "heading": "你好！我是 Ida——AMI 蒙特梭利教育者、兩個孩子的媽媽，也是 Evolve Sprouts 的創辦人。",
+    "title": "你好！我是 Ida——AMI 蒙特梭利教育者、兩個孩子的媽媽，也是 Evolve Sprouts 的創辦人。",
     "highlightPhrase": "Evolve Sprouts",
-    "body": "我離開教師職涯，開始培訓姨姨，讓她們能以自信、獨立與溫暖的方式養育孩子。這份工作對我很個人——因為我也正在走著和你一樣的育兒旅程。",
+    "description": "我離開教師職涯，開始培訓姨姨，讓她們能以自信、獨立與溫暖的方式養育孩子。這份工作對我很個人——因為我也正在走著和你一樣的育兒旅程。",
     "ctaLabel": "閱讀我的故事",
     "ctaHref": "/about-us",
     "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
   },
   "myBestAuntieHero": {
     "title": "My Best Auntie 培訓課程",
-    "subtitle": "一個專為香港家庭傭工而設的實用培訓課程",
-    "body": "這不是一堂育兒理念講座，也不是一本她永遠不會讀完的厚手冊。這是一個專為香港家庭傭工而設的實戰課程——提供真實情境、真實話術與真實策略，讓她由第一天就可以應用。\n無需蒙特梭利背景。無需育兒經驗。只要願意學習——以及你願意相信，她其實可以做得更多。",
+    "subtitle": "一個專為香港家庭傭工而設的實用培訓課程。",
+    "description": "這不是一堂育兒理念講座，也不是一本她永遠不會讀完的厚手冊。這是一個專為香港家庭傭工而設的實戰課程——提供真實情境、真實話術與真實策略，讓她由第一天就可以應用。\n無需蒙特梭利背景。無需育兒經驗。只要願意學習——以及你願意相信，她其實可以做得更多。",
     "ctaLabel": "立即預訂名額！",
     "ctaHref": "#my-best-auntie-booking",
     "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
@@ -142,7 +142,7 @@
   "myBestAuntieOverview": {
     "eyebrow": "賦能教育",
     "title": "由 Ida 設計的 My Best Auntie 培訓課程",
-    "subtitle": "9 週課程，改變你嘅屋企",
+    "subtitle": "9 週課程，改變你嘅屋企。",
     "description": "小組課 + 私人 1:1 指導。HK$9,000 起。",
     "ctaLabel": "查看完整課程詳情",
     "ctaHref": "/services/my-best-auntie-training-course",
@@ -458,7 +458,7 @@
     "thankYouModal": {
       "closeLabel": "關閉",
       "title": "我們會盡快與你聯絡",
-      "subtitle": "確認電郵已發送至",
+      "subtitle": "確認電郵已發送至。",
       "successLabel": "多謝你！",
       "courseLabel": "我的最佳姨姨培訓課程。",
       "transactionDateLabel": "交易日期",
@@ -1088,11 +1088,11 @@
     "contactCardCtaLabel": "聯絡我們"
   },
   "sproutsSquadCommunity": {
-    "heading": "讓我們一起成長",
+    "title": "讓我們一起成長",
     "ctaLabel": "訂閱我們的每月通訊",
     "formSubmitLabel": "加入 Sprouts Squad",
     "ctaHref": "/contact-us",
-    "supportParagraph": "如果你曾感到不知所措、在育兒選擇中感到孤單，或曾安靜地懷疑自己是否足夠好——你屬於這裡。\n\n帶著溫暖與同行的心，Ida.",
+    "description": "如果你曾感到不知所措、在育兒選擇中感到孤單，或曾安靜地懷疑自己是否足夠好——你屬於這裡。\n\n帶著溫暖與同行的心，Ida.",
     "emailPlaceholder": "電郵地址",
     "emailValidationMessage": "請輸入有效的電郵地址。",
     "prefilledMessage": "Newsletter join",
@@ -1103,8 +1103,8 @@
     "successMessage": "多謝你成為我哋社群的一員！你將會開始收到我哋每月電子通訊。"
   },
   "freeIntroSession": {
-    "heading": "準備好畀你嘅助手所需工具未？",
-    "supportParagraph": "預約一節 15 分鐘免費簡介。無需承諾，只係傾下你家庭嘅情況。",
+    "title": "準備好畀你嘅助手所需工具未？",
+    "description": "預約一節 15 分鐘免費簡介。無需承諾，只係傾下你家庭嘅情況。",
     "ctaLabel": "喺 WhatsApp 預約免費簡介"
   },
   "whoops": {
@@ -1115,7 +1115,7 @@
   "termsAndConditions": {
     "eyebrow": "法律條款",
     "title": "條款與細則",
-    "intro": "本條款與細則適用於你使用 Evolve Sprouts 網站及服務，包括諮詢、培訓、工作坊和數碼資源。",
+    "description": "本條款與細則適用於你使用 Evolve Sprouts 網站及服務，包括諮詢、培訓、工作坊和數碼資源。",
     "lastUpdatedLabel": "最後更新",
     "lastUpdatedValue": "2026年2月27日",
     "sections": [
@@ -1174,7 +1174,7 @@
   "privacyPolicy": {
     "eyebrow": "法律條款",
     "title": "私隱政策",
-    "intro": "本私隱政策說明 Evolve Sprouts 如何收集、使用、保存及保護你透過網站與服務提交的個人資料。",
+    "description": "本私隱政策說明 Evolve Sprouts 如何收集、使用、保存及保護你透過網站與服務提交的個人資料。",
     "lastUpdatedLabel": "最後更新",
     "lastUpdatedValue": "2026年2月27日",
     "sections": [
