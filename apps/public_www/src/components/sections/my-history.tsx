@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { Fragment } from 'react';
 
 import {
   buildSectionSplitLayoutClassName,
@@ -12,6 +13,23 @@ interface MyHistoryProps {
   content: MyHistoryContent;
 }
 
+function buildMobileImageAnchorIndexes(
+  paragraphCount: number,
+  imageCount: number,
+): number[] {
+  if (paragraphCount === 0 || imageCount === 0) {
+    return [];
+  }
+
+  const lastParagraphIndex = paragraphCount - 1;
+
+  return Array.from({ length: imageCount }, (_item, index) => {
+    const anchorIndex =
+      Math.ceil(((index + 1) * (paragraphCount + 1)) / (imageCount + 1)) - 1;
+    return Math.min(lastParagraphIndex, Math.max(0, anchorIndex));
+  });
+}
+
 export function MyHistory({ content }: MyHistoryProps) {
   const storyParagraphs = content.description
     .split(/\n\s*\n/g)
@@ -22,6 +40,18 @@ export function MyHistory({ content }: MyHistoryProps) {
     '/images/about-us/ida-degregorio-my-best-auntie-1.webp',
     '/images/about-us/ida-degregorio-my-best-auntie-2.webp',
   ];
+  const mobileImageAnchorIndexes = buildMobileImageAnchorIndexes(
+    storyParagraphs.length,
+    storyImageSources.length,
+  );
+  const mobileImageIndexesByParagraph = mobileImageAnchorIndexes.reduce<
+    Record<number, number[]>
+  >((accumulator, anchorIndex, imageIndex) => {
+    const existingImageIndexes = accumulator[anchorIndex] ?? [];
+    existingImageIndexes.push(imageIndex);
+    accumulator[anchorIndex] = existingImageIndexes;
+    return accumulator;
+  }, {});
 
   return (
     <SectionShell
@@ -44,17 +74,34 @@ export function MyHistory({ content }: MyHistoryProps) {
             description={content.subtitle}
             descriptionClassName='es-type-subtitle mt-4 max-w-[760px]'
           />
-          {storyParagraphs.map((paragraph, index) => (
-            <p
-              key={`${index}-${paragraph.slice(0, 24)}`}
-              className='es-type-body mt-4 max-w-[760px]'
-            >
-              {paragraph}
-            </p>
-          ))}
+          {storyParagraphs.map((paragraph, paragraphIndex) => {
+            const imageIndexesForParagraph =
+              mobileImageIndexesByParagraph[paragraphIndex] ?? [];
+
+            return (
+              <Fragment key={`${paragraphIndex}-${paragraph.slice(0, 24)}`}>
+                <p className='es-type-body mt-4 max-w-[760px]'>{paragraph}</p>
+                {imageIndexesForParagraph.map((imageIndex) => {
+                  const src = storyImageSources[imageIndex];
+
+                  return (
+                    <Image
+                      key={`${src}-mobile`}
+                      src={src}
+                      alt={`A brief history image from Evolve Sprouts ${imageIndex + 1}`}
+                      width={1600}
+                      height={1200}
+                      sizes='100vw'
+                      className='mt-4 h-auto w-full lg:hidden'
+                    />
+                  );
+                })}
+              </Fragment>
+            );
+          })}
         </div>
 
-        <div className='flex flex-col gap-4 lg:ml-auto lg:max-w-[651px]'>
+        <div className='hidden flex-col gap-4 lg:ml-auto lg:flex lg:max-w-[651px]'>
           {storyImageSources.map((src, index) => (
             <Image
               key={src}
