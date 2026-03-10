@@ -86,7 +86,7 @@ describe('SproutsSquadCommunity section', () => {
     );
 
     const section = screen.getByRole('region', {
-      name: enContent.sproutsSquadCommunity.heading,
+      name: enContent.sproutsSquadCommunity.title,
     });
     expect(section.className).toContain('es-sprouts-community-section');
 
@@ -110,7 +110,7 @@ describe('SproutsSquadCommunity section', () => {
 
     const heading = screen.getByRole('heading', {
       level: 2,
-      name: enContent.sproutsSquadCommunity.heading,
+      name: enContent.sproutsSquadCommunity.title,
     });
     expect(heading.className).toContain('es-sprouts-community-heading');
 
@@ -121,7 +121,7 @@ describe('SproutsSquadCommunity section', () => {
 
       return (
         element.classList.contains('es-sprouts-community-support-paragraph') &&
-        element.textContent === enContent.sproutsSquadCommunity.supportParagraph
+        element.textContent === enContent.sproutsSquadCommunity.description
       );
     });
     expect(supportParagraph.className).toContain(

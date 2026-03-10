@@ -58,8 +58,8 @@ describe('buildLlmsTxt', () => {
   });
 
   it('includes privacy and terms descriptions from content', () => {
-    expect(output).toContain(enContent.privacyPolicy.intro);
-    expect(output).toContain(enContent.termsAndConditions.intro);
+    expect(output).toContain(enContent.privacyPolicy.description);
+    expect(output).toContain(enContent.termsAndConditions.description);
   });
 });
 

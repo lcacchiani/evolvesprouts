@@ -71,13 +71,13 @@
     "mobileNavigationMenuAriaLabel": "移动端导航菜单"
   },
   "hero": {
-    "headline": "你的阿姨很爱你的孩子，但她需要工具，才能按你的方式养育他们。",
+    "title": "你的阿姨很爱你的孩子，但她需要工具，才能按你的方式养育他们。",
     "highlightPhrase": "你的方式",
-    "subheadline": "不责备，不评判。只提供每个香港家庭都值得拥有的实用培训。",
+    "subtitle": "不责备，不评判。只提供每个香港家庭都值得拥有的实用培训。",
     "cta": "今天就培训你的阿姨",
     "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "你好，我想预约一个免费咨询！",
-    "supportingParagraph": "深受全港家庭信赖。AMI 蒙特梭利认证。为真实生活而设计。"
+    "description": "深受全港家庭信赖。AMI 蒙特梭利认证。为真实生活而设计。"
   },
   "seo": {
     "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利阿姨培训",
@@ -120,9 +120,9 @@
     "localBusinessAreaServed": "香港"
   },
   "idaIntro": {
-    "heading": "你好！我是 Ida——AMI 蒙特梭利教育者、两个孩子的妈妈，也是 Evolve Sprouts 的创始人。",
+    "title": "你好！我是 Ida——AMI 蒙特梭利教育者、两个孩子的妈妈，也是 Evolve Sprouts 的创始人。",
     "highlightPhrase": "Evolve Sprouts",
-    "body": "我离开教师职业，开始培训阿姨，让她们能以自信、独立与温暖的方式养育孩子。这份工作对我很个人——因为我也在经历和你一样的育儿旅程。",
+    "description": "我离开教师职业，开始培训阿姨，让她们能以自信、独立与温暖的方式养育孩子。这份工作对我很个人——因为我也在经历和你一样的育儿旅程。",
     "ctaLabel": "阅读我的故事",
     "ctaHref": "/about-us",
     "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
@@ -130,7 +130,7 @@
   "myBestAuntieHero": {
     "title": "My Best Auntie 培训课程",
     "subtitle": "一门专为香港家政助手打造的实用培训课程。",
-    "body": "这不是一堂育儿理念讲座，也不是一本她永远不会读完的厚手册。这是一门专为香港家政助手设计的实操课程——包含真实场景、真实话术和真实策略，让她从第一天就能上手。\n无需蒙特梭利基础。无需育儿经验。只要愿意学习——并且你愿意相信，她可以做到更多。",
+    "description": "这不是一堂育儿理念讲座，也不是一本她永远不会读完的厚手册。这是一门专为香港家政助手设计的实操课程——包含真实场景、真实话术和真实策略，让她从第一天就能上手。\n无需蒙特梭利基础。无需育儿经验。只要愿意学习——并且你愿意相信，她可以做到更多。",
     "ctaLabel": "立即预订名额！",
     "ctaHref": "#my-best-auntie-booking",
     "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
@@ -1088,11 +1088,11 @@
     "contactCardCtaLabel": "联系我们"
   },
   "sproutsSquadCommunity": {
-    "heading": "让我们一起成长",
+    "title": "让我们一起成长",
     "ctaLabel": "订阅我们的每月通讯",
     "formSubmitLabel": "加入 Sprouts Squad",
     "ctaHref": "/contact-us",
-    "supportParagraph": "如果你曾感到不知所措、在育儿选择中感到孤单，或曾悄悄怀疑自己是否足够好——你属于这里。\n\n带着温暖与同行，Ida.",
+    "description": "如果你曾感到不知所措、在育儿选择中感到孤单，或曾悄悄怀疑自己是否足够好——你属于这里。\n\n带着温暖与同行，Ida.",
     "emailPlaceholder": "邮箱地址",
     "emailValidationMessage": "请输入有效的邮箱地址。",
     "prefilledMessage": "Newsletter join",
@@ -1103,8 +1103,8 @@
     "successMessage": "感谢你成为我们社区的一员！你将开始收到我们的每月电子通讯。"
   },
   "freeIntroSession": {
-    "heading": "准备好给你的助手她需要的工具了吗？",
-    "supportParagraph": "预约一次 15 分钟免费介绍会。无需承诺，只是聊聊你的家庭情况。",
+    "title": "准备好给你的助手她需要的工具了吗？",
+    "description": "预约一次 15 分钟免费介绍会。无需承诺，只是聊聊你的家庭情况。",
     "ctaLabel": "在 WhatsApp 预约免费介绍会"
   },
   "whoops": {
@@ -1115,7 +1115,7 @@
   "termsAndConditions": {
     "eyebrow": "法律条款",
     "title": "条款与条件",
-    "intro": "本条款与条件适用于您使用 Evolve Sprouts 网站及其服务，包括咨询、培训、工作坊和数字资源。",
+    "description": "本条款与条件适用于您使用 Evolve Sprouts 网站及其服务，包括咨询、培训、工作坊和数字资源。",
     "lastUpdatedLabel": "最后更新",
     "lastUpdatedValue": "2026年2月27日",
     "sections": [
@@ -1174,7 +1174,7 @@
   "privacyPolicy": {
     "eyebrow": "法律条款",
     "title": "隐私政策",
-    "intro": "本隐私政策说明 Evolve Sprouts 如何收集、使用、保存并保护您通过网站与服务提交的个人数据。",
+    "description": "本隐私政策说明 Evolve Sprouts 如何收集、使用、保存并保护您通过网站与服务提交的个人数据。",
     "lastUpdatedLabel": "最后更新",
     "lastUpdatedValue": "2026年2月27日",
     "sections": [
