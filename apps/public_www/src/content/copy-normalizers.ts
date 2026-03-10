@@ -13,57 +13,39 @@ interface SectionCopy {
   description: string;
 }
 
-function readOptionalText(record: Record<string, unknown>, key: string): string | undefined {
+function readRequiredText(record: Record<string, unknown>, key: string, sectionName: string): string {
   const value = record[key];
   if (typeof value !== 'string') {
-    return undefined;
+    throw new Error(`Missing required "${key}" copy value for "${sectionName}".`);
   }
 
   const normalizedValue = value.trim();
-  return normalizedValue === '' ? undefined : normalizedValue;
-}
-
-function resolveRequiredText(
-  record: Record<string, unknown>,
-  canonicalKey: string,
-  legacyKey: string,
-  sectionName: string,
-): string {
-  const canonicalValue = readOptionalText(record, canonicalKey);
-  if (canonicalValue) {
-    return canonicalValue;
+  if (normalizedValue === '') {
+    throw new Error(`Empty "${key}" copy value for "${sectionName}".`);
   }
-
-  const legacyValue = readOptionalText(record, legacyKey);
-  if (legacyValue) {
-    return legacyValue;
-  }
-
-  throw new Error(
-    `Missing copy value for "${sectionName}". Provide "${canonicalKey}" (preferred) or "${legacyKey}" (legacy).`,
-  );
+  return normalizedValue;
 }
 
 export function resolveHeroCopy(content: HeroContent): SectionCopy {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: resolveRequiredText(record, 'title', 'headline', 'hero'),
-    subtitle: resolveRequiredText(record, 'subtitle', 'subheadline', 'hero'),
-    description: resolveRequiredText(record, 'description', 'supportingParagraph', 'hero'),
+    title: readRequiredText(record, 'title', 'hero'),
+    subtitle: readRequiredText(record, 'subtitle', 'hero'),
+    description: readRequiredText(record, 'description', 'hero'),
   };
 }
 
 export function resolveIdaIntroCopy(content: IdaIntroContent): Pick<SectionCopy, 'title' | 'description'> {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: resolveRequiredText(record, 'title', 'heading', 'idaIntro'),
-    description: resolveRequiredText(record, 'description', 'body', 'idaIntro'),
+    title: readRequiredText(record, 'title', 'idaIntro'),
+    description: readRequiredText(record, 'description', 'idaIntro'),
   };
 }
 
 export function resolveMyBestAuntieHeroDescription(content: MyBestAuntieHeroContent): string {
   const record = content as unknown as Record<string, unknown>;
-  return resolveRequiredText(record, 'description', 'body', 'myBestAuntieHero');
+  return readRequiredText(record, 'description', 'myBestAuntieHero');
 }
 
 export function resolveSproutsSquadCommunityCopy(
@@ -71,8 +53,8 @@ export function resolveSproutsSquadCommunityCopy(
 ): Pick<SectionCopy, 'title' | 'description'> {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: resolveRequiredText(record, 'title', 'heading', 'sproutsSquadCommunity'),
-    description: resolveRequiredText(record, 'description', 'supportParagraph', 'sproutsSquadCommunity'),
+    title: readRequiredText(record, 'title', 'sproutsSquadCommunity'),
+    description: readRequiredText(record, 'description', 'sproutsSquadCommunity'),
   };
 }
 
@@ -81,8 +63,8 @@ export function resolveFreeIntroSessionCopy(
 ): Pick<SectionCopy, 'title' | 'description'> {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: resolveRequiredText(record, 'title', 'heading', 'freeIntroSession'),
-    description: resolveRequiredText(record, 'description', 'supportParagraph', 'freeIntroSession'),
+    title: readRequiredText(record, 'title', 'freeIntroSession'),
+    description: readRequiredText(record, 'description', 'freeIntroSession'),
   };
 }
 
@@ -90,10 +72,5 @@ export function resolvePolicyDescription(
   content: SiteContent['privacyPolicy'] | SiteContent['termsAndConditions'],
 ): string {
   const record = content as unknown as Record<string, unknown>;
-  return resolveRequiredText(
-    record,
-    'description',
-    'intro',
-    'policySection',
-  );
+  return readRequiredText(record, 'description', 'policySection');
 }
