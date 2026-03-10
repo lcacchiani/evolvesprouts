@@ -121,7 +121,7 @@ export function Navbar({ content }: NavbarProps) {
   const mobileNavigationMenuAriaLabel = content.mobileNavigationMenuAriaLabel.trim();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileMenuRendered, setIsMobileMenuRendered] = useState(false);
-  const [isNavbarCondensed, setIsNavbarCondensed] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileNavigationDrawerRef = useRef<HTMLElement | null>(null);
@@ -245,15 +245,15 @@ export function Navbar({ content }: NavbarProps) {
 
   useEffect(() => {
     let scrollFrame: number | null = null;
-    const updateNavbarCondensedState = () => {
-      const shouldCondense = window.scrollY > NAVBAR_CONDENSE_SCROLL_Y;
-      setIsNavbarCondensed((previousValue) => {
-        if (previousValue === shouldCondense) {
-          return previousValue;
-        }
+    let isCondensed = false;
+    const headerElement = headerRef.current;
+    const applyCondensedState = (condensed: boolean) => {
+      if (condensed === isCondensed) {
+        return;
+      }
 
-        return shouldCondense;
-      });
+      isCondensed = condensed;
+      headerElement?.classList.toggle('es-navbar--condensed', condensed);
     };
     const handleScroll = () => {
       if (scrollFrame !== null) {
@@ -261,12 +261,12 @@ export function Navbar({ content }: NavbarProps) {
       }
 
       scrollFrame = window.requestAnimationFrame(() => {
-        updateNavbarCondensedState();
+        applyCondensedState(window.scrollY > NAVBAR_CONDENSE_SCROLL_Y);
         scrollFrame = null;
       });
     };
 
-    updateNavbarCondensedState();
+    applyCondensedState(window.scrollY > NAVBAR_CONDENSE_SCROLL_Y);
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
@@ -281,15 +281,12 @@ export function Navbar({ content }: NavbarProps) {
     <>
       <header
         data-figma-node='navbar'
-        className={`sticky top-0 z-40 es-navbar-surface w-full transition-shadow duration-300 ${
-          isNavbarCondensed ? 'es-navbar-surface--condensed' : ''
-        }`}
+        ref={headerRef}
+        className='sticky top-0 z-40 es-navbar-surface w-full'
       >
         <SectionContainer
           as='nav'
-          className={`flex items-center justify-between gap-2 py-0 pl-0 pr-4 transition-[min-height,padding] duration-300 ease-out sm:gap-3 sm:pr-6 lg:gap-3 lg:pr-8 ${
-            isNavbarCondensed ? 'min-h-[60px]' : 'min-h-[115px]'
-          }`}
+          className='es-navbar-nav flex items-center justify-between gap-2 py-0 pl-0 pr-4 sm:gap-3 sm:pr-6 lg:gap-3 lg:pr-8'
         >
           <Link href={localizedHomeHref} className='shrink-0'>
             <Image
@@ -297,9 +294,7 @@ export function Navbar({ content }: NavbarProps) {
               alt={content.brand}
               width={150}
               height={150}
-              className={`es-navbar-logo ${
-                isNavbarCondensed ? 'es-navbar-logo--condensed' : ''
-              }`}
+              className='es-navbar-logo'
             />
           </Link>
 
