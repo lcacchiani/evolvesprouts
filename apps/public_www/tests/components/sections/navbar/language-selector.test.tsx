@@ -21,13 +21,19 @@ vi.mock('next/image', () => ({
 vi.mock('next/link', () => ({
   default: ({
     href,
+    prefetch,
     children,
     ...props
   }: {
     href: string;
+    prefetch?: boolean;
     children: ReactNode;
   } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...props}>
+    <a
+      data-prefetch={typeof prefetch === 'boolean' ? String(prefetch) : undefined}
+      href={href}
+      {...props}
+    >
       {children}
     </a>
   ),
@@ -67,6 +73,8 @@ describe('language-selector', () => {
     const traditionalOption = screen.getByRole('menuitem', { name: /繁體中文/i });
 
     expect(simplifiedOption).toHaveAttribute('href', '/zh-CN/about-us');
+    expect(simplifiedOption).toHaveAttribute('data-prefetch', 'false');
     expect(traditionalOption).toHaveAttribute('href', '/zh-HK/about-us');
+    expect(traditionalOption).toHaveAttribute('data-prefetch', 'false');
   });
 });

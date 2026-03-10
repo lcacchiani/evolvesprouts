@@ -7,13 +7,20 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 vi.mock('next/link', () => ({
   default: ({
     href,
+    prefetch,
     children,
     ...props
   }: {
     href: string;
+    prefetch?: boolean;
     children: ReactNode;
   } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a data-mocked-next-link='true' href={href} {...props}>
+    <a
+      data-mocked-next-link='true'
+      data-prefetch={typeof prefetch === 'boolean' ? String(prefetch) : undefined}
+      href={href}
+      {...props}
+    >
       {children}
     </a>
   ),
@@ -51,6 +58,7 @@ describe('ButtonPrimitive', () => {
     const link = screen.getByRole('link', { name: 'About us' });
     expect(link).toHaveAttribute('href', '/about-us');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
+    expect(link).toHaveAttribute('data-prefetch', 'false');
     expect(link.className).toContain('es-btn');
     expect(link.className).toContain('es-btn--pill');
   });

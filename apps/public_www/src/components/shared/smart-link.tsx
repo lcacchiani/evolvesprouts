@@ -98,7 +98,7 @@ export function SmartLink({
 
   if (hrefKind === 'internal') {
     return (
-      <Link href={resolvedHref} {...sharedProps}>
+      <Link href={resolvedHref} prefetch={false} {...sharedProps}>
         {linkChildren}
       </Link>
     );
