@@ -23,9 +23,12 @@ describe('MyBestAuntieHero', () => {
 
     const heading = screen.getByRole('heading', { level: 1, name: content.title });
     expect(heading).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: content.title })).toHaveClass(
+    const section = screen.getByRole('region', { name: content.title });
+    expect(section).toHaveClass(
       'es-my-best-auntie-hero-section',
     );
+    expect(section.className).toContain('pt-0');
+    expect(section.className).toContain('sm:pt-[60px]');
     expect(screen.getByText(content.subtitle)).toBeInTheDocument();
     expect(
       screen.getByText(/Not a parenting philosophy lecture\./),
