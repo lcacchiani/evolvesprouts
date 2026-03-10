@@ -111,6 +111,8 @@ describe('Testimonials section', () => {
     expect(previousButton).toBeInTheDocument();
     expect(nextButton.className).toContain('sm:inline-flex');
     expect(previousButton.className).toContain('sm:inline-flex');
+    expect(nextButton.className).toContain('touch-none');
+    expect(previousButton.className).toContain('touch-none');
 
     const activeSlideAuthorRow = container.querySelector(
       'article:not([aria-hidden]) [data-testid="testimonial-author-row"]',
