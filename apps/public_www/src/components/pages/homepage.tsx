@@ -8,10 +8,6 @@ import { MyBestAuntieOverview } from '@/components/sections/my-best-auntie-overv
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { localizeHref } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
-import {
-  buildWhatsappPrefilledHref,
-  resolvePublicSiteConfig,
-} from '@/lib/site-config';
 
 interface HomePageSectionsProps {
   locale: Locale;
@@ -30,35 +26,14 @@ function resolveNavbarBookNowHref(bookNow: SiteContent['navbar']['bookNow']): st
   return undefined;
 }
 
-function resolveNavbarBookNowPrefillMessage(
-  bookNow: SiteContent['navbar']['bookNow'],
-): string | undefined {
-  if (
-    'prefillMessage' in bookNow
-    && typeof bookNow.prefillMessage === 'string'
-    && bookNow.prefillMessage.trim() !== ''
-  ) {
-    return bookNow.prefillMessage;
-  }
-
-  return undefined;
-}
-
 export function HomePageSections({ locale, content }: HomePageSectionsProps) {
-  const siteConfig = resolvePublicSiteConfig();
   const heroCtaHref = localizeHref(
     content.hero.ctaHref || ROUTES.servicesMyBestAuntieTrainingCourse,
     locale,
   );
-  const baseNavbarCtaHref = siteConfig.whatsappUrl
-    || resolveNavbarBookNowHref(content.navbar.bookNow)
+  const navbarCtaHref = resolveNavbarBookNowHref(content.navbar.bookNow)
     || content.whatsappContact.href
     || ROUTES.servicesMyBestAuntieTrainingCourse;
-  const navbarCtaHref = buildWhatsappPrefilledHref(
-    baseNavbarCtaHref,
-    resolveNavbarBookNowPrefillMessage(content.navbar.bookNow),
-    siteConfig.businessPhoneNumber,
-  ) || baseNavbarCtaHref;
   const homepageNavbarContent = {
     ...content.navbar,
     bookNow: {

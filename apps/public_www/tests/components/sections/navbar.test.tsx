@@ -201,7 +201,7 @@ describe('Navbar desktop submenu accessibility', () => {
       },
     );
     expect(mobileTopBarCta).toBeInTheDocument();
-    expect(mobileTopBarCta.className).toContain('h-11');
+    expect(mobileTopBarCta.className).not.toContain('text-xs');
 
     fireEvent.click(openMenuButton);
 
@@ -214,11 +214,11 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(drawerLanguageSelector).toBeInTheDocument();
     expect(drawerLanguageSelector.className).toContain('es-border-soft');
 
-    expect(
-      within(drawer).queryByRole('link', {
-        name: enContent.navbar.bookNow.label,
-      }),
-    ).toBeNull();
+    const drawerCta = within(drawer).getByRole('link', {
+      name: enContent.navbar.bookNow.label,
+    });
+    expect(drawerCta).toBeInTheDocument();
+    expect(drawerCta.className).toContain('w-full');
 
     const homeLink = within(drawer).getByRole('link', { name: 'Home' });
     expect(homeLink.className).toContain('es-navbar-mobile-pill-reset');

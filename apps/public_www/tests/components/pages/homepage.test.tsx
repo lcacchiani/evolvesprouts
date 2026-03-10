@@ -3,8 +3,8 @@ import { type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { HomePageSections } from '@/components/pages/homepage';
+import { getContent } from '@/content';
 import enContent from '@/content/en.json';
-import zhHKContent from '@/content/zh-HK.json';
 
 const WHATSAPP_URL_ENV_KEY = 'NEXT_PUBLIC_WHATSAPP_URL';
 const BUSINESS_PHONE_ENV_KEY = 'NEXT_PUBLIC_BUSINESS_PHONE_NUMBER';
@@ -105,7 +105,7 @@ describe('HomePageSections', () => {
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
     freeIntroSessionPropsSpy.mockClear();
-    render(<HomePageSections locale='en' content={enContent} />);
+    render(<HomePageSections locale='en' content={getContent('en')} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('hero-banner')).toBeInTheDocument();
@@ -159,7 +159,8 @@ describe('HomePageSections', () => {
     pageLayoutPropsSpy.mockClear();
     freeIntroSessionPropsSpy.mockClear();
 
-    render(<HomePageSections locale='zh-HK' content={zhHKContent} />);
+    const localizedContent = getContent('zh-HK');
+    render(<HomePageSections locale='zh-HK' content={localizedContent} />);
 
     expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
     expect(freeIntroSessionPropsSpy).toHaveBeenCalledTimes(1);
@@ -169,10 +170,10 @@ describe('HomePageSections', () => {
 
     expect(parsedNavbarHref.pathname).toBe('/85294479843');
     expect(parsedNavbarHref.searchParams.get('text')).toBe(
-      zhHKContent.navbar.bookNow.prefillMessage,
+      localizedContent.navbar.bookNow.prefillMessage,
     );
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
-      zhHKContent.navbar.bookNow.label,
+      localizedContent.navbar.bookNow.label,
     );
     expect(freeIntroProps.ctaHref).toBe(pageLayoutProps.navbarContent.bookNow.href);
   });
