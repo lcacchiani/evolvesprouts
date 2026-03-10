@@ -27,7 +27,11 @@ export function MyJourney({ content }: MyJourneyProps) {
       className='es-section-bg-overlay es-my-journey-section'
     >
       <SectionContainer>
-        <SectionHeader eyebrow={content.eyebrow} title={content.title} />
+        <SectionHeader
+          eyebrow={content.eyebrow}
+          title={content.title}
+          description={content.description}
+        />
 
         <div
           className={buildSectionSplitLayoutClassName(

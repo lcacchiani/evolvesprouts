@@ -36,6 +36,7 @@ describe('MyJourney section', () => {
       'src',
       '/images/contact-us/my-journey.webp',
     );
+    expect(screen.getByText(enContent.myJourney.description)).toBeInTheDocument();
 
     const firstCard = screen
       .getByText(enContent.myJourney.cards[0].tag)
@@ -51,5 +52,11 @@ describe('MyJourney section', () => {
 
     const firstTag = screen.getByText(enContent.myJourney.cards[0].tag);
     expect(firstTag.className).toContain('es-my-journey-tag');
+
+    const thirdCard = screen
+      .getByText(enContent.myJourney.cards[2].tag)
+      .closest('article');
+    expect(thirdCard).not.toBeNull();
+    expect(thirdCard?.className).toContain('es-my-journey-card--blue');
   });
 });
