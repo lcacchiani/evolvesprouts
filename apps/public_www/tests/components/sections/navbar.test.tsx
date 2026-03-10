@@ -53,7 +53,7 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const nav = screen.getByRole('navigation');
     expect(nav.className).toContain('es-layout-container');
-    expect(nav.className).toContain('min-h-[115px]');
+    expect(nav.className).toContain('es-navbar-nav');
     expect(nav.className).toContain('pl-0');
     expect(nav.className).toContain('pr-4');
     expect(nav.className).toContain('sm:pr-6');
@@ -222,18 +222,14 @@ describe('Navbar desktop submenu accessibility', () => {
 
   });
 
-  it('condenses sticky navbar and logo classes after scrolling', async () => {
+  it('condenses sticky navbar after scrolling via DOM class toggle', async () => {
     render(<Navbar content={enContent.navbar} />);
 
-    const nav = screen.getByRole('navigation');
-    expect(nav.className).toContain('min-h-[115px]');
-    expect(nav.className).not.toContain('min-h-[60px]');
+    const header = document.querySelector('header[data-figma-node="navbar"]');
+    expect(header?.className).not.toContain('es-navbar--condensed');
 
-    const logo = document.querySelector(
-      'div[data-next-image-src="/images/evolvesprouts-logo.svg"][data-next-image-alt="Evolve Sprouts"]',
-    );
-    expect(logo?.className).toContain('es-navbar-logo');
-    expect(logo?.className).not.toContain('es-navbar-logo--condensed');
+    const nav = screen.getByRole('navigation');
+    expect(nav.className).toContain('es-navbar-nav');
 
     Object.defineProperty(window, 'scrollY', {
       value: 120,
@@ -243,8 +239,7 @@ describe('Navbar desktop submenu accessibility', () => {
     fireEvent.scroll(window);
 
     await waitFor(() => {
-      expect(nav.className).toContain('min-h-[60px]');
+      expect(header?.className).toContain('es-navbar--condensed');
     });
-    expect(logo?.className).toContain('es-navbar-logo--condensed');
   });
 });

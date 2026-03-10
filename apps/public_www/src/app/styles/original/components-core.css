@@ -545,7 +545,16 @@
     }
   }
 
-  .es-navbar-logo--condensed {
+  .es-navbar-nav {
+    min-height: 115px;
+    transition: min-height 300ms ease-out;
+  }
+
+  .es-navbar--condensed .es-navbar-nav {
+    min-height: 60px;
+  }
+
+  .es-navbar--condensed .es-navbar-logo {
     width: 52px;
     height: 52px;
   }
@@ -619,7 +628,7 @@
       box-shadow 300ms ease;
   }
 
-  .es-navbar-surface--condensed {
+  .es-navbar--condensed {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   }
 
