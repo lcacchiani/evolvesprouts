@@ -127,6 +127,13 @@
     "ctaHref": "/about-us",
     "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
   },
+  "myBestAuntieHero": {
+    "title": "一门专为香港家政助手打造的实用培训课程",
+    "body": "这不是一堂育儿理念讲座，也不是一本她永远不会读完的厚手册。这是一门专为香港家政助手设计的实操课程——包含真实场景、真实话术和真实策略，让她从第一天就能上手。\n无需蒙特梭利基础。无需育儿经验。只要愿意学习——并且你愿意相信，她可以做到更多。",
+    "ctaLabel": "立即预订名额！",
+    "ctaHref": "#my-best-auntie-booking",
+    "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
+  },
   "whatsappContact": {
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
     "ariaLabel": "通过 WhatsApp 联系我们"

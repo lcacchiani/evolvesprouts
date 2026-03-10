@@ -1,0 +1,50 @@
+/* eslint-disable @next/next/no-img-element */
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
+import { MyBestAuntieHero } from '@/components/sections/my-best-auntie-hero';
+import enContent from '@/content/en.json';
+
+vi.mock('next/image', () => ({
+  default: ({
+    alt,
+    priority: _priority,
+    ...props
+  }: {
+    alt?: string;
+    priority?: boolean;
+  } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
+}));
+
+describe('MyBestAuntieHero', () => {
+  it('renders a standalone hero with h1 copy and booking CTA', () => {
+    const content = enContent.myBestAuntieHero;
+    render(<MyBestAuntieHero content={content} />);
+
+    const heading = screen.getByRole('heading', { level: 1, name: content.title });
+    expect(heading).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: content.title })).toHaveClass(
+      'es-my-best-auntie-hero-section',
+    );
+    expect(
+      screen.getByText(/Not a parenting philosophy lecture\./),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/No Montessori knowledge required\./),
+    ).toBeInTheDocument();
+
+    const ctaLink = screen.getByRole('link', { name: content.ctaLabel });
+    expect(ctaLink).toHaveAttribute('href', content.ctaHref);
+    expect(ctaLink.className).toContain('es-btn--primary');
+    expect(ctaLink.className).not.toContain('es-btn--outline');
+    expect(ctaLink.className).toContain('mt-auto');
+    expect(ctaLink.className).toContain('max-w-[360px]');
+
+    const image = screen.getByRole('img', { name: content.imageAlt });
+    expect(image).toBeInTheDocument();
+    expect(image.closest('div')).toHaveClass(
+      'es-my-best-auntie-hero-image-wrap',
+      'max-w-[400px]',
+    );
+  });
+});

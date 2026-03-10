@@ -33,6 +33,7 @@ export type SiteContent = Omit<BaseSiteContent, 'testimonials'> & {
 export type NavbarContent = SiteContent['navbar'];
 export type HeroContent = SiteContent['hero'];
 export type IdaIntroContent = SiteContent['idaIntro'];
+export type MyBestAuntieHeroContent = SiteContent['myBestAuntieHero'];
 export type MyBestAuntieOverviewContent = SiteContent['myBestAuntieOverview'];
 export type MyBestAuntieBookingContent = SiteContent['myBestAuntieBooking'];
 export type MyBestAuntieDescriptionContent =
