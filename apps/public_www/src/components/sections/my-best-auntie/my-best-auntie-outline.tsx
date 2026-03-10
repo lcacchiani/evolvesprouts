@@ -14,6 +14,7 @@ import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieOutlineProps {
   content: MyBestAuntieOutlineContent;
+  ctaHref?: string;
 }
 
 type ModuleIconVariant =
@@ -185,7 +186,10 @@ function MyBestAuntieOutlineCard({
   );
 }
 
-export function MyBestAuntieOutline({ content }: MyBestAuntieOutlineProps) {
+export function MyBestAuntieOutline({
+  content,
+  ctaHref,
+}: MyBestAuntieOutlineProps) {
   const [expandedModuleStep, setExpandedModuleStep] = useState<string | null>(
     null,
   );
@@ -206,6 +210,8 @@ export function MyBestAuntieOutline({ content }: MyBestAuntieOutlineProps) {
   }));
 
   const computedCtaLabel = content.ctaLabel.trim().replace(/\s*>$/, '');
+  const computedCtaHref =
+    ctaHref?.trim() || content.ctaHref?.trim() || '#my-best-auntie-booking';
 
   function handleToggleModule(step: string) {
     setExpandedModuleStep((previousStep) =>
@@ -354,7 +360,7 @@ export function MyBestAuntieOutline({ content }: MyBestAuntieOutlineProps) {
           )}
 
           <SectionCtaAnchor
-            href={content.ctaHref}
+            href={computedCtaHref}
             className='mt-8 w-full max-w-[491px] lg:mt-10'
           >
             {computedCtaLabel}
