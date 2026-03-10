@@ -24,7 +24,7 @@ export function MyBestAuntieHero({ content }: MyBestAuntieHeroProps) {
       id='my-best-auntie-hero'
       ariaLabel={content.title}
       dataFigmaNode='my-best-auntie-hero'
-      className='es-my-best-auntie-hero-section overflow-hidden'
+      className='es-my-best-auntie-hero-section overflow-hidden pt-0 sm:pt-[60px]'
     >
       <SectionContainer
         className={buildSectionSplitLayoutClassName(
