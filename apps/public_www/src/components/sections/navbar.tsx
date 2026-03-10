@@ -62,6 +62,7 @@ const NAV_OPEN_MENU_BUTTON_CLASSNAME =
 const NAV_HAMBURGER_ICON_CLASSNAME = 'es-navbar-hamburger-icon h-4 w-4';
 const NAV_CLOSE_MENU_BUTTON_CLASSNAME =
   'h-10 w-10 rounded-full';
+const NAV_MOBILE_TOPBAR_BOOK_BUTTON_LABEL = 'Free Intro Session';
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -336,7 +337,7 @@ export function Navbar({ content }: NavbarProps) {
           >
             <BookNowButton
               href={localizedBookNowHref}
-              label={content.bookNow.label}
+              label={NAV_MOBILE_TOPBAR_BOOK_BUTTON_LABEL}
               className={NAV_MOBILE_TOPBAR_BOOK_BUTTON_CLASSNAME}
             />
             <ButtonPrimitive
