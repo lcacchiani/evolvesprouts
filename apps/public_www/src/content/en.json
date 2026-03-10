@@ -37,6 +37,7 @@
     ],
     "bookNow": {
       "label": "Book your Free Intro Session",
+      "mobileTopbarLabel": "Free Intro Session",
       "href": "{{WHATSAPP_URL}}",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
       "prefillMessage": "Hi, I'd like to book a free session!"

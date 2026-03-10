@@ -37,6 +37,7 @@
     ],
     "bookNow": {
       "label": "預約免費入門諮詢",
+      "mobileTopbarLabel": "預約免費入門諮詢",
       "href": "{{WHATSAPP_URL}}",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
       "prefillMessage": "你好，我想預約一節免費諮詢！"

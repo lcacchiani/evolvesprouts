@@ -11,8 +11,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { Navbar } from '@/components/sections/navbar';
 import enContent from '@/content/en.json';
 
-const MOBILE_TOPBAR_BOOK_NOW_LABEL = 'Free Intro Session';
-
 vi.mock('next/navigation', () => ({
   usePathname: () => '/en/events',
 }));
@@ -199,7 +197,7 @@ describe('Navbar desktop submenu accessibility', () => {
     const mobileTopBarCta = within(mobileControlsContainer as HTMLElement).getByRole(
       'link',
       {
-        name: MOBILE_TOPBAR_BOOK_NOW_LABEL,
+        name: enContent.navbar.bookNow.mobileTopbarLabel,
       },
     );
     expect(mobileTopBarCta).toBeInTheDocument();
