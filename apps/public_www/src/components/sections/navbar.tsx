@@ -47,13 +47,12 @@ const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const NAV_CLOSE_ICON_SRC = '/images/close.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
+const NAVBAR_CONDENSE_SCROLL_Y = 24;
 const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-const NAV_MOBILE_BOOK_BUTTON_CLASSNAME =
-  'w-full';
+const NAV_MOBILE_TOPBAR_BOOK_BUTTON_CLASSNAME =
+  'h-11 shrink-0 px-3 text-xs sm:text-sm';
 const NAV_MOBILE_CONTROL_BASE_CLASSNAME = 'border es-border-soft es-text-brand';
-const NAV_MOBILE_LANGUAGE_BUTTON_CLASSNAME =
-  `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-transparent h-11 gap-2 rounded-[14px] px-2.5`;
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
   `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-[#F6DECD] h-11 w-11 rounded-[14px]`;
 const NAV_HAMBURGER_ICON_CLASSNAME = 'es-navbar-hamburger-icon h-4 w-4';
@@ -122,6 +121,7 @@ export function Navbar({ content }: NavbarProps) {
   const mobileNavigationMenuAriaLabel = content.mobileNavigationMenuAriaLabel.trim();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileMenuRendered, setIsMobileMenuRendered] = useState(false);
+  const [isNavbarCondensed, setIsNavbarCondensed] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileNavigationDrawerRef = useRef<HTMLElement | null>(null);
@@ -243,15 +243,53 @@ export function Navbar({ content }: NavbarProps) {
     }
   }, [isMobileMenuRendered]);
 
+  useEffect(() => {
+    let scrollFrame: number | null = null;
+    const updateNavbarCondensedState = () => {
+      const shouldCondense = window.scrollY > NAVBAR_CONDENSE_SCROLL_Y;
+      setIsNavbarCondensed((previousValue) => {
+        if (previousValue === shouldCondense) {
+          return previousValue;
+        }
+
+        return shouldCondense;
+      });
+    };
+    const handleScroll = () => {
+      if (scrollFrame !== null) {
+        return;
+      }
+
+      scrollFrame = window.requestAnimationFrame(() => {
+        updateNavbarCondensedState();
+        scrollFrame = null;
+      });
+    };
+
+    updateNavbarCondensedState();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollFrame !== null) {
+        window.cancelAnimationFrame(scrollFrame);
+      }
+    };
+  }, []);
+
   return (
     <>
       <header
         data-figma-node='navbar'
-        className='relative z-30 es-navbar-surface w-full'
+        className={`sticky top-0 z-40 es-navbar-surface w-full transition-shadow duration-300 ${
+          isNavbarCondensed ? 'es-navbar-surface--condensed' : ''
+        }`}
       >
         <SectionContainer
           as='nav'
-          className='flex min-h-[115px] items-center justify-between gap-3 py-0 pl-0 pr-4 sm:pr-6 lg:pr-8'
+          className={`flex items-center justify-between gap-2 py-0 pl-0 pr-4 transition-[min-height,padding] duration-300 ease-out sm:gap-3 sm:pr-6 lg:gap-3 lg:pr-8 ${
+            isNavbarCondensed ? 'min-h-[60px]' : 'min-h-[115px]'
+          }`}
         >
           <Link href={localizedHomeHref} className='shrink-0'>
             <Image
@@ -259,7 +297,9 @@ export function Navbar({ content }: NavbarProps) {
               alt={content.brand}
               width={150}
               height={150}
-              className='es-navbar-logo'
+              className={`es-navbar-logo ${
+                isNavbarCondensed ? 'es-navbar-logo--condensed' : ''
+              }`}
             />
           </Link>
 
@@ -287,12 +327,10 @@ export function Navbar({ content }: NavbarProps) {
             data-css-fallback='hide-when-css-missing'
             className='ml-auto flex items-center gap-2 lg:hidden'
           >
-            <LanguageSelectorButton
-              key={`mobile-language-navbar-${pathname}`}
-              currentLocale={currentLocale}
-              currentPathname={pathname}
-              languageSelector={languageSelector}
-              className={NAV_MOBILE_LANGUAGE_BUTTON_CLASSNAME}
+            <BookNowButton
+              href={localizedBookNowHref}
+              label={content.bookNow.label}
+              className={NAV_MOBILE_TOPBAR_BOOK_BUTTON_CLASSNAME}
             />
             <ButtonPrimitive
               variant='icon'
@@ -365,14 +403,6 @@ export function Navbar({ content }: NavbarProps) {
                 locale={currentLocale}
                 onNavigate={closeMobileMenu}
               />
-              <div className='mt-6 pt-4'>
-                <BookNowButton
-                  href={localizedBookNowHref}
-                  label={content.bookNow.label}
-                  onClick={closeMobileMenu}
-                  className={NAV_MOBILE_BOOK_BUTTON_CLASSNAME}
-                />
-              </div>
             </div>
           </OverlayDrawerPanel>
         </div>
