@@ -331,6 +331,7 @@
     border: 1px solid transparent;
     cursor: pointer;
     transition:
+      transform 300ms ease,
       background-color 200ms ease,
       border-color 200ms ease,
       color 200ms ease,
@@ -552,6 +553,11 @@
 
   .es-navbar--condensed .es-navbar-nav {
     min-height: 60px;
+  }
+
+  .es-navbar--condensed .es-navbar-nav .es-btn {
+    transform: scale(0.8);
+    transform-origin: center;
   }
 
   .es-navbar--condensed .es-navbar-logo {
