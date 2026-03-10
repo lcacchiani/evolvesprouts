@@ -238,7 +238,7 @@ export function MyBestAuntieBooking({
         id='my-best-auntie-booking'
         ariaLabel={content.title}
         dataFigmaNode='my-best-auntie-booking'
-        className='es-my-best-auntie-booking-section pt-0 sm:pt-[60px]'
+        className='es-my-best-auntie-booking-section'
       >
         <SectionContainer
           className={buildSectionSplitLayoutClassName(
