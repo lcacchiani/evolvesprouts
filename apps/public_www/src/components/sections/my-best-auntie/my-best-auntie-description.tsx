@@ -2,6 +2,7 @@
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -71,6 +72,8 @@ export function MyBestAuntieDescription({
   content,
 }: MyBestAuntieDescriptionProps) {
   const cards = content.items;
+  const ctaLabel = content.ctaLabel?.trim() ?? '';
+  const ctaHref = content.ctaHref?.trim() || '#my-best-auntie-booking';
   const previousButtonAriaLabel = content.previousButtonAriaLabel.trim();
   const nextButtonAriaLabel = content.nextButtonAriaLabel.trim();
   const {
@@ -166,6 +169,17 @@ export function MyBestAuntieDescription({
             ))}
           </ul>
         </CarouselTrack>
+
+        {ctaLabel && (
+          <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
+            <SectionCtaAnchor
+              href={ctaHref}
+              className='w-full max-w-[491px]'
+            >
+              {ctaLabel}
+            </SectionCtaAnchor>
+          </div>
+        )}
       </SectionContainer>
     </SectionShell>
   );

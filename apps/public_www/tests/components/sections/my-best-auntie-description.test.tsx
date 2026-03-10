@@ -81,6 +81,9 @@ describe('MyBestAuntieDescription section', () => {
 
     const cardBody = cardArticle?.querySelector('p');
     expect(cardBody?.className).toContain('es-my-best-auntie-description-card-description');
+    expect(
+      screen.getByRole('link', { name: enContent.myBestAuntieDescription.ctaLabel }),
+    ).toHaveAttribute('href', enContent.myBestAuntieDescription.ctaHref);
   });
 
   it('applies icon masks and repeats green-blue-red tones', () => {

@@ -140,12 +140,12 @@
     "ariaLabel": "透過 WhatsApp 聯絡我們"
   },
   "myBestAuntieOutline": {
-    "eyebrow": "賦能教育",
+    "eyebrow": "課程大綱",
     "title": "由 Ida 設計的 My Best Auntie 培訓課程",
     "subtitle": "9 週課程，改變你嘅屋企。",
     "description": "小組課 + 私人 1:1 指導。HK$9,000 起。",
     "ctaLabel": "查看完整課程詳情",
-    "ctaHref": "/services/my-best-auntie-training-course",
+    "ctaHref": "#my-best-auntie-booking",
     "modules": [
       {
         "step": "1",
@@ -536,7 +536,9 @@
       }
     ],
     "previousButtonAriaLabel": "上一組亮點卡片",
-    "nextButtonAriaLabel": "下一組亮點卡片"
+    "nextButtonAriaLabel": "下一組亮點卡片",
+    "ctaLabel": "立即預訂名額！",
+    "ctaHref": "#my-best-auntie-booking"
   },
   "resources": {
     "eyebrow": "我們的資源",
