@@ -15,6 +15,7 @@ const LOCALE_FILES = [
 const CONTACT_EMAIL_ENV_NAME = 'NEXT_PUBLIC_EMAIL';
 const CONTACT_EMAIL_PLACEHOLDER = '{{CONTACT_EMAIL}}';
 const CONTACT_EMAIL_MAILTO_PLACEHOLDER = `mailto:${CONTACT_EMAIL_PLACEHOLDER}`;
+const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
 const EMAIL_VALUE_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_VALUE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
 const DANGEROUS_HREF_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
@@ -158,6 +159,15 @@ function validateEmailValue(value, keyPath, errors) {
 function validateHrefValue(value, keyPath, errors) {
   const normalizedValue = value.trim();
   if (normalizedValue === CONTACT_EMAIL_MAILTO_PLACEHOLDER) {
+    return;
+  }
+  if (normalizedValue === WHATSAPP_URL_PLACEHOLDER) {
+    if (keyPath.endsWith('.navbar.bookNow.href')) {
+      return;
+    }
+    errors.push(
+      `${keyPath}: placeholder "${WHATSAPP_URL_PLACEHOLDER}" is only allowed for navbar.bookNow.href`,
+    );
     return;
   }
 
