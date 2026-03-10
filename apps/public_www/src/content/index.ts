@@ -1,7 +1,11 @@
 import enContent from './en.json';
 import zhCNContent from './zh-CN.json';
 import zhHKContent from './zh-HK.json';
-import { resolvePublicSiteConfig } from '@/lib/site-config';
+import { ROUTES } from '@/lib/routes';
+import {
+  buildWhatsappPrefilledHref,
+  resolvePublicSiteConfig,
+} from '@/lib/site-config';
 
 /**
  * Supported locales. Add new locales here and provide a matching
@@ -56,7 +60,9 @@ const contentMap = {
   'zh-HK': zhHKContent,
 } satisfies Record<Locale, SiteContent>;
 
-const interpolatedContentCache = new Map<Locale, SiteContent>();
+const interpolatedContentCache = new Map<string, SiteContent>();
+const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
+const BUSINESS_PHONE_PLACEHOLDER = '{{BUSINESS_PHONE_NUMBER}}';
 
 function resolveContactEmail(): string | undefined {
   try {
@@ -66,44 +72,128 @@ function resolveContactEmail(): string | undefined {
   }
 }
 
-function withConfiguredContactEmail(
+function resolveConfiguredWhatsappUrl(): string | undefined {
+  const configuredValue = process.env.NEXT_PUBLIC_WHATSAPP_URL;
+  if (typeof configuredValue !== 'string') {
+    return undefined;
+  }
+
+  const normalizedValue = buildWhatsappPrefilledHref(configuredValue, undefined);
+  return normalizedValue || undefined;
+}
+
+function resolveConfiguredBusinessPhoneNumber(): string | undefined {
+  const configuredValue = process.env.NEXT_PUBLIC_BUSINESS_PHONE_NUMBER;
+  if (typeof configuredValue !== 'string') {
+    return undefined;
+  }
+
+  const normalizedValue = configuredValue.trim();
+  return normalizedValue === '' ? undefined : normalizedValue;
+}
+
+function resolvePlaceholderValue(
+  value: string | undefined,
+  placeholder: string,
+  replacement: string | undefined,
+): string | undefined {
+  const normalizedValue = value?.trim();
+  if (!normalizedValue) {
+    return undefined;
+  }
+
+  if (normalizedValue !== placeholder) {
+    return normalizedValue;
+  }
+
+  const normalizedReplacement = replacement?.trim();
+  return normalizedReplacement || undefined;
+}
+
+function withConfiguredRuntimeContent(
   locale: Locale,
   content: SiteContent,
 ): SiteContent {
-  const cached = interpolatedContentCache.get(locale);
+  const contactEmail = resolveContactEmail();
+  const configuredWhatsappUrl = resolveConfiguredWhatsappUrl();
+  const configuredBusinessPhoneNumber = resolveConfiguredBusinessPhoneNumber();
+  const cacheKey = [
+    locale,
+    contactEmail ?? '',
+    configuredWhatsappUrl ?? '',
+    configuredBusinessPhoneNumber ?? '',
+  ].join('|');
+  const cached = interpolatedContentCache.get(cacheKey);
   if (cached) {
     return cached;
   }
 
-  const contactEmail = resolveContactEmail();
-  if (!contactEmail) {
-    return content;
-  }
+  const configuredNavbarHref = resolvePlaceholderValue(
+    content.navbar.bookNow.href,
+    WHATSAPP_URL_PLACEHOLDER,
+    configuredWhatsappUrl,
+  );
+  const configuredNavbarPhoneNumber = resolvePlaceholderValue(
+    content.navbar.bookNow.phoneNumber,
+    BUSINESS_PHONE_PLACEHOLDER,
+    configuredBusinessPhoneNumber,
+  );
+  const baseNavbarCtaHref = configuredNavbarHref
+    || content.whatsappContact.href
+    || ROUTES.servicesMyBestAuntieTrainingCourse;
+  const navbarCtaHref = buildWhatsappPrefilledHref(
+    baseNavbarCtaHref,
+    content.navbar.bookNow.prefillMessage,
+    configuredNavbarPhoneNumber,
+  ) || baseNavbarCtaHref;
+  const resolvedContactEmail = contactEmail?.trim() || undefined;
+  const contactUsContent = resolvedContactEmail
+    ? {
+        ...content.contactUs,
+        contactUsForm: {
+          ...content.contactUs.contactUsForm,
+          emailAddress: resolvedContactEmail,
+        },
+        connect: {
+          ...content.contactUs.connect,
+          cards: content.contactUs.connect.cards.map((card, index) =>
+            index === 0
+              ? {
+                  ...card,
+                  ctaLabel: resolvedContactEmail,
+                  ctaHref: `mailto:${resolvedContactEmail}`,
+                }
+              : card,
+          ),
+        },
+      }
+    : content.contactUs;
+
+  const rawNavbarPhoneNumber = content.navbar.bookNow.phoneNumber.trim();
+  const navbarPhoneNumber = configuredNavbarPhoneNumber || rawNavbarPhoneNumber;
+
+  const sanitizedNavbarPhoneNumber =
+    navbarPhoneNumber === BUSINESS_PHONE_PLACEHOLDER ? '' : navbarPhoneNumber;
+
+  const sanitizedNavbarHref =
+    navbarCtaHref === WHATSAPP_URL_PLACEHOLDER
+      ? ROUTES.servicesMyBestAuntieTrainingCourse
+      : navbarCtaHref;
 
   const interpolated: SiteContent = {
     ...content,
-    contactUs: {
-      ...content.contactUs,
-      contactUsForm: {
-        ...content.contactUs.contactUsForm,
-        emailAddress: contactEmail,
-      },
-      connect: {
-        ...content.contactUs.connect,
-        cards: content.contactUs.connect.cards.map((card, index) =>
-          index === 0
-            ? {
-                ...card,
-                ctaLabel: contactEmail,
-                ctaHref: `mailto:${contactEmail}`,
-              }
-            : card,
-        ),
+    navbar: {
+      ...content.navbar,
+      bookNow: {
+        ...content.navbar.bookNow,
+        href: sanitizedNavbarHref,
+        phoneNumber: sanitizedNavbarPhoneNumber,
       },
     },
+    contactUs: contactUsContent,
   };
 
-  interpolatedContentCache.set(locale, interpolated);
+  interpolatedContentCache.set(cacheKey, interpolated);
   return interpolated;
 }
 
@@ -113,10 +203,10 @@ function withConfiguredContactEmail(
  */
 export function getContent(locale: string): SiteContent {
   if (isValidLocale(locale)) {
-    return withConfiguredContactEmail(locale, contentMap[locale]);
+    return withConfiguredRuntimeContent(locale, contentMap[locale]);
   }
 
-  return withConfiguredContactEmail(DEFAULT_LOCALE, contentMap[DEFAULT_LOCALE]);
+  return withConfiguredRuntimeContent(DEFAULT_LOCALE, contentMap[DEFAULT_LOCALE]);
 }
 
 /**
