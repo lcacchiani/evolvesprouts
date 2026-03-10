@@ -12,7 +12,7 @@ interface MyJourneyProps {
   content: MyJourneyContent;
 }
 
-const JOURNEY_IMAGE_SRC = '/images/contact-us/my-journey.webp';
+const JOURNEY_IMAGE_SRC = '/images/about-us/my-journey.webp';
 const RIGHT_COLUMN_CARD_TONE_CLASSES = [
   'es-my-journey-card--blue',
   'es-my-journey-card--yellow',
