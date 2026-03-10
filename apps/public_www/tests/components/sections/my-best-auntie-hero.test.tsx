@@ -26,6 +26,7 @@ describe('MyBestAuntieHero', () => {
     expect(screen.getByRole('region', { name: content.title })).toHaveClass(
       'es-my-best-auntie-hero-section',
     );
+    expect(screen.getByText(content.subtitle)).toBeInTheDocument();
     expect(
       screen.getByText(/Not a parenting philosophy lecture\./),
     ).toBeInTheDocument();

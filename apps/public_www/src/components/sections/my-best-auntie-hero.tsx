@@ -35,9 +35,10 @@ export function MyBestAuntieHero({ content }: MyBestAuntieHeroProps) {
               titleAs='h1'
               align='left'
               titleClassName='max-w-[720px]'
-              description={content.body}
-              descriptionClassName='mt-4 max-w-[720px] es-type-body'
+              description={content.subtitle}
+              descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
             />
+            <p className='mt-4 max-w-[720px] es-type-body'>{content.body}</p>
             <div className='mt-8'>
               <SectionCtaAnchor
                 href={content.ctaHref}
