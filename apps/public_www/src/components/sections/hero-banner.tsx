@@ -8,6 +8,7 @@ import {
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { renderHighlightedText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { resolveHeroCopy } from '@/content/copy-normalizers';
 import type { HeroContent } from '@/content';
 import { ROUTES } from '@/lib/routes';
 
@@ -21,6 +22,7 @@ const HERO_IMAGE_ALT = 'Montessori auntie training for Hong Kong families';
 const HERO_BODY_TEXT_CLASSNAME = 'max-w-[458px] es-hero-subheadline';
 
 export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
+  const copy = resolveHeroCopy(content);
   const resolvedCtaHref =
     ctaHref?.trim()
     || content.ctaHref?.trim()
@@ -29,7 +31,7 @@ export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
   return (
     <SectionShell
       id='hero-banner'
-      ariaLabel={content.headline}
+      ariaLabel={copy.title}
       dataFigmaNode='banner'
       className='relative w-full overflow-hidden es-hero-section'
     >
@@ -45,12 +47,12 @@ export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
         <div className='relative max-w-[620px] lg:pb-4 lg:pr-8'>
           <div className='relative z-10'>
             <SectionHeader
-              title={renderHighlightedText(content.headline, content.highlightPhrase)}
+              title={renderHighlightedText(copy.title, content.highlightPhrase)}
               titleAs='h1'
               align='left'
               className='max-w-[610px]'
               titleClassName='es-hero-headline'
-              description={content.subheadline}
+              description={copy.subtitle}
               descriptionClassName={`mt-4 sm:mt-6 ${HERO_BODY_TEXT_CLASSNAME}`}
             />
             <SectionCtaAnchor
@@ -60,7 +62,7 @@ export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
               {content.cta}
             </SectionCtaAnchor>
             <p className={`mt-4 ${HERO_BODY_TEXT_CLASSNAME}`}>
-              {content.supportingParagraph}
+              {copy.description}
             </p>
           </div>
         </div>

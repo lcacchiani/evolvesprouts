@@ -4,6 +4,7 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { resolveFreeIntroSessionCopy } from '@/content/copy-normalizers';
 import type { FreeIntroSessionContent } from '@/content';
 
 interface FreeIntroSessionProps {
@@ -12,10 +13,12 @@ interface FreeIntroSessionProps {
 }
 
 export function FreeIntroSession({ content, ctaHref }: FreeIntroSessionProps) {
+  const copy = resolveFreeIntroSessionCopy(content);
+
   return (
     <SectionShell
       id='free-intro-session'
-      ariaLabel={content.heading}
+      ariaLabel={copy.title}
       dataFigmaNode='free-intro-session'
       className='overflow-hidden es-free-intro-session-section'
     >
@@ -35,13 +38,13 @@ export function FreeIntroSession({ content, ctaHref }: FreeIntroSessionProps) {
               className='h-auto w-[250px] es-free-intro-session-logo hidden sm:block'
             />
             <SectionHeader
-              title={content.heading}
+              title={copy.title}
               align='left'
               className='mt-[75px] max-w-[620px] sm:mt-0'
               titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-free-intro-session-heading'
             />
             <p className='max-w-[500px] es-free-intro-session-support-paragraph'>
-              {content.supportParagraph}
+              {copy.description}
             </p>
           </div>
           <div className='es-intro-community-layout-cta'>

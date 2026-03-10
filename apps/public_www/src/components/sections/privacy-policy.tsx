@@ -2,12 +2,15 @@ import { SectionContainer } from '@/components/sections/shared/section-container
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { SiteContent } from '@/content';
+import { resolvePolicyDescription } from '@/content/copy-normalizers';
 
 interface PrivacyPolicyProps {
   content: SiteContent['privacyPolicy'];
 }
 
 export function PrivacyPolicy({ content }: PrivacyPolicyProps) {
+  const description = resolvePolicyDescription(content);
+
   return (
     <SectionShell
       id='privacy-policy'
@@ -20,7 +23,7 @@ export function PrivacyPolicy({ content }: PrivacyPolicyProps) {
           eyebrow={content.eyebrow}
           title={content.title}
           align='left'
-          description={content.intro}
+          description={description}
         />
 
         <p className='mt-6 text-sm font-semibold tracking-wide es-text-heading'>

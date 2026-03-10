@@ -5,6 +5,7 @@ import {
   type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
+import { resolvePolicyDescription } from '@/content/copy-normalizers';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
 
@@ -12,6 +13,7 @@ export { generateLocaleStaticParams as generateStaticParams };
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
+  const description = resolvePolicyDescription(content.privacyPolicy);
   const title = content.privacyPolicy.title || getFooterLinkLabel(
     content,
     ROUTES.privacy,
@@ -22,7 +24,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
     locale,
     path: ROUTES.privacy,
     title,
-    description: content.privacyPolicy.intro,
+    description,
     socialImage: {
       url: content.seo.socialImages.home.url,
       alt: content.seo.socialImages.home.alt,

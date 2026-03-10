@@ -10,6 +10,7 @@ import { SectionContainer } from '@/components/sections/shared/section-container
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import { resolveSproutsSquadCommunityCopy } from '@/content/copy-normalizers';
 import type { SproutsSquadCommunityContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
@@ -32,6 +33,7 @@ const FALLBACK_CAPTCHA_UNAVAILABLE_ERROR =
 export function SproutsSquadCommunity({
   content,
 }: SproutsSquadCommunityProps) {
+  const copy = resolveSproutsSquadCommunityCopy(content);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -133,7 +135,7 @@ export function SproutsSquadCommunity({
   return (
     <SectionShell
       id='sprouts-squad-community'
-      ariaLabel={content.heading}
+      ariaLabel={copy.title}
       dataFigmaNode='sprouts-squad-community'
       className='overflow-hidden es-sprouts-community-section'
     >
@@ -153,13 +155,13 @@ export function SproutsSquadCommunity({
               className='h-auto w-[250px] es-sprouts-community-logo hidden sm:block'
             />
             <SectionHeader
-              title={content.heading}
+              title={copy.title}
               align='left'
               className='mt-[75px] max-w-[620px] sm:mt-0'
               titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
             />
             <p className='max-w-[500px] es-sprouts-community-support-paragraph'>
-              {content.supportParagraph}
+              {copy.description}
             </p>
           </div>
           <div className='es-intro-community-layout-cta'>

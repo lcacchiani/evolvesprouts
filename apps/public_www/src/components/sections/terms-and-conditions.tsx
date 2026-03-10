@@ -2,12 +2,15 @@ import { SectionContainer } from '@/components/sections/shared/section-container
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { SiteContent } from '@/content';
+import { resolvePolicyDescription } from '@/content/copy-normalizers';
 
 interface TermsAndConditionsProps {
   content: SiteContent['termsAndConditions'];
 }
 
 export function TermsAndConditions({ content }: TermsAndConditionsProps) {
+  const description = resolvePolicyDescription(content);
+
   return (
     <SectionShell
       id='terms-and-conditions'
@@ -20,7 +23,7 @@ export function TermsAndConditions({ content }: TermsAndConditionsProps) {
           eyebrow={content.eyebrow}
           title={content.title}
           align='left'
-          description={content.intro}
+          description={description}
         />
 
         <p className='mt-6 text-sm font-semibold tracking-wide es-text-heading'>
