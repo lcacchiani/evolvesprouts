@@ -620,10 +620,10 @@
   }
 
   .es-my-best-auntie-hero-image-flipped {
-    -webkit-transform: scale(-1, -1);
-    -moz-transform: scale(-1, -1);
-    -o-transform: scale(-1, -1);
-    transform: scale(-1, -1);
+    -webkit-transform: scaleX(-1);
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    transform: scaleX(-1);
   }
 
   .es-my-best-auntie-hero-image-wrap::before {
