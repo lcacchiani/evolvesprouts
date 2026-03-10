@@ -76,7 +76,8 @@ describe('buildLlmsFullTxt', () => {
   });
 
   it('includes the mission from content', () => {
-    expect(output).toContain(enContent.whyUs.communityText);
+    expect(output).toContain(enContent.whyUs.title);
+    expect(output).toContain(enContent.whyUs.description);
   });
 
   it('includes all core pillars from content', () => {

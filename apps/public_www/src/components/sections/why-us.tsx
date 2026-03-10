@@ -1,18 +1,25 @@
-import Image from 'next/image';
-
-import {
-  buildSectionSplitLayoutClassName,
-  SectionContainer,
-} from '@/components/sections/shared/section-container';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { WhyUsContent } from '@/content';
+import type {
+  Locale,
+  WhyUsContent,
+} from '@/content';
+import { localizeHref } from '@/lib/locale-routing';
+import { ROUTES } from '@/lib/routes';
 
 interface WhyUsProps {
+  locale: Locale;
   content: WhyUsContent;
 }
 
-export function WhyUs({ content }: WhyUsProps) {
+export function WhyUs({ locale, content }: WhyUsProps) {
+  const workshopsHref = localizeHref(
+    content.ctaHref || ROUTES.servicesWorkshops,
+    locale,
+  );
+
   return (
     <SectionShell
       id='why-us'
@@ -26,63 +33,32 @@ export function WhyUs({ content }: WhyUsProps) {
       />
 
       <SectionContainer>
-        <SectionHeader eyebrow={content.eyebrow} title={content.title} />
+        <SectionHeader
+          eyebrow={content.eyebrow}
+          title={content.title}
+          description={content.description}
+          descriptionClassName='es-section-body mx-auto mt-4 max-w-[840px] text-pretty'
+        />
 
-        <div
-          className={buildSectionSplitLayoutClassName(
-            'es-section-split-layout--why-us mt-10 lg:mt-12',
-          )}
-        >
-          <div
-            className='relative isolate overflow-hidden rounded-card border es-border-soft-alt p-6 es-why-us-hero-card'
-          >
-            <div
-              aria-hidden='true'
-              className='absolute -left-10 top-8 h-32 w-32 rounded-full blur-2xl es-why-us-glow-orange'
-            />
-            <div
-              aria-hidden='true'
-              className='absolute -bottom-12 right-7 h-36 w-36 rounded-full blur-3xl es-why-us-glow-green'
-            />
-            <div className='relative z-10 flex min-h-[280px] items-end rounded-card-sm border border-white/70 bg-white/78 p-6 shadow-card-glass sm:min-h-[320px]'>
-              <Image
-                src='/images/evolvesprouts-logo.svg'
-                alt=''
-                width={74}
-                height={74}
-                className='h-[74px] w-[74px] rounded-full bg-white p-1'
-              />
-            </div>
-          </div>
-
-          <div className='rounded-card border es-border-soft-alt bg-white/85 p-6 sm:p-7'>
-            <h3 className='es-type-subtitle es-why-us-intro-subtitle'>{content.introTitle}</h3>
-            <ul className='mt-4 space-y-3'>
-              {content.introItems.map((item) => (
-                <li key={item} className='flex items-start gap-3'>
-                  <span
-                    aria-hidden='true'
-                    className='mt-2 inline-flex h-2.5 w-2.5 shrink-0 rounded-full es-bg-brand-orange'
-                  />
-                  <p className='es-type-body'>{item}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <p className='es-type-body mt-8 rounded-[22px] border es-border-soft-alt bg-white/70 p-5 sm:p-6'>
-          {content.communityText}
-        </p>
-
-        <ul className='mt-7 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
-          {content.pillars.map((pillar) => (
+        <ul className='mt-10 grid grid-cols-1 gap-4 md:grid-cols-2'>
+          {content.pillars.map((pillar, index) => (
             <li key={pillar.title}>
-              <article className='h-full rounded-panel border es-border-soft-alt es-bg-surface-cream p-5'>
-                <h3 className='es-type-subtitle es-why-us-pillar-title'>{pillar.title}</h3>
+              <article
+                className={`h-full rounded-panel border es-border-soft-alt p-5 ${
+                  index === 0 ? 'es-bg-surface-cream' : 'bg-white/85'
+                }`}
+              >
+                <h3 className='es-type-subtitle'>{pillar.title}</h3>
                 <p className='es-section-body mt-3 text-base leading-[1.5]'>
                   {pillar.description}
                 </p>
+                {index === 0 ? (
+                  <div className='mt-6'>
+                    <SectionCtaAnchor href={workshopsHref} className='w-full sm:w-fit'>
+                      {content.ctaLabel}
+                    </SectionCtaAnchor>
+                  </div>
+                ) : null}
               </article>
             </li>
           ))}

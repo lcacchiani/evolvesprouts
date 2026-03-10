@@ -1,4 +1,7 @@
-import type { SiteContent } from '@/content';
+import type {
+  Locale,
+  SiteContent,
+} from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
 import { Ida } from '@/components/sections/ida';
@@ -8,10 +11,11 @@ import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-commu
 import { WhyUs } from '@/components/sections/why-us';
 
 interface AboutUsProps {
+  locale: Locale;
   content: SiteContent;
 }
 
-export function AboutUs({ content }: AboutUsProps) {
+export function AboutUs({ locale, content }: AboutUsProps) {
   return (
     <PageLayout
       navbarContent={content.navbar}
@@ -20,7 +24,7 @@ export function AboutUs({ content }: AboutUsProps) {
       <Ida content={content.ida} />
       <MyHistory content={content.myHistory} />
       <MyJourney content={content.myJourney} />
-      <WhyUs content={content.whyUs} />
+      <WhyUs locale={locale} content={content.whyUs} />
       <Faq content={content.faq} />
       <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
     </PageLayout>
