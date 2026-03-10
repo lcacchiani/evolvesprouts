@@ -129,7 +129,7 @@
   },
   "myBestAuntieHero": {
     "title": "My Best Auntie Training Course",
-    "subtitle": "A practical training course built for Hong Kong helpers",
+    "subtitle": "A practical training course built for Hong Kong helpers.",
     "body": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on course designed specifically for domestic helpers in Hong Kong - with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn - and your trust that she's capable of so much more.",
     "ctaLabel": "Book your spot now!",
     "ctaHref": "#my-best-auntie-booking",
@@ -142,7 +142,7 @@
   "myBestAuntieOverview": {
     "eyebrow": "Empowering Education",
     "title": "My Best Auntie Training Course Designed by Ida",
-    "subtitle": "A 9-Week Programme That Changes Your Home",
+    "subtitle": "A 9-Week Programme That Changes Your Home.",
     "description": "Group sessions + private 1:1 coaching. Starting from HK$9,000.",
     "ctaLabel": "See full course details",
     "ctaHref": "/services/my-best-auntie-training-course",
@@ -458,7 +458,7 @@
     "thankYouModal": {
       "closeLabel": "Close",
       "title": "We will get in touch shortly",
-      "subtitle": "A confirmation email has been sent to",
+      "subtitle": "A confirmation email has been sent to.",
       "successLabel": "Thank You!",
       "courseLabel": "My Best Auntie Training Course.",
       "transactionDateLabel": "Transaction Date",

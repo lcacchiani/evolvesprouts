@@ -129,7 +129,7 @@
   },
   "myBestAuntieHero": {
     "title": "My Best Auntie 培训课程",
-    "subtitle": "一门专为香港家政助手打造的实用培训课程",
+    "subtitle": "一门专为香港家政助手打造的实用培训课程。",
     "body": "这不是一堂育儿理念讲座，也不是一本她永远不会读完的厚手册。这是一门专为香港家政助手设计的实操课程——包含真实场景、真实话术和真实策略，让她从第一天就能上手。\n无需蒙特梭利基础。无需育儿经验。只要愿意学习——并且你愿意相信，她可以做到更多。",
     "ctaLabel": "立即预订名额！",
     "ctaHref": "#my-best-auntie-booking",
@@ -142,7 +142,7 @@
   "myBestAuntieOverview": {
     "eyebrow": "赋能教育",
     "title": "由 Ida 设计的 My Best Auntie 培训课程",
-    "subtitle": "9周课程，改变你的家庭日常",
+    "subtitle": "9周课程，改变你的家庭日常。",
     "description": "小组课程 + 私人 1:1 指导。HK$9,000 起。",
     "ctaLabel": "查看完整课程详情",
     "ctaHref": "/services/my-best-auntie-training-course",
@@ -458,7 +458,7 @@
     "thankYouModal": {
       "closeLabel": "关闭",
       "title": "我们会尽快与您联系",
-      "subtitle": "确认邮件已发送至",
+      "subtitle": "确认邮件已发送至。",
       "successLabel": "谢谢你！",
       "courseLabel": "我的最佳阿姨培训课程。",
       "transactionDateLabel": "交易日期",
