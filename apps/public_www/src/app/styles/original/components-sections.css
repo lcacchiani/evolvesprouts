@@ -146,7 +146,6 @@
     gap: 2rem;
   }
 
-  .es-section-split-layout--why-us,
   .es-section-split-layout--my-journey {
     gap: 1.5rem;
   }
@@ -174,11 +173,6 @@
 
     .es-section-split-layout--my-best-auntie-booking {
       gap: 1.5rem;
-    }
-
-    .es-section-split-layout--why-us {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-      gap: 2rem;
     }
 
     .es-section-split-layout--my-journey {
@@ -397,34 +391,6 @@
   .es-my-best-auntie-description-section,
   .es-my-history-section {
     background-color: var(--es-color-surface-muted, #F8F8F8);
-  }
-
-  .es-why-us-hero-card {
-    background: var(--es-gradient-why-us);
-  }
-
-  .es-why-us-glow-orange {
-    background-color: color-mix(
-      in srgb,
-      var(--es-color-brand-orange-soft) 35%,
-      transparent
-    );
-  }
-
-  .es-why-us-glow-green {
-    background-color: color-mix(
-      in srgb,
-      var(--es-color-accent-green-soft) 30%,
-      transparent
-    );
-  }
-
-  .es-why-us-intro-subtitle {
-    color: var(--site-heading-text);
-    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
-    font-size: clamp(1.05rem, 1.9vw, 18px);
-    font-weight: 600;
-    line-height: 1.25;
   }
 
   .es-course-highlight-title {

@@ -835,30 +835,26 @@
   },
   "whyUs": {
     "eyebrow": "Why Us",
-    "title": "Why Evolve Sprouts Exists: You’re Not Alone",
-    "introTitle": "I created Evolve Sprouts because I needed what so many of us crave: a village.",
-    "introItems": [
-      "Doing things differently is hard.",
-      "It’s hard to trust your instincts when the world says hurry up.",
-      "It’s hard to find calm inside Hong Kong’s relentless pace."
-    ],
-    "communityText": "That’s why Evolve Sprouts is not just about workshops — it’s about building a community for parents like you and me.",
+    "title": "It takes a village. But you need to choose yours carefully",
+    "description": "In Hong Kong, families often rely on domestic helpers for childcare — yet helpers rarely receive formal training in child development. Evolve Sprouts exists to bridge that gap: to give your helper the skills, language, and confidence to raise your children with your values.",
+    "ctaLabel": "Explore our workshops",
+    "ctaHref": "/services/workshops",
     "pillars": [
       {
-        "title": "Training Course for your Auntie",
-        "description": "A specialised course designed for Hong Kong families — train your helper to understand Montessori principles, communicate calmly with toddlers, and raise your children with your values."
+        "title": "A Specialised Course for Hong Kong Families",
+        "description": "Train your helper to understand Montessori principles, communicate calmly with toddlers, and raise your children with your values."
       },
       {
-        "title": "Practical Tools",
-        "description": "Real-life scripts, small-space Montessori setups, and clear actions you can use the same day."
+        "title": "Expert Guidance",
+        "description": "Backed by AMI Montessori certification, HKU Master's research, and real parenting experience."
       },
       {
-        "title": "Emotional Support",
-        "description": "A safe, non-judgmental space to share the hard moments and feel genuinely seen."
+        "title": "Practical, Not Theoretical",
+        "description": "Every session builds skills you'll use in your home — with your exact routines and your specific challenges."
       },
       {
-        "title": "Shared Learning",
-        "description": "Stories and strategies from families on the same path — messy moments and all."
+        "title": "Real Change, Real Fast",
+        "description": "Families see tangible shifts within weeks: calmer mornings, happier afternoons, genuine growth."
       }
     ]
   },

@@ -43,7 +43,7 @@ vi.mock('@/components/sections/sprouts-squad-community', () => ({
 
 describe('AboutUs page', () => {
   it('assembles all about page sections', () => {
-    render(<AboutUs content={enContent} />);
+    render(<AboutUs locale='en' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('ida')).toBeInTheDocument();

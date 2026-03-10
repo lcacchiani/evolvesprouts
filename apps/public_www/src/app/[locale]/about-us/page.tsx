@@ -37,7 +37,7 @@ export default async function AboutUsPage({ params }: LocaleRouteProps) {
 
   return (
     <>
-      <AboutUs content={content} />
+      <AboutUs locale={locale} content={content} />
       <StructuredDataScript
         id={`about-us-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({
