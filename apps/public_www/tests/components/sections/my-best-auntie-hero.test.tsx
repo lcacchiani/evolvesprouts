@@ -48,7 +48,7 @@ describe('MyBestAuntieHero', () => {
     expect(image).toBeInTheDocument();
     expect(image).toHaveAttribute(
       'src',
-      '/images/about-us/my-best-auntie-hero.webp',
+      '/images/hero/my-best-auntie-hero.webp',
     );
     expect(image.className).toContain('es-my-best-auntie-hero-image-flipped');
     expect(image.closest('div')).toHaveClass(
