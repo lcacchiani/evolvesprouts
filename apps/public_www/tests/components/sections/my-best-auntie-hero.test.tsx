@@ -46,6 +46,11 @@ describe('MyBestAuntieHero', () => {
 
     const image = screen.getByRole('img', { name: content.imageAlt });
     expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute(
+      'src',
+      '/images/hero/my-best-auntie-hero.webp',
+    );
+    expect(image.className).toContain('es-my-best-auntie-hero-image-flipped');
     expect(image.closest('div')).toHaveClass(
       'es-my-best-auntie-hero-image-wrap',
       'max-w-[400px]',

@@ -34,7 +34,7 @@ describe('MyJourney section', () => {
     });
     expect(image).toHaveAttribute(
       'src',
-      '/images/contact-us/my-journey.webp',
+      '/images/about-us/my-journey.webp',
     );
     expect(image.className).toContain('rounded-card-sm');
     expect(image.className).toContain('border');
