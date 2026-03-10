@@ -101,7 +101,7 @@ export function MyHistory({ content }: MyHistoryProps) {
           })}
         </div>
 
-        <div className='hidden flex-col gap-4 lg:ml-auto lg:flex lg:max-w-[651px]'>
+        <div className='hidden flex-col gap-4 lg:ml-auto lg:flex lg:max-w-[651px] lg:p-[60px]'>
           {storyImageSources.map((src, index) => (
             <Image
               key={src}
