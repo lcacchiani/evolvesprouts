@@ -619,6 +619,13 @@
     isolation: isolate;
   }
 
+  .es-my-best-auntie-hero-image-flipped {
+    -webkit-transform: scale(-1, -1);
+    -moz-transform: scale(-1, -1);
+    -o-transform: scale(-1, -1);
+    transform: scale(-1, -1);
+  }
+
   .es-my-best-auntie-hero-image-wrap::before {
     content: '';
     pointer-events: none;
