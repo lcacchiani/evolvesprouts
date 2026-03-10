@@ -56,12 +56,12 @@ export function MyBestAuntieHero({ content }: MyBestAuntieHeroProps) {
 
         <div className='es-my-best-auntie-hero-image-wrap mx-auto w-full max-w-[400px] lg:order-1 lg:ml-0 lg:mr-auto'>
           <Image
-            src='/images/about-us/ida-degregorio-evolvesprouts-3.webp'
+            src='/images/about-us/my-best-auntie-hero.webp'
             alt={content.imageAlt}
-            width={764}
-            height={841}
+            width={1200}
+            height={900}
             sizes='(max-width: 640px) 92vw, 400px'
-            className='relative z-10 h-auto w-full'
+            className='es-my-best-auntie-hero-image-flipped relative z-10 h-auto w-full'
           />
         </div>
       </SectionContainer>
