@@ -88,6 +88,7 @@ export default function RootLayout({
   return (
     <html
       lang={DEFAULT_LOCALE}
+      suppressHydrationWarning
       className={`${lato.variable} ${poppins.variable}`}
       {...(GTM_ID
         ? {

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/font/google', () => ({
@@ -15,27 +15,16 @@ import RootLayout from '@/app/layout';
 
 describe('RootLayout', () => {
   it('uses the default locale as the static html lang attribute', () => {
-    const { container } = render(
-      <RootLayout>
-        <div>content</div>
-      </RootLayout>,
-    );
+    const element = RootLayout({ children: <div>content</div> });
+    const htmlProps = (element as ReactElement).props;
 
-    const html = container.closest('html');
-    expect(html?.getAttribute('lang') ?? DEFAULT_LOCALE).toBe(DEFAULT_LOCALE);
+    expect(htmlProps.lang).toBe(DEFAULT_LOCALE);
   });
 
-  it('includes the set-html-lang script for runtime locale detection', () => {
-    render(
-      <RootLayout>
-        <div>content</div>
-      </RootLayout>,
-    );
+  it('sets suppressHydrationWarning on html for pre-hydration locale script', () => {
+    const element = RootLayout({ children: <div>content</div> });
+    const htmlProps = (element as ReactElement).props;
 
-    const scripts = screen.getAllByTestId('next-script');
-    const langScript = scripts.find(
-      (s) => s.getAttribute('data-src') === '/scripts/set-html-lang.js',
-    );
-    expect(langScript).toBeDefined();
+    expect(htmlProps.suppressHydrationWarning).toBe(true);
   });
 });
