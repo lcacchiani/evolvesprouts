@@ -34,13 +34,18 @@ vi.mock('next/image', () => ({
 
 interface MockLinkProps extends Omit<ComponentProps<'a'>, 'href'> {
   href: string;
+  prefetch?: boolean;
   children: ReactNode;
 }
 
 vi.mock('next/link', () => ({
-  default: function MockLink({ href, children, ...props }: MockLinkProps) {
+  default: function MockLink({ href, prefetch, children, ...props }: MockLinkProps) {
     return (
-      <a href={href} {...props}>
+      <a
+        href={href}
+        data-prefetch={typeof prefetch === 'boolean' ? String(prefetch) : undefined}
+        {...props}
+      >
         {children}
       </a>
     );
@@ -90,6 +95,10 @@ describe('Navbar desktop submenu accessibility', () => {
       name: enContent.navbar.bookNow.label,
     });
     expect(desktopBookNowLink).toBeInTheDocument();
+
+    const logoLink = header?.querySelector('a.shrink-0[href="/en"]');
+    expect(logoLink).not.toBeNull();
+    expect(logoLink).toHaveAttribute('data-prefetch', 'false');
   });
 
   it('applies active and inactive classes to language menu items', () => {
@@ -215,6 +224,10 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(homeLink.className).toContain('es-navbar-mobile-pill-reset');
     expect(homeLink.className).toContain('w-full');
     expect(homeLink.className).toContain('justify-start');
+
+    const drawerLogoLink = drawer.querySelector('a.shrink-0[href="/en"]');
+    expect(drawerLogoLink).not.toBeNull();
+    expect(drawerLogoLink).toHaveAttribute('data-prefetch', 'false');
 
     const trainingCoursesToggle = within(drawer).getByRole('button', {
       name: 'Toggle Services submenu',

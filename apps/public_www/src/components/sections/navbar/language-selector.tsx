@@ -235,6 +235,7 @@ export function LanguageSelectorButton({
                 <Link
                   role='menuitem'
                   href={localizePath(currentPathname, option.locale)}
+                  prefetch={false}
                   className={buildLanguageOptionClassName(isCurrent)}
                   onClick={() => {
                     closeMenu();

@@ -299,7 +299,7 @@ export function Navbar({ content }: NavbarProps) {
           as='nav'
           className='es-navbar-nav flex items-center justify-between gap-2 py-0 pl-0 pr-4 sm:gap-3 sm:pr-6 lg:gap-3 lg:pr-8'
         >
-          <Link href={localizedHomeHref} className='shrink-0'>
+          <Link href={localizedHomeHref} prefetch={false} className='shrink-0'>
             <Image
               src={logoSrc}
               alt={content.brand}
@@ -374,6 +374,7 @@ export function Navbar({ content }: NavbarProps) {
             <div className='flex items-center justify-between px-4 py-4'>
               <Link
                 href={localizedHomeHref}
+                prefetch={false}
                 className='shrink-0'
                 onClick={closeMobileMenu}
               >
