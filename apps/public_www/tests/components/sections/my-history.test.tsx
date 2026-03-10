@@ -43,23 +43,63 @@ describe('MyHistory section', () => {
     }
   });
 
+  it('interleaves mobile images into the story flow', () => {
+    const { container } = render(<MyHistory content={enContent.myHistory} />);
+
+    const paragraphs = enContent.myHistory.description
+      .split(/\n\s*\n/g)
+      .map((paragraph) => paragraph.trim())
+      .filter((paragraph) => paragraph.length > 0);
+    const firstMobileImage = container.querySelector('img.lg\\:hidden');
+    const lastParagraph = screen.getByText(paragraphs[paragraphs.length - 1]);
+
+    expect(firstMobileImage).toBeTruthy();
+    expect(
+      (firstMobileImage?.compareDocumentPosition(lastParagraph) ?? 0) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      (firstMobileImage?.compareDocumentPosition(lastParagraph) ?? 0) &
+        Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBe(0);
+  });
+
   it('renders the updated stacked story images', () => {
     render(<MyHistory content={enContent.myHistory} />);
 
-    expect(
-      screen.getByAltText('A brief history image from Evolve Sprouts 1'),
-    ).toHaveAttribute('src', '/images/about-us/ida-degregorio-ims.webp');
-    expect(
-      screen.getByAltText('A brief history image from Evolve Sprouts 2'),
-    ).toHaveAttribute(
-      'src',
-      '/images/about-us/ida-degregorio-my-best-auntie-1.webp',
+    const imageOneVariants = screen.getAllByAltText(
+      'A brief history image from Evolve Sprouts 1',
     );
+    expect(imageOneVariants).toHaveLength(2);
     expect(
-      screen.getByAltText('A brief history image from Evolve Sprouts 3'),
-    ).toHaveAttribute(
-      'src',
-      '/images/about-us/ida-degregorio-my-best-auntie-2.webp',
+      imageOneVariants.some(
+        (image) =>
+          image.getAttribute('src') === '/images/about-us/ida-degregorio-ims.webp',
+      ),
+    ).toBe(true);
+
+    const imageTwoVariants = screen.getAllByAltText(
+      'A brief history image from Evolve Sprouts 2',
     );
+    expect(imageTwoVariants).toHaveLength(2);
+    expect(
+      imageTwoVariants.some(
+        (image) =>
+          image.getAttribute('src') ===
+          '/images/about-us/ida-degregorio-my-best-auntie-1.webp',
+      ),
+    ).toBe(true);
+
+    const imageThreeVariants = screen.getAllByAltText(
+      'A brief history image from Evolve Sprouts 3',
+    );
+    expect(imageThreeVariants).toHaveLength(2);
+    expect(
+      imageThreeVariants.some(
+        (image) =>
+          image.getAttribute('src') ===
+          '/images/about-us/ida-degregorio-my-best-auntie-2.webp',
+      ),
+    ).toBe(true);
   });
 });
