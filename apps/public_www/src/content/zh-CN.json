@@ -37,6 +37,7 @@
     ],
     "bookNow": {
       "label": "预约免费入门咨询",
+      "mobileTopbarLabel": "预约免费入门咨询",
       "href": "{{WHATSAPP_URL}}",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
       "prefillMessage": "你好，我想预约一个免费咨询！"
@@ -405,7 +406,7 @@
     "paymentModal": {
       "closeLabel": "关闭",
       "thankYouLead": "感谢你的关注！",
-      "title": "我的最佳阿姨培训课程。",
+      "title": "我的最佳阿姨培训课程",
       "pricingTitle": "价格",
       "totalAmountLabel": "总金额",
       "refundHint": "开课前 7 天可全额退款。",
@@ -448,7 +449,7 @@
     },
     "thankYouModal": {
       "closeLabel": "关闭",
-      "title": "我们会尽快与您联系。",
+      "title": "我们会尽快与您联系",
       "subtitle": "确认邮件已发送至",
       "successLabel": "谢谢你！",
       "courseLabel": "我的最佳阿姨培训课程。",
@@ -818,7 +819,7 @@
   },
   "myJourney": {
     "eyebrow": "我的蒙特梭利旅程",
-    "title": "育儿不在于完美，而在于成长。",
+    "title": "育儿不在于完美，而在于成长",
     "description": "作为两个孩子的妈妈，我明白了最好的养育，发生在我们慢下来、认真倾听，并给孩子留出成长空间的时候。蒙特梭利原则改变了我对母职的理解——也改变了我帮助其他家庭的方式。",
     "cards": [
       {

@@ -37,6 +37,7 @@
     ],
     "bookNow": {
       "label": "Book your Free Intro Session",
+      "mobileTopbarLabel": "Free Intro Session",
       "href": "{{WHATSAPP_URL}}",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
       "prefillMessage": "Hi, I'd like to book a free session!"
@@ -405,7 +406,7 @@
     "paymentModal": {
       "closeLabel": "Close",
       "thankYouLead": "Thanks for your interest!",
-      "title": "My Best Auntie Training Course.",
+      "title": "My Best Auntie Training Course",
       "pricingTitle": "Pricing",
       "totalAmountLabel": "Total Amount",
       "refundHint": "Full refund up to 7 days prior.",
@@ -448,7 +449,7 @@
     },
     "thankYouModal": {
       "closeLabel": "Close",
-      "title": "We will get in touch shortly.",
+      "title": "We will get in touch shortly",
       "subtitle": "A confirmation email has been sent to",
       "successLabel": "Thank You!",
       "courseLabel": "My Best Auntie Training Course.",
@@ -818,7 +819,7 @@
   },
   "myJourney": {
     "eyebrow": "My Montessori Journey",
-    "title": "Parenting isn't about perfection. It's about progress.",
+    "title": "Parenting isn't about perfection. It's about progress",
     "description": "As a mum of two, I've learned that the best parenting happens when we slow down, listen, and give our children space to grow. Montessori principles have transformed how I approach motherhood — and how I help other families do the same.",
     "cards": [
       {

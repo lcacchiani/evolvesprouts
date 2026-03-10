@@ -336,7 +336,7 @@ export function Navbar({ content }: NavbarProps) {
           >
             <BookNowButton
               href={localizedBookNowHref}
-              label={content.bookNow.label}
+              label={content.bookNow.mobileTopbarLabel}
               className={NAV_MOBILE_TOPBAR_BOOK_BUTTON_CLASSNAME}
             />
             <ButtonPrimitive

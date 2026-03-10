@@ -197,7 +197,7 @@ describe('Navbar desktop submenu accessibility', () => {
     const mobileTopBarCta = within(mobileControlsContainer as HTMLElement).getByRole(
       'link',
       {
-        name: enContent.navbar.bookNow.label,
+        name: enContent.navbar.bookNow.mobileTopbarLabel,
       },
     );
     expect(mobileTopBarCta).toBeInTheDocument();

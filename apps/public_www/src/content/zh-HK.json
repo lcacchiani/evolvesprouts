@@ -37,6 +37,7 @@
     ],
     "bookNow": {
       "label": "預約免費入門諮詢",
+      "mobileTopbarLabel": "預約免費入門諮詢",
       "href": "{{WHATSAPP_URL}}",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
       "prefillMessage": "你好，我想預約一節免費諮詢！"
@@ -405,7 +406,7 @@
     "paymentModal": {
       "closeLabel": "關閉",
       "thankYouLead": "多謝你的關注！",
-      "title": "我的最佳姨姨培訓課程。",
+      "title": "我的最佳姨姨培訓課程",
       "pricingTitle": "收費",
       "totalAmountLabel": "總金額",
       "refundHint": "開課前 7 天可全額退款。",
@@ -448,7 +449,7 @@
     },
     "thankYouModal": {
       "closeLabel": "關閉",
-      "title": "我們會盡快與你聯絡。",
+      "title": "我們會盡快與你聯絡",
       "subtitle": "確認電郵已發送至",
       "successLabel": "多謝你！",
       "courseLabel": "我的最佳姨姨培訓課程。",
@@ -818,7 +819,7 @@
   },
   "myJourney": {
     "eyebrow": "我的蒙特梭利旅程",
-    "title": "育兒不在於完美，而在於成長。",
+    "title": "育兒不在於完美，而在於成長",
     "description": "作為兩個孩子的媽媽，我明白最好的育兒，發生在我們放慢節奏、用心聆聽，並給孩子留出成長空間的時候。蒙特梭利原則改變了我看待母職的方式——也改變了我如何幫助其他家庭。",
     "cards": [
       {
