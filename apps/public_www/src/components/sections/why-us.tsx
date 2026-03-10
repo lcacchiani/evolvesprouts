@@ -52,17 +52,19 @@ export function WhyUs({ locale, content }: WhyUsProps) {
                 <p className='es-section-body mt-3 text-base leading-[1.5]'>
                   {pillar.description}
                 </p>
-                {index === 0 ? (
-                  <div className='mt-6'>
-                    <SectionCtaAnchor href={workshopsHref} className='w-full sm:w-fit'>
-                      {content.ctaLabel}
-                    </SectionCtaAnchor>
-                  </div>
-                ) : null}
               </article>
             </li>
           ))}
         </ul>
+
+        <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
+          <SectionCtaAnchor
+            href={workshopsHref}
+            className='w-full max-w-[488px]'
+          >
+            {content.ctaLabel}
+          </SectionCtaAnchor>
+        </div>
       </SectionContainer>
     </SectionShell>
   );

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { WhyUs } from '@/components/sections/why-us';
@@ -20,8 +20,8 @@ describe('WhyUs section', () => {
     expect(container.querySelector('.es-why-us-glow-green')).toBeNull();
   });
 
-  it('renders the new description, localized workshops cta, and pillar cards', () => {
-    render(<WhyUs locale='en' content={enContent.whyUs} />);
+  it('renders pillar cards and a section-level localized workshops cta', () => {
+    const { container } = render(<WhyUs locale='en' content={enContent.whyUs} />);
 
     const description = screen.getByText(enContent.whyUs.description);
     expect(description.className).toContain('es-section-body');
@@ -36,6 +36,15 @@ describe('WhyUs section', () => {
       name: enContent.whyUs.ctaLabel,
     });
     expect(workshopsLink).toHaveAttribute('href', '/en/services/workshops');
+    expect(container.querySelector('ul')?.contains(workshopsLink)).toBe(false);
+
+    const firstPillarCard = container.querySelector('ul > li:first-child article');
+    expect(firstPillarCard).not.toBeNull();
+    expect(
+      within(firstPillarCard as HTMLElement).queryByRole('link', {
+        name: enContent.whyUs.ctaLabel,
+      }),
+    ).toBeNull();
 
     for (const pillar of enContent.whyUs.pillars) {
       expect(screen.getByText(pillar.title)).toBeInTheDocument();

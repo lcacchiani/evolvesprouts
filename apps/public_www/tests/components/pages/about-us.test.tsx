@@ -30,9 +30,9 @@ vi.mock('@/components/sections/why-us', () => ({
     <section data-testid='why-us'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/faq', () => ({
-  Faq: ({ content }: { content: { title: string } }) => (
-    <section data-testid='faq'>{content.title}</section>
+vi.mock('@/components/sections/deferred-testimonials', () => ({
+  DeferredTestimonials: ({ content }: { content: { title: string } }) => (
+    <section data-testid='deferred-testimonials'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/sprouts-squad-community', () => ({
@@ -50,9 +50,9 @@ describe('AboutUs page', () => {
     expect(screen.getByTestId('my-history')).toBeInTheDocument();
     expect(screen.getByTestId('my-journey')).toBeInTheDocument();
     expect(screen.getByTestId('why-us')).toBeInTheDocument();
-    expect(screen.getByTestId('faq')).toBeInTheDocument();
+    expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
     expect(screen.getByText(enContent.ida.title)).toBeInTheDocument();
-    expect(screen.getByText(enContent.faq.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.testimonials.title)).toBeInTheDocument();
   });
 });

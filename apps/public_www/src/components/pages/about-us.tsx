@@ -3,7 +3,7 @@ import type {
   SiteContent,
 } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
-import { Faq } from '@/components/sections/faq';
+import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { Ida } from '@/components/sections/ida';
 import { MyHistory } from '@/components/sections/my-history';
 import { MyJourney } from '@/components/sections/my-journey';
@@ -25,7 +25,7 @@ export function AboutUs({ locale, content }: AboutUsProps) {
       <MyHistory content={content.myHistory} />
       <MyJourney content={content.myJourney} />
       <WhyUs locale={locale} content={content.whyUs} />
-      <Faq content={content.faq} />
+      <DeferredTestimonials content={content.testimonials} />
       <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
     </PageLayout>
   );
