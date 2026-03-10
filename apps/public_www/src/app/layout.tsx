@@ -1,8 +1,9 @@
 import { Lato, Poppins } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import type { ReactNode } from 'react';
 
-import { DEFAULT_LOCALE, isValidLocale } from '@/content';
+import { DEFAULT_LOCALE } from '@/content';
 import enContent from '@/content/en.json';
 import { GoogleTagManager } from '@/components/shared/google-tag-manager';
 import {
@@ -77,23 +78,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-interface RootLayoutProps {
-  children: ReactNode;
-  params: Promise<{ locale?: string }>;
-}
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
-  params,
-}: RootLayoutProps) {
-  const resolvedParams = await params;
-  const localeParam = resolvedParams?.locale;
-  const htmlLang = localeParam && isValidLocale(localeParam) ? localeParam : DEFAULT_LOCALE;
+}: {
+  children: ReactNode;
+}) {
   const gtmAllowedHosts = resolveGtmAllowedHosts();
 
   return (
     <html
-      lang={htmlLang}
+      lang={DEFAULT_LOCALE}
       className={`${lato.variable} ${poppins.variable}`}
       {...(GTM_ID
         ? {
@@ -103,6 +97,7 @@ export default async function RootLayout({
         : {})}
     >
       <body className='antialiased'>
+        <Script src='/scripts/set-html-lang.js' strategy='beforeInteractive' />
         <script src='/scripts/hide-css-sensitive-duplicates.js' defer />
         <a
           href='#main-content'

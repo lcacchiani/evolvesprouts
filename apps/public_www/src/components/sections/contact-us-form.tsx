@@ -22,14 +22,13 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
+import type { PublicSiteConfig } from '@/lib/site-config';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
-export interface ContactUsFormContactConfig {
-  contactEmail?: string;
-  whatsappUrl?: string;
-  instagramUrl?: string;
-  linkedinUrl?: string;
-}
+export type ContactUsFormContactConfig = Pick<
+  PublicSiteConfig,
+  'contactEmail' | 'whatsappUrl' | 'instagramUrl' | 'linkedinUrl'
+>;
 
 interface ContactUsFormProps {
   content: ContactUsContent['contactUsForm'];

@@ -56,10 +56,31 @@ const contentMap = {
   'zh-HK': zhHKContent,
 } satisfies Record<Locale, SiteContent>;
 
-function withConfiguredContactEmail(content: SiteContent): SiteContent {
-  const { contactEmail } = resolvePublicSiteConfig();
+const interpolatedContentCache = new Map<Locale, SiteContent>();
 
-  return {
+function resolveContactEmail(): string | undefined {
+  try {
+    return resolvePublicSiteConfig().contactEmail;
+  } catch {
+    return undefined;
+  }
+}
+
+function withConfiguredContactEmail(
+  locale: Locale,
+  content: SiteContent,
+): SiteContent {
+  const cached = interpolatedContentCache.get(locale);
+  if (cached) {
+    return cached;
+  }
+
+  const contactEmail = resolveContactEmail();
+  if (!contactEmail) {
+    return content;
+  }
+
+  const interpolated: SiteContent = {
     ...content,
     contactUs: {
       ...content.contactUs,
@@ -81,6 +102,9 @@ function withConfiguredContactEmail(content: SiteContent): SiteContent {
       },
     },
   };
+
+  interpolatedContentCache.set(locale, interpolated);
+  return interpolated;
 }
 
 /**
@@ -89,10 +113,10 @@ function withConfiguredContactEmail(content: SiteContent): SiteContent {
  */
 export function getContent(locale: string): SiteContent {
   if (isValidLocale(locale)) {
-    return withConfiguredContactEmail(contentMap[locale]);
+    return withConfiguredContactEmail(locale, contentMap[locale]);
   }
 
-  return withConfiguredContactEmail(contentMap[DEFAULT_LOCALE]);
+  return withConfiguredContactEmail(DEFAULT_LOCALE, contentMap[DEFAULT_LOCALE]);
 }
 
 /**
