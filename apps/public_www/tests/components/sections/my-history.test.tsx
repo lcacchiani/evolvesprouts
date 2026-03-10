@@ -101,5 +101,19 @@ describe('MyHistory section', () => {
           '/images/about-us/ida-degregorio-my-best-auntie-2.webp',
       ),
     ).toBe(true);
+
+    const storyImages = screen.getAllByRole('img', {
+      name: /a brief history image from evolve sprouts/i,
+    });
+    expect(storyImages.length).toBeGreaterThan(0);
+
+    for (const storyImage of storyImages) {
+      expect(storyImage.className).toContain('rounded-card-sm');
+      expect(storyImage.className).toContain('border');
+      expect(storyImage.className).toContain('es-border-warm-3');
+      expect(storyImage.className).toContain('brightness-[1.1]');
+      expect(storyImage.className).toContain('contrast-[1.15]');
+      expect(storyImage.className).toContain('saturate-[1.05]');
+    }
   });
 });
