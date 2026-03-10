@@ -52,7 +52,7 @@ const NAVBAR_EXPAND_SCROLL_Y = 0;
 const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const NAV_MOBILE_TOPBAR_BOOK_BUTTON_CLASSNAME =
-  'h-11 shrink-0 px-3 text-xs sm:text-sm';
+  'shrink-0';
 const NAV_MOBILE_CONTROL_BASE_CLASSNAME = 'border es-border-soft es-text-brand';
 const NAV_MOBILE_DRAWER_LANGUAGE_BUTTON_CLASSNAME =
   `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-transparent h-11 gap-2 rounded-[14px] px-2.5`;

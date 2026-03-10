@@ -201,7 +201,7 @@ describe('Navbar desktop submenu accessibility', () => {
       },
     );
     expect(mobileTopBarCta).toBeInTheDocument();
-    expect(mobileTopBarCta.className).toContain('h-11');
+    expect(mobileTopBarCta.className).not.toContain('text-xs');
 
     fireEvent.click(openMenuButton);
 
