@@ -37,6 +37,10 @@ const freeIntroSessionPropsSpy = vi.fn<
   [{ content: { title: string }; ctaHref: string }],
   void
 >();
+const myBestAuntieOutlinePropsSpy = vi.fn<
+  [{ content: { title: string }; ctaHref?: string }],
+  void
+>();
 
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({
@@ -76,9 +80,16 @@ vi.mock('@/components/sections/ida-intro', () => ({
   ),
 }));
 vi.mock('@/components/sections/my-best-auntie/my-best-auntie-outline', () => ({
-  MyBestAuntieOutline: ({ content }: { content: { title: string } }) => (
-    <section data-testid='my-best-auntie-outline'>{content.title}</section>
-  ),
+  MyBestAuntieOutline: ({
+    content,
+    ctaHref,
+  }: {
+    content: { title: string };
+    ctaHref?: string;
+  }) => {
+    myBestAuntieOutlinePropsSpy({ content, ctaHref });
+    return <section data-testid='my-best-auntie-outline'>{content.title}</section>;
+  },
 }));
 vi.mock('@/components/sections/deferred-testimonials', () => ({
   DeferredTestimonials: ({ content }: { content: { title: string } }) => (
@@ -105,6 +116,7 @@ describe('HomePageSections', () => {
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
     freeIntroSessionPropsSpy.mockClear();
+    myBestAuntieOutlinePropsSpy.mockClear();
     render(<HomePageSections locale='en' content={getContent('en')} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
@@ -128,10 +140,12 @@ describe('HomePageSections', () => {
     expect(heroBannerPropsSpy).toHaveBeenCalledTimes(1);
     expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
     expect(freeIntroSessionPropsSpy).toHaveBeenCalledTimes(1);
+    expect(myBestAuntieOutlinePropsSpy).toHaveBeenCalledTimes(1);
 
     const heroProps = heroBannerPropsSpy.mock.calls[0][0];
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
+    const outlineProps = myBestAuntieOutlinePropsSpy.mock.calls[0][0];
     expect(pageLayoutProps.navbarContent.bookNow.href).toBe(
       'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
     );
@@ -140,6 +154,9 @@ describe('HomePageSections', () => {
       enContent.navbar.bookNow.label,
     );
     expect(freeIntroProps.ctaHref).toBe(pageLayoutProps.navbarContent.bookNow.href);
+    expect(outlineProps.ctaHref).toBe(
+      '/en/services/my-best-auntie-training-course#my-best-auntie-booking',
+    );
 
     const heroElement = screen.getByTestId('hero-banner');
     const realTalkElement = screen.getByTestId('real-talk');
@@ -158,12 +175,14 @@ describe('HomePageSections', () => {
     heroBannerPropsSpy.mockClear();
     pageLayoutPropsSpy.mockClear();
     freeIntroSessionPropsSpy.mockClear();
+    myBestAuntieOutlinePropsSpy.mockClear();
 
     const localizedContent = getContent('zh-HK');
     render(<HomePageSections locale='zh-HK' content={localizedContent} />);
 
     expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
     expect(freeIntroSessionPropsSpy).toHaveBeenCalledTimes(1);
+    expect(myBestAuntieOutlinePropsSpy).toHaveBeenCalledTimes(1);
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     const parsedNavbarHref = new URL(pageLayoutProps.navbarContent.bookNow.href);
@@ -176,5 +195,8 @@ describe('HomePageSections', () => {
       localizedContent.navbar.bookNow.label,
     );
     expect(freeIntroProps.ctaHref).toBe(pageLayoutProps.navbarContent.bookNow.href);
+    expect(myBestAuntieOutlinePropsSpy.mock.calls[0][0].ctaHref).toBe(
+      '/zh-HK/services/my-best-auntie-training-course#my-best-auntie-booking',
+    );
   });
 });

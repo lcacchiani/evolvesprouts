@@ -31,6 +31,10 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
     content.hero.ctaHref || ROUTES.servicesMyBestAuntieTrainingCourse,
     locale,
   );
+  const myBestAuntieOutlineCtaHref = localizeHref(
+    `${ROUTES.servicesMyBestAuntieTrainingCourse}#my-best-auntie-booking`,
+    locale,
+  );
   const navbarCtaHref = resolveNavbarBookNowHref(content.navbar.bookNow)
     || content.whatsappContact.href
     || ROUTES.servicesMyBestAuntieTrainingCourse;
@@ -50,7 +54,10 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
       <HeroBanner content={content.hero} ctaHref={heroCtaHref} />
       <RealTalk content={content.realTalk} />
       <IdaIntro content={content.idaIntro} />
-      <MyBestAuntieOutline content={content.myBestAuntieOutline} />
+      <MyBestAuntieOutline
+        content={content.myBestAuntieOutline}
+        ctaHref={myBestAuntieOutlineCtaHref}
+      />
       <DeferredTestimonials content={content.testimonials} />
       <FreeIntroSession content={content.freeIntroSession} ctaHref={navbarCtaHref} />
     </PageLayout>
