@@ -48,11 +48,14 @@ const NAV_CLOSE_ICON_SRC = '/images/close.svg';
 const MOBILE_PANEL_WIDTH_CLASS = 'w-[min(88vw,360px)]';
 const MOBILE_MENU_TRANSITION_MS = 300;
 const NAVBAR_CONDENSE_SCROLL_Y = 24;
+const NAVBAR_EXPAND_SCROLL_Y = 0;
 const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const NAV_MOBILE_TOPBAR_BOOK_BUTTON_CLASSNAME =
   'h-11 shrink-0 px-3 text-xs sm:text-sm';
 const NAV_MOBILE_CONTROL_BASE_CLASSNAME = 'border es-border-soft es-text-brand';
+const NAV_MOBILE_DRAWER_LANGUAGE_BUTTON_CLASSNAME =
+  `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-transparent h-11 gap-2 rounded-[14px] px-2.5`;
 const NAV_OPEN_MENU_BUTTON_CLASSNAME =
   `${NAV_MOBILE_CONTROL_BASE_CLASSNAME} bg-[#F6DECD] h-11 w-11 rounded-[14px]`;
 const NAV_HAMBURGER_ICON_CLASSNAME = 'es-navbar-hamburger-icon h-4 w-4';
@@ -255,13 +258,21 @@ export function Navbar({ content }: NavbarProps) {
       isCondensed = condensed;
       headerElement?.classList.toggle('es-navbar--condensed', condensed);
     };
+    const resolveCondensedFromScroll = () => {
+      const scrollY = window.scrollY;
+      if (isCondensed) {
+        return scrollY > NAVBAR_EXPAND_SCROLL_Y;
+      }
+
+      return scrollY > NAVBAR_CONDENSE_SCROLL_Y;
+    };
     const handleScroll = () => {
       if (scrollFrame !== null) {
         return;
       }
 
       scrollFrame = window.requestAnimationFrame(() => {
-        applyCondensedState(window.scrollY > NAVBAR_CONDENSE_SCROLL_Y);
+        applyCondensedState(resolveCondensedFromScroll());
         scrollFrame = null;
       });
     };
@@ -398,6 +409,16 @@ export function Navbar({ content }: NavbarProps) {
                 locale={currentLocale}
                 onNavigate={closeMobileMenu}
               />
+              <div className='mt-6 pt-4'>
+                <LanguageSelectorButton
+                  key={`mobile-drawer-language-${pathname}`}
+                  currentLocale={currentLocale}
+                  currentPathname={pathname}
+                  languageSelector={languageSelector}
+                  menuAlign='left'
+                  className={NAV_MOBILE_DRAWER_LANGUAGE_BUTTON_CLASSNAME}
+                />
+              </div>
             </div>
           </OverlayDrawerPanel>
         </div>

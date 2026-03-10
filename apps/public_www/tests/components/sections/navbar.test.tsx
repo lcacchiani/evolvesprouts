@@ -172,7 +172,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(submenuToggle).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('styles mobile navbar controls and keeps CTA outside the drawer', async () => {
+  it('styles mobile navbar controls with language selector in drawer', async () => {
     render(<Navbar content={enContent.navbar} />);
 
     const openMenuButton = screen.getByRole('button', {
@@ -199,11 +199,12 @@ describe('Navbar desktop submenu accessibility', () => {
     const drawer = await screen.findByRole('dialog', {
       name: /Mobile navigation menu/i,
     });
-    expect(
-      within(drawer).queryByRole('button', {
-        name: /Selected language: English/i,
-      }),
-    ).toBeNull();
+    const drawerLanguageSelector = within(drawer).getByRole('button', {
+      name: /Selected language: English/i,
+    });
+    expect(drawerLanguageSelector).toBeInTheDocument();
+    expect(drawerLanguageSelector.className).toContain('es-border-soft');
+
     expect(
       within(drawer).queryByRole('link', {
         name: enContent.navbar.bookNow.label,
@@ -219,7 +220,6 @@ describe('Navbar desktop submenu accessibility', () => {
       name: 'Toggle Services submenu',
     });
     expect(trainingCoursesToggle.className).toContain('es-navbar-mobile-pill-reset');
-
   });
 
   it('condenses sticky navbar after scrolling via DOM class toggle', async () => {
@@ -240,6 +240,35 @@ describe('Navbar desktop submenu accessibility', () => {
 
     await waitFor(() => {
       expect(header?.className).toContain('es-navbar--condensed');
+    });
+  });
+
+  it('keeps navbar condensed until user scrolls back to top (hysteresis)', async () => {
+    render(<Navbar content={enContent.navbar} />);
+
+    const header = document.querySelector('header[data-figma-node="navbar"]');
+
+    Object.defineProperty(window, 'scrollY', {
+      value: 60,
+      writable: true,
+      configurable: true,
+    });
+    fireEvent.scroll(window);
+
+    await waitFor(() => {
+      expect(header?.className).toContain('es-navbar--condensed');
+    });
+
+    Object.defineProperty(window, 'scrollY', { value: 10, writable: true, configurable: true });
+    fireEvent.scroll(window);
+    await waitFor(() => {
+      expect(header?.className).toContain('es-navbar--condensed');
+    });
+
+    Object.defineProperty(window, 'scrollY', { value: 0, writable: true, configurable: true });
+    fireEvent.scroll(window);
+    await waitFor(() => {
+      expect(header?.className).not.toContain('es-navbar--condensed');
     });
   });
 });
