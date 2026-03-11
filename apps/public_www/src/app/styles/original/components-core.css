@@ -384,12 +384,13 @@
   }
 
   .es-btn--whatsapp-cta {
-    background-color: var(--es-color-whatsapp);
+    --es-whatsapp-cta-bg: #075E54;
+    background-color: var(--es-whatsapp-cta-bg);
     color: var(--es-color-surface-white, #FFFFFF);
     gap: 0.5rem;
     --es-focus-ring-color: color-mix(
       in srgb,
-      var(--es-color-whatsapp) 45%,
+      var(--es-whatsapp-cta-bg) 45%,
       black
     );
   }
@@ -397,7 +398,7 @@
   .es-btn--whatsapp-cta:hover {
     background-color: color-mix(
       in srgb,
-      var(--es-color-whatsapp) 88%,
+      var(--es-whatsapp-cta-bg) 88%,
       black
     );
     opacity: 1;
