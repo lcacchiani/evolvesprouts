@@ -125,18 +125,21 @@ describe('MyBestAuntieOutline section', () => {
     );
     expect(description).not.toBeNull();
     expect(countLine).not.toBeNull();
-    expect(description?.className).toContain('opacity-0');
+    expect(description?.className).toContain('max-h-[92px]');
+    expect(description?.className).toContain('overflow-hidden');
     expect(countLine?.className).toContain('h-[148px]');
     expect(countLine?.className).toContain('-top-[144px]');
 
     fireEvent.click(firstCard!);
-    expect(description?.className).toContain('opacity-100');
+    expect(description?.className).not.toContain('max-h-[92px]');
+    expect(description?.className).not.toContain('overflow-hidden');
     expect(countLine?.className).toContain('h-[74px]');
     expect(countLine?.className).toContain('-top-[70px]');
     expect(countLine?.className).not.toContain('h-[148px]');
 
     fireEvent.click(firstCard!);
-    expect(description?.className).toContain('opacity-0');
+    expect(description?.className).toContain('max-h-[92px]');
+    expect(description?.className).toContain('overflow-hidden');
     expect(countLine?.className).toContain('h-[148px]');
     expect(countLine?.className).toContain('-top-[144px]');
   });
@@ -170,5 +173,11 @@ describe('MyBestAuntieOutline section', () => {
     const firstPointLabel = activityPoints?.[0]?.querySelector('strong');
     expect(firstPointLabel).not.toBeNull();
     expect(firstPointLabel?.textContent).toBe('Group session:');
+
+    const summary = firstCard?.querySelector(
+      '.es-my-best-auntie-outline-activity-summary',
+    );
+    expect(summary).not.toBeNull();
+    expect(summary?.className).toContain('italic');
   });
 });
