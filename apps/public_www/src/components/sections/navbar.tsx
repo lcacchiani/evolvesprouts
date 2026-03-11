@@ -316,7 +316,7 @@ export function Navbar({ content }: NavbarProps) {
             locale={currentLocale}
           />
 
-          <div className='hidden items-center gap-3 lg:flex'>
+          <div className='hidden items-center lg:flex'>
             <LanguageSelectorButton
               key={`desktop-language-${pathname}`}
               currentLocale={currentLocale}
@@ -336,7 +336,7 @@ export function Navbar({ content }: NavbarProps) {
           >
             <BookNowButton
               href={localizedBookNowHref}
-              label={content.bookNow.mobileTopbarLabel}
+              label={content.bookNow.label}
               className={NAV_MOBILE_TOPBAR_BOOK_BUTTON_CLASSNAME}
             />
             <ButtonPrimitive
