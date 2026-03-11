@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
 
@@ -34,6 +35,7 @@ interface ContactUsFormProps {
 
 const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
 const CONTACT_US_API_PATH = '/v1/contact-us';
+const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
 
 function isValidPhone(value: string): boolean {
   const normalizedValue = value.trim();
@@ -189,9 +191,17 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                 <ButtonPrimitive
                   variant='primary'
                   href={whatsappHref}
-                  className='mt-4 w-full sm:w-auto'
+                  className='mt-4 w-full sm:w-auto es-btn--whatsapp-cta'
                 >
-                  {content.contactMethodLinks.whatsapp}
+                  <span>{content.contactMethodLinks.whatsapp}</span>
+                  <Image
+                    src={WHATSAPP_ICON_SRC}
+                    alt=''
+                    aria-hidden='true'
+                    width={16}
+                    height={16}
+                    className='h-4 w-4 shrink-0'
+                  />
                 </ButtonPrimitive>
               ) : null}
             </div>
