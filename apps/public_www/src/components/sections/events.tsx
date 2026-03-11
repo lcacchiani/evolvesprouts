@@ -76,29 +76,24 @@ function LoadingGearIcon({ className }: LoadingGearIconProps) {
 }
 
 export function Events({ content, locale = 'en' }: EventsProps) {
+  const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [events, setEvents] = useState<EventCardData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasRequestError, setHasRequestError] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => crmApiClient !== null);
+  const [hasRequestError, setHasRequestError] = useState(() => crmApiClient === null);
 
   useEffect(() => {
     const controller = new AbortController();
-    const crmApiClient = createPublicCrmApiClient();
 
     if (!crmApiClient) {
-      setEvents([]);
-      setHasRequestError(true);
-      setIsLoading(false);
       return () => {
         controller.abort();
       };
     }
 
-    setIsLoading(true);
-    setHasRequestError(false);
-
     fetchEventsPayload(crmApiClient, controller.signal)
       .then((payload) => {
         const normalizedEvents = normalizeEvents(payload, content, locale);
+        setHasRequestError(false);
         setEvents(normalizedEvents);
       })
       .catch((error) => {
@@ -118,7 +113,7 @@ export function Events({ content, locale = 'en' }: EventsProps) {
     return () => {
       controller.abort();
     };
-  }, [content, locale]);
+  }, [content, locale, crmApiClient]);
 
   const visibleEvents = useMemo(() => {
     return sortEvents(events);
