@@ -741,6 +741,16 @@
     letter-spacing: 0.01em;
   }
 
+  @media (min-width: 640px) {
+    .es-testimonials-quote--desktop-four-lines {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-height: calc(1.7em * 4);
+    }
+  }
+
   .es-testimonials-author {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;

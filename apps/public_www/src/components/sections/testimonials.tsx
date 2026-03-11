@@ -193,7 +193,7 @@ function TestimonialSlide({
               aria-hidden='true'
               className='es-testimonial-quote-icon h-9 w-9 sm:h-11 sm:w-11'
             />
-            <p className='w-full text-balance es-testimonials-quote'>
+            <p className='w-full text-balance es-testimonials-quote es-testimonials-quote--desktop-four-lines'>
               {story.quote ?? fallbackQuote}
             </p>
           </div>
@@ -239,7 +239,7 @@ function DesktopTestimonialControls({
   return (
     <div
       data-testid='testimonials-desktop-controls'
-      className='pointer-events-none absolute inset-x-0 bottom-0 hidden sm:block'
+      className='pointer-events-none absolute inset-x-0 bottom-[5px] hidden sm:block'
     >
       <div className='mx-auto flex w-full max-w-[500px] items-center justify-between gap-3'>
         <ButtonPrimitive
