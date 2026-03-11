@@ -182,7 +182,7 @@ function MyBestAuntieOutlineCard({
   return (
     <article
       {...interactionProps}
-      className={`group relative flex min-h-[520px] flex-col overflow-hidden rounded-card-xl px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-outline-card es-my-best-auntie-outline-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
+      className={`group relative flex min-h-[650px] flex-col overflow-hidden rounded-card-xl px-4 pb-6 pt-6 sm:px-6 es-my-best-auntie-outline-card es-my-best-auntie-outline-card--${tone} ${isInteractive ? 'cursor-pointer' : ''}`}
     >
       <div
         aria-hidden='true'
