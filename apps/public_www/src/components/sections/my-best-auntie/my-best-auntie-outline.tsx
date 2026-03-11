@@ -209,7 +209,7 @@ function MyBestAuntieOutlineCard({
         </p>
         {parsedActivity && (
           <div
-            className={`mx-auto mt-4 max-w-[34ch] text-left transition-[max-height] duration-300 es-my-best-auntie-outline-activity ${isActivityPreviewCollapsed ? 'max-h-[92px] overflow-hidden [mask-image:linear-gradient(to_bottom,black_72%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,black_72%,transparent)]' : ''}`}
+            className={`mx-auto mt-4 max-w-[34ch] text-left transition-[max-height] duration-300 es-my-best-auntie-outline-activity ${isActivityPreviewCollapsed ? 'max-h-[92px] overflow-hidden [mask-image:linear-gradient(#000_0%,#0000)] [-webkit-mask-image:linear-gradient(#000_0%,#0000)] md:group-hover:max-h-[520px] md:group-hover:overflow-visible md:group-hover:[mask-image:none] md:group-hover:[-webkit-mask-image:none]' : ''}`}
           >
             <p className='italic es-my-best-auntie-outline-activity-summary'>
               {parsedActivity.summary}
