@@ -23,7 +23,9 @@ const IMAGE_EXTENSIONS = new Set([
 
 const ASSET_REFERENCE_PATTERN =
   /['"`](\/[^'"`]+\.(?:png|jpg|jpeg|gif|webp|svg|ico))['"`]/g;
-const UNUSED_IMAGE_ALLOWLIST = new Set();
+const UNUSED_IMAGE_ALLOWLIST = new Set([
+  '/images/contact-email.svg',
+]);
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const srcRoot = join(projectRoot, 'src');
