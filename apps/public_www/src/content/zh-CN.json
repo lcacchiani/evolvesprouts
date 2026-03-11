@@ -724,8 +724,7 @@
       "phoneValidationError": "请输入有效的电话号码。"
     },
     "contactFaq": {
-      "eyebrow": "联系我们 FAQ",
-      "title": "联系我们 FAQ",
+      "title": "FAQ",
       "cards": [
         {
           "question": "我给你发消息后会发生什么？",

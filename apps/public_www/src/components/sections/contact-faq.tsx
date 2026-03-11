@@ -16,10 +16,7 @@ export function ContactFaq({ content }: ContactFaqProps) {
       className='es-section-bg-overlay es-contact-faq-section overflow-hidden'
     >
       <SectionContainer>
-        <SectionHeader
-          eyebrow={content.eyebrow}
-          title={content.title}
-        />
+        <SectionHeader title={content.title} />
 
         <ul className='mt-10 grid grid-cols-1 gap-4 sm:gap-5 lg:mt-12 lg:grid-cols-2'>
           {content.cards.map((card) => (

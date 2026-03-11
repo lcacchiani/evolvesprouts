@@ -724,8 +724,7 @@
       "phoneValidationError": "Please enter a valid phone number."
     },
     "contactFaq": {
-      "eyebrow": "Contact Us FAQ",
-      "title": "Contact Us FAQ",
+      "title": "FAQ",
       "cards": [
         {
           "question": "What happens after I message you?",
