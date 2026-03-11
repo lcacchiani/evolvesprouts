@@ -19,6 +19,10 @@ beforeAll(() => {
     configurable: true,
     value: vi.fn(),
   });
+  Object.defineProperty(window.HTMLElement.prototype, 'scrollTo', {
+    configurable: true,
+    value: vi.fn(),
+  });
 });
 
 function formatCohortPreviewLabel(value: string): string {
