@@ -48,9 +48,9 @@ vi.mock('@/components/sections/deferred-testimonials', () => ({
     <section data-testid='deferred-testimonials'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: ({ content }: { content: { title: string } }) => (
-    <section data-testid='sprouts-squad-community'>{content.title}</section>
+vi.mock('@/components/sections/free-intro-session', () => ({
+  FreeIntroSession: ({ content }: { content: { title: string } }) => (
+    <section data-testid='free-intro-session'>{content.title}</section>
   ),
 }));
 
@@ -65,7 +65,7 @@ describe('MyBestAuntie page', () => {
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-booking')).toBeInTheDocument();
     expect(screen.getByTestId('faq')).toBeInTheDocument();
-    expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
+    expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
     expect(screen.getByTestId('page-layout').firstElementChild).toHaveAttribute(
       'data-testid',
       'my-best-auntie-hero',

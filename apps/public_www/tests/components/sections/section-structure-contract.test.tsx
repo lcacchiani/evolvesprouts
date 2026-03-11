@@ -25,7 +25,7 @@ const pageSectionFiles = [
   'why-us.tsx',
   'faq.tsx',
   'contact-us-form.tsx',
-  'reach-out.tsx',
+  'contact-faq.tsx',
   'connect.tsx',
   'events.tsx',
   'my-best-auntie/my-best-auntie-hero.tsx',

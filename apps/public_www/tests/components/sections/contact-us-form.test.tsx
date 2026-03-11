@@ -158,6 +158,11 @@ describe('ContactUsForm section', () => {
     );
     expect(whatsappCta.className).toContain('es-btn');
     expect(whatsappCta.className).toContain('es-btn--primary');
+    expect(whatsappCta.className).toContain('es-btn--whatsapp-cta');
+    expect(whatsappCta.querySelector('img')).toHaveAttribute(
+      'src',
+      '/images/contact-whatsapp.svg',
+    );
   });
 
   it('omits the WhatsApp CTA when the provided contact URL is missing', () => {

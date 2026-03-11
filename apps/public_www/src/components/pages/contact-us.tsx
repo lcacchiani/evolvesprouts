@@ -1,8 +1,8 @@
 import type { SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { ContactUsForm } from '@/components/sections/contact-us-form';
-import { ReachOut } from '@/components/sections/reach-out';
-import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
+import { FreeIntroSession } from '@/components/sections/free-intro-session';
+import { ContactFaq } from '@/components/sections/contact-faq';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 interface ContactUsPageSectionsProps {
@@ -26,8 +26,8 @@ export function ContactUsPageSections({ content }: ContactUsPageSectionsProps) {
           linkedinUrl: publicSiteConfig.linkedinUrl,
         }}
       />
-      <ReachOut content={content.contactUs.reachOut} />
-      <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
+      <ContactFaq content={content.contactUs.contactFaq} />
+      <FreeIntroSession content={content.freeIntroSession} />
     </PageLayout>
   );
 }

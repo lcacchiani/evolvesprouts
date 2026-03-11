@@ -723,25 +723,16 @@
       "emailValidationError": "請輸入有效的電郵地址。",
       "phoneValidationError": "請輸入有效的電話號碼。"
     },
-    "reachOut": {
-      "eyebrow": "為什麼找我們",
-      "title": "為什麼聯絡我們？",
-      "items": [
+    "contactFaq": {
+      "title": "FAQ",
+      "cards": [
         {
-          "title": "合作共創",
-          "description": "與我們合作開展工作坊、培訓課程或免費講座。"
+          "question": "我傳訊息俾你之後會發生咩事？",
+          "answer": "我會喺 24-48 小時內回覆你。如果課程聽落適合你，我會邀請你參加一節免費簡介，等我哋可以傾下你家庭嘅情況。"
         },
         {
-          "title": "提出問題",
-          "description": "在育兒路上卡住了？需要幫助或實用技巧？歡迎聯絡我們。"
-        },
-        {
-          "title": "分享回饋",
-          "description": "我們怎樣才能把 Evolve Sprouts 做得更好？你的想法很重要。"
-        },
-        {
-          "title": "打個招呼",
-          "description": "因為有意義的對話，往往從一句簡單的「你好」開始。"
+          "question": "我仲未確定呢個係咪適合我哋。",
+          "answer": "呢個正正就係免費簡介嘅目的。無需承諾，無需付款。只係一場對話。"
         }
       ]
     },
@@ -1091,7 +1082,10 @@
   "freeIntroSession": {
     "title": "準備好畀你嘅助手所需工具未？",
     "description": "預約一節 15 分鐘免費簡介。無需承諾，只係傾下你家庭嘅情況。",
-    "ctaLabel": "喺 WhatsApp 預約免費簡介"
+    "ctaLabel": "喺 WhatsApp 預約免費簡介",
+    "ctaHref": "{{WHATSAPP_URL}}",
+    "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
+    "prefillMessage": "你好，我想預約一節免費諮詢！"
   },
   "whoops": {
     "code": "404",

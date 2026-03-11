@@ -15,14 +15,14 @@ vi.mock('@/components/sections/contact-us-form', () => ({
     <section data-testid='contact-us-form'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/reach-out', () => ({
-  ReachOut: ({ content }: { content: { title: string } }) => (
-    <section data-testid='reach-out'>{content.title}</section>
+vi.mock('@/components/sections/contact-faq', () => ({
+  ContactFaq: ({ content }: { content: { title: string } }) => (
+    <section data-testid='contact-faq'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: ({ content }: { content: { title: string } }) => (
-    <section data-testid='sprouts-squad-community'>{content.title}</section>
+vi.mock('@/components/sections/free-intro-session', () => ({
+  FreeIntroSession: ({ content }: { content: { title: string } }) => (
+    <section data-testid='free-intro-session'>{content.title}</section>
   ),
 }));
 
@@ -32,9 +32,9 @@ describe('ContactUsPageSections', () => {
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('contact-us-form')).toBeInTheDocument();
-    expect(screen.getByTestId('reach-out')).toBeInTheDocument();
-    expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
+    expect(screen.getByTestId('contact-faq')).toBeInTheDocument();
+    expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
     expect(screen.getByText(enContent.contactUs.contactUsForm.title)).toBeInTheDocument();
-    expect(screen.getByText(enContent.contactUs.reachOut.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.contactUs.contactFaq.title)).toBeInTheDocument();
   });
 });

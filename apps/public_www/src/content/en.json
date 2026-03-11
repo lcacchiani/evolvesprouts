@@ -723,25 +723,16 @@
       "emailValidationError": "Please enter a valid email address.",
       "phoneValidationError": "Please enter a valid phone number."
     },
-    "reachOut": {
-      "eyebrow": "Why Us",
-      "title": "Why Reach Out?",
-      "items": [
+    "contactFaq": {
+      "title": "FAQ",
+      "cards": [
         {
-          "title": "Collaborate",
-          "description": "Partner with us for workshops, training courses, or free talks."
+          "question": "What happens after I message you?",
+          "answer": "I'll reply within 24-48 hours. If the course sounds like a fit, I'll invite you to a free intro session so we can talk about your family's situation."
         },
         {
-          "title": "Ask Questions",
-          "description": "Stuck on your parenting journey? Need help or practical tips? Let’s connect."
-        },
-        {
-          "title": "Share Feedback",
-          "description": "How can we make Evolve Sprouts better for you? Your thoughts matter."
-        },
-        {
-          "title": "Just Say Hello",
-          "description": "Because meaningful conversations can start with a simple \"hey\"."
+          "question": "I'm not sure this is for us yet.",
+          "answer": "That's exactly what the intro session is for. No commitment, no payment. Just a conversation."
         }
       ]
     },
@@ -1091,7 +1082,10 @@
   "freeIntroSession": {
     "title": "Ready to give your helper the tools she needs?",
     "description": "Book a free 15-minute intro session. No commitment. Just a conversation about your family.",
-    "ctaLabel": "Book Free Intro on WhatsApp"
+    "ctaLabel": "Book Free Intro on WhatsApp",
+    "ctaHref": "{{WHATSAPP_URL}}",
+    "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
+    "prefillMessage": "Hi, I'd like to book a free session!"
   },
   "whoops": {
     "code": "404",

@@ -8,6 +8,7 @@ const SOURCE_EXTENSIONS = new Set([
   '.js',
   '.jsx',
   '.json',
+  '.html',
   '.css',
 ]);
 
@@ -28,6 +29,7 @@ const UNUSED_IMAGE_ALLOWLIST = new Set([
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const srcRoot = join(projectRoot, 'src');
+const maintenanceRoot = join(projectRoot, 'maintenance');
 const publicRoot = join(projectRoot, 'public');
 
 async function collectFiles(directory) {
@@ -67,7 +69,9 @@ function printList(title, values) {
 }
 
 async function collectReferencedAssets() {
-  const sourceFiles = await collectFiles(srcRoot);
+  const sourceRoots = [srcRoot, maintenanceRoot];
+  const collectedFiles = await Promise.all(sourceRoots.map((root) => collectFiles(root)));
+  const sourceFiles = collectedFiles.flat();
   const references = new Set();
 
   for (const filePath of sourceFiles) {

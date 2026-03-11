@@ -139,7 +139,20 @@ function withConfiguredRuntimeContent(
     BUSINESS_PHONE_PLACEHOLDER,
     configuredBusinessPhoneNumber,
   );
+  const configuredFreeIntroSessionHref = resolvePlaceholderValue(
+    content.freeIntroSession.ctaHref,
+    WHATSAPP_URL_PLACEHOLDER,
+    configuredWhatsappUrl,
+  );
+  const configuredFreeIntroSessionPhoneNumber = resolvePlaceholderValue(
+    content.freeIntroSession.phoneNumber,
+    BUSINESS_PHONE_PLACEHOLDER,
+    configuredBusinessPhoneNumber,
+  );
   const baseNavbarCtaHref = configuredNavbarHref
+    || content.whatsappContact.href
+    || ROUTES.servicesMyBestAuntieTrainingCourse;
+  const baseFreeIntroSessionCtaHref = configuredFreeIntroSessionHref
     || content.whatsappContact.href
     || ROUTES.servicesMyBestAuntieTrainingCourse;
   const navbarCtaHref = buildWhatsappPrefilledHref(
@@ -147,6 +160,11 @@ function withConfiguredRuntimeContent(
     content.navbar.bookNow.prefillMessage,
     configuredNavbarPhoneNumber,
   ) || baseNavbarCtaHref;
+  const freeIntroSessionCtaHref = buildWhatsappPrefilledHref(
+    baseFreeIntroSessionCtaHref,
+    content.freeIntroSession.prefillMessage,
+    configuredFreeIntroSessionPhoneNumber,
+  ) || baseFreeIntroSessionCtaHref;
   const resolvedContactEmail = contactEmail?.trim() || undefined;
   const contactUsContent = resolvedContactEmail
     ? {
@@ -168,14 +186,25 @@ function withConfiguredRuntimeContent(
 
   const rawNavbarPhoneNumber = content.navbar.bookNow.phoneNumber.trim();
   const navbarPhoneNumber = configuredNavbarPhoneNumber || rawNavbarPhoneNumber;
+  const rawFreeIntroSessionPhoneNumber = content.freeIntroSession.phoneNumber.trim();
+  const freeIntroSessionPhoneNumber =
+    configuredFreeIntroSessionPhoneNumber || rawFreeIntroSessionPhoneNumber;
 
   const sanitizedNavbarPhoneNumber =
     navbarPhoneNumber === BUSINESS_PHONE_PLACEHOLDER ? '' : navbarPhoneNumber;
+  const sanitizedFreeIntroSessionPhoneNumber =
+    freeIntroSessionPhoneNumber === BUSINESS_PHONE_PLACEHOLDER
+      ? ''
+      : freeIntroSessionPhoneNumber;
 
   const sanitizedNavbarHref =
     navbarCtaHref === WHATSAPP_URL_PLACEHOLDER
       ? ROUTES.servicesMyBestAuntieTrainingCourse
       : navbarCtaHref;
+  const sanitizedFreeIntroSessionHref =
+    freeIntroSessionCtaHref === WHATSAPP_URL_PLACEHOLDER
+      ? ROUTES.servicesMyBestAuntieTrainingCourse
+      : freeIntroSessionCtaHref;
 
   const interpolated: SiteContent = {
     ...content,
@@ -186,6 +215,11 @@ function withConfiguredRuntimeContent(
         href: sanitizedNavbarHref,
         phoneNumber: sanitizedNavbarPhoneNumber,
       },
+    },
+    freeIntroSession: {
+      ...content.freeIntroSession,
+      ctaHref: sanitizedFreeIntroSessionHref,
+      phoneNumber: sanitizedFreeIntroSessionPhoneNumber,
     },
     contactUs: contactUsContent,
   };
