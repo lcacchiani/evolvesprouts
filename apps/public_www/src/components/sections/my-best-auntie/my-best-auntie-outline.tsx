@@ -145,6 +145,7 @@ function MyBestAuntieOutlineCard({
   const tone = getModuleTone(index);
   const isInteractive = !showFullActivity;
   const isDescriptionVisible = showFullActivity || isExpanded;
+  const isActivityPreviewCollapsed = isInteractive && !isExpanded;
   const parsedActivity = parseModuleActivity(module.activity);
   const countLineSizeClassName = isDescriptionVisible
     ? '-top-[70px] h-[74px]'
@@ -208,9 +209,11 @@ function MyBestAuntieOutlineCard({
         </p>
         {parsedActivity && (
           <div
-            className={`mx-auto mt-4 max-w-[34ch] text-left transition-opacity duration-300 es-my-best-auntie-outline-activity ${isDescriptionVisible ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
+            className={`mx-auto mt-4 max-w-[34ch] text-left transition-[max-height] duration-300 es-my-best-auntie-outline-activity ${isActivityPreviewCollapsed ? 'max-h-[92px] overflow-hidden [mask-image:linear-gradient(to_bottom,black_72%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,black_72%,transparent)]' : ''}`}
           >
-            <p>{parsedActivity.summary}</p>
+            <p className='italic es-my-best-auntie-outline-activity-summary'>
+              {parsedActivity.summary}
+            </p>
             {parsedActivity.points.length > 0 && (
               <div className='mt-3 space-y-2'>
                 {parsedActivity.points.map((point) => {
