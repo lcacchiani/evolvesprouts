@@ -35,15 +35,23 @@ vi.mock('next/image', () => ({
 interface MockLinkProps extends Omit<ComponentProps<'a'>, 'href'> {
   href: string;
   prefetch?: boolean;
+  scroll?: boolean;
   children: ReactNode;
 }
 
 vi.mock('next/link', () => ({
-  default: function MockLink({ href, prefetch, children, ...props }: MockLinkProps) {
+  default: function MockLink({
+    href,
+    prefetch,
+    scroll,
+    children,
+    ...props
+  }: MockLinkProps) {
     return (
       <a
         href={href}
         data-prefetch={typeof prefetch === 'boolean' ? String(prefetch) : undefined}
+        data-scroll={typeof scroll === 'boolean' ? String(scroll) : undefined}
         {...props}
       >
         {children}
@@ -99,6 +107,7 @@ describe('Navbar desktop submenu accessibility', () => {
     const logoLink = header?.querySelector('a.shrink-0[href="/en"]');
     expect(logoLink).not.toBeNull();
     expect(logoLink).toHaveAttribute('data-prefetch', 'false');
+    expect(logoLink).toHaveAttribute('data-scroll', 'true');
   });
 
   it('applies active and inactive classes to language menu items', () => {
@@ -228,6 +237,7 @@ describe('Navbar desktop submenu accessibility', () => {
     const drawerLogoLink = drawer.querySelector('a.shrink-0[href="/en"]');
     expect(drawerLogoLink).not.toBeNull();
     expect(drawerLogoLink).toHaveAttribute('data-prefetch', 'false');
+    expect(drawerLogoLink).toHaveAttribute('data-scroll', 'true');
 
     const trainingCoursesToggle = within(drawer).getByRole('button', {
       name: 'Toggle Our Services submenu',

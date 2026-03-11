@@ -59,6 +59,10 @@ function renderChildren(
   return children;
 }
 
+function shouldScrollToTopOnNavigate(href: string): boolean {
+  return !href.includes('#');
+}
+
 export function SmartLink({
   href,
   className,
@@ -98,7 +102,12 @@ export function SmartLink({
 
   if (hrefKind === 'internal') {
     return (
-      <Link href={resolvedHref} prefetch={false} {...sharedProps}>
+      <Link
+        href={resolvedHref}
+        prefetch={false}
+        scroll={shouldScrollToTopOnNavigate(resolvedHref)}
+        {...sharedProps}
+      >
         {linkChildren}
       </Link>
     );

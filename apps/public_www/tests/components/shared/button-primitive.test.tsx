@@ -8,16 +8,19 @@ vi.mock('next/link', () => ({
   default: ({
     href,
     prefetch,
+    scroll,
     children,
     ...props
   }: {
     href: string;
     prefetch?: boolean;
+    scroll?: boolean;
     children: ReactNode;
   } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
       data-mocked-next-link='true'
       data-prefetch={typeof prefetch === 'boolean' ? String(prefetch) : undefined}
+      data-scroll={typeof scroll === 'boolean' ? String(scroll) : undefined}
       href={href}
       {...props}
     >
@@ -59,6 +62,7 @@ describe('ButtonPrimitive', () => {
     expect(link).toHaveAttribute('href', '/about-us');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
     expect(link).toHaveAttribute('data-prefetch', 'false');
+    expect(link).toHaveAttribute('data-scroll', 'true');
     expect(link.className).toContain('es-btn');
     expect(link.className).toContain('es-btn--pill');
   });
