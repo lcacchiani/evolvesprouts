@@ -3,14 +3,11 @@
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
 
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import {
   ContactFormFields,
   type ContactUsFormState,
 } from '@/components/sections/contact-us-form-fields';
-import {
-  ContactMethodList,
-  type ContactMethodLinkItem,
-} from '@/components/sections/contact-us-form-contact-method-list';
 import { ContactFormSuccess } from '@/components/sections/contact-us-form-success';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import {
@@ -37,20 +34,6 @@ interface ContactUsFormProps {
 
 const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
 const CONTACT_US_API_PATH = '/v1/contact-us';
-type ContactMethodKey =
-  | 'email'
-  | 'whatsapp'
-  | 'instagram'
-  | 'linkedin'
-  | 'form';
-
-const CONTACT_METHOD_ICON_SOURCES: Record<ContactMethodKey, string> = {
-  email: '/images/contact-email.svg',
-  whatsapp: '/images/contact-whatsapp.svg',
-  instagram: '/images/contact-instagram.png',
-  linkedin: '/images/contact-linkedin.png',
-  form: '/images/contact-form.svg',
-};
 
 function isValidPhone(value: string): boolean {
   const normalizedValue = value.trim();
@@ -106,46 +89,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
         ? content.captchaRequiredError
         : '';
   const isSubmitDisabled = isCaptchaUnavailable || isSubmitting;
-  const contactMethodLinks: ContactMethodLinkItem[] = [
-    {
-      key: 'form',
-      href: '#contact-form',
-      label: content.contactMethodLinks.form,
-      iconSrc: CONTACT_METHOD_ICON_SOURCES.form,
-    },
-  ];
-  if (contactConfig.instagramUrl) {
-    contactMethodLinks.push({
-      key: 'instagram',
-      href: contactConfig.instagramUrl,
-      label: content.contactMethodLinks.instagram,
-      iconSrc: CONTACT_METHOD_ICON_SOURCES.instagram,
-    });
-  }
-  if (contactConfig.linkedinUrl) {
-    contactMethodLinks.push({
-      key: 'linkedin',
-      href: contactConfig.linkedinUrl,
-      label: content.contactMethodLinks.linkedin,
-      iconSrc: CONTACT_METHOD_ICON_SOURCES.linkedin,
-    });
-  }
-  if (contactConfig.whatsappUrl) {
-    contactMethodLinks.push({
-      key: 'whatsapp',
-      href: contactConfig.whatsappUrl,
-      label: content.contactMethodLinks.whatsapp,
-      iconSrc: CONTACT_METHOD_ICON_SOURCES.whatsapp,
-    });
-  }
-  if (contactConfig.contactEmail) {
-    contactMethodLinks.push({
-      key: 'email',
-      href: `mailto:${contactConfig.contactEmail}`,
-      label: content.contactMethodLinks.mail,
-      iconSrc: CONTACT_METHOD_ICON_SOURCES.email,
-    });
-  }
+  const whatsappHref = contactConfig.whatsappUrl?.trim() ?? '';
   function updateField(field: keyof ContactUsFormState, value: string) {
     setFormState((currentState) => ({
       ...currentState,
@@ -237,7 +181,20 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
               description={content.description}
               descriptionClassName='mt-4 es-section-body text-[1.05rem] leading-8'
             />
-            <ContactMethodList title={content.contactMethodsTitle} methods={contactMethodLinks} />
+            <div className='mt-6'>
+              <p className='es-section-body text-[1.05rem] leading-8'>
+                {content.contactMethodsTitle}
+              </p>
+              {whatsappHref ? (
+                <ButtonPrimitive
+                  variant='primary'
+                  href={whatsappHref}
+                  className='mt-4 w-full sm:w-auto'
+                >
+                  {content.contactMethodLinks.whatsapp}
+                </ButtonPrimitive>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -256,18 +213,8 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
 
           <div className='relative z-10 mb-6 pt-4'>
             <h2 className='es-type-title'>
-              {content.promiseTitle}
+              {content.formTitle}
             </h2>
-            <ul className='mt-4 space-y-2'>
-              {content.promises.map((promise) => (
-                <li
-                  key={promise}
-                  className='text-base leading-7 text-[color:var(--site-primary-text)]'
-                >
-                  {promise}
-                </li>
-              ))}
-            </ul>
           </div>
 
           {hasSuccessfulSubmission ? (

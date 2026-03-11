@@ -151,10 +151,6 @@ function withConfiguredRuntimeContent(
   const contactUsContent = resolvedContactEmail
     ? {
         ...content.contactUs,
-        contactUsForm: {
-          ...content.contactUs.contactUsForm,
-          emailAddress: resolvedContactEmail,
-        },
         connect: {
           ...content.contactUs.connect,
           cards: content.contactUs.connect.cards.map((card, index) =>

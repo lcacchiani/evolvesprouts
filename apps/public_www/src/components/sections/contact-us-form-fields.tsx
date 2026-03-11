@@ -181,6 +181,9 @@ export function ContactFormFields({
       >
         {content.submitLabel}
       </ButtonPrimitive>
+      <p className='text-base leading-7 text-[color:var(--site-primary-text)]'>
+        {content.formDescription}
+      </p>
       {submitErrorMessage ? (
         <p
           id={SUBMIT_ERROR_MESSAGE_ID}
