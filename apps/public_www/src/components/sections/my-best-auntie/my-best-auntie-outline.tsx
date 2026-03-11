@@ -129,7 +129,6 @@ function splitActivityPointLabel(point: string): {
     detail: match[2],
   };
 }
-
 function MyBestAuntieOutlineCard({
   module,
   index,
