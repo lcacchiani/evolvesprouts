@@ -679,6 +679,7 @@
     transition:
       background-color 300ms ease,
       box-shadow 300ms ease;
+    will-change: transform;
   }
 
   .es-navbar--condensed {
