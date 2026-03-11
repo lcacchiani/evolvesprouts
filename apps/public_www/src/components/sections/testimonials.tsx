@@ -202,7 +202,7 @@ function TestimonialSlide({
             <div className='relative mt-6 sm:mt-8'>
               <div
                 data-testid='testimonial-author-row'
-                className='mx-auto w-full max-w-[350px] text-center'
+                className='mx-auto w-full max-w-[350px] text-center sm:pl-[200px]'
               >
                 {story.author && (
                   <p className='mx-auto max-w-[350px] es-testimonials-author'>
