@@ -22,15 +22,18 @@ vi.mock('next/link', () => ({
   default: ({
     href,
     prefetch,
+    scroll,
     children,
     ...props
   }: {
     href: string;
     prefetch?: boolean;
+    scroll?: boolean;
     children: ReactNode;
   } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
       data-prefetch={typeof prefetch === 'boolean' ? String(prefetch) : undefined}
+      data-scroll={typeof scroll === 'boolean' ? String(scroll) : undefined}
       href={href}
       {...props}
     >
@@ -74,7 +77,9 @@ describe('language-selector', () => {
 
     expect(simplifiedOption).toHaveAttribute('href', '/zh-CN/about-us');
     expect(simplifiedOption).toHaveAttribute('data-prefetch', 'false');
+    expect(simplifiedOption).toHaveAttribute('data-scroll', 'true');
     expect(traditionalOption).toHaveAttribute('href', '/zh-HK/about-us');
     expect(traditionalOption).toHaveAttribute('data-prefetch', 'false');
+    expect(traditionalOption).toHaveAttribute('data-scroll', 'true');
   });
 });

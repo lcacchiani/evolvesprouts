@@ -8,16 +8,19 @@ vi.mock('next/link', () => ({
   default: ({
     href,
     prefetch,
+    scroll,
     children,
     ...props
   }: {
     href: string;
     prefetch?: boolean;
+    scroll?: boolean;
     children: ReactNode;
   } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
       data-mocked-next-link='true'
       data-prefetch={typeof prefetch === 'boolean' ? String(prefetch) : undefined}
+      data-scroll={typeof scroll === 'boolean' ? String(scroll) : undefined}
       href={href}
       {...props}
     >
@@ -67,7 +70,17 @@ describe('SmartLink', () => {
     expect(link).toHaveAttribute('href', '/about-us');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
     expect(link).toHaveAttribute('data-prefetch', 'false');
+    expect(link).toHaveAttribute('data-scroll', 'true');
     expect(link).not.toHaveAttribute('target');
+  });
+
+  it('does not force top scroll for internal hash anchors', () => {
+    render(<SmartLink href='/about-us#team'>About team</SmartLink>);
+
+    const link = screen.getByRole('link', { name: 'About team' });
+    expect(link).toHaveAttribute('href', '/about-us#team');
+    expect(link).toHaveAttribute('data-mocked-next-link', 'true');
+    expect(link).toHaveAttribute('data-scroll', 'false');
   });
 
   it('allows explicit internal new-tab override', () => {
