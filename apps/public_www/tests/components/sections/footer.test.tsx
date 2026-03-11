@@ -96,6 +96,20 @@ describe('Footer external links', () => {
       );
       expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
     }
+
+    for (const link of linkedInLinks) {
+      expect(link.className).toContain('whitespace-nowrap');
+    }
+    const instagramLinks = screen.getAllByRole('link', { name: 'Instagram' });
+    expect(instagramLinks.length).toBeGreaterThan(0);
+    for (const link of instagramLinks) {
+      expect(link.className).toContain('whitespace-nowrap');
+    }
+    const contactUsLinks = screen.getAllByRole('link', { name: 'Contact Us' });
+    expect(contactUsLinks.length).toBeGreaterThan(0);
+    for (const link of contactUsLinks) {
+      expect(link.className).not.toContain('whitespace-nowrap');
+    }
   });
 
   it('keeps mobile logo non-interactive and full-width accordion tap targets', () => {
@@ -133,7 +147,7 @@ describe('Footer external links', () => {
     }
   });
 
-  it('crops the centered desktop logo column without shrinking the image', () => {
+  it('removes desktop gap around the centered logo column', () => {
     render(<Footer content={enContent.footer} />);
 
     const desktopGrid = document.querySelector(
@@ -142,21 +156,8 @@ describe('Footer external links', () => {
     expect(desktopGrid).not.toBeNull();
     expect(desktopGrid?.className).toContain('lg:gap-x-0');
     expect(desktopGrid?.className).toContain(
-      'lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,400px)_minmax(0,1fr)_minmax(0,1fr)]',
+      'lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,500px)_minmax(0,1fr)_minmax(0,1fr)]',
     );
-
-    const desktopLogoWrapper = desktopGrid?.querySelector(
-      'div[data-css-fallback="hide-when-css-missing"]',
-    ) as HTMLDivElement | null;
-    expect(desktopLogoWrapper).not.toBeNull();
-    expect(desktopLogoWrapper?.className).toContain('overflow-hidden');
-    expect(desktopLogoWrapper?.className).toContain('lg:w-[400px]');
-    const desktopLogo = desktopLogoWrapper?.querySelector(
-      'img[src="/images/evolvesprouts-logo.svg"]',
-    ) as HTMLImageElement | null;
-    expect(desktopLogo).not.toBeNull();
-    expect(desktopLogo?.className).toContain('w-[500px]');
-    expect(desktopLogo?.className).toContain('max-w-none');
 
     const desktopColumns = desktopGrid?.querySelectorAll('section') ?? [];
     expect(desktopColumns).toHaveLength(4);
