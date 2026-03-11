@@ -498,7 +498,7 @@
   .es-btn--selection.es-btn--state-inactive {
     border-width: 1px;
     border-color: var(--es-color-border-date);
-    background-color: var(--es-color-surface-selection-idle);
+    background-color: var(--es-color-surface-soft);
   }
 
   .es-btn-selection-icon-active {
