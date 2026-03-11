@@ -36,7 +36,7 @@
       }
     ],
     "bookNow": {
-      "label": "Free Intro Session",
+      "label": "预约免费入门咨询",
       "href": "{{WHATSAPP_URL}}",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
       "prefillMessage": "你好，我想预约一个免费咨询！"
