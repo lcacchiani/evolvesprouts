@@ -21,7 +21,7 @@
   }
 
   .es-connect-section,
-  .es-reach-out-section,
+  .es-contact-faq-section,
   .es-my-journey-section,
   .es-testimonials-section,
   .es-faq-section,
@@ -39,7 +39,7 @@
   }
 
   .es-connect-section,
-  .es-reach-out-section,
+  .es-contact-faq-section,
   .es-my-journey-section,
   .es-testimonials-section,
   .es-faq-section {
@@ -81,42 +81,6 @@
     background-color: color-mix(
       in srgb,
       var(--es-color-brand-orange, #C84A16) 10%,
-      transparent
-    );
-  }
-
-  .es-reach-out-glyph--orange {
-    color: var(--es-color-brand-orange, #C84A16);
-    border-color: color-mix(
-      in srgb,
-      var(--es-color-brand-orange, #C84A16) 25%,
-      transparent
-    );
-  }
-
-  .es-reach-out-glyph--blue {
-    color: var(--figma-colors-frame-2147235242, #174879);
-    border-color: color-mix(
-      in srgb,
-      var(--figma-colors-frame-2147235242, #174879) 25%,
-      transparent
-    );
-  }
-
-  .es-reach-out-glyph--gold {
-    color: var(--es-color-accent-gold, #9E6D12);
-    border-color: color-mix(
-      in srgb,
-      var(--es-color-accent-gold, #9E6D12) 25%,
-      transparent
-    );
-  }
-
-  .es-reach-out-glyph--green {
-    color: var(--es-color-accent-green, #5D9D49);
-    border-color: color-mix(
-      in srgb,
-      var(--es-color-accent-green, #5D9D49) 25%,
       transparent
     );
   }

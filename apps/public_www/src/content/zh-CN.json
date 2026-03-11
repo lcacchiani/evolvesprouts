@@ -723,25 +723,17 @@
       "emailValidationError": "请输入有效的邮箱地址。",
       "phoneValidationError": "请输入有效的电话号码。"
     },
-    "reachOut": {
-      "eyebrow": "为什么找我们",
-      "title": "为什么联系我们？",
-      "items": [
+    "contactFaq": {
+      "eyebrow": "联系我们 FAQ",
+      "title": "联系我们 FAQ",
+      "cards": [
         {
-          "title": "合作共创",
-          "description": "与我们合作开展工作坊、培训课程或免费讲座。"
+          "question": "我给你发消息后会发生什么？",
+          "answer": "我会在 24-48 小时内回复你。如果这个课程看起来适合你，我会邀请你参加一节免费介绍会，我们可以聊聊你家庭的情况。"
         },
         {
-          "title": "提出问题",
-          "description": "在育儿路上卡住了？需要帮助或实用技巧？欢迎联系我们。"
-        },
-        {
-          "title": "分享反馈",
-          "description": "我们怎样才能把 Evolve Sprouts 做得更好？你的想法很重要。"
-        },
-        {
-          "title": "打个招呼",
-          "description": "因为有意义的对话，往往从一句简单的“你好”开始。"
+          "question": "我还不确定这是否适合我们。",
+          "answer": "这正是免费介绍会的意义。无需承诺，无需付款。只是一次交流。"
         }
       ]
     },

@@ -2,7 +2,7 @@ import type { SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { ContactUsForm } from '@/components/sections/contact-us-form';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
-import { ReachOut } from '@/components/sections/reach-out';
+import { ContactFaq } from '@/components/sections/contact-faq';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 interface ContactUsPageSectionsProps {
@@ -26,7 +26,7 @@ export function ContactUsPageSections({ content }: ContactUsPageSectionsProps) {
           linkedinUrl: publicSiteConfig.linkedinUrl,
         }}
       />
-      <ReachOut content={content.contactUs.reachOut} />
+      <ContactFaq content={content.contactUs.contactFaq} />
       <FreeIntroSession content={content.freeIntroSession} />
     </PageLayout>
   );

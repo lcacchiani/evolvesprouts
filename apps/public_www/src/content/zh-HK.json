@@ -723,25 +723,17 @@
       "emailValidationError": "請輸入有效的電郵地址。",
       "phoneValidationError": "請輸入有效的電話號碼。"
     },
-    "reachOut": {
-      "eyebrow": "為什麼找我們",
-      "title": "為什麼聯絡我們？",
-      "items": [
+    "contactFaq": {
+      "eyebrow": "聯絡我們 FAQ",
+      "title": "聯絡我們 FAQ",
+      "cards": [
         {
-          "title": "合作共創",
-          "description": "與我們合作開展工作坊、培訓課程或免費講座。"
+          "question": "我傳訊息俾你之後會發生咩事？",
+          "answer": "我會喺 24-48 小時內回覆你。如果課程聽落適合你，我會邀請你參加一節免費簡介，等我哋可以傾下你家庭嘅情況。"
         },
         {
-          "title": "提出問題",
-          "description": "在育兒路上卡住了？需要幫助或實用技巧？歡迎聯絡我們。"
-        },
-        {
-          "title": "分享回饋",
-          "description": "我們怎樣才能把 Evolve Sprouts 做得更好？你的想法很重要。"
-        },
-        {
-          "title": "打個招呼",
-          "description": "因為有意義的對話，往往從一句簡單的「你好」開始。"
+          "question": "我仲未確定呢個係咪適合我哋。",
+          "answer": "呢個正正就係免費簡介嘅目的。無需承諾，無需付款。只係一場對話。"
         }
       ]
     },
