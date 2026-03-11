@@ -16,7 +16,6 @@ import {
   type EventCardData,
   fetchEventsPayload,
   normalizeEvents,
-  resolveSortOptions,
   sortEvents,
 } from '@/lib/events-data';
 
@@ -77,36 +76,24 @@ function LoadingGearIcon({ className }: LoadingGearIconProps) {
 }
 
 export function Events({ content, locale = 'en' }: EventsProps) {
-  const sortOptions = useMemo(() => resolveSortOptions(content), [content]);
-  const defaultSortOptionValue = sortOptions[0]?.value ?? 'upcoming';
-  const [activeFilter, setActiveFilter] = useState<string>(defaultSortOptionValue);
+  const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [events, setEvents] = useState<EventCardData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasRequestError, setHasRequestError] = useState(false);
-
-  useEffect(() => {
-    setActiveFilter(defaultSortOptionValue);
-  }, [defaultSortOptionValue]);
+  const [isLoading, setIsLoading] = useState(() => crmApiClient !== null);
+  const [hasRequestError, setHasRequestError] = useState(() => crmApiClient === null);
 
   useEffect(() => {
     const controller = new AbortController();
-    const crmApiClient = createPublicCrmApiClient();
 
     if (!crmApiClient) {
-      setEvents([]);
-      setHasRequestError(true);
-      setIsLoading(false);
       return () => {
         controller.abort();
       };
     }
 
-    setIsLoading(true);
-    setHasRequestError(false);
-
     fetchEventsPayload(crmApiClient, controller.signal)
       .then((payload) => {
         const normalizedEvents = normalizeEvents(payload, content, locale);
+        setHasRequestError(false);
         setEvents(normalizedEvents);
       })
       .catch((error) => {
@@ -126,11 +113,11 @@ export function Events({ content, locale = 'en' }: EventsProps) {
     return () => {
       controller.abort();
     };
-  }, [content, locale]);
+  }, [content, locale, crmApiClient]);
 
   const visibleEvents = useMemo(() => {
-    return sortEvents(events, activeFilter);
-  }, [events, activeFilter]);
+    return sortEvents(events);
+  }, [events]);
 
   return (
     <SectionShell
@@ -146,46 +133,7 @@ export function Events({ content, locale = 'en' }: EventsProps) {
           description={content.description}
           descriptionClassName='es-type-body mt-4'
         />
-
-        <div className='mt-10 flex flex-col gap-4 sm:mt-12 sm:flex-row sm:items-center sm:justify-between'>
-          <h2 className='es-events-scheduled-heading'>{content.scheduledHeading}</h2>
-          <label className='relative inline-flex w-full max-w-[230px] items-center sm:w-auto'>
-            <span className='sr-only'>{content.sortAriaLabel}</span>
-            <select
-              value={activeFilter}
-              aria-label={content.sortAriaLabel}
-              onChange={(event) => {
-                setActiveFilter(event.target.value);
-              }}
-              className='es-focus-ring es-events-filter-select w-full appearance-none rounded-full border es-border-soft es-bg-peach-glass px-4 py-[17px] pr-10'
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <span className='pointer-events-none absolute right-4 inline-flex h-4 w-4 items-center justify-center text-black/70'>
-              <svg
-                aria-hidden='true'
-                viewBox='0 0 16 16'
-                className='h-4 w-4'
-                fill='none'
-                xmlns='http://www.w3.org/2000/svg'
-              >
-                <path
-                  d='M4 6L8 10L12 6'
-                  stroke='currentColor'
-                  strokeWidth='1.8'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                />
-              </svg>
-            </span>
-          </label>
-        </div>
-
-        <div className='mt-8 sm:mt-10'>
+        <div className='mt-10 sm:mt-12'>
           {isLoading ? (
             <div className='flex flex-col items-center gap-3 py-6 text-center sm:py-8'>
               <span

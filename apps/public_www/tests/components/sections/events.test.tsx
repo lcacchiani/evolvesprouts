@@ -64,18 +64,9 @@ describe('Events section', () => {
     expect(screen.getByText(enContent.events.loadingLabel)).toBeInTheDocument();
   });
 
-  it('renders only upcoming and past options in the filter dropdown', () => {
+  it('does not render a filter dropdown', () => {
     render(<Events content={enContent.events} />);
 
-    const filter = screen.getByLabelText(enContent.events.sortAriaLabel);
-    const optionElements = Array.from(filter.querySelectorAll('option'));
-    expect(optionElements).toHaveLength(2);
-    expect(optionElements.map((option) => option.value)).toEqual([
-      'upcoming',
-      'past',
-    ]);
-    expect(optionElements.map((option) => option.textContent)).toEqual(
-      enContent.events.sortOptions.map((option) => option.label),
-    );
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 });
