@@ -34,6 +34,11 @@ interface ModuleStep {
   activity?: string;
 }
 
+interface ParsedModuleActivity {
+  summary: string;
+  points: string[];
+}
+
 const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
   'home',
   'limits',
@@ -85,6 +90,27 @@ function getModuleTone(index: number): ModuleToneVariant {
   return MODULE_TONES[index % MODULE_TONES.length];
 }
 
+function parseModuleActivity(activity: string | undefined): ParsedModuleActivity | null {
+  if (!activity) {
+    return null;
+  }
+
+  const lines = activity
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length === 0) {
+    return null;
+  }
+
+  const [summary, ...points] = lines;
+  return {
+    summary,
+    points: points.slice(0, 3),
+  };
+}
+
 function MyBestAuntieOutlineCard({
   module,
   index,
@@ -101,6 +127,7 @@ function MyBestAuntieOutlineCard({
   const tone = getModuleTone(index);
   const isInteractive = !showFullActivity;
   const isDescriptionVisible = showFullActivity || isExpanded;
+  const parsedActivity = parseModuleActivity(module.activity);
   const countLineSizeClassName = isDescriptionVisible
     ? '-top-[70px] h-[74px]'
     : '-top-[144px] h-[148px] md:group-hover:-top-[70px] md:group-hover:h-[74px]';
@@ -161,12 +188,21 @@ function MyBestAuntieOutlineCard({
         <p className='mt-2 es-my-best-auntie-outline-module-week'>
           {module.week}
         </p>
-        {module.activity && (
-          <p
+        {parsedActivity && (
+          <div
             className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-outline-activity ${isDescriptionVisible ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
           >
-            {module.activity}
-          </p>
+            <p>{parsedActivity.summary}</p>
+            {parsedActivity.points.length > 0 && (
+              <div className='mt-3 space-y-2'>
+                {parsedActivity.points.map((point) => (
+                  <p key={point} className='es-my-best-auntie-outline-activity-point'>
+                    {point}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
         )}
         <div className='relative z-20 mt-auto flex -translate-y-[50px] flex-col items-center gap-4 pt-6'>
           <div className='relative'>

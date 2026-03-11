@@ -118,7 +118,7 @@ describe('MyBestAuntieOutline section', () => {
     expect(firstCard?.getAttribute('role')).toBe('button');
 
     const description = firstCard?.querySelector(
-      'p.es-my-best-auntie-outline-activity',
+      '.es-my-best-auntie-outline-activity',
     );
     const countLine = firstCard?.querySelector(
       'span.es-my-best-auntie-outline-count-line',
@@ -139,5 +139,28 @@ describe('MyBestAuntieOutline section', () => {
     expect(description?.className).toContain('opacity-0');
     expect(countLine?.className).toContain('h-[148px]');
     expect(countLine?.className).toContain('-top-[144px]');
+  });
+
+  it('renders three key points per module without visible bullet glyphs', () => {
+    const { container } = render(
+      <MyBestAuntieOutline content={enContent.myBestAuntieOutline} />,
+    );
+
+    const desktopGrid = Array.from(container.querySelectorAll('ul')).find(
+      (list) => list.className.includes('md:grid-cols-3'),
+    );
+    expect(desktopGrid).not.toBeUndefined();
+
+    const firstCard = desktopGrid?.querySelector('article');
+    expect(firstCard).not.toBeNull();
+
+    const activityPoints = firstCard?.querySelectorAll(
+      '.es-my-best-auntie-outline-activity-point',
+    );
+    expect(activityPoints).not.toBeUndefined();
+    expect(activityPoints?.length).toBe(3);
+    activityPoints?.forEach((point) => {
+      expect(point.textContent?.includes('•')).toBe(false);
+    });
   });
 });
