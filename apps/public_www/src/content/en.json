@@ -214,20 +214,17 @@
           {
             "id": "part-1",
             "dateTimeLabel": "Apr 08 @ 12:00 pm",
-            "isoDate": "2026-04-08",
-            "description": "Starting with a parent call, followed by a 1:1 session."
+            "isoDate": "2026-04-08"
           },
           {
             "id": "part-2",
             "dateTimeLabel": "Apr 15 @ 12:00 pm",
-            "isoDate": "2026-04-15",
-            "description": "Hands-on role play for practical routines and communication."
+            "isoDate": "2026-04-15"
           },
           {
             "id": "part-3",
             "dateTimeLabel": "Apr 22 @ 12:00 pm",
-            "isoDate": "2026-04-22",
-            "description": "Action plan check-in to apply strategies at home with confidence."
+            "isoDate": "2026-04-22"
           }
         ]
       },
@@ -249,21 +246,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "May 08 @ 12:00 pm",
-            "isoDate": "2026-05-08",
-            "description": "Starting with a parent call, followed by a 1:1 session."
-          },
+            "isoDate": "2026-05-08"          },
           {
             "id": "part-2",
             "dateTimeLabel": "May 15 @ 12:00 pm",
-            "isoDate": "2026-05-15",
-            "description": "Hands-on role play for practical routines and communication."
-          },
+            "isoDate": "2026-05-15"          },
           {
             "id": "part-3",
             "dateTimeLabel": "May 22 @ 12:00 pm",
-            "isoDate": "2026-05-22",
-            "description": "Action plan check-in to apply strategies at home with confidence."
-          }
+            "isoDate": "2026-05-22"          }
         ]
       },
       {
@@ -284,21 +275,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "Jun 08 @ 12:00 pm",
-            "isoDate": "2026-06-08",
-            "description": "Starting with a parent call, followed by a 1:1 session."
-          },
+            "isoDate": "2026-06-08"          },
           {
             "id": "part-2",
             "dateTimeLabel": "Jun 15 @ 12:00 pm",
-            "isoDate": "2026-06-15",
-            "description": "Hands-on role play for practical routines and communication."
-          },
+            "isoDate": "2026-06-15"          },
           {
             "id": "part-3",
             "dateTimeLabel": "Jun 22 @ 12:00 pm",
-            "isoDate": "2026-06-22",
-            "description": "Action plan check-in to apply strategies at home with confidence."
-          }
+            "isoDate": "2026-06-22"          }
         ]
       },
       {
@@ -319,21 +304,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "May 10 @ 12:00 pm",
-            "isoDate": "2026-05-10",
-            "description": "Starting with a parent call, followed by a 1:1 session."
-          },
+            "isoDate": "2026-05-10"          },
           {
             "id": "part-2",
             "dateTimeLabel": "May 17 @ 12:00 pm",
-            "isoDate": "2026-05-17",
-            "description": "Hands-on role play for practical routines and communication."
-          },
+            "isoDate": "2026-05-17"          },
           {
             "id": "part-3",
             "dateTimeLabel": "May 24 @ 12:00 pm",
-            "isoDate": "2026-05-24",
-            "description": "Action plan check-in to apply strategies at home with confidence."
-          }
+            "isoDate": "2026-05-24"          }
         ]
       },
       {
@@ -354,21 +333,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "Jun 10 @ 12:00 pm",
-            "isoDate": "2026-06-10",
-            "description": "Starting with a parent call, followed by a 1:1 session."
-          },
+            "isoDate": "2026-06-10"          },
           {
             "id": "part-2",
             "dateTimeLabel": "Jun 17 @ 12:00 pm",
-            "isoDate": "2026-06-17",
-            "description": "Hands-on role play for practical routines and communication."
-          },
+            "isoDate": "2026-06-17"          },
           {
             "id": "part-3",
             "dateTimeLabel": "Jun 24 @ 12:00 pm",
-            "isoDate": "2026-06-24",
-            "description": "Action plan check-in to apply strategies at home with confidence."
-          }
+            "isoDate": "2026-06-24"          }
         ]
       },
       {
@@ -389,21 +362,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "Jul 09 @ 12:00 pm",
-            "isoDate": "2026-07-09",
-            "description": "Starting with a parent call, followed by a 1:1 session."
-          },
+            "isoDate": "2026-07-09"          },
           {
             "id": "part-2",
             "dateTimeLabel": "Jul 16 @ 12:00 pm",
-            "isoDate": "2026-07-16",
-            "description": "Hands-on role play for practical routines and communication."
-          },
+            "isoDate": "2026-07-16"          },
           {
             "id": "part-3",
             "dateTimeLabel": "Jul 23 @ 12:00 pm",
-            "isoDate": "2026-07-23",
-            "description": "Action plan check-in to apply strategies at home with confidence."
-          }
+            "isoDate": "2026-07-23"          }
         ]
       }
     ],
@@ -414,6 +381,11 @@
       "closeLabel": "Close",
       "thankYouLead": "Thanks for your interest!",
       "title": "My Best Auntie Training Course",
+      "partSummaries": [
+        "We set up your home for independence and observe how your helper connects with your child.",
+        "No threats, no bribes. She learns to guide with calm consistency.",
+        "She steps back. Your child steps up."
+      ],
       "pricingTitle": "Pricing",
       "totalAmountLabel": "Total Amount",
       "refundHint": "Full refund up to 7 days prior.",

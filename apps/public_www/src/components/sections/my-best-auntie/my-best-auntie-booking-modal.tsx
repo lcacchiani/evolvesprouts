@@ -71,13 +71,14 @@ export function MyBestAuntieBookingModal({
   const originalAmount = selectedCohort?.price ?? 0;
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
-    return (selectedCohort?.sessions ?? []).map((part) => {
+    const summaries = content.partSummaries ?? [];
+    return (selectedCohort?.sessions ?? []).map((part, index) => {
       return {
         date: part.dateTimeLabel,
-        description: part.description,
+        description: summaries[index] ?? '',
       };
     });
-  }, [selectedCohort]);
+  }, [selectedCohort, content.partSummaries]);
 
   const selectedTimeLabel = useMemo(() => {
     return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');

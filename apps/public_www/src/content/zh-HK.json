@@ -214,21 +214,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "4月08日 @ 12:00 pm",
-            "isoDate": "2026-04-08",
-            "description": "先以家長溝通開始，再安排 1 對 1 指導。"
-          },
+            "isoDate": "2026-04-08"          },
           {
             "id": "part-2",
             "dateTimeLabel": "4月15日 @ 12:00 pm",
-            "isoDate": "2026-04-15",
-            "description": "透過情境演練掌握可落地的日常照顧與溝通方法。"
-          },
+            "isoDate": "2026-04-15"          },
           {
             "id": "part-3",
             "dateTimeLabel": "4月22日 @ 12:00 pm",
-            "isoDate": "2026-04-22",
-            "description": "課程行動計劃回顧，幫助方法在家中穩定實踐。"
-          }
+            "isoDate": "2026-04-22"          }
         ]
       },
       {
@@ -249,21 +243,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "5月08日 @ 12:00 pm",
-            "isoDate": "2026-05-08",
-            "description": "先以家長溝通開始，再安排 1 對 1 指導。"
-          },
+            "isoDate": "2026-05-08"          },
           {
             "id": "part-2",
             "dateTimeLabel": "5月15日 @ 12:00 pm",
-            "isoDate": "2026-05-15",
-            "description": "透過情境演練掌握可落地的日常照顧與溝通方法。"
-          },
+            "isoDate": "2026-05-15"          },
           {
             "id": "part-3",
             "dateTimeLabel": "5月22日 @ 12:00 pm",
-            "isoDate": "2026-05-22",
-            "description": "課程行動計劃回顧，幫助方法在家中穩定實踐。"
-          }
+            "isoDate": "2026-05-22"          }
         ]
       },
       {
@@ -284,21 +272,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "6月08日 @ 12:00 pm",
-            "isoDate": "2026-06-08",
-            "description": "先以家長溝通開始，再安排 1 對 1 指導。"
-          },
+            "isoDate": "2026-06-08"          },
           {
             "id": "part-2",
             "dateTimeLabel": "6月15日 @ 12:00 pm",
-            "isoDate": "2026-06-15",
-            "description": "透過情境演練掌握可落地的日常照顧與溝通方法。"
-          },
+            "isoDate": "2026-06-15"          },
           {
             "id": "part-3",
             "dateTimeLabel": "6月22日 @ 12:00 pm",
-            "isoDate": "2026-06-22",
-            "description": "課程行動計劃回顧，幫助方法在家中穩定實踐。"
-          }
+            "isoDate": "2026-06-22"          }
         ]
       },
       {
@@ -319,21 +301,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "5月10日 @ 12:00 pm",
-            "isoDate": "2026-05-10",
-            "description": "先以家長溝通開始，再安排 1 對 1 指導。"
-          },
+            "isoDate": "2026-05-10"          },
           {
             "id": "part-2",
             "dateTimeLabel": "5月17日 @ 12:00 pm",
-            "isoDate": "2026-05-17",
-            "description": "透過情境演練掌握可落地的日常照顧與溝通方法。"
-          },
+            "isoDate": "2026-05-17"          },
           {
             "id": "part-3",
             "dateTimeLabel": "5月24日 @ 12:00 pm",
-            "isoDate": "2026-05-24",
-            "description": "課程行動計劃回顧，幫助方法在家中穩定實踐。"
-          }
+            "isoDate": "2026-05-24"          }
         ]
       },
       {
@@ -354,21 +330,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "6月10日 @ 12:00 pm",
-            "isoDate": "2026-06-10",
-            "description": "先以家長溝通開始，再安排 1 對 1 指導。"
-          },
+            "isoDate": "2026-06-10"          },
           {
             "id": "part-2",
             "dateTimeLabel": "6月17日 @ 12:00 pm",
-            "isoDate": "2026-06-17",
-            "description": "透過情境演練掌握可落地的日常照顧與溝通方法。"
-          },
+            "isoDate": "2026-06-17"          },
           {
             "id": "part-3",
             "dateTimeLabel": "6月24日 @ 12:00 pm",
-            "isoDate": "2026-06-24",
-            "description": "課程行動計劃回顧，幫助方法在家中穩定實踐。"
-          }
+            "isoDate": "2026-06-24"          }
         ]
       },
       {
@@ -389,21 +359,15 @@
           {
             "id": "part-1",
             "dateTimeLabel": "7月09日 @ 12:00 pm",
-            "isoDate": "2026-07-09",
-            "description": "先以家長溝通開始，再安排 1 對 1 指導。"
-          },
+            "isoDate": "2026-07-09"          },
           {
             "id": "part-2",
             "dateTimeLabel": "7月16日 @ 12:00 pm",
-            "isoDate": "2026-07-16",
-            "description": "透過情境演練掌握可落地的日常照顧與溝通方法。"
-          },
+            "isoDate": "2026-07-16"          },
           {
             "id": "part-3",
             "dateTimeLabel": "7月23日 @ 12:00 pm",
-            "isoDate": "2026-07-23",
-            "description": "課程行動計劃回顧，幫助方法在家中穩定實踐。"
-          }
+            "isoDate": "2026-07-23"          }
         ]
       }
     ],
@@ -414,6 +378,11 @@
       "closeLabel": "關閉",
       "thankYouLead": "多謝你的關注！",
       "title": "我的最佳姨姨培訓課程",
+      "partSummaries": [
+        "我哋會先將屋企設定成支持孩子獨立嘅環境，並觀察你嘅姨姨點樣同你嘅小朋友建立連結。",
+        "唔靠威脅，唔靠利誘。佢會學識用冷靜而一致嘅方式去引導。",
+        "佢退後一步，你嘅小朋友就會向前一步。"
+      ],
       "pricingTitle": "收費",
       "totalAmountLabel": "總金額",
       "refundHint": "開課前 7 天可全額退款。",
