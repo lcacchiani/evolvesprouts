@@ -116,7 +116,12 @@ describe('Testimonials section', () => {
       'article:not([aria-hidden]) [data-testid="testimonial-author-row"]',
     );
     expect(activeSlideAuthorRow).not.toBeNull();
+    expect(activeSlideAuthorRow?.className).toContain('max-w-[500px]');
     expect(activeSlideAuthorRow?.className).toContain('sm:pr-[200px]');
+    expect(desktopControls.className).toContain('bottom-0');
+
+    const desktopControlsRow = desktopControls.firstElementChild;
+    expect(desktopControlsRow?.className).toContain('max-w-[500px]');
 
     const authorText = container.querySelector(
       'article:not([aria-hidden]) .es-testimonials-author',
