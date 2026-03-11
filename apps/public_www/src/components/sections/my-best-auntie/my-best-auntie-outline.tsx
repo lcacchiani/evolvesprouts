@@ -111,6 +111,25 @@ function parseModuleActivity(activity: string | undefined): ParsedModuleActivity
   };
 }
 
+function splitActivityPointLabel(point: string): {
+  label: string;
+  detail: string;
+} {
+  const trimmedPoint = point.trim();
+  const match = /^([^:：]+[:：])\s*(.*)$/.exec(trimmedPoint);
+  if (!match) {
+    return {
+      label: '',
+      detail: trimmedPoint,
+    };
+  }
+
+  return {
+    label: match[1],
+    detail: match[2],
+  };
+}
+
 function MyBestAuntieOutlineCard({
   module,
   index,
@@ -190,16 +209,20 @@ function MyBestAuntieOutlineCard({
         </p>
         {parsedActivity && (
           <div
-            className={`mx-auto mt-4 max-w-[34ch] transition-opacity duration-300 es-my-best-auntie-outline-activity ${isDescriptionVisible ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
+            className={`mx-auto mt-4 max-w-[34ch] text-left transition-opacity duration-300 es-my-best-auntie-outline-activity ${isDescriptionVisible ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
           >
             <p>{parsedActivity.summary}</p>
             {parsedActivity.points.length > 0 && (
               <div className='mt-3 space-y-2'>
-                {parsedActivity.points.map((point) => (
-                  <p key={point} className='es-my-best-auntie-outline-activity-point'>
-                    {point}
-                  </p>
-                ))}
+                {parsedActivity.points.map((point) => {
+                  const { label, detail } = splitActivityPointLabel(point);
+                  return (
+                    <p key={point} className='es-my-best-auntie-outline-activity-point'>
+                      {label ? <strong>{label}</strong> : null}
+                      {detail ? (label ? ` ${detail}` : detail) : ''}
+                    </p>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -157,10 +157,18 @@ describe('MyBestAuntieOutline section', () => {
     const activityPoints = firstCard?.querySelectorAll(
       '.es-my-best-auntie-outline-activity-point',
     );
+    const activityContainer = firstCard?.querySelector(
+      '.es-my-best-auntie-outline-activity',
+    );
     expect(activityPoints).not.toBeUndefined();
+    expect(activityContainer?.className).toContain('text-left');
     expect(activityPoints?.length).toBe(3);
     activityPoints?.forEach((point) => {
       expect(point.textContent?.includes('•')).toBe(false);
     });
+
+    const firstPointLabel = activityPoints?.[0]?.querySelector('strong');
+    expect(firstPointLabel).not.toBeNull();
+    expect(firstPointLabel?.textContent).toBe('Group session:');
   });
 });
