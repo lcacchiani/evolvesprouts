@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
-import enContent from '@/content/en.json';
+import { getContent } from '@/content';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -19,18 +19,18 @@ vi.mock('next/image', () => ({
 }));
 
 describe('FreeIntroSession section', () => {
-  it('renders heading, paragraph, and CTA href from navbar link', () => {
-    const ctaHref = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
+  it('renders heading, paragraph, and CTA href from section content', () => {
+    const content = getContent('en').freeIntroSession;
 
-    render(<FreeIntroSession content={enContent.freeIntroSession} ctaHref={ctaHref} />);
+    render(<FreeIntroSession content={content} />);
 
     expect(
-      screen.getByRole('heading', { level: 2, name: enContent.freeIntroSession.title }),
+      screen.getByRole('heading', { level: 2, name: content.title }),
     ).toBeInTheDocument();
-    expect(screen.getByText(enContent.freeIntroSession.description)).toBeInTheDocument();
+    expect(screen.getByText(content.description)).toBeInTheDocument();
 
-    const cta = screen.getByRole('link', { name: enContent.freeIntroSession.ctaLabel });
+    const cta = screen.getByRole('link', { name: content.ctaLabel });
     expect(cta).toBeInTheDocument();
-    expect(cta).toHaveAttribute('href', ctaHref);
+    expect(cta).toHaveAttribute('href', content.ctaHref);
   });
 });

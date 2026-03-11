@@ -59,7 +59,7 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
         ctaHref={myBestAuntieOutlineCtaHref}
       />
       <DeferredTestimonials content={content.testimonials} />
-      <FreeIntroSession content={content.freeIntroSession} ctaHref={navbarCtaHref} />
+      <FreeIntroSession content={content.freeIntroSession} />
     </PageLayout>
   );
 }

@@ -34,7 +34,7 @@ const pageLayoutPropsSpy = vi.fn<
   void
 >();
 const freeIntroSessionPropsSpy = vi.fn<
-  [{ content: { title: string }; ctaHref: string }],
+  [{ content: { title: string; ctaHref: string } }],
   void
 >();
 const myBestAuntieOutlinePropsSpy = vi.fn<
@@ -97,14 +97,8 @@ vi.mock('@/components/sections/deferred-testimonials', () => ({
   ),
 }));
 vi.mock('@/components/sections/free-intro-session', () => ({
-  FreeIntroSession: ({
-    content,
-    ctaHref,
-  }: {
-    content: { title: string };
-    ctaHref: string;
-  }) => {
-    freeIntroSessionPropsSpy({ content, ctaHref });
+  FreeIntroSession: ({ content }: { content: { title: string; ctaHref: string } }) => {
+    freeIntroSessionPropsSpy({ content });
     return <section data-testid='free-intro-session'>{content.title}</section>;
   },
 }));
@@ -153,7 +147,9 @@ describe('HomePageSections', () => {
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       enContent.navbar.bookNow.label,
     );
-    expect(freeIntroProps.ctaHref).toBe(pageLayoutProps.navbarContent.bookNow.href);
+    expect(freeIntroProps.content.ctaHref).toBe(
+      'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
+    );
     expect(outlineProps.ctaHref).toBe(
       '/en/services/my-best-auntie-training-course#my-best-auntie-booking',
     );
@@ -186,6 +182,7 @@ describe('HomePageSections', () => {
     const pageLayoutProps = pageLayoutPropsSpy.mock.calls[0][0];
     const freeIntroProps = freeIntroSessionPropsSpy.mock.calls[0][0];
     const parsedNavbarHref = new URL(pageLayoutProps.navbarContent.bookNow.href);
+    const parsedFreeIntroHref = new URL(freeIntroProps.content.ctaHref);
 
     expect(parsedNavbarHref.pathname).toBe('/85294479843');
     expect(parsedNavbarHref.searchParams.get('text')).toBe(
@@ -194,7 +191,10 @@ describe('HomePageSections', () => {
     expect(pageLayoutProps.navbarContent.bookNow.label).toBe(
       localizedContent.navbar.bookNow.label,
     );
-    expect(freeIntroProps.ctaHref).toBe(pageLayoutProps.navbarContent.bookNow.href);
+    expect(parsedFreeIntroHref.pathname).toBe('/85294479843');
+    expect(parsedFreeIntroHref.searchParams.get('text')).toBe(
+      localizedContent.freeIntroSession.prefillMessage,
+    );
     expect(myBestAuntieOutlinePropsSpy.mock.calls[0][0].ctaHref).toBe(
       '/zh-HK/services/my-best-auntie-training-course#my-best-auntie-booking',
     );
