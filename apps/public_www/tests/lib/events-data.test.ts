@@ -5,7 +5,6 @@ import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   fetchEventsPayload,
   normalizeEvents,
-  resolveSortOptions,
   resolveEventsApiUrl,
   sortEvents,
 } from '@/lib/events-data';
@@ -165,28 +164,7 @@ describe('events-data', () => {
     });
   });
 
-  it('resolves dropdown options to upcoming and past only', () => {
-    const defaultOptions = resolveSortOptions(enContent.events);
-    expect(defaultOptions).toEqual([
-      { value: 'upcoming', label: 'Upcoming Events' },
-      { value: 'past', label: 'Past Events' },
-    ]);
-
-    const customOptions = resolveSortOptions({
-      ...enContent.events,
-      sortOptions: [
-        { value: 'upcoming', label: 'Soonest Sessions' },
-        { value: 'past', label: 'Earlier Sessions' },
-        { value: 'latest', label: 'Latest Events' },
-      ],
-    });
-    expect(customOptions).toEqual([
-      { value: 'upcoming', label: 'Soonest Sessions' },
-      { value: 'past', label: 'Earlier Sessions' },
-    ]);
-  });
-
-  it('filters and sorts events by upcoming and past windows', () => {
+  it('returns upcoming events only in chronological order', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-04-10T00:00:00Z'));
 
@@ -238,15 +216,12 @@ describe('events-data', () => {
       },
     ];
 
-    const upcomingEvents = sortEvents(sourceEvents, 'upcoming');
+    const upcomingEvents = sortEvents(sourceEvents);
     expect(upcomingEvents.map((event) => event.id)).toEqual([
       'future-a',
       'future-b',
       'unknown',
     ]);
-
-    const pastEvents = sortEvents(sourceEvents, 'past');
-    expect(pastEvents.map((event) => event.id)).toEqual(['past-a', 'past-b']);
 
     vi.useRealTimers();
   });

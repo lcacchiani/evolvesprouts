@@ -763,22 +763,10 @@
   },
   "events": {
     "eyebrow": "精選活動",
-    "title": "即將舉辦的活動",
-    "description": "探索即將舉行的蒙特梭利培訓活動，幫助姨姨掌握現代幼兒發展技能。",
-    "scheduledHeading": "已排期活動",
-    "sortAriaLabel": "按條件排序活動",
-    "sortOptions": [
-      {
-        "value": "upcoming",
-        "label": "即將舉辦的活動"
-      },
-      {
-        "value": "past",
-        "label": "過往活動"
-      }
-    ],
+    "title": "最新活動資訊",
+    "description": "為香港家庭而設的工作坊、培訓課程及免費體驗環節。",
     "loadingLabel": "正在載入活動...",
-    "emptyStateLabel": "暫無已排期活動",
+    "emptyStateLabel": "暫無即將舉辦的活動",
     "errorLabel": "暫時無法載入活動，請稍後再試。",
     "card": {
       "dateLabel": "日期",

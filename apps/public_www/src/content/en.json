@@ -763,22 +763,10 @@
   },
   "events": {
     "eyebrow": "Top Events",
-    "title": "Upcoming Events",
-    "description": "Discover upcoming Montessori-based training events designed to empower nannies with modern child development skills.",
-    "scheduledHeading": "Scheduled Events",
-    "sortAriaLabel": "Sort events by",
-    "sortOptions": [
-      {
-        "value": "upcoming",
-        "label": "Upcoming Events"
-      },
-      {
-        "value": "past",
-        "label": "Past Events"
-      }
-    ],
+    "title": "What's Coming Up",
+    "description": "Workshops, training courses, and free sessions for Hong Kong families.",
     "loadingLabel": "Loading events...",
-    "emptyStateLabel": "No scheduled events for now",
+    "emptyStateLabel": "No upcoming events for now",
     "errorLabel": "Unable to load events right now. Please check back soon.",
     "card": {
       "dateLabel": "Date",

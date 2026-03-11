@@ -7,13 +7,7 @@ import {
 import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
 import { isHttpHref } from '@/lib/url-utils';
 
-export interface SortOption {
-  value: EventFilterValue;
-  label: string;
-}
-
 type EventStatus = 'open' | 'fully_booked';
-type EventFilterValue = 'upcoming' | 'past';
 type SupportedLocale = 'en' | 'zh-CN' | 'zh-HK';
 
 export const EVENTS_API_PATH = '/v1/calendar/events';
@@ -32,11 +26,6 @@ export interface EventCardData {
   status: EventStatus;
   timestamp: number | null;
 }
-
-const DEFAULT_SORT_OPTIONS: readonly SortOption[] = [
-  { value: 'upcoming', label: 'Upcoming Events' },
-  { value: 'past', label: 'Past Events' },
-];
 
 const UK_EVENTS_LOCALE = 'en-GB';
 const UK_TIME_ZONE = 'Europe/London';
@@ -227,40 +216,6 @@ function normalizeLocationLabel(value: string | undefined): string | undefined {
   }
 
   return formatEnumLikeLabel(normalizedValue);
-}
-
-function isEventFilterValue(value: string): value is EventFilterValue {
-  return value === 'upcoming' || value === 'past';
-}
-
-export function resolveSortOptions(content: EventsContent): readonly SortOption[] {
-  const normalizedOptions = content.sortOptions
-    .map((option) => {
-      const value = readOptionalText(option.value);
-      const label = readOptionalText(option.label);
-      if (!value || !label) {
-        return null;
-      }
-
-      if (!isEventFilterValue(value)) {
-        return null;
-      }
-
-      return { value, label };
-    })
-    .filter((option): option is SortOption => option !== null);
-
-  const labelsByValue = new Map<EventFilterValue, string>();
-  for (const option of normalizedOptions) {
-    if (!labelsByValue.has(option.value)) {
-      labelsByValue.set(option.value, option.label);
-    }
-  }
-
-  return DEFAULT_SORT_OPTIONS.map((fallbackOption) => ({
-    value: fallbackOption.value,
-    label: labelsByValue.get(fallbackOption.value) ?? fallbackOption.label,
-  }));
 }
 
 export async function fetchEventsPayload(
@@ -525,37 +480,9 @@ export function normalizeEvents(
 
 export function sortEvents(
   events: EventCardData[],
-  activeFilter: string,
 ): EventCardData[] {
   const entries = events.map((event, index) => ({ event, index }));
   const now = Date.now();
-
-  if (activeFilter === 'past') {
-    const pastEntries = entries.filter((entry) => {
-      const timestamp = entry.event.timestamp;
-      return timestamp !== null && timestamp < now;
-    });
-    pastEntries.sort((left, right) => {
-      const leftValue = left.event.timestamp;
-      const rightValue = right.event.timestamp;
-
-      if (leftValue === null && rightValue === null) {
-        return left.index - right.index;
-      }
-      if (leftValue === null) {
-        return 1;
-      }
-      if (rightValue === null) {
-        return -1;
-      }
-      if (leftValue === rightValue) {
-        return left.index - right.index;
-      }
-
-      return rightValue - leftValue;
-    });
-    return pastEntries.map((entry) => entry.event);
-  }
 
   const upcomingEntries = entries.filter((entry) => {
     const timestamp = entry.event.timestamp;
