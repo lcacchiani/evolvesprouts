@@ -116,6 +116,7 @@ describe('Testimonials section', () => {
       'article:not([aria-hidden]) [data-testid="testimonial-author-row"]',
     );
     expect(activeSlideAuthorRow).not.toBeNull();
+    expect(activeSlideAuthorRow?.className).toContain('sm:pl-[200px]');
 
     const authorText = container.querySelector(
       'article:not([aria-hidden]) .es-testimonials-author',
