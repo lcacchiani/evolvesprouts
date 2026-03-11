@@ -227,22 +227,37 @@ describe('useHorizontalCarousel', () => {
     }
   });
 
-  it('can scroll an item into view with centered alignment', () => {
+  it('can scroll an item into view with centered alignment via container scrollTo', () => {
     render(<HookHarness itemCount={5} />);
 
+    const track = screen.getByTestId('track');
     const target = screen.getByTestId('target');
-    const scrollIntoViewSpy = vi.fn();
-    Object.defineProperty(target, 'scrollIntoView', {
+
+    const scrollToSpy = vi.fn();
+    Object.defineProperty(track, 'scrollTo', {
       configurable: true,
-      value: scrollIntoViewSpy,
+      value: scrollToSpy,
+    });
+    Object.defineProperty(track, 'scrollLeft', {
+      configurable: true,
+      get: () => 0,
+    });
+    vi.spyOn(track, 'getBoundingClientRect').mockReturnValue({
+      left: 0, right: 400, top: 0, bottom: 100,
+      width: 400, height: 100, x: 0, y: 0,
+      toJSON: () => ({}),
+    });
+    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue({
+      left: 300, right: 400, top: 0, bottom: 100,
+      width: 100, height: 100, x: 300, y: 0,
+      toJSON: () => ({}),
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Scroll item' }));
 
-    expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+    expect(scrollToSpy).toHaveBeenCalledWith({
+      left: 150,
       behavior: 'auto',
-      block: 'nearest',
-      inline: 'center',
     });
   });
 

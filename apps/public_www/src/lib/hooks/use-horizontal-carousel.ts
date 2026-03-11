@@ -231,14 +231,21 @@ export function useHorizontalCarousel<T extends HTMLElement>({
 
   const scrollItemIntoView = useCallback(
     (item: Element | null, behavior: ScrollBehavior = 'smooth') => {
-      if (!item) {
+      const container = carouselRef.current;
+      if (!item || !container) {
         return;
       }
 
-      item.scrollIntoView({
+      const containerRect = container.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const targetScrollLeft =
+        container.scrollLeft +
+        (itemRect.left + itemRect.width / 2) -
+        (containerRect.left + containerRect.width / 2);
+
+      container.scrollTo({
+        left: targetScrollLeft,
         behavior,
-        block: 'nearest',
-        inline: 'center',
       });
 
       if (typeof window !== 'undefined') {
