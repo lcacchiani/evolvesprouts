@@ -118,10 +118,14 @@ describe('Testimonials section', () => {
     expect(activeSlideAuthorRow).not.toBeNull();
     expect(activeSlideAuthorRow?.className).toContain('max-w-[500px]');
     expect(activeSlideAuthorRow?.className).toContain('sm:pr-[200px]');
-    expect(desktopControls.className).toContain('bottom-0');
+    expect(desktopControls.className).toContain('bottom-[5px]');
 
     const desktopControlsRow = desktopControls.firstElementChild;
     expect(desktopControlsRow?.className).toContain('max-w-[500px]');
+    const quoteText = container.querySelector(
+      'article:not([aria-hidden]) .es-testimonials-quote',
+    );
+    expect(quoteText?.className).toContain('es-testimonials-quote--desktop-four-lines');
 
     const authorText = container.querySelector(
       'article:not([aria-hidden]) .es-testimonials-author',
