@@ -15,9 +15,9 @@ vi.mock('@/components/sections/events', () => ({
     <section data-testid='events-section'>{`${content.title} (${locale})`}</section>
   ),
 }));
-vi.mock('@/components/sections/sprouts-squad-community', () => ({
-  SproutsSquadCommunity: ({ content }: { content: { title: string } }) => (
-    <section data-testid='sprouts-squad-community'>{content.title}</section>
+vi.mock('@/components/sections/free-intro-session', () => ({
+  FreeIntroSession: ({ content }: { content: { ctaLabel: string } }) => (
+    <section data-testid='free-intro-session'>{content.ctaLabel}</section>
   ),
 }));
 
@@ -29,6 +29,6 @@ describe('EventsPageSections', () => {
     expect(screen.getByTestId('events-section')).toHaveTextContent(
       `${enContent.events.title} (${enContent.meta.locale})`,
     );
-    expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
+    expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
   });
 });
