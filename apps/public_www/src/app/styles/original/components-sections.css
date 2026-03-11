@@ -1354,17 +1354,19 @@
     color: var(--es-color-module-count-blue, #4592DE);
   }
 
-  .es-ida-intro-section,
-  .es-my-best-auntie-hero-section,
-  .es-my-best-auntie-outline-section,
-  .es-course-highlights-section,
-  .es-real-talk-section,
-  .es-free-resources-section,
-  .es-testimonials-section,
-  .es-sprouts-community-section,
-  .es-free-intro-session-section {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 600px;
+  @media (min-width: 1024px) {
+    .es-ida-intro-section,
+    .es-my-best-auntie-hero-section,
+    .es-my-best-auntie-outline-section,
+    .es-course-highlights-section,
+    .es-real-talk-section,
+    .es-free-resources-section,
+    .es-testimonials-section,
+    .es-sprouts-community-section,
+    .es-free-intro-session-section {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 600px;
+    }
   }
 
 }
