@@ -115,6 +115,8 @@ function resolveConnectOnItems(
 
 const FOOTER_LOGO_CLASSNAME =
   'h-auto w-full max-w-[500px] mx-auto -mt-[100px] -mb-[50px] lg:-my-[100px]';
+const FOOTER_DESKTOP_CROPPED_LOGO_CLASSNAME =
+  'h-auto w-[500px] max-w-none mx-auto -mt-[100px] -mb-[50px] lg:-my-[100px]';
 const socialIconAssets: Partial<Record<string, SocialIconAsset>> = {
   linkedin: {
     src: '/images/contact-linkedin.svg',
@@ -265,7 +267,7 @@ export function Footer({ content }: FooterProps) {
               className={FOOTER_LOGO_CLASSNAME}
             />
           </div>
-          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,500px)_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-0 lg:gap-y-10'>
+          <div className='hidden grid-cols-1 gap-10 sm:grid sm:grid-cols-4 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,400px)_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-x-0 lg:gap-y-10'>
             <FooterDesktopColumn
               title={content.quickLinks.title}
               items={content.quickLinks.items}
@@ -277,14 +279,14 @@ export function Footer({ content }: FooterProps) {
             />
             <div
               data-css-fallback='hide-when-css-missing'
-              className='hidden justify-center lg:flex lg:pt-2'
+              className='hidden justify-center overflow-hidden lg:flex lg:w-[400px] lg:pt-2'
             >
               <Image
                 src='/images/evolvesprouts-logo.svg'
                 alt={content.brand}
                 width={500}
                 height={500}
-                className={FOOTER_LOGO_CLASSNAME}
+                className={FOOTER_DESKTOP_CROPPED_LOGO_CLASSNAME}
               />
             </div>
             <FooterDesktopColumn

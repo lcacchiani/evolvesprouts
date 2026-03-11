@@ -133,7 +133,7 @@ describe('Footer external links', () => {
     }
   });
 
-  it('removes desktop gap around the centered logo column', () => {
+  it('crops the centered desktop logo column without shrinking the image', () => {
     render(<Footer content={enContent.footer} />);
 
     const desktopGrid = document.querySelector(
@@ -141,6 +141,22 @@ describe('Footer external links', () => {
     ) as HTMLDivElement | null;
     expect(desktopGrid).not.toBeNull();
     expect(desktopGrid?.className).toContain('lg:gap-x-0');
+    expect(desktopGrid?.className).toContain(
+      'lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,400px)_minmax(0,1fr)_minmax(0,1fr)]',
+    );
+
+    const desktopLogoWrapper = desktopGrid?.querySelector(
+      'div[data-css-fallback="hide-when-css-missing"]',
+    ) as HTMLDivElement | null;
+    expect(desktopLogoWrapper).not.toBeNull();
+    expect(desktopLogoWrapper?.className).toContain('overflow-hidden');
+    expect(desktopLogoWrapper?.className).toContain('lg:w-[400px]');
+    const desktopLogo = desktopLogoWrapper?.querySelector(
+      'img[src="/images/evolvesprouts-logo.svg"]',
+    ) as HTMLImageElement | null;
+    expect(desktopLogo).not.toBeNull();
+    expect(desktopLogo?.className).toContain('w-[500px]');
+    expect(desktopLogo?.className).toContain('max-w-none');
 
     const desktopColumns = desktopGrid?.querySelectorAll('section') ?? [];
     expect(desktopColumns).toHaveLength(4);
