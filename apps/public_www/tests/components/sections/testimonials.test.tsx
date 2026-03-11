@@ -117,8 +117,8 @@ describe('Testimonials section', () => {
     );
     expect(activeSlideAuthorRow).not.toBeNull();
     expect(activeSlideAuthorRow?.className).toContain('max-w-[500px]');
-    expect(activeSlideAuthorRow?.className).toContain('sm:pr-[200px]');
-    expect(desktopControls.className).toContain('bottom-[5px]');
+    expect(activeSlideAuthorRow?.className).toContain('lg:pr-[200px]');
+    expect(desktopControls.className).toContain('bottom-[10px]');
 
     const desktopControlsRow = desktopControls.firstElementChild;
     expect(desktopControlsRow?.className).toContain('max-w-[500px]');
