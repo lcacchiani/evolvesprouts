@@ -239,16 +239,6 @@ function prepare_maintenance_build_dir() {
     exit 1
   fi
 
-  if [ ! -f "$APP_DIR/public/images/contact-instagram.svg" ]; then
-    echo "Contact Instagram icon source not found at $APP_DIR/public/images/contact-instagram.svg"
-    exit 1
-  fi
-
-  if [ ! -f "$APP_DIR/public/images/contact-whatsapp.svg" ]; then
-    echo "Contact WhatsApp icon source not found at $APP_DIR/public/images/contact-whatsapp.svg"
-    exit 1
-  fi
-
   if [ ! -f "$APP_DIR/public/favicon.ico" ]; then
     echo "Favicon source not found at $APP_DIR/public/favicon.ico"
     exit 1
@@ -264,12 +254,6 @@ function prepare_maintenance_build_dir() {
   cp \
     "$APP_DIR/public/images/contact-email.svg" \
     "$maintenance_build_dir/images/contact-email.svg"
-  cp \
-    "$APP_DIR/public/images/contact-instagram.svg" \
-    "$maintenance_build_dir/images/contact-instagram.svg"
-  cp \
-    "$APP_DIR/public/images/contact-whatsapp.svg" \
-    "$maintenance_build_dir/images/contact-whatsapp.svg"
   cp \
     "$APP_DIR/public/favicon.ico" \
     "$maintenance_build_dir/favicon.ico"
