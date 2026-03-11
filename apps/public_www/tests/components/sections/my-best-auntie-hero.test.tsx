@@ -53,7 +53,7 @@ describe('MyBestAuntieHero', () => {
     expect(image.className).toContain('es-my-best-auntie-hero-image-flipped');
     expect(image.closest('div')).toHaveClass(
       'es-my-best-auntie-hero-image-wrap',
-      'max-w-[400px]',
+      'max-w-[500px]',
     );
   });
 });
