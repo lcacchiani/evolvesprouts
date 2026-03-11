@@ -6,7 +6,7 @@ import { MyBestAuntieHero } from '@/components/sections/my-best-auntie/my-best-a
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import { MyBestAuntieDescription } from '@/components/sections/my-best-auntie/my-best-auntie-description';
 import { MyBestAuntieOutline } from '@/components/sections/my-best-auntie/my-best-auntie-outline';
-import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
+import { FreeIntroSession } from '@/components/sections/free-intro-session';
 
 interface MyBestAuntieProps {
   locale: Locale;
@@ -25,7 +25,7 @@ export function MyBestAuntie({ locale, content }: MyBestAuntieProps) {
       <DeferredTestimonials content={content.testimonials} />
       <MyBestAuntieBooking locale={locale} content={content.myBestAuntieBooking} />
       <Faq content={content.faq} />
-      <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
+      <FreeIntroSession content={content.freeIntroSession} />
     </PageLayout>
   );
 }

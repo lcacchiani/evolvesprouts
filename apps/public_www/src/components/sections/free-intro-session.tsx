@@ -9,10 +9,9 @@ import type { FreeIntroSessionContent } from '@/content';
 
 interface FreeIntroSessionProps {
   content: FreeIntroSessionContent;
-  ctaHref: string;
 }
 
-export function FreeIntroSession({ content, ctaHref }: FreeIntroSessionProps) {
+export function FreeIntroSession({ content }: FreeIntroSessionProps) {
   const copy = resolveFreeIntroSessionCopy(content);
 
   return (
@@ -49,7 +48,7 @@ export function FreeIntroSession({ content, ctaHref }: FreeIntroSessionProps) {
           </div>
           <div className='es-intro-community-layout-cta'>
             <div className='w-full max-w-[500px] lg:max-w-[410px]'>
-              <SectionCtaAnchor href={ctaHref} className='w-fit'>
+              <SectionCtaAnchor href={content.ctaHref} className='w-fit'>
                 {content.ctaLabel}
               </SectionCtaAnchor>
               <div

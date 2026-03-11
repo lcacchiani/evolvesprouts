@@ -1091,7 +1091,10 @@
   "freeIntroSession": {
     "title": "Ready to give your helper the tools she needs?",
     "description": "Book a free 15-minute intro session. No commitment. Just a conversation about your family.",
-    "ctaLabel": "Book Free Intro on WhatsApp"
+    "ctaLabel": "Book Free Intro on WhatsApp",
+    "ctaHref": "{{WHATSAPP_URL}}",
+    "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
+    "prefillMessage": "Hi, I'd like to book a free session!"
   },
   "whoops": {
     "code": "404",

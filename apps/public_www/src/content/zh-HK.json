@@ -1091,7 +1091,10 @@
   "freeIntroSession": {
     "title": "準備好畀你嘅助手所需工具未？",
     "description": "預約一節 15 分鐘免費簡介。無需承諾，只係傾下你家庭嘅情況。",
-    "ctaLabel": "喺 WhatsApp 預約免費簡介"
+    "ctaLabel": "喺 WhatsApp 預約免費簡介",
+    "ctaHref": "{{WHATSAPP_URL}}",
+    "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
+    "prefillMessage": "你好，我想預約一節免費諮詢！"
   },
   "whoops": {
     "code": "404",

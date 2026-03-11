@@ -171,11 +171,14 @@ function validateHrefValue(value, keyPath, errors) {
     return;
   }
   if (normalizedValue === WHATSAPP_URL_PLACEHOLDER) {
-    if (keyPath.endsWith('.navbar.bookNow.href')) {
+    if (
+      keyPath.endsWith('.navbar.bookNow.href')
+      || keyPath.endsWith('.freeIntroSession.ctaHref')
+    ) {
       return;
     }
     errors.push(
-      `${keyPath}: placeholder "${WHATSAPP_URL_PLACEHOLDER}" is only allowed for navbar.bookNow.href`,
+      `${keyPath}: placeholder "${WHATSAPP_URL_PLACEHOLDER}" is only allowed for navbar.bookNow.href and freeIntroSession.ctaHref`,
     );
     return;
   }
