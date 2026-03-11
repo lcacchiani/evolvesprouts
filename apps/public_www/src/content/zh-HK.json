@@ -699,33 +699,20 @@
   },
   "contactUs": {
     "contactUsForm": {
-      "eyebrow": "聯絡我們",
       "title": "讓我們一起成長！",
       "description": "你好！無論你想了解蒙特梭利理念、查詢我們的工作坊或培訓課程，還是想分享有關兒童發展的想法，我們都非常歡迎。",
       "contactMethodsTitle": "你可以透過以下方式聯絡我們：",
       "contactMethodLinks": {
-        "mail": "透過電郵",
-        "whatsapp": "透過 WhatsApp",
-        "instagram": "透過 Instagram",
-        "linkedin": "透過 LinkedIn",
-        "form": "透過此頁表單"
+        "whatsapp": "透過 WhatsApp"
       },
-      "emailLabel": "郵件聯絡 @",
-      "emailAddress": "{{CONTACT_EMAIL}}",
-      "promiseTitle": "我承諾…",
-      "promises": [
-        "24-48 小時內回覆（沒有機器人——由我這位真正熱愛兒童發展的真人親自回覆）。",
-        "認真傾聽、慶祝你的每一步成長，並一起把挑戰轉化為機會。"
-      ],
-      "quickFormEyebrow": "快速表單",
-      "quickFormTitle": "給我們發一條快速訊息",
-      "quickFormDescription": "想用「漂流瓶」方式留言？填寫下方聯絡表單，我們會像小芽發芽一樣盡快回覆你。",
+      "formTitle": "給我們發一條快速訊息",
       "firstNameLabel": "名字",
       "emailFieldLabel": "電郵地址",
       "phoneLabel": "電話號碼",
       "messageLabel": "你的留言",
       "messagePlaceholder": "你的留言",
       "submitLabel": "送出留言！",
+      "formDescription": "想用「漂流瓶」方式留言？填寫下方聯絡表單，我們會像小芽發芽一樣盡快回覆你。",
       "successTitle": "多謝你的留言！",
       "successDescription": "我們已經收到你的留言，會盡快為你跟進處理。",
       "submitErrorMessage": "出咗啲問題，請稍後再試。",
@@ -733,8 +720,6 @@
       "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
       "captchaLoadError": "CAPTCHA 載入失敗，請重新整理後再試。",
       "captchaUnavailableError": "CAPTCHA 暫時未能使用，請稍後再試。",
-      "subject": "網站聯絡表單",
-      "requiredHint": "* 必填欄位",
       "emailValidationError": "請輸入有效的電郵地址。",
       "phoneValidationError": "請輸入有效的電話號碼。"
     },

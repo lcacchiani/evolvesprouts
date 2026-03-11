@@ -699,33 +699,20 @@
   },
   "contactUs": {
     "contactUsForm": {
-      "eyebrow": "Contact Us",
-      "title": "Let’s Grow Together!",
-      "description": "Hi there! Whether you’re curious about Montessori philosophy, have a question about our workshops or training courses, or just want to share ideas about child development — we are all ears.",
-      "contactMethodsTitle": "How you can get in touch with us:",
+      "title": "Got a Question? Let's Talk",
+      "description": "Not sure if the course is right for your family? Want to know more before you commit? Or just need to talk through what's happening at home? I'm here - no pressure, no pitch.",
+      "contactMethodsTitle": "Prefer WhatsApp? Most parents do. Message me directly and I'll reply within 24 hours.",
       "contactMethodLinks": {
-        "mail": "Email",
-        "whatsapp": "WhatsApp",
-        "instagram": "Instagram",
-        "linkedin": "LinkedIn",
-        "form": "Form on this page"
+        "whatsapp": "Message me on WhatsApp"
       },
-      "emailLabel": "Email Us @",
-      "emailAddress": "{{CONTACT_EMAIL}}",
-      "promiseTitle": "I Promise…",
-      "promises": [
-        "To reply within 24-48 hours (no bots here — just me, a real human who loves child development!).",
-        "To listen deeply, celebrate your wins, and help turn challenges into growth opportunities."
-      ],
-      "quickFormEyebrow": "Quick Form",
-      "quickFormTitle": "Send us a quick message",
-      "quickFormDescription": "Prefer a message in a bottle? Use the contact form below and we’ll respond faster than a sprout grows.",
+      "formTitle": "Or send me a message:",
       "firstNameLabel": "First Name",
       "emailFieldLabel": "Email Address",
       "phoneLabel": "Phone Number",
       "messageLabel": "Your message",
       "messagePlaceholder": "Your message",
       "submitLabel": "Launch the Message!",
+      "formDescription": "I reply personally within 24-48 hours. No bots, no templates — just me.",
       "successTitle": "Thank you for your message!",
       "successDescription": "We have received your message and will take care of it shortly.",
       "submitErrorMessage": "something went wrong, try a bit later",
@@ -733,8 +720,6 @@
       "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
       "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
-      "subject": "Website Contact Form",
-      "requiredHint": "* Required fields",
       "emailValidationError": "Please enter a valid email address.",
       "phoneValidationError": "Please enter a valid phone number."
     },

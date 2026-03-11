@@ -140,120 +140,27 @@ describe('ContactUsForm section', () => {
     expect(leftColumn?.className).not.toContain('lg:px-10');
   });
 
-  it('renders icon-based contact methods in the configured order with official assets', () => {
+  it('renders WhatsApp contact CTA with the configured label and href', () => {
     renderContactUsForm();
 
-    const list = screen.getByRole('list', {
-      name: enContent.contactUs.contactUsForm.contactMethodsTitle,
-    });
-    expect(list).toBeInTheDocument();
-    expect(list.className).toContain('flex-wrap');
-    expect(list.className).toContain('max-w-full');
-    expect(list.className).not.toContain('overflow-x-auto');
-    for (const listItem of list.querySelectorAll('li')) {
-      expect(listItem.className).toContain('m-[10px]');
-    }
-    const contactMethodsTitle = screen.getByText(
+    const contactMethodsBody = screen.getByText(
       enContent.contactUs.contactUsForm.contactMethodsTitle,
     );
-    expect(contactMethodsTitle.className).toContain('es-section-body');
-    expect(contactMethodsTitle.className).toContain('text-[1.05rem]');
-    expect(contactMethodsTitle.className).toContain('leading-8');
-
-    const emailLink = screen.getByRole('link', {
-      name: enContent.contactUs.contactUsForm.contactMethodLinks.mail,
-    });
-    const whatsappLink = screen.getByRole('link', {
+    expect(contactMethodsBody.className).toContain('es-section-body');
+    expect(contactMethodsBody.className).toContain('text-[1.05rem]');
+    expect(contactMethodsBody.className).toContain('leading-8');
+    const whatsappCta = screen.getByRole('link', {
       name: enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
     });
-    const instagramLink = screen.getByRole('link', {
-      name: enContent.contactUs.contactUsForm.contactMethodLinks.instagram,
-    });
-    const linkedInLink = screen.getByRole('link', {
-      name: enContent.contactUs.contactUsForm.contactMethodLinks.linkedin,
-    });
-    const formLink = screen.getByRole('link', {
-      name: enContent.contactUs.contactUsForm.contactMethodLinks.form,
-    });
-
-    expect(emailLink).toHaveAttribute('href', 'mailto:hello@example.com');
-    expect(whatsappLink).toHaveAttribute(
+    expect(whatsappCta).toHaveAttribute(
       'href',
       'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
     );
-    expect(instagramLink).toHaveAttribute('href', 'https://www.instagram.com/evolvesprouts');
-    expect(linkedInLink).toHaveAttribute(
-      'href',
-      'https://www.linkedin.com/company/evolve-sprouts',
-    );
-    expect(formLink).toHaveAttribute('href', '#contact-form');
-    expect(
-      within(list)
-        .getAllByRole('link')
-        .map((link) => link.getAttribute('aria-label')),
-    ).toEqual([
-      enContent.contactUs.contactUsForm.contactMethodLinks.form,
-      enContent.contactUs.contactUsForm.contactMethodLinks.instagram,
-      enContent.contactUs.contactUsForm.contactMethodLinks.linkedin,
-      enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
-      enContent.contactUs.contactUsForm.contactMethodLinks.mail,
-    ]);
-    for (const link of [emailLink, whatsappLink, instagramLink, formLink]) {
-      expect(link.className).toContain('w-[45px]');
-      expect(link.className).toContain('flex-col');
-      expect(link.className).toContain('items-center');
-      expect(link.getAttribute('aria-label')).not.toBeNull();
-    }
-    expect(linkedInLink.className).toContain('w-auto');
-    expect(linkedInLink.className).toContain('flex-col');
-    expect(linkedInLink.className).toContain('items-center');
-    expect(linkedInLink.getAttribute('aria-label')).not.toBeNull();
-    expect(screen.getByTestId('contact-method-icon-email').querySelector('img')).toHaveAttribute(
-      'src',
-      '/images/contact-email.svg',
-    );
-    const whatsappIcon = screen
-      .getByTestId('contact-method-icon-whatsapp')
-      .querySelector('img');
-    expect(whatsappIcon).toHaveAttribute('src', '/images/contact-whatsapp.svg');
-    expect(whatsappIcon?.className).toContain('h-[45px]');
-    expect(whatsappIcon?.className).toContain('w-[45px]');
-    expect(
-      screen.getByTestId('contact-method-icon-instagram').querySelector('img'),
-    ).toHaveAttribute('src', '/images/contact-instagram.png');
-    expect(
-      screen.getByTestId('contact-method-icon-linkedin').querySelector('img'),
-    ).toHaveAttribute('src', '/images/contact-linkedin.png');
-    const linkedInIcon = screen.getByTestId('contact-method-icon-linkedin').querySelector('img');
-    const linkedInIconContainer = screen.getByTestId('contact-method-icon-linkedin');
-    expect(linkedInIconContainer.className).toContain('h-[45px]');
-    expect(linkedInIconContainer.className).toContain('w-auto');
-    expect(linkedInIcon).toHaveAttribute('width', '635');
-    expect(linkedInIcon).toHaveAttribute('height', '540');
-    expect(linkedInIcon?.className).toContain('h-[45px]');
-    expect(linkedInIcon?.className).toContain('w-auto');
-    expect(screen.getByTestId('contact-method-icon-form').querySelector('img')).toHaveAttribute(
-      'src',
-      '/images/contact-form.svg',
-    );
-    expect(
-      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.form),
-    ).toBeNull();
-    expect(
-      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.instagram),
-    ).toBeNull();
-    expect(
-      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.linkedin),
-    ).toBeNull();
-    expect(
-      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp),
-    ).toBeNull();
-    expect(
-      screen.queryByText(enContent.contactUs.contactUsForm.contactMethodLinks.mail),
-    ).toBeNull();
+    expect(whatsappCta.className).toContain('es-btn');
+    expect(whatsappCta.className).toContain('es-btn--primary');
   });
 
-  it('omits channels that are missing in the provided contact configuration', () => {
+  it('omits the WhatsApp CTA when the provided contact URL is missing', () => {
     renderContactUsForm({
       contactEmail: undefined,
       whatsappUrl: undefined,
@@ -263,30 +170,9 @@ describe('ContactUsForm section', () => {
 
     expect(
       screen.queryByRole('link', {
-        name: enContent.contactUs.contactUsForm.contactMethodLinks.mail,
-      }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole('link', {
         name: enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
       }),
     ).toBeNull();
-    expect(
-      screen.queryByRole('link', {
-        name: enContent.contactUs.contactUsForm.contactMethodLinks.instagram,
-      }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole('link', {
-        name: enContent.contactUs.contactUsForm.contactMethodLinks.linkedin,
-      }),
-    ).toBeNull();
-
-    expect(
-      screen.getByRole('link', {
-        name: enContent.contactUs.contactUsForm.contactMethodLinks.form,
-      }),
-    ).toHaveAttribute('href', '#contact-form');
   });
 
   it('uses the same input styling pattern as the booking form', () => {
@@ -310,25 +196,30 @@ describe('ContactUsForm section', () => {
     }
   });
 
-  it('renders promise items as plain text without bullets or indentation', () => {
+  it('renders the form title heading above fields', () => {
     renderContactUsForm();
 
-    const promiseList = screen
-      .getByRole('heading', {
+    expect(
+      screen.getByRole('heading', {
         level: 2,
-        name: enContent.contactUs.contactUsForm.promiseTitle,
-      })
-      .nextElementSibling as HTMLUListElement | null;
-    expect(promiseList).not.toBeNull();
-    expect(promiseList?.className).not.toContain('list-disc');
-    expect(promiseList?.className).not.toContain('pl-6');
+        name: enContent.contactUs.contactUsForm.formTitle,
+      }),
+    ).toBeInTheDocument();
+  });
 
-    const listItems = promiseList?.querySelectorAll('li') ?? [];
-    expect(listItems.length).toBeGreaterThan(0);
-    for (const listItem of listItems) {
-      expect(listItem.className).not.toContain('bg-white');
-      expect(listItem.className).not.toContain('shadow-');
+  it('renders form description text after the submit button', () => {
+    renderContactUsForm();
+
+    const submitButton = screen.getByRole('button', {
+      name: enContent.contactUs.contactUsForm.submitLabel,
+    });
+    const formElement = submitButton.closest('form');
+    expect(formElement).not.toBeNull();
+    if (!formElement) {
+      throw new Error('Expected contact form to exist');
     }
+    expect(within(formElement).getByText(enContent.contactUs.contactUsForm.formDescription))
+      .toBeInTheDocument();
   });
 
   it('shows linked validation feedback for invalid email and phone values', () => {
