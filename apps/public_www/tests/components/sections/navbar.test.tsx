@@ -86,7 +86,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(languageSelectorWrapper?.className).toContain('items-center');
 
     const desktopActionsContainer = document.querySelector(
-      'div.hidden.items-center.gap-3.lg\\:flex',
+      'div.hidden.items-center.lg\\:flex',
     );
     expect(desktopActionsContainer).not.toBeNull();
     const desktopBookNowLink = within(
@@ -197,7 +197,7 @@ describe('Navbar desktop submenu accessibility', () => {
     const mobileTopBarCta = within(mobileControlsContainer as HTMLElement).getByRole(
       'link',
       {
-        name: enContent.navbar.bookNow.mobileTopbarLabel,
+        name: enContent.navbar.bookNow.label,
       },
     );
     expect(mobileTopBarCta).toBeInTheDocument();
