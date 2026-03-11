@@ -202,7 +202,7 @@ function TestimonialSlide({
             <div className='relative mt-6 sm:mt-8'>
               <div
                 data-testid='testimonial-author-row'
-                className='mx-auto w-full max-w-[500px] text-center sm:pr-[200px]'
+                className='mx-auto w-full max-w-[500px] text-center lg:pr-[200px]'
               >
                 {story.author && (
                   <p className='mx-auto max-w-[350px] es-testimonials-author'>
@@ -239,7 +239,7 @@ function DesktopTestimonialControls({
   return (
     <div
       data-testid='testimonials-desktop-controls'
-      className='pointer-events-none absolute inset-x-0 bottom-[5px] hidden sm:block'
+      className='pointer-events-none absolute inset-x-0 bottom-[10px] hidden sm:block'
     >
       <div className='mx-auto flex w-full max-w-[500px] items-center justify-between gap-3'>
         <ButtonPrimitive
