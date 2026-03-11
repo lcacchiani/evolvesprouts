@@ -54,13 +54,13 @@ export function MyBestAuntieHero({ content }: MyBestAuntieHeroProps) {
           </div>
         </div>
 
-        <div className='es-my-best-auntie-hero-image-wrap mx-auto w-full max-w-[400px] lg:order-1 lg:ml-0 lg:mr-auto'>
+        <div className='es-my-best-auntie-hero-image-wrap mx-auto w-full max-w-[500px] lg:order-1 lg:ml-0 lg:mr-auto'>
           <Image
             src='/images/hero/my-best-auntie-hero.webp'
             alt={content.imageAlt}
             width={1200}
             height={900}
-            sizes='(max-width: 640px) 92vw, 400px'
+            sizes='(max-width: 640px) 92vw, 500px'
             className='es-my-best-auntie-hero-image-flipped relative z-10 h-auto w-full'
           />
         </div>
