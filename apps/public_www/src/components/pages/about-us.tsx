@@ -25,7 +25,10 @@ export function AboutUs({ locale, content }: AboutUsProps) {
       <MyHistory content={content.myHistory} />
       <MyJourney content={content.myJourney} />
       <WhyUs locale={locale} content={content.whyUs} />
-      <DeferredTestimonials content={content.testimonials} />
+      <DeferredTestimonials
+        content={content.testimonials}
+        commonAccessibility={content.common.accessibility}
+      />
       <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
     </PageLayout>
   );

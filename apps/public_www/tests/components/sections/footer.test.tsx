@@ -66,7 +66,7 @@ describe('Footer external links', () => {
     const sharedContainers = document.querySelectorAll('.es-layout-container');
     expect(sharedContainers.length).toBeGreaterThan(0);
 
-    const linkedInLinks = screen.getAllByRole('link', { name: 'Linkedin' });
+    const linkedInLinks = screen.getAllByRole('link', { name: 'LinkedIn' });
     expect(linkedInLinks.length).toBeGreaterThan(0);
     for (const link of linkedInLinks) {
       expect(link).toHaveAttribute('target', '_blank');
@@ -172,7 +172,7 @@ describe('Footer external links', () => {
 
     render(<Footer content={enContent.footer} />);
 
-    const linkedInLinks = screen.getAllByRole('link', { name: 'Linkedin' });
+    const linkedInLinks = screen.getAllByRole('link', { name: 'LinkedIn' });
     expect(linkedInLinks.length).toBeGreaterThan(0);
     for (const link of linkedInLinks) {
       expect(link).toHaveAttribute('href', '/contact-us');

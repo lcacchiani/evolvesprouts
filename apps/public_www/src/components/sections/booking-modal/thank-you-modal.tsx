@@ -245,7 +245,10 @@ export function MyBestAuntieThankYouModal({
   }
 
   return (
-    <ModalOverlay onClose={onClose}>
+    <ModalOverlay
+      onClose={onClose}
+      overlayAriaLabel={content.closeLabel}
+    >
       <OverlayDialogPanel
         panelRef={modalPanelRef}
         ariaLabelledBy={dialogTitleId}

@@ -6,12 +6,17 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { CourseHighlightsContent } from '@/content';
+import type {
+  CommonAccessibilityContent,
+  CourseHighlightsContent,
+} from '@/content';
 import enContent from '@/content/en.json';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface CourseHighlightsProps {
   content: CourseHighlightsContent;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 interface BenefitCard {
@@ -117,7 +122,10 @@ function getBenefitCards(content: CourseHighlightsContent): BenefitCard[] {
   return cards;
 }
 
-export function CourseHighlights({ content }: CourseHighlightsProps) {
+export function CourseHighlights({
+  content,
+  commonAccessibility = enContent.common.accessibility,
+}: CourseHighlightsProps) {
   const sectionTitle = content.title || fallbackCourseHighlightsCopy.title;
   const sectionDescription =
     content.description || fallbackCourseHighlightsCopy.description;
@@ -154,7 +162,11 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
           <CarouselTrack
             carouselRef={carouselRef}
             testId='course-highlights-mobile-carousel'
-            ariaLabel={`${sectionTitle} carousel`}
+            ariaLabel={formatContentTemplate(
+              commonAccessibility.carouselLabelTemplate,
+              { title: sectionTitle },
+            )}
+            ariaRoleDescription={commonAccessibility.carouselRoleDescription}
             className='pb-2 md:snap-none md:overflow-visible md:pb-0'
           >
             <ul className='flex min-w-0 gap-5 sm:gap-6 md:grid md:grid-cols-2 md:gap-6 xl:grid-cols-3'>
@@ -175,6 +187,7 @@ export function CourseHighlights({ content }: CourseHighlightsProps) {
                       imageClassName={card.imageClassName}
                       description={card.description}
                       tone={tone}
+                      showDetailsLabelTemplate={content.showDetailsAriaLabelTemplate}
                     />
                   </li>
                 );

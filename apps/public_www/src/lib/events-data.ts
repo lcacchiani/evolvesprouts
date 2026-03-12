@@ -281,7 +281,10 @@ export function shouldUseTemporaryEventsContentSource(): boolean {
   return resolveEventsSource() === EVENTS_SOURCE_CONTENT;
 }
 
-function normalizeLocationLabel(value: string | undefined): string | undefined {
+function normalizeLocationLabel(
+  value: string | undefined,
+  content: EventsContent,
+): string | undefined {
   const normalizedValue = readOptionalText(value);
   if (!normalizedValue) {
     return undefined;
@@ -290,11 +293,11 @@ function normalizeLocationLabel(value: string | undefined): string | undefined {
   const normalizedKey = normalizedValue.toLowerCase();
 
   if (normalizedKey === 'virtual') {
-    return 'Virtual';
+    return content.locationTypeLabels.virtual;
   }
 
   if (normalizedKey === 'physical') {
-    return 'In Person';
+    return content.locationTypeLabels.inPerson;
   }
 
   return formatEnumLikeLabel(normalizedValue);
@@ -622,7 +625,7 @@ function normalizeEventCard(
       'locationName',
       'venue',
       'address',
-    ]) ?? normalizeLocationLabel(readOptionalText(record.location));
+    ]) ?? normalizeLocationLabel(readOptionalText(record.location), content);
   const locationAddress = readCandidateText(record, [
     'locationAddress',
     'venueAddress',

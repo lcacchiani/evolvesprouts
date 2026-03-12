@@ -8,6 +8,7 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { FreeResourcesOverlayLayout } from '@/components/sections/free-resources-overlay-layout';
 import { FreeResourcesSplitLayout } from '@/components/sections/free-resources-split-layout';
+import enContent from '@/content/en.json';
 import {
   readOptionalText,
   readStringUnion,
@@ -56,6 +57,7 @@ const LAYOUT_VARIANT_VALUES = ['split', 'overlay'] as const;
 const HORIZONTAL_POSITION_VALUES = ['left', 'right'] as const;
 
 const GREEN_ACCENT = 'var(--es-color-accent-green, #5D9D49)';
+const fallbackResourcesContent = enContent.resources;
 
 function readSectionConfig(
   content: ResourcesContent,
@@ -263,30 +265,34 @@ export function FreeResourcesForGentleParenting({
   const cardDescription =
     readOptionalText(content.cardDescription) ??
     content.description;
-  const ctaLabel = readOptionalText(content.ctaLabel) ?? `${content.title} PDF`;
+  const ctaLabel = readOptionalText(content.ctaLabel) ?? fallbackResourcesContent.ctaLabel;
   const resourceKey =
     readOptionalText(content.resourceKey) ?? 'patience-free-guide';
   const formFirstNameLabel =
-    readOptionalText(content.formFirstNameLabel) ?? 'First name';
+    readOptionalText(content.formFirstNameLabel)
+    ?? fallbackResourcesContent.formFirstNameLabel;
   const formEmailLabel =
-    readOptionalText(content.formEmailLabel) ?? 'Email';
+    readOptionalText(content.formEmailLabel)
+    ?? fallbackResourcesContent.formEmailLabel;
   const formSubmitLabel =
-    readOptionalText(content.formSubmitLabel) ?? 'Send Me the Media';
+    readOptionalText(content.formSubmitLabel)
+    ?? fallbackResourcesContent.formSubmitLabel;
   const formSuccessTitle =
-    readOptionalText(content.formSuccessTitle) ?? 'Check Your Email!';
+    readOptionalText(content.formSuccessTitle)
+    ?? fallbackResourcesContent.formSuccessTitle;
   const formSuccessBody =
     readOptionalText(content.formSuccessBody) ??
-    'Check your email for the download link.';
+    fallbackResourcesContent.formSuccessBody;
   const formErrorMessage =
     readOptionalText(content.formErrorMessage) ??
-    'Unable to submit right now. Please try again.';
+    fallbackResourcesContent.formErrorMessage;
   const checklistItems = resolveChecklistItems(content.items);
   const mediaTitleLine1 =
     readOptionalText(content.mediaTitleLine1) ??
-    'Teach Patience';
+    fallbackResourcesContent.mediaTitleLine1;
   const mediaTitleLine2 =
     readOptionalText(content.mediaTitleLine2) ??
-    'to Young Children';
+    fallbackResourcesContent.mediaTitleLine2;
   const mediaAltText = `${mediaTitleLine1} ${mediaTitleLine2}`;
 
   const headerAlignment = sectionConfig.headerAlignment ?? 'center';

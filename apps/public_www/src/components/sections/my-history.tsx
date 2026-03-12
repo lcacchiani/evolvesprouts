@@ -8,6 +8,7 @@ import {
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { MyHistoryContent } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 
 interface MyHistoryProps {
   content: MyHistoryContent;
@@ -88,7 +89,9 @@ export function MyHistory({ content }: MyHistoryProps) {
                     <Image
                       key={`${src}-mobile`}
                       src={src}
-                      alt={`A brief history image from Evolve Sprouts ${imageIndex + 1}`}
+                      alt={formatContentTemplate(content.imageAltTemplate, {
+                        index: imageIndex + 1,
+                      })}
                       width={1600}
                       height={1200}
                       sizes='100vw'
@@ -106,7 +109,9 @@ export function MyHistory({ content }: MyHistoryProps) {
             <Image
               key={src}
               src={src}
-              alt={`A brief history image from Evolve Sprouts ${index + 1}`}
+              alt={formatContentTemplate(content.imageAltTemplate, {
+                index: index + 1,
+              })}
               width={1600}
               height={1200}
               sizes='(min-width: 1280px) 651px, (min-width: 1024px) 44vw, 100vw'

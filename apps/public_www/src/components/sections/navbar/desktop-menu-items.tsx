@@ -2,7 +2,9 @@ import Image from 'next/image';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import enContent from '@/content/en.json';
 import { type Locale, type NavbarContent } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 import { localizeHref, normalizeLocalizedPath } from '@/lib/locale-routing';
 
@@ -115,10 +117,12 @@ function DesktopMenuItem({
   item,
   currentPath,
   locale,
+  submenuToggleLabelTemplate,
 }: {
   item: MenuItem;
   currentPath: string;
   locale: Locale;
+  submenuToggleLabelTemplate: string;
 }) {
   const itemIsActive = isMenuItemActive(currentPath, item);
   const hasChildren = Boolean(item.children);
@@ -206,7 +210,9 @@ function DesktopMenuItem({
         className={NAV_TOP_LEVEL_LINK_WITH_SUBMENU_CLASSNAME}
         aria-expanded={isSubmenuOpen}
         aria-controls={submenuListId}
-        aria-label={`Toggle ${item.label} submenu`}
+        aria-label={formatContentTemplate(submenuToggleLabelTemplate, {
+          label: item.label,
+        })}
         onClick={() => {
           setIsSubmenuOpen((value) => {
             if (!value) {
@@ -258,10 +264,12 @@ export function DesktopMenuItems({
   items,
   currentPath,
   locale,
+  submenuToggleLabelTemplate = enContent.navbar.submenuToggleLabelTemplate,
 }: {
   items: readonly MenuItem[];
   currentPath: string;
   locale: Locale;
+  submenuToggleLabelTemplate?: string;
 }) {
   return (
     <ul className='hidden flex-1 items-center justify-center gap-[6px] lg:flex'>
@@ -271,6 +279,7 @@ export function DesktopMenuItems({
           item={item}
           currentPath={currentPath}
           locale={locale}
+          submenuToggleLabelTemplate={submenuToggleLabelTemplate}
         />
       ))}
     </ul>

@@ -10,6 +10,8 @@ import {
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import enContent from '@/content/en.json';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 
 const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
@@ -26,6 +28,7 @@ export interface CourseHighlightCardProps {
   imageClassName: string;
   description?: string;
   tone: CourseHighlightCardTone;
+  showDetailsLabelTemplate?: string;
 }
 
 const INTERACTIVE_ELEMENT_SELECTOR =
@@ -47,6 +50,7 @@ export function CourseHighlightCard({
   imageClassName,
   description,
   tone,
+  showDetailsLabelTemplate = enContent.courseHighlights.showDetailsAriaLabelTemplate,
 }: CourseHighlightCardProps) {
   const [isActive, setIsActive] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -154,7 +158,7 @@ export function CourseHighlightCard({
       {/* Arrow button — triggers reveal on tap */}
       <ButtonPrimitive
         variant='icon'
-        aria-label={`Show details for ${title}`}
+        aria-label={formatContentTemplate(showDetailsLabelTemplate, { title })}
         aria-expanded={isActive}
         onClick={handleArrowClick}
         className={`absolute bottom-5 left-5 z-10 appearance-none rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} group-hover:h-[70px] group-hover:w-[70px] ${arrowActive}`}

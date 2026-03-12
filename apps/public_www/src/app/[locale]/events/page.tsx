@@ -64,7 +64,7 @@ async function resolveServerSideEvents(
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, ROUTES.events, 'Events');
+  const title = getMenuLabel(content, ROUTES.events);
   const description = content.events.description;
 
   return buildLocalizedMetadata({
@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
 
 export default async function EventsPage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const pageTitle = getMenuLabel(content, ROUTES.events, 'Events');
+  const pageTitle = getMenuLabel(content, ROUTES.events);
   const eventsForSchema = await resolveServerSideEvents(locale, content);
 
   return (
@@ -93,7 +93,7 @@ export default async function EventsPage({ params }: LocaleRouteProps) {
           locale,
           items: [
             {
-              name: getMenuLabel(content, ROUTES.home, 'Home'),
+              name: getMenuLabel(content, ROUTES.home),
               path: ROUTES.home,
             },
             {

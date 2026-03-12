@@ -6,10 +6,14 @@ import { useEffect, useRef, useState } from 'react';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { TestimonialsContent } from '@/content';
+import type {
+  CommonAccessibilityContent,
+  TestimonialsContent,
+} from '@/content';
 
 interface DeferredTestimonialsClientProps {
   content: TestimonialsContent;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 const PRELOAD_ROOT_MARGIN = '500px 0px';
@@ -24,6 +28,7 @@ const LazyTestimonials = dynamic(
 
 export function DeferredTestimonialsClient({
   content,
+  commonAccessibility,
 }: DeferredTestimonialsClientProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [shouldLoad, setShouldLoad] = useState(false);
@@ -70,7 +75,10 @@ export function DeferredTestimonialsClient({
   return (
     <div ref={containerRef}>
       {shouldLoad ? (
-        <LazyTestimonials content={content} />
+        <LazyTestimonials
+          content={content}
+          commonAccessibility={commonAccessibility}
+        />
       ) : (
         <SectionShell
           id='testimonials'

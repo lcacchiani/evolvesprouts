@@ -63,11 +63,13 @@
           "shortLabel": "TC",
           "flagSrc": "/images/flags/hong-kong.svg"
         }
-      ]
+      ],
+      "flagAltTemplate": "{label} flag"
     },
     "openNavigationMenuAriaLabel": "Open navigation menu",
     "closeNavigationMenuAriaLabel": "Close navigation menu",
-    "mobileNavigationMenuAriaLabel": "Mobile navigation menu"
+    "mobileNavigationMenuAriaLabel": "Mobile navigation menu",
+    "submenuToggleLabelTemplate": "Toggle {label} submenu"
   },
   "hero": {
     "title": "Your auntie loves your child. But she needs the tools to raise them your way.",
@@ -76,7 +78,8 @@
     "cta": "Train your helper today",
     "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "Hi, I'd like to book a free session!",
-    "description": "Trusted by families across Hong Kong. AMI Montessori-certified. Designed for real life."
+    "description": "Trusted by families across Hong Kong. AMI Montessori-certified. Designed for real life.",
+    "imageAlt": "Montessori auntie training for Hong Kong families"
   },
   "seo": {
     "fallbackTitle": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
@@ -246,15 +249,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "May 08 @ 12:00 pm",
-            "isoDate": "2026-05-08"          },
+            "isoDate": "2026-05-08"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "May 15 @ 12:00 pm",
-            "isoDate": "2026-05-15"          },
+            "isoDate": "2026-05-15"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "May 22 @ 12:00 pm",
-            "isoDate": "2026-05-22"          }
+            "isoDate": "2026-05-22"
+          }
         ]
       },
       {
@@ -275,15 +281,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "Jun 08 @ 12:00 pm",
-            "isoDate": "2026-06-08"          },
+            "isoDate": "2026-06-08"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "Jun 15 @ 12:00 pm",
-            "isoDate": "2026-06-15"          },
+            "isoDate": "2026-06-15"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "Jun 22 @ 12:00 pm",
-            "isoDate": "2026-06-22"          }
+            "isoDate": "2026-06-22"
+          }
         ]
       },
       {
@@ -304,15 +313,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "May 10 @ 12:00 pm",
-            "isoDate": "2026-05-10"          },
+            "isoDate": "2026-05-10"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "May 17 @ 12:00 pm",
-            "isoDate": "2026-05-17"          },
+            "isoDate": "2026-05-17"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "May 24 @ 12:00 pm",
-            "isoDate": "2026-05-24"          }
+            "isoDate": "2026-05-24"
+          }
         ]
       },
       {
@@ -333,15 +345,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "Jun 10 @ 12:00 pm",
-            "isoDate": "2026-06-10"          },
+            "isoDate": "2026-06-10"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "Jun 17 @ 12:00 pm",
-            "isoDate": "2026-06-17"          },
+            "isoDate": "2026-06-17"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "Jun 24 @ 12:00 pm",
-            "isoDate": "2026-06-24"          }
+            "isoDate": "2026-06-24"
+          }
         ]
       },
       {
@@ -362,15 +377,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "Jul 09 @ 12:00 pm",
-            "isoDate": "2026-07-09"          },
+            "isoDate": "2026-07-09"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "Jul 16 @ 12:00 pm",
-            "isoDate": "2026-07-16"          },
+            "isoDate": "2026-07-16"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "Jul 23 @ 12:00 pm",
-            "isoDate": "2026-07-23"          }
+            "isoDate": "2026-07-23"
+          }
         ]
       }
     ],
@@ -387,7 +405,7 @@
         "She steps back. Your child steps up."
       ],
       "refundHint": "Full refund up to 7 days prior.",
-      "directionLabel": "Get Direction",
+      "directionLabel": "Get Directions",
       "reservationTitle": "Reservation",
       "reservationDescription": "Please complete your details. We will send payment confirmation by email.",
       "selectedAgeGroupLabel": "Child age group",
@@ -422,7 +440,9 @@
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
       "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
       "emailValidationError": "Please enter a valid email address.",
-      "submitErrorMessage": "Unable to submit reservation right now. Please try again."
+      "submitErrorMessage": "Unable to submit reservation right now. Please try again.",
+      "closeOverlayLabel": "Close modal",
+      "fpsQrCodeLabel": "FPS payment QR code"
     },
     "thankYouModal": {
       "closeLabel": "Close",
@@ -441,7 +461,10 @@
       "printLabel": "Print",
       "backHomeLabel": "Back To Home",
       "noEmailFallback": "your email address"
-    }
+    },
+    "nextCohortLabelTemplate": "{scheduleLabel} for {ageGroupLabel} age group",
+    "scrollDatesLeftAriaLabel": "Scroll dates left",
+    "scrollDatesRightAriaLabel": "Scroll dates right"
   },
   "myBestAuntieDescription": {
     "eyebrow": "Course Highlights",
@@ -478,7 +501,7 @@
       {
         "icon": "toolbox",
         "title": "Scripts, Tools & Real-Life Examples",
-        "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behavior.",
+        "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behaviour.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
@@ -520,7 +543,7 @@
     "mediaTitleLine2": "to Young Children",
     "ctaLabel": "Get 4 Ways to Teach Patience",
     "resourceKey": "patience-free-guide",
-    "formFirstNameLabel": "First name",
+    "formFirstNameLabel": "First Name",
     "formEmailLabel": "Email",
     "formSubmitLabel": "Send Me the Free Guide",
     "formSuccessTitle": "Check Your Email!",
@@ -548,7 +571,7 @@
   "courseHighlights": {
     "eyebrow": "Course Highlights",
     "title": "Why Join Our Courses",
-    "description": "The program serious families choose when they want real change",
+    "description": "The programme serious families choose when they want real change",
     "ctaLabel": "Get Started—Train Auntie Today",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "Connect Now",
@@ -585,7 +608,8 @@
       }
     ],
     "scrollLeftAriaLabel": "Scroll course highlights left",
-    "scrollRightAriaLabel": "Scroll course highlights right"
+    "scrollRightAriaLabel": "Scroll course highlights right",
+    "showDetailsAriaLabelTemplate": "Show details for {title}"
   },
   "realTalk": {
     "eyebrow": "Real Talk",
@@ -665,7 +689,13 @@
         "service": "My Best Auntie Training Course",
         "mainImageSrc": "/images/testimonials/happy-parent-1.webp"
       }
-    ]
+    ],
+    "a11y": {
+      "imageAltFallbackAuthor": "Parent",
+      "imageAltTemplate": "{author} testimonial image",
+      "currentAuthorLabelTemplate": "{author} (current)",
+      "goToAuthorLabelTemplate": "Go to {author}'s testimonial"
+    }
   },
   "contactUs": {
     "contactUsForm": {
@@ -685,7 +715,7 @@
       "formDescription": "I reply personally within 24-48 hours. No bots, no templates — just me.",
       "successTitle": "Thank you for your message!",
       "successDescription": "We have received your message and will take care of it shortly.",
-      "submitErrorMessage": "something went wrong, try a bit later",
+      "submitErrorMessage": "Something went wrong. Please try again later.",
       "captchaLabel": "Please complete CAPTCHA verification",
       "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
@@ -740,7 +770,7 @@
     "errorLabel": "Unable to load events right now. Please check back soon.",
     "card": {
       "emptyLocationLabel": "Location details will be announced soon.",
-      "directionLabel": "Get direction",
+      "directionLabel": "Get Directions",
       "ctaLabel": "Reserve your spot",
       "fullyBookedLabel": "Fully booked",
       "freeLabel": "Free"
@@ -750,6 +780,10 @@
       "emptyStateLabel": "No past events yet",
       "notifyPrompt": "Want to know when new events are announced?",
       "notifyCtaLabel": "Get notified"
+    },
+    "locationTypeLabels": {
+      "virtual": "Virtual",
+      "inPerson": "In Person"
     }
   },
   "ida": {
@@ -757,13 +791,15 @@
     "subtitle": "I'm Ida, and I understand the weight of choosing someone to care for your child.",
     "description": "As a Montessori-trained educator and mother of two in Hong Kong, I've been where you are — searching for guidance you can trust. Evolve Sprouts was born from that very search.",
     "ctaLabel": "",
-    "ctaHref": "/contact-us"
+    "ctaHref": "/contact-us",
+    "imageAlt": "Ida De Gregorio from Evolve Sprouts"
   },
   "myHistory": {
     "eyebrow": "My Story",
     "title": "From the boardroom to the classroom",
     "subtitle": "After years working in media and hospitality, I felt a growing pull toward something more meaningful, understanding children and supporting families during the years that shape everything.",
-    "description": "That decision led me back to university. I earned a Master’s in Education from HKU, completed an AMI Montessori Assistant Diploma (0–3) in London, and an AMI Montessori Diploma (3–6) in San Diego, California. I also hold certifications in Child Nutrition from Stanford University and specialized training in Montessori emotional well-being.\n\nFor several years, I worked hands-on with children aged 1–6 at Hong Kong’s International Montessori School (IMS), observing closely how children grow when the adults around them understand their developmental needs.\n\nThat experience changed how I see childhood, and the role adults play in it.\n\nToday, my work focuses on helping the adults around the child: parents and caregivers. Because what happens in everyday moments at home shapes a child far more than occasional lessons or activities.\n\nI also bring this work into my own life every day with my two daughters, where Montessori is not just a philosophy I teach, it’s how we live.\n\nMy goal is simple: to help families create calmer homes, raise capable children, and feel confident in the way they guide their child’s growth."
+    "description": "That decision led me back to university. I earned a Master’s in Education from HKU, completed an AMI Montessori Assistant Diploma (0–3) in London, and an AMI Montessori Diploma (3–6) in San Diego, California. I also hold certifications in Child Nutrition from Stanford University and specialised training in Montessori emotional well-being.\n\nFor several years, I worked hands-on with children aged 1–6 at Hong Kong’s International Montessori School (IMS), observing closely how children grow when the adults around them understand their developmental needs.\n\nThat experience changed how I see childhood, and the role adults play in it.\n\nToday, my work focuses on helping the adults around the child: parents and caregivers. Because what happens in everyday moments at home shapes a child far more than occasional lessons or activities.\n\nI also bring this work into my own life every day with my two daughters, where Montessori is not just a philosophy I teach, it’s how we live.\n\nMy goal is simple: to help families create calmer homes, raise capable children, and feel confident in the way they guide their child’s growth.",
+    "imageAltTemplate": "A brief history image from Evolve Sprouts {index}"
   },
   "myJourney": {
     "eyebrow": "My Montessori Journey",
@@ -782,7 +818,8 @@
         "tag": "What It Taught Me",
         "description": "Replace guilt with grace. See misbehaviour as unmet needs, not defiance. Build a home where both children and parents feel truly seen — not perfect, just growing."
       }
-    ]
+    ],
+    "imageAlt": "My Montessori Journey section image"
   },
   "whyUs": {
     "eyebrow": "Why Us",
@@ -850,7 +887,7 @@
       },
       {
         "question": "Do I need to follow Montessori perfectly to work with you?",
-        "answer": "No. This is Montessori-informed, not Montessori-dogmatic. We focus on principles that improve daily life: independence, respect, consistency, and emotional regulation-adapted to modern Hong Kong homes and caregiving realities.",
+        "answer": "No. This is Montessori-informed, not Montessori-dogmatic. We focus on principles that improve daily life: independence, respect, consistency, and emotional regulation - adapted to modern Hong Kong homes and caregiving realities.",
         "labelIds": [
           "general"
         ]
@@ -895,7 +932,7 @@
       },
       {
         "question": "Will this make my child too soft or less competitive?",
-        "answer": "Children raised with independence, emotional regulation, and responsibility often become more confident, focused, and resilient-not less capable.",
+        "answer": "Children raised with independence, emotional regulation, and responsibility often become more confident, focused, and resilient - not less capable.",
         "labelIds": [
           "discipline"
         ]
@@ -958,7 +995,7 @@
       },
       {
         "question": "Why is this priced higher than a one-off parenting talk?",
-        "answer": "Because this is personalised and implementation-focused. You are paying for real-life observation, tailored guidance, and ongoing support-not just motivation.",
+        "answer": "Because this is personalised and implementation-focused. You are paying for real-life observation, tailored guidance, and ongoing support - not just motivation.",
         "labelIds": [
           "pricing"
         ]
@@ -1014,7 +1051,7 @@
       },
       {
         "question": "Have not found what you need?",
-        "answer": "Get in touch-we are happy to help. Contact us through the Contact Us page.",
+        "answer": "Get in touch - we are happy to help. Contact us through the Contact Us page.",
         "labelIds": [
           "general",
           "discipline",
@@ -1036,7 +1073,7 @@
     "emailPlaceholder": "Email address",
     "emailValidationMessage": "Please enter a valid email address.",
     "prefilledMessage": "Newsletter join",
-    "submitErrorMessage": "something went wrong, try a bit later",
+    "submitErrorMessage": "Something went wrong. Please try again later.",
     "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
     "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
     "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
@@ -1051,7 +1088,7 @@
     "emailPlaceholder": "Email address",
     "emailValidationMessage": "Please enter a valid email address.",
     "prefilledMessage": "Event notification signup",
-    "submitErrorMessage": "something went wrong, try a bit later",
+    "submitErrorMessage": "Something went wrong. Please try again later.",
     "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
     "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
     "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
@@ -1069,7 +1106,8 @@
   "whoops": {
     "code": "404",
     "title": "Page not found",
-    "description": "Sorry, the page key you entered is invalid."
+    "description": "Sorry, the page key you entered is invalid.",
+    "retryLabel": "Try again"
   },
   "termsAndConditions": {
     "eyebrow": "Legal",
@@ -1242,7 +1280,7 @@
       "title": "Connect on",
       "items": [
         {
-          "label": "Linkedin",
+          "label": "LinkedIn",
           "href": "/contact-us",
           "icon": "linkedin"
         },
@@ -1256,7 +1294,37 @@
     "copyright": "© Evolve Sprouts",
     "links": {
       "privacy": "Privacy Policy",
-      "terms": "Terms of Service"
+      "terms": "Terms and Conditions"
+    }
+  },
+  "common": {
+    "shell": {
+      "skipToMainContentLabel": "Skip to main content",
+      "environmentBadgeLabel": "Staging",
+      "noscript": {
+        "title": "JavaScript is disabled.",
+        "description": "Some interactive features are unavailable. You can still browse key pages below.",
+        "homeLabel": "Home",
+        "contactLabel": "Contact Us"
+      }
+    },
+    "accessibility": {
+      "carouselRoleDescription": "carousel",
+      "carouselLabelTemplate": "{title} carousel",
+      "sliderLabelTemplate": "{title} slider"
+    },
+    "mediaDownload": {
+      "invalidTitle": "Invalid download link",
+      "invalidDescription": "This media link is missing a valid token. Please request the media again.",
+      "unavailableTitle": "Download temporarily unavailable",
+      "unavailableDescription": "We could not prepare your download link. Please try again in a moment.",
+      "preparingTitle": "Preparing your download",
+      "preparingDescription": "If your download does not start automatically, use the link below.",
+      "manualDownloadLabel": "Download the media manually"
+    },
+    "placeholder": {
+      "descriptionTemplate": "{title} - {brand}",
+      "workshopsTitle": "Workshops"
     }
   }
 }

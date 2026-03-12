@@ -52,13 +52,20 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
       footerContent={content.footer}
     >
       <HeroBanner content={content.hero} ctaHref={heroCtaHref} />
-      <RealTalk content={content.realTalk} />
+      <RealTalk
+        content={content.realTalk}
+        commonAccessibility={content.common.accessibility}
+      />
       <IdaIntro content={content.idaIntro} />
       <MyBestAuntieOutline
         content={content.myBestAuntieOutline}
         ctaHref={myBestAuntieOutlineCtaHref}
+        commonAccessibility={content.common.accessibility}
       />
-      <DeferredTestimonials content={content.testimonials} />
+      <DeferredTestimonials
+        content={content.testimonials}
+        commonAccessibility={content.common.accessibility}
+      />
       <FreeIntroSession content={content.freeIntroSession} />
     </PageLayout>
   );

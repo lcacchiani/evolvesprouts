@@ -20,10 +20,23 @@ export function MyBestAuntie({ locale, content }: MyBestAuntieProps) {
       footerContent={content.footer}
     >
       <MyBestAuntieHero content={content.myBestAuntieHero} />
-      <MyBestAuntieDescription content={content.myBestAuntieDescription} />
-      <MyBestAuntieOutline content={content.myBestAuntieOutline} />
-      <DeferredTestimonials content={content.testimonials} />
-      <MyBestAuntieBooking locale={locale} content={content.myBestAuntieBooking} />
+      <MyBestAuntieDescription
+        content={content.myBestAuntieDescription}
+        commonAccessibility={content.common.accessibility}
+      />
+      <MyBestAuntieOutline
+        content={content.myBestAuntieOutline}
+        commonAccessibility={content.common.accessibility}
+      />
+      <DeferredTestimonials
+        content={content.testimonials}
+        commonAccessibility={content.common.accessibility}
+      />
+      <MyBestAuntieBooking
+        locale={locale}
+        content={content.myBestAuntieBooking}
+        commonAccessibility={content.common.accessibility}
+      />
       <Faq content={content.faq} />
       <FreeIntroSession content={content.freeIntroSession} />
     </PageLayout>

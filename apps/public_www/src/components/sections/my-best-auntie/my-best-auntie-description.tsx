@@ -6,7 +6,12 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { MyBestAuntieDescriptionContent } from '@/content';
+import enContent from '@/content/en.json';
+import type {
+  CommonAccessibilityContent,
+  MyBestAuntieDescriptionContent,
+} from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import {
   TEXT_ICON_COLOR,
   TEXT_NEUTRAL_STRONG_COLOR,
@@ -15,6 +20,7 @@ import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieDescriptionProps {
   content: MyBestAuntieDescriptionContent;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 const CARD_ICON_FALLBACK_CLASS = 'es-my-best-auntie-description-icon--training';
@@ -70,6 +76,7 @@ function readIconMaskClass(icon: string): string {
 
 export function MyBestAuntieDescription({
   content,
+  commonAccessibility = enContent.common.accessibility,
 }: MyBestAuntieDescriptionProps) {
   const cards = content.items;
   const ctaLabel = content.ctaLabel?.trim() ?? '';
@@ -139,7 +146,11 @@ export function MyBestAuntieDescription({
 
         <CarouselTrack
           carouselRef={carouselRef}
-          ariaLabel={`${content.title} slider`}
+          ariaLabel={formatContentTemplate(
+            commonAccessibility.sliderLabelTemplate,
+            { title: content.title },
+          )}
+          ariaRoleDescription={commonAccessibility.carouselRoleDescription}
           className='mt-6 pb-2 scroll-smooth'
         >
           <ul className='flex gap-5 sm:gap-6'>

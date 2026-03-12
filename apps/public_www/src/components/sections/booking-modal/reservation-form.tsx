@@ -393,7 +393,10 @@ export function BookingReservationForm({
                       data-booking-payment-details='fps'
                       className='flex h-full w-full flex-col items-center justify-center gap-2'
                     >
-                      <FpsQrCode amount={totalAmount} />
+                      <FpsQrCode
+                        amount={totalAmount}
+                        label={content.fpsQrCodeLabel}
+                      />
                       <p
                         data-booking-payment-fps-copy='true'
                         className='text-center text-sm leading-[1.45] es-text-heading'

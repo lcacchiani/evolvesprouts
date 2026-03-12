@@ -8,8 +8,14 @@ import {
   type Locale,
   type SiteContent,
 } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
+import enContent from '@/content/en.json';
 import { localizePath } from '@/lib/locale-routing';
 import { buildLocalizedMetadata } from '@/lib/seo';
+
+function getDefaultSiteContent(): SiteContent {
+  return enContent as SiteContent;
+}
 
 export type LocaleRouteParams = Promise<{ locale: string }>;
 
@@ -50,16 +56,21 @@ export function generateLocaleStaticParams() {
 export function getMenuLabel(
   content: SiteContent,
   href: string,
-  fallbackLabel: string,
+  fallbackLabel = '',
 ): string {
   const match = content.navbar.menuItems.find((item) => item.href === href);
-  return match?.label ?? fallbackLabel;
+  if (match?.label) {
+    return match.label;
+  }
+
+  const defaultMatch = getDefaultSiteContent().navbar.menuItems.find((item) => item.href === href);
+  return defaultMatch?.label ?? fallbackLabel;
 }
 
 export function getFooterLinkLabel(
   content: SiteContent,
   href: string,
-  fallbackLabel: string,
+  fallbackLabel = '',
 ): string {
   const sections = [
     content.footer.quickLinks.items,
@@ -75,6 +86,21 @@ export function getFooterLinkLabel(
     }
   }
 
+  const defaultContent = getDefaultSiteContent();
+  const defaultSections = [
+    defaultContent.footer.quickLinks.items,
+    defaultContent.footer.services.items,
+    defaultContent.footer.aboutUs.items,
+    defaultContent.footer.connectOn.items,
+  ];
+
+  for (const items of defaultSections) {
+    const match = items.find((item) => item.href === href);
+    if (match?.label) {
+      return match.label;
+    }
+  }
+
   return fallbackLabel;
 }
 
@@ -82,6 +108,7 @@ interface PlaceholderMetadataOptions {
   locale: Locale;
   path: string;
   title: string;
+  content: SiteContent;
 }
 
 type LinkLabelResolver = (
@@ -92,7 +119,7 @@ type LinkLabelResolver = (
 
 interface PlaceholderPageOptions {
   path: string;
-  fallbackTitle: string;
+  fallbackTitle: string | ((content: SiteContent) => string);
   labelResolver: LinkLabelResolver;
 }
 
@@ -102,12 +129,16 @@ export function buildPlaceholderPageMetadata({
   locale,
   path,
   title,
+  content,
 }: PlaceholderMetadataOptions) {
   return buildLocalizedMetadata({
     locale,
     path,
     title,
-    description: `${title} — Evolve Sprouts`,
+    description: formatContentTemplate(content.common.placeholder.descriptionTemplate, {
+      title,
+      brand: content.navbar.brand,
+    }),
     robots: {
       index: false,
       follow: true,
@@ -120,7 +151,9 @@ export async function resolvePlaceholderPageTitle(
   { path, fallbackTitle, labelResolver }: PlaceholderPageOptions,
 ): Promise<string> {
   const { content } = await resolveLocalePageContext(params);
-  return labelResolver(content, path, fallbackTitle);
+  const resolvedFallbackTitle =
+    typeof fallbackTitle === 'function' ? fallbackTitle(content) : fallbackTitle;
+  return labelResolver(content, path, resolvedFallbackTitle);
 }
 
 export async function buildPlaceholderMetadataFromParams(
@@ -128,12 +161,15 @@ export async function buildPlaceholderMetadataFromParams(
   { path, fallbackTitle, labelResolver }: PlaceholderPageOptions,
 ) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = labelResolver(content, path, fallbackTitle);
+  const resolvedFallbackTitle =
+    typeof fallbackTitle === 'function' ? fallbackTitle(content) : fallbackTitle;
+  const title = labelResolver(content, path, resolvedFallbackTitle);
 
   return buildPlaceholderPageMetadata({
     locale,
     path,
     title,
+    content,
   });
 }
 
@@ -172,10 +208,14 @@ export function createPlaceholderPage(options: PlaceholderPageOptions) {
 
   async function resolveProps(params: LocaleRouteParams) {
     const { content } = await resolveLocalePageContext(params);
+    const fallbackTitle =
+      typeof options.fallbackTitle === 'function'
+        ? options.fallbackTitle(content)
+        : options.fallbackTitle;
     const title = options.labelResolver(
       content,
       options.path,
-      options.fallbackTitle,
+      fallbackTitle,
     );
 
     return { content, title };

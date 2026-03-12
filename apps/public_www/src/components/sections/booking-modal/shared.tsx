@@ -12,6 +12,8 @@ import {
   useState,
 } from 'react';
 
+import enContent from '@/content/en.json';
+
 const FPS_GENERATOR_SCRIPT_SOURCE = '/scripts/fps-generator.js';
 const CLOSE_ICON_SOURCE = '/images/close.svg';
 const FPS_MERCHANT_NAME = process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME ?? '';
@@ -102,15 +104,17 @@ function loadExternalScript(source: string): Promise<void> {
 
 export function ModalOverlay({
   onClose,
+  overlayAriaLabel = enContent.myBestAuntieBooking.paymentModal.closeOverlayLabel,
   children,
 }: {
   onClose: () => void;
+  overlayAriaLabel?: string;
   children: ReactNode;
 }) {
   return (
     <div className='fixed inset-0 z-[80] overflow-y-auto'>
       <OverlayBackdrop
-        ariaLabel='Close modal'
+        ariaLabel={overlayAriaLabel}
         className='es-booking-modal-overlay border-0'
         onClick={onClose}
       />
@@ -150,7 +154,13 @@ export function CloseButton({
   );
 }
 
-export function FpsQrCode({ amount }: { amount: number }) {
+export function FpsQrCode({
+  amount,
+  label = enContent.myBestAuntieBooking.paymentModal.fpsQrCodeLabel,
+}: {
+  amount: number;
+  label?: string;
+}) {
   const [qrCodeImageDataUrl, setQrCodeImageDataUrl] = useState('');
   const qrCodeContainerRef = useRef<HTMLDivElement | null>(null);
   const hasFpsConfiguration =
@@ -214,14 +224,14 @@ export function FpsQrCode({ amount }: { amount: number }) {
       className='flex shrink-0 items-center justify-center text-center'
     >
       <div
-        aria-label='FPS payment QR code'
+        aria-label={label}
         className='flex h-[128px] w-[128px] shrink-0 items-center justify-center'
       >
         {qrCodeImageDataUrl && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={qrCodeImageDataUrl}
-            alt='FPS payment QR code'
+            alt={label}
             className='h-[128px] w-[128px]'
           />
         )}

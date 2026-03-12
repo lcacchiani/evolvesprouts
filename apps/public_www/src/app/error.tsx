@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
-import { getContent, type Locale } from '@/content';
+import { getContent } from '@/content';
 import { reportInternalError } from '@/lib/internal-error-reporting';
 import { getLocaleFromPath } from '@/lib/locale-routing';
 
@@ -11,12 +11,6 @@ interface RootErrorPageProps {
   error: Error & { digest?: string };
   reset: () => void;
 }
-
-const RETRY_LABELS: Record<Locale, string> = {
-  en: 'Try again',
-  'zh-CN': '重试',
-  'zh-HK': '重試',
-};
 
 export default function RootErrorPage({ error, reset }: RootErrorPageProps) {
   const pathname = usePathname();
@@ -42,7 +36,7 @@ export default function RootErrorPage({ error, reset }: RootErrorPageProps) {
         onClick={reset}
         className='es-focus-ring mt-2 inline-flex min-h-11 items-center justify-center rounded-control px-6 py-2 text-base font-semibold es-btn es-btn--primary'
       >
-        {RETRY_LABELS[locale]}
+        {content.whoops.retryLabel}
       </button>
     </main>
   );

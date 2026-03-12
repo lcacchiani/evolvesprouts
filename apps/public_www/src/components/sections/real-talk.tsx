@@ -6,12 +6,17 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { RealTalkContent } from '@/content';
+import type {
+  CommonAccessibilityContent,
+  RealTalkContent,
+} from '@/content';
 import enContent from '@/content/en.json';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface RealTalkProps {
   content: RealTalkContent;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 interface RealTalkCardCopy {
@@ -53,7 +58,10 @@ function getRealTalkCards(content: RealTalkContent): RealTalkCardCopy[] {
   return cards;
 }
 
-export function RealTalk({ content }: RealTalkProps) {
+export function RealTalk({
+  content,
+  commonAccessibility = enContent.common.accessibility,
+}: RealTalkProps) {
   const sectionTitle = content.title || fallbackRealTalkCopy.title;
   const sectionDescription = content.description || fallbackRealTalkCopy.description;
   const sectionEyebrow = content.eyebrow || fallbackRealTalkCopy.eyebrow;
@@ -88,7 +96,11 @@ export function RealTalk({ content }: RealTalkProps) {
           <CarouselTrack
             carouselRef={carouselRef}
             testId='real-talk-mobile-carousel'
-            ariaLabel={`${sectionTitle} carousel`}
+            ariaLabel={formatContentTemplate(
+              commonAccessibility.carouselLabelTemplate,
+              { title: sectionTitle },
+            )}
+            ariaRoleDescription={commonAccessibility.carouselRoleDescription}
             className='pb-2 md:snap-none md:overflow-visible md:pb-0'
           >
             <ul className='flex min-w-0 gap-5 sm:gap-6 md:grid md:grid-cols-2 md:gap-6 xl:grid-cols-3'>

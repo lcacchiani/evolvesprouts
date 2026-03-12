@@ -2,7 +2,9 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import enContent from '@/content/en.json';
 import { type Locale, type NavbarContent } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { localizeHref, normalizeLocalizedPath } from '@/lib/locale-routing';
 
 type MenuItem = NavbarContent['menuItems'][number];
@@ -83,11 +85,13 @@ function MobileMenuItem({
   currentPath,
   locale,
   onNavigate,
+  submenuToggleLabelTemplate,
 }: {
   item: MenuItem;
   currentPath: string;
   locale: Locale;
   onNavigate: () => void;
+  submenuToggleLabelTemplate: string;
 }) {
   const itemIsActive = isMenuItemActive(currentPath, item);
   const [isExpanded, setIsExpanded] = useState(itemIsActive);
@@ -106,7 +110,9 @@ function MobileMenuItem({
             setIsExpanded((value) => !value);
           }}
           aria-expanded={isExpanded}
-          aria-label={`Toggle ${item.label} submenu`}
+          aria-label={formatContentTemplate(submenuToggleLabelTemplate, {
+            label: item.label,
+          })}
           className={MOBILE_PRIMARY_ACTION_CLASSNAME}
         >
           <span>{item.label}</span>
@@ -154,11 +160,13 @@ export function MobileMenuItems({
   currentPath,
   locale,
   onNavigate,
+  submenuToggleLabelTemplate = enContent.navbar.submenuToggleLabelTemplate,
 }: {
   items: readonly MenuItem[];
   currentPath: string;
   locale: Locale;
   onNavigate: () => void;
+  submenuToggleLabelTemplate?: string;
 }) {
   return (
     <ul className='space-y-3'>
@@ -169,6 +177,7 @@ export function MobileMenuItems({
           currentPath={currentPath}
           locale={locale}
           onNavigate={onNavigate}
+          submenuToggleLabelTemplate={submenuToggleLabelTemplate}
         />
       ))}
     </ul>
