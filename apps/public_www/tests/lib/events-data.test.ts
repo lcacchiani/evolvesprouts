@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import enContent from '@/content/en.json';
+import zhHKContent from '@/content/zh-HK.json';
 import temporaryEventsPayload from '@/content/events.json';
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
@@ -59,6 +60,8 @@ describe('events-data', () => {
           ],
           timezone: 'HKT',
           is_fully_booked: true,
+          price: 9000,
+          currency_symbol: 'HK$',
         },
         {
           title: 'TEST Data Science Intensive Touch',
@@ -82,6 +85,8 @@ describe('events-data', () => {
           ],
           timezone: 'HKT',
           is_fully_booked: false,
+          price: 0,
+          currency_symbol: 'HK$',
         },
       ],
     };
@@ -101,6 +106,8 @@ describe('events-data', () => {
       ctaHref:
         'https://www.google.com/maps/search/?api=1&query=H210%2C+2%2FF%2C+PMQ%2C+Mid-Levels%2C+Central+and+Western%2C+Hong+Kong+Island',
       ctaLabel: enContent.events.card.ctaLabel,
+      costLabel: 'HK$9000',
+      isFreeCost: false,
       timestamp: Date.parse('2025-12-05T10:00:00Z'),
     });
     expect(events[0]?.tags).toEqual([
@@ -119,6 +126,8 @@ describe('events-data', () => {
       locationName: 'Virtual Meeting',
       ctaHref: 'https://meet.example.com/data-science',
       ctaLabel: enContent.events.card.ctaLabel,
+      costLabel: enContent.events.card.freeLabel,
+      isFreeCost: true,
       timestamp: Date.parse('2025-12-15T09:00:00Z'),
     });
     expect(events[1]?.directionHref).toBeUndefined();
@@ -141,14 +150,17 @@ describe('events-data', () => {
             },
           ],
           timezone: 'HKT',
+          price: 0,
         },
       ],
     };
 
-    const events = normalizeEvents(payload, enContent.events, 'zh-HK');
+    const events = normalizeEvents(payload, zhHKContent.events, 'zh-HK');
     expect(events[0]).toMatchObject({
       dateLabel: '2025年12月05日',
       timeLabel: '上午10:00 - 下午1:00 HKT',
+      costLabel: zhHKContent.events.card.freeLabel,
+      isFreeCost: true,
     });
   });
 

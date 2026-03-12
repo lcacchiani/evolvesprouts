@@ -739,7 +739,8 @@
       "emptyLocationLabel": "地點詳情將稍後公佈。",
       "directionLabel": "查看路線",
       "ctaLabel": "立即預訂",
-      "fullyBookedLabel": "已滿額"
+      "fullyBookedLabel": "已滿額",
+      "freeLabel": "免費"
     },
     "past": {
       "title": "過往活動",

@@ -228,6 +228,10 @@
     border-color: var(--es-color-border-soft-alt);
   }
 
+  .es-border-success {
+    border-color: var(--es-color-text-success);
+  }
+
   .es-border-event-card {
     border-color: var(--es-color-border-event-card);
   }

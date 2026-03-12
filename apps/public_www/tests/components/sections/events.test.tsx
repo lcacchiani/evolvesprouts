@@ -110,6 +110,61 @@ describe('Events section', () => {
     expect(screen.queryByText(/^Time:/)).not.toBeInTheDocument();
   });
 
+  it('renders cost chips and styles free chips in green', async () => {
+    const mockApiClient: CrmApiClient = {
+      request: vi.fn().mockResolvedValue({
+        status: 'success',
+        data: [
+          {
+            title: 'Paid event card',
+            location: 'physical',
+            address: 'PMQ, Central',
+            address_url: 'https://maps.google.com/?q=PMQ+Central',
+            dates: [
+              {
+                start_datetime: '2099-12-05T10:00:00Z',
+                end_datetime: '2099-12-05T13:00:00Z',
+              },
+            ],
+            timezone: 'HKT',
+            price: 888,
+            currency_symbol: 'HK$',
+            is_fully_booked: false,
+          },
+          {
+            title: 'Free event card',
+            location: 'virtual',
+            address: 'Online Zoom Room',
+            address_url: 'https://zoom.us/',
+            dates: [
+              {
+                start_datetime: '2099-12-06T10:00:00Z',
+                end_datetime: '2099-12-06T13:00:00Z',
+              },
+            ],
+            timezone: 'HKT',
+            price: 0,
+            currency_symbol: 'HK$',
+            is_fully_booked: false,
+          },
+        ],
+      }),
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    const { container } = render(<Events content={enContent.events} />);
+
+    await screen.findByText('Free event card');
+
+    expect(screen.getByText('HK$888')).toBeInTheDocument();
+    const freeChip = screen.getByText(enContent.events.card.freeLabel).closest('li');
+    expect(freeChip).not.toBeNull();
+    expect(freeChip?.getAttribute('data-event-cost-chip')).toBe('true');
+    expect(freeChip?.className).toContain('es-text-success');
+    expect(freeChip?.className).toContain('es-border-success');
+    expect(container.querySelectorAll('[data-event-cost-icon="true"]')).toHaveLength(2);
+  });
+
   it('shows location icon and direction link while removing the location heading and fully booked icon', async () => {
     const mockApiClient: CrmApiClient = {
       request: vi.fn().mockResolvedValue({
