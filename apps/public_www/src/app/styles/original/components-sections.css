@@ -1202,6 +1202,10 @@
     color: var(--es-color-text-danger-chip, #D03C3C);
   }
 
+  .es-events-detail-chip-success {
+    color: var(--es-color-text-success);
+  }
+
   .es-events-location-heading {
     color: var(--site-heading-text);
     font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
