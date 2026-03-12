@@ -117,7 +117,7 @@ export function EventCardsList({
     <ul className='space-y-6'>
       {events.map((eventCard) => (
         <li key={eventCard.id}>
-          <article className='rounded-panel es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
+          <article className='rounded-panel es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-center lg:justify-between lg:gap-7 lg:p-8'>
             <div className='w-full lg:max-w-[720px]'>
               <div className='flex flex-wrap items-center gap-2'>
                 {eventCard.tags.map((tag) => (
