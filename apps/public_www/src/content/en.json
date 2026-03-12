@@ -416,7 +416,7 @@
       "termsAgreementLabel": "I agree with the",
       "termsLinkLabel": "Terms & Conditions",
       "termsHref": "/terms",
-      "submitLabel": "Submit Reservation",
+      "submitLabel": "Reserve My Spot",
       "captchaLabel": "Please complete CAPTCHA verification",
       "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
