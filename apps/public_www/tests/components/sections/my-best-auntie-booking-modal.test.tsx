@@ -400,6 +400,11 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(paymentOptionsRightColumn?.className).toContain('col-span-4');
     expect(paymentOptionsRightColumn?.className).toContain('items-center');
     expect(paymentOptions?.querySelectorAll('li')).toHaveLength(0);
+    expect(
+      within(paymentBlock as HTMLDivElement).getByText(
+        bookingModalContent.paymentConfirmationNote,
+      ),
+    ).toBeInTheDocument();
 
     const fpsPaymentOption = screen.getByRole('radio', {
       name: bookingModalContent.paymentMethodValue,

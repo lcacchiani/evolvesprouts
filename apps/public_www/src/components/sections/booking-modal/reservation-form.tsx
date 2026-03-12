@@ -421,6 +421,12 @@ export function BookingReservationForm({
                 </div>
               </div>
             </div>
+            <p
+              data-booking-payment-confirmation-note='true'
+              className='text-sm leading-[1.45] es-text-heading'
+            >
+              {content.paymentConfirmationNote}
+            </p>
           </div>
 
           <div data-booking-acknowledgements='true' className='space-y-2'>
