@@ -81,7 +81,7 @@ describe('EventNotification section', () => {
   });
 
   it('renders event notification section in CTA-first state', () => {
-    render(
+    const { container } = render(
       <EventNotification content={enContent.eventNotification} />,
     );
 
@@ -89,6 +89,7 @@ describe('EventNotification section', () => {
       name: enContent.eventNotification.title,
     });
     expect(section.className).toContain('es-event-notification-section');
+    expect(container.querySelector('img.es-event-notification-logo')).toBeNull();
     expect(
       screen.getByRole('button', {
         name: enContent.eventNotification.ctaLabel,
