@@ -37,6 +37,7 @@ interface NormalizedStory {
 
 const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME = 'es-btn--control';
 const CLONE_SETTLE_DELAY_MS = 120;
+const AUTHOR_ANIM_DURATION_MS = 300;
 
 function normalizeStory(item: unknown): NormalizedStory | null {
   if (typeof item === 'string') {
@@ -199,7 +200,7 @@ function TestimonialSlide({
           </div>
 
           {(story.author || story.service) && (
-            <div className='relative mt-6 sm:mt-8'>
+            <div className='relative mt-6 sm:mt-8 sm:hidden'>
               <div
                 data-testid='testimonial-author-row'
                 className='mx-auto w-full max-w-[500px] text-center lg:pr-[200px]'
@@ -225,43 +226,6 @@ function TestimonialSlide({
   );
 }
 
-function DesktopTestimonialControls({
-  onPrevious,
-  onNext,
-  previousButtonLabel,
-  nextButtonLabel,
-}: {
-  onPrevious: () => void;
-  onNext: () => void;
-  previousButtonLabel: string;
-  nextButtonLabel: string;
-}) {
-  return (
-    <div
-      data-testid='testimonials-desktop-controls'
-      className='pointer-events-none absolute inset-x-0 bottom-[10px] hidden sm:block'
-    >
-      <div className='mx-auto flex w-full max-w-[500px] items-center justify-between gap-3'>
-        <ButtonPrimitive
-          variant='control'
-          onClick={onPrevious}
-          aria-label={previousButtonLabel}
-          className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} pointer-events-auto shrink-0`}
-        >
-          <ChevronIcon direction='left' />
-        </ButtonPrimitive>
-        <ButtonPrimitive
-          variant='control'
-          onClick={onNext}
-          aria-label={nextButtonLabel}
-          className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} pointer-events-auto shrink-0`}
-        >
-          <ChevronIcon direction='right' />
-        </ButtonPrimitive>
-      </div>
-    </div>
-  );
-}
 
 function getInitials(name: string): string {
   const letters = name.replace(/[^a-zA-Z]/g, '');
@@ -339,6 +303,142 @@ function AuthorStrip({
   );
 }
 
+function DesktopAuthorRow({
+  stories,
+  activeIndex,
+  directionRef,
+  onPrevious,
+  onNext,
+  previousButtonLabel,
+  nextButtonLabel,
+}: {
+  stories: NormalizedStory[];
+  activeIndex: number;
+  directionRef: { readonly current: 'next' | 'prev' };
+  onPrevious: () => void;
+  onNext: () => void;
+  previousButtonLabel: string;
+  nextButtonLabel: string;
+}) {
+  const prevIndexRef = useRef(activeIndex);
+  const animTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [anim, setAnim] = useState<{
+    slots: { index: number; state: 'visible' | 'exiting' | 'entering' }[];
+    dir: 'next' | 'prev';
+  }>({
+    slots: [{ index: activeIndex, state: 'visible' }],
+    dir: 'next',
+  });
+
+  useEffect(() => {
+    if (activeIndex === prevIndexRef.current) return;
+    const oldIndex = prevIndexRef.current;
+    const dir = directionRef.current;
+    prevIndexRef.current = activeIndex;
+
+    if (animTimerRef.current !== null) {
+      clearTimeout(animTimerRef.current);
+    }
+
+    setAnim({
+      slots: [
+        { index: oldIndex, state: 'exiting' },
+        { index: activeIndex, state: 'entering' },
+      ],
+      dir,
+    });
+
+    animTimerRef.current = setTimeout(() => {
+      setAnim({
+        slots: [{ index: activeIndex, state: 'visible' }],
+        dir,
+      });
+      animTimerRef.current = null;
+    }, AUTHOR_ANIM_DURATION_MS + 50);
+
+    return () => {
+      if (animTimerRef.current !== null) {
+        clearTimeout(animTimerRef.current);
+        animTimerRef.current = null;
+      }
+    };
+  }, [activeIndex, directionRef]);
+
+  return (
+    <div
+      data-testid='testimonials-desktop-controls'
+      className='hidden sm:block'
+    >
+      <div
+        className={buildSectionSplitLayoutClassName(
+          'es-section-split-layout--testimonials',
+        )}
+      >
+        <div className='hidden lg:block' aria-hidden='true' />
+        <div className='px-6 sm:px-9 lg:px-12'>
+          <div className='mt-6 mb-6'>
+            <div className='mx-auto flex w-full max-w-[500px] items-center gap-3'>
+              <ButtonPrimitive
+                variant='control'
+                onClick={onPrevious}
+                aria-label={previousButtonLabel}
+                className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
+              >
+                <ChevronIcon direction='left' />
+              </ButtonPrimitive>
+              <div className='relative min-w-0 flex-1 overflow-hidden text-center'>
+                {anim.slots.map(({ index, state }) => {
+                  const story = stories[index];
+                  if (!story?.author && !story?.service) return null;
+                  let slotClassName = '';
+                  if (state === 'exiting') {
+                    slotClassName =
+                      anim.dir === 'next'
+                        ? 'es-author-exit-left absolute inset-x-0 top-0'
+                        : 'es-author-exit-right absolute inset-x-0 top-0';
+                  } else if (state === 'entering') {
+                    slotClassName =
+                      anim.dir === 'next'
+                        ? 'es-author-enter-from-right'
+                        : 'es-author-enter-from-left';
+                  }
+                  return (
+                    <div
+                      key={`${index}-${state}`}
+                      className={slotClassName || undefined}
+                    >
+                      {story.author && (
+                        <p className='mx-auto max-w-[350px] es-testimonials-author'>
+                          {story.author}
+                        </p>
+                      )}
+                      {story.service && (
+                        <p
+                          className={`mx-auto max-w-[350px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
+                        >
+                          {story.service}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <ButtonPrimitive
+                variant='control'
+                onClick={onNext}
+                aria-label={nextButtonLabel}
+                className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
+              >
+                <ChevronIcon direction='right' />
+              </ButtonPrimitive>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Testimonials({ content }: TestimonialsProps) {
   const stories = useMemo(() => normalizeStories(content.items), [content.items]);
   const storiesToRender =
@@ -351,6 +451,8 @@ export function Testimonials({ content }: TestimonialsProps) {
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRepositioningRef = useRef(false);
   const [activeRealIndex, setActiveRealIndex] = useState(0);
+  const directionRef = useRef<'next' | 'prev'>('next');
+  const lastScrollLeftRef = useRef(0);
 
   const realCount = storiesToRender.length;
 
@@ -378,6 +480,7 @@ export function Testimonials({ content }: TestimonialsProps) {
     }
 
     teleportToDomIndex(carousel, 1);
+    lastScrollLeftRef.current = carousel.scrollLeft;
   }, [hasMultipleStories, teleportToDomIndex]);
 
   useEffect(() => {
@@ -391,6 +494,13 @@ export function Testimonials({ content }: TestimonialsProps) {
       if (!el || isRepositioningRef.current) {
         return;
       }
+
+      if (el.scrollLeft > lastScrollLeftRef.current) {
+        directionRef.current = 'next';
+      } else if (el.scrollLeft < lastScrollLeftRef.current) {
+        directionRef.current = 'prev';
+      }
+      lastScrollLeftRef.current = el.scrollLeft;
 
       const domIndex = getActiveDomIndex(el);
       const realIndex = domIndex - 1;
@@ -412,9 +522,11 @@ export function Testimonials({ content }: TestimonialsProps) {
         if (settledDomIndex === 0) {
           teleportToDomIndex(current, realCount);
           setActiveRealIndex(realCount - 1);
+          lastScrollLeftRef.current = current.scrollLeft;
         } else if (settledDomIndex === realCount + 1) {
           teleportToDomIndex(current, 1);
           setActiveRealIndex(0);
+          lastScrollLeftRef.current = current.scrollLeft;
         }
       }, CLONE_SETTLE_DELAY_MS);
     }
@@ -431,6 +543,7 @@ export function Testimonials({ content }: TestimonialsProps) {
   }, [hasMultipleStories, realCount, teleportToDomIndex]);
 
   function scrollByOne(direction: 'prev' | 'next') {
+    directionRef.current = direction;
     const carousel = carouselRef.current;
     if (!carousel) {
       return;
@@ -446,6 +559,8 @@ export function Testimonials({ content }: TestimonialsProps) {
       return;
     }
 
+    directionRef.current = offset > 0 ? 'next' : 'prev';
+
     if (Math.abs(offset) === 1) {
       scrollByOne(offset > 0 ? 'next' : 'prev');
       return;
@@ -458,6 +573,7 @@ export function Testimonials({ content }: TestimonialsProps) {
 
     const targetRealIndex = wrapIndex(activeRealIndex + offset, realCount);
     teleportToDomIndex(carousel, targetRealIndex + 1);
+    lastScrollLeftRef.current = carousel.scrollLeft;
     setActiveRealIndex(targetRealIndex);
   }
 
@@ -516,7 +632,10 @@ export function Testimonials({ content }: TestimonialsProps) {
           </CarouselTrack>
 
           {hasMultipleStories && (
-            <DesktopTestimonialControls
+            <DesktopAuthorRow
+              stories={storiesToRender}
+              activeIndex={activeRealIndex}
+              directionRef={directionRef}
               onPrevious={() => {
                 scrollByOne('prev');
               }}
