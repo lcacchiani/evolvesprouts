@@ -25,6 +25,7 @@ export interface EventCardData {
   timeLabel?: string;
   costLabel?: string;
   isFreeCost?: boolean;
+  isVirtualEvent: boolean;
   locationName?: string;
   locationAddress?: string;
   directionHref?: string;
@@ -301,6 +302,11 @@ function normalizeLocationLabel(
   }
 
   return formatEnumLikeLabel(normalizedValue);
+}
+
+function isVirtualLocationType(value: string | undefined): boolean {
+  const normalizedValue = readOptionalText(value)?.toLowerCase();
+  return normalizedValue === 'virtual';
 }
 
 function readFirstCandidateValue(
@@ -626,6 +632,15 @@ function normalizeEventCard(
       'venue',
       'address',
     ]) ?? normalizeLocationLabel(readOptionalText(record.location), content);
+  const isVirtualEvent = isVirtualLocationType(
+    readCandidateText(record, [
+      'locationType',
+      'location_type',
+      'location',
+      'venueType',
+      'venue_type',
+    ]),
+  );
   const locationAddress = readCandidateText(record, [
     'locationAddress',
     'venueAddress',
@@ -674,6 +689,7 @@ function normalizeEventCard(
     timeLabel,
     costLabel,
     isFreeCost,
+    isVirtualEvent,
     locationName,
     locationAddress:
       locationAddress && locationAddress !== locationName

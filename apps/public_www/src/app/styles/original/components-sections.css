@@ -1129,6 +1129,12 @@
     -webkit-mask-image: url('/images/location.svg');
   }
 
+  .es-mask-virtual-call-danger {
+    background-color: var(--es-color-booking-highlight-icon, #B42318);
+    mask-image: url('/images/virtual-call.svg');
+    -webkit-mask-image: url('/images/virtual-call.svg');
+  }
+
   .es-my-best-auntie-thank-you-panel {
     background-color: var(--es-color-surface-white, #FFFFFF);
   }

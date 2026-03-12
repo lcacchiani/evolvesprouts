@@ -191,6 +191,13 @@ export function EventCardsList({
                     </span>
                   </li>
                 )}
+                {showBookingAction && eventCard.status === 'fully_booked' && (
+                  <li
+                    className='inline-flex items-center rounded-3xl es-bg-surface-danger-soft px-3 py-[7px] es-events-detail-chip es-events-detail-chip-danger'
+                  >
+                    <span>{content.card.fullyBookedLabel}</span>
+                  </li>
+                )}
               </ul>
             </div>
 
@@ -199,7 +206,7 @@ export function EventCardsList({
                 <span className='es-icon-circle-lg'>
                   <span
                     data-event-location-icon='true'
-                    className='es-mask-location-danger h-[46px] w-[46px] shrink-0'
+                    className={`${eventCard.isVirtualEvent ? 'es-mask-virtual-call-danger' : 'es-mask-location-danger'} h-[46px] w-[46px] shrink-0`}
                     aria-hidden='true'
                   />
                 </span>
@@ -232,13 +239,7 @@ export function EventCardsList({
 
               {showBookingAction && (
                 <div className='mt-5'>
-                  {eventCard.status === 'fully_booked' ? (
-                    <span
-                      className='inline-flex items-center rounded-3xl es-bg-surface-danger-soft px-3 py-[9px] es-events-detail-chip es-events-detail-chip-danger'
-                    >
-                      <span>{content.card.fullyBookedLabel}</span>
-                    </span>
-                  ) : (
+                  {eventCard.status !== 'fully_booked' &&
                     eventCard.ctaHref && (
                       <SectionCtaAnchor
                         href={eventCard.ctaHref}
@@ -246,8 +247,7 @@ export function EventCardsList({
                       >
                         {eventCard.ctaLabel}
                       </SectionCtaAnchor>
-                    )
-                  )}
+                    )}
                 </div>
               )}
             </aside>
