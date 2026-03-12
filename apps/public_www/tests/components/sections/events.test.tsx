@@ -109,4 +109,56 @@ describe('Events section', () => {
     expect(screen.queryByText(/^Date:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Time:/)).not.toBeInTheDocument();
   });
+
+  it('shows location icon and direction link while removing the location heading and fully booked icon', async () => {
+    const mockApiClient: CrmApiClient = {
+      request: vi.fn().mockResolvedValue({
+        status: 'success',
+        data: [
+          {
+            title: 'Direction-ready event card',
+            location: 'physical',
+            address: 'PMQ, Central',
+            locationAddress: '35 Aberdeen Street, Central',
+            address_url:
+              'https://www.google.com/maps/dir/?api=1&destination=35+Aberdeen+Street,+Central',
+            dates: [
+              {
+                start_datetime: '2099-12-05T10:00:00Z',
+                end_datetime: '2099-12-05T13:00:00Z',
+              },
+            ],
+            timezone: 'HKT',
+            is_fully_booked: true,
+          },
+        ],
+      }),
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    const { container } = render(<Events content={enContent.events} />);
+
+    await screen.findByText('Direction-ready event card');
+
+    expect(container.querySelector('.es-events-location-heading')).toBeNull();
+    expect(screen.getByText('PMQ, Central')).toBeInTheDocument();
+    expect(screen.getByText('35 Aberdeen Street, Central')).toBeInTheDocument();
+
+    const locationIcons = container.querySelectorAll('[data-event-location-icon="true"]');
+    expect(locationIcons).toHaveLength(1);
+
+    const directionLink = screen.getByRole('link', {
+      name: enContent.events.card.directionLabel,
+    });
+    expect(directionLink).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=35+Aberdeen+Street,+Central',
+    );
+    expect(directionLink).toHaveAttribute('target', '_blank');
+
+    const fullyBookedChip = screen
+      .getByText(enContent.events.card.fullyBookedLabel)
+      .closest('span');
+    expect(fullyBookedChip?.querySelector('img')).toBeNull();
+  });
 });

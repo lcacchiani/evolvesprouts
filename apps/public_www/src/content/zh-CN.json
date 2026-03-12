@@ -738,8 +738,8 @@
     "emptyStateLabel": "暂无即将举办的活动",
     "errorLabel": "暂时无法加载活动，请稍后再试。",
     "card": {
-      "locationLabel": "地点",
       "emptyLocationLabel": "地点详情将稍后公布。",
+      "directionLabel": "查看路线",
       "ctaLabel": "立即预订",
       "fullyBookedLabel": "已满额"
     },

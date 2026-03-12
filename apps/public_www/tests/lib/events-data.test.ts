@@ -96,6 +96,8 @@ describe('events-data', () => {
       timeLabel: '10:00 - 13:00 HKT',
       locationName:
         'H210, 2/F, PMQ, Mid-Levels, Central and Western, Hong Kong Island',
+      directionHref:
+        'https://www.google.com/maps/search/?api=1&query=H210%2C+2%2FF%2C+PMQ%2C+Mid-Levels%2C+Central+and+Western%2C+Hong+Kong+Island',
       ctaHref:
         'https://www.google.com/maps/search/?api=1&query=H210%2C+2%2FF%2C+PMQ%2C+Mid-Levels%2C+Central+and+Western%2C+Hong+Kong+Island',
       ctaLabel: enContent.events.card.ctaLabel,
@@ -119,6 +121,7 @@ describe('events-data', () => {
       ctaLabel: enContent.events.card.ctaLabel,
       timestamp: Date.parse('2025-12-15T09:00:00Z'),
     });
+    expect(events[1]?.directionHref).toBeUndefined();
     expect(events[1]?.tags).toEqual([
       'TEST Advanced Level',
       'TEST In-Person',
