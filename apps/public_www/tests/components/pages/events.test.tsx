@@ -17,9 +17,13 @@ vi.mock('@/components/sections/events', () => ({
   }: {
     content: { title: string };
     locale: string;
-    newsletterContent: { ctaLabel: string };
   }) => (
     <section data-testid='events-section'>{`${content.title} (${locale})`}</section>
+  ),
+}));
+vi.mock('@/components/sections/past-events', () => ({
+  PastEvents: ({ content }: { content: { past: { title: string } } }) => (
+    <section data-testid='past-events-section'>{content.past.title}</section>
   ),
 }));
 vi.mock('@/components/sections/free-intro-session', () => ({
@@ -35,6 +39,9 @@ describe('EventsPageSections', () => {
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('events-section')).toHaveTextContent(
       `${enContent.events.title} (${enContent.meta.locale})`,
+    );
+    expect(screen.getByTestId('past-events-section')).toHaveTextContent(
+      enContent.events.past.title,
     );
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
   });

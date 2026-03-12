@@ -28,6 +28,7 @@ const pageSectionFiles = [
   'contact-faq.tsx',
   'connect.tsx',
   'events.tsx',
+  'past-events.tsx',
   'my-best-auntie/my-best-auntie-hero.tsx',
   'my-best-auntie/my-best-auntie-booking.tsx',
   'my-best-auntie/my-best-auntie-description.tsx',
