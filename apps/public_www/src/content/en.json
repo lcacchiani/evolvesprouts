@@ -387,7 +387,7 @@
         "She steps back. Your child steps up."
       ],
       "refundHint": "Full refund up to 7 days prior.",
-      "directionLabel": "Get Direction",
+      "directionLabel": "Get Directions",
       "reservationTitle": "Reservation",
       "reservationDescription": "Please complete your details. We will send payment confirmation by email.",
       "selectedAgeGroupLabel": "Child age group",
@@ -478,7 +478,7 @@
       {
         "icon": "toolbox",
         "title": "Scripts, Tools & Real-Life Examples",
-        "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behavior.",
+        "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behaviour.",
         "ctaLabel": "Learn More",
         "ctaHref": "/services/my-best-auntie-training-course"
       },
@@ -520,7 +520,7 @@
     "mediaTitleLine2": "to Young Children",
     "ctaLabel": "Get 4 Ways to Teach Patience",
     "resourceKey": "patience-free-guide",
-    "formFirstNameLabel": "First name",
+    "formFirstNameLabel": "First Name",
     "formEmailLabel": "Email",
     "formSubmitLabel": "Send Me the Free Guide",
     "formSuccessTitle": "Check Your Email!",
@@ -548,7 +548,7 @@
   "courseHighlights": {
     "eyebrow": "Course Highlights",
     "title": "Why Join Our Courses",
-    "description": "The program serious families choose when they want real change",
+    "description": "The programme serious families choose when they want real change",
     "ctaLabel": "Get Started—Train Auntie Today",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "Connect Now",
@@ -685,7 +685,7 @@
       "formDescription": "I reply personally within 24-48 hours. No bots, no templates — just me.",
       "successTitle": "Thank you for your message!",
       "successDescription": "We have received your message and will take care of it shortly.",
-      "submitErrorMessage": "something went wrong, try a bit later",
+      "submitErrorMessage": "Something went wrong. Please try again later.",
       "captchaLabel": "Please complete CAPTCHA verification",
       "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
@@ -740,7 +740,7 @@
     "errorLabel": "Unable to load events right now. Please check back soon.",
     "card": {
       "emptyLocationLabel": "Location details will be announced soon.",
-      "directionLabel": "Get direction",
+      "directionLabel": "Get Directions",
       "ctaLabel": "Reserve your spot",
       "fullyBookedLabel": "Fully booked"
     },
@@ -762,7 +762,7 @@
     "eyebrow": "My Story",
     "title": "From the boardroom to the classroom",
     "subtitle": "After years working in media and hospitality, I felt a growing pull toward something more meaningful, understanding children and supporting families during the years that shape everything.",
-    "description": "That decision led me back to university. I earned a Master’s in Education from HKU, completed an AMI Montessori Assistant Diploma (0–3) in London, and an AMI Montessori Diploma (3–6) in San Diego, California. I also hold certifications in Child Nutrition from Stanford University and specialized training in Montessori emotional well-being.\n\nFor several years, I worked hands-on with children aged 1–6 at Hong Kong’s International Montessori School (IMS), observing closely how children grow when the adults around them understand their developmental needs.\n\nThat experience changed how I see childhood, and the role adults play in it.\n\nToday, my work focuses on helping the adults around the child: parents and caregivers. Because what happens in everyday moments at home shapes a child far more than occasional lessons or activities.\n\nI also bring this work into my own life every day with my two daughters, where Montessori is not just a philosophy I teach, it’s how we live.\n\nMy goal is simple: to help families create calmer homes, raise capable children, and feel confident in the way they guide their child’s growth."
+    "description": "That decision led me back to university. I earned a Master’s in Education from HKU, completed an AMI Montessori Assistant Diploma (0–3) in London, and an AMI Montessori Diploma (3–6) in San Diego, California. I also hold certifications in Child Nutrition from Stanford University and specialised training in Montessori emotional well-being.\n\nFor several years, I worked hands-on with children aged 1–6 at Hong Kong’s International Montessori School (IMS), observing closely how children grow when the adults around them understand their developmental needs.\n\nThat experience changed how I see childhood, and the role adults play in it.\n\nToday, my work focuses on helping the adults around the child: parents and caregivers. Because what happens in everyday moments at home shapes a child far more than occasional lessons or activities.\n\nI also bring this work into my own life every day with my two daughters, where Montessori is not just a philosophy I teach, it’s how we live.\n\nMy goal is simple: to help families create calmer homes, raise capable children, and feel confident in the way they guide their child’s growth."
   },
   "myJourney": {
     "eyebrow": "My Montessori Journey",
@@ -849,7 +849,7 @@
       },
       {
         "question": "Do I need to follow Montessori perfectly to work with you?",
-        "answer": "No. This is Montessori-informed, not Montessori-dogmatic. We focus on principles that improve daily life: independence, respect, consistency, and emotional regulation-adapted to modern Hong Kong homes and caregiving realities.",
+        "answer": "No. This is Montessori-informed, not Montessori-dogmatic. We focus on principles that improve daily life: independence, respect, consistency, and emotional regulation - adapted to modern Hong Kong homes and caregiving realities.",
         "labelIds": [
           "general"
         ]
@@ -894,7 +894,7 @@
       },
       {
         "question": "Will this make my child too soft or less competitive?",
-        "answer": "Children raised with independence, emotional regulation, and responsibility often become more confident, focused, and resilient-not less capable.",
+        "answer": "Children raised with independence, emotional regulation, and responsibility often become more confident, focused, and resilient - not less capable.",
         "labelIds": [
           "discipline"
         ]
@@ -957,7 +957,7 @@
       },
       {
         "question": "Why is this priced higher than a one-off parenting talk?",
-        "answer": "Because this is personalised and implementation-focused. You are paying for real-life observation, tailored guidance, and ongoing support-not just motivation.",
+        "answer": "Because this is personalised and implementation-focused. You are paying for real-life observation, tailored guidance, and ongoing support - not just motivation.",
         "labelIds": [
           "pricing"
         ]
@@ -1013,7 +1013,7 @@
       },
       {
         "question": "Have not found what you need?",
-        "answer": "Get in touch-we are happy to help. Contact us through the Contact Us page.",
+        "answer": "Get in touch - we are happy to help. Contact us through the Contact Us page.",
         "labelIds": [
           "general",
           "discipline",
@@ -1035,7 +1035,7 @@
     "emailPlaceholder": "Email address",
     "emailValidationMessage": "Please enter a valid email address.",
     "prefilledMessage": "Newsletter join",
-    "submitErrorMessage": "something went wrong, try a bit later",
+    "submitErrorMessage": "Something went wrong. Please try again later.",
     "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
     "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
     "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
@@ -1050,7 +1050,7 @@
     "emailPlaceholder": "Email address",
     "emailValidationMessage": "Please enter a valid email address.",
     "prefilledMessage": "Event notification signup",
-    "submitErrorMessage": "something went wrong, try a bit later",
+    "submitErrorMessage": "Something went wrong. Please try again later.",
     "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
     "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
     "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
@@ -1241,7 +1241,7 @@
       "title": "Connect on",
       "items": [
         {
-          "label": "Linkedin",
+          "label": "LinkedIn",
           "href": "/contact-us",
           "icon": "linkedin"
         },
@@ -1255,7 +1255,7 @@
     "copyright": "© Evolve Sprouts",
     "links": {
       "privacy": "Privacy Policy",
-      "terms": "Terms of Service"
+      "terms": "Terms and Conditions"
     }
   }
 }

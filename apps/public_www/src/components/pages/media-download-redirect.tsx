@@ -91,7 +91,7 @@ export function MediaDownloadRedirectPage() {
   return (
     <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
       <div className='h-10 w-10 animate-spin rounded-full border-4 border-[color:var(--site-primary-soft,#EAD5C4)] border-t-[color:var(--site-primary,#D19253)]' />
-      <h1 className='mt-6 text-3xl font-bold es-text-heading'>Preparing your download...</h1>
+      <h1 className='mt-6 text-3xl font-bold es-text-heading'>Preparing your download</h1>
       <p className='mt-4 text-base leading-7 es-text-body'>
         If your download does not start automatically, use the link below.
       </p>

@@ -24,11 +24,11 @@ describe('server-submission-result', () => {
           message: 'CRM API request failed: 500',
         });
       },
-      failureMessage: 'something went wrong, try a bit later',
+      failureMessage: 'Something went wrong. Please try again later.',
     });
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errorMessage).toBe('something went wrong, try a bit later');
+    expect(result.errorMessage).toBe('Something went wrong. Please try again later.');
     expect(result.statusCode).toBe(500);
   });
 });

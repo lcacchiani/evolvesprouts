@@ -267,7 +267,7 @@ export function FreeResourcesForGentleParenting({
   const resourceKey =
     readOptionalText(content.resourceKey) ?? 'patience-free-guide';
   const formFirstNameLabel =
-    readOptionalText(content.formFirstNameLabel) ?? 'First name';
+    readOptionalText(content.formFirstNameLabel) ?? 'First Name';
   const formEmailLabel =
     readOptionalText(content.formEmailLabel) ?? 'Email';
   const formSubmitLabel =

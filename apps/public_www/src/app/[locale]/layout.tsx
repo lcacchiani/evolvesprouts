@@ -35,7 +35,7 @@ const NOSCRIPT_COPY: Record<
     title: 'JavaScript is disabled.',
     description:
       'Some interactive features are unavailable. You can still browse key pages below.',
-    homeLabel: 'Go to Home',
+    homeLabel: 'Home',
     contactLabel: 'Contact Us',
   },
   'zh-CN': {
