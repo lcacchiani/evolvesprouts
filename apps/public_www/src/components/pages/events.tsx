@@ -15,12 +15,12 @@ export function EventsPageSections({ content }: EventsPageSectionsProps) {
       footerContent={content.footer}
     >
       <Events content={content.events} locale={content.meta.locale} />
+      <FreeIntroSession content={content.freeIntroSession} />
       <PastEvents
         content={content.events}
         newsletterContent={content.sproutsSquadCommunity}
         locale={content.meta.locale}
       />
-      <FreeIntroSession content={content.freeIntroSession} />
     </PageLayout>
   );
 }
