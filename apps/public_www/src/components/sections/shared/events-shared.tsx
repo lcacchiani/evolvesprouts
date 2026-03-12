@@ -151,9 +151,9 @@ export function EventCardsList({
                       aria-hidden='true'
                       width={14}
                       height={14}
-                      className='h-3.5 w-3.5'
+                      className='h-3.5 w-3.5 shrink-0 self-center'
                     />
-                    <span>
+                    <span className='inline-flex items-center'>
                       {eventCard.dateLabel}
                     </span>
                   </li>
@@ -168,9 +168,9 @@ export function EventCardsList({
                       aria-hidden='true'
                       width={14}
                       height={14}
-                      className='h-3.5 w-3.5'
+                      className='h-3.5 w-3.5 shrink-0 self-center'
                     />
-                    <span>
+                    <span className='inline-flex items-center'>
                       {eventCard.timeLabel}
                     </span>
                   </li>
