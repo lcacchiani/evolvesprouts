@@ -164,7 +164,7 @@ export function PastEvents({
             <EventCardsList content={content} events={visibleEvents} />
           )}
         </div>
-        <div className='mt-8 rounded-panel border es-border-event-card es-bg-surface-event-card px-5 py-7 sm:px-8 sm:py-8'>
+        <div className='mt-8'>
           <p className='es-events-card-body'>{content.past.notifyPrompt}</p>
           {!hasNotifySuccessfulSubmission ? (
             <form onSubmit={handleNotifySubmit} noValidate className='mt-4 flex flex-col gap-3'>
@@ -172,7 +172,7 @@ export function PastEvents({
                 <ButtonPrimitive
                   variant='primary'
                   type='button'
-                  className='w-full sm:w-auto'
+                  className='w-auto self-start'
                   onClick={() => {
                     clearNotifySubmissionError();
                     setIsNotifyFormVisible(true);
@@ -242,7 +242,7 @@ export function PastEvents({
                   <ButtonPrimitive
                     variant='primary'
                     type='submit'
-                    className='w-full sm:w-auto'
+                    className='w-auto self-start'
                     disabled={isNotifySubmitting || isNotifyCaptchaUnavailable}
                   >
                     {isNotifySubmitting ? `${notifySubmitLabel}...` : notifySubmitLabel}
