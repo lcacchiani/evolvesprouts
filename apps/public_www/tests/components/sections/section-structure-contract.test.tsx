@@ -33,6 +33,7 @@ const pageSectionFiles = [
   'my-best-auntie/my-best-auntie-booking.tsx',
   'my-best-auntie/my-best-auntie-description.tsx',
   'sprouts-squad-community.tsx',
+  'event-notification.tsx',
   'free-intro-session.tsx',
 ] as const;
 

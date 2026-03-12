@@ -22,11 +22,10 @@ describe('PastEvents section', () => {
     mockedCreateCrmApiClient.mockReturnValue(null);
   });
 
-  it('renders as an independent section with notify CTA', () => {
+  it('renders past events section heading and empty state', () => {
     render(
       <PastEvents
         content={enContent.events}
-        newsletterContent={enContent.sproutsSquadCommunity}
       />,
     );
 
@@ -36,10 +35,7 @@ describe('PastEvents section', () => {
         name: enContent.events.past.title,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText(enContent.events.past.notifyPrompt)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: enContent.events.past.notifyCtaLabel }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(enContent.events.past.emptyStateLabel)).toBeInTheDocument();
   });
 
   it('shows loading state while events request is pending', () => {
@@ -52,7 +48,6 @@ describe('PastEvents section', () => {
     render(
       <PastEvents
         content={enContent.events}
-        newsletterContent={enContent.sproutsSquadCommunity}
       />,
     );
 
