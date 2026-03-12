@@ -291,10 +291,11 @@ export function Navbar({ content }: NavbarProps) {
 
   return (
     <>
+      <div className='es-navbar-offset' aria-hidden='true' />
       <header
         data-figma-node='navbar'
         ref={headerRef}
-        className='sticky top-0 z-40 es-navbar-surface w-full'
+        className='fixed top-0 left-0 z-40 es-navbar-surface w-full'
       >
         <SectionContainer
           as='nav'

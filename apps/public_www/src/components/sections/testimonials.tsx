@@ -376,7 +376,7 @@ function DesktopAuthorRow({
       >
         <div className='hidden lg:block' aria-hidden='true' />
         <div className='px-6 sm:px-9 lg:px-12'>
-          <div className='mt-6'>
+          <div className='mt-6 mb-6'>
             <div className='mx-auto flex w-full max-w-[500px] items-center gap-3'>
               <ButtonPrimitive
                 variant='control'
