@@ -5,21 +5,32 @@ import { SectionContainer } from '@/components/sections/shared/section-container
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveFreeIntroSessionCopy } from '@/content/copy-normalizers';
+import { mergeClassNames } from '@/lib/class-name-utils';
 import type { FreeIntroSessionContent } from '@/content';
 
 interface FreeIntroSessionProps {
   content: FreeIntroSessionContent;
+  titleOverride?: string;
+  sectionClassName?: string;
 }
 
-export function FreeIntroSession({ content }: FreeIntroSessionProps) {
+export function FreeIntroSession({
+  content,
+  titleOverride,
+  sectionClassName,
+}: FreeIntroSessionProps) {
   const copy = resolveFreeIntroSessionCopy(content);
+  const title = titleOverride || copy.title;
 
   return (
     <SectionShell
       id='free-intro-session'
-      ariaLabel={copy.title}
+      ariaLabel={title}
       dataFigmaNode='free-intro-session'
-      className='overflow-hidden es-free-intro-session-section'
+      className={mergeClassNames(
+        'overflow-hidden es-free-intro-session-section',
+        sectionClassName,
+      )}
     >
       <div
         aria-hidden='true'
@@ -37,7 +48,7 @@ export function FreeIntroSession({ content }: FreeIntroSessionProps) {
               className='h-auto w-[250px] es-free-intro-session-logo hidden sm:block'
             />
             <SectionHeader
-              title={copy.title}
+              title={title}
               align='left'
               className='mt-[75px] max-w-[620px] sm:mt-0'
               titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-free-intro-session-heading'

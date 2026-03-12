@@ -1060,6 +1060,7 @@
   },
   "freeIntroSession": {
     "title": "Ready to give your helper the tools she needs?",
+    "eventPageTitle": "Not sure yet? Start here",
     "description": "Book a free 15-minute intro session. No commitment. Just a conversation about your family.",
     "ctaLabel": "Book Free Intro on WhatsApp",
     "ctaHref": "{{WHATSAPP_URL}}",

@@ -1057,6 +1057,7 @@
   },
   "freeIntroSession": {
     "title": "准备好给你的助手她需要的工具了吗？",
+    "eventPageTitle": "还不确定？从这里开始",
     "description": "预约一次 15 分钟免费介绍会。无需承诺，只是聊聊你的家庭情况。",
     "ctaLabel": "在 WhatsApp 预约免费介绍会",
     "ctaHref": "{{WHATSAPP_URL}}",

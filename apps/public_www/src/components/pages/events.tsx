@@ -16,7 +16,11 @@ export function EventsPageSections({ content }: EventsPageSectionsProps) {
       footerContent={content.footer}
     >
       <Events content={content.events} locale={content.meta.locale} />
-      <FreeIntroSession content={content.freeIntroSession} />
+      <FreeIntroSession
+        content={content.freeIntroSession}
+        titleOverride={content.freeIntroSession.eventPageTitle}
+        sectionClassName="es-free-intro-session-section--standard-spacing"
+      />
       <PastEvents content={content.events} locale={content.meta.locale} />
       <EventNotification content={content.eventNotification} />
     </PageLayout>
