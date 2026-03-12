@@ -736,6 +736,51 @@
     background-color: var(--es-color-surface-peach, #F5DFCF);
   }
 
+  @keyframes es-author-slide-out-left {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(-100%); opacity: 0; }
+  }
+
+  @keyframes es-author-slide-out-right {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+
+  @keyframes es-author-slide-in-from-right {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes es-author-slide-in-from-left {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  .es-author-exit-left {
+    animation: es-author-slide-out-left 300ms ease-in-out forwards;
+  }
+
+  .es-author-exit-right {
+    animation: es-author-slide-out-right 300ms ease-in-out forwards;
+  }
+
+  .es-author-enter-from-right {
+    animation: es-author-slide-in-from-right 300ms ease-in-out forwards;
+  }
+
+  .es-author-enter-from-left {
+    animation: es-author-slide-in-from-left 300ms ease-in-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .es-author-exit-left,
+    .es-author-exit-right,
+    .es-author-enter-from-right,
+    .es-author-enter-from-left {
+      animation: none;
+    }
+  }
+
   .es-faq-contact-card {
     background-color: var(--figma-colors-frame-2147235242, #174879);
   }
