@@ -117,7 +117,7 @@ export function EventCardsList({
     <ul className='space-y-6'>
       {events.map((eventCard) => (
         <li key={eventCard.id}>
-          <article className='rounded-panel es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-center lg:justify-between lg:gap-7 lg:p-8'>
+          <article className='rounded-panel es-bg-surface-event-card p-5 sm:p-6 lg:flex lg:items-start lg:justify-between lg:gap-7 lg:p-8'>
             <div className='w-full lg:max-w-[720px]'>
               <div className='flex flex-wrap items-center gap-2'>
                 {eventCard.tags.map((tag) => (
@@ -151,9 +151,9 @@ export function EventCardsList({
                       aria-hidden='true'
                       width={14}
                       height={14}
-                      className='h-3.5 w-3.5'
+                      className='h-3.5 w-3.5 shrink-0 self-center'
                     />
-                    <span>
+                    <span className='inline-flex items-center'>
                       {eventCard.dateLabel}
                     </span>
                   </li>
@@ -168,9 +168,9 @@ export function EventCardsList({
                       aria-hidden='true'
                       width={14}
                       height={14}
-                      className='h-3.5 w-3.5'
+                      className='h-3.5 w-3.5 shrink-0 self-center'
                     />
-                    <span>
+                    <span className='inline-flex items-center'>
                       {eventCard.timeLabel}
                     </span>
                   </li>
