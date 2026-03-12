@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
+import { SmartLink } from '@/components/shared/smart-link';
 import type { EventsContent } from '@/content';
 import {
   createPublicCrmApiClient,
@@ -179,32 +181,46 @@ export function EventCardsList({
             </div>
 
             <aside className='mt-6 w-full rounded-lg bg-white px-4 py-5 lg:mt-0 lg:max-w-[335px]'>
-              <h4 className='es-events-location-heading'>
-                {content.card.locationLabel}
-              </h4>
-              <p className='mt-2 es-events-location-text'>
-                {eventCard.locationName ?? content.card.emptyLocationLabel}
-              </p>
-              {eventCard.locationAddress && (
-                <p className='mt-1 es-events-location-text'>
-                  {eventCard.locationAddress}
-                </p>
-              )}
+              <div className='flex items-start gap-2'>
+                <Image
+                  src={LOCATION_ICON_SRC}
+                  alt=''
+                  aria-hidden='true'
+                  width={14}
+                  height={14}
+                  data-event-location-icon='true'
+                  className='mt-[5px] h-3.5 w-3.5 shrink-0 self-start'
+                />
+                <div>
+                  <p className='es-events-location-text'>
+                    {eventCard.locationName ?? content.card.emptyLocationLabel}
+                  </p>
+                  {eventCard.locationAddress && (
+                    <p className='mt-1 es-events-location-text'>
+                      {eventCard.locationAddress}
+                    </p>
+                  )}
+                  {eventCard.directionHref && (
+                    <SmartLink
+                      href={eventCard.directionHref}
+                      className='mt-3 inline-flex items-center text-sm font-semibold leading-none es-text-heading'
+                    >
+                      {({ isExternalHttp }) => (
+                        <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
+                          {content.card.directionLabel}
+                        </ExternalLinkInlineContent>
+                      )}
+                    </SmartLink>
+                  )}
+                </div>
+              </div>
 
               {showBookingAction && (
                 <div className='mt-5'>
                   {eventCard.status === 'fully_booked' ? (
                     <span
-                      className='inline-flex items-center gap-1 rounded-3xl es-bg-surface-danger-soft px-3 py-[9px] es-events-detail-chip es-events-detail-chip-danger'
+                      className='inline-flex items-center rounded-3xl es-bg-surface-danger-soft px-3 py-[9px] es-events-detail-chip es-events-detail-chip-danger'
                     >
-                      <Image
-                        src={LOCATION_ICON_SRC}
-                        alt=''
-                        aria-hidden='true'
-                        width={14}
-                        height={14}
-                        className='h-3.5 w-3.5'
-                      />
                       <span>{content.card.fullyBookedLabel}</span>
                     </span>
                   ) : (

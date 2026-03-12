@@ -25,6 +25,7 @@ export interface EventCardData {
   timeLabel?: string;
   locationName?: string;
   locationAddress?: string;
+  directionHref?: string;
   ctaHref: string;
   ctaLabel: string;
   tags: string[];
@@ -115,6 +116,35 @@ function getTimeFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
 function sanitizeExternalHref(value: string | undefined): string {
   const href = readOptionalText(value);
   if (!href || !isHttpHref(href)) {
+    return '';
+  }
+
+  return href;
+}
+
+function isGoogleMapsHref(href: string): boolean {
+  try {
+    const parsedUrl = new URL(href);
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const pathname = parsedUrl.pathname.toLowerCase();
+
+    if (hostname === 'maps.app.goo.gl') {
+      return true;
+    }
+
+    if (!hostname.includes('google.')) {
+      return false;
+    }
+
+    return pathname === '/' || pathname.startsWith('/maps');
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeGoogleMapsHref(value: string | undefined): string {
+  const href = sanitizeExternalHref(value);
+  if (!href || !isGoogleMapsHref(href)) {
     return '';
   }
 
@@ -484,6 +514,18 @@ function normalizeEventCard(
     'locationAddress',
     'venueAddress',
   ]);
+  const directionHref = sanitizeGoogleMapsHref(
+    readCandidateText(record, [
+      'directionHref',
+      'directionUrl',
+      'mapHref',
+      'mapUrl',
+      'mapsUrl',
+      'locationMapUrl',
+      'locationUrl',
+      'address_url',
+    ]),
+  );
 
   const ctaHref = sanitizeExternalHref(
     readCandidateText(record, [
@@ -518,6 +560,7 @@ function normalizeEventCard(
       locationAddress && locationAddress !== locationName
         ? locationAddress
         : undefined,
+    directionHref: directionHref || undefined,
     ctaHref,
     ctaLabel,
     tags,

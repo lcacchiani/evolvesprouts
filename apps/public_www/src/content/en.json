@@ -741,8 +741,8 @@
     "emptyStateLabel": "No upcoming events for now",
     "errorLabel": "Unable to load events right now. Please check back soon.",
     "card": {
-      "locationLabel": "Location",
       "emptyLocationLabel": "Location details will be announced soon.",
+      "directionLabel": "Get direction",
       "ctaLabel": "Reserve your spot",
       "fullyBookedLabel": "Fully booked"
     },
