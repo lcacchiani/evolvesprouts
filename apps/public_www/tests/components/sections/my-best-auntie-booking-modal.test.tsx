@@ -891,7 +891,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeNull();
 
     expect(container.querySelector('span.es-mask-credit-card-danger')).not.toBeNull();
-    expect(container.querySelector('span.es-mask-target-danger')).not.toBeNull();
+    expect(container.querySelector('span.es-mask-location-danger')).not.toBeNull();
     expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(1);
   });
 
