@@ -206,7 +206,10 @@ export function EventCardsList({
                       className='mt-3 inline-flex items-center text-sm font-semibold leading-none es-text-heading'
                     >
                       {({ isExternalHttp }) => (
-                        <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
+                        <ExternalLinkInlineContent
+                          isExternalHttp={isExternalHttp}
+                          externalLabelClassName='es-link-external-label--direction'
+                        >
                           {content.card.directionLabel}
                         </ExternalLinkInlineContent>
                       )}

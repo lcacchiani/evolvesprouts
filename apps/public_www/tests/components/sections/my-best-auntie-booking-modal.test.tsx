@@ -881,6 +881,9 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(screen.getByText(bookingModalContent.directionLabel).className).toContain(
       'es-link-external-label',
     );
+    expect(screen.getByText(bookingModalContent.directionLabel).className).toContain(
+      'es-link-external-label--direction',
+    );
     const directionIcon = directionLink.querySelector(
       'svg[data-external-link-icon="true"]',
     );
