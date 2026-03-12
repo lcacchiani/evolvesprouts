@@ -31,7 +31,9 @@ describe('ReservationFormFields', () => {
     const nameInput = screen.getByLabelText(/Full Name/i);
     const emailInput = screen.getByLabelText(/Email/i);
     const phoneInput = screen.getByLabelText(/Phone Number/i);
-    const topicsInput = screen.getByLabelText(/Any topics you are particularly interested in\?/i);
+    const topicsInput = screen.getByLabelText(
+      /Anything you'd like me to know about your child or helper before we start\?/i,
+    );
 
     fireEvent.change(nameInput, { target: { value: 'Grace' } });
     fireEvent.change(emailInput, { target: { value: 'grace@example.com' } });
