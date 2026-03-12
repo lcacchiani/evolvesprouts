@@ -224,6 +224,8 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(bookingDialog).toHaveAttribute('aria-labelledby');
     expect(bookingDescriptionId).toBeTruthy();
     expect(document.getElementById(bookingDescriptionId ?? '')).not.toBeNull();
+    expect(screen.getByText(bookingModalContent.subtitle)).toBeInTheDocument();
+    expect(screen.queryByText('Thanks for your interest!')).not.toBeInTheDocument();
 
     bookingModalView.unmount();
 

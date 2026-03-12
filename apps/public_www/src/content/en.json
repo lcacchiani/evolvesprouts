@@ -379,8 +379,8 @@
     "learnMoreHref": "/services/my-best-auntie-training-course",
     "paymentModal": {
       "closeLabel": "Close",
-      "thankYouLead": "Thanks for your interest!",
       "title": "My Best Auntie Training Course",
+      "subtitle": "9 weeks. 3 group sessions. 3 home visits. 3 parent calls.",
       "partSummaries": [
         "We set up your home for independence and observe how your helper connects with your child.",
         "No threats, no bribes. She learns to guide with calm consistency.",
