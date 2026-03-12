@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import enContent from '@/content/en.json';
+import temporaryEventsPayload from '@/content/events.json';
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   fetchEventsPayload,
@@ -13,6 +14,7 @@ import {
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe('events-data', () => {
@@ -274,6 +276,25 @@ describe('events-data', () => {
       status: 'success',
       data: [],
     });
+  });
+
+  it('returns temporary content events when content source is enabled', async () => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'content');
+
+    const payload = await fetchEventsPayload(
+      null,
+      new AbortController().signal,
+    );
+
+    expect(payload).toEqual(temporaryEventsPayload);
+  });
+
+  it('throws when API source is active and CRM client is missing', async () => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
+
+    await expect(
+      fetchEventsPayload(null, new AbortController().signal),
+    ).rejects.toThrow('CRM API client is not configured');
   });
 
   it('rejects invalid CRM API client configuration', () => {

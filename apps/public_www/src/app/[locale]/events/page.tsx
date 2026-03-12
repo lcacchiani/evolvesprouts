@@ -9,6 +9,7 @@ import {
   type EventCardData,
   fetchEventsPayload,
   normalizeEvents,
+  shouldUseTemporaryEventsContentSource,
 } from '@/lib/events-data';
 import {
   getMenuLabel,
@@ -30,8 +31,9 @@ async function resolveServerSideEvents(
   locale: string,
   content: SiteContent,
 ): Promise<EventCardData[]> {
+  const useTemporaryEventsSource = shouldUseTemporaryEventsContentSource();
   const crmApiClient = createPublicCrmApiClient();
-  if (!crmApiClient) {
+  if (!crmApiClient && !useTemporaryEventsSource) {
     return [];
   }
 

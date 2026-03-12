@@ -1,4 +1,5 @@
 import type { EventsContent } from '@/content';
+import temporaryEventsPayload from '@/content/events.json';
 import {
   readCandidateText,
   readOptionalText,
@@ -9,8 +10,11 @@ import { isHttpHref } from '@/lib/url-utils';
 
 type EventStatus = 'open' | 'fully_booked';
 type SupportedLocale = 'en' | 'zh-CN' | 'zh-HK';
+type EventsSource = 'content' | 'api';
 
 export const EVENTS_API_PATH = '/v1/calendar/events';
+const EVENTS_SOURCE_ENV_NAME = 'NEXT_PUBLIC_EVENTS_SOURCE';
+const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
 
 export interface EventCardData {
   id: string;
@@ -199,6 +203,19 @@ function buildEventsApiUrl(crmApiBaseUrl: string): string {
   return buildCrmApiUrl(crmApiBaseUrl, EVENTS_API_PATH);
 }
 
+function resolveEventsSource(): EventsSource {
+  const configuredSource = process.env[EVENTS_SOURCE_ENV_NAME]?.trim().toLowerCase() ?? '';
+  if (configuredSource === EVENTS_SOURCE_CONTENT) {
+    return EVENTS_SOURCE_CONTENT;
+  }
+
+  return 'api';
+}
+
+export function shouldUseTemporaryEventsContentSource(): boolean {
+  return resolveEventsSource() === EVENTS_SOURCE_CONTENT;
+}
+
 function normalizeLocationLabel(value: string | undefined): string | undefined {
   const normalizedValue = readOptionalText(value);
   if (!normalizedValue) {
@@ -219,9 +236,16 @@ function normalizeLocationLabel(value: string | undefined): string | undefined {
 }
 
 export async function fetchEventsPayload(
-  crmApiClient: CrmApiClient,
+  crmApiClient: CrmApiClient | null,
   signal: AbortSignal,
 ): Promise<unknown> {
+  if (shouldUseTemporaryEventsContentSource()) {
+    return temporaryEventsPayload;
+  }
+  if (!crmApiClient) {
+    throw new Error('CRM API client is not configured');
+  }
+
   return crmApiClient.request({
     endpointPath: EVENTS_API_PATH,
     method: 'GET',
