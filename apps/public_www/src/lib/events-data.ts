@@ -15,6 +15,7 @@ type EventsSource = 'content' | 'api';
 export const EVENTS_API_PATH = '/v1/calendar/events';
 const EVENTS_SOURCE_ENV_NAME = 'NEXT_PUBLIC_EVENTS_SOURCE';
 const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
+const MAX_PAST_EVENTS = 5;
 
 export interface EventCardData {
   id: string;
@@ -593,7 +594,9 @@ export function sortPastEvents(
     return rightValue - leftValue;
   });
 
-  return pastEntries.map((entry) => entry.event);
+  return pastEntries
+    .slice(0, MAX_PAST_EVENTS)
+    .map((entry) => entry.event);
 }
 
 export function sortEvents(
