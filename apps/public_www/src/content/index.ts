@@ -51,6 +51,8 @@ export type WhyUsContent = SiteContent['whyUs'];
 export type FaqContent = SiteContent['faq'];
 export type SproutsSquadCommunityContent =
   SiteContent['sproutsSquadCommunity'];
+export type EventNotificationContent =
+  SiteContent['eventNotification'];
 export type FreeIntroSessionContent =
   SiteContent['freeIntroSession'];
 export type FooterContent = SiteContent['footer'];

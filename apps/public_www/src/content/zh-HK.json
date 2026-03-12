@@ -1042,6 +1042,21 @@
     "captchaUnavailableError": "CAPTCHA 暫時不可用，請稍後再試。",
     "successMessage": "多謝你成為我哋社群的一員！你將會開始收到我哋每月電子通訊。"
   },
+  "eventNotification": {
+    "title": "活動通知",
+    "ctaLabel": "訂閱活動通知",
+    "formSubmitLabel": "接收活動通知",
+    "ctaHref": "/events",
+    "description": "第一時間知道最新工作坊、培訓課程同香港家庭免費活動。\n\n留下你嘅電郵，我哋會喺新活動公佈時通知你。",
+    "emailPlaceholder": "電郵地址",
+    "emailValidationMessage": "請輸入有效的電郵地址。",
+    "prefilledMessage": "活動通知訂閱",
+    "submitErrorMessage": "出咗啲問題，請稍後再試。",
+    "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
+    "captchaLoadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
+    "captchaUnavailableError": "CAPTCHA 暫時不可用，請稍後再試。",
+    "successMessage": "多謝訂閱！有新活動公佈時我哋會通知你。"
+  },
   "freeIntroSession": {
     "title": "準備好畀你嘅助手所需工具未？",
     "description": "預約一節 15 分鐘免費簡介。無需承諾，只係傾下你家庭嘅情況。",

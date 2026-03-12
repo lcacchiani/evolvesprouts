@@ -26,6 +26,11 @@ vi.mock('@/components/sections/past-events', () => ({
     <section data-testid='past-events-section'>{content.past.title}</section>
   ),
 }));
+vi.mock('@/components/sections/event-notification', () => ({
+  EventNotification: ({ content }: { content: { title: string } }) => (
+    <section data-testid='event-notification-section'>{content.title}</section>
+  ),
+}));
 vi.mock('@/components/sections/free-intro-session', () => ({
   FreeIntroSession: ({ content }: { content: { ctaLabel: string } }) => (
     <section data-testid='free-intro-session'>{content.ctaLabel}</section>
@@ -44,6 +49,9 @@ describe('EventsPageSections', () => {
     expect(screen.getByTestId('past-events-section')).toHaveTextContent(
       enContent.events.past.title,
     );
+    expect(screen.getByTestId('event-notification-section')).toHaveTextContent(
+      enContent.eventNotification.title,
+    );
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
 
     const renderedSectionOrder = Array.from(pageLayout.querySelectorAll('section')).map(
@@ -53,6 +61,7 @@ describe('EventsPageSections', () => {
       'events-section',
       'free-intro-session',
       'past-events-section',
+      'event-notification-section',
     ]);
   });
 });

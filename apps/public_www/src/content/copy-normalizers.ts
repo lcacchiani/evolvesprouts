@@ -1,4 +1,5 @@
 import type {
+  EventNotificationContent,
   FreeIntroSessionContent,
   HeroContent,
   IdaIntroContent,
@@ -55,6 +56,16 @@ export function resolveSproutsSquadCommunityCopy(
   return {
     title: readRequiredText(record, 'title', 'sproutsSquadCommunity'),
     description: readRequiredText(record, 'description', 'sproutsSquadCommunity'),
+  };
+}
+
+export function resolveEventNotificationCopy(
+  content: EventNotificationContent,
+): Pick<SectionCopy, 'title' | 'description'> {
+  const record = content as unknown as Record<string, unknown>;
+  return {
+    title: readRequiredText(record, 'title', 'eventNotification'),
+    description: readRequiredText(record, 'description', 'eventNotification'),
   };
 }
 
