@@ -77,9 +77,14 @@ describe('Navbar desktop submenu accessibility', () => {
 
     const header = document.querySelector('header[data-figma-node="navbar"]');
     expect(header?.className).toContain('es-navbar-surface');
-    expect(header?.className).toContain('sticky');
+    expect(header?.className).toContain('fixed');
     expect(header?.className).toContain('top-0');
+    expect(header?.className).toContain('left-0');
     expect(header?.className).toContain('z-40');
+
+    const spacer = document.querySelector('.es-navbar-offset');
+    expect(spacer).not.toBeNull();
+    expect(spacer?.getAttribute('aria-hidden')).toBe('true');
 
     const languageSelectors = screen.getAllByRole('button', {
       name: /Selected language: English/i,
@@ -245,7 +250,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(trainingCoursesToggle.className).toContain('es-navbar-mobile-pill-reset');
   });
 
-  it('condenses sticky navbar after scrolling via DOM class toggle', async () => {
+  it('condenses fixed navbar after scrolling via DOM class toggle', async () => {
     render(<Navbar content={enContent.navbar} />);
 
     const header = document.querySelector('header[data-figma-node="navbar"]');
