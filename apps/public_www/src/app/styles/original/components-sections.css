@@ -1111,10 +1111,10 @@
     -webkit-mask-image: url('/images/credit-card.svg');
   }
 
-  .es-mask-target-danger {
+  .es-mask-location-danger {
     background-color: var(--es-color-booking-highlight-icon, #B42318);
-    mask-image: url('/images/target.svg');
-    -webkit-mask-image: url('/images/target.svg');
+    mask-image: url('/images/location.svg');
+    -webkit-mask-image: url('/images/location.svg');
   }
 
   .es-my-best-auntie-thank-you-panel {

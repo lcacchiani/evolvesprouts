@@ -742,7 +742,7 @@
   .es-mask-calendar-heading,
   .es-mask-cubes-current,
   .es-mask-credit-card-danger,
-  .es-mask-target-danger {
+  .es-mask-location-danger {
     mask-position: center;
     mask-repeat: no-repeat;
     mask-size: contain;

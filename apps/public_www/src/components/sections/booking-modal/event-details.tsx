@@ -153,10 +153,7 @@ export function BookingEventDetails({
 
       <section className='mt-9'>
         <div className='border-b border-black/15 pb-8'>
-          <h3 className='text-2xl font-bold leading-none es-text-heading'>
-            {content.pricingTitle}
-          </h3>
-          <div className='mt-4 flex items-start gap-4'>
+          <div className='flex items-start gap-4'>
             <span className='es-icon-circle-lg'>
               <span
                 className='es-mask-credit-card-danger h-[46px] w-[46px] shrink-0'
@@ -164,10 +161,7 @@ export function BookingEventDetails({
               />
             </span>
             <div>
-              <p className='text-lg font-semibold leading-6 es-text-heading'>
-                {content.totalAmountLabel}
-              </p>
-              <p className='mt-2 text-[26px] font-bold leading-none es-text-heading'>
+              <p className='text-[26px] font-bold leading-none es-text-heading'>
                 {formatCurrencyHkd(originalAmount, locale)}
               </p>
               <p className='mt-4 text-base font-semibold leading-6 es-text-heading'>
@@ -178,13 +172,10 @@ export function BookingEventDetails({
         </div>
 
         <div className='pb-8 pt-8'>
-          <h3 className='text-2xl font-bold leading-none es-text-heading'>
-            {content.locationTitle}
-          </h3>
-          <div className='mt-4 flex items-start gap-4'>
+          <div className='flex items-start gap-4'>
             <span className='es-icon-circle-lg'>
               <span
-                className='es-mask-target-danger h-[46px] w-[46px] shrink-0'
+                className='es-mask-location-danger h-[46px] w-[46px] shrink-0'
                 aria-hidden='true'
               />
             </span>
