@@ -35,7 +35,7 @@ export function PastEvents({
       id='past-events'
       ariaLabel={content.past.title}
       dataFigmaNode='past-events'
-      className='es-events-section pt-0 sm:pt-[60px]'
+      className='es-events-section sm:pt-[60px]'
     >
       <SectionContainer>
         <SectionHeader
