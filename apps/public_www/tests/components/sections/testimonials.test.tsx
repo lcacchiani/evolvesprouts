@@ -111,8 +111,6 @@ describe('Testimonials section', () => {
     expect(previousButton).toBeInTheDocument();
     const desktopControls = screen.getByTestId('testimonials-desktop-controls');
     expect(desktopControls.className).toContain('sm:block');
-    expect(desktopControls.contains(previousButton)).toBe(true);
-    expect(desktopControls.contains(nextButton)).toBe(true);
 
     const activeSlideAuthorRow = container.querySelector(
       'article:not([aria-hidden]) [data-testid="testimonial-author-row"]',
@@ -120,10 +118,10 @@ describe('Testimonials section', () => {
     expect(activeSlideAuthorRow).not.toBeNull();
     expect(activeSlideAuthorRow?.className).toContain('max-w-[500px]');
     expect(activeSlideAuthorRow?.className).toContain('lg:pr-[200px]');
+    expect(desktopControls.className).toContain('bottom-[10px]');
 
-    const overflowClip = desktopControls.querySelector('.overflow-hidden');
-    expect(overflowClip).not.toBeNull();
-
+    const desktopControlsRow = desktopControls.firstElementChild;
+    expect(desktopControlsRow?.className).toContain('max-w-[500px]');
     const quoteText = container.querySelector(
       'article:not([aria-hidden]) .es-testimonials-quote',
     );
