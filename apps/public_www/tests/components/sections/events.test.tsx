@@ -196,7 +196,6 @@ describe('Events section', () => {
     await screen.findByText('Comma separated price card');
     expect(screen.getByText('HK$1,280')).toBeInTheDocument();
   });
-
   it('shows location icon and direction link while removing the location heading and fully booked icon', async () => {
     const mockApiClient: CrmApiClient = {
       request: vi.fn().mockResolvedValue({

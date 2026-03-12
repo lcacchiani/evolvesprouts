@@ -333,7 +333,6 @@ function formatNumberWithThousandsSeparators(value: number): string {
     maximumFractionDigits: 20,
   }).format(value);
 }
-
 function resolveEventCost(
   record: Record<string, unknown>,
   content: EventsContent,
@@ -364,7 +363,6 @@ function resolveEventCost(
         isFreeCost: false,
       };
     }
-
     return { costLabel: explicitCostLabel, isFreeCost: false };
   }
 
