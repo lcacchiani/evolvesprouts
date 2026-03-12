@@ -196,7 +196,58 @@ describe('Events section', () => {
     await screen.findByText('Comma separated price card');
     expect(screen.getByText('HK$1,280')).toBeInTheDocument();
   });
-  it('shows location icon and direction link while removing the location heading and fully booked icon', async () => {
+
+  it('shows virtual call icon and places fully booked chip after price chip', async () => {
+    const mockApiClient: CrmApiClient = {
+      request: vi.fn().mockResolvedValue({
+        status: 'success',
+        data: [
+          {
+            title: 'Virtual fully booked event card',
+            location: 'virtual',
+            address: 'Virtual',
+            address_url: 'https://zoom.us/',
+            dates: [
+              {
+                start_datetime: '2099-12-08T10:00:00Z',
+                end_datetime: '2099-12-08T13:00:00Z',
+              },
+            ],
+            timezone: 'HKT',
+            price: 88,
+            currency_symbol: 'HK$',
+            is_fully_booked: true,
+          },
+        ],
+      }),
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    const { container } = render(<Events content={enContent.events} />);
+
+    await screen.findByText('Virtual fully booked event card');
+
+    const locationIcon = container.querySelector('[data-event-location-icon="true"]');
+    expect(locationIcon).not.toBeNull();
+    expect(locationIcon?.className).toContain('es-mask-virtual-call-danger');
+
+    const costChip = screen.getByText('HK$88').closest('li');
+    const fullyBookedChip = screen
+      .getByText(enContent.events.card.fullyBookedLabel)
+      .closest('li');
+    expect(costChip).not.toBeNull();
+    expect(fullyBookedChip).not.toBeNull();
+    expect(
+      Boolean(
+        costChip &&
+          fullyBookedChip &&
+          (costChip.compareDocumentPosition(fullyBookedChip) &
+            Node.DOCUMENT_POSITION_FOLLOWING),
+      ),
+    ).toBe(true);
+  });
+
+  it('shows physical location icon and direction link while removing the location heading', async () => {
     const mockApiClient: CrmApiClient = {
       request: vi.fn().mockResolvedValue({
         status: 'success',
@@ -232,6 +283,7 @@ describe('Events section', () => {
 
     const locationIcons = container.querySelectorAll('[data-event-location-icon="true"]');
     expect(locationIcons).toHaveLength(1);
+    expect(locationIcons[0]?.className).toContain('es-mask-location-danger');
 
     const directionLink = screen.getByRole('link', {
       name: enContent.events.card.directionLabel,
@@ -247,7 +299,7 @@ describe('Events section', () => {
 
     const fullyBookedChip = screen
       .getByText(enContent.events.card.fullyBookedLabel)
-      .closest('span');
+      .closest('li');
     expect(fullyBookedChip?.querySelector('img')).toBeNull();
   });
 });
