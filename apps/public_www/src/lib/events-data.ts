@@ -478,7 +478,7 @@ export function normalizeEvents(
     .filter((item): item is EventCardData => item !== null);
 }
 
-export function sortEvents(
+export function sortUpcomingEvents(
   events: EventCardData[],
 ): EventCardData[] {
   const entries = events.map((event, index) => ({ event, index }));
@@ -508,4 +508,36 @@ export function sortEvents(
     return leftValue - rightValue;
   });
   return upcomingEntries.map((entry) => entry.event);
+}
+
+export function sortPastEvents(
+  events: EventCardData[],
+): EventCardData[] {
+  const entries = events.map((event, index) => ({ event, index }));
+  const now = Date.now();
+  const pastEntries = entries.filter((entry) => {
+    const timestamp = entry.event.timestamp;
+    return timestamp !== null && timestamp < now;
+  });
+
+  pastEntries.sort((left, right) => {
+    const leftValue = left.event.timestamp;
+    const rightValue = right.event.timestamp;
+    if (leftValue === null || rightValue === null) {
+      return left.index - right.index;
+    }
+    if (leftValue === rightValue) {
+      return left.index - right.index;
+    }
+
+    return rightValue - leftValue;
+  });
+
+  return pastEntries.map((entry) => entry.event);
+}
+
+export function sortEvents(
+  events: EventCardData[],
+): EventCardData[] {
+  return sortUpcomingEvents(events);
 }

@@ -744,6 +744,12 @@
       "emptyLocationLabel": "地点详情将稍后公布。",
       "ctaLabel": "立即预订",
       "fullyBookedLabel": "已满额"
+    },
+    "past": {
+      "title": "过往活动",
+      "emptyStateLabel": "暂无往期活动",
+      "notifyPrompt": "想第一时间知道新活动发布吗？",
+      "notifyCtaLabel": "获取通知"
     }
   },
   "ida": {

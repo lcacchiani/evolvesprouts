@@ -11,8 +11,19 @@ vi.mock('@/components/shared/page-layout', () => ({
   ),
 }));
 vi.mock('@/components/sections/events', () => ({
-  Events: ({ content, locale }: { content: { title: string }; locale: string }) => (
+  Events: ({
+    content,
+    locale,
+  }: {
+    content: { title: string };
+    locale: string;
+  }) => (
     <section data-testid='events-section'>{`${content.title} (${locale})`}</section>
+  ),
+}));
+vi.mock('@/components/sections/past-events', () => ({
+  PastEvents: ({ content }: { content: { past: { title: string } } }) => (
+    <section data-testid='past-events-section'>{content.past.title}</section>
   ),
 }));
 vi.mock('@/components/sections/free-intro-session', () => ({
@@ -25,10 +36,23 @@ describe('EventsPageSections', () => {
   it('composes events page sections with locale-aware props', () => {
     render(<EventsPageSections content={enContent} />);
 
-    expect(screen.getByTestId('page-layout')).toBeInTheDocument();
+    const pageLayout = screen.getByTestId('page-layout');
+    expect(pageLayout).toBeInTheDocument();
     expect(screen.getByTestId('events-section')).toHaveTextContent(
       `${enContent.events.title} (${enContent.meta.locale})`,
     );
+    expect(screen.getByTestId('past-events-section')).toHaveTextContent(
+      enContent.events.past.title,
+    );
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
+
+    const renderedSectionOrder = Array.from(pageLayout.querySelectorAll('section')).map(
+      (section) => section.getAttribute('data-testid'),
+    );
+    expect(renderedSectionOrder).toEqual([
+      'events-section',
+      'free-intro-session',
+      'past-events-section',
+    ]);
   });
 });

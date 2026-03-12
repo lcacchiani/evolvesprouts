@@ -6,6 +6,7 @@ import {
   fetchEventsPayload,
   normalizeEvents,
   resolveEventsApiUrl,
+  sortPastEvents,
   sortEvents,
 } from '@/lib/events-data';
 
@@ -221,6 +222,12 @@ describe('events-data', () => {
       'future-a',
       'future-b',
       'unknown',
+    ]);
+
+    const pastEvents = sortPastEvents(sourceEvents);
+    expect(pastEvents.map((event) => event.id)).toEqual([
+      'past-a',
+      'past-b',
     ]);
 
     vi.useRealTimers();

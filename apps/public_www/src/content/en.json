@@ -747,6 +747,12 @@
       "emptyLocationLabel": "Location details will be announced soon.",
       "ctaLabel": "Reserve your spot",
       "fullyBookedLabel": "Fully booked"
+    },
+    "past": {
+      "title": "Past Events",
+      "emptyStateLabel": "No past events yet",
+      "notifyPrompt": "Want to know when new events are announced?",
+      "notifyCtaLabel": "Get notified"
     }
   },
   "ida": {
