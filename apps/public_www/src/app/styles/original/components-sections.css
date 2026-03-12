@@ -1109,6 +1109,12 @@
     background-color: currentColor;
     mask-image: url('/images/dollar-symbol.svg');
     -webkit-mask-image: url('/images/dollar-symbol.svg');
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    -webkit-mask-size: contain;
   }
 
   .es-mask-credit-card-danger {
