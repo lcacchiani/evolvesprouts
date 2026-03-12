@@ -151,7 +151,7 @@ export function BookingEventDetails({
         </ul>
       </section>
 
-      <section className='mt-9'>
+      <section className='mt-9 border-t border-black/15 pt-8'>
         <div className='border-b border-black/15 pb-8'>
           <div className='flex items-start gap-4'>
             <span className='es-icon-circle-lg'>
