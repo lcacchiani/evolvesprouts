@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PastEvents } from '@/components/sections/past-events';
 import enContent from '@/content/en.json';
@@ -18,8 +18,14 @@ describe('PastEvents section', () => {
   const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 
   beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   it('renders past events section heading and empty state', () => {

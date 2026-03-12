@@ -170,7 +170,7 @@ describe('events-data', () => {
     });
   });
 
-  it('returns upcoming events only in chronological order', () => {
+  it('returns upcoming events in chronological order and limits past events to most recent 5', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-04-10T00:00:00Z'));
 
@@ -212,6 +212,51 @@ describe('events-data', () => {
         timestamp: Date.parse('2026-04-05T10:00:00Z'),
       },
       {
+        id: 'past-c',
+        title: 'Past C',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: Date.parse('2026-04-04T10:00:00Z'),
+      },
+      {
+        id: 'past-d',
+        title: 'Past D',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: Date.parse('2026-04-03T10:00:00Z'),
+      },
+      {
+        id: 'past-e',
+        title: 'Past E',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: Date.parse('2026-04-02T10:00:00Z'),
+      },
+      {
+        id: 'past-f',
+        title: 'Past F',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: Date.parse('2026-04-01T10:00:00Z'),
+      },
+      {
+        id: 'past-g',
+        title: 'Past G',
+        ctaHref: '',
+        ctaLabel: 'Reserve',
+        tags: [],
+        status: 'open' as const,
+        timestamp: Date.parse('2026-03-31T10:00:00Z'),
+      },
+      {
         id: 'unknown',
         title: 'Unknown Date',
         ctaHref: '',
@@ -233,12 +278,16 @@ describe('events-data', () => {
     expect(pastEvents.map((event) => event.id)).toEqual([
       'past-a',
       'past-b',
+      'past-c',
+      'past-d',
+      'past-e',
     ]);
 
     vi.useRealTimers();
   });
 
   it('fetches events payload with x-api-key', async () => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
     const fetchSpy = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
