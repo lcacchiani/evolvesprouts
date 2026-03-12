@@ -45,6 +45,7 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 Public WWW CRM API configuration is provided at build time via:
 
 - GitHub variable `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
+- GitHub variable `NEXT_PUBLIC_EVENTS_SOURCE` (`content` to source events from `apps/public_www/src/content/events.json`)
 - GitHub variable `NEXT_PUBLIC_ADMIN_API_BASE_URL`
 - GitHub variable `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
