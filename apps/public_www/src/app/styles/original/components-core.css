@@ -555,9 +555,6 @@
     height: 96px;
     background-color: var(--es-color-surface-white);
     object-fit: contain;
-    transition:
-      width 300ms ease-out,
-      height 300ms ease-out;
   }
 
   @media (min-width: 1024px) {
@@ -569,30 +566,6 @@
 
   .es-navbar-nav {
     min-height: 115px;
-    transition: min-height 300ms ease-out;
-  }
-
-  .es-navbar-nav .es-btn {
-    transition:
-      transform 300ms ease,
-      background-color 200ms ease,
-      border-color 200ms ease,
-      color 200ms ease,
-      box-shadow 200ms ease,
-      opacity 200ms ease,
-      min-height 300ms ease-out,
-      height 300ms ease-out,
-      width 300ms ease-out,
-      border-radius 300ms ease-out,
-      padding 300ms ease-out,
-      font-size 300ms ease-out,
-      gap 300ms ease-out;
-  }
-
-  .es-navbar-nav .es-btn--icon > * {
-    transition:
-      width 300ms ease-out,
-      height 300ms ease-out;
   }
 
   .es-navbar--condensed .es-navbar-nav {
@@ -723,7 +696,6 @@
     transition:
       background-color 300ms ease,
       box-shadow 300ms ease;
-    will-change: transform;
   }
 
   .es-navbar--condensed {
