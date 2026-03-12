@@ -191,7 +191,10 @@ export function BookingEventDetails({
                 className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
               >
                 {({ isExternalHttp }) => (
-                  <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
+                  <ExternalLinkInlineContent
+                    isExternalHttp={isExternalHttp}
+                    externalLabelClassName='es-link-external-label--direction'
+                  >
                     {content.directionLabel}
                   </ExternalLinkInlineContent>
                 )}

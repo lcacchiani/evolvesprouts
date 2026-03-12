@@ -45,4 +45,20 @@ describe('ExternalLinkInlineContent', () => {
     expect(document.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
     expect(screen.getByTestId('internal-icon')).toBeInTheDocument();
   });
+
+  it('merges additional external label classes when provided', () => {
+    render(
+      <ExternalLinkInlineContent
+        isExternalHttp
+        externalLabelClassName='es-link-external-label--direction'
+      >
+        Direction label
+      </ExternalLinkInlineContent>,
+    );
+
+    const label = screen.getByText('Direction label');
+    expect(label.className).toContain('es-link-external-label');
+    expect(label.className).toContain('es-link-external-label--with-icon');
+    expect(label.className).toContain('es-link-external-label--direction');
+  });
 });

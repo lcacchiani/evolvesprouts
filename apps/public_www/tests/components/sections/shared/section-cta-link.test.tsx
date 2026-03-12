@@ -31,6 +31,7 @@ describe('SectionCtaAnchor', () => {
     expect(link.className).toContain('es-btn--primary');
     const label = screen.getByText('Visit resource');
     expect(label.className).toContain('es-link-external-label');
+    expect(label.className).not.toContain('es-link-external-label--direction');
     const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
     expect(externalIcon).not.toBeNull();
     expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');

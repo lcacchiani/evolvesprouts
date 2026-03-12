@@ -155,6 +155,9 @@ describe('Events section', () => {
       'https://www.google.com/maps/dir/?api=1&destination=35+Aberdeen+Street,+Central',
     );
     expect(directionLink).toHaveAttribute('target', '_blank');
+    expect(screen.getByText(enContent.events.card.directionLabel).className).toContain(
+      'es-link-external-label--direction',
+    );
 
     const fullyBookedChip = screen
       .getByText(enContent.events.card.fullyBookedLabel)

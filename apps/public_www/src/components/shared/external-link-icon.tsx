@@ -8,6 +8,7 @@ interface ExternalLinkInlineContentProps {
   isExternalHttp: boolean;
   children: ReactNode;
   internalIcon?: ReactNode;
+  externalLabelClassName?: string;
 }
 
 export function ExternalLinkIcon({
@@ -49,10 +50,19 @@ export function ExternalLinkInlineContent({
   isExternalHttp,
   children,
   internalIcon = null,
+  externalLabelClassName,
 }: ExternalLinkInlineContentProps) {
   if (isExternalHttp) {
+    const labelClassName = [
+      'es-link-external-label',
+      'es-link-external-label--with-icon',
+      externalLabelClassName,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
     return (
-      <span className='es-link-external-label es-link-external-label--with-icon'>
+      <span className={labelClassName}>
         {children}
         <ExternalLinkIcon />
       </span>

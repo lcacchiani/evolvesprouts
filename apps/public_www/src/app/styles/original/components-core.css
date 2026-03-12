@@ -666,6 +666,11 @@
     margin-left: 3px;
   }
 
+  .es-link-external-label--direction {
+    text-decoration-line: underline;
+    text-underline-offset: 2px;
+  }
+
   .es-link-external-icon {
     display: inline-block;
     flex-shrink: 0;
