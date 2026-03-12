@@ -327,6 +327,12 @@ function parseNumericText(value: string): number | null {
   return parsedValue;
 }
 
+function formatNumberWithThousandsSeparators(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    useGrouping: true,
+    maximumFractionDigits: 20,
+  }).format(value);
+}
 function resolveEventCost(
   record: Record<string, unknown>,
   content: EventsContent,
@@ -351,6 +357,12 @@ function resolveEventCost(
       return { costLabel: content.card.freeLabel, isFreeCost: true };
     }
 
+    if (explicitAmount !== null) {
+      return {
+        costLabel: formatNumberWithThousandsSeparators(explicitAmount),
+        isFreeCost: false,
+      };
+    }
     return { costLabel: explicitCostLabel, isFreeCost: false };
   }
 
@@ -387,11 +399,16 @@ function resolveEventCost(
     return { costLabel: content.card.freeLabel, isFreeCost: true };
   }
 
+  const formattedAmountText =
+    numericAmount === null
+      ? amountText
+      : formatNumberWithThousandsSeparators(numericAmount);
+
   if (numericAmount !== null && currencyPrefix) {
-    return { costLabel: `${currencyPrefix}${amountText}`, isFreeCost: false };
+    return { costLabel: `${currencyPrefix}${formattedAmountText}`, isFreeCost: false };
   }
 
-  return { costLabel: amountText, isFreeCost: false };
+  return { costLabel: formattedAmountText, isFreeCost: false };
 }
 
 export async function fetchEventsPayload(

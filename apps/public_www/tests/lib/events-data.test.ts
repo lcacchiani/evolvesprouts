@@ -106,7 +106,7 @@ describe('events-data', () => {
       ctaHref:
         'https://www.google.com/maps/search/?api=1&query=H210%2C+2%2FF%2C+PMQ%2C+Mid-Levels%2C+Central+and+Western%2C+Hong+Kong+Island',
       ctaLabel: enContent.events.card.ctaLabel,
-      costLabel: 'HK$9000',
+      costLabel: 'HK$9,000',
       isFreeCost: false,
       timestamp: Date.parse('2025-12-05T10:00:00Z'),
     });

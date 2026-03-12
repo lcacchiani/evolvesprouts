@@ -153,7 +153,10 @@ function formatCohortPrice(
       maximumFractionDigits: 0,
     }).format(price);
   } catch {
-    return `${priceCurrency} ${price}`;
+    return `${priceCurrency} ${new Intl.NumberFormat('en-US', {
+      useGrouping: true,
+      maximumFractionDigits: 20,
+    }).format(price)}`;
   }
 }
 

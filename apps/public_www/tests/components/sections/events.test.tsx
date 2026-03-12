@@ -160,11 +160,42 @@ describe('Events section', () => {
     const freeChip = screen.getByText(enContent.events.card.freeLabel).closest('li');
     expect(freeChip).not.toBeNull();
     expect(freeChip?.getAttribute('data-event-cost-chip')).toBe('true');
-    expect(freeChip?.className).toContain('es-text-success');
+    expect(freeChip?.className).toContain('es-events-detail-chip-success');
     expect(freeChip?.className).toContain('es-border-success');
     expect(container.querySelectorAll('[data-event-cost-icon="true"]')).toHaveLength(2);
   });
 
+  it('formats event cost with thousand separators', async () => {
+    const mockApiClient: CrmApiClient = {
+      request: vi.fn().mockResolvedValue({
+        status: 'success',
+        data: [
+          {
+            title: 'Comma separated price card',
+            location: 'physical',
+            address: 'PMQ, Central',
+            address_url: 'https://maps.google.com/?q=PMQ+Central',
+            dates: [
+              {
+                start_datetime: '2099-12-07T10:00:00Z',
+                end_datetime: '2099-12-07T13:00:00Z',
+              },
+            ],
+            timezone: 'HKT',
+            price: 1280,
+            currency_symbol: 'HK$',
+            is_fully_booked: false,
+          },
+        ],
+      }),
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    render(<Events content={enContent.events} />);
+
+    await screen.findByText('Comma separated price card');
+    expect(screen.getByText('HK$1,280')).toBeInTheDocument();
+  });
   it('shows location icon and direction link while removing the location heading and fully booked icon', async () => {
     const mockApiClient: CrmApiClient = {
       request: vi.fn().mockResolvedValue({

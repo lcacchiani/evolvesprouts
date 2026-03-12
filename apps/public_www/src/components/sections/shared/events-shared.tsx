@@ -181,7 +181,7 @@ export function EventCardsList({
                 {eventCard.costLabel && (
                   <li
                     data-event-cost-chip='true'
-                    className={`inline-flex items-center gap-1.5 rounded-3xl bg-white px-3 py-[7px] es-events-detail-chip ${eventCard.isFreeCost ? 'border es-border-success es-text-success' : ''}`.trim()}
+                    className={`inline-flex items-center gap-1.5 rounded-3xl bg-white px-3 py-[7px] es-events-detail-chip ${eventCard.isFreeCost ? 'border es-border-success es-events-detail-chip-success' : ''}`.trim()}
                   >
                     <Image
                       src={DOLLAR_SYMBOL_ICON_SRC}
