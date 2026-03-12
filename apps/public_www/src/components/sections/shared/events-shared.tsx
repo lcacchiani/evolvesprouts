@@ -20,7 +20,6 @@ import {
 
 const CALENDAR_ICON_SRC = '/images/calendar.svg';
 const CLOCK_ICON_SRC = '/images/clock.svg';
-const LOCATION_ICON_SRC = '/images/location.svg';
 
 interface LoadingGearIconProps {
   className?: string;
@@ -196,29 +195,27 @@ export function EventCardsList({
             </div>
 
             <aside className='mt-6 w-full rounded-lg bg-white px-4 py-5 lg:mt-0 lg:max-w-[335px]'>
-              <div className='flex items-start gap-2'>
-                <Image
-                  src={LOCATION_ICON_SRC}
-                  alt=''
-                  aria-hidden='true'
-                  width={14}
-                  height={14}
-                  data-event-location-icon='true'
-                  className='mt-[5px] h-3.5 w-3.5 shrink-0 self-start'
-                />
+              <div className='flex items-start gap-4'>
+                <span className='es-icon-circle-lg'>
+                  <span
+                    data-event-location-icon='true'
+                    className='es-mask-location-danger h-[46px] w-[46px] shrink-0'
+                    aria-hidden='true'
+                  />
+                </span>
                 <div>
-                  <p className='es-events-location-text'>
+                  <p className='text-lg font-semibold leading-6 es-text-heading'>
                     {eventCard.locationName ?? content.card.emptyLocationLabel}
                   </p>
                   {eventCard.locationAddress && (
-                    <p className='mt-1 es-events-location-text'>
+                    <p className='mt-1 text-base font-semibold leading-6 es-text-heading'>
                       {eventCard.locationAddress}
                     </p>
                   )}
                   {eventCard.directionHref && (
                     <SmartLink
                       href={eventCard.directionHref}
-                      className='mt-3 inline-flex items-center text-sm font-semibold leading-none es-text-heading'
+                      className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
                     >
                       {({ isExternalHttp }) => (
                         <ExternalLinkInlineContent
