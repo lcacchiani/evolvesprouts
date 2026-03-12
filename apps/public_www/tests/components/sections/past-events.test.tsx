@@ -58,4 +58,46 @@ describe('PastEvents section', () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId('past-events-loading-gear')).toHaveClass('animate-spin');
   });
+
+  it('hides reserve and fully booked actions for past events cards', async () => {
+    const mockApiClient: CrmApiClient = {
+      request: vi.fn().mockResolvedValue({
+        status: 'success',
+        data: [
+          {
+            title: 'Past event with booking metadata',
+            location: 'physical',
+            address: 'PMQ, Hong Kong',
+            address_url: 'https://maps.google.com/?q=PMQ+Hong+Kong',
+            dates: [
+              {
+                start_datetime: '2024-02-01T09:00:00Z',
+                end_datetime: '2024-02-01T10:00:00Z',
+              },
+            ],
+            timezone: 'HKT',
+            is_fully_booked: true,
+          },
+        ],
+      }),
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    render(
+      <PastEvents
+        content={enContent.events}
+      />,
+    );
+
+    await screen.findByText('Past event with booking metadata');
+
+    expect(
+      screen.queryByRole('link', {
+        name: enContent.events.card.ctaLabel,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(enContent.events.card.fullyBookedLabel),
+    ).not.toBeInTheDocument();
+  });
 });

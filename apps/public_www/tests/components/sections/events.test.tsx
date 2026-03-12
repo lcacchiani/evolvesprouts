@@ -69,4 +69,38 @@ describe('Events section', () => {
 
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
+
+  it('renders event date and time without label prefixes', async () => {
+    const mockApiClient: CrmApiClient = {
+      request: vi.fn().mockResolvedValue({
+        status: 'success',
+        data: [
+          {
+            title: 'Prefixless event card',
+            location: 'virtual',
+            address: 'Online Zoom Room',
+            address_url: 'https://zoom.us/',
+            dates: [
+              {
+                start_datetime: '2099-12-05T10:00:00Z',
+                end_datetime: '2099-12-05T13:00:00Z',
+              },
+            ],
+            timezone: 'HKT',
+            is_fully_booked: false,
+          },
+        ],
+      }),
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    render(<Events content={enContent.events} />);
+
+    await screen.findByText('Prefixless event card');
+
+    expect(screen.getByText('05 Dec 2099')).toBeInTheDocument();
+    expect(screen.getByText('10:00 - 13:00 HKT')).toBeInTheDocument();
+    expect(screen.queryByText(/^Date:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Time:/)).not.toBeInTheDocument();
+  });
 });

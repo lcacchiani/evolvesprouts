@@ -57,6 +57,7 @@ describe('events-data', () => {
               end_datetime: '2025-12-05T13:00:00Z',
             },
           ],
+          timezone: 'HKT',
           is_fully_booked: true,
         },
         {
@@ -79,6 +80,7 @@ describe('events-data', () => {
               end_datetime: '2025-12-15T12:00:00Z',
             },
           ],
+          timezone: 'HKT',
           is_fully_booked: false,
         },
       ],
@@ -91,7 +93,7 @@ describe('events-data', () => {
       title: 'TEST Creative Writing Masterclass',
       status: 'fully_booked',
       dateLabel: '05 Dec 2025',
-      timeLabel: '10:00 - 13:00',
+      timeLabel: '10:00 - 13:00 HKT',
       locationName:
         'H210, 2/F, PMQ, Mid-Levels, Central and Western, Hong Kong Island',
       ctaHref:
@@ -111,7 +113,7 @@ describe('events-data', () => {
       title: 'TEST Data Science Intensive Touch',
       status: 'open',
       dateLabel: '15 Dec 2025',
-      timeLabel: '09:00 - 12:00',
+      timeLabel: '09:00 - 12:00 HKT',
       locationName: 'Virtual Meeting',
       ctaHref: 'https://meet.example.com/data-science',
       ctaLabel: enContent.events.card.ctaLabel,
@@ -135,6 +137,7 @@ describe('events-data', () => {
               end_datetime: '2025-12-05T13:00:00Z',
             },
           ],
+          timezone: 'HKT',
         },
       ],
     };
@@ -142,7 +145,7 @@ describe('events-data', () => {
     const events = normalizeEvents(payload, enContent.events, 'zh-HK');
     expect(events[0]).toMatchObject({
       dateLabel: '2025年12月05日',
-      timeLabel: '上午10:00 - 下午1:00',
+      timeLabel: '上午10:00 - 下午1:00 HKT',
     });
   });
 
