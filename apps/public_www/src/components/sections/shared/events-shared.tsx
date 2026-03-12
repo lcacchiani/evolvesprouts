@@ -20,6 +20,7 @@ import {
 
 const CALENDAR_ICON_SRC = '/images/calendar.svg';
 const CLOCK_ICON_SRC = '/images/clock.svg';
+const DOLLAR_SYMBOL_ICON_SRC = '/images/dollar-symbol.svg';
 const LOCATION_ICON_SRC = '/images/location.svg';
 
 interface LoadingGearIconProps {
@@ -174,6 +175,25 @@ export function EventCardsList({
                     />
                     <span className='inline-flex items-center'>
                       {eventCard.timeLabel}
+                    </span>
+                  </li>
+                )}
+                {eventCard.costLabel && (
+                  <li
+                    data-event-cost-chip='true'
+                    className={`inline-flex items-center gap-1.5 rounded-3xl bg-white px-3 py-[7px] es-events-detail-chip ${eventCard.isFreeCost ? 'border es-border-success es-text-success' : ''}`.trim()}
+                  >
+                    <Image
+                      src={DOLLAR_SYMBOL_ICON_SRC}
+                      alt=''
+                      aria-hidden='true'
+                      width={14}
+                      height={14}
+                      data-event-cost-icon='true'
+                      className='h-3.5 w-3.5 shrink-0 self-center'
+                    />
+                    <span className='inline-flex items-center'>
+                      {eventCard.costLabel}
                     </span>
                   </li>
                 )}

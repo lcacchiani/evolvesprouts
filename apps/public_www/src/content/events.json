@@ -23,6 +23,8 @@
         }
       ],
       "timezone": "HKT",
+      "price": 1280,
+      "currency_symbol": "HK$",
       "is_fully_booked": false
     },
     {
@@ -46,6 +48,8 @@
         }
       ],
       "timezone": "HKT",
+      "price": 1480,
+      "currency_symbol": "HK$",
       "is_fully_booked": true
     },
     {
@@ -69,6 +73,8 @@
         }
       ],
       "timezone": "HKT",
+      "price": 0,
+      "currency_symbol": "HK$",
       "is_fully_booked": false
     },
     {
@@ -92,6 +98,8 @@
         }
       ],
       "timezone": "HKT",
+      "price": 980,
+      "currency_symbol": "HK$",
       "is_fully_booked": true
     },
     {
@@ -115,6 +123,8 @@
         }
       ],
       "timezone": "HKT",
+      "price": 0,
+      "currency_symbol": "HK$",
       "is_fully_booked": false
     }
   ]

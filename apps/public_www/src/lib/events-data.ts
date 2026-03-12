@@ -23,6 +23,8 @@ export interface EventCardData {
   summary?: string;
   dateLabel?: string;
   timeLabel?: string;
+  costLabel?: string;
+  isFreeCost?: boolean;
   locationName?: string;
   locationAddress?: string;
   directionHref?: string;
@@ -298,6 +300,100 @@ function normalizeLocationLabel(value: string | undefined): string | undefined {
   return formatEnumLikeLabel(normalizedValue);
 }
 
+function readFirstCandidateValue(
+  record: Record<string, unknown>,
+  keys: readonly string[],
+): unknown {
+  for (const key of keys) {
+    if (Object.hasOwn(record, key)) {
+      return record[key];
+    }
+  }
+
+  return undefined;
+}
+
+function parseNumericText(value: string): number | null {
+  const normalizedValue = value.replaceAll(',', '').trim();
+  if (!/^-?\d+(\.\d+)?$/.test(normalizedValue)) {
+    return null;
+  }
+
+  const parsedValue = Number(normalizedValue);
+  if (!Number.isFinite(parsedValue)) {
+    return null;
+  }
+
+  return parsedValue;
+}
+
+function resolveEventCost(
+  record: Record<string, unknown>,
+  content: EventsContent,
+): { costLabel?: string; isFreeCost: boolean } {
+  const explicitCostLabel = readCandidateText(record, [
+    'costLabel',
+    'cost_label',
+    'priceLabel',
+    'price_label',
+    'priceDisplay',
+    'price_display',
+    'costDisplay',
+    'cost_display',
+    'feeLabel',
+    'fee_label',
+    'amountLabel',
+    'amount_label',
+  ]);
+  if (explicitCostLabel) {
+    const explicitAmount = parseNumericText(explicitCostLabel);
+    if (explicitAmount === 0) {
+      return { costLabel: content.card.freeLabel, isFreeCost: true };
+    }
+
+    return { costLabel: explicitCostLabel, isFreeCost: false };
+  }
+
+  const rawAmount = readFirstCandidateValue(record, [
+    'price',
+    'cost',
+    'amount',
+    'fee',
+    'eventPrice',
+    'event_price',
+  ]);
+  const currencyPrefix = readCandidateText(record, [
+    'currencySymbol',
+    'currency_symbol',
+    'currencyPrefix',
+    'currency_prefix',
+    'currencyCode',
+    'currency_code',
+    'currency',
+    'priceCurrency',
+    'price_currency',
+  ]);
+
+  const amountText =
+    typeof rawAmount === 'number' && Number.isFinite(rawAmount)
+      ? String(rawAmount)
+      : readOptionalText(rawAmount);
+  if (!amountText) {
+    return { isFreeCost: false };
+  }
+
+  const numericAmount = parseNumericText(amountText);
+  if (numericAmount === 0) {
+    return { costLabel: content.card.freeLabel, isFreeCost: true };
+  }
+
+  if (numericAmount !== null && currencyPrefix) {
+    return { costLabel: `${currencyPrefix}${amountText}`, isFreeCost: false };
+  }
+
+  return { costLabel: amountText, isFreeCost: false };
+}
+
 export async function fetchEventsPayload(
   crmApiClient: CrmApiClient | null,
   signal: AbortSignal,
@@ -548,6 +644,7 @@ function normalizeEventCard(
   const fallbackId = `${title}-${dateLabel ?? ''}-${index}`;
   const status = resolveEventStatus(record);
   const tags = readTagList(record);
+  const { costLabel, isFreeCost } = resolveEventCost(record, content);
 
   return {
     id: rawId || fallbackId,
@@ -555,6 +652,8 @@ function normalizeEventCard(
     summary,
     dateLabel,
     timeLabel,
+    costLabel,
+    isFreeCost,
     locationName,
     locationAddress:
       locationAddress && locationAddress !== locationName

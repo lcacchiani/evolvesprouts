@@ -739,7 +739,8 @@
       "emptyLocationLabel": "地点详情将稍后公布。",
       "directionLabel": "查看路线",
       "ctaLabel": "立即预订",
-      "fullyBookedLabel": "已满额"
+      "fullyBookedLabel": "已满额",
+      "freeLabel": "免费"
     },
     "past": {
       "title": "过往活动",

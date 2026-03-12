@@ -742,7 +742,8 @@
       "emptyLocationLabel": "Location details will be announced soon.",
       "directionLabel": "Get direction",
       "ctaLabel": "Reserve your spot",
-      "fullyBookedLabel": "Fully booked"
+      "fullyBookedLabel": "Fully booked",
+      "freeLabel": "Free"
     },
     "past": {
       "title": "Past Events",
