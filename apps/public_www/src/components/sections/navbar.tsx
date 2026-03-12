@@ -315,6 +315,7 @@ export function Navbar({ content }: NavbarProps) {
             items={content.menuItems}
             currentPath={currentPath}
             locale={currentLocale}
+            submenuToggleLabelTemplate={content.submenuToggleLabelTemplate}
           />
 
           <div className='hidden items-center lg:flex'>
@@ -412,6 +413,7 @@ export function Navbar({ content }: NavbarProps) {
                 currentPath={currentPath}
                 locale={currentLocale}
                 onNavigate={closeMobileMenu}
+                submenuToggleLabelTemplate={content.submenuToggleLabelTemplate}
               />
               <div className='mt-6 pt-4'>
                 <LanguageSelectorButton

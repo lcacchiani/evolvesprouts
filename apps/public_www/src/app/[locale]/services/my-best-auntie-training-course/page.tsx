@@ -21,7 +21,6 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   const title = content.seo.trainingCourse.title || getFooterLinkLabel(
     content,
     ROUTES.servicesMyBestAuntieTrainingCourse,
-    'My Best Auntie Training Course',
   );
   const description = content.seo.trainingCourse.description;
 
@@ -44,7 +43,6 @@ export default async function MyBestAuntiePage({
   const pageTitle = content.seo.trainingCourse.title || getFooterLinkLabel(
     content,
     ROUTES.servicesMyBestAuntieTrainingCourse,
-    'My Best Auntie Training Course',
   );
 
   return (
@@ -56,7 +54,7 @@ export default async function MyBestAuntiePage({
           locale,
           items: [
             {
-              name: getMenuLabel(content, ROUTES.home, 'Home'),
+              name: getMenuLabel(content, ROUTES.home),
               path: ROUTES.home,
             },
             {

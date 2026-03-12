@@ -90,7 +90,10 @@ export function MyBestAuntieBookingModal({
   const selectedVenueDirectionHref = selectedCohort?.venue.directionHref ?? '#';
 
   return (
-    <ModalOverlay onClose={onClose}>
+    <ModalOverlay
+      onClose={onClose}
+      overlayAriaLabel={content.closeOverlayLabel}
+    >
       <OverlayDialogPanel
         panelRef={modalPanelRef}
         ariaLabelledBy={dialogTitleId}

@@ -14,11 +14,7 @@ export { generateLocaleStaticParams as generateStaticParams };
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const description = resolvePolicyDescription(content.privacyPolicy);
-  const title = content.privacyPolicy.title || getFooterLinkLabel(
-    content,
-    ROUTES.privacy,
-    'Privacy Policy',
-  );
+  const title = content.privacyPolicy.title;
 
   return buildLocalizedMetadata({
     locale,

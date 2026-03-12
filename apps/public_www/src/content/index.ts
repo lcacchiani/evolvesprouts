@@ -31,6 +31,8 @@ export type SiteContent = Omit<BaseSiteContent, 'testimonials'> & {
  * Narrow types for individual sections.
  */
 export type NavbarContent = SiteContent['navbar'];
+export type CommonContent = SiteContent['common'];
+export type CommonAccessibilityContent = SiteContent['common']['accessibility'];
 export type HeroContent = SiteContent['hero'];
 export type IdaIntroContent = SiteContent['idaIntro'];
 export type MyBestAuntieHeroContent = SiteContent['myBestAuntieHero'];

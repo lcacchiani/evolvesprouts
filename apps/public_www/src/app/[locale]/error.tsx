@@ -11,12 +11,6 @@ interface LocaleErrorPageProps {
   reset: () => void;
 }
 
-const RETRY_LABELS: Record<Locale, string> = {
-  en: 'Try again',
-  'zh-CN': '重试',
-  'zh-HK': '重試',
-};
-
 function resolveLocaleFromParams(params: { locale?: string }): Locale {
   if (params.locale && isValidLocale(params.locale)) {
     return params.locale;
@@ -49,7 +43,7 @@ export default function LocaleErrorPage({ error, reset }: LocaleErrorPageProps) 
         onClick={reset}
         className='es-focus-ring mt-2 inline-flex min-h-11 items-center justify-center rounded-control px-6 py-2 text-base font-semibold es-btn es-btn--primary'
       >
-        {RETRY_LABELS[locale]}
+        {content.whoops.retryLabel}
       </button>
     </main>
   );

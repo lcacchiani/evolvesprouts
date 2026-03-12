@@ -10,7 +10,8 @@ import { ROUTES } from '@/lib/routes';
 
 const WORKSHOPS_PLACEHOLDER_OPTIONS = {
   path: ROUTES.servicesWorkshops,
-  fallbackTitle: 'Workshops',
+  fallbackTitle: (content: Parameters<typeof getFooterLinkLabel>[0]) =>
+    content.common.placeholder.workshopsTitle,
   labelResolver: getFooterLinkLabel,
 } as const;
 const workshopsPlaceholderPage = createPlaceholderPage(

@@ -41,7 +41,7 @@ export function MyJourney({ content }: MyJourneyProps) {
           <div className='relative overflow-hidden rounded-card-lg es-bg-surface-peach'>
             <Image
               src={JOURNEY_IMAGE_SRC}
-              alt='My Montessori Journey section image'
+              alt={content.imageAlt}
               width={539}
               height={675}
               sizes='(min-width: 1280px) 34vw, (min-width: 1024px) 38vw, 100vw'

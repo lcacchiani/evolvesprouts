@@ -3,6 +3,9 @@
 import { useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 
+import enContent from '@/content/en.json';
+import type { CommonContent } from '@/content';
+
 const REDIRECT_DELAY_MS = 500;
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{24,128}$/;
 const ASSET_SHARE_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_ASSET_SHARE_BASE_URL';
@@ -39,7 +42,12 @@ function buildShareUrl(baseUrl: string, token: string): string {
   return new URL(`/v1/assets/share/${token}`, `${baseUrl}/`).toString();
 }
 
-export function MediaDownloadRedirectPage() {
+export function MediaDownloadRedirectPage({
+  content = enContent.common.mediaDownload,
+}: {
+  content?: CommonContent['mediaDownload'];
+}) {
+  const copy = content;
   const searchParams = useSearchParams();
   const token = searchParams.get('token')?.trim() ?? '';
   const hasValidToken = TOKEN_PATTERN.test(token);
@@ -69,9 +77,9 @@ export function MediaDownloadRedirectPage() {
   if (!hasValidToken) {
     return (
       <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
-        <h1 className='text-3xl font-bold es-text-heading'>Invalid download link</h1>
+        <h1 className='text-3xl font-bold es-text-heading'>{copy.invalidTitle}</h1>
         <p className='mt-4 text-base leading-7 es-text-body'>
-          This media link is missing a valid token. Please request the media again.
+          {copy.invalidDescription}
         </p>
       </main>
     );
@@ -80,9 +88,9 @@ export function MediaDownloadRedirectPage() {
   if (!normalizedShareBaseUrl) {
     return (
       <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
-        <h1 className='text-3xl font-bold es-text-heading'>Download temporarily unavailable</h1>
+        <h1 className='text-3xl font-bold es-text-heading'>{copy.unavailableTitle}</h1>
         <p className='mt-4 text-base leading-7 es-text-body'>
-          We could not prepare your download link. Please try again in a moment.
+          {copy.unavailableDescription}
         </p>
       </main>
     );
@@ -91,15 +99,15 @@ export function MediaDownloadRedirectPage() {
   return (
     <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
       <div className='h-10 w-10 animate-spin rounded-full border-4 border-[color:var(--site-primary-soft,#EAD5C4)] border-t-[color:var(--site-primary,#D19253)]' />
-      <h1 className='mt-6 text-3xl font-bold es-text-heading'>Preparing your download</h1>
+      <h1 className='mt-6 text-3xl font-bold es-text-heading'>{copy.preparingTitle}</h1>
       <p className='mt-4 text-base leading-7 es-text-body'>
-        If your download does not start automatically, use the link below.
+        {copy.preparingDescription}
       </p>
       <a
         href={destinationUrl}
         className='mt-5 text-base font-semibold underline underline-offset-4 es-text-brand'
       >
-        Download the media manually
+        {copy.manualDownloadLabel}
       </a>
     </main>
   );

@@ -13,7 +13,7 @@ export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, ROUTES.contact, 'Contact Us');
+  const title = getMenuLabel(content, ROUTES.contact);
   const description = content.contactUs.contactUsForm.description;
 
   return buildLocalizedMetadata({
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
 
 export default async function ContactUsPage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const pageTitle = getMenuLabel(content, ROUTES.contact, 'Contact Us');
+  const pageTitle = getMenuLabel(content, ROUTES.contact);
 
   return (
     <>
@@ -41,7 +41,7 @@ export default async function ContactUsPage({ params }: LocaleRouteProps) {
           locale,
           items: [
             {
-              name: getMenuLabel(content, ROUTES.home, 'Home'),
+              name: getMenuLabel(content, ROUTES.home),
               path: ROUTES.home,
             },
             {

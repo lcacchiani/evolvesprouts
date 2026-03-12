@@ -2,13 +2,12 @@ import type { Metadata } from 'next';
 
 import { PlaceholderPageLayout } from '@/components/shared/placeholder-page-layout';
 import { Whoops } from '@/components/sections/whoops';
-import { DEFAULT_LOCALE, getContent } from '@/content';
-import { SITE_TITLE_SUFFIX } from '@/lib/seo';
+import enContent from '@/content/en.json';
 
-const content = getContent(DEFAULT_LOCALE);
+const content = enContent;
 
 export const metadata: Metadata = {
-  title: `Page Not Found - ${SITE_TITLE_SUFFIX}`,
+  title: `${content.whoops.title} - ${content.navbar.brand}`,
   robots: {
     index: false,
     follow: false,

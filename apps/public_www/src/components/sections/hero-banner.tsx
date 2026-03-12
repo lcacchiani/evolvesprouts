@@ -18,7 +18,6 @@ interface HeroBannerProps {
 }
 
 const HERO_IMAGE_SRC = '/images/hero/child-hero.webp';
-const HERO_IMAGE_ALT = 'Montessori auntie training for Hong Kong families';
 const HERO_BODY_TEXT_CLASSNAME = 'max-w-[458px] es-hero-subheadline';
 
 export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
@@ -69,7 +68,7 @@ export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
         <div className='mx-auto w-full max-w-[573px] lg:ml-auto lg:mr-0'>
           <Image
             src={HERO_IMAGE_SRC}
-            alt={HERO_IMAGE_ALT}
+            alt={content.imageAlt}
             width={764}
             height={841}
             priority

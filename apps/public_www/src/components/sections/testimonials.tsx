@@ -18,14 +18,19 @@ import {
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import {
+  formatContentTemplate,
   readCandidateText,
   readOptionalText,
   toRecord,
 } from '@/content/content-field-utils';
-import type { TestimonialsContent } from '@/content';
-
+import enContent from '@/content/en.json';
+import type {
+  CommonAccessibilityContent,
+  TestimonialsContent,
+} from '@/content';
 interface TestimonialsProps {
   content: TestimonialsContent;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 interface NormalizedStory {
@@ -156,10 +161,12 @@ function getActiveDomIndex(carousel: HTMLElement): number {
 function TestimonialSlide({
   story,
   fallbackQuote,
+  a11yContent,
   isClone,
 }: {
   story: NormalizedStory;
   fallbackQuote: string;
+  a11yContent: TestimonialsContent['a11y'];
   isClone?: boolean;
 }) {
   return (
@@ -176,7 +183,13 @@ function TestimonialSlide({
           {story.mainImageSrc ? (
             <Image
               src={story.mainImageSrc}
-              alt={isClone ? '' : `${story.author ?? 'Parent'} testimonial image`}
+              alt={
+                isClone
+                  ? ''
+                  : formatContentTemplate(a11yContent.imageAltTemplate, {
+                      author: story.author ?? a11yContent.imageAltFallbackAuthor,
+                    })
+              }
               fill
               sizes='200px'
               className='rounded-card-lg object-cover'
@@ -252,10 +265,12 @@ function AuthorStrip({
   stories,
   activeIndex,
   onNavigate,
+  a11yContent,
 }: {
   stories: NormalizedStory[];
   activeIndex: number;
   onNavigate: (offset: number) => void;
+  a11yContent: TestimonialsContent['a11y'];
 }) {
   const count = stories.length;
   const touchStartXRef = useRef<number | null>(null);
@@ -290,8 +305,12 @@ function AuthorStrip({
           onClick={offset !== 0 ? () => onNavigate(offset) : undefined}
           aria-label={
             offset === 0
-              ? `${author} (current)`
-              : `Go to ${author}'s testimonial`
+              ? formatContentTemplate(a11yContent.currentAuthorLabelTemplate, {
+                  author: author || a11yContent.imageAltFallbackAuthor,
+                })
+              : formatContentTemplate(a11yContent.goToAuthorLabelTemplate, {
+                  author: author || a11yContent.imageAltFallbackAuthor,
+                })
           }
           aria-current={offset === 0 ? 'true' : undefined}
           className={`${AUTHOR_CIRCLE_BASE} ${arcPosition(offset)} ${offset === 0 ? 'cursor-default' : 'cursor-pointer hover:brightness-110'}`}
@@ -439,7 +458,11 @@ function DesktopAuthorRow({
   );
 }
 
-export function Testimonials({ content }: TestimonialsProps) {
+export function Testimonials({
+  content,
+  commonAccessibility = enContent.common.accessibility,
+}: TestimonialsProps) {
+  const a11yContent = content.a11y ?? enContent.testimonials.a11y;
   const stories = useMemo(() => normalizeStories(content.items), [content.items]);
   const storiesToRender =
     stories.length > 0
@@ -600,7 +623,11 @@ export function Testimonials({ content }: TestimonialsProps) {
           <CarouselTrack
             carouselRef={carouselRef}
             testId='testimonials-carousel-track'
-            ariaLabel={`${content.title} carousel`}
+            ariaLabel={formatContentTemplate(
+              commonAccessibility.carouselLabelTemplate,
+              { title: content.title },
+            )}
+            ariaRoleDescription={commonAccessibility.carouselRoleDescription}
             className='flex gap-4 pb-2'
             aria-live='polite'
           >
@@ -609,6 +636,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                 key='clone-last'
                 story={storiesToRender[realCount - 1]}
                 fallbackQuote={content.title}
+                a11yContent={a11yContent}
                 isClone
               />
             )}
@@ -618,6 +646,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                 key={`${story.author ?? 'story'}-${index}`}
                 story={story}
                 fallbackQuote={content.title}
+                a11yContent={a11yContent}
               />
             ))}
 
@@ -626,6 +655,7 @@ export function Testimonials({ content }: TestimonialsProps) {
                 key='clone-first'
                 story={storiesToRender[0]}
                 fallbackQuote={content.title}
+                a11yContent={a11yContent}
                 isClone
               />
             )}
@@ -652,6 +682,7 @@ export function Testimonials({ content }: TestimonialsProps) {
               stories={storiesToRender}
               activeIndex={activeRealIndex}
               onNavigate={navigateByOffset}
+              a11yContent={a11yContent}
             />
           )}
         </div>

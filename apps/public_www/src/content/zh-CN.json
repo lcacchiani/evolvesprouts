@@ -63,11 +63,13 @@
           "shortLabel": "繁",
           "flagSrc": "/images/flags/hong-kong.svg"
         }
-      ]
+      ],
+      "flagAltTemplate": "{label}旗帜"
     },
     "openNavigationMenuAriaLabel": "打开导航菜单",
     "closeNavigationMenuAriaLabel": "关闭导航菜单",
-    "mobileNavigationMenuAriaLabel": "移动端导航菜单"
+    "mobileNavigationMenuAriaLabel": "移动端导航菜单",
+    "submenuToggleLabelTemplate": "切换{label}子菜单"
   },
   "hero": {
     "title": "你的阿姨很爱你的孩子，但她需要工具，才能按你的方式养育他们。",
@@ -76,7 +78,8 @@
     "cta": "今天就培训你的阿姨",
     "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "你好，我想预约一个免费咨询！",
-    "description": "深受全港家庭信赖。AMI 蒙特梭利认证。为真实生活而设计。"
+    "description": "深受全港家庭信赖。AMI 蒙特梭利认证。为真实生活而设计。",
+    "imageAlt": "面向香港家庭的蒙特梭利阿姨培训"
   },
   "seo": {
     "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利阿姨培训",
@@ -214,15 +217,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "4月08日 @ 12:00 pm",
-            "isoDate": "2026-04-08"          },
+            "isoDate": "2026-04-08"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "4月15日 @ 12:00 pm",
-            "isoDate": "2026-04-15"          },
+            "isoDate": "2026-04-15"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "4月22日 @ 12:00 pm",
-            "isoDate": "2026-04-22"          }
+            "isoDate": "2026-04-22"
+          }
         ]
       },
       {
@@ -243,15 +249,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "5月08日 @ 12:00 pm",
-            "isoDate": "2026-05-08"          },
+            "isoDate": "2026-05-08"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "5月15日 @ 12:00 pm",
-            "isoDate": "2026-05-15"          },
+            "isoDate": "2026-05-15"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "5月22日 @ 12:00 pm",
-            "isoDate": "2026-05-22"          }
+            "isoDate": "2026-05-22"
+          }
         ]
       },
       {
@@ -272,15 +281,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "6月08日 @ 12:00 pm",
-            "isoDate": "2026-06-08"          },
+            "isoDate": "2026-06-08"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "6月15日 @ 12:00 pm",
-            "isoDate": "2026-06-15"          },
+            "isoDate": "2026-06-15"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "6月22日 @ 12:00 pm",
-            "isoDate": "2026-06-22"          }
+            "isoDate": "2026-06-22"
+          }
         ]
       },
       {
@@ -301,15 +313,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "5月10日 @ 12:00 pm",
-            "isoDate": "2026-05-10"          },
+            "isoDate": "2026-05-10"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "5月17日 @ 12:00 pm",
-            "isoDate": "2026-05-17"          },
+            "isoDate": "2026-05-17"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "5月24日 @ 12:00 pm",
-            "isoDate": "2026-05-24"          }
+            "isoDate": "2026-05-24"
+          }
         ]
       },
       {
@@ -330,15 +345,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "6月10日 @ 12:00 pm",
-            "isoDate": "2026-06-10"          },
+            "isoDate": "2026-06-10"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "6月17日 @ 12:00 pm",
-            "isoDate": "2026-06-17"          },
+            "isoDate": "2026-06-17"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "6月24日 @ 12:00 pm",
-            "isoDate": "2026-06-24"          }
+            "isoDate": "2026-06-24"
+          }
         ]
       },
       {
@@ -359,15 +377,18 @@
           {
             "id": "part-1",
             "dateTimeLabel": "7月09日 @ 12:00 pm",
-            "isoDate": "2026-07-09"          },
+            "isoDate": "2026-07-09"
+          },
           {
             "id": "part-2",
             "dateTimeLabel": "7月16日 @ 12:00 pm",
-            "isoDate": "2026-07-16"          },
+            "isoDate": "2026-07-16"
+          },
           {
             "id": "part-3",
             "dateTimeLabel": "7月23日 @ 12:00 pm",
-            "isoDate": "2026-07-23"          }
+            "isoDate": "2026-07-23"
+          }
         ]
       }
     ],
@@ -419,7 +440,9 @@
       "captchaLoadError": "CAPTCHA 加载失败，请刷新后重试。",
       "captchaUnavailableError": "CAPTCHA 暂时不可用，请稍后再试。",
       "emailValidationError": "请输入有效的邮箱地址。",
-      "submitErrorMessage": "暂时无法提交预约，请稍后重试。"
+      "submitErrorMessage": "暂时无法提交预约，请稍后重试。",
+      "closeOverlayLabel": "关闭弹窗",
+      "fpsQrCodeLabel": "FPS 付款二维码"
     },
     "thankYouModal": {
       "closeLabel": "关闭",
@@ -438,7 +461,10 @@
       "printLabel": "打印",
       "backHomeLabel": "返回首页",
       "noEmailFallback": "你的邮箱地址"
-    }
+    },
+    "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}岁组）",
+    "scrollDatesLeftAriaLabel": "向左滚动日期",
+    "scrollDatesRightAriaLabel": "向右滚动日期"
   },
   "myBestAuntieDescription": {
     "eyebrow": "课程亮点",
@@ -582,7 +608,8 @@
       }
     ],
     "scrollLeftAriaLabel": "向左滚动课程亮点",
-    "scrollRightAriaLabel": "向右滚动课程亮点"
+    "scrollRightAriaLabel": "向右滚动课程亮点",
+    "showDetailsAriaLabelTemplate": "显示{title}详情"
   },
   "realTalk": {
     "eyebrow": "真实对话",
@@ -662,7 +689,13 @@
         "service": "My Best Auntie 培训课程",
         "mainImageSrc": "/images/testimonials/happy-parent-1.webp"
       }
-    ]
+    ],
+    "a11y": {
+      "imageAltFallbackAuthor": "家长",
+      "imageAltTemplate": "{author}的见证图片",
+      "currentAuthorLabelTemplate": "{author}（当前）",
+      "goToAuthorLabelTemplate": "前往{author}的见证"
+    }
   },
   "contactUs": {
     "contactUsForm": {
@@ -746,6 +779,10 @@
       "emptyStateLabel": "暂无往期活动",
       "notifyPrompt": "想第一时间知道新活动发布吗？",
       "notifyCtaLabel": "获取通知"
+    },
+    "locationTypeLabels": {
+      "virtual": "线上",
+      "inPerson": "线下"
     }
   },
   "ida": {
@@ -753,13 +790,15 @@
     "subtitle": "我是 Ida，我理解把孩子托付给他人照顾时那份沉重与慎重。",
     "description": "作为一位受过蒙特梭利训练的教育者，也是两个孩子的母亲（现居香港），我走过你现在这段路——寻找一份你真正可以信赖的指引。Evolve Sprouts 正是诞生于这段寻找。",
     "ctaLabel": "",
-    "ctaHref": "/contact-us"
+    "ctaHref": "/contact-us",
+    "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
   },
   "myHistory": {
     "eyebrow": "我的故事",
     "title": "从董事会到教室",
     "subtitle": "在媒体与酒店行业工作多年后，我越来越强烈地想投身更有意义的事业：理解儿童，并在塑造一生的关键岁月里支持家庭。",
-    "description": "这个决定让我重返大学。我在香港大学取得教育学硕士，在伦敦完成 AMI 蒙特梭利助教文凭（0–3），并在美国加州圣地亚哥完成 AMI 蒙特梭利文凭（3–6）。我还获得了斯坦福大学儿童营养认证，并接受了蒙特梭利情绪健康专项培训。\n\n多年间，我在香港国际蒙特梭利学校（IMS）与 1–6 岁儿童进行一线工作，近距离观察到：当孩子身边的成人真正理解其发展需求时，成长会发生怎样的变化。\n\n这段经历改变了我对童年的理解，也改变了我对成人角色的看法。\n\n如今，我的工作重心是支持孩子身边的成年人：父母与照护者。因为家庭日常里的每一个时刻，对孩子的塑造远胜于偶尔的课程或活动。\n\n我也每天在自己的生活中践行这份工作，与我的两个女儿一起。对我来说，蒙特梭利不仅是我教授的理念，更是我们的生活方式。\n\n我的目标很简单：帮助家庭营造更平和的家，培养更有能力的孩子，并让父母在引导孩子成长的过程中更有信心。"
+    "description": "这个决定让我重返大学。我在香港大学取得教育学硕士，在伦敦完成 AMI 蒙特梭利助教文凭（0–3），并在美国加州圣地亚哥完成 AMI 蒙特梭利文凭（3–6）。我还获得了斯坦福大学儿童营养认证，并接受了蒙特梭利情绪健康专项培训。\n\n多年间，我在香港国际蒙特梭利学校（IMS）与 1–6 岁儿童进行一线工作，近距离观察到：当孩子身边的成人真正理解其发展需求时，成长会发生怎样的变化。\n\n这段经历改变了我对童年的理解，也改变了我对成人角色的看法。\n\n如今，我的工作重心是支持孩子身边的成年人：父母与照护者。因为家庭日常里的每一个时刻，对孩子的塑造远胜于偶尔的课程或活动。\n\n我也每天在自己的生活中践行这份工作，与我的两个女儿一起。对我来说，蒙特梭利不仅是我教授的理念，更是我们的生活方式。\n\n我的目标很简单：帮助家庭营造更平和的家，培养更有能力的孩子，并让父母在引导孩子成长的过程中更有信心。",
+    "imageAltTemplate": "Evolve Sprouts 简史图片 {index}"
   },
   "myJourney": {
     "eyebrow": "我的蒙特梭利旅程",
@@ -778,7 +817,8 @@
         "tag": "它教会了我什么",
         "description": "用宽容取代内疚。把“不当行为”看作未被满足的需求，而不是对抗。打造一个让孩子和父母都真正被看见的家——不求完美，只求一起成长。"
       }
-    ]
+    ],
+    "imageAlt": "我的蒙特梭利旅程版块图片"
   },
   "whyUs": {
     "eyebrow": "为什么是我们",
@@ -1065,7 +1105,8 @@
   "whoops": {
     "code": "404",
     "title": "页面未找到",
-    "description": "抱歉，您输入的页面键无效。"
+    "description": "抱歉，您输入的页面键无效。",
+    "retryLabel": "重试"
   },
   "termsAndConditions": {
     "eyebrow": "法律条款",
@@ -1253,6 +1294,36 @@
     "links": {
       "privacy": "隐私政策",
       "terms": "服务条款"
+    }
+  },
+  "common": {
+    "shell": {
+      "skipToMainContentLabel": "跳转到主要内容",
+      "environmentBadgeLabel": "预发布",
+      "noscript": {
+        "title": "JavaScript 已禁用。",
+        "description": "部分交互功能暂不可用。您仍可访问以下主要页面。",
+        "homeLabel": "首页",
+        "contactLabel": "联系我们"
+      }
+    },
+    "accessibility": {
+      "carouselRoleDescription": "轮播",
+      "carouselLabelTemplate": "{title}轮播",
+      "sliderLabelTemplate": "{title}滑动内容"
+    },
+    "mediaDownload": {
+      "invalidTitle": "下载链接无效",
+      "invalidDescription": "此媒体链接缺少有效令牌。请重新申请媒体下载。",
+      "unavailableTitle": "下载暂时不可用",
+      "unavailableDescription": "我们暂时无法准备下载链接。请稍后再试。",
+      "preparingTitle": "正在准备您的下载",
+      "preparingDescription": "如果下载未自动开始，请使用下方链接。",
+      "manualDownloadLabel": "手动下载媒体"
+    },
+    "placeholder": {
+      "descriptionTemplate": "{title} - {brand}",
+      "workshopsTitle": "工作坊"
     }
   }
 }

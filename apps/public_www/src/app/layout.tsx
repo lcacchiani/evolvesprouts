@@ -15,6 +15,7 @@ import {
 import './globals.css';
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || '';
+const rootShellContent = enContent.common.shell;
 
 function resolveGtmAllowedHosts(): string {
   const configuredHosts = process.env.NEXT_PUBLIC_GTM_ALLOWED_HOSTS;
@@ -103,13 +104,13 @@ export default function RootLayout({
           href='#main-content'
           className='sr-only fixed left-4 top-4 z-[80] rounded-md bg-black px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black'
         >
-          Skip to main content
+          {rootShellContent.skipToMainContentLabel}
         </a>
         <div
           id='environment-badge'
           className='pointer-events-none fixed right-4 top-4 z-50 hidden rounded-md bg-amber-500 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white shadow-md'
         >
-          Staging
+          {rootShellContent.environmentBadgeLabel}
         </div>
         <script src='/scripts/show-staging-badge.js' defer />
         <GoogleTagManager />

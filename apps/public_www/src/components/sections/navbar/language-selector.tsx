@@ -15,11 +15,13 @@ import {
   type ButtonPrimitiveState,
   type ButtonPrimitiveVariant,
 } from '@/components/shared/button-primitive';
+import enContent from '@/content/en.json';
 import {
   isValidLocale,
   type Locale,
   type NavbarContent,
 } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 import { localizePath } from '@/lib/locale-routing';
 
@@ -47,6 +49,7 @@ interface LanguageOption {
 export interface LanguageSelectorContent {
   menuAriaLabel: string;
   selectedLanguageAriaPrefix: string;
+  flagAltTemplate: string;
   options: readonly LanguageOption[];
 }
 
@@ -57,29 +60,20 @@ interface RawLanguageOption {
   flagSrc: string;
 }
 
-const DEFAULT_LANGUAGE_OPTIONS: readonly LanguageOption[] = [
-  {
-    locale: 'en',
-    label: 'English',
-    shortLabel: 'Eng',
-    flagSrc: '/images/flags/united-kingdom.svg',
-  },
-  {
-    locale: 'zh-CN',
-    label: 'Chinese (Simplified)',
-    shortLabel: 'SC',
-    flagSrc: '/images/flags/china.svg',
-  },
-  {
-    locale: 'zh-HK',
-    label: 'Chinese (Traditional)',
-    shortLabel: 'TC',
-    flagSrc: '/images/flags/hong-kong.svg',
-  },
-];
-
-const DEFAULT_LANGUAGE_MENU_ARIA_LABEL = 'Select language';
-const DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX = 'Selected language';
+const defaultLanguageSelectorContent = enContent.navbar.languageSelector;
+const DEFAULT_LANGUAGE_OPTIONS: readonly LanguageOption[] =
+  defaultLanguageSelectorContent.options
+    .filter((option): option is LanguageOption => isValidLocale(option.locale))
+    .map((option) => ({
+      locale: option.locale,
+      label: option.label,
+      shortLabel: option.shortLabel,
+      flagSrc: option.flagSrc,
+    }));
+const DEFAULT_LANGUAGE_MENU_ARIA_LABEL = defaultLanguageSelectorContent.menuAriaLabel;
+const DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX =
+  defaultLanguageSelectorContent.selectedLanguageAriaPrefix;
+const DEFAULT_FLAG_ALT_TEMPLATE = defaultLanguageSelectorContent.flagAltTemplate;
 
 export function resolveLanguageSelectorContent(
   content: NavbarContent,
@@ -88,6 +82,7 @@ export function resolveLanguageSelectorContent(
     | {
         menuAriaLabel?: string;
         selectedLanguageAriaPrefix?: string;
+        flagAltTemplate?: string;
         options?: RawLanguageOption[];
       }
     | undefined;
@@ -120,6 +115,9 @@ export function resolveLanguageSelectorContent(
     selectedLanguageAriaPrefix:
       selector?.selectedLanguageAriaPrefix?.trim() ||
       DEFAULT_SELECTED_LANGUAGE_ARIA_PREFIX,
+    flagAltTemplate:
+      selector?.flagAltTemplate?.trim() ||
+      DEFAULT_FLAG_ALT_TEMPLATE,
     options:
       normalizedOptions.length > 0
         ? normalizedOptions
@@ -245,7 +243,9 @@ export function LanguageSelectorButton({
                 >
                   <Image
                     src={option.flagSrc}
-                    alt={`${option.label} flag`}
+                    alt={formatContentTemplate(languageSelector.flagAltTemplate, {
+                      label: option.label,
+                    })}
                     width={22}
                     height={22}
                     className='h-[22px] w-[22px] rounded-full object-cover'

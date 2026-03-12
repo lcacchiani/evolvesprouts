@@ -13,7 +13,13 @@ import {
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import enContent from '@/content/en.json';
+import type {
+  CommonAccessibilityContent,
+  Locale,
+  MyBestAuntieBookingContent,
+} from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 const MyBestAuntieBookingModal = dynamic(
@@ -35,6 +41,7 @@ const MyBestAuntieThankYouModal = dynamic(
 interface MyBestAuntieBookingProps {
   locale: Locale;
   content: MyBestAuntieBookingContent;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
@@ -68,21 +75,16 @@ function formatCohortPreviewLabel(value: string): string {
 function formatNextCohortLabel(
   scheduleLabel: string,
   ageGroupLabel: string,
-  locale: Locale,
+  template: string,
 ): string {
   if (!ageGroupLabel) {
     return scheduleLabel;
   }
 
-  if (locale === 'zh-CN') {
-    return `${scheduleLabel}（${ageGroupLabel} 岁组）`;
-  }
-
-  if (locale === 'zh-HK') {
-    return `${scheduleLabel}（${ageGroupLabel} 歲組）`;
-  }
-
-  return `${scheduleLabel} for ${ageGroupLabel} age group`;
+  return formatContentTemplate(template, {
+    scheduleLabel,
+    ageGroupLabel,
+  });
 }
 
 const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
@@ -160,6 +162,7 @@ function formatCohortPrice(
 export function MyBestAuntieBooking({
   locale,
   content,
+  commonAccessibility = enContent.common.accessibility,
 }: MyBestAuntieBookingProps) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isThankYouModalOpen, setIsThankYouModalOpen] = useState(false);
@@ -210,7 +213,7 @@ export function MyBestAuntieBooking({
   const nextCohortLabel = formatNextCohortLabel(
     content.scheduleLabel,
     selectedAgeOption?.label ?? '',
-    locale,
+    content.nextCohortLabelTemplate,
   );
   const nextCohortPreview = nextCohortDate
     ? formatCohortPreviewLabel(nextCohortDate)
@@ -333,6 +336,7 @@ export function MyBestAuntieBooking({
                   carouselRef={dateCarouselRef}
                   testId='my-best-auntie-booking-date-carousel'
                   ariaLabel={content.dateSelectorLabel}
+                  ariaRoleDescription={commonAccessibility.carouselRoleDescription}
                   className='flex min-w-0 gap-3 pb-2 pr-1'
                 >
                   {dateOptions.map((option) => {
@@ -390,7 +394,7 @@ export function MyBestAuntieBooking({
                     onClick={() => {
                       handleDateCarouselNavigation('prev');
                     }}
-                    aria-label='Scroll dates left'
+                    aria-label={content.scrollDatesLeftAriaLabel}
                     className='absolute left-0 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 md:flex'
                   >
                     <DateArrowIcon direction='left' />
@@ -403,7 +407,7 @@ export function MyBestAuntieBooking({
                     onClick={() => {
                       handleDateCarouselNavigation('next');
                     }}
-                    aria-label='Scroll dates right'
+                    aria-label={content.scrollDatesRightAriaLabel}
                     className='absolute right-0 top-1/2 z-20 hidden translate-x-1/2 -translate-y-1/2 md:flex'
                   >
                     <DateArrowIcon direction='right' />

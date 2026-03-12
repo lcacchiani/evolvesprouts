@@ -62,3 +62,13 @@ export function readStringUnion<T extends readonly string[]>(
 
   return values.find((entry) => entry === normalized) as T[number] | undefined;
 }
+
+export function formatContentTemplate(
+  template: string,
+  replacements: Record<string, string | number | undefined>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (_match, key: string) => {
+    const value = replacements[key];
+    return value === undefined ? '' : String(value);
+  });
+}

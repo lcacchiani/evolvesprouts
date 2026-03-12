@@ -16,7 +16,7 @@ export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, ROUTES.about, 'About Us');
+  const title = getMenuLabel(content, ROUTES.about);
   const description = content.ida.subtitle;
 
   return buildLocalizedMetadata({
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
 
 export default async function AboutUsPage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const pageTitle = getMenuLabel(content, ROUTES.about, 'About Us');
+  const pageTitle = getMenuLabel(content, ROUTES.about);
 
   return (
     <>
@@ -44,7 +44,7 @@ export default async function AboutUsPage({ params }: LocaleRouteProps) {
           locale,
           items: [
             {
-              name: getMenuLabel(content, ROUTES.home, 'Home'),
+              name: getMenuLabel(content, ROUTES.home),
               path: ROUTES.home,
             },
             {

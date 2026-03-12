@@ -8,13 +8,19 @@ import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link'
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { MyBestAuntieOutlineContent } from '@/content';
+import enContent from '@/content/en.json';
+import type {
+  CommonAccessibilityContent,
+  MyBestAuntieOutlineContent,
+} from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieOutlineProps {
   content: MyBestAuntieOutlineContent;
   ctaHref?: string;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 type ModuleIconVariant =
@@ -250,6 +256,7 @@ function MyBestAuntieOutlineCard({
 export function MyBestAuntieOutline({
   content,
   ctaHref,
+  commonAccessibility = enContent.common.accessibility,
 }: MyBestAuntieOutlineProps) {
   const [expandedModuleStep, setExpandedModuleStep] = useState<string | null>(
     null,
@@ -352,7 +359,11 @@ export function MyBestAuntieOutline({
           <div data-css-fallback='hide-when-css-missing' className='md:hidden'>
             <CarouselTrack
               carouselRef={carouselRef}
-              ariaLabel={`${content.title} carousel`}
+              ariaLabel={formatContentTemplate(
+                commonAccessibility.carouselLabelTemplate,
+                { title: content.title },
+              )}
+              ariaRoleDescription={commonAccessibility.carouselRoleDescription}
               className='pb-2'
             >
               <ul className='relative inline-flex gap-4'>
