@@ -33,6 +33,7 @@ interface EventsLoadingStateProps {
 interface EventCardsListProps {
   content: EventsContent;
   events: EventCardData[];
+  showBookingAction?: boolean;
 }
 
 type SortEventCardsFn = (events: EventCardData[]) => EventCardData[];
@@ -110,6 +111,7 @@ export function EventsLoadingState({ label, testId }: EventsLoadingStateProps) {
 export function EventCardsList({
   content,
   events,
+  showBookingAction = true,
 }: EventCardsListProps) {
   return (
     <ul className='space-y-6'>
@@ -152,7 +154,7 @@ export function EventCardsList({
                       className='h-3.5 w-3.5'
                     />
                     <span>
-                      {content.card.dateLabel}: {eventCard.dateLabel}
+                      {eventCard.dateLabel}
                     </span>
                   </li>
                 )}
@@ -169,7 +171,7 @@ export function EventCardsList({
                       className='h-3.5 w-3.5'
                     />
                     <span>
-                      {content.card.timeLabel}: {eventCard.timeLabel}
+                      {eventCard.timeLabel}
                     </span>
                   </li>
                 )}
@@ -189,32 +191,34 @@ export function EventCardsList({
                 </p>
               )}
 
-              <div className='mt-5'>
-                {eventCard.status === 'fully_booked' ? (
-                  <span
-                    className='inline-flex items-center gap-1 rounded-3xl es-bg-surface-danger-soft px-3 py-[9px] es-events-detail-chip es-events-detail-chip-danger'
-                  >
-                    <Image
-                      src={LOCATION_ICON_SRC}
-                      alt=''
-                      aria-hidden='true'
-                      width={14}
-                      height={14}
-                      className='h-3.5 w-3.5'
-                    />
-                    <span>{content.card.fullyBookedLabel}</span>
-                  </span>
-                ) : (
-                  eventCard.ctaHref && (
-                    <SectionCtaAnchor
-                      href={eventCard.ctaHref}
-                      className='w-full'
+              {showBookingAction && (
+                <div className='mt-5'>
+                  {eventCard.status === 'fully_booked' ? (
+                    <span
+                      className='inline-flex items-center gap-1 rounded-3xl es-bg-surface-danger-soft px-3 py-[9px] es-events-detail-chip es-events-detail-chip-danger'
                     >
-                      {eventCard.ctaLabel}
-                    </SectionCtaAnchor>
-                  )
-                )}
-              </div>
+                      <Image
+                        src={LOCATION_ICON_SRC}
+                        alt=''
+                        aria-hidden='true'
+                        width={14}
+                        height={14}
+                        className='h-3.5 w-3.5'
+                      />
+                      <span>{content.card.fullyBookedLabel}</span>
+                    </span>
+                  ) : (
+                    eventCard.ctaHref && (
+                      <SectionCtaAnchor
+                        href={eventCard.ctaHref}
+                        className='w-full'
+                      >
+                        {eventCard.ctaLabel}
+                      </SectionCtaAnchor>
+                    )
+                  )}
+                </div>
+              )}
             </aside>
           </article>
         </li>

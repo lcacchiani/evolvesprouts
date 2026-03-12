@@ -57,7 +57,11 @@ export function PastEvents({
               )}
             </div>
           ) : (
-            <EventCardsList content={content} events={visibleEvents} />
+            <EventCardsList
+              content={content}
+              events={visibleEvents}
+              showBookingAction={false}
+            />
           )}
         </div>
       </SectionContainer>

@@ -152,12 +152,38 @@ function formatUtcTimeLabel(isoDateTime: string, locale: SupportedLocale): strin
   return getTimeFormatter(locale).format(date);
 }
 
+function appendTimeZoneLabel(
+  timeLabel: string | undefined,
+  timeZoneLabel: string | undefined,
+): string | undefined {
+  const normalizedTimeLabel = readOptionalText(timeLabel);
+  if (!normalizedTimeLabel) {
+    return undefined;
+  }
+
+  const normalizedTimeZoneLabel = readOptionalText(timeZoneLabel);
+  if (!normalizedTimeZoneLabel) {
+    return normalizedTimeLabel;
+  }
+
+  if (
+    normalizedTimeLabel
+      .toLowerCase()
+      .includes(normalizedTimeZoneLabel.toLowerCase())
+  ) {
+    return normalizedTimeLabel;
+  }
+
+  return `${normalizedTimeLabel} ${normalizedTimeZoneLabel}`;
+}
+
 function resolveDateTimeDetails(
   record: Record<string, unknown>,
   locale: SupportedLocale,
 ): {
   dateLabel?: string;
   timeLabel?: string;
+  timeZoneLabel?: string;
   timestamp: number | null;
 } {
   const dateEntries = Array.isArray(record.dates) ? record.dates : [];
@@ -179,6 +205,11 @@ function resolveDateTimeDetails(
     'endDateTime',
     'end',
   ]);
+  const timeZoneLabel = readCandidateText(firstDateRecord, [
+    'timezone',
+    'timeZone',
+    'tz',
+  ]);
 
   if (!startDateTime) {
     return { timestamp: null };
@@ -195,6 +226,7 @@ function resolveDateTimeDetails(
   return {
     dateLabel: dateLabel || undefined,
     timeLabel: timeLabel || undefined,
+    timeZoneLabel: timeZoneLabel || undefined,
     timestamp: parseTimestamp(startDateTime),
   };
 }
@@ -416,13 +448,17 @@ function normalizeEventCard(
     'startDateLabel',
     'dateDisplay',
   ]) ?? dateTimeDetails.dateLabel;
-  const timeLabel = readCandidateText(record, [
+  const rawTimeLabel = readCandidateText(record, [
     'timeLabel',
     'time',
     'eventTime',
     'startTimeLabel',
     'timeDisplay',
   ]) ?? dateTimeDetails.timeLabel;
+  const timeZoneLabel =
+    readCandidateText(record, ['timezone', 'timeZone', 'tz'])
+    ?? dateTimeDetails.timeZoneLabel;
+  const timeLabel = appendTimeZoneLabel(rawTimeLabel, timeZoneLabel);
 
   const timestamp =
     parseTimestamp(
