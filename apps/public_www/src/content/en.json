@@ -379,8 +379,8 @@
     "learnMoreHref": "/services/my-best-auntie-training-course",
     "paymentModal": {
       "closeLabel": "Close",
-      "thankYouLead": "Thanks for your interest!",
       "title": "My Best Auntie Training Course",
+      "subtitle": "9 weeks. 3 group sessions. 3 home visits. 3 parent calls.",
       "partSummaries": [
         "We set up your home for independence and observe how your helper connects with your child.",
         "No threats, no bribes. She learns to guide with calm consistency.",
@@ -411,8 +411,9 @@
       "priceBreakdownPriceLabel": "Price",
       "priceBreakdownDiscountLabel": "Discount",
       "priceBreakdownConfirmedPriceLabel": "Confirmed Price",
+      "paymentConfirmationNote": "Your spot is confirmed once payment is received",
       "pendingReservationAcknowledgementLabel": "I understand that my reservation is pending until payment is confirmed",
-      "termsAgreementLabel": "I agree with this",
+      "termsAgreementLabel": "I agree with the",
       "termsLinkLabel": "Terms & Conditions",
       "termsHref": "/terms",
       "submitLabel": "Submit Reservation",

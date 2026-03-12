@@ -79,15 +79,15 @@ export function BookingEventDetails({
 }: BookingEventDetailsProps) {
   return (
     <div className='es-my-best-auntie-booking-modal-details-column w-full lg:w-[calc(50%-20px)]'>
-      <p className='text-xl leading-7 es-text-heading'>
-        {content.thankYouLead}
-      </p>
       <h2
         id={headingId}
-        className='es-type-title es-my-best-auntie-booking-modal-heading mt-1'
+        className='es-type-title es-my-best-auntie-booking-modal-heading'
       >
         {content.title}
       </h2>
+      <p className='mt-3 text-xl leading-7 es-text-heading'>
+        {content.subtitle}
+      </p>
 
       <section className='mt-8'>
         <ul className='space-y-[50px]'>

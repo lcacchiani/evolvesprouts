@@ -376,8 +376,8 @@
     "learnMoreHref": "/services/my-best-auntie-training-course",
     "paymentModal": {
       "closeLabel": "关闭",
-      "thankYouLead": "感谢你的关注！",
       "title": "我的最佳阿姨培训课程",
+      "subtitle": "9周。3次小组课程。3次上门家访。3次家长通话。",
       "partSummaries": [
         "我们会把家调整成支持独立的环境，并观察你的阿姨如何与你的孩子建立连接。",
         "不威胁，不贿赂。她会学会用冷静且一致的方式引导孩子。",
@@ -408,8 +408,9 @@
       "priceBreakdownPriceLabel": "原价",
       "priceBreakdownDiscountLabel": "优惠",
       "priceBreakdownConfirmedPriceLabel": "确认价格",
+      "paymentConfirmationNote": "收到付款后，你的名额才会确认",
       "pendingReservationAcknowledgementLabel": "我明白在付款确认前，我的预约仍处于待确认状态",
-      "termsAgreementLabel": "我同意此",
+      "termsAgreementLabel": "我同意",
       "termsLinkLabel": "条款与细则",
       "termsHref": "/terms",
       "submitLabel": "提交报名",
