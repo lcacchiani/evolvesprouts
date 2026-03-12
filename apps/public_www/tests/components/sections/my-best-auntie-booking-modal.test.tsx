@@ -501,31 +501,23 @@ describe('my-best-auntie booking modals footer content', () => {
 
     const { container } = renderBookingModal();
 
-    const pricingSection = screen
-      .getByRole('heading', { name: bookingModalContent.pricingTitle })
-      .closest('div') as HTMLDivElement | null;
-    expect(pricingSection).not.toBeNull();
-    expect(within(pricingSection as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
-    const pricingHeading = screen.getByRole('heading', {
-      level: 3,
-      name: bookingModalContent.pricingTitle,
-    });
-    expect(pricingHeading.className).toContain('text-2xl');
+    const detailsColumn = container.querySelector(
+      '.es-my-best-auntie-booking-modal-details-column',
+    ) as HTMLDivElement | null;
+    expect(detailsColumn).not.toBeNull();
+    expect(within(detailsColumn as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
+    expect(within(detailsColumn as HTMLDivElement).queryByText('Pricing')).not.toBeInTheDocument();
     expect(
-      within(pricingSection as HTMLDivElement).getByText(bookingModalContent.totalAmountLabel)
-        .className,
-    ).toContain('text-lg');
-    expect(within(pricingSection as HTMLDivElement).getByText('HK$9,000').className).toContain(
+      within(detailsColumn as HTMLDivElement).queryByText('Total Amount'),
+    ).not.toBeInTheDocument();
+    expect(within(detailsColumn as HTMLDivElement).queryByText('Location')).not.toBeInTheDocument();
+    expect(within(detailsColumn as HTMLDivElement).getByText('HK$9,000').className).toContain(
       'text-[26px]',
     );
-    expect(within(pricingSection as HTMLDivElement).getByText(bookingModalContent.refundHint).className)
-      .toContain('text-base');
+    expect(
+      within(detailsColumn as HTMLDivElement).getByText(bookingModalContent.refundHint).className,
+    ).toContain('text-base');
 
-    const locationHeading = screen.getByRole('heading', {
-      level: 3,
-      name: bookingModalContent.locationTitle,
-    });
-    expect(locationHeading.className).toContain('text-2xl');
     expect(screen.getByText(selectedCohort.venue.name).className).toContain('text-lg');
     expect(screen.getByText(selectedCohort.venue.address).className).toContain('text-base');
     expect(screen.getByRole('link', { name: bookingModalContent.directionLabel }).className)
@@ -556,7 +548,7 @@ describe('my-best-auntie booking modals footer content', () => {
       ).toBeInTheDocument();
     });
 
-    expect(within(pricingSection as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
+    expect(within(detailsColumn as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
 
     const priceBreakdown = container.querySelector(
       'div[data-booking-price-breakdown="true"]',
