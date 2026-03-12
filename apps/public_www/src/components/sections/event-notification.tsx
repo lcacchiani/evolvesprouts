@@ -2,7 +2,6 @@
 
 import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
@@ -145,18 +144,11 @@ export function EventNotification({ content }: EventNotificationProps) {
       <SectionContainer>
         <div className='es-intro-community-layout'>
           <div className='es-intro-community-layout-content'>
-            <Image
-              src='/images/evolvesprouts-logo.svg'
-              alt=''
-              width={250}
-              height={250}
-              className='h-auto w-[250px] es-event-notification-logo hidden sm:block'
-            />
             <SectionHeader
               title={copy.title}
               align='left'
-              className='mt-[75px] max-w-[620px] sm:mt-0'
-              titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-event-notification-heading'
+              className='max-w-[620px]'
+              titleClassName='leading-[1.12] es-event-notification-heading'
             />
             <p className='max-w-[500px] es-event-notification-support-paragraph'>
               {copy.description}

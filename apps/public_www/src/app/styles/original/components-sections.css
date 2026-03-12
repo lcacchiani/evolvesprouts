@@ -245,10 +245,6 @@
     padding-top: 40px;
     padding-bottom: 0;
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
-    background-image: url('/images/sprouts-squad-community-bg.webp');
-    background-position: center top;
-    background-repeat: no-repeat;
-    background-size: cover;
   }
 
   .es-event-notification-overlay {
@@ -256,18 +252,6 @@
       circle at center top,
       rgba(255, 255, 255, 0) 15%,
       rgba(255, 238, 227, 0.74) 68%
-    );
-  }
-
-  .es-event-notification-logo {
-    filter: sepia(1) opacity(50%) saturate(150%);
-    margin-bottom: -60px;
-    margin-left: -45px;
-    mask-image: linear-gradient(to bottom, black 50%, transparent 63%);
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      black 50%,
-      transparent 63%
     );
   }
 
