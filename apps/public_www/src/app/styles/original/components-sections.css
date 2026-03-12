@@ -1107,8 +1107,8 @@
 
   .es-mask-credit-card-danger {
     background-color: var(--es-color-booking-highlight-icon, #B42318);
-    mask-image: url('/images/credit-card.svg');
-    -webkit-mask-image: url('/images/credit-card.svg');
+    mask-image: url('/images/dollar-symbol.svg');
+    -webkit-mask-image: url('/images/dollar-symbol.svg');
   }
 
   .es-mask-location-danger {
