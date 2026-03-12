@@ -33,4 +33,22 @@ describe('FreeIntroSession section', () => {
     expect(cta).toBeInTheDocument();
     expect(cta).toHaveAttribute('href', content.ctaHref);
   });
+
+  it('renders titleOverride instead of content title when provided', () => {
+    const content = getContent('en').freeIntroSession;
+
+    render(
+      <FreeIntroSession
+        content={content}
+        titleOverride={content.eventPageTitle}
+      />,
+    );
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: content.eventPageTitle }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { level: 2, name: content.title }),
+    ).not.toBeInTheDocument();
+  });
 });

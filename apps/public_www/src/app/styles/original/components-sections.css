@@ -370,6 +370,10 @@
     .es-free-intro-session-section {
       padding-top: 60px;
     }
+
+    .es-free-intro-session-section--standard-spacing {
+      padding-bottom: 60px;
+    }
   }
 
   .es-intro-community-layout {
