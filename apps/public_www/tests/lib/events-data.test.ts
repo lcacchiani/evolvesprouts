@@ -239,6 +239,8 @@ describe('events-data', () => {
   });
 
   it('fetches events payload with x-api-key', async () => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
+
     const fetchSpy = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({

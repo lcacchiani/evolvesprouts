@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Events } from '@/components/sections/events';
 import enContent from '@/content/en.json';
@@ -20,6 +20,11 @@ describe('Events section', () => {
   beforeEach(() => {
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('does not render the eyebrow label', () => {
