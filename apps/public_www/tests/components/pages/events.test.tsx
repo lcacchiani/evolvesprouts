@@ -11,7 +11,14 @@ vi.mock('@/components/shared/page-layout', () => ({
   ),
 }));
 vi.mock('@/components/sections/events', () => ({
-  Events: ({ content, locale }: { content: { title: string }; locale: string }) => (
+  Events: ({
+    content,
+    locale,
+  }: {
+    content: { title: string };
+    locale: string;
+    newsletterContent: { ctaLabel: string };
+  }) => (
     <section data-testid='events-section'>{`${content.title} (${locale})`}</section>
   ),
 }));
