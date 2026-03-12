@@ -307,11 +307,17 @@ export function BookingReservationForm({
             </p>
             <div
               data-booking-payment-options='true'
-              className='h-[200px] rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+              className='flex h-[244px] flex-col rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
             >
+              <p
+                data-booking-payment-confirmation-note='true'
+                className='pb-2 text-sm leading-[1.45] es-text-heading'
+              >
+                {content.paymentConfirmationNote}
+              </p>
               <div
                 data-booking-payment-options-columns='true'
-                className='grid h-full grid-cols-5 gap-3'
+                className='grid h-full min-h-0 flex-1 grid-cols-5 gap-3'
               >
                 <div
                   data-booking-payment-options-column-left='true'
@@ -421,12 +427,6 @@ export function BookingReservationForm({
                 </div>
               </div>
             </div>
-            <p
-              data-booking-payment-confirmation-note='true'
-              className='text-sm leading-[1.45] es-text-heading'
-            >
-              {content.paymentConfirmationNote}
-            </p>
           </div>
 
           <div data-booking-acknowledgements='true' className='space-y-2'>

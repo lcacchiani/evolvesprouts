@@ -378,7 +378,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(paymentOptions?.className).toContain('es-border-input');
     expect(paymentOptions?.className).toContain('es-bg-surface-white');
     expect(paymentOptions?.className).toContain('p-[10px]');
-    expect(paymentOptions?.className).toContain('h-[200px]');
+    expect(paymentOptions?.className).toContain('h-[244px]');
     const paymentOptionsColumns = paymentOptions?.querySelector(
       'div[data-booking-payment-options-columns="true"]',
     ) as HTMLDivElement | null;
@@ -400,6 +400,11 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(paymentOptionsRightColumn?.className).toContain('col-span-4');
     expect(paymentOptionsRightColumn?.className).toContain('items-center');
     expect(paymentOptions?.querySelectorAll('li')).toHaveLength(0);
+    expect(
+      within(paymentOptions as HTMLDivElement).getByText(
+        bookingModalContent.paymentConfirmationNote,
+      ),
+    ).toBeInTheDocument();
     expect(
       within(paymentBlock as HTMLDivElement).getByText(
         bookingModalContent.paymentConfirmationNote,
