@@ -34,8 +34,8 @@ const {
 import {
   MyBestAuntieBookingModal,
   MyBestAuntieThankYouModal,
-  type ReservationSummary,
 } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';

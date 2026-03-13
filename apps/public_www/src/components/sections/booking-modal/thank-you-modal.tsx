@@ -8,11 +8,11 @@ import {
   OverlayDialogPanel,
   OverlayScrollableBody,
 } from '@/components/shared/overlay-surface';
-import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import {
   CloseButton,
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
   resolveLocalizedDate,
