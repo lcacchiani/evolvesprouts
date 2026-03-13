@@ -14,7 +14,7 @@ import {
 import {
   type EventCardData,
   fetchEventsPayload,
-  normalizeEvents,
+  normalizeEventsForEventsPage,
   shouldUseTemporaryEventsContentSource,
 } from '@/lib/events-data';
 
@@ -281,7 +281,7 @@ export function useEventCards({
 
     fetchEventsPayload(crmApiClient, controller.signal)
       .then((payload) => {
-        const normalizedEvents = normalizeEvents(payload, content, locale);
+        const normalizedEvents = normalizeEventsForEventsPage(payload, content, locale);
         setHasRequestError(false);
         setEvents(normalizedEvents);
       })

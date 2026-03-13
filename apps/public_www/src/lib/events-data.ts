@@ -1,5 +1,6 @@
 import type { EventsContent } from '@/content';
 import temporaryEventsPayload from '@/content/events.json';
+import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import {
   readCandidateText,
   readOptionalText,
@@ -477,6 +478,27 @@ function findEventsArray(payload: unknown, depth = 0): unknown[] {
   return [];
 }
 
+function normalizeEventsFromArray(
+  eventsArray: unknown[],
+  content: EventsContent,
+  locale: SupportedLocale,
+): EventCardData[] {
+  return eventsArray
+    .map((item, index) => normalizeEventCard(item, index, content, locale))
+    .filter((item): item is EventCardData => item !== null);
+}
+
+function resolveEventsArrayForEventsPage(payload: unknown): unknown[] {
+  if (!shouldUseTemporaryEventsContentSource()) {
+    return findEventsArray(payload);
+  }
+
+  return [
+    ...findEventsArray(payload),
+    ...findEventsArray(myBestAuntieTrainingCourseContent),
+  ];
+}
+
 function readTagList(record: Record<string, unknown>): string[] {
   const tagKeys = ['tags', 'chips', 'categories'];
   const tags: string[] = [];
@@ -709,12 +731,21 @@ export function normalizeEvents(
   content: EventsContent,
   locale?: string,
 ): EventCardData[] {
-  const eventsArray = findEventsArray(payload);
   const normalizedLocale = resolveEventsLocale(locale);
+  const eventsArray = findEventsArray(payload);
 
-  return eventsArray
-    .map((item, index) => normalizeEventCard(item, index, content, normalizedLocale))
-    .filter((item): item is EventCardData => item !== null);
+  return normalizeEventsFromArray(eventsArray, content, normalizedLocale);
+}
+
+export function normalizeEventsForEventsPage(
+  payload: unknown,
+  content: EventsContent,
+  locale?: string,
+): EventCardData[] {
+  const normalizedLocale = resolveEventsLocale(locale);
+  const eventsArray = resolveEventsArrayForEventsPage(payload);
+
+  return normalizeEventsFromArray(eventsArray, content, normalizedLocale);
 }
 
 export function sortUpcomingEvents(
