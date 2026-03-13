@@ -14,7 +14,7 @@ describe('ReservationFormFields', () => {
 
     render(
       <ReservationFormFields
-        content={enContent.myBestAuntieBooking.paymentModal}
+        content={enContent.myBestAuntie.booking.paymentModal}
         fullName='Ada'
         email='bad-email'
         phone='12345678'
@@ -47,7 +47,7 @@ describe('ReservationFormFields', () => {
     expect(onPhoneChange).toHaveBeenCalledWith('87654321');
     expect(onTopicsChange).toHaveBeenCalledWith('Routines');
     expect(
-      screen.getByText(enContent.myBestAuntieBooking.paymentModal.emailValidationError),
+      screen.getByText(enContent.myBestAuntie.booking.paymentModal.emailValidationError),
     ).toBeInTheDocument();
   });
 });

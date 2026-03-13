@@ -121,8 +121,8 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
     expect(screen.getByText(enContent.hero.title)).toBeInTheDocument();
-    expect(screen.getByText(enContent.idaIntro.title)).toBeInTheDocument();
-    expect(screen.getByText(enContent.idaIntro.description)).toBeInTheDocument();
+    expect(screen.getByText(enContent.aboutUs.intro.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.aboutUs.intro.description)).toBeInTheDocument();
     expect(
       screen.getByTestId('my-best-auntie-outline'),
     ).toHaveTextContent('My Best Auntie Training Course Designed by Ida');

@@ -18,7 +18,7 @@ vi.mock('next/image', () => ({
 
 describe('Ida', () => {
   it('removes mobile top padding while preserving responsive section spacing', () => {
-    render(<Ida content={enContent.ida} />);
+    render(<Ida content={enContent.aboutUs.hero} />);
 
     const section = document.getElementById('ida');
     expect(section).not.toBeNull();
@@ -27,7 +27,7 @@ describe('Ida', () => {
   });
 
   it('renders hero copy and portrait image without a CTA link', () => {
-    const content = enContent.ida;
+    const content = enContent.aboutUs.hero;
     render(<Ida content={content} />);
 
     expect(screen.getByRole('heading', { name: content.title })).toBeInTheDocument();

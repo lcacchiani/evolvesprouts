@@ -82,40 +82,40 @@ describe('EventNotification section', () => {
 
   it('renders event notification section in CTA-first state', () => {
     const { container } = render(
-      <EventNotification content={enContent.eventNotification} />,
+      <EventNotification content={enContent.events.notification} />,
     );
 
     const section = screen.getByRole('region', {
-      name: enContent.eventNotification.title,
+      name: enContent.events.notification.title,
     });
     expect(section.className).toContain('es-event-notification-section');
     expect(container.querySelector('img.es-event-notification-logo')).toBeNull();
     expect(
       screen.getByRole('button', {
-        name: enContent.eventNotification.ctaLabel,
+        name: enContent.events.notification.ctaLabel,
       }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByPlaceholderText(enContent.eventNotification.emailPlaceholder),
+      screen.queryByPlaceholderText(enContent.events.notification.emailPlaceholder),
     ).not.toBeInTheDocument();
   });
 
   it('reveals email input and captcha after initial CTA click', () => {
-    render(<EventNotification content={enContent.eventNotification} />);
+    render(<EventNotification content={enContent.events.notification} />);
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: enContent.eventNotification.ctaLabel,
+        name: enContent.events.notification.ctaLabel,
       }),
     );
 
     expect(
-      screen.getByPlaceholderText(enContent.eventNotification.emailPlaceholder),
+      screen.getByPlaceholderText(enContent.events.notification.emailPlaceholder),
     ).toBeInTheDocument();
     expect(screen.getByTestId('mock-turnstile-captcha')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
-        name: enContent.eventNotification.formSubmitLabel,
+        name: enContent.events.notification.formSubmitLabel,
       }),
     ).toBeInTheDocument();
   });
@@ -124,21 +124,21 @@ describe('EventNotification section', () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({ request });
 
-    render(<EventNotification content={enContent.eventNotification} />);
+    render(<EventNotification content={enContent.events.notification} />);
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: enContent.eventNotification.ctaLabel,
+        name: enContent.events.notification.ctaLabel,
       }),
     );
     fireEvent.change(
-      screen.getByPlaceholderText(enContent.eventNotification.emailPlaceholder),
+      screen.getByPlaceholderText(enContent.events.notification.emailPlaceholder),
       { target: { value: 'events@example.com' } },
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
     fireEvent.click(
       screen.getByRole('button', {
-        name: enContent.eventNotification.formSubmitLabel,
+        name: enContent.events.notification.formSubmitLabel,
       }),
     );
 
@@ -148,13 +148,13 @@ describe('EventNotification section', () => {
         method: 'POST',
         body: {
           email_address: 'events@example.com',
-          message: enContent.eventNotification.prefilledMessage,
+          message: enContent.events.notification.prefilledMessage,
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],
       });
       expect(
-        screen.getByText(enContent.eventNotification.successMessage),
+        screen.getByText(enContent.events.notification.successMessage),
       ).toBeInTheDocument();
     });
   });

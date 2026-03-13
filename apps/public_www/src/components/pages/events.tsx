@@ -22,7 +22,7 @@ export function EventsPageSections({ content }: EventsPageSectionsProps) {
         sectionClassName="es-free-intro-session-section--standard-spacing"
       />
       <PastEvents content={content.events} locale={content.meta.locale} />
-      <EventNotification content={content.eventNotification} />
+      <EventNotification content={content.events.notification} />
     </PageLayout>
   );
 }

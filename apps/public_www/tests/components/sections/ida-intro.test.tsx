@@ -19,7 +19,7 @@ vi.mock('next/image', () => ({
 
 describe('IdaIntro', () => {
   it('renders intro copy, CTA, and hero-style image column', () => {
-    const content = enContent.idaIntro;
+    const content = enContent.aboutUs.intro;
     render(<IdaIntro content={content} />);
 
     const heading = screen.getByRole('heading', { name: content.title });
@@ -45,9 +45,9 @@ describe('IdaIntro', () => {
   });
 
   it('applies locale-specific intro highlight phrase styling', () => {
-    render(<IdaIntro content={zhCNContent.idaIntro} />);
+    render(<IdaIntro content={zhCNContent.aboutUs.intro} />);
 
-    expect(screen.getByText(zhCNContent.idaIntro.highlightPhrase)).toHaveClass(
+    expect(screen.getByText(zhCNContent.aboutUs.intro.highlightPhrase)).toHaveClass(
       'es-hero-highlight-word',
     );
   });

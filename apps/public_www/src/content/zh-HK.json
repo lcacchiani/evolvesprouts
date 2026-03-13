@@ -121,416 +121,9 @@
     "localBusinessDescription": "面向香港家庭的蒙特梭利姨姨培訓與家長支持服務。",
     "localBusinessAreaServed": "香港"
   },
-  "idaIntro": {
-    "title": "你好！我是 Ida——AMI 蒙特梭利教育者、兩個孩子的媽媽，也是 Evolve Sprouts 的創辦人。",
-    "highlightPhrase": "Evolve Sprouts",
-    "description": "我離開教師職涯，開始培訓姨姨，讓她們能以自信、獨立與溫暖的方式養育孩子。這份工作對我很個人——因為我也正在走著和你一樣的育兒旅程。",
-    "ctaLabel": "閱讀我的故事",
-    "ctaHref": "/about-us",
-    "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
-  },
-  "myBestAuntieHero": {
-    "title": "My Best Auntie 培訓課程",
-    "subtitle": "一個專為香港家庭傭工而設的實用培訓課程。",
-    "description": "這不是一堂育兒理念講座，也不是一本她永遠不會讀完的厚手冊。這是一個專為香港家庭傭工而設的實戰課程——提供真實情境、真實話術與真實策略，讓她由第一天就可以應用。\n無需蒙特梭利背景。無需育兒經驗。只要願意學習——以及你願意相信，她其實可以做得更多。",
-    "ctaLabel": "立即預訂名額！",
-    "ctaHref": "#my-best-auntie-booking",
-    "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
-  },
   "whatsappContact": {
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
     "ariaLabel": "透過 WhatsApp 聯絡我們"
-  },
-  "myBestAuntieOutline": {
-    "eyebrow": "課程大綱",
-    "title": "由 Ida 設計的 My Best Auntie 培訓課程",
-    "subtitle": "9 週課程，改變你嘅屋企。",
-    "description": "小組課 + 私人 1:1 指導。HK$9,000 起。",
-    "ctaLabel": "立即預訂名額！",
-    "ctaHref": "#my-best-auntie-booking",
-    "modules": [
-      {
-        "step": "1",
-        "title": "改造你的家居環境",
-        "week": "第1-3週",
-        "icon": "home",
-        "activity": "我哋會先將屋企設定成支持孩子獨立嘅環境，並觀察你嘅姨姨點樣同你嘅小朋友建立連結。\n小組課：實用蒙特梭利概念——點解環境比規矩更重要\n到府指導：我會評估你屋企，清楚指出邊啲要移位、調整、移除，之後再觀察姨姨同小朋友互動\n家長通話：我哋發現咗乜？有咩需要調整？"
-      },
-      {
-        "step": "2",
-        "title": "溫和引導與清晰界線",
-        "week": "第4-6週",
-        "icon": "limits",
-        "activity": "唔靠威脅，唔靠利誘。佢會學識用冷靜而一致嘅方式去引導。\n小組課：針對發脾氣、拒絕食飯、瞓前拉鋸、螢幕情緒爆發嘅實用話術\n到府指導：喺你屋企實戰練習界線——嗰啲平時最易失控嘅時刻\n家長通話：你同姨姨之間嘅規矩，係咪一致？"
-      },
-      {
-        "step": "3",
-        "title": "培養獨立能力",
-        "week": "第7-9週",
-        "icon": "independence",
-        "activity": "佢退後一步，你嘅小朋友就會向前一步。\n小組課：點樣安全放手——點解做少啲反而做得更多\n到府指導：由佢主導，我觀察——由呢一步開始，訓練真正變成佢自己嘅能力\n家長通話：最後對齊——課程完結之後點樣長期維持"
-      }
-    ]
-  },
-  "myBestAuntieBooking": {
-    "eyebrow": "預約名額",
-    "title": "我的最佳姨姨培訓課程",
-    "description": "一個流程完成預留名額與付款確認，清楚又安心。",
-    "scheduleLabel": "下一期課程",
-    "noCohortsLabel": "這個年齡組別暫時未有新班期。",
-    "ageSelectorLabel": "你小朋友的年齡組別是？",
-    "ageOptions": [
-      {
-        "id": "0-1",
-        "label": "0-1",
-        "iconSrc": "/images/baby.png"
-      },
-      {
-        "id": "1-3",
-        "label": "1-3",
-        "iconSrc": "/images/toddler.png"
-      },
-      {
-        "id": "3-6",
-        "label": "3-6",
-        "iconSrc": "/images/kid.png"
-      }
-    ],
-    "dateSelectorLabel": "選擇可用日期",
-    "soldOutStampLabel": "已售罄",
-    "cohorts": [
-      {
-        "id": "0-1-apr-2026",
-        "ageGroupId": "0-1",
-        "dateLabel": "2026年4月",
-        "spacesTotal": 30,
-        "spacesLeftText": "剩餘 30 個名額",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "香港半山西摩道 2 號",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "4月08日 @ 12:00 pm",
-            "isoDate": "2026-04-08"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "4月15日 @ 12:00 pm",
-            "isoDate": "2026-04-15"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "4月22日 @ 12:00 pm",
-            "isoDate": "2026-04-22"
-          }
-        ]
-      },
-      {
-        "id": "0-1-may-2026",
-        "ageGroupId": "0-1",
-        "dateLabel": "2026年5月",
-        "spacesTotal": 30,
-        "spacesLeftText": "剩餘 18 個名額",
-        "isSoldOut": true,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "香港半山西摩道 2 號",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "5月08日 @ 12:00 pm",
-            "isoDate": "2026-05-08"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "5月15日 @ 12:00 pm",
-            "isoDate": "2026-05-15"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "5月22日 @ 12:00 pm",
-            "isoDate": "2026-05-22"
-          }
-        ]
-      },
-      {
-        "id": "0-1-jun-2026",
-        "ageGroupId": "0-1",
-        "dateLabel": "2026年6月",
-        "spacesTotal": 30,
-        "spacesLeftText": "剩餘 12 個名額",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "香港半山西摩道 2 號",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "6月08日 @ 12:00 pm",
-            "isoDate": "2026-06-08"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "6月15日 @ 12:00 pm",
-            "isoDate": "2026-06-15"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "6月22日 @ 12:00 pm",
-            "isoDate": "2026-06-22"
-          }
-        ]
-      },
-      {
-        "id": "1-3-may-2026",
-        "ageGroupId": "1-3",
-        "dateLabel": "2026年5月",
-        "spacesTotal": 30,
-        "spacesLeftText": "剩餘 14 個名額",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "香港半山西摩道 2 號",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "5月10日 @ 12:00 pm",
-            "isoDate": "2026-05-10"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "5月17日 @ 12:00 pm",
-            "isoDate": "2026-05-17"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "5月24日 @ 12:00 pm",
-            "isoDate": "2026-05-24"
-          }
-        ]
-      },
-      {
-        "id": "1-3-jun-2026",
-        "ageGroupId": "1-3",
-        "dateLabel": "2026年6月",
-        "spacesTotal": 30,
-        "spacesLeftText": "剩餘 9 個名額",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "香港半山西摩道 2 號",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "6月10日 @ 12:00 pm",
-            "isoDate": "2026-06-10"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "6月17日 @ 12:00 pm",
-            "isoDate": "2026-06-17"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "6月24日 @ 12:00 pm",
-            "isoDate": "2026-06-24"
-          }
-        ]
-      },
-      {
-        "id": "3-6-jul-2026",
-        "ageGroupId": "3-6",
-        "dateLabel": "2026年7月",
-        "spacesTotal": 24,
-        "spacesLeftText": "剩餘 6 個名額",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "香港半山西摩道 2 號",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "7月09日 @ 12:00 pm",
-            "isoDate": "2026-07-09"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "7月16日 @ 12:00 pm",
-            "isoDate": "2026-07-16"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "7月23日 @ 12:00 pm",
-            "isoDate": "2026-07-23"
-          }
-        ]
-      }
-    ],
-    "confirmAndPayLabel": "確認並付款！",
-    "learnMoreLabel": "了解更多課程內容",
-    "learnMoreHref": "/services/my-best-auntie-training-course",
-    "paymentModal": {
-      "closeLabel": "關閉",
-      "title": "我的最佳姨姨培訓課程",
-      "subtitle": "9 週。3 次小組課。3 次上門家訪。3 次家長通話。",
-      "partSummaries": [
-        "我哋會先將屋企設定成支持孩子獨立嘅環境，並觀察你嘅姨姨點樣同你嘅小朋友建立連結。",
-        "唔靠威脅，唔靠利誘。佢會學識用冷靜而一致嘅方式去引導。",
-        "佢退後一步，你嘅小朋友就會向前一步。"
-      ],
-      "refundHint": "開課前 7 天可全額退款。",
-      "directionLabel": "查看路線",
-      "reservationTitle": "報名資料",
-      "reservationDescription": "請填寫你的資料，我們會以電郵發送付款確認。",
-      "selectedAgeGroupLabel": "小朋友年齡組別",
-      "fullNameLabel": "姓名",
-      "emailLabel": "電郵",
-      "phoneLabel": "電話號碼",
-      "topicsInterestLabel": "開始前，你想我先了解你的小朋友或姐姐哪些情況？",
-      "topicsInterestPlaceholder": "例如：我女兒 2 歲，我們的姐姐已經照顧我們一年。",
-      "paymentMethodLabel": "付款方式",
-      "paymentMethodValue": "以 FPS 二維碼付款",
-      "paymentFpsQrInstruction": "使用你常用的銀行應用程式掃描此 FPS 二維碼。",
-      "paymentMethodBankTransferValue": "銀行轉帳",
-      "paymentBankNameLabel": "銀行名稱",
-      "paymentBankAccountHolderLabel": "戶口名稱",
-      "paymentBankAccountNumberLabel": "戶口號碼",
-      "discountCodeLabel": "優惠碼",
-      "discountCodePlaceholder": "輸入優惠碼",
-      "applyDiscountLabel": "套用",
-      "invalidDiscountLabel": "優惠碼無效",
-      "discountAppliedLabel": "優惠已套用",
-      "priceBreakdownPriceLabel": "原價",
-      "priceBreakdownDiscountLabel": "優惠",
-      "priceBreakdownConfirmedPriceLabel": "確認價格",
-      "paymentConfirmationNote": "收到付款後，你的名額才會確認",
-      "pendingReservationAcknowledgementLabel": "我明白在付款確認前，我的預約仍屬待確認狀態",
-      "termsAgreementLabel": "我同意",
-      "termsLinkLabel": "條款及細則",
-      "termsHref": "/terms",
-      "submitLabel": "立即預留我的名額",
-      "captchaLabel": "請完成 CAPTCHA 驗證",
-      "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
-      "captchaLoadError": "CAPTCHA 載入失敗，請重新整理後再試。",
-      "captchaUnavailableError": "CAPTCHA 暫時未能使用，請稍後再試。",
-      "emailValidationError": "請輸入有效的電郵地址。",
-      "submitErrorMessage": "暫時未能提交預約，請稍後再試。",
-      "closeOverlayLabel": "關閉視窗",
-      "fpsQrCodeLabel": "FPS 付款二維碼"
-    },
-    "thankYouModal": {
-      "closeLabel": "關閉",
-      "title": "我們會盡快與你聯絡",
-      "subtitle": "確認電郵已發送至。",
-      "successLabel": "多謝你！",
-      "courseLabel": "我的最佳姨姨培訓課程。",
-      "transactionDateLabel": "交易日期",
-      "paymentMethodLabel": "付款方式",
-      "totalLabel": "總計",
-      "transactionDatePrefix": "交易日期：",
-      "paymentMethodPrefix": "付款方式：",
-      "childAgeGroupPrefix": "孩子年齡組別：",
-      "amountPrefix": "金額：",
-      "trainingPrefix": "培訓：",
-      "printLabel": "列印",
-      "backHomeLabel": "返回首頁",
-      "noEmailFallback": "你的電郵地址"
-    },
-    "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}歲組）",
-    "scrollDatesLeftAriaLabel": "向左捲動日期",
-    "scrollDatesRightAriaLabel": "向右捲動日期"
-  },
-  "myBestAuntieDescription": {
-    "eyebrow": "課程亮點",
-    "title": "你會在我的最佳姨姨培訓課程中獲得甚麼？",
-    "items": [
-      {
-        "icon": "training",
-        "title": "姨姨小組培訓課",
-        "description": "三節現場小班課，只開放予姨姨參與。在被尊重、沒有僱主壓力的空間中，學習兒童發展、引導方法與培養獨立。穩固基礎、共享經驗、實用而清晰。",
-        "ctaLabel": "了解更多",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "coaching",
-        "title": "私人 1:1 指導（按家庭而設）",
-        "description": "三節按你家庭真實日常度身訂造的指導。我們會觀察、對齊期望、調整回應，並示範精準用語。小組學習建立知識；私人指導讓方法在你家真正落地。",
-        "ctaLabel": "了解更多",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "call",
-        "title": "家長策略通話",
-        "description": "我們會抽離一步，評估進度並重新校準方向。你會清楚知道哪些有效、哪些要調整，以及如何避免小問題演變成長期模式。",
-        "ctaLabel": "了解更多",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "community",
-        "title": "姨姨 WhatsApp 社群",
-        "description": "專為已報讀姨姨而設的私密支援群組。即時指導、同儕交流與專家主持。學習在課與課之間持續，讓一致性不會在日常壓力下瓦解。",
-        "ctaLabel": "了解更多",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "toolbox",
-        "title": "話術、工具與真實案例",
-        "description": "可即用的實戰用語，應對真實情境。學會不靠喝罵也能引導、不靠懲罰也能轉移，並能平靜回應抗拒。對的說話方式，會改變行為。",
-        "ctaLabel": "了解更多",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "support",
-        "title": "家長 WhatsApp 支援",
-        "description": "課與課之間可直接提問。及早指導可防止問題升級，並讓所有照顧者保持一致。",
-        "ctaLabel": "了解更多",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "review",
-        "title": "每次私人指導後的書面報告",
-        "description": "每次私人到訪後提供清晰書面摘要。包括觀察重點、聚焦範圍與可立即執行的下一步。無混亂，無錯位。",
-        "ctaLabel": "了解更多",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "graduate",
-        "title": "最終課程總結報告",
-        "description": "在課程完成時提供整合版參考報告。清楚總結進展並提供下一發展階段的後續建議。",
-        "ctaLabel": "了解更多",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      }
-    ],
-    "previousButtonAriaLabel": "上一組亮點卡片",
-    "nextButtonAriaLabel": "下一組亮點卡片",
-    "ctaLabel": "立即預訂名額！",
-    "ctaHref": "#my-best-auntie-booking"
   },
   "resources": {
     "eyebrow": "我們的資源",
@@ -784,67 +377,22 @@
     "locationTypeLabels": {
       "virtual": "線上",
       "inPerson": "實體"
+    },
+    "notification": {
+      "title": "活動通知",
+      "ctaLabel": "訂閱活動通知",
+      "formSubmitLabel": "接收活動通知",
+      "ctaHref": "/events",
+      "description": "第一時間知道最新工作坊、培訓課程同香港家庭免費活動。\n\n留下你嘅電郵，我哋會喺新活動公佈時通知你。",
+      "emailPlaceholder": "電郵地址",
+      "emailValidationMessage": "請輸入有效的電郵地址。",
+      "prefilledMessage": "活動通知訂閱",
+      "submitErrorMessage": "出咗啲問題，請稍後再試。",
+      "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
+      "captchaLoadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
+      "captchaUnavailableError": "CAPTCHA 暫時不可用，請稍後再試。",
+      "successMessage": "多謝訂閱！有新活動公佈時我哋會通知你。"
     }
-  },
-  "ida": {
-    "title": "你好，各位家長！",
-    "subtitle": "我係 Ida，我明白當你要選擇由誰照顧孩子時，那份沉重與慎重。",
-    "description": "作為一位受過蒙特梭利訓練的教育工作者，亦係兩個孩子嘅媽媽（現居香港），我走過你而家呢段路——尋找一份你真正信得過嘅指引。Evolve Sprouts 正正誕生於呢段尋找。",
-    "ctaLabel": "",
-    "ctaHref": "/contact-us",
-    "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
-  },
-  "myHistory": {
-    "eyebrow": "我的故事",
-    "title": "從董事會到課室",
-    "subtitle": "在媒體與酒店業工作多年後，我愈來愈強烈地感到，要投身一件更有意義的事：理解兒童，並在塑造一生的關鍵歲月中支持家庭。",
-    "description": "這個決定令我重返大學。我在香港大學取得教育碩士，在倫敦完成 AMI 蒙特梭利助教文憑（0–3），並在美國加州聖地牙哥完成 AMI 蒙特梭利文憑（3–6）。我亦取得史丹福大學兒童營養認證，並接受蒙特梭利情緒健康專項培訓。\n\n多年來，我在香港國際蒙特梭利學校（IMS）與 1–6 歲孩子進行一線工作，近距離觀察到：當孩子身邊的大人真正理解其發展需要時，成長會有多大改變。\n\n這段經歷改變了我看待童年的方式，也改變了我對成人角色的理解。\n\n今天，我的工作重心是支持孩子身邊的大人：父母與照顧者。因為家中日常每一個時刻，對孩子的塑造遠比偶爾的課堂或活動更深。\n\n我亦每天在自己的生活中實踐這份工作，與我兩個女兒一起。對我來說，蒙特梭利不只是我教授的理念，更是我們的生活方式。\n\n我的目標很簡單：幫助家庭建立更平和的家、培養更有能力的孩子，並讓父母在引導孩子成長時更有信心。",
-    "imageAltTemplate": "Evolve Sprouts 簡史圖片 {index}"
-  },
-  "myJourney": {
-    "eyebrow": "我的蒙特梭利旅程",
-    "title": "育兒不在於完美，而在於成長",
-    "description": "作為兩個孩子的媽媽，我明白最好的育兒，發生在我們放慢節奏、用心聆聽，並給孩子留出成長空間的時候。蒙特梭利原則改變了我看待母職的方式——也改變了我如何幫助其他家庭。",
-    "cards": [
-      {
-        "tag": "在家中的進步",
-        "description": "看著女兒自己倒水、以善意化解衝突、把錯誤當成學習的一部分——這一切都不是沒有掙扎就能做到。"
-      },
-      {
-        "tag": "我自己的成長",
-        "description": "我也曾因失去耐性而落淚，也曾對每個選擇感到懷疑。蒙特梭利不只塑造了孩子的成長，也改變了我。"
-      },
-      {
-        "tag": "它教會了我什麼",
-        "description": "以寬容取代內疚。把「不當行為」看成未被滿足的需要，而不是對抗。建立一個讓孩子與父母都真正被看見的家——不求完美，只求一起成長。"
-      }
-    ],
-    "imageAlt": "我的蒙特梭利旅程區塊圖片"
-  },
-  "whyUs": {
-    "eyebrow": "點解揀我哋",
-    "title": "養育孩子需要整個村莊，但你要慎選同行的人",
-    "description": "在香港，許多家庭都依靠外傭協助照顧孩子，但她們很少接受兒童發展的正式訓練。Evolve Sprouts 的存在，就是為了填補這個缺口：讓你的姨姨具備所需的技能、語言和信心，按照你的價值觀陪伴孩子成長。",
-    "ctaLabel": "探索我們的工作坊",
-    "ctaHref": "/services/workshops",
-    "pillars": [
-      {
-        "title": "專為香港家庭而設的專門課程",
-        "description": "培訓你的姨姨理解蒙特梭利原則、以平靜方式與幼兒溝通，並按照你的價值觀陪伴孩子成長。"
-      },
-      {
-        "title": "專家引導",
-        "description": "結合 AMI 蒙特梭利認證、港大碩士研究，以及真實育兒經驗作為基礎。"
-      },
-      {
-        "title": "重實踐，不空談",
-        "description": "每一節課都建立你能在家中實際運用的技能——貼合你的日常節奏和具體挑戰。"
-      },
-      {
-        "title": "真實改變，快速看見",
-        "description": "不少家庭在短短數週內已看見明顯轉變：早晨更平和、下午更愉快、成長更真實可見。"
-      }
-    ]
   },
   "faq": {
     "eyebrow": "常見問題",
@@ -1079,21 +627,6 @@
     "captchaUnavailableError": "CAPTCHA 暫時不可用，請稍後再試。",
     "successMessage": "多謝你成為我哋社群的一員！你將會開始收到我哋每月電子通訊。"
   },
-  "eventNotification": {
-    "title": "活動通知",
-    "ctaLabel": "訂閱活動通知",
-    "formSubmitLabel": "接收活動通知",
-    "ctaHref": "/events",
-    "description": "第一時間知道最新工作坊、培訓課程同香港家庭免費活動。\n\n留下你嘅電郵，我哋會喺新活動公佈時通知你。",
-    "emailPlaceholder": "電郵地址",
-    "emailValidationMessage": "請輸入有效的電郵地址。",
-    "prefilledMessage": "活動通知訂閱",
-    "submitErrorMessage": "出咗啲問題，請稍後再試。",
-    "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
-    "captchaLoadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
-    "captchaUnavailableError": "CAPTCHA 暫時不可用，請稍後再試。",
-    "successMessage": "多謝訂閱！有新活動公佈時我哋會通知你。"
-  },
   "freeIntroSession": {
     "title": "準備好畀你嘅助手所需工具未？",
     "eventPageTitle": "仲未確定？由呢度開始",
@@ -1325,6 +858,283 @@
     "placeholder": {
       "descriptionTemplate": "{title} - {brand}",
       "workshopsTitle": "工作坊"
+    }
+  },
+  "myBestAuntie": {
+    "hero": {
+      "title": "My Best Auntie 培訓課程",
+      "subtitle": "一個專為香港家庭傭工而設的實用培訓課程。",
+      "description": "這不是一堂育兒理念講座，也不是一本她永遠不會讀完的厚手冊。這是一個專為香港家庭傭工而設的實戰課程——提供真實情境、真實話術與真實策略，讓她由第一天就可以應用。\n無需蒙特梭利背景。無需育兒經驗。只要願意學習——以及你願意相信，她其實可以做得更多。",
+      "ctaLabel": "立即預訂名額！",
+      "ctaHref": "#my-best-auntie-booking",
+      "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
+    },
+    "outline": {
+      "eyebrow": "課程大綱",
+      "title": "由 Ida 設計的 My Best Auntie 培訓課程",
+      "subtitle": "9 週課程，改變你嘅屋企。",
+      "description": "小組課 + 私人 1:1 指導。HK$9,000 起。",
+      "ctaLabel": "立即預訂名額！",
+      "ctaHref": "#my-best-auntie-booking",
+      "modules": [
+        {
+          "step": "1",
+          "title": "改造你的家居環境",
+          "week": "第1-3週",
+          "icon": "home",
+          "activity": "我哋會先將屋企設定成支持孩子獨立嘅環境，並觀察你嘅姨姨點樣同你嘅小朋友建立連結。\n小組課：實用蒙特梭利概念——點解環境比規矩更重要\n到府指導：我會評估你屋企，清楚指出邊啲要移位、調整、移除，之後再觀察姨姨同小朋友互動\n家長通話：我哋發現咗乜？有咩需要調整？"
+        },
+        {
+          "step": "2",
+          "title": "溫和引導與清晰界線",
+          "week": "第4-6週",
+          "icon": "limits",
+          "activity": "唔靠威脅，唔靠利誘。佢會學識用冷靜而一致嘅方式去引導。\n小組課：針對發脾氣、拒絕食飯、瞓前拉鋸、螢幕情緒爆發嘅實用話術\n到府指導：喺你屋企實戰練習界線——嗰啲平時最易失控嘅時刻\n家長通話：你同姨姨之間嘅規矩，係咪一致？"
+        },
+        {
+          "step": "3",
+          "title": "培養獨立能力",
+          "week": "第7-9週",
+          "icon": "independence",
+          "activity": "佢退後一步，你嘅小朋友就會向前一步。\n小組課：點樣安全放手——點解做少啲反而做得更多\n到府指導：由佢主導，我觀察——由呢一步開始，訓練真正變成佢自己嘅能力\n家長通話：最後對齊——課程完結之後點樣長期維持"
+        }
+      ]
+    },
+    "booking": {
+      "eyebrow": "預約名額",
+      "title": "我的最佳姨姨培訓課程",
+      "description": "一個流程完成預留名額與付款確認，清楚又安心。",
+      "scheduleLabel": "下一期課程",
+      "noCohortsLabel": "這個年齡組別暫時未有新班期。",
+      "ageSelectorLabel": "你小朋友的年齡組別是？",
+      "ageOptions": [
+        {
+          "id": "0-1",
+          "label": "0-1",
+          "iconSrc": "/images/baby.png"
+        },
+        {
+          "id": "1-3",
+          "label": "1-3",
+          "iconSrc": "/images/toddler.png"
+        },
+        {
+          "id": "3-6",
+          "label": "3-6",
+          "iconSrc": "/images/kid.png"
+        }
+      ],
+      "dateSelectorLabel": "選擇可用日期",
+      "soldOutStampLabel": "已售罄",
+      "confirmAndPayLabel": "確認並付款！",
+      "learnMoreLabel": "了解更多課程內容",
+      "learnMoreHref": "/services/my-best-auntie-training-course",
+      "paymentModal": {
+        "closeLabel": "關閉",
+        "title": "我的最佳姨姨培訓課程",
+        "subtitle": "9 週。3 次小組課。3 次上門家訪。3 次家長通話。",
+        "partSummaries": [
+          "我哋會先將屋企設定成支持孩子獨立嘅環境，並觀察你嘅姨姨點樣同你嘅小朋友建立連結。",
+          "唔靠威脅，唔靠利誘。佢會學識用冷靜而一致嘅方式去引導。",
+          "佢退後一步，你嘅小朋友就會向前一步。"
+        ],
+        "refundHint": "開課前 7 天可全額退款。",
+        "directionLabel": "查看路線",
+        "reservationTitle": "報名資料",
+        "reservationDescription": "請填寫你的資料，我們會以電郵發送付款確認。",
+        "selectedAgeGroupLabel": "小朋友年齡組別",
+        "fullNameLabel": "姓名",
+        "emailLabel": "電郵",
+        "phoneLabel": "電話號碼",
+        "topicsInterestLabel": "開始前，你想我先了解你的小朋友或姐姐哪些情況？",
+        "topicsInterestPlaceholder": "例如：我女兒 2 歲，我們的姐姐已經照顧我們一年。",
+        "paymentMethodLabel": "付款方式",
+        "paymentMethodValue": "以 FPS 二維碼付款",
+        "paymentFpsQrInstruction": "使用你常用的銀行應用程式掃描此 FPS 二維碼。",
+        "paymentMethodBankTransferValue": "銀行轉帳",
+        "paymentBankNameLabel": "銀行名稱",
+        "paymentBankAccountHolderLabel": "戶口名稱",
+        "paymentBankAccountNumberLabel": "戶口號碼",
+        "discountCodeLabel": "優惠碼",
+        "discountCodePlaceholder": "輸入優惠碼",
+        "applyDiscountLabel": "套用",
+        "invalidDiscountLabel": "優惠碼無效",
+        "discountAppliedLabel": "優惠已套用",
+        "priceBreakdownPriceLabel": "原價",
+        "priceBreakdownDiscountLabel": "優惠",
+        "priceBreakdownConfirmedPriceLabel": "確認價格",
+        "paymentConfirmationNote": "收到付款後，你的名額才會確認",
+        "pendingReservationAcknowledgementLabel": "我明白在付款確認前，我的預約仍屬待確認狀態",
+        "termsAgreementLabel": "我同意",
+        "termsLinkLabel": "條款及細則",
+        "termsHref": "/terms",
+        "submitLabel": "立即預留我的名額",
+        "captchaLabel": "請完成 CAPTCHA 驗證",
+        "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
+        "captchaLoadError": "CAPTCHA 載入失敗，請重新整理後再試。",
+        "captchaUnavailableError": "CAPTCHA 暫時未能使用，請稍後再試。",
+        "emailValidationError": "請輸入有效的電郵地址。",
+        "submitErrorMessage": "暫時未能提交預約，請稍後再試。",
+        "closeOverlayLabel": "關閉視窗",
+        "fpsQrCodeLabel": "FPS 付款二維碼"
+      },
+      "thankYouModal": {
+        "closeLabel": "關閉",
+        "title": "我們會盡快與你聯絡",
+        "subtitle": "確認電郵已發送至。",
+        "successLabel": "多謝你！",
+        "courseLabel": "我的最佳姨姨培訓課程。",
+        "transactionDateLabel": "交易日期",
+        "paymentMethodLabel": "付款方式",
+        "totalLabel": "總計",
+        "transactionDatePrefix": "交易日期：",
+        "paymentMethodPrefix": "付款方式：",
+        "childAgeGroupPrefix": "孩子年齡組別：",
+        "amountPrefix": "金額：",
+        "trainingPrefix": "培訓：",
+        "printLabel": "列印",
+        "backHomeLabel": "返回首頁",
+        "noEmailFallback": "你的電郵地址"
+      },
+      "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}歲組）",
+      "scrollDatesLeftAriaLabel": "向左捲動日期",
+      "scrollDatesRightAriaLabel": "向右捲動日期"
+    },
+    "description": {
+      "eyebrow": "課程亮點",
+      "title": "你會在我的最佳姨姨培訓課程中獲得甚麼？",
+      "items": [
+        {
+          "icon": "training",
+          "title": "姨姨小組培訓課",
+          "description": "三節現場小班課，只開放予姨姨參與。在被尊重、沒有僱主壓力的空間中，學習兒童發展、引導方法與培養獨立。穩固基礎、共享經驗、實用而清晰。",
+          "ctaLabel": "了解更多",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "coaching",
+          "title": "私人 1:1 指導（按家庭而設）",
+          "description": "三節按你家庭真實日常度身訂造的指導。我們會觀察、對齊期望、調整回應，並示範精準用語。小組學習建立知識；私人指導讓方法在你家真正落地。",
+          "ctaLabel": "了解更多",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "call",
+          "title": "家長策略通話",
+          "description": "我們會抽離一步，評估進度並重新校準方向。你會清楚知道哪些有效、哪些要調整，以及如何避免小問題演變成長期模式。",
+          "ctaLabel": "了解更多",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "community",
+          "title": "姨姨 WhatsApp 社群",
+          "description": "專為已報讀姨姨而設的私密支援群組。即時指導、同儕交流與專家主持。學習在課與課之間持續，讓一致性不會在日常壓力下瓦解。",
+          "ctaLabel": "了解更多",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "toolbox",
+          "title": "話術、工具與真實案例",
+          "description": "可即用的實戰用語，應對真實情境。學會不靠喝罵也能引導、不靠懲罰也能轉移，並能平靜回應抗拒。對的說話方式，會改變行為。",
+          "ctaLabel": "了解更多",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "support",
+          "title": "家長 WhatsApp 支援",
+          "description": "課與課之間可直接提問。及早指導可防止問題升級，並讓所有照顧者保持一致。",
+          "ctaLabel": "了解更多",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "review",
+          "title": "每次私人指導後的書面報告",
+          "description": "每次私人到訪後提供清晰書面摘要。包括觀察重點、聚焦範圍與可立即執行的下一步。無混亂，無錯位。",
+          "ctaLabel": "了解更多",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "graduate",
+          "title": "最終課程總結報告",
+          "description": "在課程完成時提供整合版參考報告。清楚總結進展並提供下一發展階段的後續建議。",
+          "ctaLabel": "了解更多",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        }
+      ],
+      "previousButtonAriaLabel": "上一組亮點卡片",
+      "nextButtonAriaLabel": "下一組亮點卡片",
+      "ctaLabel": "立即預訂名額！",
+      "ctaHref": "#my-best-auntie-booking"
+    }
+  },
+  "aboutUs": {
+    "hero": {
+      "title": "你好，各位家長！",
+      "subtitle": "我係 Ida，我明白當你要選擇由誰照顧孩子時，那份沉重與慎重。",
+      "description": "作為一位受過蒙特梭利訓練的教育工作者，亦係兩個孩子嘅媽媽（現居香港），我走過你而家呢段路——尋找一份你真正信得過嘅指引。Evolve Sprouts 正正誕生於呢段尋找。",
+      "ctaLabel": "",
+      "ctaHref": "/contact-us",
+      "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
+    },
+    "intro": {
+      "title": "你好！我是 Ida——AMI 蒙特梭利教育者、兩個孩子的媽媽，也是 Evolve Sprouts 的創辦人。",
+      "highlightPhrase": "Evolve Sprouts",
+      "description": "我離開教師職涯，開始培訓姨姨，讓她們能以自信、獨立與溫暖的方式養育孩子。這份工作對我很個人——因為我也正在走著和你一樣的育兒旅程。",
+      "ctaLabel": "閱讀我的故事",
+      "ctaHref": "/about-us",
+      "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
+    },
+    "myHistory": {
+      "eyebrow": "我的故事",
+      "title": "從董事會到課室",
+      "subtitle": "在媒體與酒店業工作多年後，我愈來愈強烈地感到，要投身一件更有意義的事：理解兒童，並在塑造一生的關鍵歲月中支持家庭。",
+      "description": "這個決定令我重返大學。我在香港大學取得教育碩士，在倫敦完成 AMI 蒙特梭利助教文憑（0–3），並在美國加州聖地牙哥完成 AMI 蒙特梭利文憑（3–6）。我亦取得史丹福大學兒童營養認證，並接受蒙特梭利情緒健康專項培訓。\n\n多年來，我在香港國際蒙特梭利學校（IMS）與 1–6 歲孩子進行一線工作，近距離觀察到：當孩子身邊的大人真正理解其發展需要時，成長會有多大改變。\n\n這段經歷改變了我看待童年的方式，也改變了我對成人角色的理解。\n\n今天，我的工作重心是支持孩子身邊的大人：父母與照顧者。因為家中日常每一個時刻，對孩子的塑造遠比偶爾的課堂或活動更深。\n\n我亦每天在自己的生活中實踐這份工作，與我兩個女兒一起。對我來說，蒙特梭利不只是我教授的理念，更是我們的生活方式。\n\n我的目標很簡單：幫助家庭建立更平和的家、培養更有能力的孩子，並讓父母在引導孩子成長時更有信心。",
+      "imageAltTemplate": "Evolve Sprouts 簡史圖片 {index}"
+    },
+    "myJourney": {
+      "eyebrow": "我的蒙特梭利旅程",
+      "title": "育兒不在於完美，而在於成長",
+      "description": "作為兩個孩子的媽媽，我明白最好的育兒，發生在我們放慢節奏、用心聆聽，並給孩子留出成長空間的時候。蒙特梭利原則改變了我看待母職的方式——也改變了我如何幫助其他家庭。",
+      "cards": [
+        {
+          "tag": "在家中的進步",
+          "description": "看著女兒自己倒水、以善意化解衝突、把錯誤當成學習的一部分——這一切都不是沒有掙扎就能做到。"
+        },
+        {
+          "tag": "我自己的成長",
+          "description": "我也曾因失去耐性而落淚，也曾對每個選擇感到懷疑。蒙特梭利不只塑造了孩子的成長，也改變了我。"
+        },
+        {
+          "tag": "它教會了我什麼",
+          "description": "以寬容取代內疚。把「不當行為」看成未被滿足的需要，而不是對抗。建立一個讓孩子與父母都真正被看見的家——不求完美，只求一起成長。"
+        }
+      ],
+      "imageAlt": "我的蒙特梭利旅程區塊圖片"
+    },
+    "whyUs": {
+      "eyebrow": "點解揀我哋",
+      "title": "養育孩子需要整個村莊，但你要慎選同行的人",
+      "description": "在香港，許多家庭都依靠外傭協助照顧孩子，但她們很少接受兒童發展的正式訓練。Evolve Sprouts 的存在，就是為了填補這個缺口：讓你的姨姨具備所需的技能、語言和信心，按照你的價值觀陪伴孩子成長。",
+      "ctaLabel": "探索我們的工作坊",
+      "ctaHref": "/services/workshops",
+      "pillars": [
+        {
+          "title": "專為香港家庭而設的專門課程",
+          "description": "培訓你的姨姨理解蒙特梭利原則、以平靜方式與幼兒溝通，並按照你的價值觀陪伴孩子成長。"
+        },
+        {
+          "title": "專家引導",
+          "description": "結合 AMI 蒙特梭利認證、港大碩士研究，以及真實育兒經驗作為基礎。"
+        },
+        {
+          "title": "重實踐，不空談",
+          "description": "每一節課都建立你能在家中實際運用的技能——貼合你的日常節奏和具體挑戰。"
+        },
+        {
+          "title": "真實改變，快速看見",
+          "description": "不少家庭在短短數週內已看見明顯轉變：早晨更平和、下午更愉快、成長更真實可見。"
+        }
+      ]
     }
   }
 }

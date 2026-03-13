@@ -6,10 +6,10 @@ import enContent from '@/content/en.json';
 
 describe('MyBestAuntieDescription section', () => {
   it('uses migrated section background class and left-aligned heading', () => {
-    render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
+    render(<MyBestAuntieDescription content={enContent.myBestAuntie.description} />);
 
     const section = screen.getByRole('region', {
-      name: enContent.myBestAuntieDescription.title,
+      name: enContent.myBestAuntie.description.title,
     });
 
     expect(section.className).toContain('es-section-bg-overlay');
@@ -17,7 +17,7 @@ describe('MyBestAuntieDescription section', () => {
 
     const title = screen.getByRole('heading', {
       level: 2,
-      name: enContent.myBestAuntieDescription.title,
+      name: enContent.myBestAuntie.description.title,
     });
     const titleWrapperClassName = title.parentElement?.className ?? '';
 
@@ -26,7 +26,7 @@ describe('MyBestAuntieDescription section', () => {
   });
 
   it('keeps controls in the same header row as the title', () => {
-    render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
+    render(<MyBestAuntieDescription content={enContent.myBestAuntie.description} />);
 
     const header = screen.getByTestId('my-best-auntie-description-header');
     const controls = screen.getByTestId('my-best-auntie-description-controls');
@@ -39,9 +39,9 @@ describe('MyBestAuntieDescription section', () => {
   });
 
   it('uses fixed 3-up desktop card sizing with start snap', () => {
-    render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
+    render(<MyBestAuntieDescription content={enContent.myBestAuntie.description} />);
 
-    const firstCardTitle = enContent.myBestAuntieDescription.items[0]?.title;
+    const firstCardTitle = enContent.myBestAuntie.description.items[0]?.title;
     expect(firstCardTitle).toBeDefined();
 
     const firstCardHeading = screen.getByRole('heading', {
@@ -56,17 +56,17 @@ describe('MyBestAuntieDescription section', () => {
   });
 
   it('renders highlight cards without box shadow', () => {
-    render(<MyBestAuntieDescription content={enContent.myBestAuntieDescription} />);
+    render(<MyBestAuntieDescription content={enContent.myBestAuntie.description} />);
 
     const cardHeadings = screen.getAllByRole('heading', { level: 3 });
-    expect(cardHeadings).toHaveLength(enContent.myBestAuntieDescription.items.length);
+    expect(cardHeadings).toHaveLength(enContent.myBestAuntie.description.items.length);
     expect(
       screen.queryByRole('link', {
-        name: enContent.myBestAuntieDescription.items[0]?.ctaLabel,
+        name: enContent.myBestAuntie.description.items[0]?.ctaLabel,
       }),
     ).not.toBeInTheDocument();
 
-    const firstCardTitle = enContent.myBestAuntieDescription.items[0]?.title;
+    const firstCardTitle = enContent.myBestAuntie.description.items[0]?.title;
     expect(firstCardTitle).toBeDefined();
 
     const cardHeading = screen.getByRole('heading', {
@@ -82,17 +82,17 @@ describe('MyBestAuntieDescription section', () => {
     const cardBody = cardArticle?.querySelector('p');
     expect(cardBody?.className).toContain('es-my-best-auntie-description-card-description');
     expect(
-      screen.getByRole('link', { name: enContent.myBestAuntieDescription.ctaLabel }),
-    ).toHaveAttribute('href', enContent.myBestAuntieDescription.ctaHref);
+      screen.getByRole('link', { name: enContent.myBestAuntie.description.ctaLabel }),
+    ).toHaveAttribute('href', enContent.myBestAuntie.description.ctaHref);
   });
 
   it('applies icon masks and repeats green-blue-red tones', () => {
     const { container } = render(
-      <MyBestAuntieDescription content={enContent.myBestAuntieDescription} />,
+      <MyBestAuntieDescription content={enContent.myBestAuntie.description} />,
     );
 
     const icons = container.querySelectorAll('.es-my-best-auntie-description-icon');
-    expect(icons).toHaveLength(enContent.myBestAuntieDescription.items.length);
+    expect(icons).toHaveLength(enContent.myBestAuntie.description.items.length);
 
     const expectedMaskClasses = [
       'es-my-best-auntie-description-icon--training',

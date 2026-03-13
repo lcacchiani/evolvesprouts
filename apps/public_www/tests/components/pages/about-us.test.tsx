@@ -52,7 +52,7 @@ describe('AboutUs page', () => {
     expect(screen.getByTestId('why-us')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
-    expect(screen.getByText(enContent.ida.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.aboutUs.hero.title)).toBeInTheDocument();
     expect(screen.getByText(enContent.testimonials.title)).toBeInTheDocument();
   });
 });

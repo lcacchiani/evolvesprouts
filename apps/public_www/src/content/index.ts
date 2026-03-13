@@ -1,4 +1,5 @@
 import enContent from './en.json';
+import myBestAuntieTrainingCourseContent from './my-best-auntie-training-courses.json';
 import zhCNContent from './zh-CN.json';
 import zhHKContent from './zh-HK.json';
 import { ROUTES } from '@/lib/routes';
@@ -20,11 +21,18 @@ export const DEFAULT_LOCALE: Locale = 'en';
  * All locale files must conform to this shape.
  */
 type BaseSiteContent = typeof enContent;
+type CourseCohort = typeof myBestAuntieTrainingCourseContent.cohorts[number];
 type LegacyCompatibleTestimonials = Omit<BaseSiteContent['testimonials'], 'items'> & {
   items: Array<BaseSiteContent['testimonials']['items'][number] & { role?: string }>;
 };
-export type SiteContent = Omit<BaseSiteContent, 'testimonials'> & {
+type SharedCourseBookingContent = BaseSiteContent['myBestAuntie']['booking'] & {
+  cohorts: CourseCohort[];
+};
+export type SiteContent = Omit<BaseSiteContent, 'testimonials' | 'myBestAuntie'> & {
   testimonials: LegacyCompatibleTestimonials;
+  myBestAuntie: Omit<BaseSiteContent['myBestAuntie'], 'booking'> & {
+    booking: SharedCourseBookingContent;
+  };
 };
 
 /**
@@ -34,27 +42,27 @@ export type NavbarContent = SiteContent['navbar'];
 export type CommonContent = SiteContent['common'];
 export type CommonAccessibilityContent = SiteContent['common']['accessibility'];
 export type HeroContent = SiteContent['hero'];
-export type IdaIntroContent = SiteContent['idaIntro'];
-export type MyBestAuntieHeroContent = SiteContent['myBestAuntieHero'];
-export type MyBestAuntieOutlineContent = SiteContent['myBestAuntieOutline'];
-export type MyBestAuntieBookingContent = SiteContent['myBestAuntieBooking'];
+export type IdaIntroContent = SiteContent['aboutUs']['intro'];
+export type MyBestAuntieHeroContent = SiteContent['myBestAuntie']['hero'];
+export type MyBestAuntieOutlineContent = SiteContent['myBestAuntie']['outline'];
+export type MyBestAuntieBookingContent = SiteContent['myBestAuntie']['booking'];
 export type MyBestAuntieDescriptionContent =
-  SiteContent['myBestAuntieDescription'];
+  SiteContent['myBestAuntie']['description'];
 export type ResourcesContent = SiteContent['resources'];
 export type CourseHighlightsContent = SiteContent['courseHighlights'];
 export type RealTalkContent = SiteContent['realTalk'];
 export type TestimonialsContent = SiteContent['testimonials'];
 export type ContactUsContent = SiteContent['contactUs'];
 export type EventsContent = SiteContent['events'];
-export type IdaContent = SiteContent['ida'];
-export type MyHistoryContent = SiteContent['myHistory'];
-export type MyJourneyContent = SiteContent['myJourney'];
-export type WhyUsContent = SiteContent['whyUs'];
+export type IdaContent = SiteContent['aboutUs']['hero'];
+export type MyHistoryContent = SiteContent['aboutUs']['myHistory'];
+export type MyJourneyContent = SiteContent['aboutUs']['myJourney'];
+export type WhyUsContent = SiteContent['aboutUs']['whyUs'];
 export type FaqContent = SiteContent['faq'];
 export type SproutsSquadCommunityContent =
   SiteContent['sproutsSquadCommunity'];
 export type EventNotificationContent =
-  SiteContent['eventNotification'];
+  SiteContent['events']['notification'];
 export type FreeIntroSessionContent =
   SiteContent['freeIntroSession'];
 export type FooterContent = SiteContent['footer'];
@@ -63,11 +71,36 @@ const contentMap = {
   en: enContent,
   'zh-CN': zhCNContent,
   'zh-HK': zhHKContent,
-} satisfies Record<Locale, SiteContent>;
+} satisfies Record<Locale, BaseSiteContent>;
 
 const interpolatedContentCache = new Map<string, SiteContent>();
 const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
 const BUSINESS_PHONE_PLACEHOLDER = '{{BUSINESS_PHONE_NUMBER}}';
+
+function cloneSharedCourseCohorts(): CourseCohort[] {
+  return myBestAuntieTrainingCourseContent.cohorts.map((cohort) => ({
+    ...cohort,
+    venue: {
+      ...cohort.venue,
+    },
+    sessions: cohort.sessions.map((session) => ({
+      ...session,
+    })),
+  }));
+}
+
+function withSharedCourseContent(content: BaseSiteContent): SiteContent {
+  return {
+    ...content,
+    myBestAuntie: {
+      ...content.myBestAuntie,
+      booking: {
+        ...content.myBestAuntie.booking,
+        cohorts: cloneSharedCourseCohorts(),
+      },
+    },
+  };
+}
 
 function resolveContactEmail(): string | undefined {
   try {
@@ -238,10 +271,16 @@ function withConfiguredRuntimeContent(
  */
 export function getContent(locale: string): SiteContent {
   if (isValidLocale(locale)) {
-    return withConfiguredRuntimeContent(locale, contentMap[locale]);
+    return withConfiguredRuntimeContent(
+      locale,
+      withSharedCourseContent(contentMap[locale]),
+    );
   }
 
-  return withConfiguredRuntimeContent(DEFAULT_LOCALE, contentMap[DEFAULT_LOCALE]);
+  return withConfiguredRuntimeContent(
+    DEFAULT_LOCALE,
+    withSharedCourseContent(contentMap[DEFAULT_LOCALE]),
+  );
 }
 
 /**

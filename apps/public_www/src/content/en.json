@@ -121,416 +121,9 @@
     "localBusinessDescription": "Montessori auntie training and parent support for families in Hong Kong.",
     "localBusinessAreaServed": "Hong Kong"
   },
-  "idaIntro": {
-    "title": "Hello! I'm Ida — AMI Montessori educator, mum of two, and founder of Evolve Sprouts.",
-    "highlightPhrase": "Evolve Sprouts",
-    "description": "I left a teacher career to train helpers to raise children with confidence, independence, and warmth. This work is personal to me — because I'm navigating the same journey you are.",
-    "ctaLabel": "Read my story",
-    "ctaHref": "/about-us",
-    "imageAlt": "Ida De Gregorio from Evolve Sprouts"
-  },
-  "myBestAuntieHero": {
-    "title": "My Best Auntie Training Course",
-    "subtitle": "A practical training course built for Hong Kong helpers.",
-    "description": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on course designed specifically for domestic helpers in Hong Kong - with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn - and your trust that she's capable of so much more.",
-    "ctaLabel": "Book your spot now!",
-    "ctaHref": "#my-best-auntie-booking",
-    "imageAlt": "Ida De Gregorio from Evolve Sprouts"
-  },
   "whatsappContact": {
     "href": "https://wa.me/message/ZQHVW4DEORD5A1?src=qr",
     "ariaLabel": "Contact us on WhatsApp"
-  },
-  "myBestAuntieOutline": {
-    "eyebrow": "Course Outline",
-    "title": "My Best Auntie Training Course Designed by Ida",
-    "subtitle": "A 9-Week Programme That Changes Your Home.",
-    "description": "Group sessions + private 1:1 coaching. Starting from HK$9,000.",
-    "ctaLabel": "Book your spot now!",
-    "ctaHref": "#my-best-auntie-booking",
-    "modules": [
-      {
-        "step": "1",
-        "title": "Transform Your Home",
-        "week": "Week 1-3",
-        "icon": "home",
-        "activity": "We set up your home for independence and observe how your helper connects with your child.\nGroup session: Practical Montessori concepts — why the environment matters more than the rules\nHome visit: I assess your home, give specific guidance on what to move, change, and remove, then observe your helper with your child\nParent call: What did we find, and what needs to shift?"
-      },
-      {
-        "step": "2",
-        "title": "Gentle Guidance & Clear Boundaries",
-        "week": "Week 4-6",
-        "icon": "limits",
-        "activity": "No threats, no bribes. She learns to guide with calm consistency.\nGroup session: Real scripts for tantrums, meal refusal, bedtime battles, and screen meltdowns\nHome visit: We practise boundaries in your home during the moments that usually fall apart\nParent call: Are the rules consistent between you and your helper?"
-      },
-      {
-        "step": "3",
-        "title": "Fostering Independence",
-        "week": "Week 7-9",
-        "icon": "independence",
-        "activity": "She steps back. Your child steps up.\nGroup session: How to let go safely — why doing less is doing more\nHome visit: She leads and I observe — this is where the training becomes hers\nParent call: Final alignment on how to keep this going long after the course ends"
-      }
-    ]
-  },
-  "myBestAuntieBooking": {
-    "eyebrow": "Book Your Spot",
-    "title": "My Best Auntie Training Course",
-    "description": "Reserve your seat and complete payment securely in one flow.",
-    "scheduleLabel": "Next Cohort",
-    "noCohortsLabel": "No upcoming cohorts for this age group yet.",
-    "ageSelectorLabel": "What's the age group of your child?",
-    "ageOptions": [
-      {
-        "id": "0-1",
-        "label": "0-1",
-        "iconSrc": "/images/baby.png"
-      },
-      {
-        "id": "1-3",
-        "label": "1-3",
-        "iconSrc": "/images/toddler.png"
-      },
-      {
-        "id": "3-6",
-        "label": "3-6",
-        "iconSrc": "/images/kid.png"
-      }
-    ],
-    "dateSelectorLabel": "Select from Available Date",
-    "soldOutStampLabel": "Sold Out",
-    "cohorts": [
-      {
-        "id": "0-1-apr-2026",
-        "ageGroupId": "0-1",
-        "dateLabel": "Apr, 2026",
-        "spacesTotal": 30,
-        "spacesLeftText": "30 spots left",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "Apr 08 @ 12:00 pm",
-            "isoDate": "2026-04-08"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "Apr 15 @ 12:00 pm",
-            "isoDate": "2026-04-15"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "Apr 22 @ 12:00 pm",
-            "isoDate": "2026-04-22"
-          }
-        ]
-      },
-      {
-        "id": "0-1-may-2026",
-        "ageGroupId": "0-1",
-        "dateLabel": "May, 2026",
-        "spacesTotal": 30,
-        "spacesLeftText": "18 spots left",
-        "isSoldOut": true,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "May 08 @ 12:00 pm",
-            "isoDate": "2026-05-08"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "May 15 @ 12:00 pm",
-            "isoDate": "2026-05-15"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "May 22 @ 12:00 pm",
-            "isoDate": "2026-05-22"
-          }
-        ]
-      },
-      {
-        "id": "0-1-jun-2026",
-        "ageGroupId": "0-1",
-        "dateLabel": "Jun, 2026",
-        "spacesTotal": 30,
-        "spacesLeftText": "12 spots left",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "Jun 08 @ 12:00 pm",
-            "isoDate": "2026-06-08"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "Jun 15 @ 12:00 pm",
-            "isoDate": "2026-06-15"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "Jun 22 @ 12:00 pm",
-            "isoDate": "2026-06-22"
-          }
-        ]
-      },
-      {
-        "id": "1-3-may-2026",
-        "ageGroupId": "1-3",
-        "dateLabel": "May, 2026",
-        "spacesTotal": 30,
-        "spacesLeftText": "14 spots left",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "May 10 @ 12:00 pm",
-            "isoDate": "2026-05-10"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "May 17 @ 12:00 pm",
-            "isoDate": "2026-05-17"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "May 24 @ 12:00 pm",
-            "isoDate": "2026-05-24"
-          }
-        ]
-      },
-      {
-        "id": "1-3-jun-2026",
-        "ageGroupId": "1-3",
-        "dateLabel": "Jun, 2026",
-        "spacesTotal": 30,
-        "spacesLeftText": "9 spots left",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "Jun 10 @ 12:00 pm",
-            "isoDate": "2026-06-10"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "Jun 17 @ 12:00 pm",
-            "isoDate": "2026-06-17"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "Jun 24 @ 12:00 pm",
-            "isoDate": "2026-06-24"
-          }
-        ]
-      },
-      {
-        "id": "3-6-jul-2026",
-        "ageGroupId": "3-6",
-        "dateLabel": "Jul, 2026",
-        "spacesTotal": 24,
-        "spacesLeftText": "6 spots left",
-        "isSoldOut": false,
-        "price": 9000,
-        "priceCurrency": "HKD",
-        "venue": {
-          "name": "Goldwin Heights",
-          "address": "2 Seymour Road, Mid-Levels, Hong Kong",
-          "directionHref": "https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong"
-        },
-        "sessions": [
-          {
-            "id": "part-1",
-            "dateTimeLabel": "Jul 09 @ 12:00 pm",
-            "isoDate": "2026-07-09"
-          },
-          {
-            "id": "part-2",
-            "dateTimeLabel": "Jul 16 @ 12:00 pm",
-            "isoDate": "2026-07-16"
-          },
-          {
-            "id": "part-3",
-            "dateTimeLabel": "Jul 23 @ 12:00 pm",
-            "isoDate": "2026-07-23"
-          }
-        ]
-      }
-    ],
-    "confirmAndPayLabel": "Confirm and Pay!",
-    "learnMoreLabel": "Learn More About Course",
-    "learnMoreHref": "/services/my-best-auntie-training-course",
-    "paymentModal": {
-      "closeLabel": "Close",
-      "title": "My Best Auntie Training Course",
-      "subtitle": "9 weeks. 3 group sessions. 3 home visits. 3 parent calls.",
-      "partSummaries": [
-        "We set up your home for independence and observe how your helper connects with your child.",
-        "No threats, no bribes. She learns to guide with calm consistency.",
-        "She steps back. Your child steps up."
-      ],
-      "refundHint": "Full refund up to 7 days prior.",
-      "directionLabel": "Get Directions",
-      "reservationTitle": "Reservation",
-      "reservationDescription": "Please complete your details. We will send payment confirmation by email.",
-      "selectedAgeGroupLabel": "Child age group",
-      "fullNameLabel": "Full Name",
-      "emailLabel": "Email",
-      "phoneLabel": "Phone Number",
-      "topicsInterestLabel": "Anything you'd like me to know about your child or helper before we start?",
-      "topicsInterestPlaceholder": "i.e. My daughter is 2, our helper has been with us for a year",
-      "paymentMethodLabel": "Payment options",
-      "paymentMethodValue": "Pay via FPS QR",
-      "paymentFpsQrInstruction": "Scan this FPS QR code using your preferred banking app.",
-      "paymentMethodBankTransferValue": "Bank Transfer",
-      "paymentBankNameLabel": "Bank name",
-      "paymentBankAccountHolderLabel": "Account holder",
-      "paymentBankAccountNumberLabel": "Account number",
-      "discountCodeLabel": "Discount code",
-      "discountCodePlaceholder": "Enter code",
-      "applyDiscountLabel": "Apply",
-      "invalidDiscountLabel": "Invalid discount code",
-      "discountAppliedLabel": "Discount applied",
-      "priceBreakdownPriceLabel": "Price",
-      "priceBreakdownDiscountLabel": "Discount",
-      "priceBreakdownConfirmedPriceLabel": "Confirmed Price",
-      "paymentConfirmationNote": "Your spot is confirmed once payment is received",
-      "pendingReservationAcknowledgementLabel": "I understand that my reservation is pending until payment is confirmed",
-      "termsAgreementLabel": "I agree with the",
-      "termsLinkLabel": "Terms & Conditions",
-      "termsHref": "/terms",
-      "submitLabel": "Reserve My Spot",
-      "captchaLabel": "Please complete CAPTCHA verification",
-      "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
-      "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
-      "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
-      "emailValidationError": "Please enter a valid email address.",
-      "submitErrorMessage": "Unable to submit reservation right now. Please try again.",
-      "closeOverlayLabel": "Close modal",
-      "fpsQrCodeLabel": "FPS payment QR code"
-    },
-    "thankYouModal": {
-      "closeLabel": "Close",
-      "title": "We will get in touch shortly",
-      "subtitle": "A confirmation email has been sent to.",
-      "successLabel": "Thank You!",
-      "courseLabel": "My Best Auntie Training Course.",
-      "transactionDateLabel": "Transaction Date",
-      "paymentMethodLabel": "Payment Method",
-      "totalLabel": "Total",
-      "transactionDatePrefix": "Transaction date: ",
-      "paymentMethodPrefix": "Payment method: ",
-      "childAgeGroupPrefix": "Child age group: ",
-      "amountPrefix": "Amount: ",
-      "trainingPrefix": "Training: ",
-      "printLabel": "Print",
-      "backHomeLabel": "Back To Home",
-      "noEmailFallback": "your email address"
-    },
-    "nextCohortLabelTemplate": "{scheduleLabel} for {ageGroupLabel} age group",
-    "scrollDatesLeftAriaLabel": "Scroll dates left",
-    "scrollDatesRightAriaLabel": "Scroll dates right"
-  },
-  "myBestAuntieDescription": {
-    "eyebrow": "Course Highlights",
-    "title": "What Do You Get in the My Best Auntie Training Course?",
-    "items": [
-      {
-        "icon": "training",
-        "title": "Group Aunties Training Sessions",
-        "description": "Three live, small-group sessions exclusively for aunties. They learn child development, guidance, and independence in a respectful space without employer pressure. Strong foundations, shared experiences, practical clarity.",
-        "ctaLabel": "Learn More",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "coaching",
-        "title": "Private 1:1 Coaching (Family-Specific)",
-        "description": "Three tailored sessions inside your real routines. We observe, align expectations, adjust responses, and coach precise language. Group learning builds knowledge. Private coaching makes it work in your home.",
-        "ctaLabel": "Learn More",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "call",
-        "title": "Parent Strategy Calls",
-        "description": "We step back, assess progress, and realign direction. You will know what is working, what needs adjusting, and how to prevent small issues becoming long-term patterns.",
-        "ctaLabel": "Learn More",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "community",
-        "title": "Auntie WhatsApp Community",
-        "description": "A private support group for enrolled aunties. Real-time guidance, peer discussion, and expert moderation. Learning continues between sessions so consistency does not collapse under daily pressure.",
-        "ctaLabel": "Learn More",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "toolbox",
-        "title": "Scripts, Tools & Real-Life Examples",
-        "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behaviour.",
-        "ctaLabel": "Learn More",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "support",
-        "title": "WhatsApp Support for Parents",
-        "description": "Direct access for questions between sessions. Early guidance prevents escalation and keeps everyone aligned.",
-        "ctaLabel": "Learn More",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "review",
-        "title": "Written Reports After Each Private Session",
-        "description": "Clear written summaries after every private visit. Observations, focus areas, and immediate next steps. No confusion. No misalignment.",
-        "ctaLabel": "Learn More",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      },
-      {
-        "icon": "graduate",
-        "title": "Final Programme Report",
-        "description": "A consolidated reference at programme completion. Clear progress overview and future guidance for the next developmental stage.",
-        "ctaLabel": "Learn More",
-        "ctaHref": "/services/my-best-auntie-training-course"
-      }
-    ],
-    "previousButtonAriaLabel": "Previous highlight cards",
-    "nextButtonAriaLabel": "Next highlight cards",
-    "ctaLabel": "Book your spot now!",
-    "ctaHref": "#my-best-auntie-booking"
   },
   "resources": {
     "eyebrow": "Our Resources",
@@ -784,67 +377,22 @@
     "locationTypeLabels": {
       "virtual": "Virtual",
       "inPerson": "In Person"
+    },
+    "notification": {
+      "title": "Event Notification",
+      "ctaLabel": "Get Notified About New Events",
+      "formSubmitLabel": "Get Event Notifications",
+      "ctaHref": "/events",
+      "description": "Be the first to hear about new workshops, training courses, and free sessions for Hong Kong families.\n\nSign up and we will notify you when new events are announced.",
+      "emailPlaceholder": "Email address",
+      "emailValidationMessage": "Please enter a valid email address.",
+      "prefilledMessage": "Event notification signup",
+      "submitErrorMessage": "Something went wrong. Please try again later.",
+      "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
+      "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
+      "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
+      "successMessage": "Thanks! We will notify you when new events are announced."
     }
-  },
-  "ida": {
-    "title": "Hello, fellow parents!",
-    "subtitle": "I'm Ida, and I understand the weight of choosing someone to care for your child.",
-    "description": "As a Montessori-trained educator and mother of two in Hong Kong, I've been where you are — searching for guidance you can trust. Evolve Sprouts was born from that very search.",
-    "ctaLabel": "",
-    "ctaHref": "/contact-us",
-    "imageAlt": "Ida De Gregorio from Evolve Sprouts"
-  },
-  "myHistory": {
-    "eyebrow": "My Story",
-    "title": "From the boardroom to the classroom",
-    "subtitle": "After years working in media and hospitality, I felt a growing pull toward something more meaningful, understanding children and supporting families during the years that shape everything.",
-    "description": "That decision led me back to university. I earned a Master’s in Education from HKU, completed an AMI Montessori Assistant Diploma (0–3) in London, and an AMI Montessori Diploma (3–6) in San Diego, California. I also hold certifications in Child Nutrition from Stanford University and specialised training in Montessori emotional well-being.\n\nFor several years, I worked hands-on with children aged 1–6 at Hong Kong’s International Montessori School (IMS), observing closely how children grow when the adults around them understand their developmental needs.\n\nThat experience changed how I see childhood, and the role adults play in it.\n\nToday, my work focuses on helping the adults around the child: parents and caregivers. Because what happens in everyday moments at home shapes a child far more than occasional lessons or activities.\n\nI also bring this work into my own life every day with my two daughters, where Montessori is not just a philosophy I teach, it’s how we live.\n\nMy goal is simple: to help families create calmer homes, raise capable children, and feel confident in the way they guide their child’s growth.",
-    "imageAltTemplate": "A brief history image from Evolve Sprouts {index}"
-  },
-  "myJourney": {
-    "eyebrow": "My Montessori Journey",
-    "title": "Parenting isn't about perfection. It's about progress",
-    "description": "As a mum of two, I've learned that the best parenting happens when we slow down, listen, and give our children space to grow. Montessori principles have transformed how I approach motherhood — and how I help other families do the same.",
-    "cards": [
-      {
-        "tag": "Progress at Home",
-        "description": "Watching my daughters pour their own water, resolve conflicts with kindness, and embrace mistakes as learning — that didn’t happen without struggle."
-      },
-      {
-        "tag": "Growth in Me",
-        "description": "I’ve cried after losing my temper. I’ve doubted every choice. Montessori didn’t just shape my children’s growth — it transformed mine."
-      },
-      {
-        "tag": "What It Taught Me",
-        "description": "Replace guilt with grace. See misbehaviour as unmet needs, not defiance. Build a home where both children and parents feel truly seen — not perfect, just growing."
-      }
-    ],
-    "imageAlt": "My Montessori Journey section image"
-  },
-  "whyUs": {
-    "eyebrow": "Why Us",
-    "title": "It takes a village. But you need to choose yours carefully",
-    "description": "In Hong Kong, families often rely on domestic helpers for childcare — yet helpers rarely receive formal training in child development. Evolve Sprouts exists to bridge that gap: to give your helper the skills, language, and confidence to raise your children with your values.",
-    "ctaLabel": "Explore our workshops",
-    "ctaHref": "/services/workshops",
-    "pillars": [
-      {
-        "title": "A Specialised Course for Hong Kong Families",
-        "description": "Train your helper to understand Montessori principles, communicate calmly with toddlers, and raise your children with your values."
-      },
-      {
-        "title": "Expert Guidance",
-        "description": "Backed by AMI Montessori certification, HKU Master's research, and real parenting experience."
-      },
-      {
-        "title": "Practical, Not Theoretical",
-        "description": "Every session builds skills you'll use in your home — with your exact routines and your specific challenges."
-      },
-      {
-        "title": "Real Change, Real Fast",
-        "description": "Families see tangible shifts within weeks: calmer mornings, happier afternoons, genuine growth."
-      }
-    ]
   },
   "faq": {
     "eyebrow": "FAQ",
@@ -1079,21 +627,6 @@
     "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
     "successMessage": "Thank you for being part of our community! You will start receiving our monthly newsletters"
   },
-  "eventNotification": {
-    "title": "Event Notification",
-    "ctaLabel": "Get Notified About New Events",
-    "formSubmitLabel": "Get Event Notifications",
-    "ctaHref": "/events",
-    "description": "Be the first to hear about new workshops, training courses, and free sessions for Hong Kong families.\n\nSign up and we will notify you when new events are announced.",
-    "emailPlaceholder": "Email address",
-    "emailValidationMessage": "Please enter a valid email address.",
-    "prefilledMessage": "Event notification signup",
-    "submitErrorMessage": "Something went wrong. Please try again later.",
-    "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
-    "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
-    "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
-    "successMessage": "Thanks! We will notify you when new events are announced."
-  },
   "freeIntroSession": {
     "title": "Ready to give your helper the tools she needs?",
     "eventPageTitle": "Not sure yet? Start here",
@@ -1325,6 +858,283 @@
     "placeholder": {
       "descriptionTemplate": "{title} - {brand}",
       "workshopsTitle": "Workshops"
+    }
+  },
+  "myBestAuntie": {
+    "hero": {
+      "title": "My Best Auntie Training Course",
+      "subtitle": "A practical training course built for Hong Kong helpers.",
+      "description": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on course designed specifically for domestic helpers in Hong Kong - with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn - and your trust that she's capable of so much more.",
+      "ctaLabel": "Book your spot now!",
+      "ctaHref": "#my-best-auntie-booking",
+      "imageAlt": "Ida De Gregorio from Evolve Sprouts"
+    },
+    "outline": {
+      "eyebrow": "Course Outline",
+      "title": "My Best Auntie Training Course Designed by Ida",
+      "subtitle": "A 9-Week Programme That Changes Your Home.",
+      "description": "Group sessions + private 1:1 coaching. Starting from HK$9,000.",
+      "ctaLabel": "Book your spot now!",
+      "ctaHref": "#my-best-auntie-booking",
+      "modules": [
+        {
+          "step": "1",
+          "title": "Transform Your Home",
+          "week": "Week 1-3",
+          "icon": "home",
+          "activity": "We set up your home for independence and observe how your helper connects with your child.\nGroup session: Practical Montessori concepts — why the environment matters more than the rules\nHome visit: I assess your home, give specific guidance on what to move, change, and remove, then observe your helper with your child\nParent call: What did we find, and what needs to shift?"
+        },
+        {
+          "step": "2",
+          "title": "Gentle Guidance & Clear Boundaries",
+          "week": "Week 4-6",
+          "icon": "limits",
+          "activity": "No threats, no bribes. She learns to guide with calm consistency.\nGroup session: Real scripts for tantrums, meal refusal, bedtime battles, and screen meltdowns\nHome visit: We practise boundaries in your home during the moments that usually fall apart\nParent call: Are the rules consistent between you and your helper?"
+        },
+        {
+          "step": "3",
+          "title": "Fostering Independence",
+          "week": "Week 7-9",
+          "icon": "independence",
+          "activity": "She steps back. Your child steps up.\nGroup session: How to let go safely — why doing less is doing more\nHome visit: She leads and I observe — this is where the training becomes hers\nParent call: Final alignment on how to keep this going long after the course ends"
+        }
+      ]
+    },
+    "booking": {
+      "eyebrow": "Book Your Spot",
+      "title": "My Best Auntie Training Course",
+      "description": "Reserve your seat and complete payment securely in one flow.",
+      "scheduleLabel": "Next Cohort",
+      "noCohortsLabel": "No upcoming cohorts for this age group yet.",
+      "ageSelectorLabel": "What's the age group of your child?",
+      "ageOptions": [
+        {
+          "id": "0-1",
+          "label": "0-1",
+          "iconSrc": "/images/baby.png"
+        },
+        {
+          "id": "1-3",
+          "label": "1-3",
+          "iconSrc": "/images/toddler.png"
+        },
+        {
+          "id": "3-6",
+          "label": "3-6",
+          "iconSrc": "/images/kid.png"
+        }
+      ],
+      "dateSelectorLabel": "Select from Available Date",
+      "soldOutStampLabel": "Sold Out",
+      "confirmAndPayLabel": "Confirm and Pay!",
+      "learnMoreLabel": "Learn More About Course",
+      "learnMoreHref": "/services/my-best-auntie-training-course",
+      "paymentModal": {
+        "closeLabel": "Close",
+        "title": "My Best Auntie Training Course",
+        "subtitle": "9 weeks. 3 group sessions. 3 home visits. 3 parent calls.",
+        "partSummaries": [
+          "We set up your home for independence and observe how your helper connects with your child.",
+          "No threats, no bribes. She learns to guide with calm consistency.",
+          "She steps back. Your child steps up."
+        ],
+        "refundHint": "Full refund up to 7 days prior.",
+        "directionLabel": "Get Directions",
+        "reservationTitle": "Reservation",
+        "reservationDescription": "Please complete your details. We will send payment confirmation by email.",
+        "selectedAgeGroupLabel": "Child age group",
+        "fullNameLabel": "Full Name",
+        "emailLabel": "Email",
+        "phoneLabel": "Phone Number",
+        "topicsInterestLabel": "Anything you'd like me to know about your child or helper before we start?",
+        "topicsInterestPlaceholder": "i.e. My daughter is 2, our helper has been with us for a year",
+        "paymentMethodLabel": "Payment options",
+        "paymentMethodValue": "Pay via FPS QR",
+        "paymentFpsQrInstruction": "Scan this FPS QR code using your preferred banking app.",
+        "paymentMethodBankTransferValue": "Bank Transfer",
+        "paymentBankNameLabel": "Bank name",
+        "paymentBankAccountHolderLabel": "Account holder",
+        "paymentBankAccountNumberLabel": "Account number",
+        "discountCodeLabel": "Discount code",
+        "discountCodePlaceholder": "Enter code",
+        "applyDiscountLabel": "Apply",
+        "invalidDiscountLabel": "Invalid discount code",
+        "discountAppliedLabel": "Discount applied",
+        "priceBreakdownPriceLabel": "Price",
+        "priceBreakdownDiscountLabel": "Discount",
+        "priceBreakdownConfirmedPriceLabel": "Confirmed Price",
+        "paymentConfirmationNote": "Your spot is confirmed once payment is received",
+        "pendingReservationAcknowledgementLabel": "I understand that my reservation is pending until payment is confirmed",
+        "termsAgreementLabel": "I agree with the",
+        "termsLinkLabel": "Terms & Conditions",
+        "termsHref": "/terms",
+        "submitLabel": "Reserve My Spot",
+        "captchaLabel": "Please complete CAPTCHA verification",
+        "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
+        "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",
+        "captchaUnavailableError": "CAPTCHA is temporarily unavailable. Please try again later.",
+        "emailValidationError": "Please enter a valid email address.",
+        "submitErrorMessage": "Unable to submit reservation right now. Please try again.",
+        "closeOverlayLabel": "Close modal",
+        "fpsQrCodeLabel": "FPS payment QR code"
+      },
+      "thankYouModal": {
+        "closeLabel": "Close",
+        "title": "We will get in touch shortly",
+        "subtitle": "A confirmation email has been sent to.",
+        "successLabel": "Thank You!",
+        "courseLabel": "My Best Auntie Training Course.",
+        "transactionDateLabel": "Transaction Date",
+        "paymentMethodLabel": "Payment Method",
+        "totalLabel": "Total",
+        "transactionDatePrefix": "Transaction date: ",
+        "paymentMethodPrefix": "Payment method: ",
+        "childAgeGroupPrefix": "Child age group: ",
+        "amountPrefix": "Amount: ",
+        "trainingPrefix": "Training: ",
+        "printLabel": "Print",
+        "backHomeLabel": "Back To Home",
+        "noEmailFallback": "your email address"
+      },
+      "nextCohortLabelTemplate": "{scheduleLabel} for {ageGroupLabel} age group",
+      "scrollDatesLeftAriaLabel": "Scroll dates left",
+      "scrollDatesRightAriaLabel": "Scroll dates right"
+    },
+    "description": {
+      "eyebrow": "Course Highlights",
+      "title": "What Do You Get in the My Best Auntie Training Course?",
+      "items": [
+        {
+          "icon": "training",
+          "title": "Group Aunties Training Sessions",
+          "description": "Three live, small-group sessions exclusively for aunties. They learn child development, guidance, and independence in a respectful space without employer pressure. Strong foundations, shared experiences, practical clarity.",
+          "ctaLabel": "Learn More",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "coaching",
+          "title": "Private 1:1 Coaching (Family-Specific)",
+          "description": "Three tailored sessions inside your real routines. We observe, align expectations, adjust responses, and coach precise language. Group learning builds knowledge. Private coaching makes it work in your home.",
+          "ctaLabel": "Learn More",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "call",
+          "title": "Parent Strategy Calls",
+          "description": "We step back, assess progress, and realign direction. You will know what is working, what needs adjusting, and how to prevent small issues becoming long-term patterns.",
+          "ctaLabel": "Learn More",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "community",
+          "title": "Auntie WhatsApp Community",
+          "description": "A private support group for enrolled aunties. Real-time guidance, peer discussion, and expert moderation. Learning continues between sessions so consistency does not collapse under daily pressure.",
+          "ctaLabel": "Learn More",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "toolbox",
+          "title": "Scripts, Tools & Real-Life Examples",
+          "description": "Ready-to-use language for real moments. Learn how to guide without shouting, redirect without punishment, and respond calmly to resistance. The right words change behaviour.",
+          "ctaLabel": "Learn More",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "support",
+          "title": "WhatsApp Support for Parents",
+          "description": "Direct access for questions between sessions. Early guidance prevents escalation and keeps everyone aligned.",
+          "ctaLabel": "Learn More",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "review",
+          "title": "Written Reports After Each Private Session",
+          "description": "Clear written summaries after every private visit. Observations, focus areas, and immediate next steps. No confusion. No misalignment.",
+          "ctaLabel": "Learn More",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        },
+        {
+          "icon": "graduate",
+          "title": "Final Programme Report",
+          "description": "A consolidated reference at programme completion. Clear progress overview and future guidance for the next developmental stage.",
+          "ctaLabel": "Learn More",
+          "ctaHref": "/services/my-best-auntie-training-course"
+        }
+      ],
+      "previousButtonAriaLabel": "Previous highlight cards",
+      "nextButtonAriaLabel": "Next highlight cards",
+      "ctaLabel": "Book your spot now!",
+      "ctaHref": "#my-best-auntie-booking"
+    }
+  },
+  "aboutUs": {
+    "hero": {
+      "title": "Hello, fellow parents!",
+      "subtitle": "I'm Ida, and I understand the weight of choosing someone to care for your child.",
+      "description": "As a Montessori-trained educator and mother of two in Hong Kong, I've been where you are — searching for guidance you can trust. Evolve Sprouts was born from that very search.",
+      "ctaLabel": "",
+      "ctaHref": "/contact-us",
+      "imageAlt": "Ida De Gregorio from Evolve Sprouts"
+    },
+    "intro": {
+      "title": "Hello! I'm Ida — AMI Montessori educator, mum of two, and founder of Evolve Sprouts.",
+      "highlightPhrase": "Evolve Sprouts",
+      "description": "I left a teacher career to train helpers to raise children with confidence, independence, and warmth. This work is personal to me — because I'm navigating the same journey you are.",
+      "ctaLabel": "Read my story",
+      "ctaHref": "/about-us",
+      "imageAlt": "Ida De Gregorio from Evolve Sprouts"
+    },
+    "myHistory": {
+      "eyebrow": "My Story",
+      "title": "From the boardroom to the classroom",
+      "subtitle": "After years working in media and hospitality, I felt a growing pull toward something more meaningful, understanding children and supporting families during the years that shape everything.",
+      "description": "That decision led me back to university. I earned a Master’s in Education from HKU, completed an AMI Montessori Assistant Diploma (0–3) in London, and an AMI Montessori Diploma (3–6) in San Diego, California. I also hold certifications in Child Nutrition from Stanford University and specialised training in Montessori emotional well-being.\n\nFor several years, I worked hands-on with children aged 1–6 at Hong Kong’s International Montessori School (IMS), observing closely how children grow when the adults around them understand their developmental needs.\n\nThat experience changed how I see childhood, and the role adults play in it.\n\nToday, my work focuses on helping the adults around the child: parents and caregivers. Because what happens in everyday moments at home shapes a child far more than occasional lessons or activities.\n\nI also bring this work into my own life every day with my two daughters, where Montessori is not just a philosophy I teach, it’s how we live.\n\nMy goal is simple: to help families create calmer homes, raise capable children, and feel confident in the way they guide their child’s growth.",
+      "imageAltTemplate": "A brief history image from Evolve Sprouts {index}"
+    },
+    "myJourney": {
+      "eyebrow": "My Montessori Journey",
+      "title": "Parenting isn't about perfection. It's about progress",
+      "description": "As a mum of two, I've learned that the best parenting happens when we slow down, listen, and give our children space to grow. Montessori principles have transformed how I approach motherhood — and how I help other families do the same.",
+      "cards": [
+        {
+          "tag": "Progress at Home",
+          "description": "Watching my daughters pour their own water, resolve conflicts with kindness, and embrace mistakes as learning — that didn’t happen without struggle."
+        },
+        {
+          "tag": "Growth in Me",
+          "description": "I’ve cried after losing my temper. I’ve doubted every choice. Montessori didn’t just shape my children’s growth — it transformed mine."
+        },
+        {
+          "tag": "What It Taught Me",
+          "description": "Replace guilt with grace. See misbehaviour as unmet needs, not defiance. Build a home where both children and parents feel truly seen — not perfect, just growing."
+        }
+      ],
+      "imageAlt": "My Montessori Journey section image"
+    },
+    "whyUs": {
+      "eyebrow": "Why Us",
+      "title": "It takes a village. But you need to choose yours carefully",
+      "description": "In Hong Kong, families often rely on domestic helpers for childcare — yet helpers rarely receive formal training in child development. Evolve Sprouts exists to bridge that gap: to give your helper the skills, language, and confidence to raise your children with your values.",
+      "ctaLabel": "Explore our workshops",
+      "ctaHref": "/services/workshops",
+      "pillars": [
+        {
+          "title": "A Specialised Course for Hong Kong Families",
+          "description": "Train your helper to understand Montessori principles, communicate calmly with toddlers, and raise your children with your values."
+        },
+        {
+          "title": "Expert Guidance",
+          "description": "Backed by AMI Montessori certification, HKU Master's research, and real parenting experience."
+        },
+        {
+          "title": "Practical, Not Theoretical",
+          "description": "Every session builds skills you'll use in your home — with your exact routines and your specific challenges."
+        },
+        {
+          "title": "Real Change, Real Fast",
+          "description": "Families see tangible shifts within weeks: calmer mornings, happier afternoons, genuine growth."
+        }
+      ]
     }
   }
 }

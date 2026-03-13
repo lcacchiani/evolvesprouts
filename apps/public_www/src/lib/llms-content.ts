@@ -41,7 +41,7 @@ function resolvePageDescriptors(content: SiteContent): PageDescriptor[] {
     {
       label: 'About Us',
       path: ROUTES.about,
-      description: content.ida.subtitle,
+      description: content.aboutUs.hero.subtitle,
     },
     {
       label: 'Events',
@@ -82,7 +82,7 @@ function buildKeyInformation(content: SiteContent): string {
 }
 
 function buildServicesSection(content: SiteContent): string {
-  const courseItems = content.myBestAuntieDescription.items;
+  const courseItems = content.myBestAuntie.description.items;
   const courseInclusions = courseItems
     .map((item) => item.title.toLowerCase())
     .join(', ');
@@ -168,21 +168,21 @@ function buildFounderSection(content: SiteContent): string {
   return lines(
     '### The Founder: Ida De Gregorio',
     '',
-    content.ida.subtitle,
-    content.ida.description,
+    content.aboutUs.hero.subtitle,
+    content.aboutUs.hero.description,
     '',
-    content.myHistory.description,
+    content.aboutUs.myHistory.description,
   );
 }
 
 function buildPillarsSection(content: SiteContent): string {
-  return content.whyUs.pillars
+  return content.aboutUs.whyUs.pillars
     .map((pillar, index) => `${index + 1}. **${pillar.title}**: ${pillar.description}`)
     .join('\n');
 }
 
 function buildCourseModulesSection(content: SiteContent): string {
-  return content.myBestAuntieOutline.modules
+  return content.myBestAuntie.outline.modules
     .map(
       (mod) =>
         `- **${mod.week} (${mod.title})**: ${mod.activity}`,
@@ -191,7 +191,7 @@ function buildCourseModulesSection(content: SiteContent): string {
 }
 
 function buildCourseInclusionsSection(content: SiteContent): string {
-  return content.myBestAuntieDescription.items
+  return content.myBestAuntie.description.items
     .map((item) => `- **${item.title}**: ${item.description}`)
     .join('\n');
 }
@@ -291,9 +291,9 @@ export function buildLlmsFullTxt(content: SiteContent): string {
     '',
     '### Mission',
     '',
-    content.whyUs.title,
+    content.aboutUs.whyUs.title,
     '',
-    content.whyUs.description,
+    content.aboutUs.whyUs.description,
     '',
     '### Core Pillars',
     '',
@@ -305,7 +305,7 @@ export function buildLlmsFullTxt(content: SiteContent): string {
     '',
     '### Outline',
     '',
-    `${content.myBestAuntieOutline.description} ${content.seo.trainingCourse.description}`,
+    `${content.myBestAuntie.outline.description} ${content.seo.trainingCourse.description}`,
     '',
     '### Course Structure',
     '',

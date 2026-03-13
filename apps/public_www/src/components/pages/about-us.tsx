@@ -21,10 +21,10 @@ export function AboutUs({ locale, content }: AboutUsProps) {
       navbarContent={content.navbar}
       footerContent={content.footer}
     >
-      <Ida content={content.ida} />
-      <MyHistory content={content.myHistory} />
-      <MyJourney content={content.myJourney} />
-      <WhyUs locale={locale} content={content.whyUs} />
+      <Ida content={content.aboutUs.hero} />
+      <MyHistory content={content.aboutUs.myHistory} />
+      <MyJourney content={content.aboutUs.myJourney} />
+      <WhyUs locale={locale} content={content.aboutUs.whyUs} />
       <DeferredTestimonials
         content={content.testimonials}
         commonAccessibility={content.common.accessibility}

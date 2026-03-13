@@ -56,9 +56,9 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
         content={content.realTalk}
         commonAccessibility={content.common.accessibility}
       />
-      <IdaIntro content={content.idaIntro} />
+      <IdaIntro content={content.aboutUs.intro} />
       <MyBestAuntieOutline
-        content={content.myBestAuntieOutline}
+        content={content.myBestAuntie.outline}
         ctaHref={myBestAuntieOutlineCtaHref}
         commonAccessibility={content.common.accessibility}
       />
