@@ -517,9 +517,11 @@ describe('MyBestAuntieBooking section', () => {
     ) as BookingContent;
 
     const soldOutCohort = soldOutContent.cohorts.find(
-      (cohort) => cohort.id === 'my-best-auntie-0-1-05-26',
+      (cohort) => cohort.age_group === '0-1',
     );
-    expect(soldOutCohort?.is_fully_booked).toBe(true);
+    expect(soldOutCohort).toBeDefined();
+    soldOutCohort!.is_fully_booked = true;
+    soldOutCohort!.spaces_left = 0;
 
     render(<MyBestAuntieBooking locale='en' content={soldOutContent} />);
 
