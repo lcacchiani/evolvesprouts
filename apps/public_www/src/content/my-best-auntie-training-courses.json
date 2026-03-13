@@ -13,7 +13,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "0-1"
+      ],
       "categories": [
         "Training Course"
       ],
@@ -49,7 +52,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "0-1"
+      ],
       "categories": [
         "Training Course"
       ],
@@ -85,7 +91,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "0-1"
+      ],
       "categories": [
         "Training Course"
       ],
@@ -121,7 +130,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "1-3"
+      ],
       "categories": [
         "Training Course"
       ],
@@ -157,7 +169,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "1-3"
+      ],
       "categories": [
         "Training Course"
       ],
@@ -193,7 +208,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "1-3"
+      ],
       "categories": [
         "Training Course"
       ],
@@ -229,7 +247,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "3-6"
+      ],
       "categories": [
         "Training Course"
       ],
@@ -265,7 +286,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "3-6"
+      ],
       "categories": [
         "Training Course"
       ],
@@ -301,7 +325,10 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
-      "tags": [],
+      "tags": [
+        "Helper",
+        "3-6"
+      ],
       "categories": [
         "Training Course"
       ],
