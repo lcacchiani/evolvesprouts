@@ -7,6 +7,7 @@ import {
   toRecord,
 } from '@/content/content-field-utils';
 import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
+import { ROUTES } from '@/lib/routes';
 import { isHttpHref } from '@/lib/url-utils';
 
 type EventStatus = 'open' | 'fully_booked';
@@ -17,6 +18,9 @@ export const EVENTS_API_PATH = '/v1/calendar/events';
 const EVENTS_SOURCE_ENV_NAME = 'NEXT_PUBLIC_EVENTS_SOURCE';
 const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
 const MAX_PAST_EVENTS = 5;
+const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
+const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
+const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
 
 export interface EventCardData {
   id: string;
@@ -137,6 +141,32 @@ function sanitizeExternalHref(value: string | undefined): string {
   }
 
   return href;
+}
+
+function localizeRoutePath(path: string, locale: SupportedLocale): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (normalizedPath === '/') {
+    return `/${locale}`;
+  }
+
+  return `/${locale}${normalizedPath}`;
+}
+
+function resolveBookingSystemCtaHref(
+  bookingSystemValue: unknown,
+  locale: SupportedLocale,
+): string {
+  const bookingSystem = readOptionalText(bookingSystemValue);
+  if (bookingSystem !== MY_BEST_AUNTIE_BOOKING_SYSTEM) {
+    return '';
+  }
+
+  const localizedMyBestAuntiePath = localizeRoutePath(
+    ROUTES.servicesMyBestAuntieTrainingCourse,
+    locale,
+  );
+
+  return `${localizedMyBestAuntiePath}?${BOOKING_SYSTEM_QUERY_PARAM}=${MY_BEST_AUNTIE_BOOKING_SYSTEM}#${MY_BEST_AUNTIE_BOOKING_HASH}`;
 }
 
 function isGoogleMapsHref(href: string): boolean {
@@ -716,7 +746,9 @@ function normalizeEventCard(
     ]),
   );
 
-  const ctaHref = sanitizeExternalHref(readOptionalText(record.external_url));
+  const ctaHref =
+    resolveBookingSystemCtaHref(record.booking_system, locale) ||
+    sanitizeExternalHref(readOptionalText(record.external_url));
   const ctaLabel =
     readCandidateText(record, ['ctaLabel', 'buttonLabel', 'actionLabel']) ??
     content.card.ctaLabel;

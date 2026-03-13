@@ -218,6 +218,32 @@ describe('events-data', () => {
     });
   });
 
+  it('uses my-best-auntie booking system CTA route when booking_system is set', () => {
+    const payload = {
+      data: [
+        {
+          title: 'My Best Auntie booking event',
+          booking_system: 'my-best-auntie-booking',
+          external_url: 'https://booking.example.com/events/should-not-be-used',
+          dates: [
+            {
+              start_datetime: '2026-01-22T09:00:00Z',
+              end_datetime: '2026-01-22T11:00:00Z',
+            },
+          ],
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events, 'zh-HK');
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.ctaHref).toBe(
+      '/zh-HK/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
+    );
+  });
+
   it('does not use legacy CTA candidate keys without external_url', () => {
     const payload = {
       data: [
