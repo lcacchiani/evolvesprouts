@@ -30,6 +30,66 @@ domains for navigation:
 - `tests/lib/**`
 - `tests/content/**`
 
+## Locale content conventions
+
+Treat `src/content/en.json` as the content schema and source of truth for the
+public website. Keep `zh-CN.json` and `zh-HK.json` aligned in the same change.
+
+All user-visible copy must live in locale JSON, including:
+
+- headings and body copy
+- CTA and button labels
+- validation, error, and success messages
+- placeholder and fallback labels that can surface to users
+- image `alt` text
+- `aria-label`, `aria-roledescription`, and other screen-reader-only text
+
+Do not add new hardcoded user-visible English copy in:
+
+- `src/app/**`
+- `src/components/**`
+- locale-aware helpers in `src/lib/**`
+
+Read it from locale content instead.
+
+### Naming conventions
+
+- Use `common.*` for shared cross-page UI copy:
+  - `common.shell.*` for app-shell text
+  - `common.accessibility.*` for shared a11y strings/templates
+  - `common.mediaDownload.*` for the media download flow
+  - `common.placeholder.*` for generic placeholder-page copy
+- Keep section-specific copy under the section key when it belongs to only one
+  area, for example:
+  - `courseHighlights.showDetailsAriaLabelTemplate`
+  - `myBestAuntieBooking.paymentModal.fpsQrCodeLabel`
+  - `testimonials.a11y.*`
+- Use a `*Template` suffix for strings that interpolate runtime values, such as:
+  - `submenuToggleLabelTemplate`
+  - `carouselLabelTemplate`
+  - `imageAltTemplate`
+  - `nextCohortLabelTemplate`
+
+### Examples
+
+- Shared shell copy:
+  - `common.shell.skipToMainContentLabel`
+  - `common.shell.noscript.title`
+- Shared accessibility copy:
+  - `common.accessibility.carouselRoleDescription`
+  - `common.accessibility.carouselLabelTemplate`
+- Section-specific accessibility copy:
+  - `testimonials.a11y.imageAltTemplate`
+  - `courseHighlights.showDetailsAriaLabelTemplate`
+
+When a new key is added:
+
+1. Add it in `src/content/en.json`
+2. Add the same key in `src/content/zh-CN.json`
+3. Add the same key in `src/content/zh-HK.json`
+4. If needed, export/update the related type in `src/content/index.ts`
+5. Update tests for the affected UI behavior
+
 ## Figma token scaffolding
 
 The app can consume design tokens from Figma:
