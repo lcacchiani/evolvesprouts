@@ -179,19 +179,8 @@ function formatPartDateTimeLabel(startDateTime: string): string {
     .format(date)
     .replace(' AM', ' am')
     .replace(' PM', ' pm');
-  const timeZoneLabel = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZoneName: 'short',
-  })
-    .formatToParts(date)
-    .find((part) => part.type === 'timeZoneName')
-    ?.value
-    .trim();
-  const timeWithTimeZone = timeZoneLabel ? `${time} ${timeZoneLabel}` : time;
 
-  return `${month} ${day} @ ${timeWithTimeZone}`;
+  return `${month} ${day} @ ${time}`;
 }
 
 function getPrimarySessionSortValue(cohort: BookingCohort): number {

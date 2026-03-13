@@ -243,7 +243,6 @@ describe('events-data', () => {
       '/zh-HK/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
     );
   });
-
   it('does not use legacy CTA candidate keys without external_url', () => {
     const payload = {
       data: [
