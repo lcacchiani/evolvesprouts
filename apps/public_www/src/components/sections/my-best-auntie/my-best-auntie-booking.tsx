@@ -135,6 +135,8 @@ function formatNextCohortLabel(
 }
 
 const BOOKING_SELECTOR_CARD_CLASSNAME = 'es-my-best-auntie-booking-selector-card';
+const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
+const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 
 type BookingCohort = MyBestAuntieBookingContent['cohorts'][number];
 
@@ -150,6 +152,11 @@ function formatSpacesLeftLabel(count: number, template: string): string {
   return formatContentTemplate(template, {
     count: String(count),
   });
+}
+
+function shouldAutoOpenMyBestAuntieBookingModal(searchValue: string): boolean {
+  const queryParams = new URLSearchParams(searchValue);
+  return queryParams.get(BOOKING_SYSTEM_QUERY_PARAM) === MY_BEST_AUNTIE_BOOKING_SYSTEM;
 }
 
 function formatPartDateTimeLabel(startDateTime: string): string {
@@ -291,6 +298,7 @@ export function MyBestAuntieBooking({
   }));
   const [selectedDateId, setSelectedDateId] = useState(initialDateId);
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const hasHandledAutoOpenModalRef = useRef(false);
   const {
     carouselRef: dateCarouselRef,
     hasNavigation: hasDateNavigation,
@@ -331,6 +339,31 @@ export function MyBestAuntieBooking({
     const selectedDateCard = dateCardRefs.current[selectedDateId];
     scrollItemIntoView(selectedDateCard);
   }, [scrollItemIntoView, selectedDateId]);
+
+  useEffect(() => {
+    if (hasHandledAutoOpenModalRef.current) {
+      return;
+    }
+    hasHandledAutoOpenModalRef.current = true;
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+    if (!shouldAutoOpenMyBestAuntieBookingModal(window.location.search)) {
+      return;
+    }
+    if (!selectedCohort || selectedCohort.is_fully_booked) {
+      return;
+    }
+
+    const openModalTimerId = window.setTimeout(() => {
+      setIsPaymentModalOpen(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(openModalTimerId);
+    };
+  }, [selectedCohort]);
 
   function handleDateCarouselNavigation(direction: 'prev' | 'next') {
     scrollDateCarouselByDirection(direction);

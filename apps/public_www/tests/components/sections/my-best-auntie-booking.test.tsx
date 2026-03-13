@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import enContent from '@/content/en.json';
@@ -24,6 +24,10 @@ beforeAll(() => {
     configurable: true,
     value: vi.fn(),
   });
+});
+
+afterEach(() => {
+  window.history.replaceState({}, '', '/');
 });
 
 function formatCohortPreviewLabel(value: string): string {
@@ -129,6 +133,22 @@ function formatSpacesLeftLabel(count: number): string {
 }
 
 describe('MyBestAuntieBooking section', () => {
+  it('auto-opens payment modal when booking_system query targets my-best-auntie booking', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/en/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
+    );
+
+    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+
+    expect(
+      await screen.findByRole('dialog', {
+        name: bookingContent.paymentModal.title,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it('uses default section shell top spacing classes', () => {
     const { container } = render(
       <MyBestAuntieBooking locale='en' content={bookingContent} />,
