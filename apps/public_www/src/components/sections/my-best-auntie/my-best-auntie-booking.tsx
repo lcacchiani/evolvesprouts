@@ -238,17 +238,17 @@ function getPrimarySessionDateTimeLabel(cohort: BookingCohort | null): string {
 
 function formatCohortPrice(
   price: number,
-  currencySymbol: string,
+  currency: string,
   locale: Locale,
 ): string {
   const numberFormatLocale = locale === 'en' ? 'en-HK' : locale;
-  const normalizedCurrencySymbol = currencySymbol.trim();
+  const normalizedCurrency = currency.trim();
 
-  if (/^[A-Z]{3}$/.test(normalizedCurrencySymbol)) {
+  if (/^[A-Z]{3}$/.test(normalizedCurrency)) {
     try {
       return new Intl.NumberFormat(numberFormatLocale, {
         style: 'currency',
-        currency: normalizedCurrencySymbol,
+        currency: normalizedCurrency,
         maximumFractionDigits: 0,
       }).format(price);
     } catch {
@@ -261,11 +261,11 @@ function formatCohortPrice(
     maximumFractionDigits: 0,
   }).format(price);
 
-  if (!normalizedCurrencySymbol) {
+  if (!normalizedCurrency) {
     return formattedAmount;
   }
 
-  return `${normalizedCurrencySymbol}${formattedAmount}`;
+  return `${normalizedCurrency}${formattedAmount}`;
 }
 
 export function MyBestAuntieBooking({
@@ -333,7 +333,7 @@ export function MyBestAuntieBooking({
   const nextCohortPriceLabel = nextCohortForSelectedAge
     ? formatCohortPrice(
         nextCohortForSelectedAge.price,
-        nextCohortForSelectedAge.currency_symbol,
+        nextCohortForSelectedAge.currency,
         locale,
       )
     : '';

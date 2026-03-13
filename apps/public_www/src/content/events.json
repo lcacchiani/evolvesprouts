@@ -23,7 +23,7 @@
         }
       ],
       "price": 1280,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "is_fully_booked": false
     },
     {
@@ -47,7 +47,7 @@
         }
       ],
       "price": 1480,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "is_fully_booked": true
     },
     {
@@ -71,7 +71,7 @@
         }
       ],
       "price": 0,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "is_fully_booked": false
     },
     {
@@ -95,7 +95,7 @@
         }
       ],
       "price": 980,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "is_fully_booked": true
     },
     {
@@ -119,7 +119,7 @@
         }
       ],
       "price": 0,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "is_fully_booked": false
     }
   ]

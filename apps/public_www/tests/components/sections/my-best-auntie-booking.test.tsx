@@ -120,7 +120,16 @@ function getPrimarySessionDateTimeLabel(cohort: BookingCohort): string {
 }
 
 function formatCohortPrice(cohort: BookingCohort): string {
-  return `${cohort.currency_symbol}${new Intl.NumberFormat('en-HK', {
+  const normalizedCurrency = cohort.currency.trim();
+  if (/^[A-Z]{3}$/.test(normalizedCurrency)) {
+    return new Intl.NumberFormat('en-HK', {
+      style: 'currency',
+      currency: normalizedCurrency,
+      maximumFractionDigits: 0,
+    }).format(cohort.price);
+  }
+
+  return `${normalizedCurrency}${new Intl.NumberFormat('en-HK', {
     useGrouping: true,
     maximumFractionDigits: 0,
   }).format(cohort.price)}`;
@@ -400,7 +409,7 @@ describe('MyBestAuntieBooking section', () => {
         spaces_left: 8,
         is_fully_booked: false,
         price: 9000,
-        currency_symbol: 'HK$',
+        currency: 'HKD',
         location: 'physical',
         tags: [],
         categories: ['Training Course'],
@@ -435,7 +444,7 @@ describe('MyBestAuntieBooking section', () => {
         spaces_left: 4,
         is_fully_booked: false,
         price: 9000,
-        currency_symbol: 'HK$',
+        currency: 'HKD',
         location: 'physical',
         tags: [],
         categories: ['Training Course'],

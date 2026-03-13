@@ -366,6 +366,20 @@ function formatNumberWithThousandsSeparators(value: number): string {
     maximumFractionDigits: 20,
   }).format(value);
 }
+
+function normalizeCurrencyPrefix(value: string | undefined): string | undefined {
+  const normalizedValue = readOptionalText(value);
+  if (!normalizedValue) {
+    return undefined;
+  }
+
+  if (normalizedValue.toUpperCase() === 'HKD') {
+    return 'HK$';
+  }
+
+  return normalizedValue;
+}
+
 function resolveEventCost(
   record: Record<string, unknown>,
   content: EventsContent,
@@ -418,6 +432,7 @@ function resolveEventCost(
     'priceCurrency',
     'price_currency',
   ]);
+  const normalizedCurrencyPrefix = normalizeCurrencyPrefix(currencyPrefix);
 
   const amountText =
     typeof rawAmount === 'number' && Number.isFinite(rawAmount)
@@ -437,8 +452,8 @@ function resolveEventCost(
       ? amountText
       : formatNumberWithThousandsSeparators(numericAmount);
 
-  if (numericAmount !== null && currencyPrefix) {
-    return { costLabel: `${currencyPrefix}${formattedAmountText}`, isFreeCost: false };
+  if (numericAmount !== null && normalizedCurrencyPrefix) {
+    return { costLabel: `${normalizedCurrencyPrefix}${formattedAmountText}`, isFreeCost: false };
   }
 
   return { costLabel: formattedAmountText, isFreeCost: false };

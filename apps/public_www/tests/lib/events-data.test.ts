@@ -114,7 +114,7 @@ describe('events-data', () => {
           ],
           is_fully_booked: true,
           price: 9000,
-          currency_symbol: 'HK$',
+          currency: 'HKD',
         },
         {
           title: 'TEST Data Science Intensive Touch',
@@ -138,7 +138,7 @@ describe('events-data', () => {
           ],
           is_fully_booked: false,
           price: 0,
-          currency_symbol: 'HK$',
+          currency: 'HKD',
         },
       ],
     };

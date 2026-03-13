@@ -11,7 +11,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
@@ -47,7 +47,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
@@ -83,7 +83,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
@@ -119,7 +119,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
@@ -155,7 +155,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
@@ -191,7 +191,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
@@ -227,7 +227,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
@@ -263,7 +263,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
@@ -299,7 +299,7 @@
       "spaces_left": 8,
       "is_fully_booked": false,
       "price": 9000,
-      "currency_symbol": "HK$",
+      "currency": "HKD",
       "location": "physical",
       "tags": [],
       "categories": [
