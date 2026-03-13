@@ -99,6 +99,12 @@ interface BookingDateOption {
   cohort: BookingCohort;
 }
 
+function formatSpacesLeftLabel(count: number, template: string): string {
+  return formatContentTemplate(template, {
+    count: String(count),
+  });
+}
+
 function getPrimarySessionSortValue(cohort: BookingCohort): number {
   const isoDate = cohort.dates[0]?.isoDate?.trim() ?? '';
   if (!isoDate) {
@@ -131,7 +137,7 @@ function findPreferredCohortId(
   ageGroupId: string,
 ): string {
   const ageGroupCohorts = cohorts.filter(
-    (cohort) => cohort.ageGroupId === ageGroupId,
+    (cohort) => cohort.age_group_id === ageGroupId,
   );
   const available = ageGroupCohorts.find((cohort) => !cohort.is_fully_booked);
   return available?.id ?? ageGroupCohorts[0]?.id ?? '';
@@ -193,12 +199,15 @@ export function MyBestAuntieBooking({
 
   const [selectedAgeId, setSelectedAgeId] = useState(initialAgeId);
   const cohortsForSelectedAge = sortedCohorts.filter((cohort) => {
-    return cohort.ageGroupId === selectedAgeId;
+    return cohort.age_group_id === selectedAgeId;
   });
   const dateOptions: BookingDateOption[] = cohortsForSelectedAge.map((cohort) => ({
     id: cohort.id,
     label: cohort.dateLabel,
-    availabilityLabel: cohort.spacesLeftText,
+    availabilityLabel: formatSpacesLeftLabel(
+      cohort.spaces_left,
+      content.spacesLeftLabelTemplate,
+    ),
     isFullyBooked: cohort.is_fully_booked,
     cohort,
   }));

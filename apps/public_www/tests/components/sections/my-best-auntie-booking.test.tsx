@@ -48,7 +48,7 @@ const bookingContent = {
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
-    .filter((cohort) => cohort.ageGroupId === ageGroupId)
+    .filter((cohort) => cohort.age_group_id === ageGroupId)
     .sort((left, right) => {
       const leftDate = Date.parse(`${left.dates[0]?.isoDate ?? ''}T00:00:00Z`);
       const rightDate = Date.parse(`${right.dates[0]?.isoDate ?? ''}T00:00:00Z`);
@@ -65,6 +65,10 @@ function formatCohortPrice(cohort: BookingCohort): string {
     useGrouping: true,
     maximumFractionDigits: 0,
   }).format(cohort.price)}`;
+}
+
+function formatSpacesLeftLabel(count: number): string {
+  return bookingContent.spacesLeftLabelTemplate.replace('{count}', String(count));
 }
 
 describe('MyBestAuntieBooking section', () => {
@@ -181,7 +185,7 @@ describe('MyBestAuntieBooking section', () => {
       JSON.stringify(bookingContent),
     ) as BookingContent;
     contentWithoutThreeToSix.cohorts = contentWithoutThreeToSix.cohorts.filter((cohort) => {
-      return cohort.ageGroupId !== '3-6';
+      return cohort.age_group_id !== '3-6';
     });
 
     render(<MyBestAuntieBooking locale='en' content={contentWithoutThreeToSix} />);
@@ -247,7 +251,9 @@ describe('MyBestAuntieBooking section', () => {
     expect(dateLine?.className).toContain('justify-center');
     expect(availabilityLine?.className).toContain('text-center');
     expect(dateLine?.textContent).toContain(secondDateOption.dateLabel);
-    expect(availabilityLine?.textContent).toContain(secondDateOption.spacesLeftText);
+    expect(availabilityLine?.textContent).toContain(
+      formatSpacesLeftLabel(secondDateOption.spaces_left),
+    );
 
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
@@ -325,15 +331,19 @@ describe('MyBestAuntieBooking section', () => {
     extendedBookingContent.cohorts.push(
       {
         id: '0-1-aug-2026',
-        ageGroupId: '0-1',
+        age_group_id: '0-1',
         title: 'My Best Auntie Training Course 0-1',
         description: 'TBD',
         dateLabel: 'Aug, 2026',
-        spacesTotal: 24,
-        spacesLeftText: '8 spots left',
+        spaces_total: 24,
+        spaces_left: 8,
         is_fully_booked: false,
         price: 9000,
         currency_symbol: 'HK$',
+        location: 'physical',
+        timezone: 'HKT',
+        tags: [],
+        categories: ['Training Course'],
         address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
         address_url:
           'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
@@ -357,15 +367,19 @@ describe('MyBestAuntieBooking section', () => {
       },
       {
         id: '0-1-sep-2026',
-        ageGroupId: '0-1',
+        age_group_id: '0-1',
         title: 'My Best Auntie Training Course 0-1',
         description: 'TBD',
         dateLabel: 'Sep, 2026',
-        spacesTotal: 24,
-        spacesLeftText: '4 spots left',
+        spaces_total: 24,
+        spaces_left: 4,
         is_fully_booked: false,
         price: 9000,
         currency_symbol: 'HK$',
+        location: 'physical',
+        timezone: 'HKT',
+        tags: [],
+        categories: ['Training Course'],
         address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
         address_url:
           'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',

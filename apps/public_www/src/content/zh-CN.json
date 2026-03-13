@@ -926,6 +926,7 @@
       ],
       "dateSelectorLabel": "选择可用日期",
       "soldOutStampLabel": "已售罄",
+      "spacesLeftLabelTemplate": "剩余 {count} 个名额",
       "confirmAndPayLabel": "确认并付款！",
       "learnMoreLabel": "了解更多课程内容",
       "learnMoreHref": "/services/my-best-auntie-training-course",

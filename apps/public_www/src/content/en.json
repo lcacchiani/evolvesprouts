@@ -926,6 +926,7 @@
       ],
       "dateSelectorLabel": "Select from Available Date",
       "soldOutStampLabel": "Sold Out",
+      "spacesLeftLabelTemplate": "{count} spots left",
       "confirmAndPayLabel": "Confirm and Pay!",
       "learnMoreLabel": "Learn More About Course",
       "learnMoreHref": "/services/my-best-auntie-training-course",
