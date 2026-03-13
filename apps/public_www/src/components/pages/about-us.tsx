@@ -4,11 +4,11 @@ import type {
 } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
-import { Ida } from '@/components/sections/ida';
-import { MyHistory } from '@/components/sections/my-history';
-import { MyJourney } from '@/components/sections/my-journey';
+import { AboutUsHero } from '@/components/sections/about-us-hero';
+import { AboutUsMyHistory } from '@/components/sections/about-us-my-history';
+import { AboutUsMyJourney } from '@/components/sections/about-us-my-journey';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
-import { WhyUs } from '@/components/sections/why-us';
+import { AboutUsWhyUs } from '@/components/sections/about-us-why-us';
 
 interface AboutUsProps {
   locale: Locale;
@@ -21,10 +21,10 @@ export function AboutUs({ locale, content }: AboutUsProps) {
       navbarContent={content.navbar}
       footerContent={content.footer}
     >
-      <Ida content={content.ida} />
-      <MyHistory content={content.myHistory} />
-      <MyJourney content={content.myJourney} />
-      <WhyUs locale={locale} content={content.whyUs} />
+      <AboutUsHero content={content.aboutUs.hero} />
+      <AboutUsMyHistory content={content.aboutUs.myHistory} />
+      <AboutUsMyJourney content={content.aboutUs.myJourney} />
+      <AboutUsWhyUs locale={locale} content={content.aboutUs.whyUs} />
       <DeferredTestimonials
         content={content.testimonials}
         commonAccessibility={content.common.accessibility}

@@ -75,7 +75,7 @@ function renderContactUsForm(
 ) {
   return render(
     <ContactUsForm
-      content={enContent.contactUs.contactUsForm}
+      content={enContent.contactUs.form}
       contactConfig={contactConfig}
     />,
   );
@@ -144,13 +144,13 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const contactMethodsBody = screen.getByText(
-      enContent.contactUs.contactUsForm.contactMethodsTitle,
+      enContent.contactUs.form.contactMethodsTitle,
     );
     expect(contactMethodsBody.className).toContain('es-section-body');
     expect(contactMethodsBody.className).toContain('text-[1.05rem]');
     expect(contactMethodsBody.className).toContain('leading-8');
     const whatsappCta = screen.getByRole('link', {
-      name: enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
+      name: enContent.contactUs.form.contactMethodLinks.whatsapp,
     });
     expect(whatsappCta).toHaveAttribute(
       'href',
@@ -175,7 +175,7 @@ describe('ContactUsForm section', () => {
 
     expect(
       screen.queryByRole('link', {
-        name: enContent.contactUs.contactUsForm.contactMethodLinks.whatsapp,
+        name: enContent.contactUs.form.contactMethodLinks.whatsapp,
       }),
     ).toBeNull();
   });
@@ -184,16 +184,16 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const firstNameInput = screen.getByLabelText(
-      enContent.contactUs.contactUsForm.firstNameLabel,
+      enContent.contactUs.form.firstNameLabel,
     );
     const emailInput = screen.getByLabelText(
-      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
+      new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
-      enContent.contactUs.contactUsForm.phoneLabel,
+      enContent.contactUs.form.phoneLabel,
     );
     const messageInput = screen.getByLabelText(
-      new RegExp(enContent.contactUs.contactUsForm.messageLabel),
+      new RegExp(enContent.contactUs.form.messageLabel),
     );
 
     for (const input of [firstNameInput, emailInput, phoneInput, messageInput]) {
@@ -207,7 +207,7 @@ describe('ContactUsForm section', () => {
     expect(
       screen.getByRole('heading', {
         level: 2,
-        name: enContent.contactUs.contactUsForm.formTitle,
+        name: enContent.contactUs.form.formTitle,
       }),
     ).toBeInTheDocument();
   });
@@ -216,14 +216,14 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const submitButton = screen.getByRole('button', {
-      name: enContent.contactUs.contactUsForm.submitLabel,
+      name: enContent.contactUs.form.submitLabel,
     });
     const formElement = submitButton.closest('form');
     expect(formElement).not.toBeNull();
     if (!formElement) {
       throw new Error('Expected contact form to exist');
     }
-    expect(within(formElement).getByText(enContent.contactUs.contactUsForm.formDescription))
+    expect(within(formElement).getByText(enContent.contactUs.form.formDescription))
       .toBeInTheDocument();
   });
 
@@ -231,13 +231,13 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const emailInput = screen.getByLabelText(
-      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
+      new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
-      enContent.contactUs.contactUsForm.phoneLabel,
+      enContent.contactUs.form.phoneLabel,
     );
     const submitButton = screen.getByRole('button', {
-      name: enContent.contactUs.contactUsForm.submitLabel,
+      name: enContent.contactUs.form.submitLabel,
     });
 
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
@@ -247,10 +247,10 @@ describe('ContactUsForm section', () => {
     fireEvent.click(submitButton);
 
     expect(
-      screen.getByText(enContent.contactUs.contactUsForm.emailValidationError),
+      screen.getByText(enContent.contactUs.form.emailValidationError),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.contactUs.contactUsForm.phoneValidationError),
+      screen.getByText(enContent.contactUs.form.phoneValidationError),
     ).toBeInTheDocument();
     expect(emailInput).toHaveAttribute('aria-invalid', 'true');
     expect(phoneInput).toHaveAttribute('aria-invalid', 'true');
@@ -268,17 +268,17 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const emailInput = screen.getByLabelText(
-      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
+      new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
 
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
     expect(
-      screen.queryByText(enContent.contactUs.contactUsForm.emailValidationError),
+      screen.queryByText(enContent.contactUs.form.emailValidationError),
     ).not.toBeInTheDocument();
 
     fireEvent.blur(emailInput);
     expect(
-      screen.getByText(enContent.contactUs.contactUsForm.emailValidationError),
+      screen.getByText(enContent.contactUs.form.emailValidationError),
     ).toBeInTheDocument();
   });
 
@@ -286,13 +286,13 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const emailInput = screen.getByLabelText(
-      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
+      new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const messageInput = screen.getByLabelText(
-      new RegExp(enContent.contactUs.contactUsForm.messageLabel),
+      new RegExp(enContent.contactUs.form.messageLabel),
     );
     const submitButton = screen.getByRole('button', {
-      name: enContent.contactUs.contactUsForm.submitLabel,
+      name: enContent.contactUs.form.submitLabel,
     });
 
     fireEvent.change(emailInput, { target: { value: 'parent@example.com' } });
@@ -300,13 +300,13 @@ describe('ContactUsForm section', () => {
     fireEvent.click(submitButton);
 
     expect(
-      screen.getByText(enContent.contactUs.contactUsForm.captchaRequiredError),
+      screen.getByText(enContent.contactUs.form.captchaRequiredError),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
 
     expect(
-      screen.queryByText(enContent.contactUs.contactUsForm.captchaRequiredError),
+      screen.queryByText(enContent.contactUs.form.captchaRequiredError),
     ).not.toBeInTheDocument();
   });
 
@@ -319,19 +319,19 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     const firstNameInput = screen.getByLabelText(
-      enContent.contactUs.contactUsForm.firstNameLabel,
+      enContent.contactUs.form.firstNameLabel,
     );
     const emailInput = screen.getByLabelText(
-      new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel),
+      new RegExp(enContent.contactUs.form.emailFieldLabel),
     );
     const phoneInput = screen.getByLabelText(
-      enContent.contactUs.contactUsForm.phoneLabel,
+      enContent.contactUs.form.phoneLabel,
     );
     const messageInput = screen.getByLabelText(
-      new RegExp(enContent.contactUs.contactUsForm.messageLabel),
+      new RegExp(enContent.contactUs.form.messageLabel),
     );
     const submitButton = screen.getByRole('button', {
-      name: enContent.contactUs.contactUsForm.submitLabel,
+      name: enContent.contactUs.form.submitLabel,
     });
 
     fireEvent.change(firstNameInput, { target: { value: ' Ida ' } });
@@ -354,14 +354,14 @@ describe('ContactUsForm section', () => {
         expectedSuccessStatuses: [200, 202],
       });
       expect(
-        screen.getByText(enContent.contactUs.contactUsForm.successTitle),
+        screen.getByText(enContent.contactUs.form.successTitle),
       ).toBeInTheDocument();
       expect(
-        screen.getByText(enContent.contactUs.contactUsForm.successDescription),
+        screen.getByText(enContent.contactUs.form.successDescription),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole('button', {
-          name: enContent.contactUs.contactUsForm.submitLabel,
+          name: enContent.contactUs.form.submitLabel,
         }),
       ).not.toBeInTheDocument();
     });
@@ -376,23 +376,23 @@ describe('ContactUsForm section', () => {
     renderContactUsForm();
 
     fireEvent.change(
-      screen.getByLabelText(new RegExp(enContent.contactUs.contactUsForm.emailFieldLabel)),
+      screen.getByLabelText(new RegExp(enContent.contactUs.form.emailFieldLabel)),
       { target: { value: 'parent@example.com' } },
     );
     fireEvent.change(
-      screen.getByLabelText(new RegExp(enContent.contactUs.contactUsForm.messageLabel)),
+      screen.getByLabelText(new RegExp(enContent.contactUs.form.messageLabel)),
       { target: { value: 'Tell me more about your course.' } },
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
     fireEvent.click(
       screen.getByRole('button', {
-        name: enContent.contactUs.contactUsForm.submitLabel,
+        name: enContent.contactUs.form.submitLabel,
       }),
     );
 
     await waitFor(() => {
       expect(
-        screen.getByText(enContent.contactUs.contactUsForm.submitErrorMessage),
+        screen.getByText(enContent.contactUs.form.submitErrorMessage),
       ).toBeInTheDocument();
     });
   });

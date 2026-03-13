@@ -6,20 +6,20 @@ import {
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { IdaContent } from '@/content';
+import type { AboutUsHeroContent } from '@/content';
 
-interface IdaProps {
-  content: IdaContent;
+interface AboutUsHeroProps {
+  content: AboutUsHeroContent;
 }
 
-export function Ida({ content }: IdaProps) {
+export function AboutUsHero({ content }: AboutUsHeroProps) {
   const description = content.description.trim();
 
   return (
     <SectionShell
-      id='ida'
+      id='about-us-hero'
       ariaLabel={content.title}
-      dataFigmaNode='ida'
+      dataFigmaNode='about-us-hero'
       className='es-ida-section overflow-hidden pt-0 sm:pt-[60px]'
     >
       <SectionContainer

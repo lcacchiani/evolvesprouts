@@ -86,7 +86,7 @@ describe('MyBestAuntie page', () => {
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
-      screen.getByText(`${enContent.myBestAuntieBooking.title} (zh-HK)`),
+      screen.getByText(`${enContent.myBestAuntie.booking.title} (zh-HK)`),
     ).toBeInTheDocument();
   });
 });

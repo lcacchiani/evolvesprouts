@@ -6,10 +6,10 @@ import {
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { MyJourneyContent } from '@/content';
+import type { AboutUsMyJourneyContent } from '@/content';
 
-interface MyJourneyProps {
-  content: MyJourneyContent;
+interface AboutUsMyJourneyProps {
+  content: AboutUsMyJourneyContent;
 }
 
 const JOURNEY_IMAGE_SRC = '/images/about-us/my-journey.webp';
@@ -18,12 +18,12 @@ const RIGHT_COLUMN_CARD_TONE_CLASSES = [
   'es-my-journey-card--yellow',
 ] as const;
 
-export function MyJourney({ content }: MyJourneyProps) {
+export function AboutUsMyJourney({ content }: AboutUsMyJourneyProps) {
   return (
     <SectionShell
-      id='my-journey'
+      id='about-us-my-journey'
       ariaLabel={content.title}
-      dataFigmaNode='my-journey'
+      dataFigmaNode='about-us-my-journey'
       className='es-section-bg-overlay es-my-journey-section'
     >
       <SectionContainer>

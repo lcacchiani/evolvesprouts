@@ -19,13 +19,13 @@ export function MyBestAuntie({ locale, content }: MyBestAuntieProps) {
       navbarContent={content.navbar}
       footerContent={content.footer}
     >
-      <MyBestAuntieHero content={content.myBestAuntieHero} />
+      <MyBestAuntieHero content={content.myBestAuntie.hero} />
       <MyBestAuntieDescription
-        content={content.myBestAuntieDescription}
+        content={content.myBestAuntie.description}
         commonAccessibility={content.common.accessibility}
       />
       <MyBestAuntieOutline
-        content={content.myBestAuntieOutline}
+        content={content.myBestAuntie.outline}
         commonAccessibility={content.common.accessibility}
       />
       <DeferredTestimonials
@@ -34,7 +34,7 @@ export function MyBestAuntie({ locale, content }: MyBestAuntieProps) {
       />
       <MyBestAuntieBooking
         locale={locale}
-        content={content.myBestAuntieBooking}
+        content={content.myBestAuntie.booking}
         commonAccessibility={content.common.accessibility}
       />
       <Faq content={content.faq} />

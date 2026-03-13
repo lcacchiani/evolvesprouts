@@ -56,7 +56,7 @@ describe('ContactFormFields', () => {
 
     render(
       <ContactFormFields
-        content={enContent.contactUs.contactUsForm}
+        content={enContent.contactUs.form}
         formState={formState}
         hasEmailError
         hasPhoneError
@@ -85,7 +85,7 @@ describe('ContactFormFields', () => {
     fireEvent.click(screen.getByTestId('captcha-fail'));
 
     const submitButton = screen.getByRole('button', {
-      name: enContent.contactUs.contactUsForm.submitLabel,
+      name: enContent.contactUs.form.submitLabel,
     });
     const parentForm = submitButton.closest('form');
     if (!parentForm) {
@@ -101,10 +101,10 @@ describe('ContactFormFields', () => {
     expect(onCaptchaLoadError).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(
-      screen.getByText(enContent.contactUs.contactUsForm.emailValidationError),
+      screen.getByText(enContent.contactUs.form.emailValidationError),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.contactUs.contactUsForm.phoneValidationError),
+      screen.getByText(enContent.contactUs.form.phoneValidationError),
     ).toBeInTheDocument();
   });
 });

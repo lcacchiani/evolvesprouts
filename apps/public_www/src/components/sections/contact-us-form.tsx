@@ -29,7 +29,7 @@ export type ContactUsFormContactConfig = Pick<
 >;
 
 interface ContactUsFormProps {
-  content: ContactUsContent['contactUsForm'];
+  content: ContactUsContent['form'];
   contactConfig: ContactUsFormContactConfig;
 }
 

@@ -104,7 +104,7 @@ function loadExternalScript(source: string): Promise<void> {
 
 export function ModalOverlay({
   onClose,
-  overlayAriaLabel = enContent.myBestAuntieBooking.paymentModal.closeOverlayLabel,
+  overlayAriaLabel = enContent.myBestAuntie.booking.paymentModal.closeOverlayLabel,
   children,
 }: {
   onClose: () => void;
@@ -156,7 +156,7 @@ export function CloseButton({
 
 export function FpsQrCode({
   amount,
-  label = enContent.myBestAuntieBooking.paymentModal.fpsQrCodeLabel,
+  label = enContent.myBestAuntie.booking.paymentModal.fpsQrCodeLabel,
 }: {
   amount: number;
   label?: string;

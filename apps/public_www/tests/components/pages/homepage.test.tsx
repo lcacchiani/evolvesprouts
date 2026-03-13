@@ -71,9 +71,9 @@ vi.mock('@/components/sections/real-talk', () => ({
     <section data-testid='real-talk'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/ida-intro', () => ({
-  IdaIntro: ({ content }: { content: { title: string; description: string } }) => (
-    <section data-testid='ida-intro'>
+vi.mock('@/components/sections/about-us-intro', () => ({
+  AboutUsIntro: ({ content }: { content: { title: string; description: string } }) => (
+    <section data-testid='about-us-intro'>
       <h2>{content.title}</h2>
       <p>{content.description}</p>
     </section>
@@ -116,13 +116,13 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('hero-banner')).toBeInTheDocument();
     expect(screen.getByTestId('real-talk')).toBeInTheDocument();
-    expect(screen.getByTestId('ida-intro')).toBeInTheDocument();
+    expect(screen.getByTestId('about-us-intro')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-outline')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
     expect(screen.getByText(enContent.hero.title)).toBeInTheDocument();
-    expect(screen.getByText(enContent.idaIntro.title)).toBeInTheDocument();
-    expect(screen.getByText(enContent.idaIntro.description)).toBeInTheDocument();
+    expect(screen.getByText(enContent.aboutUs.intro.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.aboutUs.intro.description)).toBeInTheDocument();
     expect(
       screen.getByTestId('my-best-auntie-outline'),
     ).toHaveTextContent('My Best Auntie Training Course Designed by Ida');
@@ -156,7 +156,7 @@ describe('HomePageSections', () => {
 
     const heroElement = screen.getByTestId('hero-banner');
     const realTalkElement = screen.getByTestId('real-talk');
-    const idaIntroElement = screen.getByTestId('ida-intro');
+    const idaIntroElement = screen.getByTestId('about-us-intro');
     expect(heroElement.compareDocumentPosition(realTalkElement)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );

@@ -22,7 +22,7 @@ vi.mock('next/image', () => ({
 describe('MyBestAuntieOutline section', () => {
   it('uses migrated section and module tone classes', () => {
     const { container } = render(
-      <MyBestAuntieOutline content={enContent.myBestAuntieOutline} />,
+      <MyBestAuntieOutline content={enContent.myBestAuntie.outline} />,
     );
 
     const section = screen
@@ -43,7 +43,7 @@ describe('MyBestAuntieOutline section', () => {
     expect(carouselTrack?.className).toContain('snap-mandatory');
     expect(carouselTrack?.className).toContain('overflow-x-auto');
 
-    const moduleTitles = enContent.myBestAuntieOutline.modules.map(
+    const moduleTitles = enContent.myBestAuntie.outline.modules.map(
       (module) => module.title,
     );
 
@@ -58,16 +58,16 @@ describe('MyBestAuntieOutline section', () => {
       });
     });
     expect(
-      screen.getByText(enContent.myBestAuntieOutline.subtitle),
+      screen.getByText(enContent.myBestAuntie.outline.subtitle),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.myBestAuntieOutline.description),
+      screen.getByText(enContent.myBestAuntie.outline.description),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', {
-        name: enContent.myBestAuntieOutline.ctaLabel,
+        name: enContent.myBestAuntie.outline.ctaLabel,
       }),
-    ).toHaveAttribute('href', enContent.myBestAuntieOutline.ctaHref);
+    ).toHaveAttribute('href', enContent.myBestAuntie.outline.ctaHref);
 
     expect(container.querySelector('article.es-my-best-auntie-outline-card--gold')).not.toBeNull();
     expect(container.querySelector('article.es-my-best-auntie-outline-card--red')).not.toBeNull();
@@ -82,7 +82,7 @@ describe('MyBestAuntieOutline section', () => {
       container.querySelector('span.es-my-best-auntie-outline-count-text--blue'),
     ).not.toBeNull();
 
-    const moduleIcons = enContent.myBestAuntieOutline.modules.map(
+    const moduleIcons = enContent.myBestAuntie.outline.modules.map(
       (module) => module.icon,
     );
     moduleIcons.forEach((iconName) => {
@@ -105,7 +105,7 @@ describe('MyBestAuntieOutline section', () => {
 
   it('reveals the desktop card description when clicked', () => {
     const { container } = render(
-      <MyBestAuntieOutline content={enContent.myBestAuntieOutline} />,
+      <MyBestAuntieOutline content={enContent.myBestAuntie.outline} />,
     );
 
     const desktopGrid = Array.from(container.querySelectorAll('ul')).find(
@@ -146,7 +146,7 @@ describe('MyBestAuntieOutline section', () => {
 
   it('renders three key points per module without visible bullet glyphs', () => {
     const { container } = render(
-      <MyBestAuntieOutline content={enContent.myBestAuntieOutline} />,
+      <MyBestAuntieOutline content={enContent.myBestAuntie.outline} />,
     );
 
     const desktopGrid = Array.from(container.querySelectorAll('ul')).find(

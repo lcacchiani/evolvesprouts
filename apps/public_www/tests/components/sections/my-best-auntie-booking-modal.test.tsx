@@ -37,6 +37,7 @@ import {
   type ReservationSummary,
 } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import enContent from '@/content/en.json';
+import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
 
@@ -119,9 +120,12 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
   ),
 }));
 
-const bookingContent = enContent.myBestAuntieBooking;
+const bookingContent = {
+  ...enContent.myBestAuntie.booking,
+  cohorts: trainingCoursesContent.cohorts,
+};
 const bookingModalContent = bookingContent.paymentModal;
-const thankYouModalContent = enContent.myBestAuntieBooking.thankYouModal;
+const thankYouModalContent = bookingContent.thankYouModal;
 const selectedCohort = bookingContent.cohorts[0];
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);

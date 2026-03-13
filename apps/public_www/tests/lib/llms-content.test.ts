@@ -44,7 +44,7 @@ describe('buildLlmsTxt', () => {
   });
 
   it('includes course inclusion titles from content', () => {
-    for (const item of enContent.myBestAuntieDescription.items) {
+    for (const item of enContent.myBestAuntie.description.items) {
       expect(output.toLowerCase()).toContain(item.title.toLowerCase());
     }
   });
@@ -71,31 +71,31 @@ describe('buildLlmsFullTxt', () => {
   });
 
   it('includes the founder description from content', () => {
-    expect(output).toContain(enContent.ida.subtitle);
-    expect(output).toContain(enContent.ida.description);
+    expect(output).toContain(enContent.aboutUs.hero.subtitle);
+    expect(output).toContain(enContent.aboutUs.hero.description);
   });
 
   it('includes the mission from content', () => {
-    expect(output).toContain(enContent.whyUs.title);
-    expect(output).toContain(enContent.whyUs.description);
+    expect(output).toContain(enContent.aboutUs.whyUs.title);
+    expect(output).toContain(enContent.aboutUs.whyUs.description);
   });
 
   it('includes all core pillars from content', () => {
-    for (const pillar of enContent.whyUs.pillars) {
+    for (const pillar of enContent.aboutUs.whyUs.pillars) {
       expect(output).toContain(pillar.title);
       expect(output).toContain(pillar.description);
     }
   });
 
   it('includes course module details from content', () => {
-    for (const mod of enContent.myBestAuntieOutline.modules) {
+    for (const mod of enContent.myBestAuntie.outline.modules) {
       expect(output).toContain(mod.title);
       expect(output).toContain(mod.activity);
     }
   });
 
   it('includes all course inclusion items from content', () => {
-    for (const item of enContent.myBestAuntieDescription.items) {
+    for (const item of enContent.myBestAuntie.description.items) {
       expect(output).toContain(item.title);
       expect(output).toContain(item.description);
     }
@@ -147,6 +147,6 @@ describe('buildLlmsFullTxt', () => {
   });
 
   it('includes the my history description from content', () => {
-    expect(output).toContain(enContent.myHistory.description);
+    expect(output).toContain(enContent.aboutUs.myHistory.description);
   });
 });

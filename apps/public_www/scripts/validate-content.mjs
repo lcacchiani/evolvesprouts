@@ -27,13 +27,31 @@ const GENERIC_SOCIAL_PROFILE_ROOT_REGEX =
   /^https:\/\/(?:www\.)?(linkedin\.com|instagram\.com)\/?$/i;
 const LEGACY_SECTION_ROOT_KEYS = {
   hero: ['headline', 'subheadline', 'supportingParagraph'],
-  idaIntro: ['heading', 'body'],
-  myBestAuntieHero: ['body'],
+  'aboutUs.intro': ['heading', 'body'],
+  'myBestAuntie.hero': ['body'],
   sproutsSquadCommunity: ['heading', 'supportParagraph'],
   freeIntroSession: ['heading', 'supportParagraph'],
   termsAndConditions: ['intro'],
   privacyPolicy: ['intro'],
 };
+
+function readObjectAtPath(source, sectionPath) {
+  const pathSegments = sectionPath.split('.');
+  let currentValue = source;
+
+  for (const segment of pathSegments) {
+    if (!currentValue || typeof currentValue !== 'object' || Array.isArray(currentValue)) {
+      return null;
+    }
+    currentValue = currentValue[segment];
+  }
+
+  if (!currentValue || typeof currentValue !== 'object' || Array.isArray(currentValue)) {
+    return null;
+  }
+
+  return currentValue;
+}
 
 function getTypeName(value) {
   if (Array.isArray(value)) {
@@ -375,17 +393,17 @@ function validateSemanticRules(value, keyPath, errors, routePaths) {
 }
 
 function validateNoLegacySectionRootKeys(content, locale, errors) {
-  for (const [sectionKey, legacyKeys] of Object.entries(LEGACY_SECTION_ROOT_KEYS)) {
-    const sectionValue = content[sectionKey];
-    if (!sectionValue || typeof sectionValue !== 'object' || Array.isArray(sectionValue)) {
-      errors.push(`${locale}: missing or invalid section "${sectionKey}"`);
+  for (const [sectionPath, legacyKeys] of Object.entries(LEGACY_SECTION_ROOT_KEYS)) {
+    const sectionValue = readObjectAtPath(content, sectionPath);
+    if (!sectionValue) {
+      errors.push(`${locale}: missing or invalid section "${sectionPath}"`);
       continue;
     }
 
     for (const legacyKey of legacyKeys) {
       if (legacyKey in sectionValue) {
         errors.push(
-          `${locale}.${sectionKey}: legacy key "${legacyKey}" is not allowed; use canonical copy keys`,
+          `${locale}.${sectionPath}: legacy key "${legacyKey}" is not allowed; use canonical copy keys`,
         );
       }
     }

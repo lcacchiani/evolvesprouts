@@ -18,7 +18,7 @@ vi.mock('next/image', () => ({
 
 describe('MyBestAuntieHero', () => {
   it('renders a standalone hero with h1 copy and booking CTA', () => {
-    const content = enContent.myBestAuntieHero;
+    const content = enContent.myBestAuntie.hero;
     render(<MyBestAuntieHero content={content} />);
 
     const heading = screen.getByRole('heading', { level: 1, name: content.title });

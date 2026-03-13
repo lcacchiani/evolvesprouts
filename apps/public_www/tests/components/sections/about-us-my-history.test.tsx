@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { MyHistory } from '@/components/sections/my-history';
+import { AboutUsMyHistory } from '@/components/sections/about-us-my-history';
 import enContent from '@/content/en.json';
 
 vi.mock('next/image', () => ({
@@ -18,12 +18,12 @@ vi.mock('next/image', () => ({
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 
-describe('MyHistory section', () => {
+describe('AboutUsMyHistory section', () => {
   it('uses shared overlay and section classes for the muted background', () => {
-    render(<MyHistory content={enContent.myHistory} />);
+    render(<AboutUsMyHistory content={enContent.aboutUs.myHistory} />);
 
     const section = screen.getByRole('region', {
-      name: enContent.myHistory.title,
+      name: enContent.aboutUs.myHistory.title,
     });
 
     expect(section.className).toContain('es-section-bg-overlay');
@@ -31,9 +31,9 @@ describe('MyHistory section', () => {
   });
 
   it('renders each story paragraph from blank-line separated content', () => {
-    render(<MyHistory content={enContent.myHistory} />);
+    render(<AboutUsMyHistory content={enContent.aboutUs.myHistory} />);
 
-    const paragraphs = enContent.myHistory.description
+    const paragraphs = enContent.aboutUs.myHistory.description
       .split(/\n\s*\n/g)
       .map((paragraph) => paragraph.trim())
       .filter((paragraph) => paragraph.length > 0);
@@ -44,9 +44,9 @@ describe('MyHistory section', () => {
   });
 
   it('interleaves mobile images into the story flow', () => {
-    const { container } = render(<MyHistory content={enContent.myHistory} />);
+    const { container } = render(<AboutUsMyHistory content={enContent.aboutUs.myHistory} />);
 
-    const paragraphs = enContent.myHistory.description
+    const paragraphs = enContent.aboutUs.myHistory.description
       .split(/\n\s*\n/g)
       .map((paragraph) => paragraph.trim())
       .filter((paragraph) => paragraph.length > 0);
@@ -65,7 +65,7 @@ describe('MyHistory section', () => {
   });
 
   it('renders the updated stacked story images', () => {
-    render(<MyHistory content={enContent.myHistory} />);
+    render(<AboutUsMyHistory content={enContent.aboutUs.myHistory} />);
 
     const imageOneVariants = screen.getAllByAltText(
       'A brief history image from Evolve Sprouts 1',

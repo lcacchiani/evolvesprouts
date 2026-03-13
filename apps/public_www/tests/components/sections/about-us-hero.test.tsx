@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Ida } from '@/components/sections/ida';
+import { AboutUsHero } from '@/components/sections/about-us-hero';
 import enContent from '@/content/en.json';
 
 vi.mock('next/image', () => ({
@@ -16,19 +16,19 @@ vi.mock('next/image', () => ({
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 
-describe('Ida', () => {
+describe('AboutUsHero', () => {
   it('removes mobile top padding while preserving responsive section spacing', () => {
-    render(<Ida content={enContent.ida} />);
+    render(<AboutUsHero content={enContent.aboutUs.hero} />);
 
-    const section = document.getElementById('ida');
+    const section = document.getElementById('about-us-hero');
     expect(section).not.toBeNull();
     expect(section?.className).toContain('pt-0');
     expect(section?.className).toContain('sm:pt-[60px]');
   });
 
   it('renders hero copy and portrait image without a CTA link', () => {
-    const content = enContent.ida;
-    render(<Ida content={content} />);
+    const content = enContent.aboutUs.hero;
+    render(<AboutUsHero content={content} />);
 
     expect(screen.getByRole('heading', { name: content.title })).toBeInTheDocument();
     expect(screen.getByText(content.subtitle)).toBeInTheDocument();

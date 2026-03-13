@@ -18,7 +18,7 @@ const CAPTCHA_ERROR_MESSAGE_ID = 'contact-us-form-captcha-error';
 const SUBMIT_ERROR_MESSAGE_ID = 'contact-us-form-submit-error';
 
 interface ContactFormFieldsProps {
-  content: ContactUsContent['contactUsForm'];
+  content: ContactUsContent['form'];
   formState: ContactUsFormState;
   hasEmailError: boolean;
   hasPhoneError: boolean;

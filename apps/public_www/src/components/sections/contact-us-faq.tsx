@@ -3,16 +3,16 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 
-interface ContactFaqProps {
-  content: ContactUsContent['contactFaq'];
+interface ContactUsFaqProps {
+  content: ContactUsContent['faq'];
 }
 
-export function ContactFaq({ content }: ContactFaqProps) {
+export function ContactUsFaq({ content }: ContactUsFaqProps) {
   return (
     <SectionShell
-      id='contact-faq'
+      id='contact-us-faq'
       ariaLabel={content.title}
-      dataFigmaNode='contact-faq'
+      dataFigmaNode='contact-us-faq'
       className='es-section-bg-overlay es-contact-faq-section overflow-hidden'
     >
       <SectionContainer>

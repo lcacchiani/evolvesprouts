@@ -3,18 +3,18 @@ import { SectionContainer } from '@/components/sections/shared/section-container
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type {
+  AboutUsWhyUsContent,
   Locale,
-  WhyUsContent,
 } from '@/content';
 import { localizeHref } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
 
-interface WhyUsProps {
+interface AboutUsWhyUsProps {
   locale: Locale;
-  content: WhyUsContent;
+  content: AboutUsWhyUsContent;
 }
 
-export function WhyUs({ locale, content }: WhyUsProps) {
+export function AboutUsWhyUs({ locale, content }: AboutUsWhyUsProps) {
   const workshopsHref = localizeHref(
     content.ctaHref || ROUTES.servicesWorkshops,
     locale,
@@ -22,9 +22,9 @@ export function WhyUs({ locale, content }: WhyUsProps) {
 
   return (
     <SectionShell
-      id='why-us'
+      id='about-us-why-us'
       ariaLabel={content.title}
-      dataFigmaNode='why-us'
+      dataFigmaNode='about-us-why-us'
       className='es-section-bg-overlay es-why-us-section'
     >
       <div

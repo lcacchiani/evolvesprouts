@@ -50,7 +50,7 @@ describe('EventsPageSections', () => {
       enContent.events.past.title,
     );
     expect(screen.getByTestId('event-notification-section')).toHaveTextContent(
-      enContent.eventNotification.title,
+      enContent.events.notification.title,
     );
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
 

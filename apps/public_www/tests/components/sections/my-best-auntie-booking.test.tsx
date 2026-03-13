@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import enContent from '@/content/en.json';
+import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -35,8 +36,15 @@ function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): st
   return `${scheduleLabel} for ${ageGroupLabel} age group`;
 }
 
-type BookingContent = typeof enContent.myBestAuntieBooking;
+type BookingContent = typeof enContent.myBestAuntie.booking & {
+  cohorts: typeof trainingCoursesContent.cohorts;
+};
 type BookingCohort = BookingContent['cohorts'][number];
+
+const bookingContent = {
+  ...enContent.myBestAuntie.booking,
+  cohorts: trainingCoursesContent.cohorts,
+} as BookingContent;
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
@@ -63,7 +71,7 @@ function formatCohortPrice(cohort: BookingCohort): string {
 describe('MyBestAuntieBooking section', () => {
   it('uses default section shell top spacing classes', () => {
     const { container } = render(
-      <MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />,
+      <MyBestAuntieBooking locale='en' content={bookingContent} />,
     );
 
     const section = container.querySelector('section#my-best-auntie-booking');
@@ -73,15 +81,15 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('updates date cards by selected age group and keeps cohort date in subtitle-lg style', () => {
-    render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
+    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
 
-    const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
-    const secondAgeOption = enContent.myBestAuntieBooking.ageOptions[1];
+    const firstAgeOption = bookingContent.ageOptions[0];
+    const secondAgeOption = bookingContent.ageOptions[1];
     if (!firstAgeOption || !secondAgeOption) {
       throw new Error('Test content must include age options.');
     }
-    const firstAgeCohorts = getCohortsForAge(enContent.myBestAuntieBooking, firstAgeOption.id);
-    const secondAgeCohorts = getCohortsForAge(enContent.myBestAuntieBooking, secondAgeOption.id);
+    const firstAgeCohorts = getCohortsForAge(bookingContent, firstAgeOption.id);
+    const secondAgeCohorts = getCohortsForAge(bookingContent, secondAgeOption.id);
     const firstAgeFirstCohort = firstAgeCohorts[0];
     const secondAgeFirstCohort = secondAgeCohorts[0];
     const secondAgeSecondCohort = secondAgeCohorts[1];
@@ -106,7 +114,7 @@ describe('MyBestAuntieBooking section', () => {
     expect(
       screen.getByText(
         formatNextCohortLabel(
-          enContent.myBestAuntieBooking.scheduleLabel,
+          bookingContent.scheduleLabel,
           firstAgeOption.label,
         ),
       ),
@@ -117,7 +125,7 @@ describe('MyBestAuntieBooking section', () => {
     );
     expect(within(nextCohortCard).getByText(firstCohortPriceLabel)).toBeInTheDocument();
     const dateSelectorRegion = screen.getByRole('region', {
-      name: enContent.myBestAuntieBooking.dateSelectorLabel,
+      name: bookingContent.dateSelectorLabel,
     });
     expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(3);
 
@@ -136,7 +144,7 @@ describe('MyBestAuntieBooking section', () => {
     expect(
       screen.getByText(
         formatNextCohortLabel(
-          enContent.myBestAuntieBooking.scheduleLabel,
+          bookingContent.scheduleLabel,
           secondAgeOption.label,
         ),
       ),
@@ -171,7 +179,7 @@ describe('MyBestAuntieBooking section', () => {
 
   it('shows no date cards for age groups without cohorts and disables CTA', () => {
     const contentWithoutThreeToSix = JSON.parse(
-      JSON.stringify(enContent.myBestAuntieBooking),
+      JSON.stringify(bookingContent),
     ) as BookingContent;
     contentWithoutThreeToSix.cohorts = contentWithoutThreeToSix.cohorts.filter((cohort) => {
       return cohort.ageGroupId !== '3-6';
@@ -200,7 +208,7 @@ describe('MyBestAuntieBooking section', () => {
 
   it('removes right-column selector shadows, keeps date cards in two lines, keeps CTA width to copy, and hides date arrows for three dates', () => {
     const { container } = render(
-      <MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />,
+      <MyBestAuntieBooking locale='en' content={bookingContent} />,
     );
 
     const selectorButtons = container.querySelectorAll('button[aria-pressed]');
@@ -210,17 +218,17 @@ describe('MyBestAuntieBooking section', () => {
     }
 
     const ctaButton = screen.getByRole('button', {
-      name: enContent.myBestAuntieBooking.confirmAndPayLabel,
+      name: bookingContent.confirmAndPayLabel,
     });
     expect(ctaButton.className).not.toContain('w-full');
     expect(ctaButton.className).toContain('es-btn--primary');
 
-    const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
+    const firstAgeOption = bookingContent.ageOptions[0];
     if (!firstAgeOption) {
       throw new Error('Test content must include first age option.');
     }
     const secondDateOption = getCohortsForAge(
-      enContent.myBestAuntieBooking,
+      bookingContent,
       firstAgeOption.id,
     )[1];
     if (!secondDateOption) {
@@ -247,14 +255,14 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('uses one shared date-style selector shell for both age and date cards', () => {
-    render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
+    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
 
-    const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
+    const firstAgeOption = bookingContent.ageOptions[0];
     if (!firstAgeOption) {
       throw new Error('Test content must include first age option.');
     }
     const firstDateOption = getCohortsForAge(
-      enContent.myBestAuntieBooking,
+      bookingContent,
       firstAgeOption.id,
     )[0];
     if (!firstDateOption) {
@@ -265,7 +273,7 @@ describe('MyBestAuntieBooking section', () => {
       name: firstAgeOption.label,
     });
     const dateSelectorRegion = screen.getByRole('region', {
-      name: enContent.myBestAuntieBooking.dateSelectorLabel,
+      name: bookingContent.dateSelectorLabel,
     });
     const firstDateButton = within(dateSelectorRegion).getByRole('button', {
       name: new RegExp(firstDateOption.dateLabel),
@@ -282,9 +290,9 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('doubles age icon size and uses wider age icon/text spacing', () => {
-    render(<MyBestAuntieBooking locale='en' content={enContent.myBestAuntieBooking} />);
+    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
 
-    const firstAgeOption = enContent.myBestAuntieBooking.ageOptions[0];
+    const firstAgeOption = bookingContent.ageOptions[0];
     if (!firstAgeOption) {
       throw new Error('Test content must include first age option.');
     }
@@ -312,7 +320,7 @@ describe('MyBestAuntieBooking section', () => {
 
   it('shows edge-overlapped arrows only when more dates are available to scroll', () => {
     const extendedBookingContent = JSON.parse(
-      JSON.stringify(enContent.myBestAuntieBooking),
+      JSON.stringify(bookingContent),
     ) as BookingContent;
 
     extendedBookingContent.cohorts.push(
@@ -443,7 +451,7 @@ describe('MyBestAuntieBooking section', () => {
 
   it('renders sold-out date cards as disabled with stamp and skips them for initial selection', () => {
     const soldOutContent = JSON.parse(
-      JSON.stringify(enContent.myBestAuntieBooking),
+      JSON.stringify(bookingContent),
     ) as BookingContent;
 
     const soldOutCohort = soldOutContent.cohorts.find(

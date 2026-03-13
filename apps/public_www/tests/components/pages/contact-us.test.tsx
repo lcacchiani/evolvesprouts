@@ -15,9 +15,9 @@ vi.mock('@/components/sections/contact-us-form', () => ({
     <section data-testid='contact-us-form'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/contact-faq', () => ({
-  ContactFaq: ({ content }: { content: { title: string } }) => (
-    <section data-testid='contact-faq'>{content.title}</section>
+vi.mock('@/components/sections/contact-us-faq', () => ({
+  ContactUsFaq: ({ content }: { content: { title: string } }) => (
+    <section data-testid='contact-us-faq'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/free-intro-session', () => ({
@@ -32,9 +32,9 @@ describe('ContactUsPageSections', () => {
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('contact-us-form')).toBeInTheDocument();
-    expect(screen.getByTestId('contact-faq')).toBeInTheDocument();
+    expect(screen.getByTestId('contact-us-faq')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
-    expect(screen.getByText(enContent.contactUs.contactUsForm.title)).toBeInTheDocument();
-    expect(screen.getByText(enContent.contactUs.contactFaq.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.contactUs.form.title)).toBeInTheDocument();
+    expect(screen.getByText(enContent.contactUs.faq.title)).toBeInTheDocument();
   });
 });
