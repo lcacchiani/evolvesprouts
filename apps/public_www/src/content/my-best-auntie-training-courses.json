@@ -2,8 +2,8 @@
   "status": "success",
   "data": [
     {
-      "id": "0-1-apr-2026",
-      "age_group_id": "0-1",
+      "id": "my-best-auntie-0-1-04-26",
+      "age_group": "0-1",
       "title": "My Best Auntie Training Course 0-1 - Apr 26",
       "description": "TBD",
       "cohort": "04-26",
@@ -39,8 +39,8 @@
       ]
     },
     {
-      "id": "0-1-may-2026",
-      "age_group_id": "0-1",
+      "id": "my-best-auntie-0-1-05-26",
+      "age_group": "0-1",
       "title": "My Best Auntie Training Course 0-1 - May 26",
       "description": "TBD",
       "cohort": "05-26",
@@ -76,8 +76,8 @@
       ]
     },
     {
-      "id": "0-1-jun-2026",
-      "age_group_id": "0-1",
+      "id": "my-best-auntie-0-1-06-26",
+      "age_group": "0-1",
       "title": "My Best Auntie Training Course 0-1 - Jun 26",
       "description": "TBD",
       "cohort": "06-26",
@@ -113,8 +113,8 @@
       ]
     },
     {
-      "id": "1-3-may-2026",
-      "age_group_id": "1-3",
+      "id": "my-best-auntie-1-3-05-26",
+      "age_group": "1-3",
       "title": "My Best Auntie Training Course 1-3 - May 26",
       "description": "TBD",
       "cohort": "05-26",
@@ -150,8 +150,8 @@
       ]
     },
     {
-      "id": "1-3-jun-2026",
-      "age_group_id": "1-3",
+      "id": "my-best-auntie-1-3-06-26",
+      "age_group": "1-3",
       "title": "My Best Auntie Training Course 1-3 - Jun 26",
       "description": "TBD",
       "cohort": "06-26",
@@ -187,8 +187,8 @@
       ]
     },
     {
-      "id": "3-6-jul-2026",
-      "age_group_id": "3-6",
+      "id": "my-best-auntie-3-6-07-26",
+      "age_group": "3-6",
       "title": "My Best Auntie Training Course 3-6 - Jul 26",
       "description": "TBD",
       "cohort": "07-26",

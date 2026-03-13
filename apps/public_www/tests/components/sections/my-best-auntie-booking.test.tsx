@@ -99,7 +99,7 @@ const bookingContent = {
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
-    .filter((cohort) => cohort.age_group_id === ageGroupId)
+    .filter((cohort) => cohort.age_group === ageGroupId)
     .sort((left, right) => {
       const leftDate = Date.parse(left.dates[0]?.start_datetime ?? '');
       const rightDate = Date.parse(right.dates[0]?.start_datetime ?? '');
@@ -236,7 +236,7 @@ describe('MyBestAuntieBooking section', () => {
       JSON.stringify(bookingContent),
     ) as BookingContent;
     contentWithoutThreeToSix.cohorts = contentWithoutThreeToSix.cohorts.filter((cohort) => {
-      return cohort.age_group_id !== '3-6';
+      return cohort.age_group !== '3-6';
     });
 
     render(<MyBestAuntieBooking locale='en' content={contentWithoutThreeToSix} />);
@@ -381,8 +381,8 @@ describe('MyBestAuntieBooking section', () => {
 
     extendedBookingContent.cohorts.push(
       {
-        id: '0-1-aug-2026',
-        age_group_id: '0-1',
+        id: 'my-best-auntie-0-1-08-26',
+        age_group: '0-1',
         title: 'My Best Auntie Training Course 0-1',
         description: 'TBD',
         cohort: '08-26',
@@ -417,8 +417,8 @@ describe('MyBestAuntieBooking section', () => {
         ],
       },
       {
-        id: '0-1-sep-2026',
-        age_group_id: '0-1',
+        id: 'my-best-auntie-0-1-09-26',
+        age_group: '0-1',
         title: 'My Best Auntie Training Course 0-1',
         description: 'TBD',
         cohort: '09-26',
@@ -517,7 +517,7 @@ describe('MyBestAuntieBooking section', () => {
     ) as BookingContent;
 
     const soldOutCohort = soldOutContent.cohorts.find(
-      (cohort) => cohort.id === '0-1-may-2026',
+      (cohort) => cohort.id === 'my-best-auntie-0-1-05-26',
     );
     expect(soldOutCohort?.is_fully_booked).toBe(true);
 

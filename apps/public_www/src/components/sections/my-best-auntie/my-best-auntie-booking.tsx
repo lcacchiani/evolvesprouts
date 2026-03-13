@@ -217,7 +217,7 @@ function findPreferredCohortId(
   ageGroupId: string,
 ): string {
   const ageGroupCohorts = cohorts.filter(
-    (cohort) => cohort.age_group_id === ageGroupId,
+    (cohort) => cohort.age_group === ageGroupId,
   );
   const available = ageGroupCohorts.find((cohort) => !cohort.is_fully_booked);
   return available?.id ?? ageGroupCohorts[0]?.id ?? '';
@@ -280,7 +280,7 @@ export function MyBestAuntieBooking({
 
   const [selectedAgeId, setSelectedAgeId] = useState(initialAgeId);
   const cohortsForSelectedAge = sortedCohorts.filter((cohort) => {
-    return cohort.age_group_id === selectedAgeId;
+    return cohort.age_group === selectedAgeId;
   });
   const dateOptions: BookingDateOption[] = cohortsForSelectedAge.map((cohort) => ({
     id: cohort.id,
