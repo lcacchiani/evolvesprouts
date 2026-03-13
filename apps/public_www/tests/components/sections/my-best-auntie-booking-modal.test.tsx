@@ -122,7 +122,7 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
 
 const bookingContent = {
   ...enContent.myBestAuntie.booking,
-  cohorts: trainingCoursesContent.cohorts,
+  cohorts: trainingCoursesContent.data,
 };
 const bookingModalContent = bookingContent.paymentModal;
 const thankYouModalContent = bookingContent.thankYouModal;
@@ -534,8 +534,7 @@ describe('my-best-auntie booking modals footer content', () => {
       within(detailsColumn as HTMLDivElement).getByText(bookingModalContent.refundHint).className,
     ).toContain('text-base');
 
-    expect(screen.getByText(selectedCohort.venue.name).className).toContain('text-lg');
-    expect(screen.getByText(selectedCohort.venue.address).className).toContain('text-base');
+    expect(screen.getByText(selectedCohort.address).className).toContain('text-base');
     expect(screen.getByRole('link', { name: bookingModalContent.directionLabel }).className)
       .toContain('text-base');
 
@@ -880,7 +879,7 @@ describe('my-best-auntie booking modals footer content', () => {
       name: bookingModalContent.directionLabel,
     });
 
-    expect(directionLink).toHaveAttribute('href', selectedCohort.venue.directionHref);
+    expect(directionLink).toHaveAttribute('href', selectedCohort.address_url);
     expect(directionLink).toHaveTextContent(bookingModalContent.directionLabel);
     expect(screen.getByText(bookingModalContent.directionLabel).className).toContain(
       'es-link-external-label',

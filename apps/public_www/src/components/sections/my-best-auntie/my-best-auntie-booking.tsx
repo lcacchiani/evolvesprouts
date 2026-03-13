@@ -95,12 +95,12 @@ interface BookingDateOption {
   id: string;
   label: string;
   availabilityLabel: string;
-  isSoldOut: boolean;
+  isFullyBooked: boolean;
   cohort: BookingCohort;
 }
 
 function getPrimarySessionSortValue(cohort: BookingCohort): number {
-  const isoDate = cohort.sessions[0]?.isoDate?.trim() ?? '';
+  const isoDate = cohort.dates[0]?.isoDate?.trim() ?? '';
   if (!isoDate) {
     return Number.POSITIVE_INFINITY;
   }
@@ -133,33 +133,44 @@ function findPreferredCohortId(
   const ageGroupCohorts = cohorts.filter(
     (cohort) => cohort.ageGroupId === ageGroupId,
   );
-  const available = ageGroupCohorts.find((cohort) => !cohort.isSoldOut);
+  const available = ageGroupCohorts.find((cohort) => !cohort.is_fully_booked);
   return available?.id ?? ageGroupCohorts[0]?.id ?? '';
 }
 
 function getPrimarySessionDateTimeLabel(cohort: BookingCohort | null): string {
-  return cohort?.sessions[0]?.dateTimeLabel ?? '';
+  return cohort?.dates[0]?.dateTimeLabel ?? '';
 }
 
 function formatCohortPrice(
   price: number,
-  priceCurrency: string,
+  currencySymbol: string,
   locale: Locale,
 ): string {
   const numberFormatLocale = locale === 'en' ? 'en-HK' : locale;
+  const normalizedCurrencySymbol = currencySymbol.trim();
 
-  try {
-    return new Intl.NumberFormat(numberFormatLocale, {
-      style: 'currency',
-      currency: priceCurrency,
-      maximumFractionDigits: 0,
-    }).format(price);
-  } catch {
-    return `${priceCurrency} ${new Intl.NumberFormat('en-US', {
-      useGrouping: true,
-      maximumFractionDigits: 20,
-    }).format(price)}`;
+  if (/^[A-Z]{3}$/.test(normalizedCurrencySymbol)) {
+    try {
+      return new Intl.NumberFormat(numberFormatLocale, {
+        style: 'currency',
+        currency: normalizedCurrencySymbol,
+        maximumFractionDigits: 0,
+      }).format(price);
+    } catch {
+      // fall through to symbol formatting
+    }
   }
+
+  const formattedAmount = new Intl.NumberFormat(numberFormatLocale, {
+    useGrouping: true,
+    maximumFractionDigits: 0,
+  }).format(price);
+
+  if (!normalizedCurrencySymbol) {
+    return formattedAmount;
+  }
+
+  return `${normalizedCurrencySymbol}${formattedAmount}`;
 }
 
 export function MyBestAuntieBooking({
@@ -188,7 +199,7 @@ export function MyBestAuntieBooking({
     id: cohort.id,
     label: cohort.dateLabel,
     availabilityLabel: cohort.spacesLeftText,
-    isSoldOut: cohort.isSoldOut,
+    isFullyBooked: cohort.is_fully_booked,
     cohort,
   }));
   const [selectedDateId, setSelectedDateId] = useState(initialDateId);
@@ -224,7 +235,7 @@ export function MyBestAuntieBooking({
   const nextCohortPriceLabel = nextCohortForSelectedAge
     ? formatCohortPrice(
         nextCohortForSelectedAge.price,
-        nextCohortForSelectedAge.priceCurrency,
+        nextCohortForSelectedAge.currency_symbol,
         locale,
       )
     : '';
@@ -344,7 +355,7 @@ export function MyBestAuntieBooking({
                 >
                   {dateOptions.map((option) => {
                     const isSelected = option.id === selectedDateId;
-                    const isSoldOut = option.isSoldOut;
+                    const isFullyBooked = option.isFullyBooked;
 
                     return (
                       <ButtonPrimitive
@@ -353,29 +364,29 @@ export function MyBestAuntieBooking({
                           dateCardRefs.current[option.id] = element;
                         }}
                         variant='selection'
-                        state={isSoldOut ? 'inactive' : isSelected ? 'active' : 'inactive'}
-                        aria-pressed={isSoldOut ? undefined : isSelected}
-                        aria-disabled={isSoldOut || undefined}
+                        state={isFullyBooked ? 'inactive' : isSelected ? 'active' : 'inactive'}
+                        aria-pressed={isFullyBooked ? undefined : isSelected}
+                        aria-disabled={isFullyBooked || undefined}
                         onClick={
-                          isSoldOut
+                          isFullyBooked
                             ? undefined
                             : () => {
                                 setSelectedDateId(option.id);
                               }
                         }
-                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] snap-center text-center sm:w-[168px] ${isSoldOut ? 'pointer-events-none' : ''}`}
+                        className={`${BOOKING_SELECTOR_CARD_CLASSNAME} relative w-[140px] snap-center text-center sm:w-[168px] ${isFullyBooked ? 'pointer-events-none' : ''}`}
                       >
-                        {isSoldOut && (
+                        {isFullyBooked && (
                           <span className='es-cohort-sold-out-stamp' aria-hidden='true'>
                             <span className='es-cohort-sold-out-stamp-text'>
                               {content.soldOutStampLabel}
                             </span>
                           </span>
                         )}
-                        <div className={`flex w-full flex-col items-center gap-2 ${isSoldOut ? 'opacity-40' : ''}`}>
+                        <div className={`flex w-full flex-col items-center gap-2 ${isFullyBooked ? 'opacity-40' : ''}`}>
                           <div className='flex items-center justify-center gap-1.5'>
                             <span
-                              className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected && !isSoldOut ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
+                              className={`h-6 w-6 shrink-0 es-mask-calendar-current ${isSelected && !isFullyBooked ? 'es-btn-selection-icon-active' : 'es-btn-selection-icon-inactive'}`}
                               aria-hidden='true'
                             />
                             <p className='text-base font-semibold es-text-heading whitespace-nowrap'>
@@ -422,12 +433,12 @@ export function MyBestAuntieBooking({
             <ButtonPrimitive
               variant='primary'
               onClick={() => {
-                if (!selectedCohort || selectedCohort.isSoldOut) {
+                if (!selectedCohort || selectedCohort.is_fully_booked) {
                   return;
                 }
                 setIsPaymentModalOpen(true);
               }}
-              disabled={!selectedCohort || selectedCohort.isSoldOut}
+              disabled={!selectedCohort || selectedCohort.is_fully_booked}
               className='mt-7'
             >
               {content.confirmAndPayLabel}

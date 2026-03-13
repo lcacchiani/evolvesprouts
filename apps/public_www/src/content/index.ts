@@ -21,7 +21,7 @@ export const DEFAULT_LOCALE: Locale = 'en';
  * All locale files must conform to this shape.
  */
 type BaseSiteContent = typeof enContent;
-type CourseCohort = typeof myBestAuntieTrainingCourseContent.cohorts[number];
+type CourseCohort = typeof myBestAuntieTrainingCourseContent.data[number];
 type LegacyCompatibleTestimonials = Omit<BaseSiteContent['testimonials'], 'items'> & {
   items: Array<BaseSiteContent['testimonials']['items'][number] & { role?: string }>;
 };
@@ -78,13 +78,10 @@ const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
 const BUSINESS_PHONE_PLACEHOLDER = '{{BUSINESS_PHONE_NUMBER}}';
 
 function cloneSharedCourseCohorts(): CourseCohort[] {
-  return myBestAuntieTrainingCourseContent.cohorts.map((cohort) => ({
+  return myBestAuntieTrainingCourseContent.data.map((cohort) => ({
     ...cohort,
-    venue: {
-      ...cohort.venue,
-    },
-    sessions: cohort.sessions.map((session) => ({
-      ...session,
+    dates: cohort.dates.map((date) => ({
+      ...date,
     })),
   }));
 }

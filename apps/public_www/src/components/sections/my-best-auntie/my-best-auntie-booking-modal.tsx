@@ -72,7 +72,7 @@ export function MyBestAuntieBookingModal({
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
     const summaries = content.partSummaries ?? [];
-    return (selectedCohort?.sessions ?? []).map((part, index) => {
+    return (selectedCohort?.dates ?? []).map((part, index) => {
       return {
         date: part.dateTimeLabel,
         description: summaries[index] ?? '',
@@ -83,11 +83,11 @@ export function MyBestAuntieBookingModal({
   const selectedTimeLabel = useMemo(() => {
     return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');
   }, [activePartRows]);
-  const selectedCohortDate = selectedCohort?.sessions[0]?.isoDate ?? '';
+  const selectedCohortDate = selectedCohort?.dates[0]?.isoDate ?? '';
   const selectedCohortDateLabel = selectedCohort?.dateLabel ?? '';
-  const selectedVenueName = selectedCohort?.venue.name ?? '';
-  const selectedVenueAddress = selectedCohort?.venue.address ?? '';
-  const selectedVenueDirectionHref = selectedCohort?.venue.directionHref ?? '#';
+  const selectedVenueName = '';
+  const selectedVenueAddress = selectedCohort?.address ?? '';
+  const selectedVenueDirectionHref = selectedCohort?.address_url ?? '#';
 
   return (
     <ModalOverlay
