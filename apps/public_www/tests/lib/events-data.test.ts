@@ -3,10 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import enContent from '@/content/en.json';
 import zhHKContent from '@/content/zh-HK.json';
 import temporaryEventsPayload from '@/content/events.json';
+import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   fetchEventsPayload,
   normalizeEvents,
+  normalizeEventsForEventsPage,
   resolveEventsApiUrl,
   sortPastEvents,
   sortEvents,
@@ -183,6 +185,37 @@ describe('events-data', () => {
     expect(events[0]).toMatchObject({
       locationName: 'In Person',
     });
+  });
+
+  it('merges events and course content for events page when source is content', () => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'content');
+
+    const events = normalizeEventsForEventsPage(temporaryEventsPayload, enContent.events);
+    const expectedMergedLength =
+      temporaryEventsPayload.data.length + myBestAuntieTrainingCourseContent.data.length;
+
+    expect(events).toHaveLength(expectedMergedLength);
+    expect(events.some((event) => event.id === 'spring-stem-discovery-lab-2030')).toBe(true);
+    expect(events.some((event) => event.id === 'my-best-auntie-0-1-04-26')).toBe(true);
+  });
+
+  it('keeps events page normalization unchanged for API source', () => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
+
+    const payload = {
+      data: [
+        {
+          id: 'api-event-1',
+          title: 'API-only event',
+          dates: [{ start_datetime: '2026-08-01T09:00:00Z' }],
+        },
+      ],
+    };
+
+    const events = normalizeEventsForEventsPage(payload, enContent.events);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.id).toBe('api-event-1');
   });
 
   it('returns upcoming events in chronological order and limits past events to most recent 5', () => {

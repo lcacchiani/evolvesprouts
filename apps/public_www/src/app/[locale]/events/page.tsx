@@ -8,7 +8,7 @@ import {
 import {
   type EventCardData,
   fetchEventsPayload,
-  normalizeEvents,
+  normalizeEventsForEventsPage,
   shouldUseTemporaryEventsContentSource,
 } from '@/lib/events-data';
 import {
@@ -44,7 +44,7 @@ async function resolveServerSideEvents(
 
   try {
     const payload = await fetchEventsPayload(crmApiClient, controller.signal);
-    return normalizeEvents(payload, content.events, locale);
+    return normalizeEventsForEventsPage(payload, content.events, locale);
   } catch (error) {
     if (isAbortRequestError(error)) {
       return [];
