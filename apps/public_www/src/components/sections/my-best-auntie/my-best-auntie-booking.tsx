@@ -356,7 +356,13 @@ export function MyBestAuntieBooking({
       return;
     }
 
-    setIsPaymentModalOpen(true);
+    const openModalTimerId = window.setTimeout(() => {
+      setIsPaymentModalOpen(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(openModalTimerId);
+    };
   }, [selectedCohort]);
 
   function handleDateCarouselNavigation(direction: 'prev' | 'next') {
