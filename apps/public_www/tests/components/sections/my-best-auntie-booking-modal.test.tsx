@@ -152,6 +152,10 @@ const reservationSummary: ReservationSummary = {
 if (!selectedCohort) {
   throw new Error('Test content must include at least one cohort.');
 }
+const selectedCohortDate = selectedCohort.dates[0]?.start_datetime.slice(0, 10);
+if (!selectedCohortDate) {
+  throw new Error('Selected cohort must include a valid primary session date.');
+}
 
 function renderBookingModal(
   props: Partial<ComponentProps<typeof MyBestAuntieBookingModal>> = {},
@@ -634,7 +638,7 @@ describe('my-best-auntie booking modals footer content', () => {
           email: 'ida@example.com',
           phone_number: '85212345678',
           cohort_age: '18-24 months',
-          cohort_date: '2026-04-08',
+          cohort_date: selectedCohortDate,
           comments: 'Need details',
           discount_code: undefined,
           price: 9000,

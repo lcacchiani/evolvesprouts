@@ -204,7 +204,9 @@ describe('MyBestAuntieBooking section', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
-    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(2);
+    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(
+      secondAgeCohorts.length,
+    );
     expect(
       within(dateSelectorRegion).getByRole('button', {
         name: new RegExp(formatCohortLabel(secondAgeFirstCohort.cohort)),
