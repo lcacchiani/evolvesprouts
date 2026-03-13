@@ -716,21 +716,7 @@ function normalizeEventCard(
     ]),
   );
 
-  const ctaHref = sanitizeExternalHref(
-    readCandidateText(record, [
-      'external_url',
-      'externalUrl',
-      'ctaHref',
-      'ctaUrl',
-      'bookingUrl',
-      'registrationUrl',
-      'registerUrl',
-      'href',
-      'url',
-      'link',
-      'address_url',
-    ]),
-  );
+  const ctaHref = sanitizeExternalHref(readOptionalText(record.external_url));
   const ctaLabel =
     readCandidateText(record, ['ctaLabel', 'buttonLabel', 'actionLabel']) ??
     content.card.ctaLabel;

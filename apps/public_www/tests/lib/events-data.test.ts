@@ -155,8 +155,7 @@ describe('events-data', () => {
         'H210, 2/F, PMQ, Mid-Levels, Central and Western, Hong Kong Island',
       directionHref:
         'https://www.google.com/maps/search/?api=1&query=H210%2C+2%2FF%2C+PMQ%2C+Mid-Levels%2C+Central+and+Western%2C+Hong+Kong+Island',
-      ctaHref:
-        'https://www.google.com/maps/search/?api=1&query=H210%2C+2%2FF%2C+PMQ%2C+Mid-Levels%2C+Central+and+Western%2C+Hong+Kong+Island',
+      ctaHref: '',
       ctaLabel: enContent.events.card.ctaLabel,
       costLabel: 'HK$9,000',
       isFreeCost: false,
@@ -176,7 +175,7 @@ describe('events-data', () => {
       dateLabel: formatExpectedDateLabel('2025-12-15T09:00:00Z', 'en'),
       timeLabel: formatExpectedTimeLabel('2025-12-15T09:00:00Z', '2025-12-15T12:00:00Z', 'en'),
       locationName: 'Virtual Meeting',
-      ctaHref: 'https://meet.example.com/data-science',
+      ctaHref: '',
       ctaLabel: enContent.events.card.ctaLabel,
       costLabel: enContent.events.card.freeLabel,
       isFreeCost: true,
@@ -217,6 +216,31 @@ describe('events-data', () => {
       directionHref: 'https://maps.google.com/?q=PMQ+Hong+Kong',
       ctaHref: 'https://booking.example.com/events/pmq-session',
     });
+  });
+
+  it('does not use legacy CTA candidate keys without external_url', () => {
+    const payload = {
+      data: [
+        {
+          title: 'Legacy CTA fields event',
+          ctaUrl: 'https://booking.example.com/from-cta-url',
+          bookingUrl: 'https://booking.example.com/from-booking-url',
+          href: 'https://booking.example.com/from-href',
+          dates: [
+            {
+              start_datetime: '2026-01-21T09:00:00Z',
+              end_datetime: '2026-01-21T11:00:00Z',
+            },
+          ],
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.ctaHref).toBe('');
   });
 
   it('formats event dates and times using locale-aware labels', () => {
