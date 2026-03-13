@@ -13,6 +13,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "0-1"
@@ -52,6 +53,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "0-1"
@@ -91,6 +93,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "0-1"
@@ -130,6 +133,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "1-3"
@@ -169,6 +173,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "1-3"
@@ -208,6 +213,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "1-3"
@@ -247,6 +253,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "3-6"
@@ -286,6 +293,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "3-6"
@@ -325,6 +333,7 @@
       "price": 9000,
       "currency": "HKD",
       "location": "physical",
+      "booking_system": "my-best-auntie-booking-modal",
       "tags": [
         "Helper",
         "3-6"
