@@ -199,7 +199,7 @@ export function MyBestAuntieThankYouModal({
   const paymentMethod = summary?.paymentMethod?.trim() ?? '';
   const childAgeGroupChipText = formatPrefixedValue(
     content.childAgeGroupPrefix,
-    summary?.childAgeGroup ?? '',
+    summary?.ageGroup ?? '',
   );
   const amountChipText = formatPrefixedValue(
     content.amountPrefix,

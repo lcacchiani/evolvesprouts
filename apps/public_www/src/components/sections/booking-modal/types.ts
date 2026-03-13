@@ -2,7 +2,8 @@ export interface ReservationSummary {
   attendeeName: string;
   attendeeEmail: string;
   attendeePhone: string;
-  childAgeGroup: string;
+  ageGroup?: string;
+  cohort?: string;
   paymentMethod: string;
   totalAmount: number;
   courseLabel: string;

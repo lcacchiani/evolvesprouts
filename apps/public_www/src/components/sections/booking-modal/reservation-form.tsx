@@ -201,7 +201,8 @@ export function BookingReservationForm({
       attendeeName: sanitizeSingleLineValue(fullName),
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: sanitizeSingleLineValue(phone),
-      childAgeGroup: sanitizeSingleLineValue(selectedAgeGroupLabel),
+      ageGroup: sanitizeSingleLineValue(selectedAgeGroupLabel) || undefined,
+      cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       paymentMethod: sanitizeSingleLineValue(
         getPaymentMethodLabel(content, selectedPaymentMethod),
       ),
@@ -223,7 +224,7 @@ export function BookingReservationForm({
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
       phone_number: reservationSummary.attendeePhone,
-      cohort_age: reservationSummary.childAgeGroup,
+      cohort_age: reservationSummary.ageGroup ?? '',
       cohort_date: normalizedCohortDate,
       comments: sanitizeSingleLineValue(interestedTopics) || undefined,
       discount_code: discountRule?.code || undefined,

@@ -141,7 +141,7 @@ const reservationSummary: ReservationSummary = {
   attendeeName: 'Test User',
   attendeeEmail: 'test@example.com',
   attendeePhone: '12345678',
-  childAgeGroup: '1-3',
+  ageGroup: '1-3',
   paymentMethod: 'Pay via FPS QR',
   totalAmount: 9000,
   courseLabel: 'My Best Auntie',
@@ -961,7 +961,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.childAgeGroup}`,
+        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.ageGroup}`,
       ),
     ).toBeInTheDocument();
     expect(container.querySelector('img[src="/images/baby.svg"]')).not.toBeNull();
