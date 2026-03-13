@@ -32,6 +32,33 @@ function formatCohortPreviewLabel(value: string): string {
   return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
 }
 
+function formatPartDateTimeLabel(startDateTime: string): string {
+  const date = new Date(startDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const month = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(date);
+  const day = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    timeZone: 'UTC',
+  }).format(date);
+  const time = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .replace(' AM', ' am')
+    .replace(' PM', ' pm');
+
+  return `${month} ${day} @ ${time}`;
+}
+
 function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): string {
   return `${scheduleLabel} for ${ageGroupLabel} age group`;
 }
@@ -50,14 +77,14 @@ function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingC
   return content.cohorts
     .filter((cohort) => cohort.age_group_id === ageGroupId)
     .sort((left, right) => {
-      const leftDate = Date.parse(`${left.dates[0]?.isoDate ?? ''}T00:00:00Z`);
-      const rightDate = Date.parse(`${right.dates[0]?.isoDate ?? ''}T00:00:00Z`);
+      const leftDate = Date.parse(left.dates[0]?.start_datetime ?? '');
+      const rightDate = Date.parse(right.dates[0]?.start_datetime ?? '');
       return leftDate - rightDate;
     });
 }
 
 function getPrimarySessionDateTimeLabel(cohort: BookingCohort): string {
-  return cohort.dates[0]?.dateTimeLabel ?? '';
+  return formatPartDateTimeLabel(cohort.dates[0]?.start_datetime ?? '');
 }
 
 function formatCohortPrice(cohort: BookingCohort): string {
@@ -350,18 +377,18 @@ describe('MyBestAuntieBooking section', () => {
         dates: [
           {
             id: 'part-1',
-            dateTimeLabel: 'Aug 09 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-08-09',
+            start_datetime: '2026-08-09T12:00:00Z',
+            end_datetime: '2026-08-09T14:00:00Z',
           },
           {
             id: 'part-2',
-            dateTimeLabel: 'Aug 16 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-08-16',
+            start_datetime: '2026-08-16T12:00:00Z',
+            end_datetime: '2026-08-16T14:00:00Z',
           },
           {
             id: 'part-3',
-            dateTimeLabel: 'Aug 23 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-08-23',
+            start_datetime: '2026-08-23T12:00:00Z',
+            end_datetime: '2026-08-23T14:00:00Z',
           },
         ],
       },
@@ -386,18 +413,18 @@ describe('MyBestAuntieBooking section', () => {
         dates: [
           {
             id: 'part-1',
-            dateTimeLabel: 'Sep 09 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-09-09',
+            start_datetime: '2026-09-09T12:00:00Z',
+            end_datetime: '2026-09-09T14:00:00Z',
           },
           {
             id: 'part-2',
-            dateTimeLabel: 'Sep 16 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-09-16',
+            start_datetime: '2026-09-16T12:00:00Z',
+            end_datetime: '2026-09-16T14:00:00Z',
           },
           {
             id: 'part-3',
-            dateTimeLabel: 'Sep 23 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-09-23',
+            start_datetime: '2026-09-23T12:00:00Z',
+            end_datetime: '2026-09-23T14:00:00Z',
           },
         ],
       },

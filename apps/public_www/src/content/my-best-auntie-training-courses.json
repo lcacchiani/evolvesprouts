@@ -23,18 +23,18 @@
       "dates": [
         {
           "id": "part-1",
-          "dateTimeLabel": "Apr 08 @ 12:00 pm",
-          "isoDate": "2026-04-08"
+          "start_datetime": "2026-04-08T12:00:00Z",
+          "end_datetime": "2026-04-08T14:00:00Z"
         },
         {
           "id": "part-2",
-          "dateTimeLabel": "Apr 15 @ 12:00 pm",
-          "isoDate": "2026-04-15"
+          "start_datetime": "2026-04-15T12:00:00Z",
+          "end_datetime": "2026-04-15T14:00:00Z"
         },
         {
           "id": "part-3",
-          "dateTimeLabel": "Apr 22 @ 12:00 pm",
-          "isoDate": "2026-04-22"
+          "start_datetime": "2026-04-22T12:00:00Z",
+          "end_datetime": "2026-04-22T14:00:00Z"
         }
       ]
     },
@@ -60,18 +60,18 @@
       "dates": [
         {
           "id": "part-1",
-          "dateTimeLabel": "May 08 @ 12:00 pm",
-          "isoDate": "2026-05-08"
+          "start_datetime": "2026-05-08T12:00:00Z",
+          "end_datetime": "2026-05-08T14:00:00Z"
         },
         {
           "id": "part-2",
-          "dateTimeLabel": "May 15 @ 12:00 pm",
-          "isoDate": "2026-05-15"
+          "start_datetime": "2026-05-15T12:00:00Z",
+          "end_datetime": "2026-05-15T14:00:00Z"
         },
         {
           "id": "part-3",
-          "dateTimeLabel": "May 22 @ 12:00 pm",
-          "isoDate": "2026-05-22"
+          "start_datetime": "2026-05-22T12:00:00Z",
+          "end_datetime": "2026-05-22T14:00:00Z"
         }
       ]
     },
@@ -97,18 +97,18 @@
       "dates": [
         {
           "id": "part-1",
-          "dateTimeLabel": "Jun 08 @ 12:00 pm",
-          "isoDate": "2026-06-08"
+          "start_datetime": "2026-06-08T12:00:00Z",
+          "end_datetime": "2026-06-08T14:00:00Z"
         },
         {
           "id": "part-2",
-          "dateTimeLabel": "Jun 15 @ 12:00 pm",
-          "isoDate": "2026-06-15"
+          "start_datetime": "2026-06-15T12:00:00Z",
+          "end_datetime": "2026-06-15T14:00:00Z"
         },
         {
           "id": "part-3",
-          "dateTimeLabel": "Jun 22 @ 12:00 pm",
-          "isoDate": "2026-06-22"
+          "start_datetime": "2026-06-22T12:00:00Z",
+          "end_datetime": "2026-06-22T14:00:00Z"
         }
       ]
     },
@@ -134,18 +134,18 @@
       "dates": [
         {
           "id": "part-1",
-          "dateTimeLabel": "May 10 @ 12:00 pm",
-          "isoDate": "2026-05-10"
+          "start_datetime": "2026-05-10T12:00:00Z",
+          "end_datetime": "2026-05-10T14:00:00Z"
         },
         {
           "id": "part-2",
-          "dateTimeLabel": "May 17 @ 12:00 pm",
-          "isoDate": "2026-05-17"
+          "start_datetime": "2026-05-17T12:00:00Z",
+          "end_datetime": "2026-05-17T14:00:00Z"
         },
         {
           "id": "part-3",
-          "dateTimeLabel": "May 24 @ 12:00 pm",
-          "isoDate": "2026-05-24"
+          "start_datetime": "2026-05-24T12:00:00Z",
+          "end_datetime": "2026-05-24T14:00:00Z"
         }
       ]
     },
@@ -171,18 +171,18 @@
       "dates": [
         {
           "id": "part-1",
-          "dateTimeLabel": "Jun 10 @ 12:00 pm",
-          "isoDate": "2026-06-10"
+          "start_datetime": "2026-06-10T12:00:00Z",
+          "end_datetime": "2026-06-10T14:00:00Z"
         },
         {
           "id": "part-2",
-          "dateTimeLabel": "Jun 17 @ 12:00 pm",
-          "isoDate": "2026-06-17"
+          "start_datetime": "2026-06-17T12:00:00Z",
+          "end_datetime": "2026-06-17T14:00:00Z"
         },
         {
           "id": "part-3",
-          "dateTimeLabel": "Jun 24 @ 12:00 pm",
-          "isoDate": "2026-06-24"
+          "start_datetime": "2026-06-24T12:00:00Z",
+          "end_datetime": "2026-06-24T14:00:00Z"
         }
       ]
     },
@@ -208,18 +208,18 @@
       "dates": [
         {
           "id": "part-1",
-          "dateTimeLabel": "Jul 09 @ 12:00 pm",
-          "isoDate": "2026-07-09"
+          "start_datetime": "2026-07-09T12:00:00Z",
+          "end_datetime": "2026-07-09T14:00:00Z"
         },
         {
           "id": "part-2",
-          "dateTimeLabel": "Jul 16 @ 12:00 pm",
-          "isoDate": "2026-07-16"
+          "start_datetime": "2026-07-16T12:00:00Z",
+          "end_datetime": "2026-07-16T14:00:00Z"
         },
         {
           "id": "part-3",
-          "dateTimeLabel": "Jul 23 @ 12:00 pm",
-          "isoDate": "2026-07-23"
+          "start_datetime": "2026-07-23T12:00:00Z",
+          "end_datetime": "2026-07-23T14:00:00Z"
         }
       ]
     }

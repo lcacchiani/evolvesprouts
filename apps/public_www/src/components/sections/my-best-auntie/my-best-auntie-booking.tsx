@@ -105,12 +105,39 @@ function formatSpacesLeftLabel(count: number, template: string): string {
   });
 }
 
+function formatPartDateTimeLabel(startDateTime: string): string {
+  const date = new Date(startDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const month = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(date);
+  const day = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    timeZone: 'UTC',
+  }).format(date);
+  const time = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .replace(' AM', ' am')
+    .replace(' PM', ' pm');
+
+  return `${month} ${day} @ ${time}`;
+}
+
 function getPrimarySessionSortValue(cohort: BookingCohort): number {
-  const isoDate = cohort.dates[0]?.isoDate?.trim() ?? '';
-  if (!isoDate) {
+  const startDateTime = cohort.dates[0]?.start_datetime?.trim() ?? '';
+  if (!startDateTime) {
     return Number.POSITIVE_INFINITY;
   }
-  const parsedDate = Date.parse(`${isoDate}T00:00:00Z`);
+  const parsedDate = Date.parse(startDateTime);
   if (Number.isNaN(parsedDate)) {
     return Number.POSITIVE_INFINITY;
   }
@@ -144,7 +171,8 @@ function findPreferredCohortId(
 }
 
 function getPrimarySessionDateTimeLabel(cohort: BookingCohort | null): string {
-  return cohort?.dates[0]?.dateTimeLabel ?? '';
+  const startDateTime = cohort?.dates[0]?.start_datetime ?? '';
+  return formatPartDateTimeLabel(startDateTime);
 }
 
 function formatCohortPrice(
