@@ -3,10 +3,8 @@
   "data": [
     {
       "id": "bimbo-concept-weaning-2026-03-20",
-      "title": "Bump Does Weaning with Evolve Sprouts",
+      "title": "9 Bimbo Concept Children's Residency",
       "description": ">12 months (approx)",
-      "date": "Friday 20th March",
-      "time": "10.30am-12.30pm",
       "tags": [
         "In-Person",
         "12 months (approx)"
@@ -16,12 +14,17 @@
       ],
       "location": "physical",
       "address": "9 Bimbo Concept Children's Residency @ Pacific Place Apartments",
-      "startsAt": "2026-03-20T10:30:00+08:00",
+      "address_url": "https://maps.google.com/?q=Pacific+Place+Apartments",
+      "dates": [
+        {
+          "start_datetime": "2026-03-20T02:30:00Z",
+          "end_datetime": "2026-03-20T04:30:00Z"
+        }
+      ],
       "price": 350,
       "currency": "HKD",
       "is_fully_booked": false,
-      "external_url": "https://www.bump-and-co.com/event-details/bump-does-weaning-with-evolve-sprouts-bimbo-concept",
-      "url": "https://www.bump-and-co.com/event-details/bump-does-weaning-with-evolve-sprouts-bimbo-concept"
+      "external_url": "https://www.bump-and-co.com/event-details/bump-does-weaning-with-evolve-sprouts-bimbo-concept"
     }
   ]
 }
