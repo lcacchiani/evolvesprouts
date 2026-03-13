@@ -293,6 +293,29 @@ repo root
 - Do not introduce or reuse legacy contact key names
   (`contactUs.contactUsForm`, `contactUs.contactFaq`).
 
+### Public WWW locale content contract (MANDATORY for `apps/public_www/**`)
+
+- Treat `apps/public_www/src/content/en.json` as the locale content schema and
+  source of truth. Keep `zh-CN.json` and `zh-HK.json` aligned in the same
+  change.
+- All user-visible copy must live in locale JSON files. This includes headings,
+  body copy, CTA labels, validation/error/success messages, placeholder labels,
+  image alt text, `aria-label`, `aria-roledescription`, and other
+  screen-reader-only text.
+- Do not add new hardcoded user-visible English copy in
+  `apps/public_www/src/app/**`, `apps/public_www/src/components/**`, or
+  locale-aware helpers under `apps/public_www/src/lib/**`. Read it from locale
+  content instead.
+- Put shared cross-page UI copy under `common.*`. Keep section-specific copy in
+  the owning section key (for example `testimonials.a11y.*` or
+  `myBestAuntieBooking.paymentModal.*`).
+- For locale strings that interpolate runtime values, use a `*Template` suffix
+  and named placeholders such as `{title}`, `{label}`, `{author}`, or
+  `{ageGroupLabel}`.
+- Prefer removing user-visible fallback literals from code once a locale key
+  exists. If a fallback is still required, it must come from locale content,
+  not a hardcoded string in app code.
+
 ## React/Redux guidance (when Redux is used)
 
 - Use Redux Toolkit patterns (`createSlice`, `createAsyncThunk`).
