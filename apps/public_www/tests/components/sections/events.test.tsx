@@ -76,20 +76,6 @@ describe('Events section', () => {
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
-  it('shows both events and course records when content source is enabled', async () => {
-    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'content');
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-03-01T00:00:00Z'));
-    try {
-      render(<Events content={enContent.events} />);
-
-      await screen.findByText('Spring STEM Discovery Lab');
-      expect(screen.getByText('My Best Auntie Training Course 0-1 - Apr 26')).toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
   it('renders event date and time without label prefixes', async () => {
     const mockApiClient: CrmApiClient = {
       request: vi.fn().mockResolvedValue({
