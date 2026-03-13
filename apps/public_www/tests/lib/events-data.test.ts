@@ -190,6 +190,35 @@ describe('events-data', () => {
     ]);
   });
 
+  it('uses external_url as the event card CTA when available', () => {
+    const payload = {
+      data: [
+        {
+          title: 'External CTA event',
+          location: 'physical',
+          address: 'PMQ, Hong Kong',
+          address_url: 'https://maps.google.com/?q=PMQ+Hong+Kong',
+          external_url: 'https://booking.example.com/events/pmq-session',
+          dates: [
+            {
+              start_datetime: '2026-01-20T09:00:00Z',
+              end_datetime: '2026-01-20T11:00:00Z',
+            },
+          ],
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      directionHref: 'https://maps.google.com/?q=PMQ+Hong+Kong',
+      ctaHref: 'https://booking.example.com/events/pmq-session',
+    });
+  });
+
   it('formats event dates and times using locale-aware labels', () => {
     const payload = {
       data: [

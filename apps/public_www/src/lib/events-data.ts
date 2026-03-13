@@ -718,6 +718,8 @@ function normalizeEventCard(
 
   const ctaHref = sanitizeExternalHref(
     readCandidateText(record, [
+      'external_url',
+      'externalUrl',
       'ctaHref',
       'ctaUrl',
       'bookingUrl',
