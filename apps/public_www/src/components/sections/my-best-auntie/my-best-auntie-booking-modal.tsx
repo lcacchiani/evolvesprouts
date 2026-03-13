@@ -83,23 +83,31 @@ function formatPartDateTimeLabel(startDateTime: string): string {
 
   const month = new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    timeZone: 'UTC',
   }).format(date);
   const day = new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
-    timeZone: 'UTC',
   }).format(date);
   const time = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: 'UTC',
   })
     .format(date)
     .replace(' AM', ' am')
     .replace(' PM', ' pm');
+  const timeZoneLabel = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short',
+  })
+    .formatToParts(date)
+    .find((part) => part.type === 'timeZoneName')
+    ?.value
+    .trim();
+  const timeWithTimeZone = timeZoneLabel ? `${time} ${timeZoneLabel}` : time;
 
-  return `${month} ${day} @ ${time}`;
+  return `${month} ${day} @ ${timeWithTimeZone}`;
 }
 
 export function MyBestAuntieBookingModal({

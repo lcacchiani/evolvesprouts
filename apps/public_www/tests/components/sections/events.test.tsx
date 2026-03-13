@@ -14,6 +14,39 @@ vi.mock('@/lib/crm-api-client', () => ({
     error instanceof Error && error.name === 'AbortError',
 }));
 
+function formatExpectedEventDateLabel(isoDateTime: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(isoDateTime));
+}
+
+function formatExpectedEventTimeRange(
+  startIsoDateTime: string,
+  endIsoDateTime: string,
+): string {
+  const startDate = new Date(startIsoDateTime);
+  const endDate = new Date(endIsoDateTime);
+  const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const timeZoneLabel = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  })
+    .formatToParts(startDate)
+    .find((part) => part.type === 'timeZoneName')
+    ?.value
+    .trim();
+  const timeRange = `${timeFormatter.format(startDate)} - ${timeFormatter.format(endDate)}`;
+
+  return timeZoneLabel ? `${timeRange} ${timeZoneLabel}` : timeRange;
+}
+
 describe('Events section', () => {
   const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 
@@ -92,7 +125,6 @@ describe('Events section', () => {
                 end_datetime: '2099-12-05T13:00:00Z',
               },
             ],
-            timezone: 'HKT',
             is_fully_booked: false,
           },
         ],
@@ -104,8 +136,12 @@ describe('Events section', () => {
 
     await screen.findByText('Prefixless event card');
 
-    expect(screen.getByText('05 Dec 2099')).toBeInTheDocument();
-    expect(screen.getByText('10:00 - 13:00 HKT')).toBeInTheDocument();
+    expect(
+      screen.getByText(formatExpectedEventDateLabel('2099-12-05T10:00:00Z')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(formatExpectedEventTimeRange('2099-12-05T10:00:00Z', '2099-12-05T13:00:00Z')),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/^Date:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Time:/)).not.toBeInTheDocument();
   });
@@ -126,9 +162,8 @@ describe('Events section', () => {
                 end_datetime: '2099-12-05T13:00:00Z',
               },
             ],
-            timezone: 'HKT',
             price: 888,
-            currency_symbol: 'HK$',
+            currency: 'HKD',
             is_fully_booked: false,
           },
           {
@@ -142,9 +177,8 @@ describe('Events section', () => {
                 end_datetime: '2099-12-06T13:00:00Z',
               },
             ],
-            timezone: 'HKT',
             price: 0,
-            currency_symbol: 'HK$',
+            currency: 'HKD',
             is_fully_booked: false,
           },
         ],
@@ -181,9 +215,8 @@ describe('Events section', () => {
                 end_datetime: '2099-12-07T13:00:00Z',
               },
             ],
-            timezone: 'HKT',
             price: 1280,
-            currency_symbol: 'HK$',
+            currency: 'HKD',
             is_fully_booked: false,
           },
         ],
@@ -213,9 +246,8 @@ describe('Events section', () => {
                 end_datetime: '2099-12-08T13:00:00Z',
               },
             ],
-            timezone: 'HKT',
             price: 88,
-            currency_symbol: 'HK$',
+            currency: 'HKD',
             is_fully_booked: true,
           },
         ],
@@ -265,7 +297,6 @@ describe('Events section', () => {
                 end_datetime: '2099-12-05T13:00:00Z',
               },
             ],
-            timezone: 'HKT',
             is_fully_booked: true,
           },
         ],

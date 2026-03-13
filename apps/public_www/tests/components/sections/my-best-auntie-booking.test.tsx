@@ -40,23 +40,31 @@ function formatPartDateTimeLabel(startDateTime: string): string {
 
   const month = new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    timeZone: 'UTC',
   }).format(date);
   const day = new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
-    timeZone: 'UTC',
   }).format(date);
   const time = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: 'UTC',
   })
     .format(date)
     .replace(' AM', ' am')
     .replace(' PM', ' pm');
+  const timeZoneLabel = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short',
+  })
+    .formatToParts(date)
+    .find((part) => part.type === 'timeZoneName')
+    ?.value
+    .trim();
+  const timeWithTimeZone = timeZoneLabel ? `${time} ${timeZoneLabel}` : time;
 
-  return `${month} ${day} @ ${time}`;
+  return `${month} ${day} @ ${timeWithTimeZone}`;
 }
 
 function formatCohortLabel(cohortValue: string): string {
@@ -112,7 +120,16 @@ function getPrimarySessionDateTimeLabel(cohort: BookingCohort): string {
 }
 
 function formatCohortPrice(cohort: BookingCohort): string {
-  return `${cohort.currency_symbol}${new Intl.NumberFormat('en-HK', {
+  const normalizedCurrency = cohort.currency.trim();
+  if (/^[A-Z]{3}$/.test(normalizedCurrency)) {
+    return new Intl.NumberFormat('en-HK', {
+      style: 'currency',
+      currency: normalizedCurrency,
+      maximumFractionDigits: 0,
+    }).format(cohort.price);
+  }
+
+  return `${normalizedCurrency}${new Intl.NumberFormat('en-HK', {
     useGrouping: true,
     maximumFractionDigits: 0,
   }).format(cohort.price)}`;
@@ -392,9 +409,8 @@ describe('MyBestAuntieBooking section', () => {
         spaces_left: 8,
         is_fully_booked: false,
         price: 9000,
-        currency_symbol: 'HK$',
+        currency: 'HKD',
         location: 'physical',
-        timezone: 'HKT',
         tags: [],
         categories: ['Training Course'],
         address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
@@ -428,9 +444,8 @@ describe('MyBestAuntieBooking section', () => {
         spaces_left: 4,
         is_fully_booked: false,
         price: 9000,
-        currency_symbol: 'HK$',
+        currency: 'HKD',
         location: 'physical',
-        timezone: 'HKT',
         tags: [],
         categories: ['Training Course'],
         address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
