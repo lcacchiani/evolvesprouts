@@ -59,6 +59,30 @@ function formatPartDateTimeLabel(startDateTime: string): string {
   return `${month} ${day} @ ${time}`;
 }
 
+function formatCohortLabel(cohortValue: string): string {
+  const match = /^(\d{2})-(\d{2})$/.exec(cohortValue.trim());
+  if (!match) {
+    return cohortValue;
+  }
+
+  const monthNumber = Number(match[1]);
+  const yearSuffix = Number(match[2]);
+  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    return cohortValue;
+  }
+
+  if (!Number.isInteger(yearSuffix)) {
+    return cohortValue;
+  }
+
+  const year = 2000 + yearSuffix;
+  const monthLabel = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
+  return `${monthLabel}, ${year}`;
+}
+
 function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): string {
   return `${scheduleLabel} for ${ageGroupLabel} age group`;
 }
@@ -75,7 +99,7 @@ const bookingContent = {
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
-    .filter((cohort) => cohort.age_group_id === ageGroupId)
+    .filter((cohort) => cohort.age_group === ageGroupId)
     .sort((left, right) => {
       const leftDate = Date.parse(left.dates[0]?.start_datetime ?? '');
       const rightDate = Date.parse(right.dates[0]?.start_datetime ?? '');
@@ -161,7 +185,7 @@ describe('MyBestAuntieBooking section', () => {
 
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(firstAgeFirstCohort.dateLabel),
+        name: new RegExp(formatCohortLabel(firstAgeFirstCohort.cohort)),
       }).className,
     ).toContain('es-btn--state-active');
 
@@ -183,24 +207,24 @@ describe('MyBestAuntieBooking section', () => {
     expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(2);
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(secondAgeFirstCohort.dateLabel),
+        name: new RegExp(formatCohortLabel(secondAgeFirstCohort.cohort)),
       }).className,
     ).toContain('es-btn--state-active');
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(secondAgeSecondCohort.dateLabel),
+        name: new RegExp(formatCohortLabel(secondAgeSecondCohort.cohort)),
       }).className,
     ).toContain('es-btn--state-inactive');
 
     fireEvent.click(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(secondAgeSecondCohort.dateLabel),
+        name: new RegExp(formatCohortLabel(secondAgeSecondCohort.cohort)),
       }),
     );
 
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(secondAgeSecondCohort.dateLabel),
+        name: new RegExp(formatCohortLabel(secondAgeSecondCohort.cohort)),
       }).className,
     ).toContain('es-btn--state-active');
     expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
@@ -212,7 +236,7 @@ describe('MyBestAuntieBooking section', () => {
       JSON.stringify(bookingContent),
     ) as BookingContent;
     contentWithoutThreeToSix.cohorts = contentWithoutThreeToSix.cohorts.filter((cohort) => {
-      return cohort.age_group_id !== '3-6';
+      return cohort.age_group !== '3-6';
     });
 
     render(<MyBestAuntieBooking locale='en' content={contentWithoutThreeToSix} />);
@@ -265,7 +289,7 @@ describe('MyBestAuntieBooking section', () => {
       throw new Error('Test content must include second date option.');
     }
     const secondDateButton = screen.getByRole('button', {
-      name: new RegExp(secondDateOption.dateLabel),
+      name: new RegExp(formatCohortLabel(secondDateOption.cohort)),
     });
     expect(secondDateButton.className).toContain('es-btn--selection');
     expect(secondDateButton.className).toContain('es-btn--state-inactive');
@@ -277,7 +301,7 @@ describe('MyBestAuntieBooking section', () => {
     const availabilityLine = secondDateCardContent?.lastElementChild;
     expect(dateLine?.className).toContain('justify-center');
     expect(availabilityLine?.className).toContain('text-center');
-    expect(dateLine?.textContent).toContain(secondDateOption.dateLabel);
+    expect(dateLine?.textContent).toContain(formatCohortLabel(secondDateOption.cohort));
     expect(availabilityLine?.textContent).toContain(
       formatSpacesLeftLabel(secondDateOption.spaces_left),
     );
@@ -308,7 +332,7 @@ describe('MyBestAuntieBooking section', () => {
       name: bookingContent.dateSelectorLabel,
     });
     const firstDateButton = within(dateSelectorRegion).getByRole('button', {
-      name: new RegExp(firstDateOption.dateLabel),
+      name: new RegExp(formatCohortLabel(firstDateOption.cohort)),
     });
 
     for (const button of [firstAgeButton, firstDateButton]) {
@@ -357,11 +381,11 @@ describe('MyBestAuntieBooking section', () => {
 
     extendedBookingContent.cohorts.push(
       {
-        id: '0-1-aug-2026',
-        age_group_id: '0-1',
+        id: 'my-best-auntie-0-1-08-26',
+        age_group: '0-1',
         title: 'My Best Auntie Training Course 0-1',
         description: 'TBD',
-        dateLabel: 'Aug, 2026',
+        cohort: '08-26',
         spaces_total: 24,
         spaces_left: 8,
         is_fully_booked: false,
@@ -393,11 +417,11 @@ describe('MyBestAuntieBooking section', () => {
         ],
       },
       {
-        id: '0-1-sep-2026',
-        age_group_id: '0-1',
+        id: 'my-best-auntie-0-1-09-26',
+        age_group: '0-1',
         title: 'My Best Auntie Training Course 0-1',
         description: 'TBD',
-        dateLabel: 'Sep, 2026',
+        cohort: '09-26',
         spaces_total: 24,
         spaces_left: 4,
         is_fully_booked: false,
@@ -493,7 +517,7 @@ describe('MyBestAuntieBooking section', () => {
     ) as BookingContent;
 
     const soldOutCohort = soldOutContent.cohorts.find(
-      (cohort) => cohort.id === '0-1-may-2026',
+      (cohort) => cohort.id === 'my-best-auntie-0-1-05-26',
     );
     expect(soldOutCohort?.is_fully_booked).toBe(true);
 
@@ -504,7 +528,7 @@ describe('MyBestAuntieBooking section', () => {
     });
 
     const soldOutButton = within(dateSelectorRegion).getByRole('button', {
-      name: new RegExp(soldOutCohort!.dateLabel),
+      name: new RegExp(formatCohortLabel(soldOutCohort!.cohort)),
     });
     expect(soldOutButton.getAttribute('aria-disabled')).toBe('true');
     expect(soldOutButton.className).toContain('pointer-events-none');
@@ -522,7 +546,7 @@ describe('MyBestAuntieBooking section', () => {
     expect(firstAvailableCohort).toBeDefined();
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(firstAvailableCohort!.dateLabel),
+        name: new RegExp(formatCohortLabel(firstAvailableCohort!.cohort)),
       }).className,
     ).toContain('es-btn--state-active');
   });
