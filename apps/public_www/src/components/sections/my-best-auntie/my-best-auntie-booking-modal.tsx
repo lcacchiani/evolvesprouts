@@ -42,9 +42,37 @@ interface MyBestAuntieBookingModalProps {
   locale?: Locale;
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
+  selectedCohortDateLabel?: string;
   selectedAgeGroupLabel?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
+}
+
+const COHORT_VALUE_PATTERN = /^(\d{2})-(\d{2})$/;
+
+function formatCohortValue(value: string): string {
+  const trimmedValue = value.trim();
+  const match = COHORT_VALUE_PATTERN.exec(trimmedValue);
+  if (!match) {
+    return trimmedValue;
+  }
+
+  const monthNumber = Number(match[1]);
+  const yearSuffix = Number(match[2]);
+  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    return trimmedValue;
+  }
+
+  if (!Number.isInteger(yearSuffix)) {
+    return trimmedValue;
+  }
+
+  const year = 2000 + yearSuffix;
+  const monthLabel = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
+  return `${monthLabel}, ${year}`;
 }
 
 function formatPartDateTimeLabel(startDateTime: string): string {
@@ -78,6 +106,7 @@ export function MyBestAuntieBookingModal({
   locale = 'en',
   content,
   selectedCohort,
+  selectedCohortDateLabel = '',
   selectedAgeGroupLabel = '',
   onClose,
   onSubmitReservation,
@@ -111,7 +140,8 @@ export function MyBestAuntieBookingModal({
     return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');
   }, [activePartRows]);
   const selectedCohortDate = selectedCohort?.dates[0]?.start_datetime?.split('T')[0] ?? '';
-  const selectedCohortDateLabel = selectedCohort?.dateLabel ?? '';
+  const selectedCohortDateLabelText =
+    selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '');
   const selectedVenueName = '';
   const selectedVenueAddress = selectedCohort?.address ?? '';
   const selectedVenueDirectionHref = selectedCohort?.address_url ?? '#';
@@ -151,7 +181,7 @@ export function MyBestAuntieBookingModal({
               locale={locale}
               content={content}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
-              selectedCohortDateLabel={selectedCohortDateLabel}
+              selectedCohortDateLabel={selectedCohortDateLabelText}
               selectedCohortDate={selectedCohortDate}
               selectedCohortPrice={originalAmount}
               scheduleTimeLabel={selectedTimeLabel}

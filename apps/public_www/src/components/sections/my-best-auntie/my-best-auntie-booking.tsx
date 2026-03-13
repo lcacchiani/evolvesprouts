@@ -72,6 +72,53 @@ function formatCohortPreviewLabel(value: string): string {
   return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
 }
 
+const COHORT_VALUE_PATTERN = /^(\d{2})-(\d{2})$/;
+
+function parseCohortValue(value: string): { monthIndex: number; year: number } | null {
+  const trimmedValue = value.trim();
+  const match = COHORT_VALUE_PATTERN.exec(trimmedValue);
+  if (!match) {
+    return null;
+  }
+
+  const monthNumber = Number(match[1]);
+  const yearSuffix = Number(match[2]);
+  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    return null;
+  }
+
+  if (!Number.isInteger(yearSuffix)) {
+    return null;
+  }
+
+  return {
+    monthIndex: monthNumber - 1,
+    year: 2000 + yearSuffix,
+  };
+}
+
+function formatCohortValue(value: string): string {
+  const parsed = parseCohortValue(value);
+  if (!parsed) {
+    return value;
+  }
+
+  const monthLabel = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(parsed.year, parsed.monthIndex, 1)));
+  return `${monthLabel}, ${parsed.year}`;
+}
+
+function getCohortSortValue(value: string): number {
+  const parsed = parseCohortValue(value);
+  if (!parsed) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return parsed.year * 100 + (parsed.monthIndex + 1);
+}
+
 function formatNextCohortLabel(
   scheduleLabel: string,
   ageGroupLabel: string,
@@ -156,7 +203,13 @@ function sortCohortsByPrimarySession(
     return dateDifference;
   }
 
-  return leftCohort.dateLabel.localeCompare(rightCohort.dateLabel);
+  const cohortDifference = getCohortSortValue(leftCohort.cohort) -
+    getCohortSortValue(rightCohort.cohort);
+  if (cohortDifference !== 0) {
+    return cohortDifference;
+  }
+
+  return leftCohort.id.localeCompare(rightCohort.id);
 }
 
 function findPreferredCohortId(
@@ -231,7 +284,7 @@ export function MyBestAuntieBooking({
   });
   const dateOptions: BookingDateOption[] = cohortsForSelectedAge.map((cohort) => ({
     id: cohort.id,
-    label: cohort.dateLabel,
+    label: formatCohortValue(cohort.cohort),
     availabilityLabel: formatSpacesLeftLabel(
       cohort.spaces_left,
       content.spacesLeftLabelTemplate,
@@ -489,6 +542,7 @@ export function MyBestAuntieBooking({
           locale={locale}
           content={content.paymentModal}
           selectedCohort={selectedCohort}
+          selectedCohortDateLabel={selectedDateOption?.label ?? ''}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
           onClose={() => {
             setIsPaymentModalOpen(false);
