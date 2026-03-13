@@ -81,7 +81,6 @@ describe('PastEvents section', () => {
                 end_datetime: '2024-02-01T10:00:00Z',
               },
             ],
-            timezone: 'HKT',
             is_fully_booked: true,
           },
         ],

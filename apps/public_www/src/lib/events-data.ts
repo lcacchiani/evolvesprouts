@@ -38,9 +38,9 @@ export interface EventCardData {
 }
 
 const UK_EVENTS_LOCALE = 'en-GB';
-const UK_TIME_ZONE = 'Europe/London';
 const DATE_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 const TIME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
+const TIME_ZONE_NAME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 
 function resolveEventsLocale(locale?: string): SupportedLocale {
   if (locale === 'zh-CN' || locale === 'zh-HK') {
@@ -86,7 +86,6 @@ function getDateFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
-    timeZone: UK_TIME_ZONE,
   });
   DATE_FORMATTER_CACHE.set(formatterKey, nextFormatter);
   return nextFormatter;
@@ -105,15 +104,29 @@ function getTimeFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
           hour: '2-digit',
           minute: '2-digit',
           hour12: false,
-          timeZone: UK_TIME_ZONE,
         })
       : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true,
-          timeZone: UK_TIME_ZONE,
         });
   TIME_FORMATTER_CACHE.set(formatterKey, nextFormatter);
+  return nextFormatter;
+}
+
+function getTimeZoneNameFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
+  const formatterKey = locale;
+  const cachedFormatter = TIME_ZONE_NAME_FORMATTER_CACHE.get(formatterKey);
+  if (cachedFormatter) {
+    return cachedFormatter;
+  }
+
+  const nextFormatter = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
+  TIME_ZONE_NAME_FORMATTER_CACHE.set(formatterKey, nextFormatter);
   return nextFormatter;
 }
 
@@ -187,6 +200,20 @@ function formatUtcTimeLabel(isoDateTime: string, locale: SupportedLocale): strin
   return getTimeFormatter(locale).format(date);
 }
 
+function formatUtcTimeZoneLabel(isoDateTime: string, locale: SupportedLocale): string {
+  const date = new Date(isoDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const timeZoneNamePart = getTimeZoneNameFormatter(locale)
+    .formatToParts(date)
+    .find((part) => part.type === 'timeZoneName')
+    ?.value;
+
+  return readOptionalText(timeZoneNamePart) ?? '';
+}
+
 function appendTimeZoneLabel(
   timeLabel: string | undefined,
   timeZoneLabel: string | undefined,
@@ -240,11 +267,6 @@ function resolveDateTimeDetails(
     'endDateTime',
     'end',
   ]);
-  const timeZoneLabel = readCandidateText(firstDateRecord, [
-    'timezone',
-    'timeZone',
-    'tz',
-  ]);
 
   if (!startDateTime) {
     return { timestamp: null };
@@ -257,6 +279,7 @@ function resolveDateTimeDetails(
     startTimeLabel && endTimeLabel
       ? `${startTimeLabel} - ${endTimeLabel}`
       : startTimeLabel;
+  const timeZoneLabel = formatUtcTimeZoneLabel(startDateTime, locale);
 
   return {
     dateLabel: dateLabel || undefined,
@@ -630,9 +653,7 @@ function normalizeEventCard(
     'startTimeLabel',
     'timeDisplay',
   ]) ?? dateTimeDetails.timeLabel;
-  const timeZoneLabel =
-    readCandidateText(record, ['timezone', 'timeZone', 'tz'])
-    ?? dateTimeDetails.timeZoneLabel;
+  const timeZoneLabel = dateTimeDetails.timeZoneLabel;
   const timeLabel = appendTimeZoneLabel(rawTimeLabel, timeZoneLabel);
 
   const timestamp =
