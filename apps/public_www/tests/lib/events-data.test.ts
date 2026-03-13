@@ -244,7 +244,7 @@ describe('events-data', () => {
       temporaryEventsPayload.data.length + myBestAuntieTrainingCourseContent.data.length;
 
     expect(events).toHaveLength(expectedMergedLength);
-    expect(events.some((event) => event.id === 'spring-stem-discovery-lab-2030')).toBe(true);
+    expect(events.some((event) => event.id === 'bimbo-concept-weaning-2026-03-20')).toBe(true);
     expect(events.some((event) => event.id === 'my-best-auntie-0-1-04-26')).toBe(true);
   });
 
