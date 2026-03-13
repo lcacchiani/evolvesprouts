@@ -206,11 +206,11 @@ export function EventCardsList({
                 <span className='es-icon-circle-lg'>
                   <span
                     data-event-location-icon='true'
-                    className={`${eventCard.isVirtualEvent ? 'es-mask-virtual-call-danger' : 'es-mask-location-danger'} h-[46px] w-[46px] shrink-0`}
+                    className={`${eventCard.isVirtualEvent ? 'es-mask-virtual-call-danger h-[30px] w-[30px]' : 'es-mask-location-danger h-[46px] w-[46px]'} shrink-0`}
                     aria-hidden='true'
                   />
                 </span>
-                <div>
+                <div className='self-center'>
                   <p className='text-lg font-semibold leading-6 es-text-heading'>
                     {eventCard.locationName ?? content.card.emptyLocationLabel}
                   </p>
