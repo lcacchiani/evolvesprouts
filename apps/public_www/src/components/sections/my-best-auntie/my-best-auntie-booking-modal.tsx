@@ -47,6 +47,33 @@ interface MyBestAuntieBookingModalProps {
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
 
+function formatPartDateTimeLabel(startDateTime: string): string {
+  const date = new Date(startDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const month = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(date);
+  const day = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    timeZone: 'UTC',
+  }).format(date);
+  const time = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .replace(' AM', ' am')
+    .replace(' PM', ' pm');
+
+  return `${month} ${day} @ ${time}`;
+}
+
 export function MyBestAuntieBookingModal({
   locale = 'en',
   content,
@@ -72,9 +99,9 @@ export function MyBestAuntieBookingModal({
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
     const summaries = content.partSummaries ?? [];
-    return (selectedCohort?.sessions ?? []).map((part, index) => {
+    return (selectedCohort?.dates ?? []).map((part, index) => {
       return {
-        date: part.dateTimeLabel,
+        date: formatPartDateTimeLabel(part.start_datetime),
         description: summaries[index] ?? '',
       };
     });
@@ -83,11 +110,11 @@ export function MyBestAuntieBookingModal({
   const selectedTimeLabel = useMemo(() => {
     return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');
   }, [activePartRows]);
-  const selectedCohortDate = selectedCohort?.sessions[0]?.isoDate ?? '';
+  const selectedCohortDate = selectedCohort?.dates[0]?.start_datetime?.split('T')[0] ?? '';
   const selectedCohortDateLabel = selectedCohort?.dateLabel ?? '';
-  const selectedVenueName = selectedCohort?.venue.name ?? '';
-  const selectedVenueAddress = selectedCohort?.venue.address ?? '';
-  const selectedVenueDirectionHref = selectedCohort?.venue.directionHref ?? '#';
+  const selectedVenueName = '';
+  const selectedVenueAddress = selectedCohort?.address ?? '';
+  const selectedVenueDirectionHref = selectedCohort?.address_url ?? '#';
 
   return (
     <ModalOverlay

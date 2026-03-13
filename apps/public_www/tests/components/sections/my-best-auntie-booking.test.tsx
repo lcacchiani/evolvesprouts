@@ -32,40 +32,70 @@ function formatCohortPreviewLabel(value: string): string {
   return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
 }
 
+function formatPartDateTimeLabel(startDateTime: string): string {
+  const date = new Date(startDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const month = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(date);
+  const day = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    timeZone: 'UTC',
+  }).format(date);
+  const time = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .replace(' AM', ' am')
+    .replace(' PM', ' pm');
+
+  return `${month} ${day} @ ${time}`;
+}
+
 function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): string {
   return `${scheduleLabel} for ${ageGroupLabel} age group`;
 }
 
 type BookingContent = typeof enContent.myBestAuntie.booking & {
-  cohorts: typeof trainingCoursesContent.cohorts;
+  cohorts: typeof trainingCoursesContent.data;
 };
 type BookingCohort = BookingContent['cohorts'][number];
 
 const bookingContent = {
   ...enContent.myBestAuntie.booking,
-  cohorts: trainingCoursesContent.cohorts,
+  cohorts: trainingCoursesContent.data,
 } as BookingContent;
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
-    .filter((cohort) => cohort.ageGroupId === ageGroupId)
+    .filter((cohort) => cohort.age_group_id === ageGroupId)
     .sort((left, right) => {
-      const leftDate = Date.parse(`${left.sessions[0]?.isoDate ?? ''}T00:00:00Z`);
-      const rightDate = Date.parse(`${right.sessions[0]?.isoDate ?? ''}T00:00:00Z`);
+      const leftDate = Date.parse(left.dates[0]?.start_datetime ?? '');
+      const rightDate = Date.parse(right.dates[0]?.start_datetime ?? '');
       return leftDate - rightDate;
     });
 }
 
 function getPrimarySessionDateTimeLabel(cohort: BookingCohort): string {
-  return cohort.sessions[0]?.dateTimeLabel ?? '';
+  return formatPartDateTimeLabel(cohort.dates[0]?.start_datetime ?? '');
 }
 
 function formatCohortPrice(cohort: BookingCohort): string {
-  return new Intl.NumberFormat('en-HK', {
-    style: 'currency',
-    currency: cohort.priceCurrency,
+  return `${cohort.currency_symbol}${new Intl.NumberFormat('en-HK', {
+    useGrouping: true,
     maximumFractionDigits: 0,
-  }).format(cohort.price);
+  }).format(cohort.price)}`;
+}
+
+function formatSpacesLeftLabel(count: number): string {
+  return bookingContent.spacesLeftLabelTemplate.replace('{count}', String(count));
 }
 
 describe('MyBestAuntieBooking section', () => {
@@ -182,7 +212,7 @@ describe('MyBestAuntieBooking section', () => {
       JSON.stringify(bookingContent),
     ) as BookingContent;
     contentWithoutThreeToSix.cohorts = contentWithoutThreeToSix.cohorts.filter((cohort) => {
-      return cohort.ageGroupId !== '3-6';
+      return cohort.age_group_id !== '3-6';
     });
 
     render(<MyBestAuntieBooking locale='en' content={contentWithoutThreeToSix} />);
@@ -248,7 +278,9 @@ describe('MyBestAuntieBooking section', () => {
     expect(dateLine?.className).toContain('justify-center');
     expect(availabilityLine?.className).toContain('text-center');
     expect(dateLine?.textContent).toContain(secondDateOption.dateLabel);
-    expect(availabilityLine?.textContent).toContain(secondDateOption.spacesLeftText);
+    expect(availabilityLine?.textContent).toContain(
+      formatSpacesLeftLabel(secondDateOption.spaces_left),
+    );
 
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Scroll dates right')).not.toBeInTheDocument();
@@ -326,67 +358,73 @@ describe('MyBestAuntieBooking section', () => {
     extendedBookingContent.cohorts.push(
       {
         id: '0-1-aug-2026',
-        ageGroupId: '0-1',
+        age_group_id: '0-1',
+        title: 'My Best Auntie Training Course 0-1',
+        description: 'TBD',
         dateLabel: 'Aug, 2026',
-        spacesTotal: 24,
-        spacesLeftText: '8 spots left',
-        isSoldOut: false,
+        spaces_total: 24,
+        spaces_left: 8,
+        is_fully_booked: false,
         price: 9000,
-        priceCurrency: 'HKD',
-        venue: {
-          name: 'Goldwin Heights',
-          address: '2 Seymour Road, Mid-Levels, Hong Kong',
-          directionHref:
-            'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
-        },
-        sessions: [
+        currency_symbol: 'HK$',
+        location: 'physical',
+        timezone: 'HKT',
+        tags: [],
+        categories: ['Training Course'],
+        address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
+        address_url:
+          'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
+        dates: [
           {
             id: 'part-1',
-            dateTimeLabel: 'Aug 09 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-08-09',
+            start_datetime: '2026-08-09T12:00:00Z',
+            end_datetime: '2026-08-09T14:00:00Z',
           },
           {
             id: 'part-2',
-            dateTimeLabel: 'Aug 16 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-08-16',
+            start_datetime: '2026-08-16T12:00:00Z',
+            end_datetime: '2026-08-16T14:00:00Z',
           },
           {
             id: 'part-3',
-            dateTimeLabel: 'Aug 23 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-08-23',
+            start_datetime: '2026-08-23T12:00:00Z',
+            end_datetime: '2026-08-23T14:00:00Z',
           },
         ],
       },
       {
         id: '0-1-sep-2026',
-        ageGroupId: '0-1',
+        age_group_id: '0-1',
+        title: 'My Best Auntie Training Course 0-1',
+        description: 'TBD',
         dateLabel: 'Sep, 2026',
-        spacesTotal: 24,
-        spacesLeftText: '4 spots left',
-        isSoldOut: false,
+        spaces_total: 24,
+        spaces_left: 4,
+        is_fully_booked: false,
         price: 9000,
-        priceCurrency: 'HKD',
-        venue: {
-          name: 'Goldwin Heights',
-          address: '2 Seymour Road, Mid-Levels, Hong Kong',
-          directionHref:
-            'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
-        },
-        sessions: [
+        currency_symbol: 'HK$',
+        location: 'physical',
+        timezone: 'HKT',
+        tags: [],
+        categories: ['Training Course'],
+        address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
+        address_url:
+          'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
+        dates: [
           {
             id: 'part-1',
-            dateTimeLabel: 'Sep 09 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-09-09',
+            start_datetime: '2026-09-09T12:00:00Z',
+            end_datetime: '2026-09-09T14:00:00Z',
           },
           {
             id: 'part-2',
-            dateTimeLabel: 'Sep 16 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-09-16',
+            start_datetime: '2026-09-16T12:00:00Z',
+            end_datetime: '2026-09-16T14:00:00Z',
           },
           {
             id: 'part-3',
-            dateTimeLabel: 'Sep 23 @ 12:00 pm - 2:00 pm',
-            isoDate: '2026-09-23',
+            start_datetime: '2026-09-23T12:00:00Z',
+            end_datetime: '2026-09-23T14:00:00Z',
           },
         ],
       },
@@ -457,7 +495,7 @@ describe('MyBestAuntieBooking section', () => {
     const soldOutCohort = soldOutContent.cohorts.find(
       (cohort) => cohort.id === '0-1-may-2026',
     );
-    expect(soldOutCohort?.isSoldOut).toBe(true);
+    expect(soldOutCohort?.is_fully_booked).toBe(true);
 
     render(<MyBestAuntieBooking locale='en' content={soldOutContent} />);
 
@@ -479,7 +517,7 @@ describe('MyBestAuntieBooking section', () => {
     expect(stampText.className).toContain('es-cohort-sold-out-stamp-text');
 
     const firstAvailableCohort = getCohortsForAge(soldOutContent, '0-1').find(
-      (cohort) => !cohort.isSoldOut,
+      (cohort) => !cohort.is_fully_booked,
     );
     expect(firstAvailableCohort).toBeDefined();
     expect(

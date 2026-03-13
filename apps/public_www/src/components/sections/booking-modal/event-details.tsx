@@ -180,9 +180,11 @@ export function BookingEventDetails({
               />
             </span>
             <div>
-              <p className='text-lg font-semibold leading-6 es-text-heading'>
-                {venueName}
-              </p>
+              {venueName ? (
+                <p className='text-lg font-semibold leading-6 es-text-heading'>
+                  {venueName}
+                </p>
+              ) : null}
               <p className='mt-1 text-base font-semibold leading-6 es-text-heading'>
                 {venueAddress}
               </p>
