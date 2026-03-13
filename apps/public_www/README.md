@@ -30,6 +30,42 @@ domains for navigation:
 - `tests/lib/**`
 - `tests/content/**`
 
+## Content-key-driven naming convention
+
+For `public_www`, content key paths are the source of truth for section naming.
+
+- Content key segments use lowerCamelCase.
+ - Examples:
+  - `aboutUs.hero`
+  - `aboutUs.intro`
+  - `aboutUs.myHistory`
+  - `aboutUs.myJourney`
+  - `aboutUs.whyUs`
+  - `contactUs.form`
+  - `contactUs.faq`
+  - `myBestAuntie.hero`
+  - `myBestAuntie.outline`
+  - `myBestAuntie.booking`
+  - `myBestAuntie.description`
+  - `events.notification`
+
+Derive section names from the content key path:
+
+- Component name: PascalCase path segments
+- Section file name: kebab-case path segments
+- `SectionShell` `id` and `dataFigmaNode`: same kebab-case key
+
+Examples:
+
+| Content key path | Component name | Section file | SectionShell id / dataFigmaNode |
+|---|---|---|---|
+| `content.aboutUs.whyUs` | `AboutUsWhyUs` | `about-us-why-us.tsx` | `about-us-why-us` |
+| `content.aboutUs.intro` | `AboutUsIntro` | `about-us-intro.tsx` | `about-us-intro` |
+| `content.contactUs.faq` | `ContactUsFaq` | `contact-us-faq.tsx` | `contact-us-faq` |
+| `content.contactUs.form` | `ContactUsForm` | `contact-us-form.tsx` | `contact-us-form` |
+
+Avoid legacy contact keys (`contactUs.contactUsForm`, `contactUs.contactFaq`).
+
 ## Figma token scaffolding
 
 The app can consume design tokens from Figma:

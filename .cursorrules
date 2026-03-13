@@ -258,6 +258,41 @@ repo root
 - Mirror source domains in tests (`tests/components/**`, `tests/lib/**`,
   `tests/content/**`) to keep navigation predictable.
 
+### Public WWW content-key naming convention (MANDATORY for `apps/public_www/**`)
+
+- Treat `apps/public_www/src/content/*.json` key paths as the source of truth
+  for section naming.
+- Content key segments must use lowerCamelCase.
+ - Required examples:
+  - `aboutUs.hero`
+  - `aboutUs.intro`
+  - `aboutUs.myHistory`
+  - `aboutUs.myJourney`
+  - `aboutUs.whyUs`
+  - `contactUs.form`
+  - `contactUs.faq`
+  - `myBestAuntie.hero`
+  - `myBestAuntie.outline`
+  - `myBestAuntie.booking`
+  - `myBestAuntie.description`
+  - `events.notification`
+- Build section component names from content key paths using PascalCase.
+ - Examples:
+  - `content.aboutUs.whyUs` -> `AboutUsWhyUs`
+  - `content.contactUs.faq` -> `ContactUsFaq`
+- Build section file names from content key paths using kebab-case and place
+  them under `apps/public_www/src/components/sections/**`.
+ - Examples:
+  - `AboutUsWhyUs` -> `about-us-why-us.tsx`
+  - `ContactUsFaq` -> `contact-us-faq.tsx`
+- `SectionShell` identifiers must match the section file key in kebab-case.
+ - Set both `id` and `dataFigmaNode` to the same normalized value.
+ - Example:
+  - `about-us-why-us.tsx` uses `id='about-us-why-us'` and
+    `dataFigmaNode='about-us-why-us'`.
+- Do not introduce or reuse legacy contact key names
+  (`contactUs.contactUsForm`, `contactUs.contactFaq`).
+
 ## React/Redux guidance (when Redux is used)
 
 - Use Redux Toolkit patterns (`createSlice`, `createAsyncThunk`).
