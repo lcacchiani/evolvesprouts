@@ -144,9 +144,8 @@ const reservationSummary: ReservationSummary = {
   ageGroup: '1-3',
   paymentMethod: 'Pay via FPS QR',
   totalAmount: 9000,
-  courseLabel: 'My Best Auntie',
-  scheduleDateLabel: 'Apr, 2026',
-  scheduleTimeLabel: '12:00 pm - 2:00 pm',
+  eventTitle: 'My Best Auntie',
+  dateStartTime: '2026-04-08T12:00:00Z',
 };
 
 if (!selectedCohort) {
@@ -956,7 +955,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${thankYouModalContent.trainingPrefix}${reservationSummary.courseLabel}`,
+        `${thankYouModalContent.trainingPrefix}${reservationSummary.eventTitle}`,
       ),
     ).toBeInTheDocument();
     expect(

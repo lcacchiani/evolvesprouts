@@ -26,9 +26,8 @@ interface BookingReservationFormProps {
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedAgeGroupLabel: string;
   selectedCohortDateLabel: string;
-  selectedCohortDate: string;
+  selectedDateStartTime: string;
   selectedCohortPrice: number;
-  scheduleTimeLabel: string;
   descriptionId: string;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -81,9 +80,8 @@ export function BookingReservationForm({
   content,
   selectedAgeGroupLabel,
   selectedCohortDateLabel,
-  selectedCohortDate,
+  selectedDateStartTime,
   selectedCohortPrice,
-  scheduleTimeLabel,
   descriptionId,
   onSubmitReservation,
 }: BookingReservationFormProps) {
@@ -207,9 +205,8 @@ export function BookingReservationForm({
         getPaymentMethodLabel(content, selectedPaymentMethod),
       ),
       totalAmount,
-      courseLabel: sanitizeSingleLineValue(content.title),
-      scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel),
-      scheduleTimeLabel: sanitizeSingleLineValue(scheduleTimeLabel),
+      eventTitle: sanitizeSingleLineValue(content.title),
+      dateStartTime: sanitizeSingleLineValue(selectedDateStartTime) || undefined,
     };
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
@@ -217,8 +214,9 @@ export function BookingReservationForm({
       return;
     }
 
+    const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
     const normalizedCohortDate =
-      sanitizeSingleLineValue(selectedCohortDate) ||
+      (normalizedStartDateTime.split('T')[0] ?? '') ||
       sanitizeSingleLineValue(selectedCohortDateLabel);
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,

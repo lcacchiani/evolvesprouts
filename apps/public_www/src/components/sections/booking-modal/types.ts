@@ -6,7 +6,6 @@ export interface ReservationSummary {
   cohort?: string;
   paymentMethod: string;
   totalAmount: number;
-  courseLabel: string;
-  scheduleDateLabel?: string;
-  scheduleTimeLabel?: string;
+  eventTitle: string;
+  dateStartTime?: string;
 }
