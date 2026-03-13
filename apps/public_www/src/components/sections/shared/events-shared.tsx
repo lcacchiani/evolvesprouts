@@ -210,7 +210,7 @@ export function EventCardsList({
                     aria-hidden='true'
                   />
                 </span>
-                <div>
+                <div className='self-center'>
                   <p className='text-lg font-semibold leading-6 es-text-heading'>
                     {eventCard.locationName ?? content.card.emptyLocationLabel}
                   </p>
