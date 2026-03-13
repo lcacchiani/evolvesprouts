@@ -11,7 +11,7 @@ export interface ContactMethodLinkItem {
 }
 
 interface ContactMethodListProps {
-  title: ContactUsContent['contactUsForm']['contactMethodsTitle'];
+  title: ContactUsContent['form']['contactMethodsTitle'];
   methods: readonly ContactMethodLinkItem[];
 }
 

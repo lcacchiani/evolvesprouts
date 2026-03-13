@@ -1,13 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ContactFaq } from '@/components/sections/contact-faq';
+import { ContactUsFaq } from '@/components/sections/contact-faq';
 import enContent from '@/content/en.json';
 
-describe('ContactFaq', () => {
+describe('ContactUsFaq', () => {
   it('renders contact faq section with two cards', () => {
-    const content = enContent.contactUs.contactFaq;
-    const { container } = render(<ContactFaq content={content} />);
+    const content = enContent.contactUs.faq;
+    const { container } = render(<ContactUsFaq content={content} />);
 
     const section = screen.getByRole('region', {
       name: content.title,

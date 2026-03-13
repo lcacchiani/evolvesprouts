@@ -3,7 +3,7 @@ import { PageLayout } from '@/components/shared/page-layout';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
 import { RealTalk } from '@/components/sections/real-talk';
 import { HeroBanner } from '@/components/sections/hero-banner';
-import { IdaIntro } from '@/components/sections/ida-intro';
+import { AboutUsIntro } from '@/components/sections/ida-intro';
 import { MyBestAuntieOutline } from '@/components/sections/my-best-auntie/my-best-auntie-outline';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { localizeHref } from '@/lib/locale-routing';
@@ -56,7 +56,7 @@ export function HomePageSections({ locale, content }: HomePageSectionsProps) {
         content={content.realTalk}
         commonAccessibility={content.common.accessibility}
       />
-      <IdaIntro content={content.aboutUs.intro} />
+      <AboutUsIntro content={content.aboutUs.intro} />
       <MyBestAuntieOutline
         content={content.myBestAuntie.outline}
         ctaHref={myBestAuntieOutlineCtaHref}

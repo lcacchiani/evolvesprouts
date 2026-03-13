@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { MyJourney } from '@/components/sections/my-journey';
+import { AboutUsMyJourney } from '@/components/sections/my-journey';
 import enContent from '@/content/en.json';
 
 vi.mock('next/image', () => ({
@@ -18,9 +18,9 @@ vi.mock('next/image', () => ({
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 
-describe('MyJourney section', () => {
+describe('AboutUsMyJourney section', () => {
   it('uses migrated overlay/card classes and renders the local journey image', () => {
-    render(<MyJourney content={enContent.aboutUs.myJourney} />);
+    render(<AboutUsMyJourney content={enContent.aboutUs.myJourney} />);
 
     const section = screen.getByRole('region', {
       name: enContent.aboutUs.myJourney.title,

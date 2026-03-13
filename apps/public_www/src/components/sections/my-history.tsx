@@ -7,11 +7,11 @@ import {
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { MyHistoryContent } from '@/content';
+import type { AboutUsMyHistoryContent } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 
-interface MyHistoryProps {
-  content: MyHistoryContent;
+interface AboutUsMyHistoryProps {
+  content: AboutUsMyHistoryContent;
 }
 
 function buildMobileImageAnchorIndexes(
@@ -31,7 +31,7 @@ function buildMobileImageAnchorIndexes(
   });
 }
 
-export function MyHistory({ content }: MyHistoryProps) {
+export function AboutUsMyHistory({ content }: AboutUsMyHistoryProps) {
   const storyParagraphs = content.description
     .split(/\n\s*\n/g)
     .map((paragraph) => paragraph.trim())
@@ -56,9 +56,9 @@ export function MyHistory({ content }: MyHistoryProps) {
 
   return (
     <SectionShell
-      id='my-history'
+      id='about-us-my-history'
       ariaLabel={content.title}
-      dataFigmaNode='my-history'
+      dataFigmaNode='about-us-my-history'
       className='es-section-bg-overlay es-my-history-section'
     >
       <SectionContainer

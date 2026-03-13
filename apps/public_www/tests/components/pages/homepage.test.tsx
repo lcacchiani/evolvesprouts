@@ -72,8 +72,8 @@ vi.mock('@/components/sections/real-talk', () => ({
   ),
 }));
 vi.mock('@/components/sections/ida-intro', () => ({
-  IdaIntro: ({ content }: { content: { title: string; description: string } }) => (
-    <section data-testid='ida-intro'>
+  AboutUsIntro: ({ content }: { content: { title: string; description: string } }) => (
+    <section data-testid='about-us-intro'>
       <h2>{content.title}</h2>
       <p>{content.description}</p>
     </section>
@@ -116,7 +116,7 @@ describe('HomePageSections', () => {
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('hero-banner')).toBeInTheDocument();
     expect(screen.getByTestId('real-talk')).toBeInTheDocument();
-    expect(screen.getByTestId('ida-intro')).toBeInTheDocument();
+    expect(screen.getByTestId('about-us-intro')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-outline')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe('HomePageSections', () => {
 
     const heroElement = screen.getByTestId('hero-banner');
     const realTalkElement = screen.getByTestId('real-talk');
-    const idaIntroElement = screen.getByTestId('ida-intro');
+    const idaIntroElement = screen.getByTestId('about-us-intro');
     expect(heroElement.compareDocumentPosition(realTalkElement)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );

@@ -1,8 +1,8 @@
 import type { ContactUsContent } from '@/content';
 
 interface ContactFormSuccessProps {
-  title: ContactUsContent['contactUsForm']['successTitle'];
-  description: ContactUsContent['contactUsForm']['successDescription'];
+  title: ContactUsContent['form']['successTitle'];
+  description: ContactUsContent['form']['successDescription'];
 }
 
 export function ContactFormSuccess({ title, description }: ContactFormSuccessProps) {

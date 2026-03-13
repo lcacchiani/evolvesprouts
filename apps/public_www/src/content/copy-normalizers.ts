@@ -2,7 +2,7 @@ import type {
   EventNotificationContent,
   FreeIntroSessionContent,
   HeroContent,
-  IdaIntroContent,
+  AboutUsIntroContent,
   MyBestAuntieHeroContent,
   SiteContent,
   SproutsSquadCommunityContent,
@@ -36,17 +36,17 @@ export function resolveHeroCopy(content: HeroContent): SectionCopy {
   };
 }
 
-export function resolveIdaIntroCopy(content: IdaIntroContent): Pick<SectionCopy, 'title' | 'description'> {
+export function resolveAboutUsIntroCopy(content: AboutUsIntroContent): Pick<SectionCopy, 'title' | 'description'> {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: readRequiredText(record, 'title', 'idaIntro'),
-    description: readRequiredText(record, 'description', 'idaIntro'),
+    title: readRequiredText(record, 'title', 'aboutUs.intro'),
+    description: readRequiredText(record, 'description', 'aboutUs.intro'),
   };
 }
 
 export function resolveMyBestAuntieHeroDescription(content: MyBestAuntieHeroContent): string {
   const record = content as unknown as Record<string, unknown>;
-  return readRequiredText(record, 'description', 'myBestAuntieHero');
+  return readRequiredText(record, 'description', 'myBestAuntie.hero');
 }
 
 export function resolveSproutsSquadCommunityCopy(

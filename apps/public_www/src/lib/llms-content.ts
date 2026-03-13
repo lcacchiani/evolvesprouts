@@ -51,7 +51,7 @@ function resolvePageDescriptors(content: SiteContent): PageDescriptor[] {
     {
       label: 'Contact Us',
       path: ROUTES.contact,
-      description: content.contactUs.contactUsForm.description,
+      description: content.contactUs.form.description,
     },
   ];
 }

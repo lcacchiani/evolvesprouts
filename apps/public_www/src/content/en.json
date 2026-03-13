@@ -291,7 +291,7 @@
     }
   },
   "contactUs": {
-    "contactUsForm": {
+    "form": {
       "title": "Got a Question? Let's Talk",
       "description": "Not sure if the course is right for your family? Want to know more before you commit? Or just need to talk through what's happening at home? I'm here - no pressure, no pitch.",
       "contactMethodsTitle": "Prefer WhatsApp? Most parents do. Message me directly and I'll reply within 24 hours.",
@@ -316,7 +316,7 @@
       "emailValidationError": "Please enter a valid email address.",
       "phoneValidationError": "Please enter a valid phone number."
     },
-    "contactFaq": {
+    "faq": {
       "title": "FAQ",
       "cards": [
         {

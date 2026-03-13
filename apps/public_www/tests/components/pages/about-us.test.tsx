@@ -11,23 +11,23 @@ vi.mock('@/components/shared/page-layout', () => ({
   ),
 }));
 vi.mock('@/components/sections/ida', () => ({
-  Ida: ({ content }: { content: { title: string } }) => (
-    <section data-testid='ida'>{content.title}</section>
+  AboutUsHero: ({ content }: { content: { title: string } }) => (
+    <section data-testid='about-us-hero'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/my-history', () => ({
-  MyHistory: ({ content }: { content: { title: string } }) => (
-    <section data-testid='my-history'>{content.title}</section>
+  AboutUsMyHistory: ({ content }: { content: { title: string } }) => (
+    <section data-testid='about-us-my-history'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/my-journey', () => ({
-  MyJourney: ({ content }: { content: { title: string } }) => (
-    <section data-testid='my-journey'>{content.title}</section>
+  AboutUsMyJourney: ({ content }: { content: { title: string } }) => (
+    <section data-testid='about-us-my-journey'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/why-us', () => ({
-  WhyUs: ({ content }: { content: { title: string } }) => (
-    <section data-testid='why-us'>{content.title}</section>
+  AboutUsWhyUs: ({ content }: { content: { title: string } }) => (
+    <section data-testid='about-us-why-us'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/deferred-testimonials', () => ({
@@ -46,10 +46,10 @@ describe('AboutUs page', () => {
     render(<AboutUs locale='en' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
-    expect(screen.getByTestId('ida')).toBeInTheDocument();
-    expect(screen.getByTestId('my-history')).toBeInTheDocument();
-    expect(screen.getByTestId('my-journey')).toBeInTheDocument();
-    expect(screen.getByTestId('why-us')).toBeInTheDocument();
+    expect(screen.getByTestId('about-us-hero')).toBeInTheDocument();
+    expect(screen.getByTestId('about-us-my-history')).toBeInTheDocument();
+    expect(screen.getByTestId('about-us-my-journey')).toBeInTheDocument();
+    expect(screen.getByTestId('about-us-why-us')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('sprouts-squad-community')).toBeInTheDocument();
     expect(screen.getByText(enContent.aboutUs.hero.title)).toBeInTheDocument();

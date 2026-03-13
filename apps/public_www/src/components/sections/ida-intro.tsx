@@ -8,23 +8,23 @@ import {
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { renderHighlightedText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import { resolveIdaIntroCopy } from '@/content/copy-normalizers';
-import type { IdaIntroContent } from '@/content';
+import { resolveAboutUsIntroCopy } from '@/content/copy-normalizers';
+import type { AboutUsIntroContent } from '@/content';
 
-interface IdaIntroProps {
-  content: IdaIntroContent;
+interface AboutUsIntroProps {
+  content: AboutUsIntroContent;
 }
 
 const IDA_INTRO_CTA_CLASSNAME = 'mt-auto max-w-[360px] es-btn--outline';
 
-export function IdaIntro({ content }: IdaIntroProps) {
-  const copy = resolveIdaIntroCopy(content);
+export function AboutUsIntro({ content }: AboutUsIntroProps) {
+  const copy = resolveAboutUsIntroCopy(content);
 
   return (
     <SectionShell
-      id='ida-intro'
+      id='about-us-intro'
       ariaLabel={copy.title}
-      dataFigmaNode='ida-intro'
+      dataFigmaNode='about-us-intro'
       className='es-ida-section es-ida-intro-section overflow-hidden'
     >
       <SectionContainer

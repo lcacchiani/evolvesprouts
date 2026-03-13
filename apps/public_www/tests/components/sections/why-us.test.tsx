@@ -1,12 +1,12 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { WhyUs } from '@/components/sections/why-us';
+import { AboutUsWhyUs } from '@/components/sections/why-us';
 import enContent from '@/content/en.json';
 
-describe('WhyUs section', () => {
+describe('AboutUsWhyUs section', () => {
   it('uses the section background treatment without the removed split layout', () => {
-    const { container } = render(<WhyUs locale='en' content={enContent.aboutUs.whyUs} />);
+    const { container } = render(<AboutUsWhyUs locale='en' content={enContent.aboutUs.whyUs} />);
 
     const section = screen.getByRole('region', {
       name: enContent.aboutUs.whyUs.title,
@@ -21,7 +21,7 @@ describe('WhyUs section', () => {
   });
 
   it('renders pillar cards and a section-level localized workshops cta', () => {
-    const { container } = render(<WhyUs locale='en' content={enContent.aboutUs.whyUs} />);
+    const { container } = render(<AboutUsWhyUs locale='en' content={enContent.aboutUs.whyUs} />);
 
     const description = screen.getByText(enContent.aboutUs.whyUs.description);
     expect(description.className).toContain('es-section-body');

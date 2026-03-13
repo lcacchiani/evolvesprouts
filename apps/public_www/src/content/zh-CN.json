@@ -291,7 +291,7 @@
     }
   },
   "contactUs": {
-    "contactUsForm": {
+    "form": {
       "title": "让我们一起成长！",
       "description": "你好！无论你想了解蒙特梭利理念、咨询我们的工作坊或培训课程，还是想分享关于儿童发展的想法，我们都非常欢迎。",
       "contactMethodsTitle": "你可以这样联系我们：",
@@ -316,7 +316,7 @@
       "emailValidationError": "请输入有效的邮箱地址。",
       "phoneValidationError": "请输入有效的电话号码。"
     },
-    "contactFaq": {
+    "faq": {
       "title": "FAQ",
       "cards": [
         {

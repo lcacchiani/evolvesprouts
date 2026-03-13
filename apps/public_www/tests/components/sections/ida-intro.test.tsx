@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { IdaIntro } from '@/components/sections/ida-intro';
+import { AboutUsIntro } from '@/components/sections/ida-intro';
 import enContent from '@/content/en.json';
 import zhCNContent from '@/content/zh-CN.json';
 
@@ -17,10 +17,10 @@ vi.mock('next/image', () => ({
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 
-describe('IdaIntro', () => {
+describe('AboutUsIntro', () => {
   it('renders intro copy, CTA, and hero-style image column', () => {
     const content = enContent.aboutUs.intro;
-    render(<IdaIntro content={content} />);
+    render(<AboutUsIntro content={content} />);
 
     const heading = screen.getByRole('heading', { name: content.title });
     expect(heading).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe('IdaIntro', () => {
   });
 
   it('applies locale-specific intro highlight phrase styling', () => {
-    render(<IdaIntro content={zhCNContent.aboutUs.intro} />);
+    render(<AboutUsIntro content={zhCNContent.aboutUs.intro} />);
 
     expect(screen.getByText(zhCNContent.aboutUs.intro.highlightPhrase)).toHaveClass(
       'es-hero-highlight-word',
