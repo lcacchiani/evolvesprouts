@@ -2,7 +2,7 @@ import type { SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { ContactUsForm } from '@/components/sections/contact-us-form';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
-import { ContactUsFaq } from '@/components/sections/contact-faq';
+import { ContactUsFaq } from '@/components/sections/contact-us-faq';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
 interface ContactUsPageSectionsProps {

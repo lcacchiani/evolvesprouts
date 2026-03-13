@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AboutUsIntro } from '@/components/sections/ida-intro';
+import { AboutUsIntro } from '@/components/sections/about-us-intro';
 import enContent from '@/content/en.json';
 import zhCNContent from '@/content/zh-CN.json';
 

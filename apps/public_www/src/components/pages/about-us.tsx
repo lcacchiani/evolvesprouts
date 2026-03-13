@@ -4,11 +4,11 @@ import type {
 } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
-import { AboutUsHero } from '@/components/sections/ida';
-import { AboutUsMyHistory } from '@/components/sections/my-history';
-import { AboutUsMyJourney } from '@/components/sections/my-journey';
+import { AboutUsHero } from '@/components/sections/about-us-hero';
+import { AboutUsMyHistory } from '@/components/sections/about-us-my-history';
+import { AboutUsMyJourney } from '@/components/sections/about-us-my-journey';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
-import { AboutUsWhyUs } from '@/components/sections/why-us';
+import { AboutUsWhyUs } from '@/components/sections/about-us-why-us';
 
 interface AboutUsProps {
   locale: Locale;

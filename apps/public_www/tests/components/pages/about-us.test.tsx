@@ -10,22 +10,22 @@ vi.mock('@/components/shared/page-layout', () => ({
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
-vi.mock('@/components/sections/ida', () => ({
+vi.mock('@/components/sections/about-us-hero', () => ({
   AboutUsHero: ({ content }: { content: { title: string } }) => (
     <section data-testid='about-us-hero'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/my-history', () => ({
+vi.mock('@/components/sections/about-us-my-history', () => ({
   AboutUsMyHistory: ({ content }: { content: { title: string } }) => (
     <section data-testid='about-us-my-history'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/my-journey', () => ({
+vi.mock('@/components/sections/about-us-my-journey', () => ({
   AboutUsMyJourney: ({ content }: { content: { title: string } }) => (
     <section data-testid='about-us-my-journey'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/why-us', () => ({
+vi.mock('@/components/sections/about-us-why-us', () => ({
   AboutUsWhyUs: ({ content }: { content: { title: string } }) => (
     <section data-testid='about-us-why-us'>{content.title}</section>
   ),

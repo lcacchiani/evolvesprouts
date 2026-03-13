@@ -71,7 +71,7 @@ vi.mock('@/components/sections/real-talk', () => ({
     <section data-testid='real-talk'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/ida-intro', () => ({
+vi.mock('@/components/sections/about-us-intro', () => ({
   AboutUsIntro: ({ content }: { content: { title: string; description: string } }) => (
     <section data-testid='about-us-intro'>
       <h2>{content.title}</h2>

@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AboutUsMyJourney } from '@/components/sections/my-journey';
+import { AboutUsMyJourney } from '@/components/sections/about-us-my-journey';
 import enContent from '@/content/en.json';
 
 vi.mock('next/image', () => ({

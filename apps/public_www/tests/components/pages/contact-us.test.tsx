@@ -15,7 +15,7 @@ vi.mock('@/components/sections/contact-us-form', () => ({
     <section data-testid='contact-us-form'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/contact-faq', () => ({
+vi.mock('@/components/sections/contact-us-faq', () => ({
   ContactUsFaq: ({ content }: { content: { title: string } }) => (
     <section data-testid='contact-us-faq'>{content.title}</section>
   ),
