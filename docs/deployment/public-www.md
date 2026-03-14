@@ -53,6 +53,8 @@ Public WWW CRM API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_FPS_MERCHANT_NAME` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_GTM_ID`
+- GitHub variable `NEXT_PUBLIC_GTM_ALLOWED_HOSTS` (optional comma-separated
+  hostname allowlist for runtime GTM gating)
 - GitHub variable `NEXT_PUBLIC_EMAIL`
 - GitHub variable `NEXT_PUBLIC_WHATSAPP_URL`
 - GitHub variable `NEXT_PUBLIC_INSTAGRAM_URL`
@@ -63,6 +65,8 @@ Public WWW CRM API configuration is provided at build time via:
 `NEXT_PUBLIC_SITE_ORIGIN` is resolved automatically in CI from
 `backend/infrastructure/params/production.json` (`PublicWwwDomainName`) to keep
 the website canonical origin aligned with infrastructure domain parameters.
+When `NEXT_PUBLIC_GTM_ALLOWED_HOSTS` is unset, GTM runtime gating defaults to
+the hostname resolved from `NEXT_PUBLIC_SITE_ORIGIN`.
 
 `evolvesprouts-public-www` CloudFront proxies `https://{www-domain}/www/*`
 to the host resolved from `PublicWwwCrmApiBaseUrl` (derived from
