@@ -10,6 +10,7 @@ import { useFormSubmission } from '@/components/sections/shared/use-form-submiss
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
@@ -153,6 +154,13 @@ export function BookingReservationForm({
 
     const normalizedCode = discountCode.trim().toUpperCase();
     if (!normalizedCode) {
+      trackAnalyticsEvent('booking_discount_apply_error', {
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'discount_code',
+        params: {
+          error_type: 'invalid_code',
+        },
+      });
       setDiscountRule(null);
       setDiscountError(content.invalidDiscountLabel);
       return;
@@ -160,6 +168,13 @@ export function BookingReservationForm({
 
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient) {
+      trackAnalyticsEvent('booking_discount_apply_error', {
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'discount_code',
+        params: {
+          error_type: 'service_unavailable',
+        },
+      });
       setDiscountRule(null);
       setDiscountError(content.invalidDiscountLabel);
       return;
@@ -170,6 +185,13 @@ export function BookingReservationForm({
     try {
       const validatedRule = await validateDiscountCode(crmApiClient, normalizedCode);
       if (!validatedRule) {
+        trackAnalyticsEvent('booking_discount_apply_error', {
+          sectionId: 'my-best-auntie-booking',
+          ctaLocation: 'discount_code',
+          params: {
+            error_type: 'invalid_code',
+          },
+        });
         setDiscountRule(null);
         setDiscountError(content.invalidDiscountLabel);
         return;
@@ -177,7 +199,22 @@ export function BookingReservationForm({
 
       setDiscountCode(normalizedCode);
       setDiscountRule(validatedRule);
+      trackAnalyticsEvent('booking_discount_apply_success', {
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'discount_code',
+        params: {
+          discount_type: validatedRule.type,
+          discount_amount: Math.max(0, originalAmount - applyDiscount(originalAmount, validatedRule)),
+        },
+      });
     } catch {
+      trackAnalyticsEvent('booking_discount_apply_error', {
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'discount_code',
+        params: {
+          error_type: 'api_error',
+        },
+      });
       setDiscountRule(null);
       setDiscountError(content.invalidDiscountLabel);
     } finally {
@@ -210,15 +247,26 @@ export function BookingReservationForm({
       scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel),
       scheduleTimeLabel: sanitizeSingleLineValue(scheduleTimeLabel),
     };
+    const normalizedCohortDate =
+      sanitizeSingleLineValue(selectedCohortDate) ||
+      sanitizeSingleLineValue(selectedCohortDateLabel);
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
+      trackAnalyticsEvent('booking_submit_error', {
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: selectedPaymentMethod,
+          age_group: selectedAgeGroupLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'service_unavailable',
+        },
+      });
       setSubmissionError(content.submitErrorMessage);
       return;
     }
 
-    const normalizedCohortDate =
-      sanitizeSingleLineValue(selectedCohortDate) ||
-      sanitizeSingleLineValue(selectedCohortDateLabel);
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
@@ -243,10 +291,34 @@ export function BookingReservationForm({
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
+        trackAnalyticsEvent('booking_submit_success', {
+          sectionId: 'my-best-auntie-booking',
+          ctaLocation: 'reservation_form',
+          params: {
+            payment_method: selectedPaymentMethod,
+            age_group: selectedAgeGroupLabel,
+            cohort_date: normalizedCohortDate,
+            cohort_label: selectedCohortDateLabel,
+            total_amount: totalAmount,
+            discount_amount: discountAmount,
+            discount_type: discountRule?.type,
+          },
+        });
         onSubmitReservation(reservationSummary);
         return;
       }
 
+      trackAnalyticsEvent('booking_submit_error', {
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'reservation_form',
+        params: {
+          payment_method: selectedPaymentMethod,
+          age_group: selectedAgeGroupLabel,
+          cohort_date: normalizedCohortDate,
+          total_amount: totalAmount,
+          error_type: 'api_error',
+        },
+      });
       setSubmissionError(submissionResult.errorMessage);
     });
   }
@@ -338,6 +410,13 @@ export function BookingReservationForm({
                         checked={selectedPaymentMethod === PAYMENT_METHOD_FPS}
                         onChange={() => {
                           setSelectedPaymentMethod(PAYMENT_METHOD_FPS);
+                          trackAnalyticsEvent('booking_payment_method_selected', {
+                            sectionId: 'my-best-auntie-booking',
+                            ctaLocation: 'payment_method',
+                            params: {
+                              payment_method: PAYMENT_METHOD_FPS,
+                            },
+                          });
                         }}
                         className='sr-only'
                       />
@@ -366,6 +445,13 @@ export function BookingReservationForm({
                         checked={selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER}
                         onChange={() => {
                           setSelectedPaymentMethod(PAYMENT_METHOD_BANK_TRANSFER);
+                          trackAnalyticsEvent('booking_payment_method_selected', {
+                            sectionId: 'my-best-auntie-booking',
+                            ctaLocation: 'payment_method',
+                            params: {
+                              payment_method: PAYMENT_METHOD_BANK_TRANSFER,
+                            },
+                          });
                         }}
                         className='sr-only'
                       />

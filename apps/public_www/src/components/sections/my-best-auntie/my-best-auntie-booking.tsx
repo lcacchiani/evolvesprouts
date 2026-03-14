@@ -21,6 +21,7 @@ import type {
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -357,6 +358,15 @@ export function MyBestAuntieBooking({
     }
 
     const openModalTimerId = window.setTimeout(() => {
+      trackAnalyticsEvent('booking_modal_open', {
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'query_param',
+        params: {
+          age_group: selectedCohort.age_group,
+          cohort_label: selectedCohort.cohort,
+          cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
+        },
+      });
       setIsPaymentModalOpen(true);
     }, 0);
 
@@ -364,6 +374,23 @@ export function MyBestAuntieBooking({
       window.clearTimeout(openModalTimerId);
     };
   }, [selectedCohort]);
+
+  useEffect(() => {
+    if (!isThankYouModalOpen || !reservationSummary) {
+      return;
+    }
+
+    trackAnalyticsEvent('booking_thank_you_view', {
+      sectionId: 'my-best-auntie-booking',
+      ctaLocation: 'thank_you_modal',
+      params: {
+        payment_method: reservationSummary.paymentMethod,
+        total_amount: reservationSummary.totalAmount,
+        age_group: reservationSummary.childAgeGroup,
+        cohort_date: reservationSummary.scheduleDateLabel,
+      },
+    });
+  }, [isThankYouModalOpen, reservationSummary]);
 
   function handleDateCarouselNavigation(direction: 'prev' | 'next') {
     scrollDateCarouselByDirection(direction);
@@ -433,6 +460,13 @@ export function MyBestAuntieBooking({
                       state={isSelected ? 'active' : 'inactive'}
                       aria-pressed={isSelected}
                       onClick={() => {
+                        trackAnalyticsEvent('booking_age_selected', {
+                          sectionId: 'my-best-auntie-booking',
+                          ctaLocation: 'selector',
+                          params: {
+                            age_group: option.label,
+                          },
+                        });
                         setSelectedAgeId(option.id);
                         const nextDateId = findPreferredCohortId(
                           sortedCohorts,
@@ -491,6 +525,17 @@ export function MyBestAuntieBooking({
                           isFullyBooked
                             ? undefined
                             : () => {
+                                trackAnalyticsEvent('booking_date_selected', {
+                                  sectionId: 'my-best-auntie-booking',
+                                  ctaLocation: 'selector',
+                                  params: {
+                                    age_group: selectedAgeOption?.label ?? '',
+                                    cohort_label: option.label,
+                                    cohort_date: option.cohort.dates[0]?.start_datetime?.split('T')[0]
+                                      ?? '',
+                                    is_fully_booked: option.isFullyBooked,
+                                  },
+                                });
                                 setSelectedDateId(option.id);
                               }
                         }
@@ -556,6 +601,25 @@ export function MyBestAuntieBooking({
                 if (!selectedCohort || selectedCohort.is_fully_booked) {
                   return;
                 }
+                trackAnalyticsEvent('booking_confirm_pay_click', {
+                  sectionId: 'my-best-auntie-booking',
+                  ctaLocation: 'booking_section',
+                  params: {
+                    age_group: selectedAgeOption?.label ?? '',
+                    cohort_label: selectedDateOption?.label ?? '',
+                    cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
+                    total_amount: selectedCohort.price,
+                  },
+                });
+                trackAnalyticsEvent('booking_modal_open', {
+                  sectionId: 'my-best-auntie-booking',
+                  ctaLocation: 'booking_section',
+                  params: {
+                    age_group: selectedAgeOption?.label ?? '',
+                    cohort_label: selectedDateOption?.label ?? '',
+                    cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
+                  },
+                });
                 setIsPaymentModalOpen(true);
               }}
               disabled={!selectedCohort || selectedCohort.is_fully_booked}

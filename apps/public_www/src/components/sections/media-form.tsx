@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
@@ -21,6 +22,7 @@ interface MediaFormProps {
   formErrorMessage: string;
   resourceKey?: string;
   className?: string;
+  analyticsSectionId?: string;
   onFormOpened?: () => void;
 }
 
@@ -48,6 +50,7 @@ export function MediaForm({
   formErrorMessage,
   resourceKey,
   className,
+  analyticsSectionId = 'media-form',
   onFormOpened,
 }: MediaFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -103,6 +106,13 @@ export function MediaForm({
   function handleOpenForm() {
     setIsFormFadingIn(false);
     setIsFormVisible(true);
+    trackAnalyticsEvent('media_form_open', {
+      sectionId: analyticsSectionId,
+      ctaLocation: 'cta_button',
+      params: {
+        resource_key: normalizeResourceKey(resourceKey ?? ''),
+      },
+    });
     onFormOpened?.();
   }
 
@@ -119,6 +129,14 @@ export function MediaForm({
       return;
     }
     if (isServiceUnavailable) {
+      trackAnalyticsEvent('media_form_submit_error', {
+        sectionId: analyticsSectionId,
+        ctaLocation: 'form',
+        params: {
+          resource_key: normalizeResourceKey(resourceKey ?? ''),
+          error_type: 'service_unavailable',
+        },
+      });
       setSubmissionError(formErrorMessage);
       return;
     }
@@ -145,10 +163,25 @@ export function MediaForm({
         failureMessage: formErrorMessage,
       });
       if (submissionResult.isSuccess) {
+        trackAnalyticsEvent('media_form_submit_success', {
+          sectionId: analyticsSectionId,
+          ctaLocation: 'form',
+          params: {
+            resource_key: normalizedResourceKey,
+          },
+        });
         markSubmissionSuccess();
         return;
       }
 
+      trackAnalyticsEvent('media_form_submit_error', {
+        sectionId: analyticsSectionId,
+        ctaLocation: 'form',
+        params: {
+          resource_key: normalizedResourceKey,
+          error_type: 'api_error',
+        },
+      });
       setSubmissionError(submissionResult.errorMessage);
     });
   }

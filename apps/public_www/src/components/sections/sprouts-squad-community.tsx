@@ -12,6 +12,7 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveSproutsSquadCommunityCopy } from '@/content/copy-normalizers';
 import type { SproutsSquadCommunityContent } from '@/content';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail } from '@/lib/validation';
@@ -99,6 +100,14 @@ export function SproutsSquadCommunity({
       return;
     }
     if (!crmApiClient || isCaptchaUnavailable) {
+      trackAnalyticsEvent('community_signup_submit_error', {
+        sectionId: 'sprouts-squad-community',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'sprouts_squad',
+          error_type: 'service_unavailable',
+        },
+      });
       setSubmissionError(content.submitErrorMessage);
       return;
     }
@@ -124,10 +133,25 @@ export function SproutsSquadCommunity({
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
+        trackAnalyticsEvent('community_signup_submit_success', {
+          sectionId: 'sprouts-squad-community',
+          ctaLocation: 'form',
+          params: {
+            form_type: 'sprouts_squad',
+          },
+        });
         markSubmissionSuccess();
         return;
       }
 
+      trackAnalyticsEvent('community_signup_submit_error', {
+        sectionId: 'sprouts-squad-community',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'sprouts_squad',
+          error_type: 'api_error',
+        },
+      });
       setSubmissionError(submissionResult.errorMessage);
     });
   }

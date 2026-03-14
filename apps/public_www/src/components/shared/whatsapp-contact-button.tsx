@@ -1,6 +1,7 @@
 import Image from 'next/image';
 
 import { SmartLink } from '@/components/shared/smart-link';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 
 interface WhatsappContactButtonProps {
   href: string;
@@ -31,6 +32,12 @@ export function WhatsappContactButton({
       aria-label={ariaLabel}
       title={ariaLabel}
       className={buttonClassName}
+      onClick={() => {
+        trackAnalyticsEvent('whatsapp_click', {
+          sectionId: 'whatsapp-contact-button',
+          ctaLocation: 'floating_button',
+        });
+      }}
     >
       <Image
         src={WHATSAPP_ICON_SRC}
