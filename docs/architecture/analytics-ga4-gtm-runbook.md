@@ -27,7 +27,6 @@ Applies to `apps/public_www` and current user journeys:
 Canonical machine-readable contract:
 
 - `apps/public_www/src/lib/analytics-taxonomy.json`
-
 ### Naming rules
 
 - Event names: `lower_snake_case`, verb-first
@@ -143,7 +142,6 @@ CI enforcement:
 - `npm run validate:analytics-governance`
 
 Both checks run through Public WWW lint/verification workflows.
-
 ## Programmatic setup prerequisites (for service-account automation)
 
 To automate GA4/GTM setup from a script, ensure the service account has:
