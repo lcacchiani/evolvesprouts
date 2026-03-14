@@ -153,6 +153,8 @@ pull requests for dependency updates:
 - Structured JSON logging with request ID correlation.
 - Client-side analytics via Google Tag Manager on the public website
   (production only; gated at runtime by hostname allowlist).
+- GA4/GTM taxonomy and implementation details are documented in
+  [`analytics-ga4-gtm-runbook.md`](analytics-ga4-gtm-runbook.md).
 
 ## Caching
 
