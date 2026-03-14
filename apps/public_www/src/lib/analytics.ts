@@ -1,3 +1,5 @@
+import type { AnalyticsEventName } from '@/lib/analytics-taxonomy';
+
 type AnalyticsPrimitive = string | number | boolean;
 
 interface TrackAnalyticsEventOptions {
@@ -94,7 +96,10 @@ function removeUndefinedParams(
   }, {});
 }
 
-export function trackAnalyticsEvent(eventName: string, options: TrackAnalyticsEventOptions = {}): void {
+export function trackAnalyticsEvent(
+  eventName: AnalyticsEventName,
+  options: TrackAnalyticsEventOptions = {},
+): void {
   if (!isClientRuntime()) {
     return;
   }
