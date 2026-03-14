@@ -263,8 +263,7 @@ Lambdas or NAT Gateway.
 
 ## 10) Web Analytics (Google Tag Manager)
 
-**Decision:** Use Google Tag Manager with a runtime production-only hostname
-gate.
+**Decision:** Use Google Tag Manager with a runtime hostname allowlist gate.
 
 **Why:**
 - GTM provides a single container for GA4 and future marketing tags without
@@ -277,10 +276,14 @@ gate.
 **How:**
 - The GTM container ID is baked into the HTML at build time via
   `NEXT_PUBLIC_GTM_ID` (stored as a GitHub Actions variable).
-- `apps/public_www/public/scripts/init-gtm.js` reads the container ID from
-  a `data-gtm-id` attribute on the `<html>` element and checks the hostname.
-- GTM only initializes when `window.location.hostname` is exactly
-  `www.evolvesprouts.com`.
+- An optional host allowlist is provided via `NEXT_PUBLIC_GTM_ALLOWED_HOSTS`
+  (comma-separated hostnames). When unset, the gate defaults to the hostname
+  from `NEXT_PUBLIC_SITE_ORIGIN`.
+- `apps/public_www/public/scripts/init-gtm.js` reads `data-gtm-id` and
+  `data-gtm-allowed-hosts` from the `<html>` element and checks
+  `window.location.hostname`.
+- GTM initializes only when the current hostname is in the configured
+  allowlist.
 - The build-time CSP injection (`inject-csp-meta.mjs`) conditionally adds
   Google domains to `script-src` and `connect-src` when GTM is detected in
   the build output.
@@ -350,6 +353,8 @@ sections.
 - `NEXT_PUBLIC_FPS_MERCHANT_NAME` (Public WWW FPS merchant label)
 - `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (Public WWW FPS recipient number)
 - `NEXT_PUBLIC_GTM_ID` (Google Tag Manager container ID, e.g. `GTM-XXXXXXX`)
+- `NEXT_PUBLIC_GTM_ALLOWED_HOSTS` (optional comma-separated hostname
+  allowlist for GTM runtime gating; defaults to `NEXT_PUBLIC_SITE_ORIGIN` host)
 - `NEXT_PUBLIC_EMAIL` (maintenance page email)
 - `NEXT_PUBLIC_WHATSAPP_URL` (maintenance page WhatsApp link)
 - `NEXT_PUBLIC_INSTAGRAM_URL` (maintenance page Instagram link)

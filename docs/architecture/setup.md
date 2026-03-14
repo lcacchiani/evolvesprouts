@@ -87,6 +87,8 @@ For the OIDC provider itself, add the same tags:
 - `NEXT_PUBLIC_FPS_MERCHANT_NAME` (for Public WWW payment display)
 - `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (for Public WWW payment display)
 - `NEXT_PUBLIC_GTM_ID` (optional GTM container ID)
+- `NEXT_PUBLIC_GTM_ALLOWED_HOSTS` (optional comma-separated hostname
+  allowlist for GTM runtime gating; defaults to `NEXT_PUBLIC_SITE_ORIGIN` host)
 - `NEXT_PUBLIC_EMAIL` (maintenance page contact)
 - `NEXT_PUBLIC_WHATSAPP_URL` (maintenance page contact)
 - `NEXT_PUBLIC_INSTAGRAM_URL` (maintenance page contact)
