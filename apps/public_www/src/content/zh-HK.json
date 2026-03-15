@@ -116,6 +116,18 @@
       "title": "我的最佳姨姨培訓課程",
       "description": "為家庭助手而設的6小時互動式蒙特梭利培訓課程。學習可即時落地的日常流程、溫和界線與兒童主導策略，特別適合香港家庭。"
     },
+    "aboutUs": {
+      "title": "關於我們",
+      "description": "認識 Evolve Sprouts 的創辦人。以蒙特梭利認證為基礎的家庭支援與家庭助手培訓，專注於香港0-6歲兒童的實際成長需求。"
+    },
+    "contactUs": {
+      "title": "聯絡我們",
+      "description": "聯絡 Evolve Sprouts，了解蒙特梭利姨姨培訓、家庭諮詢及活動詳情。我們將於24-48小時內回覆您。"
+    },
+    "events": {
+      "title": "活動",
+      "description": "參加 Evolve Sprouts 在香港舉辦的蒙特梭利工作坊、家長講座及社區活動。為0-6歲兒童家庭量身打造的實用課程。"
+    },
     "organizationDescription": "為香港0-6歲孩子家庭提供蒙特梭利導向的家庭支持與姨姨培訓。",
     "localBusinessName": "Evolve Sprouts",
     "localBusinessDescription": "面向香港家庭的蒙特梭利姨姨培訓與家長支持服務。",

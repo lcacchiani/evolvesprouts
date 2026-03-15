@@ -116,6 +116,18 @@
       "title": "My Best Auntie Training Course",
       "description": "A 6-hour interactive Montessori training course for your domestic helper. Learn practical routines, gentle discipline, and child-led strategies for Hong Kong families."
     },
+    "aboutUs": {
+      "title": "About Us",
+      "description": "Meet the founder behind Evolve Sprouts. Montessori-certified family support and domestic helper training rooted in hands-on experience with children aged 0-6 in Hong Kong."
+    },
+    "contactUs": {
+      "title": "Contact Us",
+      "description": "Get in touch with Evolve Sprouts for Montessori auntie training, family consultations, and event enquiries in Hong Kong. We respond within 24-48 hours."
+    },
+    "events": {
+      "title": "Events",
+      "description": "Join Evolve Sprouts Montessori workshops, parent talks, and community events in Hong Kong. Practical sessions for families with children aged 0-6."
+    },
     "organizationDescription": "Montessori-informed family support and auntie training for families with children aged 0-6 in Hong Kong.",
     "localBusinessName": "Evolve Sprouts",
     "localBusinessDescription": "Montessori auntie training and parent support for families in Hong Kong.",

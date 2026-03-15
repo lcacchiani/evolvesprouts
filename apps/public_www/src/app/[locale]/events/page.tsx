@@ -64,8 +64,8 @@ async function resolveServerSideEvents(
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, ROUTES.events);
-  const description = content.events.description;
+  const title = content.seo.events.title || getMenuLabel(content, ROUTES.events);
+  const description = content.seo.events.description;
 
   return buildLocalizedMetadata({
     locale,

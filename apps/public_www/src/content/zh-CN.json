@@ -116,6 +116,18 @@
       "title": "我的最佳阿姨培训课程",
       "description": "为家庭助手打造的6小时互动式蒙特梭利培训课程。学习可落地的日常流程、温和界限与儿童主导策略，特别适合香港家庭。"
     },
+    "aboutUs": {
+      "title": "关于我们",
+      "description": "认识 Evolve Sprouts 的创始人。以蒙特梭利认证为基础的家庭支持与家庭助手培训，专注于香港0-6岁儿童的实际成长需求。"
+    },
+    "contactUs": {
+      "title": "联系我们",
+      "description": "联系 Evolve Sprouts，了解蒙特梭利阿姨培训、家庭咨询及活动详情。我们将在24-48小时内回复您。"
+    },
+    "events": {
+      "title": "活动",
+      "description": "参加 Evolve Sprouts 在香港举办的蒙特梭利工作坊、家长讲座及社区活动。为0-6岁儿童家庭量身打造的实用课程。"
+    },
     "organizationDescription": "为香港0-6岁儿童家庭提供蒙特梭利导向的家庭支持与阿姨培训。",
     "localBusinessName": "Evolve Sprouts",
     "localBusinessDescription": "面向香港家庭的蒙特梭利阿姨培训与家长支持服务。",
