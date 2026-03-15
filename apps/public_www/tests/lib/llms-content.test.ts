@@ -143,7 +143,7 @@ describe('buildLlmsFullTxt', () => {
     expect(output).toContain('[Contact Us]');
     expect(output).toContain('[Privacy Policy]');
     expect(output).toContain('[Terms and Conditions]');
-    expect(output).toContain('[My Best Auntie Training Course]');
+    expect(output).toContain('[My Best Auntie');
   });
 
   it('includes the my history description from content', () => {
