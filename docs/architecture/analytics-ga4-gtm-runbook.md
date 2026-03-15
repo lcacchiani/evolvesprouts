@@ -24,6 +24,9 @@ Applies to `apps/public_www` and current user journeys:
 
 ## Event taxonomy (v1)
 
+Canonical machine-readable contract:
+
+- `apps/public_www/src/lib/analytics-taxonomy.json`
 ### Naming rules
 
 - Event names: `lower_snake_case`, verb-first
@@ -55,7 +58,7 @@ Applies to `apps/public_www` and current user journeys:
 | `booking_modal_open` | Booking modal opens | `section_id='my-best-auntie-booking'`, `age_group`, `cohort_label` | No |
 | `booking_age_selected` | Age option selected | `section_id`, `age_group` | No |
 | `booking_date_selected` | Date/cohort selected | `section_id`, `cohort_label`, `is_fully_booked` | No |
-| `booking_confirm_pay_click` | Confirm-and-pay CTA click | `section_id`, `age_group`, `cohort_label`, `price` | No |
+| `booking_confirm_pay_click` | Confirm-and-pay CTA click | `section_id`, `age_group`, `cohort_label`, `total_amount` | No |
 | `booking_payment_method_selected` | Payment method switch | `section_id`, `payment_method` | No |
 | `booking_discount_apply_success` | Discount code valid | `section_id`, `discount_type`, `discount_amount` | No |
 | `booking_discount_apply_error` | Discount code invalid/error | `section_id`, `error_type` | No |
@@ -119,6 +122,26 @@ Applies to `apps/public_www` and current user journeys:
 - [ ] BigQuery export active
 - [ ] GTM change notes/version comments recorded
 
+## Required change protocol (MANDATORY)
+
+For any analytics-impacting change under `apps/public_www/src/**`:
+
+1. Update instrumentation code (`trackAnalyticsEvent` calls) as needed.
+2. Update the contract at
+   `apps/public_www/src/lib/analytics-taxonomy.json` when event names or custom
+   params change.
+3. Update this runbook if setup/process/event semantics changed.
+4. Add an entry to `docs/architecture/analytics-change-log.md` with GA4 + GTM
+   actions taken.
+5. Update GTM workspace/tag configuration to match contract changes.
+6. Update GA4 custom definitions/key events if contract changes require it.
+
+CI enforcement:
+
+- `npm run validate:analytics-contract`
+- `npm run validate:analytics-governance`
+
+Both checks run through Public WWW lint/verification workflows.
 ## Programmatic setup prerequisites (for service-account automation)
 
 To automate GA4/GTM setup from a script, ensure the service account has:

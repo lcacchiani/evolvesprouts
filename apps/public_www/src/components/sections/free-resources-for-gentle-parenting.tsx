@@ -243,6 +243,7 @@ function ResourceCardContent({
       <MediaForm
         ctaLabel={ctaLabel}
         resourceKey={resourceKey}
+        analyticsSectionId='resources'
         formFirstNameLabel={formFirstNameLabel}
         formEmailLabel={formEmailLabel}
         formSubmitLabel={formSubmitLabel}

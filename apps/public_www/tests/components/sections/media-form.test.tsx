@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaForm } from '@/components/sections/media-form';
 import enContent from '@/content/en.json';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -48,7 +49,12 @@ vi.mock('@/lib/crm-api-client', async () => {
   };
 });
 
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
+}));
+
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
+const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 
 function renderMediaForm() {
   const resourcesContent = enContent.resources;
@@ -74,6 +80,7 @@ describe('MediaForm', () => {
   afterEach(() => {
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
+    mockedTrackAnalyticsEvent.mockReset();
     if (originalTurnstileSiteKey === undefined) {
       delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
     } else {
@@ -101,6 +108,13 @@ describe('MediaForm', () => {
       screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
     ).toBeInTheDocument();
     expect(screen.getByPlaceholderText(enContent.resources.formEmailLabel)).toBeInTheDocument();
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('media_form_open', {
+      sectionId: 'media-form',
+      ctaLocation: 'cta_button',
+      params: {
+        resource_key: 'patience-free-guide',
+      },
+    });
   });
 
   it('adds top spacing and fades in the form when CTA is clicked', async () => {
@@ -154,6 +168,13 @@ describe('MediaForm', () => {
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [202],
       });
+      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('media_form_submit_success', {
+        sectionId: 'media-form',
+        ctaLocation: 'form',
+        params: {
+          resource_key: 'patience-free-guide',
+        },
+      });
     });
 
     expect(
@@ -186,6 +207,14 @@ describe('MediaForm', () => {
       expect(
         screen.getByText(enContent.resources.formErrorMessage),
       ).toBeInTheDocument();
+      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('media_form_submit_error', {
+        sectionId: 'media-form',
+        ctaLocation: 'form',
+        params: {
+          resource_key: 'patience-free-guide',
+          error_type: 'api_error',
+        },
+      });
     });
   });
 

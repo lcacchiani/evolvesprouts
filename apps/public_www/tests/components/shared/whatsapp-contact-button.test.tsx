@@ -1,9 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { WhatsappContactButton } from '@/components/shared/whatsapp-contact-button';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 
 vi.mock('@/components/shared/smart-link', () => ({
   SmartLink: ({
@@ -27,6 +28,10 @@ vi.mock('next/image', () => ({
   }: {
     alt?: string;
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
+}));
+
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
 }));
 
 describe('WhatsappContactButton', () => {
@@ -54,5 +59,11 @@ describe('WhatsappContactButton', () => {
     expect(link.querySelector('img')).toHaveAttribute('src', '/images/contact-whatsapp.svg');
     expect(link.className).toContain('es-whatsapp-contact-button-safe-bottom');
     expect(link.className).toContain('right-[30px]');
+
+    fireEvent.click(link);
+    expect(trackAnalyticsEvent).toHaveBeenCalledWith('whatsapp_click', {
+      sectionId: 'whatsapp-contact-button',
+      ctaLocation: 'floating_button',
+    });
   });
 });

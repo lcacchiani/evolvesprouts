@@ -17,6 +17,7 @@ import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import {
   resolveLocalizedDate,
 } from '@/components/sections/booking-modal/helpers';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { formatCurrencyHkd } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
@@ -218,6 +219,17 @@ export function MyBestAuntieThankYouModal({
     if (!summary) {
       return;
     }
+
+    trackAnalyticsEvent('booking_receipt_print_click', {
+      sectionId: 'my-best-auntie-booking',
+      ctaLocation: 'thank_you_modal',
+      params: {
+        payment_method: paymentMethod,
+        total_amount: summary.totalAmount,
+        age_group: summary.childAgeGroup,
+        cohort_date: summary.scheduleDateLabel,
+      },
+    });
 
     const popup = window.open('', '_blank', PRINT_WINDOW_FEATURES);
     if (!popup) {

@@ -5,6 +5,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -14,6 +15,12 @@ vi.mock('next/image', () => ({
     alt?: string;
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
+
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
+}));
+
+const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 
 beforeAll(() => {
   Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
@@ -28,6 +35,7 @@ beforeAll(() => {
 
 afterEach(() => {
   window.history.replaceState({}, '', '/');
+  mockedTrackAnalyticsEvent.mockReset();
 });
 
 function formatCohortPreviewLabel(value: string): string {
@@ -220,6 +228,13 @@ describe('MyBestAuntieBooking section', () => {
         name: secondAgeOption.label,
       }),
     );
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_age_selected',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'selector',
+      }),
+    );
 
     expect(
       screen.getByText(
@@ -247,6 +262,13 @@ describe('MyBestAuntieBooking section', () => {
     fireEvent.click(
       within(dateSelectorRegion).getByRole('button', {
         name: new RegExp(formatCohortLabel(secondAgeSecondCohort.cohort)),
+      }),
+    );
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_date_selected',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'selector',
       }),
     );
 
@@ -535,6 +557,34 @@ describe('MyBestAuntieBooking section', () => {
     fireEvent.click(leftArrow);
     expect(screen.queryByLabelText('Scroll dates left')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Scroll dates right')).toBeInTheDocument();
+  });
+
+  it('tracks confirm-and-pay click and modal open events', async () => {
+    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingContent.confirmAndPayLabel,
+      }),
+    );
+
+    expect(await screen.findByRole('dialog', {
+      name: bookingContent.paymentModal.title,
+    })).toBeInTheDocument();
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_confirm_pay_click',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'booking_section',
+      }),
+    );
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_modal_open',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'booking_section',
+      }),
+    );
   });
 
   it('renders sold-out date cards as disabled with stamp and skips them for initial selection', () => {

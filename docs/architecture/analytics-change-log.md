@@ -1,0 +1,19 @@
+# Public WWW Analytics Change Log
+
+Use this log for every analytics-impacting Public WWW change.
+
+## Required fields per entry
+
+- Date (UTC)
+- PR/branch reference
+- Public WWW code changes
+- GA4 updates (custom definitions/key events)
+- GTM updates (workspace/container/version status)
+- Documentation updates
+
+## Entries
+
+| Date (UTC) | Ref | Public WWW changes | GA4 updates | GTM updates | Documentation updates |
+|---|---|---|---|---|---|
+| 2026-03-14 | `cursor/ga4-api-access-verification-f10c` | Added shared `trackAnalyticsEvent` instrumentation for contact/media/community/booking/WhatsApp flows. | Created event-scoped custom dimensions, custom metrics (`total_amount`, `discount_amount`), and key events (`contact_form_submit_success`, `media_form_submit_success`, `community_signup_submit_success`, `booking_submit_success`). | Enabled GTM API automation; created workspace `Cursor GA4 taxonomy v1` with DLVs, custom-event triggers, and GA4 event tags for taxonomy events (draft not auto-published). | Added `docs/architecture/analytics-ga4-gtm-runbook.md`, linked from `overview.md`, and aligned GTM host-gating docs. |
+

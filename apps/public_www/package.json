@@ -21,7 +21,9 @@
     "csp:validate": "node ./scripts/validate-csp-meta.mjs",
     "lighthouse:ci": "lhci autorun --config=.lighthouserc.json",
     "start": "next start",
-    "lint": "eslint --max-warnings=0 .",
+    "validate:analytics-contract": "node ./scripts/validate-analytics-contract.mjs",
+    "validate:analytics-governance": "node ./scripts/validate-analytics-governance.mjs",
+    "lint": "npm run validate:analytics-contract && npm run validate:analytics-governance && eslint --max-warnings=0 .",
     "test": "vitest run",
     "test:watch": "vitest",
     "audit:deps:prod": "npm audit --omit=dev --audit-level=high"

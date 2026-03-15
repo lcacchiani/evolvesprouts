@@ -19,6 +19,7 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import type { PublicSiteConfig } from '@/lib/site-config';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
@@ -101,6 +102,13 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    trackAnalyticsEvent('contact_form_submit_attempt', {
+      sectionId: 'contact-us-form',
+      ctaLocation: 'form',
+      params: {
+        form_type: 'contact_us',
+      },
+    });
     clearSubmissionError();
     setIsEmailTouched(true);
     setIsPhoneTouched(true);
@@ -151,10 +159,25 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
+        trackAnalyticsEvent('contact_form_submit_success', {
+          sectionId: 'contact-us-form',
+          ctaLocation: 'form',
+          params: {
+            form_type: 'contact_us',
+          },
+        });
         markSubmissionSuccess();
         return;
       }
 
+      trackAnalyticsEvent('contact_form_submit_error', {
+        sectionId: 'contact-us-form',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'contact_us',
+          error_type: 'api_error',
+        },
+      });
       setSubmissionError(submissionResult.errorMessage);
     });
   }
@@ -192,6 +215,12 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                   variant='primary'
                   href={whatsappHref}
                   className='mt-4 w-full sm:w-auto es-btn--whatsapp-cta'
+                  onClick={() => {
+                    trackAnalyticsEvent('whatsapp_click', {
+                      sectionId: 'contact-us-form',
+                      ctaLocation: 'contact_section',
+                    });
+                  }}
                 >
                   <span>{content.contactMethodLinks.whatsapp}</span>
                   <Image
