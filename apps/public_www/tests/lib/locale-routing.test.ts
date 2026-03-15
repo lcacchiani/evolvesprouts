@@ -22,18 +22,18 @@ describe('locale-routing', () => {
     expect(getLocaleFromPath('/about-us')).toBe('en');
   });
 
-  it('localizes normalized paths', () => {
-    expect(localizePath('/about-us', 'zh-CN')).toBe('/zh-CN/about-us');
-    expect(localizePath('/zh-HK/events', 'en')).toBe('/en/events');
-    expect(localizePath('/', 'zh-HK')).toBe('/zh-HK');
+  it('localizes normalized paths with trailing slashes', () => {
+    expect(localizePath('/about-us', 'zh-CN')).toBe('/zh-CN/about-us/');
+    expect(localizePath('/zh-HK/events', 'en')).toBe('/en/events/');
+    expect(localizePath('/', 'zh-HK')).toBe('/zh-HK/');
   });
 
   it('localizes internal href and preserves hash/query fragments', () => {
     expect(localizeHref('/resources#guide', 'zh-CN')).toBe(
-      '/zh-CN/resources#guide',
+      '/zh-CN/resources/#guide',
     );
     expect(localizeHref('/events?type=upcoming', 'zh-HK')).toBe(
-      '/zh-HK/events?type=upcoming',
+      '/zh-HK/events/?type=upcoming',
     );
   });
 

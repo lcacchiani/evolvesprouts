@@ -27,7 +27,7 @@ describe('MyBestAuntieOutline section', () => {
 
     const section = screen
       .getAllByRole('region', {
-        name: /best auntie training/i,
+        name: /best auntie course/i,
       })
       .find((element) => element.tagName.toLowerCase() === 'section');
 

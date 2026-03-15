@@ -53,7 +53,7 @@ export function normalizeLocalizedPath(path: string): string {
 
 export function localizePath(path: string, locale: Locale): string {
   const basePath = normalizeLocalizedPath(path);
-  return basePath === '/' ? `/${locale}` : `/${locale}${basePath}`;
+  return basePath === '/' ? `/${locale}/` : `/${locale}${basePath}/`;
 }
 
 export function localizeHref(href: string, locale: Locale): string {

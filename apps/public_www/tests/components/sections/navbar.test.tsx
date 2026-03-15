@@ -109,7 +109,7 @@ describe('Navbar desktop submenu accessibility', () => {
     });
     expect(desktopBookNowLink).toBeInTheDocument();
 
-    const logoLink = header?.querySelector('a.shrink-0[href="/en"]');
+    const logoLink = header?.querySelector('a.shrink-0[href="/en/"]');
     expect(logoLink).not.toBeNull();
     expect(logoLink).toHaveAttribute('data-prefetch', 'false');
     expect(logoLink).toHaveAttribute('data-scroll', 'true');
@@ -239,7 +239,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(homeLink.className).toContain('w-full');
     expect(homeLink.className).toContain('justify-start');
 
-    const drawerLogoLink = drawer.querySelector('a.shrink-0[href="/en"]');
+    const drawerLogoLink = drawer.querySelector('a.shrink-0[href="/en/"]');
     expect(drawerLogoLink).not.toBeNull();
     expect(drawerLogoLink).toHaveAttribute('data-prefetch', 'false');
     expect(drawerLogoLink).toHaveAttribute('data-scroll', 'true');

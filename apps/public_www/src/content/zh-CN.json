@@ -82,8 +82,8 @@
     "imageAlt": "面向香港家庭的蒙特梭利阿姨培训"
   },
   "seo": {
-    "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利阿姨培训",
-    "fallbackDescription": "将你的家庭助手培养成以蒙特梭利为导向的儿童成长伙伴。为香港0-6岁儿童家庭提供阿姨培训课程。",
+    "fallbackTitle": "Evolve Sprouts | 香港家政助手育儿培训 | My Best Auntie 课程",
+    "fallbackDescription": "My Best Auntie 是香港领先的蒙特梭利家政助手培训课程——帮助你的阿姨成为自信、贴心的 0-6 岁儿童照护伙伴。",
     "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
     "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利阿姨培训",
     "socialImages": {
@@ -109,12 +109,24 @@
       }
     },
     "home": {
-      "title": "Evolve Sprouts | 香港蒙特梭利阿姨培训",
-      "description": "将你的家庭助手培养成以蒙特梭利为导向的儿童成长伙伴。为香港0-6岁儿童家庭提供阿姨培训课程。"
+      "title": "Evolve Sprouts | 香港家政助手育儿培训 | My Best Auntie 课程",
+      "description": "My Best Auntie 是香港领先的蒙特梭利家政助手培训课程——帮助你的阿姨成为自信、贴心的 0-6 岁儿童照护伙伴。"
     },
     "trainingCourse": {
-      "title": "我的最佳阿姨培训课程",
-      "description": "为家庭助手打造的6小时互动式蒙特梭利培训课程。学习可落地的日常流程、温和界限与儿童主导策略，特别适合香港家庭。"
+      "title": "My Best Auntie — 蒙特梭利家政助手培训课程",
+      "description": "My Best Auntie 是一门专为香港家政助手设计的实操蒙特梭利育儿培训课程。涵盖日常流程、温和纪律与儿童主导策略，适合 0-6 岁儿童家庭。"
+    },
+    "aboutUs": {
+      "title": "关于我们",
+      "description": "认识 Evolve Sprouts 的创始人。以蒙特梭利认证为基础的家庭支持与家庭助手培训，专注于香港0-6岁儿童的实际成长需求。"
+    },
+    "contactUs": {
+      "title": "联系我们",
+      "description": "联系 Evolve Sprouts，了解蒙特梭利阿姨培训、家庭咨询及活动详情。我们将在24-48小时内回复您。"
+    },
+    "events": {
+      "title": "活动",
+      "description": "参加 Evolve Sprouts 在香港举办的蒙特梭利工作坊、家长讲座及社区活动。为0-6岁儿童家庭量身打造的实用课程。"
     },
     "organizationDescription": "为香港0-6岁儿童家庭提供蒙特梭利导向的家庭支持与阿姨培训。",
     "localBusinessName": "Evolve Sprouts",
@@ -164,7 +176,7 @@
   "courseHighlights": {
     "eyebrow": "课程亮点",
     "title": "为什么加入我们的课程",
-    "description": "当家庭真正想要改变时会选择的课程",
+    "description": "当家庭真正想要改变时，会选择的家政助手育儿培训课程",
     "ctaLabel": "立即开始—今天就培训阿姨",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "立即联系",
@@ -426,6 +438,41 @@
       }
     ],
     "questions": [
+      {
+        "question": "我的阿姨在 My Best Auntie 课程中会学到什么？",
+        "answer": "你的阿姨将学到蒙特梭利日常实操技巧、不用威胁或贿赂的温和纪律方法、适合 0-6 岁孩子的活动，以及如何在香港小户型中培养孩子的独立性。课程包含小组课、家访和个性化辅导。",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "My Best Auntie 课程适合没有育儿经验的阿姨吗？",
+        "answer": "适合。My Best Auntie 家政助手育儿培训课程面向所有经验水平的阿姨。无需蒙特梭利知识或之前的育儿培训经历——只需要愿意学习的心。",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "My Best Auntie 跟一般的阿姨培训课程有什么不同？",
+        "answer": "不同于普通的助手培训，My Best Auntie 是一门蒙特梭利导向的课程，包含家访、个性化辅导和持续支持。我们会在你家中观察阿姨与孩子的互动，提供具体可行的指导——而不只是课堂理论。",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "My Best Auntie 培训课程有多长时间？",
+        "answer": "课程为期 9 周，包含三次小组培训、三次家访和三次家长沟通电话。课程设计旨在实现持久的行为改变，而非一次性讲座。",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "如果我的阿姨英语不太好，可以参加 My Best Auntie 课程吗？",
+        "answer": "可以。我们的蒙特梭利助手培训采用清晰的语言、示范、视觉引导和重复练习。流利的英语并非必须——理解和一致性才是关键。",
+        "labelIds": [
+          "general"
+        ]
+      },
       {
         "question": "我们住在小户型公寓，这套方法还能用吗？",
         "answer": "可以。香港很多家庭都是小空间，我自己也是。我们专注于小空间蒙特梭利布置、共享房间安排和不依赖昂贵教具的日常流程。",
@@ -862,18 +909,18 @@
   },
   "myBestAuntie": {
     "hero": {
-      "title": "My Best Auntie 培训课程",
-      "subtitle": "一门专为香港家政助手打造的实用培训课程。",
-      "description": "这不是一堂育儿理念讲座，也不是一本她永远不会读完的厚手册。这是一门专为香港家政助手设计的实操课程——包含真实场景、真实话术和真实策略，让她从第一天就能上手。\n无需蒙特梭利基础。无需育儿经验。只要愿意学习——并且你愿意相信，她可以做到更多。",
+      "title": "My Best Auntie — 香港蒙特梭利家政助手育儿培训",
+      "subtitle": "香港领先的家政助手育儿培训课程——实操、蒙特梭利导向、专为真实生活设计。",
+      "description": "这不是一堂育儿理念讲座，也不是一本她永远不会读完的厚手册。这是一门专为香港家庭设计的家政助手育儿培训实操课程——包含真实场景、真实话术和真实策略，让她从第一天就能上手。\n无需蒙特梭利基础。无需育儿经验。只要愿意学习——并且你愿意相信，她可以做到更多。",
       "ctaLabel": "立即预订名额！",
       "ctaHref": "#my-best-auntie-booking",
       "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
     },
     "outline": {
       "eyebrow": "课程大纲",
-      "title": "由 Ida 设计的 My Best Auntie 培训课程",
+      "title": "My Best Auntie 课程大纲 — 由 Ida 设计",
       "subtitle": "9周课程，改变你的家庭日常。",
-      "description": "小组课程 + 私人 1:1 指导。HK$9,000 起。",
+      "description": "系统化助手培训课程：小组课程 + 私人 1:1 指导。HK$9,000 起。",
       "ctaLabel": "立即预订名额！",
       "ctaHref": "#my-best-auntie-booking",
       "modules": [
@@ -1003,7 +1050,7 @@
     },
     "description": {
       "eyebrow": "课程亮点",
-      "title": "你将在我的最佳阿姨培训课程中获得什么？",
+      "title": "My Best Auntie 蒙特梭利助手培训课程包含哪些内容？",
       "items": [
         {
           "icon": "training",

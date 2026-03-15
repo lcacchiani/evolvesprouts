@@ -40,9 +40,9 @@ describe('localized route metadata and static params', () => {
       params: Promise.resolve({ locale: 'en' }),
     });
 
-    expect(homeMetadata.alternates?.canonical).toBe('/zh-CN');
-    expect(contactMetadata.alternates?.canonical).toBe('/zh-HK/contact-us');
-    expect(eventsMetadata.alternates?.canonical).toBe('/en/events');
+    expect(homeMetadata.alternates?.canonical).toBe('/zh-CN/');
+    expect(contactMetadata.alternates?.canonical).toBe('/zh-HK/contact-us/');
+    expect(eventsMetadata.alternates?.canonical).toBe('/en/events/');
     expect(homeMetadata.openGraph?.locale).toBe('zh-CN');
     expect(contactMetadata.openGraph?.locale).toBe('zh-HK');
     expect(eventsMetadata.openGraph?.locale).toBe('en');

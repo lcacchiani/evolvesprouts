@@ -31,8 +31,8 @@ describe('locale-page', () => {
 
     expect(() => {
       RedirectPage();
-    }).toThrow('redirect:/en/about-us');
-    expect(redirectMock).toHaveBeenCalledWith('/en/about-us');
+    }).toThrow('redirect:/en/about-us/');
+    expect(redirectMock).toHaveBeenCalledWith('/en/about-us/');
   });
 
   it('creates a root redirect page to a fixed path', () => {
@@ -49,8 +49,8 @@ describe('locale-page', () => {
 
     await expect(
       AliasPage({ params: Promise.resolve({ locale: 'zh-CN' }) }),
-    ).rejects.toThrow('redirect:/zh-CN/contact-us');
-    expect(redirectMock).toHaveBeenCalledWith('/zh-CN/contact-us');
+    ).rejects.toThrow('redirect:/zh-CN/contact-us/');
+    expect(redirectMock).toHaveBeenCalledWith('/zh-CN/contact-us/');
   });
 
   it('creates a locale-aware alias redirect page with custom resolver', async () => {
@@ -79,7 +79,7 @@ describe('locale-page', () => {
     );
 
     expect(metadata.title).toContain('Privacy');
-    expect(metadata.alternates?.canonical).toBe('/en/privacy');
+    expect(metadata.alternates?.canonical).toBe('/en/privacy/');
     expect(metadata.robots).toMatchObject({
       index: false,
       follow: true,
