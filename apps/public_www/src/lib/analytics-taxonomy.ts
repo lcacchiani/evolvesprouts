@@ -15,4 +15,3 @@ export function getRequiredCustomParamsForEvent(
 ): readonly string[] {
   return ANALYTICS_TAXONOMY.events[eventName].requiredCustomParams;
 }
-

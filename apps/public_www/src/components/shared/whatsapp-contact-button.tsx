@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 
 import { SmartLink } from '@/components/shared/smart-link';

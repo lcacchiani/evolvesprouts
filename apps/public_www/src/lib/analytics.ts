@@ -128,4 +128,3 @@ export function trackAnalyticsEvent(
 
   window.dataLayer = [payload];
 }
-
