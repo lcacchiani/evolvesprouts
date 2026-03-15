@@ -19,24 +19,10 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
-import {
-  extractTimeRangeFromPartDate,
-} from '@/components/sections/booking-modal/helpers';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
-
-export interface ReservationSummary {
-  attendeeName: string;
-  attendeeEmail: string;
-  attendeePhone: string;
-  childAgeGroup: string;
-  paymentMethod: string;
-  totalAmount: number;
-  courseLabel: string;
-  scheduleDateLabel?: string;
-  scheduleTimeLabel?: string;
-}
 
 interface MyBestAuntieBookingModalProps {
   locale?: Locale;
@@ -133,10 +119,7 @@ export function MyBestAuntieBookingModal({
     });
   }, [selectedCohort, content.partSummaries]);
 
-  const selectedTimeLabel = useMemo(() => {
-    return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');
-  }, [activePartRows]);
-  const selectedCohortDate = selectedCohort?.dates[0]?.start_datetime?.split('T')[0] ?? '';
+  const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
   const selectedCohortDateLabelText =
     selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '');
   const selectedVenueName = '';
@@ -179,9 +162,8 @@ export function MyBestAuntieBookingModal({
               content={content}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
               selectedCohortDateLabel={selectedCohortDateLabelText}
-              selectedCohortDate={selectedCohortDate}
+              selectedDateStartTime={selectedDateStartTime}
               selectedCohortPrice={originalAmount}
-              scheduleTimeLabel={selectedTimeLabel}
               descriptionId={dialogDescriptionId}
               onSubmitReservation={onSubmitReservation}
             />

@@ -34,8 +34,8 @@ const {
 import {
   MyBestAuntieBookingModal,
   MyBestAuntieThankYouModal,
-  type ReservationSummary,
 } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
@@ -141,12 +141,11 @@ const reservationSummary: ReservationSummary = {
   attendeeName: 'Test User',
   attendeeEmail: 'test@example.com',
   attendeePhone: '12345678',
-  childAgeGroup: '1-3',
+  ageGroup: '1-3',
   paymentMethod: 'Pay via FPS QR',
   totalAmount: 9000,
-  courseLabel: 'My Best Auntie',
-  scheduleDateLabel: 'Apr, 2026',
-  scheduleTimeLabel: '12:00 pm - 2:00 pm',
+  eventTitle: 'My Best Auntie',
+  dateStartTime: '2026-04-08T12:00:00Z',
 };
 
 if (!selectedCohort) {
@@ -960,12 +959,12 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${thankYouModalContent.trainingPrefix}${reservationSummary.courseLabel}`,
+        `${thankYouModalContent.trainingPrefix}${reservationSummary.eventTitle}`,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.childAgeGroup}`,
+        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.ageGroup}`,
       ),
     ).toBeInTheDocument();
     expect(container.querySelector('img[src="/images/baby.svg"]')).not.toBeNull();

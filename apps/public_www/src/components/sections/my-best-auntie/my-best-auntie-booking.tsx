@@ -11,7 +11,7 @@ import {
   SectionContainer,
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
-import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import enContent from '@/content/en.json';
 import type {

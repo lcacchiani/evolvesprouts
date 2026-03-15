@@ -1,11 +1,11 @@
 import Image from 'next/image';
 import { type FormEvent, useMemo, useState } from 'react';
 
-import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-modal/reservation-form-discount-code-input';
 import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
 import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';
 import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
@@ -26,9 +26,8 @@ interface BookingReservationFormProps {
   content: MyBestAuntieBookingContent['paymentModal'];
   selectedAgeGroupLabel: string;
   selectedCohortDateLabel: string;
-  selectedCohortDate: string;
+  selectedDateStartTime: string;
   selectedCohortPrice: number;
-  scheduleTimeLabel: string;
   descriptionId: string;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -81,9 +80,8 @@ export function BookingReservationForm({
   content,
   selectedAgeGroupLabel,
   selectedCohortDateLabel,
-  selectedCohortDate,
+  selectedDateStartTime,
   selectedCohortPrice,
-  scheduleTimeLabel,
   descriptionId,
   onSubmitReservation,
 }: BookingReservationFormProps) {
@@ -201,14 +199,14 @@ export function BookingReservationForm({
       attendeeName: sanitizeSingleLineValue(fullName),
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: sanitizeSingleLineValue(phone),
-      childAgeGroup: sanitizeSingleLineValue(selectedAgeGroupLabel),
+      ageGroup: sanitizeSingleLineValue(selectedAgeGroupLabel) || undefined,
+      cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       paymentMethod: sanitizeSingleLineValue(
         getPaymentMethodLabel(content, selectedPaymentMethod),
       ),
       totalAmount,
-      courseLabel: sanitizeSingleLineValue(content.title),
-      scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel),
-      scheduleTimeLabel: sanitizeSingleLineValue(scheduleTimeLabel),
+      eventTitle: sanitizeSingleLineValue(content.title),
+      dateStartTime: sanitizeSingleLineValue(selectedDateStartTime) || undefined,
     };
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
@@ -216,14 +214,15 @@ export function BookingReservationForm({
       return;
     }
 
+    const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
     const normalizedCohortDate =
-      sanitizeSingleLineValue(selectedCohortDate) ||
+      (normalizedStartDateTime.split('T')[0] ?? '') ||
       sanitizeSingleLineValue(selectedCohortDateLabel);
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
       phone_number: reservationSummary.attendeePhone,
-      cohort_age: reservationSummary.childAgeGroup,
+      cohort_age: reservationSummary.ageGroup ?? '',
       cohort_date: normalizedCohortDate,
       comments: sanitizeSingleLineValue(interestedTopics) || undefined,
       discount_code: discountRule?.code || undefined,
