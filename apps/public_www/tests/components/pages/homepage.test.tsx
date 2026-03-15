@@ -128,7 +128,7 @@ describe('HomePageSections', () => {
     ).toHaveTextContent('My Best Auntie Training Course Designed by Ida');
     expect(heroBannerPropsSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        ctaHref: '/en/services/my-best-auntie-training-course',
+        ctaHref: '/en/services/my-best-auntie-training-course/',
       }),
     );
     expect(heroBannerPropsSpy).toHaveBeenCalledTimes(1);
@@ -151,7 +151,7 @@ describe('HomePageSections', () => {
       'https://wa.me/message/ZQHVW4DEORD5A1?src=qr',
     );
     expect(outlineProps.ctaHref).toBe(
-      '/en/services/my-best-auntie-training-course#my-best-auntie-booking',
+      '/en/services/my-best-auntie-training-course/#my-best-auntie-booking',
     );
 
     const heroElement = screen.getByTestId('hero-banner');
@@ -196,7 +196,7 @@ describe('HomePageSections', () => {
       localizedContent.freeIntroSession.prefillMessage,
     );
     expect(myBestAuntieOutlinePropsSpy.mock.calls[0][0].ctaHref).toBe(
-      '/zh-HK/services/my-best-auntie-training-course#my-best-auntie-booking',
+      '/zh-HK/services/my-best-auntie-training-course/#my-best-auntie-booking',
     );
   });
 });

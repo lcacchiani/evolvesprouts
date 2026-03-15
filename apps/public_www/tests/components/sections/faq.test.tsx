@@ -65,7 +65,7 @@ describe('Faq section', () => {
     const contactCta = within(card as HTMLElement).getByRole('link', {
       name: 'Contact Us',
     });
-    expect(contactCta).toHaveAttribute('href', '/zh-CN/contact-us');
+    expect(contactCta).toHaveAttribute('href', '/zh-CN/contact-us/');
     expect(contactCta.className).toContain('es-btn');
     expect(contactCta.className).toContain('es-btn--primary');
   });
