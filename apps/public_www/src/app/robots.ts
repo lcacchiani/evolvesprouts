@@ -20,6 +20,23 @@ const AI_CRAWLER_USER_AGENTS = [
   'Amazonbot',
 ] as const;
 
+const REDIRECT_ONLY_PATHS = [
+  '/about-us/',
+  '/contact-us/',
+  '/events/',
+  '/privacy/',
+  '/terms/',
+  '/book/',
+  '/resources/',
+  '/services/',
+  '/media/',
+  '/*/resources/',
+  '/*/book/',
+  '/*/services/my-best-auntie/',
+  '/*/services/workshops/',
+  '/*/media/download/',
+];
+
 export const dynamic = 'force-static';
 
 export default function robots(): MetadataRoute.Robots {
@@ -35,6 +52,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
+        disallow: REDIRECT_ONLY_PATHS,
       },
       ...aiCrawlerRules,
     ],
