@@ -244,13 +244,6 @@ About the Founder, Upcoming Events, Contact Us
 | GA4 - Booking Submit Success | Primary | Drives bidding optimization |
 | GA4 - Contact Form Submit Success | Secondary | Observation only |
 
-### Inactive accounts (pending cancellation)
-
-| Account | ID | Type | Status |
-|---|---|---|---|
-| Evolve Sprouts (Manager) | `544-581-2170` | MCC | Empty, no billing, no sub-accounts. Safe to cancel. |
-| Evolve Sprouts (old) | `628-648-5411` | Standard | Old account with individual billing. Campaign moved to `499-114-4901`. Safe to cancel. |
-
 ## Google Search Console
 
 ### Property
@@ -299,7 +292,6 @@ About the Founder, Upcoming Events, Contact Us
 
 - **Current automation**: Instagram post → LinkedIn post (automatic
   cross-posting)
-- **Account details**: TBD
 
 ## LinkedIn DM lead capture — limitations and workarounds
 
