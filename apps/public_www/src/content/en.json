@@ -128,6 +128,10 @@
       "title": "Events",
       "description": "Join Evolve Sprouts Montessori workshops, parent talks, and community events in Hong Kong. Practical sessions for families with children aged 0-6."
     },
+    "links": {
+      "title": "Links",
+      "description": "Quick links to Evolve Sprouts courses, events, and contact channels in Hong Kong."
+    },
     "organizationDescription": "Montessori-informed family support and auntie training for families with children aged 0-6 in Hong Kong.",
     "localBusinessName": "Evolve Sprouts",
     "localBusinessDescription": "Montessori auntie training and parent support for families in Hong Kong.",
@@ -1183,6 +1187,21 @@
           "description": "Families see tangible shifts within weeks: calmer mornings, happier afternoons, genuine growth."
         }
       ]
+    }
+  },
+  "links": {
+    "hub": {
+      "ariaLabel": "Quick links",
+      "heading": "Evolve Sprouts",
+      "tagline": "Montessori-inspired guidance for families in Hong Kong",
+      "courseLabel": "My Best Auntie Course",
+      "contactLabel": "Contact Us",
+      "eventsLabel": "Upcoming Events",
+      "whatsappLabel": "WhatsApp Us"
+    },
+    "seo": {
+      "title": "Links",
+      "description": "Quick links to Evolve Sprouts courses, events, and contact channels in Hong Kong."
     }
   }
 }

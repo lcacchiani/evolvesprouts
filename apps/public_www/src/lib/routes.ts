@@ -10,12 +10,17 @@ export const ROUTES = {
   servicesMyBestAuntieTrainingCourse: '/services/my-best-auntie-training-course',
   servicesWorkshops: '/services/workshops',
   terms: '/terms',
+  links: '/links',
 } as const;
 
 export type AppRoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
 export const PLACEHOLDER_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.servicesWorkshops,
+];
+
+export const UNLISTED_ROUTE_PATHS: readonly AppRoutePath[] = [
+  ROUTES.links,
 ];
 
 export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [

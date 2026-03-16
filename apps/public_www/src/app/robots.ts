@@ -35,6 +35,8 @@ const REDIRECT_ONLY_PATHS = [
   '/*/services/my-best-auntie/',
   '/*/services/workshops/',
   '/*/media/download/',
+  '/links/',
+  '/*/links/',
 ];
 
 export const dynamic = 'force-static';

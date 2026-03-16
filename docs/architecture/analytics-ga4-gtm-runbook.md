@@ -66,6 +66,7 @@ Canonical machine-readable contract:
 | `booking_submit_error` | `/v1/reservations` error | `section_id`, `payment_method`, `error_type` | No |
 | `booking_thank_you_view` | Thank-you modal shown | `section_id`, `payment_method`, `total_amount` | No |
 | `booking_receipt_print_click` | Print action in thank-you modal | `section_id`, `payment_method`, `total_amount` | No |
+| `links_hub_click` | Link-in-bio hub button click | `section_id='links-hub'`, `content_name` | No |
 
 ## GA4 setup: step-by-step
 

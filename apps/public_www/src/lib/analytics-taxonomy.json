@@ -221,6 +221,15 @@
         "cohort_date"
       ],
       "ga4KeyEvent": false
+    },
+    "links_hub_click": {
+      "requiredCustomParams": [
+        "content_name"
+      ],
+      "allowedCustomParams": [
+        "content_name"
+      ],
+      "ga4KeyEvent": false
     }
   }
 }

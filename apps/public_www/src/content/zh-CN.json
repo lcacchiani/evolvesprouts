@@ -128,6 +128,10 @@
       "title": "活动",
       "description": "参加 Evolve Sprouts 在香港举办的蒙特梭利工作坊、家长讲座及社区活动。为0-6岁儿童家庭量身打造的实用课程。"
     },
+    "links": {
+      "title": "链接",
+      "description": "快速访问 Evolve Sprouts 课程、活动及联系方式。"
+    },
     "organizationDescription": "为香港0-6岁儿童家庭提供蒙特梭利导向的家庭支持与阿姨培训。",
     "localBusinessName": "Evolve Sprouts",
     "localBusinessDescription": "面向香港家庭的蒙特梭利阿姨培训与家长支持服务。",
@@ -1183,6 +1187,21 @@
           "description": "许多家庭在短短几周内就能看到明显变化：早晨更平静、下午更愉快、成长真实可见。"
         }
       ]
+    }
+  },
+  "links": {
+    "hub": {
+      "ariaLabel": "快速链接",
+      "heading": "Evolve Sprouts",
+      "tagline": "为香港家庭提供蒙特梭利教育指导",
+      "courseLabel": "My Best Auntie 课程",
+      "contactLabel": "联系我们",
+      "eventsLabel": "近期活动",
+      "whatsappLabel": "WhatsApp 联系"
+    },
+    "seo": {
+      "title": "链接",
+      "description": "快速访问 Evolve Sprouts 课程、活动及联系方式。"
     }
   }
 }
