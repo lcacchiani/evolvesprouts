@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import type { LinksHubContent } from '@/content';
-import { ROUTES } from '@/lib/routes';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
@@ -25,8 +24,6 @@ interface LinkItem {
   label: string;
   href: string;
   trackingName: string;
-  isExternal?: boolean;
-  icon?: string;
 }
 
 function trackLinkClick(contentName: string) {
