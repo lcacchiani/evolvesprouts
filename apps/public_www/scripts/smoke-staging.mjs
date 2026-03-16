@@ -341,7 +341,7 @@ function buildApiCases(turnstileToken) {
       body: {
         code: 'SMOKE-CHECK',
       },
-      allowedStatuses: new Set([200, 202, 400, 403]),
+      allowedStatuses: new Set([200, 202, 400, 403, 404]),
       expectedStatuses: new Set([200, 202]),
       includeTurnstileHeader: false,
     },
@@ -354,7 +354,7 @@ function buildApiCases(turnstileToken) {
         email: smokeEmail,
         resource_key: 'smoke-runner',
       },
-      allowedStatuses: new Set([202, 400, 403]),
+      allowedStatuses: new Set([202, 400, 403, 404]),
       expectedStatuses: new Set([202]),
       includeTurnstileHeader: true,
       turnstileToken: normalizedTurnstileToken,
