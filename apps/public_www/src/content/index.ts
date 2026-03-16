@@ -66,6 +66,7 @@ export type EventNotificationContent =
 export type FreeIntroSessionContent =
   SiteContent['freeIntroSession'];
 export type FooterContent = SiteContent['footer'];
+export type LinksHubContent = SiteContent['links']['hub'];
 
 const contentMap = {
   en: enContent,
