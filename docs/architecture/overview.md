@@ -158,6 +158,8 @@ pull requests for dependency updates:
 - Full marketing stack documentation (GCP, GTM, GA4, Google Ads, Search
   Console, social media, and lead generation) is in
   [`marketing-stack.md`](marketing-stack.md).
+- Infrastructure map (Cloudflare, AWS, VPC, database, deployments) is in
+  [`infrastructure-map.md`](infrastructure-map.md).
 
 ## Caching
 
