@@ -4,8 +4,11 @@ title = "Evolve Sprouts gitleaks config"
 useDefault = true
 
 [allowlist]
-description = "Allow non-secret media resource taxonomy keys"
+description = "Allow known non-secret false positives"
 regexTarget = "match"
+commits = [
+  "fa779a2996132fcf676f72cbef7e9c7d22d0ffef",
+]
 regexes = [
   '''\b4-ways-patience\b''',
   '''"ApiCustomDomainName"\s*:\s*"[^"]*"''',
