@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "smoke:staging": "node ./scripts/smoke-staging.mjs",
     "audit:assets": "node ./scripts/audit-assets.mjs",
     "images:optimize": "node ./scripts/optimize-images.mjs",
     "validate:content": "node ./scripts/validate-content.mjs",
