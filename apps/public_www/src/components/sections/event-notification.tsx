@@ -12,6 +12,7 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveEventNotificationCopy } from '@/content/copy-normalizers';
 import type { EventNotificationContent } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail } from '@/lib/validation';
@@ -137,6 +138,7 @@ export function EventNotification({ content }: EventNotificationProps) {
             form_type: 'event_notification',
           },
         });
+        trackMetaPixelEvent('Lead', { content_name: 'event_notification' });
         markSubmissionSuccess();
         return;
       }

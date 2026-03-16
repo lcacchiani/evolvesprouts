@@ -13,6 +13,7 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveSproutsSquadCommunityCopy } from '@/content/copy-normalizers';
 import type { SproutsSquadCommunityContent } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail } from '@/lib/validation';
@@ -140,6 +141,7 @@ export function SproutsSquadCommunity({
             form_type: 'sprouts_squad',
           },
         });
+        trackMetaPixelEvent('Lead', { content_name: 'community_signup' });
         markSubmissionSuccess();
         return;
       }

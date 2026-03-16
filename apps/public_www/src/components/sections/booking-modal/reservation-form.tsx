@@ -11,6 +11,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { Locale, MyBestAuntieBookingContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
@@ -303,6 +304,11 @@ export function BookingReservationForm({
             discount_amount: discountAmount,
             discount_type: discountRule?.type,
           },
+        });
+        trackMetaPixelEvent('Schedule', {
+          content_name: 'my_best_auntie',
+          value: totalAmount,
+          currency: 'HKD',
         });
         onSubmitReservation(reservationSummary);
         return;
