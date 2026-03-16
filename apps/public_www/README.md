@@ -11,6 +11,7 @@
 - `npm run audit:assets` — detect missing/unused static assets.
 - `npm run images:optimize` — generate optimized `.webp` images from
   `public/images/**/*.png`.
+- `npm run smoke:staging` — run staging smoke checks for page health and CTA APIs.
 - `npm run build` — validate content, build Figma CSS tokens, and build the app.
 - `npm run lighthouse:ci` — run Lighthouse CI against the static export.
 
@@ -157,6 +158,44 @@ npm install
 npm run validate:content
 npm run dev
 ```
+
+## Staging smoke runner
+
+Run smoke checks against a target site origin:
+
+```bash
+SMOKE_BASE_URL=https://www-staging.example.com \
+SMOKE_API_KEY=<public-api-key> \
+npm run smoke:staging
+```
+
+What the runner validates:
+
+- Page smoke: fetches all pages discovered from `/sitemap.xml` and fails on
+  broken HTTP responses.
+- CTA API smoke:
+  - `POST /www/v1/contact-us`
+  - `POST /www/v1/discounts/validate`
+  - `POST /www/v1/media-request`
+  - `POST /www/v1/reservations`
+
+Status handling for CTA APIs:
+
+- `PASS`: endpoint accepted the payload (`200`/`202` depending on endpoint).
+- `PASS*`: endpoint was reached but blocked by validation/auth gates
+  (for example invalid/missing Turnstile token on staging).
+- `FAIL`: unexpected status, server error (`5xx`), timeout, or transport error.
+
+Optional environment variables:
+
+- `SMOKE_TIMEOUT_MS` (default `15000`)
+- `SMOKE_TURNSTILE_TOKEN` (optional token for Turnstile-protected endpoints)
+- `SMOKE_MAX_PAGES` (limit number of page checks)
+
+Optional flags:
+
+- `--pages-only`
+- `--api-only`
 
 ## ESLint 10 compatibility
 
