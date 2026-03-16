@@ -371,9 +371,10 @@ Lead sources:
 
 ### How Mailchimp integrates with the codebase
 
-Mailchimp is used for email list management and subscriber tagging. It is
-NOT called from the public website frontend — all Mailchimp operations
-happen server-side via backend Lambda functions.
+Mailchimp is used for email list management, subscriber tagging, and
+sending a monthly newsletter. Subscriber management is automated via
+backend Lambda functions. The monthly newsletter is composed and sent
+manually through the Mailchimp dashboard.
 
 #### Data flow
 
@@ -443,6 +444,15 @@ Website form submit
    - Sends an email notification to sales/support via SES
 5. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
    subscription status changes (unsubscribe, bounce) back to the database.
+
+### Monthly newsletter
+
+- Composed and sent manually via the Mailchimp dashboard
+- Sent to the full subscriber audience (`355b40c8b5`)
+- Content typically includes: upcoming events, course updates, parenting
+  tips, and community highlights
+- Subscriber tags from automated sign-ups can be used to segment the
+  audience for targeted campaigns if needed
 
 ## LinkedIn DM lead capture — limitations and workarounds
 
