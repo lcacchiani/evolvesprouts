@@ -98,19 +98,27 @@ jobs:
 
       - name: Publish smoke summary
         if: always()
+        env:
+          SUMMARY_TARGET_URL: ${{ steps.resolve_staging_site_origin.outputs.staging_site_origin }}
+          SUMMARY_EVENT_NAME: ${{ github.event_name }}
+          SUMMARY_SCOPE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.scope || 'all' }}
+          SUMMARY_MAX_PAGES: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.max_pages || '' }}
+          SUMMARY_SOURCE_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '' }}
         run: |
           {
             echo '## Public Website staging smoke test'
             echo ''
-            echo "- Target URL: \`${{ steps.resolve_staging_site_origin.outputs.staging_site_origin }}\`"
-            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "- Target URL: \`${SUMMARY_TARGET_URL}\`"
+            if [ "${SUMMARY_EVENT_NAME}" = "workflow_dispatch" ]; then
               echo "- Trigger: \`workflow_dispatch\`"
-              echo "- Scope: \`${{ github.event.inputs.scope }}\`"
-              if [ -n "${{ github.event.inputs.max_pages }}" ]; then
-                echo "- Max pages: \`${{ github.event.inputs.max_pages }}\`"
+              echo "- Scope: \`${SUMMARY_SCOPE}\`"
+              if [ -n "${SUMMARY_MAX_PAGES}" ]; then
+                echo "- Max pages: \`${SUMMARY_MAX_PAGES}\`"
               fi
             else
               echo "- Trigger: \`workflow_run\` after \`Deploy Public Website Staging\`"
-              echo "- Source run ID: \`${{ github.event.workflow_run.id }}\`"
+              if [ -n "${SUMMARY_SOURCE_RUN_ID}" ]; then
+                echo "- Source run ID: \`${SUMMARY_SOURCE_RUN_ID}\`"
+              fi
             fi
           } >> "$GITHUB_STEP_SUMMARY"
