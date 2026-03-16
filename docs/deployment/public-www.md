@@ -101,9 +101,7 @@ Workflow: `.github/workflows/deploy-public-www.yml`
 
 Workflow: `.github/workflows/smoke-public-www-staging.yml`
 
-- Triggers:
-  - Automatic after successful completion of `Deploy Public Website Staging`
-    (`workflow_run`)
+- Trigger:
   - Manual (`workflow_dispatch`) with optional scope:
     - `all` (default)
     - `pages`
@@ -113,14 +111,22 @@ Workflow: `.github/workflows/smoke-public-www-staging.yml`
     `backend/infrastructure/params/production.json`
 - Required secret:
   - `NEXT_PUBLIC_WWW_CRM_API_KEY`
+- Optional variables for API endpoint fallbacks:
+  - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (used by smoke as
+    `SMOKE_CRM_API_BASE_URL`)
+  - `NEXT_PUBLIC_ADMIN_API_BASE_URL` (used by smoke as
+    `SMOKE_MEDIA_API_BASE_URL`)
 - Behavior:
   - runs `npm run smoke:staging` in `apps/public_www`
-  - verifies page health via sitemap-driven URL checks
+  - verifies page health via sitemap-driven URL checks (with staging-origin URL
+    remapping)
   - verifies CTA API endpoints:
     - `POST /www/v1/contact-us`
     - `POST /www/v1/discounts/validate`
     - `POST /www/v1/media-request`
     - `POST /www/v1/reservations`
+  - when same-origin `/www/*` checks return `404`, retries API checks through
+    configured fallback API base URLs before failing
 
 ### Promote to production (manual)
 

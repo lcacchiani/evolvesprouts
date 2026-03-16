@@ -1,6 +1,10 @@
 const SMOKE_BASE_URL_ENV = 'SMOKE_BASE_URL';
 const SMOKE_API_KEY_ENV = 'SMOKE_API_KEY';
+const SMOKE_CRM_API_BASE_URL_ENV = 'SMOKE_CRM_API_BASE_URL';
+const SMOKE_MEDIA_API_BASE_URL_ENV = 'SMOKE_MEDIA_API_BASE_URL';
 const FALLBACK_API_KEY_ENV = 'NEXT_PUBLIC_WWW_CRM_API_KEY';
+const FALLBACK_CRM_API_BASE_URL_ENV = 'NEXT_PUBLIC_WWW_CRM_API_BASE_URL';
+const FALLBACK_MEDIA_API_BASE_URL_ENV = 'NEXT_PUBLIC_ADMIN_API_BASE_URL';
 const SMOKE_TIMEOUT_MS_ENV = 'SMOKE_TIMEOUT_MS';
 const SMOKE_TURNSTILE_TOKEN_ENV = 'SMOKE_TURNSTILE_TOKEN';
 const SMOKE_MAX_PAGES_ENV = 'SMOKE_MAX_PAGES';
@@ -41,6 +45,10 @@ Optional:
   ${SMOKE_TIMEOUT_MS_ENV}          Per-request timeout in milliseconds (default: ${DEFAULT_TIMEOUT_MS})
   ${SMOKE_TURNSTILE_TOKEN_ENV}     Optional Turnstile token for protected endpoints
   ${SMOKE_MAX_PAGES_ENV}           Optional max number of discovered pages to check
+  ${SMOKE_CRM_API_BASE_URL_ENV}    Optional CRM API base URL fallback for /v1 endpoints
+                                   Falls back to ${FALLBACK_CRM_API_BASE_URL_ENV} if unset.
+  ${SMOKE_MEDIA_API_BASE_URL_ENV}  Optional media API base URL fallback for /v1/media-request
+                                   Falls back to ${FALLBACK_MEDIA_API_BASE_URL_ENV} if unset.
 `);
 }
 
@@ -123,6 +131,49 @@ function resolveMaxPages() {
   return parsedValue;
 }
 
+function resolveOptionalApiBaseUrl({
+  primaryEnvName,
+  fallbackEnvName,
+  baseUrl,
+}) {
+  const rawValue = (process.env[primaryEnvName] ?? process.env[fallbackEnvName] ?? '').trim();
+  if (!rawValue) {
+    return null;
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(rawValue, baseUrl);
+  } catch {
+    throw new Error(
+      `${primaryEnvName} (or ${fallbackEnvName}) must be a valid absolute URL or absolute path.`,
+    );
+  }
+
+  const protocol = parsedUrl.protocol.toLowerCase();
+  if (protocol === 'http:' && !isLocalhost(parsedUrl.hostname)) {
+    throw new Error(`${primaryEnvName} must use https (except localhost).`);
+  }
+  if (protocol !== 'https:' && protocol !== 'http:') {
+    throw new Error(`${primaryEnvName} must use http or https.`);
+  }
+
+  parsedUrl.hash = '';
+  parsedUrl.search = '';
+  parsedUrl.pathname = parsedUrl.pathname.replace(/\/+$/, '') || '/';
+  return parsedUrl;
+}
+
+function buildUrlFromApiBase(apiBaseUrl, endpointPath) {
+  const normalizedPath = endpointPath.startsWith('/') ? endpointPath : `/${endpointPath}`;
+  const basePath = apiBaseUrl.pathname === '/' ? '' : apiBaseUrl.pathname.replace(/\/+$/, '');
+  const requestUrl = new URL(apiBaseUrl.toString());
+  requestUrl.pathname = `${basePath}${normalizedPath}`;
+  requestUrl.search = '';
+  requestUrl.hash = '';
+  return requestUrl.toString();
+}
+
 async function fetchWithTimeout(url, init, timeoutMs) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
@@ -166,6 +217,15 @@ function asAbsoluteUrl(value, baseUrl) {
   }
 }
 
+function mapUrlToBaseOrigin(url, baseUrl) {
+  const mappedUrl = new URL(url.toString());
+  mappedUrl.protocol = baseUrl.protocol;
+  mappedUrl.hostname = baseUrl.hostname;
+  mappedUrl.port = baseUrl.port;
+  mappedUrl.hash = '';
+  return mappedUrl;
+}
+
 async function collectSitemapPageUrls({ baseUrl, timeoutMs }) {
   const initialSitemapUrl = new URL('/sitemap.xml', baseUrl);
   const queue = [initialSitemapUrl.toString()];
@@ -197,7 +257,8 @@ async function collectSitemapPageUrls({ baseUrl, timeoutMs }) {
         if (!resolvedUrl) {
           continue;
         }
-        queue.push(resolvedUrl.toString());
+        const mappedUrl = mapUrlToBaseOrigin(resolvedUrl, baseUrl);
+        queue.push(mappedUrl.toString());
       }
       continue;
     }
@@ -207,11 +268,10 @@ async function collectSitemapPageUrls({ baseUrl, timeoutMs }) {
       if (!resolvedUrl) {
         continue;
       }
-      if (resolvedUrl.origin !== baseUrl.origin) {
-        continue;
-      }
-      resolvedUrl.hash = '';
-      pageUrls.add(resolvedUrl.toString());
+      const mappedUrl = mapUrlToBaseOrigin(resolvedUrl, baseUrl);
+      mappedUrl.hash = '';
+      mappedUrl.search = '';
+      pageUrls.add(mappedUrl.toString());
     }
   }
 
@@ -247,6 +307,10 @@ async function runPageChecks({ baseUrl, timeoutMs, maxPages }) {
   try {
     pageUrls = await collectSitemapPageUrls({ baseUrl, timeoutMs });
     console.log(`Discovered ${pageUrls.length} page URL(s) from sitemap.`);
+    if (pageUrls.length === 0) {
+      pageUrls = buildFallbackPageUrls(baseUrl);
+      console.log(`Sitemap did not provide page URLs. Using fallback route list with ${pageUrls.length} URL(s).`);
+    }
   } catch (error) {
     console.warn(`Sitemap discovery failed: ${error instanceof Error ? error.message : String(error)}`);
     pageUrls = buildFallbackPageUrls(baseUrl);
@@ -323,7 +387,9 @@ function buildApiCases(turnstileToken) {
     {
       name: 'contact-us CTA endpoint',
       method: 'POST',
-      path: '/www/v1/contact-us',
+      proxyPath: '/www/v1/contact-us',
+      directPath: '/v1/contact-us',
+      apiBaseType: 'crm',
       body: {
         first_name: 'Smoke',
         email_address: smokeEmail,
@@ -337,7 +403,9 @@ function buildApiCases(turnstileToken) {
     {
       name: 'discount validate CTA endpoint',
       method: 'POST',
-      path: '/www/v1/discounts/validate',
+      proxyPath: '/www/v1/discounts/validate',
+      directPath: '/v1/discounts/validate',
+      apiBaseType: 'crm',
       body: {
         code: 'SMOKE-CHECK',
       },
@@ -348,7 +416,9 @@ function buildApiCases(turnstileToken) {
     {
       name: 'media request CTA endpoint',
       method: 'POST',
-      path: '/www/v1/media-request',
+      proxyPath: '/www/v1/media-request',
+      directPath: '/v1/media-request',
+      apiBaseType: 'media',
       body: {
         first_name: 'Smoke',
         email: smokeEmail,
@@ -362,7 +432,9 @@ function buildApiCases(turnstileToken) {
     {
       name: 'reservation CTA endpoint',
       method: 'POST',
-      path: '/www/v1/reservations',
+      proxyPath: '/www/v1/reservations',
+      directPath: '/v1/reservations',
+      apiBaseType: 'crm',
       body: {
         full_name: 'Smoke Runner',
         email: smokeEmail,
@@ -382,7 +454,23 @@ function buildApiCases(turnstileToken) {
   ];
 }
 
-async function runApiChecks({ baseUrl, timeoutMs }) {
+function buildApiCandidateUrls({
+  apiCase,
+  baseUrl,
+  crmApiBaseUrl,
+  mediaApiBaseUrl,
+}) {
+  const candidateUrls = [new URL(apiCase.proxyPath, baseUrl).toString()];
+  if (apiCase.apiBaseType === 'crm' && crmApiBaseUrl) {
+    candidateUrls.push(buildUrlFromApiBase(crmApiBaseUrl, apiCase.directPath));
+  }
+  if (apiCase.apiBaseType === 'media' && mediaApiBaseUrl) {
+    candidateUrls.push(buildUrlFromApiBase(mediaApiBaseUrl, apiCase.directPath));
+  }
+  return [...new Set(candidateUrls)];
+}
+
+async function runApiChecks({ baseUrl, timeoutMs, crmApiBaseUrl, mediaApiBaseUrl }) {
   logSection('CTA API smoke checks');
 
   const apiKey = (process.env[SMOKE_API_KEY_ENV] ?? process.env[FALLBACK_API_KEY_ENV] ?? '').trim();
@@ -398,7 +486,12 @@ async function runApiChecks({ baseUrl, timeoutMs }) {
   let strictPassCount = 0;
 
   for (const apiCase of apiCases) {
-    const endpointUrl = new URL(apiCase.path, baseUrl);
+    const endpointUrls = buildApiCandidateUrls({
+      apiCase,
+      baseUrl,
+      crmApiBaseUrl,
+      mediaApiBaseUrl,
+    });
     const headers = {
       accept: 'application/json',
       'content-type': 'application/json',
@@ -408,58 +501,94 @@ async function runApiChecks({ baseUrl, timeoutMs }) {
       headers['X-Turnstile-Token'] = apiCase.turnstileToken;
     }
 
-    try {
-      const response = await fetchWithTimeout(
-        endpointUrl.toString(),
-        {
-          method: apiCase.method,
-          headers,
-          body: JSON.stringify(apiCase.body),
-          redirect: 'follow',
+    let hasRecordedOutcome = false;
+    let deferredNotFoundFailure = null;
+
+    for (const [candidateIndex, endpointUrl] of endpointUrls.entries()) {
+      try {
+        const response = await fetchWithTimeout(
+          endpointUrl,
+          {
+            method: apiCase.method,
+            headers,
+            body: JSON.stringify(apiCase.body),
+            redirect: 'follow',
+          },
+          timeoutMs,
+        );
+        const responseBody = trimForLog(await response.text().catch(() => ''));
+        const endpointSuffix =
+          endpointUrls.length > 1 && candidateIndex > 0 ? ' (fallback endpoint)' : '';
+
+        if (response.status === 404 && candidateIndex < endpointUrls.length - 1) {
+          deferredNotFoundFailure = {
+            name: apiCase.name,
+            status: response.status,
+            detail: `${responseBody || 'endpoint not found'} (endpoint: ${endpointUrl})`,
+          };
+          continue;
+        }
+
+        if (response.status >= 500) {
+          failures.push({
+            name: apiCase.name,
+            status: response.status,
+            detail: `${responseBody || 'server error without response body'} (endpoint: ${endpointUrl})`,
+          });
+          console.log(`FAIL ${response.status} ${apiCase.name}${endpointSuffix}`);
+          hasRecordedOutcome = true;
+          break;
+        }
+
+        if (!apiCase.allowedStatuses.has(response.status)) {
+          failures.push({
+            name: apiCase.name,
+            status: response.status,
+            detail: `${responseBody || 'unexpected status code'} (endpoint: ${endpointUrl})`,
+          });
+          console.log(`FAIL ${response.status} ${apiCase.name}${endpointSuffix}`);
+          hasRecordedOutcome = true;
+          break;
+        }
+
+        if (apiCase.expectedStatuses.has(response.status)) {
+          strictPassCount += 1;
+          console.log(`PASS ${response.status} ${apiCase.name}${endpointSuffix}`);
+          hasRecordedOutcome = true;
+          break;
+        }
+
+        warningPasses.push({
+          name: apiCase.name,
+          status: response.status,
+          detail: `${responseBody || 'validation/security gate'} (endpoint: ${endpointUrl})`,
+        });
+        console.log(
+          `PASS* ${response.status} ${apiCase.name}${endpointSuffix} (validation/security gate)`,
+        );
+        hasRecordedOutcome = true;
+        break;
+      } catch (error) {
+        failures.push({
+          name: apiCase.name,
+          status: null,
+          detail: error instanceof Error ? error.message : String(error),
+        });
+        console.log(`FAIL ERR ${apiCase.name}`);
+        hasRecordedOutcome = true;
+        break;
+      }
+    }
+
+    if (!hasRecordedOutcome) {
+      failures.push(
+        deferredNotFoundFailure ?? {
+          name: apiCase.name,
+          status: 404,
+          detail: 'endpoint not found',
         },
-        timeoutMs,
       );
-      const responseBody = trimForLog(await response.text().catch(() => ''));
-
-      if (response.status >= 500) {
-        failures.push({
-          name: apiCase.name,
-          status: response.status,
-          detail: responseBody || 'server error without response body',
-        });
-        console.log(`FAIL ${response.status} ${apiCase.name}`);
-        continue;
-      }
-
-      if (!apiCase.allowedStatuses.has(response.status)) {
-        failures.push({
-          name: apiCase.name,
-          status: response.status,
-          detail: responseBody || 'unexpected status code',
-        });
-        console.log(`FAIL ${response.status} ${apiCase.name}`);
-        continue;
-      }
-
-      if (apiCase.expectedStatuses.has(response.status)) {
-        strictPassCount += 1;
-        console.log(`PASS ${response.status} ${apiCase.name}`);
-        continue;
-      }
-
-      warningPasses.push({
-        name: apiCase.name,
-        status: response.status,
-        detail: responseBody || 'validation/security gate',
-      });
-      console.log(`PASS* ${response.status} ${apiCase.name} (validation/security gate)`);
-    } catch (error) {
-      failures.push({
-        name: apiCase.name,
-        status: null,
-        detail: error instanceof Error ? error.message : String(error),
-      });
-      console.log(`FAIL ERR ${apiCase.name}`);
+      console.log(`FAIL 404 ${apiCase.name}`);
     }
   }
 
@@ -496,6 +625,16 @@ async function main() {
   const baseUrl = resolveBaseUrl();
   const timeoutMs = resolveTimeoutMs();
   const maxPages = resolveMaxPages();
+  const crmApiBaseUrl = resolveOptionalApiBaseUrl({
+    primaryEnvName: SMOKE_CRM_API_BASE_URL_ENV,
+    fallbackEnvName: FALLBACK_CRM_API_BASE_URL_ENV,
+    baseUrl,
+  });
+  const mediaApiBaseUrl = resolveOptionalApiBaseUrl({
+    primaryEnvName: SMOKE_MEDIA_API_BASE_URL_ENV,
+    fallbackEnvName: FALLBACK_MEDIA_API_BASE_URL_ENV,
+    baseUrl,
+  });
 
   logSection('Smoke runner configuration');
   console.log(`Base URL: ${baseUrl.toString()}`);
@@ -503,13 +642,19 @@ async function main() {
   if (maxPages !== null) {
     console.log(`Max pages: ${maxPages}`);
   }
+  if (crmApiBaseUrl) {
+    console.log(`CRM API fallback base: ${crmApiBaseUrl.toString()}`);
+  }
+  if (mediaApiBaseUrl) {
+    console.log(`Media API fallback base: ${mediaApiBaseUrl.toString()}`);
+  }
 
   const results = [];
   if (args.shouldCheckPages) {
     results.push(await runPageChecks({ baseUrl, timeoutMs, maxPages }));
   }
   if (args.shouldCheckApis) {
-    results.push(await runApiChecks({ baseUrl, timeoutMs }));
+    results.push(await runApiChecks({ baseUrl, timeoutMs, crmApiBaseUrl, mediaApiBaseUrl }));
   }
 
   const hasFailures = results.some((result) => result.failed > 0);

@@ -16,9 +16,6 @@ on:
         description: 'Optional max number of pages to check'
         required: false
         type: string
-  workflow_run:
-    workflows: ['Deploy Public Website Staging']
-    types: [completed]
 
 permissions:
   contents: read
@@ -29,7 +26,7 @@ concurrency:
 
 jobs:
   smoke:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: staging
@@ -64,8 +61,10 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
           SMOKE_BASE_URL: ${{ steps.resolve_staging_site_origin.outputs.staging_site_origin }}
           SMOKE_API_KEY: ${{ secrets.NEXT_PUBLIC_WWW_CRM_API_KEY }}
-          REQUESTED_SCOPE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.scope || 'all' }}
-          REQUESTED_MAX_PAGES: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.max_pages || '' }}
+          SMOKE_CRM_API_BASE_URL: ${{ vars.NEXT_PUBLIC_WWW_CRM_API_BASE_URL }}
+          SMOKE_MEDIA_API_BASE_URL: ${{ vars.NEXT_PUBLIC_ADMIN_API_BASE_URL }}
+          REQUESTED_SCOPE: ${{ github.event.inputs.scope || 'all' }}
+          REQUESTED_MAX_PAGES: ${{ github.event.inputs.max_pages || '' }}
         run: |
           set -euo pipefail
 
@@ -100,25 +99,16 @@ jobs:
         if: always()
         env:
           SUMMARY_TARGET_URL: ${{ steps.resolve_staging_site_origin.outputs.staging_site_origin }}
-          SUMMARY_EVENT_NAME: ${{ github.event_name }}
-          SUMMARY_SCOPE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.scope || 'all' }}
-          SUMMARY_MAX_PAGES: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.max_pages || '' }}
-          SUMMARY_SOURCE_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '' }}
+          SUMMARY_SCOPE: ${{ github.event.inputs.scope || 'all' }}
+          SUMMARY_MAX_PAGES: ${{ github.event.inputs.max_pages || '' }}
         run: |
           {
             echo '## Public Website staging smoke test'
             echo ''
             echo "- Target URL: \`${SUMMARY_TARGET_URL}\`"
-            if [ "${SUMMARY_EVENT_NAME}" = "workflow_dispatch" ]; then
-              echo "- Trigger: \`workflow_dispatch\`"
-              echo "- Scope: \`${SUMMARY_SCOPE}\`"
-              if [ -n "${SUMMARY_MAX_PAGES}" ]; then
-                echo "- Max pages: \`${SUMMARY_MAX_PAGES}\`"
-              fi
-            else
-              echo "- Trigger: \`workflow_run\` after \`Deploy Public Website Staging\`"
-              if [ -n "${SUMMARY_SOURCE_RUN_ID}" ]; then
-                echo "- Source run ID: \`${SUMMARY_SOURCE_RUN_ID}\`"
-              fi
+            echo "- Trigger: \`workflow_dispatch\`"
+            echo "- Scope: \`${SUMMARY_SCOPE}\`"
+            if [ -n "${SUMMARY_MAX_PAGES}" ]; then
+              echo "- Max pages: \`${SUMMARY_MAX_PAGES}\`"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
