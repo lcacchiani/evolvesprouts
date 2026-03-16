@@ -19,6 +19,10 @@ export const PLACEHOLDER_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.servicesWorkshops,
 ];
 
+export const UNLISTED_ROUTE_PATHS: readonly AppRoutePath[] = [
+  ROUTES.links,
+];
+
 export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.home,
   ROUTES.about,
