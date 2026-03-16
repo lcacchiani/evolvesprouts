@@ -1,0 +1,116 @@
+name: Smoke Public Website Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Smoke check scope'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - pages
+          - api
+      max_pages:
+        description: 'Optional max number of pages to check'
+        required: false
+        type: string
+  workflow_run:
+    workflows: ['Deploy Public Website Staging']
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-public-www-staging
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Resolve staging site origin from infrastructure params
+        id: resolve_staging_site_origin
+        run: |
+          STAGING_SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwStagingDomainName', '')).strip())")"
+          if [ -z "$STAGING_SITE_DOMAIN" ]; then
+            echo "PublicWwwStagingDomainName is required in backend/infrastructure/params/production.json"
+            exit 1
+          fi
+          echo "staging_site_origin=https://${STAGING_SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: apps/public_www/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/public_www
+        run: npm ci
+
+      - name: Run staging smoke checks
+        working-directory: apps/public_www
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          SMOKE_BASE_URL: ${{ steps.resolve_staging_site_origin.outputs.staging_site_origin }}
+          SMOKE_API_KEY: ${{ secrets.NEXT_PUBLIC_WWW_CRM_API_KEY }}
+          REQUESTED_SCOPE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.scope || 'all' }}
+          REQUESTED_MAX_PAGES: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.max_pages || '' }}
+        run: |
+          set -euo pipefail
+
+          scope="${REQUESTED_SCOPE:-all}"
+          smoke_args=()
+          case "$scope" in
+            all)
+              ;;
+            pages)
+              smoke_args+=(--pages-only)
+              ;;
+            api)
+              smoke_args+=(--api-only)
+              ;;
+            *)
+              echo "Unsupported scope: $scope"
+              exit 1
+              ;;
+          esac
+
+          if [ -n "${REQUESTED_MAX_PAGES:-}" ]; then
+            export SMOKE_MAX_PAGES="${REQUESTED_MAX_PAGES}"
+          fi
+
+          if [ "${#smoke_args[@]}" -gt 0 ]; then
+            npm run smoke:staging -- "${smoke_args[@]}"
+          else
+            npm run smoke:staging
+          fi
+
+      - name: Publish smoke summary
+        if: always()
+        run: |
+          {
+            echo '## Public Website staging smoke test'
+            echo ''
+            echo "- Target URL: \`${{ steps.resolve_staging_site_origin.outputs.staging_site_origin }}\`"
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "- Trigger: \`workflow_dispatch\`"
+              echo "- Scope: \`${{ github.event.inputs.scope }}\`"
+              if [ -n "${{ github.event.inputs.max_pages }}" ]; then
+                echo "- Max pages: \`${{ github.event.inputs.max_pages }}\`"
+              fi
+            else
+              echo "- Trigger: \`workflow_run\` after \`Deploy Public Website Staging\`"
+              echo "- Source run ID: \`${{ github.event.workflow_run.id }}\`"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

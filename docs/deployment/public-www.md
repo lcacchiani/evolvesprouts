@@ -97,6 +97,31 @@ Workflow: `.github/workflows/deploy-public-www.yml`
   - invalidate staging CloudFront (including `/_next/static/*` to clear
     stale asset error responses)
 
+### Smoke test staging website
+
+Workflow: `.github/workflows/smoke-public-www-staging.yml`
+
+- Triggers:
+  - Automatic after successful completion of `Deploy Public Website Staging`
+    (`workflow_run`)
+  - Manual (`workflow_dispatch`) with optional scope:
+    - `all` (default)
+    - `pages`
+    - `api`
+- Target URL:
+  - resolved from `PublicWwwStagingDomainName` in
+    `backend/infrastructure/params/production.json`
+- Required secret:
+  - `NEXT_PUBLIC_WWW_CRM_API_KEY`
+- Behavior:
+  - runs `npm run smoke:staging` in `apps/public_www`
+  - verifies page health via sitemap-driven URL checks
+  - verifies CTA API endpoints:
+    - `POST /www/v1/contact-us`
+    - `POST /www/v1/discounts/validate`
+    - `POST /www/v1/media-request`
+    - `POST /www/v1/reservations`
+
 ### Promote to production (manual)
 
 Workflow: `.github/workflows/promote-public-www.yml`
