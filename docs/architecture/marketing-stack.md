@@ -326,7 +326,7 @@ Lead sources:
 
 ## Social media and lead generation
 
-### Meta (Instagram + WhatsApp)
+### Meta (Instagram + WhatsApp + Pixel)
 
 - **Instagram**: `@evolvesprouts` — primary social channel for brand
   awareness and engagement
@@ -336,7 +336,69 @@ Lead sources:
   throughout the site use prefilled messages configured in locale content
   files. The `buildWhatsappPrefilledHref` function in
   `apps/public_www/src/lib/site-config.ts` handles URL construction.
-- **Meta account details**: TBD (to be documented separately)
+
+#### Meta Pixel
+
+The Meta Pixel is loaded on the website for conversion tracking, retargeting
+audiences, and measuring Instagram/Facebook ad performance.
+
+##### How Meta Pixel loads on the website
+
+1. Root layout (`apps/public_www/src/app/layout.tsx`) sets
+   `data-meta-pixel-id` and `data-meta-pixel-allowed-hosts` on the `<html>`
+   element when `NEXT_PUBLIC_META_PIXEL_ID` is configured.
+2. `MetaPixel` component (`src/components/shared/meta-pixel.tsx`) renders a
+   `<script>` tag pointing to `public/scripts/init-meta-pixel.js`.
+3. `init-meta-pixel.js` reads `data-meta-pixel-id` and
+   `data-meta-pixel-allowed-hosts` from the document, verifies the current
+   host is allowed, and loads `connect.facebook.net/en_US/fbevents.js`.
+4. On load, the pixel fires `fbq('init', pixelId)` and
+   `fbq('track', 'PageView')` automatically.
+5. CSP injection (`scripts/inject-csp-meta.mjs`) automatically adds
+   `connect.facebook.net` to `script-src` and `www.facebook.com` to
+   `connect-src` when Meta Pixel is detected in the built HTML.
+
+##### Meta Pixel conversion events
+
+Components fire Meta Pixel standard events alongside the existing GA4/GTM
+analytics events using `trackMetaPixelEvent` from `src/lib/meta-pixel.ts`:
+
+| Component | GA4 Event | Meta Pixel Event | Params |
+|---|---|---|---|
+| `contact-us-form.tsx` | `contact_form_submit_success` | `Lead` | `content_name: 'contact_form'` |
+| `media-form.tsx` | `media_form_submit_success` | `Lead` | `content_name: 'media_download'` |
+| `sprouts-squad-community.tsx` | `community_signup_submit_success` | `Lead` | `content_name: 'community_signup'` |
+| `event-notification.tsx` | `community_signup_submit_success` | `Lead` | `content_name: 'event_notification'` |
+| `my-best-auntie-booking.tsx` | `booking_modal_open` | `InitiateCheckout` | `content_name: 'my_best_auntie'` |
+| `reservation-form.tsx` | `booking_submit_success` | `Schedule` | `content_name, value, currency` |
+| `whatsapp-contact-button.tsx` | `whatsapp_click` | `Contact` | `content_name: 'whatsapp'` |
+| `contact-us-form.tsx` (WhatsApp CTA) | `whatsapp_click` | `Contact` | `content_name: 'whatsapp'` |
+
+##### Meta Pixel environment variables
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_META_PIXEL_ID` | Meta Pixel ID (numeric). If unset, pixel does not load. |
+| `NEXT_PUBLIC_META_PIXEL_ALLOWED_HOSTS` | Comma-separated hostnames where pixel is allowed to fire. Falls back to `NEXT_PUBLIC_SITE_ORIGIN` hostname. |
+
+#### Meta Business account details
+
+| Resource | ID | Details |
+|---|---|---|
+| Business | `646086474923922` | Evolve Sprouts (verified) |
+| System User | `122097039746985174` | cursor-bot (ADMIN) |
+| App | `775572428635412` | Evolve Sprouts Biz Platform |
+| Facebook Page | `549929634876681` | Evolve Sprouts |
+| Instagram Business Account | `17841473004927751` | @evolvesprouts |
+| WhatsApp Business Account | `502285879641182` | Evolve Sprouts |
+| Ad Account | `act_1562589928493715` | Evolve Sprouts (HKD) |
+
+System user token scopes include: `ads_management`, `ads_read`,
+`business_management`, `instagram_basic`, `instagram_manage_insights`,
+`instagram_content_publish`, `instagram_manage_comments`,
+`instagram_manage_messages`, `pages_read_engagement`, `pages_manage_metadata`,
+`pages_messaging`, `whatsapp_business_management`,
+`whatsapp_business_messaging`, and others (26 total).
 
 ### LinkedIn
 
@@ -532,6 +594,8 @@ forward LinkedIn DMs to a sales CRM.
 | `NEXT_PUBLIC_GTM_ALLOWED_HOSTS` | GTM | Host allowlist for GTM firing. |
 | `NEXT_PUBLIC_SITE_ORIGIN` | SEO/GTM | Base URL for sitemap, canonicals, metadata, GTM host fallback. |
 | `NEXT_PUBLIC_SITEMAP_LASTMOD` | SEO | Optional override for sitemap lastModified dates. |
+| `NEXT_PUBLIC_META_PIXEL_ID` | Meta Pixel | Pixel ID (numeric). If unset, pixel does not load. |
+| `NEXT_PUBLIC_META_PIXEL_ALLOWED_HOSTS` | Meta Pixel | Host allowlist for pixel firing. |
 | `NEXT_PUBLIC_WHATSAPP_URL` | Social | WhatsApp Business link for CTAs. |
 | `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER` | Social | Business phone for WhatsApp prefill. |
 | `NEXT_PUBLIC_INSTAGRAM_URL` | Social | Instagram profile URL for structured data `sameAs`. |

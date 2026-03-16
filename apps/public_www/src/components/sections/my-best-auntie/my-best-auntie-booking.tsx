@@ -22,6 +22,7 @@ import type {
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -367,6 +368,7 @@ export function MyBestAuntieBooking({
           cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
         },
       });
+      trackMetaPixelEvent('InitiateCheckout', { content_name: 'my_best_auntie' });
       setIsPaymentModalOpen(true);
     }, 0);
 
@@ -620,6 +622,7 @@ export function MyBestAuntieBooking({
                     cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
                   },
                 });
+                trackMetaPixelEvent('InitiateCheckout', { content_name: 'my_best_auntie' });
                 setIsPaymentModalOpen(true);
               }}
               disabled={!selectedCohort || selectedCohort.is_fully_booked}

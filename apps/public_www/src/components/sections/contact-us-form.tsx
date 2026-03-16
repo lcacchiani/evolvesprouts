@@ -20,6 +20,7 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import type { PublicSiteConfig } from '@/lib/site-config';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
@@ -166,6 +167,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
             form_type: 'contact_us',
           },
         });
+        trackMetaPixelEvent('Lead', { content_name: 'contact_form' });
         markSubmissionSuccess();
         return;
       }
@@ -220,6 +222,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                       sectionId: 'contact-us-form',
                       ctaLocation: 'contact_section',
                     });
+                    trackMetaPixelEvent('Contact', { content_name: 'whatsapp' });
                   }}
                 >
                   <span>{content.contactMethodLinks.whatsapp}</span>

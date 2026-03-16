@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { DEFAULT_LOCALE } from '@/content';
 import enContent from '@/content/en.json';
 import { GoogleTagManager } from '@/components/shared/google-tag-manager';
+import { MetaPixel } from '@/components/shared/meta-pixel';
 import {
   DEFAULT_SOCIAL_IMAGE,
   getSiteHost,
@@ -15,10 +16,20 @@ import {
 import './globals.css';
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || '';
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '';
 const rootShellContent = enContent.common.shell;
 
 function resolveGtmAllowedHosts(): string {
   const configuredHosts = process.env.NEXT_PUBLIC_GTM_ALLOWED_HOSTS;
+  if (!configuredHosts || configuredHosts.trim() === '') {
+    return getSiteHost();
+  }
+
+  return configuredHosts;
+}
+
+function resolveMetaPixelAllowedHosts(): string {
+  const configuredHosts = process.env.NEXT_PUBLIC_META_PIXEL_ALLOWED_HOSTS;
   if (!configuredHosts || configuredHosts.trim() === '') {
     return getSiteHost();
   }
@@ -85,6 +96,7 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   const gtmAllowedHosts = resolveGtmAllowedHosts();
+  const metaPixelAllowedHosts = resolveMetaPixelAllowedHosts();
 
   return (
     <html
@@ -94,6 +106,12 @@ export default function RootLayout({
         ? {
             'data-gtm-id': GTM_ID,
             'data-gtm-allowed-hosts': gtmAllowedHosts,
+          }
+        : {})}
+      {...(META_PIXEL_ID
+        ? {
+            'data-meta-pixel-id': META_PIXEL_ID,
+            'data-meta-pixel-allowed-hosts': metaPixelAllowedHosts,
           }
         : {})}
     >
@@ -114,6 +132,7 @@ export default function RootLayout({
         </div>
         <script src='/scripts/show-staging-badge.js' defer />
         <GoogleTagManager />
+        <MetaPixel />
         {children}
       </body>
     </html>
