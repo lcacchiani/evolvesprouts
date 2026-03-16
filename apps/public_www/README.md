@@ -171,8 +171,8 @@ npm run smoke:staging
 
 What the runner validates:
 
-- Page smoke: fetches all pages discovered from `/sitemap.xml` and fails on
-  broken HTTP responses.
+- Page smoke: fetches all pages discovered from `/sitemap.xml` (with URLs
+  remapped to the target smoke origin) and fails on broken HTTP responses.
 - CTA API smoke:
   - `POST /www/v1/contact-us`
   - `POST /www/v1/discounts/validate`
@@ -191,6 +191,14 @@ Optional environment variables:
 - `SMOKE_TIMEOUT_MS` (default `15000`)
 - `SMOKE_TURNSTILE_TOKEN` (optional token for Turnstile-protected endpoints)
 - `SMOKE_MAX_PAGES` (limit number of page checks)
+- `SMOKE_CRM_API_BASE_URL` (optional CRM API base fallback for `/v1/*` routes;
+  falls back to `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`)
+- `SMOKE_MEDIA_API_BASE_URL` (optional media API base fallback for
+  `/v1/media-request`; falls back to `NEXT_PUBLIC_ADMIN_API_BASE_URL`)
+
+If a same-origin `/www/*` API smoke request returns `404`, the runner retries
+that request against the corresponding configured fallback API base before
+marking it as failed.
 
 Optional flags:
 
