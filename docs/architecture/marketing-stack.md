@@ -274,6 +274,96 @@ About the Founder, Upcoming Events, Contact Us
 - **Features**: Disallow rules for redirect-only routes, AI crawler
   allowlists for `/llms.txt` and `/llms-full.txt`
 
+## Email (iCloud Mail with custom domain)
+
+### Setup
+
+| Field | Value |
+|---|---|
+| Provider | iCloud Mail (Apple iCloud+) |
+| Custom domain | `evolvesprouts.com` |
+| Primary address | `ida@evolvesprouts.com` |
+| Contact address (website) | Configured via `NEXT_PUBLIC_EMAIL` env var |
+
+### How email relates to the codebase
+
+Email is used in two distinct ways:
+
+#### 1. Outbound transactional email (AWS SES)
+
+The backend uses **Amazon SES** (not iCloud) for all automated outbound
+email — notifications to sales/support when forms are submitted, booking
+confirmations, etc. This is configured in the Lambda environment:
+
+| Variable | Purpose |
+|---|---|
+| `SES_SENDER_EMAIL` | Verified SES sender address for outbound notifications |
+| `SUPPORT_EMAIL` | Recipient address for sales/support notifications |
+
+SES is used because iCloud Mail does not provide an SMTP API for
+programmatic sending. The SES sender domain must be verified in AWS.
+
+#### 2. Business email (iCloud Mail)
+
+The `ida@evolvesprouts.com` inbox is used for:
+- Direct replies to leads and clients
+- Receiving SES notification emails about new form submissions
+- Google account owner email (GA4, GTM, Google Ads, Search Console)
+- Domain verification for Google Search Console
+
+iCloud Mail provides the inbox; SES provides the programmatic sending.
+
+### Programmatic inbox access — not recommended
+
+iCloud Mail does not expose a public API for reading inbox contents.
+While IMAP access is technically possible (using an app-specific password),
+programmatically reading and parsing business emails is **not recommended**
+for the following reasons:
+
+1. **Leads are already captured before email**: Every lead source
+   (contact form, media download, community signup, booking, event
+   notification) goes through the API and is stored in the database with
+   a sales lead record BEFORE any email is sent. The email notification
+   to `SUPPORT_EMAIL` is just an alert — the lead data is already in the
+   CRM database.
+
+2. **No uncaptured leads arrive via email**: Direct emails to
+   `ida@evolvesprouts.com` from cold leads are rare. Most leads come
+   through the website forms (→ database), WhatsApp (→ manual), or
+   LinkedIn DMs (→ manual). There is no lead data in the inbox that
+   isn't already elsewhere.
+
+3. **Privacy and reliability risks**: Parsing email content to extract
+   lead data is fragile (varying formats, signatures, threads) and
+   creates PII handling obligations. The structured form data in the
+   database is cleaner and more reliable.
+
+4. **iCloud IMAP limitations**: Apple's IMAP implementation has rate
+   limits and requires app-specific passwords. It is not designed for
+   automated processing at any scale.
+
+### What to do instead
+
+The current architecture already handles lead capture correctly:
+
+```
+Lead sources:
+  Contact form ──────▶ API ──▶ DB (contact + sales lead) ──▶ SES alert
+  Media download ────▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
+  Community signup ──▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
+  Event notification ▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
+  Booking ───────────▶ API ──▶ DB (contact + reservation) ─▶ SES alert
+
+  WhatsApp DMs ──────▶ Manual entry (or future WhatsApp Business API)
+  LinkedIn DMs ──────▶ Manual entry (redirect to trackable channel)
+  Direct email ──────▶ Manual (rare, handle case-by-case)
+```
+
+If lead tagging or categorization is needed beyond what the database
+already stores, the better approach is to add tagging logic in the
+backend Lambda processors (where structured data is available) rather
+than parsing email.
+
 ## Social media and lead generation
 
 ### Meta (Instagram + WhatsApp)
