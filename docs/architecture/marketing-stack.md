@@ -47,20 +47,22 @@ processes around them.
 - **Project**: `evolve-sprouts`
 - **Credential storage**: Cursor Cloud Agent secret
   `EVOLVESPROUTS_GOOGLE_SERVICE_ACCOUNT_JSON`
-- **Permissions**:
-  - GA4 property Editor (read/write analytics configuration)
-  - GTM container Admin with publish (read/write/publish tags)
-  - Google Ads Explorer (read-only via API; write access requires
-    Standard or Admin role on the Ads account)
+- **Default permissions**: Read-only across all services. Write access is
+  elevated on an ad hoc basis when configuration changes are needed, then
+  revoked back to read-only.
 
-### What the service account manages
+### What the service account can access
 
-| Service | Access level | What it can do |
+| Service | Default access | Elevated access (ad hoc) |
 |---|---|---|
-| GA4 Admin API | Editor | Create/update custom dimensions, key events, data retention, data streams |
-| GA4 Data API | Reader | Query reports, pull session/event/user data |
-| GTM API | Admin + Publish | Create/update/delete tags, triggers, variables; publish container versions |
-| Google Ads API | Explorer | Read account data, campaigns, keywords, conversions (write requires upgrade) |
+| GA4 Admin API | Reader | Editor — create/update custom dimensions, key events, data retention |
+| GA4 Data API | Reader | (same) — query reports, pull session/event/user data |
+| GTM API | Read | Admin + Publish — create/update/delete tags, triggers, variables; publish versions |
+| Google Ads API | Explorer (read) | Standard — create/modify campaigns, keywords, ads, conversions |
+
+To elevate access for a configuration session, grant the service account
+the required role in the relevant tool's admin panel, then revoke after
+changes are complete.
 
 ## Google Tag Manager (GTM)
 
@@ -265,6 +267,63 @@ About the Founder, Upcoming Events, Contact Us
 - **Features**: Disallow rules for redirect-only routes, AI crawler
   allowlists for `/llms.txt` and `/llms-full.txt`
 
+## Email (iCloud Mail with custom domain)
+
+### Setup
+
+| Field | Value |
+|---|---|
+| Provider | iCloud Mail (Apple iCloud+) |
+| Custom domain | `evolvesprouts.com` |
+| Primary address | `ida@evolvesprouts.com` |
+| Contact address (website) | Configured via `NEXT_PUBLIC_EMAIL` env var |
+
+### How email relates to the codebase
+
+Email is used in two distinct ways:
+
+#### 1. Outbound transactional email (AWS SES)
+
+The backend uses **Amazon SES** (not iCloud) for all automated outbound
+email — notifications to sales/support when forms are submitted, booking
+confirmations, etc. This is configured in the Lambda environment:
+
+| Variable | Purpose |
+|---|---|
+| `SES_SENDER_EMAIL` | Verified SES sender address for outbound notifications |
+| `SUPPORT_EMAIL` | Recipient address for sales/support notifications |
+
+SES is used because iCloud Mail does not provide an SMTP API for
+programmatic sending. The SES sender domain must be verified in AWS.
+
+#### 2. Business email (iCloud Mail)
+
+The `ida@evolvesprouts.com` inbox is used for:
+- Direct replies to leads and clients
+- Receiving SES notification emails about new form submissions
+- Google account owner email (GA4, GTM, Google Ads, Search Console)
+- Domain verification for Google Search Console
+
+iCloud Mail provides the inbox; SES provides the programmatic sending.
+
+### Lead capture flow
+
+All website leads are captured in the database before any email is sent.
+The inbox notification is an alert, not the source of truth.
+
+```
+Lead sources:
+  Contact form ──────▶ API ──▶ DB (contact + sales lead) ──▶ SES alert
+  Media download ────▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
+  Community signup ──▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
+  Event notification ▶ API ──▶ DB (contact + sales lead) ──▶ SES alert ──▶ Mailchimp
+  Booking ───────────▶ API ──▶ DB (contact + reservation) ─▶ SES alert
+
+  WhatsApp DMs ──────▶ Manual entry (or future WhatsApp Business API)
+  LinkedIn DMs ──────▶ Manual entry (redirect to trackable channel)
+  Direct email ──────▶ Manual (rare, handle case-by-case)
+```
+
 ## Social media and lead generation
 
 ### Meta (Instagram + WhatsApp)
@@ -292,6 +351,100 @@ About the Founder, Upcoming Events, Contact Us
 
 - **Current automation**: Instagram post → LinkedIn post (automatic
   cross-posting)
+
+## Mailchimp (email marketing)
+
+### Account details
+
+| Field | Value |
+|---|---|
+| Server prefix | `us-12` |
+| Audience/List ID | `355b40c8b5` |
+
+### How Mailchimp integrates with the codebase
+
+Mailchimp is used for email list management, subscriber tagging, and
+sending a monthly newsletter. Subscriber management is automated via
+backend Lambda functions. The monthly newsletter is composed and sent
+manually through the Mailchimp dashboard.
+
+#### Data flow
+
+```
+Website form submit
+        │
+        ▼
+  API Gateway (/v1/media-request or /v1/contact-us)
+        │
+        ▼
+  Admin Lambda (backend/lambda/admin/handler.py)
+        │
+        ▼
+  SNS topic → SQS queue
+        │
+        ▼
+  Media Request Processor Lambda (backend/lambda/media_processor/handler.py)
+        │
+        ├─▶ Database: upsert contact, create sales lead
+        ├─▶ Mailchimp: add/update subscriber + apply tag
+        └─▶ SES: send notification to sales/support
+```
+
+#### Backend code
+
+- **Mailchimp service**: `backend/src/app/services/mailchimp.py`
+  - `add_subscriber_with_tag(email, first_name, tag_name)` — upserts a
+    subscriber in the configured audience and applies a tag
+  - Uses `http_invoke` (AWS proxy) to call the Mailchimp API from within
+    VPC
+  - API key stored in AWS Secrets Manager (`MAILCHIMP_API_SECRET_ARN`)
+- **Media processor**: `backend/lambda/media_processor/handler.py`
+  - Processes SQS messages from form submissions
+  - Calls Mailchimp to sync subscribers after DB operations
+- **Webhook handler**: `backend/src/app/api/public_mailchimp_webhook.py`
+  - Receives Mailchimp webhook callbacks at `/v1/mailchimp/webhook`
+  - Reconciles contact sync status in the database
+
+#### Lambda environment variables
+
+| Variable | Purpose |
+|---|---|
+| `MAILCHIMP_API_SECRET_ARN` | AWS Secrets Manager ARN for the Mailchimp API key |
+| `MAILCHIMP_LIST_ID` | Mailchimp audience/list ID |
+| `MAILCHIMP_SERVER_PREFIX` | Mailchimp data center (e.g., `us-12`) |
+
+#### Cursor Cloud Agent secrets (for API access outside AWS)
+
+| Secret | Purpose |
+|---|---|
+| `EVOLVESPROUTS_MAILCHIMP_API_KEY` | Direct API key for Mailchimp (used by Cloud Agents) |
+| `EVOLVESPROUTS_MAILCHIMP_AUDIENCE_ID` | Audience ID (`355b40c8b5`) |
+| `EVOLVESPROUTS_MAILCHIMP_SERVER_PREFIX` | Server prefix (`us-12`) |
+
+### Subscriber lifecycle
+
+1. User submits a form on the website (media download, community signup,
+   event notification, or contact form).
+2. The form submission hits the API Gateway, which triggers the admin Lambda.
+3. The admin Lambda publishes to SNS, which delivers to the SQS queue.
+4. The media processor Lambda picks up the message and:
+   - Upserts the contact in the database
+   - Creates a sales lead record
+   - Calls `add_subscriber_with_tag` to add/update the subscriber in
+     Mailchimp with a tag identifying the form source (e.g.,
+     `patience-free-guide`, `community-signup`, `event-notification`)
+   - Sends an email notification to sales/support via SES
+5. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
+   subscription status changes (unsubscribe, bounce) back to the database.
+
+### Monthly newsletter
+
+- Composed and sent manually via the Mailchimp dashboard
+- Sent to the full subscriber audience (`355b40c8b5`)
+- Content typically includes: upcoming events, course updates, parenting
+  tips, and community highlights
+- Subscriber tags from automated sign-ups can be used to segment the
+  audience for targeted campaigns if needed
 
 ## LinkedIn DM lead capture — limitations and workarounds
 
@@ -336,6 +489,7 @@ forward LinkedIn DMs to a sales CRM.
 | Google Business Profile | Created and linked to GA4 | Post weekly to maintain activity |
 | Instagram → LinkedIn | Automated via Zapier | Works but could be improved (see below) |
 | LinkedIn DMs → CRM | No programmatic path | Use redirect-to-trackable-channel workaround |
+| Mailchimp | Fully integrated (backend subscriber sync with tags, webhook reconciliation) | Build nurture sequences per tag |
 | WhatsApp → CRM | Manual | Consider Zapier WhatsApp Business integration when volume grows |
 
 ### Potential improvements
@@ -363,11 +517,12 @@ forward LinkedIn DMs to a sales CRM.
    - Contact form viewers who didn't submit
    These can be used in Google Ads display/search campaigns.
 
-5. **Email marketing via Mailchimp**: The repository already has Mailchimp
-   credentials configured (`EVOLVESPROUTS_MAILCHIMP_API_KEY`,
-   `EVOLVESPROUTS_MAILCHIMP_AUDIENCE_ID`). Ensure community signup and
-   event notification forms are feeding into Mailchimp for nurture
-   sequences.
+5. **Mailchimp nurture sequences**: Mailchimp integration is fully
+   operational (subscribers are synced with tags from form submissions).
+   Consider building automated email nurture sequences in Mailchimp based
+   on subscriber tags (e.g., a 3-email drip for `patience-free-guide`
+   downloaders, a follow-up sequence for `event-notification` signups
+   who haven't booked).
 
 ## Environment variables reference
 
