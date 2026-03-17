@@ -11,7 +11,8 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const LOGO_SIZE = 72;
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
-const WHATSAPP_ICON_SIZE = 20;
+const INSTAGRAM_ICON_SRC = '/images/contact-instagram.svg';
+const SOCIAL_ICON_SIZE = 20;
 const HUB_BUTTON_CLASSNAME =
   'w-full min-h-[50px] rounded-control px-6 text-base font-semibold';
 
@@ -21,6 +22,7 @@ interface LinksHubProps {
   localizedContactHref: string;
   localizedEventsHref: string;
   whatsappHref: string;
+  instagramHref: string;
 }
 
 interface LinkItem {
@@ -44,6 +46,7 @@ export function LinksHub({
   localizedContactHref,
   localizedEventsHref,
   whatsappHref,
+  instagramHref,
 }: LinksHubProps) {
   const links: LinkItem[] = [
     {
@@ -64,6 +67,7 @@ export function LinksHub({
   ];
 
   const hasWhatsapp = whatsappHref !== '';
+  const hasInstagram = instagramHref !== '';
 
   return (
     <SectionShell
@@ -118,10 +122,30 @@ export function LinksHub({
                 <Image
                   src={WHATSAPP_ICON_SRC}
                   alt=''
-                  width={WHATSAPP_ICON_SIZE}
-                  height={WHATSAPP_ICON_SIZE}
+                  width={SOCIAL_ICON_SIZE}
+                  height={SOCIAL_ICON_SIZE}
                 />
                 {content.whatsappLabel}
+              </span>
+            </ButtonPrimitive>
+          ) : null}
+
+          {hasInstagram ? (
+            <ButtonPrimitive
+              href={instagramHref}
+              variant='outline'
+              openInNewTab
+              className={HUB_BUTTON_CLASSNAME}
+              onClick={() => trackLinkClick('instagram')}
+            >
+              <span className='inline-flex items-center gap-2'>
+                <Image
+                  src={INSTAGRAM_ICON_SRC}
+                  alt=''
+                  width={SOCIAL_ICON_SIZE}
+                  height={SOCIAL_ICON_SIZE}
+                />
+                {content.instagramLabel}
               </span>
             </ButtonPrimitive>
           ) : null}

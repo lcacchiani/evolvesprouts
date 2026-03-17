@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  buildUtmHref,
   buildWhatsappPrefilledHref,
   resolvePublicSiteConfig,
 } from '@/lib/site-config';
@@ -99,5 +100,62 @@ describe('site-config', () => {
 
     const siteConfig = resolvePublicSiteConfig();
     expect(siteConfig.whatsappUrl).toBeUndefined();
+  });
+});
+
+describe('buildUtmHref', () => {
+  it('appends UTM parameters to a valid URL', () => {
+    const result = buildUtmHref('https://www.evolvesprouts.com/en/contact-us', {
+      source: 'instagram',
+      medium: 'social',
+      campaign: 'organic',
+    });
+
+    const parsed = new URL(result);
+    expect(parsed.searchParams.get('utm_source')).toBe('instagram');
+    expect(parsed.searchParams.get('utm_medium')).toBe('social');
+    expect(parsed.searchParams.get('utm_campaign')).toBe('organic');
+  });
+
+  it('omits optional UTM parameters when not provided', () => {
+    const result = buildUtmHref('https://www.evolvesprouts.com', {
+      source: 'whatsapp',
+      medium: 'social',
+    });
+
+    const parsed = new URL(result);
+    expect(parsed.searchParams.get('utm_source')).toBe('whatsapp');
+    expect(parsed.searchParams.get('utm_medium')).toBe('social');
+    expect(parsed.searchParams.has('utm_campaign')).toBe(false);
+    expect(parsed.searchParams.has('utm_content')).toBe(false);
+  });
+
+  it('includes utm_content when provided', () => {
+    const result = buildUtmHref('https://www.evolvesprouts.com', {
+      source: 'instagram',
+      medium: 'social',
+      campaign: 'spring_2026',
+      content: 'bio_link',
+    });
+
+    const parsed = new URL(result);
+    expect(parsed.searchParams.get('utm_content')).toBe('bio_link');
+  });
+
+  it('preserves existing query parameters', () => {
+    const result = buildUtmHref('https://www.evolvesprouts.com/en?ref=test', {
+      source: 'linkedin',
+      medium: 'social',
+    });
+
+    const parsed = new URL(result);
+    expect(parsed.searchParams.get('ref')).toBe('test');
+    expect(parsed.searchParams.get('utm_source')).toBe('linkedin');
+  });
+
+  it('returns the input unchanged for non-URL strings', () => {
+    expect(buildUtmHref('/contact-us', { source: 'ig', medium: 'social' })).toBe('/contact-us');
+    expect(buildUtmHref('#section', { source: 'ig', medium: 'social' })).toBe('#section');
+    expect(buildUtmHref('', { source: 'ig', medium: 'social' })).toBe('');
   });
 });
