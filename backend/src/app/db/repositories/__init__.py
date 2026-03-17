@@ -10,6 +10,7 @@ from app.db.repositories.contact import ContactRepository
 from app.db.repositories.crm_note import CrmNoteRepository
 from app.db.repositories.discount_code import DiscountCodeRepository
 from app.db.repositories.enrollment import EnrollmentRepository
+from app.db.repositories.expense import ExpenseRepository
 from app.db.repositories.geographic_area import GeographicAreaRepository
 from app.db.repositories.location import LocationRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
@@ -24,6 +25,7 @@ __all__ = [
     "CrmNoteRepository",
     "DiscountCodeRepository",
     "EnrollmentRepository",
+    "ExpenseRepository",
     "GeographicAreaRepository",
     "LocationRepository",
     "SalesLeadRepository",

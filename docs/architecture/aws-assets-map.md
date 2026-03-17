@@ -89,7 +89,7 @@ automatic annual rotation enabled and a human-readable alias.
 |--------------|------------|-------|---------|
 | KMS Key | `SharedLambdaEnvEncryptionKey` | `alias/evolvesprouts-lambda-env-encryption-key` | Lambda environment variable encryption (shared across all functions) |
 | KMS Key | `SharedLambdaLogEncryptionKey` | `alias/evolvesprouts-lambda-log-encryption-key` | Lambda CloudWatch log encryption (shared across all functions) |
-| KMS Key | `SqsEncryptionKey` | `alias/evolvesprouts-sqs-encryption-key` | SQS queue encryption (booking request and media queues) |
+| KMS Key | `SqsEncryptionKey` | `alias/evolvesprouts-sqs-encryption-key` | SQS queue encryption (booking request, media, and expense parser queues) |
 | KMS Key | `ApiLogEncryptionKey` | `alias/evolvesprouts-api-log-encryption-key` | API Gateway CloudWatch access log encryption |
 | KMS Key | `SecretsEncryptionKey` | `alias/evolvesprouts-secrets-encryption-key` | Secrets Manager encryption (API key rotation secret) |
 
@@ -316,6 +316,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `ApiKeyRotationFunction` | `lambda/api_key_rotation/handler.lambda_handler` | 256 MB | 60s | Yes | Scheduled API key rotation |
 | `BookingRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
 | `MediaRequestProcessor` | `lambda/media_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor |
+| `ExpenseParserFunction` | `lambda/expense_parser/handler.lambda_handler` | 512 MB | 90s | Yes | SQS-triggered expense invoice parser |
 
 ### Lambda Resources Per Function
 
@@ -342,7 +343,7 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking and media topics, SES send email, S3 read/write for client assets |
+| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking, media, and expense parser topics, SES send email, S3 read/write for client assets |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `ListUsersInGroup`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
@@ -351,6 +352,7 @@ For each function above, the following resources are created:
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
 | `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
 | `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email, read Mailchimp secret, invoke `AwsApiProxyFunction` |
+| `ExpenseParserFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for client assets, read OpenRouter API secret, invoke `AwsApiProxyFunction` |
 
 **Lambda Log Groups:**
 - Explicitly created by CDK with KMS encryption
@@ -409,6 +411,12 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/admin/assets/{id}/grants/{grantId}` | DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/assets/{id}/share-link` | GET, POST, DELETE | Admin Group | `EvolvesproutsAdminFunction` | Stable bearer link read/create/revoke |
 | `/v1/admin/assets/{id}/share-link/rotate` | POST | Admin Group | `EvolvesproutsAdminFunction` | Rotate bearer token and invalidate prior link |
+| `/v1/admin/expenses` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | Expense list/create |
+| `/v1/admin/expenses/{id}` | GET, PATCH | Admin Group | `EvolvesproutsAdminFunction` | Expense detail/update |
+| `/v1/admin/expenses/{id}/cancel` | POST | Admin Group | `EvolvesproutsAdminFunction` | Void expense |
+| `/v1/admin/expenses/{id}/mark-paid` | POST | Admin Group | `EvolvesproutsAdminFunction` | Mark expense paid |
+| `/v1/admin/expenses/{id}/reparse` | POST | Admin Group | `EvolvesproutsAdminFunction` | Requeue parse |
+| `/v1/admin/expenses/{id}/amend` | POST | Admin Group | `EvolvesproutsAdminFunction` | Create amendment |
 | `/v1/user/assets` | GET | User Auth | `EvolvesproutsAdminFunction` | |
 | `/v1/user/assets/{id}/download` | GET | User Auth | `EvolvesproutsAdminFunction` | |
 | `/v1/assets/public` | GET | Device Attestation + API Key | `EvolvesproutsAdminFunction` | |
@@ -528,6 +536,10 @@ configured by stack custom resources (including retention and KMS association).
 | `AssetDownloadCustomDomainName` | String | Yes | No | Custom domain used in signed client-asset download links (for example `media.example.com`) |
 | `AssetDownloadCustomDomainCertificateArn` | String | Yes | No | ACM certificate ARN for the client-asset custom domain (must be in `us-east-1`) |
 | `AssetDownloadWafWebAclArn` | String | No | No | Optional WAF WebACL ARN for the client-asset download CloudFront distribution (must be in `us-east-1`) |
+| `OpenRouterApiSecretArn` | String | Yes | Yes | Existing Secrets Manager ARN containing the OpenRouter API key |
+| `OpenRouterChatCompletionsUrl` | String | Yes | No | OpenRouter chat completions URL used for invoice parsing |
+| `OpenRouterModel` | String | Yes | No | OpenRouter model identifier for invoice parsing |
+| `OpenRouterMaxFileBytes` | String | No | No | Maximum attachment size (bytes) sent to OpenRouter parser (default: 15728640) |
 
 ---
 
@@ -552,6 +564,9 @@ configured by stack custom resources (including retention and KMS association).
 | `MediaTopicArn` | SNS topic ARN | Media request events topic |
 | `MediaQueueUrl` | SQS queue URL | Media request processing queue |
 | `MediaDLQUrl` | SQS DLQ URL | Failed media request messages |
+| `ExpenseParserTopicArn` | SNS topic ARN | Expense parser events topic |
+| `ExpenseParserQueueUrl` | SQS queue URL | Expense parser processing queue |
+| `ExpenseParserDLQUrl` | SQS DLQ URL | Failed expense parser messages |
 | `CognitoCustomDomainCloudFront` | CloudFront distribution | Custom auth domain target (conditional) |
 | `ApiCustomDomainTarget` | CNAME target | API custom domain DNS target (conditional) |
 | `ApiCustomDomainUrl` | Custom domain URL | API custom domain URL (conditional) |

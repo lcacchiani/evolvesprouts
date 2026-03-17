@@ -28,6 +28,7 @@ their primary responsibilities.
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
   `/v1/admin/leads/*`, `/v1/admin/users`,
   `/v1/admin/services/*`, `/v1/admin/discount-codes/*`,
+  `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
@@ -36,6 +37,7 @@ their primary responsibilities.
   API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
 - Purpose: asset metadata CRUD, geographic area browsing, location CRUD,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
+  expense invoice ingestion/listing/amendment/void/pay flows,
   and admin-user listing for lead assignment,
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
@@ -172,6 +174,24 @@ their primary responsibilities.
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
     `MAILCHIMP_SERVER_PREFIX`
   - `MEDIA_DEFAULT_RESOURCE_KEY`, `AWS_PROXY_FUNCTION_ARN`
+
+### Expense parser processor
+- Function: ExpenseParserFunction
+- Handler: backend/lambda/expense_parser/handler.py
+- Trigger: SQS queue (`evolvesprouts-expense-parser-queue`)
+- Purpose: process async invoice parse requests and enrich expense records
+  using OpenRouter via `AwsApiProxyFunction`
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
+- VPC: Yes
+- Permissions: S3 read for client assets, Secrets Manager read for OpenRouter key,
+  Lambda invoke permission for `AwsApiProxyFunction`
+- Environment:
+  - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
+    `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
+  - `CLIENT_ASSETS_BUCKET_NAME`
+  - `OPENROUTER_API_KEY_SECRET_ARN`, `OPENROUTER_CHAT_COMPLETIONS_URL`,
+    `OPENROUTER_MODEL`, `OPENROUTER_MAX_FILE_BYTES`
+  - `AWS_PROXY_FUNCTION_ARN`
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction
