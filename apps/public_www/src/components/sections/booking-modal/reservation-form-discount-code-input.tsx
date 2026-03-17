@@ -1,10 +1,10 @@
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import type { MyBestAuntieBookingContent } from '@/content';
+import type { BookingPaymentModalContent } from '@/content';
 
 const DISCOUNT_ERROR_MESSAGE_ID = 'booking-modal-discount-error-message';
 
 interface ReservationFormDiscountCodeInputProps {
-  content: MyBestAuntieBookingContent['paymentModal'];
+  content: BookingPaymentModalContent;
   discountCode: string;
   discountError: string;
   hasDiscountRule: boolean;

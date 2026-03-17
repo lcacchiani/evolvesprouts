@@ -11,7 +11,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
-import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import type { BookingPaymentModalContent, Locale } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
 import {
@@ -23,7 +23,8 @@ import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface BookingReservationFormProps {
   locale: Locale;
-  content: MyBestAuntieBookingContent['paymentModal'];
+  content: BookingPaymentModalContent;
+  eventTitle: string;
   selectedAgeGroupLabel: string;
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
@@ -48,7 +49,7 @@ type PaymentMethodOption =
   | typeof PAYMENT_METHOD_BANK_TRANSFER;
 
 function getPaymentMethodLabel(
-  content: MyBestAuntieBookingContent['paymentModal'],
+  content: BookingPaymentModalContent,
   selectedPaymentMethod: PaymentMethodOption,
 ): string {
   if (selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER) {
@@ -58,7 +59,7 @@ function getPaymentMethodLabel(
   return content.paymentMethodValue;
 }
 
-function getBankTransferDetails(content: MyBestAuntieBookingContent['paymentModal']) {
+function getBankTransferDetails(content: BookingPaymentModalContent) {
   return [
     {
       label: content.paymentBankNameLabel,
@@ -78,6 +79,7 @@ function getBankTransferDetails(content: MyBestAuntieBookingContent['paymentModa
 export function BookingReservationForm({
   locale,
   content,
+  eventTitle,
   selectedAgeGroupLabel,
   selectedCohortDateLabel,
   selectedDateStartTime,
@@ -205,7 +207,7 @@ export function BookingReservationForm({
         getPaymentMethodLabel(content, selectedPaymentMethod),
       ),
       totalAmount,
-      eventTitle: sanitizeSingleLineValue(content.title),
+      eventTitle: sanitizeSingleLineValue(eventTitle),
       dateStartTime: sanitizeSingleLineValue(selectedDateStartTime) || undefined,
     };
     const crmApiClient = createPublicCrmApiClient();

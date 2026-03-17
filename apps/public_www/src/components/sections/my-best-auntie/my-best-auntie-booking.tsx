@@ -15,9 +15,11 @@ import type { ReservationSummary } from '@/components/sections/booking-modal/typ
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import enContent from '@/content/en.json';
 import type {
+  BookingModalContent,
   CommonAccessibilityContent,
   Locale,
   MyBestAuntieBookingContent,
+  MyBestAuntieModalContent,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
@@ -41,6 +43,8 @@ const MyBestAuntieThankYouModal = dynamic(
 interface MyBestAuntieBookingProps {
   locale: Locale;
   content: MyBestAuntieBookingContent;
+  modalContent: MyBestAuntieModalContent;
+  bookingModalContent: BookingModalContent;
   commonAccessibility?: CommonAccessibilityContent;
 }
 
@@ -263,6 +267,8 @@ function formatCohortPrice(
 export function MyBestAuntieBooking({
   locale,
   content,
+  modalContent,
+  bookingModalContent,
   commonAccessibility = enContent.common.accessibility,
 }: MyBestAuntieBookingProps) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -540,7 +546,8 @@ export function MyBestAuntieBooking({
       {isPaymentModalOpen && (
         <MyBestAuntieBookingModal
           locale={locale}
-          content={content.paymentModal}
+          modalContent={modalContent}
+          paymentModalContent={bookingModalContent.paymentModal}
           selectedCohort={selectedCohort}
           selectedCohortDateLabel={selectedDateOption?.label ?? ''}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
@@ -558,7 +565,7 @@ export function MyBestAuntieBooking({
       {isThankYouModalOpen && (
         <MyBestAuntieThankYouModal
           locale={locale}
-          content={content.thankYouModal}
+          content={bookingModalContent.thankYouModal}
           summary={reservationSummary}
           homeHref={`/${locale}`}
           onClose={() => {

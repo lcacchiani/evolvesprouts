@@ -45,9 +45,13 @@ export type HeroContent = SiteContent['hero'];
 export type AboutUsIntroContent = SiteContent['aboutUs']['intro'];
 export type MyBestAuntieHeroContent = SiteContent['myBestAuntie']['hero'];
 export type MyBestAuntieOutlineContent = SiteContent['myBestAuntie']['outline'];
+export type MyBestAuntieModalContent = SiteContent['myBestAuntie']['modal'];
 export type MyBestAuntieBookingContent = SiteContent['myBestAuntie']['booking'];
 export type MyBestAuntieDescriptionContent =
   SiteContent['myBestAuntie']['description'];
+export type BookingModalContent = SiteContent['bookingModal'];
+export type BookingPaymentModalContent = SiteContent['bookingModal']['paymentModal'];
+export type BookingThankYouModalContent = SiteContent['bookingModal']['thankYouModal'];
 export type ResourcesContent = SiteContent['resources'];
 export type CourseHighlightsContent = SiteContent['courseHighlights'];
 export type RealTalkContent = SiteContent['realTalk'];

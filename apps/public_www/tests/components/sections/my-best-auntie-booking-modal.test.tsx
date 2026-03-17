@@ -120,13 +120,14 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
   ),
 }));
 
-const bookingContent = {
+const bookingSectionContent = {
   ...enContent.myBestAuntie.booking,
   cohorts: trainingCoursesContent.data,
 };
-const bookingModalContent = bookingContent.paymentModal;
-const thankYouModalContent = bookingContent.thankYouModal;
-const selectedCohort = bookingContent.cohorts[0];
+const myBestAuntieModalContent = enContent.myBestAuntie.modal;
+const bookingModalContent = enContent.bookingModal.paymentModal;
+const thankYouModalContent = enContent.bookingModal.thankYouModal;
+const selectedCohort = bookingSectionContent.cohorts[0];
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
@@ -157,7 +158,8 @@ function renderBookingModal(
 ) {
   return render(
     <MyBestAuntieBookingModal
-      content={bookingModalContent}
+      modalContent={myBestAuntieModalContent}
+      paymentModalContent={bookingModalContent}
       selectedCohort={selectedCohort}
       onClose={() => {}}
       onSubmitReservation={() => {}}
@@ -221,13 +223,13 @@ describe('my-best-auntie booking modals footer content', () => {
     const bookingModalView = renderBookingModal();
 
     const bookingDialog = screen.getByRole('dialog', {
-      name: bookingModalContent.title,
+      name: myBestAuntieModalContent.title,
     });
     const bookingDescriptionId = bookingDialog.getAttribute('aria-describedby');
     expect(bookingDialog).toHaveAttribute('aria-labelledby');
     expect(bookingDescriptionId).toBeTruthy();
     expect(document.getElementById(bookingDescriptionId ?? '')).not.toBeNull();
-    expect(screen.getByText(bookingModalContent.subtitle)).toBeInTheDocument();
+    expect(screen.getByText(myBestAuntieModalContent.subtitle)).toBeInTheDocument();
     expect(screen.queryByText('Thanks for your interest!')).not.toBeInTheDocument();
 
     bookingModalView.unmount();
@@ -903,7 +905,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeNull();
     expect(
       screen.queryByRole('link', {
-        name: bookingContent.learnMoreLabel,
+        name: bookingSectionContent.learnMoreLabel,
       }),
     ).toBeNull();
 

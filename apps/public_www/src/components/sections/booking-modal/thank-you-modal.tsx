@@ -13,7 +13,7 @@ import {
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
-import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import type { BookingThankYouModalContent, Locale } from '@/content';
 import {
   resolveLocalizedDate,
 } from '@/components/sections/booking-modal/helpers';
@@ -23,7 +23,7 @@ import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management'
 
 export interface MyBestAuntieThankYouModalProps {
   locale: Locale;
-  content: MyBestAuntieBookingContent['thankYouModal'];
+  content: BookingThankYouModalContent;
   summary: ReservationSummary | null;
   homeHref: string;
   onClose: () => void;

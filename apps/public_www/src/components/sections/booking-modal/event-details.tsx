@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SmartLink } from '@/components/shared/smart-link';
-import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import type { BookingPaymentModalContent, Locale } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
 
 export interface BookingEventDetailPart {
@@ -13,7 +13,9 @@ export interface BookingEventDetailPart {
 interface BookingEventDetailsProps {
   locale: Locale;
   headingId: string;
-  content: MyBestAuntieBookingContent['paymentModal'];
+  title: string;
+  subtitle: string;
+  content: BookingPaymentModalContent;
   activePartRows: BookingEventDetailPart[];
   originalAmount: number;
   venueName: string;
@@ -70,6 +72,8 @@ function getPartGapConnectorClassName(index: number): string {
 export function BookingEventDetails({
   locale,
   headingId,
+  title,
+  subtitle,
   content,
   activePartRows,
   originalAmount,
@@ -83,10 +87,10 @@ export function BookingEventDetails({
         id={headingId}
         className='es-type-title es-my-best-auntie-booking-modal-heading'
       >
-        {content.title}
+        {title}
       </h2>
       <p className='mt-3 text-xl leading-7 es-text-heading'>
-        {content.subtitle}
+        {subtitle}
       </p>
 
       <section className='mt-8'>
