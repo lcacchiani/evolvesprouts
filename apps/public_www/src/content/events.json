@@ -2,130 +2,29 @@
   "status": "success",
   "data": [
     {
-      "id": "spring-stem-discovery-lab-2030",
-      "title": "Spring STEM Discovery Lab",
-      "description": "Hands-on science and coding activities for curious young learners.",
+      "id": "bimbo-concept-weaning-2026-03-20",
+      "title": "Bump does...Weaning",
+      "description": "Join us for a relaxed and informative 2-hour workshop on weaning + play, designed to support parents as they prepare, begin or get new ideas for their baby’s food journey. A 1-hour workshop PLUS 1-hour of access to the wonderful BIMBO playroom!",
       "tags": [
-        "Beginner Friendly",
-        "In-Person",
-        "Limited Seats"
+        "Bimbo Concept",
+        "12mo+"
       ],
       "categories": [
-        "STEM"
+        "Workshop"
       ],
       "location": "physical",
-      "address": "PMQ, 35 Aberdeen Street, Central, Hong Kong",
-      "address_url": "https://maps.google.com/?q=PMQ+Hong+Kong",
+      "address": "9 Bimbo Concept Children's Residency @ Pacific Place Apartments",
+      "address_url": "https://maps.google.com/?q=Pacific+Place+Apartments",
       "dates": [
         {
-          "start_datetime": "2030-04-12T09:30:00Z",
-          "end_datetime": "2030-04-12T12:00:00Z"
+          "start_datetime": "2026-03-20T02:30:00Z",
+          "end_datetime": "2026-03-20T04:30:00Z"
         }
       ],
-      "timezone": "HKT",
-      "price": 1280,
-      "currency_symbol": "HK$",
-      "is_fully_booked": false
-    },
-    {
-      "id": "creative-storytelling-through-art-2030",
-      "title": "Creative Storytelling Through Art",
-      "description": "Build confidence with guided story prompts and expressive drawing.",
-      "tags": [
-        "Creative Arts",
-        "In-Person"
-      ],
-      "categories": [
-        "Workshops"
-      ],
-      "location": "physical",
-      "address": "The Mills, Tsuen Wan, Hong Kong",
-      "address_url": "https://maps.google.com/?q=The+Mills+Tsuen+Wan",
-      "dates": [
-        {
-          "start_datetime": "2030-05-03T10:00:00Z",
-          "end_datetime": "2030-05-03T13:00:00Z"
-        }
-      ],
-      "timezone": "HKT",
-      "price": 1480,
-      "currency_symbol": "HK$",
-      "is_fully_booked": true
-    },
-    {
-      "id": "free-intro-session-online-2030",
-      "title": "Free Intro Session: Learning Through Play",
-      "description": "Meet our team online and explore how our approach supports children.",
-      "tags": [
-        "Virtual",
-        "Parents"
-      ],
-      "categories": [
-        "Intro Session"
-      ],
-      "location": "virtual",
-      "address": "Online Zoom Room",
-      "address_url": "https://zoom.us/",
-      "dates": [
-        {
-          "start_datetime": "2030-03-20T11:00:00Z",
-          "end_datetime": "2030-03-20T12:00:00Z"
-        }
-      ],
-      "timezone": "HKT",
-      "price": 0,
-      "currency_symbol": "HK$",
-      "is_fully_booked": false
-    },
-    {
-      "id": "scratch-coding-showcase-2025",
-      "title": "Scratch Coding Showcase",
-      "description": "Students present game prototypes and receive mentor feedback.",
-      "tags": [
-        "Coding",
-        "Project Showcase"
-      ],
-      "categories": [
-        "Technology"
-      ],
-      "location": "physical",
-      "address": "Cyberport, Pok Fu Lam, Hong Kong",
-      "address_url": "https://maps.google.com/?q=Cyberport+Hong+Kong",
-      "dates": [
-        {
-          "start_datetime": "2025-08-21T09:00:00Z",
-          "end_datetime": "2025-08-21T11:30:00Z"
-        }
-      ],
-      "timezone": "HKT",
-      "price": 980,
-      "currency_symbol": "HK$",
-      "is_fully_booked": true
-    },
-    {
-      "id": "parent-coffee-chat-2024",
-      "title": "Parent Coffee Chat",
-      "description": "A relaxed Q&A for parents about class pathways and readiness.",
-      "tags": [
-        "Parents",
-        "Community"
-      ],
-      "categories": [
-        "Community"
-      ],
-      "location": "physical",
-      "address": "Sai Ying Pun Community Hall, Hong Kong",
-      "address_url": "https://maps.google.com/?q=Sai+Ying+Pun+Community+Hall",
-      "dates": [
-        {
-          "start_datetime": "2024-11-16T02:30:00Z",
-          "end_datetime": "2024-11-16T04:00:00Z"
-        }
-      ],
-      "timezone": "HKT",
-      "price": 0,
-      "currency_symbol": "HK$",
-      "is_fully_booked": false
+      "price": 350,
+      "currency": "HKD",
+      "is_fully_booked": false,
+      "external_url": "https://www.bump-and-co.com/event-details/bump-does-weaning-with-evolve-sprouts-bimbo-concept"
     }
   ]
 }

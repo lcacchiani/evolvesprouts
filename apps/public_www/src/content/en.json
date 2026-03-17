@@ -82,8 +82,8 @@
     "imageAlt": "Montessori auntie training for Hong Kong families"
   },
   "seo": {
-    "fallbackTitle": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
-    "fallbackDescription": "Transform your domestic helper into a Montessori-guided child development partner. Training courses for families with children aged 0-6 in Hong Kong.",
+    "fallbackTitle": "Evolve Sprouts | Helper Childcare Training Hong Kong | My Best Auntie Course",
+    "fallbackDescription": "My Best Auntie is Hong Kong's leading Montessori-based training course for domestic helpers — helping your helper become a confident, caring childcare partner for children aged 0-6.",
     "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
     "defaultSocialImageAlt": "Evolve Sprouts Montessori auntie training in Hong Kong",
     "socialImages": {
@@ -109,12 +109,28 @@
       }
     },
     "home": {
-      "title": "Evolve Sprouts | Montessori Auntie Training in Hong Kong",
-      "description": "Transform your domestic helper into a Montessori-guided child development partner. Training courses for families with children aged 0-6 in Hong Kong."
+      "title": "Evolve Sprouts | Helper Childcare Training Hong Kong | My Best Auntie Course",
+      "description": "My Best Auntie is Hong Kong's leading Montessori-based training course for domestic helpers — helping your helper become a confident, caring childcare partner for children aged 0-6."
     },
     "trainingCourse": {
-      "title": "My Best Auntie Training Course",
-      "description": "A 6-hour interactive Montessori training course for your domestic helper. Learn practical routines, gentle discipline, and child-led strategies for Hong Kong families."
+      "title": "My Best Auntie — Montessori Helper Training Course",
+      "description": "My Best Auntie is a hands-on Montessori childcare training course for domestic helpers in Hong Kong. Practical routines, gentle discipline, and child-led strategies for families with children aged 0-6."
+    },
+    "aboutUs": {
+      "title": "About Us",
+      "description": "Meet the founder behind Evolve Sprouts. Montessori-certified family support and domestic helper training rooted in hands-on experience with children aged 0-6 in Hong Kong."
+    },
+    "contactUs": {
+      "title": "Contact Us",
+      "description": "Get in touch with Evolve Sprouts for Montessori auntie training, family consultations, and event enquiries in Hong Kong. We respond within 24-48 hours."
+    },
+    "events": {
+      "title": "Events",
+      "description": "Join Evolve Sprouts Montessori workshops, parent talks, and community events in Hong Kong. Practical sessions for families with children aged 0-6."
+    },
+    "links": {
+      "title": "Links",
+      "description": "Quick links to Evolve Sprouts courses, events, and contact channels in Hong Kong."
     },
     "organizationDescription": "Montessori-informed family support and auntie training for families with children aged 0-6 in Hong Kong.",
     "localBusinessName": "Evolve Sprouts",
@@ -164,7 +180,7 @@
   "courseHighlights": {
     "eyebrow": "Course Highlights",
     "title": "Why Join Our Courses",
-    "description": "The programme serious families choose when they want real change",
+    "description": "The childcare course for helpers that serious families choose when they want real change",
     "ctaLabel": "Get Started—Train Auntie Today",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "Connect Now",
@@ -350,6 +366,12 @@
           "description": "Prefer a message in a bottle? Use the contact form below and we’ll respond faster than a sprout grows.",
           "ctaLabel": "Fill Up Now",
           "ctaHref": "#contact-form"
+        },
+        {
+          "title": "Follow Us:",
+          "description": "Stay inspired on Instagram — tips, behind-the-scenes, and community updates.",
+          "ctaLabel": "Follow @evolvesprouts",
+          "ctaHref": "{{INSTAGRAM_URL}}"
         }
       ]
     }
@@ -426,6 +448,41 @@
       }
     ],
     "questions": [
+      {
+        "question": "What will my helper learn in the My Best Auntie course?",
+        "answer": "Your helper will learn practical Montessori techniques for daily routines, gentle discipline without threats or bribes, age-appropriate activities for children aged 0-6, and how to foster independence in a small Hong Kong home. The course includes group sessions, home visits, and personalised coaching.",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "Is the My Best Auntie course suitable for helpers with no childcare experience?",
+        "answer": "Yes. The My Best Auntie domestic helper childcare training is designed for all experience levels. No Montessori knowledge or prior childcare training is required — just a willingness to learn.",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "How is My Best Auntie different from a standard helper training course?",
+        "answer": "Unlike generic helper training, My Best Auntie is a Montessori-based programme with home visits, personalised coaching, and ongoing support. We observe your helper with your child in your home and provide specific, actionable guidance — not just classroom theory.",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "How long is the My Best Auntie helper training course?",
+        "answer": "The course runs over 9 weeks with three group training sessions, three home visits, and three parent alignment calls. It is designed to create lasting behavioural change, not a one-off lecture.",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "Can I join the My Best Auntie course if my helper speaks limited English?",
+        "answer": "Yes. Our Montessori helper training uses clear language, demonstrations, visual guidance, and repetition. Fluent English is not required — understanding and consistency are what matter.",
+        "labelIds": [
+          "general"
+        ]
+      },
       {
         "question": "We live in a small apartment. Will this still work?",
         "answer": "Yes. Most Hong Kong families do, and so do I. We specialise in small-space Montessori setups, shared rooms, and practical routines that do not require expensive materials or furniture.",
@@ -813,14 +870,19 @@
       "title": "Connect on",
       "items": [
         {
-          "label": "LinkedIn",
+          "label": "WhatsApp",
           "href": "/contact-us",
-          "icon": "linkedin"
+          "icon": "whatsapp"
         },
         {
           "label": "Instagram",
           "href": "/contact-us",
           "icon": "instagram"
+        },
+        {
+          "label": "LinkedIn",
+          "href": "/contact-us",
+          "icon": "linkedin"
         }
       ]
     },
@@ -862,18 +924,18 @@
   },
   "myBestAuntie": {
     "hero": {
-      "title": "My Best Auntie Training Course",
-      "subtitle": "A practical training course built for Hong Kong helpers.",
-      "description": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on course designed specifically for domestic helpers in Hong Kong - with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn - and your trust that she's capable of so much more.",
+      "title": "My Best Auntie — Montessori Childcare Training for Helpers in Hong Kong",
+      "subtitle": "Hong Kong's leading domestic helper childcare training programme — practical, Montessori-based, and designed for real life.",
+      "description": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on domestic helper childcare training course designed specifically for Hong Kong families — with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn — and your trust that she's capable of so much more.",
       "ctaLabel": "Book your spot now!",
       "ctaHref": "#my-best-auntie-booking",
       "imageAlt": "Ida De Gregorio from Evolve Sprouts"
     },
     "outline": {
       "eyebrow": "Course Outline",
-      "title": "My Best Auntie Training Course Designed by Ida",
+      "title": "My Best Auntie Course Outline — Designed by Ida",
       "subtitle": "A 9-Week Programme That Changes Your Home.",
-      "description": "Group sessions + private 1:1 coaching. Starting from HK$9,000.",
+      "description": "A structured helper training course: group sessions + private 1:1 coaching. Starting from HK$9,000.",
       "ctaLabel": "Book your spot now!",
       "ctaHref": "#my-best-auntie-booking",
       "modules": [
@@ -945,7 +1007,7 @@
     },
     "description": {
       "eyebrow": "Course Highlights",
-      "title": "What Do You Get in the My Best Auntie Training Course?",
+      "title": "What's Included in the My Best Auntie Montessori Helper Training Course?",
       "items": [
         {
           "icon": "training",
@@ -1140,6 +1202,22 @@
           "description": "Families see tangible shifts within weeks: calmer mornings, happier afternoons, genuine growth."
         }
       ]
+    }
+  },
+  "links": {
+    "hub": {
+      "ariaLabel": "Quick links",
+      "heading": "Evolve Sprouts",
+      "tagline": "Montessori-inspired guidance for families in Hong Kong",
+      "courseLabel": "My Best Auntie Course",
+      "contactLabel": "Contact Us",
+      "eventsLabel": "Upcoming Events",
+      "whatsappLabel": "WhatsApp Us",
+      "instagramLabel": "Follow on Instagram"
+    },
+    "seo": {
+      "title": "Links",
+      "description": "Quick links to Evolve Sprouts courses, events, and contact channels in Hong Kong."
     }
   }
 }

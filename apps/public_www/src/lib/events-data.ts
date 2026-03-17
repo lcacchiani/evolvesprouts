@@ -1,11 +1,13 @@
 import type { EventsContent } from '@/content';
 import temporaryEventsPayload from '@/content/events.json';
+import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import {
   readCandidateText,
   readOptionalText,
   toRecord,
 } from '@/content/content-field-utils';
 import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
+import { ROUTES } from '@/lib/routes';
 import { isHttpHref } from '@/lib/url-utils';
 
 type EventStatus = 'open' | 'fully_booked';
@@ -16,6 +18,9 @@ export const EVENTS_API_PATH = '/v1/calendar/events';
 const EVENTS_SOURCE_ENV_NAME = 'NEXT_PUBLIC_EVENTS_SOURCE';
 const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
 const MAX_PAST_EVENTS = 5;
+const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
+const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
+const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
 
 export interface EventCardData {
   id: string;
@@ -37,9 +42,9 @@ export interface EventCardData {
 }
 
 const UK_EVENTS_LOCALE = 'en-GB';
-const UK_TIME_ZONE = 'Europe/London';
 const DATE_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 const TIME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
+const TIME_ZONE_NAME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 
 function resolveEventsLocale(locale?: string): SupportedLocale {
   if (locale === 'zh-CN' || locale === 'zh-HK') {
@@ -85,7 +90,6 @@ function getDateFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
-    timeZone: UK_TIME_ZONE,
   });
   DATE_FORMATTER_CACHE.set(formatterKey, nextFormatter);
   return nextFormatter;
@@ -104,15 +108,29 @@ function getTimeFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
           hour: '2-digit',
           minute: '2-digit',
           hour12: false,
-          timeZone: UK_TIME_ZONE,
         })
       : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true,
-          timeZone: UK_TIME_ZONE,
         });
   TIME_FORMATTER_CACHE.set(formatterKey, nextFormatter);
+  return nextFormatter;
+}
+
+function getTimeZoneNameFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
+  const formatterKey = locale;
+  const cachedFormatter = TIME_ZONE_NAME_FORMATTER_CACHE.get(formatterKey);
+  if (cachedFormatter) {
+    return cachedFormatter;
+  }
+
+  const nextFormatter = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
+  TIME_ZONE_NAME_FORMATTER_CACHE.set(formatterKey, nextFormatter);
   return nextFormatter;
 }
 
@@ -123,6 +141,32 @@ function sanitizeExternalHref(value: string | undefined): string {
   }
 
   return href;
+}
+
+function localizeRoutePath(path: string, locale: SupportedLocale): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (normalizedPath === '/') {
+    return `/${locale}`;
+  }
+
+  return `/${locale}${normalizedPath}`;
+}
+
+function resolveBookingSystemCtaHref(
+  bookingSystemValue: unknown,
+  locale: SupportedLocale,
+): string {
+  const bookingSystem = readOptionalText(bookingSystemValue);
+  if (bookingSystem !== MY_BEST_AUNTIE_BOOKING_SYSTEM) {
+    return '';
+  }
+
+  const localizedMyBestAuntiePath = localizeRoutePath(
+    ROUTES.servicesMyBestAuntieTrainingCourse,
+    locale,
+  );
+
+  return `${localizedMyBestAuntiePath}?${BOOKING_SYSTEM_QUERY_PARAM}=${MY_BEST_AUNTIE_BOOKING_SYSTEM}#${MY_BEST_AUNTIE_BOOKING_HASH}`;
 }
 
 function isGoogleMapsHref(href: string): boolean {
@@ -186,6 +230,20 @@ function formatUtcTimeLabel(isoDateTime: string, locale: SupportedLocale): strin
   return getTimeFormatter(locale).format(date);
 }
 
+function formatUtcTimeZoneLabel(isoDateTime: string, locale: SupportedLocale): string {
+  const date = new Date(isoDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const timeZoneNamePart = getTimeZoneNameFormatter(locale)
+    .formatToParts(date)
+    .find((part) => part.type === 'timeZoneName')
+    ?.value;
+
+  return readOptionalText(timeZoneNamePart) ?? '';
+}
+
 function appendTimeZoneLabel(
   timeLabel: string | undefined,
   timeZoneLabel: string | undefined,
@@ -239,11 +297,6 @@ function resolveDateTimeDetails(
     'endDateTime',
     'end',
   ]);
-  const timeZoneLabel = readCandidateText(firstDateRecord, [
-    'timezone',
-    'timeZone',
-    'tz',
-  ]);
 
   if (!startDateTime) {
     return { timestamp: null };
@@ -256,6 +309,7 @@ function resolveDateTimeDetails(
     startTimeLabel && endTimeLabel
       ? `${startTimeLabel} - ${endTimeLabel}`
       : startTimeLabel;
+  const timeZoneLabel = formatUtcTimeZoneLabel(startDateTime, locale);
 
   return {
     dateLabel: dateLabel || undefined,
@@ -342,6 +396,20 @@ function formatNumberWithThousandsSeparators(value: number): string {
     maximumFractionDigits: 20,
   }).format(value);
 }
+
+function normalizeCurrencyPrefix(value: string | undefined): string | undefined {
+  const normalizedValue = readOptionalText(value);
+  if (!normalizedValue) {
+    return undefined;
+  }
+
+  if (normalizedValue.toUpperCase() === 'HKD') {
+    return 'HK$';
+  }
+
+  return normalizedValue;
+}
+
 function resolveEventCost(
   record: Record<string, unknown>,
   content: EventsContent,
@@ -394,6 +462,7 @@ function resolveEventCost(
     'priceCurrency',
     'price_currency',
   ]);
+  const normalizedCurrencyPrefix = normalizeCurrencyPrefix(currencyPrefix);
 
   const amountText =
     typeof rawAmount === 'number' && Number.isFinite(rawAmount)
@@ -413,8 +482,8 @@ function resolveEventCost(
       ? amountText
       : formatNumberWithThousandsSeparators(numericAmount);
 
-  if (numericAmount !== null && currencyPrefix) {
-    return { costLabel: `${currencyPrefix}${formattedAmountText}`, isFreeCost: false };
+  if (numericAmount !== null && normalizedCurrencyPrefix) {
+    return { costLabel: `${normalizedCurrencyPrefix}${formattedAmountText}`, isFreeCost: false };
   }
 
   return { costLabel: formattedAmountText, isFreeCost: false };
@@ -475,6 +544,27 @@ function findEventsArray(payload: unknown, depth = 0): unknown[] {
   }
 
   return [];
+}
+
+function normalizeEventsFromArray(
+  eventsArray: unknown[],
+  content: EventsContent,
+  locale: SupportedLocale,
+): EventCardData[] {
+  return eventsArray
+    .map((item, index) => normalizeEventCard(item, index, content, locale))
+    .filter((item): item is EventCardData => item !== null);
+}
+
+function resolveEventsArrayForEventsPage(payload: unknown): unknown[] {
+  if (!shouldUseTemporaryEventsContentSource()) {
+    return findEventsArray(payload);
+  }
+
+  return [
+    ...findEventsArray(payload),
+    ...findEventsArray(myBestAuntieTrainingCourseContent),
+  ];
 }
 
 function readTagList(record: Record<string, unknown>): string[] {
@@ -608,9 +698,7 @@ function normalizeEventCard(
     'startTimeLabel',
     'timeDisplay',
   ]) ?? dateTimeDetails.timeLabel;
-  const timeZoneLabel =
-    readCandidateText(record, ['timezone', 'timeZone', 'tz'])
-    ?? dateTimeDetails.timeZoneLabel;
+  const timeZoneLabel = dateTimeDetails.timeZoneLabel;
   const timeLabel = appendTimeZoneLabel(rawTimeLabel, timeZoneLabel);
 
   const timestamp =
@@ -658,19 +746,9 @@ function normalizeEventCard(
     ]),
   );
 
-  const ctaHref = sanitizeExternalHref(
-    readCandidateText(record, [
-      'ctaHref',
-      'ctaUrl',
-      'bookingUrl',
-      'registrationUrl',
-      'registerUrl',
-      'href',
-      'url',
-      'link',
-      'address_url',
-    ]),
-  );
+  const ctaHref =
+    resolveBookingSystemCtaHref(record.booking_system, locale) ||
+    sanitizeExternalHref(readOptionalText(record.external_url));
   const ctaLabel =
     readCandidateText(record, ['ctaLabel', 'buttonLabel', 'actionLabel']) ??
     content.card.ctaLabel;
@@ -709,12 +787,21 @@ export function normalizeEvents(
   content: EventsContent,
   locale?: string,
 ): EventCardData[] {
-  const eventsArray = findEventsArray(payload);
   const normalizedLocale = resolveEventsLocale(locale);
+  const eventsArray = findEventsArray(payload);
 
-  return eventsArray
-    .map((item, index) => normalizeEventCard(item, index, content, normalizedLocale))
-    .filter((item): item is EventCardData => item !== null);
+  return normalizeEventsFromArray(eventsArray, content, normalizedLocale);
+}
+
+export function normalizeEventsForEventsPage(
+  payload: unknown,
+  content: EventsContent,
+  locale?: string,
+): EventCardData[] {
+  const normalizedLocale = resolveEventsLocale(locale);
+  const eventsArray = resolveEventsArrayForEventsPage(payload);
+
+  return normalizeEventsFromArray(eventsArray, content, normalizedLocale);
 }
 
 export function sortUpcomingEvents(

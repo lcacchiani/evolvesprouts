@@ -53,6 +53,8 @@ Public WWW CRM API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_FPS_MERCHANT_NAME` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_GTM_ID`
+- GitHub variable `NEXT_PUBLIC_GTM_ALLOWED_HOSTS` (optional comma-separated
+  hostname allowlist for runtime GTM gating)
 - GitHub variable `NEXT_PUBLIC_EMAIL`
 - GitHub variable `NEXT_PUBLIC_WHATSAPP_URL`
 - GitHub variable `NEXT_PUBLIC_INSTAGRAM_URL`
@@ -63,6 +65,8 @@ Public WWW CRM API configuration is provided at build time via:
 `NEXT_PUBLIC_SITE_ORIGIN` is resolved automatically in CI from
 `backend/infrastructure/params/production.json` (`PublicWwwDomainName`) to keep
 the website canonical origin aligned with infrastructure domain parameters.
+When `NEXT_PUBLIC_GTM_ALLOWED_HOSTS` is unset, GTM runtime gating defaults to
+the hostname resolved from `NEXT_PUBLIC_SITE_ORIGIN`.
 
 `evolvesprouts-public-www` CloudFront proxies `https://{www-domain}/www/*`
 to the host resolved from `PublicWwwCrmApiBaseUrl` (derived from
@@ -92,6 +96,37 @@ Workflow: `.github/workflows/deploy-public-www.yml`
   - re-apply `/www/*` CloudFront proxy allowlist behavior
   - invalidate staging CloudFront (including `/_next/static/*` to clear
     stale asset error responses)
+
+### Smoke test staging website
+
+Workflow: `.github/workflows/smoke-public-www-staging.yml`
+
+- Trigger:
+  - Manual (`workflow_dispatch`) with optional scope:
+    - `all` (default)
+    - `pages`
+    - `api`
+- Target URL:
+  - resolved from `PublicWwwStagingDomainName` in
+    `backend/infrastructure/params/production.json`
+- Required secret:
+  - `NEXT_PUBLIC_WWW_CRM_API_KEY`
+- Optional variables for API endpoint fallbacks:
+  - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL` (used by smoke as
+    `SMOKE_CRM_API_BASE_URL`)
+  - `NEXT_PUBLIC_ADMIN_API_BASE_URL` (used by smoke as
+    `SMOKE_MEDIA_API_BASE_URL`)
+- Behavior:
+  - runs `npm run smoke:staging` in `apps/public_www`
+  - verifies page health via sitemap-driven URL checks (with staging-origin URL
+    remapping)
+  - verifies CTA API endpoints:
+    - `POST /www/v1/contact-us`
+    - `POST /www/v1/discounts/validate`
+    - `POST /www/v1/media-request`
+    - `POST /www/v1/reservations`
+  - when same-origin `/www/*` checks return `404`, retries API checks through
+    configured fallback API base URLs before failing
 
 ### Promote to production (manual)
 

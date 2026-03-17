@@ -16,6 +16,7 @@ const CONTACT_EMAIL_ENV_NAME = 'NEXT_PUBLIC_EMAIL';
 const CONTACT_EMAIL_PLACEHOLDER = '{{CONTACT_EMAIL}}';
 const CONTACT_EMAIL_MAILTO_PLACEHOLDER = `mailto:${CONTACT_EMAIL_PLACEHOLDER}`;
 const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
+const INSTAGRAM_URL_PLACEHOLDER = '{{INSTAGRAM_URL}}';
 const EMAIL_VALUE_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_VALUE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
 const DANGEROUS_HREF_PROTOCOL_REGEX = /^(javascript|data|vbscript|file|blob):/i;
@@ -197,6 +198,15 @@ function validateHrefValue(value, keyPath, errors) {
     }
     errors.push(
       `${keyPath}: placeholder "${WHATSAPP_URL_PLACEHOLDER}" is only allowed for navbar.bookNow.href and freeIntroSession.ctaHref`,
+    );
+    return;
+  }
+  if (normalizedValue === INSTAGRAM_URL_PLACEHOLDER) {
+    if (keyPath.includes('.contactUs.connect.cards[')) {
+      return;
+    }
+    errors.push(
+      `${keyPath}: placeholder "${INSTAGRAM_URL_PLACEHOLDER}" is only allowed in contactUs.connect.cards`,
     );
     return;
   }

@@ -3,10 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import enContent from '@/content/en.json';
 import zhHKContent from '@/content/zh-HK.json';
 import temporaryEventsPayload from '@/content/events.json';
+import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   fetchEventsPayload,
   normalizeEvents,
+  normalizeEventsForEventsPage,
   resolveEventsApiUrl,
   sortPastEvents,
   sortEvents,
@@ -17,6 +19,58 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
+
+function resolveDateTimeLocale(locale: 'en' | 'zh-CN' | 'zh-HK'): string {
+  if (locale === 'en') {
+    return 'en-GB';
+  }
+
+  return locale;
+}
+
+function formatExpectedDateLabel(
+  isoDateTime: string,
+  locale: 'en' | 'zh-CN' | 'zh-HK',
+): string {
+  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(isoDateTime));
+}
+
+function formatExpectedTimeLabel(
+  startIsoDateTime: string,
+  endIsoDateTime: string,
+  locale: 'en' | 'zh-CN' | 'zh-HK',
+): string {
+  const startDate = new Date(startIsoDateTime);
+  const endDate = new Date(endIsoDateTime);
+  const timeFormatter =
+    locale === 'en'
+      ? new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })
+      : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+  const timeZoneLabel = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  })
+    .formatToParts(startDate)
+    .find((part) => part.type === 'timeZoneName')
+    ?.value
+    .trim();
+  const timeRange = `${timeFormatter.format(startDate)} - ${timeFormatter.format(endDate)}`;
+
+  return timeZoneLabel ? `${timeRange} ${timeZoneLabel}` : timeRange;
+}
 
 describe('events-data', () => {
   it('resolves CRM events endpoint from base URL', () => {
@@ -58,10 +112,9 @@ describe('events-data', () => {
               end_datetime: '2025-12-05T13:00:00Z',
             },
           ],
-          timezone: 'HKT',
           is_fully_booked: true,
           price: 9000,
-          currency_symbol: 'HK$',
+          currency: 'HKD',
         },
         {
           title: 'TEST Data Science Intensive Touch',
@@ -83,10 +136,9 @@ describe('events-data', () => {
               end_datetime: '2025-12-15T12:00:00Z',
             },
           ],
-          timezone: 'HKT',
           is_fully_booked: false,
           price: 0,
-          currency_symbol: 'HK$',
+          currency: 'HKD',
         },
       ],
     };
@@ -97,14 +149,13 @@ describe('events-data', () => {
     expect(events[0]).toMatchObject({
       title: 'TEST Creative Writing Masterclass',
       status: 'fully_booked',
-      dateLabel: '05 Dec 2025',
-      timeLabel: '10:00 - 13:00 HKT',
+      dateLabel: formatExpectedDateLabel('2025-12-05T10:00:00Z', 'en'),
+      timeLabel: formatExpectedTimeLabel('2025-12-05T10:00:00Z', '2025-12-05T13:00:00Z', 'en'),
       locationName:
         'H210, 2/F, PMQ, Mid-Levels, Central and Western, Hong Kong Island',
       directionHref:
         'https://www.google.com/maps/search/?api=1&query=H210%2C+2%2FF%2C+PMQ%2C+Mid-Levels%2C+Central+and+Western%2C+Hong+Kong+Island',
-      ctaHref:
-        'https://www.google.com/maps/search/?api=1&query=H210%2C+2%2FF%2C+PMQ%2C+Mid-Levels%2C+Central+and+Western%2C+Hong+Kong+Island',
+      ctaHref: '',
       ctaLabel: enContent.events.card.ctaLabel,
       costLabel: 'HK$9,000',
       isFreeCost: false,
@@ -121,10 +172,10 @@ describe('events-data', () => {
     expect(events[1]).toMatchObject({
       title: 'TEST Data Science Intensive Touch',
       status: 'open',
-      dateLabel: '15 Dec 2025',
-      timeLabel: '09:00 - 12:00 HKT',
+      dateLabel: formatExpectedDateLabel('2025-12-15T09:00:00Z', 'en'),
+      timeLabel: formatExpectedTimeLabel('2025-12-15T09:00:00Z', '2025-12-15T12:00:00Z', 'en'),
       locationName: 'Virtual Meeting',
-      ctaHref: 'https://meet.example.com/data-science',
+      ctaHref: '',
       ctaLabel: enContent.events.card.ctaLabel,
       costLabel: enContent.events.card.freeLabel,
       isFreeCost: true,
@@ -138,6 +189,85 @@ describe('events-data', () => {
     ]);
   });
 
+  it('uses external_url as the event card CTA when available', () => {
+    const payload = {
+      data: [
+        {
+          title: 'External CTA event',
+          location: 'physical',
+          address: 'PMQ, Hong Kong',
+          address_url: 'https://maps.google.com/?q=PMQ+Hong+Kong',
+          external_url: 'https://booking.example.com/events/pmq-session',
+          dates: [
+            {
+              start_datetime: '2026-01-20T09:00:00Z',
+              end_datetime: '2026-01-20T11:00:00Z',
+            },
+          ],
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      directionHref: 'https://maps.google.com/?q=PMQ+Hong+Kong',
+      ctaHref: 'https://booking.example.com/events/pmq-session',
+    });
+  });
+
+  it('uses my-best-auntie booking system CTA route when booking_system is set', () => {
+    const payload = {
+      data: [
+        {
+          title: 'My Best Auntie booking event',
+          booking_system: 'my-best-auntie-booking',
+          external_url: 'https://booking.example.com/events/should-not-be-used',
+          dates: [
+            {
+              start_datetime: '2026-01-22T09:00:00Z',
+              end_datetime: '2026-01-22T11:00:00Z',
+            },
+          ],
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events, 'zh-HK');
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.ctaHref).toBe(
+      '/zh-HK/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
+    );
+  });
+  it('does not use legacy CTA candidate keys without external_url', () => {
+    const payload = {
+      data: [
+        {
+          title: 'Legacy CTA fields event',
+          ctaUrl: 'https://booking.example.com/from-cta-url',
+          bookingUrl: 'https://booking.example.com/from-booking-url',
+          href: 'https://booking.example.com/from-href',
+          dates: [
+            {
+              start_datetime: '2026-01-21T09:00:00Z',
+              end_datetime: '2026-01-21T11:00:00Z',
+            },
+          ],
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.ctaHref).toBe('');
+  });
+
   it('formats event dates and times using locale-aware labels', () => {
     const payload = {
       data: [
@@ -149,7 +279,6 @@ describe('events-data', () => {
               end_datetime: '2025-12-05T13:00:00Z',
             },
           ],
-          timezone: 'HKT',
           price: 0,
         },
       ],
@@ -157,8 +286,8 @@ describe('events-data', () => {
 
     const events = normalizeEvents(payload, zhHKContent.events, 'zh-HK');
     expect(events[0]).toMatchObject({
-      dateLabel: '2025年12月05日',
-      timeLabel: '上午10:00 - 下午1:00 HKT',
+      dateLabel: formatExpectedDateLabel('2025-12-05T10:00:00Z', 'zh-HK'),
+      timeLabel: formatExpectedTimeLabel('2025-12-05T10:00:00Z', '2025-12-05T13:00:00Z', 'zh-HK'),
       costLabel: zhHKContent.events.card.freeLabel,
       isFreeCost: true,
     });
@@ -183,6 +312,37 @@ describe('events-data', () => {
     expect(events[0]).toMatchObject({
       locationName: 'In Person',
     });
+  });
+
+  it('merges events and course content for events page when source is content', () => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'content');
+
+    const events = normalizeEventsForEventsPage(temporaryEventsPayload, enContent.events);
+    const expectedMergedLength =
+      temporaryEventsPayload.data.length + myBestAuntieTrainingCourseContent.data.length;
+
+    expect(events).toHaveLength(expectedMergedLength);
+    expect(events.some((event) => event.id === 'bimbo-concept-weaning-2026-03-20')).toBe(true);
+    expect(events.some((event) => event.id === 'my-best-auntie-0-1-04-26')).toBe(true);
+  });
+
+  it('keeps events page normalization unchanged for API source', () => {
+    vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
+
+    const payload = {
+      data: [
+        {
+          id: 'api-event-1',
+          title: 'API-only event',
+          dates: [{ start_datetime: '2026-08-01T09:00:00Z' }],
+        },
+      ],
+    };
+
+    const events = normalizeEventsForEventsPage(payload, enContent.events);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.id).toBe('api-event-1');
   });
 
   it('returns upcoming events in chronological order and limits past events to most recent 5', () => {

@@ -15,6 +15,11 @@ const GTM_CONNECT_ORIGINS = [
   'https://stats.g.doubleclick.net',
 ];
 const GTM_DETECT_MARKER = 'init-gtm.js';
+
+const META_PIXEL_SCRIPT_ORIGINS = ['https://connect.facebook.net'];
+const META_PIXEL_CONNECT_ORIGINS = ['https://www.facebook.com'];
+const META_PIXEL_DETECT_MARKER = 'init-meta-pixel.js';
+
 const CRM_API_CONNECT_ORIGINS = resolveCrmApiConnectOrigins();
 
 function resolveCrmApiConnectOrigins() {
@@ -49,7 +54,7 @@ function resolveCrmApiConnectOrigins() {
   return [parsedBaseUrl.origin];
 }
 
-function buildCspDirectiveBase(hasGtm) {
+function buildCspDirectiveBase(hasGtm, hasMetaPixel) {
   const connectSources = [
     "'self'",
     ...CRM_API_CONNECT_ORIGINS,
@@ -57,6 +62,9 @@ function buildCspDirectiveBase(hasGtm) {
   ];
   if (hasGtm) {
     connectSources.push(...GTM_CONNECT_ORIGINS);
+  }
+  if (hasMetaPixel) {
+    connectSources.push(...META_PIXEL_CONNECT_ORIGINS);
   }
   const dedupedConnectSources = [...new Set(connectSources)];
 
@@ -203,12 +211,15 @@ function buildCspValue(html) {
   ];
 
   const hasGtm = html.includes(GTM_DETECT_MARKER);
+  const hasMetaPixel = html.includes(META_PIXEL_DETECT_MARKER);
   const gtmScriptOrigins = hasGtm ? GTM_SCRIPT_ORIGINS : [];
+  const metaPixelScriptOrigins = hasMetaPixel ? META_PIXEL_SCRIPT_ORIGINS : [];
 
   const scriptDirectiveSources = [
     "'self'",
     TURNSTILE_ORIGIN,
     ...gtmScriptOrigins,
+    ...metaPixelScriptOrigins,
     ...scriptHashes,
   ].join(' ');
   const styleDirectiveSources = [
@@ -219,7 +230,7 @@ function buildCspValue(html) {
   ].join(' ');
 
   const directives = [
-    ...buildCspDirectiveBase(hasGtm),
+    ...buildCspDirectiveBase(hasGtm, hasMetaPixel),
     `script-src ${scriptDirectiveSources}`,
     `style-src ${styleDirectiveSources}`,
   ];

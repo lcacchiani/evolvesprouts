@@ -1,6 +1,10 @@
+'use client';
+
 import Image from 'next/image';
 
 import { SmartLink } from '@/components/shared/smart-link';
+import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
 interface WhatsappContactButtonProps {
   href: string;
@@ -31,6 +35,13 @@ export function WhatsappContactButton({
       aria-label={ariaLabel}
       title={ariaLabel}
       className={buttonClassName}
+      onClick={() => {
+        trackAnalyticsEvent('whatsapp_click', {
+          sectionId: 'whatsapp-contact-button',
+          ctaLocation: 'floating_button',
+        });
+        trackMetaPixelEvent('Contact', { content_name: 'whatsapp' });
+      }}
     >
       <Image
         src={WHATSAPP_ICON_SRC}

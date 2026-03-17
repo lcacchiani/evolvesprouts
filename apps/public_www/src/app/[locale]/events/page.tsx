@@ -8,7 +8,7 @@ import {
 import {
   type EventCardData,
   fetchEventsPayload,
-  normalizeEvents,
+  normalizeEventsForEventsPage,
   shouldUseTemporaryEventsContentSource,
 } from '@/lib/events-data';
 import {
@@ -44,7 +44,7 @@ async function resolveServerSideEvents(
 
   try {
     const payload = await fetchEventsPayload(crmApiClient, controller.signal);
-    return normalizeEvents(payload, content.events, locale);
+    return normalizeEventsForEventsPage(payload, content.events, locale);
   } catch (error) {
     if (isAbortRequestError(error)) {
       return [];
@@ -64,8 +64,8 @@ async function resolveServerSideEvents(
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, ROUTES.events);
-  const description = content.events.description;
+  const title = content.seo.events.title || getMenuLabel(content, ROUTES.events);
+  const description = content.seo.events.description;
 
   return buildLocalizedMetadata({
     locale,

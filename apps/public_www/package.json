@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "smoke:staging": "node ./scripts/smoke-staging.mjs",
     "audit:assets": "node ./scripts/audit-assets.mjs",
     "images:optimize": "node ./scripts/optimize-images.mjs",
     "validate:content": "node ./scripts/validate-content.mjs",
@@ -21,7 +22,9 @@
     "csp:validate": "node ./scripts/validate-csp-meta.mjs",
     "lighthouse:ci": "lhci autorun --config=.lighthouserc.json",
     "start": "next start",
-    "lint": "eslint --max-warnings=0 .",
+    "validate:analytics-contract": "node ./scripts/validate-analytics-contract.mjs",
+    "validate:analytics-governance": "node ./scripts/validate-analytics-governance.mjs",
+    "lint": "npm run validate:analytics-contract && npm run validate:analytics-governance && eslint --max-warnings=0 .",
     "test": "vitest run",
     "test:watch": "vitest",
     "audit:deps:prod": "npm audit --omit=dev --audit-level=high"
@@ -39,13 +42,13 @@
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/node": "^25.3.5",
+    "@types/node": "^25.5.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.14",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.0",
     "eslint": "^10.0.3",
     "eslint-config-next": "^16.1.6",
-    "jsdom": "^28.1.0",
+    "jsdom": "^29.0.0",
     "postcss": "^8.5.8",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.2.0",
@@ -54,6 +57,7 @@
   },
   "overrides": {
     "tmp": "^0.2.4",
-    "yauzl": "^3.2.0"
+    "yauzl": "^3.2.1",
+    "flatted": "^3.4.0"
   }
 }

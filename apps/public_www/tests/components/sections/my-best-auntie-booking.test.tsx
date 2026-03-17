@@ -1,10 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -15,6 +16,12 @@ vi.mock('next/image', () => ({
   } & Record<string, unknown>) => <img alt={alt ?? ''} {...props} />,
 }));
 
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
+}));
+
+const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
+
 beforeAll(() => {
   Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
     configurable: true,
@@ -24,6 +31,11 @@ beforeAll(() => {
     configurable: true,
     value: vi.fn(),
   });
+});
+
+afterEach(() => {
+  window.history.replaceState({}, '', '/');
+  mockedTrackAnalyticsEvent.mockReset();
 });
 
 function formatCohortPreviewLabel(value: string): string {
@@ -40,17 +52,14 @@ function formatPartDateTimeLabel(startDateTime: string): string {
 
   const month = new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    timeZone: 'UTC',
   }).format(date);
   const day = new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
-    timeZone: 'UTC',
   }).format(date);
   const time = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: 'UTC',
   })
     .format(date)
     .replace(' AM', ' am')
@@ -112,7 +121,16 @@ function getPrimarySessionDateTimeLabel(cohort: BookingCohort): string {
 }
 
 function formatCohortPrice(cohort: BookingCohort): string {
-  return `${cohort.currency_symbol}${new Intl.NumberFormat('en-HK', {
+  const normalizedCurrency = cohort.currency.trim();
+  if (/^[A-Z]{3}$/.test(normalizedCurrency)) {
+    return new Intl.NumberFormat('en-HK', {
+      style: 'currency',
+      currency: normalizedCurrency,
+      maximumFractionDigits: 0,
+    }).format(cohort.price);
+  }
+
+  return `${normalizedCurrency}${new Intl.NumberFormat('en-HK', {
     useGrouping: true,
     maximumFractionDigits: 0,
   }).format(cohort.price)}`;
@@ -123,6 +141,22 @@ function formatSpacesLeftLabel(count: number): string {
 }
 
 describe('MyBestAuntieBooking section', () => {
+  it('auto-opens payment modal when booking_system query targets my-best-auntie booking', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/en/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
+    );
+
+    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+
+    expect(
+      await screen.findByRole('dialog', {
+        name: bookingContent.paymentModal.title,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it('uses default section shell top spacing classes', () => {
     const { container } = render(
       <MyBestAuntieBooking locale='en' content={bookingContent} />,
@@ -194,6 +228,13 @@ describe('MyBestAuntieBooking section', () => {
         name: secondAgeOption.label,
       }),
     );
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_age_selected',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'selector',
+      }),
+    );
 
     expect(
       screen.getByText(
@@ -204,7 +245,9 @@ describe('MyBestAuntieBooking section', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
-    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(2);
+    expect(within(dateSelectorRegion).getAllByRole('button')).toHaveLength(
+      secondAgeCohorts.length,
+    );
     expect(
       within(dateSelectorRegion).getByRole('button', {
         name: new RegExp(formatCohortLabel(secondAgeFirstCohort.cohort)),
@@ -219,6 +262,13 @@ describe('MyBestAuntieBooking section', () => {
     fireEvent.click(
       within(dateSelectorRegion).getByRole('button', {
         name: new RegExp(formatCohortLabel(secondAgeSecondCohort.cohort)),
+      }),
+    );
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_date_selected',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'selector',
       }),
     );
 
@@ -390,9 +440,8 @@ describe('MyBestAuntieBooking section', () => {
         spaces_left: 8,
         is_fully_booked: false,
         price: 9000,
-        currency_symbol: 'HK$',
+        currency: 'HKD',
         location: 'physical',
-        timezone: 'HKT',
         tags: [],
         categories: ['Training Course'],
         address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
@@ -426,9 +475,8 @@ describe('MyBestAuntieBooking section', () => {
         spaces_left: 4,
         is_fully_booked: false,
         price: 9000,
-        currency_symbol: 'HK$',
+        currency: 'HKD',
         location: 'physical',
-        timezone: 'HKT',
         tags: [],
         categories: ['Training Course'],
         address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
@@ -511,15 +559,45 @@ describe('MyBestAuntieBooking section', () => {
     expect(screen.getByLabelText('Scroll dates right')).toBeInTheDocument();
   });
 
+  it('tracks confirm-and-pay click and modal open events', async () => {
+    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingContent.confirmAndPayLabel,
+      }),
+    );
+
+    expect(await screen.findByRole('dialog', {
+      name: bookingContent.paymentModal.title,
+    })).toBeInTheDocument();
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_confirm_pay_click',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'booking_section',
+      }),
+    );
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_modal_open',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'booking_section',
+      }),
+    );
+  });
+
   it('renders sold-out date cards as disabled with stamp and skips them for initial selection', () => {
     const soldOutContent = JSON.parse(
       JSON.stringify(bookingContent),
     ) as BookingContent;
 
     const soldOutCohort = soldOutContent.cohorts.find(
-      (cohort) => cohort.id === 'my-best-auntie-0-1-05-26',
+      (cohort) => cohort.age_group === '0-1',
     );
-    expect(soldOutCohort?.is_fully_booked).toBe(true);
+    expect(soldOutCohort).toBeDefined();
+    soldOutCohort!.is_fully_booked = true;
+    soldOutCohort!.spaces_left = 0;
 
     render(<MyBestAuntieBooking locale='en' content={soldOutContent} />);
 

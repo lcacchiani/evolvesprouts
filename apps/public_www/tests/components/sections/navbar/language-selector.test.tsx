@@ -75,10 +75,10 @@ describe('language-selector', () => {
     const simplifiedOption = screen.getByRole('menuitem', { name: /简体中文/i });
     const traditionalOption = screen.getByRole('menuitem', { name: /繁體中文/i });
 
-    expect(simplifiedOption).toHaveAttribute('href', '/zh-CN/about-us');
+    expect(simplifiedOption).toHaveAttribute('href', '/zh-CN/about-us/');
     expect(simplifiedOption).toHaveAttribute('data-prefetch', 'false');
     expect(simplifiedOption).toHaveAttribute('data-scroll', 'true');
-    expect(traditionalOption).toHaveAttribute('href', '/zh-HK/about-us');
+    expect(traditionalOption).toHaveAttribute('href', '/zh-HK/about-us/');
     expect(traditionalOption).toHaveAttribute('data-prefetch', 'false');
     expect(traditionalOption).toHaveAttribute('data-scroll', 'true');
   });

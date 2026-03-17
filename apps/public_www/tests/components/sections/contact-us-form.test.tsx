@@ -7,6 +7,7 @@ import {
   type ContactUsFormContactConfig,
 } from '@/components/sections/contact-us-form';
 import enContent from '@/content/en.json';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 
 const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -68,7 +69,12 @@ vi.mock('@/lib/crm-api-client', async () => {
   };
 });
 
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
+}));
+
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
+const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 
 function renderContactUsForm(
   contactConfig: ContactUsFormContactConfig = defaultContactConfig,
@@ -89,6 +95,7 @@ describe('ContactUsForm section', () => {
   afterEach(() => {
     mockedCreateCrmApiClient.mockReset();
     mockedCreateCrmApiClient.mockReturnValue(null);
+    mockedTrackAnalyticsEvent.mockReset();
 
     if (originalTurnstileSiteKey === undefined) {
       delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -163,6 +170,12 @@ describe('ContactUsForm section', () => {
       'src',
       '/images/contact-whatsapp.svg',
     );
+
+    fireEvent.click(whatsappCta);
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('whatsapp_click', {
+      sectionId: 'contact-us-form',
+      ctaLocation: 'contact_section',
+    });
   });
 
   it('omits the WhatsApp CTA when the provided contact URL is missing', () => {
@@ -364,6 +377,26 @@ describe('ContactUsForm section', () => {
           name: enContent.contactUs.form.submitLabel,
         }),
       ).not.toBeInTheDocument();
+      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+        'contact_form_submit_attempt',
+        {
+          sectionId: 'contact-us-form',
+          ctaLocation: 'form',
+          params: {
+            form_type: 'contact_us',
+          },
+        },
+      );
+      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+        'contact_form_submit_success',
+        {
+          sectionId: 'contact-us-form',
+          ctaLocation: 'form',
+          params: {
+            form_type: 'contact_us',
+          },
+        },
+      );
     });
   });
 
@@ -394,6 +427,17 @@ describe('ContactUsForm section', () => {
       expect(
         screen.getByText(enContent.contactUs.form.submitErrorMessage),
       ).toBeInTheDocument();
+      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+        'contact_form_submit_error',
+        {
+          sectionId: 'contact-us-form',
+          ctaLocation: 'form',
+          params: {
+            form_type: 'contact_us',
+            error_type: 'api_error',
+          },
+        },
+      );
     });
   });
 });

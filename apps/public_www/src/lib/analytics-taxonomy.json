@@ -1,0 +1,235 @@
+{
+  "commonParams": [
+    "page_path",
+    "page_title",
+    "page_locale",
+    "section_id",
+    "cta_location",
+    "environment"
+  ],
+  "events": {
+    "whatsapp_click": {
+      "requiredCustomParams": [],
+      "allowedCustomParams": [],
+      "ga4KeyEvent": false
+    },
+    "contact_form_submit_attempt": {
+      "requiredCustomParams": [
+        "form_type"
+      ],
+      "allowedCustomParams": [
+        "form_type"
+      ],
+      "ga4KeyEvent": false
+    },
+    "contact_form_submit_success": {
+      "requiredCustomParams": [
+        "form_type"
+      ],
+      "allowedCustomParams": [
+        "form_type"
+      ],
+      "ga4KeyEvent": true
+    },
+    "contact_form_submit_error": {
+      "requiredCustomParams": [
+        "form_type",
+        "error_type"
+      ],
+      "allowedCustomParams": [
+        "form_type",
+        "error_type"
+      ],
+      "ga4KeyEvent": false
+    },
+    "media_form_open": {
+      "requiredCustomParams": [],
+      "allowedCustomParams": [
+        "resource_key"
+      ],
+      "ga4KeyEvent": false
+    },
+    "media_form_submit_success": {
+      "requiredCustomParams": [],
+      "allowedCustomParams": [
+        "resource_key"
+      ],
+      "ga4KeyEvent": true
+    },
+    "media_form_submit_error": {
+      "requiredCustomParams": [
+        "error_type"
+      ],
+      "allowedCustomParams": [
+        "resource_key",
+        "error_type"
+      ],
+      "ga4KeyEvent": false
+    },
+    "community_signup_submit_success": {
+      "requiredCustomParams": [
+        "form_type"
+      ],
+      "allowedCustomParams": [
+        "form_type"
+      ],
+      "ga4KeyEvent": true
+    },
+    "community_signup_submit_error": {
+      "requiredCustomParams": [
+        "form_type",
+        "error_type"
+      ],
+      "allowedCustomParams": [
+        "form_type",
+        "error_type"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_modal_open": {
+      "requiredCustomParams": [],
+      "allowedCustomParams": [
+        "age_group",
+        "cohort_label",
+        "cohort_date"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_age_selected": {
+      "requiredCustomParams": [
+        "age_group"
+      ],
+      "allowedCustomParams": [
+        "age_group"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_date_selected": {
+      "requiredCustomParams": [
+        "age_group",
+        "cohort_label"
+      ],
+      "allowedCustomParams": [
+        "age_group",
+        "cohort_label",
+        "cohort_date",
+        "is_fully_booked"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_confirm_pay_click": {
+      "requiredCustomParams": [
+        "age_group",
+        "cohort_label",
+        "cohort_date",
+        "total_amount"
+      ],
+      "allowedCustomParams": [
+        "age_group",
+        "cohort_label",
+        "cohort_date",
+        "total_amount"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_payment_method_selected": {
+      "requiredCustomParams": [
+        "payment_method"
+      ],
+      "allowedCustomParams": [
+        "payment_method"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_discount_apply_success": {
+      "requiredCustomParams": [
+        "discount_type",
+        "discount_amount"
+      ],
+      "allowedCustomParams": [
+        "discount_type",
+        "discount_amount"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_discount_apply_error": {
+      "requiredCustomParams": [
+        "error_type"
+      ],
+      "allowedCustomParams": [
+        "error_type"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_submit_success": {
+      "requiredCustomParams": [
+        "payment_method",
+        "age_group",
+        "cohort_date",
+        "total_amount"
+      ],
+      "allowedCustomParams": [
+        "payment_method",
+        "age_group",
+        "cohort_date",
+        "cohort_label",
+        "total_amount",
+        "discount_amount",
+        "discount_type"
+      ],
+      "ga4KeyEvent": true
+    },
+    "booking_submit_error": {
+      "requiredCustomParams": [
+        "payment_method",
+        "age_group",
+        "cohort_date",
+        "total_amount",
+        "error_type"
+      ],
+      "allowedCustomParams": [
+        "payment_method",
+        "age_group",
+        "cohort_date",
+        "total_amount",
+        "error_type"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_thank_you_view": {
+      "requiredCustomParams": [
+        "payment_method",
+        "total_amount"
+      ],
+      "allowedCustomParams": [
+        "payment_method",
+        "total_amount",
+        "age_group",
+        "cohort_date"
+      ],
+      "ga4KeyEvent": false
+    },
+    "booking_receipt_print_click": {
+      "requiredCustomParams": [
+        "payment_method",
+        "total_amount"
+      ],
+      "allowedCustomParams": [
+        "payment_method",
+        "total_amount",
+        "age_group",
+        "cohort_date"
+      ],
+      "ga4KeyEvent": false
+    },
+    "links_hub_click": {
+      "requiredCustomParams": [
+        "content_name"
+      ],
+      "allowedCustomParams": [
+        "content_name"
+      ],
+      "ga4KeyEvent": false
+    }
+  }
+}

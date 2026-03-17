@@ -16,8 +16,8 @@ export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = getMenuLabel(content, ROUTES.about);
-  const description = content.aboutUs.hero.subtitle;
+  const title = content.seo.aboutUs.title || getMenuLabel(content, ROUTES.about);
+  const description = content.seo.aboutUs.description;
 
   return buildLocalizedMetadata({
     locale,

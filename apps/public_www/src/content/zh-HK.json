@@ -82,8 +82,8 @@
     "imageAlt": "面向香港家庭的蒙特梭利姨姨培訓"
   },
   "seo": {
-    "fallbackTitle": "Evolve Sprouts | 香港蒙特梭利姨姨培訓",
-    "fallbackDescription": "將你的家庭助手培訓成以蒙特梭利為導向的兒童成長夥伴。為香港0-6歲孩子家庭提供姨姨培訓課程。",
+    "fallbackTitle": "Evolve Sprouts | 香港家傭育兒培訓 | My Best Auntie 課程",
+    "fallbackDescription": "My Best Auntie 是香港領先的蒙特梭利家傭培訓課程——幫助你的姨姨成為自信、貼心的 0-6 歲兒童照護夥伴。",
     "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
     "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利姨姨培訓",
     "socialImages": {
@@ -109,12 +109,28 @@
       }
     },
     "home": {
-      "title": "Evolve Sprouts | 香港蒙特梭利姨姨培訓",
-      "description": "將你的家庭助手培訓成以蒙特梭利為導向的兒童成長夥伴。為香港0-6歲孩子家庭提供姨姨培訓課程。"
+      "title": "Evolve Sprouts | 香港家傭育兒培訓 | My Best Auntie 課程",
+      "description": "My Best Auntie 是香港領先的蒙特梭利家傭培訓課程——幫助你的姨姨成為自信、貼心的 0-6 歲兒童照護夥伴。"
     },
     "trainingCourse": {
-      "title": "我的最佳姨姨培訓課程",
-      "description": "為家庭助手而設的6小時互動式蒙特梭利培訓課程。學習可即時落地的日常流程、溫和界線與兒童主導策略，特別適合香港家庭。"
+      "title": "My Best Auntie — 蒙特梭利家傭培訓課程",
+      "description": "My Best Auntie 是一個專為香港家傭設計的實戰蒙特梭利育兒培訓課程。涵蓋日常流程、溫和紀律與兒童主導策略，適合 0-6 歲兒童家庭。"
+    },
+    "aboutUs": {
+      "title": "關於我們",
+      "description": "認識 Evolve Sprouts 的創辦人。以蒙特梭利認證為基礎的家庭支援與家庭助手培訓，專注於香港0-6歲兒童的實際成長需求。"
+    },
+    "contactUs": {
+      "title": "聯絡我們",
+      "description": "聯絡 Evolve Sprouts，了解蒙特梭利姨姨培訓、家庭諮詢及活動詳情。我們將於24-48小時內回覆您。"
+    },
+    "events": {
+      "title": "活動",
+      "description": "參加 Evolve Sprouts 在香港舉辦的蒙特梭利工作坊、家長講座及社區活動。為0-6歲兒童家庭量身打造的實用課程。"
+    },
+    "links": {
+      "title": "連結",
+      "description": "快速訪問 Evolve Sprouts 課程、活動及聯繫方式。"
     },
     "organizationDescription": "為香港0-6歲孩子家庭提供蒙特梭利導向的家庭支持與姨姨培訓。",
     "localBusinessName": "Evolve Sprouts",
@@ -164,7 +180,7 @@
   "courseHighlights": {
     "eyebrow": "課程亮點",
     "title": "為什麼加入我們的課程",
-    "description": "當家庭真正想要改變時會選擇的課程",
+    "description": "當家庭真正想要改變時，會選擇的家傭育兒培訓課程",
     "ctaLabel": "立即開始—今天就培訓姨姨",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "立即聯絡",
@@ -350,6 +366,12 @@
           "description": "想用「漂流瓶」方式留言？填寫下方聯絡表單，我們會像小芽發芽一樣盡快回覆你。",
           "ctaLabel": "立即填寫",
           "ctaHref": "#contact-form"
+        },
+        {
+          "title": "追蹤我們：",
+          "description": "在 Instagram 獲取靈感 — 育兒技巧、幕後花絮和社區動態。",
+          "ctaLabel": "追蹤 @evolvesprouts",
+          "ctaHref": "{{INSTAGRAM_URL}}"
         }
       ]
     }
@@ -426,6 +448,41 @@
       }
     ],
     "questions": [
+      {
+        "question": "我的姨姨在 My Best Auntie 課程中會學到甚麼？",
+        "answer": "你的姨姨將學到蒙特梭利日常實操技巧、不用威脅或利誘的溫和紀律方法、適合 0-6 歲孩子的活動，以及如何在香港細單位中培養孩子的獨立性。課程包含小組課、家訪和個人化輔導。",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "My Best Auntie 課程適合無育兒經驗的姨姨嗎？",
+        "answer": "適合。My Best Auntie 家傭育兒培訓課程面向所有經驗水平的姨姨。無需蒙特梭利知識或之前的育兒培訓經歷——只需要願意學習嘅心。",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "My Best Auntie 同一般的姨姨培訓課程有甚麼分別？",
+        "answer": "不同於一般的姨姨培訓，My Best Auntie 是一個蒙特梭利導向的課程，包含家訪、個人化輔導和持續支援。我們會喺你屋企觀察姨姨同孩子的互動，提供具體可行的指導——而唔只係課堂理論。",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "My Best Auntie 培訓課程有幾長時間？",
+        "answer": "課程為期 9 週，包含三次小組培訓、三次家訪和三次家長溝通電話。課程設計旨在實現持久的行為改變，而非一次性講座。",
+        "labelIds": [
+          "general"
+        ]
+      },
+      {
+        "question": "如果我的姨姨英文唔太好，可以參加 My Best Auntie 課程嗎？",
+        "answer": "可以。我們的蒙特梭利姨姨培訓採用清晰語言、示範、視覺引導和重複練習。流利英語並非必須——理解和一致性先係最重要。",
+        "labelIds": [
+          "general"
+        ]
+      },
       {
         "question": "我們住在細單位，這套方法仍然適用嗎？",
         "answer": "適用。香港很多家庭都屬於小空間，我自己也是。我們專注於小空間蒙特梭利布置、共享房間安排，以及不依賴昂貴教具的日常流程。",
@@ -813,14 +870,19 @@
       "title": "關注我們",
       "items": [
         {
-          "label": "LinkedIn",
+          "label": "WhatsApp",
           "href": "/contact-us",
-          "icon": "linkedin"
+          "icon": "whatsapp"
         },
         {
           "label": "Instagram",
           "href": "/contact-us",
           "icon": "instagram"
+        },
+        {
+          "label": "LinkedIn",
+          "href": "/contact-us",
+          "icon": "linkedin"
         }
       ]
     },
@@ -862,18 +924,18 @@
   },
   "myBestAuntie": {
     "hero": {
-      "title": "My Best Auntie 培訓課程",
-      "subtitle": "一個專為香港家庭傭工而設的實用培訓課程。",
-      "description": "這不是一堂育兒理念講座，也不是一本她永遠不會讀完的厚手冊。這是一個專為香港家庭傭工而設的實戰課程——提供真實情境、真實話術與真實策略，讓她由第一天就可以應用。\n無需蒙特梭利背景。無需育兒經驗。只要願意學習——以及你願意相信，她其實可以做得更多。",
+      "title": "My Best Auntie — 香港蒙特梭利家傭育兒培訓",
+      "subtitle": "香港領先的家傭育兒培訓課程——實戰、蒙特梭利導向、專為真實生活而設。",
+      "description": "這不是一堂育兒理念講座，也不是一本她永遠不會讀完的厚手冊。這是一個專為香港家庭設計的家傭育兒培訓實戰課程——提供真實情境、真實話術與真實策略，讓她由第一天就可以應用。\n無需蒙特梭利背景。無需育兒經驗。只要願意學習——以及你願意相信，她其實可以做得更多。",
       "ctaLabel": "立即預訂名額！",
       "ctaHref": "#my-best-auntie-booking",
       "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
     },
     "outline": {
       "eyebrow": "課程大綱",
-      "title": "由 Ida 設計的 My Best Auntie 培訓課程",
+      "title": "My Best Auntie 課程大綱 — 由 Ida 設計",
       "subtitle": "9 週課程，改變你嘅屋企。",
-      "description": "小組課 + 私人 1:1 指導。HK$9,000 起。",
+      "description": "系統化姨姨培訓課程：小組課 + 私人 1:1 指導。HK$9,000 起。",
       "ctaLabel": "立即預訂名額！",
       "ctaHref": "#my-best-auntie-booking",
       "modules": [
@@ -945,7 +1007,7 @@
     },
     "description": {
       "eyebrow": "課程亮點",
-      "title": "你會在我的最佳姨姨培訓課程中獲得甚麼？",
+      "title": "My Best Auntie 蒙特梭利姨姨培訓課程包含甚麼？",
       "items": [
         {
           "icon": "training",
@@ -1140,6 +1202,22 @@
           "description": "不少家庭在短短數週內已看見明顯轉變：早晨更平和、下午更愉快、成長更真實可見。"
         }
       ]
+    }
+  },
+  "links": {
+    "hub": {
+      "ariaLabel": "快速連結",
+      "heading": "Evolve Sprouts",
+      "tagline": "為香港家庭提供蒙特梭利教育指導",
+      "courseLabel": "My Best Auntie 課程",
+      "contactLabel": "聯絡我們",
+      "eventsLabel": "近期活動",
+      "whatsappLabel": "WhatsApp 聯繫",
+      "instagramLabel": "追蹤 Instagram"
+    },
+    "seo": {
+      "title": "連結",
+      "description": "快速訪問 Evolve Sprouts 課程、活動及聯繫方式。"
     }
   }
 }

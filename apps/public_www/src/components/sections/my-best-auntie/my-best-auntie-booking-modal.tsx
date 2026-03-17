@@ -75,17 +75,14 @@ function formatPartDateTimeLabel(startDateTime: string): string {
 
   const month = new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    timeZone: 'UTC',
   }).format(date);
   const day = new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
-    timeZone: 'UTC',
   }).format(date);
   const time = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: 'UTC',
   })
     .format(date)
     .replace(' AM', ' am')

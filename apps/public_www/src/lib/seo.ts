@@ -86,6 +86,8 @@ export function _resetSeoCacheForTests(): void {
 }
 
 export const DEFAULT_SOCIAL_IMAGE = '/images/seo/evolvesprouts-og-default.png';
+export const DEFAULT_SOCIAL_IMAGE_WIDTH = 1200;
+export const DEFAULT_SOCIAL_IMAGE_HEIGHT = 630;
 export const SITE_TITLE_SUFFIX = 'Evolve Sprouts';
 const PAGE_TITLE_SEPARATOR = ' - ';
 
@@ -172,6 +174,8 @@ export function buildLocalizedMetadata({
         {
           url: socialImageUrl,
           alt: socialImageAlt,
+          width: DEFAULT_SOCIAL_IMAGE_WIDTH,
+          height: DEFAULT_SOCIAL_IMAGE_HEIGHT,
         },
       ],
     },

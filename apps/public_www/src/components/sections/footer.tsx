@@ -29,6 +29,7 @@ function resolveCurrentYearCopyright(value: string): string {
 interface SocialHrefConfig {
   instagramUrl?: string;
   linkedinUrl?: string;
+  whatsappUrl?: string;
 }
 
 interface SocialIconAsset {
@@ -91,6 +92,25 @@ function resolveConnectOnHref(
     return item.href;
   }
 
+  if (item.icon === 'whatsapp') {
+    if (socialHrefConfig.whatsappUrl) {
+      return socialHrefConfig.whatsappUrl;
+    }
+
+    if (item.href.startsWith('/')) {
+      return item.href;
+    }
+
+    if (
+      isGenericSocialRootHref(item.href, 'wa.me')
+      || isGenericSocialRootHref(item.href, 'api.whatsapp.com')
+    ) {
+      return undefined;
+    }
+
+    return item.href;
+  }
+
   return item.href;
 }
 
@@ -122,6 +142,10 @@ const socialIconAssets: Partial<Record<string, SocialIconAsset>> = {
   },
   instagram: {
     src: '/images/contact-instagram.svg',
+    className: 'h-[18px] w-[18px]',
+  },
+  whatsapp: {
+    src: '/images/contact-whatsapp.svg',
     className: 'h-[18px] w-[18px]',
   },
 };
@@ -249,6 +273,7 @@ export function Footer({ content }: FooterProps) {
   const connectOnItems = resolveConnectOnItems(content.connectOn.items, {
     instagramUrl: publicSiteConfig.instagramUrl,
     linkedinUrl: publicSiteConfig.linkedinUrl,
+    whatsappUrl: publicSiteConfig.whatsappUrl,
   });
   const copyrightText = resolveCurrentYearCopyright(content.copyright);
 

@@ -15,17 +15,17 @@ describe('seo metadata builder', () => {
       description: 'About page description',
     });
 
-    expect(metadata.alternates?.canonical).toBe('/zh-CN/about-us');
+    expect(metadata.alternates?.canonical).toBe('/zh-CN/about-us/');
     expect(metadata.alternates?.languages).toMatchObject({
-      en: '/en/about-us',
-      'zh-CN': '/zh-CN/about-us',
-      'zh-HK': '/zh-HK/about-us',
-      'x-default': '/en/about-us',
+      en: '/en/about-us/',
+      'zh-CN': '/zh-CN/about-us/',
+      'zh-HK': '/zh-HK/about-us/',
+      'x-default': '/en/about-us/',
     });
     expect(metadata.openGraph).toMatchObject({
       title: 'About Us - Evolve Sprouts',
       description: 'About page description',
-      url: '/zh-CN/about-us',
+      url: '/zh-CN/about-us/',
       type: 'website',
       locale: 'zh-CN',
       siteName: 'Evolve Sprouts',

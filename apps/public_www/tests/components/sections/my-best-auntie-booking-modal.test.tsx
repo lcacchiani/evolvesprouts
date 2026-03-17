@@ -38,6 +38,7 @@ import {
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
 
@@ -89,6 +90,10 @@ vi.mock('@/lib/discounts-data', async () => {
   };
 });
 
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
+}));
+
 vi.mock('@/components/shared/turnstile-captcha', () => ({
   TurnstileCaptcha: ({
     onTokenChange,
@@ -130,6 +135,7 @@ const thankYouModalContent = enContent.bookingModal.thankYouModal;
 const selectedCohort = bookingSectionContent.cohorts[0];
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
+const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
 const testFpsMerchantName = 'Test FPS Merchant';
 const testFpsMobileNumber = '85200000000';
@@ -151,6 +157,10 @@ const reservationSummary: ReservationSummary = {
 
 if (!selectedCohort) {
   throw new Error('Test content must include at least one cohort.');
+}
+const selectedCohortDate = selectedCohort.dates[0]?.start_datetime.slice(0, 10);
+if (!selectedCohortDate) {
+  throw new Error('Selected cohort must include a valid primary session date.');
 }
 
 function renderBookingModal(
@@ -180,6 +190,7 @@ beforeEach(() => {
 afterEach(() => {
   mockedCreateCrmApiClient.mockReturnValue(null);
   mockedValidateDiscountCode.mockReset();
+  mockedTrackAnalyticsEvent.mockReset();
 
   if (originalTurnstileSiteKey === undefined) {
     delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -562,6 +573,13 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(
         screen.getByText(bookingModalContent.discountAppliedLabel),
       ).toBeInTheDocument();
+      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+        'booking_discount_apply_success',
+        expect.objectContaining({
+          sectionId: 'my-best-auntie-booking',
+          ctaLocation: 'discount_code',
+        }),
+      );
     });
 
     expect(within(detailsColumn as HTMLDivElement).getByText('HK$9,000')).toBeInTheDocument();
@@ -635,7 +653,7 @@ describe('my-best-auntie booking modals footer content', () => {
           email: 'ida@example.com',
           phone_number: '85212345678',
           cohort_age: '18-24 months',
-          cohort_date: '2026-04-08',
+          cohort_date: selectedCohortDate,
           comments: 'Need details',
           discount_code: undefined,
           price: 9000,
@@ -650,6 +668,13 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(onSubmitReservation).toHaveBeenCalledWith(
         expect.objectContaining({
           paymentMethod: bookingModalContent.paymentMethodValue,
+        }),
+      );
+      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+        'booking_submit_success',
+        expect.objectContaining({
+          sectionId: 'my-best-auntie-booking',
+          ctaLocation: 'reservation_form',
         }),
       );
     });
@@ -672,6 +697,16 @@ describe('my-best-auntie booking modals footer content', () => {
     });
     fireEvent.click(bankTransferOption);
     expect(bankTransferOption).toBeChecked();
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_payment_method_selected',
+      {
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'payment_method',
+        params: {
+          payment_method: 'bank_transfer',
+        },
+      },
+    );
     expect(
       screen.getByRole('radio', {
         name: bookingModalContent.paymentMethodValue,
@@ -743,6 +778,13 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(onSubmitReservation).toHaveBeenCalledWith(
         expect.objectContaining({
           paymentMethod: bookingModalContent.paymentMethodBankTransferValue,
+        }),
+      );
+      expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+        'booking_submit_success',
+        expect.objectContaining({
+          sectionId: 'my-best-auntie-booking',
+          ctaLocation: 'reservation_form',
         }),
       );
     });
@@ -984,6 +1026,38 @@ describe('my-best-auntie booking modals footer content', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(thankYouModalContent.totalLabel)).not.toBeInTheDocument();
+  });
+
+  it('tracks receipt print clicks from thank-you modal', () => {
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+    const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
+
+    render(
+      <MyBestAuntieThankYouModal
+        locale='en'
+        content={thankYouModalContent}
+        summary={reservationSummary}
+        homeHref='/en'
+        onClose={() => {}}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: thankYouModalContent.printLabel,
+      }),
+    );
+
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_receipt_print_click',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'thank_you_modal',
+      }),
+    );
+
+    openSpy.mockRestore();
+    printSpy.mockRestore();
   });
 
   it('allows only one discount code to be applied at a time', async () => {

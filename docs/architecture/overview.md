@@ -153,6 +153,13 @@ pull requests for dependency updates:
 - Structured JSON logging with request ID correlation.
 - Client-side analytics via Google Tag Manager on the public website
   (production only; gated at runtime by hostname allowlist).
+- GA4/GTM taxonomy and implementation details are documented in
+  [`analytics-ga4-gtm-runbook.md`](analytics-ga4-gtm-runbook.md).
+- Full marketing stack documentation (GCP, GTM, GA4, Google Ads, Search
+  Console, social media, and lead generation) is in
+  [`marketing-stack.md`](marketing-stack.md).
+- Infrastructure map (Cloudflare, AWS, VPC, database, deployments) is in
+  [`infrastructure-map.md`](infrastructure-map.md).
 
 ## Caching
 

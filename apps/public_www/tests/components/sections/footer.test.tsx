@@ -40,10 +40,12 @@ vi.mock('next/link', () => ({
 describe('Footer external links', () => {
   const originalLinkedinUrl = process.env.NEXT_PUBLIC_LINKEDIN_URL;
   const originalInstagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+  const originalWhatsappUrl = process.env.NEXT_PUBLIC_WHATSAPP_URL;
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_LINKEDIN_URL = 'https://www.linkedin.com/company/evolve-sprouts';
     process.env.NEXT_PUBLIC_INSTAGRAM_URL = 'https://www.instagram.com/evolvesprouts';
+    process.env.NEXT_PUBLIC_WHATSAPP_URL = 'https://wa.me/85294479843';
   });
 
   afterEach(() => {
@@ -57,6 +59,12 @@ describe('Footer external links', () => {
       process.env.NEXT_PUBLIC_INSTAGRAM_URL = originalInstagramUrl;
     } else {
       delete process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+    }
+
+    if (typeof originalWhatsappUrl === 'string') {
+      process.env.NEXT_PUBLIC_WHATSAPP_URL = originalWhatsappUrl;
+    } else {
+      delete process.env.NEXT_PUBLIC_WHATSAPP_URL;
     }
   });
 
@@ -85,6 +93,16 @@ describe('Footer external links', () => {
       'img[src="/images/contact-instagram.svg"]',
     );
     expect(instagramSocialIcons.length).toBeGreaterThan(0);
+    const whatsappSocialIcons = document.querySelectorAll(
+      'img[src="/images/contact-whatsapp.svg"]',
+    );
+    expect(whatsappSocialIcons.length).toBeGreaterThan(0);
+    const whatsappLinks = screen.getAllByRole('link', { name: 'WhatsApp' });
+    expect(whatsappLinks.length).toBeGreaterThan(0);
+    for (const link of whatsappLinks) {
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link.className).toContain('whitespace-nowrap');
+    }
     expect(screen.queryByRole('link', { name: 'Facebook' })).toBeNull();
     expect(screen.queryByRole('link', { name: /Tiktok/i })).toBeNull();
 
@@ -169,6 +187,7 @@ describe('Footer external links', () => {
   it('keeps connect links visible with internal fallback hrefs when env social URLs are missing', () => {
     delete process.env.NEXT_PUBLIC_LINKEDIN_URL;
     delete process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+    delete process.env.NEXT_PUBLIC_WHATSAPP_URL;
 
     render(<Footer content={enContent.footer} />);
 
@@ -181,6 +200,12 @@ describe('Footer external links', () => {
     const instagramLinks = screen.getAllByRole('link', { name: 'Instagram' });
     expect(instagramLinks.length).toBeGreaterThan(0);
     for (const link of instagramLinks) {
+      expect(link).toHaveAttribute('href', '/contact-us');
+    }
+
+    const whatsappLinks = screen.getAllByRole('link', { name: 'WhatsApp' });
+    expect(whatsappLinks.length).toBeGreaterThan(0);
+    for (const link of whatsappLinks) {
       expect(link).toHaveAttribute('href', '/contact-us');
     }
   });

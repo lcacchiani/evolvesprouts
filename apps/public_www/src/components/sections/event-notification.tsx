@@ -11,6 +11,8 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveEventNotificationCopy } from '@/content/copy-normalizers';
 import type { EventNotificationContent } from '@/content';
+import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import { isValidEmail } from '@/lib/validation';
@@ -96,6 +98,14 @@ export function EventNotification({ content }: EventNotificationProps) {
       return;
     }
     if (!crmApiClient || isCaptchaUnavailable) {
+      trackAnalyticsEvent('community_signup_submit_error', {
+        sectionId: 'event-notification',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'event_notification',
+          error_type: 'service_unavailable',
+        },
+      });
       setSubmissionError(content.submitErrorMessage);
       return;
     }
@@ -121,10 +131,26 @@ export function EventNotification({ content }: EventNotificationProps) {
         failureMessage: content.submitErrorMessage,
       });
       if (submissionResult.isSuccess) {
+        trackAnalyticsEvent('community_signup_submit_success', {
+          sectionId: 'event-notification',
+          ctaLocation: 'form',
+          params: {
+            form_type: 'event_notification',
+          },
+        });
+        trackMetaPixelEvent('Lead', { content_name: 'event_notification' });
         markSubmissionSuccess();
         return;
       }
 
+      trackAnalyticsEvent('community_signup_submit_error', {
+        sectionId: 'event-notification',
+        ctaLocation: 'form',
+        params: {
+          form_type: 'event_notification',
+          error_type: 'api_error',
+        },
+      });
       setSubmissionError(submissionResult.errorMessage);
     });
   }
