@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import type { LinksHubContent } from '@/content';
@@ -11,6 +12,8 @@ const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const LOGO_SIZE = 72;
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
 const WHATSAPP_ICON_SIZE = 20;
+const HUB_BUTTON_CLASSNAME =
+  'w-full min-h-[50px] rounded-control px-6 text-base font-semibold';
 
 interface LinksHubProps {
   content: LinksHubContent;
@@ -85,22 +88,23 @@ export function LinksHub({
 
         <nav aria-label={content.ariaLabel} className='mt-8 flex flex-col gap-3'>
           {links.map((link) => (
-            <a
+            <ButtonPrimitive
               key={link.trackingName}
               href={link.href}
-              className='es-btn es-btn--outline w-full text-center'
+              variant='outline'
+              className={HUB_BUTTON_CLASSNAME}
               onClick={() => trackLinkClick(link.trackingName)}
             >
               {link.label}
-            </a>
+            </ButtonPrimitive>
           ))}
 
           {hasWhatsapp ? (
-            <a
+            <ButtonPrimitive
               href={whatsappHref}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='es-btn es-btn--whatsapp-cta w-full text-center'
+              variant='primary'
+              openInNewTab
+              className={`${HUB_BUTTON_CLASSNAME} es-btn--whatsapp-cta`}
               onClick={() => {
                 trackLinkClick('whatsapp');
                 trackAnalyticsEvent('whatsapp_click', {
@@ -119,7 +123,7 @@ export function LinksHub({
                 />
                 {content.whatsappLabel}
               </span>
-            </a>
+            </ButtonPrimitive>
           ) : null}
         </nav>
       </div>
