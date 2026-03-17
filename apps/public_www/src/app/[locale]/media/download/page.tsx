@@ -1,9 +1,27 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import { MediaDownloadRedirectPage } from '@/components/pages/media-download-redirect';
-import { type LocaleRouteProps, resolveLocalePageContext } from '@/lib/locale-page';
+import {
+  type LocaleRouteProps,
+  resolveLocaleFromParams,
+  resolveLocalePageContext,
+} from '@/lib/locale-page';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
+
+export async function generateMetadata({
+  params,
+}: LocaleRouteProps): Promise<Metadata> {
+  await resolveLocaleFromParams(params);
+
+  return {
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 function LocalizedDownloadPageFallback({
   title,

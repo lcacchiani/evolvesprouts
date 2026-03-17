@@ -1,9 +1,17 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import { MediaDownloadRedirectPage } from '@/components/pages/media-download-redirect';
 import enContent from '@/content/en.json';
 
 const defaultMediaDownloadContent = enContent.common.mediaDownload;
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 function DownloadPageFallback() {
   return (

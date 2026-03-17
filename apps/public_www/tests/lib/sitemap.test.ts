@@ -49,4 +49,16 @@ describe('sitemap', () => {
     expect(robotsMetadata.host).toBe(new URL(siteOrigin).hostname);
     expect(robotsMetadata.sitemap).toBe(`${siteOrigin}/sitemap.xml`);
   });
+
+  it('does not block localized and redirect aliases in robots.txt', () => {
+    const robotsMetadata = robots();
+    const crawlerRules = robotsMetadata.rules ?? [];
+    const defaultCrawlerRule = crawlerRules.find((rule) => rule.userAgent === '*');
+
+    expect(defaultCrawlerRule).toMatchObject({
+      userAgent: '*',
+      allow: '/',
+    });
+    expect(defaultCrawlerRule).not.toHaveProperty('disallow');
+  });
 });

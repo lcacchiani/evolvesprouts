@@ -9,6 +9,8 @@ import {
   generateMetadata as generateEventsMetadata,
   generateStaticParams as generateEventsStaticParams,
 } from '@/app/[locale]/events/page';
+import { metadata as mediaDownloadMetadata } from '@/app/media/download/page';
+import { generateMetadata as generateLocalizedMediaDownloadMetadata } from '@/app/[locale]/media/download/page';
 import {
   generateMetadata as generateHomeMetadata,
   generateStaticParams as generateHomeStaticParams,
@@ -46,5 +48,20 @@ describe('localized route metadata and static params', () => {
     expect(homeMetadata.openGraph?.locale).toBe('zh-CN');
     expect(contactMetadata.openGraph?.locale).toBe('zh-HK');
     expect(eventsMetadata.openGraph?.locale).toBe('en');
+  });
+
+  it('keeps media download pages excluded from indexing', async () => {
+    const localizedMediaDownloadMetadata = await generateLocalizedMediaDownloadMetadata({
+      params: Promise.resolve({ locale: 'zh-CN' }),
+    });
+
+    expect(mediaDownloadMetadata.robots).toMatchObject({
+      index: false,
+      follow: false,
+    });
+    expect(localizedMediaDownloadMetadata.robots).toMatchObject({
+      index: false,
+      follow: false,
+    });
   });
 });
