@@ -599,11 +599,13 @@ Audited via Meta Graph API using cursor-bot system user on 2026-03-17.
 | Account name | Evolve Sprouts | OK |
 | Account status | APPROVED | OK |
 | Phone | +852 9447 9843 | OK |
-| Phone API status | **DISCONNECTED** | Cloud API not connected — write operations blocked |
-| Quality rating | UNKNOWN | No API messages sent |
+| Phone API status | **CONNECTED** (coexistence mode, updated 2026-03-17) | Cloud API active alongside WhatsApp Business App |
+| Platform type | CLOUD_API | Coexistence with Business App |
+| Quality rating | UNKNOWN | Will update as messages are sent |
+| Messaging limit | TIER_250 | 250 business-initiated conversations per 24h |
 | Official account | No | Green checkmark not obtained |
-| Message templates | **0** | No automated messages configured |
-| Product catalog | **None** | No WhatsApp catalog/shop set up |
+| Message templates | 3 (all PENDING review) | `welcome_greeting`, `free_intro_invite`, `course_info_followup` |
+| Product catalog | **None** | Can now be created via API or Business Suite |
 
 #### Profile description (current)
 
@@ -626,8 +628,11 @@ mention the core product. Recommended replacement (512 char limit):
 > 📩 Message us for a free intro session!
 > 🌐 www.evolvesprouts.com
 
-This cannot be updated via API while the phone is DISCONNECTED. Must be
-updated manually in the WhatsApp Business App > Business Profile > About.
+The description was updated to the recommended text during the Business
+Suite connection on 2026-03-17. The `about` field was cleared to a space
+during migration. Profile write operations via API return permissions
+errors in coexistence mode — profile fields are managed through the
+WhatsApp Business App or Business Suite UI.
 
 ### Facebook Page
 
@@ -651,10 +656,10 @@ WhatsApp chats. For Evolve Sprouts, this could list:
 - Prepared Home Assessment
 - Calmer Days Consult (30 min, free)
 
-**Current status**: No catalog exists. The phone is DISCONNECTED from the
-Cloud API, so catalog items cannot be created via API. Catalog must be set
-up manually in the WhatsApp Business App > Catalog, or through Meta Commerce
-Manager in the Business Suite.
+**Current status**: No catalog exists. The phone is now CONNECTED via
+coexistence mode. Catalog can be set up through the WhatsApp Business App,
+Meta Commerce Manager, or potentially via the Catalog API
+(`catalog_management` scope is available on the system user token).
 
 **Setup steps (manual)**:
 1. Open WhatsApp Business App on the business phone
@@ -695,11 +700,11 @@ Manager in the Business Suite.
    WhatsApp. Format:
    `buildUtmHref(url, { source: 'instagram', medium: 'social', campaign: 'organic' })`
 
-3. **WhatsApp Business API reconnection**: The Cloud API phone is currently
-   DISCONNECTED. Reconnecting it would enable: automated greeting messages,
-   message templates for lead nurture, catalog API management, and
-   analytics. The current `wa.me` short links still work for direct
-   communication but don't capture conversation data.
+3. ~~**WhatsApp Business API reconnection**~~: **Done.** Cloud API connected
+   in coexistence mode on 2026-03-17. Three message templates created
+   (`welcome_greeting`, `free_intro_invite`, `course_info_followup`) —
+   pending Meta review. Next step: build webhook infrastructure for
+   automated lead capture from inbound WhatsApp messages.
 
 4. **Retargeting audiences in Google Ads**: Once GA4 has enough traffic
    data (1-2 months), create remarketing audiences for:
