@@ -72,6 +72,7 @@ Current event types:
 - `booking_request.submitted`
 - `organization_suggestion.submitted`
 - `media_request.submitted`
+- `expense.parse_requested`
 
 ## Media messaging flow
 
@@ -104,6 +105,36 @@ responsive while decoupling downstream processing.
 - Applies a resource-specific tag (`public-www-media-<resource_key>-requested`) to the contact.
 - Syncs subscriber/tag to Mailchimp through `AwsApiProxyFunction`.
 - Sends an SES notification to sales/support.
+
+## Expense parsing flow
+
+Expense invoice parsing uses a dedicated SNS/SQS pipeline to avoid blocking
+admin API requests while files are parsed by OpenRouter.
+
+### SNS Topic: `evolvesprouts-expense-parser-events`
+
+- Receives parse events from admin expense APIs (`create`, `reparse`, `amend`).
+- Fans out to subscribed SQS queue.
+
+### SQS Queue: `evolvesprouts-expense-parser-queue`
+
+- Subscribes to expense parser SNS topic.
+- 180 second visibility timeout.
+- 3 retry attempts before DLQ.
+- KMS encryption using the shared queue key.
+
+### Dead Letter Queue: `evolvesprouts-expense-parser-dlq`
+
+- Receives expense parser messages that fail processing 3 times.
+- 14 day retention for investigation.
+- CloudWatch alarm triggers when messages appear.
+
+### Processor Lambda: `ExpenseParserFunction`
+
+- Triggered by `evolvesprouts-expense-parser-queue`.
+- Loads attachment metadata from `expense_attachments` + `assets`.
+- Fetches file bytes from S3 and calls OpenRouter via `AwsApiProxyFunction`.
+- Updates `expenses` parse status and extracted fields.
 
 ## API Behavior
 
@@ -149,6 +180,7 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 |----------|-------------|
 | `BOOKING_REQUEST_TOPIC_ARN` | SNS topic ARN (required) |
 | `MEDIA_REQUEST_TOPIC_ARN` | SNS topic ARN for media events (required) |
+| `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events (required) |
 
 ### Processor Lambda
 
@@ -165,6 +197,10 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
 | `MEDIA_DEFAULT_RESOURCE_KEY` | Default resource key used when request payload omits `resource_key` |
 | `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for HTTP proxy calls |
+| `OPENROUTER_API_KEY_SECRET_ARN` | Existing secret ARN for OpenRouter API key |
+| `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |
+| `OPENROUTER_MODEL` | OpenRouter model identifier |
+| `OPENROUTER_MAX_FILE_BYTES` | Attachment size limit for parser |
 
 ## Stack Outputs
 
@@ -176,6 +212,9 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `MediaTopicArn` | SNS topic ARN for media events |
 | `MediaQueueUrl` | SQS queue URL for media processing |
 | `MediaDLQUrl` | Dead letter queue URL for failed media requests |
+| `ExpenseParserTopicArn` | SNS topic ARN for expense parser events |
+| `ExpenseParserQueueUrl` | SQS queue URL for expense parser processing |
+| `ExpenseParserDLQUrl` | Dead letter queue URL for failed expense parser jobs |
 
 ## Monitoring
 

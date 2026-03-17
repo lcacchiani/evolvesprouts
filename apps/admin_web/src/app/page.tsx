@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { AssetsPage } from '../components/admin/assets/assets-page';
+import { FinancePage } from '../components/admin/finance/finance-page';
 import { SalesPage } from '../components/admin/sales/sales-page';
 import { ServicesPage } from '../components/admin/services/services-page';
 import { AppShell } from '../components/app-shell';
@@ -13,6 +14,7 @@ import { StatusBanner } from '../components/status-banner';
 const NAV_ITEMS = [
   { key: 'sales', label: 'Sales' },
   { key: 'services', label: 'Services' },
+  { key: 'finance', label: 'Finance' },
   { key: 'assets', label: 'Client assets' },
 ] as const;
 
@@ -46,6 +48,8 @@ function LoginGate() {
           <SalesPage />
         ) : activeSectionKey === 'services' ? (
           <ServicesPage />
+        ) : activeSectionKey === 'finance' ? (
+          <FinancePage />
         ) : (
           <AssetsPage />
         )}

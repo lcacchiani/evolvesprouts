@@ -255,6 +255,24 @@ Process to add a new public API path:
 6. Monitor API and CloudFront logs for unexpected request patterns after
    rollout.
 
+### Third-party invoice parser egress controls
+
+Expense invoice parsing sends attachment content to OpenRouter and must follow a
+fail-closed outbound policy:
+
+- In-VPC Lambdas **must not** call OpenRouter directly.
+- `ExpenseParserFunction` invokes outbound HTTP through
+  `AwsApiProxyFunction` (`app.services.aws_proxy.http_invoke`).
+- Proxy outbound URLs are restricted via `ALLOWED_HTTP_URLS`; deployments must
+  include only the configured OpenRouter chat-completions URL.
+- OpenRouter API keys are loaded from AWS Secrets Manager
+  (`OPENROUTER_API_KEY_SECRET_ARN`); keys are never hardcoded in source or
+  committed to git.
+- Parser enforces per-file size limits (`OPENROUTER_MAX_FILE_BYTES`) before
+  forwarding payloads.
+- Parser updates expense parse status to `failed` on upstream/service errors so
+  operators can retry explicitly (`/v1/admin/expenses/{id}/reparse`).
+
 ---
 
 ## Infrastructure Security

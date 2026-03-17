@@ -43,6 +43,9 @@ Seed data lives in `backend/db/seed/seed_data.sql`.
 - Enum `discount_type`: `percentage`, `absolute`.
 - Enum `enrollment_status`: `registered`, `waitlisted`, `confirmed`,
   `cancelled`, `completed`.
+- Enum `expense_status`: `draft`, `submitted`, `paid`, `voided`, `amended`.
+- Enum `expense_parse_status`: `not_requested`, `queued`, `processing`,
+  `succeeded`, `failed`.
 
 ## Table: assets
 
@@ -128,6 +131,54 @@ Indexes:
   (`ASSET_DOWNLOAD_LINK_EXPIRY_DAYS`, default `9999`).
 - If denied, returns 403.
 - Admin/Manager always have full access.
+
+## Table: expenses
+
+Purpose: Stores admin-entered expense invoices and parser-enriched fields.
+
+Columns:
+- `id` (UUID, PK, default `gen_random_uuid()`)
+- `amends_expense_id` (UUID, FK → `expenses.id`, nullable) — source record for amendment history
+- `status` (enum `expense_status`, required, default `draft`)
+- `parse_status` (enum `expense_parse_status`, required, default `not_requested`)
+- `vendor_name` (varchar(255), optional)
+- `invoice_number` (varchar(128), optional)
+- `invoice_date` (date, optional)
+- `due_date` (date, optional)
+- `currency` (varchar(3), optional)
+- `subtotal`, `tax`, `total` (numeric(12,2), optional)
+- `line_items` (jsonb, optional) — normalized parsed/manual line item array
+- `parse_confidence` (numeric(4,3), optional, 0..1)
+- `parser_raw` (jsonb, optional) — raw parser response payload
+- `notes` (text, optional)
+- `void_reason` (text, optional)
+- `submitted_at`, `paid_at`, `voided_at` (timestamptz, optional)
+- `created_by` (varchar(128), required)
+- `updated_by` (varchar(128), optional)
+- `created_at` / `updated_at` (timestamptz, default `now()`)
+
+Constraints and indexes:
+- `expenses_amendment_not_self` prevents self-referencing amendment links
+- `expenses_parse_confidence_range` enforces `0..1`
+- `expenses_status_idx`, `expenses_parse_status_idx`,
+  `expenses_invoice_date_idx`, `expenses_amends_expense_idx`
+- `set_updated_at()` trigger updates `updated_at` on write
+
+## Table: expense_attachments
+
+Purpose: Links each expense record to one or more uploaded assets.
+
+Columns:
+- `id` (UUID, PK, default `gen_random_uuid()`)
+- `expense_id` (UUID, FK → `expenses.id`, cascade delete)
+- `asset_id` (UUID, FK → `assets.id`, restrict delete)
+- `sort_order` (integer, default `0`)
+- `created_at` (timestamptz, default `now()`)
+
+Constraints and indexes:
+- Unique index on (`expense_id`, `asset_id`) to avoid duplicate links
+- `expense_attachments_expense_idx` on `expense_id`
+- `expense_attachments_asset_idx` on `asset_id`
 
 **Stable share links** (`/v1/assets/share/{token}`):
 - A token in `asset_share_links.share_token` acts as a bearer capability.

@@ -1814,14 +1814,347 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List expenses */
+        get: {
+            parameters: {
+                query?: {
+                    query?: string;
+                    status?: components["schemas"]["ExpenseStatus"];
+                    parse_status?: components["schemas"]["ExpenseParseStatus"];
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Expense list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Create expense */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateExpenseRequest"];
+                };
+            };
+            responses: {
+                /** @description Expense created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/expenses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Expense identifier. */
+                id: components["parameters"]["ExpenseId"];
+            };
+            cookie?: never;
+        };
+        /** Get expense */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Expense identifier. */
+                    id: components["parameters"]["ExpenseId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Expense response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update expense */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Expense identifier. */
+                    id: components["parameters"]["ExpenseId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateExpenseRequest"];
+                };
+            };
+            responses: {
+                /** @description Expense response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
+    "/v1/admin/expenses/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Expense identifier. */
+                id: components["parameters"]["ExpenseId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Soft-void an expense */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Expense identifier. */
+                    id: components["parameters"]["ExpenseId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CancelExpenseRequest"];
+                };
+            };
+            responses: {
+                /** @description Expense response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/expenses/{id}/mark-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Expense identifier. */
+                id: components["parameters"]["ExpenseId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark an expense as paid */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Expense identifier. */
+                    id: components["parameters"]["ExpenseId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Expense response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/expenses/{id}/reparse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Expense identifier. */
+                id: components["parameters"]["ExpenseId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue expense parse request */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Expense identifier. */
+                    id: components["parameters"]["ExpenseId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Parse request queued. */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ActionMessageResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/expenses/{id}/amend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Expense identifier. */
+                id: components["parameters"]["ExpenseId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create amendment expense record */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Expense identifier. */
+                    id: components["parameters"]["ExpenseId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateExpenseRequest"];
+                };
+            };
+            responses: {
+                /** @description Amendment expense created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         /** Delete discount code */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description Discount code identifier. */
-                    id: components["parameters"]["DiscountCodeId"];
+                    /** @description Expense identifier. */
+                    id: components["parameters"]["ExpenseId"];
                 };
                 cookie?: never;
             };
@@ -2588,6 +2921,112 @@ export interface components {
             grant_type: "all_authenticated" | "organization" | "user";
             grantee_id?: string | null;
         };
+        /** @enum {string} */
+        ExpenseStatus: "draft" | "submitted" | "paid" | "voided" | "amended";
+        /** @enum {string} */
+        ExpenseParseStatus: "not_requested" | "queued" | "processing" | "succeeded" | "failed";
+        ExpenseLineItem: {
+            description?: string | null;
+            quantity?: string | null;
+            unit_price?: string | null;
+            amount?: string | null;
+        };
+        ExpenseAttachment: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            asset_id: string;
+            sort_order: number;
+            file_name?: string | null;
+            content_type?: string | null;
+            asset_title?: string | null;
+        };
+        Expense: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            amends_expense_id?: string | null;
+            status: components["schemas"]["ExpenseStatus"];
+            parse_status: components["schemas"]["ExpenseParseStatus"];
+            vendor_name?: string | null;
+            invoice_number?: string | null;
+            /** Format: date */
+            invoice_date?: string | null;
+            /** Format: date */
+            due_date?: string | null;
+            currency?: string | null;
+            subtotal?: string | null;
+            tax?: string | null;
+            total?: string | null;
+            line_items?: components["schemas"]["ExpenseLineItem"][];
+            parse_confidence?: string | null;
+            parser_raw?: {
+                [key: string]: unknown;
+            } | null;
+            notes?: string | null;
+            void_reason?: string | null;
+            /** Format: date-time */
+            submitted_at?: string | null;
+            /** Format: date-time */
+            paid_at?: string | null;
+            /** Format: date-time */
+            voided_at?: string | null;
+            created_by?: string;
+            updated_by?: string | null;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+            attachments: components["schemas"]["ExpenseAttachment"][];
+        };
+        ExpenseResponse: {
+            expense: components["schemas"]["Expense"];
+        };
+        ExpenseListResponse: {
+            items: components["schemas"]["Expense"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        CreateExpenseRequest: {
+            status?: components["schemas"]["ExpenseStatus"];
+            vendor_name?: string | null;
+            invoice_number?: string | null;
+            /** Format: date */
+            invoice_date?: string | null;
+            /** Format: date */
+            due_date?: string | null;
+            currency?: string | null;
+            subtotal?: string | null;
+            tax?: string | null;
+            total?: string | null;
+            line_items?: components["schemas"]["ExpenseLineItem"][];
+            notes?: string | null;
+            attachment_asset_ids: string[];
+            parse_requested?: boolean;
+        };
+        UpdateExpenseRequest: {
+            status?: components["schemas"]["ExpenseStatus"];
+            vendor_name?: string | null;
+            invoice_number?: string | null;
+            /** Format: date */
+            invoice_date?: string | null;
+            /** Format: date */
+            due_date?: string | null;
+            currency?: string | null;
+            subtotal?: string | null;
+            tax?: string | null;
+            total?: string | null;
+            line_items?: components["schemas"]["ExpenseLineItem"][];
+            notes?: string | null;
+            attachment_asset_ids?: string[];
+            parse_requested?: boolean;
+        };
+        CancelExpenseRequest: {
+            reason: string;
+        };
+        ActionMessageResponse: {
+            message: string;
+        };
         ErrorResponse: {
             error: string;
             detail?: string | null;
@@ -2647,6 +3086,8 @@ export interface components {
         EnrollmentId: string;
         /** @description Discount code identifier. */
         DiscountCodeId: string;
+        /** @description Expense identifier. */
+        ExpenseId: string;
     };
     requestBodies: never;
     headers: never;

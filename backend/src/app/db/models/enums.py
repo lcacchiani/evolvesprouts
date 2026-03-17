@@ -248,3 +248,23 @@ class EnrollmentStatus(str, enum.Enum):
     CONFIRMED = "confirmed"
     CANCELLED = "cancelled"
     COMPLETED = "completed"
+
+
+class ExpenseStatus(str, enum.Enum):
+    """Lifecycle status for admin-managed expense invoices."""
+
+    DRAFT = "draft"
+    SUBMITTED = "submitted"
+    PAID = "paid"
+    VOIDED = "voided"
+    AMENDED = "amended"
+
+
+class ExpenseParseStatus(str, enum.Enum):
+    """Parsing lifecycle status for invoice extraction."""
+
+    NOT_REQUESTED = "not_requested"
+    QUEUED = "queued"
+    PROCESSING = "processing"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"

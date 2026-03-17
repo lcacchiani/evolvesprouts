@@ -125,6 +125,8 @@ Lambdas or NAT Gateway.
 - Client helpers in `backend/src/app/services/aws_proxy.py`:
   - `invoke(service, action, params)` for AWS calls
   - `http_invoke(method, url, headers, body, timeout)` for HTTP calls
+- Current consumers include Cognito admin operations, Turnstile verification,
+  Mailchimp sync, and expense invoice parsing (OpenRouter).
 
 **Security:**
 - IAM role scoped to specific AWS actions on specific resources.

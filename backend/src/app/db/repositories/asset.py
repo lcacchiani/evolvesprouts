@@ -220,6 +220,13 @@ class AssetRepository(BaseRepository[Asset]):
         )
         return self._session.execute(statement).scalars().all()
 
+    def list_by_ids(self, asset_ids: Sequence[UUID]) -> Sequence[Asset]:
+        """Return assets for the provided IDs."""
+        if not asset_ids:
+            return []
+        statement = select(Asset).where(Asset.id.in_(asset_ids))
+        return self._session.execute(statement).scalars().all()
+
     def get_grant(
         self,
         *,
