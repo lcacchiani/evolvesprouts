@@ -152,6 +152,34 @@ export function buildWhatsappPrefilledHref(
   return parsedUrl.toString();
 }
 
+export interface UtmParams {
+  source: string;
+  medium: string;
+  campaign?: string;
+  content?: string;
+}
+
+export function buildUtmHref(
+  baseHref: string,
+  params: UtmParams,
+): string {
+  const parsedUrl = parseConfiguredUrl(baseHref);
+  if (!parsedUrl) {
+    return baseHref;
+  }
+
+  parsedUrl.searchParams.set('utm_source', params.source);
+  parsedUrl.searchParams.set('utm_medium', params.medium);
+  if (params.campaign) {
+    parsedUrl.searchParams.set('utm_campaign', params.campaign);
+  }
+  if (params.content) {
+    parsedUrl.searchParams.set('utm_content', params.content);
+  }
+
+  return parsedUrl.toString();
+}
+
 export function resolvePublicSiteConfig(): PublicSiteConfig {
   return {
     instagramUrl: normalizeConfiguredUrl(readOptionalEnv(INSTAGRAM_URL_ENV_NAME)),

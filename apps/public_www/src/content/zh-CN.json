@@ -366,6 +366,12 @@
           "description": "想用“漂流瓶”方式留言？填写下方联系表单，我们会像小芽发芽一样尽快回复你。",
           "ctaLabel": "立即填写",
           "ctaHref": "#contact-form"
+        },
+        {
+          "title": "关注我们：",
+          "description": "在 Instagram 获取灵感 — 育儿技巧、幕后花絮和社区动态。",
+          "ctaLabel": "关注 @evolvesprouts",
+          "ctaHref": "{{INSTAGRAM_URL}}"
         }
       ]
     }
@@ -864,14 +870,19 @@
       "title": "关注我们",
       "items": [
         {
-          "label": "LinkedIn",
+          "label": "WhatsApp",
           "href": "/contact-us",
-          "icon": "linkedin"
+          "icon": "whatsapp"
         },
         {
           "label": "Instagram",
           "href": "/contact-us",
           "icon": "instagram"
+        },
+        {
+          "label": "LinkedIn",
+          "href": "/contact-us",
+          "icon": "linkedin"
         }
       ]
     },
@@ -1197,7 +1208,8 @@
       "courseLabel": "My Best Auntie 课程",
       "contactLabel": "联系我们",
       "eventsLabel": "近期活动",
-      "whatsappLabel": "WhatsApp 联系"
+      "whatsappLabel": "WhatsApp 联系",
+      "instagramLabel": "关注 Instagram"
     },
     "seo": {
       "title": "链接",

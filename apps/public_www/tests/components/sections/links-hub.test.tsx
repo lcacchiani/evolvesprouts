@@ -22,6 +22,7 @@ const DEFAULT_CONTENT = {
   contactLabel: 'Contact Us',
   eventsLabel: 'Upcoming Events',
   whatsappLabel: 'WhatsApp Us',
+  instagramLabel: 'Follow on Instagram',
 };
 
 const DEFAULT_PROPS = {
@@ -30,6 +31,7 @@ const DEFAULT_PROPS = {
   localizedContactHref: '/en/contact-us',
   localizedEventsHref: '/en/events',
   whatsappHref: 'https://wa.me/85294479843',
+  instagramHref: 'https://www.instagram.com/evolvesprouts',
 };
 
 describe('LinksHub', () => {
@@ -113,6 +115,37 @@ describe('LinksHub', () => {
     render(<LinksHub {...DEFAULT_PROPS} whatsappHref='' />);
 
     expect(screen.queryByText('WhatsApp Us')).toBeNull();
+  });
+
+  it('renders Instagram follow button with outline variant', () => {
+    render(<LinksHub {...DEFAULT_PROPS} />);
+
+    const instagramLink = screen.getByText('Follow on Instagram').closest('a');
+    expect(instagramLink).not.toBeNull();
+    expect(instagramLink?.getAttribute('href')).toBe('https://www.instagram.com/evolvesprouts');
+    expect(instagramLink?.getAttribute('target')).toBe('_blank');
+  });
+
+  it('fires analytics event on Instagram link click', () => {
+    render(<LinksHub {...DEFAULT_PROPS} />);
+
+    const instagramLink = screen.getByText('Follow on Instagram');
+    fireEvent.click(instagramLink);
+
+    expect(trackAnalyticsEvent).toHaveBeenCalledWith('links_hub_click', {
+      sectionId: 'links-hub',
+      ctaLocation: 'links_page',
+      params: { content_name: 'instagram' },
+    });
+    expect(trackMetaPixelEvent).toHaveBeenCalledWith('ViewContent', {
+      content_name: 'instagram',
+    });
+  });
+
+  it('hides Instagram button when instagramHref is empty', () => {
+    render(<LinksHub {...DEFAULT_PROPS} instagramHref='' />);
+
+    expect(screen.queryByText('Follow on Instagram')).toBeNull();
   });
 
   it('renders the section with correct id and aria-label', () => {

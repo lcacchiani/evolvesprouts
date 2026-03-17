@@ -20,6 +20,7 @@ export function LinksPageSections({ locale, content }: LinksPageSectionsProps) {
         localizedContactHref={localizeHref(ROUTES.contact, locale)}
         localizedEventsHref={localizeHref(ROUTES.events, locale)}
         whatsappHref={publicSiteConfig.whatsappUrl ?? ''}
+        instagramHref={publicSiteConfig.instagramUrl ?? ''}
       />
     </main>
   );

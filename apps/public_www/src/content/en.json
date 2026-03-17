@@ -366,6 +366,12 @@
           "description": "Prefer a message in a bottle? Use the contact form below and we’ll respond faster than a sprout grows.",
           "ctaLabel": "Fill Up Now",
           "ctaHref": "#contact-form"
+        },
+        {
+          "title": "Follow Us:",
+          "description": "Stay inspired on Instagram — tips, behind-the-scenes, and community updates.",
+          "ctaLabel": "Follow @evolvesprouts",
+          "ctaHref": "{{INSTAGRAM_URL}}"
         }
       ]
     }
@@ -864,14 +870,19 @@
       "title": "Connect on",
       "items": [
         {
-          "label": "LinkedIn",
+          "label": "WhatsApp",
           "href": "/contact-us",
-          "icon": "linkedin"
+          "icon": "whatsapp"
         },
         {
           "label": "Instagram",
           "href": "/contact-us",
           "icon": "instagram"
+        },
+        {
+          "label": "LinkedIn",
+          "href": "/contact-us",
+          "icon": "linkedin"
         }
       ]
     },
@@ -1197,7 +1208,8 @@
       "courseLabel": "My Best Auntie Course",
       "contactLabel": "Contact Us",
       "eventsLabel": "Upcoming Events",
-      "whatsappLabel": "WhatsApp Us"
+      "whatsappLabel": "WhatsApp Us",
+      "instagramLabel": "Follow on Instagram"
     },
     "seo": {
       "title": "Links",
