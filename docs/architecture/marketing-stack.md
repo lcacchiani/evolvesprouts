@@ -332,10 +332,18 @@ Lead sources:
   awareness and engagement
 - **WhatsApp Business**: Used for direct lead communication; linked from
   website CTAs via `NEXT_PUBLIC_WHATSAPP_URL`
-- **Integration with website**: WhatsApp floating button and CTA links
-  throughout the site use prefilled messages configured in locale content
-  files. The `buildWhatsappPrefilledHref` function in
-  `apps/public_www/src/lib/site-config.ts` handles URL construction.
+- **Integration with website**:
+  - WhatsApp floating button and CTA links throughout the site use prefilled
+    messages configured in locale content files. The
+    `buildWhatsappPrefilledHref` function in
+    `apps/public_www/src/lib/site-config.ts` handles URL construction.
+  - Footer "Connect on" section includes WhatsApp (primary), Instagram, and
+    LinkedIn links with env-driven URLs and `/contact-us` fallbacks.
+  - Links hub (`/links`, used as Instagram bio link page) includes Instagram
+    follow button (outline variant) and WhatsApp CTA.
+  - `buildUtmHref` utility in `site-config.ts` generates UTM-tagged URLs
+    for tracking social traffic in GA4. Format:
+    `buildUtmHref(url, { source: 'instagram', medium: 'social', campaign: 'organic' })`
 
 #### Meta Pixel
 
@@ -539,6 +547,124 @@ forward LinkedIn DMs to a sales CRM.
    for LinkedIn but does NOT offer a DM/message trigger. This is a LinkedIn
    API limitation, not a Zapier limitation.
 
+## Account audit (March 2026)
+
+### Instagram Business Account (`@evolvesprouts`)
+
+Audited via Meta Graph API using cursor-bot system user on 2026-03-17.
+
+#### Profile
+
+| Field | Value | Issue |
+|---|---|---|
+| Display name | Evolve Sprouts \| Ida De Gregorio | OK |
+| Followers | 308 | Low; growing slowly |
+| Following | 703 | High ratio — consider unfollowing non-strategic accounts |
+| Posts | 101 | Good volume |
+| Bio | Practical Montessori training for HK families | OK |
+| Bio link | `linktr.ee/evolvesproutshk` | **Should be `evolvesprouts.com/en/links`** — Linktree loses analytics, brand consistency, and SEO value |
+| Shopping eligibility | Not eligible | N/A for service business |
+
+#### 28-day insights (Feb 17 – Mar 17)
+
+| Metric | Value |
+|---|---|
+| Profile views | 72 |
+| Website link taps | 6 |
+| Accounts engaged | 31 |
+| Total interactions | 68 |
+| Likes | 42, Comments | 2, Shares | 7, Saves | 4 |
+| Average daily reach | ~78 (highly variable: 1–1,091) |
+
+#### Follower demographics
+
+- **86% Hong Kong** (264/308) — well-targeted for a local HK business
+- **93% Female** — matches target audience (mothers, female caregivers)
+- **Top age**: 35-44 F (149, 48%), 25-34 F (54, 17%)
+
+#### Content performance observations
+
+- Reels/video outperform static images (11 likes vs 1-4 average)
+- Engagement rate ~1.5% (low for 308 followers)
+- Carousel posts with practical tips get highest saves
+- Course promotion posts get lower engagement than educational content
+- Giveaway post (Dec 2025) was highest engagement: 12 likes, 9 comments
+
+### WhatsApp Business Account
+
+Audited via Meta Graph API using cursor-bot system user on 2026-03-17.
+
+| Field | Value | Issue |
+|---|---|---|
+| Account name | Evolve Sprouts | OK |
+| Account status | APPROVED | OK |
+| Phone | +852 9447 9843 | OK |
+| Phone API status | **DISCONNECTED** | Cloud API not connected — write operations blocked |
+| Quality rating | UNKNOWN | No API messages sent |
+| Official account | No | Green checkmark not obtained |
+| Message templates | **0** | No automated messages configured |
+| Product catalog | **None** | No WhatsApp catalog/shop set up |
+
+#### Profile description (current)
+
+The current WhatsApp Business profile description is overly casual and doesn't
+mention the core product. Recommended replacement (512 char limit):
+
+> Montessori-based helper training & family support in Hong Kong.
+>
+> 🌱 My Best Auntie — 9-week programme helping domestic helpers care for
+> your child (0–6) with confidence and Montessori tools.
+>
+> We offer:
+> • Helper training (group + 1:1)
+> • Child–Auntie Habits Reset
+> • Prepared Home assessments
+> • Parent consultations
+>
+> Founded by Ida De Gregorio, AMI Montessori-certified.
+>
+> 📩 Message us for a free intro session!
+> 🌐 www.evolvesprouts.com
+
+This cannot be updated via API while the phone is DISCONNECTED. Must be
+updated manually in the WhatsApp Business App > Business Profile > About.
+
+### Facebook Page
+
+Updated via API on 2026-03-17:
+
+| Field | Before | After |
+|---|---|---|
+| Website | `http://Evolvesprouts.com/` | `https://www.evolvesprouts.com/` |
+| About | Generic description | Montessori-based helper training and family support for Hong Kong families with children aged 0-6. Founded by Ida De Gregorio, AMI Montessori-certified. |
+| Followers | 13 | 13 (dormant page — not a priority) |
+
+### WhatsApp catalog / shop
+
+WhatsApp Business supports a product/service catalog browsable within
+WhatsApp chats. For Evolve Sprouts, this could list:
+
+- My Best Auntie 0–1 years
+- My Best Auntie 1–3 years
+- My Best Auntie 3–6 years
+- Child–Auntie Habits Reset (1:1)
+- Prepared Home Assessment
+- Calmer Days Consult (30 min, free)
+
+**Current status**: No catalog exists. The phone is DISCONNECTED from the
+Cloud API, so catalog items cannot be created via API. Catalog must be set
+up manually in the WhatsApp Business App > Catalog, or through Meta Commerce
+Manager in the Business Suite.
+
+**Setup steps (manual)**:
+1. Open WhatsApp Business App on the business phone
+2. Go to Settings > Business Tools > Catalog
+3. Add items with: name, description, price (HKD), and a photo
+4. Once items are added, customers can browse them by tapping the catalog
+   icon in the chat with Evolve Sprouts
+5. Optionally, link the catalog to the Facebook Page via Commerce Manager
+   for cross-platform visibility
+
 ## Improvement opportunities
 
 ### Current setup assessment
@@ -563,15 +689,17 @@ forward LinkedIn DMs to a sales CRM.
    hashtags relevant to LinkedIn, remove Instagram-specific ones) or
    manually craft LinkedIn-specific posts for key content.
 
-2. **UTM parameters on social links**: Add UTM parameters to all links
-   shared on Instagram, LinkedIn, and WhatsApp to track which social channel
-   drives the most website traffic and conversions in GA4. Format:
-   `?utm_source=instagram&utm_medium=social&utm_campaign=organic`
+2. ~~**UTM parameters on social links**~~: **Done.** `buildUtmHref()`
+   utility added to `apps/public_www/src/lib/site-config.ts`. Use it to
+   generate trackable URLs for links shared on Instagram, LinkedIn, and
+   WhatsApp. Format:
+   `buildUtmHref(url, { source: 'instagram', medium: 'social', campaign: 'organic' })`
 
-3. **WhatsApp Business API**: When lead volume grows, consider the WhatsApp
-   Business API (via a provider like Twilio or 360dialog) to automate lead
-   capture into the CRM. The current `wa.me` short links work for small
-   volume but don't capture conversation data.
+3. **WhatsApp Business API reconnection**: The Cloud API phone is currently
+   DISCONNECTED. Reconnecting it would enable: automated greeting messages,
+   message templates for lead nurture, catalog API management, and
+   analytics. The current `wa.me` short links still work for direct
+   communication but don't capture conversation data.
 
 4. **Retargeting audiences in Google Ads**: Once GA4 has enough traffic
    data (1-2 months), create remarketing audiences for:
@@ -585,6 +713,31 @@ forward LinkedIn DMs to a sales CRM.
    on subscriber tags (e.g., a 3-email drip for `patience-free-guide`
    downloaders, a follow-up sequence for `event-notification` signups
    who haven't booked).
+
+6. **Instagram bio link**: Change from `linktr.ee/evolvesproutshk` to
+   `www.evolvesprouts.com/en/links`. The website's `/links` page now
+   includes course, contact, events, WhatsApp, and Instagram follow
+   buttons. This keeps traffic on the owned domain, enables GA4 tracking,
+   and provides a branded experience. Must be done manually in Instagram
+   app > Edit Profile > Website.
+
+7. **WhatsApp Business profile description**: Update the description to
+   match the professional tone of the website. The recommended replacement
+   text is in the "Account audit" section above. Must be done manually in
+   the WhatsApp Business App > Business Profile > About.
+
+8. **WhatsApp catalog setup**: Create a product/service catalog in the
+   WhatsApp Business App listing courses and consultations. Steps are
+   documented in the "WhatsApp catalog / shop" section above.
+
+9. **Instagram Reels strategy**: Audit data shows Reels/video content
+   significantly outperforms static images (6-11 likes vs 1-4). Increase
+   Reels frequency to at least 1 per week alongside 1-2 static/carousel
+   posts.
+
+10. **Instagram following cleanup**: Current 703 following vs 308 followers
+    ratio looks inauthentic. Unfollow non-strategic accounts to bring the
+    ratio closer to 1:1 or lower.
 
 ## Environment variables reference
 
