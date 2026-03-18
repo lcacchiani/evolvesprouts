@@ -63,6 +63,7 @@ export interface MyBestAuntieEventCohort {
   price: number;
   currency: string;
   location: string;
+  booking_system: string;
   tags: string[];
   categories: string[];
   address: string;
@@ -468,6 +469,7 @@ function buildMyBestAuntieBookingModalPayload(
     price,
     currency,
     location,
+    booking_system: MY_BEST_AUNTIE_BOOKING_SYSTEM,
     tags: resolveStringList(record.tags),
     categories: resolveStringList(record.categories),
     address,
