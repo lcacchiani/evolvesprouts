@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import {
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -59,10 +58,6 @@ function PartnerLogo({ partner }: { partner: string }) {
     [partner],
   );
   const [sourceIndex, setSourceIndex] = useState(0);
-
-  useEffect(() => {
-    setSourceIndex(0);
-  }, [candidateSources]);
 
   const source = candidateSources[sourceIndex];
   if (!source) {
@@ -205,12 +200,11 @@ export function LandingPageHero({
   bookingModalContent,
   ariaLabel,
 }: LandingPageHeroProps) {
-  const [chips, setChips] = useState<string[]>([]);
+  const chips = useMemo(
+    () => buildHeroChips(eventContent, locale),
+    [eventContent, locale],
+  );
   const partnerSlugs = eventContent?.partners ?? [];
-
-  useEffect(() => {
-    setChips(buildHeroChips(eventContent, locale));
-  }, [eventContent, locale]);
 
   return (
     <SectionShell
