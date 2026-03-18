@@ -148,7 +148,7 @@ export function LandingPageHero({
               {chips.map((chip, index) => (
                 <span
                   key={`${chip}-${index}`}
-                  className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'
+                  className='rounded-full border es-border-soft es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'
                 >
                   {chip}
                 </span>
