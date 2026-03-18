@@ -64,9 +64,10 @@
       ]
     },
     "cta": {
-      "title": "Ready to Join Us This Easter?",
-      "description": "Spaces are limited for this small-group workshop. Reserve your spot now.",
-      "buttonLabel": "Book Now"
+      "eyebrow": "⚡ Limited to 6 families — Easter Monday 6 April",
+      "title": "Only 6 families. Don't miss it.",
+      "description": "Please provide your child's name and age so Happy Baton can prepare the right toys ahead of the session.",
+      "buttonLabel": "Reserve my spot — HKD 350"
     }
   },
   "zh-CN": {
@@ -134,9 +135,10 @@
       ]
     },
     "cta": {
-      "title": "准备好今年复活节一起参与了吗？",
-      "description": "本工作坊为小班教学，名额有限。现在就预留你的席位。",
-      "buttonLabel": "立即预约"
+      "eyebrow": "⚡ 仅限 6 个家庭 — 复活节周一 4 月 6 日",
+      "title": "仅限 6 个家庭，别错过。",
+      "description": "请提供您孩子的姓名和年龄，以便 Happy Baton 在课程前准备合适的玩具。",
+      "buttonLabel": "预留我的名额 — HKD 350"
     }
   },
   "zh-HK": {
@@ -204,9 +206,10 @@
       ]
     },
     "cta": {
-      "title": "準備好今個復活節一齊參與嗎？",
-      "description": "本工作坊為小班教學，名額有限。立即預留你的席位。",
-      "buttonLabel": "立即預約"
+      "eyebrow": "⚡ 只限 6 個家庭 — 復活節星期一 4 月 6 日",
+      "title": "只限 6 個家庭，別錯過。",
+      "description": "請提供你孩子的姓名和年齡，讓 Happy Baton 可在課堂前預備合適玩具。",
+      "buttonLabel": "預留我的名額 — HKD 350"
     }
   }
 }

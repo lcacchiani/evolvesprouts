@@ -107,6 +107,7 @@ export interface LandingPageLocaleContent {
     }>;
   };
   cta: {
+    eyebrow?: string;
     title: string;
     description: string;
     buttonLabel: string;
