@@ -36,10 +36,16 @@ export function LandingPage({
       footerContent={siteContent.footer}
     >
       <LandingPageHero
+        slug={slug}
         content={pageContent.hero}
+        ctaContent={pageContent.cta}
+        commonContent={siteContent.landingPages.common}
         locale={locale}
         title={heroEventContent?.title ?? pageContent.meta.title}
         eventContent={heroEventContent}
+        bookingPayload={bookingEventContent?.bookingPayload ?? null}
+        isFullyBooked={bookingEventContent?.status === 'fully_booked'}
+        bookingModalContent={siteContent.bookingModal}
         ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
       />
       <LandingPageDetails

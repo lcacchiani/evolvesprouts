@@ -6,14 +6,29 @@ import { useEffect, useState } from 'react';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { LandingPageLocaleContent, Locale } from '@/content';
-import type { LandingPageHeroEventContent } from '@/lib/events-data';
+import { LandingPageBookingCtaAction } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
+import type {
+  BookingModalContent,
+  LandingPagesCommonContent,
+  LandingPageLocaleContent,
+  Locale,
+} from '@/content';
+import type {
+  EventBookingModalPayload,
+  LandingPageHeroEventContent,
+} from '@/lib/events-data';
 
 interface LandingPageHeroProps {
+  slug: string;
   content: LandingPageLocaleContent['hero'];
+  ctaContent: LandingPageLocaleContent['cta'];
+  commonContent: LandingPagesCommonContent;
   locale: Locale;
   title: string;
   eventContent: LandingPageHeroEventContent | null;
+  bookingPayload: EventBookingModalPayload | null;
+  isFullyBooked: boolean;
+  bookingModalContent: BookingModalContent;
   ariaLabel?: string;
 }
 
@@ -125,10 +140,16 @@ function buildHeroChips(
 }
 
 export function LandingPageHero({
+  slug,
   content,
+  ctaContent,
+  commonContent,
   locale,
   title,
   eventContent,
+  bookingPayload,
+  isFullyBooked,
+  bookingModalContent,
   ariaLabel,
 }: LandingPageHeroProps) {
   const [chips, setChips] = useState<string[]>([]);
@@ -165,6 +186,18 @@ export function LandingPageHero({
               ))}
             </div>
           ) : null}
+          <LandingPageBookingCtaAction
+            locale={locale}
+            slug={slug}
+            content={ctaContent}
+            commonContent={commonContent}
+            bookingPayload={bookingPayload}
+            isFullyBooked={isFullyBooked}
+            bookingModalContent={bookingModalContent}
+            analyticsSectionId='landing-page-hero'
+            ctaLocation='landing_page'
+            buttonClassName='mt-3'
+          />
         </div>
         <div className='w-full'>
           {content.imageMobileSrc ? (

@@ -3,7 +3,9 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { LandingPageHero } from '@/components/sections/landing-pages/landing-page-hero';
+import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
+import type { EventBookingModalPayload } from '@/lib/events-data';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -30,13 +32,40 @@ describe('LandingPageHero section', () => {
       hour12: false,
     });
     const expectedTimeChip = `${timeFormatter.format(new Date(eventContent.startDateTime))} - ${timeFormatter.format(new Date(eventContent.endDateTime))}`;
+    const bookingPayload: EventBookingModalPayload = {
+      variant: 'event',
+      bookingSystem: 'event-booking',
+      title: eventContent.title,
+      subtitle: 'A practical workshop',
+      originalAmount: 350,
+      locationName: 'Baumhaus',
+      locationAddress: "Baumhaus, 1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
+      directionHref:
+        'https://www.google.com/maps/dir/?api=1&destination=Baumhaus,+1/F+Kar+Yau+Building,+36-44+Queen%27s+Rd+E,+Wan+Chai',
+      dateParts: [
+        {
+          id: 'session-1',
+          startDateTime: eventContent.startDateTime,
+          endDateTime: eventContent.endDateTime,
+          description: 'A practical workshop',
+        },
+      ],
+      selectedDateLabel: '06 Apr 2026',
+      selectedDateStartTime: eventContent.startDateTime,
+    };
 
     render(
       <LandingPageHero
+        slug='easter-2026-montessori-play-coaching-workshop'
         content={easterWorkshopContent.en.hero}
+        ctaContent={easterWorkshopContent.en.cta}
+        commonContent={enContent.landingPages.common}
         locale='en'
         title={eventContent.title}
         eventContent={eventContent}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
+        bookingModalContent={enContent.bookingModal}
       />,
     );
 
@@ -52,6 +81,9 @@ describe('LandingPageHero section', () => {
     expect(await screen.findByText(expectedTimeChip)).toBeInTheDocument();
     expect(await screen.findByText('Wan Chai')).toBeInTheDocument();
     expect(await screen.findByText('Workshop')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     expect(
       screen.getAllByRole('img', { name: easterWorkshopContent.en.hero.imageAlt }),
