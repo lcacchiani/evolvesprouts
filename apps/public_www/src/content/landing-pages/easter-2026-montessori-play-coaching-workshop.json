@@ -4,7 +4,7 @@
       "title": "Easter 2026 Montessori Play Coaching Workshop",
       "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
       "socialImage": {
-        "url": "/images/landing-pages/easter-2026/og.png",
+        "url": "/images/evolvesprouts-logo.svg",
         "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
       }
     },
@@ -13,8 +13,8 @@
       "subtitle": "A practical workshop for parents and young children",
       "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
       "imageAlt": "Parent and child in a Montessori play coaching workshop",
-      "imageSrc": "/images/landing-pages/easter-2026/hero.webp",
-      "imageMobileSrc": "/images/landing-pages/easter-2026/hero-mobile.webp",
+      "imageSrc": "/images/training.svg",
+      "imageMobileSrc": "/images/training.svg",
       "dateLabel": "April 5, 2026",
       "locationLabel": "Sheung Wan, Hong Kong"
     },
@@ -62,7 +62,7 @@
         {
           "id": "0-3",
           "label": "0-3",
-          "iconSrc": "/images/landing-pages/easter-2026/age-0-3.svg"
+          "iconSrc": "/images/baby.svg"
         }
       ],
       "cohorts": [
@@ -132,7 +132,7 @@
       "title": "Easter 2026 Montessori Play Coaching Workshop",
       "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
       "socialImage": {
-        "url": "/images/landing-pages/easter-2026/og.png",
+        "url": "/images/evolvesprouts-logo.svg",
         "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
       }
     },
@@ -141,8 +141,8 @@
       "subtitle": "A practical workshop for parents and young children",
       "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
       "imageAlt": "Parent and child in a Montessori play coaching workshop",
-      "imageSrc": "/images/landing-pages/easter-2026/hero.webp",
-      "imageMobileSrc": "/images/landing-pages/easter-2026/hero-mobile.webp",
+      "imageSrc": "/images/training.svg",
+      "imageMobileSrc": "/images/training.svg",
       "dateLabel": "April 5, 2026",
       "locationLabel": "Sheung Wan, Hong Kong"
     },
@@ -190,7 +190,7 @@
         {
           "id": "0-3",
           "label": "0-3",
-          "iconSrc": "/images/landing-pages/easter-2026/age-0-3.svg"
+          "iconSrc": "/images/baby.svg"
         }
       ],
       "cohorts": [
@@ -260,7 +260,7 @@
       "title": "Easter 2026 Montessori Play Coaching Workshop",
       "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
       "socialImage": {
-        "url": "/images/landing-pages/easter-2026/og.png",
+        "url": "/images/evolvesprouts-logo.svg",
         "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
       }
     },
@@ -269,8 +269,8 @@
       "subtitle": "A practical workshop for parents and young children",
       "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
       "imageAlt": "Parent and child in a Montessori play coaching workshop",
-      "imageSrc": "/images/landing-pages/easter-2026/hero.webp",
-      "imageMobileSrc": "/images/landing-pages/easter-2026/hero-mobile.webp",
+      "imageSrc": "/images/training.svg",
+      "imageMobileSrc": "/images/training.svg",
       "dateLabel": "April 5, 2026",
       "locationLabel": "Sheung Wan, Hong Kong"
     },
@@ -318,7 +318,7 @@
         {
           "id": "0-3",
           "label": "0-3",
-          "iconSrc": "/images/landing-pages/easter-2026/age-0-3.svg"
+          "iconSrc": "/images/baby.svg"
         }
       ],
       "cohorts": [
