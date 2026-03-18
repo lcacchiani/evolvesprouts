@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import enContent from '@/content/en.json';
+import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import type { EventCardData } from '@/lib/events-data';
 import { ROUTES } from '@/lib/routes';
 import {
@@ -8,6 +9,7 @@ import {
   buildCourseSchema,
   buildEventSchemas,
   buildFaqPageSchema,
+  buildLandingPageEventSchema,
   buildLocalBusinessSchema,
   buildOrganizationSchema,
 } from '@/lib/structured-data';
@@ -165,6 +167,27 @@ describe('structured-data builders', () => {
       startDate: '2026-04-12T10:00:00.000Z',
       organizer: {
         '@id': expect.stringContaining('#organization'),
+      },
+    });
+  });
+
+  it('builds landing page event schema when structured data exists', () => {
+    const schema = buildLandingPageEventSchema({
+      locale: 'en',
+      pageContent: easterWorkshopContent.en,
+      pagePath: '/easter-2026-montessori-play-coaching-workshop',
+    });
+
+    expect(schema).toMatchObject({
+      '@type': 'Event',
+      name: easterWorkshopContent.en.structuredData?.eventName,
+      description: easterWorkshopContent.en.structuredData?.description,
+      organizer: {
+        '@id': expect.stringContaining('#organization'),
+      },
+      offers: {
+        '@type': 'Offer',
+        price: easterWorkshopContent.en.structuredData?.offerPrice,
       },
     });
   });

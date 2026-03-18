@@ -1,6 +1,10 @@
-import type { Locale, SiteContent } from '@/content';
+import type {
+  LandingPageLocaleContent,
+  Locale,
+  SiteContent,
+} from '@/content';
 import type { EventCardData } from '@/lib/events-data';
-import { ROUTES, type AppRoutePath } from '@/lib/routes';
+import { ROUTES } from '@/lib/routes';
 import { getSiteOrigin, localizePath } from '@/lib/seo';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
@@ -47,7 +51,7 @@ function toAbsoluteUrl(path: string): string {
   }
 }
 
-function toLocalizedAbsoluteUrl(routePath: AppRoutePath, locale: Locale): string {
+function toLocalizedAbsoluteUrl(routePath: string, locale: Locale): string {
   return `${getSiteOrigin()}${localizePath(routePath, locale)}`;
 }
 
@@ -172,7 +176,7 @@ export function buildWebSiteSchema({
 
 interface BreadcrumbItem {
   name: string;
-  path: AppRoutePath;
+  path: string;
 }
 
 interface BreadcrumbSchemaOptions {
@@ -228,6 +232,51 @@ export function buildCourseSchema({
     provider: {
       '@id': organizationSchemaId,
     },
+  });
+}
+
+interface LandingPageEventSchemaOptions {
+  locale: Locale;
+  pageContent: LandingPageLocaleContent;
+  pagePath: string;
+}
+
+export function buildLandingPageEventSchema({
+  locale,
+  pageContent,
+  pagePath,
+}: LandingPageEventSchemaOptions): JsonLdObject {
+  const structuredData = pageContent.structuredData;
+  if (!structuredData) {
+    return {};
+  }
+
+  const organizationSchemaId = getOrganizationSchemaId();
+
+  return compactJsonLdObject({
+    '@context': SCHEMA_CONTEXT,
+    '@type': 'Event',
+    name: structuredData.eventName,
+    description: structuredData.description,
+    startDate: structuredData.startDate,
+    endDate: structuredData.endDate,
+    eventStatus: EVENT_STATUS_SCHEDULED,
+    eventAttendanceMode: EVENT_ATTENDANCE_MODE_OFFLINE,
+    location: compactJsonLdObject({
+      '@type': 'Place',
+      name: structuredData.locationName,
+      address: structuredData.locationAddress,
+    }),
+    organizer: {
+      '@id': organizationSchemaId,
+    },
+    offers: compactJsonLdObject({
+      '@type': 'Offer',
+      price: structuredData.offerPrice,
+      priceCurrency: structuredData.offerCurrency,
+      availability: `${SCHEMA_CONTEXT}/${structuredData.offerAvailability}`,
+      url: `${getSiteOrigin()}${localizePath(pagePath, locale)}`,
+    }),
   });
 }
 

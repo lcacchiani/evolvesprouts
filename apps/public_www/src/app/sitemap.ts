@@ -1,6 +1,10 @@
 import type { MetadataRoute } from 'next';
 
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/content';
+import {
+  buildLandingPagePath,
+  getAllLandingPageSlugs,
+} from '@/lib/landing-pages';
 import { getSiteOrigin, localizePath } from '@/lib/seo';
 import { INDEXED_ROUTE_PATHS, ROUTES } from '@/lib/routes';
 
@@ -37,13 +41,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const siteOrigin = getSiteOrigin();
   const lastModified = resolveSitemapLastModifiedDate();
 
-  return SUPPORTED_LOCALES.flatMap((locale) =>
+  const indexedEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) =>
     INDEXED_ROUTE_PATHS.map((routePath) => ({
       url: `${siteOrigin}${localizePath(routePath, locale)}`,
-      changeFrequency: routePath === ROUTES.home ? 'weekly' : 'monthly',
+      changeFrequency:
+        routePath === ROUTES.home
+          ? ('weekly' as const)
+          : ('monthly' as const),
       priority: routePath === ROUTES.home ? 1 : 0.7,
       lastModified,
       alternates: buildSitemapAlternates(routePath, siteOrigin),
     })),
   );
+
+  const landingPageEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) =>
+    getAllLandingPageSlugs().map((slug) => {
+      const routePath = buildLandingPagePath(slug);
+      return {
+        url: `${siteOrigin}${localizePath(routePath, locale)}`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+        lastModified,
+        alternates: buildSitemapAlternates(routePath, siteOrigin),
+      };
+    }),
+  );
+
+  return [...indexedEntries, ...landingPageEntries];
 }

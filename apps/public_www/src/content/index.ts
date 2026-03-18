@@ -71,6 +71,88 @@ export type FreeIntroSessionContent =
   SiteContent['freeIntroSession'];
 export type FooterContent = SiteContent['footer'];
 export type LinksHubContent = SiteContent['links']['hub'];
+export type LandingPagesCommonContent = SiteContent['landingPages']['common'];
+export type LandingPageCohort = MyBestAuntieBookingContent['cohorts'][number];
+
+export type LandingPageBookingContent = Pick<
+  MyBestAuntieBookingContent,
+  | 'ageOptions'
+  | 'cohorts'
+  | 'spacesLeftLabelTemplate'
+  | 'soldOutStampLabel'
+  | 'confirmAndPayLabel'
+  | 'ageSelectorLabel'
+  | 'dateSelectorLabel'
+  | 'scheduleLabel'
+  | 'nextCohortLabelTemplate'
+  | 'noCohortsLabel'
+  | 'scrollDatesLeftAriaLabel'
+  | 'scrollDatesRightAriaLabel'
+> & {
+  modal: MyBestAuntieModalContent;
+};
+
+export interface LandingPageLocaleContent {
+  meta: {
+    title: string;
+    description: string;
+    socialImage: {
+      url: string;
+      alt: string;
+    };
+  };
+  hero: {
+    title: string;
+    subtitle: string;
+    description: string;
+    imageAlt: string;
+    imageSrc: string;
+    imageMobileSrc?: string;
+    dateLabel: string;
+    locationLabel: string;
+  };
+  details: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    items: Array<{
+      title: string;
+      description: string;
+    }>;
+  };
+  faq: {
+    eyebrow: string;
+    title: string;
+    items: Array<{
+      question: string;
+      answer: string;
+    }>;
+  };
+  cta: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    buttonLabel: string;
+  };
+  booking: LandingPageBookingContent;
+  structuredData?: {
+    eventName: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    locationName: string;
+    locationAddress: string;
+    offerPrice: string;
+    offerCurrency: string;
+    offerAvailability: string;
+  };
+}
+
+export interface LandingPageContent {
+  en: LandingPageLocaleContent;
+  'zh-CN': LandingPageLocaleContent;
+  'zh-HK': LandingPageLocaleContent;
+}
 
 const contentMap = {
   en: enContent,

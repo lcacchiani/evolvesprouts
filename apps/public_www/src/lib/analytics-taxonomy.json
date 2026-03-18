@@ -222,6 +222,17 @@
       ],
       "ga4KeyEvent": false
     },
+    "landing_page_cta_click": {
+      "requiredCustomParams": [
+        "landing_page_slug"
+      ],
+      "allowedCustomParams": [
+        "landing_page_slug",
+        "age_group",
+        "cohort_label"
+      ],
+      "ga4KeyEvent": false
+    },
     "links_hub_click": {
       "requiredCustomParams": [
         "content_name"

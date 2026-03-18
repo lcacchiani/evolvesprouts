@@ -66,6 +66,7 @@ Canonical machine-readable contract:
 | `booking_submit_error` | `/v1/reservations` error | `section_id`, `payment_method`, `error_type` | No |
 | `booking_thank_you_view` | Thank-you modal shown | `section_id`, `payment_method`, `total_amount` | No |
 | `booking_receipt_print_click` | Print action in thank-you modal | `section_id`, `payment_method`, `total_amount` | No |
+| `landing_page_cta_click` | Landing page primary CTA click | `section_id='landing-page-cta'`, `landing_page_slug` | No |
 | `links_hub_click` | Link-in-bio hub button click | `section_id='links-hub'`, `content_name` | No |
 
 ## GA4 setup: step-by-step
@@ -74,7 +75,8 @@ Canonical machine-readable contract:
 2. Create or confirm a **Web Data Stream** for the public site domain.
 3. In GA4 Admin, create event-scoped custom dimensions for:
    - `section_id`, `cta_location`, `form_type`, `payment_method`, `age_group`,
-     `cohort_label`, `cohort_date`, `resource_key`, `error_type`, `discount_type`
+     `cohort_label`, `cohort_date`, `resource_key`, `error_type`, `discount_type`,
+     `landing_page_slug`
 4. Create custom metrics for:
    - `total_amount`, `discount_amount`
 5. Mark key events:
@@ -95,6 +97,7 @@ Canonical machine-readable contract:
    - WhatsApp links
    - Contact/media/community/event form interactions
    - Booking modal and reservation actions
+   - Landing-page CTA clicks (`landing_page_cta_click`)
 5. Define variables for common parameters:
    - page metadata (`page_path`, `page_title`)
    - locale and section context (`page_locale`, `section_id`, `cta_location`)
