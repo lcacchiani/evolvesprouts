@@ -112,7 +112,6 @@ export interface LandingPageLocaleContent {
     locationLabel: string;
   };
   details: {
-    eyebrow: string;
     title: string;
     description: string;
     items: Array<{
@@ -121,7 +120,6 @@ export interface LandingPageLocaleContent {
     }>;
   };
   faq: {
-    eyebrow: string;
     title: string;
     items: Array<{
       question: string;
@@ -129,7 +127,6 @@ export interface LandingPageLocaleContent {
     }>;
   };
   cta: {
-    eyebrow: string;
     title: string;
     description: string;
     buttonLabel: string;

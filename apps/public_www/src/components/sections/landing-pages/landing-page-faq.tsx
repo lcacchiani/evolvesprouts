@@ -18,7 +18,6 @@ export function LandingPageFaq({ content, ariaLabel }: LandingPageFaqProps) {
     >
       <SectionContainer>
         <SectionHeader
-          eyebrow={content.eyebrow}
           title={content.title}
           align='left'
         />
