@@ -6,6 +6,7 @@ from app.db.models.contact import Contact
 from app.db.models.crm_note import CrmNote
 from app.db.models.discount_code import DiscountCode
 from app.db.models.enrollment import Enrollment
+from app.db.models.expense import Expense, ExpenseAttachment
 from app.db.models.enums import (
     AccessGrantType,
     AssetType,
@@ -15,6 +16,8 @@ from app.db.models.enums import (
     ContactSource,
     ContactType,
     DiscountType,
+    ExpenseParseStatus,
+    ExpenseStatus,
     EnrollmentStatus,
     EventCategory,
     FamilyRole,
@@ -76,6 +79,10 @@ __all__ = [
     "CrmNote",
     "DiscountCode",
     "DiscountType",
+    "Expense",
+    "ExpenseAttachment",
+    "ExpenseParseStatus",
+    "ExpenseStatus",
     "Enrollment",
     "EnrollmentStatus",
     "EventCategory",

@@ -500,6 +500,37 @@ export class ApiStack extends cdk.Stack {
           "Default media resource key used when media submissions omit resource_key",
       }
     );
+    const openrouterApiSecretArn = new cdk.CfnParameter(
+      this,
+      "OpenRouterApiSecretArn",
+      {
+        type: "String",
+        noEcho: true,
+        description:
+          "Existing Secrets Manager ARN containing the OpenRouter API key",
+      }
+    );
+    const openrouterChatCompletionsUrl = new cdk.CfnParameter(
+      this,
+      "OpenRouterChatCompletionsUrl",
+      {
+        type: "String",
+        description: "OpenRouter chat completions URL used for invoice parsing",
+      }
+    );
+    const openrouterModel = new cdk.CfnParameter(this, "OpenRouterModel", {
+      type: "String",
+      description: "OpenRouter model identifier for invoice parsing",
+    });
+    const openrouterMaxFileBytes = new cdk.CfnParameter(
+      this,
+      "OpenRouterMaxFileBytes",
+      {
+        type: "String",
+        default: "15728640",
+        description: "Maximum attachment size (bytes) sent to OpenRouter parser",
+      }
+    );
 
     // ---------------------------------------------------------------------
     // API Custom Domain Parameters (Optional)
@@ -1161,6 +1192,7 @@ export class ApiStack extends cdk.Stack {
       "https://nominatim.openstreetmap.org/search",
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
       `https://${mailchimpServerPrefix.valueAsString}.api.mailchimp.com/3.0/`,
+      openrouterChatCompletionsUrl.valueAsString,
     ];
 
     const awsProxyFunction = createPythonFunction("AwsApiProxyFunction", {
@@ -1206,6 +1238,11 @@ export class ApiStack extends cdk.Stack {
       this,
       "MailchimpApiSecret",
       mailchimpApiSecretArn.valueAsString
+    );
+    const openrouterApiSecret = secretsmanager.Secret.fromSecretCompleteArn(
+      this,
+      "OpenRouterApiSecret",
+      openrouterApiSecretArn.valueAsString
     );
 
     // -------------------------------------------------------------------------
@@ -1379,6 +1416,87 @@ export class ApiStack extends cdk.Stack {
       evaluationPeriods: 1,
       treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
     });
+
+    // -------------------------------------------------------------------------
+    // Expense Parser Messaging (SNS + SQS)
+    // -------------------------------------------------------------------------
+
+    const expenseParserDLQ = new sqs.Queue(this, "ExpenseParserDLQ", {
+      queueName: name("expense-parser-dlq"),
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const expenseParserQueue = new sqs.Queue(this, "ExpenseParserQueue", {
+      queueName: name("expense-parser-queue"),
+      visibilityTimeout: cdk.Duration.seconds(180),
+      deadLetterQueue: {
+        queue: expenseParserDLQ,
+        maxReceiveCount: 3,
+      },
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const expenseParserTopic = new sns.Topic(this, "ExpenseParserTopic", {
+      topicName: name("expense-parser-events"),
+      masterKey: sqsEncryptionKey,
+    });
+    expenseParserTopic.addSubscription(
+      new snsSubscriptions.SqsSubscription(expenseParserQueue)
+    );
+    expenseParserTopic.grantPublish(adminFunction);
+    adminFunction.addEnvironment(
+      "EXPENSE_PARSE_TOPIC_ARN",
+      expenseParserTopic.topicArn
+    );
+
+    const expenseParserFunction = createPythonFunction("ExpenseParserFunction", {
+      handler: "lambda/expense_parser/handler.lambda_handler",
+      timeout: cdk.Duration.seconds(90),
+      environment: {
+        DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
+        DATABASE_NAME: "evolvesprouts",
+        DATABASE_USERNAME: "evolvesprouts_admin",
+        DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
+        DATABASE_IAM_AUTH: "true",
+        CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
+        OPENROUTER_API_KEY_SECRET_ARN: openrouterApiSecret.secretArn,
+        OPENROUTER_CHAT_COMPLETIONS_URL:
+          openrouterChatCompletionsUrl.valueAsString,
+        OPENROUTER_MODEL: openrouterModel.valueAsString,
+        OPENROUTER_MAX_FILE_BYTES: openrouterMaxFileBytes.valueAsString,
+        AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
+      },
+    });
+    database.grantAdminUserSecretRead(expenseParserFunction);
+    database.grantConnect(expenseParserFunction, "evolvesprouts_admin");
+    clientAssetsBucket.grantRead(expenseParserFunction);
+    openrouterApiSecret.grantRead(expenseParserFunction);
+    awsProxyFunction.grantInvoke(expenseParserFunction);
+
+    expenseParserFunction.addEventSource(
+      new lambdaEventSources.SqsEventSource(expenseParserQueue, {
+        batchSize: 1,
+      })
+    );
+
+    const expenseParserDlqAlarm = new cdk.aws_cloudwatch.Alarm(
+      this,
+      "ExpenseParserDLQAlarm",
+      {
+        alarmName: name("expense-parser-dlq-alarm"),
+        alarmDescription:
+          "Expense parser messages failed processing and landed in DLQ",
+        metric: expenseParserDLQ.metricApproximateNumberOfMessagesVisible({
+          period: cdk.Duration.minutes(5),
+        }),
+        threshold: 1,
+        evaluationPeriods: 1,
+        treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
+      }
+    );
 
     // Migration function
     const migrationFunction = createPythonFunction("EvolvesproutsMigrationFunction", {
@@ -2218,6 +2336,42 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
+    // Admin expense routes
+    const adminExpenses = admin.addResource("expenses");
+    adminExpenses.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenses.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminExpenseById = adminExpenses.addResource("{id}");
+    adminExpenseById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addMethod("PATCH", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addResource("cancel").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addResource("mark-paid").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addResource("reparse").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminExpenseById.addResource("amend").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
     // User asset routes
     const user = v1.addResource("user");
     const userAssets = user.addResource("assets");
@@ -2499,6 +2653,18 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "MediaDLQUrl", {
       value: mediaDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed media requests",
+    });
+    new cdk.CfnOutput(this, "ExpenseParserTopicArn", {
+      value: expenseParserTopic.topicArn,
+      description: "SNS topic ARN for expense parser events",
+    });
+    new cdk.CfnOutput(this, "ExpenseParserQueueUrl", {
+      value: expenseParserQueue.queueUrl,
+      description: "SQS queue URL for expense parser processing",
+    });
+    new cdk.CfnOutput(this, "ExpenseParserDLQUrl", {
+      value: expenseParserDLQ.queueUrl,
+      description: "SQS dead letter queue URL for failed expense parser jobs",
     });
 
     const customAuthDomainOutput = new cdk.CfnOutput(
