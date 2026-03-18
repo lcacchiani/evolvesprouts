@@ -17,6 +17,7 @@ export function LandingPageDetails({
       id='landing-page-details'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='landing-page-details'
+      className='es-bg-surface-white'
     >
       <SectionContainer>
         <SectionHeader

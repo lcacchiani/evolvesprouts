@@ -11,6 +11,7 @@ describe('LandingPageDetails section', () => {
     const section = document.getElementById('landing-page-details');
     expect(section).not.toBeNull();
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-details');
+    expect(section).toHaveClass('es-bg-surface-white');
     expect(screen.getByRole('heading', { name: easterWorkshopContent.en.details.title }))
       .toBeInTheDocument();
     expect(screen.getByText(easterWorkshopContent.en.details.description)).toBeInTheDocument();

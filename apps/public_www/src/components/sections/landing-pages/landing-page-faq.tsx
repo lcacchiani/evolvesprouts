@@ -14,7 +14,7 @@ export function LandingPageFaq({ content, ariaLabel }: LandingPageFaqProps) {
       id='landing-page-faq'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='landing-page-faq'
-      className='es-section-bg-overlay'
+      className='es-bg-surface-white'
     >
       <SectionContainer>
         <SectionHeader

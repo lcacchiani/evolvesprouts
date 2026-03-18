@@ -21,6 +21,7 @@ describe('LandingPageHero section', () => {
     const section = document.getElementById('landing-page-hero');
     expect(section).not.toBeNull();
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-hero');
+    expect(section).toHaveClass('es-bg-surface-white');
     expect(screen.getByRole('heading', { name: easterWorkshopContent.en.hero.title }))
       .toBeInTheDocument();
     expect(screen.getByText(easterWorkshopContent.en.hero.subtitle)).toBeInTheDocument();
