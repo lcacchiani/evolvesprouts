@@ -43,7 +43,10 @@ export interface EventCardData {
 
 export interface LandingPageHeroEventContent {
   title: string;
-  chips: string[];
+  startDateTime?: string;
+  endDateTime?: string;
+  locationLabel?: string;
+  categoryChips: string[];
 }
 
 const UK_EVENTS_LOCALE = 'en-GB';
@@ -71,6 +74,11 @@ function formatEnumLikeLabel(value: string): string {
   const trimmedValue = value.trim();
   if (!trimmedValue) {
     return '';
+  }
+
+  // Preserve numeric ranges (for example, "1-4") used as age-group tags.
+  if (/^\d+\s*-\s*\d+$/.test(trimmedValue)) {
+    return trimmedValue.replace(/\s*-\s*/g, '-');
   }
 
   if (/\s/.test(trimmedValue) || !/[_-]/.test(trimmedValue)) {
@@ -309,59 +317,46 @@ function dedupeChipLabels(chips: Array<string | undefined>): string[] {
   return uniqueChips;
 }
 
-function readLandingPageTagAndCategoryChips(
+function readLandingPageCategoryChips(
   record: Record<string, unknown>,
 ): string[] {
-  const chips: string[] = [];
-  const seen = new Set<string>();
+  const value = record.categories;
+  const categories: string[] = [];
 
-  for (const key of ['tags', 'categories']) {
-    const value = record[key];
-    const candidates: string[] = [];
-
-    if (Array.isArray(value)) {
-      candidates.push(
-        ...value
-          .map((entry) => {
-            if (typeof entry === 'string') {
-              return readOptionalText(entry);
-            }
-            const entryRecord = toRecord(entry);
-            if (!entryRecord) {
-              return undefined;
-            }
-            return readCandidateText(entryRecord, ['label', 'title', 'name']);
-          })
+  if (Array.isArray(value)) {
+    categories.push(
+      ...value
+        .map((entry) => {
+          if (typeof entry === 'string') {
+            return readOptionalText(entry);
+          }
+          const entryRecord = toRecord(entry);
+          if (!entryRecord) {
+            return undefined;
+          }
+          return readCandidateText(entryRecord, ['label', 'title', 'name']);
+        })
+        .filter((entry): entry is string => Boolean(entry)),
+    );
+  } else if (typeof value === 'string') {
+    categories.push(
+      ...value
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter((entry): entry is string => Boolean(entry)),
+    );
+  } else {
+    const valueRecord = toRecord(value);
+    if (valueRecord) {
+      categories.push(
+        ...Object.values(valueRecord)
+          .map((entry) => (typeof entry === 'string' ? readOptionalText(entry) : undefined))
           .filter((entry): entry is string => Boolean(entry)),
       );
-    } else if (typeof value === 'string') {
-      candidates.push(
-        ...value
-          .split(',')
-          .map((entry) => entry.trim())
-          .filter((entry): entry is string => Boolean(entry)),
-      );
-    } else {
-      const valueRecord = toRecord(value);
-      if (valueRecord) {
-        candidates.push(
-          ...Object.values(valueRecord)
-            .map((entry) => (typeof entry === 'string' ? readOptionalText(entry) : undefined))
-            .filter((entry): entry is string => Boolean(entry)),
-        );
-      }
-    }
-
-    for (const candidate of candidates) {
-      if (seen.has(candidate)) {
-        continue;
-      }
-      seen.add(candidate);
-      chips.push(candidate);
     }
   }
 
-  return chips;
+  return dedupeChipLabels(categories);
 }
 
 function resolveDateTimeDetails(
@@ -926,7 +921,6 @@ export function normalizeEventsForEventsPage(
 
 export function getLandingPageHeroEventContent(
   slug: string,
-  locale?: string,
 ): LandingPageHeroEventContent | null {
   const eventRecord = findLandingPageEventRecord(slug);
   if (!eventRecord) {
@@ -938,12 +932,16 @@ export function getLandingPageHeroEventContent(
     return null;
   }
 
-  const normalizedLocale = resolveEventsLocale(locale);
-  const dateTimeDetails = resolveDateTimeDetails(eventRecord, normalizedLocale);
-  const timeLabel = appendTimeZoneLabel(
-    dateTimeDetails.timeLabel,
-    dateTimeDetails.timeZoneLabel,
-  );
+  const dateEntries = Array.isArray(eventRecord.dates) ? eventRecord.dates : [];
+  const firstDateRecord = dateEntries
+    .map((entry) => toRecord(entry))
+    .find((entry): entry is Record<string, unknown> => entry !== null);
+  const startDateTime = firstDateRecord
+    ? readCandidateText(firstDateRecord, ['start_datetime', 'startDateTime', 'start'])
+    : undefined;
+  const endDateTime = firstDateRecord
+    ? readCandidateText(firstDateRecord, ['end_datetime', 'endDateTime', 'end'])
+    : undefined;
   const locationSource =
     readCandidateText(eventRecord, [
       'address',
@@ -953,15 +951,13 @@ export function getLandingPageHeroEventContent(
       'venue',
     ]) ?? readOptionalText(eventRecord.location);
   const locationLabel = extractTrailingLocationSegment(locationSource);
-  const chips = dedupeChipLabels([
-    timeLabel,
-    locationLabel,
-    ...readLandingPageTagAndCategoryChips(eventRecord),
-  ]);
 
   return {
     title,
-    chips,
+    startDateTime: startDateTime || undefined,
+    endDateTime: endDateTime || undefined,
+    locationLabel,
+    categoryChips: readLandingPageCategoryChips(eventRecord),
   };
 }
 

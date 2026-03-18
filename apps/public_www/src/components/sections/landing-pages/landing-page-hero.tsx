@@ -1,23 +1,132 @@
+'use client';
+
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { LandingPageLocaleContent } from '@/content';
+import type { LandingPageLocaleContent, Locale } from '@/content';
+import type { LandingPageHeroEventContent } from '@/lib/events-data';
 
 interface LandingPageHeroProps {
   content: LandingPageLocaleContent['hero'];
+  locale: Locale;
   title: string;
-  chips: string[];
+  eventContent: LandingPageHeroEventContent | null;
   ariaLabel?: string;
+}
+
+function resolveDateTimeLocale(locale: Locale): string {
+  if (locale === 'en') {
+    return 'en-GB';
+  }
+
+  return locale;
+}
+
+function buildHeroDateChip(startDateTime: string | undefined, locale: Locale): string | undefined {
+  const normalizedStartDateTime = startDateTime?.trim() ?? '';
+  if (!normalizedStartDateTime) {
+    return undefined;
+  }
+
+  const startDate = new Date(normalizedStartDateTime);
+  if (Number.isNaN(startDate.getTime())) {
+    return undefined;
+  }
+
+  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(startDate);
+}
+
+function buildHeroTimeChip(
+  startDateTime: string | undefined,
+  endDateTime: string | undefined,
+  locale: Locale,
+): string | undefined {
+  const normalizedStartDateTime = startDateTime?.trim() ?? '';
+  if (!normalizedStartDateTime) {
+    return undefined;
+  }
+
+  const startDate = new Date(normalizedStartDateTime);
+  if (Number.isNaN(startDate.getTime())) {
+    return undefined;
+  }
+
+  const timeFormatter =
+    locale === 'en'
+      ? new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })
+      : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+  const startTimeLabel = timeFormatter.format(startDate);
+
+  const normalizedEndDateTime = endDateTime?.trim() ?? '';
+  if (!normalizedEndDateTime) {
+    return startTimeLabel;
+  }
+
+  const endDate = new Date(normalizedEndDateTime);
+  if (Number.isNaN(endDate.getTime())) {
+    return startTimeLabel;
+  }
+
+  return `${startTimeLabel} - ${timeFormatter.format(endDate)}`;
+}
+
+function buildHeroChips(
+  eventContent: LandingPageHeroEventContent | null,
+  locale: Locale,
+): string[] {
+  if (!eventContent) {
+    return [];
+  }
+
+  const dedupedChips: string[] = [];
+  const seen = new Set<string>();
+
+  for (const value of [
+    buildHeroDateChip(eventContent.startDateTime, locale),
+    buildHeroTimeChip(eventContent.startDateTime, eventContent.endDateTime, locale),
+    eventContent.locationLabel,
+    ...eventContent.categoryChips,
+  ]) {
+    const normalizedValue = value?.trim() ?? '';
+    if (!normalizedValue || seen.has(normalizedValue)) {
+      continue;
+    }
+
+    seen.add(normalizedValue);
+    dedupedChips.push(normalizedValue);
+  }
+
+  return dedupedChips;
 }
 
 export function LandingPageHero({
   content,
+  locale,
   title,
-  chips,
+  eventContent,
   ariaLabel,
 }: LandingPageHeroProps) {
+  const [chips, setChips] = useState<string[]>([]);
+
+  useEffect(() => {
+    setChips(buildHeroChips(eventContent, locale));
+  }, [eventContent, locale]);
+
   return (
     <SectionShell
       id='landing-page-hero'

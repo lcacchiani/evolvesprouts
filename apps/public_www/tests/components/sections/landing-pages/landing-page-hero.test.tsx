@@ -15,19 +15,32 @@ vi.mock('next/image', () => ({
 }));
 
 describe('LandingPageHero section', () => {
-  it('renders section shell identifiers and hero content', () => {
+  it('renders section shell identifiers and hero content', async () => {
+    const eventContent = {
+      title: 'Easter 2026 Montessori Play Coaching Workshop',
+      startDateTime: '2026-04-06T02:00:00Z',
+      endDateTime: '2026-04-06T03:00:00Z',
+      locationLabel: 'Wan Chai',
+      categoryChips: ['Workshop'],
+    };
+    const expectedDateChip = new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(eventContent.startDateTime));
+    const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    const expectedTimeChip = `${timeFormatter.format(new Date(eventContent.startDateTime))} - ${timeFormatter.format(new Date(eventContent.endDateTime))}`;
+
     render(
       <LandingPageHero
         content={easterWorkshopContent.en.hero}
-        title='Easter 2026 Montessori Play Coaching Workshop'
-        chips={[
-          '10:00 - 11:00am',
-          'Wan Chai',
-          '1-4',
-          'Parent + Child',
-          'Helpers Welcome',
-          'Workshop',
-        ]}
+        locale='en'
+        title={eventContent.title}
+        eventContent={eventContent}
       />,
     );
 
@@ -35,16 +48,15 @@ describe('LandingPageHero section', () => {
     expect(section).not.toBeNull();
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-hero');
     expect(section).toHaveClass('es-bg-surface-white');
-    expect(screen.getByRole('heading', { name: 'Easter 2026 Montessori Play Coaching Workshop' }))
+    expect(screen.getByRole('heading', { name: eventContent.title }))
       .toBeInTheDocument();
     expect(screen.getByText(easterWorkshopContent.en.hero.subtitle)).toBeInTheDocument();
     expect(screen.getByText(easterWorkshopContent.en.hero.description)).toBeInTheDocument();
-    expect(screen.getByText('10:00 - 11:00am')).toBeInTheDocument();
-    expect(screen.getByText('Wan Chai')).toBeInTheDocument();
-    expect(screen.getByText('1-4')).toBeInTheDocument();
-    expect(screen.getByText('Parent + Child')).toBeInTheDocument();
-    expect(screen.getByText('Helpers Welcome')).toBeInTheDocument();
-    expect(screen.getByText('Workshop')).toBeInTheDocument();
+    expect(await screen.findByText(expectedDateChip)).toBeInTheDocument();
+    expect(await screen.findByText(expectedTimeChip)).toBeInTheDocument();
+    expect(await screen.findByText('Wan Chai')).toBeInTheDocument();
+    expect(await screen.findByText('Workshop')).toBeInTheDocument();
+    expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     expect(
       screen.getAllByRole('img', { name: easterWorkshopContent.en.hero.imageAlt }),
     ).toHaveLength(2);
