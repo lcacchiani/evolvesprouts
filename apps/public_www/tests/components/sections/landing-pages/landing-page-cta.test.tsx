@@ -5,6 +5,7 @@ import { LandingPageCta } from '@/components/sections/landing-pages/landing-page
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import type { EventBookingModalPayload } from '@/lib/events-data';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
 vi.mock('next/dynamic', () => ({
@@ -27,6 +28,28 @@ afterEach(() => {
 });
 
 describe('LandingPageCta section', () => {
+  const bookingPayload: EventBookingModalPayload = {
+    variant: 'event',
+    bookingSystem: 'event-booking',
+    title: 'Easter 2026 Montessori Play Coaching Workshop',
+    subtitle: 'A practical workshop',
+    originalAmount: 350,
+    locationName: 'Baumhaus',
+    locationAddress: "Baumhaus, 1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
+    directionHref:
+      'https://www.google.com/maps/dir/?api=1&destination=Baumhaus,+1/F+Kar+Yau+Building,+36-44+Queen%27s+Rd+E,+Wan+Chai',
+    dateParts: [
+      {
+        id: 'session-1',
+        startDateTime: '2026-04-06T02:00:00Z',
+        endDateTime: '2026-04-06T03:00:00Z',
+        description: 'A practical workshop',
+      },
+    ],
+    selectedDateLabel: '06 Apr 2026',
+    selectedDateStartTime: '2026-04-06T02:00:00Z',
+  };
+
   it('opens booking modal and tracks CTA, modal-open, and meta pixel events', async () => {
     render(
       <LandingPageCta
@@ -34,7 +57,8 @@ describe('LandingPageCta section', () => {
         slug='easter-2026-montessori-play-coaching-workshop'
         content={easterWorkshopContent.en.cta}
         commonContent={enContent.landingPages.common}
-        bookingContent={easterWorkshopContent.en.booking}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
         bookingModalContent={enContent.bookingModal}
       />,
     );
@@ -75,23 +99,15 @@ describe('LandingPageCta section', () => {
     });
   });
 
-  it('disables CTA button when all cohorts are fully booked', () => {
-    const fullyBookedContent = {
-      ...easterWorkshopContent.en.booking,
-      cohorts: easterWorkshopContent.en.booking.cohorts.map((cohort) => ({
-        ...cohort,
-        is_fully_booked: true,
-        spaces_left: 0,
-      })),
-    };
-
+  it('disables CTA button when event is fully booked', () => {
     render(
       <LandingPageCta
         locale='en'
         slug='easter-2026-montessori-play-coaching-workshop'
         content={easterWorkshopContent.en.cta}
         commonContent={enContent.landingPages.common}
-        bookingContent={fullyBookedContent}
+        bookingPayload={bookingPayload}
+        isFullyBooked
         bookingModalContent={enContent.bookingModal}
       />,
     );
@@ -111,7 +127,8 @@ describe('LandingPageCta section', () => {
           buttonLabel: '',
         }}
         commonContent={enContent.landingPages.common}
-        bookingContent={easterWorkshopContent.en.booking}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
         bookingModalContent={enContent.bookingModal}
       />,
     );

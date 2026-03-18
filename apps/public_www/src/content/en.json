@@ -333,7 +333,7 @@
       "phoneValidationError": "Please enter a valid phone number."
     },
     "faq": {
-      "title": "FAQ",
+      "title": "Frequently Asked Questions",
       "cards": [
         {
           "question": "What happens after I message you?",

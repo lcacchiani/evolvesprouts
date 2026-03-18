@@ -74,24 +74,6 @@ export type LinksHubContent = SiteContent['links']['hub'];
 export type LandingPagesCommonContent = SiteContent['landingPages']['common'];
 export type LandingPageCohort = MyBestAuntieBookingContent['cohorts'][number];
 
-export type LandingPageBookingContent = Pick<
-  MyBestAuntieBookingContent,
-  | 'ageOptions'
-  | 'cohorts'
-  | 'spacesLeftLabelTemplate'
-  | 'soldOutStampLabel'
-  | 'confirmAndPayLabel'
-  | 'ageSelectorLabel'
-  | 'dateSelectorLabel'
-  | 'scheduleLabel'
-  | 'nextCohortLabelTemplate'
-  | 'noCohortsLabel'
-  | 'scrollDatesLeftAriaLabel'
-  | 'scrollDatesRightAriaLabel'
-> & {
-  modal: MyBestAuntieModalContent;
-};
-
 export interface LandingPageLocaleContent {
   meta: {
     title: string;
@@ -127,18 +109,6 @@ export interface LandingPageLocaleContent {
     title: string;
     description: string;
     buttonLabel: string;
-  };
-  booking: LandingPageBookingContent;
-  structuredData?: {
-    eventName: string;
-    description: string;
-    startDate: string;
-    endDate: string;
-    locationName: string;
-    locationAddress: string;
-    offerPrice: string;
-    offerCurrency: string;
-    offerAvailability: string;
   };
 }
 

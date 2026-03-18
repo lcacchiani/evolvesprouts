@@ -14,6 +14,29 @@ vi.mock('@/lib/events-data', () => ({
     locationLabel: 'Wan Chai',
     categoryChips: ['Workshop'],
   }),
+  getLandingPageBookingEventContent: () => ({
+    status: 'open',
+    bookingPayload: {
+      variant: 'event',
+      bookingSystem: 'event-booking',
+      title: 'Mock Event Title',
+      subtitle: 'Mock subtitle',
+      originalAmount: 350,
+      locationName: 'Mock Venue',
+      locationAddress: 'Mock Address',
+      directionHref: 'https://www.google.com/maps',
+      dateParts: [
+        {
+          id: 'part-1',
+          startDateTime: '2026-04-06T02:00:00Z',
+          endDateTime: '2026-04-06T03:00:00Z',
+          description: 'Mock subtitle',
+        },
+      ],
+      selectedDateLabel: '06 Apr 2026',
+      selectedDateStartTime: '2026-04-06T02:00:00Z',
+    },
+  }),
 }));
 
 vi.mock('@/components/shared/page-layout', () => ({

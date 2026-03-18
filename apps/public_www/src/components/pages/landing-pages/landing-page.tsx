@@ -9,7 +9,10 @@ import { LandingPageCta } from '@/components/sections/landing-pages/landing-page
 import { LandingPageDetails } from '@/components/sections/landing-pages/landing-page-details';
 import { LandingPageFaq } from '@/components/sections/landing-pages/landing-page-faq';
 import { LandingPageHero } from '@/components/sections/landing-pages/landing-page-hero';
-import { getLandingPageHeroEventContent } from '@/lib/events-data';
+import {
+  getLandingPageBookingEventContent,
+  getLandingPageHeroEventContent,
+} from '@/lib/events-data';
 
 interface LandingPageProps {
   locale: Locale;
@@ -25,6 +28,7 @@ export function LandingPage({
   pageContent,
 }: LandingPageProps) {
   const heroEventContent = getLandingPageHeroEventContent(slug);
+  const bookingEventContent = getLandingPageBookingEventContent(slug, locale);
 
   return (
     <PageLayout
@@ -32,10 +36,16 @@ export function LandingPage({
       footerContent={siteContent.footer}
     >
       <LandingPageHero
+        slug={slug}
         content={pageContent.hero}
+        ctaContent={pageContent.cta}
+        commonContent={siteContent.landingPages.common}
         locale={locale}
         title={heroEventContent?.title ?? pageContent.meta.title}
         eventContent={heroEventContent}
+        bookingPayload={bookingEventContent?.bookingPayload ?? null}
+        isFullyBooked={bookingEventContent?.status === 'fully_booked'}
+        bookingModalContent={siteContent.bookingModal}
         ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
       />
       <LandingPageDetails
@@ -51,7 +61,8 @@ export function LandingPage({
         slug={slug}
         content={pageContent.cta}
         commonContent={siteContent.landingPages.common}
-        bookingContent={pageContent.booking}
+        bookingPayload={bookingEventContent?.bookingPayload ?? null}
+        isFullyBooked={bookingEventContent?.status === 'fully_booked'}
         bookingModalContent={siteContent.bookingModal}
         ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
       />

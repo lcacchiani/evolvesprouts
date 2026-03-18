@@ -16,20 +16,24 @@
       "imageMobileSrc": "/images/training.svg"
     },
     "details": {
-      "title": "What You Will Learn",
-      "description": "This session combines guided demonstrations with practical coaching so you can apply what you learn immediately.",
+      "title": "60 minutes. Your child in the room. Real coaching",
+      "description": "A focused format from observation to live coaching, with practical next steps you can use right away.",
       "items": [
         {
-          "title": "Guided Montessori Play",
-          "description": "Hands-on activities tailored to early childhood development."
+          "title": "1. Guided observation in the shared playroom",
+          "description": "Your child is already playing. You gather with Ida and observe together — she narrates what she sees. No lecture yet. The room does the teaching."
         },
         {
-          "title": "Parent and Caregiver Coaching",
-          "description": "Clear language and routines you can use in everyday moments."
+          "title": "2. Three core ideas, plainly explained",
+          "description": "In the private room: what a prepared environment is, what the adult's real role is during play, and why fewer toys — rotated thoughtfully — works better. No jargon. Just clarity."
         },
         {
-          "title": "Home-Ready Action Plan",
-          "description": "Leave with practical next steps for your own family rhythm."
+          "title": "3. Live coaching with Happy Baton toy invitations",
+          "description": "Children come into the private room where Happy Baton toys are set up as Montessori invitations. You observe your own child, and Ida coaches you in real time — specific, personal, and immediately useful."
+        },
+        {
+          "title": "4. Debrief, take-home cards & what comes next",
+          "description": "A group circle: one insight per family. Your personalised Auntie Challenge card — written by Ida during the session, specific to your child. Then browse the Happy Baton pre-loved toy sale."
         }
       ]
     },
@@ -37,12 +41,24 @@
       "title": "Frequently Asked Questions",
       "items": [
         {
-          "question": "Who is this workshop for?",
-          "answer": "This workshop is designed for parents and caregivers of young children aged 0-3."
+          "question": "Is this suitable for my 1-year-old? What about my 4-year-old?",
+          "answer": "Yes to both. The play invitations will be matched to your child's developmental stage, and coaching will focus on what's relevant for their age."
         },
         {
-          "question": "What should we bring?",
-          "answer": "Just bring yourselves. All workshop materials will be provided on site."
+          "question": "My helper will attend alone with my child — is that okay?",
+          "answer": "Absolutely. Just indicate that when you register, and we'll make sure both are supported during the session."
+        },
+        {
+          "question": "Do we need to bring anything?",
+          "answer": "Just yourselves. All toys and materials are provided. You'll leave with your take-home card packs."
+        },
+        {
+          "question": "What if I'm running late?",
+          "answer": "The session starts promptly at 10:00, but if you're delayed, join us when you can — we'll settle you in quietly."
+        },
+        {
+          "question": "Can I stay and shop afterward?",
+          "answer": "Yes! The Happy Baton pop-up runs 30 March – 7 April, so you're welcome to browse before or after your session."
         }
       ]
     },
@@ -50,75 +66,6 @@
       "title": "Ready to Join Us This Easter?",
       "description": "Spaces are limited for this small-group workshop. Reserve your spot now.",
       "buttonLabel": "Book Now"
-    },
-    "booking": {
-      "ageOptions": [
-        {
-          "id": "0-3",
-          "label": "0-3",
-          "iconSrc": "/images/baby.svg"
-        }
-      ],
-      "cohorts": [
-        {
-          "id": "easter-2026-0-3-session-1",
-          "age_group": "0-3",
-          "title": "Easter 2026 Montessori Play Coaching Workshop (0-3)",
-          "description": "Montessori-inspired play coaching workshop for early childhood.",
-          "cohort": "04-26",
-          "spaces_total": 12,
-          "spaces_left": 12,
-          "is_fully_booked": false,
-          "price": 800,
-          "currency": "HKD",
-          "location": "physical",
-          "booking_system": "landing-page-easter-2026",
-          "tags": [
-            "Easter",
-            "0-3"
-          ],
-          "categories": [
-            "Workshop"
-          ],
-          "address": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
-          "address_url": "https://www.google.com/maps/dir/?api=1&destination=Arion+Commercial+Centre,+2-12+Queen%27s+Road+West,+Sheung+Wan",
-          "dates": [
-            {
-              "id": "session-1",
-              "start_datetime": "2026-04-05T01:00:00Z",
-              "end_datetime": "2026-04-05T03:00:00Z"
-            }
-          ]
-        }
-      ],
-      "modal": {
-        "title": "Easter 2026 Montessori Play Coaching Workshop",
-        "subtitle": "Booking Details",
-        "partSummaries": [
-          "Workshop Session"
-        ]
-      },
-      "spacesLeftLabelTemplate": "{count} spots left",
-      "soldOutStampLabel": "Sold Out",
-      "confirmAndPayLabel": "Confirm & Pay",
-      "ageSelectorLabel": "Select age group",
-      "dateSelectorLabel": "Select session",
-      "scheduleLabel": "Next session",
-      "nextCohortLabelTemplate": "{scheduleLabel} ({ageGroupLabel})",
-      "noCohortsLabel": "No sessions available",
-      "scrollDatesLeftAriaLabel": "Scroll sessions left",
-      "scrollDatesRightAriaLabel": "Scroll sessions right"
-    },
-    "structuredData": {
-      "eventName": "Easter 2026 Montessori Play Coaching Workshop",
-      "description": "A hands-on Easter workshop for parents and caregivers to practice Montessori-inspired play coaching.",
-      "startDate": "2026-04-05T09:00:00+08:00",
-      "endDate": "2026-04-05T11:00:00+08:00",
-      "locationName": "Arion Commercial Centre",
-      "locationAddress": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
-      "offerPrice": "800",
-      "offerCurrency": "HKD",
-      "offerAvailability": "InStock"
     }
   },
   "zh-CN": {
@@ -138,20 +85,24 @@
       "imageMobileSrc": "/images/training.svg"
     },
     "details": {
-      "title": "你将学到什么",
-      "description": "本次课程结合现场示范与实战指导，帮助你把所学内容立即应用到家庭日常。",
+      "title": "60 分钟。孩子就在现场。真实教练式指导",
+      "description": "从观察到现场指导的高效流程，配合可立即带回家执行的下一步建议。",
       "items": [
         {
-          "title": "引导式蒙特梭利游戏",
-          "description": "围绕幼儿发展阶段设计的实操活动。"
+          "title": "1. 在共享游戏室进行引导式观察",
+          "description": "孩子已经在玩。你与 Ida 一起集合并共同观察——她会边观察边讲解她看到的内容。先不讲理论，空间本身就在教学。"
         },
         {
-          "title": "家长与照护者指导",
-          "description": "提供可直接应用在日常情境中的清晰话术与节奏。"
+          "title": "2. 用直白语言讲清三个核心概念",
+          "description": "在独立房间里：什么是预备环境、成人在游戏中的真实角色，以及为什么更少但有节奏轮换的玩具更有效。不讲术语，只有清晰理解。"
         },
         {
-          "title": "家庭可执行行动计划",
-          "description": "带走符合你家庭节奏的下一步实用方案。"
+          "title": "3. 结合 Happy Baton 玩具邀请的现场指导",
+          "description": "孩子会进入已摆好 Happy Baton 玩具邀请的独立房间。你观察自己孩子的反应，Ida 同步进行实时指导——具体、个性化、马上就能用。"
+        },
+        {
+          "title": "4. 复盘、带回家卡片与下一步安排",
+          "description": "以小组围圈收尾：每个家庭分享一个洞察。你会拿到 Ida 在课堂中为你孩子写下的个性化 Auntie Challenge 卡。之后可逛 Happy Baton 二手玩具义卖。"
         }
       ]
     },
@@ -159,12 +110,24 @@
       "title": "常见问题",
       "items": [
         {
-          "question": "这个工作坊适合谁参加？",
-          "answer": "本工作坊适合 0-3 岁幼儿的家长与照护者参加。"
+          "question": "这个工作坊适合我 1 岁的孩子吗？4 岁也可以吗？",
+          "answer": "两者都适合。我们会根据你孩子的发展阶段匹配游戏邀请，辅导内容也会聚焦于其年龄最相关的重点。"
         },
         {
-          "question": "我们需要带什么？",
-          "answer": "只需到场即可，现场会提供全部课程材料。"
+          "question": "我的帮手会单独带孩子参加——可以吗？",
+          "answer": "当然可以。报名时请注明这一点，我们会确保两位都能在课程中得到支持。"
+        },
+        {
+          "question": "我们需要带什么吗？",
+          "answer": "只要人来就可以。现场会提供所有玩具和材料。课程结束后你还会带走可在家使用的卡片套装。"
+        },
+        {
+          "question": "如果我迟到了怎么办？",
+          "answer": "课程会在 10:00 准时开始；如果你稍晚到，也可以随时加入，我们会安静地协助你融入。"
+        },
+        {
+          "question": "课程结束后可以留下来逛店吗？",
+          "answer": "可以！Happy Baton 快闪店开放时间为 3 月 30 日至 4 月 7 日，欢迎你在课程前后前往选购。"
         }
       ]
     },
@@ -172,75 +135,6 @@
       "title": "准备好今年复活节一起参与了吗？",
       "description": "本工作坊为小班教学，名额有限。现在就预留你的席位。",
       "buttonLabel": "立即预约"
-    },
-    "booking": {
-      "ageOptions": [
-        {
-          "id": "0-3",
-          "label": "0-3",
-          "iconSrc": "/images/baby.svg"
-        }
-      ],
-      "cohorts": [
-        {
-          "id": "easter-2026-0-3-session-1",
-          "age_group": "0-3",
-          "title": "2026 复活节蒙特梭利游戏教练工作坊（0-3）",
-          "description": "面向幼儿早期发展的蒙特梭利启发式游戏教练工作坊。",
-          "cohort": "04-26",
-          "spaces_total": 12,
-          "spaces_left": 12,
-          "is_fully_booked": false,
-          "price": 800,
-          "currency": "HKD",
-          "location": "physical",
-          "booking_system": "landing-page-easter-2026",
-          "tags": [
-            "Easter",
-            "0-3"
-          ],
-          "categories": [
-            "Workshop"
-          ],
-          "address": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
-          "address_url": "https://www.google.com/maps/dir/?api=1&destination=Arion+Commercial+Centre,+2-12+Queen%27s+Road+West,+Sheung+Wan",
-          "dates": [
-            {
-              "id": "session-1",
-              "start_datetime": "2026-04-05T01:00:00Z",
-              "end_datetime": "2026-04-05T03:00:00Z"
-            }
-          ]
-        }
-      ],
-      "modal": {
-        "title": "2026 复活节蒙特梭利游戏教练工作坊",
-        "subtitle": "预约详情",
-        "partSummaries": [
-          "工作坊课程"
-        ]
-      },
-      "spacesLeftLabelTemplate": "剩余 {count} 个名额",
-      "soldOutStampLabel": "已满额",
-      "confirmAndPayLabel": "确认并付款",
-      "ageSelectorLabel": "选择年龄组",
-      "dateSelectorLabel": "选择场次",
-      "scheduleLabel": "下一场次",
-      "nextCohortLabelTemplate": "{scheduleLabel} ({ageGroupLabel})",
-      "noCohortsLabel": "暂无可预约场次",
-      "scrollDatesLeftAriaLabel": "向左滚动场次",
-      "scrollDatesRightAriaLabel": "向右滚动场次"
-    },
-    "structuredData": {
-      "eventName": "2026 复活节蒙特梭利游戏教练工作坊",
-      "description": "一场复活节实操工作坊，帮助家长与照护者练习蒙特梭利启发式游戏教练方法。",
-      "startDate": "2026-04-05T09:00:00+08:00",
-      "endDate": "2026-04-05T11:00:00+08:00",
-      "locationName": "雅丽商业中心",
-      "locationAddress": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
-      "offerPrice": "800",
-      "offerCurrency": "HKD",
-      "offerAvailability": "InStock"
     }
   },
   "zh-HK": {
@@ -260,20 +154,24 @@
       "imageMobileSrc": "/images/training.svg"
     },
     "details": {
-      "title": "你將會學到甚麼",
-      "description": "本次課程結合現場示範與實戰指導，幫助你把所學內容即時應用到家庭日常。",
+      "title": "60 分鐘。孩子就在現場。真實教練式指導",
+      "description": "由觀察到即場指導的高效流程，配合可立即帶回家實行的下一步建議。",
       "items": [
         {
-          "title": "引導式蒙特梭利遊戲",
-          "description": "按幼兒發展階段設計的實作活動。"
+          "title": "1. 在共享遊戲室進行引導式觀察",
+          "description": "孩子已經在玩。你與 Ida 一起集合並共同觀察——她會一邊觀察、一邊講解她看到的內容。先不講課，空間本身就在教學。"
         },
         {
-          "title": "家長與照顧者指導",
-          "description": "提供可直接用於日常情境的清晰話術與節奏。"
+          "title": "2. 三個核心概念，清楚直白地講明",
+          "description": "在獨立房間裡：甚麼是預備環境、成人在遊戲中的真正角色，以及為何較少但有節奏輪換的玩具更有效。不講術語，只有清晰理解。"
         },
         {
-          "title": "家庭可執行行動計劃",
-          "description": "帶走適合你家庭節奏的下一步實用方案。"
+          "title": "3. 配合 Happy Baton 玩具邀請的即場指導",
+          "description": "孩子會進入已設置 Happy Baton 玩具邀請的獨立房間。你觀察自己孩子，Ida 會即時給你教練式指導——具體、個人化，而且即刻用得著。"
+        },
+        {
+          "title": "4. 復盤、帶回家卡片與下一步",
+          "description": "以小組圍圈作結：每個家庭分享一個洞見。你會收到 Ida 在課堂中按你孩子情況寫下的個人化 Auntie Challenge 卡。之後可瀏覽 Happy Baton 二手玩具義賣。"
         }
       ]
     },
@@ -281,12 +179,24 @@
       "title": "常見問題",
       "items": [
         {
-          "question": "這個工作坊適合誰參加？",
-          "answer": "本工作坊適合 0-3 歲幼兒的家長與照顧者參加。"
+          "question": "這個工作坊適合我 1 歲的孩子嗎？4 歲都可以嗎？",
+          "answer": "兩者都適合。我們會按你孩子的發展階段配對遊戲邀請，教練指導亦會聚焦於該年齡最相關的重點。"
         },
         {
-          "question": "我們需要帶甚麼？",
-          "answer": "只需到場即可，現場會提供全部課程材料。"
+          "question": "我的姐姐會單獨帶孩子參加——可以嗎？",
+          "answer": "當然可以。報名時請註明，我們會確保兩位都能在課堂中得到支援。"
+        },
+        {
+          "question": "我們需要帶甚麼嗎？",
+          "answer": "人到就可以。現場會提供所有玩具和材料。你亦會帶走可在家使用的卡片套裝。"
+        },
+        {
+          "question": "如果我遲到怎麼辦？",
+          "answer": "課程會在 10:00 準時開始；如果你稍為遲到，都可以隨時加入，我們會安靜地協助你融入。"
+        },
+        {
+          "question": "課後可以留下來逛店嗎？",
+          "answer": "可以！Happy Baton 快閃店由 3 月 30 日至 4 月 7 日營運，歡迎你在課前或課後慢慢逛。"
         }
       ]
     },
@@ -294,75 +204,6 @@
       "title": "準備好今個復活節一齊參與嗎？",
       "description": "本工作坊為小班教學，名額有限。立即預留你的席位。",
       "buttonLabel": "立即預約"
-    },
-    "booking": {
-      "ageOptions": [
-        {
-          "id": "0-3",
-          "label": "0-3",
-          "iconSrc": "/images/baby.svg"
-        }
-      ],
-      "cohorts": [
-        {
-          "id": "easter-2026-0-3-session-1",
-          "age_group": "0-3",
-          "title": "2026 復活節蒙特梭利遊戲教練工作坊（0-3）",
-          "description": "面向幼兒早期發展的蒙特梭利啟發式遊戲教練工作坊。",
-          "cohort": "04-26",
-          "spaces_total": 12,
-          "spaces_left": 12,
-          "is_fully_booked": false,
-          "price": 800,
-          "currency": "HKD",
-          "location": "physical",
-          "booking_system": "landing-page-easter-2026",
-          "tags": [
-            "Easter",
-            "0-3"
-          ],
-          "categories": [
-            "Workshop"
-          ],
-          "address": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
-          "address_url": "https://www.google.com/maps/dir/?api=1&destination=Arion+Commercial+Centre,+2-12+Queen%27s+Road+West,+Sheung+Wan",
-          "dates": [
-            {
-              "id": "session-1",
-              "start_datetime": "2026-04-05T01:00:00Z",
-              "end_datetime": "2026-04-05T03:00:00Z"
-            }
-          ]
-        }
-      ],
-      "modal": {
-        "title": "2026 復活節蒙特梭利遊戲教練工作坊",
-        "subtitle": "預約詳情",
-        "partSummaries": [
-          "工作坊課程"
-        ]
-      },
-      "spacesLeftLabelTemplate": "剩餘 {count} 個名額",
-      "soldOutStampLabel": "已滿額",
-      "confirmAndPayLabel": "確認並付款",
-      "ageSelectorLabel": "選擇年齡組別",
-      "dateSelectorLabel": "選擇場次",
-      "scheduleLabel": "下一場次",
-      "nextCohortLabelTemplate": "{scheduleLabel} ({ageGroupLabel})",
-      "noCohortsLabel": "暫無可預約場次",
-      "scrollDatesLeftAriaLabel": "向左捲動場次",
-      "scrollDatesRightAriaLabel": "向右捲動場次"
-    },
-    "structuredData": {
-      "eventName": "2026 復活節蒙特梭利遊戲教練工作坊",
-      "description": "一場復活節實作工作坊，幫助家長與照顧者練習蒙特梭利啟發式遊戲教練方法。",
-      "startDate": "2026-04-05T09:00:00+08:00",
-      "endDate": "2026-04-05T11:00:00+08:00",
-      "locationName": "雅麗商業中心",
-      "locationAddress": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
-      "offerPrice": "800",
-      "offerCurrency": "HKD",
-      "offerAvailability": "InStock"
     }
   }
 }

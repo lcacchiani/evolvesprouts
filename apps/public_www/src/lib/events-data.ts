@@ -112,6 +112,23 @@ export interface LandingPageHeroEventContent {
   categoryChips: string[];
 }
 
+export interface LandingPageBookingEventContent {
+  status: EventStatus;
+  bookingPayload: EventBookingModalPayload | null;
+}
+
+export interface LandingPageStructuredDataContent {
+  eventName: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
+  locationName?: string;
+  locationAddress?: string;
+  offerPrice?: string;
+  offerCurrency?: string;
+  offerAvailability: 'InStock' | 'SoldOut';
+}
+
 const UK_EVENTS_LOCALE = 'en-GB';
 const DATE_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 const TIME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
@@ -951,6 +968,15 @@ function findLandingPageEventRecord(slug: string): Record<string, unknown> | nul
   return null;
 }
 
+function findFirstEventDateRecord(
+  eventRecord: Record<string, unknown>,
+): Record<string, unknown> | null {
+  const dateEntries = Array.isArray(eventRecord.dates) ? eventRecord.dates : [];
+  return dateEntries
+    .map((entry) => toRecord(entry))
+    .find((entry): entry is Record<string, unknown> => entry !== null) ?? null;
+}
+
 function normalizeEventsFromArray(
   eventsArray: unknown[],
   content: EventsContent,
@@ -1235,10 +1261,7 @@ export function getLandingPageHeroEventContent(
     return null;
   }
 
-  const dateEntries = Array.isArray(eventRecord.dates) ? eventRecord.dates : [];
-  const firstDateRecord = dateEntries
-    .map((entry) => toRecord(entry))
-    .find((entry): entry is Record<string, unknown> => entry !== null);
+  const firstDateRecord = findFirstEventDateRecord(eventRecord);
   const startDateTime = firstDateRecord
     ? readCandidateText(firstDateRecord, ['start_datetime', 'startDateTime', 'start'])
     : undefined;
@@ -1261,6 +1284,154 @@ export function getLandingPageHeroEventContent(
     endDateTime: endDateTime || undefined,
     locationLabel,
     categoryChips: readLandingPageCategoryChips(eventRecord),
+  };
+}
+
+export function getLandingPageBookingEventContent(
+  slug: string,
+  locale?: string,
+): LandingPageBookingEventContent | null {
+  const eventRecord = findLandingPageEventRecord(slug);
+  if (!eventRecord) {
+    return null;
+  }
+
+  const title = readCandidateText(eventRecord, ['title', 'name', 'eventTitle']);
+  if (!title) {
+    return null;
+  }
+
+  const normalizedLocale = resolveEventsLocale(locale);
+  const summary = readCandidateText(eventRecord, [
+    'summary',
+    'description',
+    'details',
+    'excerpt',
+    'body',
+  ]);
+  const locationName = readCandidateText(eventRecord, [
+    'locationName',
+    'venue',
+    'address',
+  ]);
+  const locationAddress = readCandidateText(eventRecord, [
+    'locationAddress',
+    'venueAddress',
+  ]) ?? readCandidateText(eventRecord, ['address']);
+  const directionHref = sanitizeGoogleMapsHref(
+    readCandidateText(eventRecord, [
+      'directionHref',
+      'directionUrl',
+      'mapHref',
+      'mapUrl',
+      'mapsUrl',
+      'locationMapUrl',
+      'locationUrl',
+      'address_url',
+    ]),
+  );
+  const bookingSystem = readOptionalText(eventRecord.booking_system) ?? undefined;
+  const resolvedPayload = resolveBookingModalPayload(
+    eventRecord,
+    bookingSystem,
+    normalizedLocale,
+    title,
+    summary,
+    locationName,
+    locationAddress,
+    directionHref,
+  );
+
+  return {
+    status: resolveEventStatus(eventRecord),
+    bookingPayload: resolvedPayload?.variant === 'event' ? resolvedPayload : null,
+  };
+}
+
+export function getLandingPageStructuredDataContent(
+  slug: string,
+): LandingPageStructuredDataContent | null {
+  const eventRecord = findLandingPageEventRecord(slug);
+  if (!eventRecord) {
+    return null;
+  }
+
+  const title = readCandidateText(eventRecord, ['title', 'name', 'eventTitle']);
+  if (!title) {
+    return null;
+  }
+
+  const firstDateRecord = findFirstEventDateRecord(eventRecord);
+  if (!firstDateRecord) {
+    return null;
+  }
+
+  const startDateTime = readCandidateText(firstDateRecord, [
+    'start_datetime',
+    'startDateTime',
+    'start',
+  ]);
+  if (!startDateTime) {
+    return null;
+  }
+
+  const parsedStartDate = new Date(startDateTime);
+  if (Number.isNaN(parsedStartDate.getTime())) {
+    return null;
+  }
+
+  const endDateTime = readCandidateText(firstDateRecord, [
+    'end_datetime',
+    'endDateTime',
+    'end',
+  ]);
+  const parsedEndDate = endDateTime ? new Date(endDateTime) : null;
+  const endDate =
+    parsedEndDate && !Number.isNaN(parsedEndDate.getTime())
+      ? parsedEndDate.toISOString()
+      : undefined;
+
+  const description = readCandidateText(eventRecord, [
+    'description',
+    'summary',
+    'details',
+    'excerpt',
+    'body',
+  ]) ?? title;
+  const locationAddress = readCandidateText(eventRecord, [
+    'address',
+    'locationAddress',
+    'venueAddress',
+  ]);
+  const locationName = readCandidateText(eventRecord, [
+    'locationName',
+    'venue',
+  ]) ?? extractTrailingLocationSegment(locationAddress);
+  const offerPriceNumeric = resolveNumericCandidate(eventRecord, [
+    'price',
+    'cost',
+    'amount',
+    'fee',
+    'eventPrice',
+    'event_price',
+  ]);
+  const offerCurrency = readCandidateText(eventRecord, [
+    'currency',
+    'priceCurrency',
+    'price_currency',
+  ]);
+
+  return {
+    eventName: title,
+    description,
+    startDate: parsedStartDate.toISOString(),
+    endDate,
+    locationName: locationName ?? undefined,
+    locationAddress: locationAddress ?? undefined,
+    offerPrice: offerPriceNumeric === null ? undefined : String(offerPriceNumeric),
+    offerCurrency: offerPriceNumeric === null ? undefined : (offerCurrency ?? 'HKD'),
+    offerAvailability:
+      resolveEventStatus(eventRecord) === 'fully_booked' ? 'SoldOut' : 'InStock',
   };
 }
 

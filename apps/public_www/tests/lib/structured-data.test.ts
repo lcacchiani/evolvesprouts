@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import enContent from '@/content/en.json';
-import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import type { EventCardData } from '@/lib/events-data';
 import { ROUTES } from '@/lib/routes';
 import {
@@ -171,23 +170,27 @@ describe('structured-data builders', () => {
     });
   });
 
-  it('builds landing page event schema when structured data exists', () => {
+  it('builds landing page event schema from events content', () => {
     const schema = buildLandingPageEventSchema({
       locale: 'en',
-      pageContent: easterWorkshopContent.en,
+      landingPageSlug: 'easter-2026-montessori-play-coaching-workshop',
       pagePath: '/easter-2026-montessori-play-coaching-workshop',
     });
 
     expect(schema).toMatchObject({
       '@type': 'Event',
-      name: easterWorkshopContent.en.structuredData?.eventName,
-      description: easterWorkshopContent.en.structuredData?.description,
+      name: 'Easter 2026 Montessori Play Coaching Workshop',
+      description:
+        'A practical Montessori-inspired play coaching workshop for children ages 1-4, with parent and child participation (helpers warmly welcome).',
+      startDate: '2026-04-06T02:00:00.000Z',
       organizer: {
         '@id': expect.stringContaining('#organization'),
       },
       offers: {
         '@type': 'Offer',
-        price: easterWorkshopContent.en.structuredData?.offerPrice,
+        price: '350',
+        priceCurrency: 'HKD',
+        availability: 'https://schema.org/InStock',
       },
     });
   });
