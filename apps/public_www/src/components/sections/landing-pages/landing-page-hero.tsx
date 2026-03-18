@@ -27,8 +27,8 @@ export function LandingPageHero({
             title={content.title}
             titleAs='h1'
             align='left'
-            description={content.subtitle}
           />
+          <p className='es-type-subtitle-lg es-text-heading-alt'>{content.subtitle}</p>
           <p className='es-type-body'>{content.description}</p>
           <div className='flex flex-wrap gap-3'>
             <span className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading-alt'>

@@ -129,61 +129,61 @@
   },
   "zh-CN": {
     "meta": {
-      "title": "Easter 2026 Montessori Play Coaching Workshop",
-      "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
+      "title": "2026 复活节蒙特梭利游戏教练工作坊",
+      "description": "一场复活节实操工作坊，帮助家长与照护者更有信心地使用蒙特梭利启发式亲子游戏策略。",
       "socialImage": {
         "url": "/images/evolvesprouts-logo.svg",
-        "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
+        "alt": "Evolve Sprouts 2026 复活节蒙特梭利游戏教练工作坊"
       }
     },
     "hero": {
-      "title": "Easter 2026 Montessori Play Coaching Workshop",
-      "subtitle": "A practical workshop for parents and young children",
-      "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
-      "imageAlt": "Parent and child in a Montessori play coaching workshop",
+      "title": "2026 复活节蒙特梭利游戏教练工作坊",
+      "subtitle": "为家长与幼儿设计的实用工作坊",
+      "description": "欢迎参加复活节工作坊。我们将聚焦尊重式引导、可落地的日常节奏，以及你回家就能应用的蒙特梭利启发式游戏方法。",
+      "imageAlt": "家长与孩子参加蒙特梭利游戏教练工作坊",
       "imageSrc": "/images/training.svg",
       "imageMobileSrc": "/images/training.svg",
-      "dateLabel": "April 5, 2026",
-      "locationLabel": "Sheung Wan, Hong Kong"
+      "dateLabel": "2026年4月5日",
+      "locationLabel": "香港上环"
     },
     "details": {
-      "eyebrow": "Workshop Details",
-      "title": "What You Will Learn",
-      "description": "This session combines guided demonstrations with practical coaching so you can apply what you learn immediately.",
+      "eyebrow": "工作坊详情",
+      "title": "你将学到什么",
+      "description": "本次课程结合现场示范与实战指导，帮助你把所学内容立即应用到家庭日常。",
       "items": [
         {
-          "title": "Guided Montessori Play",
-          "description": "Hands-on activities tailored to early childhood development."
+          "title": "引导式蒙特梭利游戏",
+          "description": "围绕幼儿发展阶段设计的实操活动。"
         },
         {
-          "title": "Parent and Caregiver Coaching",
-          "description": "Clear language and routines you can use in everyday moments."
+          "title": "家长与照护者指导",
+          "description": "提供可直接应用在日常情境中的清晰话术与节奏。"
         },
         {
-          "title": "Home-Ready Action Plan",
-          "description": "Leave with practical next steps for your own family rhythm."
+          "title": "家庭可执行行动计划",
+          "description": "带走符合你家庭节奏的下一步实用方案。"
         }
       ]
     },
     "faq": {
-      "eyebrow": "FAQ",
-      "title": "Frequently Asked Questions",
+      "eyebrow": "常见问题",
+      "title": "常见问题",
       "items": [
         {
-          "question": "Who is this workshop for?",
-          "answer": "This workshop is designed for parents and caregivers of young children aged 0-3."
+          "question": "这个工作坊适合谁参加？",
+          "answer": "本工作坊适合 0-3 岁幼儿的家长与照护者参加。"
         },
         {
-          "question": "What should we bring?",
-          "answer": "Just bring yourselves. All workshop materials will be provided on site."
+          "question": "我们需要带什么？",
+          "answer": "只需到场即可，现场会提供全部课程材料。"
         }
       ]
     },
     "cta": {
-      "eyebrow": "Reserve Your Spot",
-      "title": "Ready to Join Us This Easter?",
-      "description": "Spaces are limited for this small-group workshop. Reserve your spot now.",
-      "buttonLabel": "Book Now"
+      "eyebrow": "预留名额",
+      "title": "准备好今年复活节一起参与了吗？",
+      "description": "本工作坊为小班教学，名额有限。现在就预留你的席位。",
+      "buttonLabel": "立即预约"
     },
     "booking": {
       "ageOptions": [
@@ -197,8 +197,8 @@
         {
           "id": "easter-2026-0-3-session-1",
           "age_group": "0-3",
-          "title": "Easter 2026 Montessori Play Coaching Workshop (0-3)",
-          "description": "Montessori-inspired play coaching workshop for early childhood.",
+          "title": "2026 复活节蒙特梭利游戏教练工作坊（0-3）",
+          "description": "面向幼儿早期发展的蒙特梭利启发式游戏教练工作坊。",
           "cohort": "04-26",
           "spaces_total": 12,
           "spaces_left": 12,
@@ -226,29 +226,29 @@
         }
       ],
       "modal": {
-        "title": "Easter 2026 Montessori Play Coaching Workshop",
-        "subtitle": "Booking Details",
+        "title": "2026 复活节蒙特梭利游戏教练工作坊",
+        "subtitle": "预约详情",
         "partSummaries": [
-          "Workshop Session"
+          "工作坊课程"
         ]
       },
-      "spacesLeftLabelTemplate": "{count} spots left",
-      "soldOutStampLabel": "Sold Out",
-      "confirmAndPayLabel": "Confirm & Pay",
-      "ageSelectorLabel": "Select age group",
-      "dateSelectorLabel": "Select session",
-      "scheduleLabel": "Next session",
+      "spacesLeftLabelTemplate": "剩余 {count} 个名额",
+      "soldOutStampLabel": "已满额",
+      "confirmAndPayLabel": "确认并付款",
+      "ageSelectorLabel": "选择年龄组",
+      "dateSelectorLabel": "选择场次",
+      "scheduleLabel": "下一场次",
       "nextCohortLabelTemplate": "{scheduleLabel} ({ageGroupLabel})",
-      "noCohortsLabel": "No sessions available",
-      "scrollDatesLeftAriaLabel": "Scroll sessions left",
-      "scrollDatesRightAriaLabel": "Scroll sessions right"
+      "noCohortsLabel": "暂无可预约场次",
+      "scrollDatesLeftAriaLabel": "向左滚动场次",
+      "scrollDatesRightAriaLabel": "向右滚动场次"
     },
     "structuredData": {
-      "eventName": "Easter 2026 Montessori Play Coaching Workshop",
-      "description": "A hands-on Easter workshop for parents and caregivers to practice Montessori-inspired play coaching.",
+      "eventName": "2026 复活节蒙特梭利游戏教练工作坊",
+      "description": "一场复活节实操工作坊，帮助家长与照护者练习蒙特梭利启发式游戏教练方法。",
       "startDate": "2026-04-05T09:00:00+08:00",
       "endDate": "2026-04-05T11:00:00+08:00",
-      "locationName": "Arion Commercial Centre",
+      "locationName": "雅丽商业中心",
       "locationAddress": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
       "offerPrice": "800",
       "offerCurrency": "HKD",
@@ -257,61 +257,61 @@
   },
   "zh-HK": {
     "meta": {
-      "title": "Easter 2026 Montessori Play Coaching Workshop",
-      "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
+      "title": "2026 復活節蒙特梭利遊戲教練工作坊",
+      "description": "一場復活節實作工作坊，幫助家長與照顧者更有信心地運用蒙特梭利啟發式親子遊戲策略。",
       "socialImage": {
         "url": "/images/evolvesprouts-logo.svg",
-        "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
+        "alt": "Evolve Sprouts 2026 復活節蒙特梭利遊戲教練工作坊"
       }
     },
     "hero": {
-      "title": "Easter 2026 Montessori Play Coaching Workshop",
-      "subtitle": "A practical workshop for parents and young children",
-      "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
-      "imageAlt": "Parent and child in a Montessori play coaching workshop",
+      "title": "2026 復活節蒙特梭利遊戲教練工作坊",
+      "subtitle": "為家長與幼兒而設的實用工作坊",
+      "description": "歡迎參加復活節工作坊。我們將聚焦尊重式引導、可落地的日常節奏，以及你回家即可應用的蒙特梭利啟發式遊戲方法。",
+      "imageAlt": "家長與小朋友參與蒙特梭利遊戲教練工作坊",
       "imageSrc": "/images/training.svg",
       "imageMobileSrc": "/images/training.svg",
-      "dateLabel": "April 5, 2026",
-      "locationLabel": "Sheung Wan, Hong Kong"
+      "dateLabel": "2026年4月5日",
+      "locationLabel": "香港上環"
     },
     "details": {
-      "eyebrow": "Workshop Details",
-      "title": "What You Will Learn",
-      "description": "This session combines guided demonstrations with practical coaching so you can apply what you learn immediately.",
+      "eyebrow": "工作坊詳情",
+      "title": "你將會學到甚麼",
+      "description": "本次課程結合現場示範與實戰指導，幫助你把所學內容即時應用到家庭日常。",
       "items": [
         {
-          "title": "Guided Montessori Play",
-          "description": "Hands-on activities tailored to early childhood development."
+          "title": "引導式蒙特梭利遊戲",
+          "description": "按幼兒發展階段設計的實作活動。"
         },
         {
-          "title": "Parent and Caregiver Coaching",
-          "description": "Clear language and routines you can use in everyday moments."
+          "title": "家長與照顧者指導",
+          "description": "提供可直接用於日常情境的清晰話術與節奏。"
         },
         {
-          "title": "Home-Ready Action Plan",
-          "description": "Leave with practical next steps for your own family rhythm."
+          "title": "家庭可執行行動計劃",
+          "description": "帶走適合你家庭節奏的下一步實用方案。"
         }
       ]
     },
     "faq": {
-      "eyebrow": "FAQ",
-      "title": "Frequently Asked Questions",
+      "eyebrow": "常見問題",
+      "title": "常見問題",
       "items": [
         {
-          "question": "Who is this workshop for?",
-          "answer": "This workshop is designed for parents and caregivers of young children aged 0-3."
+          "question": "這個工作坊適合誰參加？",
+          "answer": "本工作坊適合 0-3 歲幼兒的家長與照顧者參加。"
         },
         {
-          "question": "What should we bring?",
-          "answer": "Just bring yourselves. All workshop materials will be provided on site."
+          "question": "我們需要帶甚麼？",
+          "answer": "只需到場即可，現場會提供全部課程材料。"
         }
       ]
     },
     "cta": {
-      "eyebrow": "Reserve Your Spot",
-      "title": "Ready to Join Us This Easter?",
-      "description": "Spaces are limited for this small-group workshop. Reserve your spot now.",
-      "buttonLabel": "Book Now"
+      "eyebrow": "預留名額",
+      "title": "準備好今個復活節一齊參與嗎？",
+      "description": "本工作坊為小班教學，名額有限。立即預留你的席位。",
+      "buttonLabel": "立即預約"
     },
     "booking": {
       "ageOptions": [
@@ -325,8 +325,8 @@
         {
           "id": "easter-2026-0-3-session-1",
           "age_group": "0-3",
-          "title": "Easter 2026 Montessori Play Coaching Workshop (0-3)",
-          "description": "Montessori-inspired play coaching workshop for early childhood.",
+          "title": "2026 復活節蒙特梭利遊戲教練工作坊（0-3）",
+          "description": "面向幼兒早期發展的蒙特梭利啟發式遊戲教練工作坊。",
           "cohort": "04-26",
           "spaces_total": 12,
           "spaces_left": 12,
@@ -354,29 +354,29 @@
         }
       ],
       "modal": {
-        "title": "Easter 2026 Montessori Play Coaching Workshop",
-        "subtitle": "Booking Details",
+        "title": "2026 復活節蒙特梭利遊戲教練工作坊",
+        "subtitle": "預約詳情",
         "partSummaries": [
-          "Workshop Session"
+          "工作坊課程"
         ]
       },
-      "spacesLeftLabelTemplate": "{count} spots left",
-      "soldOutStampLabel": "Sold Out",
-      "confirmAndPayLabel": "Confirm & Pay",
-      "ageSelectorLabel": "Select age group",
-      "dateSelectorLabel": "Select session",
-      "scheduleLabel": "Next session",
+      "spacesLeftLabelTemplate": "剩餘 {count} 個名額",
+      "soldOutStampLabel": "已滿額",
+      "confirmAndPayLabel": "確認並付款",
+      "ageSelectorLabel": "選擇年齡組別",
+      "dateSelectorLabel": "選擇場次",
+      "scheduleLabel": "下一場次",
       "nextCohortLabelTemplate": "{scheduleLabel} ({ageGroupLabel})",
-      "noCohortsLabel": "No sessions available",
-      "scrollDatesLeftAriaLabel": "Scroll sessions left",
-      "scrollDatesRightAriaLabel": "Scroll sessions right"
+      "noCohortsLabel": "暫無可預約場次",
+      "scrollDatesLeftAriaLabel": "向左捲動場次",
+      "scrollDatesRightAriaLabel": "向右捲動場次"
     },
     "structuredData": {
-      "eventName": "Easter 2026 Montessori Play Coaching Workshop",
-      "description": "A hands-on Easter workshop for parents and caregivers to practice Montessori-inspired play coaching.",
+      "eventName": "2026 復活節蒙特梭利遊戲教練工作坊",
+      "description": "一場復活節實作工作坊，幫助家長與照顧者練習蒙特梭利啟發式遊戲教練方法。",
       "startDate": "2026-04-05T09:00:00+08:00",
       "endDate": "2026-04-05T11:00:00+08:00",
-      "locationName": "Arion Commercial Centre",
+      "locationName": "雅麗商業中心",
       "locationAddress": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
       "offerPrice": "800",
       "offerCurrency": "HKD",

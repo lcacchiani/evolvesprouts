@@ -48,6 +48,7 @@ export function LandingPage({
         locale={locale}
         slug={slug}
         content={pageContent.cta}
+        commonContent={siteContent.landingPages.common}
         bookingContent={pageContent.booking}
         bookingModalContent={siteContent.bookingModal}
         ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}

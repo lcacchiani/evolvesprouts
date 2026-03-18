@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
@@ -11,10 +11,12 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import type {
   BookingModalContent,
   LandingPageBookingContent,
+  LandingPagesCommonContent,
   LandingPageLocaleContent,
   Locale,
 } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -36,6 +38,7 @@ interface LandingPageCtaProps {
   locale: Locale;
   slug: string;
   content: LandingPageLocaleContent['cta'];
+  commonContent: LandingPagesCommonContent;
   bookingContent: LandingPageBookingContent;
   bookingModalContent: BookingModalContent;
   ariaLabel?: string;
@@ -79,6 +82,7 @@ export function LandingPageCta({
   locale,
   slug,
   content,
+  commonContent,
   bookingContent,
   bookingModalContent,
   ariaLabel,
@@ -96,6 +100,29 @@ export function LandingPageCta({
     ? formatCohortLabel(selectedCohort.cohort)
     : '';
   const selectedCohortDate = selectedCohort?.dates[0]?.start_datetime?.split('T')[0] ?? '';
+  const ctaLabel = content.buttonLabel || commonContent.defaultCtaLabel;
+
+  useEffect(() => {
+    if (!isPaymentModalOpen || !selectedCohort || selectedCohort.is_fully_booked) {
+      return;
+    }
+
+    trackAnalyticsEvent('booking_modal_open', {
+      sectionId: 'landing-page-cta',
+      ctaLocation: 'landing_page',
+      params: {
+        age_group: selectedAgeGroupLabel,
+        cohort_label: selectedCohortDateLabel,
+        cohort_date: selectedCohortDate,
+      },
+    });
+  }, [
+    isPaymentModalOpen,
+    selectedAgeGroupLabel,
+    selectedCohort,
+    selectedCohortDate,
+    selectedCohortDateLabel,
+  ]);
 
   return (
     <>
@@ -129,19 +156,11 @@ export function LandingPageCta({
                   cohort_label: selectedCohortDateLabel,
                 },
               });
-              trackAnalyticsEvent('booking_modal_open', {
-                sectionId: 'landing-page-cta',
-                ctaLocation: 'landing_page',
-                params: {
-                  age_group: selectedAgeGroupLabel,
-                  cohort_label: selectedCohortDateLabel,
-                  cohort_date: selectedCohortDate,
-                },
-              });
+              trackMetaPixelEvent('InitiateCheckout', { content_name: slug });
               setIsPaymentModalOpen(true);
             }}
           >
-            {content.buttonLabel}
+            {ctaLabel}
           </ButtonPrimitive>
         </SectionContainer>
       </SectionShell>
@@ -168,7 +187,10 @@ export function LandingPageCta({
       {isThankYouModalOpen && (
         <MyBestAuntieThankYouModal
           locale={locale}
-          content={bookingModalContent.thankYouModal}
+          content={{
+            ...bookingModalContent.thankYouModal,
+            backHomeLabel: commonContent.backToHomeLabel,
+          }}
           summary={reservationSummary}
           homeHref={`/${locale}`}
           onClose={() => {

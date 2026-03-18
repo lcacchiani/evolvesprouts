@@ -34,15 +34,17 @@ vi.mock('@/components/sections/landing-pages/landing-page-faq', () => ({
 vi.mock('@/components/sections/landing-pages/landing-page-cta', () => ({
   LandingPageCta: ({
     content,
+    commonContent,
     locale,
     slug,
   }: {
     content: { title: string };
+    commonContent: { defaultCtaLabel: string };
     locale: string;
     slug: string;
   }) => (
     <section data-testid='landing-page-cta'>
-      {content.title} ({locale}) [{slug}]
+      {content.title} ({locale}) [{slug}] <span>{commonContent.defaultCtaLabel}</span>
     </section>
   ),
 }));
@@ -84,10 +86,8 @@ describe('LandingPage composition', () => {
         screen.getByTestId('landing-page-faq'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(
-      screen.getByText(
-        `${easterWorkshopContent.en.cta.title} (zh-HK) [easter-2026-montessori-play-coaching-workshop]`,
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-cta')).toHaveTextContent(
+      `${easterWorkshopContent.en.cta.title} (zh-HK) [easter-2026-montessori-play-coaching-workshop]`,
+    );
   });
 });
