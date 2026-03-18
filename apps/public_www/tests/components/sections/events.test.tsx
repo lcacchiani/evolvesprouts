@@ -118,6 +118,50 @@ describe('Events section', () => {
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
+  it('renders partner chips after tags/categories and displays them with spaces', async () => {
+    const mockApiClient: CrmApiClient = {
+      request: vi.fn().mockResolvedValue({
+        status: 'success',
+        data: [
+          {
+            id: 'partner-chip-event',
+            title: 'Partner chip event card',
+            location: 'physical',
+            address: 'PMQ, Central',
+            address_url: 'https://maps.google.com/?q=PMQ+Central',
+            tags: ['12mo+'],
+            categories: ['Workshop'],
+            partners: ['bimbo-concept'],
+            dates: [
+              {
+                start_datetime: '2099-12-09T10:00:00Z',
+                end_datetime: '2099-12-09T11:00:00Z',
+              },
+            ],
+            is_fully_booked: false,
+          },
+        ],
+      }),
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    renderEventsSection();
+
+    await screen.findByText('Partner chip event card');
+
+    const tagChip = screen.getByText('12mo+');
+    const categoryChip = screen.getByText('Workshop');
+    const partnerChip = screen.getByText('bimbo concept');
+
+    expect(screen.queryByText('bimbo-concept')).not.toBeInTheDocument();
+    expect(
+      tagChip.compareDocumentPosition(categoryChip) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      categoryChip.compareDocumentPosition(partnerChip) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('renders event date and time without label prefixes', async () => {
     const mockApiClient: CrmApiClient = {
       request: vi.fn().mockResolvedValue({

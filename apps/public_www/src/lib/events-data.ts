@@ -99,6 +99,7 @@ export interface EventCardData {
   ctaHref: string;
   ctaLabel: string;
   tags: string[];
+  partners?: string[];
   status: EventStatus;
   timestamp: number | null;
   bookingSystem?: string;
@@ -1225,6 +1226,7 @@ function normalizeEventCard(
   const fallbackId = `${title}-${dateLabel ?? ''}-${index}`;
   const status = resolveEventStatus(record);
   const tags = readTagList(record);
+  const partners = resolvePartnerSlugs(record.partners);
   const { costLabel, isFreeCost } = resolveEventCost(record, content);
 
   return {
@@ -1245,6 +1247,7 @@ function normalizeEventCard(
     ctaHref,
     ctaLabel,
     tags,
+    partners: partners.length > 0 ? partners : undefined,
     status,
     timestamp,
     bookingSystem,

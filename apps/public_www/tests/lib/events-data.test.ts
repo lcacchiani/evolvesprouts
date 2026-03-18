@@ -104,6 +104,7 @@ describe('events-data', () => {
           categories: {
             '264': 'TEST Creative Arts',
           },
+          partners: ['partner-one'],
           location: 'physical',
           address:
             'H210, 2/F, PMQ, Mid-Levels, Central and Western, Hong Kong Island',
@@ -171,6 +172,7 @@ describe('events-data', () => {
       'TEST Limited Seats',
       'TEST Creative Arts',
     ]);
+    expect(events[0]?.partners).toEqual(['partner-one']);
 
     expect(events[1]).toMatchObject({
       title: 'TEST Data Science Intensive Touch',
@@ -190,6 +192,7 @@ describe('events-data', () => {
       'TEST In-Person',
       'TEST Workshop Category',
     ]);
+    expect(events[1]?.partners).toBeUndefined();
   });
 
   it('uses external_url as the event card CTA when available', () => {

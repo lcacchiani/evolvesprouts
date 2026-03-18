@@ -53,6 +53,10 @@ interface UseEventCardsResult {
   hasRequestError: boolean;
 }
 
+function formatPartnerChipLabel(value: string): string {
+  return value.replaceAll('-', ' ');
+}
+
 function LoadingGearIcon({ className, testId }: LoadingGearIconProps) {
   return (
     <svg
@@ -130,6 +134,14 @@ export function EventCardsList({
                     className='inline-flex rounded-3xl border es-border-soft es-bg-peach-glass px-[13px] py-[7px] es-events-card-tag'
                   >
                     {tag}
+                  </span>
+                ))}
+                {(eventCard.partners ?? []).map((partner) => (
+                  <span
+                    key={`${eventCard.id}-partner-${partner}`}
+                    className='inline-flex rounded-3xl border es-border-soft es-bg-peach-glass px-[13px] py-[7px] es-events-card-tag'
+                  >
+                    {formatPartnerChipLabel(partner)}
                   </span>
                 ))}
               </div>
