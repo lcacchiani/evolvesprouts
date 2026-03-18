@@ -40,13 +40,13 @@ default downloadable asset in the admin asset catalog.
 
 The backend stack requires these OpenRouter parameters:
 
-- `OpenRouterApiSecretArn`
+- `OpenRouterApiKey`
 - `OpenRouterChatCompletionsUrl`
 - `OpenRouterModel`
 
 For CI deployments using placeholder resolution:
 
-- set `OpenRouterApiSecretArn` to `<FROM_GITHUB_SECRET: CDK_PARAM_OPENROUTER_API_SECRET_ARN>`
+- set `OpenRouterApiKey` to `<FROM_GITHUB_SECRET: CDK_PARAM_OPENROUTER_API_KEY>`
 - set `OpenRouterChatCompletionsUrl` to `<FROM_GITHUB_VAR: CDK_PARAM_OPENROUTER_CHAT_COMPLETIONS_URL>`
 - set `OpenRouterModel` to `<FROM_GITHUB_VAR: CDK_PARAM_OPENROUTER_MODEL>`
 

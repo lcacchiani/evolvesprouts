@@ -35,7 +35,7 @@
   "MailchimpServerPrefix": "<FROM_GITHUB_VAR: CDK_PARAM_MAILCHIMP_SERVER_PREFIX>",
   "MailchimpWebhookSecret": "<FROM_GITHUB_SECRET: CDK_PARAM_MAILCHIMP_WEBHOOK_SECRET>",
   "MediaDefaultResourceKey": "<FROM_GITHUB_VAR: CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY>",
-  "OpenRouterApiSecretArn": "<FROM_GITHUB_SECRET: CDK_PARAM_OPENROUTER_API_SECRET_ARN>",
+  "OpenRouterApiKey": "<FROM_GITHUB_SECRET: CDK_PARAM_OPENROUTER_API_KEY>",
   "OpenRouterChatCompletionsUrl": "<FROM_GITHUB_VAR: CDK_PARAM_OPENROUTER_CHAT_COMPLETIONS_URL>",
   "OpenRouterModel": "<FROM_GITHUB_VAR: CDK_PARAM_OPENROUTER_MODEL>",
   "NominatimUserAgent": "EvolveSproutsAdminWeb/1.0 (https://admin.evolvesprouts.com)",
