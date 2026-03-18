@@ -9,7 +9,7 @@ describe('ReservationFormPriceBreakdown', () => {
   it('renders only base price row when there is no discount', () => {
     render(
       <ReservationFormPriceBreakdown
-        content={enContent.myBestAuntie.booking.paymentModal}
+        content={enContent.bookingModal.paymentModal}
         locale='en'
         originalAmount={9000}
         discountAmount={0}
@@ -19,17 +19,17 @@ describe('ReservationFormPriceBreakdown', () => {
 
     expect(
       screen.getByText(
-        enContent.myBestAuntie.booking.paymentModal.priceBreakdownPriceLabel,
+        enContent.bookingModal.paymentModal.priceBreakdownPriceLabel,
       ),
     ).toBeInTheDocument();
     expect(
       screen.queryByText(
-        enContent.myBestAuntie.booking.paymentModal.priceBreakdownDiscountLabel,
+        enContent.bookingModal.paymentModal.priceBreakdownDiscountLabel,
       ),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByText(
-        enContent.myBestAuntie.booking.paymentModal.priceBreakdownConfirmedPriceLabel,
+        enContent.bookingModal.paymentModal.priceBreakdownConfirmedPriceLabel,
       ),
     ).not.toBeInTheDocument();
   });
@@ -37,7 +37,7 @@ describe('ReservationFormPriceBreakdown', () => {
   it('renders localized discount and confirmed price labels', () => {
     render(
       <ReservationFormPriceBreakdown
-        content={zhCNContent.myBestAuntie.booking.paymentModal}
+        content={zhCNContent.bookingModal.paymentModal}
         locale='zh-CN'
         originalAmount={9000}
         discountAmount={1000}
@@ -47,17 +47,17 @@ describe('ReservationFormPriceBreakdown', () => {
 
     expect(
       screen.getByText(
-        zhCNContent.myBestAuntie.booking.paymentModal.priceBreakdownPriceLabel,
+        zhCNContent.bookingModal.paymentModal.priceBreakdownPriceLabel,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        zhCNContent.myBestAuntie.booking.paymentModal.priceBreakdownDiscountLabel,
+        zhCNContent.bookingModal.paymentModal.priceBreakdownDiscountLabel,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        zhCNContent.myBestAuntie.booking.paymentModal.priceBreakdownConfirmedPriceLabel,
+        zhCNContent.bookingModal.paymentModal.priceBreakdownConfirmedPriceLabel,
       ),
     ).toBeInTheDocument();
   });

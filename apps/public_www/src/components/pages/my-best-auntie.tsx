@@ -35,6 +35,8 @@ export function MyBestAuntie({ locale, content }: MyBestAuntieProps) {
       <MyBestAuntieBooking
         locale={locale}
         content={content.myBestAuntie.booking}
+        modalContent={content.myBestAuntie.modal}
+        bookingModalContent={content.bookingModal}
         commonAccessibility={content.common.accessibility}
       />
       <Faq content={content.faq} />

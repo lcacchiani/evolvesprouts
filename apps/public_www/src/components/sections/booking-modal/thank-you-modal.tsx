@@ -8,12 +8,12 @@ import {
   OverlayDialogPanel,
   OverlayScrollableBody,
 } from '@/components/shared/overlay-surface';
-import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import {
   CloseButton,
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
-import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type { BookingThankYouModalContent, Locale } from '@/content';
 import {
   resolveLocalizedDate,
 } from '@/components/sections/booking-modal/helpers';
@@ -24,7 +24,7 @@ import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management'
 
 export interface MyBestAuntieThankYouModalProps {
   locale: Locale;
-  content: MyBestAuntieBookingContent['thankYouModal'];
+  content: BookingThankYouModalContent;
   summary: ReservationSummary | null;
   homeHref: string;
   onClose: () => void;
@@ -33,6 +33,7 @@ export interface MyBestAuntieThankYouModalProps {
 const PRINT_WINDOW_FEATURES = 'noopener,noreferrer,width=880,height=700';
 const BABY_ICON_SOURCE = '/images/baby.svg';
 const DOLLAR_SYMBOL_ICON_SOURCE = '/images/dollar-symbol.svg';
+const EN_LOCALE = 'en-US';
 
 function formatPrefixedValue(prefix: string, value: string): string {
   const normalizedValue = value.trim();
@@ -41,6 +42,50 @@ function formatPrefixedValue(prefix: string, value: string): string {
   }
 
   return `${prefix}${normalizedValue}`;
+}
+
+function resolveSummaryDateStart(dateStartTime?: string): Date | null {
+  const normalizedDateStartTime = dateStartTime?.trim() ?? '';
+  if (!normalizedDateStartTime) {
+    return null;
+  }
+
+  const parsedDate = new Date(normalizedDateStartTime);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate;
+}
+
+function formatSummaryDateLabel(dateStartTime: string | undefined, locale: Locale): string {
+  const parsedDate = resolveSummaryDateStart(dateStartTime);
+  if (!parsedDate) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(locale === 'en' ? EN_LOCALE : locale, {
+    month: 'short',
+    day: '2-digit',
+    timeZone: 'UTC',
+  }).format(parsedDate);
+}
+
+function formatSummaryTimeLabel(dateStartTime: string | undefined, locale: Locale): string {
+  const parsedDate = resolveSummaryDateStart(dateStartTime);
+  if (!parsedDate) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(locale === 'en' ? EN_LOCALE : locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'UTC',
+  })
+    .format(parsedDate)
+    .replace(' AM', ' am')
+    .replace(' PM', ' pm');
 }
 
 function appendPrintChip({
@@ -193,14 +238,14 @@ export function MyBestAuntieThankYouModal({
 
   const transactionDate = resolveLocalizedDate(locale);
   const attendeeEmail = summary?.attendeeEmail ?? content.noEmailFallback;
-  const courseLabel = summary?.courseLabel ?? content.courseLabel;
-  const trainingChipText = formatPrefixedValue(content.trainingPrefix, courseLabel);
-  const scheduleDateLabel = summary?.scheduleDateLabel?.trim() ?? '';
-  const scheduleTimeLabel = summary?.scheduleTimeLabel?.trim() ?? '';
+  const eventTitle = summary?.eventTitle ?? content.courseLabel;
+  const trainingChipText = formatPrefixedValue(content.trainingPrefix, eventTitle);
+  const scheduleDateLabel = formatSummaryDateLabel(summary?.dateStartTime, locale);
+  const scheduleTimeLabel = formatSummaryTimeLabel(summary?.dateStartTime, locale);
   const paymentMethod = summary?.paymentMethod?.trim() ?? '';
   const childAgeGroupChipText = formatPrefixedValue(
     content.childAgeGroupPrefix,
-    summary?.childAgeGroup ?? '',
+    summary?.ageGroup ?? '',
   );
   const amountChipText = formatPrefixedValue(
     content.amountPrefix,
@@ -226,8 +271,8 @@ export function MyBestAuntieThankYouModal({
       params: {
         payment_method: paymentMethod,
         total_amount: summary.totalAmount,
-        age_group: summary.childAgeGroup,
-        cohort_date: summary.scheduleDateLabel,
+        age_group: summary.ageGroup,
+        cohort_date: summary.dateStartTime?.split('T')[0] ?? '',
       },
     });
 

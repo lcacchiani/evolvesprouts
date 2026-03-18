@@ -34,8 +34,8 @@ const {
 import {
   MyBestAuntieBookingModal,
   MyBestAuntieThankYouModal,
-  type ReservationSummary,
 } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
@@ -125,13 +125,14 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
   ),
 }));
 
-const bookingContent = {
+const bookingSectionContent = {
   ...enContent.myBestAuntie.booking,
   cohorts: trainingCoursesContent.data,
 };
-const bookingModalContent = bookingContent.paymentModal;
-const thankYouModalContent = bookingContent.thankYouModal;
-const selectedCohort = bookingContent.cohorts[0];
+const myBestAuntieModalContent = enContent.myBestAuntie.modal;
+const bookingModalContent = enContent.bookingModal.paymentModal;
+const thankYouModalContent = enContent.bookingModal.thankYouModal;
+const selectedCohort = bookingSectionContent.cohorts[0];
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
@@ -147,12 +148,11 @@ const reservationSummary: ReservationSummary = {
   attendeeName: 'Test User',
   attendeeEmail: 'test@example.com',
   attendeePhone: '12345678',
-  childAgeGroup: '1-3',
+  ageGroup: '1-3',
   paymentMethod: 'Pay via FPS QR',
   totalAmount: 9000,
-  courseLabel: 'My Best Auntie',
-  scheduleDateLabel: 'Apr, 2026',
-  scheduleTimeLabel: '12:00 pm - 2:00 pm',
+  eventTitle: 'My Best Auntie',
+  dateStartTime: '2026-04-08T12:00:00Z',
 };
 
 if (!selectedCohort) {
@@ -168,7 +168,8 @@ function renderBookingModal(
 ) {
   return render(
     <MyBestAuntieBookingModal
-      content={bookingModalContent}
+      modalContent={myBestAuntieModalContent}
+      paymentModalContent={bookingModalContent}
       selectedCohort={selectedCohort}
       onClose={() => {}}
       onSubmitReservation={() => {}}
@@ -233,13 +234,13 @@ describe('my-best-auntie booking modals footer content', () => {
     const bookingModalView = renderBookingModal();
 
     const bookingDialog = screen.getByRole('dialog', {
-      name: bookingModalContent.title,
+      name: myBestAuntieModalContent.title,
     });
     const bookingDescriptionId = bookingDialog.getAttribute('aria-describedby');
     expect(bookingDialog).toHaveAttribute('aria-labelledby');
     expect(bookingDescriptionId).toBeTruthy();
     expect(document.getElementById(bookingDescriptionId ?? '')).not.toBeNull();
-    expect(screen.getByText(bookingModalContent.subtitle)).toBeInTheDocument();
+    expect(screen.getByText(myBestAuntieModalContent.subtitle)).toBeInTheDocument();
     expect(screen.queryByText('Thanks for your interest!')).not.toBeInTheDocument();
 
     bookingModalView.unmount();
@@ -946,7 +947,7 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeNull();
     expect(
       screen.queryByRole('link', {
-        name: bookingContent.learnMoreLabel,
+        name: bookingSectionContent.learnMoreLabel,
       }),
     ).toBeNull();
 
@@ -998,12 +999,12 @@ describe('my-best-auntie booking modals footer content', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${thankYouModalContent.trainingPrefix}${reservationSummary.courseLabel}`,
+        `${thankYouModalContent.trainingPrefix}${reservationSummary.eventTitle}`,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.childAgeGroup}`,
+        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.ageGroup}`,
       ),
     ).toBeInTheDocument();
     expect(container.querySelector('img[src="/images/baby.svg"]')).not.toBeNull();

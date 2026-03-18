@@ -11,7 +11,7 @@ describe('ReservationFormDiscountCodeInput', () => {
 
     render(
       <ReservationFormDiscountCodeInput
-        content={enContent.myBestAuntie.booking.paymentModal}
+        content={enContent.bookingModal.paymentModal}
         discountCode=''
         discountError=''
         hasDiscountRule={false}
@@ -22,10 +22,10 @@ describe('ReservationFormDiscountCodeInput', () => {
     );
 
     const input = screen.getByLabelText(
-      enContent.myBestAuntie.booking.paymentModal.discountCodeLabel,
+      enContent.bookingModal.paymentModal.discountCodeLabel,
     );
     const applyButton = screen.getByRole('button', {
-      name: enContent.myBestAuntie.booking.paymentModal.applyDiscountLabel,
+      name: enContent.bookingModal.paymentModal.applyDiscountLabel,
     });
 
     fireEvent.change(input, { target: { value: 'SPRING10' } });
@@ -38,7 +38,7 @@ describe('ReservationFormDiscountCodeInput', () => {
   it('disables input controls and shows validation error', () => {
     render(
       <ReservationFormDiscountCodeInput
-        content={enContent.myBestAuntie.booking.paymentModal}
+        content={enContent.bookingModal.paymentModal}
         discountCode='SPRING10'
         discountError='Invalid discount code'
         hasDiscountRule
@@ -49,10 +49,10 @@ describe('ReservationFormDiscountCodeInput', () => {
     );
 
     const input = screen.getByLabelText(
-      enContent.myBestAuntie.booking.paymentModal.discountCodeLabel,
+      enContent.bookingModal.paymentModal.discountCodeLabel,
     );
     const applyButton = screen.getByRole('button', {
-      name: enContent.myBestAuntie.booking.paymentModal.applyDiscountLabel,
+      name: enContent.bookingModal.paymentModal.applyDiscountLabel,
     });
 
     expect(input).toBeDisabled();
