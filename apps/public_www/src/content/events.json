@@ -40,6 +40,10 @@
       "categories": [
         "Workshop"
       ],
+      "partners": [
+        "happy-baton",
+        "baumhaus"
+      ],
       "location": "physical",
       "booking_system": "event-booking",
       "dates": [

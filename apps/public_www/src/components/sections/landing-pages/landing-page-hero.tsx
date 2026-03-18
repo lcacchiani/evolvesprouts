@@ -1,7 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -30,6 +34,55 @@ interface LandingPageHeroProps {
   isFullyBooked: boolean;
   bookingModalContent: BookingModalContent;
   ariaLabel?: string;
+}
+
+const PARTNER_LOGO_EXTENSIONS = ['webp', 'svg'] as const;
+
+function buildPartnerLogoSources(partner: string): string[] {
+  const normalizedPartner = partner.trim().toLowerCase();
+  if (!normalizedPartner) {
+    return [];
+  }
+
+  return PARTNER_LOGO_EXTENSIONS.map(
+    (extension) => `/images/partners/${normalizedPartner}.${extension}`,
+  );
+}
+
+function buildPartnerLogoTestId(partner: string): string {
+  return `landing-page-partner-logo-${partner.trim().toLowerCase()}`;
+}
+
+function PartnerLogo({ partner }: { partner: string }) {
+  const candidateSources = useMemo(
+    () => buildPartnerLogoSources(partner),
+    [partner],
+  );
+  const [sourceIndex, setSourceIndex] = useState(0);
+
+  useEffect(() => {
+    setSourceIndex(0);
+  }, [candidateSources]);
+
+  const source = candidateSources[sourceIndex];
+  if (!source) {
+    return null;
+  }
+
+  return (
+    <Image
+      src={source}
+      alt=''
+      width={160}
+      height={48}
+      className='h-8 w-auto object-contain'
+      aria-hidden='true'
+      data-testid={buildPartnerLogoTestId(partner)}
+      onError={() => {
+        setSourceIndex((currentIndex) => currentIndex + 1);
+      }}
+    />
+  );
 }
 
 function resolveDateTimeLocale(locale: Locale): string {
@@ -153,6 +206,7 @@ export function LandingPageHero({
   ariaLabel,
 }: LandingPageHeroProps) {
   const [chips, setChips] = useState<string[]>([]);
+  const partnerSlugs = eventContent?.partners ?? [];
 
   useEffect(() => {
     setChips(buildHeroChips(eventContent, locale));
@@ -173,6 +227,19 @@ export function LandingPageHero({
             align='left'
           />
           <p className='es-type-subtitle-lg es-text-heading'>{content.subtitle}</p>
+          {partnerSlugs.length > 0 ? (
+            <div
+              data-testid='landing-page-hero-partners'
+              className='flex flex-wrap items-center gap-5'
+            >
+              {partnerSlugs.map((partner) => (
+                <PartnerLogo
+                  key={partner}
+                  partner={partner}
+                />
+              ))}
+            </div>
+          ) : null}
           <p className='es-type-body'>{content.description}</p>
           {chips.length > 0 ? (
             <div className='flex flex-wrap gap-3'>

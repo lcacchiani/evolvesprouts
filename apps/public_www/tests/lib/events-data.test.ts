@@ -402,6 +402,7 @@ describe('events-data', () => {
       startDateTime: '2026-04-06T02:00:00Z',
       endDateTime: '2026-04-06T03:00:00Z',
       locationLabel: 'Wan Chai',
+      partners: ['happy-baton', 'baumhaus'],
       categoryChips: ['Workshop'],
     });
   });

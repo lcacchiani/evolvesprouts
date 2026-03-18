@@ -23,6 +23,7 @@ describe('LandingPageHero section', () => {
       startDateTime: '2026-04-06T02:00:00Z',
       endDateTime: '2026-04-06T03:00:00Z',
       locationLabel: 'Wan Chai',
+      partners: ['happy-baton', 'baumhaus'],
       categoryChips: ['Workshop'],
     };
     const expectedDateChip = 'Monday 06 April 2026';
@@ -84,6 +85,9 @@ describe('LandingPageHero section', () => {
     expect(
       screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
     ).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-hero-partners')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toBeInTheDocument();
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     expect(
       screen.getAllByRole('img', { name: easterWorkshopContent.en.hero.imageAlt }),

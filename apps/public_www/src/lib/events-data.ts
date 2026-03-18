@@ -110,6 +110,7 @@ export interface LandingPageHeroEventContent {
   startDateTime?: string;
   endDateTime?: string;
   locationLabel?: string;
+  partners?: string[];
   categoryChips: string[];
 }
 
@@ -365,6 +366,14 @@ function resolveStringList(value: unknown): string[] {
   return value
     .map((entry) => (typeof entry === 'string' ? readOptionalText(entry) : undefined))
     .filter((entry): entry is string => Boolean(entry));
+}
+
+function resolvePartnerSlugs(value: unknown): string[] {
+  const slugs = resolveStringList(value)
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => /^[a-z0-9-]+$/.test(entry));
+
+  return Array.from(new Set(slugs));
 }
 
 function resolveBookingDateParts(
@@ -1296,12 +1305,14 @@ export function getLandingPageHeroEventContent(
       'venue',
     ]) ?? readOptionalText(eventRecord.location);
   const locationLabel = extractTrailingLocationSegment(locationSource);
+  const partners = resolvePartnerSlugs(eventRecord.partners);
 
   return {
     title,
     startDateTime: startDateTime || undefined,
     endDateTime: endDateTime || undefined,
     locationLabel,
+    partners: partners.length > 0 ? partners : undefined,
     categoryChips: readLandingPageCategoryChips(eventRecord),
   };
 }
