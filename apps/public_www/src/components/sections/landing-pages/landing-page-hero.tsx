@@ -37,6 +37,7 @@ interface LandingPageHeroProps {
 
 const PARTNER_LOGO_EXTENSIONS = ['webp', 'svg'] as const;
 const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = {
+  'evolvesprouts': ['/images/evolvesprouts-logo.svg'],
   'baumhaus': ['/images/partners/baumhaus.webp'],
   'happy-baton': ['/images/partners/happy-baton.webp'],
 };
@@ -59,6 +60,21 @@ function buildPartnerLogoSources(partner: string): string[] {
 
 function buildPartnerLogoTestId(partner: string): string {
   return `landing-page-partner-logo-${partner.trim().toLowerCase()}`;
+}
+
+function buildDisplayedPartnerSlugs(partners: readonly string[] | undefined): string[] {
+  const normalizedPartners = (partners ?? [])
+    .map((partner) => partner.trim().toLowerCase())
+    .filter((partner) => partner.length > 0);
+  if (normalizedPartners.length === 0) {
+    return [];
+  }
+
+  const dedupedPartners = Array.from(new Set(normalizedPartners));
+  return [
+    'evolvesprouts',
+    ...dedupedPartners.filter((partner) => partner !== 'evolvesprouts'),
+  ];
 }
 
 function PartnerLogo({ partner }: { partner: string }) {
@@ -213,7 +229,10 @@ export function LandingPageHero({
     () => buildHeroChips(eventContent, locale),
     [eventContent, locale],
   );
-  const partnerSlugs = eventContent?.partners ?? [];
+  const partnerSlugs = useMemo(
+    () => buildDisplayedPartnerSlugs(eventContent?.partners),
+    [eventContent?.partners],
+  );
 
   return (
     <SectionShell
@@ -271,14 +290,14 @@ export function LandingPageHero({
             buttonClassName='mt-3'
           />
         </div>
-        <div className='w-full'>
+        <div className='es-landing-page-hero-image-wrap w-full'>
           <Image
             src={content.imageSrc}
             alt={content.imageAlt}
             width={1200}
             height={900}
             sizes='(max-width: 1024px) 100vw, 50vw'
-            className='h-auto w-full rounded-panel'
+            className='relative z-10 h-auto w-full rounded-panel'
           />
         </div>
       </SectionContainer>

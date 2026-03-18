@@ -546,6 +546,7 @@ describe('my-best-auntie booking modals footer content', () => {
       within(detailsColumn as HTMLDivElement).getByText(bookingModalContent.refundHint).className,
     ).toContain('text-base');
 
+    expect(screen.getByText(selectedCohort.location_name)).toBeInTheDocument();
     expect(screen.getByText(selectedCohort.location_address).className).toContain('text-base');
     expect(screen.getByRole('link', { name: bookingModalContent.directionLabel }).className)
       .toContain('text-base');

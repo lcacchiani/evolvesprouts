@@ -76,7 +76,7 @@ describe('LandingPageHero section', () => {
     expect(section).toHaveClass('es-bg-surface-white');
     expect(screen.getByRole('heading', { name: eventContent.title }))
       .toBeInTheDocument();
-    expect(screen.getByText(easterWorkshopContent.en.hero.subtitle)).toBeInTheDocument();
+    expect(document.querySelector('.es-type-subtitle-lg')).toBeNull();
     expect(screen.getByText(easterWorkshopContent.en.hero.description)).toBeInTheDocument();
     expect(await screen.findByText(expectedDateChip)).toBeInTheDocument();
     expect(await screen.findByText(expectedTimeChip)).toBeInTheDocument();
@@ -85,13 +85,20 @@ describe('LandingPageHero section', () => {
     expect(
       screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId('landing-page-hero-partners')).toBeInTheDocument();
+    const partnerContainer = screen.getByTestId('landing-page-hero-partners');
+    expect(partnerContainer).toBeInTheDocument();
+    const partnerLogos = partnerContainer.querySelectorAll('[data-testid^="landing-page-partner-logo-"]');
+    expect(partnerLogos.item(0)).toHaveAttribute(
+      'data-testid',
+      'landing-page-partner-logo-evolvesprouts',
+    );
+    expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toBeInTheDocument();
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
-    expect(
-      screen.getAllByRole('img', { name: easterWorkshopContent.en.hero.imageAlt }),
-    ).toHaveLength(1);
+    const heroImage = screen.getByRole('img', { name: easterWorkshopContent.en.hero.imageAlt });
+    expect(heroImage).toBeInTheDocument();
+    expect(heroImage.parentElement).toHaveClass('es-landing-page-hero-image-wrap');
   });
 
   it('does not render subtitle block when subtitle is empty', () => {

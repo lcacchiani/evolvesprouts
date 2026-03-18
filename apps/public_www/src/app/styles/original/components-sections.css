@@ -415,6 +415,23 @@
     background-color: var(--es-color-surface-muted, #F8F8F8);
   }
 
+  .es-landing-page-hero-image-wrap {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .es-landing-page-hero-image-wrap::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url('/images/evolvesprouts-logo.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 110%;
+  }
+
   .es-landing-page-details-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -900px;
