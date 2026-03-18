@@ -171,8 +171,12 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
         ),
     )
-    op.create_index("expense_attachments_expense_idx", "expense_attachments", ["expense_id"])
-    op.create_index("expense_attachments_asset_idx", "expense_attachments", ["asset_id"])
+    op.create_index(
+        "expense_attachments_expense_idx", "expense_attachments", ["expense_id"]
+    )
+    op.create_index(
+        "expense_attachments_asset_idx", "expense_attachments", ["asset_id"]
+    )
     op.create_index(
         "expense_attachments_unique_idx",
         "expense_attachments",
