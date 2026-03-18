@@ -7,6 +7,7 @@ import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   fetchEventsPayload,
+  getLandingPageHeroEventContent,
   normalizeEvents,
   normalizeEventsForEventsPage,
   resolveEventsApiUrl,
@@ -312,6 +313,30 @@ describe('events-data', () => {
     expect(events[0]).toMatchObject({
       locationName: 'In Person',
     });
+  });
+
+  it('resolves landing page hero content from events.json using landing_page slug', () => {
+    const heroEventContent = getLandingPageHeroEventContent(
+      'easter-2026-montessori-play-coaching-workshop',
+      'en',
+    );
+
+    expect(heroEventContent).not.toBeNull();
+    expect(heroEventContent).toMatchObject({
+      title: 'Easter 2026 Montessori Play Coaching Workshop',
+      chips: [
+        formatExpectedTimeLabel('2026-04-06T02:00:00Z', '2026-04-06T03:00:00Z', 'en'),
+        'Wan Chai',
+        '1-4',
+        'Parent + Child',
+        'Helpers Welcome',
+        'Workshop',
+      ],
+    });
+  });
+
+  it('returns null when landing page slug has no matching event', () => {
+    expect(getLandingPageHeroEventContent('unknown-landing-page-slug', 'en')).toBeNull();
   });
 
   it('merges events and course content for events page when source is content', () => {

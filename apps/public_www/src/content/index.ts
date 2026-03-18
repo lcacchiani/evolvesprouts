@@ -102,14 +102,11 @@ export interface LandingPageLocaleContent {
     };
   };
   hero: {
-    title: string;
     subtitle: string;
     description: string;
     imageAlt: string;
     imageSrc: string;
     imageMobileSrc?: string;
-    dateLabel: string;
-    locationLabel: string;
   };
   details: {
     title: string;

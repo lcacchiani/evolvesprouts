@@ -9,14 +9,11 @@
       }
     },
     "hero": {
-      "title": "Easter 2026 Montessori Play Coaching Workshop",
       "subtitle": "A practical workshop for parents and young children",
       "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
       "imageAlt": "Parent and child in a Montessori play coaching workshop",
       "imageSrc": "/images/training.svg",
-      "imageMobileSrc": "/images/training.svg",
-      "dateLabel": "April 5, 2026",
-      "locationLabel": "Sheung Wan, Hong Kong"
+      "imageMobileSrc": "/images/training.svg"
     },
     "details": {
       "title": "What You Will Learn",
@@ -134,14 +131,11 @@
       }
     },
     "hero": {
-      "title": "2026 复活节蒙特梭利游戏教练工作坊",
       "subtitle": "为家长与幼儿设计的实用工作坊",
       "description": "欢迎参加复活节工作坊。我们将聚焦尊重式引导、可落地的日常节奏，以及你回家就能应用的蒙特梭利启发式游戏方法。",
       "imageAlt": "家长与孩子参加蒙特梭利游戏教练工作坊",
       "imageSrc": "/images/training.svg",
-      "imageMobileSrc": "/images/training.svg",
-      "dateLabel": "2026年4月5日",
-      "locationLabel": "香港上环"
+      "imageMobileSrc": "/images/training.svg"
     },
     "details": {
       "title": "你将学到什么",
@@ -259,14 +253,11 @@
       }
     },
     "hero": {
-      "title": "2026 復活節蒙特梭利遊戲教練工作坊",
       "subtitle": "為家長與幼兒而設的實用工作坊",
       "description": "歡迎參加復活節工作坊。我們將聚焦尊重式引導、可落地的日常節奏，以及你回家即可應用的蒙特梭利啟發式遊戲方法。",
       "imageAlt": "家長與小朋友參與蒙特梭利遊戲教練工作坊",
       "imageSrc": "/images/training.svg",
-      "imageMobileSrc": "/images/training.svg",
-      "dateLabel": "2026年4月5日",
-      "locationLabel": "香港上環"
+      "imageMobileSrc": "/images/training.svg"
     },
     "details": {
       "title": "你將會學到甚麼",

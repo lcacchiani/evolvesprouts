@@ -7,37 +7,45 @@ import type { LandingPageLocaleContent } from '@/content';
 
 interface LandingPageHeroProps {
   content: LandingPageLocaleContent['hero'];
+  title: string;
+  chips: string[];
   ariaLabel?: string;
 }
 
 export function LandingPageHero({
   content,
+  title,
+  chips,
   ariaLabel,
 }: LandingPageHeroProps) {
   return (
     <SectionShell
       id='landing-page-hero'
-      ariaLabel={ariaLabel ?? content.title}
+      ariaLabel={ariaLabel ?? title}
       dataFigmaNode='landing-page-hero'
       className='es-bg-surface-white'
     >
       <SectionContainer className='grid items-center gap-10 lg:grid-cols-2'>
         <div className='space-y-5'>
           <SectionHeader
-            title={content.title}
+            title={title}
             titleAs='h1'
             align='left'
           />
           <p className='es-type-subtitle-lg es-text-heading'>{content.subtitle}</p>
           <p className='es-type-body'>{content.description}</p>
-          <div className='flex flex-wrap gap-3'>
-            <span className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'>
-              {content.dateLabel}
-            </span>
-            <span className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'>
-              {content.locationLabel}
-            </span>
-          </div>
+          {chips.length > 0 ? (
+            <div className='flex flex-wrap gap-3'>
+              {chips.map((chip, index) => (
+                <span
+                  key={`${chip}-${index}`}
+                  className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className='w-full'>
           {content.imageMobileSrc ? (
