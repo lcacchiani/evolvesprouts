@@ -1,9 +1,11 @@
 import type {
-  LandingPageLocaleContent,
   Locale,
   SiteContent,
 } from '@/content';
-import type { EventCardData } from '@/lib/events-data';
+import {
+  getLandingPageStructuredDataContent,
+  type EventCardData,
+} from '@/lib/events-data';
 import { ROUTES } from '@/lib/routes';
 import { getSiteOrigin, localizePath } from '@/lib/seo';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
@@ -237,16 +239,16 @@ export function buildCourseSchema({
 
 interface LandingPageEventSchemaOptions {
   locale: Locale;
-  pageContent: LandingPageLocaleContent;
+  landingPageSlug: string;
   pagePath: string;
 }
 
 export function buildLandingPageEventSchema({
   locale,
-  pageContent,
+  landingPageSlug,
   pagePath,
 }: LandingPageEventSchemaOptions): JsonLdObject {
-  const structuredData = pageContent.structuredData;
+  const structuredData = getLandingPageStructuredDataContent(landingPageSlug);
   if (!structuredData) {
     return {};
   }

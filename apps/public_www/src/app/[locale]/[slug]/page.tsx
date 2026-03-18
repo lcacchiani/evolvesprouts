@@ -73,6 +73,11 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
   }
 
   const pagePath = buildLandingPagePath(resolvedParams.slug);
+  const eventSchema = buildLandingPageEventSchema({
+    locale,
+    landingPageSlug: resolvedParams.slug,
+    pagePath,
+  });
 
   return (
     <>
@@ -98,14 +103,10 @@ export default async function LandingPageRoute({ params }: LandingPageRouteProps
           ],
         })}
       />
-      {pageContent.structuredData ? (
+      {Object.keys(eventSchema).length > 0 ? (
         <StructuredDataScript
           id={`landing-page-event-jsonld-${locale}`}
-          data={buildLandingPageEventSchema({
-            locale,
-            pageContent,
-            pagePath,
-          })}
+          data={eventSchema}
         />
       ) : null}
     </>

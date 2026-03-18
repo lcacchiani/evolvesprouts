@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
@@ -10,26 +10,26 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type {
   BookingModalContent,
-  LandingPageBookingContent,
   LandingPagesCommonContent,
   LandingPageLocaleContent,
   Locale,
 } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import type { EventBookingModalPayload } from '@/lib/events-data';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
-const MyBestAuntieBookingModal = dynamic(
+const EventBookingModal = dynamic(
   () =>
-    import('@/components/sections/my-best-auntie/my-best-auntie-booking-modal').then(
-      (module) => module.MyBestAuntieBookingModal,
+    import('@/components/sections/events/event-booking-modal').then(
+      (module) => module.EventBookingModal,
     ),
   { ssr: false },
 );
 
-const MyBestAuntieThankYouModal = dynamic(
+const EventThankYouModal = dynamic(
   () =>
-    import('@/components/sections/my-best-auntie/my-best-auntie-booking-modal').then(
-      (module) => module.MyBestAuntieThankYouModal,
+    import('@/components/sections/events/event-thank-you-modal').then(
+      (module) => module.EventThankYouModal,
     ),
   { ssr: false },
 );
@@ -39,43 +39,10 @@ interface LandingPageCtaProps {
   slug: string;
   content: LandingPageLocaleContent['cta'];
   commonContent: LandingPagesCommonContent;
-  bookingContent: LandingPageBookingContent;
+  bookingPayload: EventBookingModalPayload | null;
+  isFullyBooked: boolean;
   bookingModalContent: BookingModalContent;
   ariaLabel?: string;
-}
-
-const COHORT_VALUE_PATTERN = /^(\d{2})-(\d{2})$/;
-
-function formatCohortLabel(value: string): string {
-  const trimmedValue = value.trim();
-  const match = COHORT_VALUE_PATTERN.exec(trimmedValue);
-  if (!match) {
-    return trimmedValue;
-  }
-
-  const monthNumber = Number(match[1]);
-  const yearSuffix = Number(match[2]);
-  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
-    return trimmedValue;
-  }
-
-  if (!Number.isInteger(yearSuffix)) {
-    return trimmedValue;
-  }
-
-  const year = 2000 + yearSuffix;
-  const monthLabel = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
-  return `${monthLabel}, ${year}`;
-}
-
-function getDefaultCohort(
-  cohorts: LandingPageBookingContent['cohorts'],
-): LandingPageBookingContent['cohorts'][number] | null {
-  const firstAvailableCohort = cohorts.find((cohort) => !cohort.is_fully_booked);
-  return firstAvailableCohort ?? cohorts[0] ?? null;
 }
 
 export function LandingPageCta({
@@ -83,7 +50,8 @@ export function LandingPageCta({
   slug,
   content,
   commonContent,
-  bookingContent,
+  bookingPayload,
+  isFullyBooked,
   bookingModalContent,
   ariaLabel,
 }: LandingPageCtaProps) {
@@ -92,18 +60,12 @@ export function LandingPageCta({
   const [reservationSummary, setReservationSummary] =
     useState<ReservationSummary | null>(null);
 
-  const selectedCohort = useMemo(() => {
-    return getDefaultCohort(bookingContent.cohorts);
-  }, [bookingContent.cohorts]);
-  const selectedAgeGroupLabel = selectedCohort?.age_group ?? '';
-  const selectedCohortDateLabel = selectedCohort
-    ? formatCohortLabel(selectedCohort.cohort)
-    : '';
-  const selectedCohortDate = selectedCohort?.dates[0]?.start_datetime?.split('T')[0] ?? '';
+  const selectedDateLabel = bookingPayload?.selectedDateLabel ?? '';
+  const selectedDate = bookingPayload?.selectedDateStartTime?.split('T')[0] ?? '';
   const ctaLabel = content.buttonLabel || commonContent.defaultCtaLabel;
 
   useEffect(() => {
-    if (!isPaymentModalOpen || !selectedCohort || selectedCohort.is_fully_booked) {
+    if (!isPaymentModalOpen || !bookingPayload || isFullyBooked) {
       return;
     }
 
@@ -111,18 +73,12 @@ export function LandingPageCta({
       sectionId: 'landing-page-cta',
       ctaLocation: 'landing_page',
       params: {
-        age_group: selectedAgeGroupLabel,
-        cohort_label: selectedCohortDateLabel,
-        cohort_date: selectedCohortDate,
+        age_group: '',
+        cohort_label: selectedDateLabel,
+        cohort_date: selectedDate,
       },
     });
-  }, [
-    isPaymentModalOpen,
-    selectedAgeGroupLabel,
-    selectedCohort,
-    selectedCohortDate,
-    selectedCohortDateLabel,
-  ]);
+  }, [bookingPayload, isFullyBooked, isPaymentModalOpen, selectedDate, selectedDateLabel]);
 
   return (
     <>
@@ -141,9 +97,9 @@ export function LandingPageCta({
           <ButtonPrimitive
             variant='primary'
             className='mt-8'
-            disabled={!selectedCohort || selectedCohort.is_fully_booked}
+            disabled={!bookingPayload || isFullyBooked}
             onClick={() => {
-              if (!selectedCohort || selectedCohort.is_fully_booked) {
+              if (!bookingPayload || isFullyBooked) {
                 return;
               }
 
@@ -152,8 +108,8 @@ export function LandingPageCta({
                 ctaLocation: 'landing_page',
                 params: {
                   landing_page_slug: slug,
-                  age_group: selectedAgeGroupLabel,
-                  cohort_label: selectedCohortDateLabel,
+                  age_group: '',
+                  cohort_label: selectedDateLabel,
                 },
               });
               trackMetaPixelEvent('InitiateCheckout', { content_name: slug });
@@ -165,14 +121,11 @@ export function LandingPageCta({
         </SectionContainer>
       </SectionShell>
 
-      {isPaymentModalOpen && (
-        <MyBestAuntieBookingModal
+      {isPaymentModalOpen && bookingPayload && !isFullyBooked && (
+        <EventBookingModal
           locale={locale}
-          modalContent={bookingContent.modal}
           paymentModalContent={bookingModalContent.paymentModal}
-          selectedCohort={selectedCohort}
-          selectedCohortDateLabel={selectedCohortDateLabel}
-          selectedAgeGroupLabel={selectedAgeGroupLabel}
+          bookingPayload={bookingPayload}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}
@@ -185,7 +138,7 @@ export function LandingPageCta({
       )}
 
       {isThankYouModalOpen && (
-        <MyBestAuntieThankYouModal
+        <EventThankYouModal
           locale={locale}
           content={{
             ...bookingModalContent.thankYouModal,

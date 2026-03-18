@@ -7,7 +7,9 @@ import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
   fetchEventsPayload,
+  getLandingPageBookingEventContent,
   getLandingPageHeroEventContent,
+  getLandingPageStructuredDataContent,
   normalizeEvents,
   normalizeEventsForEventsPage,
   resolveEventsApiUrl,
@@ -404,8 +406,46 @@ describe('events-data', () => {
     });
   });
 
+  it('resolves landing page booking payload from events.json using landing_page slug', () => {
+    const bookingEventContent = getLandingPageBookingEventContent(
+      'easter-2026-montessori-play-coaching-workshop',
+      'en',
+    );
+
+    expect(bookingEventContent).not.toBeNull();
+    expect(bookingEventContent).toMatchObject({
+      status: 'open',
+      bookingPayload: {
+        variant: 'event',
+        title: 'Easter 2026 Montessori Play Coaching Workshop',
+        selectedDateLabel: '06 Apr 2026',
+        selectedDateStartTime: '2026-04-06T02:00:00Z',
+      },
+    });
+  });
+
+  it('resolves landing page structured data content from events.json using landing_page slug', () => {
+    const structuredDataContent = getLandingPageStructuredDataContent(
+      'easter-2026-montessori-play-coaching-workshop',
+    );
+
+    expect(structuredDataContent).not.toBeNull();
+    expect(structuredDataContent).toMatchObject({
+      eventName: 'Easter 2026 Montessori Play Coaching Workshop',
+      description:
+        'A practical Montessori-inspired play coaching workshop for children ages 1-4, with parent and child participation (helpers warmly welcome).',
+      startDate: '2026-04-06T02:00:00.000Z',
+      endDate: '2026-04-06T03:00:00.000Z',
+      offerPrice: '350',
+      offerCurrency: 'HKD',
+      offerAvailability: 'InStock',
+    });
+  });
+
   it('returns null when landing page slug has no matching event', () => {
     expect(getLandingPageHeroEventContent('unknown-landing-page-slug')).toBeNull();
+    expect(getLandingPageBookingEventContent('unknown-landing-page-slug')).toBeNull();
+    expect(getLandingPageStructuredDataContent('unknown-landing-page-slug')).toBeNull();
   });
 
   it('merges events and course content for events page when source is content', () => {
