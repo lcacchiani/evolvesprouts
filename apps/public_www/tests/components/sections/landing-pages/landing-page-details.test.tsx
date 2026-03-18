@@ -12,7 +12,7 @@ describe('LandingPageDetails section', () => {
     expect(section).not.toBeNull();
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-details');
     expect(section).toHaveClass('es-section-bg-overlay');
-    expect(section).toHaveClass('es-course-highlights-section');
+    expect(section).toHaveClass('es-landing-page-details-section');
     expect(screen.getByRole('heading', { name: easterWorkshopContent.en.details.title }))
       .toBeInTheDocument();
     expect(screen.getByText(easterWorkshopContent.en.details.description)).toBeInTheDocument();
@@ -22,8 +22,14 @@ describe('LandingPageDetails section', () => {
       expect(screen.getByText(item.description)).toBeInTheDocument();
     }
 
-    expect(document.querySelectorAll('.es-course-highlight-card--gold').length).toBeGreaterThan(0);
-    expect(document.querySelectorAll('.es-course-highlight-card--green').length).toBeGreaterThan(0);
-    expect(document.querySelectorAll('.es-course-highlight-card--blue').length).toBeGreaterThan(0);
+    expect(document.querySelectorAll('.es-landing-page-details-card').length).toBe(
+      easterWorkshopContent.en.details.items.length,
+    );
+    expect(document.querySelectorAll('.es-landing-page-details-card-title').length).toBe(
+      easterWorkshopContent.en.details.items.length,
+    );
+    expect(document.querySelectorAll('.es-landing-page-details-card-description').length).toBe(
+      easterWorkshopContent.en.details.items.length,
+    );
   });
 });
