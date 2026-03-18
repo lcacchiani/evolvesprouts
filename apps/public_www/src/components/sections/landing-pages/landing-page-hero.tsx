@@ -36,11 +36,21 @@ function buildHeroDateChip(startDateTime: string | undefined, locale: Locale): s
     return undefined;
   }
 
-  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+  const dateParts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    weekday: 'long',
     day: '2-digit',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
-  }).format(startDate);
+  }).formatToParts(startDate);
+  const weekday = dateParts.find((part) => part.type === 'weekday')?.value;
+  const day = dateParts.find((part) => part.type === 'day')?.value;
+  const month = dateParts.find((part) => part.type === 'month')?.value;
+  const year = dateParts.find((part) => part.type === 'year')?.value;
+  if (!weekday || !day || !month || !year) {
+    return undefined;
+  }
+
+  return `${weekday} ${day} ${month} ${year}`;
 }
 
 function buildHeroTimeChip(

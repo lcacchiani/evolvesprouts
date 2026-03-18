@@ -23,11 +23,7 @@ describe('LandingPageHero section', () => {
       locationLabel: 'Wan Chai',
       categoryChips: ['Workshop'],
     };
-    const expectedDateChip = new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(eventContent.startDateTime));
+    const expectedDateChip = 'Monday 06 April 2026';
     const timeFormatter = new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
