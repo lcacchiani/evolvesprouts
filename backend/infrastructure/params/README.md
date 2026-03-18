@@ -36,6 +36,20 @@ The backend stack also requires Mailchimp/media lead parameters:
 `MediaDefaultResourceKey` should match the `resource_key` value saved on the
 default downloadable asset in the admin asset catalog.
 
+## OpenRouter invoice parsing parameters
+
+The backend stack requires these OpenRouter parameters:
+
+- `OpenRouterApiKey`
+- `OpenRouterChatCompletionsUrl`
+- `OpenRouterModel`
+
+For CI deployments using placeholder resolution:
+
+- set `OpenRouterApiKey` to `<FROM_GITHUB_SECRET: CDK_PARAM_OPENROUTER_API_KEY>`
+- set `OpenRouterChatCompletionsUrl` to `<FROM_GITHUB_VAR: CDK_PARAM_OPENROUTER_CHAT_COMPLETIONS_URL>`
+- set `OpenRouterModel` to `<FROM_GITHUB_VAR: CDK_PARAM_OPENROUTER_MODEL>`
+
 `production.json` uses placeholder values that resolve from GitHub variables
 and secrets during CI deploy.
 

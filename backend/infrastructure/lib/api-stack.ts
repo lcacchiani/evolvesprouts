@@ -500,14 +500,13 @@ export class ApiStack extends cdk.Stack {
           "Default media resource key used when media submissions omit resource_key",
       }
     );
-    const openrouterApiSecretArn = new cdk.CfnParameter(
+    const openrouterApiKey = new cdk.CfnParameter(
       this,
-      "OpenRouterApiSecretArn",
+      "OpenRouterApiKey",
       {
         type: "String",
         noEcho: true,
-        description:
-          "Existing Secrets Manager ARN containing the OpenRouter API key",
+        description: "OpenRouter API key value (stored in Secrets Manager by CDK)",
       }
     );
     const openrouterChatCompletionsUrl = new cdk.CfnParameter(
@@ -1239,10 +1238,15 @@ export class ApiStack extends cdk.Stack {
       "MailchimpApiSecret",
       mailchimpApiSecretArn.valueAsString
     );
-    const openrouterApiSecret = secretsmanager.Secret.fromSecretCompleteArn(
+    const openrouterApiSecret = new secretsmanager.Secret(
       this,
       "OpenRouterApiSecret",
-      openrouterApiSecretArn.valueAsString
+      {
+        description: "OpenRouter API key for invoice parsing",
+        secretStringValue: cdk.SecretValue.unsafePlainText(
+          openrouterApiKey.valueAsString
+        ),
+      }
     );
 
     // -------------------------------------------------------------------------
