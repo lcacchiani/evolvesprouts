@@ -13,9 +13,10 @@ describe('LandingPageDetails section', () => {
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-details');
     expect(section).toHaveClass('es-section-bg-overlay');
     expect(section).toHaveClass('es-landing-page-details-section');
+    expect(screen.getByText(easterWorkshopContent.en.details.eyebrow)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: easterWorkshopContent.en.details.title }))
       .toBeInTheDocument();
-    expect(screen.getByText(easterWorkshopContent.en.details.description)).toBeInTheDocument();
+    expect(document.querySelector('.es-section-header-description')).toBeNull();
 
     for (const item of easterWorkshopContent.en.details.items) {
       expect(screen.getByText(item.title)).toBeInTheDocument();

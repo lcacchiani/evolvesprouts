@@ -16,23 +16,24 @@
       "imageMobileSrc": "/images/training.svg"
     },
     "details": {
+      "eyebrow": "What happens on the day",
       "title": "60 minutes. Your child in the room. Real coaching",
-      "description": "A focused format from observation to live coaching, with practical next steps you can use right away.",
+      "description": "",
       "items": [
         {
-          "title": "1. Guided observation in the shared playroom",
+          "title": "Guided observation in the shared playroom",
           "description": "Your child is already playing. You gather with Ida and observe together — she narrates what she sees. No lecture yet. The room does the teaching."
         },
         {
-          "title": "2. Three core ideas, plainly explained",
+          "title": "Three core ideas, plainly explained",
           "description": "In the private room: what a prepared environment is, what the adult's real role is during play, and why fewer toys — rotated thoughtfully — works better. No jargon. Just clarity."
         },
         {
-          "title": "3. Live coaching with Happy Baton toy invitations",
+          "title": "Live coaching with Happy Baton toy invitations",
           "description": "Children come into the private room where Happy Baton toys are set up as Montessori invitations. You observe your own child, and Ida coaches you in real time — specific, personal, and immediately useful."
         },
         {
-          "title": "4. Debrief, take-home cards & what comes next",
+          "title": "Debrief, take-home cards & what comes next",
           "description": "A group circle: one insight per family. Your personalised Auntie Challenge card — written by Ida during the session, specific to your child. Then browse the Happy Baton pre-loved toy sale."
         }
       ]
@@ -85,23 +86,24 @@
       "imageMobileSrc": "/images/training.svg"
     },
     "details": {
+      "eyebrow": "当天会发生什么",
       "title": "60 分钟。孩子就在现场。真实教练式指导",
-      "description": "从观察到现场指导的高效流程，配合可立即带回家执行的下一步建议。",
+      "description": "",
       "items": [
         {
-          "title": "1. 在共享游戏室进行引导式观察",
+          "title": "在共享游戏室进行引导式观察",
           "description": "孩子已经在玩。你与 Ida 一起集合并共同观察——她会边观察边讲解她看到的内容。先不讲理论，空间本身就在教学。"
         },
         {
-          "title": "2. 用直白语言讲清三个核心概念",
+          "title": "用直白语言讲清三个核心概念",
           "description": "在独立房间里：什么是预备环境、成人在游戏中的真实角色，以及为什么更少但有节奏轮换的玩具更有效。不讲术语，只有清晰理解。"
         },
         {
-          "title": "3. 结合 Happy Baton 玩具邀请的现场指导",
+          "title": "结合 Happy Baton 玩具邀请的现场指导",
           "description": "孩子会进入已摆好 Happy Baton 玩具邀请的独立房间。你观察自己孩子的反应，Ida 同步进行实时指导——具体、个性化、马上就能用。"
         },
         {
-          "title": "4. 复盘、带回家卡片与下一步安排",
+          "title": "复盘、带回家卡片与下一步安排",
           "description": "以小组围圈收尾：每个家庭分享一个洞察。你会拿到 Ida 在课堂中为你孩子写下的个性化 Auntie Challenge 卡。之后可逛 Happy Baton 二手玩具义卖。"
         }
       ]
@@ -154,23 +156,24 @@
       "imageMobileSrc": "/images/training.svg"
     },
     "details": {
+      "eyebrow": "當天會發生什麼",
       "title": "60 分鐘。孩子就在現場。真實教練式指導",
-      "description": "由觀察到即場指導的高效流程，配合可立即帶回家實行的下一步建議。",
+      "description": "",
       "items": [
         {
-          "title": "1. 在共享遊戲室進行引導式觀察",
+          "title": "在共享遊戲室進行引導式觀察",
           "description": "孩子已經在玩。你與 Ida 一起集合並共同觀察——她會一邊觀察、一邊講解她看到的內容。先不講課，空間本身就在教學。"
         },
         {
-          "title": "2. 三個核心概念，清楚直白地講明",
+          "title": "三個核心概念，清楚直白地講明",
           "description": "在獨立房間裡：甚麼是預備環境、成人在遊戲中的真正角色，以及為何較少但有節奏輪換的玩具更有效。不講術語，只有清晰理解。"
         },
         {
-          "title": "3. 配合 Happy Baton 玩具邀請的即場指導",
+          "title": "配合 Happy Baton 玩具邀請的即場指導",
           "description": "孩子會進入已設置 Happy Baton 玩具邀請的獨立房間。你觀察自己孩子，Ida 會即時給你教練式指導——具體、個人化，而且即刻用得著。"
         },
         {
-          "title": "4. 復盤、帶回家卡片與下一步",
+          "title": "復盤、帶回家卡片與下一步",
           "description": "以小組圍圈作結：每個家庭分享一個洞見。你會收到 Ida 在課堂中按你孩子情況寫下的個人化 Auntie Challenge 卡。之後可瀏覽 Happy Baton 二手玩具義賣。"
         }
       ]

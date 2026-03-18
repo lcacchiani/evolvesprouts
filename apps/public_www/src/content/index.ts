@@ -91,6 +91,7 @@ export interface LandingPageLocaleContent {
     imageMobileSrc?: string;
   };
   details: {
+    eyebrow?: string;
     title: string;
     description: string;
     items: Array<{
