@@ -1270,9 +1270,9 @@ export function getLandingPageHeroEventContent(
     : undefined;
   const locationSource =
     readCandidateText(eventRecord, [
-      'address',
       'locationAddress',
       'venueAddress',
+      'address',
       'locationName',
       'venue',
     ]) ?? readOptionalText(eventRecord.location);
@@ -1399,9 +1399,9 @@ export function getLandingPageStructuredDataContent(
     'body',
   ]) ?? title;
   const locationAddress = readCandidateText(eventRecord, [
-    'address',
     'locationAddress',
     'venueAddress',
+    'address',
   ]);
   const locationName = readCandidateText(eventRecord, [
     'locationName',

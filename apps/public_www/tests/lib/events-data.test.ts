@@ -438,6 +438,8 @@ describe('events-data', () => {
         'A practical Montessori-inspired play coaching workshop for children ages 1-4, with parent and child participation (helpers warmly welcome).',
       startDate: '2026-04-06T02:00:00.000Z',
       endDate: '2026-04-06T03:00:00.000Z',
+      locationName: 'Baumhaus',
+      locationAddress: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
       offerPrice: '350',
       offerCurrency: 'HKD',
       offerAvailability: 'InStock',
