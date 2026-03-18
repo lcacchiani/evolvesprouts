@@ -1,11 +1,11 @@
 import Image from 'next/image';
 import { type FormEvent, useMemo, useState } from 'react';
 
-import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
 import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-modal/reservation-form-discount-code-input';
 import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
 import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';
 import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
@@ -13,7 +13,7 @@ import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
-import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import type { BookingPaymentModalContent, Locale } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
 import {
@@ -25,12 +25,12 @@ import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
 
 interface BookingReservationFormProps {
   locale: Locale;
-  content: MyBestAuntieBookingContent['paymentModal'];
+  content: BookingPaymentModalContent;
+  eventTitle: string;
   selectedAgeGroupLabel: string;
   selectedCohortDateLabel: string;
-  selectedCohortDate: string;
+  selectedDateStartTime: string;
   selectedCohortPrice: number;
-  scheduleTimeLabel: string;
   descriptionId: string;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -51,7 +51,7 @@ type PaymentMethodOption =
   | typeof PAYMENT_METHOD_BANK_TRANSFER;
 
 function getPaymentMethodLabel(
-  content: MyBestAuntieBookingContent['paymentModal'],
+  content: BookingPaymentModalContent,
   selectedPaymentMethod: PaymentMethodOption,
 ): string {
   if (selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER) {
@@ -61,7 +61,7 @@ function getPaymentMethodLabel(
   return content.paymentMethodValue;
 }
 
-function getBankTransferDetails(content: MyBestAuntieBookingContent['paymentModal']) {
+function getBankTransferDetails(content: BookingPaymentModalContent) {
   return [
     {
       label: content.paymentBankNameLabel,
@@ -81,11 +81,11 @@ function getBankTransferDetails(content: MyBestAuntieBookingContent['paymentModa
 export function BookingReservationForm({
   locale,
   content,
+  eventTitle,
   selectedAgeGroupLabel,
   selectedCohortDateLabel,
-  selectedCohortDate,
+  selectedDateStartTime,
   selectedCohortPrice,
-  scheduleTimeLabel,
   descriptionId,
   onSubmitReservation,
 }: BookingReservationFormProps) {
@@ -239,17 +239,18 @@ export function BookingReservationForm({
       attendeeName: sanitizeSingleLineValue(fullName),
       attendeeEmail: sanitizeSingleLineValue(email),
       attendeePhone: sanitizeSingleLineValue(phone),
-      childAgeGroup: sanitizeSingleLineValue(selectedAgeGroupLabel),
+      ageGroup: sanitizeSingleLineValue(selectedAgeGroupLabel) || undefined,
+      cohort: sanitizeSingleLineValue(selectedCohortDateLabel) || undefined,
       paymentMethod: sanitizeSingleLineValue(
         getPaymentMethodLabel(content, selectedPaymentMethod),
       ),
       totalAmount,
-      courseLabel: sanitizeSingleLineValue(content.title),
-      scheduleDateLabel: sanitizeSingleLineValue(selectedCohortDateLabel),
-      scheduleTimeLabel: sanitizeSingleLineValue(scheduleTimeLabel),
+      eventTitle: sanitizeSingleLineValue(eventTitle),
+      dateStartTime: sanitizeSingleLineValue(selectedDateStartTime) || undefined,
     };
+    const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
     const normalizedCohortDate =
-      sanitizeSingleLineValue(selectedCohortDate) ||
+      (normalizedStartDateTime.split('T')[0] ?? '') ||
       sanitizeSingleLineValue(selectedCohortDateLabel);
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
@@ -267,12 +268,11 @@ export function BookingReservationForm({
       setSubmissionError(content.submitErrorMessage);
       return;
     }
-
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
       phone_number: reservationSummary.attendeePhone,
-      cohort_age: reservationSummary.childAgeGroup,
+      cohort_age: reservationSummary.ageGroup ?? '',
       cohort_date: normalizedCohortDate,
       comments: sanitizeSingleLineValue(interestedTopics) || undefined,
       discount_code: discountRule?.code || undefined,

@@ -105,6 +105,8 @@ const bookingContent = {
   ...enContent.myBestAuntie.booking,
   cohorts: trainingCoursesContent.data,
 } as BookingContent;
+const myBestAuntieModalContent = enContent.myBestAuntie.modal;
+const bookingModalContent = enContent.bookingModal;
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
@@ -148,18 +150,30 @@ describe('MyBestAuntieBooking section', () => {
       '/en/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
     );
 
-    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
 
     expect(
       await screen.findByRole('dialog', {
-        name: bookingContent.paymentModal.title,
+        name: myBestAuntieModalContent.title,
       }),
     ).toBeInTheDocument();
   });
 
   it('uses default section shell top spacing classes', () => {
     const { container } = render(
-      <MyBestAuntieBooking locale='en' content={bookingContent} />,
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
     );
 
     const section = container.querySelector('section#my-best-auntie-booking');
@@ -169,7 +183,14 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('updates date cards by selected age group and keeps cohort date in subtitle-lg style', () => {
-    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
 
     const firstAgeOption = bookingContent.ageOptions[0];
     const secondAgeOption = bookingContent.ageOptions[1];
@@ -289,7 +310,14 @@ describe('MyBestAuntieBooking section', () => {
       return cohort.age_group !== '3-6';
     });
 
-    render(<MyBestAuntieBooking locale='en' content={contentWithoutThreeToSix} />);
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={contentWithoutThreeToSix}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -312,7 +340,12 @@ describe('MyBestAuntieBooking section', () => {
 
   it('removes right-column selector shadows, keeps date cards in two lines, keeps CTA width to copy, and hides date arrows for three dates', () => {
     const { container } = render(
-      <MyBestAuntieBooking locale='en' content={bookingContent} />,
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
     );
 
     const selectorButtons = container.querySelectorAll('button[aria-pressed]');
@@ -361,7 +394,14 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('uses one shared date-style selector shell for both age and date cards', () => {
-    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
 
     const firstAgeOption = bookingContent.ageOptions[0];
     if (!firstAgeOption) {
@@ -396,7 +436,14 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('doubles age icon size and uses wider age icon/text spacing', () => {
-    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
 
     const firstAgeOption = bookingContent.ageOptions[0];
     if (!firstAgeOption) {
@@ -502,7 +549,14 @@ describe('MyBestAuntieBooking section', () => {
       },
     );
 
-    render(<MyBestAuntieBooking locale='en' content={extendedBookingContent} />);
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={extendedBookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
 
     const carousel = screen.getByTestId('my-best-auntie-booking-date-carousel');
     let scrollLeftValue = 0;
@@ -560,7 +614,14 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('tracks confirm-and-pay click and modal open events', async () => {
-    render(<MyBestAuntieBooking locale='en' content={bookingContent} />);
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -569,7 +630,7 @@ describe('MyBestAuntieBooking section', () => {
     );
 
     expect(await screen.findByRole('dialog', {
-      name: bookingContent.paymentModal.title,
+      name: myBestAuntieModalContent.title,
     })).toBeInTheDocument();
     expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
       'booking_confirm_pay_click',
@@ -599,7 +660,14 @@ describe('MyBestAuntieBooking section', () => {
     soldOutCohort!.is_fully_booked = true;
     soldOutCohort!.spaces_left = 0;
 
-    render(<MyBestAuntieBooking locale='en' content={soldOutContent} />);
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={soldOutContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
 
     const dateSelectorRegion = screen.getByRole('region', {
       name: soldOutContent.dateSelectorLabel,

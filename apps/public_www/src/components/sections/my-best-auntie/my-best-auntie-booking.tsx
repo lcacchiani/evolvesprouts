@@ -11,13 +11,15 @@ import {
   SectionContainer,
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
-import type { ReservationSummary } from '@/components/sections/my-best-auntie/my-best-auntie-booking-modal';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import enContent from '@/content/en.json';
 import type {
+  BookingModalContent,
   CommonAccessibilityContent,
   Locale,
   MyBestAuntieBookingContent,
+  MyBestAuntieModalContent,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
@@ -43,6 +45,8 @@ const MyBestAuntieThankYouModal = dynamic(
 interface MyBestAuntieBookingProps {
   locale: Locale;
   content: MyBestAuntieBookingContent;
+  modalContent: MyBestAuntieModalContent;
+  bookingModalContent: BookingModalContent;
   commonAccessibility?: CommonAccessibilityContent;
 }
 
@@ -269,6 +273,8 @@ function formatCohortPrice(
 export function MyBestAuntieBooking({
   locale,
   content,
+  modalContent,
+  bookingModalContent,
   commonAccessibility = enContent.common.accessibility,
 }: MyBestAuntieBookingProps) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -388,8 +394,8 @@ export function MyBestAuntieBooking({
       params: {
         payment_method: reservationSummary.paymentMethod,
         total_amount: reservationSummary.totalAmount,
-        age_group: reservationSummary.childAgeGroup,
-        cohort_date: reservationSummary.scheduleDateLabel,
+        age_group: reservationSummary.ageGroup,
+        cohort_date: reservationSummary.dateStartTime?.split('T')[0] ?? '',
       },
     });
   }, [isThankYouModalOpen, reservationSummary]);
@@ -637,7 +643,8 @@ export function MyBestAuntieBooking({
       {isPaymentModalOpen && (
         <MyBestAuntieBookingModal
           locale={locale}
-          content={content.paymentModal}
+          modalContent={modalContent}
+          paymentModalContent={bookingModalContent.paymentModal}
           selectedCohort={selectedCohort}
           selectedCohortDateLabel={selectedDateOption?.label ?? ''}
           selectedAgeGroupLabel={selectedAgeOption?.label ?? ''}
@@ -655,7 +662,7 @@ export function MyBestAuntieBooking({
       {isThankYouModalOpen && (
         <MyBestAuntieThankYouModal
           locale={locale}
-          content={content.thankYouModal}
+          content={bookingModalContent.thankYouModal}
           summary={reservationSummary}
           homeHref={`/${locale}`}
           onClose={() => {

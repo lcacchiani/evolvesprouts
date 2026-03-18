@@ -1,8 +1,8 @@
 import { formatCurrencyHkd } from '@/lib/format';
-import type { Locale, MyBestAuntieBookingContent } from '@/content';
+import type { BookingPaymentModalContent, Locale } from '@/content';
 
 interface ReservationFormPriceBreakdownProps {
-  content: MyBestAuntieBookingContent['paymentModal'];
+  content: BookingPaymentModalContent;
   locale: Locale;
   originalAmount: number;
   discountAmount: number;

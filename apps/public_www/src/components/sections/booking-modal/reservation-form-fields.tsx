@@ -1,7 +1,7 @@
-import type { MyBestAuntieBookingContent } from '@/content';
+import type { BookingPaymentModalContent } from '@/content';
 
 interface ReservationFormFieldsProps {
-  content: MyBestAuntieBookingContent['paymentModal'];
+  content: BookingPaymentModalContent;
   fullName: string;
   email: string;
   phone: string;

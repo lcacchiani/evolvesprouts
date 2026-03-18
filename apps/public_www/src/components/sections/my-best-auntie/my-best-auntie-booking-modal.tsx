@@ -19,28 +19,20 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
-import type { Locale, MyBestAuntieBookingContent } from '@/content';
-import {
-  extractTimeRangeFromPartDate,
-} from '@/components/sections/booking-modal/helpers';
+import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  BookingPaymentModalContent,
+  Locale,
+  MyBestAuntieBookingContent,
+  MyBestAuntieModalContent,
+} from '@/content';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
-export interface ReservationSummary {
-  attendeeName: string;
-  attendeeEmail: string;
-  attendeePhone: string;
-  childAgeGroup: string;
-  paymentMethod: string;
-  totalAmount: number;
-  courseLabel: string;
-  scheduleDateLabel?: string;
-  scheduleTimeLabel?: string;
-}
-
 interface MyBestAuntieBookingModalProps {
   locale?: Locale;
-  content: MyBestAuntieBookingContent['paymentModal'];
+  modalContent: MyBestAuntieModalContent;
+  paymentModalContent: BookingPaymentModalContent;
   selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
   selectedCohortDateLabel?: string;
   selectedAgeGroupLabel?: string;
@@ -101,7 +93,8 @@ function formatPartDateTimeLabel(startDateTime: string): string {
 
 export function MyBestAuntieBookingModal({
   locale = 'en',
-  content,
+  modalContent,
+  paymentModalContent,
   selectedCohort,
   selectedCohortDateLabel = '',
   selectedAgeGroupLabel = '',
@@ -124,19 +117,16 @@ export function MyBestAuntieBookingModal({
   const originalAmount = selectedCohort?.price ?? 0;
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
-    const summaries = content.partSummaries ?? [];
+    const summaries = modalContent.partSummaries ?? [];
     return (selectedCohort?.dates ?? []).map((part, index) => {
       return {
         date: formatPartDateTimeLabel(part.start_datetime),
         description: summaries[index] ?? '',
       };
     });
-  }, [selectedCohort, content.partSummaries]);
+  }, [selectedCohort, modalContent.partSummaries]);
 
-  const selectedTimeLabel = useMemo(() => {
-    return extractTimeRangeFromPartDate(activePartRows[0]?.date ?? '');
-  }, [activePartRows]);
-  const selectedCohortDate = selectedCohort?.dates[0]?.start_datetime?.split('T')[0] ?? '';
+  const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
   const selectedCohortDateLabelText =
     selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '');
   const selectedVenueName = '';
@@ -146,7 +136,7 @@ export function MyBestAuntieBookingModal({
   return (
     <ModalOverlay
       onClose={onClose}
-      overlayAriaLabel={content.closeOverlayLabel}
+      overlayAriaLabel={paymentModalContent.closeOverlayLabel}
     >
       <OverlayDialogPanel
         panelRef={modalPanelRef}
@@ -157,7 +147,7 @@ export function MyBestAuntieBookingModal({
       >
         <header className='flex justify-end px-4 pb-8 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton
-            label={content.closeLabel}
+            label={paymentModalContent.closeLabel}
             onClose={onClose}
             buttonRef={closeButtonRef}
           />
@@ -167,7 +157,9 @@ export function MyBestAuntieBookingModal({
             <BookingEventDetails
               locale={locale}
               headingId={dialogTitleId}
-              content={content}
+              title={modalContent.title}
+              subtitle={modalContent.subtitle}
+              content={paymentModalContent}
               activePartRows={activePartRows}
               originalAmount={originalAmount}
               venueName={selectedVenueName}
@@ -176,12 +168,12 @@ export function MyBestAuntieBookingModal({
             />
             <BookingReservationForm
               locale={locale}
-              content={content}
+              content={paymentModalContent}
+              eventTitle={modalContent.title}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
               selectedCohortDateLabel={selectedCohortDateLabelText}
-              selectedCohortDate={selectedCohortDate}
+              selectedDateStartTime={selectedDateStartTime}
               selectedCohortPrice={originalAmount}
-              scheduleTimeLabel={selectedTimeLabel}
               descriptionId={dialogDescriptionId}
               onSubmitReservation={onSubmitReservation}
             />
