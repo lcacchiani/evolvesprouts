@@ -14,26 +14,25 @@ export function LandingPageFaq({ content, ariaLabel }: LandingPageFaqProps) {
       id='landing-page-faq'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='landing-page-faq'
-      className='es-bg-surface-white'
+      className='es-section-bg-overlay es-contact-faq-section overflow-hidden'
     >
       <SectionContainer>
-        <SectionHeader
-          title={content.title}
-          align='left'
-        />
-        <dl className='mt-8 space-y-4'>
+        <SectionHeader title={content.title} />
+
+        <ul className='mt-10 grid grid-cols-1 gap-4 sm:gap-5 lg:mt-12 lg:grid-cols-2'>
           {content.items.map((item) => (
-            <div
+            <li
               key={item.question}
-              className='rounded-panel es-bg-surface-white p-6'
             >
-              <dt className='text-lg font-semibold es-text-heading'>
-                {item.question}
-              </dt>
-              <dd className='mt-3 es-type-body'>{item.answer}</dd>
-            </div>
+              <article className='flex h-full flex-col rounded-2xl border border-black/10 bg-white px-5 py-5 shadow-card sm:px-6 sm:py-6'>
+                <h3 className='es-type-subtitle'>
+                  {item.question}
+                </h3>
+                <p className='mt-3 es-section-body text-base leading-7'>{item.answer}</p>
+              </article>
+            </li>
           ))}
-        </dl>
+        </ul>
       </SectionContainer>
     </SectionShell>
   );

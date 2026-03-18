@@ -9,7 +9,10 @@ import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessor
 vi.mock('@/lib/events-data', () => ({
   getLandingPageHeroEventContent: () => ({
     title: 'Mock Event Title',
-    chips: ['Mock Time', 'Wan Chai', '1-4', 'Workshop'],
+    startDateTime: '2026-04-06T02:00:00Z',
+    endDateTime: '2026-04-06T03:00:00Z',
+    locationLabel: 'Wan Chai',
+    categoryChips: ['Workshop'],
   }),
 }));
 
@@ -19,9 +22,15 @@ vi.mock('@/components/shared/page-layout', () => ({
   ),
 }));
 vi.mock('@/components/sections/landing-pages/landing-page-hero', () => ({
-  LandingPageHero: ({ title, chips }: { title: string; chips: string[] }) => (
+  LandingPageHero: ({
+    title,
+    eventContent,
+  }: {
+    title: string;
+    eventContent: { locationLabel?: string; categoryChips: string[] } | null;
+  }) => (
     <section data-testid='landing-page-hero'>
-      {title} ({chips.length} chips)
+      {title} ({eventContent?.locationLabel ?? 'no-location'}) [{eventContent?.categoryChips.length ?? 0}]
     </section>
   ),
 }));
@@ -96,7 +105,7 @@ describe('LandingPage composition', () => {
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(screen.getByTestId('landing-page-hero')).toHaveTextContent(
-      'Mock Event Title (4 chips)',
+      'Mock Event Title (Wan Chai) [1]',
     );
     expect(screen.getByTestId('landing-page-cta')).toHaveTextContent(
       `${easterWorkshopContent.en.cta.title} (zh-HK) [easter-2026-montessori-play-coaching-workshop]`,

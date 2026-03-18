@@ -24,7 +24,7 @@ export function LandingPage({
   siteContent,
   pageContent,
 }: LandingPageProps) {
-  const heroEventContent = getLandingPageHeroEventContent(slug, locale);
+  const heroEventContent = getLandingPageHeroEventContent(slug);
 
   return (
     <PageLayout
@@ -33,8 +33,9 @@ export function LandingPage({
     >
       <LandingPageHero
         content={pageContent.hero}
+        locale={locale}
         title={heroEventContent?.title ?? pageContent.meta.title}
-        chips={heroEventContent?.chips ?? []}
+        eventContent={heroEventContent}
         ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
       />
       <LandingPageDetails

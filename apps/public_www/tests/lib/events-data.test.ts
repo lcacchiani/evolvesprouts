@@ -318,25 +318,20 @@ describe('events-data', () => {
   it('resolves landing page hero content from events.json using landing_page slug', () => {
     const heroEventContent = getLandingPageHeroEventContent(
       'easter-2026-montessori-play-coaching-workshop',
-      'en',
     );
 
     expect(heroEventContent).not.toBeNull();
     expect(heroEventContent).toMatchObject({
       title: 'Easter 2026 Montessori Play Coaching Workshop',
-      chips: [
-        formatExpectedTimeLabel('2026-04-06T02:00:00Z', '2026-04-06T03:00:00Z', 'en'),
-        'Wan Chai',
-        '1-4',
-        'Parent + Child',
-        'Helpers Welcome',
-        'Workshop',
-      ],
+      startDateTime: '2026-04-06T02:00:00Z',
+      endDateTime: '2026-04-06T03:00:00Z',
+      locationLabel: 'Wan Chai',
+      categoryChips: ['Workshop'],
     });
   });
 
   it('returns null when landing page slug has no matching event', () => {
-    expect(getLandingPageHeroEventContent('unknown-landing-page-slug', 'en')).toBeNull();
+    expect(getLandingPageHeroEventContent('unknown-landing-page-slug')).toBeNull();
   });
 
   it('merges events and course content for events page when source is content', () => {
