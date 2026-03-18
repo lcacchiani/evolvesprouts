@@ -42,7 +42,7 @@ describe('LandingPageCta section', () => {
     const section = document.getElementById('landing-page-cta');
     expect(section).not.toBeNull();
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-cta');
-    expect(section).toHaveClass('es-bg-surface-white');
+    expect(section).toHaveClass('es-landing-page-cta-section');
 
     fireEvent.click(
       screen.getByRole('button', {
