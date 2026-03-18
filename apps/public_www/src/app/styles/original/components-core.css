@@ -104,10 +104,6 @@
     color: var(--es-color-text-heading);
   }
 
-  .es-text-heading-alt {
-    color: var(--es-color-text-heading-alt);
-  }
-
   .es-text-body {
     color: var(--es-color-text-body);
   }

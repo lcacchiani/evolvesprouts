@@ -28,13 +28,13 @@ export function LandingPageHero({
             titleAs='h1'
             align='left'
           />
-          <p className='es-type-subtitle-lg es-text-heading-alt'>{content.subtitle}</p>
+          <p className='es-type-subtitle-lg es-text-heading'>{content.subtitle}</p>
           <p className='es-type-body'>{content.description}</p>
           <div className='flex flex-wrap gap-3'>
-            <span className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading-alt'>
+            <span className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'>
               {content.dateLabel}
             </span>
-            <span className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading-alt'>
+            <span className='rounded-full es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'>
               {content.locationLabel}
             </span>
           </div>
