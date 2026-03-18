@@ -17,7 +17,7 @@ export function LandingPageDetails({
       id='landing-page-details'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='landing-page-details'
-      className='es-section-bg-overlay es-my-best-auntie-description-section'
+      className='es-section-bg-overlay es-landing-page-details-section'
     >
       <SectionContainer>
         <SectionHeader
@@ -32,12 +32,12 @@ export function LandingPageDetails({
               className='w-full'
             >
               <article
-                className='flex h-full min-h-[260px] flex-col rounded-card-xl p-6 sm:p-8 es-my-best-auntie-description-card'
+                className='flex h-full min-h-[260px] flex-col rounded-card-xl p-6 sm:p-8 es-landing-page-details-card'
               >
-                <h3 className='es-my-best-auntie-description-card-title'>
+                <h3 className='es-landing-page-details-card-title'>
                   {item.title}
                 </h3>
-                <p className='mt-3 es-my-best-auntie-description-card-description'>
+                <p className='mt-3 es-landing-page-details-card-description'>
                   {item.description}
                 </p>
               </article>
