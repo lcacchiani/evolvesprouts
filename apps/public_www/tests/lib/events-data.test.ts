@@ -315,6 +315,28 @@ describe('events-data', () => {
     });
   });
 
+  it('preserves hyphenated numeric range tags from events payload', () => {
+    const payload = {
+      data: [
+        {
+          title: 'Range tag event',
+          tags: ['1-4', 'Parent + Child'],
+          categories: ['Workshop'],
+          dates: [
+            {
+              start_datetime: '2026-04-06T02:00:00Z',
+              end_datetime: '2026-04-06T03:00:00Z',
+            },
+          ],
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events);
+    expect(events).toHaveLength(1);
+    expect(events[0]?.tags).toEqual(['1-4', 'Parent + Child', 'Workshop']);
+  });
+
   it('resolves landing page hero content from events.json using landing_page slug', () => {
     const heroEventContent = getLandingPageHeroEventContent(
       'easter-2026-montessori-play-coaching-workshop',

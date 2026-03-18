@@ -76,6 +76,11 @@ function formatEnumLikeLabel(value: string): string {
     return '';
   }
 
+  // Preserve numeric ranges (for example, "1-4") used as age-group tags.
+  if (/^\d+\s*-\s*\d+$/.test(trimmedValue)) {
+    return trimmedValue.replace(/\s*-\s*/g, '-');
+  }
+
   if (/\s/.test(trimmedValue) || !/[_-]/.test(trimmedValue)) {
     return trimmedValue;
   }
