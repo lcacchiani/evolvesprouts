@@ -37,14 +37,8 @@ interface LandingPageHeroProps {
 
 const PARTNER_LOGO_EXTENSIONS = ['webp', 'svg'] as const;
 const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = {
-  'baumhaus': [
-    '/images/partners/baumhaus.webp',
-    '/images/partners/baumhaus.svg',
-  ],
-  'happy-baton': [
-    '/images/partners/happy-baton.webp',
-    '/images/partners/happy-baton.svg',
-  ],
+  'baumhaus': ['/images/partners/baumhaus.webp'],
+  'happy-baton': ['/images/partners/happy-baton.webp'],
 };
 
 function buildPartnerLogoSources(partner: string): string[] {
