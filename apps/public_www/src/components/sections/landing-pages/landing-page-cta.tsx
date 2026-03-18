@@ -130,10 +130,10 @@ export function LandingPageCta({
         id='landing-page-cta'
         ariaLabel={ariaLabel ?? content.title}
         dataFigmaNode='landing-page-cta'
+        className='es-bg-surface-white'
       >
         <SectionContainer>
           <SectionHeader
-            eyebrow={content.eyebrow}
             title={content.title}
             description={content.description}
             align='left'

@@ -6,14 +6,23 @@ import { LandingPage } from '@/components/pages/landing-pages/landing-page';
 import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 
+vi.mock('@/lib/events-data', () => ({
+  getLandingPageHeroEventContent: () => ({
+    title: 'Mock Event Title',
+    chips: ['Mock Time', 'Wan Chai', '1-4', 'Workshop'],
+  }),
+}));
+
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({ children }: { children: ReactNode }) => (
     <div data-testid='page-layout'>{children}</div>
   ),
 }));
 vi.mock('@/components/sections/landing-pages/landing-page-hero', () => ({
-  LandingPageHero: ({ content }: { content: { title: string } }) => (
-    <section data-testid='landing-page-hero'>{content.title}</section>
+  LandingPageHero: ({ title, chips }: { title: string; chips: string[] }) => (
+    <section data-testid='landing-page-hero'>
+      {title} ({chips.length} chips)
+    </section>
   ),
 }));
 vi.mock('@/components/sections/landing-pages/landing-page-details', () => ({
@@ -86,6 +95,9 @@ describe('LandingPage composition', () => {
         screen.getByTestId('landing-page-faq'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(screen.getByTestId('landing-page-hero')).toHaveTextContent(
+      'Mock Event Title (4 chips)',
+    );
     expect(screen.getByTestId('landing-page-cta')).toHaveTextContent(
       `${easterWorkshopContent.en.cta.title} (zh-HK) [easter-2026-montessori-play-coaching-workshop]`,
     );

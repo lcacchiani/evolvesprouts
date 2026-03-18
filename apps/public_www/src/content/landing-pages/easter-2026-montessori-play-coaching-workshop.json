@@ -9,17 +9,13 @@
       }
     },
     "hero": {
-      "title": "Easter 2026 Montessori Play Coaching Workshop",
       "subtitle": "A practical workshop for parents and young children",
       "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
       "imageAlt": "Parent and child in a Montessori play coaching workshop",
       "imageSrc": "/images/training.svg",
-      "imageMobileSrc": "/images/training.svg",
-      "dateLabel": "April 5, 2026",
-      "locationLabel": "Sheung Wan, Hong Kong"
+      "imageMobileSrc": "/images/training.svg"
     },
     "details": {
-      "eyebrow": "Workshop Details",
       "title": "What You Will Learn",
       "description": "This session combines guided demonstrations with practical coaching so you can apply what you learn immediately.",
       "items": [
@@ -38,7 +34,6 @@
       ]
     },
     "faq": {
-      "eyebrow": "FAQ",
       "title": "Frequently Asked Questions",
       "items": [
         {
@@ -52,7 +47,6 @@
       ]
     },
     "cta": {
-      "eyebrow": "Reserve Your Spot",
       "title": "Ready to Join Us This Easter?",
       "description": "Spaces are limited for this small-group workshop. Reserve your spot now.",
       "buttonLabel": "Book Now"
@@ -137,17 +131,13 @@
       }
     },
     "hero": {
-      "title": "2026 复活节蒙特梭利游戏教练工作坊",
       "subtitle": "为家长与幼儿设计的实用工作坊",
       "description": "欢迎参加复活节工作坊。我们将聚焦尊重式引导、可落地的日常节奏，以及你回家就能应用的蒙特梭利启发式游戏方法。",
       "imageAlt": "家长与孩子参加蒙特梭利游戏教练工作坊",
       "imageSrc": "/images/training.svg",
-      "imageMobileSrc": "/images/training.svg",
-      "dateLabel": "2026年4月5日",
-      "locationLabel": "香港上环"
+      "imageMobileSrc": "/images/training.svg"
     },
     "details": {
-      "eyebrow": "工作坊详情",
       "title": "你将学到什么",
       "description": "本次课程结合现场示范与实战指导，帮助你把所学内容立即应用到家庭日常。",
       "items": [
@@ -166,7 +156,6 @@
       ]
     },
     "faq": {
-      "eyebrow": "常见问题",
       "title": "常见问题",
       "items": [
         {
@@ -180,7 +169,6 @@
       ]
     },
     "cta": {
-      "eyebrow": "预留名额",
       "title": "准备好今年复活节一起参与了吗？",
       "description": "本工作坊为小班教学，名额有限。现在就预留你的席位。",
       "buttonLabel": "立即预约"
@@ -265,17 +253,13 @@
       }
     },
     "hero": {
-      "title": "2026 復活節蒙特梭利遊戲教練工作坊",
       "subtitle": "為家長與幼兒而設的實用工作坊",
       "description": "歡迎參加復活節工作坊。我們將聚焦尊重式引導、可落地的日常節奏，以及你回家即可應用的蒙特梭利啟發式遊戲方法。",
       "imageAlt": "家長與小朋友參與蒙特梭利遊戲教練工作坊",
       "imageSrc": "/images/training.svg",
-      "imageMobileSrc": "/images/training.svg",
-      "dateLabel": "2026年4月5日",
-      "locationLabel": "香港上環"
+      "imageMobileSrc": "/images/training.svg"
     },
     "details": {
-      "eyebrow": "工作坊詳情",
       "title": "你將會學到甚麼",
       "description": "本次課程結合現場示範與實戰指導，幫助你把所學內容即時應用到家庭日常。",
       "items": [
@@ -294,7 +278,6 @@
       ]
     },
     "faq": {
-      "eyebrow": "常見問題",
       "title": "常見問題",
       "items": [
         {
@@ -308,7 +291,6 @@
       ]
     },
     "cta": {
-      "eyebrow": "預留名額",
       "title": "準備好今個復活節一齊參與嗎？",
       "description": "本工作坊為小班教學，名額有限。立即預留你的席位。",
       "buttonLabel": "立即預約"

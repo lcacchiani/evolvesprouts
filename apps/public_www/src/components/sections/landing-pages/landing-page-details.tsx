@@ -17,10 +17,10 @@ export function LandingPageDetails({
       id='landing-page-details'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='landing-page-details'
+      className='es-bg-surface-white'
     >
       <SectionContainer>
         <SectionHeader
-          eyebrow={content.eyebrow}
           title={content.title}
           description={content.description}
           align='left'
@@ -31,7 +31,7 @@ export function LandingPageDetails({
               key={item.title}
               className='rounded-panel es-bg-surface-muted p-6'
             >
-              <h3 className='text-lg font-semibold es-text-heading-alt'>
+              <h3 className='text-lg font-semibold es-text-heading'>
                 {item.title}
               </h3>
               <p className='mt-3 es-type-body'>{item.description}</p>

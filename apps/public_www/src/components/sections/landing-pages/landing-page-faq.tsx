@@ -14,11 +14,10 @@ export function LandingPageFaq({ content, ariaLabel }: LandingPageFaqProps) {
       id='landing-page-faq'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='landing-page-faq'
-      className='es-section-bg-overlay'
+      className='es-bg-surface-white'
     >
       <SectionContainer>
         <SectionHeader
-          eyebrow={content.eyebrow}
           title={content.title}
           align='left'
         />
@@ -28,7 +27,7 @@ export function LandingPageFaq({ content, ariaLabel }: LandingPageFaqProps) {
               key={item.question}
               className='rounded-panel es-bg-surface-white p-6'
             >
-              <dt className='text-lg font-semibold es-text-heading-alt'>
+              <dt className='text-lg font-semibold es-text-heading'>
                 {item.question}
               </dt>
               <dd className='mt-3 es-type-body'>{item.answer}</dd>

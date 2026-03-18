@@ -436,11 +436,11 @@ export function MyBestAuntieBooking({
                 <p className='text-base font-semibold es-text-brand'>
                   {nextCohortLabel}
                 </p>
-                <p className='es-type-subtitle-lg mt-1 es-text-heading-alt'>
+                <p className='es-type-subtitle-lg mt-1 es-text-heading'>
                   {nextCohortPreview}
                 </p>
                 {nextCohortPriceLabel ? (
-                  <p className='mt-1 text-base font-semibold es-text-heading-alt'>
+                  <p className='mt-1 text-base font-semibold es-text-heading'>
                     {nextCohortPriceLabel}
                   </p>
                 ) : null}

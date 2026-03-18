@@ -9,6 +9,7 @@ import { LandingPageCta } from '@/components/sections/landing-pages/landing-page
 import { LandingPageDetails } from '@/components/sections/landing-pages/landing-page-details';
 import { LandingPageFaq } from '@/components/sections/landing-pages/landing-page-faq';
 import { LandingPageHero } from '@/components/sections/landing-pages/landing-page-hero';
+import { getLandingPageHeroEventContent } from '@/lib/events-data';
 
 interface LandingPageProps {
   locale: Locale;
@@ -23,6 +24,8 @@ export function LandingPage({
   siteContent,
   pageContent,
 }: LandingPageProps) {
+  const heroEventContent = getLandingPageHeroEventContent(slug, locale);
+
   return (
     <PageLayout
       navbarContent={siteContent.navbar}
@@ -30,6 +33,8 @@ export function LandingPage({
     >
       <LandingPageHero
         content={pageContent.hero}
+        title={heroEventContent?.title ?? pageContent.meta.title}
+        chips={heroEventContent?.chips ?? []}
         ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
       />
       <LandingPageDetails
