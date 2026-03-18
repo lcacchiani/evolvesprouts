@@ -17,7 +17,7 @@ const LANDING_PAGE_SLUGS = Object.freeze(
 );
 
 function assertNoLandingPageRouteCollisions(): void {
-  const appRoutePathSet = new Set(Object.values(ROUTES));
+  const appRoutePathSet = new Set<string>(Object.values(ROUTES));
 
   for (const slug of LANDING_PAGE_SLUGS) {
     const landingPagePath = buildLandingPagePath(slug);

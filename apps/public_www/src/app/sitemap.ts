@@ -41,17 +41,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const siteOrigin = getSiteOrigin();
   const lastModified = resolveSitemapLastModifiedDate();
 
-  const indexedEntries = SUPPORTED_LOCALES.flatMap((locale) =>
+  const indexedEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) =>
     INDEXED_ROUTE_PATHS.map((routePath) => ({
       url: `${siteOrigin}${localizePath(routePath, locale)}`,
-      changeFrequency: routePath === ROUTES.home ? 'weekly' : 'monthly',
+      changeFrequency:
+        routePath === ROUTES.home
+          ? ('weekly' as const)
+          : ('monthly' as const),
       priority: routePath === ROUTES.home ? 1 : 0.7,
       lastModified,
       alternates: buildSitemapAlternates(routePath, siteOrigin),
     })),
   );
 
-  const landingPageEntries = SUPPORTED_LOCALES.flatMap((locale) =>
+  const landingPageEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) =>
     getAllLandingPageSlugs().map((slug) => {
       const routePath = buildLandingPagePath(slug);
       return {

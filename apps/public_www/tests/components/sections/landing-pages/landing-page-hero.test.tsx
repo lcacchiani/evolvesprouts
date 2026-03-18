@@ -27,7 +27,8 @@ describe('LandingPageHero section', () => {
     expect(screen.getByText(easterWorkshopContent.en.hero.description)).toBeInTheDocument();
     expect(screen.getByText(easterWorkshopContent.en.hero.dateLabel)).toBeInTheDocument();
     expect(screen.getByText(easterWorkshopContent.en.hero.locationLabel)).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: easterWorkshopContent.en.hero.imageAlt }))
-      .toBeInTheDocument();
+    expect(
+      screen.getAllByRole('img', { name: easterWorkshopContent.en.hero.imageAlt }),
+    ).toHaveLength(2);
   });
 });
