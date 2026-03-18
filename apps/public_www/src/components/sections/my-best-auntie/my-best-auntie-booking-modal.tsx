@@ -136,8 +136,8 @@ export function MyBestAuntieBookingModal({
   const selectedCohortDateLabelText =
     selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '');
   const selectedVenueName = '';
-  const selectedVenueAddress = selectedCohort?.address ?? '';
-  const selectedVenueDirectionHref = selectedCohort?.address_url ?? '#';
+  const selectedVenueAddress = selectedCohort?.location_address ?? '';
+  const selectedVenueDirectionHref = selectedCohort?.location_url ?? '#';
 
   return (
     <ModalOverlay

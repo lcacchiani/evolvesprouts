@@ -66,8 +66,9 @@ export interface MyBestAuntieEventCohort {
   booking_system: string;
   tags: string[];
   categories: string[];
-  address: string;
-  address_url: string;
+  location_name: string;
+  location_address: string;
+  location_url: string;
   dates: MyBestAuntieEventCohortDate[];
 }
 
@@ -458,9 +459,18 @@ function buildMyBestAuntieBookingModalPayload(
   const price = resolveNumericCandidate(record, ['price']) ?? 0;
   const currency = readCandidateText(record, ['currency']) ?? 'HKD';
   const location = readCandidateText(record, ['location']) ?? 'physical';
-  const address = readCandidateText(record, ['address']) ?? '';
-  const addressUrl = sanitizeGoogleMapsHref(
-    readCandidateText(record, ['address_url']),
+  const locationAddress = readCandidateText(record, [
+    'location_address',
+    'locationAddress',
+    'address',
+  ]) ?? '';
+  const locationName = readCandidateText(record, [
+    'location_name',
+    'locationName',
+    'venue',
+  ]) ?? locationAddress;
+  const locationUrl = sanitizeGoogleMapsHref(
+    readCandidateText(record, ['location_url', 'locationUrl', 'address_url']),
   );
   const dates = resolveBookingDateParts(record, '')
     .map((part) => {
@@ -489,8 +499,9 @@ function buildMyBestAuntieBookingModalPayload(
     booking_system: MY_BEST_AUNTIE_BOOKING_SYSTEM,
     tags: resolveStringList(record.tags),
     categories: resolveStringList(record.categories),
-    address,
-    address_url: addressUrl,
+    location_name: locationName,
+    location_address: locationAddress,
+    location_url: locationUrl,
     dates,
   };
 
@@ -1147,8 +1158,11 @@ function normalizeEventCard(
 
   const locationName =
     readCandidateText(record, [
+      'location_name',
       'locationName',
       'venue',
+      'location_address',
+      'locationAddress',
       'address',
     ]) ?? normalizeLocationLabel(readOptionalText(record.location), content);
   const isVirtualEvent = isVirtualLocationType(
@@ -1161,11 +1175,14 @@ function normalizeEventCard(
     ]),
   );
   const locationAddress = readCandidateText(record, [
+    'location_address',
     'locationAddress',
     'venueAddress',
+    'address',
   ]);
   const directionHref = sanitizeGoogleMapsHref(
     readCandidateText(record, [
+      'location_url',
       'directionHref',
       'directionUrl',
       'mapHref',
@@ -1184,7 +1201,7 @@ function normalizeEventCard(
     title,
     summary,
     locationName,
-    locationAddress ?? readCandidateText(record, ['address']),
+    locationAddress,
     directionHref,
   );
 
@@ -1270,9 +1287,11 @@ export function getLandingPageHeroEventContent(
     : undefined;
   const locationSource =
     readCandidateText(eventRecord, [
+      'location_address',
       'locationAddress',
       'venueAddress',
       'address',
+      'location_name',
       'locationName',
       'venue',
     ]) ?? readOptionalText(eventRecord.location);
@@ -1310,16 +1329,22 @@ export function getLandingPageBookingEventContent(
     'body',
   ]);
   const locationName = readCandidateText(eventRecord, [
+    'location_name',
     'locationName',
     'venue',
+    'location_address',
+    'locationAddress',
     'address',
   ]);
   const locationAddress = readCandidateText(eventRecord, [
+    'location_address',
     'locationAddress',
     'venueAddress',
-  ]) ?? readCandidateText(eventRecord, ['address']);
+    'address',
+  ]);
   const directionHref = sanitizeGoogleMapsHref(
     readCandidateText(eventRecord, [
+      'location_url',
       'directionHref',
       'directionUrl',
       'mapHref',
@@ -1399,13 +1424,17 @@ export function getLandingPageStructuredDataContent(
     'body',
   ]) ?? title;
   const locationAddress = readCandidateText(eventRecord, [
+    'location_address',
     'locationAddress',
     'venueAddress',
     'address',
   ]);
   const locationName = readCandidateText(eventRecord, [
+    'location_name',
     'locationName',
     'venue',
+    'location_address',
+    'locationAddress',
   ]) ?? extractTrailingLocationSegment(locationAddress);
   const offerPriceNumeric = resolveNumericCandidate(eventRecord, [
     'price',

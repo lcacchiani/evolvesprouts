@@ -491,8 +491,9 @@ describe('MyBestAuntieBooking section', () => {
         location: 'physical',
         tags: [],
         categories: ['Training Course'],
-        address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
-        address_url:
+        location_name: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
+        location_address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
+        location_url:
           'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
         dates: [
           {
@@ -526,8 +527,9 @@ describe('MyBestAuntieBooking section', () => {
         location: 'physical',
         tags: [],
         categories: ['Training Course'],
-        address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
-        address_url:
+        location_name: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
+        location_address: 'Goldwin Heights, 2 Seymour Road, Mid-Levels, Hong Kong',
+        location_url:
           'https://www.google.com/maps/dir/?api=1&destination=2+Seymour+Road,+Mid-Levels,+Hong+Kong',
         dates: [
           {
