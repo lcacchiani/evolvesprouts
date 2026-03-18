@@ -1219,5 +1219,17 @@
       "title": "連結",
       "description": "快速訪問 Evolve Sprouts 課程、活動及聯繫方式。"
     }
+  },
+  "landingPages": {
+    "common": {
+      "backToHomeLabel": "返回首頁",
+      "defaultCtaLabel": "立即預約",
+      "a11y": {
+        "heroSectionLabel": "活動概覽",
+        "detailsSectionLabel": "活動詳情",
+        "ctaSectionLabel": "預約",
+        "faqSectionLabel": "常見問題"
+      }
+    }
   }
 }

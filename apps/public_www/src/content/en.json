@@ -1219,5 +1219,17 @@
       "title": "Links",
       "description": "Quick links to Evolve Sprouts courses, events, and contact channels in Hong Kong."
     }
+  },
+  "landingPages": {
+    "common": {
+      "backToHomeLabel": "Back to Home",
+      "defaultCtaLabel": "Book Now",
+      "a11y": {
+        "heroSectionLabel": "Event overview",
+        "detailsSectionLabel": "Event details",
+        "ctaSectionLabel": "Booking",
+        "faqSectionLabel": "Frequently asked questions"
+      }
+    }
   }
 }

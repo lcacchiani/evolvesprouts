@@ -4,6 +4,10 @@ import { SUPPORTED_LOCALES } from '@/content';
 import robots from '@/app/robots';
 import sitemap from '@/app/sitemap';
 import {
+  buildLandingPagePath,
+  getAllLandingPageSlugs,
+} from '@/lib/landing-pages';
+import {
   INDEXED_ROUTE_PATHS,
   PLACEHOLDER_ROUTE_PATHS,
 } from '@/lib/routes';
@@ -27,6 +31,20 @@ describe('sitemap', () => {
 
     for (const entry of entries) {
       expect(entry.lastModified).toBeInstanceOf(Date);
+    }
+  });
+
+  it('includes localized landing page entries', () => {
+    const siteOrigin = getSiteOrigin();
+    const entries = sitemap();
+    const urls = new Set(entries.map((entry) => entry.url));
+
+    for (const locale of SUPPORTED_LOCALES) {
+      for (const slug of getAllLandingPageSlugs()) {
+        expect(urls).toContain(
+          `${siteOrigin}${localizePath(buildLandingPagePath(slug), locale)}`,
+        );
+      }
     }
   });
 

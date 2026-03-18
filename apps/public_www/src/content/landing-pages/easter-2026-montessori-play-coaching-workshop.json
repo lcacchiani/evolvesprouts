@@ -1,0 +1,386 @@
+{
+  "en": {
+    "meta": {
+      "title": "Easter 2026 Montessori Play Coaching Workshop",
+      "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
+      "socialImage": {
+        "url": "/images/landing-pages/easter-2026/og.png",
+        "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
+      }
+    },
+    "hero": {
+      "title": "Easter 2026 Montessori Play Coaching Workshop",
+      "subtitle": "A practical workshop for parents and young children",
+      "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
+      "imageAlt": "Parent and child in a Montessori play coaching workshop",
+      "imageSrc": "/images/landing-pages/easter-2026/hero.webp",
+      "imageMobileSrc": "/images/landing-pages/easter-2026/hero-mobile.webp",
+      "dateLabel": "April 5, 2026",
+      "locationLabel": "Sheung Wan, Hong Kong"
+    },
+    "details": {
+      "eyebrow": "Workshop Details",
+      "title": "What You Will Learn",
+      "description": "This session combines guided demonstrations with practical coaching so you can apply what you learn immediately.",
+      "items": [
+        {
+          "title": "Guided Montessori Play",
+          "description": "Hands-on activities tailored to early childhood development."
+        },
+        {
+          "title": "Parent and Caregiver Coaching",
+          "description": "Clear language and routines you can use in everyday moments."
+        },
+        {
+          "title": "Home-Ready Action Plan",
+          "description": "Leave with practical next steps for your own family rhythm."
+        }
+      ]
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "Who is this workshop for?",
+          "answer": "This workshop is designed for parents and caregivers of young children aged 0-3."
+        },
+        {
+          "question": "What should we bring?",
+          "answer": "Just bring yourselves. All workshop materials will be provided on site."
+        }
+      ]
+    },
+    "cta": {
+      "eyebrow": "Reserve Your Spot",
+      "title": "Ready to Join Us This Easter?",
+      "description": "Spaces are limited for this small-group workshop. Reserve your spot now.",
+      "buttonLabel": "Book Now"
+    },
+    "booking": {
+      "ageOptions": [
+        {
+          "id": "0-3",
+          "label": "0-3",
+          "iconSrc": "/images/landing-pages/easter-2026/age-0-3.svg"
+        }
+      ],
+      "cohorts": [
+        {
+          "id": "easter-2026-0-3-session-1",
+          "age_group": "0-3",
+          "title": "Easter 2026 Montessori Play Coaching Workshop (0-3)",
+          "description": "Montessori-inspired play coaching workshop for early childhood.",
+          "cohort": "04-26",
+          "spaces_total": 12,
+          "spaces_left": 12,
+          "is_fully_booked": false,
+          "price": 800,
+          "currency": "HKD",
+          "location": "physical",
+          "booking_system": "landing-page-easter-2026",
+          "tags": [
+            "Easter",
+            "0-3"
+          ],
+          "categories": [
+            "Workshop"
+          ],
+          "address": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
+          "address_url": "https://www.google.com/maps/dir/?api=1&destination=Arion+Commercial+Centre,+2-12+Queen%27s+Road+West,+Sheung+Wan",
+          "dates": [
+            {
+              "id": "session-1",
+              "start_datetime": "2026-04-05T01:00:00Z",
+              "end_datetime": "2026-04-05T03:00:00Z"
+            }
+          ]
+        }
+      ],
+      "modal": {
+        "title": "Easter 2026 Montessori Play Coaching Workshop",
+        "subtitle": "Booking Details",
+        "partSummaries": [
+          "Workshop Session"
+        ]
+      },
+      "spacesLeftLabelTemplate": "{count} spots left",
+      "soldOutStampLabel": "Sold Out",
+      "confirmAndPayLabel": "Confirm & Pay",
+      "ageSelectorLabel": "Select age group",
+      "dateSelectorLabel": "Select session",
+      "scheduleLabel": "Next session",
+      "nextCohortLabelTemplate": "{scheduleLabel} ({ageGroupLabel})",
+      "noCohortsLabel": "No sessions available",
+      "scrollDatesLeftAriaLabel": "Scroll sessions left",
+      "scrollDatesRightAriaLabel": "Scroll sessions right"
+    },
+    "structuredData": {
+      "eventName": "Easter 2026 Montessori Play Coaching Workshop",
+      "description": "A hands-on Easter workshop for parents and caregivers to practice Montessori-inspired play coaching.",
+      "startDate": "2026-04-05T09:00:00+08:00",
+      "endDate": "2026-04-05T11:00:00+08:00",
+      "locationName": "Arion Commercial Centre",
+      "locationAddress": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
+      "offerPrice": "800",
+      "offerCurrency": "HKD",
+      "offerAvailability": "InStock"
+    }
+  },
+  "zh-CN": {
+    "meta": {
+      "title": "Easter 2026 Montessori Play Coaching Workshop",
+      "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
+      "socialImage": {
+        "url": "/images/landing-pages/easter-2026/og.png",
+        "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
+      }
+    },
+    "hero": {
+      "title": "Easter 2026 Montessori Play Coaching Workshop",
+      "subtitle": "A practical workshop for parents and young children",
+      "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
+      "imageAlt": "Parent and child in a Montessori play coaching workshop",
+      "imageSrc": "/images/landing-pages/easter-2026/hero.webp",
+      "imageMobileSrc": "/images/landing-pages/easter-2026/hero-mobile.webp",
+      "dateLabel": "April 5, 2026",
+      "locationLabel": "Sheung Wan, Hong Kong"
+    },
+    "details": {
+      "eyebrow": "Workshop Details",
+      "title": "What You Will Learn",
+      "description": "This session combines guided demonstrations with practical coaching so you can apply what you learn immediately.",
+      "items": [
+        {
+          "title": "Guided Montessori Play",
+          "description": "Hands-on activities tailored to early childhood development."
+        },
+        {
+          "title": "Parent and Caregiver Coaching",
+          "description": "Clear language and routines you can use in everyday moments."
+        },
+        {
+          "title": "Home-Ready Action Plan",
+          "description": "Leave with practical next steps for your own family rhythm."
+        }
+      ]
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "Who is this workshop for?",
+          "answer": "This workshop is designed for parents and caregivers of young children aged 0-3."
+        },
+        {
+          "question": "What should we bring?",
+          "answer": "Just bring yourselves. All workshop materials will be provided on site."
+        }
+      ]
+    },
+    "cta": {
+      "eyebrow": "Reserve Your Spot",
+      "title": "Ready to Join Us This Easter?",
+      "description": "Spaces are limited for this small-group workshop. Reserve your spot now.",
+      "buttonLabel": "Book Now"
+    },
+    "booking": {
+      "ageOptions": [
+        {
+          "id": "0-3",
+          "label": "0-3",
+          "iconSrc": "/images/landing-pages/easter-2026/age-0-3.svg"
+        }
+      ],
+      "cohorts": [
+        {
+          "id": "easter-2026-0-3-session-1",
+          "age_group": "0-3",
+          "title": "Easter 2026 Montessori Play Coaching Workshop (0-3)",
+          "description": "Montessori-inspired play coaching workshop for early childhood.",
+          "cohort": "04-26",
+          "spaces_total": 12,
+          "spaces_left": 12,
+          "is_fully_booked": false,
+          "price": 800,
+          "currency": "HKD",
+          "location": "physical",
+          "booking_system": "landing-page-easter-2026",
+          "tags": [
+            "Easter",
+            "0-3"
+          ],
+          "categories": [
+            "Workshop"
+          ],
+          "address": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
+          "address_url": "https://www.google.com/maps/dir/?api=1&destination=Arion+Commercial+Centre,+2-12+Queen%27s+Road+West,+Sheung+Wan",
+          "dates": [
+            {
+              "id": "session-1",
+              "start_datetime": "2026-04-05T01:00:00Z",
+              "end_datetime": "2026-04-05T03:00:00Z"
+            }
+          ]
+        }
+      ],
+      "modal": {
+        "title": "Easter 2026 Montessori Play Coaching Workshop",
+        "subtitle": "Booking Details",
+        "partSummaries": [
+          "Workshop Session"
+        ]
+      },
+      "spacesLeftLabelTemplate": "{count} spots left",
+      "soldOutStampLabel": "Sold Out",
+      "confirmAndPayLabel": "Confirm & Pay",
+      "ageSelectorLabel": "Select age group",
+      "dateSelectorLabel": "Select session",
+      "scheduleLabel": "Next session",
+      "nextCohortLabelTemplate": "{scheduleLabel} ({ageGroupLabel})",
+      "noCohortsLabel": "No sessions available",
+      "scrollDatesLeftAriaLabel": "Scroll sessions left",
+      "scrollDatesRightAriaLabel": "Scroll sessions right"
+    },
+    "structuredData": {
+      "eventName": "Easter 2026 Montessori Play Coaching Workshop",
+      "description": "A hands-on Easter workshop for parents and caregivers to practice Montessori-inspired play coaching.",
+      "startDate": "2026-04-05T09:00:00+08:00",
+      "endDate": "2026-04-05T11:00:00+08:00",
+      "locationName": "Arion Commercial Centre",
+      "locationAddress": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
+      "offerPrice": "800",
+      "offerCurrency": "HKD",
+      "offerAvailability": "InStock"
+    }
+  },
+  "zh-HK": {
+    "meta": {
+      "title": "Easter 2026 Montessori Play Coaching Workshop",
+      "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
+      "socialImage": {
+        "url": "/images/landing-pages/easter-2026/og.png",
+        "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
+      }
+    },
+    "hero": {
+      "title": "Easter 2026 Montessori Play Coaching Workshop",
+      "subtitle": "A practical workshop for parents and young children",
+      "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
+      "imageAlt": "Parent and child in a Montessori play coaching workshop",
+      "imageSrc": "/images/landing-pages/easter-2026/hero.webp",
+      "imageMobileSrc": "/images/landing-pages/easter-2026/hero-mobile.webp",
+      "dateLabel": "April 5, 2026",
+      "locationLabel": "Sheung Wan, Hong Kong"
+    },
+    "details": {
+      "eyebrow": "Workshop Details",
+      "title": "What You Will Learn",
+      "description": "This session combines guided demonstrations with practical coaching so you can apply what you learn immediately.",
+      "items": [
+        {
+          "title": "Guided Montessori Play",
+          "description": "Hands-on activities tailored to early childhood development."
+        },
+        {
+          "title": "Parent and Caregiver Coaching",
+          "description": "Clear language and routines you can use in everyday moments."
+        },
+        {
+          "title": "Home-Ready Action Plan",
+          "description": "Leave with practical next steps for your own family rhythm."
+        }
+      ]
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "Who is this workshop for?",
+          "answer": "This workshop is designed for parents and caregivers of young children aged 0-3."
+        },
+        {
+          "question": "What should we bring?",
+          "answer": "Just bring yourselves. All workshop materials will be provided on site."
+        }
+      ]
+    },
+    "cta": {
+      "eyebrow": "Reserve Your Spot",
+      "title": "Ready to Join Us This Easter?",
+      "description": "Spaces are limited for this small-group workshop. Reserve your spot now.",
+      "buttonLabel": "Book Now"
+    },
+    "booking": {
+      "ageOptions": [
+        {
+          "id": "0-3",
+          "label": "0-3",
+          "iconSrc": "/images/landing-pages/easter-2026/age-0-3.svg"
+        }
+      ],
+      "cohorts": [
+        {
+          "id": "easter-2026-0-3-session-1",
+          "age_group": "0-3",
+          "title": "Easter 2026 Montessori Play Coaching Workshop (0-3)",
+          "description": "Montessori-inspired play coaching workshop for early childhood.",
+          "cohort": "04-26",
+          "spaces_total": 12,
+          "spaces_left": 12,
+          "is_fully_booked": false,
+          "price": 800,
+          "currency": "HKD",
+          "location": "physical",
+          "booking_system": "landing-page-easter-2026",
+          "tags": [
+            "Easter",
+            "0-3"
+          ],
+          "categories": [
+            "Workshop"
+          ],
+          "address": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
+          "address_url": "https://www.google.com/maps/dir/?api=1&destination=Arion+Commercial+Centre,+2-12+Queen%27s+Road+West,+Sheung+Wan",
+          "dates": [
+            {
+              "id": "session-1",
+              "start_datetime": "2026-04-05T01:00:00Z",
+              "end_datetime": "2026-04-05T03:00:00Z"
+            }
+          ]
+        }
+      ],
+      "modal": {
+        "title": "Easter 2026 Montessori Play Coaching Workshop",
+        "subtitle": "Booking Details",
+        "partSummaries": [
+          "Workshop Session"
+        ]
+      },
+      "spacesLeftLabelTemplate": "{count} spots left",
+      "soldOutStampLabel": "Sold Out",
+      "confirmAndPayLabel": "Confirm & Pay",
+      "ageSelectorLabel": "Select age group",
+      "dateSelectorLabel": "Select session",
+      "scheduleLabel": "Next session",
+      "nextCohortLabelTemplate": "{scheduleLabel} ({ageGroupLabel})",
+      "noCohortsLabel": "No sessions available",
+      "scrollDatesLeftAriaLabel": "Scroll sessions left",
+      "scrollDatesRightAriaLabel": "Scroll sessions right"
+    },
+    "structuredData": {
+      "eventName": "Easter 2026 Montessori Play Coaching Workshop",
+      "description": "A hands-on Easter workshop for parents and caregivers to practice Montessori-inspired play coaching.",
+      "startDate": "2026-04-05T09:00:00+08:00",
+      "endDate": "2026-04-05T11:00:00+08:00",
+      "locationName": "Arion Commercial Centre",
+      "locationAddress": "Unit 507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan",
+      "offerPrice": "800",
+      "offerCurrency": "HKD",
+      "offerAvailability": "InStock"
+    }
+  }
+}
