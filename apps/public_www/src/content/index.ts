@@ -88,9 +88,9 @@ export interface LandingPageLocaleContent {
     description: string;
     imageAlt: string;
     imageSrc: string;
-    imageMobileSrc?: string;
   };
   details: {
+    eyebrow?: string;
     title: string;
     description: string;
     items: Array<{
@@ -106,6 +106,7 @@ export interface LandingPageLocaleContent {
     }>;
   };
   cta: {
+    eyebrow?: string;
     title: string;
     description: string;
     buttonLabel: string;

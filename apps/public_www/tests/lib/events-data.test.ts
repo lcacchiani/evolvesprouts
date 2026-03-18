@@ -104,6 +104,7 @@ describe('events-data', () => {
           categories: {
             '264': 'TEST Creative Arts',
           },
+          partners: ['partner-one'],
           location: 'physical',
           address:
             'H210, 2/F, PMQ, Mid-Levels, Central and Western, Hong Kong Island',
@@ -171,6 +172,7 @@ describe('events-data', () => {
       'TEST Limited Seats',
       'TEST Creative Arts',
     ]);
+    expect(events[0]?.partners).toEqual(['partner-one']);
 
     expect(events[1]).toMatchObject({
       title: 'TEST Data Science Intensive Touch',
@@ -190,6 +192,7 @@ describe('events-data', () => {
       'TEST In-Person',
       'TEST Workshop Category',
     ]);
+    expect(events[1]?.partners).toBeUndefined();
   });
 
   it('uses external_url as the event card CTA when available', () => {
@@ -402,6 +405,7 @@ describe('events-data', () => {
       startDateTime: '2026-04-06T02:00:00Z',
       endDateTime: '2026-04-06T03:00:00Z',
       locationLabel: 'Wan Chai',
+      partners: ['happy-baton', 'baumhaus'],
       categoryChips: ['Workshop'],
     });
   });
@@ -418,6 +422,8 @@ describe('events-data', () => {
       bookingPayload: {
         variant: 'event',
         title: 'Easter 2026 Montessori Play Coaching Workshop',
+        locationName: 'Baumhaus',
+        locationAddress: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
         selectedDateLabel: '06 Apr 2026',
         selectedDateStartTime: '2026-04-06T02:00:00Z',
       },
@@ -436,6 +442,8 @@ describe('events-data', () => {
         'A practical Montessori-inspired play coaching workshop for children ages 1-4, with parent and child participation (helpers warmly welcome).',
       startDate: '2026-04-06T02:00:00.000Z',
       endDate: '2026-04-06T03:00:00.000Z',
+      locationName: 'Baumhaus',
+      locationAddress: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
       offerPrice: '350',
       offerCurrency: 'HKD',
       offerAvailability: 'InStock',

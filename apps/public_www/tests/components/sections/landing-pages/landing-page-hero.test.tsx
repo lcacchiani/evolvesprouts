@@ -23,6 +23,7 @@ describe('LandingPageHero section', () => {
       startDateTime: '2026-04-06T02:00:00Z',
       endDateTime: '2026-04-06T03:00:00Z',
       locationLabel: 'Wan Chai',
+      partners: ['happy-baton', 'baumhaus'],
       categoryChips: ['Workshop'],
     };
     const expectedDateChip = 'Monday 06 April 2026';
@@ -84,9 +85,64 @@ describe('LandingPageHero section', () => {
     expect(
       screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
     ).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-hero-partners')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toBeInTheDocument();
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     expect(
       screen.getAllByRole('img', { name: easterWorkshopContent.en.hero.imageAlt }),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
+  });
+
+  it('does not render subtitle block when subtitle is empty', () => {
+    const eventContent = {
+      title: 'Easter 2026 Montessori Play Coaching Workshop',
+      startDateTime: '2026-04-06T02:00:00Z',
+      endDateTime: '2026-04-06T03:00:00Z',
+      locationLabel: 'Wan Chai',
+      partners: [],
+      categoryChips: ['Workshop'],
+    };
+    const bookingPayload: EventBookingModalPayload = {
+      variant: 'event',
+      bookingSystem: 'event-booking',
+      title: eventContent.title,
+      subtitle: 'A practical workshop',
+      originalAmount: 350,
+      locationName: 'Baumhaus',
+      locationAddress: "Baumhaus, 1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
+      directionHref:
+        'https://www.google.com/maps/dir/?api=1&destination=Baumhaus,+1/F+Kar+Yau+Building,+36-44+Queen%27s+Rd+E,+Wan+Chai',
+      dateParts: [
+        {
+          id: 'session-1',
+          startDateTime: eventContent.startDateTime,
+          endDateTime: eventContent.endDateTime,
+          description: 'A practical workshop',
+        },
+      ],
+      selectedDateLabel: '06 Apr 2026',
+      selectedDateStartTime: eventContent.startDateTime,
+    };
+
+    render(
+      <LandingPageHero
+        slug='easter-2026-montessori-play-coaching-workshop'
+        content={{
+          ...easterWorkshopContent.en.hero,
+          subtitle: '',
+        }}
+        ctaContent={easterWorkshopContent.en.cta}
+        commonContent={enContent.landingPages.common}
+        locale='en'
+        title={eventContent.title}
+        eventContent={eventContent}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    expect(document.querySelector('.es-type-subtitle-lg')).toBeNull();
   });
 });

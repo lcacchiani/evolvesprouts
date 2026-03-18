@@ -67,6 +67,13 @@ describe('LandingPageCta section', () => {
     expect(section).not.toBeNull();
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-cta');
     expect(section).toHaveClass('es-landing-page-cta-section');
+    expect(screen.getByText(easterWorkshopContent.en.cta.eyebrow)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: easterWorkshopContent.en.cta.title,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(easterWorkshopContent.en.cta.description)).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', {

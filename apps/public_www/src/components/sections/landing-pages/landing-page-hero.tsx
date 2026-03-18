@@ -1,7 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import {
+  useMemo,
+  useState,
+} from 'react';
 
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -30,6 +33,60 @@ interface LandingPageHeroProps {
   isFullyBooked: boolean;
   bookingModalContent: BookingModalContent;
   ariaLabel?: string;
+}
+
+const PARTNER_LOGO_EXTENSIONS = ['webp', 'svg'] as const;
+const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = {
+  'baumhaus': ['/images/partners/baumhaus.webp'],
+  'happy-baton': ['/images/partners/happy-baton.webp'],
+};
+
+function buildPartnerLogoSources(partner: string): string[] {
+  const normalizedPartner = partner.trim().toLowerCase();
+  if (!normalizedPartner) {
+    return [];
+  }
+
+  const knownSources = KNOWN_PARTNER_LOGO_SOURCES[normalizedPartner];
+  if (knownSources) {
+    return [...knownSources];
+  }
+
+  return PARTNER_LOGO_EXTENSIONS.map(
+    (extension) => `/images/partners/${normalizedPartner}.${extension}`,
+  );
+}
+
+function buildPartnerLogoTestId(partner: string): string {
+  return `landing-page-partner-logo-${partner.trim().toLowerCase()}`;
+}
+
+function PartnerLogo({ partner }: { partner: string }) {
+  const candidateSources = useMemo(
+    () => buildPartnerLogoSources(partner),
+    [partner],
+  );
+  const [sourceIndex, setSourceIndex] = useState(0);
+
+  const source = candidateSources[sourceIndex];
+  if (!source) {
+    return null;
+  }
+
+  return (
+    <Image
+      src={source}
+      alt=''
+      width={160}
+      height={48}
+      className='h-8 w-auto object-contain'
+      aria-hidden='true'
+      data-testid={buildPartnerLogoTestId(partner)}
+      onError={() => {
+        setSourceIndex((currentIndex) => currentIndex + 1);
+      }}
+    />
+  );
 }
 
 function resolveDateTimeLocale(locale: Locale): string {
@@ -152,11 +209,11 @@ export function LandingPageHero({
   bookingModalContent,
   ariaLabel,
 }: LandingPageHeroProps) {
-  const [chips, setChips] = useState<string[]>([]);
-
-  useEffect(() => {
-    setChips(buildHeroChips(eventContent, locale));
-  }, [eventContent, locale]);
+  const chips = useMemo(
+    () => buildHeroChips(eventContent, locale),
+    [eventContent, locale],
+  );
+  const partnerSlugs = eventContent?.partners ?? [];
 
   return (
     <SectionShell
@@ -172,7 +229,22 @@ export function LandingPageHero({
             titleAs='h1'
             align='left'
           />
-          <p className='es-type-subtitle-lg es-text-heading'>{content.subtitle}</p>
+          {content.subtitle ? (
+            <p className='es-type-subtitle-lg es-text-heading'>{content.subtitle}</p>
+          ) : null}
+          {partnerSlugs.length > 0 ? (
+            <div
+              data-testid='landing-page-hero-partners'
+              className='flex flex-wrap items-center gap-5'
+            >
+              {partnerSlugs.map((partner) => (
+                <PartnerLogo
+                  key={partner}
+                  partner={partner}
+                />
+              ))}
+            </div>
+          ) : null}
           <p className='es-type-body'>{content.description}</p>
           {chips.length > 0 ? (
             <div className='flex flex-wrap gap-3'>
@@ -200,35 +272,14 @@ export function LandingPageHero({
           />
         </div>
         <div className='w-full'>
-          {content.imageMobileSrc ? (
-            <>
-              <Image
-                src={content.imageMobileSrc}
-                alt={content.imageAlt}
-                width={720}
-                height={720}
-                sizes='100vw'
-                className='h-auto w-full rounded-panel sm:hidden'
-              />
-              <Image
-                src={content.imageSrc}
-                alt={content.imageAlt}
-                width={1200}
-                height={900}
-                sizes='(max-width: 1024px) 100vw, 50vw'
-                className='hidden h-auto w-full rounded-panel sm:block'
-              />
-            </>
-          ) : (
-            <Image
-              src={content.imageSrc}
-              alt={content.imageAlt}
-              width={1200}
-              height={900}
-              sizes='(max-width: 1024px) 100vw, 50vw'
-              className='h-auto w-full rounded-panel'
-            />
-          )}
+          <Image
+            src={content.imageSrc}
+            alt={content.imageAlt}
+            width={1200}
+            height={900}
+            sizes='(max-width: 1024px) 100vw, 50vw'
+            className='h-auto w-full rounded-panel'
+          />
         </div>
       </SectionContainer>
     </SectionShell>

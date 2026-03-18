@@ -6,15 +6,15 @@
       "title": "Bump does...Weaning",
       "description": "Join us for a relaxed and informative 2-hour workshop on weaning + play, designed to support parents as they prepare, begin or get new ideas for their baby’s food journey. A 1-hour workshop PLUS 1-hour of access to the wonderful BIMBO playroom!",
       "tags": [
-        "Bimbo Concept",
         "12mo+"
       ],
       "categories": [
         "Workshop"
       ],
+      "partners": [
+        "bimbo-concept"
+      ],
       "location": "physical",
-      "address": "9 Bimbo Concept Children's Residency @ Pacific Place Apartments",
-      "address_url": "https://maps.google.com/?q=Pacific+Place+Apartments",
       "dates": [
         {
           "start_datetime": "2026-03-20T02:30:00Z",
@@ -24,7 +24,10 @@
       "price": 350,
       "currency": "HKD",
       "is_fully_booked": false,
-      "external_url": "https://www.bump-and-co.com/event-details/bump-does-weaning-with-evolve-sprouts-bimbo-concept"
+      "external_url": "https://www.bump-and-co.com/event-details/bump-does-weaning-with-evolve-sprouts-bimbo-concept",
+      "location_address": "9 Bimbo Concept Children's Residency @ Pacific Place Apartments",
+      "location_url": "https://maps.google.com/?q=Pacific+Place+Apartments",
+      "location_name": "Bimbo Concept"
     },
     {
       "id": "easter-2026-montessori-play-coaching-workshop-2026-04-06",
@@ -39,10 +42,12 @@
       "categories": [
         "Workshop"
       ],
+      "partners": [
+        "happy-baton",
+        "baumhaus"
+      ],
       "location": "physical",
       "booking_system": "event-booking",
-      "address": "Baumhaus, 1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
-      "address_url": "https://www.google.com/maps/dir/?api=1&destination=Baumhaus,+1/F+Kar+Yau+Building,+36-44+Queen%27s+Rd+E,+Wan+Chai",
       "dates": [
         {
           "start_datetime": "2026-04-06T02:00:00Z",
@@ -53,7 +58,10 @@
       "spaces_left": 6,
       "price": 350,
       "currency": "HKD",
-      "is_fully_booked": false
+      "is_fully_booked": false,
+      "location_name": "Baumhaus",
+      "location_address": "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
+      "location_url": "https://www.google.com/maps/dir/?api=1&destination=Baumhaus,+1/F+Kar+Yau+Building,+36-44+Queen%27s+Rd+E,+Wan+Chai"
     }
   ]
 }
