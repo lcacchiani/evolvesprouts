@@ -271,8 +271,8 @@ export function MyBestAuntieThankYouModal({
       params: {
         payment_method: paymentMethod,
         total_amount: summary.totalAmount,
-        age_group: summary.childAgeGroup,
-        cohort_date: summary.scheduleDateLabel,
+        age_group: summary.ageGroup,
+        cohort_date: summary.dateStartTime?.split('T')[0] ?? '',
       },
     });
 

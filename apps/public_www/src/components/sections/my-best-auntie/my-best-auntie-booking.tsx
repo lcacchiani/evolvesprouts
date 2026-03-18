@@ -394,8 +394,8 @@ export function MyBestAuntieBooking({
       params: {
         payment_method: reservationSummary.paymentMethod,
         total_amount: reservationSummary.totalAmount,
-        age_group: reservationSummary.childAgeGroup,
-        cohort_date: reservationSummary.scheduleDateLabel,
+        age_group: reservationSummary.ageGroup,
+        cohort_date: reservationSummary.dateStartTime?.split('T')[0] ?? '',
       },
     });
   }, [isThankYouModalOpen, reservationSummary]);
