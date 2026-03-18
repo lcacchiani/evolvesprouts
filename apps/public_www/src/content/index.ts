@@ -88,7 +88,6 @@ export interface LandingPageLocaleContent {
     description: string;
     imageAlt: string;
     imageSrc: string;
-    imageMobileSrc?: string;
   };
   details: {
     eyebrow?: string;

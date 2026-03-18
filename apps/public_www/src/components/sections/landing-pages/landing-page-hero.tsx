@@ -226,7 +226,9 @@ export function LandingPageHero({
             titleAs='h1'
             align='left'
           />
-          <p className='es-type-subtitle-lg es-text-heading'>{content.subtitle}</p>
+          {content.subtitle ? (
+            <p className='es-type-subtitle-lg es-text-heading'>{content.subtitle}</p>
+          ) : null}
           {partnerSlugs.length > 0 ? (
             <div
               data-testid='landing-page-hero-partners'
@@ -267,35 +269,14 @@ export function LandingPageHero({
           />
         </div>
         <div className='w-full'>
-          {content.imageMobileSrc ? (
-            <>
-              <Image
-                src={content.imageMobileSrc}
-                alt={content.imageAlt}
-                width={720}
-                height={720}
-                sizes='100vw'
-                className='h-auto w-full rounded-panel sm:hidden'
-              />
-              <Image
-                src={content.imageSrc}
-                alt={content.imageAlt}
-                width={1200}
-                height={900}
-                sizes='(max-width: 1024px) 100vw, 50vw'
-                className='hidden h-auto w-full rounded-panel sm:block'
-              />
-            </>
-          ) : (
-            <Image
-              src={content.imageSrc}
-              alt={content.imageAlt}
-              width={1200}
-              height={900}
-              sizes='(max-width: 1024px) 100vw, 50vw'
-              className='h-auto w-full rounded-panel'
-            />
-          )}
+          <Image
+            src={content.imageSrc}
+            alt={content.imageAlt}
+            width={1200}
+            height={900}
+            sizes='(max-width: 1024px) 100vw, 50vw'
+            className='h-auto w-full rounded-panel'
+          />
         </div>
       </SectionContainer>
     </SectionShell>
