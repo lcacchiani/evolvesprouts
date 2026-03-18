@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { EventsContent } from '@/content';
@@ -35,6 +36,7 @@ interface EventCardsListProps {
   content: EventsContent;
   events: EventCardData[];
   showBookingAction?: boolean;
+  onOpenBookingModal?: (eventCard: EventCardData) => void;
 }
 
 type SortEventCardsFn = (events: EventCardData[]) => EventCardData[];
@@ -113,6 +115,7 @@ export function EventCardsList({
   content,
   events,
   showBookingAction = true,
+  onOpenBookingModal,
 }: EventCardsListProps) {
   return (
     <ul className='space-y-6'>
@@ -239,15 +242,30 @@ export function EventCardsList({
 
               {showBookingAction && (
                 <div className='mt-5'>
-                  {eventCard.status !== 'fully_booked' &&
-                    eventCard.ctaHref && (
-                      <SectionCtaAnchor
-                        href={eventCard.ctaHref}
-                        className='w-full'
-                      >
-                        {eventCard.ctaLabel}
-                      </SectionCtaAnchor>
-                    )}
+                  {eventCard.status !== 'fully_booked' && (
+                    eventCard.bookingModalPayload && onOpenBookingModal
+                      ? (
+                          <ButtonPrimitive
+                            variant='primary'
+                            className='w-full'
+                            onClick={() => {
+                              onOpenBookingModal(eventCard);
+                            }}
+                          >
+                            {eventCard.ctaLabel}
+                          </ButtonPrimitive>
+                        )
+                      : eventCard.ctaHref
+                        ? (
+                            <SectionCtaAnchor
+                              href={eventCard.ctaHref}
+                              className='w-full'
+                            >
+                              {eventCard.ctaLabel}
+                            </SectionCtaAnchor>
+                          )
+                        : null
+                  )}
                 </div>
               )}
             </aside>

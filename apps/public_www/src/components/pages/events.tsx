@@ -15,7 +15,12 @@ export function EventsPageSections({ content }: EventsPageSectionsProps) {
       navbarContent={content.navbar}
       footerContent={content.footer}
     >
-      <Events content={content.events} locale={content.meta.locale} />
+      <Events
+        content={content.events}
+        bookingModalContent={content.bookingModal}
+        myBestAuntieModalContent={content.myBestAuntie.modal}
+        locale={content.meta.locale}
+      />
       <FreeIntroSession
         content={content.freeIntroSession}
         titleOverride={content.freeIntroSession.eventPageTitle}

@@ -49,6 +49,15 @@ function formatExpectedEventTimeRange(
 
 describe('Events section', () => {
   const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
+  const defaultEventsProps = {
+    content: enContent.events,
+    bookingModalContent: enContent.bookingModal,
+    myBestAuntieModalContent: enContent.myBestAuntie.modal,
+  } as const;
+
+  function renderEventsSection() {
+    return render(<Events {...defaultEventsProps} />);
+  }
 
   beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_EVENTS_SOURCE', 'api');
@@ -62,7 +71,7 @@ describe('Events section', () => {
   });
 
   it('does not render the eyebrow label', () => {
-    render(<Events content={enContent.events} />);
+    renderEventsSection();
 
     expect(
       screen.getByRole('heading', {
@@ -74,7 +83,7 @@ describe('Events section', () => {
   });
 
   it('removes mobile top padding while preserving responsive section spacing', () => {
-    render(<Events content={enContent.events} />);
+    renderEventsSection();
 
     const section = document.getElementById('events');
     expect(section).not.toBeNull();
@@ -89,7 +98,7 @@ describe('Events section', () => {
     };
     mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
 
-    render(<Events content={enContent.events} />);
+    renderEventsSection();
 
     const loadingStatus = screen.getByRole('status', {
       name: enContent.events.loadingLabel,
@@ -104,7 +113,7 @@ describe('Events section', () => {
   });
 
   it('does not render a filter dropdown', () => {
-    render(<Events content={enContent.events} />);
+    renderEventsSection();
 
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
@@ -132,7 +141,7 @@ describe('Events section', () => {
     };
     mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
 
-    render(<Events content={enContent.events} />);
+    renderEventsSection();
 
     await screen.findByText('Prefixless event card');
 
@@ -186,7 +195,7 @@ describe('Events section', () => {
     };
     mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
 
-    const { container } = render(<Events content={enContent.events} />);
+    const { container } = renderEventsSection();
 
     await screen.findByText('Free event card');
 
@@ -224,7 +233,7 @@ describe('Events section', () => {
     };
     mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
 
-    render(<Events content={enContent.events} />);
+    renderEventsSection();
 
     await screen.findByText('Comma separated price card');
     expect(screen.getByText('HK$1,280')).toBeInTheDocument();
@@ -255,7 +264,7 @@ describe('Events section', () => {
     };
     mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
 
-    const { container } = render(<Events content={enContent.events} />);
+    const { container } = renderEventsSection();
 
     await screen.findByText('Virtual fully booked event card');
 
@@ -304,7 +313,7 @@ describe('Events section', () => {
     };
     mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
 
-    const { container } = render(<Events content={enContent.events} />);
+    const { container } = renderEventsSection();
 
     await screen.findByText('Direction-ready event card');
 
@@ -332,5 +341,79 @@ describe('Events section', () => {
       .getByText(enContent.events.card.fullyBookedLabel)
       .closest('li');
     expect(fullyBookedChip?.querySelector('img')).toBeNull();
+  });
+
+  it('uses booking_system to render in-page booking buttons consistently', async () => {
+    const mockApiClient: CrmApiClient = {
+      request: vi.fn().mockResolvedValue({
+        status: 'success',
+        data: [
+          {
+            id: 'event-booking-card',
+            title: 'Event booking card',
+            booking_system: 'event-booking',
+            location: 'physical',
+            address: 'PMQ, Central',
+            address_url: 'https://maps.google.com/?q=PMQ+Central',
+            dates: [
+              {
+                start_datetime: '2099-12-10T10:00:00Z',
+                end_datetime: '2099-12-10T11:00:00Z',
+              },
+            ],
+            price: 350,
+            is_fully_booked: false,
+          },
+          {
+            id: 'my-best-auntie-booking-card',
+            title: 'My Best Auntie booking card',
+            booking_system: 'my-best-auntie-booking',
+            age_group: '1-3',
+            cohort: '04-26',
+            location: 'physical',
+            address: 'PMQ, Central',
+            address_url: 'https://maps.google.com/?q=PMQ+Central',
+            dates: [
+              {
+                id: 'part-1',
+                start_datetime: '2099-12-11T10:00:00Z',
+                end_datetime: '2099-12-11T11:00:00Z',
+              },
+            ],
+            price: 9000,
+            spaces_total: 8,
+            spaces_left: 4,
+            is_fully_booked: false,
+          },
+          {
+            id: 'external-booking-card',
+            title: 'External booking card',
+            location: 'virtual',
+            address: 'Virtual',
+            address_url: 'https://zoom.us/',
+            external_url: 'https://booking.example.com/event',
+            dates: [
+              {
+                start_datetime: '2099-12-12T10:00:00Z',
+                end_datetime: '2099-12-12T11:00:00Z',
+              },
+            ],
+            is_fully_booked: false,
+          },
+        ],
+      }),
+    };
+    mockedCreateCrmApiClient.mockReturnValue(mockApiClient);
+
+    renderEventsSection();
+
+    await screen.findByText('External booking card');
+
+    expect(
+      screen.getAllByRole('button', { name: enContent.events.card.ctaLabel }),
+    ).toHaveLength(2);
+    expect(
+      screen.getAllByRole('link', { name: enContent.events.card.ctaLabel }),
+    ).toHaveLength(1);
   });
 });
