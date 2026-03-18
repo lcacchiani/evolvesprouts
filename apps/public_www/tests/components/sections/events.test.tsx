@@ -296,9 +296,9 @@ describe('Events section', () => {
           {
             title: 'Direction-ready event card',
             location: 'physical',
-            address: 'PMQ, Central',
-            locationAddress: '35 Aberdeen Street, Central',
-            address_url:
+            location_name: 'PMQ, Central',
+            location_address: '35 Aberdeen Street, Central',
+            location_url:
               'https://www.google.com/maps/dir/?api=1&destination=35+Aberdeen+Street,+Central',
             dates: [
               {
