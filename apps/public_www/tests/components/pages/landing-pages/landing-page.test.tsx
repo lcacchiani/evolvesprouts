@@ -96,16 +96,16 @@ describe('LandingPage composition', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
       screen.getByTestId('landing-page-details').compareDocumentPosition(
-        screen.getByTestId('landing-page-cta'),
-      ),
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(
-      screen.getByTestId('landing-page-cta').compareDocumentPosition(
         screen.getByTestId('deferred-testimonials'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
       screen.getByTestId('deferred-testimonials').compareDocumentPosition(
+        screen.getByTestId('landing-page-cta'),
+      ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      screen.getByTestId('landing-page-cta').compareDocumentPosition(
         screen.getByTestId('landing-page-faq'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);

@@ -8,8 +8,6 @@ interface LandingPageDetailsProps {
   ariaLabel?: string;
 }
 
-const CARD_TONES = ['gold', 'green', 'blue'] as const;
-
 export function LandingPageDetails({
   content,
   ariaLabel,
@@ -19,12 +17,8 @@ export function LandingPageDetails({
       id='landing-page-details'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='landing-page-details'
-      className='es-section-bg-overlay es-course-highlights-section'
+      className='es-section-bg-overlay es-my-best-auntie-description-section'
     >
-      <div
-        aria-hidden='true'
-        className='es-course-highlights-overlay pointer-events-none absolute inset-0'
-      />
       <SectionContainer>
         <SectionHeader
           title={content.title}
@@ -32,18 +26,18 @@ export function LandingPageDetails({
           align='left'
         />
         <ul className='mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-          {content.items.map((item, index) => (
+          {content.items.map((item) => (
             <li
               key={item.title}
               className='w-full'
             >
               <article
-                className={`relative isolate h-full min-h-[260px] overflow-hidden rounded-card p-6 sm:p-7 lg:p-8 es-course-highlight-card--${CARD_TONES[index % CARD_TONES.length]}`}
+                className='flex h-full min-h-[260px] flex-col rounded-card-xl p-6 sm:p-8 es-my-best-auntie-description-card'
               >
-                <h3 className='max-w-[18ch] text-balance es-course-highlight-title'>
+                <h3 className='es-my-best-auntie-description-card-title'>
                   {item.title}
                 </h3>
-                <p className='mt-3 max-w-[36ch] es-course-highlight-description'>
+                <p className='mt-3 es-my-best-auntie-description-card-description'>
                   {item.description}
                 </p>
               </article>
