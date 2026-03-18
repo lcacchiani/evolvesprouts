@@ -1238,6 +1238,12 @@ export class ApiStack extends cdk.Stack {
       "MailchimpApiSecret",
       mailchimpApiSecretArn.valueAsString
     );
+    // SECURITY: Use customer-managed KMS key for Secrets Manager (Checkov CKV_AWS_149)
+    const secretsEncryptionKey = new kms.Key(this, "SecretsEncryptionKey", {
+      enableKeyRotation: true,
+      alias: name("secrets-encryption-key"),
+      description: "KMS key for Secrets Manager encryption",
+    });
     const openrouterApiSecret = new secretsmanager.Secret(
       this,
       "OpenRouterApiSecret",
@@ -1246,6 +1252,7 @@ export class ApiStack extends cdk.Stack {
         secretStringValue: cdk.SecretValue.unsafePlainText(
           openrouterApiKey.valueAsString
         ),
+        encryptionKey: secretsEncryptionKey,
       }
     );
 
@@ -2002,13 +2009,6 @@ export class ApiStack extends cdk.Stack {
     // SECURITY: Rotate API keys every 90 days to limit exposure from compromise
     // -------------------------------------------------------------------------
 
-    const secretsEncryptionKey = new kms.Key(this, "SecretsEncryptionKey", {
-      enableKeyRotation: true,
-      alias: name("secrets-encryption-key"),
-      description: "KMS key for Secrets Manager encryption",
-    });
-
-    // SECURITY: Use customer-managed KMS key (Checkov CKV_AWS_149)
     const apiKeySecret = new secretsmanager.Secret(this, "ApiKeySecret", {
       secretName: name("api-key"),
       description: "Current mobile API key for rotation tracking",
