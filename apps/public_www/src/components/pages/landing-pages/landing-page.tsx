@@ -42,14 +42,6 @@ export function LandingPage({
         content={pageContent.details}
         ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
       />
-      <DeferredTestimonials
-        content={siteContent.testimonials}
-        commonAccessibility={siteContent.common.accessibility}
-      />
-      <LandingPageFaq
-        content={pageContent.faq}
-        ariaLabel={siteContent.landingPages.common.a11y.faqSectionLabel}
-      />
       <LandingPageCta
         locale={locale}
         slug={slug}
@@ -58,6 +50,14 @@ export function LandingPage({
         bookingContent={pageContent.booking}
         bookingModalContent={siteContent.bookingModal}
         ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
+      />
+      <DeferredTestimonials
+        content={siteContent.testimonials}
+        commonAccessibility={siteContent.common.accessibility}
+      />
+      <LandingPageFaq
+        content={pageContent.faq}
+        ariaLabel={siteContent.landingPages.common.a11y.faqSectionLabel}
       />
     </PageLayout>
   );

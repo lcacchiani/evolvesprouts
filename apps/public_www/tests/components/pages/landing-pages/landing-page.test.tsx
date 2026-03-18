@@ -81,9 +81,9 @@ describe('LandingPage composition', () => {
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-hero')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-details')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-cta')).toBeInTheDocument();
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-faq')).toBeInTheDocument();
-    expect(screen.getByTestId('landing-page-cta')).toBeInTheDocument();
 
     expect(screen.getByTestId('page-layout').firstElementChild).toHaveAttribute(
       'data-testid',
@@ -96,6 +96,11 @@ describe('LandingPage composition', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
       screen.getByTestId('landing-page-details').compareDocumentPosition(
+        screen.getByTestId('landing-page-cta'),
+      ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      screen.getByTestId('landing-page-cta').compareDocumentPosition(
         screen.getByTestId('deferred-testimonials'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
