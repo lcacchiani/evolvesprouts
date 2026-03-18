@@ -418,6 +418,8 @@ describe('events-data', () => {
       bookingPayload: {
         variant: 'event',
         title: 'Easter 2026 Montessori Play Coaching Workshop',
+        locationName: 'Baumhaus',
+        locationAddress: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
         selectedDateLabel: '06 Apr 2026',
         selectedDateStartTime: '2026-04-06T02:00:00Z',
       },
