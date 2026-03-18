@@ -333,7 +333,7 @@
       "phoneValidationError": "请输入有效的电话号码。"
     },
     "faq": {
-      "title": "FAQ",
+      "title": "常见问题",
       "cards": [
         {
           "question": "我给你发消息后会发生什么？",
