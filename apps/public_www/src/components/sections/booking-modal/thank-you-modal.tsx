@@ -27,6 +27,8 @@ export interface MyBestAuntieThankYouModalProps {
   content: BookingThankYouModalContent;
   summary: ReservationSummary | null;
   homeHref: string;
+  analyticsSectionId?: string;
+  showChildAgeGroupChip?: boolean;
   onClose: () => void;
 }
 
@@ -221,6 +223,8 @@ export function MyBestAuntieThankYouModal({
   content,
   summary,
   homeHref,
+  analyticsSectionId = 'my-best-auntie-booking',
+  showChildAgeGroupChip = true,
   onClose,
 }: MyBestAuntieThankYouModalProps) {
   const modalPanelRef = useRef<HTMLElement | null>(null);
@@ -243,10 +247,12 @@ export function MyBestAuntieThankYouModal({
   const scheduleDateLabel = formatSummaryDateLabel(summary?.dateStartTime, locale);
   const scheduleTimeLabel = formatSummaryTimeLabel(summary?.dateStartTime, locale);
   const paymentMethod = summary?.paymentMethod?.trim() ?? '';
-  const childAgeGroupChipText = formatPrefixedValue(
-    content.childAgeGroupPrefix,
-    summary?.ageGroup ?? '',
-  );
+  const childAgeGroupChipText = showChildAgeGroupChip
+    ? formatPrefixedValue(
+        content.childAgeGroupPrefix,
+        summary?.ageGroup ?? '',
+      )
+    : '';
   const amountChipText = formatPrefixedValue(
     content.amountPrefix,
     summary ? formatCurrencyHkd(summary.totalAmount, locale) : '',
@@ -266,7 +272,7 @@ export function MyBestAuntieThankYouModal({
     }
 
     trackAnalyticsEvent('booking_receipt_print_click', {
-      sectionId: 'my-best-auntie-booking',
+      sectionId: analyticsSectionId,
       ctaLocation: 'thank_you_modal',
       params: {
         payment_method: paymentMethod,

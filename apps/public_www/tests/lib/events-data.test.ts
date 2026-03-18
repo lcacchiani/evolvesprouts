@@ -223,11 +223,22 @@ describe('events-data', () => {
     const payload = {
       data: [
         {
+          id: 'my-best-auntie-booking-event-1',
           title: 'My Best Auntie booking event',
           booking_system: 'my-best-auntie-booking',
+          age_group: '1-3',
+          cohort: '04-26',
+          spaces_total: 8,
+          spaces_left: 5,
+          price: 9000,
+          currency: 'HKD',
+          location: 'physical',
+          address: 'PMQ, Hong Kong',
+          address_url: 'https://maps.google.com/?q=PMQ+Hong+Kong',
           external_url: 'https://booking.example.com/events/should-not-be-used',
           dates: [
             {
+              id: 'part-1',
               start_datetime: '2026-01-22T09:00:00Z',
               end_datetime: '2026-01-22T11:00:00Z',
             },
@@ -243,6 +254,47 @@ describe('events-data', () => {
     expect(events[0]?.ctaHref).toBe(
       '/zh-HK/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
     );
+    expect(events[0]?.bookingModalPayload?.variant).toBe('my-best-auntie');
+  });
+
+  it('normalizes event-booking records with in-page modal payload', () => {
+    const payload = {
+      data: [
+        {
+          id: 'event-booking-demo',
+          title: 'Event booking demo',
+          description: 'Simple booking modal flow',
+          booking_system: 'event-booking',
+          address: 'PMQ, Hong Kong',
+          address_url: 'https://maps.google.com/?q=PMQ+Hong+Kong',
+          dates: [
+            {
+              id: 'session-1',
+              start_datetime: '2026-04-06T02:00:00Z',
+              end_datetime: '2026-04-06T03:00:00Z',
+            },
+          ],
+          price: 350,
+          currency: 'HKD',
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const events = normalizeEvents(payload, enContent.events, 'en');
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.ctaHref).toBe('/en/events?booking_system=event-booking');
+    expect(events[0]?.bookingModalPayload).toMatchObject({
+      variant: 'event',
+      bookingSystem: 'event-booking',
+      title: 'Event booking demo',
+      subtitle: 'Simple booking modal flow',
+      originalAmount: 350,
+      locationAddress: 'PMQ, Hong Kong',
+      directionHref: 'https://maps.google.com/?q=PMQ+Hong+Kong',
+      selectedDateStartTime: '2026-04-06T02:00:00Z',
+    });
   });
   it('does not use legacy CTA candidate keys without external_url', () => {
     const payload = {

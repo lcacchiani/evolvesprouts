@@ -32,6 +32,9 @@ interface BookingReservationFormProps {
   selectedDateStartTime: string;
   selectedCohortPrice: number;
   descriptionId: string;
+  analyticsSectionId?: string;
+  metaPixelContentName?: string;
+  captchaWidgetAction?: string;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
 
@@ -87,6 +90,9 @@ export function BookingReservationForm({
   selectedDateStartTime,
   selectedCohortPrice,
   descriptionId,
+  analyticsSectionId = 'my-best-auntie-booking',
+  metaPixelContentName = 'my_best_auntie',
+  captchaWidgetAction = 'mba_reservation_submit',
   onSubmitReservation,
 }: BookingReservationFormProps) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -156,7 +162,7 @@ export function BookingReservationForm({
     const normalizedCode = discountCode.trim().toUpperCase();
     if (!normalizedCode) {
       trackAnalyticsEvent('booking_discount_apply_error', {
-        sectionId: 'my-best-auntie-booking',
+        sectionId: analyticsSectionId,
         ctaLocation: 'discount_code',
         params: {
           error_type: 'invalid_code',
@@ -170,7 +176,7 @@ export function BookingReservationForm({
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient) {
       trackAnalyticsEvent('booking_discount_apply_error', {
-        sectionId: 'my-best-auntie-booking',
+        sectionId: analyticsSectionId,
         ctaLocation: 'discount_code',
         params: {
           error_type: 'service_unavailable',
@@ -187,7 +193,7 @@ export function BookingReservationForm({
       const validatedRule = await validateDiscountCode(crmApiClient, normalizedCode);
       if (!validatedRule) {
         trackAnalyticsEvent('booking_discount_apply_error', {
-          sectionId: 'my-best-auntie-booking',
+          sectionId: analyticsSectionId,
           ctaLocation: 'discount_code',
           params: {
             error_type: 'invalid_code',
@@ -201,7 +207,7 @@ export function BookingReservationForm({
       setDiscountCode(normalizedCode);
       setDiscountRule(validatedRule);
       trackAnalyticsEvent('booking_discount_apply_success', {
-        sectionId: 'my-best-auntie-booking',
+        sectionId: analyticsSectionId,
         ctaLocation: 'discount_code',
         params: {
           discount_type: validatedRule.type,
@@ -210,7 +216,7 @@ export function BookingReservationForm({
       });
     } catch {
       trackAnalyticsEvent('booking_discount_apply_error', {
-        sectionId: 'my-best-auntie-booking',
+        sectionId: analyticsSectionId,
         ctaLocation: 'discount_code',
         params: {
           error_type: 'api_error',
@@ -255,7 +261,7 @@ export function BookingReservationForm({
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
       trackAnalyticsEvent('booking_submit_error', {
-        sectionId: 'my-best-auntie-booking',
+        sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
           payment_method: selectedPaymentMethod,
@@ -293,7 +299,7 @@ export function BookingReservationForm({
       });
       if (submissionResult.isSuccess) {
         trackAnalyticsEvent('booking_submit_success', {
-          sectionId: 'my-best-auntie-booking',
+          sectionId: analyticsSectionId,
           ctaLocation: 'reservation_form',
           params: {
             payment_method: selectedPaymentMethod,
@@ -306,7 +312,7 @@ export function BookingReservationForm({
           },
         });
         trackMetaPixelEvent('Schedule', {
-          content_name: 'my_best_auntie',
+          content_name: metaPixelContentName,
           value: totalAmount,
           currency: 'HKD',
         });
@@ -315,7 +321,7 @@ export function BookingReservationForm({
       }
 
       trackAnalyticsEvent('booking_submit_error', {
-        sectionId: 'my-best-auntie-booking',
+        sectionId: analyticsSectionId,
         ctaLocation: 'reservation_form',
         params: {
           payment_method: selectedPaymentMethod,
@@ -417,7 +423,7 @@ export function BookingReservationForm({
                         onChange={() => {
                           setSelectedPaymentMethod(PAYMENT_METHOD_FPS);
                           trackAnalyticsEvent('booking_payment_method_selected', {
-                            sectionId: 'my-best-auntie-booking',
+                            sectionId: analyticsSectionId,
                             ctaLocation: 'payment_method',
                             params: {
                               payment_method: PAYMENT_METHOD_FPS,
@@ -452,7 +458,7 @@ export function BookingReservationForm({
                         onChange={() => {
                           setSelectedPaymentMethod(PAYMENT_METHOD_BANK_TRANSFER);
                           trackAnalyticsEvent('booking_payment_method_selected', {
-                            sectionId: 'my-best-auntie-booking',
+                            sectionId: analyticsSectionId,
                             ctaLocation: 'payment_method',
                             params: {
                               payment_method: PAYMENT_METHOD_BANK_TRANSFER,
@@ -578,7 +584,7 @@ export function BookingReservationForm({
             </span>
             <TurnstileCaptcha
               siteKey={turnstileSiteKey}
-              widgetAction='mba_reservation_submit'
+              widgetAction={captchaWidgetAction}
               size='normal'
               onTokenChange={handleCaptchaTokenChange}
               onLoadError={handleCaptchaLoadError}

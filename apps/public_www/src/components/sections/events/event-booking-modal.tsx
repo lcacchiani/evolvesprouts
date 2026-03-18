@@ -23,51 +23,17 @@ import type { ReservationSummary } from '@/components/sections/booking-modal/typ
 import type {
   BookingPaymentModalContent,
   Locale,
-  MyBestAuntieBookingContent,
-  MyBestAuntieModalContent,
 } from '@/content';
+import type { EventBookingModalPayload } from '@/lib/events-data';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
-interface MyBestAuntieBookingModalProps {
+interface EventBookingModalProps {
   locale?: Locale;
-  modalContent: MyBestAuntieModalContent;
   paymentModalContent: BookingPaymentModalContent;
-  selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null;
-  selectedCohortDateLabel?: string;
-  selectedAgeGroupLabel?: string;
-  analyticsSectionId?: string;
-  metaPixelContentName?: string;
-  captchaWidgetAction?: string;
+  bookingPayload: EventBookingModalPayload;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
-}
-
-const COHORT_VALUE_PATTERN = /^(\d{2})-(\d{2})$/;
-
-function formatCohortValue(value: string): string {
-  const trimmedValue = value.trim();
-  const match = COHORT_VALUE_PATTERN.exec(trimmedValue);
-  if (!match) {
-    return trimmedValue;
-  }
-
-  const monthNumber = Number(match[1]);
-  const yearSuffix = Number(match[2]);
-  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
-    return trimmedValue;
-  }
-
-  if (!Number.isInteger(yearSuffix)) {
-    return trimmedValue;
-  }
-
-  const year = 2000 + yearSuffix;
-  const monthLabel = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
-  return `${monthLabel}, ${year}`;
 }
 
 function formatPartDateTimeLabel(startDateTime: string): string {
@@ -94,19 +60,13 @@ function formatPartDateTimeLabel(startDateTime: string): string {
   return `${month} ${day} @ ${time}`;
 }
 
-export function MyBestAuntieBookingModal({
+export function EventBookingModal({
   locale = 'en',
-  modalContent,
   paymentModalContent,
-  selectedCohort,
-  selectedCohortDateLabel = '',
-  selectedAgeGroupLabel = '',
-  analyticsSectionId = 'my-best-auntie-booking',
-  metaPixelContentName = 'my_best_auntie',
-  captchaWidgetAction = 'mba_reservation_submit',
+  bookingPayload,
   onClose,
   onSubmitReservation,
-}: MyBestAuntieBookingModalProps) {
+}: EventBookingModalProps) {
   const modalPanelRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogTitleId = useId();
@@ -120,24 +80,14 @@ export function MyBestAuntieBookingModal({
     restoreFocus: true,
   });
 
-  const originalAmount = selectedCohort?.price ?? 0;
-
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
-    const summaries = modalContent.partSummaries ?? [];
-    return (selectedCohort?.dates ?? []).map((part, index) => {
+    return bookingPayload.dateParts.map((part) => {
       return {
-        date: formatPartDateTimeLabel(part.start_datetime),
-        description: summaries[index] ?? '',
+        date: formatPartDateTimeLabel(part.startDateTime),
+        description: part.description,
       };
     });
-  }, [selectedCohort, modalContent.partSummaries]);
-
-  const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
-  const selectedCohortDateLabelText =
-    selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '');
-  const selectedVenueName = '';
-  const selectedVenueAddress = selectedCohort?.address ?? '';
-  const selectedVenueDirectionHref = selectedCohort?.address_url ?? '#';
+  }, [bookingPayload.dateParts]);
 
   return (
     <ModalOverlay
@@ -163,35 +113,32 @@ export function MyBestAuntieBookingModal({
             <BookingEventDetails
               locale={locale}
               headingId={dialogTitleId}
-              title={modalContent.title}
-              subtitle={modalContent.subtitle}
+              title={bookingPayload.title}
+              subtitle={bookingPayload.subtitle}
               content={paymentModalContent}
               activePartRows={activePartRows}
-              originalAmount={originalAmount}
-              venueName={selectedVenueName}
-              venueAddress={selectedVenueAddress}
-              directionHref={selectedVenueDirectionHref}
+              originalAmount={bookingPayload.originalAmount}
+              venueName={bookingPayload.locationName}
+              venueAddress={bookingPayload.locationAddress}
+              directionHref={bookingPayload.directionHref}
             />
             <BookingReservationForm
               locale={locale}
               content={paymentModalContent}
-              eventTitle={modalContent.title}
-              selectedAgeGroupLabel={selectedAgeGroupLabel}
-              selectedCohortDateLabel={selectedCohortDateLabelText}
-              selectedDateStartTime={selectedDateStartTime}
-              selectedCohortPrice={originalAmount}
+              eventTitle={bookingPayload.title}
+              selectedAgeGroupLabel=''
+              selectedCohortDateLabel={bookingPayload.selectedDateLabel}
+              selectedDateStartTime={bookingPayload.selectedDateStartTime}
+              selectedCohortPrice={bookingPayload.originalAmount}
               descriptionId={dialogDescriptionId}
-              analyticsSectionId={analyticsSectionId}
-              metaPixelContentName={metaPixelContentName}
-              captchaWidgetAction={captchaWidgetAction}
+              analyticsSectionId='events-booking'
+              metaPixelContentName='event_booking'
+              captchaWidgetAction='event_reservation_submit'
               onSubmitReservation={onSubmitReservation}
             />
           </div>
-
         </OverlayScrollableBody>
       </OverlayDialogPanel>
     </ModalOverlay>
   );
 }
-
-export { MyBestAuntieThankYouModal } from '@/components/sections/booking-modal/thank-you-modal';

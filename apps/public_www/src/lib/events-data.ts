@@ -19,8 +19,69 @@ const EVENTS_SOURCE_ENV_NAME = 'NEXT_PUBLIC_EVENTS_SOURCE';
 const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
 const MAX_PAST_EVENTS = 5;
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
+const EVENT_BOOKING_SYSTEM = 'event-booking';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
+const COHORT_VALUE_PATTERN = /^(\d{2})-(\d{2})$/;
+
+interface EventBookingDatePart {
+  id: string;
+  startDateTime: string;
+  endDateTime: string;
+  description: string;
+}
+
+export interface EventBookingModalPayload {
+  variant: 'event';
+  bookingSystem: typeof EVENT_BOOKING_SYSTEM;
+  title: string;
+  subtitle: string;
+  originalAmount: number;
+  locationName: string;
+  locationAddress: string;
+  directionHref: string;
+  dateParts: EventBookingDatePart[];
+  selectedDateLabel: string;
+  selectedDateStartTime: string;
+}
+
+interface MyBestAuntieEventCohortDate {
+  id: string;
+  start_datetime: string;
+  end_datetime: string;
+}
+
+export interface MyBestAuntieEventCohort {
+  id: string;
+  age_group: string;
+  title: string;
+  description: string;
+  cohort: string;
+  spaces_total: number;
+  spaces_left: number;
+  is_fully_booked: boolean;
+  price: number;
+  currency: string;
+  location: string;
+  booking_system: string;
+  tags: string[];
+  categories: string[];
+  address: string;
+  address_url: string;
+  dates: MyBestAuntieEventCohortDate[];
+}
+
+export interface MyBestAuntieBookingModalPayload {
+  variant: 'my-best-auntie';
+  bookingSystem: typeof MY_BEST_AUNTIE_BOOKING_SYSTEM;
+  selectedAgeGroupLabel: string;
+  selectedCohortDateLabel: string;
+  selectedCohort: MyBestAuntieEventCohort;
+}
+
+export type EventCardBookingModalPayload =
+  | EventBookingModalPayload
+  | MyBestAuntieBookingModalPayload;
 
 export interface EventCardData {
   id: string;
@@ -39,6 +100,8 @@ export interface EventCardData {
   tags: string[];
   status: EventStatus;
   timestamp: number | null;
+  bookingSystem?: string;
+  bookingModalPayload?: EventCardBookingModalPayload;
 }
 
 export interface LandingPageHeroEventContent {
@@ -166,10 +229,19 @@ function localizeRoutePath(path: string, locale: SupportedLocale): string {
 }
 
 function resolveBookingSystemCtaHref(
-  bookingSystemValue: unknown,
+  bookingSystemValue: string | undefined,
   locale: SupportedLocale,
 ): string {
   const bookingSystem = readOptionalText(bookingSystemValue);
+  if (!bookingSystem) {
+    return '';
+  }
+
+  if (bookingSystem === EVENT_BOOKING_SYSTEM) {
+    const localizedEventsPath = localizeRoutePath(ROUTES.events, locale);
+    return `${localizedEventsPath}?${BOOKING_SYSTEM_QUERY_PARAM}=${EVENT_BOOKING_SYSTEM}`;
+  }
+
   if (bookingSystem !== MY_BEST_AUNTIE_BOOKING_SYSTEM) {
     return '';
   }
@@ -180,6 +252,31 @@ function resolveBookingSystemCtaHref(
   );
 
   return `${localizedMyBestAuntiePath}?${BOOKING_SYSTEM_QUERY_PARAM}=${MY_BEST_AUNTIE_BOOKING_SYSTEM}#${MY_BEST_AUNTIE_BOOKING_HASH}`;
+}
+
+function formatCohortValue(value: string): string {
+  const trimmedValue = value.trim();
+  const match = COHORT_VALUE_PATTERN.exec(trimmedValue);
+  if (!match) {
+    return trimmedValue;
+  }
+
+  const monthNumber = Number(match[1]);
+  const yearSuffix = Number(match[2]);
+  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    return trimmedValue;
+  }
+
+  if (!Number.isInteger(yearSuffix)) {
+    return trimmedValue;
+  }
+
+  const year = 2000 + yearSuffix;
+  const monthLabel = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
+  return `${monthLabel}, ${year}`;
 }
 
 function isGoogleMapsHref(href: string): boolean {
@@ -223,6 +320,199 @@ function parseTimestamp(value: string | undefined): number | null {
   }
 
   return parsedTimestamp;
+}
+
+function resolveNumericCandidate(
+  record: Record<string, unknown>,
+  keys: readonly string[],
+): number | null {
+  const value = readFirstCandidateValue(record, keys);
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  const textValue = readOptionalText(value);
+  if (!textValue) {
+    return null;
+  }
+
+  return parseNumericText(textValue);
+}
+
+function resolveStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry) => (typeof entry === 'string' ? readOptionalText(entry) : undefined))
+    .filter((entry): entry is string => Boolean(entry));
+}
+
+function resolveBookingDateParts(
+  record: Record<string, unknown>,
+  defaultDescription: string,
+): EventBookingDatePart[] {
+  const dateEntries = Array.isArray(record.dates) ? record.dates : [];
+
+  return dateEntries
+    .map((entry, index) => {
+      const dateRecord = toRecord(entry);
+      if (!dateRecord) {
+        return null;
+      }
+
+      const startDateTime = readCandidateText(dateRecord, [
+        'start_datetime',
+        'startDateTime',
+        'start',
+      ]) ?? '';
+      const endDateTime = readCandidateText(dateRecord, [
+        'end_datetime',
+        'endDateTime',
+        'end',
+      ]) ?? '';
+      const id = readCandidateText(dateRecord, ['id']) ?? `part-${index + 1}`;
+      if (!startDateTime) {
+        return null;
+      }
+
+      return {
+        id,
+        startDateTime,
+        endDateTime,
+        description: index === 0 ? defaultDescription : '',
+      };
+    })
+    .filter((entry): entry is EventBookingDatePart => entry !== null);
+}
+
+function buildEventBookingModalPayload(
+  record: Record<string, unknown>,
+  locale: SupportedLocale,
+  title: string,
+  summary: string | undefined,
+  locationName: string | undefined,
+  locationAddress: string | undefined,
+  directionHref: string,
+): EventBookingModalPayload {
+  const dateParts = resolveBookingDateParts(record, summary ?? '');
+  const selectedDateStartTime = dateParts[0]?.startDateTime ?? '';
+  const selectedDateLabel =
+    formatUtcDateLabel(selectedDateStartTime, locale) || title;
+  const originalAmount = resolveNumericCandidate(record, [
+    'price',
+    'cost',
+    'amount',
+    'fee',
+    'eventPrice',
+    'event_price',
+  ]) ?? 0;
+
+  return {
+    variant: 'event',
+    bookingSystem: EVENT_BOOKING_SYSTEM,
+    title,
+    subtitle: summary ?? '',
+    originalAmount,
+    locationName: locationName ?? '',
+    locationAddress: locationAddress ?? '',
+    directionHref,
+    dateParts,
+    selectedDateLabel,
+    selectedDateStartTime,
+  };
+}
+
+function buildMyBestAuntieBookingModalPayload(
+  record: Record<string, unknown>,
+): MyBestAuntieBookingModalPayload | null {
+  const id = readCandidateText(record, ['id', 'eventId', 'slug']) ?? '';
+  const ageGroup = readCandidateText(record, ['age_group']) ?? '';
+  const cohortValue = readCandidateText(record, ['cohort']) ?? '';
+  if (!id || !ageGroup || !cohortValue) {
+    return null;
+  }
+
+  const title = readCandidateText(record, ['title']) ?? '';
+  const description = readCandidateText(record, ['description']) ?? '';
+  const spacesTotal = resolveNumericCandidate(record, ['spaces_total']) ?? 0;
+  const spacesLeft = resolveNumericCandidate(record, ['spaces_left']) ?? 0;
+  const price = resolveNumericCandidate(record, ['price']) ?? 0;
+  const currency = readCandidateText(record, ['currency']) ?? 'HKD';
+  const location = readCandidateText(record, ['location']) ?? 'physical';
+  const address = readCandidateText(record, ['address']) ?? '';
+  const addressUrl = sanitizeGoogleMapsHref(
+    readCandidateText(record, ['address_url']),
+  );
+  const dates = resolveBookingDateParts(record, '')
+    .map((part) => {
+      return {
+        id: part.id,
+        start_datetime: part.startDateTime,
+        end_datetime: part.endDateTime,
+      };
+    });
+  if (dates.length === 0) {
+    return null;
+  }
+
+  const selectedCohort: MyBestAuntieEventCohort = {
+    id,
+    age_group: ageGroup,
+    title,
+    description,
+    cohort: cohortValue,
+    spaces_total: spacesTotal,
+    spaces_left: spacesLeft,
+    is_fully_booked: resolveEventStatus(record) === 'fully_booked',
+    price,
+    currency,
+    location,
+    booking_system: MY_BEST_AUNTIE_BOOKING_SYSTEM,
+    tags: resolveStringList(record.tags),
+    categories: resolveStringList(record.categories),
+    address,
+    address_url: addressUrl,
+    dates,
+  };
+
+  return {
+    variant: 'my-best-auntie',
+    bookingSystem: MY_BEST_AUNTIE_BOOKING_SYSTEM,
+    selectedAgeGroupLabel: ageGroup,
+    selectedCohortDateLabel: formatCohortValue(cohortValue),
+    selectedCohort,
+  };
+}
+
+function resolveBookingModalPayload(
+  record: Record<string, unknown>,
+  bookingSystem: string | undefined,
+  locale: SupportedLocale,
+  title: string,
+  summary: string | undefined,
+  locationName: string | undefined,
+  locationAddress: string | undefined,
+  directionHref: string,
+): EventCardBookingModalPayload | undefined {
+  if (bookingSystem === EVENT_BOOKING_SYSTEM) {
+    return buildEventBookingModalPayload(
+      record,
+      locale,
+      title,
+      summary,
+      locationName,
+      locationAddress,
+      directionHref,
+    );
+  }
+
+  if (bookingSystem === MY_BEST_AUNTIE_BOOKING_SYSTEM) {
+    return buildMyBestAuntieBookingModalPayload(record) ?? undefined;
+  }
+
+  return undefined;
 }
 
 function formatUtcDateLabel(isoDateTime: string, locale: SupportedLocale): string {
@@ -860,9 +1150,20 @@ function normalizeEventCard(
       'address_url',
     ]),
   );
+  const bookingSystem = readOptionalText(record.booking_system) ?? undefined;
+  const bookingModalPayload = resolveBookingModalPayload(
+    record,
+    bookingSystem,
+    locale,
+    title,
+    summary,
+    locationName,
+    locationAddress ?? readCandidateText(record, ['address']),
+    directionHref,
+  );
 
   const ctaHref =
-    resolveBookingSystemCtaHref(record.booking_system, locale) ||
+    resolveBookingSystemCtaHref(bookingSystem, locale) ||
     sanitizeExternalHref(readOptionalText(record.external_url));
   const ctaLabel =
     readCandidateText(record, ['ctaLabel', 'buttonLabel', 'actionLabel']) ??
@@ -894,6 +1195,8 @@ function normalizeEventCard(
     tags,
     status,
     timestamp,
+    bookingSystem,
+    bookingModalPayload,
   };
 }
 
