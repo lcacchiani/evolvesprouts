@@ -21,6 +21,7 @@ import type { ContactUsContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
+import { mergeClassNames } from '@/lib/class-name-utils';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import type { PublicSiteConfig } from '@/lib/site-config';
@@ -242,7 +243,10 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
 
         <div
           id='contact-form'
-          className='relative overflow-visible rounded-[28px] border es-border-form-shell p-5 shadow-panel sm:p-7 lg:p-8 es-contact-us-form-panel'
+          className={mergeClassNames(
+            'relative overflow-visible rounded-[28px] border es-border-form-shell p-5 shadow-panel sm:p-7 lg:p-8 es-contact-us-form-panel',
+            hasSuccessfulSubmission ? 'flex min-h-full items-center justify-center' : undefined,
+          )}
         >
           <div
             aria-hidden='true'
