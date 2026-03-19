@@ -675,15 +675,6 @@
 
   .es-landing-page-description-card {
     background-color: transparent;
-    border-bottom: 1px solid color-mix(
-      in srgb,
-      var(--site-primary-text) 14%,
-      transparent
-    );
-  }
-
-  .es-landing-page-description-section li:last-child .es-landing-page-description-card {
-    border-bottom: 0;
   }
 
   .es-landing-page-description-card-number {
