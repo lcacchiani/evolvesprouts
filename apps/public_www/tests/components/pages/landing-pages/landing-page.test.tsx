@@ -16,6 +16,8 @@ vi.mock('@/lib/events-data', () => ({
   }),
   getLandingPageBookingEventContent: () => ({
     status: 'open',
+    spacesLeft: 6,
+    eyebrowDateLabel: 'Monday 6 April',
     bookingPayload: {
       variant: 'event',
       bookingSystem: 'event-booking',
@@ -78,14 +80,17 @@ vi.mock('@/components/sections/landing-pages/landing-page-cta', () => ({
     commonContent,
     locale,
     slug,
+    eyebrow,
   }: {
     content: { title: string };
     commonContent: { defaultCtaLabel: string };
     locale: string;
     slug: string;
+    eyebrow?: string;
   }) => (
     <section data-testid='landing-page-cta'>
       {content.title} ({locale}) [{slug}] <span>{commonContent.defaultCtaLabel}</span>
+      <span data-testid='landing-page-cta-eyebrow'>{eyebrow ?? ''}</span>
     </section>
   ),
 }));
@@ -137,6 +142,9 @@ describe('LandingPage composition', () => {
     );
     expect(screen.getByTestId('landing-page-cta')).toHaveTextContent(
       `${easterWorkshopContent.en.cta.title} (zh-HK) [easter-2026-montessori-play-coaching-workshop]`,
+    );
+    expect(screen.getByTestId('landing-page-cta-eyebrow')).toHaveTextContent(
+      '⚡ 6 spots left — Monday 6 April',
     );
   });
 });

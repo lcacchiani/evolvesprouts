@@ -63,12 +63,14 @@
       ]
     },
     "cta": {
-      "eyebrow": "⚡ Limited to 6 families — Easter Monday 6 April",
+      "eyebrow": "⚡ {spotsLeft} spots left — {date}",
       "eyebrowShowLogo": false,
       "title": "Only 6 families. Don't miss it.",
       "description": "Please provide your child's name and age so Happy Baton can prepare the right toys ahead of the session.",
       "buttonLabel": "Reserve my spot",
-      "buttonLabelTemplate": "Reserve my spot — {price}"
+      "buttonLabelTemplate": "Reserve my spot — {price}",
+      "fullyBookedButtonLabel": "Fully booked - Get in touch to join the waiting list",
+      "fullyBookedWaitlistMessageTemplate": "I would like to join the waiting list for the event {eventTitle}."
     }
   },
   "zh-CN": {
@@ -135,12 +137,14 @@
       ]
     },
     "cta": {
-      "eyebrow": "⚡ 仅限 6 个家庭 — 复活节周一 4 月 6 日",
+      "eyebrow": "⚡ 还剩 {spotsLeft} 个名额 — {date}",
       "eyebrowShowLogo": false,
       "title": "仅限 6 个家庭，别错过。",
       "description": "请提供您孩子的姓名和年龄，以便 Happy Baton 在课程前准备合适的玩具。",
       "buttonLabel": "预留我的名额",
-      "buttonLabelTemplate": "预留我的名额 — {price}"
+      "buttonLabelTemplate": "预留我的名额 — {price}",
+      "fullyBookedButtonLabel": "已满额 - 联系我们加入候补名单",
+      "fullyBookedWaitlistMessageTemplate": "我想加入活动《{eventTitle}》的候补名单。"
     }
   },
   "zh-HK": {
@@ -207,12 +211,14 @@
       ]
     },
     "cta": {
-      "eyebrow": "⚡ 只限 6 個家庭 — 復活節星期一 4 月 6 日",
+      "eyebrow": "⚡ 尚餘 {spotsLeft} 個名額 — {date}",
       "eyebrowShowLogo": false,
       "title": "只限 6 個家庭，別錯過。",
       "description": "請提供你孩子的姓名和年齡，讓 Happy Baton 可在課堂前預備合適玩具。",
       "buttonLabel": "預留我的名額",
-      "buttonLabelTemplate": "預留我的名額 — {price}"
+      "buttonLabelTemplate": "預留我的名額 — {price}",
+      "fullyBookedButtonLabel": "已滿額 - 聯絡我們加入候補名單",
+      "fullyBookedWaitlistMessageTemplate": "我想加入活動《{eventTitle}》的候補名單。"
     }
   }
 }

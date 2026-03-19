@@ -75,6 +75,32 @@ function formatExpectedTimeLabel(
   return timeZoneLabel ? `${timeRange} ${timeZoneLabel}` : timeRange;
 }
 
+function formatExpectedLandingPageEyebrowDate(
+  isoDateTime: string,
+  locale: 'en' | 'zh-CN' | 'zh-HK',
+): string {
+  const date = new Date(isoDateTime);
+  if (locale === 'en') {
+    const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).formatToParts(date);
+    const weekday = parts.find((part) => part.type === 'weekday')?.value;
+    const day = parts.find((part) => part.type === 'day')?.value;
+    const month = parts.find((part) => part.type === 'month')?.value;
+    return `${weekday} ${day} ${month}`;
+  }
+
+  const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    month: 'long',
+    day: 'numeric',
+  }).formatToParts(date);
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const day = parts.find((part) => part.type === 'day')?.value;
+  return `${month} ${day} 日`;
+}
+
 describe('events-data', () => {
   it('resolves CRM events endpoint from base URL', () => {
     expect(resolveEventsApiUrl('https://api.evolvesprouts.com/www')).toBe(
@@ -419,6 +445,8 @@ describe('events-data', () => {
     expect(bookingEventContent).not.toBeNull();
     expect(bookingEventContent).toMatchObject({
       status: 'open',
+      spacesLeft: 6,
+      eyebrowDateLabel: formatExpectedLandingPageEyebrowDate('2026-04-06T02:00:00Z', 'en'),
       ctaPriceLabel: 'HK$350',
       bookingPayload: {
         variant: 'event',

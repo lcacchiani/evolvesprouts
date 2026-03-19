@@ -121,6 +121,8 @@ export interface LandingPageBookingEventContent {
   status: EventStatus;
   bookingPayload: EventBookingModalPayload | null;
   ctaPriceLabel?: string;
+  spacesLeft?: number;
+  eyebrowDateLabel?: string;
 }
 
 export interface LandingPageStructuredDataContent {
@@ -922,6 +924,52 @@ function formatLandingPageEventCtaPriceLabel(
   return formattedAmount;
 }
 
+function formatLandingPageEyebrowDate(
+  isoDateTime: string | undefined,
+  locale: Locale,
+): string | undefined {
+  const normalizedIsoDateTime = readOptionalText(isoDateTime);
+  if (!normalizedIsoDateTime) {
+    return undefined;
+  }
+
+  const date = new Date(normalizedIsoDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  if (locale === 'en') {
+    const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).formatToParts(date);
+    const weekday = readOptionalText(parts.find((part) => part.type === 'weekday')?.value);
+    const day = readOptionalText(parts.find((part) => part.type === 'day')?.value);
+    const month = readOptionalText(parts.find((part) => part.type === 'month')?.value);
+    if (weekday && day && month) {
+      return `${weekday} ${day} ${month}`;
+    }
+  }
+
+  if (locale === 'zh-CN' || locale === 'zh-HK') {
+    const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+      month: 'long',
+      day: 'numeric',
+    }).formatToParts(date);
+    const month = readOptionalText(parts.find((part) => part.type === 'month')?.value);
+    const day = readOptionalText(parts.find((part) => part.type === 'day')?.value);
+    if (month && day) {
+      return `${month} ${day} 日`;
+    }
+  }
+
+  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
+    day: 'numeric',
+    month: 'long',
+  }).format(date);
+}
+
 export async function fetchEventsPayload(
   crmApiClient: CrmApiClient | null,
   signal: AbortSignal,
@@ -1350,6 +1398,11 @@ export function getLandingPageBookingEventContent(
   }
 
   const normalizedLocale = resolveEventsLocale(locale);
+  const firstDateRecord = findFirstEventDateRecord(eventRecord);
+  const firstStartDateTime = firstDateRecord
+    ? readCandidateText(firstDateRecord, ['start_datetime', 'startDateTime', 'start'])
+    : undefined;
+  const spacesLeft = resolveNumericCandidate(eventRecord, ['spaces_left', 'spacesLeft']);
   const summary = readCandidateText(eventRecord, [
     'summary',
     'description',
@@ -1400,6 +1453,8 @@ export function getLandingPageBookingEventContent(
     status: resolveEventStatus(eventRecord),
     bookingPayload: resolvedPayload?.variant === 'event' ? resolvedPayload : null,
     ctaPriceLabel: formatLandingPageEventCtaPriceLabel(eventRecord),
+    spacesLeft: spacesLeft ?? undefined,
+    eyebrowDateLabel: formatLandingPageEyebrowDate(firstStartDateTime, normalizedLocale),
   };
 }
 

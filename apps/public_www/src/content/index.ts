@@ -112,6 +112,8 @@ export interface LandingPageLocaleContent {
     description: string;
     buttonLabel: string;
     buttonLabelTemplate?: string;
+    fullyBookedButtonLabel?: string;
+    fullyBookedWaitlistMessageTemplate?: string;
   };
 }
 

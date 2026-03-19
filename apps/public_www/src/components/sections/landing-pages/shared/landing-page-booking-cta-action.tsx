@@ -40,6 +40,8 @@ interface LandingPageBookingCtaActionProps {
   commonContent: LandingPagesCommonContent;
   bookingPayload: EventBookingModalPayload | null;
   isFullyBooked: boolean;
+  fullyBookedCtaLabel?: string;
+  fullyBookedWaitlistHref?: string;
   bookingModalContent: BookingModalContent;
   analyticsSectionId: string;
   ctaLocation: string;
@@ -64,6 +66,24 @@ function resolveCtaLabel(
   return resolvedTemplateLabel || fallbackLabel;
 }
 
+function resolveFullyBookedCtaLabel(
+  content: LandingPageLocaleContent['cta'],
+  commonContent: LandingPagesCommonContent,
+  overrideLabel: string | undefined,
+): string {
+  const normalizedOverrideLabel = overrideLabel?.trim();
+  if (normalizedOverrideLabel) {
+    return normalizedOverrideLabel;
+  }
+
+  const normalizedContentLabel = content.fullyBookedButtonLabel?.trim();
+  if (normalizedContentLabel) {
+    return normalizedContentLabel;
+  }
+
+  return content.buttonLabel || commonContent.defaultCtaLabel;
+}
+
 export function LandingPageBookingCtaAction({
   locale,
   slug,
@@ -72,6 +92,8 @@ export function LandingPageBookingCtaAction({
   commonContent,
   bookingPayload,
   isFullyBooked,
+  fullyBookedCtaLabel,
+  fullyBookedWaitlistHref,
   bookingModalContent,
   analyticsSectionId,
   ctaLocation,
@@ -84,7 +106,12 @@ export function LandingPageBookingCtaAction({
 
   const selectedDateLabel = bookingPayload?.selectedDateLabel ?? '';
   const selectedDate = bookingPayload?.selectedDateStartTime?.split('T')[0] ?? '';
-  const ctaLabel = resolveCtaLabel(content, commonContent, ctaPriceLabel);
+  const defaultCtaLabel = resolveCtaLabel(content, commonContent, ctaPriceLabel);
+  const ctaLabel = isFullyBooked
+    ? resolveFullyBookedCtaLabel(content, commonContent, fullyBookedCtaLabel)
+    : defaultCtaLabel;
+  const normalizedFullyBookedWaitlistHref = fullyBookedWaitlistHref?.trim() ?? '';
+  const shouldUseFullyBookedWaitlistLink = isFullyBooked && Boolean(normalizedFullyBookedWaitlistHref);
 
   useEffect(() => {
     if (!isPaymentModalOpen || !bookingPayload || isFullyBooked) {
@@ -112,30 +139,51 @@ export function LandingPageBookingCtaAction({
 
   return (
     <>
-      <ButtonPrimitive
-        variant='primary'
-        className={buttonClassName}
-        disabled={!bookingPayload || isFullyBooked}
-        onClick={() => {
-          if (!bookingPayload || isFullyBooked) {
-            return;
-          }
+      {shouldUseFullyBookedWaitlistLink ? (
+        <ButtonPrimitive
+          variant='primary'
+          className={buttonClassName}
+          href={normalizedFullyBookedWaitlistHref}
+          onClick={() => {
+            trackAnalyticsEvent('landing_page_cta_click', {
+              sectionId: analyticsSectionId,
+              ctaLocation,
+              params: {
+                landing_page_slug: slug,
+                age_group: '',
+                cohort_label: selectedDateLabel,
+              },
+            });
+          }}
+        >
+          {ctaLabel}
+        </ButtonPrimitive>
+      ) : (
+        <ButtonPrimitive
+          variant='primary'
+          className={buttonClassName}
+          disabled={!bookingPayload || isFullyBooked}
+          onClick={() => {
+            if (!bookingPayload || isFullyBooked) {
+              return;
+            }
 
-          trackAnalyticsEvent('landing_page_cta_click', {
-            sectionId: analyticsSectionId,
-            ctaLocation,
-            params: {
-              landing_page_slug: slug,
-              age_group: '',
-              cohort_label: selectedDateLabel,
-            },
-          });
-          trackMetaPixelEvent('InitiateCheckout', { content_name: slug });
-          setIsPaymentModalOpen(true);
-        }}
-      >
-        {ctaLabel}
-      </ButtonPrimitive>
+            trackAnalyticsEvent('landing_page_cta_click', {
+              sectionId: analyticsSectionId,
+              ctaLocation,
+              params: {
+                landing_page_slug: slug,
+                age_group: '',
+                cohort_label: selectedDateLabel,
+              },
+            });
+            trackMetaPixelEvent('InitiateCheckout', { content_name: slug });
+            setIsPaymentModalOpen(true);
+          }}
+        >
+          {ctaLabel}
+        </ButtonPrimitive>
+      )}
 
       {isPaymentModalOpen && bookingPayload && !isFullyBooked && (
         <EventBookingModal
