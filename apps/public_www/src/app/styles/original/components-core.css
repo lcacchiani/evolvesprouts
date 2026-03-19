@@ -785,12 +785,22 @@
   .es-quote .es-quote-icon {
     position: absolute;
     top: 0;
-    left: 12px;
-    transform: translateY(-52%);
+    left: 0;
+    height: 2.5rem;
+    width: 2.5rem;
+    transform: translate(-24%, -52%);
     margin-bottom: 0;
-    z-index: 1;
-    box-shadow: 0 0 0 2px var(--es-color-surface-white, #FFFFFF);
-    border-radius: 0.2rem;
+    z-index: 2;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.2));
+  }
+
+  .es-quote .es-quote-icon::before {
+    content: '';
+    position: absolute;
+    inset: -0.16rem;
+    z-index: -1;
+    border-radius: 0.45rem;
+    background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
   .es-quote-text {
