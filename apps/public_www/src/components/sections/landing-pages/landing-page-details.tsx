@@ -74,6 +74,7 @@ export function LandingPageDetails({
               {...sharedCtaProps}
               analyticsSectionId='landing-page-details'
               ctaLocation='landing_page'
+              buttonClassName='w-full max-w-[488px]'
             />
           </div>
         ) : null}
