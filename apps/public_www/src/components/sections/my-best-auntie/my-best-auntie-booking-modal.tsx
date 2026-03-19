@@ -124,6 +124,7 @@ export function MyBestAuntieBookingModal({
               venueName={selectedVenueName}
               venueAddress={selectedVenueAddress}
               directionHref={selectedVenueDirectionHref}
+              detailsVariant='my-best-auntie'
             />
             <BookingReservationForm
               locale={locale}

@@ -291,7 +291,7 @@ export function LandingPageHero({
       dataFigmaNode='landing-page-hero'
       className='es-landing-page-hero-section es-bg-surface-white'
     >
-      <SectionContainer className='grid items-center gap-10 lg:grid-cols-2'>
+      <SectionContainer className='grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]'>
         <div className='space-y-5'>
           <SectionHeader
             title={title}
