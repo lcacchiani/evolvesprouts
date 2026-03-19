@@ -45,6 +45,7 @@ export function LandingPageCta({
       <SectionContainer>
         <SectionHeader
           eyebrow={content.eyebrow}
+          eyebrowShowLogo={content.eyebrowShowLogo}
           title={content.title}
           description={content.description}
           align='left'
