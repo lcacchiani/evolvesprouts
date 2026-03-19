@@ -62,7 +62,7 @@ export type AboutUsHeroContent = SiteContent['aboutUs']['hero'];
 export type AboutUsMyHistoryContent = SiteContent['aboutUs']['myHistory'];
 export type AboutUsMyJourneyContent = SiteContent['aboutUs']['myJourney'];
 export type AboutUsWhyUsContent = SiteContent['aboutUs']['whyUs'];
-export type AboutUsIdaCoachContent = SiteContent['aboutUs']['idaCoach'];
+export type AboutUsIdaCoachContent = SiteContent['aboutUs']['coaches']['ida'];
 export type FaqContent = SiteContent['faq'];
 export type SproutsSquadCommunityContent =
   SiteContent['sproutsSquadCommunity'];

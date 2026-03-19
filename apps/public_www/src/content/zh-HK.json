@@ -1208,19 +1208,21 @@
         }
       ]
     },
-    "idaCoach": {
-      "eyebrow": "你的教練",
-      "title": "Ida De Gregorio",
-      "subtitle": "Evolve Sprouts 創辦人",
-      "description": "Ida 是香港專注蒙特梭利啟發式姐姐培訓的專家。她與全港家庭合作，協助家長與姐姐在同一套育兒方式上對齊——從而帶來更平靜的家庭、更順暢的日常節奏，以及更獨立的孩子。\n\n她的旗艦服務是 9-Week Helper Training Programme，按步驟帶領姐姐掌握環境設置、引導方式與獨立能力培養——並配合家訪、每週挑戰，以及同時支援家長與姐姐的持續跟進。",
-      "highlightedPhrase": "9-Week Helper Training Programme",
-      "tags": [
-        "AMI 蒙特梭利教育者（0–6）",
-        "香港大學教育學碩士（M.Ed.）",
-        "Maria Montessori Institute, London",
-        "Montessori Institute of San Diego"
-      ],
-      "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
+    "coaches": {
+      "ida": {
+        "eyebrow": "你的教練",
+        "title": "Ida De Gregorio",
+        "subtitle": "Evolve Sprouts 創辦人",
+        "description": "Ida 是香港專注蒙特梭利啟發式姐姐培訓的專家。她與全港家庭合作，協助家長與姐姐在同一套育兒方式上對齊——從而帶來更平靜的家庭、更順暢的日常節奏，以及更獨立的孩子。\n\n她的旗艦服務是 9-Week Helper Training Programme，按步驟帶領姐姐掌握環境設置、引導方式與獨立能力培養——並配合家訪、每週挑戰，以及同時支援家長與姐姐的持續跟進。",
+        "highlightedPhrase": "9-Week Helper Training Programme",
+        "tags": [
+          "AMI 蒙特梭利教育者（0–6）",
+          "香港大學教育學碩士（M.Ed.）",
+          "Maria Montessori Institute, London",
+          "Montessori Institute of San Diego"
+        ],
+        "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
+      }
     }
   },
   "links": {

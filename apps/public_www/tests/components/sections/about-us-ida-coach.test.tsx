@@ -16,23 +16,23 @@ vi.mock('next/image', () => ({
 
 describe('AboutUsIdaCoach section', () => {
   it('renders ida coach content, image, and credential chips', () => {
-    render(<AboutUsIdaCoach content={enContent.aboutUs.idaCoach} />);
+    render(<AboutUsIdaCoach content={enContent.aboutUs.coaches.ida} />);
 
     const section = document.getElementById('about-us-ida-coach');
     expect(section).not.toBeNull();
     expect(section?.getAttribute('data-figma-node')).toBe('about-us-ida-coach');
     expect(section).toHaveClass('es-section-bg-overlay');
     expect(section).toHaveClass('es-about-us-ida-coach-section');
-    expect(screen.getByText(enContent.aboutUs.idaCoach.eyebrow)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: enContent.aboutUs.idaCoach.title }))
+    expect(screen.getByText(enContent.aboutUs.coaches.ida.eyebrow)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: enContent.aboutUs.coaches.ida.title }))
       .toBeInTheDocument();
-    expect(screen.getByText(enContent.aboutUs.idaCoach.subtitle)).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: enContent.aboutUs.idaCoach.imageAlt })).toBeInTheDocument();
+    expect(screen.getByText(enContent.aboutUs.coaches.ida.subtitle)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: enContent.aboutUs.coaches.ida.imageAlt })).toBeInTheDocument();
 
-    const highlightedText = screen.getByText(enContent.aboutUs.idaCoach.highlightedPhrase);
+    const highlightedText = screen.getByText(enContent.aboutUs.coaches.ida.highlightedPhrase);
     expect(highlightedText).toHaveClass('es-about-us-ida-coach-highlight');
 
-    for (const tag of enContent.aboutUs.idaCoach.tags) {
+    for (const tag of enContent.aboutUs.coaches.ida.tags) {
       expect(screen.getByText(tag)).toBeInTheDocument();
     }
   });

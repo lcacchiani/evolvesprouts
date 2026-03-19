@@ -157,7 +157,7 @@ export function LandingPage({
         ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
       />
       <AboutUsIdaCoach
-        content={siteContent.aboutUs.idaCoach}
+        content={siteContent.aboutUs.coaches.ida}
         ariaLabel={siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel}
       />
       <LandingPageFaq
