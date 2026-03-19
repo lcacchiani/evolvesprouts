@@ -8,6 +8,7 @@ type SectionHeaderTitleTag = 'h1' | 'h2';
 
 interface SectionHeaderProps {
   eyebrow?: string;
+  eyebrowShowLogo?: boolean;
   title: ReactNode;
   description?: ReactNode;
   align?: SectionHeaderAlignment;
@@ -20,6 +21,7 @@ interface SectionHeaderProps {
 
 export function SectionHeader({
   eyebrow,
+  eyebrowShowLogo = true,
   title,
   description,
   align = 'center',
@@ -45,7 +47,7 @@ export function SectionHeader({
         className,
       )}
     >
-      {eyebrow ? <SectionEyebrowChip label={eyebrow} /> : null}
+      {eyebrow ? <SectionEyebrowChip label={eyebrow} showLogo={eyebrowShowLogo} /> : null}
       <TitleTag
         className={mergeClassNames(
           'es-type-title',

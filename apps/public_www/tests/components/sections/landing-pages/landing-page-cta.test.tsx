@@ -56,7 +56,7 @@ describe('LandingPageCta section', () => {
   );
 
   it('opens booking modal and tracks CTA, modal-open, and meta pixel events', async () => {
-    render(
+    const { container } = render(
       <LandingPageCta
         locale='en'
         slug='easter-2026-montessori-play-coaching-workshop'
@@ -74,6 +74,7 @@ describe('LandingPageCta section', () => {
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-cta');
     expect(section).toHaveClass('es-landing-page-cta-section');
     expect(screen.getByText(easterWorkshopContent.en.cta.eyebrow)).toBeInTheDocument();
+    expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
     expect(
       screen.getByRole('heading', {
         name: easterWorkshopContent.en.cta.title,
@@ -110,6 +111,26 @@ describe('LandingPageCta section', () => {
     expect(mockedTrackMetaPixelEvent).toHaveBeenCalledWith('InitiateCheckout', {
       content_name: 'easter-2026-montessori-play-coaching-workshop',
     });
+  });
+
+  it('shows eyebrow logo by default when eyebrowShowLogo is not provided', () => {
+    const { container } = render(
+      <LandingPageCta
+        locale='en'
+        slug='easter-2026-montessori-play-coaching-workshop'
+        content={{
+          ...easterWorkshopContent.en.cta,
+          eyebrowShowLogo: undefined,
+        }}
+        ctaPriceLabel={ctaPriceLabel}
+        commonContent={enContent.landingPages.common}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeInTheDocument();
   });
 
   it('disables CTA button when event is fully booked', () => {
