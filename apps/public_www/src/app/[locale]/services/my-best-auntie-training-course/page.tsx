@@ -1,4 +1,4 @@
-import { MyBestAuntie } from '@/components/pages/my-best-auntie';
+import { MyBestAuntiePage } from '@/components/pages/my-best-auntie';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
   getFooterLinkLabel,
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function MyBestAuntiePage({
+export default async function MyBestAuntieRoutePage({
   params,
 }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
@@ -47,7 +47,7 @@ export default async function MyBestAuntiePage({
 
   return (
     <>
-      <MyBestAuntie locale={locale} content={content} />
+      <MyBestAuntiePage locale={locale} content={content} />
       <StructuredDataScript
         id={`training-course-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

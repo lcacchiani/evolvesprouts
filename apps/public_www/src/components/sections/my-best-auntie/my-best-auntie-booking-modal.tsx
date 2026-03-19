@@ -26,6 +26,10 @@ import type {
   MyBestAuntieBookingContent,
   MyBestAuntieModalContent,
 } from '@/content';
+import {
+  formatCohortValue,
+  formatPartDateTimeLabel,
+} from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
@@ -41,57 +45,6 @@ interface MyBestAuntieBookingModalProps {
   captchaWidgetAction?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
-}
-
-const COHORT_VALUE_PATTERN = /^(\d{2})-(\d{2})$/;
-
-function formatCohortValue(value: string): string {
-  const trimmedValue = value.trim();
-  const match = COHORT_VALUE_PATTERN.exec(trimmedValue);
-  if (!match) {
-    return trimmedValue;
-  }
-
-  const monthNumber = Number(match[1]);
-  const yearSuffix = Number(match[2]);
-  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
-    return trimmedValue;
-  }
-
-  if (!Number.isInteger(yearSuffix)) {
-    return trimmedValue;
-  }
-
-  const year = 2000 + yearSuffix;
-  const monthLabel = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
-  return `${monthLabel}, ${year}`;
-}
-
-function formatPartDateTimeLabel(startDateTime: string): string {
-  const date = new Date(startDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const month = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-  }).format(date);
-  const day = new Intl.DateTimeFormat('en-US', {
-    day: '2-digit',
-  }).format(date);
-  const time = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-    .format(date)
-    .replace(' AM', ' am')
-    .replace(' PM', ' pm');
-
-  return `${month} ${day} @ ${time}`;
 }
 
 export function MyBestAuntieBookingModal({

@@ -4,12 +4,12 @@ import { localizeHref } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
-interface LinksPageSectionsProps {
+interface LinksPageProps {
   locale: Locale;
   content: SiteContent;
 }
 
-export function LinksPageSections({ locale, content }: LinksPageSectionsProps) {
+export function LinksPage({ locale, content }: LinksPageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
 
   return (

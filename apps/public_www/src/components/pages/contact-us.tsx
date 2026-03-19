@@ -5,11 +5,11 @@ import { FreeIntroSession } from '@/components/sections/free-intro-session';
 import { ContactUsFaq } from '@/components/sections/contact-us-faq';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 
-interface ContactUsPageSectionsProps {
+interface ContactUsPageProps {
   content: SiteContent;
 }
 
-export function ContactUsPageSections({ content }: ContactUsPageSectionsProps) {
+export function ContactUsPage({ content }: ContactUsPageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
 
   return (

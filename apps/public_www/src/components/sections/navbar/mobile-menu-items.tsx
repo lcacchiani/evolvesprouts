@@ -5,7 +5,11 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import enContent from '@/content/en.json';
 import { type Locale, type NavbarContent } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import { localizeHref, normalizeLocalizedPath } from '@/lib/locale-routing';
+import {
+  isHrefActive,
+  isMenuItemActive,
+} from '@/components/sections/navbar/navbar-utils';
+import { localizeHref } from '@/lib/locale-routing';
 
 type MenuItem = NavbarContent['menuItems'][number];
 type SubmenuItem = NonNullable<MenuItem['children']>[number];
@@ -17,32 +21,6 @@ const NAV_MOBILE_TOP_LEVEL_LINK_CLASSNAME =
 export const MOBILE_PRIMARY_ACTION_CLASSNAME =
   `w-full justify-between transition-colors ${NAV_MOBILE_PILL_RESET_CLASSNAME}`;
 const NAV_MOBILE_CHEVRON_ICON_SRC = '/images/chevron.svg';
-
-function isHrefActive(currentPath: string, href: string): boolean {
-  const targetPath = normalizeLocalizedPath(href);
-
-  if (targetPath === '#') {
-    return false;
-  }
-
-  if (targetPath === '/') {
-    return currentPath === '/';
-  }
-
-  return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
-}
-
-function isMenuItemActive(currentPath: string, item: MenuItem): boolean {
-  if (isHrefActive(currentPath, item.href)) {
-    return true;
-  }
-
-  if (!item.children) {
-    return false;
-  }
-
-  return item.children.some((child) => isHrefActive(currentPath, child.href));
-}
 
 interface SubmenuLinksProps {
   items: readonly SubmenuItem[];

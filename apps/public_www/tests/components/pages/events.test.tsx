@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { EventsPageSections } from '@/components/pages/events';
+import { EventsPage } from '@/components/pages/events';
 import enContent from '@/content/en.json';
 
 vi.mock('@/components/shared/page-layout', () => ({
@@ -37,9 +37,9 @@ vi.mock('@/components/sections/free-intro-session', () => ({
   ),
 }));
 
-describe('EventsPageSections', () => {
+describe('EventsPage', () => {
   it('composes events page sections with locale-aware props', () => {
-    render(<EventsPageSections content={enContent} />);
+    render(<EventsPage content={enContent} />);
 
     const pageLayout = screen.getByTestId('page-layout');
     expect(pageLayout).toBeInTheDocument();

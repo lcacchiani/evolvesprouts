@@ -1,4 +1,7 @@
-import type { EventsContent } from '@/content';
+import type {
+  EventsContent,
+  Locale,
+} from '@/content';
 import temporaryEventsPayload from '@/content/events.json';
 import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import {
@@ -7,11 +10,11 @@ import {
   toRecord,
 } from '@/content/content-field-utils';
 import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
+import { formatCohortValue } from '@/lib/format';
 import { ROUTES } from '@/lib/routes';
 import { isHttpHref } from '@/lib/url-utils';
 
 type EventStatus = 'open' | 'fully_booked';
-type SupportedLocale = 'en' | 'zh-CN' | 'zh-HK';
 type EventsSource = 'content' | 'api';
 
 export const EVENTS_API_PATH = '/v1/calendar/events';
@@ -22,7 +25,6 @@ const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const EVENT_BOOKING_SYSTEM = 'event-booking';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
-const COHORT_VALUE_PATTERN = /^(\d{2})-(\d{2})$/;
 
 interface EventBookingDatePart {
   id: string;
@@ -138,7 +140,7 @@ const DATE_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 const TIME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 const TIME_ZONE_NAME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
 
-function resolveEventsLocale(locale?: string): SupportedLocale {
+function resolveEventsLocale(locale?: string): Locale {
   if (locale === 'zh-CN' || locale === 'zh-HK') {
     return locale;
   }
@@ -146,7 +148,7 @@ function resolveEventsLocale(locale?: string): SupportedLocale {
   return 'en';
 }
 
-function resolveDateTimeLocale(locale: SupportedLocale): string {
+function resolveDateTimeLocale(locale: Locale): string {
   if (locale === 'en') {
     return UK_EVENTS_LOCALE;
   }
@@ -176,7 +178,7 @@ function formatEnumLikeLabel(value: string): string {
     .join(' ');
 }
 
-function getDateFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
+function getDateFormatter(locale: Locale): Intl.DateTimeFormat {
   const formatterKey = locale;
   const cachedFormatter = DATE_FORMATTER_CACHE.get(formatterKey);
   if (cachedFormatter) {
@@ -192,7 +194,7 @@ function getDateFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
   return nextFormatter;
 }
 
-function getTimeFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
+function getTimeFormatter(locale: Locale): Intl.DateTimeFormat {
   const formatterKey = locale;
   const cachedFormatter = TIME_FORMATTER_CACHE.get(formatterKey);
   if (cachedFormatter) {
@@ -215,7 +217,7 @@ function getTimeFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
   return nextFormatter;
 }
 
-function getTimeZoneNameFormatter(locale: SupportedLocale): Intl.DateTimeFormat {
+function getTimeZoneNameFormatter(locale: Locale): Intl.DateTimeFormat {
   const formatterKey = locale;
   const cachedFormatter = TIME_ZONE_NAME_FORMATTER_CACHE.get(formatterKey);
   if (cachedFormatter) {
@@ -240,7 +242,7 @@ function sanitizeExternalHref(value: string | undefined): string {
   return href;
 }
 
-function localizeRoutePath(path: string, locale: SupportedLocale): string {
+function localizeRoutePath(path: string, locale: Locale): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   if (normalizedPath === '/') {
     return `/${locale}`;
@@ -251,7 +253,7 @@ function localizeRoutePath(path: string, locale: SupportedLocale): string {
 
 function resolveBookingSystemCtaHref(
   bookingSystemValue: string | undefined,
-  locale: SupportedLocale,
+  locale: Locale,
 ): string {
   const bookingSystem = readOptionalText(bookingSystemValue);
   if (!bookingSystem) {
@@ -273,31 +275,6 @@ function resolveBookingSystemCtaHref(
   );
 
   return `${localizedMyBestAuntiePath}?${BOOKING_SYSTEM_QUERY_PARAM}=${MY_BEST_AUNTIE_BOOKING_SYSTEM}#${MY_BEST_AUNTIE_BOOKING_HASH}`;
-}
-
-function formatCohortValue(value: string): string {
-  const trimmedValue = value.trim();
-  const match = COHORT_VALUE_PATTERN.exec(trimmedValue);
-  if (!match) {
-    return trimmedValue;
-  }
-
-  const monthNumber = Number(match[1]);
-  const yearSuffix = Number(match[2]);
-  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
-    return trimmedValue;
-  }
-
-  if (!Number.isInteger(yearSuffix)) {
-    return trimmedValue;
-  }
-
-  const year = 2000 + yearSuffix;
-  const monthLabel = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
-  return `${monthLabel}, ${year}`;
 }
 
 function isGoogleMapsHref(href: string): boolean {
@@ -418,7 +395,7 @@ function resolveBookingDateParts(
 
 function buildEventBookingModalPayload(
   record: Record<string, unknown>,
-  locale: SupportedLocale,
+  locale: Locale,
   title: string,
   summary: string | undefined,
   locationName: string | undefined,
@@ -528,7 +505,7 @@ function buildMyBestAuntieBookingModalPayload(
 function resolveBookingModalPayload(
   record: Record<string, unknown>,
   bookingSystem: string | undefined,
-  locale: SupportedLocale,
+  locale: Locale,
   title: string,
   summary: string | undefined,
   locationName: string | undefined,
@@ -554,7 +531,7 @@ function resolveBookingModalPayload(
   return undefined;
 }
 
-function formatUtcDateLabel(isoDateTime: string, locale: SupportedLocale): string {
+function formatUtcDateLabel(isoDateTime: string, locale: Locale): string {
   const date = new Date(isoDateTime);
   if (Number.isNaN(date.getTime())) {
     return '';
@@ -563,7 +540,7 @@ function formatUtcDateLabel(isoDateTime: string, locale: SupportedLocale): strin
   return getDateFormatter(locale).format(date);
 }
 
-function formatUtcTimeLabel(isoDateTime: string, locale: SupportedLocale): string {
+function formatUtcTimeLabel(isoDateTime: string, locale: Locale): string {
   const date = new Date(isoDateTime);
   if (Number.isNaN(date.getTime())) {
     return '';
@@ -572,7 +549,7 @@ function formatUtcTimeLabel(isoDateTime: string, locale: SupportedLocale): strin
   return getTimeFormatter(locale).format(date);
 }
 
-function formatUtcTimeZoneLabel(isoDateTime: string, locale: SupportedLocale): string {
+function formatUtcTimeZoneLabel(isoDateTime: string, locale: Locale): string {
   const date = new Date(isoDateTime);
   if (Number.isNaN(date.getTime())) {
     return '';
@@ -690,7 +667,7 @@ function readLandingPageCategoryChips(
 
 function resolveDateTimeDetails(
   record: Record<string, unknown>,
-  locale: SupportedLocale,
+  locale: Locale,
 ): {
   dateLabel?: string;
   timeLabel?: string;
@@ -1039,7 +1016,7 @@ function findFirstEventDateRecord(
 function normalizeEventsFromArray(
   eventsArray: unknown[],
   content: EventsContent,
-  locale: SupportedLocale,
+  locale: Locale,
 ): EventCardData[] {
   return eventsArray
     .map((item, index) => normalizeEventCard(item, index, content, locale))
@@ -1153,7 +1130,7 @@ function normalizeEventCard(
   value: unknown,
   index: number,
   content: EventsContent,
-  locale: SupportedLocale,
+  locale: Locale,
 ): EventCardData | null {
   const record = toRecord(value);
   if (!record) {

@@ -1,5 +1,5 @@
 import type { SiteContent } from '@/content';
-import { EventsPageSections } from '@/components/pages/events';
+import { EventsPage } from '@/components/pages/events';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
   createPublicCrmApiClient,
@@ -79,14 +79,14 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function EventsPage({ params }: LocaleRouteProps) {
+export default async function EventsRoutePage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const pageTitle = getMenuLabel(content, ROUTES.events);
   const eventsForSchema = await resolveServerSideEvents(locale, content);
 
   return (
     <>
-      <EventsPageSections content={content} />
+      <EventsPage content={content} />
       <StructuredDataScript
         id={`events-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

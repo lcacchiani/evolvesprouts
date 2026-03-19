@@ -58,13 +58,12 @@ export function getMenuLabel(
   href: string,
   fallbackLabel = '',
 ): string {
-  const match = content.navbar.menuItems.find((item) => item.href === href);
-  if (match?.label) {
-    return match.label;
-  }
-
-  const defaultMatch = getDefaultSiteContent().navbar.menuItems.find((item) => item.href === href);
-  return defaultMatch?.label ?? fallbackLabel;
+  return (
+    findLabelByHref(
+      [content.navbar.menuItems, getDefaultSiteContent().navbar.menuItems],
+      href,
+    ) ?? fallbackLabel
+  );
 }
 
 export function getFooterLinkLabel(
@@ -72,36 +71,36 @@ export function getFooterLinkLabel(
   href: string,
   fallbackLabel = '',
 ): string {
-  const sections = [
-    content.footer.quickLinks.items,
-    content.footer.services.items,
-    content.footer.aboutUs.items,
-    content.footer.connectOn.items,
-  ];
-
-  for (const items of sections) {
-    const match = items.find((item) => item.href === href);
-    if (match?.label) {
-      return match.label;
-    }
-  }
-
   const defaultContent = getDefaultSiteContent();
-  const defaultSections = [
-    defaultContent.footer.quickLinks.items,
-    defaultContent.footer.services.items,
-    defaultContent.footer.aboutUs.items,
-    defaultContent.footer.connectOn.items,
-  ];
+  return (
+    findLabelByHref(
+      [
+        content.footer.quickLinks.items,
+        content.footer.services.items,
+        content.footer.aboutUs.items,
+        content.footer.connectOn.items,
+        defaultContent.footer.quickLinks.items,
+        defaultContent.footer.services.items,
+        defaultContent.footer.aboutUs.items,
+        defaultContent.footer.connectOn.items,
+      ],
+      href,
+    ) ?? fallbackLabel
+  );
+}
 
-  for (const items of defaultSections) {
+function findLabelByHref(
+  itemSets: ReadonlyArray<ReadonlyArray<{ href: string; label: string }>>,
+  href: string,
+): string | undefined {
+  for (const items of itemSets) {
     const match = items.find((item) => item.href === href);
     if (match?.label) {
       return match.label;
     }
   }
 
-  return fallbackLabel;
+  return undefined;
 }
 
 interface PlaceholderMetadataOptions {

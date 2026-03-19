@@ -25,6 +25,7 @@ import type {
   Locale,
 } from '@/content';
 import type { EventBookingModalPayload } from '@/lib/events-data';
+import { formatPartDateTimeLabel } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
@@ -34,30 +35,6 @@ interface EventBookingModalProps {
   bookingPayload: EventBookingModalPayload;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
-}
-
-function formatPartDateTimeLabel(startDateTime: string): string {
-  const date = new Date(startDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const month = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-  }).format(date);
-  const day = new Intl.DateTimeFormat('en-US', {
-    day: '2-digit',
-  }).format(date);
-  const time = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-    .format(date)
-    .replace(' AM', ' am')
-    .replace(' PM', ' pm');
-
-  return `${month} ${day} @ ${time}`;
 }
 
 export function EventBookingModal({

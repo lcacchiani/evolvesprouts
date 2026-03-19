@@ -1,4 +1,4 @@
-import { LinksPageSections } from '@/components/pages/links';
+import { LinksPage } from '@/components/pages/links';
 import {
   type LocaleRouteProps,
   resolveLocalePageContext,
@@ -23,8 +23,8 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function LinksPage({ params }: LocaleRouteProps) {
+export default async function LinksRoutePage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
 
-  return <LinksPageSections locale={locale} content={content} />;
+  return <LinksPage locale={locale} content={content} />;
 }

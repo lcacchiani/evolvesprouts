@@ -7,6 +7,7 @@ import type {
   SiteContent,
   SproutsSquadCommunityContent,
 } from '@/content';
+import { readRequiredRecordText } from '@/content/content-field-utils';
 
 interface SectionCopy {
   title: string;
@@ -14,39 +15,26 @@ interface SectionCopy {
   description: string;
 }
 
-function readRequiredText(record: Record<string, unknown>, key: string, sectionName: string): string {
-  const value = record[key];
-  if (typeof value !== 'string') {
-    throw new Error(`Missing required "${key}" copy value for "${sectionName}".`);
-  }
-
-  const normalizedValue = value.trim();
-  if (normalizedValue === '') {
-    throw new Error(`Empty "${key}" copy value for "${sectionName}".`);
-  }
-  return normalizedValue;
-}
-
 export function resolveHeroCopy(content: HeroContent): SectionCopy {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: readRequiredText(record, 'title', 'hero'),
-    subtitle: readRequiredText(record, 'subtitle', 'hero'),
-    description: readRequiredText(record, 'description', 'hero'),
+    title: readRequiredRecordText(record, 'title', 'hero'),
+    subtitle: readRequiredRecordText(record, 'subtitle', 'hero'),
+    description: readRequiredRecordText(record, 'description', 'hero'),
   };
 }
 
 export function resolveAboutUsIntroCopy(content: AboutUsIntroContent): Pick<SectionCopy, 'title' | 'description'> {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: readRequiredText(record, 'title', 'aboutUs.intro'),
-    description: readRequiredText(record, 'description', 'aboutUs.intro'),
+    title: readRequiredRecordText(record, 'title', 'aboutUs.intro'),
+    description: readRequiredRecordText(record, 'description', 'aboutUs.intro'),
   };
 }
 
 export function resolveMyBestAuntieHeroDescription(content: MyBestAuntieHeroContent): string {
   const record = content as unknown as Record<string, unknown>;
-  return readRequiredText(record, 'description', 'myBestAuntie.hero');
+  return readRequiredRecordText(record, 'description', 'myBestAuntie.hero');
 }
 
 export function resolveSproutsSquadCommunityCopy(
@@ -54,8 +42,8 @@ export function resolveSproutsSquadCommunityCopy(
 ): Pick<SectionCopy, 'title' | 'description'> {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: readRequiredText(record, 'title', 'sproutsSquadCommunity'),
-    description: readRequiredText(record, 'description', 'sproutsSquadCommunity'),
+    title: readRequiredRecordText(record, 'title', 'sproutsSquadCommunity'),
+    description: readRequiredRecordText(record, 'description', 'sproutsSquadCommunity'),
   };
 }
 
@@ -64,8 +52,8 @@ export function resolveEventNotificationCopy(
 ): Pick<SectionCopy, 'title' | 'description'> {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: readRequiredText(record, 'title', 'eventNotification'),
-    description: readRequiredText(record, 'description', 'eventNotification'),
+    title: readRequiredRecordText(record, 'title', 'eventNotification'),
+    description: readRequiredRecordText(record, 'description', 'eventNotification'),
   };
 }
 
@@ -74,8 +62,8 @@ export function resolveFreeIntroSessionCopy(
 ): Pick<SectionCopy, 'title' | 'description'> {
   const record = content as unknown as Record<string, unknown>;
   return {
-    title: readRequiredText(record, 'title', 'freeIntroSession'),
-    description: readRequiredText(record, 'description', 'freeIntroSession'),
+    title: readRequiredRecordText(record, 'title', 'freeIntroSession'),
+    description: readRequiredRecordText(record, 'description', 'freeIntroSession'),
   };
 }
 
@@ -83,5 +71,5 @@ export function resolvePolicyDescription(
   content: SiteContent['privacyPolicy'] | SiteContent['termsAndConditions'],
 ): string {
   const record = content as unknown as Record<string, unknown>;
-  return readRequiredText(record, 'description', 'policySection');
+  return readRequiredRecordText(record, 'description', 'policySection');
 }

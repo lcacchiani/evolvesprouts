@@ -20,6 +20,7 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { CONTACT_US_API_PATH } from '@/lib/api-paths';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import type { PublicSiteConfig } from '@/lib/site-config';
@@ -36,7 +37,6 @@ interface ContactUsFormProps {
 }
 
 const PHONE_PATTERN = /^\+?[0-9()\-\s]{7,20}$/;
-const CONTACT_US_API_PATH = '/v1/contact-us';
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
 
 function isValidPhone(value: string): boolean {

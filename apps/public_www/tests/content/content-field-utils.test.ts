@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   readCandidateTextFromUnknown,
+  readRequiredRecordText,
+  readRequiredText,
   readStringUnion,
   toRecord,
 } from '@/content/content-field-utils';
@@ -29,5 +31,21 @@ describe('content-field-utils', () => {
     expect(readStringUnion(' LEFT ', variants)).toBe('left');
     expect(readStringUnion('invalid', variants)).toBeUndefined();
     expect(readStringUnion(42, variants)).toBeUndefined();
+  });
+
+  it('normalizes required text from unknown values', () => {
+    expect(readRequiredText('  Hello  ')).toBe('Hello');
+    expect(readRequiredText('   ')).toBeUndefined();
+    expect(readRequiredText(42)).toBeUndefined();
+  });
+
+  it('throws descriptive errors for missing or empty required record values', () => {
+    expect(() => {
+      readRequiredRecordText({}, 'title', 'hero');
+    }).toThrow('Missing required "title" copy value for "hero".');
+
+    expect(() => {
+      readRequiredRecordText({ title: '   ' }, 'title', 'hero');
+    }).toThrow('Empty "title" copy value for "hero".');
   });
 });

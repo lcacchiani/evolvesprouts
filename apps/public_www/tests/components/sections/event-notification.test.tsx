@@ -82,7 +82,10 @@ describe('EventNotification section', () => {
 
   it('renders event notification section in CTA-first state', () => {
     const { container } = render(
-      <EventNotification content={enContent.events.notification} />,
+      <EventNotification
+        content={enContent.events.notification}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
     );
 
     const section = screen.getByRole('region', {
@@ -101,7 +104,12 @@ describe('EventNotification section', () => {
   });
 
   it('reveals email input and captcha after initial CTA click', () => {
-    render(<EventNotification content={enContent.events.notification} />);
+    render(
+      <EventNotification
+        content={enContent.events.notification}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -124,7 +132,12 @@ describe('EventNotification section', () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({ request });
 
-    render(<EventNotification content={enContent.events.notification} />);
+    render(
+      <EventNotification
+        content={enContent.events.notification}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {

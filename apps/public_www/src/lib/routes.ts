@@ -6,6 +6,7 @@ export const ROUTES = {
   about: '/about-us',
   contact: '/contact-us',
   events: '/events',
+  mediaDownload: '/media/download',
   privacy: '/privacy',
   servicesMyBestAuntieTrainingCourse: '/services/my-best-auntie-training-course',
   servicesWorkshops: '/services/workshops',
@@ -21,6 +22,7 @@ export const PLACEHOLDER_ROUTE_PATHS: readonly AppRoutePath[] = [
 
 export const UNLISTED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.links,
+  ROUTES.mediaDownload,
 ];
 
 export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [

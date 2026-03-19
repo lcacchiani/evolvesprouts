@@ -1,4 +1,4 @@
-import { ContactUsPageSections } from '@/components/pages/contact-us';
+import { ContactUsPage } from '@/components/pages/contact-us';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
   getMenuLabel,
@@ -28,13 +28,13 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function ContactUsPage({ params }: LocaleRouteProps) {
+export default async function ContactUsRoutePage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const pageTitle = getMenuLabel(content, ROUTES.contact);
 
   return (
     <>
-      <ContactUsPageSections content={content} />
+      <ContactUsPage content={content} />
       <StructuredDataScript
         id={`contact-us-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

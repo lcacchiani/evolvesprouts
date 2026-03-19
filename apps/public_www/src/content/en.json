@@ -908,6 +908,11 @@
       "carouselLabelTemplate": "{title} carousel",
       "sliderLabelTemplate": "{title} slider"
     },
+    "captcha": {
+      "requiredError": "Please complete CAPTCHA verification before submitting.",
+      "loadError": "CAPTCHA failed to load. Please refresh and try again.",
+      "unavailableError": "CAPTCHA is temporarily unavailable. Please try again later."
+    },
     "mediaDownload": {
       "invalidTitle": "Invalid download link",
       "invalidDescription": "This media link is missing a valid token. Please request the media again.",
