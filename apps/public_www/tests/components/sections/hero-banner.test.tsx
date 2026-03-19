@@ -54,7 +54,7 @@ describe('HeroBanner section', () => {
     expect(headline.className).toContain('es-hero-headline');
     expect(headline).toHaveTextContent(enContent.hero.title);
     expect(screen.getByText(enContent.hero.highlightPhrase)).toHaveClass(
-      'es-hero-highlight-word',
+      'es-highlight-word',
     );
 
     const subheadline = screen.getByText(enContent.hero.subtitle);
@@ -71,7 +71,7 @@ describe('HeroBanner section', () => {
     render(<HeroBanner content={zhCNContent.hero} />);
 
     expect(screen.getByText(zhCNContent.hero.highlightPhrase)).toHaveClass(
-      'es-hero-highlight-word',
+      'es-highlight-word',
     );
   });
 });

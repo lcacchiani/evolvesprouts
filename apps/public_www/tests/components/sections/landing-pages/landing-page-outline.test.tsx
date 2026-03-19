@@ -20,6 +20,6 @@ describe('LandingPageOutline section', () => {
     expect(screen.getByText(/this session is a first step towards that/i)).toBeInTheDocument();
 
     const highlightedText = screen.getByText('Evolve Sprouts programme');
-    expect(highlightedText).toHaveClass('es-landing-page-outline-highlight');
+    expect(highlightedText).toHaveClass('es-highlight-word');
   });
 });

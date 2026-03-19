@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from 'react';
 
-const DEFAULT_HIGHLIGHT_CLASSNAME = 'es-hero-highlight-word';
+const DEFAULT_HIGHLIGHT_CLASSNAME = 'es-highlight-word';
 
 export function renderHighlightedText(
   text: string,

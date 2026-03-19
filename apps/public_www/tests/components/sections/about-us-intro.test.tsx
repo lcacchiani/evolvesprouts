@@ -29,7 +29,7 @@ describe('AboutUsIntro', () => {
     );
     expect(screen.getByText(content.description)).toBeInTheDocument();
     expect(screen.getByText(content.highlightPhrase)).toHaveClass(
-      'es-hero-highlight-word',
+      'es-highlight-word',
     );
     const ctaLink = screen.getByRole('link', { name: content.ctaLabel });
     expect(ctaLink).toHaveAttribute('href', content.ctaHref);
@@ -48,7 +48,7 @@ describe('AboutUsIntro', () => {
     render(<AboutUsIntro content={zhCNContent.aboutUs.intro} />);
 
     expect(screen.getByText(zhCNContent.aboutUs.intro.highlightPhrase)).toHaveClass(
-      'es-hero-highlight-word',
+      'es-highlight-word',
     );
   });
 });

@@ -464,11 +464,6 @@
     text-wrap: pretty;
   }
 
-  .es-landing-page-outline-highlight {
-    color: var(--site-heading-text);
-    font-weight: 700;
-  }
-
   .es-landing-page-description-section {
     background-color: var(--es-color-surface-muted, #F8F8F8);
   }
@@ -814,7 +809,7 @@
     letter-spacing: 0.4px;
   }
 
-  .es-hero-highlight-word {
+  .es-highlight-word {
     color: var(--figma-colors-frame-2147235222-2, #ED622E);
   }
 
