@@ -323,7 +323,7 @@
       "submitLabel": "发送留言！",
       "formDescription": "想用“漂流瓶”方式留言？填写下方联系表单，我们会像小芽发芽一样尽快回复你。",
       "successTitle": "感谢你的留言！",
-      "successDescription": "我们已经收到你的留言，会尽快为你跟进处理。",
+      "successDescription": "我们已经收到你的留言，会尽快回复你。",
       "submitErrorMessage": "出了点问题，请稍后再试。",
       "captchaLabel": "请完成 CAPTCHA 验证",
       "captchaRequiredError": "提交前请先完成 CAPTCHA 验证。",

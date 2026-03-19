@@ -253,38 +253,40 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
             className='pointer-events-none absolute right-0 top-[130px] z-20 h-[36px] w-[33px] translate-x-1/2 bg-contain bg-center bg-no-repeat es-contact-us-decor-blue-line'
           />
 
-          <div className='relative z-10 mb-6 pt-4'>
-            <h2 className='es-type-title'>
-              {content.formTitle}
-            </h2>
-          </div>
-
           {hasSuccessfulSubmission ? (
             <ContactFormSuccess
               title={content.successTitle}
               description={content.successDescription}
             />
           ) : (
-            <ContactFormFields
-              content={content}
-              formState={formState}
-              hasEmailError={hasEmailError}
-              hasPhoneError={hasPhoneError}
-              captchaErrorMessage={captchaErrorMessage}
-              submitErrorMessage={submitErrorMessage}
-              turnstileSiteKey={turnstileSiteKey}
-              isSubmitDisabled={isSubmitDisabled}
-              onSubmit={handleSubmit}
-              onUpdateField={updateField}
-              onEmailBlur={() => {
-                setIsEmailTouched(true);
-              }}
-              onPhoneBlur={() => {
-                setIsPhoneTouched(true);
-              }}
-              onCaptchaTokenChange={handleCaptchaTokenChange}
-              onCaptchaLoadError={handleCaptchaLoadError}
-            />
+            <>
+              <div className='relative z-10 mb-6 pt-4'>
+                <h2 className='es-type-title'>
+                  {content.formTitle}
+                </h2>
+              </div>
+
+              <ContactFormFields
+                content={content}
+                formState={formState}
+                hasEmailError={hasEmailError}
+                hasPhoneError={hasPhoneError}
+                captchaErrorMessage={captchaErrorMessage}
+                submitErrorMessage={submitErrorMessage}
+                turnstileSiteKey={turnstileSiteKey}
+                isSubmitDisabled={isSubmitDisabled}
+                onSubmit={handleSubmit}
+                onUpdateField={updateField}
+                onEmailBlur={() => {
+                  setIsEmailTouched(true);
+                }}
+                onPhoneBlur={() => {
+                  setIsPhoneTouched(true);
+                }}
+                onCaptchaTokenChange={handleCaptchaTokenChange}
+                onCaptchaLoadError={handleCaptchaLoadError}
+              />
+            </>
           )}
         </div>
       </SectionContainer>
