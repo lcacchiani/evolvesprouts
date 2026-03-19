@@ -171,11 +171,11 @@ export function BookingEventDetails({
       <section className='mt-9 border-t border-black/15 pt-8'>
         {isEventDetailsVariant && eventScheduleRows.length > 0 ? (
           <div data-event-schedule-summary='true' className='border-b border-black/15 pb-8'>
-            <div className='flex items-start gap-4'>
+            <div className='flex items-center gap-4'>
               <span className='es-icon-circle-lg'>
                 <span
                   data-event-schedule-icon='true'
-                  className='es-mask-calendar-heading h-[46px] w-[46px] shrink-0'
+                  className='es-mask-calendar-danger h-[37px] w-[37px] shrink-0'
                   aria-hidden='true'
                 />
               </span>
