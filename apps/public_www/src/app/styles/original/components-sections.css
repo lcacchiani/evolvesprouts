@@ -415,6 +415,16 @@
     background-color: var(--es-color-surface-muted, #F8F8F8);
   }
 
+  .es-landing-page-hero-section {
+    padding-top: 0;
+  }
+
+  @media (min-width: 640px) {
+    .es-landing-page-hero-section {
+      padding-top: 60px;
+    }
+  }
+
   .es-landing-page-hero-image-wrap {
     position: relative;
     isolation: isolate;
