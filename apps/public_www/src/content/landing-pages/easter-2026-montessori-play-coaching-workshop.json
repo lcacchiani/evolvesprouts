@@ -69,7 +69,7 @@
       "description": "Please provide your child's name and age so Happy Baton can prepare the right toys ahead of the session.",
       "buttonLabel": "Reserve my spot",
       "buttonLabelTemplate": "Reserve my spot — {price}",
-      "fullyBookedButtonLabel": "Fully booked - Get in touch to join the waiting list.",
+      "fullyBookedButtonLabel": "Fully booked - Get in touch to join the waiting list",
       "fullyBookedWaitlistMessageTemplate": "I would like to join the waiting list for the event {eventTitle}."
     }
   },
@@ -143,7 +143,7 @@
       "description": "请提供您孩子的姓名和年龄，以便 Happy Baton 在课程前准备合适的玩具。",
       "buttonLabel": "预留我的名额",
       "buttonLabelTemplate": "预留我的名额 — {price}",
-      "fullyBookedButtonLabel": "已满额 - 联系我们加入候补名单。",
+      "fullyBookedButtonLabel": "已满额 - 联系我们加入候补名单",
       "fullyBookedWaitlistMessageTemplate": "我想加入活动《{eventTitle}》的候补名单。"
     }
   },
@@ -217,7 +217,7 @@
       "description": "請提供你孩子的姓名和年齡，讓 Happy Baton 可在課堂前預備合適玩具。",
       "buttonLabel": "預留我的名額",
       "buttonLabelTemplate": "預留我的名額 — {price}",
-      "fullyBookedButtonLabel": "已滿額 - 聯絡我們加入候補名單。",
+      "fullyBookedButtonLabel": "已滿額 - 聯絡我們加入候補名單",
       "fullyBookedWaitlistMessageTemplate": "我想加入活動《{eventTitle}》的候補名單。"
     }
   }
