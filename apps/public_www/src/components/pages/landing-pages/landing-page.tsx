@@ -37,12 +37,15 @@ function resolveLandingPageCtaEyebrow(
     return '';
   }
 
-  if (!Number.isFinite(spotsLeft) || !dateLabel?.trim()) {
+  const hasNumericSpotsLeft = typeof spotsLeft === 'number' && Number.isFinite(spotsLeft);
+  if (!hasNumericSpotsLeft || !dateLabel?.trim()) {
     return normalizedTemplate;
   }
 
+  const normalizedSpotsLeft = Math.max(0, Math.trunc(spotsLeft));
+
   const resolvedEyebrow = formatContentTemplate(normalizedTemplate, {
-    spotsLeft: Math.max(0, Math.trunc(spotsLeft)),
+    spotsLeft: normalizedSpotsLeft,
     date: dateLabel.trim(),
   }).trim();
 
