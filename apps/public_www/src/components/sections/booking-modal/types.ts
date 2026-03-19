@@ -9,3 +9,9 @@ export interface ReservationSummary {
   eventTitle: string;
   dateStartTime?: string;
 }
+
+export interface BookingTopicsFieldConfig {
+  label?: string;
+  placeholder?: string;
+  required?: boolean;
+}

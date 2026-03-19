@@ -5,7 +5,10 @@ import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-
 import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
 import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';
 import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  BookingTopicsFieldConfig,
+  ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
@@ -31,6 +34,7 @@ interface BookingReservationFormProps {
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
   selectedCohortPrice: number;
+  topicsFieldConfig?: BookingTopicsFieldConfig;
   descriptionId: string;
   analyticsSectionId?: string;
   metaPixelContentName?: string;
@@ -89,6 +93,7 @@ export function BookingReservationForm({
   selectedCohortDateLabel,
   selectedDateStartTime,
   selectedCohortPrice,
+  topicsFieldConfig,
   descriptionId,
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = 'my_best_auntie',
@@ -136,6 +141,7 @@ export function BookingReservationForm({
   }, [discountRule, originalAmount]);
   const discountAmount = Math.max(0, originalAmount - totalAmount);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
+  const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
   const captchaErrorMessage = !isCaptchaConfigured
     ? content.captchaUnavailableError
     : hasCaptchaLoadError
@@ -148,6 +154,7 @@ export function BookingReservationForm({
     !email.trim() ||
     hasEmailError ||
     !phone.trim() ||
+    (isTopicsFieldRequired && !interestedTopics.trim()) ||
     !hasPendingReservationAcknowledgement ||
     !hasTermsAgreement ||
     !captchaToken ||
@@ -237,7 +244,11 @@ export function BookingReservationForm({
     if (!isValidEmail(email)) {
       return;
     }
-    if (!selectedCohortDateLabel || isSubmitDisabled) {
+    if (
+      !selectedCohortDateLabel ||
+      (isTopicsFieldRequired && !interestedTopics.trim()) ||
+      isSubmitDisabled
+    ) {
       return;
     }
 
@@ -353,6 +364,7 @@ export function BookingReservationForm({
             phone={phone}
             interestedTopics={interestedTopics}
             hasEmailError={hasEmailError}
+            topicsFieldConfig={topicsFieldConfig}
             onFullNameChange={setFullName}
             onEmailChange={setEmail}
             onEmailBlur={() => {

@@ -113,7 +113,12 @@
       "buttonLabel": "Reserve my spot",
       "buttonLabelTemplate": "Reserve my spot — {price}",
       "fullyBookedButtonLabel": "Fully booked - Get in touch to join the waiting list",
-      "fullyBookedWaitlistMessageTemplate": "I would like to join the waiting list for the event {eventTitle}."
+      "fullyBookedWaitlistMessageTemplate": "I would like to join the waiting list for the event {eventTitle}.",
+      "bookingTopicsField": {
+        "label": "What's your child's age?",
+        "placeholder": "This will help me better personalise your experience",
+        "required": true
+      }
     }
   },
   "zh-CN": {
@@ -230,7 +235,12 @@
       "buttonLabel": "预留我的名额",
       "buttonLabelTemplate": "预留我的名额 — {price}",
       "fullyBookedButtonLabel": "已满额 - 联系我们加入候补名单",
-      "fullyBookedWaitlistMessageTemplate": "我想加入活动《{eventTitle}》的候补名单。"
+      "fullyBookedWaitlistMessageTemplate": "我想加入活动《{eventTitle}》的候补名单。",
+      "bookingTopicsField": {
+        "label": "您的孩子几岁了？",
+        "placeholder": "这将帮助我更好地为您定制体验",
+        "required": true
+      }
     }
   },
   "zh-HK": {
@@ -347,7 +357,12 @@
       "buttonLabel": "預留我的名額",
       "buttonLabelTemplate": "預留我的名額 — {price}",
       "fullyBookedButtonLabel": "已滿額 - 聯絡我們加入候補名單",
-      "fullyBookedWaitlistMessageTemplate": "我想加入活動《{eventTitle}》的候補名單。"
+      "fullyBookedWaitlistMessageTemplate": "我想加入活動《{eventTitle}》的候補名單。",
+      "bookingTopicsField": {
+        "label": "你的小朋友幾歲？",
+        "placeholder": "這有助我更好地為你度身打造體驗",
+        "required": true
+      }
     }
   }
 }

@@ -131,6 +131,11 @@ export interface LandingPageLocaleContent {
     buttonLabelTemplate?: string;
     fullyBookedButtonLabel?: string;
     fullyBookedWaitlistMessageTemplate?: string;
+    bookingTopicsField?: {
+      label: string;
+      placeholder: string;
+      required: boolean;
+    };
   };
 }
 

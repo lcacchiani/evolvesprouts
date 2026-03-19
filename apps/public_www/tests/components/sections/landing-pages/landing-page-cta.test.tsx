@@ -55,6 +55,20 @@ describe('LandingPageCta section', () => {
     ctaPriceLabel,
   );
 
+  it('keeps booking topics field copy in easter landing-page locale content', () => {
+    expect(easterWorkshopContent.en.cta.bookingTopicsField).toMatchObject({
+      label: "What's your child's age?",
+      placeholder: 'This will help me better personalise your experience',
+      required: true,
+    });
+    expect(easterWorkshopContent['zh-CN'].cta.bookingTopicsField).toMatchObject({
+      required: true,
+    });
+    expect(easterWorkshopContent['zh-HK'].cta.bookingTopicsField).toMatchObject({
+      required: true,
+    });
+  });
+
   it('opens booking modal and tracks CTA, modal-open, and meta pixel events', async () => {
     const resolvedEyebrow = '⚡ 6 spots left — Monday 6 April';
     const { container } = render(

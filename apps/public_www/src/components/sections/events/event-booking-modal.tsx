@@ -19,7 +19,10 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  BookingTopicsFieldConfig,
+  ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import type {
   BookingPaymentModalContent,
   Locale,
@@ -33,6 +36,7 @@ interface EventBookingModalProps {
   locale?: Locale;
   paymentModalContent: BookingPaymentModalContent;
   bookingPayload: EventBookingModalPayload;
+  topicsFieldConfig?: BookingTopicsFieldConfig;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -41,6 +45,7 @@ export function EventBookingModal({
   locale = 'en',
   paymentModalContent,
   bookingPayload,
+  topicsFieldConfig,
   onClose,
   onSubmitReservation,
 }: EventBookingModalProps) {
@@ -108,6 +113,7 @@ export function EventBookingModal({
               selectedCohortDateLabel={bookingPayload.selectedDateLabel}
               selectedDateStartTime={bookingPayload.selectedDateStartTime}
               selectedCohortPrice={bookingPayload.originalAmount}
+              topicsFieldConfig={topicsFieldConfig}
               descriptionId={dialogDescriptionId}
               analyticsSectionId='events-booking'
               metaPixelContentName='event_booking'
