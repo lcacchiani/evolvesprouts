@@ -6,7 +6,7 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import { renderHighlightedText } from '@/components/sections/shared/render-highlighted-text';
 import type { AboutUsIdaCoachContent } from '@/content';
 
-interface LandingPageAboutUsIdaCoachProps {
+interface AboutUsIdaCoachProps {
   content: AboutUsIdaCoachContent;
   ariaLabel?: string;
 }
@@ -18,10 +18,10 @@ function splitDescriptionParagraphs(description: string): string[] {
     .filter((paragraph) => paragraph.length > 0);
 }
 
-export function LandingPageAboutUsIdaCoach({
+export function AboutUsIdaCoach({
   content,
   ariaLabel,
-}: LandingPageAboutUsIdaCoachProps) {
+}: AboutUsIdaCoachProps) {
   const descriptionParagraphs = splitDescriptionParagraphs(content.description);
 
   return (
@@ -29,7 +29,7 @@ export function LandingPageAboutUsIdaCoach({
       id='about-us-ida-coach'
       ariaLabel={ariaLabel ?? content.title}
       dataFigmaNode='about-us-ida-coach'
-      className='es-section-bg-overlay es-landing-page-about-us-ida-coach-section'
+      className='es-section-bg-overlay es-about-us-ida-coach-section'
     >
       <SectionContainer className='grid gap-8 lg:grid-cols-[minmax(0,20%)_minmax(0,80%)] lg:items-start'>
         <div className='mx-auto w-full max-w-[220px] lg:mx-0 lg:max-w-[190px]'>
@@ -50,19 +50,19 @@ export function LandingPageAboutUsIdaCoach({
             title={content.title}
             align='left'
           />
-          <p className='mt-3 es-type-subtitle es-landing-page-about-us-ida-coach-subtitle'>
+          <p className='mt-3 es-type-subtitle es-about-us-ida-coach-subtitle'>
             {content.subtitle}
           </p>
           <div className='mt-5 space-y-4'>
             {descriptionParagraphs.map((paragraph, index) => (
               <p
                 key={`${paragraph}-${index}`}
-                className='es-type-body es-landing-page-about-us-ida-coach-description'
+                className='es-type-body es-about-us-ida-coach-description'
               >
                 {renderHighlightedText(
                   paragraph,
                   content.highlightedPhrase,
-                  'es-landing-page-about-us-ida-coach-highlight',
+                  'es-about-us-ida-coach-highlight',
                 )}
               </p>
             ))}

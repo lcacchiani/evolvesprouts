@@ -5,8 +5,8 @@ import type {
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { PageLayout } from '@/components/shared/page-layout';
+import { AboutUsIdaCoach } from '@/components/sections/about-us-ida-coach';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
-import { LandingPageAboutUsIdaCoach } from '@/components/sections/landing-pages/landing-page-about-us-ida-coach';
 import { LandingPageCta } from '@/components/sections/landing-pages/landing-page-cta';
 import { LandingPageDescription } from '@/components/sections/landing-pages/landing-page-description';
 import { LandingPageDetails } from '@/components/sections/landing-pages/landing-page-details';
@@ -156,7 +156,7 @@ export function LandingPage({
         bookingModalContent={siteContent.bookingModal}
         ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
       />
-      <LandingPageAboutUsIdaCoach
+      <AboutUsIdaCoach
         content={siteContent.aboutUs.idaCoach}
         ariaLabel={siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel}
       />

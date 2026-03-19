@@ -435,7 +435,7 @@
   .es-landing-page-outline-section,
   .es-landing-page-description-section,
   .es-landing-page-details-section,
-  .es-landing-page-about-us-ida-coach-section {
+  .es-about-us-ida-coach-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -900px;
     --es-section-bg-size: 2000px auto;
@@ -466,15 +466,15 @@
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
 
-  .es-landing-page-about-us-ida-coach-section {
+  .es-about-us-ida-coach-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
-  .es-landing-page-about-us-ida-coach-subtitle {
+  .es-about-us-ida-coach-subtitle {
     color: var(--site-heading-text);
   }
 
-  .es-landing-page-about-us-ida-coach-highlight {
+  .es-about-us-ida-coach-highlight {
     color: var(--site-heading-text);
     font-weight: 700;
   }
