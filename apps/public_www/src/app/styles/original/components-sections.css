@@ -694,14 +694,21 @@
   }
 
   .es-landing-page-details-card {
-    background-color: var(--es-color-surface-white, #FFFFFF);
+    background-color: transparent;
+    border-bottom: 1px solid color-mix(
+      in srgb,
+      var(--site-primary-text) 14%,
+      transparent
+    );
   }
 
-  .es-landing-page-details-card-icon-wrap {
-    background-color: var(--es-color-surface-muted, #F8F8F8);
+  .es-landing-page-details-section li:last-child .es-landing-page-details-card {
+    border-bottom: 0;
   }
 
-  .es-landing-page-details-card-icon {
+  .es-landing-page-details-card-number {
+    color: var(--es-color-surface-white, #FFFFFF);
+    background-color: var(--es-color-brand-orange, #C84A16);
     line-height: 1;
   }
 
