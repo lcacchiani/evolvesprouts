@@ -44,7 +44,6 @@ export function LandingPageOutline({
               {renderHighlightedText(
                 paragraph,
                 content.highlightPhrase,
-                'es-landing-page-outline-highlight',
               )}
             </p>
           ))}

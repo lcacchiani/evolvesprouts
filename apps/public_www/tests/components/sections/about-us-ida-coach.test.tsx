@@ -27,7 +27,13 @@ describe('AboutUsIdaCoach section', () => {
     expect(screen.getByRole('heading', { name: enContent.aboutUs.coaches.ida.title }))
       .toBeInTheDocument();
     expect(screen.getByText(enContent.aboutUs.coaches.ida.subtitle)).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: enContent.aboutUs.coaches.ida.imageAlt })).toBeInTheDocument();
+    const portrait = screen.getByRole('img', {
+      name: enContent.aboutUs.coaches.ida.imageAlt,
+    });
+    expect(portrait).toBeInTheDocument();
+    expect(portrait).toHaveClass('scale-[2]');
+    expect(portrait).toHaveClass('origin-top');
+    expect(portrait).toHaveClass('object-top');
 
     const highlightedText = screen.getByText(enContent.aboutUs.coaches.ida.highlightedPhrase);
     expect(highlightedText).toHaveClass('es-about-us-ida-coach-highlight');
