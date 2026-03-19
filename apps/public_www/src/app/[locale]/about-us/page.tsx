@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function AboutUsPage({ params }: LocaleRouteProps) {
+export default async function AboutUsRoutePage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const pageTitle = getMenuLabel(content, ROUTES.about);
 

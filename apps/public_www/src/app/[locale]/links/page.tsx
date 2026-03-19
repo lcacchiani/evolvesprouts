@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function LinksPage({ params }: LocaleRouteProps) {
+export default async function LinksRoutePage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
 
   return <LinksPage locale={locale} content={content} />;

@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function ContactUsPage({ params }: LocaleRouteProps) {
+export default async function ContactUsRoutePage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const pageTitle = getMenuLabel(content, ROUTES.contact);
 

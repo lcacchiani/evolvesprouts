@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function EventsPage({ params }: LocaleRouteProps) {
+export default async function EventsRoutePage({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
   const pageTitle = getMenuLabel(content, ROUTES.events);
   const eventsForSchema = await resolveServerSideEvents(locale, content);

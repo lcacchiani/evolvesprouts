@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function MyBestAuntiePage({
+export default async function MyBestAuntieRoutePage({
   params,
 }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
