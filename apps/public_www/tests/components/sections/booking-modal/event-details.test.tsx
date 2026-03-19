@@ -46,7 +46,7 @@ describe('BookingEventDetails (event variant)', () => {
 
     expect(container.querySelector('div[data-event-schedule-summary="true"]')).not.toBeNull();
     expect(container.querySelector('span[data-event-schedule-icon="true"]')?.className).toContain(
-      'es-mask-calendar-heading',
+      'es-mask-calendar-danger',
     );
     expect(container.querySelectorAll('p[data-event-schedule-row="true"]')).toHaveLength(2);
     expect(screen.getByText('21 May 2026 · 10:00 AM - 12:00 PM')).toBeInTheDocument();
