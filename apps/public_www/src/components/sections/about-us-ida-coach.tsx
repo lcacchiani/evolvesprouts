@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import { renderHighlightedText } from '@/components/sections/shared/render-highlighted-text';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import type { AboutUsIdaCoachContent } from '@/content';
 
 interface AboutUsIdaCoachProps {
@@ -59,7 +59,10 @@ export function AboutUsIdaCoach({
                 key={`${paragraph}-${index}`}
                 className='es-type-body es-about-us-ida-coach-description'
               >
-              {renderHighlightedText(paragraph, content.highlightedPhrase)}
+                {renderQuotedDescriptionText(
+                  paragraph,
+                  content.highlightedPhrase,
+                )}
               </p>
             ))}
           </div>

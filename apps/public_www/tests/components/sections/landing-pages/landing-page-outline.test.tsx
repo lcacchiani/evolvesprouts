@@ -18,8 +18,12 @@ describe('LandingPageOutline section', () => {
       .toBeInTheDocument();
     expect(screen.getByText(/your helper is often the person who spends the most time/i)).toBeInTheDocument();
     expect(screen.getByText(/this session is a first step towards that/i)).toBeInTheDocument();
+    expect(screen.getByText(/when your helper is on the same page as you/i)).toBeInTheDocument();
+    expect(screen.queryByText(/"When your helper is on the same page as you/i)).not.toBeInTheDocument();
 
     const highlightedText = screen.getByText('Evolve Sprouts programme');
     expect(highlightedText).toHaveClass('es-highlight-word');
+    expect(document.querySelector('.es-quote')).not.toBeNull();
+    expect(document.querySelector('.es-quote-icon.es-testimonial-quote-icon')).not.toBeNull();
   });
 });

@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -187,7 +188,7 @@ export function SproutsSquadCommunity({
               titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-sprouts-community-heading'
             />
             <p className='max-w-[500px] es-sprouts-community-support-paragraph'>
-              {copy.description}
+              {renderQuotedDescriptionText(copy.description)}
             </p>
           </div>
           <div className='es-intro-community-layout-cta'>

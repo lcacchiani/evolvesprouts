@@ -4,6 +4,7 @@ import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
 } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { AboutUsMyJourneyContent } from '@/content';
@@ -57,7 +58,7 @@ export function AboutUsMyJourney({ content }: AboutUsMyJourneyProps) {
                 >
                   <span className='es-my-journey-tag'>{card.tag}</span>
                   <p className='es-type-body mt-3'>
-                    {card.description}
+                    {renderQuotedDescriptionText(card.description)}
                   </p>
                 </article>
               </li>

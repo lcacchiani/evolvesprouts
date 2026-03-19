@@ -5,6 +5,7 @@ import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
 } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { AboutUsMyHistoryContent } from '@/content';
@@ -81,7 +82,9 @@ export function AboutUsMyHistory({ content }: AboutUsMyHistoryProps) {
 
             return (
               <Fragment key={`${paragraphIndex}-${paragraph.slice(0, 24)}`}>
-                <p className='es-type-body mt-4 max-w-[760px]'>{paragraph}</p>
+                <p className='es-type-body mt-4 max-w-[760px]'>
+                  {renderQuotedDescriptionText(paragraph)}
+                </p>
                 {imageIndexesForParagraph.map((imageIndex) => {
                   const src = storyImageSources[imageIndex];
 

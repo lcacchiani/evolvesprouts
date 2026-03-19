@@ -1,5 +1,6 @@
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type {
@@ -50,7 +51,7 @@ export function AboutUsWhyUs({ locale, content }: AboutUsWhyUsProps) {
               >
                 <h3 className='es-type-subtitle'>{pillar.title}</h3>
                 <p className='es-section-body mt-3 text-base leading-[1.5]'>
-                  {pillar.description}
+                  {renderQuotedDescriptionText(pillar.description)}
                 </p>
               </article>
             </li>
