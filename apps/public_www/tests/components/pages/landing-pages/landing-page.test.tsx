@@ -60,18 +60,54 @@ vi.mock('@/components/sections/landing-pages/landing-page-hero', () => ({
   ),
 }));
 vi.mock('@/components/sections/landing-pages/landing-page-outline', () => ({
-  LandingPageOutline: ({ content }: { content: { title: string } }) => (
-    <section data-testid='landing-page-outline'>{content.title}</section>
+  LandingPageOutline: ({
+    content,
+    sharedCtaProps,
+  }: {
+    content: { title: string };
+    sharedCtaProps?: { slug: string };
+  }) => (
+    <section
+      data-testid='landing-page-outline'
+      data-shared-cta={sharedCtaProps ? 'yes' : 'no'}
+      data-shared-cta-slug={sharedCtaProps?.slug ?? ''}
+    >
+      {content.title}
+    </section>
   ),
 }));
 vi.mock('@/components/sections/landing-pages/landing-page-description', () => ({
-  LandingPageDescription: ({ content }: { content: { title: string } }) => (
-    <section data-testid='landing-page-description'>{content.title}</section>
+  LandingPageDescription: ({
+    content,
+    sharedCtaProps,
+  }: {
+    content: { title: string };
+    sharedCtaProps?: { slug: string };
+  }) => (
+    <section
+      data-testid='landing-page-description'
+      data-shared-cta={sharedCtaProps ? 'yes' : 'no'}
+      data-shared-cta-slug={sharedCtaProps?.slug ?? ''}
+    >
+      {content.title}
+    </section>
   ),
 }));
 vi.mock('@/components/sections/landing-pages/landing-page-details', () => ({
-  LandingPageDetails: ({ content }: { content: { title: string } }) => (
-    <section data-testid='landing-page-details'>{content.title}</section>
+  LandingPageDetails: ({
+    content,
+    sharedCtaProps,
+  }: {
+    content: { title: string };
+    sharedCtaProps?: { slug: string };
+  }) => (
+    <section
+      data-testid='landing-page-details'
+      data-shared-cta={sharedCtaProps ? 'yes' : 'no'}
+      data-shared-cta-slug={sharedCtaProps?.slug ?? ''}
+    >
+      {content.title}
+    </section>
   ),
 }));
 vi.mock('@/components/sections/deferred-testimonials', () => ({
@@ -130,6 +166,30 @@ describe('LandingPage composition', () => {
     expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('about-us-ida-coach')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-faq')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-outline')).toHaveAttribute(
+      'data-shared-cta',
+      'yes',
+    );
+    expect(screen.getByTestId('landing-page-description')).toHaveAttribute(
+      'data-shared-cta',
+      'yes',
+    );
+    expect(screen.getByTestId('landing-page-details')).toHaveAttribute(
+      'data-shared-cta',
+      'yes',
+    );
+    expect(screen.getByTestId('landing-page-outline')).toHaveAttribute(
+      'data-shared-cta-slug',
+      'easter-2026-montessori-play-coaching-workshop',
+    );
+    expect(screen.getByTestId('landing-page-description')).toHaveAttribute(
+      'data-shared-cta-slug',
+      'easter-2026-montessori-play-coaching-workshop',
+    );
+    expect(screen.getByTestId('landing-page-details')).toHaveAttribute(
+      'data-shared-cta-slug',
+      'easter-2026-montessori-play-coaching-workshop',
+    );
 
     expect(screen.getByTestId('page-layout').firstElementChild).toHaveAttribute(
       'data-testid',

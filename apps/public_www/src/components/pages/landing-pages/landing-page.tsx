@@ -13,6 +13,7 @@ import { LandingPageDetails } from '@/components/sections/landing-pages/landing-
 import { LandingPageFaq } from '@/components/sections/landing-pages/landing-page-faq';
 import { LandingPageHero } from '@/components/sections/landing-pages/landing-page-hero';
 import { LandingPageOutline } from '@/components/sections/landing-pages/landing-page-outline';
+import type { LandingPageSharedCtaProps } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
 import {
   getLandingPageBookingEventContent,
   getLandingPageHeroEventContent,
@@ -104,6 +105,18 @@ export function LandingPage({
     pageContent.cta.fullyBookedWaitlistMessageTemplate,
     waitlistEventTitle,
   );
+  const sharedCtaProps: LandingPageSharedCtaProps = {
+    locale,
+    slug,
+    content: pageContent.cta,
+    ctaPriceLabel: bookingEventContent?.ctaPriceLabel,
+    commonContent: siteContent.landingPages.common,
+    bookingPayload: bookingEventContent?.bookingPayload ?? null,
+    isFullyBooked,
+    fullyBookedCtaLabel: pageContent.cta.fullyBookedButtonLabel,
+    fullyBookedWaitlistHref,
+    bookingModalContent: siteContent.bookingModal,
+  };
 
   return (
     <PageLayout
@@ -128,14 +141,17 @@ export function LandingPage({
       />
       <LandingPageOutline
         content={pageContent.outline}
+        sharedCtaProps={sharedCtaProps}
         ariaLabel={siteContent.landingPages.common.a11y.outlineSectionLabel}
       />
       <LandingPageDescription
         content={pageContent.description}
+        sharedCtaProps={sharedCtaProps}
         ariaLabel={siteContent.landingPages.common.a11y.descriptionSectionLabel}
       />
       <LandingPageDetails
         content={pageContent.details}
+        sharedCtaProps={sharedCtaProps}
         ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
       />
       <DeferredTestimonials
