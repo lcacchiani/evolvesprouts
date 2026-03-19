@@ -61,7 +61,14 @@
       "is_fully_booked": false,
       "location_name": "Baumhaus",
       "location_address": "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
-      "location_url": "https://www.google.com/maps/dir/?api=1&destination=Baumhaus,+1/F+Kar+Yau+Building,+36-44+Queen%27s+Rd+E,+Wan+Chai"
+      "location_url": "https://www.google.com/maps/dir/?api=1&destination=Baumhaus,+1/F+Kar+Yau+Building,+36-44+Queen%27s+Rd+E,+Wan+Chai",
+      "topics_interest_label_en": "What's your child's age?",
+      "topics_interest_label_zh_cn": "您的孩子几岁了？",
+      "topics_interest_label_zh_hk": "你的小朋友幾歲？",
+      "topics_interest_placeholder_en": "This will help me better personalise your experience",
+      "topics_interest_placeholder_zh_cn": "这将帮助我更好地为您定制体验",
+      "topics_interest_placeholder_zh_hk": "這有助我更好地為你度身打造體驗",
+      "topics_interest_required": true
     }
   ]
 }

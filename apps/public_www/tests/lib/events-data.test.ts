@@ -296,6 +296,10 @@ describe('events-data', () => {
           title: 'Event booking demo',
           description: 'Simple booking modal flow',
           booking_system: 'event-booking',
+          topics_interest_label_en: "What's your child's age?",
+          topics_interest_placeholder_en:
+            'This will help me better personalise your experience',
+          topics_interest_required: true,
           address: 'PMQ, Hong Kong',
           address_url: 'https://maps.google.com/?q=PMQ+Hong+Kong',
           dates: [
@@ -325,6 +329,11 @@ describe('events-data', () => {
       locationAddress: 'PMQ, Hong Kong',
       directionHref: 'https://maps.google.com/?q=PMQ+Hong+Kong',
       selectedDateStartTime: '2026-04-06T02:00:00Z',
+      topicsFieldConfig: {
+        label: "What's your child's age?",
+        placeholder: 'This will help me better personalise your experience',
+        required: true,
+      },
     });
   });
   it('does not use legacy CTA candidate keys without external_url', () => {
@@ -455,6 +464,11 @@ describe('events-data', () => {
         locationAddress: "1/F Kar Yau Building, 36-44 Queen's Rd E, Wan Chai",
         selectedDateLabel: '06 Apr 2026',
         selectedDateStartTime: '2026-04-06T02:00:00Z',
+        topicsFieldConfig: {
+          label: "What's your child's age?",
+          placeholder: 'This will help me better personalise your experience',
+          required: true,
+        },
       },
     });
   });

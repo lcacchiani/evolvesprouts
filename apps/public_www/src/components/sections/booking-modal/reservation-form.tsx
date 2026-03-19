@@ -16,6 +16,7 @@ import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
+import type { BookingTopicsFieldConfig } from '@/lib/events-data';
 import {
   submitReservation,
   type ReservationSubmissionPayload,
@@ -31,6 +32,7 @@ interface BookingReservationFormProps {
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
   selectedCohortPrice: number;
+  topicsFieldConfig?: BookingTopicsFieldConfig;
   descriptionId: string;
   analyticsSectionId?: string;
   metaPixelContentName?: string;
@@ -89,6 +91,7 @@ export function BookingReservationForm({
   selectedCohortDateLabel,
   selectedDateStartTime,
   selectedCohortPrice,
+  topicsFieldConfig,
   descriptionId,
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = 'my_best_auntie',
@@ -136,6 +139,7 @@ export function BookingReservationForm({
   }, [discountRule, originalAmount]);
   const discountAmount = Math.max(0, originalAmount - totalAmount);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
+  const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
   const captchaErrorMessage = !isCaptchaConfigured
     ? content.captchaUnavailableError
     : hasCaptchaLoadError
@@ -148,6 +152,7 @@ export function BookingReservationForm({
     !email.trim() ||
     hasEmailError ||
     !phone.trim() ||
+    (isTopicsFieldRequired && !interestedTopics.trim()) ||
     !hasPendingReservationAcknowledgement ||
     !hasTermsAgreement ||
     !captchaToken ||
@@ -237,7 +242,11 @@ export function BookingReservationForm({
     if (!isValidEmail(email)) {
       return;
     }
-    if (!selectedCohortDateLabel || isSubmitDisabled) {
+    if (
+      !selectedCohortDateLabel ||
+      (isTopicsFieldRequired && !interestedTopics.trim()) ||
+      isSubmitDisabled
+    ) {
       return;
     }
 
@@ -353,6 +362,7 @@ export function BookingReservationForm({
             phone={phone}
             interestedTopics={interestedTopics}
             hasEmailError={hasEmailError}
+            topicsFieldConfig={topicsFieldConfig}
             onFullNameChange={setFullName}
             onEmailChange={setEmail}
             onEmailBlur={() => {

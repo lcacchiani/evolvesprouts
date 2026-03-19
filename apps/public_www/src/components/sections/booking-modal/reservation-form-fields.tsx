@@ -1,4 +1,5 @@
 import type { BookingPaymentModalContent } from '@/content';
+import type { BookingTopicsFieldConfig } from '@/lib/events-data';
 
 interface ReservationFormFieldsProps {
   content: BookingPaymentModalContent;
@@ -7,6 +8,7 @@ interface ReservationFormFieldsProps {
   phone: string;
   interestedTopics: string;
   hasEmailError: boolean;
+  topicsFieldConfig?: BookingTopicsFieldConfig;
   onFullNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onEmailBlur: () => void;
@@ -23,12 +25,18 @@ export function ReservationFormFields({
   phone,
   interestedTopics,
   hasEmailError,
+  topicsFieldConfig,
   onFullNameChange,
   onEmailChange,
   onEmailBlur,
   onPhoneChange,
   onTopicsChange,
 }: ReservationFormFieldsProps) {
+  const topicsFieldLabel = topicsFieldConfig?.label ?? content.topicsInterestLabel;
+  const topicsFieldPlaceholder =
+    topicsFieldConfig?.placeholder ?? content.topicsInterestPlaceholder;
+  const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
+
   return (
     <>
       <label className='block'>
@@ -99,14 +107,20 @@ export function ReservationFormFields({
       </label>
       <label className='block'>
         <span className='mb-1 block text-sm font-semibold es-text-heading'>
-          {content.topicsInterestLabel}
+          {topicsFieldLabel}
+          {isTopicsFieldRequired ? (
+            <span className='es-form-required-marker ml-0.5' aria-hidden='true'>
+              *
+            </span>
+          ) : null}
         </span>
         <textarea
+          required={isTopicsFieldRequired}
           value={interestedTopics}
           onChange={(event) => {
             onTopicsChange(event.target.value);
           }}
-          placeholder={content.topicsInterestPlaceholder}
+          placeholder={topicsFieldPlaceholder}
           rows={3}
           className='es-focus-ring es-form-input resize-y'
         />
