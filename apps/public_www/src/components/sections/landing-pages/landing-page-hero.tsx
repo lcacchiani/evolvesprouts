@@ -284,7 +284,7 @@ export function LandingPageHero({
       id='landing-page-hero'
       ariaLabel={ariaLabel ?? title}
       dataFigmaNode='landing-page-hero'
-      className='es-hero-section es-bg-surface-white'
+      className='es-landing-page-hero-section es-bg-surface-white'
     >
       <SectionContainer className='grid items-center gap-10 lg:grid-cols-2'>
         <div className='space-y-5'>
