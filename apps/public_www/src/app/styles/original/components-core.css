@@ -775,6 +775,20 @@
     font-weight: 400;
   }
 
+  .es-quote::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2.9rem;
+    height: 2.6rem;
+    transform: translate(-32%, -58%);
+    z-index: 1;
+    border-radius: 0.6rem;
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    pointer-events: none;
+  }
+
   .es-quote-icon {
     display: block;
     height: 1.25rem;
@@ -791,16 +805,8 @@
     transform: translate(-24%, -52%);
     margin-bottom: 0;
     z-index: 2;
+    background-color: var(--es-color-brand-orange, #C84A16);
     filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.2));
-  }
-
-  .es-quote .es-quote-icon::before {
-    content: '';
-    position: absolute;
-    inset: -0.16rem;
-    z-index: -1;
-    border-radius: 0.45rem;
-    background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
   .es-quote-text {
