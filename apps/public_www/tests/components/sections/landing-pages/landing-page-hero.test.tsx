@@ -103,7 +103,7 @@ describe('LandingPageHero section', () => {
       'landing-page-partner-logo-evolvesprouts',
     );
     expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toBeInTheDocument();
-    expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toHaveClass('h-10');
+    expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toHaveClass('h-16');
     expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toBeInTheDocument();
     expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toHaveClass('h-8');
     expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toBeInTheDocument();
