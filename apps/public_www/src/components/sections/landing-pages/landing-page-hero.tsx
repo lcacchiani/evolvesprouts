@@ -289,9 +289,9 @@ export function LandingPageHero({
       id='landing-page-hero'
       ariaLabel={ariaLabel ?? title}
       dataFigmaNode='landing-page-hero'
-      className='es-landing-page-hero-section es-bg-surface-white'
+      className='es-landing-page-hero-section es-bg-surface-white overflow-x-clip'
     >
-      <SectionContainer className='grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]'>
+      <SectionContainer className='grid items-center gap-10 lg:grid-cols-2'>
         <div className='space-y-5'>
           <SectionHeader
             title={title}
@@ -356,13 +356,13 @@ export function LandingPageHero({
             buttonClassName='mt-3'
           />
         </div>
-        <div className='es-landing-page-hero-image-wrap w-full'>
+        <div className='es-landing-page-hero-image-wrap mx-auto w-[120%] max-w-none lg:mx-0 lg:justify-self-end'>
           <Image
             src={content.imageSrc}
             alt={content.imageAlt}
             width={1200}
             height={900}
-            sizes='(max-width: 1024px) 100vw, 50vw'
+            sizes='(max-width: 1024px) 120vw, 60vw'
             className='relative z-10 h-auto w-full rounded-panel'
           />
         </div>
