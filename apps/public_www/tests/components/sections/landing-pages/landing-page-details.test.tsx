@@ -18,24 +18,22 @@ describe('LandingPageDetails section', () => {
       .toBeInTheDocument();
     expect(document.querySelector('.es-section-header-description')).toBeNull();
 
-    easterWorkshopContent.en.details.items.forEach((item, index) => {
+    for (const item of easterWorkshopContent.en.details.items) {
+      expect(screen.getByText(item.icon)).toBeInTheDocument();
       expect(screen.getByText(item.title)).toBeInTheDocument();
       expect(screen.getByText(item.description)).toBeInTheDocument();
-      expect(
-        document.querySelectorAll('.es-landing-page-details-card-number')[index],
-      ).toHaveTextContent(`${index + 1}`);
-    });
+    }
 
     expect(document.querySelectorAll('.es-landing-page-details-card').length).toBe(
+      easterWorkshopContent.en.details.items.length,
+    );
+    expect(document.querySelectorAll('.es-landing-page-details-card-icon').length).toBe(
       easterWorkshopContent.en.details.items.length,
     );
     expect(document.querySelectorAll('.es-landing-page-details-card-title').length).toBe(
       easterWorkshopContent.en.details.items.length,
     );
     expect(document.querySelectorAll('.es-landing-page-details-card-description').length).toBe(
-      easterWorkshopContent.en.details.items.length,
-    );
-    expect(document.querySelectorAll('.es-landing-page-details-card-number').length).toBe(
       easterWorkshopContent.en.details.items.length,
     );
   });
