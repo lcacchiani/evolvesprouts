@@ -17,6 +17,7 @@ describe('LandingPageDetails section', () => {
     expect(screen.getByRole('heading', { name: easterWorkshopContent.en.details.title }))
       .toBeInTheDocument();
     expect(document.querySelector('.es-section-header-description')).toBeNull();
+    expect(screen.getByTestId('landing-page-details-mobile-carousel')).toBeInTheDocument();
 
     for (const item of easterWorkshopContent.en.details.items) {
       expect(screen.getByText(item.icon)).toBeInTheDocument();
