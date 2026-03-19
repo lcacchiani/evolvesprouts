@@ -52,7 +52,7 @@ export function LandingPageDescription({
                   <h3 className='es-landing-page-description-card-title'>
                     {item.title}
                   </h3>
-                  <p className='mt-3 es-landing-page-description-card-description'>
+                  <p className='mt-3 sm:mt-1.5 es-landing-page-description-card-description'>
                     {renderQuotedDescriptionText(item.description)}
                   </p>
                 </div>
