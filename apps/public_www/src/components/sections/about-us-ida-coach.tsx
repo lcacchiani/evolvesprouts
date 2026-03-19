@@ -59,11 +59,7 @@ export function AboutUsIdaCoach({
                 key={`${paragraph}-${index}`}
                 className='es-type-body es-about-us-ida-coach-description'
               >
-                {renderHighlightedText(
-                  paragraph,
-                  content.highlightedPhrase,
-                  'es-about-us-ida-coach-highlight',
-                )}
+              {renderHighlightedText(paragraph, content.highlightedPhrase)}
               </p>
             ))}
           </div>
