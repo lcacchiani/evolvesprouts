@@ -64,6 +64,8 @@ describe('LandingPageDetails section', () => {
       name: easterWorkshopContent.en.cta.buttonLabel,
     });
     expect(ctaButton).toBeInTheDocument();
+    expect(ctaButton).toHaveClass('w-full');
+    expect(ctaButton.className).toContain('max-w-[488px]');
     expect(ctaButton.parentElement).toHaveClass('mt-8');
     expect(ctaButton.parentElement).toHaveClass('flex');
     expect(ctaButton.parentElement).toHaveClass('justify-center');
