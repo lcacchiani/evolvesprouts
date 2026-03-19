@@ -33,6 +33,11 @@ describe('LandingPageHero section', () => {
       hour12: false,
     });
     const expectedTimeChip = `${timeFormatter.format(new Date(eventContent.startDateTime))} - ${timeFormatter.format(new Date(eventContent.endDateTime))}`;
+    const ctaPriceLabel = 'HK$350';
+    const resolvedCtaLabel = easterWorkshopContent.en.cta.buttonLabelTemplate.replace(
+      '{price}',
+      ctaPriceLabel,
+    );
     const bookingPayload: EventBookingModalPayload = {
       variant: 'event',
       bookingSystem: 'event-booking',
@@ -60,6 +65,7 @@ describe('LandingPageHero section', () => {
         slug='easter-2026-montessori-play-coaching-workshop'
         content={easterWorkshopContent.en.hero}
         ctaContent={easterWorkshopContent.en.cta}
+        ctaPriceLabel={ctaPriceLabel}
         commonContent={enContent.landingPages.common}
         locale='en'
         title={eventContent.title}
@@ -82,8 +88,11 @@ describe('LandingPageHero section', () => {
     expect(await screen.findByText(expectedTimeChip)).toBeInTheDocument();
     expect(await screen.findByText('Wan Chai')).toBeInTheDocument();
     expect(await screen.findByText('Workshop')).toBeInTheDocument();
+    expect(document.querySelector('img[src="/images/calendar.svg"]')).toBeInTheDocument();
+    expect(document.querySelector('img[src="/images/clock.svg"]')).toBeInTheDocument();
+    expect(document.querySelector('img[src="/images/location.svg"]')).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
+      screen.getByRole('button', { name: resolvedCtaLabel }),
     ).toBeInTheDocument();
     const partnerContainer = screen.getByTestId('landing-page-hero-partners');
     expect(partnerContainer).toBeInTheDocument();
@@ -93,8 +102,11 @@ describe('LandingPageHero section', () => {
       'landing-page-partner-logo-evolvesprouts',
     );
     expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toHaveClass('h-10');
     expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toHaveClass('h-8');
     expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toHaveClass('h-8');
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     const heroImage = screen.getByRole('img', { name: easterWorkshopContent.en.hero.imageAlt });
     expect(heroImage).toBeInTheDocument();
@@ -140,6 +152,7 @@ describe('LandingPageHero section', () => {
           subtitle: '',
         }}
         ctaContent={easterWorkshopContent.en.cta}
+        ctaPriceLabel='HK$350'
         commonContent={enContent.landingPages.common}
         locale='en'
         title={eventContent.title}

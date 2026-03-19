@@ -11,6 +11,7 @@ import type {
   LandingPageLocaleContent,
   Locale,
 } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import type { EventBookingModalPayload } from '@/lib/events-data';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -35,6 +36,7 @@ interface LandingPageBookingCtaActionProps {
   locale: Locale;
   slug: string;
   content: LandingPageLocaleContent['cta'];
+  ctaPriceLabel?: string;
   commonContent: LandingPagesCommonContent;
   bookingPayload: EventBookingModalPayload | null;
   isFullyBooked: boolean;
@@ -44,10 +46,29 @@ interface LandingPageBookingCtaActionProps {
   buttonClassName?: string;
 }
 
+function resolveCtaLabel(
+  content: LandingPageLocaleContent['cta'],
+  commonContent: LandingPagesCommonContent,
+  ctaPriceLabel: string | undefined,
+): string {
+  const fallbackLabel = content.buttonLabel || commonContent.defaultCtaLabel;
+  const buttonLabelTemplate = content.buttonLabelTemplate?.trim() ?? '';
+  const normalizedPriceLabel = ctaPriceLabel?.trim() ?? '';
+  if (!buttonLabelTemplate || !normalizedPriceLabel) {
+    return fallbackLabel;
+  }
+
+  const resolvedTemplateLabel = formatContentTemplate(buttonLabelTemplate, {
+    price: normalizedPriceLabel,
+  }).trim();
+  return resolvedTemplateLabel || fallbackLabel;
+}
+
 export function LandingPageBookingCtaAction({
   locale,
   slug,
   content,
+  ctaPriceLabel,
   commonContent,
   bookingPayload,
   isFullyBooked,
@@ -63,7 +84,7 @@ export function LandingPageBookingCtaAction({
 
   const selectedDateLabel = bookingPayload?.selectedDateLabel ?? '';
   const selectedDate = bookingPayload?.selectedDateStartTime?.split('T')[0] ?? '';
-  const ctaLabel = content.buttonLabel || commonContent.defaultCtaLabel;
+  const ctaLabel = resolveCtaLabel(content, commonContent, ctaPriceLabel);
 
   useEffect(() => {
     if (!isPaymentModalOpen || !bookingPayload || isFullyBooked) {

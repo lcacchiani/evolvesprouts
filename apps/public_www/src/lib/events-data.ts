@@ -118,6 +118,7 @@ export interface LandingPageHeroEventContent {
 export interface LandingPageBookingEventContent {
   status: EventStatus;
   bookingPayload: EventBookingModalPayload | null;
+  ctaPriceLabel?: string;
 }
 
 export interface LandingPageStructuredDataContent {
@@ -907,6 +908,43 @@ function resolveEventCost(
   return { costLabel: formattedAmountText, isFreeCost: false };
 }
 
+function formatLandingPageEventCtaPriceLabel(
+  record: Record<string, unknown>,
+): string | undefined {
+  const amount = resolveNumericCandidate(record, [
+    'price',
+    'cost',
+    'amount',
+    'fee',
+    'eventPrice',
+    'event_price',
+  ]);
+  if (amount === null) {
+    return undefined;
+  }
+
+  const formattedAmount = formatNumberWithThousandsSeparators(amount);
+  const currencyPrefix = normalizeCurrencyPrefix(
+    readCandidateText(record, [
+      'currencySymbol',
+      'currency_symbol',
+      'currencyPrefix',
+      'currency_prefix',
+      'currencyCode',
+      'currency_code',
+      'currency',
+      'priceCurrency',
+      'price_currency',
+    ]),
+  );
+
+  if (currencyPrefix) {
+    return `${currencyPrefix}${formattedAmount}`;
+  }
+
+  return formattedAmount;
+}
+
 export async function fetchEventsPayload(
   crmApiClient: CrmApiClient | null,
   signal: AbortSignal,
@@ -1384,6 +1422,7 @@ export function getLandingPageBookingEventContent(
   return {
     status: resolveEventStatus(eventRecord),
     bookingPayload: resolvedPayload?.variant === 'event' ? resolvedPayload : null,
+    ctaPriceLabel: formatLandingPageEventCtaPriceLabel(eventRecord),
   };
 }
 

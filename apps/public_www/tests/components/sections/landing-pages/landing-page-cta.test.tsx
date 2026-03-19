@@ -49,6 +49,11 @@ describe('LandingPageCta section', () => {
     selectedDateLabel: '06 Apr 2026',
     selectedDateStartTime: '2026-04-06T02:00:00Z',
   };
+  const ctaPriceLabel = 'HK$350';
+  const resolvedCtaLabel = easterWorkshopContent.en.cta.buttonLabelTemplate.replace(
+    '{price}',
+    ctaPriceLabel,
+  );
 
   it('opens booking modal and tracks CTA, modal-open, and meta pixel events', async () => {
     render(
@@ -56,6 +61,7 @@ describe('LandingPageCta section', () => {
         locale='en'
         slug='easter-2026-montessori-play-coaching-workshop'
         content={easterWorkshopContent.en.cta}
+        ctaPriceLabel={ctaPriceLabel}
         commonContent={enContent.landingPages.common}
         bookingPayload={bookingPayload}
         isFullyBooked={false}
@@ -77,7 +83,7 @@ describe('LandingPageCta section', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: easterWorkshopContent.en.cta.buttonLabel,
+        name: resolvedCtaLabel,
       }),
     );
 
@@ -112,6 +118,7 @@ describe('LandingPageCta section', () => {
         locale='en'
         slug='easter-2026-montessori-play-coaching-workshop'
         content={easterWorkshopContent.en.cta}
+        ctaPriceLabel={ctaPriceLabel}
         commonContent={enContent.landingPages.common}
         bookingPayload={bookingPayload}
         isFullyBooked
@@ -120,11 +127,11 @@ describe('LandingPageCta section', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
+      screen.getByRole('button', { name: resolvedCtaLabel }),
     ).toBeDisabled();
   });
 
-  it('falls back to landingPages.common.defaultCtaLabel when buttonLabel is empty', () => {
+  it('falls back to landingPages.common.defaultCtaLabel when buttonLabel is empty and no template is set', () => {
     render(
       <LandingPageCta
         locale='en'
@@ -132,6 +139,7 @@ describe('LandingPageCta section', () => {
         content={{
           ...easterWorkshopContent.en.cta,
           buttonLabel: '',
+          buttonLabelTemplate: '',
         }}
         commonContent={enContent.landingPages.common}
         bookingPayload={bookingPayload}
@@ -142,6 +150,24 @@ describe('LandingPageCta section', () => {
 
     expect(
       screen.getByRole('button', { name: enContent.landingPages.common.defaultCtaLabel }),
+    ).toBeInTheDocument();
+  });
+
+  it('falls back to buttonLabel when template exists but event price is unavailable', () => {
+    render(
+      <LandingPageCta
+        locale='en'
+        slug='easter-2026-montessori-play-coaching-workshop'
+        content={easterWorkshopContent.en.cta}
+        commonContent={enContent.landingPages.common}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
     ).toBeInTheDocument();
   });
 });

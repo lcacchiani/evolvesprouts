@@ -16,6 +16,7 @@ interface LandingPageCtaProps {
   locale: Locale;
   slug: string;
   content: LandingPageLocaleContent['cta'];
+  ctaPriceLabel?: string;
   commonContent: LandingPagesCommonContent;
   bookingPayload: EventBookingModalPayload | null;
   isFullyBooked: boolean;
@@ -27,6 +28,7 @@ export function LandingPageCta({
   locale,
   slug,
   content,
+  ctaPriceLabel,
   commonContent,
   bookingPayload,
   isFullyBooked,
@@ -51,6 +53,7 @@ export function LandingPageCta({
           locale={locale}
           slug={slug}
           content={content}
+          ctaPriceLabel={ctaPriceLabel}
           commonContent={commonContent}
           bookingPayload={bookingPayload}
           isFullyBooked={isFullyBooked}
