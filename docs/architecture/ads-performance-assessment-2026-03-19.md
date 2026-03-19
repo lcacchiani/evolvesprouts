@@ -361,6 +361,28 @@ ready; it just needs ad serving to begin.
 - Meta Ads API data was queried via system user access token for ad account
   act_1562589928493715.
 - GA4 data was queried via service account for property 525520074.
-- All queries were read-only. No changes were made to any platform.
 - Financial values are in HKD. Meta API returns spend in currency units;
   Google Ads API returns cost in micros (divided by 1,000,000).
+
+---
+
+## Change Log
+
+### 2026-03-19 — Meta ad set optimization goal updated
+
+**Ad set**: Boost — Easy ways to do less — HK Women 30-45
+(`120243276518120439`)
+
+| Field | Before | After |
+|---|---|---|
+| optimization_goal | REACH | POST_ENGAGEMENT |
+
+**Rationale**: REACH optimization was maximizing impressions but producing
+very low engagement (0.07% CTR, HK$26.80 per engagement). POST_ENGAGEMENT
+tells Meta's algorithm to find users within the target audience who are most
+likely to interact with the post, which should reduce cost per engagement
+and improve overall campaign ROI.
+
+**Expected impact**: Learning phase reset (~24-48 hours of uneven delivery).
+After recalibration, expect higher cost per impression (CPM) but
+significantly lower cost per engagement.
