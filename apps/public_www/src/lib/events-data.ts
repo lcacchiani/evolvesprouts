@@ -104,6 +104,9 @@ export interface EventCardData {
   partners?: string[];
   status: EventStatus;
   timestamp: number | null;
+  endTimestamp?: number | null;
+  price?: number;
+  currency?: string;
   bookingSystem?: string;
   bookingModalPayload?: EventCardBookingModalPayload;
 }
@@ -675,11 +678,13 @@ function resolveDateTimeDetails(
   timeLabel?: string;
   timeZoneLabel?: string;
   timestamp: number | null;
+  endTimestamp?: number | null;
 } {
   const dateEntries = Array.isArray(record.dates) ? record.dates : [];
-  const firstDateRecord = dateEntries
+  const dateRecords = dateEntries
     .map((entry) => toRecord(entry))
-    .find((entry): entry is Record<string, unknown> => entry !== null);
+    .filter((entry): entry is Record<string, unknown> => entry !== null);
+  const firstDateRecord = dateRecords[0] ?? null;
 
   if (!firstDateRecord) {
     return { timestamp: null };
@@ -700,6 +705,13 @@ function resolveDateTimeDetails(
     return { timestamp: null };
   }
 
+  const lastDateRecord = dateRecords[dateRecords.length - 1] ?? firstDateRecord;
+  const lastEndDateTime = readCandidateText(lastDateRecord, [
+    'end_datetime',
+    'endDateTime',
+    'end',
+  ]) ?? endDateTime;
+
   const dateLabel = formatUtcDateLabel(startDateTime, locale);
   const startTimeLabel = formatUtcTimeLabel(startDateTime, locale);
   const endTimeLabel = endDateTime ? formatUtcTimeLabel(endDateTime, locale) : '';
@@ -714,6 +726,7 @@ function resolveDateTimeDetails(
     timeLabel: timeLabel || undefined,
     timeZoneLabel: timeZoneLabel || undefined,
     timestamp: parseTimestamp(startDateTime),
+    endTimestamp: parseTimestamp(lastEndDateTime),
   };
 }
 
@@ -1291,6 +1304,19 @@ function normalizeEventCard(
   const tags = readTagList(record);
   const partners = resolvePartnerSlugs(record.partners);
   const { costLabel, isFreeCost } = resolveEventCost(record, content);
+  const rawPrice = resolveNumericCandidate(record, [
+    'price',
+    'cost',
+    'amount',
+    'fee',
+    'eventPrice',
+    'event_price',
+  ]);
+  const rawCurrency = readCandidateText(record, [
+    'currency',
+    'priceCurrency',
+    'price_currency',
+  ]);
 
   return {
     id: rawId || fallbackId,
@@ -1313,6 +1339,9 @@ function normalizeEventCard(
     partners: partners.length > 0 ? partners : undefined,
     status,
     timestamp,
+    endTimestamp: dateTimeDetails.endTimestamp,
+    price: rawPrice ?? undefined,
+    currency: rawCurrency ?? undefined,
     bookingSystem,
     bookingModalPayload,
   };
