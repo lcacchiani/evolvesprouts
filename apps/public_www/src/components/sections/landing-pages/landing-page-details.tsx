@@ -32,7 +32,7 @@ export function LandingPageDetails({
           eyebrow={content.eyebrow}
           title={content.title}
           description={content.description}
-          align='left'
+          align='center'
         />
         <CarouselTrack
           testId='landing-page-details-mobile-carousel'
@@ -69,12 +69,13 @@ export function LandingPageDetails({
           </ul>
         </CarouselTrack>
         {sharedCtaProps ? (
-          <LandingPageBookingCtaAction
-            {...sharedCtaProps}
-            analyticsSectionId='landing-page-details'
-            ctaLocation='landing_page'
-            buttonClassName='mt-8'
-          />
+          <div className='mt-8 flex justify-center'>
+            <LandingPageBookingCtaAction
+              {...sharedCtaProps}
+              analyticsSectionId='landing-page-details'
+              ctaLocation='landing_page'
+            />
+          </div>
         ) : null}
       </SectionContainer>
     </SectionShell>
