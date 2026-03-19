@@ -674,7 +674,22 @@
   }
 
   .es-landing-page-description-card {
-    background-color: var(--es-color-surface-white, #FFFFFF);
+    background-color: transparent;
+    border-bottom: 1px solid color-mix(
+      in srgb,
+      var(--site-primary-text) 14%,
+      transparent
+    );
+  }
+
+  .es-landing-page-description-section li:last-child .es-landing-page-description-card {
+    border-bottom: 0;
+  }
+
+  .es-landing-page-description-card-number {
+    color: var(--es-color-surface-white, #FFFFFF);
+    background-color: var(--es-color-brand-orange, #C84A16);
+    line-height: 1;
   }
 
   .es-landing-page-description-card-title {
