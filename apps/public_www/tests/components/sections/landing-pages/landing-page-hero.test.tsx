@@ -111,7 +111,11 @@ describe('LandingPageHero section', () => {
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     const heroImage = screen.getByRole('img', { name: easterWorkshopContent.en.hero.imageAlt });
     expect(heroImage).toBeInTheDocument();
-    expect(heroImage.parentElement).toHaveClass('es-landing-page-hero-image-wrap');
+    expect(heroImage.parentElement).toHaveClass(
+      'es-landing-page-hero-image-wrap',
+      'w-[120%]',
+      'max-w-none',
+    );
     expect(heroImage.parentElement?.parentElement).toHaveClass(
       'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]',
     );
