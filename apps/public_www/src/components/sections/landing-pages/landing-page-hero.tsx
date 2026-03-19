@@ -356,7 +356,7 @@ export function LandingPageHero({
             buttonClassName='mt-3'
           />
         </div>
-        <div className='es-landing-page-hero-image-wrap mx-auto w-[120%] max-w-none lg:mx-0 lg:justify-self-end'>
+        <div className='es-landing-page-hero-image-wrap mx-auto w-[120%] max-w-none justify-self-center lg:mx-0 lg:justify-self-end'>
           <Image
             src={content.imageSrc}
             alt={content.imageAlt}
