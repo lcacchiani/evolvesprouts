@@ -32,7 +32,7 @@ const EventThankYouModal = dynamic(
   { ssr: false },
 );
 
-interface LandingPageBookingCtaActionProps {
+export interface LandingPageBookingCtaActionProps {
   locale: Locale;
   slug: string;
   content: LandingPageLocaleContent['cta'];
@@ -47,6 +47,11 @@ interface LandingPageBookingCtaActionProps {
   ctaLocation: string;
   buttonClassName?: string;
 }
+
+export type LandingPageSharedCtaProps = Omit<
+  LandingPageBookingCtaActionProps,
+  'analyticsSectionId' | 'ctaLocation' | 'buttonClassName'
+>;
 
 function resolveCtaLabel(
   content: LandingPageLocaleContent['cta'],
