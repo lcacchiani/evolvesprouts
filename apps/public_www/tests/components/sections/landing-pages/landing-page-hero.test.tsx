@@ -113,7 +113,7 @@ describe('LandingPageHero section', () => {
     expect(heroImage).toBeInTheDocument();
     expect(heroImage.parentElement).toHaveClass('es-landing-page-hero-image-wrap');
     expect(heroImage.parentElement?.parentElement).toHaveClass(
-      'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]',
+      'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]',
     );
   });
 
