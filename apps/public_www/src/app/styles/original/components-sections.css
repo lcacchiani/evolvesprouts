@@ -432,14 +432,51 @@
     background-size: 100%;
   }
 
-  .es-landing-page-details-section {
+  .es-landing-page-outline-section,
+  .es-landing-page-description-section,
+  .es-landing-page-details-section,
+  .es-landing-page-about-us-ida-coach-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -900px;
     --es-section-bg-size: 2000px auto;
     --es-section-bg-filter: sepia(1) opacity(7%) hue-rotate(-50deg)
       saturate(250%);
     --es-section-bg-mask-image: linear-gradient(to bottom, black 5%, transparent 15%);
+  }
+
+  .es-landing-page-outline-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-landing-page-outline-paragraph {
+    color: var(--site-primary-text);
+    text-wrap: pretty;
+  }
+
+  .es-landing-page-outline-highlight {
+    color: var(--site-heading-text);
+    font-weight: 700;
+  }
+
+  .es-landing-page-description-section {
     background-color: var(--es-color-surface-muted, #F8F8F8);
+  }
+
+  .es-landing-page-details-section {
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
+  }
+
+  .es-landing-page-about-us-ida-coach-section {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-landing-page-about-us-ida-coach-subtitle {
+    color: var(--site-heading-text);
+  }
+
+  .es-landing-page-about-us-ida-coach-highlight {
+    color: var(--site-heading-text);
+    font-weight: 700;
   }
 
   .es-course-highlight-title {
@@ -634,8 +671,36 @@
     line-height: 26px;
   }
 
+  .es-landing-page-description-card {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-landing-page-description-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 26px;
+  }
+
+  .es-landing-page-description-card-description {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
+  }
+
   .es-landing-page-details-card {
     background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-landing-page-details-card-icon-wrap {
+    background-color: var(--es-color-surface-muted, #F8F8F8);
+  }
+
+  .es-landing-page-details-card-icon {
+    line-height: 1;
   }
 
   .es-landing-page-details-card-title {

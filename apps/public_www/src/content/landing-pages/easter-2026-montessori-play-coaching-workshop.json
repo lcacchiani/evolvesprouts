@@ -14,7 +14,13 @@
       "imageAlt": "Child busy playing with a Montessori-style toy",
       "imageSrc": "/images/hero/child-landing-hero.webp"
     },
-    "details": {
+    "outline": {
+      "eyebrow": "Why this matters",
+      "title": "Your helper shapes your child's day more than you might think",
+      "description": "In Hong Kong, your helper is often the person who spends the most time with your child each day — there during play, mealtimes, routines, and transitions. Most helpers have never been shown how to support a child's independence. Not because they don't care, but because nobody taught them.\n\nSo they do what feels natural: they help, they entertain, they step in. It comes from love. But over time, it quietly gets in the way of your child learning to do things for themselves.\n\n\"When your helper is on the same page as you — responding the same way, setting up the environment the same way — everything changes. Routines get smoother. The child becomes more independent. The home gets calmer.\"\n\nThis session is a first step towards that — and a live taste of the Evolve Sprouts programme.",
+      "highlightPhrase": "Evolve Sprouts programme"
+    },
+    "description": {
       "eyebrow": "What happens on the day",
       "title": "60 minutes. Your child in the room. Real coaching",
       "description": "",
@@ -34,6 +40,43 @@
         {
           "title": "Debrief, take-home cards & what comes next",
           "description": "A group circle: one insight per family. Your personalised Auntie Challenge card — written by Ida during the session, specific to your child. Then browse the Happy Baton pre-loved toy sale."
+        }
+      ]
+    },
+    "details": {
+      "eyebrow": "What's included",
+      "title": "Everything in one session",
+      "description": "",
+      "items": [
+        {
+          "icon": "🎯",
+          "title": "Live Montessori coaching",
+          "description": "60 minutes of hands-on coaching with Ida, with your child in the room"
+        },
+        {
+          "icon": "🧸",
+          "title": "Happy Baton toy invitations",
+          "description": "Age-appropriate pre-loved toys selected for your child ahead of the session"
+        },
+        {
+          "icon": "💚",
+          "title": "Personalised Auntie Challenge card pack",
+          "description": "Written by Ida for your family — weeks 2–5 of challenges to continue at home"
+        },
+        {
+          "icon": "📋",
+          "title": "Parent reference card",
+          "description": "The 3 core principles from the session, to keep at home"
+        },
+        {
+          "icon": "🏡",
+          "title": "Access to Baumhaus space",
+          "description": "Use of the shared playroom + the Happy Baton pre-loved toy pop-up sale"
+        },
+        {
+          "icon": "🌿",
+          "title": "A taste of the Evolve Sprouts programme",
+          "description": "See the method live before committing to the full 9-week helper training"
         }
       ]
     },
@@ -88,7 +131,13 @@
       "imageAlt": "家长与孩子参加蒙特梭利游戏教练工作坊",
       "imageSrc": "/images/hero/child-landing-hero.webp"
     },
-    "details": {
+    "outline": {
+      "eyebrow": "为什么这很重要",
+      "title": "你的帮手对孩子一天的影响，可能比你想象的更大",
+      "description": "在香港，你的帮手往往是每天陪伴孩子时间最长的人——在游戏、用餐、日常节奏和过渡时刻都在身边。大多数帮手从未系统学过如何支持孩子独立。不是因为她们不在乎，而是因为从来没有人教过她们。\n\n所以她们会做最自然的事：帮忙、逗孩子、立刻介入。出发点是爱。但时间久了，这会悄悄阻碍孩子学习自己完成事情。\n\n“当你的帮手和你在同一页上——用同样的方式回应、用同样的方式布置环境——一切都会改变。日常流程更顺了，孩子更独立了，家里也更平静了。”\n\n这场体验就是迈出的第一步，也是一次现场感受 Evolve Sprouts programme 的机会。",
+      "highlightPhrase": "Evolve Sprouts programme"
+    },
+    "description": {
       "eyebrow": "当天会发生什么",
       "title": "60 分钟。孩子就在现场。真实教练式指导",
       "description": "",
@@ -108,6 +157,43 @@
         {
           "title": "复盘、带回家卡片与下一步安排",
           "description": "以小组围圈收尾：每个家庭分享一个洞察。你会拿到 Ida 在课堂中为你孩子写下的个性化 Auntie Challenge 卡。之后可逛 Happy Baton 二手玩具义卖。"
+        }
+      ]
+    },
+    "details": {
+      "eyebrow": "包含什么",
+      "title": "一场体验，全都涵盖",
+      "description": "",
+      "items": [
+        {
+          "icon": "🎯",
+          "title": "蒙特梭利现场教练指导",
+          "description": "60 分钟与 Ida 的实操指导，孩子全程在场"
+        },
+        {
+          "icon": "🧸",
+          "title": "Happy Baton 玩具邀请",
+          "description": "课前按孩子年龄准备好的精选二手玩具"
+        },
+        {
+          "icon": "💚",
+          "title": "个性化 Auntie Challenge 挑战卡组",
+          "description": "由 Ida 为你的家庭编写——第 2 至第 5 周可在家持续练习"
+        },
+        {
+          "icon": "📋",
+          "title": "家长参考卡",
+          "description": "带走课程中的 3 个核心原则，方便在家随时对照"
+        },
+        {
+          "icon": "🏡",
+          "title": "Baumhaus 场地使用",
+          "description": "可使用共享游戏室 + 参与 Happy Baton 二手玩具快闪选购"
+        },
+        {
+          "icon": "🌿",
+          "title": "体验 Evolve Sprouts programme",
+          "description": "在决定参加完整 9 周帮手培训前，先现场感受整套方法"
         }
       ]
     },
@@ -162,7 +248,13 @@
       "imageAlt": "家長與小朋友參與蒙特梭利遊戲教練工作坊",
       "imageSrc": "/images/hero/child-landing-hero.webp"
     },
-    "details": {
+    "outline": {
+      "eyebrow": "為什麼這很重要",
+      "title": "你的姐姐對孩子一天的影響，可能比你想像中更大",
+      "description": "在香港，你的姐姐往往是每天陪伴孩子時間最長的人——在遊戲、用餐、日常節奏和過渡時刻都在身邊。大多數姐姐從未被系統地教過如何支持孩子獨立。不是因為她們不在乎，而是因為從來沒有人教過她們。\n\n所以她們會做最自然的事：幫手、逗孩子、即時介入。出發點是愛。但時間久了，這會悄悄妨礙孩子學習自己做到事情。\n\n「當你的姐姐和你站在同一頁——用同樣方式回應、用同樣方式設置環境——一切都會改變。日常流程更順，孩子更獨立，家裡也更平靜。」\n\n這節體驗是走向這個方向的第一步，也讓你現場感受 Evolve Sprouts programme。",
+      "highlightPhrase": "Evolve Sprouts programme"
+    },
+    "description": {
       "eyebrow": "當天會發生什麼",
       "title": "60 分鐘。孩子就在現場。真實教練式指導",
       "description": "",
@@ -182,6 +274,43 @@
         {
           "title": "復盤、帶回家卡片與下一步",
           "description": "以小組圍圈作結：每個家庭分享一個洞見。你會收到 Ida 在課堂中按你孩子情況寫下的個人化 Auntie Challenge 卡。之後可瀏覽 Happy Baton 二手玩具義賣。"
+        }
+      ]
+    },
+    "details": {
+      "eyebrow": "包含內容",
+      "title": "一節體驗，全部涵蓋",
+      "description": "",
+      "items": [
+        {
+          "icon": "🎯",
+          "title": "蒙特梭利即場教練指導",
+          "description": "60 分鐘與 Ida 的實戰指導，孩子全程在場"
+        },
+        {
+          "icon": "🧸",
+          "title": "Happy Baton 玩具邀請",
+          "description": "課前按孩子年齡預備的精選二手玩具"
+        },
+        {
+          "icon": "💚",
+          "title": "個人化 Auntie Challenge 挑戰卡組",
+          "description": "由 Ida 為你家庭撰寫——第 2 至第 5 週可在家持續實踐"
+        },
+        {
+          "icon": "📋",
+          "title": "家長參考卡",
+          "description": "帶走課堂 3 個核心原則，方便在家隨時對照"
+        },
+        {
+          "icon": "🏡",
+          "title": "Baumhaus 場地使用",
+          "description": "可使用共享遊戲室 + 參與 Happy Baton 二手玩具快閃選購"
+        },
+        {
+          "icon": "🌿",
+          "title": "體驗 Evolve Sprouts programme",
+          "description": "在決定參加完整 9 週姐姐培訓前，先現場感受整套方法"
         }
       ]
     },

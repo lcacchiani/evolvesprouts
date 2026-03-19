@@ -19,11 +19,15 @@ describe('LandingPageDetails section', () => {
     expect(document.querySelector('.es-section-header-description')).toBeNull();
 
     for (const item of easterWorkshopContent.en.details.items) {
+      expect(screen.getByText(item.icon)).toBeInTheDocument();
       expect(screen.getByText(item.title)).toBeInTheDocument();
       expect(screen.getByText(item.description)).toBeInTheDocument();
     }
 
     expect(document.querySelectorAll('.es-landing-page-details-card').length).toBe(
+      easterWorkshopContent.en.details.items.length,
+    );
+    expect(document.querySelectorAll('.es-landing-page-details-card-icon').length).toBe(
       easterWorkshopContent.en.details.items.length,
     );
     expect(document.querySelectorAll('.es-landing-page-details-card-title').length).toBe(
