@@ -3,8 +3,11 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
+import {
+  type BookingTopicsFieldConfig,
+  type ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import type {
   BookingModalContent,
   LandingPagesCommonContent,
@@ -111,6 +114,7 @@ export function LandingPageBookingCtaAction({
 
   const selectedDateLabel = bookingPayload?.selectedDateLabel ?? '';
   const selectedDate = bookingPayload?.selectedDateStartTime?.split('T')[0] ?? '';
+  const topicsFieldConfig: BookingTopicsFieldConfig | undefined = content.bookingTopicsField;
   const defaultCtaLabel = resolveCtaLabel(content, commonContent, ctaPriceLabel);
   const ctaLabel = isFullyBooked
     ? resolveFullyBookedCtaLabel(content, commonContent, fullyBookedCtaLabel)
@@ -195,6 +199,7 @@ export function LandingPageBookingCtaAction({
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={bookingPayload}
+          topicsFieldConfig={topicsFieldConfig}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}

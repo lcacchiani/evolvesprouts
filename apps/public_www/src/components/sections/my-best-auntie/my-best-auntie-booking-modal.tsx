@@ -30,7 +30,6 @@ import {
   formatCohortValue,
   formatPartDateTimeLabel,
 } from '@/lib/format';
-import type { BookingTopicsFieldConfig } from '@/lib/events-data';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
@@ -46,34 +45,6 @@ interface MyBestAuntieBookingModalProps {
   captchaWidgetAction?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
-}
-
-function resolveCohortTopicsFieldConfig(
-  selectedCohort: MyBestAuntieBookingContent['cohorts'][number] | null,
-  locale: Locale,
-): BookingTopicsFieldConfig | undefined {
-  if (!selectedCohort) {
-    return undefined;
-  }
-
-  const label =
-    locale === 'zh-CN'
-      ? selectedCohort.topics_interest_label_zh_cn
-      : locale === 'zh-HK'
-        ? selectedCohort.topics_interest_label_zh_hk
-        : selectedCohort.topics_interest_label_en;
-  const placeholder =
-    locale === 'zh-CN'
-      ? selectedCohort.topics_interest_placeholder_zh_cn
-      : locale === 'zh-HK'
-        ? selectedCohort.topics_interest_placeholder_zh_hk
-        : selectedCohort.topics_interest_placeholder_en;
-
-  return {
-    label: label || undefined,
-    placeholder: placeholder || undefined,
-    required: selectedCohort.topics_interest_required,
-  };
 }
 
 export function MyBestAuntieBookingModal({
@@ -120,7 +91,6 @@ export function MyBestAuntieBookingModal({
   const selectedVenueName = selectedCohort?.location_name ?? '';
   const selectedVenueAddress = selectedCohort?.location_address ?? '';
   const selectedVenueDirectionHref = selectedCohort?.location_url ?? '#';
-  const topicsFieldConfig = resolveCohortTopicsFieldConfig(selectedCohort, locale);
 
   return (
     <ModalOverlay
@@ -164,7 +134,6 @@ export function MyBestAuntieBookingModal({
               selectedCohortDateLabel={selectedCohortDateLabelText}
               selectedDateStartTime={selectedDateStartTime}
               selectedCohortPrice={originalAmount}
-              topicsFieldConfig={topicsFieldConfig}
               descriptionId={dialogDescriptionId}
               analyticsSectionId={analyticsSectionId}
               metaPixelContentName={metaPixelContentName}

@@ -1,5 +1,5 @@
 import type { BookingPaymentModalContent } from '@/content';
-import type { BookingTopicsFieldConfig } from '@/lib/events-data';
+import type { BookingTopicsFieldConfig } from '@/components/sections/booking-modal/types';
 
 interface ReservationFormFieldsProps {
   content: BookingPaymentModalContent;

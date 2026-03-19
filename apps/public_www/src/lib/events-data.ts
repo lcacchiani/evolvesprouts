@@ -45,13 +45,6 @@ export interface EventBookingModalPayload {
   dateParts: EventBookingDatePart[];
   selectedDateLabel: string;
   selectedDateStartTime: string;
-  topicsFieldConfig?: BookingTopicsFieldConfig;
-}
-
-export interface BookingTopicsFieldConfig {
-  label?: string;
-  placeholder?: string;
-  required?: boolean;
 }
 
 interface MyBestAuntieEventCohortDate {
@@ -78,13 +71,6 @@ export interface MyBestAuntieEventCohort {
   location_name: string;
   location_address: string;
   location_url: string;
-  topics_interest_label_en: string;
-  topics_interest_label_zh_cn: string;
-  topics_interest_label_zh_hk: string;
-  topics_interest_placeholder_en: string;
-  topics_interest_placeholder_zh_cn: string;
-  topics_interest_placeholder_zh_hk: string;
-  topics_interest_required: boolean;
   dates: MyBestAuntieEventCohortDate[];
 }
 
@@ -409,78 +395,6 @@ function resolveBookingDateParts(
     .filter((entry): entry is EventBookingDatePart => entry !== null);
 }
 
-function resolveBooleanCandidate(
-  record: Record<string, unknown>,
-  keys: readonly string[],
-): boolean | undefined {
-  const rawValue = readFirstCandidateValue(record, keys);
-  if (typeof rawValue === 'boolean') {
-    return rawValue;
-  }
-
-  const textValue = readOptionalText(rawValue)?.toLowerCase();
-  if (!textValue) {
-    return undefined;
-  }
-  if (textValue === 'true' || textValue === '1' || textValue === 'yes') {
-    return true;
-  }
-  if (textValue === 'false' || textValue === '0' || textValue === 'no') {
-    return false;
-  }
-
-  return undefined;
-}
-
-function resolveLocaleSuffix(locale: Locale): 'en' | 'zh_cn' | 'zh_hk' {
-  if (locale === 'zh-CN') {
-    return 'zh_cn';
-  }
-  if (locale === 'zh-HK') {
-    return 'zh_hk';
-  }
-  return 'en';
-}
-
-function resolveTopicsFieldText(
-  record: Record<string, unknown>,
-  baseKey: string,
-  locale: Locale,
-): string | undefined {
-  const localeSuffix = resolveLocaleSuffix(locale);
-  return (
-    readCandidateText(record, [`${baseKey}_${localeSuffix}`]) ??
-    readCandidateText(record, [baseKey])
-  );
-}
-
-function resolveTopicsFieldConfig(
-  record: Record<string, unknown>,
-  locale: Locale,
-): BookingTopicsFieldConfig | undefined {
-  const label =
-    resolveTopicsFieldText(record, 'topics_interest_label', locale) ??
-    resolveTopicsFieldText(record, 'booking_topics_interest_label', locale);
-  const placeholder =
-    resolveTopicsFieldText(record, 'topics_interest_placeholder', locale) ??
-    resolveTopicsFieldText(record, 'booking_topics_interest_placeholder', locale);
-  const required =
-    resolveBooleanCandidate(record, [
-      'topics_interest_required',
-      'booking_topics_interest_required',
-    ]);
-
-  if (label === undefined && placeholder === undefined && required === undefined) {
-    return undefined;
-  }
-
-  return {
-    label,
-    placeholder,
-    required,
-  };
-}
-
 function buildEventBookingModalPayload(
   record: Record<string, unknown>,
   locale: Locale,
@@ -515,7 +429,6 @@ function buildEventBookingModalPayload(
     dateParts,
     selectedDateLabel,
     selectedDateStartTime,
-    topicsFieldConfig: resolveTopicsFieldConfig(record, locale),
   };
 }
 
@@ -549,23 +462,6 @@ function buildMyBestAuntieBookingModalPayload(
   const locationUrl = sanitizeGoogleMapsHref(
     readCandidateText(record, ['location_url', 'locationUrl', 'address_url']),
   );
-  const sharedTopicsInterestLabel = readCandidateText(record, ['topics_interest_label']) ?? '';
-  const sharedTopicsInterestPlaceholder = readCandidateText(record, [
-    'topics_interest_placeholder',
-  ]) ?? '';
-  const topicsInterestLabelEn =
-    readCandidateText(record, ['topics_interest_label_en']) ?? sharedTopicsInterestLabel;
-  const topicsInterestLabelZhCn =
-    readCandidateText(record, ['topics_interest_label_zh_cn']) ?? sharedTopicsInterestLabel;
-  const topicsInterestLabelZhHk =
-    readCandidateText(record, ['topics_interest_label_zh_hk']) ?? sharedTopicsInterestLabel;
-  const topicsInterestPlaceholderEn =
-    readCandidateText(record, ['topics_interest_placeholder_en']) ?? sharedTopicsInterestPlaceholder;
-  const topicsInterestPlaceholderZhCn =
-    readCandidateText(record, ['topics_interest_placeholder_zh_cn']) ?? sharedTopicsInterestPlaceholder;
-  const topicsInterestPlaceholderZhHk =
-    readCandidateText(record, ['topics_interest_placeholder_zh_hk']) ?? sharedTopicsInterestPlaceholder;
-  const topicsInterestRequired = resolveBooleanCandidate(record, ['topics_interest_required']) ?? false;
   const dates = resolveBookingDateParts(record, '')
     .map((part) => {
       return {
@@ -596,13 +492,6 @@ function buildMyBestAuntieBookingModalPayload(
     location_name: locationName,
     location_address: locationAddress,
     location_url: locationUrl,
-    topics_interest_label_en: topicsInterestLabelEn,
-    topics_interest_label_zh_cn: topicsInterestLabelZhCn,
-    topics_interest_label_zh_hk: topicsInterestLabelZhHk,
-    topics_interest_placeholder_en: topicsInterestPlaceholderEn,
-    topics_interest_placeholder_zh_cn: topicsInterestPlaceholderZhCn,
-    topics_interest_placeholder_zh_hk: topicsInterestPlaceholderZhHk,
-    topics_interest_required: topicsInterestRequired,
     dates,
   };
 

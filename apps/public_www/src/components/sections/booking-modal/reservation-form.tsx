@@ -5,7 +5,10 @@ import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-
 import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
 import { ReservationFormPriceBreakdown } from '@/components/sections/booking-modal/reservation-form-price-breakdown';
 import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  BookingTopicsFieldConfig,
+  ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
@@ -16,7 +19,6 @@ import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
-import type { BookingTopicsFieldConfig } from '@/lib/events-data';
 import {
   submitReservation,
   type ReservationSubmissionPayload,
