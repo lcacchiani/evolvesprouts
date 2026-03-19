@@ -98,6 +98,7 @@ export function EventBookingModal({
               venueName={bookingPayload.locationName}
               venueAddress={bookingPayload.locationAddress}
               directionHref={bookingPayload.directionHref}
+              detailsVariant='event'
             />
             <BookingReservationForm
               locale={locale}

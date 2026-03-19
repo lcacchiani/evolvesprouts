@@ -1210,7 +1210,8 @@
   }
 
   .es-mask-calendar-current,
-  .es-mask-calendar-heading {
+  .es-mask-calendar-heading,
+  .es-mask-calendar-danger {
     mask-image: url('/images/calendar.svg');
     -webkit-mask-image: url('/images/calendar.svg');
   }
@@ -1221,6 +1222,10 @@
 
   .es-mask-calendar-heading {
     background-color: var(--es-color-text-heading, #333333);
+  }
+
+  .es-mask-calendar-danger {
+    background-color: var(--es-color-booking-highlight-icon, #B42318);
   }
 
   .es-mask-cubes-current {

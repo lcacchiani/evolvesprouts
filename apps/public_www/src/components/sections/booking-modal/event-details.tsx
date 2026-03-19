@@ -22,6 +22,7 @@ interface BookingEventDetailsProps {
   venueName: string;
   venueAddress: string;
   directionHref: string;
+  detailsVariant?: 'event' | 'my-best-auntie';
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
@@ -81,7 +82,13 @@ export function BookingEventDetails({
   venueName,
   venueAddress,
   directionHref,
+  detailsVariant = 'my-best-auntie',
 }: BookingEventDetailsProps) {
+  const isEventDetailsVariant = detailsVariant === 'event';
+  const eventScheduleRows = activePartRows
+    .map((part) => part.date.trim())
+    .filter((date): date is string => Boolean(date));
+
   return (
     <div className='es-my-best-auntie-booking-modal-details-column w-full lg:w-[calc(50%-20px)]'>
       <h2
@@ -94,48 +101,52 @@ export function BookingEventDetails({
         {subtitle}
       </p>
 
-      <section className='mt-8'>
-        <ul className='space-y-[50px]'>
-          {activePartRows.map((part, index) => {
-            return (
-              <li
-                key={index}
-                className='es-my-best-auntie-booking-part-item relative'
-              >
-                <span
-                  className='pointer-events-none absolute left-0 top-0 h-full'
-                  aria-hidden='true'
+      {!isEventDetailsVariant ? (
+        <section className='mt-8'>
+          <ul className='space-y-[50px]'>
+            {activePartRows.map((part, index) => {
+              return (
+                <li
+                  key={index}
+                  className='es-my-best-auntie-booking-part-item relative'
                 >
                   <span
-                    data-course-part-line='segment'
-                    className={`absolute left-0 ${getPartLineClassName(
-                      index,
-                      index === activePartRows.length - 1,
-                    )}`}
-                  />
-                </span>
-                <div className='relative z-10 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 sm:gap-x-4'>
-                  <span
-                    data-course-part-chip='true'
-                    className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
+                    className='pointer-events-none absolute left-0 top-0 h-full'
+                    aria-hidden='true'
                   >
                     <span
-                      data-course-part-line='gap-connector'
-                      className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
-                      aria-hidden='true'
-                    />
-                    <Image
-                      src={getPartIconSource(index)}
-                      alt=''
-                      width={28}
-                      height={28}
-                      data-course-part-icon='true'
-                      className='h-7 w-7 shrink-0 object-contain'
-                      aria-hidden='true'
+                      data-course-part-line='segment'
+                      className={`absolute left-0 ${getPartLineClassName(
+                        index,
+                        index === activePartRows.length - 1,
+                      )}`}
                     />
                   </span>
+                  <div className='relative z-10 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 sm:gap-x-4'>
+                    <span
+                      data-course-part-chip='true'
+                      className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
+                    >
+                      <span
+                        data-course-part-line='gap-connector'
+                        className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
+                        aria-hidden='true'
+                      />
+                      <Image
+                        src={getPartIconSource(index)}
+                        alt=''
+                        width={28}
+                        height={28}
+                        data-course-part-icon='true'
+                        className='h-7 w-7 shrink-0 object-contain'
+                        aria-hidden='true'
+                      />
+                    </span>
 
-                  <div data-course-part-date-block='true' className='flex min-w-0 items-center gap-2'>
+                    <div
+                      data-course-part-date-block='true'
+                      className='flex min-w-0 items-center gap-2'
+                    >
                       <span
                         data-course-part-date-icon='true'
                         className='es-mask-calendar-heading h-6 w-6 shrink-0'
@@ -144,20 +155,52 @@ export function BookingEventDetails({
                       <p className='min-w-0 text-[17px] font-semibold leading-6 es-text-heading'>
                         {part.date}
                       </p>
-                  </div>
+                    </div>
 
-                  <p className='col-start-2 text-[15px] leading-[22px] es-text-body'>
-                    {renderQuotedDescriptionText(part.description)}
-                  </p>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+                    <p className='col-start-2 text-[15px] leading-[22px] es-text-body'>
+                      {renderQuotedDescriptionText(part.description)}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       <section className='mt-9 border-t border-black/15 pt-8'>
-        <div className='border-b border-black/15 pb-8'>
+        {isEventDetailsVariant && eventScheduleRows.length > 0 ? (
+          <div data-event-schedule-summary='true' className='border-b border-black/15 pb-8'>
+            <div className='flex items-center gap-4'>
+              <span className='es-icon-circle-lg'>
+                <span
+                  data-event-schedule-icon='true'
+                  className='es-mask-calendar-danger h-[37px] w-[37px] shrink-0'
+                  aria-hidden='true'
+                />
+              </span>
+              <div className='space-y-2'>
+                {eventScheduleRows.map((row, index) => (
+                  <p
+                    key={`${row}-${index}`}
+                    data-event-schedule-row='true'
+                    className='text-[26px] font-bold leading-none es-text-heading'
+                  >
+                    {row}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        <div
+          className={
+            isEventDetailsVariant
+              ? 'border-b border-black/15 py-8'
+              : 'border-b border-black/15 pb-8'
+          }
+        >
           <div className='flex items-start gap-4'>
             <span className='es-icon-circle-lg'>
               <span
