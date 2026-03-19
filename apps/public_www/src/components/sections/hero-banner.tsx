@@ -6,7 +6,10 @@ import {
   SectionContainer,
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
-import { renderHighlightedText } from '@/components/sections/shared/render-highlighted-text';
+import {
+  renderHighlightedText,
+  renderQuotedDescriptionText,
+} from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveHeroCopy } from '@/content/copy-normalizers';
 import type { HeroContent } from '@/content';
@@ -61,7 +64,7 @@ export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
               {content.cta}
             </SectionCtaAnchor>
             <p className={`mt-4 ${HERO_BODY_TEXT_CLASSNAME}`}>
-              {copy.description}
+              {renderQuotedDescriptionText(copy.description)}
             </p>
           </div>
         </div>

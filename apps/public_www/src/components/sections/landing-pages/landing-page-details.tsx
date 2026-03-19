@@ -1,4 +1,5 @@
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { LandingPageLocaleContent } from '@/content';
@@ -48,7 +49,7 @@ export function LandingPageDetails({
                   {item.title}
                 </h3>
                 <p className='mt-3 es-landing-page-details-card-description'>
-                  {item.description}
+                  {renderQuotedDescriptionText(item.description)}
                 </p>
               </article>
             </li>

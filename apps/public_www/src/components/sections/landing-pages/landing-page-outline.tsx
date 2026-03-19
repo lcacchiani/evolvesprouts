@@ -1,7 +1,7 @@
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import { renderHighlightedText } from '@/components/sections/shared/render-highlighted-text';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import type { LandingPageLocaleContent } from '@/content';
 
 interface LandingPageOutlineProps {
@@ -41,7 +41,7 @@ export function LandingPageOutline({
               key={`${paragraph}-${index}`}
               className='es-type-body es-landing-page-outline-paragraph'
             >
-              {renderHighlightedText(
+              {renderQuotedDescriptionText(
                 paragraph,
                 content.highlightPhrase,
               )}

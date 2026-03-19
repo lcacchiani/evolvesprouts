@@ -2,6 +2,7 @@ import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveFreeIntroSessionCopy } from '@/content/copy-normalizers';
@@ -54,7 +55,7 @@ export function FreeIntroSession({
               titleClassName='leading-[1.12] sm:-mt-6 lg:-mt-[52px] es-free-intro-session-heading'
             />
             <p className='max-w-[500px] es-free-intro-session-support-paragraph'>
-              {copy.description}
+              {renderQuotedDescriptionText(copy.description)}
             </p>
           </div>
           <div className='es-intro-community-layout-cta'>

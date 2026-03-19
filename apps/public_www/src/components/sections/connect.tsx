@@ -1,5 +1,6 @@
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ContactUsContent } from '@/content';
@@ -62,7 +63,7 @@ export function Connect({ content }: ConnectProps) {
                   {card.title}
                 </h3>
                 <p className='es-section-body mt-2 text-base leading-7'>
-                  {card.description}
+                  {renderQuotedDescriptionText(card.description)}
                 </p>
                 <SectionCtaAnchor
                   href={card.ctaHref}

@@ -476,8 +476,8 @@
     color: var(--site-heading-text);
   }
 
-  .es-about-us-ida-coach-highlight {
-    color: var(--site-heading-text);
+  .es-about-us-ida-coach-description .es-highlight-word,
+  .es-landing-page-outline-paragraph .es-highlight-word {
     font-weight: 700;
   }
 

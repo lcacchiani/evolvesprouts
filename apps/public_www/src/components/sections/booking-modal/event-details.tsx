@@ -1,6 +1,7 @@
 import Image from 'next/image';
 
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
@@ -146,7 +147,7 @@ export function BookingEventDetails({
                   </div>
 
                   <p className='col-start-2 text-[15px] leading-[22px] es-text-body'>
-                    {part.description}
+                    {renderQuotedDescriptionText(part.description)}
                   </p>
                 </div>
               </li>

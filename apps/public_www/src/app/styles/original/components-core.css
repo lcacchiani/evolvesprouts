@@ -762,6 +762,28 @@
     display: inline-block;
   }
 
+  .es-quote {
+    display: block;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-left: 4.1px solid var(--es-color-brand-orange, #C84A16);
+    background-color: #FFEEE3;
+    padding: 10px;
+    font-style: italic;
+    font-weight: 700;
+  }
+
+  .es-quote-icon {
+    display: block;
+    height: 1.25rem;
+    width: 1.25rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .es-quote-text {
+    display: block;
+  }
+
   .es-navbar-hamburger-icon {
     background-color: var(--es-color-brand-orange, #C84A16);
     mask-image: url('/images/hamburger.svg');
