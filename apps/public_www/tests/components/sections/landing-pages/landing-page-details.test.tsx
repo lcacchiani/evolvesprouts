@@ -22,6 +22,7 @@ describe('LandingPageDetails section', () => {
     expect(header).not.toBeNull();
     expect(header).toHaveClass('es-section-header--center');
     expect(header).toHaveClass('text-center');
+    expect(screen.getByTestId('landing-page-details-mobile-carousel')).toBeInTheDocument();
 
     for (const item of easterWorkshopContent.en.details.items) {
       expect(screen.getByText(item.icon)).toBeInTheDocument();
