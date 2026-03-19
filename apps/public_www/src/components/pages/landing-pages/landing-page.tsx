@@ -39,6 +39,7 @@ export function LandingPage({
         slug={slug}
         content={pageContent.hero}
         ctaContent={pageContent.cta}
+        ctaPriceLabel={bookingEventContent?.ctaPriceLabel}
         commonContent={siteContent.landingPages.common}
         locale={locale}
         title={heroEventContent?.title ?? pageContent.meta.title}
@@ -60,6 +61,7 @@ export function LandingPage({
         locale={locale}
         slug={slug}
         content={pageContent.cta}
+        ctaPriceLabel={bookingEventContent?.ctaPriceLabel}
         commonContent={siteContent.landingPages.common}
         bookingPayload={bookingEventContent?.bookingPayload ?? null}
         isFullyBooked={bookingEventContent?.status === 'fully_booked'}

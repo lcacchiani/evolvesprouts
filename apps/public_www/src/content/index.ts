@@ -110,6 +110,7 @@ export interface LandingPageLocaleContent {
     title: string;
     description: string;
     buttonLabel: string;
+    buttonLabelTemplate?: string;
   };
 }
 

@@ -25,6 +25,7 @@ interface LandingPageHeroProps {
   slug: string;
   content: LandingPageLocaleContent['hero'];
   ctaContent: LandingPageLocaleContent['cta'];
+  ctaPriceLabel?: string;
   commonContent: LandingPagesCommonContent;
   locale: Locale;
   title: string;
@@ -216,6 +217,7 @@ export function LandingPageHero({
   slug,
   content,
   ctaContent,
+  ctaPriceLabel,
   commonContent,
   locale,
   title,
@@ -281,6 +283,7 @@ export function LandingPageHero({
             locale={locale}
             slug={slug}
             content={ctaContent}
+            ctaPriceLabel={ctaPriceLabel}
             commonContent={commonContent}
             bookingPayload={bookingPayload}
             isFullyBooked={isFullyBooked}

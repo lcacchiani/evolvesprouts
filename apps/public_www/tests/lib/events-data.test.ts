@@ -419,6 +419,7 @@ describe('events-data', () => {
     expect(bookingEventContent).not.toBeNull();
     expect(bookingEventContent).toMatchObject({
       status: 'open',
+      ctaPriceLabel: 'HK$350',
       bookingPayload: {
         variant: 'event',
         title: 'Easter 2026 Montessori Play Coaching Workshop',
