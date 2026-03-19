@@ -255,6 +255,8 @@ export function buildLandingPageEventSchema({
 
   const organizationSchemaId = getOrganizationSchemaId();
 
+  const streetAddress = structuredData.locationAddress || structuredData.locationName;
+
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'Event',
@@ -262,14 +264,25 @@ export function buildLandingPageEventSchema({
     description: structuredData.description,
     startDate: structuredData.startDate,
     endDate: structuredData.endDate,
+    image: toAbsoluteUrl('/images/evolvesprouts-logo.svg'),
     eventStatus: EVENT_STATUS_SCHEDULED,
     eventAttendanceMode: EVENT_ATTENDANCE_MODE_OFFLINE,
     location: compactJsonLdObject({
       '@type': 'Place',
       name: structuredData.locationName,
-      address: structuredData.locationAddress,
+      address: streetAddress
+        ? compactJsonLdObject({
+            '@type': 'PostalAddress',
+            streetAddress,
+            addressLocality: 'Hong Kong',
+            addressCountry: 'HK',
+          })
+        : undefined,
     }),
     organizer: {
+      '@id': organizationSchemaId,
+    },
+    performer: {
       '@id': organizationSchemaId,
     },
     offers: compactJsonLdObject({
@@ -277,6 +290,7 @@ export function buildLandingPageEventSchema({
       price: structuredData.offerPrice,
       priceCurrency: structuredData.offerCurrency,
       availability: `${SCHEMA_CONTEXT}/${structuredData.offerAvailability}`,
+      validFrom: structuredData.startDate,
       url: `${getSiteOrigin()}${localizePath(pagePath, locale)}`,
     }),
   });
@@ -299,10 +313,19 @@ function resolveEventLocation(event: EventCardData, locale: Locale): JsonLdObjec
     };
   }
 
+  const streetAddress = event.locationAddress || event.locationName;
+
   return compactJsonLdObject({
     '@type': 'Place',
     name: event.locationName,
-    address: event.locationAddress,
+    address: streetAddress
+      ? compactJsonLdObject({
+          '@type': 'PostalAddress',
+          streetAddress,
+          addressLocality: 'Hong Kong',
+          addressCountry: 'HK',
+        })
+      : undefined,
   });
 }
 
@@ -315,12 +338,26 @@ function resolveEventOffer(
     return undefined;
   }
 
+  const offerPrice =
+    event.price !== undefined && Number.isFinite(event.price)
+      ? String(event.price)
+      : undefined;
+  const offerCurrency =
+    offerPrice !== undefined ? (event.currency || 'HKD') : undefined;
+  const validFrom =
+    event.timestamp !== null
+      ? new Date(event.timestamp).toISOString()
+      : undefined;
+
   return compactJsonLdObject({
     '@type': 'Offer',
     url: toAbsoluteUrl(event.ctaHref),
+    price: offerPrice,
+    priceCurrency: offerCurrency,
     availability: event.status === 'fully_booked'
       ? OFFER_AVAILABILITY_SOLD_OUT
       : OFFER_AVAILABILITY_IN_STOCK,
+    validFrom,
     category: 'Course',
     seller: {
       '@id': organizationSchemaId,
@@ -338,10 +375,16 @@ export function buildEventSchemas({
   events,
 }: EventSchemaOptions): JsonLdObject[] {
   const organizationSchemaId = getOrganizationSchemaId();
+  const fallbackImage = toAbsoluteUrl('/images/evolvesprouts-logo.svg');
   return events
     .filter((event) => event.timestamp !== null)
-    .map((event) =>
-      compactJsonLdObject({
+    .map((event) => {
+      const endDate =
+        event.endTimestamp != null && Number.isFinite(event.endTimestamp)
+          ? new Date(event.endTimestamp).toISOString()
+          : undefined;
+
+      return compactJsonLdObject({
         '@context': SCHEMA_CONTEXT,
         '@type': 'Event',
         '@id': buildEventSchemaId(locale, event.id),
@@ -349,14 +392,19 @@ export function buildEventSchemas({
         description: event.summary,
         startDate:
           event.timestamp === null ? undefined : new Date(event.timestamp).toISOString(),
+        endDate,
+        image: fallbackImage,
         eventStatus: EVENT_STATUS_SCHEDULED,
         eventAttendanceMode: resolveEventAttendanceMode(event),
         location: resolveEventLocation(event, locale),
         organizer: {
           '@id': organizationSchemaId,
         },
+        performer: {
+          '@id': organizationSchemaId,
+        },
         offers: resolveEventOffer(event, locale),
-      }),
-    )
+      });
+    })
     .filter((entry) => Object.keys(entry).length > 0);
 }
