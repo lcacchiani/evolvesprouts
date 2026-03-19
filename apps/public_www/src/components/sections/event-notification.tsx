@@ -10,7 +10,6 @@ import { useFormSubmission } from '@/components/sections/shared/use-form-submiss
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveEventNotificationCopy } from '@/content/copy-normalizers';
-import enContent from '@/content/en.json';
 import type {
   CommonContent,
   EventNotificationContent,
@@ -24,7 +23,7 @@ import { isValidEmail } from '@/lib/validation';
 
 interface EventNotificationProps {
   content: EventNotificationContent;
-  commonCaptchaContent?: CommonContent['captcha'];
+  commonCaptchaContent: CommonContent['captcha'];
 }
 
 const EMAIL_ERROR_MESSAGE_ID = 'event-notification-email-error';
@@ -33,7 +32,7 @@ const SUBMIT_ERROR_MESSAGE_ID = 'event-notification-submit-error';
 
 export function EventNotification({
   content,
-  commonCaptchaContent = enContent.common.captcha,
+  commonCaptchaContent,
 }: EventNotificationProps) {
   const copy = resolveEventNotificationCopy(content);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';

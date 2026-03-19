@@ -9,14 +9,14 @@ export function readOptionalText(value: unknown): string | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
-export function readRequiredText(value: unknown): string | null {
+export function readRequiredText(value: unknown): string | undefined {
   if (typeof value !== 'string') {
-    return null;
+    return undefined;
   }
 
   const normalized = value.trim();
   if (!normalized) {
-    return null;
+    return undefined;
   }
 
   return normalized;

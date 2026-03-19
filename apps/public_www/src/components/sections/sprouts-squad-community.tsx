@@ -11,7 +11,6 @@ import { useFormSubmission } from '@/components/sections/shared/use-form-submiss
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveSproutsSquadCommunityCopy } from '@/content/copy-normalizers';
-import enContent from '@/content/en.json';
 import type {
   CommonContent,
   SproutsSquadCommunityContent,
@@ -25,7 +24,7 @@ import { isValidEmail } from '@/lib/validation';
 
 interface SproutsSquadCommunityProps {
   content: SproutsSquadCommunityContent;
-  commonCaptchaContent?: CommonContent['captcha'];
+  commonCaptchaContent: CommonContent['captcha'];
 }
 
 const EMAIL_ERROR_MESSAGE_ID = 'sprouts-community-email-error';
@@ -34,7 +33,7 @@ const SUBMIT_ERROR_MESSAGE_ID = 'sprouts-community-submit-error';
 
 export function SproutsSquadCommunity({
   content,
-  commonCaptchaContent = enContent.common.captcha,
+  commonCaptchaContent,
 }: SproutsSquadCommunityProps) {
   const copy = resolveSproutsSquadCommunityCopy(content);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';

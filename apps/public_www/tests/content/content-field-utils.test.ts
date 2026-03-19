@@ -35,8 +35,8 @@ describe('content-field-utils', () => {
 
   it('normalizes required text from unknown values', () => {
     expect(readRequiredText('  Hello  ')).toBe('Hello');
-    expect(readRequiredText('   ')).toBeNull();
-    expect(readRequiredText(42)).toBeNull();
+    expect(readRequiredText('   ')).toBeUndefined();
+    expect(readRequiredText(42)).toBeUndefined();
   });
 
   it('throws descriptive errors for missing or empty required record values', () => {

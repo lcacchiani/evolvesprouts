@@ -1,7 +1,6 @@
 import { PrivacyPolicyPage } from '@/components/pages/privacy-policy';
 import {
   generateLocaleStaticParams,
-  getFooterLinkLabel,
   type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
@@ -28,7 +27,7 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
   });
 }
 
-export default async function PrivacyPage({ params }: LocaleRouteProps) {
+export default async function PrivacyRoutePage({ params }: LocaleRouteProps) {
   const { content } = await resolveLocalePageContext(params);
   return <PrivacyPolicyPage content={content} />;
 }

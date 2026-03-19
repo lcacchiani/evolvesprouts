@@ -82,7 +82,10 @@ describe('SproutsSquadCommunity section', () => {
 
   it('uses migrated section/overlay/logo classes and renders CTA-first state', () => {
     const { container } = render(
-      <SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />,
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
     );
 
     const section = screen.getByRole('region', {
@@ -142,7 +145,12 @@ describe('SproutsSquadCommunity section', () => {
   });
 
   it('reveals email input and captcha after initial CTA click', () => {
-    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -162,7 +170,12 @@ describe('SproutsSquadCommunity section', () => {
   });
 
   it('fades in revealed fields after the initial CTA click', async () => {
-    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -186,7 +199,12 @@ describe('SproutsSquadCommunity section', () => {
   });
 
   it('shows email validation error when form submit is clicked with empty email', () => {
-    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -210,7 +228,12 @@ describe('SproutsSquadCommunity section', () => {
   });
 
   it('shows email validation error for invalid email after CTA reveal', () => {
-    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -236,7 +259,12 @@ describe('SproutsSquadCommunity section', () => {
   });
 
   it('shows captcha-required error when token is missing', async () => {
-    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -264,7 +292,12 @@ describe('SproutsSquadCommunity section', () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({ request });
 
-    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -303,7 +336,12 @@ describe('SproutsSquadCommunity section', () => {
     const request = vi.fn().mockRejectedValue(new Error('request failed'));
     mockedCreateCrmApiClient.mockReturnValue({ request });
 
-    render(<SproutsSquadCommunity content={enContent.sproutsSquadCommunity} />);
+    render(
+      <SproutsSquadCommunity
+        content={enContent.sproutsSquadCommunity}
+        commonCaptchaContent={enContent.common.captcha}
+      />,
+    );
 
     fireEvent.click(
       screen.getByRole('button', {
