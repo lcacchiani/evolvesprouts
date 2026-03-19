@@ -4,6 +4,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import enContent from '@/content/en.json';
@@ -173,7 +174,7 @@ export function MyBestAuntieDescription({
                     {item.title}
                   </h3>
                   <p className='mt-3 es-my-best-auntie-description-card-description'>
-                    {item.description}
+                    {renderQuotedDescriptionText(item.description)}
                   </p>
                 </article>
               </li>

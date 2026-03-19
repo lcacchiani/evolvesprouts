@@ -4,6 +4,7 @@ import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
 } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { AboutUsHeroContent } from '@/content';
@@ -37,7 +38,7 @@ export function AboutUsHero({ content }: AboutUsHeroProps) {
           />
           {description ? (
             <p className='es-type-body mt-4 max-w-[720px]'>
-              {description}
+              {renderQuotedDescriptionText(description)}
             </p>
           ) : null}
         </div>

@@ -8,6 +8,7 @@ import {
 
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { LandingPageBookingCtaAction } from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
 import type {
@@ -313,7 +314,7 @@ export function LandingPageHero({
               ))}
             </div>
           ) : null}
-          <p className='es-type-body'>{content.description}</p>
+          <p className='es-type-body'>{renderQuotedDescriptionText(content.description)}</p>
           {chips.length > 0 ? (
             <div className='flex flex-wrap gap-3'>
               {chips.map((chip, index) => {

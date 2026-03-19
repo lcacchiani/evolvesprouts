@@ -10,6 +10,7 @@ import {
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
@@ -193,7 +194,7 @@ export function CourseHighlightCard({
             <p
               className={`max-w-[34ch] es-course-highlight-description group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300 ${descriptionVisibilityClassName}`}
             >
-              {description}
+              {renderQuotedDescriptionText(description)}
             </p>
           )}
         </div>

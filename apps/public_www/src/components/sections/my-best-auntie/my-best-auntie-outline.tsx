@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import enContent from '@/content/en.json';
@@ -427,7 +428,7 @@ export function MyBestAuntieOutline({
         <div className='mx-auto max-w-[760px] text-center'>
           {content.description && (
             <p className='es-type-body-italic text-balance'>
-              {content.description}
+              {renderQuotedDescriptionText(content.description)}
             </p>
           )}
 

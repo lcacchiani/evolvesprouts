@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { SectionEyebrowChip } from '@/components/sections/shared/section-eyebrow-chip';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { mergeClassNames } from '@/lib/class-name-utils';
 
 type SectionHeaderAlignment = 'center' | 'left';
@@ -37,6 +38,10 @@ export function SectionHeader({
     align === 'left'
       ? 'es-section-header--left text-left'
       : 'es-section-header--center text-center';
+  const renderedDescription =
+    typeof description === 'string'
+      ? renderQuotedDescriptionText(description)
+      : description;
 
   return (
     <div
@@ -64,7 +69,7 @@ export function SectionHeader({
             descriptionClassName ?? 'es-type-body mt-4',
           )}
         >
-          {description}
+          {renderedDescription}
         </p>
       ) : null}
     </div>

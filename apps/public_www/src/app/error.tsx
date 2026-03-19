@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { getContent } from '@/content';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { reportInternalError } from '@/lib/internal-error-reporting';
 import { getLocaleFromPath } from '@/lib/locale-routing';
 
@@ -29,7 +30,7 @@ export default function RootErrorPage({ error, reset }: RootErrorPageProps) {
     <main className='mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center gap-4 px-6 py-16 text-center'>
       <h1 className='text-3xl font-semibold es-text-heading'>{content.whoops.title}</h1>
       <p className='max-w-xl text-base leading-7 es-text-body'>
-        {content.whoops.description}
+        {renderQuotedDescriptionText(content.whoops.description)}
       </p>
       <button
         type='button'

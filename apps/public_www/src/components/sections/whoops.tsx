@@ -1,4 +1,5 @@
 import { PlaceholderPanel } from '@/components/shared/placeholder-panel';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import type { SiteContent } from '@/content';
 
 interface WhoopsProps {
@@ -15,7 +16,7 @@ export function Whoops({ content }: WhoopsProps) {
         {content.title}
       </h1>
       <p className='es-section-body mx-auto mt-3 max-w-[40ch] text-[1rem] leading-relaxed sm:text-[1.1rem]'>
-        {content.description}
+        {renderQuotedDescriptionText(content.description)}
       </p>
     </PlaceholderPanel>
   );

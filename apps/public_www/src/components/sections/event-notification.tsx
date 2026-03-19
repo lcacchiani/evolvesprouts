@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -179,7 +180,7 @@ export function EventNotification({
               titleClassName='leading-[1.12] es-event-notification-heading'
             />
             <p className='max-w-[500px] es-event-notification-support-paragraph'>
-              {copy.description}
+              {renderQuotedDescriptionText(copy.description)}
             </p>
           </div>
           <div className='es-intro-community-layout-cta'>

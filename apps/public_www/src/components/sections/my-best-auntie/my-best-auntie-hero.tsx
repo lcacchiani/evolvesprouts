@@ -5,6 +5,7 @@ import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
 } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveMyBestAuntieHeroDescription } from '@/content/copy-normalizers';
@@ -41,7 +42,9 @@ export function MyBestAuntieHero({ content }: MyBestAuntieHeroProps) {
               description={content.subtitle}
               descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
             />
-            <p className='mt-4 max-w-[720px] es-type-body'>{description}</p>
+            <p className='mt-4 max-w-[720px] es-type-body'>
+              {renderQuotedDescriptionText(description)}
+            </p>
             <div className='mt-8'>
               <SectionCtaAnchor
                 href={content.ctaHref}

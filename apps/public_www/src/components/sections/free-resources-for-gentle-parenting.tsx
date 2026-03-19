@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { MediaForm } from '@/components/sections/media-form';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { FreeResourcesOverlayLayout } from '@/components/sections/free-resources-overlay-layout';
@@ -213,7 +214,7 @@ function ResourceCardContent({
 
       {cardDescription && (
         <p className='mt-4 max-w-[420px] text-balance es-free-resources-card-body'>
-          {cardDescription}
+          {renderQuotedDescriptionText(cardDescription)}
         </p>
       )}
 
@@ -232,7 +233,7 @@ function ResourceCardContent({
               </p>
               {item.description && (
                 <p className='mt-2 pl-9 es-free-resources-checklist-description'>
-                  {item.description}
+                  {renderQuotedDescriptionText(item.description)}
                 </p>
               )}
             </li>

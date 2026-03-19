@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import { WhatsappContactButton } from '@/components/shared/whatsapp-contact-button';
 import {
@@ -63,7 +64,7 @@ export default async function LocaleLayout({
       <noscript>
         <section className='mx-auto mt-4 max-w-3xl rounded-xl border border-black/10 bg-[#fdf8f4] px-4 py-4 text-sm text-black/80'>
           <p className='font-semibold text-black'>{noscriptCopy.title}</p>
-          <p className='mt-2'>{noscriptCopy.description}</p>
+          <p className='mt-2'>{renderQuotedDescriptionText(noscriptCopy.description)}</p>
           <p className='mt-3 flex flex-wrap gap-4'>
             <a href={localizedHomeHref} className='font-semibold underline underline-offset-4'>
               {noscriptCopy.homeLabel}
