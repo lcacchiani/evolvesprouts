@@ -36,7 +36,7 @@ describe('AboutUsIdaCoach section', () => {
     expect(portrait).toHaveClass('object-top');
 
     const highlightedText = screen.getByText(enContent.aboutUs.coaches.ida.highlightedPhrase);
-    expect(highlightedText).toHaveClass('es-about-us-ida-coach-highlight');
+    expect(highlightedText).toHaveClass('es-highlight-word');
 
     for (const tag of enContent.aboutUs.coaches.ida.tags) {
       expect(screen.getByText(tag)).toBeInTheDocument();

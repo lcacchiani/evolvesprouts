@@ -62,7 +62,6 @@ export function AboutUsIdaCoach({
                 {renderQuotedDescriptionText(
                   paragraph,
                   content.highlightedPhrase,
-                  'es-about-us-ida-coach-highlight',
                 )}
               </p>
             ))}

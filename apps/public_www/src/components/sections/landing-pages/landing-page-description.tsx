@@ -27,21 +27,29 @@ export function LandingPageDescription({
           description={content.description}
           align='left'
         />
-        <ul className='mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-          {content.items.map((item) => (
+        <ul className='mt-8 space-y-2 sm:space-y-3'>
+          {content.items.map((item, index) => (
             <li
               key={item.title}
               className='w-full'
             >
               <article
-                className='flex h-full min-h-[260px] flex-col rounded-card-xl p-6 sm:p-8 es-landing-page-description-card'
+                className='flex w-full items-start gap-4 py-6 sm:gap-6 sm:py-8 es-landing-page-description-card'
               >
-                <h3 className='es-landing-page-description-card-title'>
-                  {item.title}
-                </h3>
-                <p className='mt-3 es-landing-page-description-card-description'>
-                  {renderQuotedDescriptionText(item.description)}
-                </p>
+                <span
+                  aria-hidden='true'
+                  className='inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-semibold es-landing-page-description-card-number'
+                >
+                  {index + 1}
+                </span>
+                <div className='min-w-0'>
+                  <h3 className='es-landing-page-description-card-title'>
+                    {item.title}
+                  </h3>
+                  <p className='mt-3 es-landing-page-description-card-description'>
+                    {renderQuotedDescriptionText(item.description)}
+                  </p>
+                </div>
               </article>
             </li>
           ))}
