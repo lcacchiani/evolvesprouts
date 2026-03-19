@@ -23,5 +23,13 @@ describe('FaqCardGrid', () => {
     expect(screen.getByText(items[0].answer)).toBeInTheDocument();
     expect(screen.getByText(items[1].answer)).toBeInTheDocument();
     expect(container.querySelectorAll('article')).toHaveLength(items.length);
+
+    for (const item of items) {
+      const answer = screen.getByText(item.answer);
+      const answerWrapper = answer.closest('div');
+      expect(answerWrapper).not.toBeNull();
+      expect(answerWrapper?.className).toContain('border-l-[4.1px]');
+      expect(answerWrapper?.className).toContain('es-divider-green');
+    }
   });
 });
