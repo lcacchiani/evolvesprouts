@@ -104,7 +104,7 @@ function PartnerLogo({ partner }: { partner: string }) {
   }
 
   const logoSizeClassName =
-    normalizedPartner === 'evolvesprouts' ? 'h-10 w-auto object-contain' : 'h-8 w-auto object-contain';
+    normalizedPartner === 'evolvesprouts' ? 'h-16 w-auto object-contain' : 'h-8 w-auto object-contain';
 
   return (
     <Image
