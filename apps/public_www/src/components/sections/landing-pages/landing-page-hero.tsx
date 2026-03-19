@@ -32,6 +32,8 @@ interface LandingPageHeroProps {
   eventContent: LandingPageHeroEventContent | null;
   bookingPayload: EventBookingModalPayload | null;
   isFullyBooked: boolean;
+  fullyBookedCtaLabel?: string;
+  fullyBookedWaitlistHref?: string;
   bookingModalContent: BookingModalContent;
   ariaLabel?: string;
 }
@@ -267,6 +269,8 @@ export function LandingPageHero({
   eventContent,
   bookingPayload,
   isFullyBooked,
+  fullyBookedCtaLabel,
+  fullyBookedWaitlistHref,
   bookingModalContent,
   ariaLabel,
 }: LandingPageHeroProps) {
@@ -343,6 +347,8 @@ export function LandingPageHero({
             commonContent={commonContent}
             bookingPayload={bookingPayload}
             isFullyBooked={isFullyBooked}
+            fullyBookedCtaLabel={fullyBookedCtaLabel}
+            fullyBookedWaitlistHref={fullyBookedWaitlistHref}
             bookingModalContent={bookingModalContent}
             analyticsSectionId='landing-page-hero'
             ctaLocation='landing_page'

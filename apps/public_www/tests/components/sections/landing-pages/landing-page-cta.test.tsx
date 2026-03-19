@@ -56,11 +56,13 @@ describe('LandingPageCta section', () => {
   );
 
   it('opens booking modal and tracks CTA, modal-open, and meta pixel events', async () => {
+    const resolvedEyebrow = '⚡ 6 spots left — Monday 6 April';
     const { container } = render(
       <LandingPageCta
         locale='en'
         slug='easter-2026-montessori-play-coaching-workshop'
         content={easterWorkshopContent.en.cta}
+        eyebrow={resolvedEyebrow}
         ctaPriceLabel={ctaPriceLabel}
         commonContent={enContent.landingPages.common}
         bookingPayload={bookingPayload}
@@ -73,7 +75,7 @@ describe('LandingPageCta section', () => {
     expect(section).not.toBeNull();
     expect(section?.getAttribute('data-figma-node')).toBe('landing-page-cta');
     expect(section).toHaveClass('es-landing-page-cta-section');
-    expect(screen.getByText(easterWorkshopContent.en.cta.eyebrow)).toBeInTheDocument();
+    expect(screen.getByText(resolvedEyebrow)).toBeInTheDocument();
     expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
     expect(
       screen.getByRole('heading', {
@@ -113,6 +115,24 @@ describe('LandingPageCta section', () => {
     });
   });
 
+  it('hides eyebrow when eyebrow prop is an empty string', () => {
+    render(
+      <LandingPageCta
+        locale='en'
+        slug='easter-2026-montessori-play-coaching-workshop'
+        content={easterWorkshopContent.en.cta}
+        eyebrow=''
+        ctaPriceLabel={ctaPriceLabel}
+        commonContent={enContent.landingPages.common}
+        bookingPayload={bookingPayload}
+        isFullyBooked={false}
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    expect(screen.queryByText(/\bspots left\b/)).not.toBeInTheDocument();
+  });
+
   it('shows eyebrow logo by default when eyebrowShowLogo is not provided', () => {
     const { container } = render(
       <LandingPageCta
@@ -133,7 +153,30 @@ describe('LandingPageCta section', () => {
     expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeInTheDocument();
   });
 
-  it('disables CTA button when event is fully booked', () => {
+  it('renders fully booked waitlist link when waitlist href is provided', () => {
+    render(
+      <LandingPageCta
+        locale='en'
+        slug='easter-2026-montessori-play-coaching-workshop'
+        content={easterWorkshopContent.en.cta}
+        ctaPriceLabel={ctaPriceLabel}
+        commonContent={enContent.landingPages.common}
+        bookingPayload={bookingPayload}
+        isFullyBooked
+        fullyBookedCtaLabel='Fully booked - Get in touch to join the waiting list.'
+        fullyBookedWaitlistHref='https://wa.me/85291234567?text=waitlist'
+        bookingModalContent={enContent.bookingModal}
+      />,
+    );
+
+    expect(
+      screen.getByRole('link', {
+        name: 'Fully booked - Get in touch to join the waiting list.',
+      }),
+    ).toHaveAttribute('href', 'https://wa.me/85291234567?text=waitlist');
+  });
+
+  it('disables CTA button when event is fully booked and no waitlist href is provided', () => {
     render(
       <LandingPageCta
         locale='en'
@@ -148,7 +191,7 @@ describe('LandingPageCta section', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: resolvedCtaLabel }),
+      screen.getByRole('button', { name: easterWorkshopContent.en.cta.fullyBookedButtonLabel }),
     ).toBeDisabled();
   });
 

@@ -16,10 +16,13 @@ interface LandingPageCtaProps {
   locale: Locale;
   slug: string;
   content: LandingPageLocaleContent['cta'];
+  eyebrow?: string | null;
   ctaPriceLabel?: string;
   commonContent: LandingPagesCommonContent;
   bookingPayload: EventBookingModalPayload | null;
   isFullyBooked: boolean;
+  fullyBookedCtaLabel?: string;
+  fullyBookedWaitlistHref?: string;
   bookingModalContent: BookingModalContent;
   ariaLabel?: string;
 }
@@ -28,10 +31,13 @@ export function LandingPageCta({
   locale,
   slug,
   content,
+  eyebrow,
   ctaPriceLabel,
   commonContent,
   bookingPayload,
   isFullyBooked,
+  fullyBookedCtaLabel,
+  fullyBookedWaitlistHref,
   bookingModalContent,
   ariaLabel,
 }: LandingPageCtaProps) {
@@ -44,7 +50,7 @@ export function LandingPageCta({
     >
       <SectionContainer>
         <SectionHeader
-          eyebrow={content.eyebrow}
+          eyebrow={eyebrow ?? content.eyebrow}
           eyebrowShowLogo={content.eyebrowShowLogo}
           title={content.title}
           description={content.description}
@@ -58,6 +64,8 @@ export function LandingPageCta({
           commonContent={commonContent}
           bookingPayload={bookingPayload}
           isFullyBooked={isFullyBooked}
+          fullyBookedCtaLabel={fullyBookedCtaLabel}
+          fullyBookedWaitlistHref={fullyBookedWaitlistHref}
           bookingModalContent={bookingModalContent}
           analyticsSectionId='landing-page-cta'
           ctaLocation='landing_page'
