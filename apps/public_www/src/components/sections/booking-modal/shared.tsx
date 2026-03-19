@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import enContent from '@/content/en.json';
 
@@ -111,7 +112,7 @@ export function ModalOverlay({
   overlayAriaLabel?: string;
   children: ReactNode;
 }) {
-  return (
+  const overlayContent = (
     <div className='fixed inset-0 z-[80] overflow-y-auto'>
       <OverlayBackdrop
         ariaLabel={overlayAriaLabel}
@@ -123,6 +124,12 @@ export function ModalOverlay({
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(overlayContent, document.body);
 }
 
 export function CloseButton({

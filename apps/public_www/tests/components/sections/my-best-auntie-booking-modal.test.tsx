@@ -163,10 +163,18 @@ if (!selectedCohortDate) {
   throw new Error('Selected cohort must include a valid primary session date.');
 }
 
+function renderWithPortalContainer(ui: ReactNode) {
+  const renderView = render(ui);
+  return {
+    ...renderView,
+    container: document.body,
+  };
+}
+
 function renderBookingModal(
   props: Partial<ComponentProps<typeof MyBestAuntieBookingModal>> = {},
 ) {
-  return render(
+  return renderWithPortalContainer(
     <MyBestAuntieBookingModal
       modalContent={myBestAuntieModalContent}
       paymentModalContent={bookingModalContent}
@@ -958,7 +966,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('does not render thank-you modal copyright footer section', () => {
-    const { container } = render(
+    const { container } = renderWithPortalContainer(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
@@ -977,7 +985,7 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('uses shared calendar icon and renders prefixed thank-you chips', () => {
-    const { container } = render(
+    const { container } = renderWithPortalContainer(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
