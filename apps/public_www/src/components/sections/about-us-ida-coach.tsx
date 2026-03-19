@@ -40,7 +40,7 @@ export function AboutUsIdaCoach({
               width={560}
               height={560}
               sizes='(max-width: 1024px) 220px, 190px'
-              className='h-full w-full object-cover object-[center_8%]'
+              className='h-full w-full origin-top scale-[2] object-cover object-top'
             />
           </div>
         </div>
