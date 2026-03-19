@@ -3,15 +3,21 @@ import { SectionContainer } from '@/components/sections/shared/section-container
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
+import {
+  LandingPageBookingCtaAction,
+  type LandingPageSharedCtaProps,
+} from '@/components/sections/landing-pages/shared/landing-page-booking-cta-action';
 import type { LandingPageLocaleContent } from '@/content';
 
 interface LandingPageDetailsProps {
   content: LandingPageLocaleContent['details'];
+  sharedCtaProps?: LandingPageSharedCtaProps;
   ariaLabel?: string;
 }
 
 export function LandingPageDetails({
   content,
+  sharedCtaProps,
   ariaLabel,
 }: LandingPageDetailsProps) {
   return (
@@ -62,6 +68,14 @@ export function LandingPageDetails({
             ))}
           </ul>
         </CarouselTrack>
+        {sharedCtaProps ? (
+          <LandingPageBookingCtaAction
+            {...sharedCtaProps}
+            analyticsSectionId='landing-page-details'
+            ctaLocation='landing_page'
+            buttonClassName='mt-8'
+          />
+        ) : null}
       </SectionContainer>
     </SectionShell>
   );

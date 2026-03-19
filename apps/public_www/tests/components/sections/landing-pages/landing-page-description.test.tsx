@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { LandingPageDescription } from '@/components/sections/landing-pages/landing-page-description';
+import enContent from '@/content/en.json';
 import easterWorkshopContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 
 describe('LandingPageDescription section', () => {
@@ -38,5 +39,26 @@ describe('LandingPageDescription section', () => {
     expect(document.querySelectorAll('.es-landing-page-description-card-number').length).toBe(
       easterWorkshopContent.en.description.items.length,
     );
+  });
+
+  it('renders shared CTA action at the bottom when shared props are provided', () => {
+    render(
+      <LandingPageDescription
+        content={easterWorkshopContent.en.description}
+        sharedCtaProps={{
+          locale: 'en',
+          slug: 'easter-2026-montessori-play-coaching-workshop',
+          content: easterWorkshopContent.en.cta,
+          commonContent: enContent.landingPages.common,
+          bookingPayload: null,
+          isFullyBooked: false,
+          bookingModalContent: enContent.bookingModal,
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
+    ).toBeInTheDocument();
   });
 });
