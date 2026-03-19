@@ -33,7 +33,7 @@ export function LandingPageDescription({
               className='w-full'
             >
               <article
-                className='flex w-full items-start gap-4 py-6 sm:gap-6 sm:py-8 es-landing-page-description-card'
+                className='flex w-full items-start gap-4 pb-0 pt-3 sm:gap-6 sm:pb-0 sm:pt-4 es-landing-page-description-card'
               >
                 <span
                   aria-hidden='true'
