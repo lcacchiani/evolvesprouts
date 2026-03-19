@@ -1207,6 +1207,22 @@
           "description": "Families see tangible shifts within weeks: calmer mornings, happier afternoons, genuine growth."
         }
       ]
+    },
+    "coaches": {
+      "ida": {
+        "eyebrow": "Your coach",
+        "title": "Ida De Gregorio",
+        "subtitle": "Founder, Evolve Sprouts",
+        "description": "Ida is Hong Kong's specialist in Montessori-inspired helper training. She works with families across HK to align parents and helpers around a shared approach — one that leads to calmer homes, smoother routines, and more independent children.\n\nHer flagship offer is the 9-Week Helper Training Programme, which takes helpers step by step through environment, guidance, and independence — with home visits, weekly challenges, and ongoing support for both helper and parent.",
+        "highlightedPhrase": "9-Week Helper Training Programme",
+        "tags": [
+          "AMI Montessori Educator (0–6)",
+          "M.Ed., HKU",
+          "Maria Montessori Institute, London",
+          "Montessori Institute of San Diego"
+        ],
+        "imageAlt": "Ida De Gregorio from Evolve Sprouts"
+      }
     }
   },
   "links": {
@@ -1231,9 +1247,12 @@
       "defaultCtaLabel": "Book Now",
       "a11y": {
         "heroSectionLabel": "Event overview",
-        "detailsSectionLabel": "Event details",
+        "detailsSectionLabel": "What's included",
         "ctaSectionLabel": "Booking",
-        "faqSectionLabel": "Frequently asked questions"
+        "faqSectionLabel": "Frequently asked questions",
+        "outlineSectionLabel": "Why this matters",
+        "descriptionSectionLabel": "Session walkthrough",
+        "aboutUsIdaCoachSectionLabel": "Your coach"
       }
     }
   }

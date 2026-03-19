@@ -62,6 +62,7 @@ export type AboutUsHeroContent = SiteContent['aboutUs']['hero'];
 export type AboutUsMyHistoryContent = SiteContent['aboutUs']['myHistory'];
 export type AboutUsMyJourneyContent = SiteContent['aboutUs']['myJourney'];
 export type AboutUsWhyUsContent = SiteContent['aboutUs']['whyUs'];
+export type AboutUsIdaCoachContent = SiteContent['aboutUs']['coaches']['ida'];
 export type FaqContent = SiteContent['faq'];
 export type SproutsSquadCommunityContent =
   SiteContent['sproutsSquadCommunity'];
@@ -89,11 +90,27 @@ export interface LandingPageLocaleContent {
     imageAlt: string;
     imageSrc: string;
   };
+  outline: {
+    eyebrow?: string;
+    title: string;
+    description: string;
+    highlightPhrase?: string;
+  };
+  description: {
+    eyebrow?: string;
+    title: string;
+    description: string;
+    items: Array<{
+      title: string;
+      description: string;
+    }>;
+  };
   details: {
     eyebrow?: string;
     title: string;
     description: string;
     items: Array<{
+      icon: string;
       title: string;
       description: string;
     }>;

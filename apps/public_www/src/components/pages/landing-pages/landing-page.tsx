@@ -5,11 +5,14 @@ import type {
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { PageLayout } from '@/components/shared/page-layout';
+import { AboutUsIdaCoach } from '@/components/sections/about-us-ida-coach';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
 import { LandingPageCta } from '@/components/sections/landing-pages/landing-page-cta';
+import { LandingPageDescription } from '@/components/sections/landing-pages/landing-page-description';
 import { LandingPageDetails } from '@/components/sections/landing-pages/landing-page-details';
 import { LandingPageFaq } from '@/components/sections/landing-pages/landing-page-faq';
 import { LandingPageHero } from '@/components/sections/landing-pages/landing-page-hero';
+import { LandingPageOutline } from '@/components/sections/landing-pages/landing-page-outline';
 import {
   getLandingPageBookingEventContent,
   getLandingPageHeroEventContent,
@@ -123,6 +126,14 @@ export function LandingPage({
         bookingModalContent={siteContent.bookingModal}
         ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
       />
+      <LandingPageOutline
+        content={pageContent.outline}
+        ariaLabel={siteContent.landingPages.common.a11y.outlineSectionLabel}
+      />
+      <LandingPageDescription
+        content={pageContent.description}
+        ariaLabel={siteContent.landingPages.common.a11y.descriptionSectionLabel}
+      />
       <LandingPageDetails
         content={pageContent.details}
         ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
@@ -144,6 +155,10 @@ export function LandingPage({
         fullyBookedWaitlistHref={fullyBookedWaitlistHref}
         bookingModalContent={siteContent.bookingModal}
         ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
+      />
+      <AboutUsIdaCoach
+        content={siteContent.aboutUs.coaches.ida}
+        ariaLabel={siteContent.landingPages.common.a11y.aboutUsIdaCoachSectionLabel}
       />
       <LandingPageFaq
         content={pageContent.faq}

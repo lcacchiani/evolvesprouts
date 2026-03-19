@@ -26,16 +26,25 @@ export function LandingPageDetails({
           description={content.description}
           align='left'
         />
-        <ul className='mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        <ul className='mt-8 grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3'>
           {content.items.map((item) => (
             <li
-              key={item.title}
+              key={`${item.icon}-${item.title}`}
               className='w-full'
             >
               <article
-                className='flex h-full min-h-[260px] flex-col rounded-card-xl p-6 sm:p-8 es-landing-page-details-card'
+                className='flex h-full min-h-[300px] flex-col rounded-card-xl p-6 sm:p-8 es-landing-page-details-card'
               >
-                <h3 className='es-landing-page-details-card-title'>
+                <span className='inline-flex h-12 w-12 items-center justify-center rounded-full text-2xl es-landing-page-details-card-icon-wrap'>
+                  <span
+                    role='img'
+                    aria-hidden='true'
+                    className='es-landing-page-details-card-icon'
+                  >
+                    {item.icon}
+                  </span>
+                </span>
+                <h3 className='mt-4 es-landing-page-details-card-title'>
                   {item.title}
                 </h3>
                 <p className='mt-3 es-landing-page-details-card-description'>
