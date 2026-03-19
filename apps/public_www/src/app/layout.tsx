@@ -101,6 +101,7 @@ export default function RootLayout({
   return (
     <html
       lang={DEFAULT_LOCALE}
+      suppressHydrationWarning
       className={`${lato.variable} ${poppins.variable}`}
       {...(GTM_ID
         ? {
@@ -115,7 +116,7 @@ export default function RootLayout({
           }
         : {})}
     >
-      <body className='antialiased'>
+      <body className='antialiased' suppressHydrationWarning>
         <Script src='/scripts/set-html-lang.js' strategy='beforeInteractive' />
         <script src='/scripts/hide-css-sensitive-duplicates.js' defer />
         <a
