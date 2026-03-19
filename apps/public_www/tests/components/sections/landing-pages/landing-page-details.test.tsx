@@ -18,6 +18,10 @@ describe('LandingPageDetails section', () => {
     expect(screen.getByRole('heading', { name: easterWorkshopContent.en.details.title }))
       .toBeInTheDocument();
     expect(document.querySelector('.es-section-header-description')).toBeNull();
+    const header = document.querySelector('#landing-page-details .es-section-header');
+    expect(header).not.toBeNull();
+    expect(header).toHaveClass('es-section-header--center');
+    expect(header).toHaveClass('text-center');
 
     for (const item of easterWorkshopContent.en.details.items) {
       expect(screen.getByText(item.icon)).toBeInTheDocument();
@@ -55,8 +59,12 @@ describe('LandingPageDetails section', () => {
       />,
     );
 
-    expect(
-      screen.getByRole('button', { name: easterWorkshopContent.en.cta.buttonLabel }),
-    ).toBeInTheDocument();
+    const ctaButton = screen.getByRole('button', {
+      name: easterWorkshopContent.en.cta.buttonLabel,
+    });
+    expect(ctaButton).toBeInTheDocument();
+    expect(ctaButton.parentElement).toHaveClass('mt-8');
+    expect(ctaButton.parentElement).toHaveClass('flex');
+    expect(ctaButton.parentElement).toHaveClass('justify-center');
   });
 });

@@ -31,7 +31,7 @@ export function LandingPageDetails({
           eyebrow={content.eyebrow}
           title={content.title}
           description={content.description}
-          align='left'
+          align='center'
         />
         <ul className='mt-8 grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3'>
           {content.items.map((item) => (
@@ -62,12 +62,13 @@ export function LandingPageDetails({
           ))}
         </ul>
         {sharedCtaProps ? (
-          <LandingPageBookingCtaAction
-            {...sharedCtaProps}
-            analyticsSectionId='landing-page-details'
-            ctaLocation='landing_page'
-            buttonClassName='mt-8'
-          />
+          <div className='mt-8 flex justify-center'>
+            <LandingPageBookingCtaAction
+              {...sharedCtaProps}
+              analyticsSectionId='landing-page-details'
+              ctaLocation='landing_page'
+            />
+          </div>
         ) : null}
       </SectionContainer>
     </SectionShell>
