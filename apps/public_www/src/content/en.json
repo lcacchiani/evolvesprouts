@@ -323,7 +323,7 @@
       "submitLabel": "Launch the Message!",
       "formDescription": "I reply personally within 24-48 hours. No bots, no templates — just me.",
       "successTitle": "Thank you for your message!",
-      "successDescription": "We have received your message and will take care of it shortly.",
+      "successDescription": "We have received your message and will answer shortly.",
       "submitErrorMessage": "Something went wrong. Please try again later.",
       "captchaLabel": "Please complete CAPTCHA verification",
       "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",

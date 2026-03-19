@@ -377,6 +377,12 @@ describe('ContactUsForm section', () => {
           name: enContent.contactUs.form.submitLabel,
         }),
       ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('heading', {
+          level: 2,
+          name: enContent.contactUs.form.formTitle,
+        }),
+      ).not.toBeInTheDocument();
       expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
         'contact_form_submit_attempt',
         {
