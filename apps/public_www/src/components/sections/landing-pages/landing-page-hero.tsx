@@ -36,12 +36,22 @@ interface LandingPageHeroProps {
   ariaLabel?: string;
 }
 
+type HeroChipType = 'date' | 'time' | 'location' | 'category';
+
+interface HeroChip {
+  type: HeroChipType;
+  label: string;
+}
+
 const PARTNER_LOGO_EXTENSIONS = ['webp', 'svg'] as const;
 const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = {
   'evolvesprouts': ['/images/evolvesprouts-logo.svg'],
   'baumhaus': ['/images/partners/baumhaus.webp'],
   'happy-baton': ['/images/partners/happy-baton.webp'],
 };
+const CALENDAR_ICON_SRC = '/images/calendar.svg';
+const CLOCK_ICON_SRC = '/images/clock.svg';
+const LOCATION_ICON_SRC = '/images/location.svg';
 
 function buildPartnerLogoSources(partner: string): string[] {
   const normalizedPartner = partner.trim().toLowerCase();
@@ -79,9 +89,10 @@ function buildDisplayedPartnerSlugs(partners: readonly string[] | undefined): st
 }
 
 function PartnerLogo({ partner }: { partner: string }) {
+  const normalizedPartner = partner.trim().toLowerCase();
   const candidateSources = useMemo(
-    () => buildPartnerLogoSources(partner),
-    [partner],
+    () => buildPartnerLogoSources(normalizedPartner),
+    [normalizedPartner],
   );
   const [sourceIndex, setSourceIndex] = useState(0);
 
@@ -90,15 +101,18 @@ function PartnerLogo({ partner }: { partner: string }) {
     return null;
   }
 
+  const logoSizeClassName =
+    normalizedPartner === 'evolvesprouts' ? 'h-10 w-auto object-contain' : 'h-8 w-auto object-contain';
+
   return (
     <Image
       src={source}
       alt=''
       width={160}
       height={48}
-      className='h-8 w-auto object-contain'
+      className={logoSizeClassName}
       aria-hidden='true'
-      data-testid={buildPartnerLogoTestId(partner)}
+      data-testid={buildPartnerLogoTestId(normalizedPartner)}
       onError={() => {
         setSourceIndex((currentIndex) => currentIndex + 1);
       }}
@@ -187,30 +201,59 @@ function buildHeroTimeChip(
 function buildHeroChips(
   eventContent: LandingPageHeroEventContent | null,
   locale: Locale,
-): string[] {
+): HeroChip[] {
   if (!eventContent) {
     return [];
   }
 
-  const dedupedChips: string[] = [];
+  const dedupedChips: HeroChip[] = [];
   const seen = new Set<string>();
 
-  for (const value of [
-    buildHeroDateChip(eventContent.startDateTime, locale),
-    buildHeroTimeChip(eventContent.startDateTime, eventContent.endDateTime, locale),
-    eventContent.locationLabel,
-    ...eventContent.categoryChips,
+  for (const chip of [
+    {
+      type: 'date' as const,
+      label: buildHeroDateChip(eventContent.startDateTime, locale),
+    },
+    {
+      type: 'time' as const,
+      label: buildHeroTimeChip(eventContent.startDateTime, eventContent.endDateTime, locale),
+    },
+    {
+      type: 'location' as const,
+      label: eventContent.locationLabel,
+    },
+    ...eventContent.categoryChips.map((value) => ({
+      type: 'category' as const,
+      label: value,
+    })),
   ]) {
-    const normalizedValue = value?.trim() ?? '';
+    const normalizedValue = chip.label?.trim() ?? '';
     if (!normalizedValue || seen.has(normalizedValue)) {
       continue;
     }
 
     seen.add(normalizedValue);
-    dedupedChips.push(normalizedValue);
+    dedupedChips.push({
+      type: chip.type,
+      label: normalizedValue,
+    });
   }
 
   return dedupedChips;
+}
+
+function resolveHeroChipIconSource(type: HeroChipType): string | null {
+  if (type === 'date') {
+    return CALENDAR_ICON_SRC;
+  }
+  if (type === 'time') {
+    return CLOCK_ICON_SRC;
+  }
+  if (type === 'location') {
+    return LOCATION_ICON_SRC;
+  }
+
+  return null;
 }
 
 export function LandingPageHero({
@@ -269,14 +312,27 @@ export function LandingPageHero({
           <p className='es-type-body'>{content.description}</p>
           {chips.length > 0 ? (
             <div className='flex flex-wrap gap-3'>
-              {chips.map((chip, index) => (
-                <span
-                  key={`${chip}-${index}`}
-                  className='rounded-full border es-border-soft es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'
-                >
-                  {chip}
-                </span>
-              ))}
+              {chips.map((chip, index) => {
+                const iconSource = resolveHeroChipIconSource(chip.type);
+                return (
+                  <span
+                    key={`${chip.label}-${index}`}
+                    className='inline-flex items-center gap-1.5 rounded-full border es-border-soft es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'
+                  >
+                    {iconSource ? (
+                      <Image
+                        src={iconSource}
+                        alt=''
+                        aria-hidden='true'
+                        width={14}
+                        height={14}
+                        className='h-3.5 w-3.5 shrink-0 self-center'
+                      />
+                    ) : null}
+                    <span className='inline-flex items-center'>{chip.label}</span>
+                  </span>
+                );
+              })}
             </div>
           ) : null}
           <LandingPageBookingCtaAction

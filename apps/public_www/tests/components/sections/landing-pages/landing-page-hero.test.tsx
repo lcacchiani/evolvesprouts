@@ -88,6 +88,9 @@ describe('LandingPageHero section', () => {
     expect(await screen.findByText(expectedTimeChip)).toBeInTheDocument();
     expect(await screen.findByText('Wan Chai')).toBeInTheDocument();
     expect(await screen.findByText('Workshop')).toBeInTheDocument();
+    expect(document.querySelector('img[src="/images/calendar.svg"]')).toBeInTheDocument();
+    expect(document.querySelector('img[src="/images/clock.svg"]')).toBeInTheDocument();
+    expect(document.querySelector('img[src="/images/location.svg"]')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: resolvedCtaLabel }),
     ).toBeInTheDocument();
@@ -99,8 +102,11 @@ describe('LandingPageHero section', () => {
       'landing-page-partner-logo-evolvesprouts',
     );
     expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-evolvesprouts')).toHaveClass('h-10');
     expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-happy-baton')).toHaveClass('h-8');
     expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toHaveClass('h-8');
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     const heroImage = screen.getByRole('img', { name: easterWorkshopContent.en.hero.imageAlt });
     expect(heroImage).toBeInTheDocument();
