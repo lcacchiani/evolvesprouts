@@ -1,4 +1,7 @@
-import { toRecord } from '@/content/content-field-utils';
+import {
+  readRequiredText,
+  toRecord,
+} from '@/content/content-field-utils';
 import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
 
 export interface DiscountRule {
@@ -11,19 +14,6 @@ export interface DiscountRule {
 }
 
 export const DISCOUNT_VALIDATE_API_PATH = '/v1/discounts/validate';
-
-function readRequiredText(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const normalizedText = value.trim();
-  if (!normalizedText) {
-    return null;
-  }
-
-  return normalizedText;
-}
 
 function readNumericAmount(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) {

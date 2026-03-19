@@ -9,11 +9,11 @@ import { EventNotification } from '@/components/sections/event-notification';
 import { PastEvents } from '@/components/sections/past-events';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
 
-interface EventsPageSectionsProps {
+interface EventsPageProps {
   content: SiteContent;
 }
 
-export function EventsPageSections({ content }: EventsPageSectionsProps) {
+export function EventsPage({ content }: EventsPageProps) {
   const resolvedLocale = isValidLocale(content.meta.locale)
     ? content.meta.locale
     : DEFAULT_LOCALE;
@@ -35,7 +35,10 @@ export function EventsPageSections({ content }: EventsPageSectionsProps) {
         sectionClassName="es-free-intro-session-section--standard-spacing"
       />
       <PastEvents content={content.events} locale={content.meta.locale} />
-      <EventNotification content={content.events.notification} />
+      <EventNotification
+        content={content.events.notification}
+        commonCaptchaContent={content.common.captcha}
+      />
     </PageLayout>
   );
 }

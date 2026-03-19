@@ -22,6 +22,11 @@ import type {
   MyBestAuntieModalContent,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
+import {
+  formatCohortValue,
+  formatPartDateTimeLabel,
+  parseCohortValue,
+} from '@/lib/format';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -78,44 +83,6 @@ function formatCohortPreviewLabel(value: string): string {
   return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
 }
 
-const COHORT_VALUE_PATTERN = /^(\d{2})-(\d{2})$/;
-
-function parseCohortValue(value: string): { monthIndex: number; year: number } | null {
-  const trimmedValue = value.trim();
-  const match = COHORT_VALUE_PATTERN.exec(trimmedValue);
-  if (!match) {
-    return null;
-  }
-
-  const monthNumber = Number(match[1]);
-  const yearSuffix = Number(match[2]);
-  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
-    return null;
-  }
-
-  if (!Number.isInteger(yearSuffix)) {
-    return null;
-  }
-
-  return {
-    monthIndex: monthNumber - 1,
-    year: 2000 + yearSuffix,
-  };
-}
-
-function formatCohortValue(value: string): string {
-  const parsed = parseCohortValue(value);
-  if (!parsed) {
-    return value;
-  }
-
-  const monthLabel = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(parsed.year, parsed.monthIndex, 1)));
-  return `${monthLabel}, ${parsed.year}`;
-}
-
 function getCohortSortValue(value: string): number {
   const parsed = parseCohortValue(value);
   if (!parsed) {
@@ -163,30 +130,6 @@ function formatSpacesLeftLabel(count: number, template: string): string {
 function shouldAutoOpenMyBestAuntieBookingModal(searchValue: string): boolean {
   const queryParams = new URLSearchParams(searchValue);
   return queryParams.get(BOOKING_SYSTEM_QUERY_PARAM) === MY_BEST_AUNTIE_BOOKING_SYSTEM;
-}
-
-function formatPartDateTimeLabel(startDateTime: string): string {
-  const date = new Date(startDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const month = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-  }).format(date);
-  const day = new Intl.DateTimeFormat('en-US', {
-    day: '2-digit',
-  }).format(date);
-  const time = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-    .format(date)
-    .replace(' AM', ' am')
-    .replace(' PM', ' pm');
-
-  return `${month} ${day} @ ${time}`;
 }
 
 function getPrimarySessionSortValue(cohort: BookingCohort): number {

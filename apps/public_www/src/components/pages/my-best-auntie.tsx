@@ -8,12 +8,12 @@ import { MyBestAuntieDescription } from '@/components/sections/my-best-auntie/my
 import { MyBestAuntieOutline } from '@/components/sections/my-best-auntie/my-best-auntie-outline';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
 
-interface MyBestAuntieProps {
+interface MyBestAuntiePageProps {
   locale: Locale;
   content: SiteContent;
 }
 
-export function MyBestAuntie({ locale, content }: MyBestAuntieProps) {
+export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
   return (
     <PageLayout
       navbarContent={content.navbar}

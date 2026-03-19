@@ -1,4 +1,4 @@
-import { PrivacyPolicyPageSections } from '@/components/pages/privacy-policy';
+import { PrivacyPolicyPage } from '@/components/pages/privacy-policy';
 import {
   generateLocaleStaticParams,
   getFooterLinkLabel,
@@ -30,5 +30,5 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
 
 export default async function PrivacyPage({ params }: LocaleRouteProps) {
   const { content } = await resolveLocalePageContext(params);
-  return <PrivacyPolicyPageSections content={content} />;
+  return <PrivacyPolicyPage content={content} />;
 }

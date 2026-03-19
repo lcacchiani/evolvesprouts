@@ -9,7 +9,7 @@ import { DeferredTestimonials } from '@/components/sections/deferred-testimonial
 import { localizeHref } from '@/lib/locale-routing';
 import { ROUTES } from '@/lib/routes';
 
-interface HomePageSectionsProps {
+interface HomePageProps {
   locale: Locale;
   content: SiteContent;
 }
@@ -26,7 +26,7 @@ function resolveNavbarBookNowHref(bookNow: SiteContent['navbar']['bookNow']): st
   return undefined;
 }
 
-export function HomePageSections({ locale, content }: HomePageSectionsProps) {
+export function HomePage({ locale, content }: HomePageProps) {
   const heroCtaHref = localizeHref(
     content.hero.ctaHref || ROUTES.servicesMyBestAuntieTrainingCourse,
     locale,

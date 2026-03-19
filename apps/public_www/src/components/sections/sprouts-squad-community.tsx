@@ -11,8 +11,13 @@ import { useFormSubmission } from '@/components/sections/shared/use-form-submiss
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { resolveSproutsSquadCommunityCopy } from '@/content/copy-normalizers';
-import type { SproutsSquadCommunityContent } from '@/content';
+import enContent from '@/content/en.json';
+import type {
+  CommonContent,
+  SproutsSquadCommunityContent,
+} from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { CONTACT_US_API_PATH } from '@/lib/api-paths';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
@@ -20,20 +25,16 @@ import { isValidEmail } from '@/lib/validation';
 
 interface SproutsSquadCommunityProps {
   content: SproutsSquadCommunityContent;
+  commonCaptchaContent?: CommonContent['captcha'];
 }
 
 const EMAIL_ERROR_MESSAGE_ID = 'sprouts-community-email-error';
 const CAPTCHA_ERROR_MESSAGE_ID = 'sprouts-community-captcha-error';
 const SUBMIT_ERROR_MESSAGE_ID = 'sprouts-community-submit-error';
-const CONTACT_US_API_PATH = '/v1/contact-us';
-const FALLBACK_CAPTCHA_REQUIRED_ERROR =
-  'Please complete CAPTCHA verification before submitting.';
-const FALLBACK_CAPTCHA_LOAD_ERROR = 'CAPTCHA failed to load. Please refresh and try again.';
-const FALLBACK_CAPTCHA_UNAVAILABLE_ERROR =
-  'CAPTCHA is temporarily unavailable. Please try again later.';
 
 export function SproutsSquadCommunity({
   content,
+  commonCaptchaContent = enContent.common.captcha,
 }: SproutsSquadCommunityProps) {
   const copy = resolveSproutsSquadCommunityCopy(content);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -66,13 +67,13 @@ export function SproutsSquadCommunity({
 
   const captchaErrorMessage = (() => {
     if (hasCaptchaValidationError) {
-      return content.captchaRequiredError ?? FALLBACK_CAPTCHA_REQUIRED_ERROR;
+      return content.captchaRequiredError ?? commonCaptchaContent.requiredError;
     }
     if (hasCaptchaLoadError) {
-      return content.captchaLoadError ?? FALLBACK_CAPTCHA_LOAD_ERROR;
+      return content.captchaLoadError ?? commonCaptchaContent.loadError;
     }
     if (!isCaptchaConfigured) {
-      return content.captchaUnavailableError ?? FALLBACK_CAPTCHA_UNAVAILABLE_ERROR;
+      return content.captchaUnavailableError ?? commonCaptchaContent.unavailableError;
     }
     return '';
   })();
@@ -263,7 +264,9 @@ export function SproutsSquadCommunity({
                         onTokenChange={handleCaptchaTokenChange}
                         onLoadError={() => {
                           handleCaptchaLoadError();
-                          setSubmissionError(content.captchaLoadError ?? FALLBACK_CAPTCHA_LOAD_ERROR);
+                          setSubmissionError(
+                            content.captchaLoadError ?? commonCaptchaContent.loadError,
+                          );
                         }}
                       />
                       {captchaErrorMessage ? (

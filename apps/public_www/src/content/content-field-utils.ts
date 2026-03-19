@@ -9,6 +9,36 @@ export function readOptionalText(value: unknown): string | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
+export function readRequiredText(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized;
+}
+
+export function readRequiredRecordText(
+  record: Record<string, unknown>,
+  key: string,
+  sectionName: string,
+): string {
+  const resolvedValue = readRequiredText(record[key]);
+  if (resolvedValue) {
+    return resolvedValue;
+  }
+
+  if (typeof record[key] !== 'string') {
+    throw new Error(`Missing required "${key}" copy value for "${sectionName}".`);
+  }
+
+  throw new Error(`Empty "${key}" copy value for "${sectionName}".`);
+}
+
 function isUnknownObject(value: unknown): value is UnknownObject {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }

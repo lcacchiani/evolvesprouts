@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AboutUs } from '@/components/pages/about-us';
+import { AboutUsPage } from '@/components/pages/about-us';
 import enContent from '@/content/en.json';
 
 vi.mock('@/components/shared/page-layout', () => ({
@@ -41,9 +41,9 @@ vi.mock('@/components/sections/sprouts-squad-community', () => ({
   ),
 }));
 
-describe('AboutUs page', () => {
+describe('AboutUsPage', () => {
   it('assembles all about page sections', () => {
-    render(<AboutUs locale='en' content={enContent} />);
+    render(<AboutUsPage locale='en' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('about-us-hero')).toBeInTheDocument();

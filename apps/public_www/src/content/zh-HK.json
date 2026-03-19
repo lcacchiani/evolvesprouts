@@ -908,6 +908,11 @@
       "carouselLabelTemplate": "{title}輪播",
       "sliderLabelTemplate": "{title}滑動內容"
     },
+    "captcha": {
+      "requiredError": "提交前請先完成 CAPTCHA 驗證。",
+      "loadError": "CAPTCHA 載入失敗，請重新整理頁面後再試。",
+      "unavailableError": "CAPTCHA 暫時不可用，請稍後再試。"
+    },
     "mediaDownload": {
       "invalidTitle": "下載連結無效",
       "invalidDescription": "此媒體連結缺少有效權杖。請重新申請媒體下載。",

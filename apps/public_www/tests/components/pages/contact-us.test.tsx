@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ContactUsPageSections } from '@/components/pages/contact-us';
+import { ContactUsPage } from '@/components/pages/contact-us';
 import enContent from '@/content/en.json';
 
 vi.mock('@/components/shared/page-layout', () => ({
@@ -26,9 +26,9 @@ vi.mock('@/components/sections/free-intro-session', () => ({
   ),
 }));
 
-describe('ContactUsPageSections', () => {
+describe('ContactUsPage', () => {
   it('composes contact page sections with scoped content props', () => {
-    render(<ContactUsPageSections content={enContent} />);
+    render(<ContactUsPage content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('contact-us-form')).toBeInTheDocument();

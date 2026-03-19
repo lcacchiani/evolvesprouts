@@ -2,13 +2,13 @@ import type { SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { PrivacyPolicy } from '@/components/sections/privacy-policy';
 
-interface PrivacyPolicyPageSectionsProps {
+interface PrivacyPolicyPageProps {
   content: SiteContent;
 }
 
-export function PrivacyPolicyPageSections({
+export function PrivacyPolicyPage({
   content,
-}: PrivacyPolicyPageSectionsProps) {
+}: PrivacyPolicyPageProps) {
   return (
     <PageLayout
       navbarContent={content.navbar}

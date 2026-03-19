@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { MyBestAuntie } from '@/components/pages/my-best-auntie';
+import { MyBestAuntiePage } from '@/components/pages/my-best-auntie';
 import enContent from '@/content/en.json';
 
 vi.mock('@/components/shared/page-layout', () => ({
@@ -54,9 +54,9 @@ vi.mock('@/components/sections/free-intro-session', () => ({
   ),
 }));
 
-describe('MyBestAuntie page', () => {
+describe('MyBestAuntiePage', () => {
   it('assembles the booking flow page and forwards locale', () => {
-    render(<MyBestAuntie locale='zh-HK' content={enContent} />);
+    render(<MyBestAuntiePage locale='zh-HK' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-hero')).toBeInTheDocument();

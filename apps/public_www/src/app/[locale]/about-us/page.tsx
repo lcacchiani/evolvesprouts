@@ -1,4 +1,4 @@
-import { AboutUs } from '@/components/pages/about-us';
+import { AboutUsPage } from '@/components/pages/about-us';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
   getMenuLabel,
@@ -37,7 +37,7 @@ export default async function AboutUsPage({ params }: LocaleRouteProps) {
 
   return (
     <>
-      <AboutUs locale={locale} content={content} />
+      <AboutUsPage locale={locale} content={content} />
       <StructuredDataScript
         id={`about-us-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

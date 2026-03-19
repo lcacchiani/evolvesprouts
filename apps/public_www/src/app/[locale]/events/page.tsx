@@ -1,5 +1,5 @@
 import type { SiteContent } from '@/content';
-import { EventsPageSections } from '@/components/pages/events';
+import { EventsPage } from '@/components/pages/events';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
   createPublicCrmApiClient,
@@ -86,7 +86,7 @@ export default async function EventsPage({ params }: LocaleRouteProps) {
 
   return (
     <>
-      <EventsPageSections content={content} />
+      <EventsPage content={content} />
       <StructuredDataScript
         id={`events-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

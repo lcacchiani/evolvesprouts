@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { HomePageSections } from '@/components/pages/homepage';
+import { HomePage } from '@/components/pages/homepage';
 import { getContent } from '@/content';
 import enContent from '@/content/en.json';
 
@@ -103,7 +103,7 @@ vi.mock('@/components/sections/free-intro-session', () => ({
   },
 }));
 
-describe('HomePageSections', () => {
+describe('HomePage', () => {
   it('composes homepage sections with the expected content slices', () => {
     process.env[WHATSAPP_URL_ENV_KEY] = 'https://wa.me/message/ZQHVW4DEORD5A1?src=qr';
     delete process.env[BUSINESS_PHONE_ENV_KEY];
@@ -111,7 +111,7 @@ describe('HomePageSections', () => {
     pageLayoutPropsSpy.mockClear();
     freeIntroSessionPropsSpy.mockClear();
     myBestAuntieOutlinePropsSpy.mockClear();
-    render(<HomePageSections locale='en' content={getContent('en')} />);
+    render(<HomePage locale='en' content={getContent('en')} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('hero-banner')).toBeInTheDocument();
@@ -174,7 +174,7 @@ describe('HomePageSections', () => {
     myBestAuntieOutlinePropsSpy.mockClear();
 
     const localizedContent = getContent('zh-HK');
-    render(<HomePageSections locale='zh-HK' content={localizedContent} />);
+    render(<HomePage locale='zh-HK' content={localizedContent} />);
 
     expect(pageLayoutPropsSpy).toHaveBeenCalledTimes(1);
     expect(freeIntroSessionPropsSpy).toHaveBeenCalledTimes(1);

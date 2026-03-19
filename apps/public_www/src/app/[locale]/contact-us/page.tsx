@@ -1,4 +1,4 @@
-import { ContactUsPageSections } from '@/components/pages/contact-us';
+import { ContactUsPage } from '@/components/pages/contact-us';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
   getMenuLabel,
@@ -34,7 +34,7 @@ export default async function ContactUsPage({ params }: LocaleRouteProps) {
 
   return (
     <>
-      <ContactUsPageSections content={content} />
+      <ContactUsPage content={content} />
       <StructuredDataScript
         id={`contact-us-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

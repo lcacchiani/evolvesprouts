@@ -1,4 +1,4 @@
-import { HomePageSections } from '@/components/pages/homepage';
+import { HomePage } from '@/components/pages/homepage';
 import {
   generateLocaleStaticParams,
   type LocaleRouteProps,
@@ -33,5 +33,5 @@ export default async function HomePage({
 }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
 
-  return <HomePageSections locale={locale} content={content} />;
+  return <HomePage locale={locale} content={content} />;
 }

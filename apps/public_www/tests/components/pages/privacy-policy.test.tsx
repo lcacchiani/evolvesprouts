@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { PrivacyPolicyPageSections } from '@/components/pages/privacy-policy';
+import { PrivacyPolicyPage } from '@/components/pages/privacy-policy';
 import enContent from '@/content/en.json';
 
 vi.mock('@/components/shared/page-layout', () => ({
@@ -16,9 +16,9 @@ vi.mock('@/components/sections/privacy-policy', () => ({
   ),
 }));
 
-describe('PrivacyPolicyPageSections', () => {
+describe('PrivacyPolicyPage', () => {
   it('renders the privacy policy section inside shared page layout', () => {
-    render(<PrivacyPolicyPageSections content={enContent} />);
+    render(<PrivacyPolicyPage content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('privacy-policy-section')).toHaveTextContent(

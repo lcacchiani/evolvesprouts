@@ -1,4 +1,4 @@
-import { TermsAndConditionsPageSections } from '@/components/pages/terms-and-conditions';
+import { TermsAndConditionsPage } from '@/components/pages/terms-and-conditions';
 import {
   generateLocaleStaticParams,
   getFooterLinkLabel,
@@ -30,5 +30,5 @@ export async function generateMetadata({ params }: LocaleRouteProps) {
 
 export default async function TermsPage({ params }: LocaleRouteProps) {
   const { content } = await resolveLocalePageContext(params);
-  return <TermsAndConditionsPageSections content={content} />;
+  return <TermsAndConditionsPage content={content} />;
 }

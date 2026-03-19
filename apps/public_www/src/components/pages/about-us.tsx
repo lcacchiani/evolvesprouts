@@ -10,12 +10,12 @@ import { AboutUsMyJourney } from '@/components/sections/about-us-my-journey';
 import { SproutsSquadCommunity } from '@/components/sections/sprouts-squad-community';
 import { AboutUsWhyUs } from '@/components/sections/about-us-why-us';
 
-interface AboutUsProps {
+interface AboutUsPageProps {
   locale: Locale;
   content: SiteContent;
 }
 
-export function AboutUs({ locale, content }: AboutUsProps) {
+export function AboutUsPage({ locale, content }: AboutUsPageProps) {
   return (
     <PageLayout
       navbarContent={content.navbar}
@@ -29,7 +29,10 @@ export function AboutUs({ locale, content }: AboutUsProps) {
         content={content.testimonials}
         commonAccessibility={content.common.accessibility}
       />
-      <SproutsSquadCommunity content={content.sproutsSquadCommunity} />
+      <SproutsSquadCommunity
+        content={content.sproutsSquadCommunity}
+        commonCaptchaContent={content.common.captcha}
+      />
     </PageLayout>
   );
 }

@@ -2,13 +2,13 @@ import type { SiteContent } from '@/content';
 import { PageLayout } from '@/components/shared/page-layout';
 import { TermsAndConditions } from '@/components/sections/terms-and-conditions';
 
-interface TermsAndConditionsPageSectionsProps {
+interface TermsAndConditionsPageProps {
   content: SiteContent;
 }
 
-export function TermsAndConditionsPageSections({
+export function TermsAndConditionsPage({
   content,
-}: TermsAndConditionsPageSectionsProps) {
+}: TermsAndConditionsPageProps) {
   return (
     <PageLayout
       navbarContent={content.navbar}
