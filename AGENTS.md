@@ -12,6 +12,17 @@ agents).
    system instructions > developer instructions > user instructions >
    `.cursorrules`.
 
+## Headless, cloud, and IDE agent runtimes
+
+Many agent runtimes (including Cursor Agent / Background Agent) **do not**
+reliably inject the repository root `.cursorrules` file into the model context.
+**Before your first repository tool call in a session**, read the file
+`.cursorrules` at the repository root using your file-reading tool, unless the
+full current contents of that file are already present in your context.
+
+Cursor local chat can use `@.cursorrules`; that mention does not replace reading
+the file when your runtime might omit it.
+
 ## Enforcement intent
 
 Do not begin implementation work until `.cursorrules` has been loaded and

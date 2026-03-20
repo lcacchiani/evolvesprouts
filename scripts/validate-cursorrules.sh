@@ -45,9 +45,12 @@ require_literal ".cursorrules" '### Admin Web OpenAPI typing contract (MANDATORY
 require_literal "AGENTS.md" 'Read `@.cursorrules` before any analysis, plan, command, or code edit.' "Missing AGENTS bootstrap requirement"
 require_literal "AGENTS.md" 'Treat the rules in `.cursorrules` as mandatory for the full session.' "Missing AGENTS mandatory-application requirement"
 require_literal "AGENTS.md" "Do not perform implementation actions until explicit user approval is received" "Missing AGENTS strict approval guardrail"
+require_literal "AGENTS.md" "## Headless, cloud, and IDE agent runtimes" "Missing AGENTS headless-runtime .cursorrules read requirement"
+require_literal "AGENTS.md" "read the file" "Missing AGENTS explicit read-.cursorrules instruction"
 
 require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" "alwaysApply: true" "Cursor always-apply flag is not present"
-require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" 'Do not continue with implementation if `@.cursorrules` has not been applied.' "Missing Cursor hard-stop requirement"
+require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" "Before your **first** repository tool call" "Missing Cursor explicit read-.cursorrules-before-tools requirement"
+require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" 'Do not continue with implementation if `.cursorrules` has not been applied.' "Missing Cursor hard-stop requirement"
 require_literal ".cursor/rules/00_mandatory_cursorrules.mdc" "Do not perform implementation actions until explicit user approval is" "Missing Cursor strict approval guardrail"
 
 echo ".cursorrules compliance checks passed."
