@@ -17,10 +17,6 @@ import {
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import type { BookingThankYouModalContent, Locale } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
-import {
-  buildBookingIcsContent,
-  triggerBookingIcsDownload,
-} from '@/lib/booking-calendar-download';
 import { formatCurrencyHkd } from '@/lib/format';
 import {
   formatSiteCompactDate,
@@ -35,7 +31,6 @@ export interface MyBestAuntieThankYouModalProps {
   locale: Locale;
   content: BookingThankYouModalContent;
   summary: ReservationSummary | null;
-  analyticsSectionId?: string;
   whatsappHref?: string;
   whatsappCtaLabel?: string;
   onClose: () => void;
@@ -49,13 +44,13 @@ const THANK_YOU_PRICE_ICON_SRC = '/images/dollar-symbol.svg';
 
 function ThankYouDetailCardIcon({ src }: { src: string }) {
   return (
-    <span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl es-landing-page-details-card-icon-wrap'>
+    <span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl es-booking-thank-you-detail-card-icon-wrap'>
       <Image
         src={src}
         alt=''
         width={28}
         height={28}
-        className='es-landing-page-details-card-icon h-7 w-7'
+        className='es-booking-thank-you-detail-card-icon h-7 w-7'
         aria-hidden='true'
       />
     </span>
@@ -111,7 +106,6 @@ export function MyBestAuntieThankYouModal({
   locale,
   content,
   summary,
-  analyticsSectionId = 'my-best-auntie-booking',
   whatsappHref,
   whatsappCtaLabel,
   onClose,
@@ -159,34 +153,6 @@ export function MyBestAuntieThankYouModal({
   const normalizedWhatsappLabel = whatsappCtaLabel?.trim() ?? '';
   const showWhatsappFollowUp =
     normalizedWhatsappHref.length > 0 && normalizedWhatsappLabel.length > 0;
-
-  const icsBody =
-    summary?.dateStartTime
-      ? buildBookingIcsContent({
-          title: eventTitle,
-          dateStartTime: summary.dateStartTime,
-          dateEndTime: summary.dateEndTime,
-          location: locationLine,
-        })
-      : null;
-  const canDownloadIcs = Boolean(icsBody);
-
-  function handleDownloadIcs() {
-    if (!icsBody || !summary?.dateStartTime) {
-      return;
-    }
-
-    trackAnalyticsEvent('booking_thank_you_ics_download', {
-      sectionId: analyticsSectionId,
-      ctaLocation: 'thank_you_modal',
-      params: {
-        cohort_date: summary.dateStartTime.split('T')[0] ?? '',
-        total_amount: summary.totalAmount,
-      },
-    });
-
-    triggerBookingIcsDownload(icsBody, eventTitle);
-  }
 
   return (
     <ModalOverlay
@@ -248,35 +214,25 @@ export function MyBestAuntieThankYouModal({
 
           <section className='relative z-10 mx-auto mt-10 w-full max-w-[713px] px-4 sm:px-0'>
             <div className='grid grid-cols-2 gap-3 sm:gap-5'>
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-landing-page-details-card'>
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-booking-thank-you-detail-card'>
                 <div className='flex w-full justify-center'>
                   <ThankYouDetailCardIcon src={THANK_YOU_EVENT_ICON_SRC} />
                 </div>
-                <p className='mt-3 text-center es-landing-page-details-card-description'>
+                <p className='mt-3 text-center es-booking-thank-you-detail-card-description'>
                   {eventTitle}
                 </p>
               </article>
 
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-landing-page-details-card'>
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-booking-thank-you-detail-card'>
                 <div className='flex w-full justify-center'>
                   <ThankYouDetailCardIcon src={THANK_YOU_CALENDAR_ICON_SRC} />
                 </div>
-                <p className='mt-3 text-center es-landing-page-details-card-description'>
+                <p className='mt-3 text-center es-booking-thank-you-detail-card-description'>
                   {dateTimeDisplay}
                 </p>
-                <div className='mt-auto flex w-full justify-center pt-3'>
-                  <button
-                    type='button'
-                    disabled={!canDownloadIcs}
-                    onClick={handleDownloadIcs}
-                    className='text-center text-base font-semibold leading-snug underline decoration-2 underline-offset-2 es-text-heading disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50'
-                  >
-                    {content.downloadCalendarLabel}
-                  </button>
-                </div>
               </article>
 
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-landing-page-details-card'>
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-booking-thank-you-detail-card'>
                 <div className='flex w-full justify-center'>
                   <ThankYouDetailCardIcon src={THANK_YOU_LOCATION_ICON_SRC} />
                 </div>
@@ -284,7 +240,7 @@ export function MyBestAuntieThankYouModal({
                   {hasStructuredVenue ? (
                     <>
                       {locationNameRaw ? (
-                        <p className='font-semibold es-landing-page-details-card-description'>
+                        <p className='font-semibold es-booking-thank-you-detail-card-description'>
                           {locationNameRaw}
                         </p>
                       ) : null}
@@ -292,8 +248,8 @@ export function MyBestAuntieThankYouModal({
                         <p
                           className={
                             locationNameRaw
-                              ? 'mt-1 es-landing-page-details-card-description'
-                              : 'es-landing-page-details-card-description'
+                              ? 'mt-1 es-booking-thank-you-detail-card-description'
+                              : 'es-booking-thank-you-detail-card-description'
                           }
                         >
                           {locationAddressRaw}
@@ -301,7 +257,7 @@ export function MyBestAuntieThankYouModal({
                       ) : null}
                     </>
                   ) : (
-                    <p className='es-landing-page-details-card-description'>
+                    <p className='es-booking-thank-you-detail-card-description'>
                       {locationLine}
                     </p>
                   )}
@@ -323,11 +279,11 @@ export function MyBestAuntieThankYouModal({
                 </div>
               </article>
 
-              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-landing-page-details-card'>
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-booking-thank-you-detail-card'>
                 <div className='flex w-full justify-center'>
                   <ThankYouDetailCardIcon src={THANK_YOU_PRICE_ICON_SRC} />
                 </div>
-                <p className='mt-3 text-center es-landing-page-details-card-description'>
+                <p className='mt-3 text-center es-booking-thank-you-detail-card-description'>
                   {amountLine}
                 </p>
               </article>
