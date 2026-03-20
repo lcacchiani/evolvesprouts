@@ -3,6 +3,8 @@
 import { Fragment, type KeyboardEvent, type ReactNode, useState } from 'react';
 import Image from 'next/image';
 
+import MyBestAuntieWaveLg from '@/components/icons/svg/my-best-auntie-wave-lg.svg';
+import MyBestAuntieWaveSm from '@/components/icons/svg/my-best-auntie-wave-sm.svg';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
@@ -15,7 +17,6 @@ import type {
   MyBestAuntieOutlineContent,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import { HEADING_TEXT_COLOR } from '@/lib/design-tokens';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieOutlineProps {
@@ -52,7 +53,6 @@ const DEFAULT_STEP_ICONS: ModuleIconVariant[] = [
   'independence',
 ];
 
-const HEADING_COLOR = HEADING_TEXT_COLOR;
 const MODULE_ICON_SOURCE_BY_VARIANT: Record<ModuleIconVariant, string> = {
   home: '/images/home.svg',
   limits: '/images/limits.svg',
@@ -322,39 +322,7 @@ export function MyBestAuntieOutline({
             aria-hidden='true'
             className='pointer-events-none absolute bottom-[62px] left-0 right-0 z-10 hidden md:block'
           >
-            <svg
-              viewBox='0 0 100 10'
-              className='h-20 w-full'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-              preserveAspectRatio='none'
-            >
-              <defs>
-                <linearGradient
-                  id='wave-fade-lg'
-                  gradientUnits='userSpaceOnUse'
-                  x1='15.9'
-                  y1='5'
-                  x2='96.2'
-                  y2='5'
-                >
-                  <stop offset='0%' stopColor={HEADING_COLOR} />
-                  <stop offset='83%' stopColor={HEADING_COLOR} />
-                  <stop
-                    offset='100%'
-                    stopColor={HEADING_COLOR}
-                    stopOpacity='0'
-                  />
-                </linearGradient>
-              </defs>
-              <path
-                d='M15.9,5 C21.23,7 27.23,9 32.56,9 S43.73,7 49.23,5 S60.23,1 65.9,1 S77.23,3 82.56,5 S92.23,8 96.2,8'
-                stroke='url(#wave-fade-lg)'
-                strokeWidth='3.5'
-                strokeLinecap='round'
-                vectorEffect='non-scaling-stroke'
-              />
-            </svg>
+            <MyBestAuntieWaveLg className='h-20 w-full' />
           </div>
           {/* Mobile carousel (< md) with wave scrolling alongside cards */}
           <div data-css-fallback='hide-when-css-missing' className='md:hidden'>
@@ -386,39 +354,7 @@ export function MyBestAuntieOutline({
                   aria-hidden='true'
                   className='pointer-events-none absolute bottom-[62px] left-0 right-0 z-10'
                 >
-                  <svg
-                    viewBox='0 0 100 10'
-                    className='h-20 w-full'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                    preserveAspectRatio='none'
-                  >
-                    <defs>
-                      <linearGradient
-                        id='wave-fade-sm'
-                        gradientUnits='userSpaceOnUse'
-                        x1='15.9'
-                        y1='5'
-                        x2='96.2'
-                        y2='5'
-                      >
-                        <stop offset='0%' stopColor={HEADING_COLOR} />
-                        <stop offset='83%' stopColor={HEADING_COLOR} />
-                        <stop
-                          offset='100%'
-                          stopColor={HEADING_COLOR}
-                          stopOpacity='0'
-                        />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d='M15.9,5 C21.23,7 27.23,9 32.56,9 S43.73,7 49.23,5 S60.23,1 65.9,1 S77.23,3 82.56,5 S92.23,8 96.2,8'
-                      stroke='url(#wave-fade-sm)'
-                      strokeWidth='3.5'
-                      strokeLinecap='round'
-                      vectorEffect='non-scaling-stroke'
-                    />
-                  </svg>
+                  <MyBestAuntieWaveSm className='h-20 w-full' />
                 </li>
               </ul>
             </CarouselTrack>

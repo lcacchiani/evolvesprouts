@@ -1,5 +1,6 @@
 'use client';
 
+import Chevron24Icon from '@/components/icons/svg/chevron-24-icon.svg';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
@@ -13,10 +14,6 @@ import type {
   MyBestAuntieDescriptionContent,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import {
-  TEXT_ICON_COLOR,
-  TEXT_NEUTRAL_STRONG_COLOR,
-} from '@/lib/design-tokens';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface MyBestAuntieDescriptionProps {
@@ -25,8 +22,6 @@ interface MyBestAuntieDescriptionProps {
 }
 
 const CARD_ICON_FALLBACK_CLASS = 'es-my-best-auntie-description-icon--training';
-const CONTROL_ICON = TEXT_ICON_COLOR;
-const CONTROL_ICON_DISABLED = TEXT_NEUTRAL_STRONG_COLOR;
 const CARD_ICON_TONES = ['green', 'blue', 'red'] as const;
 
 const iconMaskClassByKey: Record<string, string> = {
@@ -49,24 +44,10 @@ function ArrowIcon({
   isDisabled: boolean;
 }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
-  const strokeColor = isDisabled ? CONTROL_ICON_DISABLED : CONTROL_ICON;
+  const toneClass = isDisabled ? 'es-text-neutral-strong' : 'es-text-icon';
 
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 24 24'
-      className={`h-7 w-7 ${rotationClass}`}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M8 4L16 12L8 20'
-        stroke={strokeColor}
-        strokeWidth='2.4'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
+    <Chevron24Icon aria-hidden className={`h-7 w-7 ${rotationClass} ${toneClass}`} />
   );
 }
 

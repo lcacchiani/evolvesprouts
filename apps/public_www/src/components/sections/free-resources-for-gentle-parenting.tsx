@@ -8,6 +8,7 @@ import { renderQuotedDescriptionText } from '@/components/sections/shared/render
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { FreeResourcesOverlayLayout } from '@/components/sections/free-resources-overlay-layout';
+import FreeResourcesChecklistIconSvg from '@/components/icons/svg/free-resources-checklist-icon.svg';
 import { FreeResourcesSplitLayout } from '@/components/sections/free-resources-split-layout';
 import enContent from '@/content/en.json';
 import {
@@ -57,7 +58,6 @@ const HEADER_ALIGNMENT_VALUES = ['left', 'center'] as const;
 const LAYOUT_VARIANT_VALUES = ['split', 'overlay'] as const;
 const HORIZONTAL_POSITION_VALUES = ['left', 'right'] as const;
 
-const GREEN_ACCENT = 'var(--es-color-accent-green, #5D9D49)';
 const fallbackResourcesContent = enContent.resources;
 
 function readSectionConfig(
@@ -165,30 +165,7 @@ function resolveChecklistItems(items: unknown): ChecklistEntry[] {
 }
 
 function ChecklistIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 28 28'
-      className='h-7 w-7 shrink-0'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <circle
-        cx='14'
-        cy='14'
-        r='12.5'
-        fill='rgba(93, 157, 73, 0.14)'
-        stroke={GREEN_ACCENT}
-      />
-      <path
-        d='M8.5 14.7L12.2 18.2L19.6 10.7'
-        stroke={GREEN_ACCENT}
-        strokeWidth='2.2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  );
+  return <FreeResourcesChecklistIconSvg aria-hidden className='h-7 w-7 shrink-0' />;
 }
 
 function ResourceCardContent({

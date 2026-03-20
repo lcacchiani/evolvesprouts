@@ -40,6 +40,7 @@ require_literal ".cursorrules" "Treat all write operations as implementation and
 require_literal ".cursorrules" "If implementation scope changes after approval, stop and request renewed" "Missing re-approval-on-scope-change guardrail"
 require_literal ".cursorrules" "## Documentation freshness (MANDATORY after code changes)" "Missing documentation freshness section"
 require_literal ".cursorrules" "Asset API module layout is mandatory:" "Missing asset API modularity convention"
+require_literal ".cursorrules" "### SVG icons (MANDATORY for \`apps/admin_web/**\` and \`apps/public_www/**\`)" "Missing SVG icons convention for web apps"
 require_literal ".cursorrules" '### Admin Web OpenAPI typing contract (MANDATORY for `apps/admin_web/**`)' "Missing admin web OpenAPI typing contract"
 
 require_literal "AGENTS.md" 'Read `@.cursorrules` before any analysis, plan, command, or code edit.' "Missing AGENTS bootstrap requirement"

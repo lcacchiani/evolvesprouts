@@ -214,6 +214,24 @@ repo root
 - Never use `style={...}` or `style=""` in JSX (MANDATORY).
 - Never use `CSSProperties` / `React.CSSProperties` in app code (MANDATORY).
 
+### SVG icons (MANDATORY for `apps/admin_web/**` and `apps/public_www/**`)
+
+- Do not embed inline `<svg>...</svg>` markup in feature, section, page, or
+  shared UI components (excluding third-party or generated sources you must not
+  edit).
+- Store vector markup in standalone `.svg` files under
+  `src/components/icons/svg/` using kebab-case names; reuse an existing file when
+  the graphic matches.
+- Load icons through SVGR: `@svgr/webpack` is configured in Next webpack (use
+  `next dev --webpack` / `next build --webpack` as in package scripts). Vitest
+  must use `vite-plugin-svgr` with `include: '**/*.svg'` so tests resolve the
+  same imports.
+- Assets consumed only as static URLs (for example `<img src="/images/foo.svg">`)
+  stay under `public/`.
+- Thin wrapper components may merge `className`, `aria-*`, `data-*`, or spread
+  `SVGProps` onto the SVGR import; they must not declare `<path>`, `<circle>`,
+  `<g>`, or other vector child markup.
+
 ### Admin Web OpenAPI typing contract (MANDATORY for `apps/admin_web/**`)
 
 - Admin web API types for admin endpoints must be generated from

@@ -3,6 +3,7 @@ import type {
   ReactNode,
 } from 'react';
 
+import SectionCtaChevronIconSvg from '@/components/icons/svg/section-cta-chevron-icon.svg';
 import {
   ButtonPrimitive,
   type ButtonPrimitiveVariant,
@@ -33,23 +34,7 @@ function buildClassName(className?: string): string {
 }
 
 function CtaChevronIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 20 20'
-      className='ml-2 h-5 w-5 shrink-0'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M7 4L13 10L7 16'
-        stroke='currentColor'
-        strokeWidth='2.2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  );
+  return <SectionCtaChevronIconSvg aria-hidden className='ml-2 h-5 w-5 shrink-0' />;
 }
 
 export function SectionCtaAnchor({

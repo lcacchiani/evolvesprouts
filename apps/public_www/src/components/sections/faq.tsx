@@ -7,6 +7,7 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
+import FaqLensIconSvg from '@/components/icons/svg/faq-lens-icon.svg';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { FaqContent } from '@/content';
 import {
@@ -57,32 +58,7 @@ function getVisibleQuestions(
 }
 
 function FaqLensIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 20 20'
-      className='h-5 w-5 shrink-0'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <circle
-        cx='8.5'
-        cy='8.5'
-        r='5.8'
-        stroke='currentColor'
-        strokeWidth='1.9'
-      />
-      <line
-        x1='12.7'
-        y1='12.7'
-        x2='17.1'
-        y2='17.1'
-        stroke='currentColor'
-        strokeWidth='1.9'
-        strokeLinecap='round'
-      />
-    </svg>
-  );
+  return <FaqLensIconSvg aria-hidden className='h-5 w-5 shrink-0' />;
 }
 
 function isContactUsPromptQuestion(
