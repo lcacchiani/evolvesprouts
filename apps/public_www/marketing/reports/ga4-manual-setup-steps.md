@@ -50,12 +50,16 @@ step.
 
 | Step | Event name | Description |
 |---|---|---|
-| 1 | `booking_modal_open` | User opens the booking modal |
-| 2 | `booking_age_selected` | User selects an age group |
-| 3 | `booking_date_selected` | User selects a cohort date |
-| 4 | `booking_confirm_pay_click` | User clicks "Confirm & Pay" |
-| 5 | `booking_payment_method_selected` | User selects payment method |
-| 6 | `booking_submit_success` | Booking submitted successfully |
+| 1 | `booking_age_selected` | User selects an age group |
+| 2 | `booking_date_selected` | User selects a cohort date |
+| 3 | `booking_confirm_pay_click` | User clicks "Confirm & Pay" (opens the payment modal) |
+| 4 | `booking_payment_method_selected` | User selects payment method in the modal |
+| 5 | `booking_submit_success` | Booking submitted successfully |
+
+The UI flow is: age selector → date selector → "Confirm & Pay" button →
+payment modal opens → payment method → form fields → submit. The
+`booking_modal_open` event fires alongside `booking_confirm_pay_click`
+when the user clicks "Confirm & Pay", so it's redundant as a funnel step.
 
 3. Set **Funnel type** to **Open** (allows users to enter at any step)
 4. Add **Breakdown** dimension: `sessionSource` (to see which traffic
@@ -65,13 +69,13 @@ step.
 
 ### What to look for
 
-- **Drop-off between steps 1 and 2**: Users who open the modal but don't
-  select an age group may be confused by the UI or not finding their
-  age group.
-- **Drop-off between steps 4 and 5**: Users who click "Confirm & Pay" but
-  don't select a payment method are abandoning at the payment form. This
-  is where the one known prospect dropped off (March 17 data).
-- **Drop-off between steps 5 and 6**: Users who select payment but don't
+- **Drop-off between steps 2 and 3**: Users who select a date but don't
+  click "Confirm & Pay" may be hesitant about pricing or want more
+  information before committing.
+- **Drop-off between steps 3 and 4**: Users who open the payment modal
+  but don't select a payment method are abandoning at the reservation
+  form. This is where the one known prospect dropped off (March 17).
+- **Drop-off between steps 4 and 5**: Users who select payment but don't
   submit may have issues with the form, captcha, or payment instructions.
 
 ---
