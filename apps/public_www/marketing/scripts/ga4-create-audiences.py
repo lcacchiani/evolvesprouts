@@ -129,10 +129,7 @@ AUDIENCES = [
     ),
     Audience(
         display_name="Booking Intent - Did Not Complete",
-        description=(
-            "Users who opened the booking modal but did not submit a booking. "
-            "30-day window. High-intent remarketing audience."
-        ),
+        description="Opened booking modal but did not book. 30-day. High-intent remarketing.",
         membership_duration_days=30,
         filter_clauses=[
             _include(_event("booking_modal_open")),
@@ -141,10 +138,7 @@ AUDIENCES = [
     ),
     Audience(
         display_name="High-Engagement Visitors",
-        description=(
-            "Users who triggered user_engagement (10+ seconds on site). "
-            "90-day window. Seed audience for Meta Lookalike."
-        ),
+        description="Engaged sessions (10+ seconds). 90-day. Seed for Meta Lookalike.",
         membership_duration_days=90,
         filter_clauses=[
             _include(_event("user_engagement")),
