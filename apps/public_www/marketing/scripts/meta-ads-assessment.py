@@ -21,16 +21,32 @@ import requests
 BASE_URL = "https://graph.facebook.com/v21.0"
 
 
-def _get(endpoint, params=None):
+def _auth_headers():
     token = os.environ.get("EVOLVESPROUTS_META_SYSTEM_USER_ACCESS_TOKEN", "")
     if not token:
         sys.exit("EVOLVESPROUTS_META_SYSTEM_USER_ACCESS_TOKEN not set")
+    return {"Authorization": f"Bearer {token}"}
+
+
+def _get(endpoint, params=None):
     if params is None:
         params = {}
-    params["access_token"] = token
-    resp = requests.get(f"{BASE_URL}/{endpoint}", params=params, timeout=30)
+    resp = requests.get(
+        f"{BASE_URL}/{endpoint}",
+        params=params,
+        headers=_auth_headers(),
+        timeout=30,
+    )
     if resp.status_code != 200:
-        print(f"API Error {resp.status_code} for {endpoint}: {resp.text[:300]}")
+        error_body = (
+            resp.json()
+            if resp.headers.get("content-type", "").startswith("application/json")
+            else {}
+        )
+        error_msg = error_body.get("error", {}).get(
+            "message", f"HTTP {resp.status_code}"
+        )
+        print(f"API Error for {endpoint}: {error_msg}")
         return None
     return resp.json()
 
