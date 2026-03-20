@@ -96,6 +96,7 @@ vi.mock('@/lib/discounts-data', async () => {
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
+  trackEcommerceEvent: vi.fn(),
 }));
 
 vi.mock('@/components/shared/turnstile-captcha', () => ({

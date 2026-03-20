@@ -5,6 +5,7 @@ import { LinksHub } from '@/components/sections/links-hub';
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
+  trackEcommerceEvent: vi.fn(),
 }));
 
 vi.mock('@/lib/meta-pixel', () => ({

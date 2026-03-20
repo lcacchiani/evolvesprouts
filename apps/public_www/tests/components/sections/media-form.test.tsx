@@ -51,6 +51,7 @@ vi.mock('@/lib/crm-api-client', async () => {
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
+  trackEcommerceEvent: vi.fn(),
 }));
 
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);

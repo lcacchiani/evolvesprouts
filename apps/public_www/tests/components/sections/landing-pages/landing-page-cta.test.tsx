@@ -14,6 +14,7 @@ vi.mock('next/dynamic', () => ({
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
+  trackEcommerceEvent: vi.fn(),
 }));
 vi.mock('@/lib/meta-pixel', () => ({
   trackMetaPixelEvent: vi.fn(),
