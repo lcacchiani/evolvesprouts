@@ -14,7 +14,7 @@ import { useFormSubmission } from '@/components/sections/shared/use-form-submiss
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
@@ -379,6 +379,18 @@ export function BookingReservationForm({
           value: totalAmount,
           currency: 'HKD',
         });
+        trackEcommerceEvent('purchase', {
+          value: totalAmount,
+          paymentType: selectedPaymentMethod,
+          transactionId: `${normalizedCohortDate}-${Date.now()}`,
+          items: [{
+            item_id: `mba-${selectedAgeGroupLabel}`,
+            item_name: eventTitle,
+            item_category: selectedAgeGroupLabel,
+            price: totalAmount,
+            quantity: 1,
+          }],
+        });
         onSubmitReservation(reservationSummary);
         return;
       }
@@ -493,6 +505,17 @@ export function BookingReservationForm({
                               payment_method: PAYMENT_METHOD_FPS,
                             },
                           });
+                          trackEcommerceEvent('add_payment_info', {
+                            value: totalAmount,
+                            paymentType: PAYMENT_METHOD_FPS,
+                            items: [{
+                              item_id: `mba-${selectedAgeGroupLabel}`,
+                              item_name: eventTitle,
+                              item_category: selectedAgeGroupLabel,
+                              price: totalAmount,
+                              quantity: 1,
+                            }],
+                          });
                         }}
                         className='sr-only'
                       />
@@ -527,6 +550,17 @@ export function BookingReservationForm({
                             params: {
                               payment_method: PAYMENT_METHOD_BANK_TRANSFER,
                             },
+                          });
+                          trackEcommerceEvent('add_payment_info', {
+                            value: totalAmount,
+                            paymentType: PAYMENT_METHOD_BANK_TRANSFER,
+                            items: [{
+                              item_id: `mba-${selectedAgeGroupLabel}`,
+                              item_name: eventTitle,
+                              item_category: selectedAgeGroupLabel,
+                              price: totalAmount,
+                              quantity: 1,
+                            }],
                           });
                         }}
                         className='sr-only'

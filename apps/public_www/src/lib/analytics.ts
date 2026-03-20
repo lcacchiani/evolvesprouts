@@ -128,3 +128,62 @@ export function trackAnalyticsEvent(
 
   window.dataLayer = [payload];
 }
+
+interface EcommerceItem {
+  item_id: string;
+  item_name: string;
+  item_category?: string;
+  price: number;
+  quantity: number;
+}
+
+interface EcommerceEventPayload {
+  event: string;
+  ecommerce: {
+    currency: string;
+    value: number;
+    payment_type?: string;
+    transaction_id?: string;
+    items: EcommerceItem[];
+  };
+}
+
+export function trackEcommerceEvent(
+  eventName: 'begin_checkout' | 'add_payment_info' | 'purchase',
+  options: {
+    value: number;
+    currency?: string;
+    paymentType?: string;
+    transactionId?: string;
+    items: EcommerceItem[];
+  },
+): void {
+  if (!isClientRuntime()) {
+    return;
+  }
+
+  const payload: EcommerceEventPayload = {
+    event: eventName,
+    ecommerce: {
+      currency: options.currency ?? 'HKD',
+      value: options.value,
+      items: options.items,
+    },
+  };
+
+  if (options.paymentType) {
+    payload.ecommerce.payment_type = options.paymentType;
+  }
+  if (options.transactionId) {
+    payload.ecommerce.transaction_id = options.transactionId;
+  }
+
+  const existingLayer = window.dataLayer;
+  if (Array.isArray(existingLayer)) {
+    existingLayer.push({ ecommerce: null } as unknown as DataLayerEventPayload);
+    existingLayer.push(payload as unknown as DataLayerEventPayload);
+    return;
+  }
+
+  window.dataLayer = [payload as unknown as DataLayerEventPayload];
+}

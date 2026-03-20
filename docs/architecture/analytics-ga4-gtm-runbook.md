@@ -69,6 +69,25 @@ Canonical machine-readable contract:
 | `landing_page_cta_click` | Landing page primary CTA click | `section_id='landing-page-cta'`, `landing_page_slug` | No |
 | `links_hub_click` | Link-in-bio hub button click | `section_id='links-hub'`, `content_name` | No |
 
+### GA4 eCommerce events
+
+Standard GA4 eCommerce events are fired alongside the custom booking events
+above. These use a separate `trackEcommerceEvent()` function that pushes
+structured `ecommerce` objects to the dataLayer.
+
+| eCommerce event | Fired alongside | Data |
+|---|---|---|
+| `begin_checkout` | `booking_modal_open` | `currency`, `value`, `items[]` |
+| `add_payment_info` | `booking_payment_method_selected` | `currency`, `value`, `payment_type`, `items[]` |
+| `purchase` | `booking_submit_success` | `currency`, `value`, `payment_type`, `transaction_id`, `items[]` |
+
+Each `items[]` entry includes: `item_id`, `item_name`, `item_category`,
+`price`, `quantity`. Currency is always `HKD`.
+
+These events populate GA4's built-in eCommerce reports and can flow to
+Google Ads Smart Bidding when GTM eCommerce tags are configured (see GTM
+setup below).
+
 ## GA4 setup: step-by-step
 
 1. Create or confirm a GA4 property.
@@ -98,6 +117,7 @@ Canonical machine-readable contract:
    - Contact/media/community/event form interactions
    - Booking modal and reservation actions
    - Landing-page CTA clicks (`landing_page_cta_click`)
+   - GA4 eCommerce events (`begin_checkout`, `add_payment_info`, `purchase`)
 5. Define variables for common parameters:
    - page metadata (`page_path`, `page_title`)
    - locale and section context (`page_locale`, `section_id`, `cta_location`)

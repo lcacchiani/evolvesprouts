@@ -32,6 +32,7 @@ vi.mock('next/image', () => ({
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
+  trackEcommerceEvent: vi.fn(),
 }));
 
 describe('WhatsappContactButton', () => {

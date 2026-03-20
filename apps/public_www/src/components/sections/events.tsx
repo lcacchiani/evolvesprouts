@@ -18,7 +18,7 @@ import type {
   Locale,
   MyBestAuntieModalContent,
 } from '@/content';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { sortUpcomingEvents } from '@/lib/events-data';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
@@ -132,6 +132,21 @@ export function Events({
     });
     trackMetaPixelEvent('InitiateCheckout', {
       content_name: nextBookingPayload.variant === 'event' ? 'event_booking' : 'my_best_auntie',
+    });
+    const ecommercePrice = nextBookingPayload.variant === 'my-best-auntie'
+      ? nextBookingPayload.selectedCohort.price
+      : nextBookingPayload.originalAmount;
+    trackEcommerceEvent('begin_checkout', {
+      value: ecommercePrice,
+      items: [{
+        item_id: nextActiveEvent.id,
+        item_name: nextActiveEvent.title,
+        item_category: nextBookingPayload.variant === 'my-best-auntie'
+          ? nextBookingPayload.selectedAgeGroupLabel
+          : 'event',
+        price: ecommercePrice,
+        quantity: 1,
+      }],
     });
     setActiveBookingEventId(nextActiveEvent.id);
   }

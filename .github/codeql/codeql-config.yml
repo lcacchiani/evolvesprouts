@@ -1,0 +1,4 @@
+name: "Evolve Sprouts CodeQL Configuration"
+
+paths-ignore:
+  - "apps/public_www/marketing/scripts"
