@@ -134,7 +134,7 @@ export function AppShell({
               aria-hidden
               width={100}
               height={100}
-              className='h-[100px] w-[100px] shrink-0 mr-[-20px] mt-[-20px] mb-[-20px]'
+              className='h-11 w-11 shrink-0 lg:mr-[-20px] lg:mt-[-20px] lg:mb-[-20px] lg:h-[100px] lg:w-[100px]'
             />
             <div>
               <p className='text-xs font-semibold uppercase tracking-[0.25em] text-slate-500'>
@@ -143,9 +143,9 @@ export function AppShell({
               <h1 className='text-lg font-semibold'>{activeLabel || 'Admin'}</h1>
             </div>
           </div>
-          <div className='flex items-center gap-3'>
+          <div className='hidden items-center gap-3 lg:flex'>
             {userEmail ? (
-              <div className='hidden text-right md:block'>
+              <div className='text-right'>
                 <p className='text-sm text-slate-700'>{userEmail}</p>
                 {formattedLastLoginTime ? (
                   <p className='text-xs text-slate-500'>Last login: {formattedLastLoginTime}</p>
@@ -163,6 +163,14 @@ export function AppShell({
         <aside
           className={`${isMobileMenuOpen ? 'block' : 'hidden'} rounded-xl border border-slate-200 bg-white p-3 lg:block`}
         >
+          {userEmail ? (
+            <div className='mb-3 border-b border-slate-200 pb-3 lg:hidden'>
+              <p className='text-sm text-slate-700'>{userEmail}</p>
+              {formattedLastLoginTime ? (
+                <p className='mt-1 text-xs text-slate-500'>Last login: {formattedLastLoginTime}</p>
+              ) : null}
+            </div>
+          ) : null}
           <nav className='space-y-1'>
             {navItems.map((item) => {
               const isActive = item.key === activeKey;
@@ -185,6 +193,19 @@ export function AppShell({
               );
             })}
           </nav>
+          <div className='mt-3 border-t border-slate-200 pt-3 lg:hidden'>
+            <Button
+              type='button'
+              variant='outline'
+              className='w-full'
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                onLogout();
+              }}
+            >
+              Sign out
+            </Button>
+          </div>
         </aside>
 
         <main id='main-content' className='min-w-0'>

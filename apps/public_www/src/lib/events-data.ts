@@ -1,3 +1,4 @@
+import type { BookingTopicsFieldConfig } from '@/components/sections/booking-modal/types';
 import type {
   EventsContent,
   Locale,
@@ -19,6 +20,10 @@ import {
   formatSiteTimeOfDay,
   formatSiteTimeZoneShortName,
 } from '@/lib/site-datetime';
+import {
+  getLandingPageContent,
+  isValidLandingPageSlug,
+} from '@/lib/landing-pages';
 import { isHttpHref } from '@/lib/url-utils';
 
 type EventStatus = 'open' | 'fully_booked';
@@ -52,6 +57,8 @@ export interface EventBookingModalPayload {
   dateParts: EventBookingDatePart[];
   selectedDateLabel: string;
   selectedDateStartTime: string;
+  /** From landing page JSON `cta.bookingTopicsField` when `landing_page` matches a registered page. */
+  topicsFieldConfig?: BookingTopicsFieldConfig;
 }
 
 interface MyBestAuntieEventCohortDate {
@@ -299,6 +306,34 @@ function resolvePartnerSlugs(value: unknown): string[] {
   return Array.from(new Set(slugs));
 }
 
+function resolveBookingTopicsFieldFromLandingPage(
+  record: Record<string, unknown>,
+  locale: Locale,
+): BookingTopicsFieldConfig | undefined {
+  const landingPageSlug =
+    readCandidateText(record, ['landing_page', 'landingPage'])?.trim() ?? '';
+  if (!landingPageSlug || !isValidLandingPageSlug(landingPageSlug)) {
+    return undefined;
+  }
+
+  const pageLocale = getLandingPageContent(landingPageSlug, locale);
+  const field = pageLocale?.cta.bookingTopicsField;
+  if (!field) {
+    return undefined;
+  }
+
+  const label = readOptionalText(field.label);
+  if (!label) {
+    return undefined;
+  }
+
+  return {
+    label,
+    placeholder: readOptionalText(field.placeholder),
+    required: Boolean(field.required),
+  };
+}
+
 function resolveBookingDateParts(
   record: Record<string, unknown>,
   defaultDescription: string,
@@ -359,6 +394,8 @@ function buildEventBookingModalPayload(
     'event_price',
   ]) ?? 0;
 
+  const topicsFieldConfig = resolveBookingTopicsFieldFromLandingPage(record, locale);
+
   return {
     variant: 'event',
     bookingSystem: EVENT_BOOKING_SYSTEM,
@@ -371,6 +408,7 @@ function buildEventBookingModalPayload(
     dateParts,
     selectedDateLabel,
     selectedDateStartTime,
+    ...(topicsFieldConfig ? { topicsFieldConfig } : {}),
   };
 }
 
