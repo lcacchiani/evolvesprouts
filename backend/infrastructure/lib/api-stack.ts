@@ -926,7 +926,7 @@ export class ApiStack extends cdk.Stack {
       requiredCorsOrigins
     );
 
-    // Client assets logging bucket
+    // Assets logging bucket
     const clientAssetsLogBucketName = [
       name("client-assets-logs"),
       cdk.Aws.ACCOUNT_ID,
@@ -963,7 +963,7 @@ export class ApiStack extends cdk.Stack {
       ],
     });
 
-    // Client assets bucket
+    // Assets bucket
     const clientAssetsBucketName = [
       name("client-assets"),
       cdk.Aws.ACCOUNT_ID,

@@ -32,7 +32,7 @@ Flutter Mobile / Next.js Admin
 - Device attestation uses Firebase App Check (Play Integrity / App Attest).
 
 ### Admin console (Next.js App Router)
-- Admin users manage client assets and access grants.
+- Admin users manage assets and access grants.
 - Hosted on Amplify Hosting (release jobs triggered in CI).
 
 ### Public website (Next.js static export)

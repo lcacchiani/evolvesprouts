@@ -307,7 +307,7 @@ fail-closed outbound policy:
   required `x-api-key` origin header.
 - The CloudFront signer private key must be stored in AWS Secrets Manager and
   loaded at runtime; never commit private keys in source control.
-- CloudFront distributions serving client assets must restrict S3 origin access
+- CloudFront distributions serving assets must restrict S3 origin access
   via Origin Access Control (OAC).
 - The client-asset CloudFront distribution supports optional AWS WAF
   association through `AssetDownloadWafWebAclArn` (global WebACL ARN in

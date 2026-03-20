@@ -348,7 +348,7 @@ API Lambda
 All queues use KMS encryption (`alias/evolvesprouts-sqs-encryption-key`).
 Failed messages go to dead-letter queues with CloudWatch alarms.
 
-## Client asset downloads (media.evolvesprouts.com)
+## Asset downloads (media.evolvesprouts.com)
 
 ```
 Cloudflare (media.evolvesprouts.com)
@@ -468,6 +468,6 @@ promote-public-www.yml (manual trigger)
 | `www-staging.evolvesprouts.com` | Public website (staging) | `PublicWwwStagingDomainName` |
 | `api.evolvesprouts.com` | API Gateway | `ApiCustomDomainName` |
 | `admin.evolvesprouts.com` | Admin console | `AdminWebDomainName` |
-| `media.evolvesprouts.com` | Client asset downloads | `AssetDownloadCustomDomainName` |
+| `media.evolvesprouts.com` | Asset downloads | `AssetDownloadCustomDomainName` |
 | `auth.evolvesprouts.com` | Cognito hosted UI | `CognitoCustomDomainName` |
 | `evolvesprouts.com` | Email (iCloud Mail MX) | N/A (Cloudflare DNS) |

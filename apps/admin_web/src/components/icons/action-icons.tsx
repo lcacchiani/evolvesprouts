@@ -99,3 +99,39 @@ export function DeleteIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function MarkPaidIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden='true'
+    >
+      <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14' />
+      <polyline points='22 4 12 14.01 9 11.01' />
+    </svg>
+  );
+}
+
+export function VoidExpenseIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden='true'
+    >
+      <circle cx='12' cy='12' r='10' />
+      <line x1='4.93' y1='4.93' x2='19.07' y2='19.07' />
+    </svg>
+  );
+}

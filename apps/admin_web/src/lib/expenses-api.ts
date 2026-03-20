@@ -41,12 +41,27 @@ function isApiExpenseResponse(value: unknown): value is ApiExpenseResponse {
   return isRecord(value) && isApiExpense(value.expense);
 }
 
+/** JSONB line items may store decimals as numbers; OpenAPI types them as strings. */
+function lineItemDecimalFieldFromApi(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
 function parseLineItem(value: ApiExpenseLineItem): ExpenseLineItem {
   return {
     description: asNullableString(value.description ?? null),
-    quantity: asNullableString(value.quantity ?? null),
-    unitPrice: asNullableString(value.unit_price ?? null),
-    amount: asNullableString(value.amount ?? null),
+    quantity: lineItemDecimalFieldFromApi(value.quantity),
+    unitPrice: lineItemDecimalFieldFromApi(value.unit_price),
+    amount: lineItemDecimalFieldFromApi(value.amount),
   };
 }
 

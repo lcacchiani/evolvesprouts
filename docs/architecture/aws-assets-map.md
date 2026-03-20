@@ -106,10 +106,10 @@ credentials):
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| S3 Bucket | `ClientAssetsBucket` | `evolvesprouts-client-assets-{account}-{region}` | Private bucket for client assets |
-| S3 Bucket | `ClientAssetsLogBucket` | `evolvesprouts-client-assets-logs-{account}-{region}` | Access logs for client assets bucket |
+| S3 Bucket | `ClientAssetsBucket` | `evolvesprouts-client-assets-{account}-{region}` | Private bucket for assets |
+| S3 Bucket | `ClientAssetsLogBucket` | `evolvesprouts-client-assets-logs-{account}-{region}` | Access logs for the assets bucket |
 
-## Client asset download CDN (CloudFront)
+## Asset download CDN (CloudFront)
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
@@ -343,7 +343,7 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking, media, and expense parser topics, SES send email, S3 read/write for client assets |
+| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking, media, and expense parser topics, SES send email, S3 read/write for the assets bucket |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `ListUsersInGroup`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
@@ -352,7 +352,7 @@ For each function above, the following resources are created:
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
 | `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
 | `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email, read Mailchimp secret, invoke `AwsApiProxyFunction` |
-| `ExpenseParserFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for client assets, read OpenRouter API secret, invoke `AwsApiProxyFunction` |
+| `ExpenseParserFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for the assets bucket, read OpenRouter API secret, invoke `AwsApiProxyFunction` |
 
 **Lambda Log Groups:**
 - Explicitly created by CDK with KMS encryption
@@ -552,8 +552,8 @@ configured by stack custom resources (including retention and KMS association).
 | `DatabaseProxyEndpoint` | RDS Proxy endpoint | Endpoint for database connections via proxy |
 | `UserPoolId` | Cognito User Pool ID | User Pool identifier |
 | `UserPoolClientId` | Cognito User Pool Client ID | OAuth client identifier |
-| `ClientAssetsBucketName` | S3 bucket name | Client assets bucket |
-| `ClientAssetsLogBucketName` | S3 bucket name | Client assets access logs bucket |
+| `ClientAssetsBucketName` | S3 bucket name | Assets bucket |
+| `ClientAssetsLogBucketName` | S3 bucket name | Assets access logs bucket |
 | `ClientAssetsDownloadDistributionDomain` | CloudFront domain | CloudFront distribution hostname backing signed client-asset downloads |
 | `ClientAssetsDownloadCloudFrontKeyPairId` | CloudFront key pair ID | Key-Pair-Id used in signed download URLs |
 | `ClientAssetsDownloadCustomDomainTarget` | CloudFront domain | DNS CNAME target for the client-asset custom domain |

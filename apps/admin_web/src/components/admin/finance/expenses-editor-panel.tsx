@@ -95,6 +95,20 @@ function toLineItemsJson(value: ExpenseLineItem[]): string {
   );
 }
 
+function lineItemDecimalFromJson(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
 function parseLineItemsJson(value: string): ExpenseLineItem[] {
   if (!value.trim()) {
     return [];
@@ -110,9 +124,9 @@ function parseLineItemsJson(value: string): ExpenseLineItem[] {
     const record = entry as Record<string, unknown>;
     return {
       description: typeof record.description === 'string' ? record.description : null,
-      quantity: typeof record.quantity === 'string' ? record.quantity : null,
-      unitPrice: typeof record.unit_price === 'string' ? record.unit_price : null,
-      amount: typeof record.amount === 'string' ? record.amount : null,
+      quantity: lineItemDecimalFromJson(record.quantity),
+      unitPrice: lineItemDecimalFromJson(record.unit_price),
+      amount: lineItemDecimalFromJson(record.amount),
     };
   });
 }
@@ -253,11 +267,23 @@ export function ExpensesEditorPanel({
         </div>
         <div>
           <Label htmlFor='expense-invoice-date'>Invoice date</Label>
-          <Input id='expense-invoice-date' type='date' value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} />
+          <Input
+            id='expense-invoice-date'
+            type='date'
+            value={invoiceDate}
+            onChange={(event) => setInvoiceDate(event.target.value)}
+            className='max-w-[10.5rem] sm:max-w-[11rem] md:max-w-none'
+          />
         </div>
         <div>
           <Label htmlFor='expense-due-date'>Due date</Label>
-          <Input id='expense-due-date' type='date' value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+          <Input
+            id='expense-due-date'
+            type='date'
+            value={dueDate}
+            onChange={(event) => setDueDate(event.target.value)}
+            className='max-w-[10.5rem] sm:max-w-[11rem] md:max-w-none'
+          />
         </div>
         <div>
           <Label htmlFor='expense-currency'>Currency</Label>
