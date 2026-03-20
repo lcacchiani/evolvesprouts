@@ -7,6 +7,7 @@ import {
   createPublicCrmApiClient,
   type CrmApiClient,
 } from '@/lib/crm-api-client';
+import { PUBLIC_SITE_IANA_TIMEZONE } from '@/lib/site-datetime';
 
 vi.mock('@/lib/crm-api-client', () => ({
   createPublicCrmApiClient: vi.fn(),
@@ -19,6 +20,7 @@ function formatExpectedEventDateLabel(isoDateTime: string): string {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
   }).format(new Date(isoDateTime));
 }
 
@@ -32,10 +34,12 @@ function formatExpectedEventTimeRange(
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
   });
   const timeZoneLabel = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
     timeZoneName: 'short',
   })
     .formatToParts(startDate)

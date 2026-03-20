@@ -65,11 +65,11 @@ export function EventBookingModal({
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
     return bookingPayload.dateParts.map((part) => {
       return {
-        date: formatPartDateTimeLabel(part.startDateTime),
+        date: formatPartDateTimeLabel(part.startDateTime, locale),
         description: part.description,
       };
     });
-  }, [bookingPayload.dateParts]);
+  }, [bookingPayload.dateParts, locale]);
 
   return (
     <ModalOverlay

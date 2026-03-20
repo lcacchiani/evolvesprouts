@@ -31,6 +31,7 @@ describe('LandingPageHero section', () => {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
+      timeZone: 'Asia/Hong_Kong',
     });
     const expectedTimeChip = `${timeFormatter.format(new Date(eventContent.startDateTime))} - ${timeFormatter.format(new Date(eventContent.endDateTime))}`;
     const ctaPriceLabel = 'HK$350';

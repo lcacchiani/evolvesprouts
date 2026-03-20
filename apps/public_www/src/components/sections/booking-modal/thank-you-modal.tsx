@@ -19,6 +19,10 @@ import {
 } from '@/components/sections/booking-modal/helpers';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { formatCurrencyHkd } from '@/lib/format';
+import {
+  formatSiteCompactDate,
+  formatSiteTimeOfDay,
+} from '@/lib/site-datetime';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
@@ -35,7 +39,6 @@ export interface MyBestAuntieThankYouModalProps {
 const PRINT_WINDOW_FEATURES = 'noopener,noreferrer,width=880,height=700';
 const BABY_ICON_SOURCE = '/images/baby.svg';
 const DOLLAR_SYMBOL_ICON_SOURCE = '/images/dollar-symbol.svg';
-const EN_LOCALE = 'en-US';
 
 function formatPrefixedValue(prefix: string, value: string): string {
   const normalizedValue = value.trim();
@@ -46,48 +49,22 @@ function formatPrefixedValue(prefix: string, value: string): string {
   return `${prefix}${normalizedValue}`;
 }
 
-function resolveSummaryDateStart(dateStartTime?: string): Date | null {
-  const normalizedDateStartTime = dateStartTime?.trim() ?? '';
-  if (!normalizedDateStartTime) {
-    return null;
-  }
-
-  const parsedDate = new Date(normalizedDateStartTime);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-
-  return parsedDate;
-}
-
 function formatSummaryDateLabel(dateStartTime: string | undefined, locale: Locale): string {
-  const parsedDate = resolveSummaryDateStart(dateStartTime);
-  if (!parsedDate) {
+  const normalized = dateStartTime?.trim() ?? '';
+  if (!normalized) {
     return '';
   }
 
-  return new Intl.DateTimeFormat(locale === 'en' ? EN_LOCALE : locale, {
-    month: 'short',
-    day: '2-digit',
-    timeZone: 'UTC',
-  }).format(parsedDate);
+  return formatSiteCompactDate(normalized, locale);
 }
 
 function formatSummaryTimeLabel(dateStartTime: string | undefined, locale: Locale): string {
-  const parsedDate = resolveSummaryDateStart(dateStartTime);
-  if (!parsedDate) {
+  const normalized = dateStartTime?.trim() ?? '';
+  if (!normalized) {
     return '';
   }
 
-  return new Intl.DateTimeFormat(locale === 'en' ? EN_LOCALE : locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: 'UTC',
-  })
-    .format(parsedDate)
-    .replace(' AM', ' am')
-    .replace(' PM', ' pm');
+  return formatSiteTimeOfDay(normalized, locale);
 }
 
 function appendPrintChip({

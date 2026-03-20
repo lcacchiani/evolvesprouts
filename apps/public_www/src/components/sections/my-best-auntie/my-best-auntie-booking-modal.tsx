@@ -79,15 +79,15 @@ export function MyBestAuntieBookingModal({
     const summaries = modalContent.partSummaries ?? [];
     return (selectedCohort?.dates ?? []).map((part, index) => {
       return {
-        date: formatPartDateTimeLabel(part.start_datetime),
+        date: formatPartDateTimeLabel(part.start_datetime, locale),
         description: summaries[index] ?? '',
       };
     });
-  }, [selectedCohort, modalContent.partSummaries]);
+  }, [selectedCohort, modalContent.partSummaries, locale]);
 
   const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
   const selectedCohortDateLabelText =
-    selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '');
+    selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '', locale);
   const selectedVenueName = selectedCohort?.location_name ?? '';
   const selectedVenueAddress = selectedCohort?.location_address ?? '';
   const selectedVenueDirectionHref = selectedCohort?.location_url ?? '#';

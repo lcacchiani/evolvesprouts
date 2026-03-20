@@ -1,7 +1,10 @@
+import type { Locale } from '@/content';
+
+import { formatCohortMonthYearLabel } from '@/lib/site-datetime';
+
 const DEFAULT_HKD_LOCALE = 'en-HK';
 const HKD_CURRENCY = 'HKD';
 const formatterCache = new Map<string, Intl.NumberFormat>();
-const EN_US_LOCALE = 'en-US';
 
 function normalizeLocale(locale?: string): string {
   const trimmedLocale = locale?.trim();
@@ -67,39 +70,13 @@ export function parseCohortValue(
   };
 }
 
-export function formatCohortValue(value: string): string {
+export function formatCohortValue(value: string, locale: Locale = 'en'): string {
   const parsed = parseCohortValue(value);
   if (!parsed) {
     return value;
   }
 
-  const monthLabel = new Intl.DateTimeFormat(EN_US_LOCALE, {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(parsed.year, parsed.monthIndex, 1)));
-  return `${monthLabel}, ${parsed.year}`;
+  return formatCohortMonthYearLabel(parsed.year, parsed.monthIndex, locale);
 }
 
-export function formatPartDateTimeLabel(startDateTime: string): string {
-  const date = new Date(startDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const month = new Intl.DateTimeFormat(EN_US_LOCALE, {
-    month: 'short',
-  }).format(date);
-  const day = new Intl.DateTimeFormat(EN_US_LOCALE, {
-    day: '2-digit',
-  }).format(date);
-  const time = new Intl.DateTimeFormat(EN_US_LOCALE, {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-    .format(date)
-    .replace(' AM', ' am')
-    .replace(' PM', ' pm');
-
-  return `${month} ${day} @ ${time}`;
-}
+export { formatPartDateTimeLabel } from '@/lib/site-datetime';
