@@ -55,7 +55,9 @@ def handle_admin_vendors_request(
         if method == "GET":
             return _get_vendor(event, vendor_id=vendor_id)
         if method == "PATCH":
-            return _update_vendor(event, vendor_id=vendor_id, actor_sub=identity.user_sub)
+            return _update_vendor(
+                event, vendor_id=vendor_id, actor_sub=identity.user_sub
+            )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)

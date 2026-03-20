@@ -27,7 +27,8 @@ def serialize_expense(expense: Expense) -> dict[str, Any]:
     attachments = sorted(expense.attachments, key=lambda item: item.sort_order)
     vendor_name = (
         expense.vendor.name
-        if expense.vendor is not None and expense.vendor.relationship_type.value == "vendor"
+        if expense.vendor is not None
+        and expense.vendor.relationship_type.value == "vendor"
         else expense.vendor_name
     )
     return {
