@@ -13,9 +13,9 @@ public website stacks:
 - `PublicWwwStagingCertificateArn`
 - `WafWebAclArn`
 
-## Client asset download CDN parameters
+## Asset download CDN parameters
 
-`production.json` also includes client-asset download domain parameters:
+`production.json` also includes asset download domain parameters:
 
 - `AssetDownloadCustomDomainName`
 - `AssetDownloadCustomDomainCertificateArn`

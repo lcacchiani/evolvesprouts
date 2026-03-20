@@ -1,0 +1,14 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  viewBox="0 0 20 20"
+  fill="none"
+>
+  <path
+    d="M16.25 5.625L8.125 13.75L3.75 9.375"
+    stroke="var(--es-color-text-success, #2C6C25)"
+    stroke-width="2.1"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

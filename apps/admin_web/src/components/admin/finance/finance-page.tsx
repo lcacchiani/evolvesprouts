@@ -68,8 +68,12 @@ export function FinancePage() {
         isLoadingMore={expenses.isLoadingMore}
         hasMore={expenses.hasMore}
         error={expenses.error}
+        isDeletingExpenseId={expenses.isDeletingId}
+        isMarkingPaidExpenseId={expenses.isMarkingPaidId}
         onLoadMore={expenses.loadMore}
         onSelectExpense={expenses.selectExpense}
+        onMarkPaid={expenses.markPaidExpenseEntry}
+        onCancelExpense={expenses.cancelExpenseEntry}
         onQueryChange={(value) => expenses.setFilter('query', value)}
         onStatusChange={(value) => expenses.setFilter('status', value)}
         onParseStatusChange={(value) => expenses.setFilter('parseStatus', value)}

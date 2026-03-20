@@ -142,4 +142,58 @@ describe('expenses-api', () => {
       })
     );
   });
+
+  it('maps line_items with numeric quantity and amounts to strings', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      items: [
+        {
+          id: 'exp-3',
+          amends_expense_id: null,
+          status: 'submitted',
+          parse_status: 'succeeded',
+          vendor_name: 'Vendor',
+          invoice_number: null,
+          invoice_date: null,
+          due_date: null,
+          currency: 'HKD',
+          subtotal: null,
+          tax: null,
+          total: '50.00',
+          line_items: [
+            {
+              description: 'Item',
+              quantity: 2,
+              unit_price: 10.5,
+              amount: 21,
+            },
+          ],
+          parse_confidence: null,
+          parser_raw: {},
+          notes: null,
+          void_reason: null,
+          submitted_at: null,
+          paid_at: null,
+          voided_at: null,
+          created_by: 'admin-sub',
+          updated_by: null,
+          created_at: '2026-03-01T00:00:00.000Z',
+          updated_at: '2026-03-01T00:00:00.000Z',
+          attachments: [],
+        },
+      ],
+      next_cursor: null,
+      total_count: 1,
+    });
+
+    const result = await listAdminExpenses({});
+
+    expect(result.items[0]?.lineItems).toEqual([
+      {
+        description: 'Item',
+        quantity: '2',
+        unitPrice: '10.5',
+        amount: '21',
+      },
+    ]);
+  });
 });

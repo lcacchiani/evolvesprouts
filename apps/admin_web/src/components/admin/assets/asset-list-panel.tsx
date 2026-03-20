@@ -1,12 +1,14 @@
 'use client';
 
-import type { KeyboardEvent, MouseEvent } from 'react';
+import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 
 import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
 import { ASSET_VISIBILITIES } from '@/types/assets';
 
 import { DeleteIcon } from '@/components/icons/action-icons';
+import OpenInNewTabIcon from '@/components/icons/svg/open-in-new-tab-icon.svg';
+import { getUserAssetDownloadUrl } from '@/lib/assets-api';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
@@ -51,6 +53,8 @@ export function AssetListPanel({
   onDeleteAsset,
 }: AssetListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
+  const [openingAssetId, setOpeningAssetId] = useState<string | null>(null);
+  const [viewAssetError, setViewAssetError] = useState('');
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, assetId: string) => {
     if (event.target !== event.currentTarget) {
@@ -75,6 +79,21 @@ export function AssetListPanel({
       return;
     }
     await onDeleteAsset(asset.id);
+  };
+
+  const handleOpenAssetInNewTab = async (asset: AdminAsset, event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setViewAssetError('');
+    setOpeningAssetId(asset.id);
+    try {
+      const url = await getUserAssetDownloadUrl(asset.id);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not open asset.';
+      setViewAssetError(message);
+    } finally {
+      setOpeningAssetId(null);
+    }
   };
 
   return (
@@ -108,6 +127,12 @@ export function AssetListPanel({
           <StatusBanner variant='error' title='Assets'>
             {assetsError}
           </StatusBanner>
+        ) : null}
+
+        {viewAssetError ? (
+          <p className='text-sm text-red-600' role='alert'>
+            {viewAssetError}
+          </p>
         ) : null}
 
         <div className='overflow-x-auto rounded-md border border-slate-200'>
@@ -157,17 +182,30 @@ export function AssetListPanel({
                       <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>
                       <td className='px-4 py-3 text-slate-700'>{formatDate(asset.updatedAt)}</td>
                       <td className='px-4 py-3 text-right'>
-                        <Button
-                          type='button'
-                          size='sm'
-                          variant='danger'
-                          onClick={(event) => void handleDeleteAsset(asset, event)}
-                          disabled={isDeletingAssetId === asset.id}
-                          title='Delete asset'
-                          aria-label='Delete asset'
-                        >
-                          <DeleteIcon className='h-4 w-4' />
-                        </Button>
+                        <div className='flex justify-end gap-1'>
+                          <Button
+                            type='button'
+                            size='sm'
+                            variant='outline'
+                            onClick={(event) => void handleOpenAssetInNewTab(asset, event)}
+                            disabled={openingAssetId === asset.id}
+                            title='Open asset in new tab'
+                            aria-label='Open asset in new tab'
+                          >
+                            <OpenInNewTabIcon className='h-4 w-4' />
+                          </Button>
+                          <Button
+                            type='button'
+                            size='sm'
+                            variant='danger'
+                            onClick={(event) => void handleDeleteAsset(asset, event)}
+                            disabled={isDeletingAssetId === asset.id}
+                            title='Delete asset'
+                            aria-label='Delete asset'
+                          >
+                            <DeleteIcon className='h-4 w-4' />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );

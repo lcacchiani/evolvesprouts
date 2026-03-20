@@ -10,7 +10,7 @@ describe('ExternalLinkIcon', () => {
   it('applies the base class and preserves custom class names', () => {
     const { container } = render(<ExternalLinkIcon className='extra-icon-class' />);
 
-    const icon = container.querySelector('svg[data-external-link-icon="true"]');
+    const icon = container.querySelector('.es-ui-icon-mask--external-link');
     expect(icon).not.toBeNull();
     expect(icon?.getAttribute('class')).toContain('es-link-external-icon');
     expect(icon?.getAttribute('class')).toContain('extra-icon-class');
@@ -28,7 +28,7 @@ describe('ExternalLinkInlineContent', () => {
     const label = screen.getByText('Link label');
     expect(label.className).toContain('es-link-external-label');
     expect(label.className).toContain('es-link-external-label--with-icon');
-    const externalIcon = label.querySelector('svg[data-external-link-icon="true"]');
+    const externalIcon = label.querySelector('.es-ui-icon-mask--external-link');
     expect(externalIcon).not.toBeNull();
     expect(externalIcon?.parentElement).toBe(label);
 
@@ -42,7 +42,7 @@ describe('ExternalLinkInlineContent', () => {
     );
 
     expect(screen.getByText('Link label').className).toBe('');
-    expect(document.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
+    expect(document.querySelector('.es-ui-icon-mask--external-link')).toBeNull();
     expect(screen.getByTestId('internal-icon')).toBeInTheDocument();
   });
 

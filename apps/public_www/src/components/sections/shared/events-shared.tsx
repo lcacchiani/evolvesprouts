@@ -59,44 +59,16 @@ function formatPartnerChipLabel(value: string): string {
 
 function LoadingGearIcon({ className, testId }: LoadingGearIconProps) {
   return (
-    <svg
+    <span
       data-testid={testId}
-      aria-hidden='true'
-      viewBox='0 0 24 24'
-      className={`es-events-loading-gear ${className ?? ''}`.trim()}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <circle cx='12' cy='12' r='3.25' stroke='currentColor' strokeWidth='1.8' />
-      <path d='M12 2.75V5.25' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' />
-      <path d='M12 18.75V21.25' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' />
-      <path d='M2.75 12H5.25' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' />
-      <path d='M18.75 12H21.25' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' />
-      <path
-        d='M5.46 5.46L7.23 7.23'
-        stroke='currentColor'
-        strokeWidth='1.8'
-        strokeLinecap='round'
-      />
-      <path
-        d='M16.77 16.77L18.54 18.54'
-        stroke='currentColor'
-        strokeWidth='1.8'
-        strokeLinecap='round'
-      />
-      <path
-        d='M5.46 18.54L7.23 16.77'
-        stroke='currentColor'
-        strokeWidth='1.8'
-        strokeLinecap='round'
-      />
-      <path
-        d='M16.77 7.23L18.54 5.46'
-        stroke='currentColor'
-        strokeWidth='1.8'
-        strokeLinecap='round'
-      />
-    </svg>
+      aria-hidden
+      className={[
+        'es-ui-icon-mask es-ui-icon-mask--events-loading-gear es-events-loading-gear inline-block h-7 w-7',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    />
   );
 }
 

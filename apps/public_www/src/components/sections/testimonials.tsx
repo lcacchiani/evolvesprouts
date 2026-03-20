@@ -89,51 +89,24 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 24 24'
-      className={`h-8 w-8 es-text-icon ${rotationClass}`}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M8 4L16 12L8 20'
-        stroke='currentColor'
-        strokeWidth='2.4'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
+    <span
+      aria-hidden
+      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-8 w-8 shrink-0 es-text-icon ${rotationClass}`}
+    />
   );
 }
 
 function ParentIcon() {
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 134 134'
-      className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px] es-text-body'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <circle
-        cx='67'
-        cy='46'
-        r='20'
-        stroke='currentColor'
-        strokeWidth='6'
-        opacity='0.9'
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+      <img
+        src='/images/testimonials-parent-icon.svg'
+        alt=''
+        aria-hidden
+        className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px]'
       />
-      <path
-        d='M31 106C35.2 85.4 49.4 75 67 75C84.6 75 98.8 85.4 103 106'
-        stroke='currentColor'
-        strokeWidth='6'
-        strokeLinecap='round'
-        opacity='0.9'
-      />
-      <circle cx='95' cy='43' r='8' fill='currentColor' opacity='0.22' />
-      <circle cx='39' cy='89' r='7' fill='currentColor' opacity='0.22' />
-    </svg>
+    </>
   );
 }
 

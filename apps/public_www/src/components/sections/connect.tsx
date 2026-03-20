@@ -22,20 +22,10 @@ function ConnectGlyph({ index }: { index: number }) {
       aria-hidden='true'
       className={`inline-flex h-12 w-12 items-center justify-center rounded-full ${toneClassName}`}
     >
-      <svg
-        viewBox='0 0 20 20'
-        className='h-5 w-5'
-        fill='none'
-        xmlns='http://www.w3.org/2000/svg'
-      >
-        <path
-          d='M4 10H16M10 4L16 10L10 16'
-          stroke='currentColor'
-          strokeWidth='2'
-          strokeLinecap='round'
-          strokeLinejoin='round'
-        />
-      </svg>
+      <span
+        aria-hidden
+        className='es-ui-icon-mask es-ui-icon-mask--connect-glyph-arrow inline-block h-5 w-5'
+      />
     </span>
   );
 }

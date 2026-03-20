@@ -15,7 +15,6 @@ import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { useOutsideClickClose } from '@/lib/hooks/use-outside-click-close';
 
-const WHITE = 'var(--figma-colors-desktop, #FFFFFF)';
 const DESKTOP_HOVER_QUERY = '(min-width: 1024px) and (hover: hover)';
 
 export type CourseHighlightCardTone = 'gold' | 'green' | 'blue';
@@ -165,21 +164,10 @@ export function CourseHighlightCard({
         className={`absolute bottom-5 left-5 z-10 appearance-none rounded-full border-0 bg-white/15 p-0 ring-1 ring-white/35 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 lg:bottom-7 lg:left-7 ${isActive ? 'h-[70px] w-[70px]' : 'h-[54px] w-[54px]'} group-hover:h-[70px] group-hover:w-[70px] ${arrowActive}`}
       >
         <span className='inline-flex h-[44px] w-[44px] items-center justify-center rounded-full es-bg-brand-strong shadow-[0_4px_10px_rgba(0,0,0,0.18)]'>
-          <svg
-            aria-hidden='true'
-            viewBox='0 0 20 20'
-            className='h-4 w-4'
-            fill='none'
-            xmlns='http://www.w3.org/2000/svg'
-          >
-            <path
-              d='M7 4L13 10L7 16'
-              stroke={WHITE}
-              strokeWidth='2.2'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-            />
-          </svg>
+          <span
+            aria-hidden
+            className='es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-4 w-4 shrink-0 text-[var(--figma-colors-desktop,#FFFFFF)]'
+          />
         </span>
       </ButtonPrimitive>
 

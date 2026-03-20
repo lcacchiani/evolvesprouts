@@ -58,30 +58,10 @@ function getVisibleQuestions(
 
 function FaqLensIcon() {
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 20 20'
-      className='h-5 w-5 shrink-0'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <circle
-        cx='8.5'
-        cy='8.5'
-        r='5.8'
-        stroke='currentColor'
-        strokeWidth='1.9'
-      />
-      <line
-        x1='12.7'
-        y1='12.7'
-        x2='17.1'
-        y2='17.1'
-        stroke='currentColor'
-        strokeWidth='1.9'
-        strokeLinecap='round'
-      />
-    </svg>
+    <span
+      aria-hidden
+      className='es-ui-icon-mask es-ui-icon-mask--faq-lens inline-block h-5 w-5 shrink-0'
+    />
   );
 }
 

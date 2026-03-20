@@ -183,7 +183,7 @@ their primary responsibilities.
   using OpenRouter via `AwsApiProxyFunction`
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
-- Permissions: S3 read for client assets, Secrets Manager read for OpenRouter key,
+- Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
   Lambda invoke permission for `AwsApiProxyFunction`
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,

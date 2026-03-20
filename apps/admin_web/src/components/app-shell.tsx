@@ -3,6 +3,8 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 
+import CloseIcon from './icons/svg/close-icon.svg';
+import MenuIcon from './icons/svg/menu-icon.svg';
 import { Button } from './ui/button';
 
 export interface AppShellNavItem {
@@ -49,43 +51,6 @@ function formatTimestamp(value?: string): string | null {
     minute: '2-digit',
   });
   return `${localTimestamp} ${formatGmtOffset(parsedDate)}`;
-}
-
-function MenuIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox='0 0 24 24'
-      fill='none'
-      stroke='currentColor'
-      strokeWidth='2'
-      strokeLinecap='round'
-      strokeLinejoin='round'
-      aria-hidden='true'
-    >
-      <line x1='3' y1='6' x2='21' y2='6' />
-      <line x1='3' y1='12' x2='21' y2='12' />
-      <line x1='3' y1='18' x2='21' y2='18' />
-    </svg>
-  );
-}
-
-function CloseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox='0 0 24 24'
-      fill='none'
-      stroke='currentColor'
-      strokeWidth='2'
-      strokeLinecap='round'
-      strokeLinejoin='round'
-      aria-hidden='true'
-    >
-      <line x1='18' y1='6' x2='6' y2='18' />
-      <line x1='6' y1='6' x2='18' y2='18' />
-    </svg>
-  );
 }
 
 export function AppShell({

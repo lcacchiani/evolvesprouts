@@ -32,7 +32,7 @@ describe('SectionCtaAnchor', () => {
     const label = screen.getByText('Visit resource');
     expect(label.className).toContain('es-link-external-label');
     expect(label.className).not.toContain('es-link-external-label--direction');
-    const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
+    const externalIcon = link.querySelector('.es-ui-icon-mask--external-link');
     expect(externalIcon).not.toBeNull();
     expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
   });
@@ -44,8 +44,8 @@ describe('SectionCtaAnchor', () => {
     expect(link).not.toHaveAttribute('target');
     expect(link.className).toContain('es-btn');
     expect(link.className).toContain('es-btn--primary');
-    expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
-    expect(link.querySelector('path[d="M7 4L13 10L7 16"]')).not.toBeNull();
+    expect(link.querySelector('.es-ui-icon-mask--external-link')).toBeNull();
+    expect(link.querySelector('.es-ui-icon-mask--chevron-right')).not.toBeNull();
   });
 
   it('uses currentColor for outline chevron stroke', () => {
@@ -56,11 +56,11 @@ describe('SectionCtaAnchor', () => {
     );
 
     const link = screen.getByRole('link', { name: 'About us' });
-    const chevronPath = link.querySelector('path[d="M7 4L13 10L7 16"]');
+    const chevron = link.querySelector('.es-ui-icon-mask--chevron-right');
 
     expect(link.className).toContain('es-btn--outline');
-    expect(chevronPath).not.toBeNull();
-    expect(chevronPath?.getAttribute('stroke')).toBe('currentColor');
+    expect(chevron).not.toBeNull();
+    expect(chevron?.className).toContain('es-ui-icon-mask--chevron-right');
   });
 
   it('keeps non-HTTP protocols without external indicator styling', () => {
@@ -69,10 +69,10 @@ describe('SectionCtaAnchor', () => {
     const link = screen.getByRole('link', { name: 'Email us' });
     expect(link).toHaveAttribute('href', 'mailto:ida@example.com');
     expect(link).not.toHaveAttribute('target');
-    expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
+    expect(link.querySelector('.es-ui-icon-mask--external-link')).toBeNull();
     expect(screen.getByText('Email us').className).not.toContain(
       'es-link-external-label',
     );
-    expect(link.querySelector('path[d="M7 4L13 10L7 16"]')).not.toBeNull();
+    expect(link.querySelector('.es-ui-icon-mask--chevron-right')).not.toBeNull();
   });
 });

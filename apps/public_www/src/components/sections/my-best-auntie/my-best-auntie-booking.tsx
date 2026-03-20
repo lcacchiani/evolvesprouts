@@ -61,21 +61,10 @@ function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 24 24'
-      className={`h-7 w-7 es-text-icon ${rotationClass}`}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M8 4L16 12L8 20'
-        stroke='currentColor'
-        strokeWidth='2.4'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
+    <span
+      aria-hidden
+      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 es-text-icon ${rotationClass}`}
+    />
   );
 }
 

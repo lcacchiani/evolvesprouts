@@ -16,6 +16,7 @@ vi.mock('@/lib/api-admin-client', async () => {
 
 import {
   createAdminAsset,
+  getUserAssetDownloadUrl,
   listAdminAssetGrants,
   listAdminAssets,
   uploadFileToPresignedUrl,
@@ -143,6 +144,24 @@ describe('assets-api', () => {
       uploadHeaders: { 'x-amz-acl': 'private' },
       expiresAt: '2026-02-28T00:00:00.000Z',
     });
+  });
+
+  it('fetches user asset download URL', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      asset_id: 'asset-1',
+      download_url: 'https://cdn.example.com/signed',
+      expires_at: '2026-02-28T00:00:00.000Z',
+    });
+
+    const url = await getUserAssetDownloadUrl('asset-1');
+
+    expect(url).toBe('https://cdn.example.com/signed');
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'GET',
+        endpointPath: '/v1/user/assets/asset-1/download',
+      })
+    );
   });
 
   it('parses grants list payload', async () => {

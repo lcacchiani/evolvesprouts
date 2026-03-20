@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
     "generate:admin-api-types": "openapi-typescript ../../docs/api/admin.yaml -o src/types/generated/admin-api.generated.ts",
     "check:admin-api-types": "node ./scripts/check-admin-api-types.mjs",
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.3",
+    "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -36,6 +37,7 @@
     "postcss": "^8.5.8",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
+    "vite-plugin-svgr": "^4.5.0",
     "vitest": "^4.1.0"
   },
   "overrides": {
