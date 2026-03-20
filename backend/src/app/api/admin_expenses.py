@@ -20,6 +20,7 @@ from app.api.admin_expenses_common import (
     parse_optional_string,
     parse_update_payload,
     required_string,
+    resolve_vendor,
     resolve_asset_ids,
     serialize_expense,
 )
@@ -159,11 +160,13 @@ def _create_expense(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id)
         expense_repo = ExpenseRepository(session)
+        vendor = resolve_vendor(session, payload["vendor_id"])
         expense = expense_repo.create_expense(
             created_by=actor_sub,
             status=payload["status"],
             parse_status=parse_status,
-            vendor_name=payload["vendor_name"],
+            vendor_name=vendor.name if vendor is not None else None,
+            vendor_id=vendor.id if vendor is not None else None,
             invoice_number=payload["invoice_number"],
             invoice_date=payload["invoice_date"],
             due_date=payload["due_date"],
@@ -227,6 +230,11 @@ def _update_expense(
             )
 
         apply_common_fields(expense, payload)
+        if payload["vendor_id"] is not None:
+            vendor = resolve_vendor(session, payload["vendor_id"])
+            if vendor is not None:
+                expense.vendor_id = vendor.id
+                expense.vendor_name = vendor.name
         if payload["status"] is not None and payload["status"] != expense.status:
             expense.status = payload["status"]
             if (
@@ -377,6 +385,7 @@ def _amend_expense(
             ),
             amends_expense_id=source.id,
             vendor_name=source.vendor_name,
+            vendor_id=source.vendor_id,
             invoice_number=source.invoice_number,
             invoice_date=source.invoice_date,
             due_date=source.due_date,
@@ -388,6 +397,11 @@ def _amend_expense(
             notes=source.notes,
         )
         apply_common_fields(amendment, payload)
+        if payload["vendor_id"] is not None:
+            vendor = resolve_vendor(session, payload["vendor_id"])
+            if vendor is not None:
+                amendment.vendor_id = vendor.id
+                amendment.vendor_name = vendor.name
         if amendment.status == ExpenseStatus.SUBMITTED:
             amendment.submitted_at = now
 

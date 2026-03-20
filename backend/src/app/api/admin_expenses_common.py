@@ -11,8 +11,8 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_uuid
-from app.db.models import Expense, ExpenseParseStatus, ExpenseStatus
-from app.db.repositories import AssetRepository
+from app.db.models import Expense, ExpenseParseStatus, ExpenseStatus, Organization
+from app.db.repositories import AssetRepository, OrganizationRepository
 from app.exceptions import ValidationError
 
 _STATUS_TERMINAL = {
@@ -25,6 +25,11 @@ _STATUS_TERMINAL = {
 def serialize_expense(expense: Expense) -> dict[str, Any]:
     """Serialize expense model for API responses."""
     attachments = sorted(expense.attachments, key=lambda item: item.sort_order)
+    vendor_name = (
+        expense.vendor.name
+        if expense.vendor is not None and expense.vendor.relationship_type.value == "vendor"
+        else expense.vendor_name
+    )
     return {
         "id": str(expense.id),
         "amends_expense_id": str(expense.amends_expense_id)
@@ -32,7 +37,8 @@ def serialize_expense(expense: Expense) -> dict[str, Any]:
         else None,
         "status": expense.status.value,
         "parse_status": expense.parse_status.value,
-        "vendor_name": expense.vendor_name,
+        "vendor_name": vendor_name,
+        "vendor_id": str(expense.vendor_id) if expense.vendor_id else None,
         "invoice_number": expense.invoice_number,
         "invoice_date": expense.invoice_date.isoformat()
         if expense.invoice_date is not None
@@ -115,11 +121,16 @@ def parse_update_payload(
     allow_empty: bool = True,
 ) -> dict[str, Any]:
     """Parse update/amend payload."""
+    if optional_field(body, "vendor_name", "vendorName") is not None:
+        raise ValidationError(
+            "vendor_name is not supported. Use vendor_id from managed vendors.",
+            field="vendor_id",
+        )
     payload: dict[str, Any] = {
         "status": parse_optional_status(optional_field(body, "status")),
-        "vendor_name": parse_optional_string(
-            optional_field(body, "vendor_name", "vendorName"),
-            max_length=255,
+        "vendor_id": parse_optional_uuid(
+            optional_field(body, "vendor_id", "vendorId"),
+            field="vendor_id",
         ),
         "invoice_number": parse_optional_string(
             optional_field(body, "invoice_number", "invoiceNumber"),
@@ -158,7 +169,6 @@ def parse_update_payload(
 def apply_common_fields(expense: Expense, payload: Mapping[str, Any]) -> None:
     """Apply provided common fields on an expense entity (PATCH-safe)."""
     _FIELDS = (
-        "vendor_name",
         "invoice_number",
         "invoice_date",
         "due_date",
@@ -319,6 +329,29 @@ def parse_optional_uuid_list(value: Any) -> list[UUID] | None:
                 field="attachment_asset_ids",
             ) from exc
     return parsed
+
+
+def parse_optional_uuid(value: Any, *, field: str) -> UUID | None:
+    """Parse optional UUID value."""
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    if not normalized:
+        return None
+    try:
+        return parse_uuid(normalized)
+    except ValidationError as exc:
+        raise ValidationError(f"Invalid UUID: {normalized}", field=field) from exc
+
+
+def resolve_vendor(session: Session, vendor_id: UUID | None) -> Organization | None:
+    """Return a vendor organization by id if provided."""
+    if vendor_id is None:
+        return None
+    vendor = OrganizationRepository(session).get_vendor_by_id(vendor_id)
+    if vendor is None:
+        raise ValidationError("vendor_id not found", field="vendor_id")
+    return vendor
 
 
 def parse_bool(value: Any, *, default: bool) -> bool:

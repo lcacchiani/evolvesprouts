@@ -141,7 +141,8 @@ Columns:
 - `amends_expense_id` (UUID, FK → `expenses.id`, nullable) — source record for amendment history
 - `status` (enum `expense_status`, required, default `draft`)
 - `parse_status` (enum `expense_parse_status`, required, default `not_requested`)
-- `vendor_name` (varchar(255), optional)
+- `vendor_id` (UUID, FK → `organizations.id`, nullable) — managed vendor selection
+- `vendor_name` (varchar(255), optional) — denormalized vendor label for history/parser fallback
 - `invoice_number` (varchar(128), optional)
 - `invoice_date` (date, optional)
 - `due_date` (date, optional)
@@ -161,7 +162,8 @@ Constraints and indexes:
 - `expenses_amendment_not_self` prevents self-referencing amendment links
 - `expenses_parse_confidence_range` enforces `0..1`
 - `expenses_status_idx`, `expenses_parse_status_idx`,
-  `expenses_invoice_date_idx`, `expenses_amends_expense_idx`
+  `expenses_invoice_date_idx`, `expenses_amends_expense_idx`,
+  `expenses_vendor_idx`
 - `set_updated_at()` trigger updates `updated_at` on write
 
 ## Table: expense_attachments

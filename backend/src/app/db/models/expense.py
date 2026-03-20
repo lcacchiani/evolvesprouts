@@ -29,6 +29,7 @@ from app.db.models.enums import ExpenseParseStatus, ExpenseStatus
 
 if TYPE_CHECKING:
     from app.db.models.asset import Asset
+    from app.db.models.organization import Organization
 
 
 def _enum_values(
@@ -55,6 +56,7 @@ class Expense(Base):
         Index("expenses_parse_status_idx", "parse_status"),
         Index("expenses_invoice_date_idx", "invoice_date"),
         Index("expenses_amends_expense_idx", "amends_expense_id"),
+        Index("expenses_vendor_idx", "vendor_id"),
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -88,6 +90,11 @@ class Expense(Base):
         server_default=text("'not_requested'"),
     )
     vendor_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    vendor_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     invoice_number: Mapped[str | None] = mapped_column(String(128), nullable=True)
     invoice_date: Mapped[date | None] = mapped_column(nullable=True)
     due_date: Mapped[date | None] = mapped_column(nullable=True)
@@ -144,6 +151,7 @@ class Expense(Base):
         "Expense",
         foreign_keys=[amends_expense_id],
     )
+    vendor: Mapped[Organization | None] = relationship("Organization")
 
 
 class ExpenseAttachment(Base):

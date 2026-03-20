@@ -28,6 +28,7 @@ their primary responsibilities.
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
   `/v1/admin/leads/*`, `/v1/admin/users`,
   `/v1/admin/services/*`, `/v1/admin/discount-codes/*`,
+  `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
@@ -37,7 +38,7 @@ their primary responsibilities.
   API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
 - Purpose: asset metadata CRUD, geographic area browsing, location CRUD,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
-  expense invoice ingestion/listing/amendment/void/pay flows,
+  vendor management, expense invoice ingestion/listing/amendment/void/pay flows,
   and admin-user listing for lead assignment,
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
