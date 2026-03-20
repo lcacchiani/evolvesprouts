@@ -36,6 +36,7 @@ interface BookingReservationFormProps {
   selectedCohortPrice: number;
   venueName?: string;
   venueAddress?: string;
+  venueDirectionHref?: string;
   dateEndTime?: string;
   topicsFieldConfig?: BookingTopicsFieldConfig;
   descriptionId: string;
@@ -98,6 +99,7 @@ export function BookingReservationForm({
   selectedCohortPrice,
   venueName = '',
   venueAddress = '',
+  venueDirectionHref = '',
   dateEndTime = '',
   topicsFieldConfig,
   descriptionId,
@@ -273,6 +275,14 @@ export function BookingReservationForm({
       dateEndTime: sanitizeSingleLineValue(dateEndTime) || undefined,
       locationName: sanitizeSingleLineValue(venueName) || undefined,
       locationAddress: sanitizeSingleLineValue(venueAddress) || undefined,
+      locationDirectionHref: (() => {
+        const href = sanitizeSingleLineValue(venueDirectionHref);
+        if (!href || href === '#') {
+          return undefined;
+        }
+
+        return href;
+      })(),
     };
     const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
     const normalizedCohortDate =

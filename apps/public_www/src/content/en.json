@@ -1126,14 +1126,10 @@
       "subtitle": "",
       "successLabel": "Thank you!",
       "courseLabel": "My Best Auntie Training Course.",
-      "summaryHeading": "Summary",
-      "summaryEventLabel": "Event name",
-      "summaryDateTimeLabel": "Date & time",
-      "summaryLocationLabel": "Location",
-      "summaryAmountLabel": "Amount",
       "summaryLocationVirtualFallback": "Virtual Zoom call",
       "summaryEmptyValue": "—",
-      "downloadCalendarLabel": "Download calendar (.ics)",
+      "downloadCalendarLabel": "Download invite to your personal calendar",
+      "directionLabel": "Get Directions",
       "followUpPrompt": "Any immediate questions?"
     }
   },

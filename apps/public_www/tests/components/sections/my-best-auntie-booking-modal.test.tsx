@@ -156,6 +156,7 @@ const reservationSummary: ReservationSummary = {
   dateEndTime: '2026-04-08T14:00:00Z',
   locationName: 'Evolve Sprouts',
   locationAddress: 'Unit 507 Test Street',
+  locationDirectionHref: 'https://maps.google.com/?q=Evolve+Sprouts',
 };
 
 if (!selectedCohort) {
@@ -985,8 +986,8 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
   });
 
-  it('renders thank-you summary rows and calendar download control', () => {
-    renderWithPortalContainer(
+  it('renders thank-you detail cards, calendar download, and directions link', () => {
+    const { container } = renderWithPortalContainer(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
@@ -995,21 +996,29 @@ describe('my-best-auntie booking modals footer content', () => {
       />,
     );
 
+    expect(container.querySelectorAll('.es-landing-page-details-card')).toHaveLength(4);
     expect(
-      screen.getByRole('heading', {
-        level: 4,
-        name: thankYouModalContent.summaryHeading,
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(thankYouModalContent.summaryEventLabel)).toBeInTheDocument();
+      container.querySelector('img[src="/images/training.svg"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('img[src="/images/calendar.svg"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('img[src="/images/location.svg"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('img[src="/images/dollar-symbol.svg"]'),
+    ).not.toBeNull();
     expect(screen.getByText(reservationSummary.eventTitle)).toBeInTheDocument();
-    expect(screen.getByText(thankYouModalContent.summaryLocationLabel)).toBeInTheDocument();
-    expect(
-      screen.getByText('Evolve Sprouts, Unit 507 Test Street'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Evolve Sprouts')).toBeInTheDocument();
+    expect(screen.getByText('Unit 507 Test Street')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: thankYouModalContent.downloadCalendarLabel }),
     ).toBeInTheDocument();
+    const directionLink = screen.getByRole('link', {
+      name: thankYouModalContent.directionLabel,
+    });
+    expect(directionLink).toHaveAttribute('href', reservationSummary.locationDirectionHref);
   });
 
   it('renders WhatsApp follow-up when href and label are provided', () => {

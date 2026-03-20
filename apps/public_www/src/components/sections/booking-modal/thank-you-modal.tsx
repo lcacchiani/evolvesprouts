@@ -3,7 +3,9 @@
 import Image from 'next/image';
 import { useId, useRef } from 'react';
 
+import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SmartLink } from '@/components/shared/smart-link';
 import {
   OverlayDialogPanel,
   OverlayScrollableBody,
@@ -27,6 +29,7 @@ import {
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { getHrefKind } from '@/lib/url-utils';
 
 export interface MyBestAuntieThankYouModalProps {
   locale: Locale;
@@ -39,6 +42,25 @@ export interface MyBestAuntieThankYouModalProps {
 }
 
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
+const THANK_YOU_EVENT_ICON_SRC = '/images/training.svg';
+const THANK_YOU_CALENDAR_ICON_SRC = '/images/calendar.svg';
+const THANK_YOU_LOCATION_ICON_SRC = '/images/location.svg';
+const THANK_YOU_PRICE_ICON_SRC = '/images/dollar-symbol.svg';
+
+function ThankYouDetailCardIcon({ src }: { src: string }) {
+  return (
+    <span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl es-landing-page-details-card-icon-wrap'>
+      <Image
+        src={src}
+        alt=''
+        width={28}
+        height={28}
+        className='es-landing-page-details-card-icon h-7 w-7'
+        aria-hidden='true'
+      />
+    </span>
+  );
+}
 
 function formatSummaryDatePart(dateStartTime: string | undefined, locale: Locale): string {
   const normalized = dateStartTime?.trim() ?? '';
@@ -121,6 +143,13 @@ export function MyBestAuntieThankYouModal({
     ? formatCurrencyHkd(summary.totalAmount, locale)
     : content.summaryEmptyValue;
   const dateTimeDisplay = dateTimeLine || content.summaryEmptyValue;
+  const locationNameRaw = summary?.locationName?.trim() ?? '';
+  const locationAddressRaw = summary?.locationAddress?.trim() ?? '';
+  const hasStructuredVenue =
+    locationNameRaw.length > 0 || locationAddressRaw.length > 0;
+  const directionHref = summary?.locationDirectionHref?.trim() ?? '';
+  const showDirectionsLink =
+    hasStructuredVenue && getHrefKind(directionHref) === 'http';
 
   const describedByIds = hasSubtitleBlock
     ? `${dialogSuccessId} ${dialogDescriptionId}`
@@ -217,55 +246,91 @@ export function MyBestAuntieThankYouModal({
             ) : null}
           </div>
 
-          <section className='relative z-10 mx-auto mt-10 max-w-[713px] overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
-            <h4 className='relative z-10 text-left text-lg font-semibold es-text-heading'>
-              {content.summaryHeading}
-            </h4>
-            <dl className='relative z-10 mt-6 space-y-4 text-left'>
-              <div>
-                <dt className='text-sm font-medium es-text-muted'>
-                  {content.summaryEventLabel}
-                </dt>
-                <dd className='mt-1 text-base es-text-body'>
+          <section className='relative z-10 mx-auto mt-10 w-full max-w-[713px] px-4 sm:px-0'>
+            <div className='grid grid-cols-2 gap-3 sm:gap-5'>
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-landing-page-details-card'>
+                <div className='flex w-full justify-center'>
+                  <ThankYouDetailCardIcon src={THANK_YOU_EVENT_ICON_SRC} />
+                </div>
+                <p className='mt-3 text-center es-landing-page-details-card-description'>
                   {eventTitle}
-                </dd>
-              </div>
-              <div>
-                <dt className='text-sm font-medium es-text-muted'>
-                  {content.summaryDateTimeLabel}
-                </dt>
-                <dd className='mt-1 text-base es-text-body'>
-                  {dateTimeDisplay}
-                </dd>
-              </div>
-              <div>
-                <dt className='text-sm font-medium es-text-muted'>
-                  {content.summaryLocationLabel}
-                </dt>
-                <dd className='mt-1 text-base es-text-body'>
-                  {locationLine}
-                </dd>
-              </div>
-              <div>
-                <dt className='text-sm font-medium es-text-muted'>
-                  {content.summaryAmountLabel}
-                </dt>
-                <dd className='mt-1 text-base es-text-body'>
-                  {amountLine}
-                </dd>
-              </div>
-            </dl>
+                </p>
+              </article>
 
-            <div className='relative z-10 mt-8'>
-              <ButtonPrimitive
-                variant='outline'
-                type='button'
-                disabled={!canDownloadIcs}
-                onClick={handleDownloadIcs}
-                className='h-[54px] w-full rounded-control px-6 text-[16px] font-semibold sm:h-[60px] sm:text-[18px]'
-              >
-                {content.downloadCalendarLabel}
-              </ButtonPrimitive>
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-landing-page-details-card'>
+                <div className='flex w-full justify-center'>
+                  <ThankYouDetailCardIcon src={THANK_YOU_CALENDAR_ICON_SRC} />
+                </div>
+                <p className='mt-3 text-center es-landing-page-details-card-description'>
+                  {dateTimeDisplay}
+                </p>
+                <div className='mt-auto flex w-full justify-center pt-3'>
+                  <button
+                    type='button'
+                    disabled={!canDownloadIcs}
+                    onClick={handleDownloadIcs}
+                    className='text-center text-base font-semibold leading-snug underline decoration-2 underline-offset-2 es-text-heading disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50'
+                  >
+                    {content.downloadCalendarLabel}
+                  </button>
+                </div>
+              </article>
+
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-landing-page-details-card'>
+                <div className='flex w-full justify-center'>
+                  <ThankYouDetailCardIcon src={THANK_YOU_LOCATION_ICON_SRC} />
+                </div>
+                <div className='mt-3 flex w-full flex-col items-center text-center'>
+                  {hasStructuredVenue ? (
+                    <>
+                      {locationNameRaw ? (
+                        <p className='font-semibold es-landing-page-details-card-description'>
+                          {locationNameRaw}
+                        </p>
+                      ) : null}
+                      {locationAddressRaw ? (
+                        <p
+                          className={
+                            locationNameRaw
+                              ? 'mt-1 es-landing-page-details-card-description'
+                              : 'es-landing-page-details-card-description'
+                          }
+                        >
+                          {locationAddressRaw}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : (
+                    <p className='es-landing-page-details-card-description'>
+                      {locationLine}
+                    </p>
+                  )}
+                  {showDirectionsLink ? (
+                    <SmartLink
+                      href={directionHref}
+                      className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
+                    >
+                      {({ isExternalHttp }) => (
+                        <ExternalLinkInlineContent
+                          isExternalHttp={isExternalHttp}
+                          externalLabelClassName='es-link-external-label--direction'
+                        >
+                          {content.directionLabel}
+                        </ExternalLinkInlineContent>
+                      )}
+                    </SmartLink>
+                  ) : null}
+                </div>
+              </article>
+
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-landing-page-details-card'>
+                <div className='flex w-full justify-center'>
+                  <ThankYouDetailCardIcon src={THANK_YOU_PRICE_ICON_SRC} />
+                </div>
+                <p className='mt-3 text-center es-landing-page-details-card-description'>
+                  {amountLine}
+                </p>
+              </article>
             </div>
           </section>
 

@@ -11,6 +11,8 @@ export interface ReservationSummary {
   dateEndTime?: string;
   locationName?: string;
   locationAddress?: string;
+  /** Maps or venue URL for “Get directions” on the thank-you step. */
+  locationDirectionHref?: string;
 }
 
 export interface BookingTopicsFieldConfig {

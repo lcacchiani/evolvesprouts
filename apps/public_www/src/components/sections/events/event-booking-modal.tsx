@@ -115,6 +115,7 @@ export function EventBookingModal({
               selectedCohortPrice={bookingPayload.originalAmount}
               venueName={bookingPayload.locationName}
               venueAddress={bookingPayload.locationAddress}
+              venueDirectionHref={bookingPayload.directionHref}
               dateEndTime={bookingPayload.dateParts[0]?.endDateTime ?? ''}
               topicsFieldConfig={topicsFieldConfig}
               descriptionId={dialogDescriptionId}
