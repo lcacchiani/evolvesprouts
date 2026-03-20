@@ -45,10 +45,11 @@ export function EventBookingModal({
   locale = 'en',
   paymentModalContent,
   bookingPayload,
-  topicsFieldConfig,
+  topicsFieldConfig: topicsFieldConfigProp,
   onClose,
   onSubmitReservation,
 }: EventBookingModalProps) {
+  const topicsFieldConfig = topicsFieldConfigProp ?? bookingPayload.topicsFieldConfig;
   const modalPanelRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogTitleId = useId();
