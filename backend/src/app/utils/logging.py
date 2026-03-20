@@ -96,6 +96,23 @@ request_id: ContextVar[str] = ContextVar("request_id", default="")
 correlation_id: ContextVar[str] = ContextVar("correlation_id", default="")
 
 
+def _logrecord_builtin_keys() -> frozenset[str]:
+    """Attribute names managed by logging.LogRecord (not ``logger.*(..., extra=)``)."""
+    sample = logging.LogRecord(
+        name="",
+        level=logging.INFO,
+        pathname="",
+        lineno=0,
+        msg="",
+        args=(),
+        exc_info=None,
+    )
+    return frozenset(sample.__dict__.keys()) | frozenset({"message"})
+
+
+_LOGRECORD_BUILTIN_KEYS = _logrecord_builtin_keys()
+
+
 class StructuredLogFormatter(logging.Formatter):
     """JSON formatter for structured logging.
 
@@ -137,9 +154,18 @@ class StructuredLogFormatter(logging.Formatter):
                 "traceback": traceback.format_exception(*record.exc_info),
             }
 
-        # Add extra fields from the record
-        if hasattr(record, "extra") and isinstance(record.extra, dict):
-            log_data["extra"] = record.extra
+        # Merge ``logger.info(..., extra={...})`` fields (they become LogRecord attributes)
+        for key, value in record.__dict__.items():
+            if key in _LOGRECORD_BUILTIN_KEYS or key in log_data:
+                continue
+            log_data[key] = value
+
+        # Legacy: some code may attach a dict as record.extra
+        legacy_extra = getattr(record, "extra", None)
+        if isinstance(legacy_extra, dict):
+            for key, value in legacy_extra.items():
+                if key not in log_data:
+                    log_data[key] = value
 
         return json.dumps(log_data, default=str)
 

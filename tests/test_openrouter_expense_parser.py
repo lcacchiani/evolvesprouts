@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+import pytest
+
 from app.services import openrouter_expense_parser as parser
 
 
@@ -220,3 +222,36 @@ def test_parse_invoice_uses_configured_pdf_engine(monkeypatch: Any) -> None:
 
     payload = json.loads(captured_request["body"])
     assert payload["plugins"][0]["pdf"]["engine"] == "pdf-text"
+
+
+def test_parse_invoice_surfaces_openrouter_error_body(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"x")}
+
+    def _fake_http_invoke(**_kwargs: Any) -> dict[str, Any]:
+        return {
+            "status": 404,
+            "body": '{"error":{"message":"No endpoints found for google/gpt-4"}}',
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        parser.parse_invoice_from_assets(
+            [
+                {
+                    "id": "asset-e",
+                    "s3_key": "k",
+                    "file_name": "i.png",
+                    "content_type": "image/png",
+                }
+            ]
+        )
+
+    assert "404" in str(exc_info.value)
+    assert "No endpoints found" in str(exc_info.value)

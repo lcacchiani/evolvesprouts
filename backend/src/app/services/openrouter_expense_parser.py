@@ -77,7 +77,10 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
             "OpenRouter request failed",
             extra={"status_code": status_code, "response_preview": preview or None},
         )
-        raise RuntimeError(f"OpenRouter request failed with status {status_code}")
+        detail = f": {preview}" if preview else ""
+        raise RuntimeError(
+            f"OpenRouter request failed with status {status_code}{detail}"
+        )
     parsed = _parse_completion_body(body)
     logger.info("Invoice parse completed successfully")
     return _normalize_result(parsed)
