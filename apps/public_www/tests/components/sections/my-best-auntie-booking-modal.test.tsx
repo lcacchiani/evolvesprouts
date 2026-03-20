@@ -41,6 +41,10 @@ import trainingCoursesContent from '@/content/my-best-auntie-training-courses.js
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
+import {
+  formatSiteCompactDate,
+  formatSiteTimeOfDay,
+} from '@/lib/site-datetime';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -1018,7 +1022,16 @@ describe('my-best-auntie booking modals footer content', () => {
     ).not.toBeNull();
     expect(screen.getByText(reservationSummary.eventTitle)).toBeInTheDocument();
     expect(screen.getByText(myBestAuntieModalContent.subtitle)).toBeInTheDocument();
-    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    const sessionLines =
+      reservationSummary.courseSessions?.map((session) => {
+        const datePart = formatSiteCompactDate(session.dateStartTime, 'en');
+        const timePart = formatSiteTimeOfDay(session.dateStartTime, 'en');
+        return `${datePart}, ${timePart}`;
+      }) ?? [];
+    expect(sessionLines).toHaveLength(2);
+    for (const line of sessionLines) {
+      expect(screen.getByText(line)).toBeInTheDocument();
+    }
     expect(screen.getByText(thankYouModalContent.paymentConfirmationNote)).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
