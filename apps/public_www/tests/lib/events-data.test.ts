@@ -6,6 +6,10 @@ import temporaryEventsPayload from '@/content/events.json';
 import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
+  PUBLIC_SITE_IANA_TIMEZONE,
+  formatHeroFullDateLine,
+} from '@/lib/site-datetime';
+import {
   fetchEventsPayload,
   getLandingPageBookingEventContent,
   getLandingPageHeroEventContent,
@@ -39,6 +43,7 @@ function formatExpectedDateLabel(
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
   }).format(new Date(isoDateTime));
 }
 
@@ -55,15 +60,18 @@ function formatExpectedTimeLabel(
           hour: '2-digit',
           minute: '2-digit',
           hour12: false,
+          timeZone: PUBLIC_SITE_IANA_TIMEZONE,
         })
       : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true,
+          timeZone: PUBLIC_SITE_IANA_TIMEZONE,
         });
   const timeZoneLabel = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
     timeZoneName: 'short',
   })
     .formatToParts(startDate)
@@ -78,27 +86,8 @@ function formatExpectedTimeLabel(
 function formatExpectedLandingPageEyebrowDate(
   isoDateTime: string,
   locale: 'en' | 'zh-CN' | 'zh-HK',
-): string {
-  const date = new Date(isoDateTime);
-  if (locale === 'en') {
-    const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    }).formatToParts(date);
-    const weekday = parts.find((part) => part.type === 'weekday')?.value;
-    const day = parts.find((part) => part.type === 'day')?.value;
-    const month = parts.find((part) => part.type === 'month')?.value;
-    return `${weekday} ${day} ${month}`;
-  }
-
-  const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    month: 'long',
-    day: 'numeric',
-  }).formatToParts(date);
-  const month = parts.find((part) => part.type === 'month')?.value;
-  const day = parts.find((part) => part.type === 'day')?.value;
-  return `${month} ${day} 日`;
+): string | undefined {
+  return formatHeroFullDateLine(isoDateTime, locale);
 }
 
 describe('events-data', () => {

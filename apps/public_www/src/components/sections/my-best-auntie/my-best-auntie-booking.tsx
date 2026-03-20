@@ -176,9 +176,12 @@ function findPreferredCohortId(
   return available?.id ?? ageGroupCohorts[0]?.id ?? '';
 }
 
-function getPrimarySessionDateTimeLabel(cohort: BookingCohort | null): string {
+function getPrimarySessionDateTimeLabel(
+  cohort: BookingCohort | null,
+  locale: Locale,
+): string {
   const startDateTime = cohort?.dates[0]?.start_datetime ?? '';
-  return formatPartDateTimeLabel(startDateTime);
+  return formatPartDateTimeLabel(startDateTime, locale);
 }
 
 function formatCohortPrice(
@@ -239,7 +242,7 @@ export function MyBestAuntieBooking({
   });
   const dateOptions: BookingDateOption[] = cohortsForSelectedAge.map((cohort) => ({
     id: cohort.id,
-    label: formatCohortValue(cohort.cohort),
+    label: formatCohortValue(cohort.cohort, locale),
     availabilityLabel: formatSpacesLeftLabel(
       cohort.spaces_left,
       content.spacesLeftLabelTemplate,
@@ -269,7 +272,7 @@ export function MyBestAuntieBooking({
     dateOptions.find((option) => option.id === selectedDateId) ?? dateOptions[0];
   const selectedCohort = selectedDateOption?.cohort ?? dateOptions[0]?.cohort ?? null;
   const nextCohortForSelectedAge = cohortsForSelectedAge[0] ?? null;
-  const nextCohortDate = getPrimarySessionDateTimeLabel(nextCohortForSelectedAge);
+  const nextCohortDate = getPrimarySessionDateTimeLabel(nextCohortForSelectedAge, locale);
   const nextCohortLabel = formatNextCohortLabel(
     content.scheduleLabel,
     selectedAgeOption?.label ?? '',

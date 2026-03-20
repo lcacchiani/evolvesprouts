@@ -32,9 +32,9 @@ describe('formatPartDateTimeLabel', () => {
     expect(formatPartDateTimeLabel('')).toBe('');
   });
 
-  it('formats valid datetime values with lowercase am/pm', () => {
-    expect(formatPartDateTimeLabel('2026-01-22T09:00:00Z')).toBe('Jan 22 @ 9:00 am');
-    expect(formatPartDateTimeLabel('2026-01-22T21:30:00Z')).toBe('Jan 22 @ 9:30 pm');
+  it('formats valid datetime values in the site timezone with 24-hour English times', () => {
+    expect(formatPartDateTimeLabel('2026-01-22T09:00:00Z')).toBe('22 Jan @ 17:00');
+    expect(formatPartDateTimeLabel('2026-01-22T21:30:00Z')).toBe('23 Jan @ 05:30');
   });
 });
 

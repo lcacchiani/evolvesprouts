@@ -21,6 +21,10 @@ import type {
   EventBookingModalPayload,
   LandingPageHeroEventContent,
 } from '@/lib/events-data';
+import {
+  formatHeroFullDateLine,
+  formatSiteTimeRange,
+} from '@/lib/site-datetime';
 
 interface LandingPageHeroProps {
   slug: string;
@@ -150,84 +154,6 @@ function PartnerLogo({ partner }: { partner: string }) {
   );
 }
 
-function resolveDateTimeLocale(locale: Locale): string {
-  if (locale === 'en') {
-    return 'en-GB';
-  }
-
-  return locale;
-}
-
-function buildHeroDateChip(startDateTime: string | undefined, locale: Locale): string | undefined {
-  const normalizedStartDateTime = startDateTime?.trim() ?? '';
-  if (!normalizedStartDateTime) {
-    return undefined;
-  }
-
-  const startDate = new Date(normalizedStartDateTime);
-  if (Number.isNaN(startDate.getTime())) {
-    return undefined;
-  }
-
-  const dateParts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).formatToParts(startDate);
-  const weekday = dateParts.find((part) => part.type === 'weekday')?.value;
-  const day = dateParts.find((part) => part.type === 'day')?.value;
-  const month = dateParts.find((part) => part.type === 'month')?.value;
-  const year = dateParts.find((part) => part.type === 'year')?.value;
-  if (!weekday || !day || !month || !year) {
-    return undefined;
-  }
-
-  return `${weekday} ${day} ${month} ${year}`;
-}
-
-function buildHeroTimeChip(
-  startDateTime: string | undefined,
-  endDateTime: string | undefined,
-  locale: Locale,
-): string | undefined {
-  const normalizedStartDateTime = startDateTime?.trim() ?? '';
-  if (!normalizedStartDateTime) {
-    return undefined;
-  }
-
-  const startDate = new Date(normalizedStartDateTime);
-  if (Number.isNaN(startDate.getTime())) {
-    return undefined;
-  }
-
-  const timeFormatter =
-    locale === 'en'
-      ? new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        })
-      : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        });
-  const startTimeLabel = timeFormatter.format(startDate);
-
-  const normalizedEndDateTime = endDateTime?.trim() ?? '';
-  if (!normalizedEndDateTime) {
-    return startTimeLabel;
-  }
-
-  const endDate = new Date(normalizedEndDateTime);
-  if (Number.isNaN(endDate.getTime())) {
-    return startTimeLabel;
-  }
-
-  return `${startTimeLabel} - ${timeFormatter.format(endDate)}`;
-}
-
 function buildHeroChips(
   eventContent: LandingPageHeroEventContent | null,
   locale: Locale,
@@ -242,11 +168,15 @@ function buildHeroChips(
   for (const chip of [
     {
       type: 'date' as const,
-      label: buildHeroDateChip(eventContent.startDateTime, locale),
+      label: formatHeroFullDateLine(eventContent.startDateTime, locale),
     },
     {
       type: 'time' as const,
-      label: buildHeroTimeChip(eventContent.startDateTime, eventContent.endDateTime, locale),
+      label: formatSiteTimeRange(
+        eventContent.startDateTime,
+        eventContent.endDateTime,
+        locale,
+      ),
     },
     {
       type: 'location' as const,
