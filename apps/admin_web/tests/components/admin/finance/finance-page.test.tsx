@@ -71,4 +71,10 @@ describe('FinancePage', () => {
     expect(mockUseExpenses).toHaveBeenCalledTimes(1);
     expect(state.items).toEqual([]);
   });
+
+  it('renders expense currency as a dropdown', () => {
+    render(<FinancePage />);
+    const currencyField = screen.getByLabelText('Currency');
+    expect(currencyField.tagName).toBe('SELECT');
+  });
 });

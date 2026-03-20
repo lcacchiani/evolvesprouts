@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 import { EXPENSE_STATUSES, type Expense, type ExpenseLineItem, type ExpenseStatus } from '@/types/expenses';
 
 interface ExpensesEditorPanelProps {
@@ -147,6 +147,7 @@ export function ExpensesEditorPanel({
   onReparse,
   onStartCreate,
 }: ExpensesEditorPanelProps) {
+  const currencyOptions = getCurrencyOptions();
   const [status, setStatus] = useState<ExpenseStatus>(selectedExpense?.status ?? 'submitted');
   const [vendorName, setVendorName] = useState(selectedExpense?.vendorName ?? '');
   const [invoiceNumber, setInvoiceNumber] = useState(selectedExpense?.invoiceNumber ?? '');
@@ -287,7 +288,13 @@ export function ExpensesEditorPanel({
         </div>
         <div>
           <Label htmlFor='expense-currency'>Currency</Label>
-          <Input id='expense-currency' value={currency} onChange={(event) => setCurrency(event.target.value)} />
+          <Select id='expense-currency' value={currency} onChange={(event) => setCurrency(event.target.value)}>
+            {currencyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         </div>
         <div>
           <Label htmlFor='expense-subtotal'>Subtotal</Label>
