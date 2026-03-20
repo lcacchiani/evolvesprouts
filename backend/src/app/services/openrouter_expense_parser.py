@@ -15,6 +15,8 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 _api_key_cache: str | None = None
+_PDF_PLUGIN_ID = "file-parser"
+_DEFAULT_PDF_ENGINE = "mistral-ocr"
 
 
 def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
@@ -28,8 +30,31 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
     api_key = _get_api_key()
 
     content: list[dict[str, Any]] = [{"type": "text", "text": _schema_prompt()}]
+    has_pdf_attachment = False
     for asset in assets:
-        content.append(_build_attachment_content(asset))
+        attachment_content = _build_attachment_content(asset)
+        content.append(attachment_content)
+        if attachment_content.get("type") == "file":
+            has_pdf_attachment = True
+
+    payload: dict[str, Any] = {
+        "model": model,
+        "temperature": 0,
+        "messages": [
+            {
+                "role": "system",
+                "content": "You extract invoice data and return strict JSON only.",
+            },
+            {"role": "user", "content": content},
+        ],
+    }
+    if has_pdf_attachment:
+        payload["plugins"] = [
+            {
+                "id": _PDF_PLUGIN_ID,
+                "pdf": {"engine": _pdf_parser_engine()},
+            }
+        ]
 
     response = http_invoke(
         method="POST",
@@ -38,19 +63,7 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         },
-        body=json.dumps(
-            {
-                "model": model,
-                "temperature": 0,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You extract invoice data and return strict JSON only.",
-                    },
-                    {"role": "user", "content": content},
-                ],
-            }
-        ),
+        body=json.dumps(payload),
         timeout=30,
     )
 
@@ -80,11 +93,22 @@ def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
         raise RuntimeError(f"Attachment {asset.get('id')} exceeds parser size limit")
     content_type = _normalize_content_type(asset)
     encoded = base64.b64encode(body).decode("utf-8")
+    filename = str(asset.get("file_name") or "attachment")
+    data_url = f"data:{content_type};base64,{encoded}"
+
+    if content_type.startswith("image/"):
+        return {
+            "type": "image_url",
+            "image_url": {
+                "url": data_url,
+            },
+        }
+
     return {
         "type": "file",
         "file": {
-            "filename": str(asset.get("file_name") or "attachment"),
-            "file_data": f"data:{content_type};base64,{encoded}",
+            "filename": filename,
+            "file_data": data_url,
         },
     }
 
@@ -258,6 +282,13 @@ def _parse_max_file_bytes() -> int:
     except ValueError:
         return 15 * 1024 * 1024
     return max(1, parsed)
+
+
+def _pdf_parser_engine() -> str:
+    configured = os.getenv("OPENROUTER_PDF_ENGINE", "").strip().lower()
+    if configured in {"pdf-text", "mistral-ocr", "native"}:
+        return configured
+    return _DEFAULT_PDF_ENGINE
 
 
 def _require_env(name: str) -> str:
