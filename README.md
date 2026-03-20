@@ -11,6 +11,8 @@ repository also includes:
 
 - `AGENTS.md` for agent frameworks that auto-discover `AGENTS.md`
 - `.cursor/rules/00_mandatory_cursorrules.mdc` for Cursor rule auto-apply
+  (`alwaysApply: true`), which also instructs agents to **read** repository root
+  `.cursorrules` explicitly when a runtime might not inject it
 - `scripts/validate-cursorrules.sh` for CI and pre-commit enforcement
 
 Prompt-level instruction precedence is controlled by each agent runtime and
