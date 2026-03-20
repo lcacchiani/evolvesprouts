@@ -110,13 +110,14 @@ describe('LandingPageHero section', () => {
     expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toHaveClass('h-8');
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     const heroImage = screen.getByRole('img', { name: easterWorkshopContent.en.hero.imageAlt });
+    const heroImageMaxWidthClass = `max-w-[${easterWorkshopContent.en.hero.imageMaxWidthPercent}%]`;
     expect(heroImage).toBeInTheDocument();
     expect(heroImage.parentElement).toHaveClass(
       'es-landing-page-hero-image-wrap',
       'mx-auto',
       'w-full',
       'justify-self-center',
-      'max-w-[65%]',
+      heroImageMaxWidthClass,
     );
     expect(heroImage.parentElement?.parentElement).toHaveClass(
       'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]',
