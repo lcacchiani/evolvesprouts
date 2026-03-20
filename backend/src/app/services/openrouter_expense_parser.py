@@ -70,9 +70,12 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
     status_code = int(response.get("status", 0) or 0)
     body = str(response.get("body", "") or "")
     if status_code < 200 or status_code >= 300:
+        preview = body.replace("\n", " ").replace("\r", " ").strip()
+        if len(preview) > 500:
+            preview = f"{preview[:500]}..."
         logger.warning(
             "OpenRouter request failed",
-            extra={"status_code": status_code},
+            extra={"status_code": status_code, "response_preview": preview or None},
         )
         raise RuntimeError(f"OpenRouter request failed with status {status_code}")
     parsed = _parse_completion_body(body)
