@@ -386,72 +386,63 @@ function DesktopAuthorRow({
   return (
     <div
       data-testid='testimonials-desktop-controls'
-      className='hidden sm:block'
+      className='hidden px-6 sm:block sm:px-9 lg:px-12'
     >
-      <div
-        className={buildSectionSplitLayoutClassName(
-          'es-section-split-layout--testimonials',
-        )}
-      >
-        <div className='hidden lg:block' aria-hidden='true' />
-        <div className='px-6 sm:px-9 lg:px-12'>
-          <div className='mt-6 mb-6'>
-            <div className='mx-auto flex w-full max-w-[500px] items-center gap-3'>
-              <ButtonPrimitive
-                variant='control'
-                onClick={onPrevious}
-                aria-label={previousButtonLabel}
-                className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
-              >
-                <ChevronIcon direction='left' />
-              </ButtonPrimitive>
-              <div className='relative min-w-0 flex-1 overflow-hidden text-center'>
-                {anim.slots.map(({ index, state }) => {
-                  const story = stories[index];
-                  if (!story?.author && !story?.service) return null;
-                  let slotClassName = '';
-                  if (state === 'exiting') {
-                    slotClassName =
-                      anim.dir === 'next'
-                        ? 'es-author-exit-left absolute inset-x-0 top-0'
-                        : 'es-author-exit-right absolute inset-x-0 top-0';
-                  } else if (state === 'entering') {
-                    slotClassName =
-                      anim.dir === 'next'
-                        ? 'es-author-enter-from-right'
-                        : 'es-author-enter-from-left';
-                  }
-                  return (
-                    <div
-                      key={`${index}-${state}`}
-                      className={slotClassName || undefined}
+      <div className='mt-6 mb-6'>
+        <div className='mx-auto flex w-full max-w-[500px] items-center gap-3'>
+          <ButtonPrimitive
+            variant='control'
+            onClick={onPrevious}
+            aria-label={previousButtonLabel}
+            className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
+          >
+            <ChevronIcon direction='left' />
+          </ButtonPrimitive>
+          <div className='relative min-w-0 flex-1 overflow-hidden text-center'>
+            {anim.slots.map(({ index, state }) => {
+              const story = stories[index];
+              if (!story?.author && !story?.service) return null;
+              let slotClassName = '';
+              if (state === 'exiting') {
+                slotClassName =
+                  anim.dir === 'next'
+                    ? 'es-author-exit-left absolute inset-x-0 top-0'
+                    : 'es-author-exit-right absolute inset-x-0 top-0';
+              } else if (state === 'entering') {
+                slotClassName =
+                  anim.dir === 'next'
+                    ? 'es-author-enter-from-right'
+                    : 'es-author-enter-from-left';
+              }
+              return (
+                <div
+                  key={`${index}-${state}`}
+                  className={slotClassName || undefined}
+                >
+                  {story.author && (
+                    <p className='mx-auto max-w-[350px] es-testimonials-author'>
+                      {story.author}
+                    </p>
+                  )}
+                  {story.service && (
+                    <p
+                      className={`mx-auto max-w-[350px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
                     >
-                      {story.author && (
-                        <p className='mx-auto max-w-[350px] es-testimonials-author'>
-                          {story.author}
-                        </p>
-                      )}
-                      {story.service && (
-                        <p
-                          className={`mx-auto max-w-[350px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
-                        >
-                          {story.service}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <ButtonPrimitive
-                variant='control'
-                onClick={onNext}
-                aria-label={nextButtonLabel}
-                className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
-              >
-                <ChevronIcon direction='right' />
-              </ButtonPrimitive>
-            </div>
+                      {story.service}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
+          <ButtonPrimitive
+            variant='control'
+            onClick={onNext}
+            aria-label={nextButtonLabel}
+            className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
+          >
+            <ChevronIcon direction='right' />
+          </ButtonPrimitive>
         </div>
       </div>
     </div>
