@@ -701,6 +701,7 @@
 
   .es-landing-page-details-card {
     background-color: var(--es-color-surface-white, #FFFFFF);
+    border: 1px solid var(--es-color-brand-orange, #C84A16);
   }
 
   .es-landing-page-details-card-icon-wrap {

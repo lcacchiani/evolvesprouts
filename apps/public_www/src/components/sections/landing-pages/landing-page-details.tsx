@@ -46,20 +46,22 @@ export function LandingPageDetails({
                 className='w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw] md:w-auto md:max-w-none md:shrink md:snap-none'
               >
                 <article
-                  className='flex h-full min-h-[300px] flex-col rounded-card-xl p-6 sm:p-8 es-landing-page-details-card'
+                  className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-landing-page-details-card'
                 >
-                  <span className='inline-flex h-12 w-12 items-center justify-center rounded-full text-2xl es-landing-page-details-card-icon-wrap'>
-                    <span
-                      role='img'
-                      aria-hidden='true'
-                      className='es-landing-page-details-card-icon'
-                    >
-                      {item.icon}
+                  <div className='flex items-start justify-between gap-4 es-landing-page-details-card-title-row'>
+                    <h3 className='es-landing-page-details-card-title'>
+                      {item.title}
+                    </h3>
+                    <span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl es-landing-page-details-card-icon-wrap'>
+                      <span
+                        role='img'
+                        aria-hidden='true'
+                        className='es-landing-page-details-card-icon'
+                      >
+                        {item.icon}
+                      </span>
                     </span>
-                  </span>
-                  <h3 className='mt-4 es-landing-page-details-card-title'>
-                    {item.title}
-                  </h3>
+                  </div>
                   <p className='mt-3 es-landing-page-details-card-description'>
                     {renderQuotedDescriptionText(item.description)}
                   </p>
