@@ -77,7 +77,6 @@ export function FinancePage() {
         onQueryChange={(value) => expenses.setFilter('query', value)}
         onStatusChange={(value) => expenses.setFilter('status', value)}
         onParseStatusChange={(value) => expenses.setFilter('parseStatus', value)}
-        onClearFilters={expenses.clearFilters}
       />
     </div>
   );
