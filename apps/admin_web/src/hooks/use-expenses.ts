@@ -41,11 +41,14 @@ export function useExpenses() {
   const [isReparsingId, setIsReparsingId] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState('');
 
-  const list = usePaginatedList<Expense, Filters>({
-    defaultFilters: DEFAULT_FILTERS,
-    debounceKeys: ['query'],
-    debounceMs: 350,
-    fetcher: async ({ query, status, parseStatus, cursor, limit }) => {
+  const fetchExpenses = useCallback(
+    async ({
+      query,
+      status,
+      parseStatus,
+      cursor,
+      limit,
+    }: Filters & { cursor: string | null; limit: number }) => {
       const response = await listAdminExpenses({
         query,
         status,
@@ -59,6 +62,14 @@ export function useExpenses() {
         totalCount: response.totalCount,
       };
     },
+    []
+  );
+
+  const list = usePaginatedList<Expense, Filters>({
+    defaultFilters: DEFAULT_FILTERS,
+    debounceKeys: ['query'],
+    debounceMs: 350,
+    fetcher: fetchExpenses,
     errorPrefix: 'Failed to load expenses',
   });
 
