@@ -728,6 +728,28 @@
     line-height: 26px;
   }
 
+  /* Booking thank-you modal detail tiles (mirrors landing details card look; separate selectors). */
+  .es-booking-thank-you-detail-card {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+    border: 1px solid var(--es-color-brand-orange, #C84A16);
+  }
+
+  .es-booking-thank-you-detail-card-icon-wrap {
+    background-color: var(--es-color-surface-muted, #F8F8F8);
+  }
+
+  .es-booking-thank-you-detail-card-icon {
+    line-height: 1;
+  }
+
+  .es-booking-thank-you-detail-card-description {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
+  }
+
   .es-ida-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
   }

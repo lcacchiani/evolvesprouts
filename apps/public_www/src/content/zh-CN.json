@@ -1126,14 +1126,9 @@
       "subtitle": "",
       "successLabel": "谢谢你！",
       "courseLabel": "我的最佳阿姨培训课程。",
-      "summaryHeading": "摘要",
-      "summaryEventLabel": "活动名称",
-      "summaryDateTimeLabel": "日期与时间",
-      "summaryLocationLabel": "地点",
-      "summaryAmountLabel": "金额",
       "summaryLocationVirtualFallback": "线上 Zoom 会议",
       "summaryEmptyValue": "—",
-      "downloadCalendarLabel": "下载日历（.ics）",
+      "directionLabel": "查看路线",
       "followUpPrompt": "有任何问题想立即了解？"
     }
   },

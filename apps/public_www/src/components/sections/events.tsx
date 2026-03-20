@@ -233,7 +233,6 @@ export function Events({
           locale={locale}
           content={bookingModalContent.thankYouModal}
           summary={reservationSummary}
-          analyticsSectionId='events-booking'
           whatsappHref={thankYouWhatsappHref}
           whatsappCtaLabel={thankYouWhatsappCtaLabel}
           onClose={() => {

@@ -137,6 +137,7 @@ export function MyBestAuntieBookingModal({
               selectedCohortPrice={originalAmount}
               venueName={selectedVenueName}
               venueAddress={selectedVenueAddress}
+              venueDirectionHref={selectedVenueDirectionHref}
               dateEndTime={selectedDateEndTime}
               descriptionId={dialogDescriptionId}
               analyticsSectionId={analyticsSectionId}

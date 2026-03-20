@@ -1126,14 +1126,9 @@
       "subtitle": "",
       "successLabel": "多謝你！",
       "courseLabel": "我的最佳姨姨培訓課程。",
-      "summaryHeading": "摘要",
-      "summaryEventLabel": "活動名稱",
-      "summaryDateTimeLabel": "日期與時間",
-      "summaryLocationLabel": "地點",
-      "summaryAmountLabel": "金額",
       "summaryLocationVirtualFallback": "網上 Zoom 會議",
       "summaryEmptyValue": "—",
-      "downloadCalendarLabel": "下載日曆（.ics）",
+      "directionLabel": "查看路線",
       "followUpPrompt": "有任何問題想即時了解？"
     }
   },

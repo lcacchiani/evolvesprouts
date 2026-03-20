@@ -133,7 +133,7 @@ Components that fire events:
 | `event-notification.tsx` | `community_signup_submit_success`, `_error` |
 | `my-best-auntie-booking.tsx` | `booking_modal_open`, `booking_age_selected`, `booking_date_selected`, `booking_confirm_pay_click` |
 | `reservation-form.tsx` | `booking_payment_method_selected`, `booking_discount_apply_*`, `booking_submit_*` |
-| `thank-you-modal.tsx` | `booking_thank_you_view`, `booking_thank_you_ics_download` |
+| `thank-you-modal.tsx` | `booking_thank_you_view` |
 
 ## Google Analytics 4 (GA4)
 
