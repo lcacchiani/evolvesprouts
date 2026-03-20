@@ -89,6 +89,7 @@ export interface LandingPageLocaleContent {
     description: string;
     imageAlt: string;
     imageSrc: string;
+    imageMaxWidthPercent?: number;
   };
   outline: {
     eyebrow?: string;

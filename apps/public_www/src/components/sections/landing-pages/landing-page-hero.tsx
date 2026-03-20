@@ -55,6 +55,33 @@ const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = 
 const CALENDAR_ICON_SRC = '/images/calendar.svg';
 const CLOCK_ICON_SRC = '/images/clock.svg';
 const LOCATION_ICON_SRC = '/images/location.svg';
+const HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT: Readonly<Record<number, string>> = {
+  50: 'max-w-[50%]',
+  55: 'max-w-[55%]',
+  60: 'max-w-[60%]',
+  65: 'max-w-[65%]',
+  70: 'max-w-[70%]',
+  75: 'max-w-[75%]',
+  80: 'max-w-[80%]',
+  85: 'max-w-[85%]',
+  90: 'max-w-[90%]',
+  95: 'max-w-[95%]',
+  100: 'max-w-[100%]',
+  105: 'max-w-[105%]',
+  110: 'max-w-[110%]',
+  115: 'max-w-[115%]',
+  120: 'max-w-[120%]',
+};
+
+function resolveHeroImageMaxWidthClass(imageMaxWidthPercent: number | undefined): string {
+  if (typeof imageMaxWidthPercent !== 'number' || !Number.isFinite(imageMaxWidthPercent)) {
+    return HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[100];
+  }
+
+  const normalizedPercent = Math.round(imageMaxWidthPercent);
+  return HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[normalizedPercent]
+    ?? HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[100];
+}
 
 function buildPartnerLogoSources(partner: string): string[] {
   const normalizedPartner = partner.trim().toLowerCase();
@@ -275,6 +302,10 @@ export function LandingPageHero({
   bookingModalContent,
   ariaLabel,
 }: LandingPageHeroProps) {
+  const heroImageMaxWidthClassName = useMemo(
+    () => resolveHeroImageMaxWidthClass(content.imageMaxWidthPercent),
+    [content.imageMaxWidthPercent],
+  );
   const chips = useMemo(
     () => buildHeroChips(eventContent, locale),
     [eventContent, locale],
@@ -356,7 +387,9 @@ export function LandingPageHero({
             buttonClassName='mt-3'
           />
         </div>
-        <div className='es-landing-page-hero-image-wrap mx-auto w-[120%] max-w-none justify-self-center lg:mx-0 lg:justify-self-end'>
+        <div
+          className={`es-landing-page-hero-image-wrap mx-auto w-full justify-self-center ${heroImageMaxWidthClassName}`}
+        >
           <Image
             src={content.imageSrc}
             alt={content.imageAlt}
