@@ -18,7 +18,7 @@ import {
   getLandingPageBookingEventContent,
   getLandingPageHeroEventContent,
 } from '@/lib/events-data';
-import { buildWhatsappPrefilledHref } from '@/lib/site-config';
+import { buildWhatsappPrefilledHref, resolvePublicSiteConfig } from '@/lib/site-config';
 
 interface LandingPageProps {
   locale: Locale;
@@ -105,6 +105,7 @@ export function LandingPage({
     pageContent.cta.fullyBookedWaitlistMessageTemplate,
     waitlistEventTitle,
   );
+  const publicSiteConfig = resolvePublicSiteConfig();
   const sharedCtaProps: LandingPageSharedCtaProps = {
     locale,
     slug,
@@ -116,6 +117,8 @@ export function LandingPage({
     fullyBookedCtaLabel: pageContent.cta.fullyBookedButtonLabel,
     fullyBookedWaitlistHref,
     bookingModalContent: siteContent.bookingModal,
+    thankYouWhatsappHref: publicSiteConfig.whatsappUrl,
+    thankYouWhatsappCtaLabel: siteContent.contactUs.form.contactMethodLinks.whatsapp,
   };
 
   return (
@@ -137,6 +140,8 @@ export function LandingPage({
         fullyBookedCtaLabel={pageContent.cta.fullyBookedButtonLabel}
         fullyBookedWaitlistHref={fullyBookedWaitlistHref}
         bookingModalContent={siteContent.bookingModal}
+        thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
+        thankYouWhatsappCtaLabel={siteContent.contactUs.form.contactMethodLinks.whatsapp}
         ariaLabel={siteContent.landingPages.common.a11y.heroSectionLabel}
       />
       <LandingPageOutline
@@ -170,6 +175,8 @@ export function LandingPage({
         fullyBookedCtaLabel={pageContent.cta.fullyBookedButtonLabel}
         fullyBookedWaitlistHref={fullyBookedWaitlistHref}
         bookingModalContent={siteContent.bookingModal}
+        thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
+        thankYouWhatsappCtaLabel={siteContent.contactUs.form.contactMethodLinks.whatsapp}
         ariaLabel={siteContent.landingPages.common.a11y.ctaSectionLabel}
       />
       <AboutUsIdaCoach

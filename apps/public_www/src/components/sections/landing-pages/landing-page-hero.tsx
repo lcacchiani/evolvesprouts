@@ -40,6 +40,8 @@ interface LandingPageHeroProps {
   fullyBookedCtaLabel?: string;
   fullyBookedWaitlistHref?: string;
   bookingModalContent: BookingModalContent;
+  thankYouWhatsappHref?: string;
+  thankYouWhatsappCtaLabel?: string;
   ariaLabel?: string;
 }
 
@@ -230,6 +232,8 @@ export function LandingPageHero({
   fullyBookedCtaLabel,
   fullyBookedWaitlistHref,
   bookingModalContent,
+  thankYouWhatsappHref,
+  thankYouWhatsappCtaLabel,
   ariaLabel,
 }: LandingPageHeroProps) {
   const heroImageMaxWidthClassName = useMemo(
@@ -312,6 +316,8 @@ export function LandingPageHero({
             fullyBookedCtaLabel={fullyBookedCtaLabel}
             fullyBookedWaitlistHref={fullyBookedWaitlistHref}
             bookingModalContent={bookingModalContent}
+            thankYouWhatsappHref={thankYouWhatsappHref}
+            thankYouWhatsappCtaLabel={thankYouWhatsappCtaLabel}
             analyticsSectionId='landing-page-hero'
             ctaLocation='landing_page'
             buttonClassName='mt-3'

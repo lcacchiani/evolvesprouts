@@ -34,6 +34,9 @@ interface BookingReservationFormProps {
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
   selectedCohortPrice: number;
+  venueName?: string;
+  venueAddress?: string;
+  dateEndTime?: string;
   topicsFieldConfig?: BookingTopicsFieldConfig;
   descriptionId: string;
   analyticsSectionId?: string;
@@ -93,6 +96,9 @@ export function BookingReservationForm({
   selectedCohortDateLabel,
   selectedDateStartTime,
   selectedCohortPrice,
+  venueName = '',
+  venueAddress = '',
+  dateEndTime = '',
   topicsFieldConfig,
   descriptionId,
   analyticsSectionId = 'my-best-auntie-booking',
@@ -264,6 +270,9 @@ export function BookingReservationForm({
       totalAmount,
       eventTitle: sanitizeSingleLineValue(eventTitle),
       dateStartTime: sanitizeSingleLineValue(selectedDateStartTime) || undefined,
+      dateEndTime: sanitizeSingleLineValue(dateEndTime) || undefined,
+      locationName: sanitizeSingleLineValue(venueName) || undefined,
+      locationAddress: sanitizeSingleLineValue(venueAddress) || undefined,
     };
     const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
     const normalizedCohortDate =

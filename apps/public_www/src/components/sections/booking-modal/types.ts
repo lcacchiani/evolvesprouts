@@ -8,6 +8,9 @@ export interface ReservationSummary {
   totalAmount: number;
   eventTitle: string;
   dateStartTime?: string;
+  dateEndTime?: string;
+  locationName?: string;
+  locationAddress?: string;
 }
 
 export interface BookingTopicsFieldConfig {

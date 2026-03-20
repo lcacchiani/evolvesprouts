@@ -46,6 +46,8 @@ export interface LandingPageBookingCtaActionProps {
   fullyBookedCtaLabel?: string;
   fullyBookedWaitlistHref?: string;
   bookingModalContent: BookingModalContent;
+  thankYouWhatsappHref?: string;
+  thankYouWhatsappCtaLabel?: string;
   analyticsSectionId: string;
   ctaLocation: string;
   buttonClassName?: string;
@@ -103,6 +105,8 @@ export function LandingPageBookingCtaAction({
   fullyBookedCtaLabel,
   fullyBookedWaitlistHref,
   bookingModalContent,
+  thankYouWhatsappHref,
+  thankYouWhatsappCtaLabel,
   analyticsSectionId,
   ctaLocation,
   buttonClassName,
@@ -214,12 +218,10 @@ export function LandingPageBookingCtaAction({
       {isThankYouModalOpen && (
         <EventThankYouModal
           locale={locale}
-          content={{
-            ...bookingModalContent.thankYouModal,
-            backHomeLabel: commonContent.backToHomeLabel,
-          }}
+          content={bookingModalContent.thankYouModal}
           summary={reservationSummary}
-          homeHref={`/${locale}`}
+          whatsappHref={thankYouWhatsappHref}
+          whatsappCtaLabel={thankYouWhatsappCtaLabel}
           onClose={() => {
             setIsThankYouModalOpen(false);
           }}

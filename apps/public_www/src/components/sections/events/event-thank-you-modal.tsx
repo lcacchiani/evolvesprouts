@@ -7,7 +7,7 @@ import {
 
 type EventThankYouModalProps = Omit<
   MyBestAuntieThankYouModalProps,
-  'analyticsSectionId' | 'showChildAgeGroupChip'
+  'analyticsSectionId'
 >;
 
 export function EventThankYouModal(props: EventThankYouModalProps) {
@@ -15,7 +15,6 @@ export function EventThankYouModal(props: EventThankYouModalProps) {
     <MyBestAuntieThankYouModal
       {...props}
       analyticsSectionId='events-booking'
-      showChildAgeGroupChip={false}
     />
   );
 }
