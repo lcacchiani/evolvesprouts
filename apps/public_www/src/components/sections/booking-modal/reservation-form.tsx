@@ -7,6 +7,7 @@ import { ReservationFormPriceBreakdown } from '@/components/sections/booking-mod
 import { DiscountBadge, FpsQrCode } from '@/components/sections/booking-modal/shared';
 import type {
   BookingTopicsFieldConfig,
+  ReservationCourseSession,
   ReservationSummary,
 } from '@/components/sections/booking-modal/types';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
@@ -30,6 +31,8 @@ interface BookingReservationFormProps {
   locale: Locale;
   content: BookingPaymentModalContent;
   eventTitle: string;
+  eventSubtitle?: string;
+  courseSessions?: ReservationCourseSession[];
   selectedAgeGroupLabel: string;
   selectedCohortDateLabel: string;
   selectedDateStartTime: string;
@@ -93,6 +96,8 @@ export function BookingReservationForm({
   locale,
   content,
   eventTitle,
+  eventSubtitle = '',
+  courseSessions,
   selectedAgeGroupLabel,
   selectedCohortDateLabel,
   selectedDateStartTime,
@@ -260,6 +265,31 @@ export function BookingReservationForm({
       return;
     }
 
+    const resolvedCourseSessions: ReservationCourseSession[] = [];
+    if (courseSessions && courseSessions.length > 0) {
+      for (const session of courseSessions) {
+        const sessionStart = sanitizeSingleLineValue(session.dateStartTime);
+        if (!sessionStart) {
+          continue;
+        }
+
+        const sessionEnd = sanitizeSingleLineValue(session.dateEndTime ?? '');
+        resolvedCourseSessions.push({
+          dateStartTime: sessionStart,
+          dateEndTime: sessionEnd || undefined,
+        });
+      }
+    } else {
+      const fallbackStart = sanitizeSingleLineValue(selectedDateStartTime);
+      if (fallbackStart) {
+        resolvedCourseSessions.push({
+          dateStartTime: fallbackStart,
+          dateEndTime: sanitizeSingleLineValue(dateEndTime) || undefined,
+        });
+      }
+    }
+
+    const primarySession = resolvedCourseSessions[0];
     const reservationSummary: ReservationSummary = {
       attendeeName: sanitizeSingleLineValue(fullName),
       attendeeEmail: sanitizeSingleLineValue(email),
@@ -271,8 +301,11 @@ export function BookingReservationForm({
       ),
       totalAmount,
       eventTitle: sanitizeSingleLineValue(eventTitle),
-      dateStartTime: sanitizeSingleLineValue(selectedDateStartTime) || undefined,
-      dateEndTime: sanitizeSingleLineValue(dateEndTime) || undefined,
+      dateStartTime: primarySession?.dateStartTime,
+      dateEndTime: primarySession?.dateEndTime,
+      courseSessions:
+        resolvedCourseSessions.length > 0 ? resolvedCourseSessions : undefined,
+      eventSubtitle: sanitizeSingleLineValue(eventSubtitle) || undefined,
       locationName: sanitizeSingleLineValue(venueName) || undefined,
       locationAddress: sanitizeSingleLineValue(venueAddress) || undefined,
       locationDirectionHref: (() => {

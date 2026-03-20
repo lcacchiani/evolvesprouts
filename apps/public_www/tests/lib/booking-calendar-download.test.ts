@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  buildBookingIcsCalendarContent,
   buildBookingIcsContent,
   sanitizeBookingIcsFilename,
   triggerBookingIcsDownload,
@@ -51,6 +52,33 @@ describe('booking-calendar-download', () => {
     vi.unstubAllGlobals();
 
     expect(ics).toContain('DTEND:20260101T110000Z');
+  });
+
+  it('builds multiple VEVENT blocks for multi-session calendars', () => {
+    vi.stubGlobal('crypto', { randomUUID: () => 'multi-root' });
+
+    const ics = buildBookingIcsCalendarContent({
+      title: 'Course',
+      location: 'Studio',
+      sessions: [
+        {
+          dateStartTime: '2026-04-08T12:00:00.000Z',
+          dateEndTime: '2026-04-08T13:00:00.000Z',
+        },
+        {
+          dateStartTime: '2026-05-08T12:00:00.000Z',
+          dateEndTime: '2026-05-08T13:00:00.000Z',
+        },
+      ],
+    });
+
+    vi.unstubAllGlobals();
+
+    expect(ics).not.toBeNull();
+    expect(ics?.match(/BEGIN:VEVENT/g)?.length).toBe(2);
+    expect(ics?.match(/END:VEVENT/g)?.length).toBe(2);
+    expect(ics).toContain('UID:multi-root-0');
+    expect(ics).toContain('UID:multi-root-1');
   });
 
   it('sanitizes download filename base', () => {

@@ -1128,6 +1128,8 @@
       "courseLabel": "我的最佳阿姨培训课程。",
       "summaryLocationVirtualFallback": "线上 Zoom 会议",
       "summaryEmptyValue": "—",
+      "downloadCalendarInviteLabel": "下载邀请并添加到你的个人日历",
+      "paymentConfirmationNote": "收到付款后，你的名额才会确认",
       "directionLabel": "查看路线",
       "followUpPrompt": "有任何问题想立即了解？"
     }

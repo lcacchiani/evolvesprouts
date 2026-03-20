@@ -1128,6 +1128,8 @@
       "courseLabel": "我的最佳姨姨培訓課程。",
       "summaryLocationVirtualFallback": "網上 Zoom 會議",
       "summaryEmptyValue": "—",
+      "downloadCalendarInviteLabel": "下載邀請並加入你嘅個人日曆",
+      "paymentConfirmationNote": "收到付款後，你的名額才會確認",
       "directionLabel": "查看路線",
       "followUpPrompt": "有任何問題想即時了解？"
     }

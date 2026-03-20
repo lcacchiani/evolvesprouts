@@ -738,8 +738,32 @@
     background-color: var(--es-color-surface-muted, #F8F8F8);
   }
 
-  .es-booking-thank-you-detail-card-icon {
-    line-height: 1;
+  .es-booking-thank-you-detail-icon-mask {
+    display: block;
+    flex-shrink: 0;
+    height: 1.75rem;
+    width: 1.75rem;
+    background-color: var(--es-color-brand-orange, #C84A16);
+  }
+
+  .es-booking-thank-you-detail-icon-mask--training {
+    mask-image: url('/images/training.svg');
+    -webkit-mask-image: url('/images/training.svg');
+  }
+
+  .es-booking-thank-you-detail-icon-mask--calendar {
+    mask-image: url('/images/calendar.svg');
+    -webkit-mask-image: url('/images/calendar.svg');
+  }
+
+  .es-booking-thank-you-detail-icon-mask--location {
+    mask-image: url('/images/location.svg');
+    -webkit-mask-image: url('/images/location.svg');
+  }
+
+  .es-booking-thank-you-detail-icon-mask--dollar {
+    mask-image: url('/images/dollar-symbol.svg');
+    -webkit-mask-image: url('/images/dollar-symbol.svg');
   }
 
   .es-booking-thank-you-detail-card-description {
@@ -1288,7 +1312,7 @@
   }
 
   .es-my-best-auntie-thank-you-panel {
-    background-color: var(--es-color-surface-white, #FFFFFF);
+    background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
 
   .es-my-best-auntie-thank-you-heading {

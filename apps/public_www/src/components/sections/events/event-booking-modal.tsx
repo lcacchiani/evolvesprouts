@@ -110,6 +110,13 @@ export function EventBookingModal({
               locale={locale}
               content={paymentModalContent}
               eventTitle={bookingPayload.title}
+              eventSubtitle={bookingPayload.subtitle}
+              courseSessions={bookingPayload.dateParts.map((part) => {
+                return {
+                  dateStartTime: part.startDateTime,
+                  dateEndTime: part.endDateTime,
+                };
+              })}
               selectedAgeGroupLabel=''
               selectedCohortDateLabel={bookingPayload.selectedDateLabel}
               selectedDateStartTime={bookingPayload.selectedDateStartTime}

@@ -1128,6 +1128,8 @@
       "courseLabel": "My Best Auntie Training Course.",
       "summaryLocationVirtualFallback": "Virtual Zoom call",
       "summaryEmptyValue": "—",
+      "downloadCalendarInviteLabel": "Download the invite to your personal calendar",
+      "paymentConfirmationNote": "Your spot is confirmed once payment is received.",
       "directionLabel": "Get Directions",
       "followUpPrompt": "Any immediate questions?"
     }
