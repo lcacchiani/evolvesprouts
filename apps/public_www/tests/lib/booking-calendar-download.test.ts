@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildBookingIcsCalendarContent,
   buildBookingIcsContent,
+  buildEvolveSproutsThankYouIcsFilenameBase,
   sanitizeBookingIcsFilename,
   triggerBookingIcsDownload,
 } from '@/lib/booking-calendar-download';
@@ -86,18 +87,33 @@ describe('booking-calendar-download', () => {
     expect(sanitizeBookingIcsFilename('!!!')).toBe('booking');
   });
 
+  it('builds thank-you ics filename base evolvesprouts-<lowercase-slug>', () => {
+    expect(
+      buildEvolveSproutsThankYouIcsFilenameBase('My Best Auntie Training'),
+    ).toBe('evolvesprouts-my-best-auntie-training');
+    expect(buildEvolveSproutsThankYouIcsFilenameBase('!!!')).toBe(
+      'evolvesprouts-event',
+    );
+  });
+
   it('triggers a download via temporary anchor', () => {
     const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
     const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const downloadedNames: string[] = [];
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function captureDownload(this: HTMLAnchorElement) {
+        downloadedNames.push(this.download);
+      });
 
     triggerBookingIcsDownload(
       'BEGIN:VCALENDAR\nEND:VCALENDAR\n',
-      'My Event',
+      buildEvolveSproutsThankYouIcsFilenameBase('My Event'),
     );
 
     expect(createObjectUrlSpy).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();
+    expect(downloadedNames).toContain('evolvesprouts-my-event.ics');
     expect(revokeSpy).toHaveBeenCalledWith('blob:mock-url');
 
     clickSpy.mockRestore();

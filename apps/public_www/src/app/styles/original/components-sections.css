@@ -757,6 +757,8 @@
   }
 
   .es-booking-thank-you-detail-icon-mask--location {
+    height: 2.1rem;
+    width: 2.1rem;
     mask-image: url('/images/location.svg');
     -webkit-mask-image: url('/images/location.svg');
   }

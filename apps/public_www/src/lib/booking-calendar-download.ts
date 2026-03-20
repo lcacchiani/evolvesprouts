@@ -68,6 +68,19 @@ export function sanitizeBookingIcsFilename(title: string): string {
   return base || 'booking';
 }
 
+/** Lowercase slug from event title for thank-you `.ics` downloads (`evolvesprouts-<slug>`). */
+export function buildEvolveSproutsThankYouIcsFilenameBase(eventTitle: string): string {
+  const slug = eventTitle
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]+/gu, '')
+    .replace(/\s+/gu, '-')
+    .replace(/-+/gu, '-')
+    .replace(/^-|-$/gu, '')
+    .slice(0, 55);
+  return `evolvesprouts-${slug || 'event'}`;
+}
+
 export interface BuildBookingIcsSessionSlice {
   dateStartTime: string;
   dateEndTime?: string;
