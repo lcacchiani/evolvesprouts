@@ -273,7 +273,6 @@ export function ExpensesEditorPanel({
             type='date'
             value={invoiceDate}
             onChange={(event) => setInvoiceDate(event.target.value)}
-            className='max-w-[10.5rem] sm:max-w-[11rem] md:max-w-none'
           />
         </div>
         <div>
@@ -283,7 +282,6 @@ export function ExpensesEditorPanel({
             type='date'
             value={dueDate}
             onChange={(event) => setDueDate(event.target.value)}
-            className='max-w-[10.5rem] sm:max-w-[11rem] md:max-w-none'
           />
         </div>
         <div>
