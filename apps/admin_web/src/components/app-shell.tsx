@@ -3,6 +3,8 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 
+import { NAVBAR_LOCAL_DATETIME_OPTIONS } from '@/lib/format';
+
 import CloseIcon from './icons/svg/close-icon.svg';
 import MenuIcon from './icons/svg/menu-icon.svg';
 import { Button } from './ui/button';
@@ -44,12 +46,7 @@ function formatTimestamp(value?: string): string | null {
     return null;
   }
 
-  const localTimestamp = parsedDate.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const localTimestamp = parsedDate.toLocaleString(undefined, NAVBAR_LOCAL_DATETIME_OPTIONS);
   return `${localTimestamp} ${formatGmtOffset(parsedDate)}`;
 }
 
