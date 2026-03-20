@@ -133,6 +133,9 @@ const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal.paymentModal;
 const thankYouModalContent = enContent.bookingModal.thankYouModal;
 const selectedCohort = bookingSectionContent.cohorts[0];
+if (!selectedCohort) {
+  throw new Error('Test content must include at least one cohort.');
+}
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
@@ -152,16 +155,20 @@ const reservationSummary: ReservationSummary = {
   paymentMethod: 'Pay via FPS QR',
   totalAmount: 9000,
   eventTitle: 'My Best Auntie',
-  dateStartTime: '2026-04-08T12:00:00Z',
-  dateEndTime: '2026-04-08T14:00:00Z',
-  locationName: 'Evolve Sprouts',
-  locationAddress: 'Unit 507 Test Street',
-  locationDirectionHref: 'https://maps.google.com/?q=Evolve+Sprouts',
+  dateStartTime: selectedCohort.dates[0]?.start_datetime,
+  dateEndTime: selectedCohort.dates[0]?.end_datetime,
+  courseSessions: selectedCohort.dates.slice(0, 2).map((part) => {
+    return {
+      dateStartTime: part.start_datetime,
+      dateEndTime: part.end_datetime,
+    };
+  }),
+  eventSubtitle: myBestAuntieModalContent.subtitle,
+  locationName: selectedCohort.location_name,
+  locationAddress: selectedCohort.location_address,
+  locationDirectionHref: selectedCohort.location_url,
 };
 
-if (!selectedCohort) {
-  throw new Error('Test content must include at least one cohort.');
-}
 const selectedCohortDate = selectedCohort.dates[0]?.start_datetime.slice(0, 10);
 if (!selectedCohortDate) {
   throw new Error('Selected cohort must include a valid primary session date.');
@@ -998,20 +1005,28 @@ describe('my-best-auntie booking modals footer content', () => {
 
     expect(container.querySelectorAll('.es-booking-thank-you-detail-card')).toHaveLength(4);
     expect(
-      container.querySelector('img[src="/images/training.svg"]'),
+      container.querySelector('.es-booking-thank-you-detail-icon-mask--training'),
     ).not.toBeNull();
     expect(
-      container.querySelector('img[src="/images/calendar.svg"]'),
+      container.querySelector('.es-booking-thank-you-detail-icon-mask--calendar'),
     ).not.toBeNull();
     expect(
-      container.querySelector('img[src="/images/location.svg"]'),
+      container.querySelector('.es-booking-thank-you-detail-icon-mask--location'),
     ).not.toBeNull();
     expect(
-      container.querySelector('img[src="/images/dollar-symbol.svg"]'),
+      container.querySelector('.es-booking-thank-you-detail-icon-mask--dollar'),
     ).not.toBeNull();
     expect(screen.getByText(reservationSummary.eventTitle)).toBeInTheDocument();
-    expect(screen.getByText('Evolve Sprouts')).toBeInTheDocument();
-    expect(screen.getByText('Unit 507 Test Street')).toBeInTheDocument();
+    expect(screen.getByText(myBestAuntieModalContent.subtitle)).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.getByText(thankYouModalContent.paymentConfirmationNote)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: thankYouModalContent.downloadCalendarInviteLabel,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(selectedCohort.location_name)).toBeInTheDocument();
+    expect(screen.getByText(selectedCohort.location_address)).toBeInTheDocument();
     const directionLink = screen.getByRole('link', {
       name: thankYouModalContent.directionLabel,
     });
@@ -1035,6 +1050,39 @@ describe('my-best-auntie booking modals footer content', () => {
       name: enContent.contactUs.form.contactMethodLinks.whatsapp,
     });
     expect(whatsappLink).toHaveAttribute('href', 'https://wa.me/85294479843');
+  });
+
+  it('tracks thank-you calendar download clicks', () => {
+    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    render(
+      <MyBestAuntieThankYouModal
+        locale='en'
+        content={thankYouModalContent}
+        summary={reservationSummary}
+        onClose={() => {}}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: thankYouModalContent.downloadCalendarInviteLabel,
+      }),
+    );
+
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
+      'booking_thank_you_ics_download',
+      expect.objectContaining({
+        sectionId: 'my-best-auntie-booking',
+        ctaLocation: 'thank_you_modal',
+      }),
+    );
+
+    createObjectUrlSpy.mockRestore();
+    revokeSpy.mockRestore();
+    clickSpy.mockRestore();
   });
 
   it('allows only one discount code to be applied at a time', async () => {

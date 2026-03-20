@@ -749,7 +749,11 @@
   .es-mask-cubes-current,
   .es-mask-credit-card-danger,
   .es-mask-location-danger,
-  .es-mask-virtual-call-danger {
+  .es-mask-virtual-call-danger,
+  .es-booking-thank-you-detail-icon-mask--training,
+  .es-booking-thank-you-detail-icon-mask--calendar,
+  .es-booking-thank-you-detail-icon-mask--location,
+  .es-booking-thank-you-detail-icon-mask--dollar {
     mask-position: center;
     mask-repeat: no-repeat;
     mask-size: contain;

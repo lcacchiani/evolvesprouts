@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useId, useRef } from 'react';
+import { useId, useMemo, useRef } from 'react';
 
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -14,9 +14,16 @@ import {
   CloseButton,
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  ReservationCourseSession,
+  ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import type { BookingThankYouModalContent, Locale } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import {
+  buildBookingIcsCalendarContent,
+  triggerBookingIcsDownload,
+} from '@/lib/booking-calendar-download';
 import { formatCurrencyHkd } from '@/lib/format';
 import {
   formatSiteCompactDate,
@@ -31,26 +38,21 @@ export interface MyBestAuntieThankYouModalProps {
   locale: Locale;
   content: BookingThankYouModalContent;
   summary: ReservationSummary | null;
+  analyticsSectionId?: string;
   whatsappHref?: string;
   whatsappCtaLabel?: string;
   onClose: () => void;
 }
 
 const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
-const THANK_YOU_EVENT_ICON_SRC = '/images/training.svg';
-const THANK_YOU_CALENDAR_ICON_SRC = '/images/calendar.svg';
-const THANK_YOU_LOCATION_ICON_SRC = '/images/location.svg';
-const THANK_YOU_PRICE_ICON_SRC = '/images/dollar-symbol.svg';
 
-function ThankYouDetailCardIcon({ src }: { src: string }) {
+type ThankYouCardIconId = 'training' | 'calendar' | 'location' | 'dollar';
+
+function ThankYouDetailCardIcon({ icon }: { icon: ThankYouCardIconId }) {
   return (
     <span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl es-booking-thank-you-detail-card-icon-wrap'>
-      <Image
-        src={src}
-        alt=''
-        width={28}
-        height={28}
-        className='es-booking-thank-you-detail-card-icon h-7 w-7'
+      <span
+        className={`es-booking-thank-you-detail-icon-mask es-booking-thank-you-detail-icon-mask--${icon}`}
         aria-hidden='true'
       />
     </span>
@@ -102,10 +104,33 @@ function resolveThankYouLocationDisplay(
   return virtualFallback;
 }
 
+function resolveThankYouCourseSessions(summary: ReservationSummary | null): ReservationCourseSession[] {
+  if (!summary) {
+    return [];
+  }
+
+  if (summary.courseSessions && summary.courseSessions.length > 0) {
+    return summary.courseSessions;
+  }
+
+  const start = summary.dateStartTime?.trim() ?? '';
+  if (!start) {
+    return [];
+  }
+
+  return [
+    {
+      dateStartTime: start,
+      dateEndTime: summary.dateEndTime?.trim() || undefined,
+    },
+  ];
+}
+
 export function MyBestAuntieThankYouModal({
   locale,
   content,
   summary,
+  analyticsSectionId = 'my-best-auntie-booking',
   whatsappHref,
   whatsappCtaLabel,
   onClose,
@@ -128,7 +153,17 @@ export function MyBestAuntieThankYouModal({
   const hasSubtitleBlock = subtitleText.length > 0;
   const attendeeEmail = summary?.attendeeEmail ?? '';
   const eventTitle = summary?.eventTitle ?? content.courseLabel;
-  const dateTimeLine = formatSummaryDateTimeLine(summary?.dateStartTime, locale);
+  const eventSubtitle = summary?.eventSubtitle?.trim() ?? '';
+  const thankYouSessions = useMemo(
+    () => resolveThankYouCourseSessions(summary),
+    [summary],
+  );
+  const dateTimeLines = useMemo(() => {
+    return thankYouSessions
+      .map((session) => formatSummaryDateTimeLine(session.dateStartTime, locale))
+      .filter((line) => line.length > 0);
+  }, [thankYouSessions, locale]);
+
   const locationLine = resolveThankYouLocationDisplay(
     summary,
     content.summaryLocationVirtualFallback,
@@ -136,7 +171,6 @@ export function MyBestAuntieThankYouModal({
   const amountLine = summary
     ? formatCurrencyHkd(summary.totalAmount, locale)
     : content.summaryEmptyValue;
-  const dateTimeDisplay = dateTimeLine || content.summaryEmptyValue;
   const locationNameRaw = summary?.locationName?.trim() ?? '';
   const locationAddressRaw = summary?.locationAddress?.trim() ?? '';
   const hasStructuredVenue =
@@ -153,6 +187,48 @@ export function MyBestAuntieThankYouModal({
   const normalizedWhatsappLabel = whatsappCtaLabel?.trim() ?? '';
   const showWhatsappFollowUp =
     normalizedWhatsappHref.length > 0 && normalizedWhatsappLabel.length > 0;
+
+  const icsBody = useMemo(() => {
+    if (thankYouSessions.length === 0) {
+      return null;
+    }
+
+    return buildBookingIcsCalendarContent({
+      title: eventTitle,
+      location: locationLine,
+      sessions: thankYouSessions.map((session) => {
+        return {
+          dateStartTime: session.dateStartTime,
+          dateEndTime: session.dateEndTime,
+        };
+      }),
+    });
+  }, [thankYouSessions, eventTitle, locationLine]);
+
+  const canDownloadIcs = Boolean(icsBody);
+
+  function handleDownloadIcs() {
+    if (!icsBody || !summary) {
+      return;
+    }
+
+    const cohortDate =
+      thankYouSessions[0]?.dateStartTime.split('T')[0] ?? '';
+
+    trackAnalyticsEvent('booking_thank_you_ics_download', {
+      sectionId: analyticsSectionId,
+      ctaLocation: 'thank_you_modal',
+      params: {
+        cohort_date: cohortDate,
+        total_amount: summary.totalAmount,
+      },
+    });
+
+    triggerBookingIcsDownload(icsBody, eventTitle);
+  }
+
+  const dateSectionIsEmpty = dateTimeLines.length === 0;
+  const dateSectionSingleLine = dateTimeLines.length === 1;
 
   return (
     <ModalOverlay
@@ -216,25 +292,61 @@ export function MyBestAuntieThankYouModal({
             <div className='grid grid-cols-2 gap-3 sm:gap-5'>
               <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-booking-thank-you-detail-card'>
                 <div className='flex w-full justify-center'>
-                  <ThankYouDetailCardIcon src={THANK_YOU_EVENT_ICON_SRC} />
+                  <ThankYouDetailCardIcon icon='training' />
                 </div>
                 <p className='mt-3 text-center es-booking-thank-you-detail-card-description'>
                   {eventTitle}
                 </p>
+                {eventSubtitle ? (
+                  <p className='mt-2 text-center es-booking-thank-you-detail-card-description'>
+                    {eventSubtitle}
+                  </p>
+                ) : null}
               </article>
 
               <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-booking-thank-you-detail-card'>
                 <div className='flex w-full justify-center'>
-                  <ThankYouDetailCardIcon src={THANK_YOU_CALENDAR_ICON_SRC} />
+                  <ThankYouDetailCardIcon icon='calendar' />
                 </div>
-                <p className='mt-3 text-center es-booking-thank-you-detail-card-description'>
-                  {dateTimeDisplay}
-                </p>
+                {dateSectionIsEmpty ? (
+                  <p className='mt-3 text-center es-booking-thank-you-detail-card-description'>
+                    {content.summaryEmptyValue}
+                  </p>
+                ) : null}
+                {dateSectionSingleLine ? (
+                  <p className='mt-3 text-center es-booking-thank-you-detail-card-description'>
+                    {dateTimeLines[0]}
+                  </p>
+                ) : null}
+                {dateTimeLines.length > 1 ? (
+                  <ul className='mt-3 w-full list-none space-y-2 text-center'>
+                    {dateTimeLines.map((line, index) => {
+                      return (
+                        <li
+                          key={`${line}-${index}`}
+                          className='es-booking-thank-you-detail-card-description'
+                        >
+                          {line}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+                <div className='mt-auto flex w-full justify-center pt-3'>
+                  <button
+                    type='button'
+                    disabled={!canDownloadIcs}
+                    onClick={handleDownloadIcs}
+                    className='max-w-full text-pretty text-center text-base font-semibold leading-snug underline decoration-2 underline-offset-2 es-text-heading disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50'
+                  >
+                    {content.downloadCalendarInviteLabel}
+                  </button>
+                </div>
               </article>
 
               <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-booking-thank-you-detail-card'>
                 <div className='flex w-full justify-center'>
-                  <ThankYouDetailCardIcon src={THANK_YOU_LOCATION_ICON_SRC} />
+                  <ThankYouDetailCardIcon icon='location' />
                 </div>
                 <div className='mt-3 flex w-full flex-col items-center text-center'>
                   {hasStructuredVenue ? (
@@ -281,10 +393,13 @@ export function MyBestAuntieThankYouModal({
 
               <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-4 sm:p-8 es-booking-thank-you-detail-card'>
                 <div className='flex w-full justify-center'>
-                  <ThankYouDetailCardIcon src={THANK_YOU_PRICE_ICON_SRC} />
+                  <ThankYouDetailCardIcon icon='dollar' />
                 </div>
                 <p className='mt-3 text-center es-booking-thank-you-detail-card-description'>
                   {amountLine}
+                </p>
+                <p className='mt-2 text-center es-booking-thank-you-detail-card-description'>
+                  {content.paymentConfirmationNote}
                 </p>
               </article>
             </div>

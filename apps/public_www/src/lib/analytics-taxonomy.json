@@ -209,6 +209,16 @@
       ],
       "ga4KeyEvent": false
     },
+    "booking_thank_you_ics_download": {
+      "requiredCustomParams": [
+        "total_amount"
+      ],
+      "allowedCustomParams": [
+        "cohort_date",
+        "total_amount"
+      ],
+      "ga4KeyEvent": false
+    },
     "landing_page_cta_click": {
       "requiredCustomParams": [
         "landing_page_slug"

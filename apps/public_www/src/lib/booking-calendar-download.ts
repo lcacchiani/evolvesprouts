@@ -68,14 +68,25 @@ export function sanitizeBookingIcsFilename(title: string): string {
   return base || 'booking';
 }
 
-export interface BuildBookingIcsContentInput {
-  title: string;
+export interface BuildBookingIcsSessionSlice {
   dateStartTime: string;
   dateEndTime?: string;
-  location: string;
 }
 
-export function buildBookingIcsContent(input: BuildBookingIcsContentInput): string | null {
+export interface BuildBookingIcsCalendarInput {
+  title: string;
+  location: string;
+  sessions: BuildBookingIcsSessionSlice[];
+}
+
+function buildSingleVeventLines(input: {
+  title: string;
+  location: string;
+  dateStartTime: string;
+  dateEndTime?: string;
+  uidSuffix: string;
+  dtStamp: string;
+}): string[] | null {
   const dtStart = formatIcsUtcFromIso(input.dateStartTime);
   if (!dtStart) {
     return null;
@@ -90,31 +101,82 @@ export function buildBookingIcsContent(input: BuildBookingIcsContentInput): stri
     return null;
   }
 
-  const uidSource =
+  const uid = escapeIcalText(input.uidSuffix);
+  const lines: string[] = [
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${input.dtStamp}`,
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`,
+  ];
+  pushFoldedProperty(lines, 'SUMMARY', input.title);
+  pushFoldedProperty(lines, 'LOCATION', input.location);
+  lines.push('END:VEVENT');
+
+  return lines;
+}
+
+export function buildBookingIcsCalendarContent(
+  input: BuildBookingIcsCalendarInput,
+): string | null {
+  if (input.sessions.length === 0) {
+    return null;
+  }
+
+  const rootUid =
     typeof globalThis.crypto !== 'undefined'
     && typeof globalThis.crypto.randomUUID === 'function'
       ? globalThis.crypto.randomUUID()
       : `booking-${Date.now()}`;
-  const uid = escapeIcalText(uidSource);
   const now = new Date();
-  const dtStamp = formatIcsUtcFromIso(now.toISOString()) ?? dtStart;
+  const dtStamp =
+    formatIcsUtcFromIso(now.toISOString())
+    ?? formatIcsUtcFromIso(input.sessions[0]?.dateStartTime ?? '')
+    ?? '19700101T000000Z';
+
+  const eventBlocks: string[][] = [];
+  for (let index = 0; index < input.sessions.length; index += 1) {
+    const session = input.sessions[index];
+    const block = buildSingleVeventLines({
+      title: input.title,
+      location: input.location,
+      dateStartTime: session.dateStartTime,
+      dateEndTime: session.dateEndTime,
+      uidSuffix: `${rootUid}-${index}`,
+      dtStamp,
+    });
+    if (!block) {
+      return null;
+    }
+
+    eventBlocks.push(block);
+  }
 
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Evolve Sprouts//Booking//EN',
     'CALSCALE:GREGORIAN',
-    'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTAMP:${dtStamp}`,
-    `DTSTART:${dtStart}`,
-    `DTEND:${dtEnd}`,
+    ...eventBlocks.flat(),
+    'END:VCALENDAR',
   ];
-  pushFoldedProperty(lines, 'SUMMARY', input.title);
-  pushFoldedProperty(lines, 'LOCATION', input.location);
-  lines.push('END:VEVENT', 'END:VCALENDAR');
 
   return `${lines.join('\r\n')}\r\n`;
+}
+
+export interface BuildBookingIcsContentInput {
+  title: string;
+  dateStartTime: string;
+  dateEndTime?: string;
+  location: string;
+}
+
+export function buildBookingIcsContent(input: BuildBookingIcsContentInput): string | null {
+  return buildBookingIcsCalendarContent({
+    title: input.title,
+    location: input.location,
+    sessions: [{ dateStartTime: input.dateStartTime, dateEndTime: input.dateEndTime }],
+  });
 }
 
 export function triggerBookingIcsDownload(icsBody: string, filenameBase: string): void {

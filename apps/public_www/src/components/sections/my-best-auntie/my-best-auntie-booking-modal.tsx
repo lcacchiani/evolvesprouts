@@ -131,6 +131,13 @@ export function MyBestAuntieBookingModal({
               locale={locale}
               content={paymentModalContent}
               eventTitle={modalContent.title}
+              eventSubtitle={modalContent.subtitle}
+              courseSessions={(selectedCohort?.dates ?? []).map((part) => {
+                return {
+                  dateStartTime: part.start_datetime,
+                  dateEndTime: part.end_datetime,
+                };
+              })}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
               selectedCohortDateLabel={selectedCohortDateLabelText}
               selectedDateStartTime={selectedDateStartTime}
