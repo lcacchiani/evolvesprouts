@@ -11,6 +11,7 @@ marketing/
 │   ├── google-ads-assessment.py   # Google Ads API (campaigns, keywords, ads)
 │   ├── meta-ads-assessment.py     # Meta Marketing API (campaigns, ad sets, ads)
 │   ├── ga4-assessment.py          # GA4 Data API (traffic, funnel, events)
+│   ├── ga4-create-audiences.py    # GA4 Admin API (create remarketing audiences)
 │   └── requirements.txt           # Python dependencies
 └── reports/
     └── ads-performance-assessment-YYYY-MM-DD.md
@@ -36,6 +37,7 @@ All scripts use Cursor Cloud Agent secrets (injected as env vars):
 | `EVOLVESPROUTS_GA4_PROPERTY_ID` | ga4 | GA4 property ID |
 | `EVOLVESPROUTS_META_SYSTEM_USER_ACCESS_TOKEN` | meta-ads | System user access token |
 | `EVOLVESPROUTS_META_AD_ACCOUNT_ID` | meta-ads | Ad account ID (`act_...`) |
+| `EVOLVESPROUTS_GOOGLE_CLIENT_EMAIL` | ga4-create-audiences | Service account email |
 
 ## Usage
 
@@ -47,8 +49,18 @@ python3 scripts/meta-ads-assessment.py
 python3 scripts/ga4-assessment.py
 ```
 
-All scripts are read-only and make no changes to any ad platform or analytics
-property.
+### GA4 audience creation (requires temporary Editor access)
+
+The `ga4-create-audiences.py` script creates three remarketing audiences.
+It requires temporary Editor access on the GA4 property:
+
+1. Go to GA4 Admin > Property Access Management
+2. Find `ga4-reader@evolve-sprouts.iam.gserviceaccount.com`
+3. Change role from Viewer to Editor
+4. Run: `python3 scripts/ga4-create-audiences.py`
+5. Revoke back to Viewer after done
+
+The assessment scripts are read-only and make no changes to any platform.
 
 ## Reports
 
