@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import enContent from '@/content/en.json';
 import zhHKContent from '@/content/zh-HK.json';
 import temporaryEventsPayload from '@/content/events.json';
+import easterWorkshopLandingContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import { createCrmApiClient } from '@/lib/crm-api-client';
 import {
@@ -316,6 +317,45 @@ describe('events-data', () => {
       selectedDateStartTime: '2026-04-06T02:00:00Z',
     });
   });
+
+  it('merges landing page bookingTopicsField onto event-booking modal payload when landing_page matches', () => {
+    const payload = {
+      data: [
+        {
+          id: 'easter-workshop',
+          title: 'Easter Workshop',
+          description: 'Workshop description',
+          booking_system: 'event-booking',
+          landing_page: 'easter-2026-montessori-play-coaching-workshop',
+          location_name: 'Venue',
+          location_address: '123 Road',
+          location_url: 'https://maps.google.com/?q=test',
+          dates: [
+            {
+              id: 'session-1',
+              start_datetime: '2026-04-06T02:00:00Z',
+              end_datetime: '2026-04-06T03:00:00Z',
+            },
+          ],
+          price: 350,
+          currency: 'HKD',
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const eventsEn = normalizeEvents(payload, enContent.events, 'en');
+    expect(eventsEn[0]?.bookingModalPayload?.variant).toBe('event');
+    expect(eventsEn[0]?.bookingModalPayload).toMatchObject({
+      topicsFieldConfig: easterWorkshopLandingContent.en.cta.bookingTopicsField,
+    });
+
+    const eventsZh = normalizeEvents(payload, enContent.events, 'zh-CN');
+    expect(eventsZh[0]?.bookingModalPayload).toMatchObject({
+      topicsFieldConfig: easterWorkshopLandingContent['zh-CN'].cta.bookingTopicsField,
+    });
+  });
+
   it('does not use legacy CTA candidate keys without external_url', () => {
     const payload = {
       data: [
