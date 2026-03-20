@@ -53,6 +53,8 @@ interface MyBestAuntieBookingProps {
   modalContent: MyBestAuntieModalContent;
   bookingModalContent: BookingModalContent;
   commonAccessibility?: CommonAccessibilityContent;
+  thankYouWhatsappHref?: string;
+  thankYouWhatsappCtaLabel?: string;
 }
 
 function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
@@ -222,6 +224,8 @@ export function MyBestAuntieBooking({
   modalContent,
   bookingModalContent,
   commonAccessibility = enContent.common.accessibility,
+  thankYouWhatsappHref,
+  thankYouWhatsappCtaLabel,
 }: MyBestAuntieBookingProps) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isThankYouModalOpen, setIsThankYouModalOpen] = useState(false);
@@ -610,7 +614,8 @@ export function MyBestAuntieBooking({
           locale={locale}
           content={bookingModalContent.thankYouModal}
           summary={reservationSummary}
-          homeHref={`/${locale}`}
+          whatsappHref={thankYouWhatsappHref}
+          whatsappCtaLabel={thankYouWhatsappCtaLabel}
           onClose={() => {
             setIsThankYouModalOpen(false);
           }}

@@ -153,6 +153,9 @@ const reservationSummary: ReservationSummary = {
   totalAmount: 9000,
   eventTitle: 'My Best Auntie',
   dateStartTime: '2026-04-08T12:00:00Z',
+  dateEndTime: '2026-04-08T14:00:00Z',
+  locationName: 'Evolve Sprouts',
+  locationAddress: 'Unit 507 Test Street',
 };
 
 if (!selectedCohort) {
@@ -258,7 +261,6 @@ describe('my-best-auntie booking modals footer content', () => {
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        homeHref='/en'
         onClose={() => {}}
       />,
     );
@@ -271,7 +273,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(thankYouDescriptionId).toBeTruthy();
     expect(
       document.getElementById(thankYouDescriptionId ?? '')?.textContent ?? '',
-    ).toContain(thankYouModalContent.subtitle);
+    ).toContain(thankYouModalContent.successLabel);
   });
 
   it('hides child age group and renders icon-based payment option radios in booking modal', () => {
@@ -971,7 +973,6 @@ describe('my-best-auntie booking modals footer content', () => {
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        homeHref='/en'
         onClose={() => {}}
       />,
     );
@@ -984,89 +985,83 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
   });
 
-  it('uses shared calendar icon and renders prefixed thank-you chips', () => {
-    const { container } = renderWithPortalContainer(
+  it('renders thank-you summary rows and calendar download control', () => {
+    renderWithPortalContainer(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        homeHref='/en'
         onClose={() => {}}
       />,
     );
 
-    expect(container.querySelector('span.es-mask-calendar-heading')).not.toBeNull();
     expect(
-      screen.getByText((_, element) => {
-        const text = element?.textContent ?? '';
-        return (
-          element?.tagName.toLowerCase() === 'p' &&
-          text.includes(thankYouModalContent.subtitle) &&
-          text.includes(reservationSummary.attendeeEmail)
-        );
+      screen.getByRole('heading', {
+        level: 4,
+        name: thankYouModalContent.summaryHeading,
       }),
     ).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.summaryEventLabel)).toBeInTheDocument();
+    expect(screen.getByText(reservationSummary.eventTitle)).toBeInTheDocument();
+    expect(screen.getByText(thankYouModalContent.summaryLocationLabel)).toBeInTheDocument();
     expect(
-      screen.getByText(
-        `${thankYouModalContent.trainingPrefix}${reservationSummary.eventTitle}`,
-      ),
+      screen.getByText('Evolve Sprouts, Unit 507 Test Street'),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.ageGroup}`,
-      ),
+      screen.getByRole('button', { name: thankYouModalContent.downloadCalendarLabel }),
     ).toBeInTheDocument();
-    expect(container.querySelector('img[src="/images/baby.svg"]')).not.toBeNull();
-    expect(container.querySelector('img[src="/images/dollar-symbol.svg"]')).not.toBeNull();
-    const amountChip = screen.getByText(`${thankYouModalContent.amountPrefix}HK$9,000`);
-    expect(
-      amountChip,
-    ).toBeInTheDocument();
-    expect(amountChip.className).toContain('font-medium');
-    expect(amountChip.className).not.toContain('font-semibold');
-    expect(
-      screen.getByText((content) => {
-        return content.startsWith(thankYouModalContent.transactionDatePrefix);
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        `${thankYouModalContent.paymentMethodPrefix}${reservationSummary.paymentMethod}`,
-      ),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(thankYouModalContent.totalLabel)).not.toBeInTheDocument();
   });
 
-  it('tracks receipt print clicks from thank-you modal', () => {
-    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
-    const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
+  it('renders WhatsApp follow-up when href and label are provided', () => {
+    render(
+      <MyBestAuntieThankYouModal
+        locale='en'
+        content={thankYouModalContent}
+        summary={reservationSummary}
+        whatsappHref='https://wa.me/85294479843'
+        whatsappCtaLabel={enContent.contactUs.form.contactMethodLinks.whatsapp}
+        onClose={() => {}}
+      />,
+    );
+
+    expect(screen.getByText(thankYouModalContent.followUpPrompt)).toBeInTheDocument();
+    const whatsappLink = screen.getByRole('link', {
+      name: enContent.contactUs.form.contactMethodLinks.whatsapp,
+    });
+    expect(whatsappLink).toHaveAttribute('href', 'https://wa.me/85294479843');
+  });
+
+  it('tracks thank-you calendar download clicks', () => {
+    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     render(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        homeHref='/en'
         onClose={() => {}}
       />,
     );
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: thankYouModalContent.printLabel,
+        name: thankYouModalContent.downloadCalendarLabel,
       }),
     );
 
     expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
-      'booking_receipt_print_click',
+      'booking_thank_you_ics_download',
       expect.objectContaining({
         sectionId: 'my-best-auntie-booking',
         ctaLocation: 'thank_you_modal',
       }),
     );
 
-    openSpy.mockRestore();
-    printSpy.mockRestore();
+    createObjectUrlSpy.mockRestore();
+    revokeSpy.mockRestore();
+    clickSpy.mockRestore();
   });
 
   it('allows only one discount code to be applied at a time', async () => {

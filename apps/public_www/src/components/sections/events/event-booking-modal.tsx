@@ -113,6 +113,9 @@ export function EventBookingModal({
               selectedCohortDateLabel={bookingPayload.selectedDateLabel}
               selectedDateStartTime={bookingPayload.selectedDateStartTime}
               selectedCohortPrice={bookingPayload.originalAmount}
+              venueName={bookingPayload.locationName}
+              venueAddress={bookingPayload.locationAddress}
+              dateEndTime={bookingPayload.dateParts[0]?.endDateTime ?? ''}
               topicsFieldConfig={topicsFieldConfig}
               descriptionId={dialogDescriptionId}
               analyticsSectionId='events-booking'

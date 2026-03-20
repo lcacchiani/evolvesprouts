@@ -59,6 +59,8 @@ interface EventsProps {
   bookingModalContent: BookingModalContent;
   myBestAuntieModalContent: MyBestAuntieModalContent;
   locale?: Locale;
+  thankYouWhatsappHref?: string;
+  thankYouWhatsappCtaLabel?: string;
 }
 
 export function Events({
@@ -66,6 +68,8 @@ export function Events({
   bookingModalContent,
   myBestAuntieModalContent,
   locale = 'en',
+  thankYouWhatsappHref,
+  thankYouWhatsappCtaLabel,
 }: EventsProps) {
   const [activeBookingEventId, setActiveBookingEventId] = useState('');
   const [reservationSummary, setReservationSummary] =
@@ -216,7 +220,8 @@ export function Events({
           locale={locale}
           content={bookingModalContent.thankYouModal}
           summary={reservationSummary}
-          homeHref={`/${locale}`}
+          whatsappHref={thankYouWhatsappHref}
+          whatsappCtaLabel={thankYouWhatsappCtaLabel}
           onClose={() => {
             setActiveThankYouModalVariant('');
           }}
@@ -228,8 +233,9 @@ export function Events({
           locale={locale}
           content={bookingModalContent.thankYouModal}
           summary={reservationSummary}
-          homeHref={`/${locale}`}
           analyticsSectionId='events-booking'
+          whatsappHref={thankYouWhatsappHref}
+          whatsappCtaLabel={thankYouWhatsappCtaLabel}
           onClose={() => {
             setActiveThankYouModalVariant('');
           }}
