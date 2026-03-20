@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 import { EXPENSE_STATUSES, type Expense, type ExpenseLineItem, type ExpenseStatus } from '@/types/expenses';
 
 interface ExpensesEditorPanelProps {
@@ -147,6 +147,7 @@ export function ExpensesEditorPanel({
   onReparse,
   onStartCreate,
 }: ExpensesEditorPanelProps) {
+  const currencyOptions = getCurrencyOptions();
   const [status, setStatus] = useState<ExpenseStatus>(selectedExpense?.status ?? 'submitted');
   const [vendorName, setVendorName] = useState(selectedExpense?.vendorName ?? '');
   const [invoiceNumber, setInvoiceNumber] = useState(selectedExpense?.invoiceNumber ?? '');
@@ -272,7 +273,6 @@ export function ExpensesEditorPanel({
             type='date'
             value={invoiceDate}
             onChange={(event) => setInvoiceDate(event.target.value)}
-            className='max-w-[10.5rem] sm:max-w-[11rem] md:max-w-none'
           />
         </div>
         <div>
@@ -282,12 +282,17 @@ export function ExpensesEditorPanel({
             type='date'
             value={dueDate}
             onChange={(event) => setDueDate(event.target.value)}
-            className='max-w-[10.5rem] sm:max-w-[11rem] md:max-w-none'
           />
         </div>
         <div>
           <Label htmlFor='expense-currency'>Currency</Label>
-          <Input id='expense-currency' value={currency} onChange={(event) => setCurrency(event.target.value)} />
+          <Select id='expense-currency' value={currency} onChange={(event) => setCurrency(event.target.value)}>
+            {currencyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         </div>
         <div>
           <Label htmlFor='expense-subtotal'>Subtotal</Label>

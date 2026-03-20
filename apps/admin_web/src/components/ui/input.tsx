@@ -6,6 +6,8 @@ import { clsx } from 'clsx';
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
 export function Input({ className, type, ...props }: InputProps) {
+  const isDatePicker = type === 'date' || type === 'datetime-local';
+
   return (
     <input
       type={type}
@@ -14,8 +16,10 @@ export function Input({ className, type, ...props }: InputProps) {
         'text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none',
         'focus:ring-1 focus:ring-slate-500 disabled:cursor-not-allowed',
         'disabled:bg-slate-100 sm:h-9 sm:text-sm',
-        type === 'date' &&
+        isDatePicker &&
           '[&::-webkit-calendar-picker-indicator]:ml-0 [&::-webkit-calendar-picker-indicator]:shrink-0 [&::-webkit-datetime-edit-fields-wrapper]:py-0',
+        type === 'date' && 'max-w-[12rem]',
+        type === 'datetime-local' && 'max-w-[24rem]',
         className
       )}
       {...props}

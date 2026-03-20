@@ -10,20 +10,29 @@ describe('Input', () => {
     expect(screen.getByLabelText('Generic input')).toHaveClass('min-w-0');
   });
 
-  it('applies WebKit date utility classes only for date inputs', () => {
+  it('applies WebKit picker utility classes and width cap for date and datetime-local inputs', () => {
     const { rerender } = render(<Input aria-label='Date input' type='date' />);
-    const dateInput = screen.getByLabelText('Date input');
-    const dateClassName = dateInput.getAttribute('class') ?? '';
+    let el = screen.getByLabelText('Date input');
+    let className = el.getAttribute('class') ?? '';
 
-    expect(dateClassName).toContain('[&::-webkit-calendar-picker-indicator]:ml-0');
-    expect(dateClassName).toContain('[&::-webkit-calendar-picker-indicator]:shrink-0');
-    expect(dateClassName).toContain('[&::-webkit-datetime-edit-fields-wrapper]:py-0');
+    expect(className).toContain('[&::-webkit-calendar-picker-indicator]:ml-0');
+    expect(className).toContain('[&::-webkit-calendar-picker-indicator]:shrink-0');
+    expect(className).toContain('[&::-webkit-datetime-edit-fields-wrapper]:py-0');
+    expect(className).toContain('max-w-[12rem]');
+
+    rerender(<Input aria-label='Date input' type='datetime-local' />);
+    el = screen.getByLabelText('Date input');
+    className = el.getAttribute('class') ?? '';
+    expect(className).toContain('[&::-webkit-calendar-picker-indicator]:ml-0');
+    expect(className).toContain('max-w-[24rem]');
 
     rerender(<Input aria-label='Date input' type='text' />);
-    const textClassName = screen.getByLabelText('Date input').getAttribute('class') ?? '';
+    className = screen.getByLabelText('Date input').getAttribute('class') ?? '';
 
-    expect(textClassName).not.toContain('[&::-webkit-calendar-picker-indicator]:ml-0');
-    expect(textClassName).not.toContain('[&::-webkit-calendar-picker-indicator]:shrink-0');
-    expect(textClassName).not.toContain('[&::-webkit-datetime-edit-fields-wrapper]:py-0');
+    expect(className).not.toContain('[&::-webkit-calendar-picker-indicator]:ml-0');
+    expect(className).not.toContain('[&::-webkit-calendar-picker-indicator]:shrink-0');
+    expect(className).not.toContain('[&::-webkit-datetime-edit-fields-wrapper]:py-0');
+    expect(className).not.toContain('max-w-[12rem]');
+    expect(className).not.toContain('max-w-[24rem]');
   });
 });
