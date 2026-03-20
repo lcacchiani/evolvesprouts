@@ -38,6 +38,7 @@ describe('LandingPageHero section', () => {
       '{price}',
       ctaPriceLabel,
     );
+    const heroImageMaxWidthClass = `max-w-[${easterWorkshopContent.en.hero.imageMaxWidthPercent}%]`;
     const bookingPayload: EventBookingModalPayload = {
       variant: 'event',
       bookingSystem: 'event-booking',
@@ -116,7 +117,7 @@ describe('LandingPageHero section', () => {
       'mx-auto',
       'w-full',
       'justify-self-center',
-      'max-w-[65%]',
+      heroImageMaxWidthClass,
     );
     expect(heroImage.parentElement?.parentElement).toHaveClass(
       'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]',
