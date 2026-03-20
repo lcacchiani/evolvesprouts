@@ -232,7 +232,7 @@ export function ExpensesEditorPanel({
           {selectedExpense.parseConfidence ? ` (confidence ${selectedExpense.parseConfidence})` : ''}
         </div>
       ) : null}
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-3 md:grid-cols-3 [&>div]:min-w-0'>
         <div>
           <Label htmlFor='expense-status'>Status</Label>
           <Select id='expense-status' value={status} onChange={(event) => setStatus(event.target.value as ExpenseStatus)}>
