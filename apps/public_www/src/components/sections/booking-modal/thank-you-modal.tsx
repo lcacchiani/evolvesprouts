@@ -22,6 +22,7 @@ import type { BookingThankYouModalContent, Locale } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import {
   buildBookingIcsCalendarContent,
+  buildEvolveSproutsThankYouIcsFilenameBase,
   triggerBookingIcsDownload,
 } from '@/lib/booking-calendar-download';
 import { formatCurrencyHkd } from '@/lib/format';
@@ -227,7 +228,10 @@ export function MyBestAuntieThankYouModal({
       },
     });
 
-    triggerBookingIcsDownload(icsBody, eventTitle);
+    triggerBookingIcsDownload(
+      icsBody,
+      buildEvolveSproutsThankYouIcsFilenameBase(eventTitle),
+    );
   }
 
   const locationTitle = hasStructuredVenue
@@ -299,7 +303,7 @@ export function MyBestAuntieThankYouModal({
           <section className='relative z-10 mx-auto mt-10 w-full max-w-[713px] px-4 sm:px-0'>
             <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5'>
               <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-start justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
+                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
                   <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
                     {eventTitle}
                   </h3>
@@ -313,7 +317,7 @@ export function MyBestAuntieThankYouModal({
               </article>
 
               <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-start justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
+                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
                   <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
                     {amountLine}
                   </h3>
@@ -325,7 +329,7 @@ export function MyBestAuntieThankYouModal({
               </article>
 
               <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-start justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
+                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
                   <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
                     {locationTitle}
                   </h3>
@@ -356,7 +360,7 @@ export function MyBestAuntieThankYouModal({
               </article>
 
               <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
-                <div className='flex items-start justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
+                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
                   <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
                     {dateTimeLines.length === 0 ? (
                       content.summaryEmptyValue
