@@ -1,10 +1,22 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AssetListPanel } from '@/components/admin/assets/asset-list-panel';
 import { createAdminAssetFixture } from '../../../fixtures/assets';
+
+const { mockGetUserAssetDownloadUrl } = vi.hoisted(() => ({
+  mockGetUserAssetDownloadUrl: vi.fn(),
+}));
+
+vi.mock('@/lib/assets-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/assets-api')>();
+  return {
+    ...actual,
+    getUserAssetDownloadUrl: mockGetUserAssetDownloadUrl,
+  };
+});
 
 const FIXTURE_ASSET = createAdminAssetFixture({
   title: 'Infant Nutrition Guide',
@@ -48,6 +60,25 @@ function renderPanel(overrides: Partial<ComponentProps<typeof AssetListPanel>> =
 }
 
 describe('AssetListPanel', () => {
+  beforeEach(() => {
+    mockGetUserAssetDownloadUrl.mockReset();
+  });
+
+  it('opens asset in a new tab when view button is clicked', async () => {
+    const user = userEvent.setup();
+    mockGetUserAssetDownloadUrl.mockResolvedValueOnce('https://cdn.example.com/file.pdf');
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+    renderPanel();
+
+    await user.click(screen.getByRole('button', { name: 'Open asset in new tab' }));
+
+    expect(mockGetUserAssetDownloadUrl).toHaveBeenCalledWith('asset-1');
+    expect(openSpy).toHaveBeenCalledWith('https://cdn.example.com/file.pdf', '_blank', 'noopener,noreferrer');
+
+    openSpy.mockRestore();
+  });
+
   it('renders table data and handles filter and load-more actions', async () => {
     const user = userEvent.setup();
     const { onQueryChange, onLoadMore } = renderPanel();
