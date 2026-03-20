@@ -220,4 +220,3 @@ def test_parse_invoice_uses_configured_pdf_engine(monkeypatch: Any) -> None:
 
     payload = json.loads(captured_request["body"])
     assert payload["plugins"][0]["pdf"]["engine"] == "pdf-text"
-
