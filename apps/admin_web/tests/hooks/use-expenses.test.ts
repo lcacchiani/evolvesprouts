@@ -62,6 +62,8 @@ vi.mock('@/lib/assets-api', () => ({
 }));
 
 import { useExpenses } from '@/hooks/use-expenses';
+import { usePaginatedList } from '@/hooks/use-paginated-list';
+import { listAdminExpenses } from '@/lib/expenses-api';
 import type { Expense } from '@/types/expenses';
 
 const SAMPLE_EXPENSE: Expense = {
@@ -106,6 +108,43 @@ describe('useExpenses', () => {
     expect(result.current.isSaving).toBe(false);
     expect(result.current.isUploadingFiles).toBe(false);
     expect(result.current.mutationError).toBe('');
+  });
+
+  it('passes a stable fetcher to usePaginatedList across rerenders', async () => {
+    const mockedUsePaginatedList = vi.mocked(usePaginatedList);
+    const mockedListAdminExpenses = vi.mocked(listAdminExpenses);
+    mockedListAdminExpenses.mockResolvedValue({
+      items: [],
+      nextCursor: null,
+      totalCount: 0,
+    });
+
+    const { rerender } = renderHook(() => useExpenses());
+
+    const firstCallArgs = mockedUsePaginatedList.mock.calls[0]?.[0];
+    expect(firstCallArgs).toBeDefined();
+
+    rerender();
+
+    const secondCallArgs = mockedUsePaginatedList.mock.calls[1]?.[0];
+    expect(secondCallArgs).toBeDefined();
+    expect(secondCallArgs?.fetcher).toBe(firstCallArgs?.fetcher);
+
+    await firstCallArgs!.fetcher({
+      query: '',
+      status: '',
+      parseStatus: '',
+      cursor: null,
+      limit: 50,
+    });
+
+    expect(mockedListAdminExpenses).toHaveBeenCalledWith({
+      query: '',
+      status: '',
+      parseStatus: '',
+      cursor: null,
+      limit: 50,
+    });
   });
 
   it('selects and clears expense', () => {
