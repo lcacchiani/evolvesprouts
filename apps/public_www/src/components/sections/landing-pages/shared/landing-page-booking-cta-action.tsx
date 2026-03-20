@@ -12,7 +12,7 @@ import type {
   Locale,
 } from '@/content';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import type { EventBookingModalPayload } from '@/lib/events-data';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
@@ -132,6 +132,18 @@ export function LandingPageBookingCtaAction({
         cohort_date: selectedDate,
       },
     });
+    if (bookingPayload) {
+      trackEcommerceEvent('begin_checkout', {
+        value: bookingPayload.originalAmount,
+        items: [{
+          item_id: selectedDate,
+          item_name: bookingPayload.title,
+          item_category: 'event',
+          price: bookingPayload.originalAmount,
+          quantity: 1,
+        }],
+      });
+    }
   }, [
     analyticsSectionId,
     bookingPayload,

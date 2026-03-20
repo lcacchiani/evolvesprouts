@@ -28,7 +28,7 @@ import {
   parseCohortValue,
 } from '@/lib/format';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
-import { trackAnalyticsEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
 const MyBestAuntieBookingModal = dynamic(
@@ -318,6 +318,16 @@ export function MyBestAuntieBooking({
         },
       });
       trackMetaPixelEvent('InitiateCheckout', { content_name: 'my_best_auntie' });
+      trackEcommerceEvent('begin_checkout', {
+        value: selectedCohort.price,
+        items: [{
+          item_id: `mba-${selectedCohort.age_group}`,
+          item_name: 'My Best Auntie',
+          item_category: selectedCohort.age_group,
+          price: selectedCohort.price,
+          quantity: 1,
+        }],
+      });
       setIsPaymentModalOpen(true);
     }, 0);
 
@@ -572,6 +582,16 @@ export function MyBestAuntieBooking({
                   },
                 });
                 trackMetaPixelEvent('InitiateCheckout', { content_name: 'my_best_auntie' });
+                trackEcommerceEvent('begin_checkout', {
+                  value: selectedCohort.price,
+                  items: [{
+                    item_id: `mba-${selectedCohort.age_group}`,
+                    item_name: 'My Best Auntie',
+                    item_category: selectedCohort.age_group,
+                    price: selectedCohort.price,
+                    quantity: 1,
+                  }],
+                });
                 setIsPaymentModalOpen(true);
               }}
               disabled={!selectedCohort || selectedCohort.is_fully_booked}
