@@ -4,7 +4,6 @@ import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
-import FormSuccessCheckIcon from '@/components/icons/svg/form-success-check-icon.svg';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { SectionContainer } from '@/components/sections/shared/section-container';
@@ -308,7 +307,13 @@ export function SproutsSquadCommunity({
                 aria-live='polite'
               >
                 <div className='flex min-h-0 items-start gap-3 overflow-hidden rounded-xl es-bg-surface-success-pale p-4'>
-                  <FormSuccessCheckIcon aria-hidden className='mt-0.5 h-5 w-5 shrink-0' />
+                  {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+                  <img
+                    src='/images/form-success-check-icon.svg'
+                    alt=''
+                    aria-hidden
+                    className='mt-0.5 h-5 w-5 shrink-0'
+                  />
                   <p className='text-base leading-7 es-text-success'>
                     {content.successMessage}
                   </p>

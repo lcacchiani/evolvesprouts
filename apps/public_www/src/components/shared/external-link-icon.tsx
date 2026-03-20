@@ -1,8 +1,6 @@
-import type { ReactNode, SVGProps } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 
-import ExternalLinkSvg from '@/components/icons/svg/external-link-icon.svg';
-
-interface ExternalLinkIconProps extends SVGProps<SVGSVGElement> {
+interface ExternalLinkIconProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'children'> {
   className?: string;
 }
 
@@ -13,15 +11,12 @@ interface ExternalLinkInlineContentProps {
   externalLabelClassName?: string;
 }
 
-export function ExternalLinkIcon({
-  className,
-  ...svgProps
-}: ExternalLinkIconProps) {
-  const mergedClassName = className
-    ? `es-link-external-icon ${className}`
-    : 'es-link-external-icon';
+export function ExternalLinkIcon({ className, ...props }: ExternalLinkIconProps) {
+  const mergedClassName = ['es-ui-icon-mask es-ui-icon-mask--external-link es-link-external-icon', className]
+    .filter(Boolean)
+    .join(' ');
 
-  return <ExternalLinkSvg className={mergedClassName} {...svgProps} />;
+  return <span aria-hidden className={mergedClassName} {...props} />;
 }
 
 export function ExternalLinkInlineContent({

@@ -9,8 +9,6 @@ import {
   useState,
 } from 'react';
 
-import ChevronRightIcon from '@/components/icons/svg/chevron-right-icon.svg';
-import TestimonialsParentIconSvg from '@/components/icons/svg/testimonials-parent-icon.svg';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import {
@@ -91,19 +89,24 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
   return (
-    <ChevronRightIcon
+    <span
       aria-hidden
-      className={`h-8 w-8 es-text-icon ${rotationClass}`}
+      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-8 w-8 shrink-0 es-text-icon ${rotationClass}`}
     />
   );
 }
 
 function ParentIcon() {
   return (
-    <TestimonialsParentIconSvg
-      aria-hidden
-      className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px] es-text-body'
-    />
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+      <img
+        src='/images/testimonials-parent-icon.svg'
+        alt=''
+        aria-hidden
+        className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px]'
+      />
+    </>
   );
 }
 

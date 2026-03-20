@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import FooterAccordionChevronIcon from '@/components/icons/svg/footer-accordion-chevron-icon.svg';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SmartLink } from '@/components/shared/smart-link';
@@ -223,10 +222,15 @@ function FooterDesktopColumn({
 
 function AccordionChevronIcon() {
   return (
-    <FooterAccordionChevronIcon
-      aria-hidden
-      className='h-[9px] w-[17px] shrink-0 transition-transform duration-300 group-open:rotate-180'
-    />
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+      <img
+        src='/images/footer-accordion-chevron-icon.svg'
+        alt=''
+        aria-hidden
+        className='h-[9px] w-[17px] shrink-0 transition-transform duration-300 group-open:rotate-180'
+      />
+    </>
   );
 }
 

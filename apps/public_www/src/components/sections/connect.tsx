@@ -1,4 +1,3 @@
-import ConnectGlyphArrowIcon from '@/components/icons/svg/connect-glyph-arrow-icon.svg';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
@@ -23,7 +22,10 @@ function ConnectGlyph({ index }: { index: number }) {
       aria-hidden='true'
       className={`inline-flex h-12 w-12 items-center justify-center rounded-full ${toneClassName}`}
     >
-      <ConnectGlyphArrowIcon className='h-5 w-5' />
+      <span
+        aria-hidden
+        className='es-ui-icon-mask es-ui-icon-mask--connect-glyph-arrow inline-block h-5 w-5'
+      />
     </span>
   );
 }

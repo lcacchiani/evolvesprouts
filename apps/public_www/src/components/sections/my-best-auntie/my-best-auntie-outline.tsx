@@ -3,8 +3,6 @@
 import { Fragment, type KeyboardEvent, type ReactNode, useState } from 'react';
 import Image from 'next/image';
 
-import MyBestAuntieWaveLg from '@/components/icons/svg/my-best-auntie-wave-lg.svg';
-import MyBestAuntieWaveSm from '@/components/icons/svg/my-best-auntie-wave-sm.svg';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionContainer } from '@/components/sections/shared/section-container';
@@ -322,7 +320,13 @@ export function MyBestAuntieOutline({
             aria-hidden='true'
             className='pointer-events-none absolute bottom-[62px] left-0 right-0 z-10 hidden md:block'
           >
-            <MyBestAuntieWaveLg className='h-20 w-full' />
+            {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+            <img
+              src='/images/my-best-auntie-wave-lg.svg'
+              alt=''
+              aria-hidden
+              className='h-20 w-full'
+            />
           </div>
           {/* Mobile carousel (< md) with wave scrolling alongside cards */}
           <div data-css-fallback='hide-when-css-missing' className='md:hidden'>
@@ -354,7 +358,13 @@ export function MyBestAuntieOutline({
                   aria-hidden='true'
                   className='pointer-events-none absolute bottom-[62px] left-0 right-0 z-10'
                 >
-                  <MyBestAuntieWaveSm className='h-20 w-full' />
+                  {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+                  <img
+                    src='/images/my-best-auntie-wave-sm.svg'
+                    alt=''
+                    aria-hidden
+                    className='h-20 w-full'
+                  />
                 </li>
               </ul>
             </CarouselTrack>

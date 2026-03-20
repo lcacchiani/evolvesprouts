@@ -8,7 +8,6 @@ import { renderQuotedDescriptionText } from '@/components/sections/shared/render
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { FreeResourcesOverlayLayout } from '@/components/sections/free-resources-overlay-layout';
-import FreeResourcesChecklistIconSvg from '@/components/icons/svg/free-resources-checklist-icon.svg';
 import { FreeResourcesSplitLayout } from '@/components/sections/free-resources-split-layout';
 import enContent from '@/content/en.json';
 import {
@@ -165,7 +164,17 @@ function resolveChecklistItems(items: unknown): ChecklistEntry[] {
 }
 
 function ChecklistIcon() {
-  return <FreeResourcesChecklistIconSvg aria-hidden className='h-7 w-7 shrink-0' />;
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+      <img
+        src='/images/free-resources-checklist-icon.svg'
+        alt=''
+        aria-hidden
+        className='h-7 w-7 shrink-0'
+      />
+    </>
+  );
 }
 
 function ResourceCardContent({

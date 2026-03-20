@@ -1,6 +1,5 @@
 'use client';
 
-import ChevronRightIcon from '@/components/icons/svg/chevron-right-icon.svg';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
@@ -47,7 +46,10 @@ function ArrowIcon({
   const toneClass = isDisabled ? 'es-text-neutral-strong' : 'es-text-icon';
 
   return (
-    <ChevronRightIcon aria-hidden className={`h-7 w-7 ${rotationClass} ${toneClass}`} />
+    <span
+      aria-hidden
+      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 ${rotationClass} ${toneClass}`}
+    />
   );
 }
 

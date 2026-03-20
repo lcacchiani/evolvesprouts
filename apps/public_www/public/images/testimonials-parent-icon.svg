@@ -8,17 +8,17 @@
     cx="67"
     cy="46"
     r="20"
-    stroke="currentColor"
+    stroke="#4A4A4A"
     stroke-width="6"
-    opacity="0.9"
+    stroke-opacity="0.9"
   />
   <path
     d="M31 106C35.2 85.4 49.4 75 67 75C84.6 75 98.8 85.4 103 106"
-    stroke="currentColor"
+    stroke="#4A4A4A"
     stroke-width="6"
     stroke-linecap="round"
-    opacity="0.9"
+    stroke-opacity="0.9"
   />
-  <circle cx="95" cy="43" r="8" fill="currentColor" opacity="0.22" />
-  <circle cx="39" cy="89" r="7" fill="currentColor" opacity="0.22" />
+  <circle cx="95" cy="43" r="8" fill="#4A4A4A" fill-opacity="0.22" />
+  <circle cx="39" cy="89" r="7" fill="#4A4A4A" fill-opacity="0.22" />
 </svg>

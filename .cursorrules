@@ -219,18 +219,23 @@ repo root
 - Do not embed inline `<svg>...</svg>` markup in feature, section, page, or
   shared UI components (excluding third-party or generated sources you must not
   edit).
-- Store vector markup in standalone `.svg` files under
-  `src/components/icons/svg/` using kebab-case names; reuse an existing file when
-  the graphic matches.
-- Load icons through SVGR: `@svgr/webpack` is configured in Next webpack (use
-  `next dev --webpack` / `next build --webpack` as in package scripts). Vitest
-  must use `vite-plugin-svgr` with `include: '**/*.svg'` so tests resolve the
-  same imports.
-- Assets consumed only as static URLs (for example `<img src="/images/foo.svg">`)
-  stay under `public/`.
-- Thin wrapper components may merge `className`, `aria-*`, `data-*`, or spread
-  `SVGProps` onto the SVGR import; they must not declare `<path>`, `<circle>`,
-  `<g>`, or other vector child markup.
+
+**`apps/admin_web/**`**
+
+- Store vectors in `src/components/icons/svg/` (kebab-case); import via SVGR
+  (`@svgr/webpack` in Next webpack; use `next dev --webpack` / `next build --webpack`
+  in package scripts). Vitest uses `vite-plugin-svgr` with `include: '**/*.svg'`.
+- Thin wrappers may merge `className` / `aria-*` / `data-*` onto the SVGR import
+  only—no `<path>` / `<circle>` / `<g>` in TSX.
+
+**`apps/public_www/**`**
+
+- Store reusable UI vectors in `public/images/*.svg` (same tree as other static
+  SVG assets). Reference them with `/images/...` from `<img>` or from CSS
+  `mask-image` (see `es-ui-icon-mask*` in `components-core.css`). Do not keep
+  parallel copies under `src/components/icons/`.
+- Wrapper spans may set sizing and `currentColor` via Tailwind/CSS; do not inline
+  vector markup in TSX.
 
 ### Admin Web OpenAPI typing contract (MANDATORY for `apps/admin_web/**`)
 

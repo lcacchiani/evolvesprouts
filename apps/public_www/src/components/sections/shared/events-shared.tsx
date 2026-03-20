@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
-import EventsLoadingGearIconSvg from '@/components/icons/svg/events-loading-gear-icon.svg';
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
@@ -60,10 +59,15 @@ function formatPartnerChipLabel(value: string): string {
 
 function LoadingGearIcon({ className, testId }: LoadingGearIconProps) {
   return (
-    <EventsLoadingGearIconSvg
+    <span
       data-testid={testId}
       aria-hidden
-      className={`es-events-loading-gear ${className ?? ''}`.trim()}
+      className={[
+        'es-ui-icon-mask es-ui-icon-mask--events-loading-gear es-events-loading-gear inline-block h-7 w-7',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
     />
   );
 }

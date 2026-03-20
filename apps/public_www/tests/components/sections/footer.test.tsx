@@ -81,7 +81,7 @@ describe('Footer external links', () => {
       expect(link.querySelector('span:last-of-type')?.className).toContain(
         'es-link-external-label',
       );
-      const externalIcon = link.querySelector('svg[data-external-link-icon="true"]');
+      const externalIcon = link.querySelector('.es-ui-icon-mask--external-link');
       expect(externalIcon).not.toBeNull();
       expect(externalIcon?.getAttribute('class')).toContain('es-link-external-icon');
     }
@@ -112,7 +112,7 @@ describe('Footer external links', () => {
       expect(link.querySelector('span:last-of-type')?.className ?? '').not.toContain(
         'es-link-external-label',
       );
-      expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
+      expect(link.querySelector('.es-ui-icon-mask--external-link')).toBeNull();
     }
 
     for (const link of linkedInLinks) {

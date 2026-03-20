@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
-import ChevronRightIcon from '@/components/icons/svg/chevron-right-icon.svg';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import {
@@ -62,7 +61,10 @@ function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
   return (
-    <ChevronRightIcon aria-hidden className={`h-7 w-7 es-text-icon ${rotationClass}`} />
+    <span
+      aria-hidden
+      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 es-text-icon ${rotationClass}`}
+    />
   );
 }
 

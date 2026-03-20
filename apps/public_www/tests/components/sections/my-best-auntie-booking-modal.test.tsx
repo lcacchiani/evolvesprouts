@@ -953,9 +953,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(screen.getByText(bookingModalContent.directionLabel).className).toContain(
       'es-link-external-label--direction',
     );
-    const directionIcon = directionLink.querySelector(
-      'svg[data-external-link-icon="true"]',
-    );
+    const directionIcon = directionLink.querySelector('.es-ui-icon-mask--external-link');
     expect(directionIcon).not.toBeNull();
     expect(directionIcon?.getAttribute('class')).toContain('es-link-external-icon');
 
@@ -965,9 +963,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
     expect(termsLink).toHaveAttribute('target', '_blank');
     expect(termsLink).toHaveAttribute('rel', 'noopener');
-    expect(
-      termsLink.querySelector('svg[data-external-link-icon="true"]'),
-    ).toBeNull();
+    expect(termsLink.querySelector('.es-ui-icon-mask--external-link')).toBeNull();
     expect(
       screen.queryByRole('link', {
         name: bookingSectionContent.learnMoreLabel,

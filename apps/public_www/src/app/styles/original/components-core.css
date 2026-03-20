@@ -854,4 +854,42 @@
     -webkit-mask-repeat: var(--es-section-bg-mask-repeat, no-repeat);
     -webkit-mask-size: var(--es-section-bg-mask-size, 100% 100%);
   }
+
+  /* UI icons in /public/images/ — color via currentColor (mask) */
+  .es-ui-icon-mask {
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+  }
+
+  .es-ui-icon-mask--chevron-right {
+    mask-image: url('/images/chevron-right-icon.svg');
+    -webkit-mask-image: url('/images/chevron-right-icon.svg');
+  }
+
+  .es-ui-icon-mask--external-link {
+    mask-image: url('/images/external-link-icon.svg');
+    -webkit-mask-image: url('/images/external-link-icon.svg');
+  }
+
+  .es-ui-icon-mask--connect-glyph-arrow {
+    mask-image: url('/images/connect-glyph-arrow-icon.svg');
+    -webkit-mask-image: url('/images/connect-glyph-arrow-icon.svg');
+  }
+
+  .es-ui-icon-mask--faq-lens {
+    mask-image: url('/images/faq-lens-icon.svg');
+    -webkit-mask-image: url('/images/faq-lens-icon.svg');
+  }
+
+  .es-ui-icon-mask--events-loading-gear {
+    mask-image: url('/images/events-loading-gear-icon.svg');
+    -webkit-mask-image: url('/images/events-loading-gear-icon.svg');
+  }
 }
