@@ -21,6 +21,10 @@ import type {
   EventBookingModalPayload,
   LandingPageHeroEventContent,
 } from '@/lib/events-data';
+import {
+  formatHeroFullDateLine,
+  formatSiteTimeRange,
+} from '@/lib/site-datetime';
 
 interface LandingPageHeroProps {
   slug: string;
@@ -36,6 +40,8 @@ interface LandingPageHeroProps {
   fullyBookedCtaLabel?: string;
   fullyBookedWaitlistHref?: string;
   bookingModalContent: BookingModalContent;
+  thankYouWhatsappHref?: string;
+  thankYouWhatsappCtaLabel?: string;
   ariaLabel?: string;
 }
 
@@ -55,6 +61,33 @@ const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = 
 const CALENDAR_ICON_SRC = '/images/calendar.svg';
 const CLOCK_ICON_SRC = '/images/clock.svg';
 const LOCATION_ICON_SRC = '/images/location.svg';
+const HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT: Readonly<Record<number, string>> = {
+  50: 'max-w-[50%]',
+  55: 'max-w-[55%]',
+  60: 'max-w-[60%]',
+  65: 'max-w-[65%]',
+  70: 'max-w-[70%]',
+  75: 'max-w-[75%]',
+  80: 'max-w-[80%]',
+  85: 'max-w-[85%]',
+  90: 'max-w-[90%]',
+  95: 'max-w-[95%]',
+  100: 'max-w-[100%]',
+  105: 'max-w-[105%]',
+  110: 'max-w-[110%]',
+  115: 'max-w-[115%]',
+  120: 'max-w-[120%]',
+};
+
+function resolveHeroImageMaxWidthClass(imageMaxWidthPercent: number | undefined): string {
+  if (typeof imageMaxWidthPercent !== 'number' || !Number.isFinite(imageMaxWidthPercent)) {
+    return HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[100];
+  }
+
+  const normalizedPercent = Math.round(imageMaxWidthPercent);
+  return HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[normalizedPercent]
+    ?? HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[100];
+}
 
 function buildPartnerLogoSources(partner: string): string[] {
   const normalizedPartner = partner.trim().toLowerCase();
@@ -123,84 +156,6 @@ function PartnerLogo({ partner }: { partner: string }) {
   );
 }
 
-function resolveDateTimeLocale(locale: Locale): string {
-  if (locale === 'en') {
-    return 'en-GB';
-  }
-
-  return locale;
-}
-
-function buildHeroDateChip(startDateTime: string | undefined, locale: Locale): string | undefined {
-  const normalizedStartDateTime = startDateTime?.trim() ?? '';
-  if (!normalizedStartDateTime) {
-    return undefined;
-  }
-
-  const startDate = new Date(normalizedStartDateTime);
-  if (Number.isNaN(startDate.getTime())) {
-    return undefined;
-  }
-
-  const dateParts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).formatToParts(startDate);
-  const weekday = dateParts.find((part) => part.type === 'weekday')?.value;
-  const day = dateParts.find((part) => part.type === 'day')?.value;
-  const month = dateParts.find((part) => part.type === 'month')?.value;
-  const year = dateParts.find((part) => part.type === 'year')?.value;
-  if (!weekday || !day || !month || !year) {
-    return undefined;
-  }
-
-  return `${weekday} ${day} ${month} ${year}`;
-}
-
-function buildHeroTimeChip(
-  startDateTime: string | undefined,
-  endDateTime: string | undefined,
-  locale: Locale,
-): string | undefined {
-  const normalizedStartDateTime = startDateTime?.trim() ?? '';
-  if (!normalizedStartDateTime) {
-    return undefined;
-  }
-
-  const startDate = new Date(normalizedStartDateTime);
-  if (Number.isNaN(startDate.getTime())) {
-    return undefined;
-  }
-
-  const timeFormatter =
-    locale === 'en'
-      ? new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        })
-      : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        });
-  const startTimeLabel = timeFormatter.format(startDate);
-
-  const normalizedEndDateTime = endDateTime?.trim() ?? '';
-  if (!normalizedEndDateTime) {
-    return startTimeLabel;
-  }
-
-  const endDate = new Date(normalizedEndDateTime);
-  if (Number.isNaN(endDate.getTime())) {
-    return startTimeLabel;
-  }
-
-  return `${startTimeLabel} - ${timeFormatter.format(endDate)}`;
-}
-
 function buildHeroChips(
   eventContent: LandingPageHeroEventContent | null,
   locale: Locale,
@@ -215,11 +170,15 @@ function buildHeroChips(
   for (const chip of [
     {
       type: 'date' as const,
-      label: buildHeroDateChip(eventContent.startDateTime, locale),
+      label: formatHeroFullDateLine(eventContent.startDateTime, locale),
     },
     {
       type: 'time' as const,
-      label: buildHeroTimeChip(eventContent.startDateTime, eventContent.endDateTime, locale),
+      label: formatSiteTimeRange(
+        eventContent.startDateTime,
+        eventContent.endDateTime,
+        locale,
+      ),
     },
     {
       type: 'location' as const,
@@ -273,8 +232,14 @@ export function LandingPageHero({
   fullyBookedCtaLabel,
   fullyBookedWaitlistHref,
   bookingModalContent,
+  thankYouWhatsappHref,
+  thankYouWhatsappCtaLabel,
   ariaLabel,
 }: LandingPageHeroProps) {
+  const heroImageMaxWidthClassName = useMemo(
+    () => resolveHeroImageMaxWidthClass(content.imageMaxWidthPercent),
+    [content.imageMaxWidthPercent],
+  );
   const chips = useMemo(
     () => buildHeroChips(eventContent, locale),
     [eventContent, locale],
@@ -289,9 +254,9 @@ export function LandingPageHero({
       id='landing-page-hero'
       ariaLabel={ariaLabel ?? title}
       dataFigmaNode='landing-page-hero'
-      className='es-landing-page-hero-section es-bg-surface-white'
+      className='es-landing-page-hero-section es-bg-surface-white overflow-x-clip'
     >
-      <SectionContainer className='grid items-center gap-10 lg:grid-cols-2'>
+      <SectionContainer className='grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]'>
         <div className='space-y-5'>
           <SectionHeader
             title={title}
@@ -351,18 +316,22 @@ export function LandingPageHero({
             fullyBookedCtaLabel={fullyBookedCtaLabel}
             fullyBookedWaitlistHref={fullyBookedWaitlistHref}
             bookingModalContent={bookingModalContent}
+            thankYouWhatsappHref={thankYouWhatsappHref}
+            thankYouWhatsappCtaLabel={thankYouWhatsappCtaLabel}
             analyticsSectionId='landing-page-hero'
             ctaLocation='landing_page'
             buttonClassName='mt-3'
           />
         </div>
-        <div className='es-landing-page-hero-image-wrap w-full'>
+        <div
+          className={`es-landing-page-hero-image-wrap mx-auto w-full justify-self-center ${heroImageMaxWidthClassName}`}
+        >
           <Image
             src={content.imageSrc}
             alt={content.imageAlt}
             width={1200}
             height={900}
-            sizes='(max-width: 1024px) 100vw, 50vw'
+            sizes='(max-width: 1024px) 120vw, 60vw'
             className='relative z-10 h-auto w-full rounded-panel'
           />
         </div>

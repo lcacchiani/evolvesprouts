@@ -1,5 +1,6 @@
 import type { Locale } from '@/content';
 import type { DiscountRule } from '@/lib/discounts-data';
+import { formatTodayLongDate } from '@/lib/site-datetime';
 
 const MONTH_BY_SHORT_NAME: Record<string, number> = {
   jan: 1,
@@ -32,13 +33,7 @@ export function applyDiscount(
 }
 
 export function resolveLocalizedDate(locale: Locale): string {
-  const dateFormatter = new Intl.DateTimeFormat(locale, {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-
-  return dateFormatter.format(new Date());
+  return formatTodayLongDate(locale);
 }
 
 export function escapeHtml(value: string): string {
@@ -69,15 +64,23 @@ export function extractIsoDateFromPartDate(
   }
 
   const yearMatch = normalizedMonthLabel.match(/\b(\d{4})\b/);
-  const partDateMatch = normalizedPartDate.match(/\b([A-Za-z]{3})\s+(\d{1,2})\b/);
-  if (!yearMatch || !partDateMatch) {
+  const monthDayMatch = normalizedPartDate.match(/\b([A-Za-z]{3})\s+(\d{1,2})\b/);
+  const dayMonthMatch = normalizedPartDate.match(/\b(\d{1,2})\s+([A-Za-z]{3})\b/);
+  if (!yearMatch || (!monthDayMatch && !dayMonthMatch)) {
     return '';
   }
 
   const year = Number.parseInt(yearMatch[1], 10);
-  const monthNumber = MONTH_BY_SHORT_NAME[partDateMatch[1].toLowerCase()];
-  const day = Number.parseInt(partDateMatch[2], 10);
-  if (!monthNumber || !Number.isInteger(day) || day < 1 || day > 31) {
+  let monthNumber: number | undefined;
+  let day: number | undefined;
+  if (monthDayMatch) {
+    monthNumber = MONTH_BY_SHORT_NAME[monthDayMatch[1].toLowerCase()];
+    day = Number.parseInt(monthDayMatch[2], 10);
+  } else if (dayMonthMatch) {
+    day = Number.parseInt(dayMonthMatch[1], 10);
+    monthNumber = MONTH_BY_SHORT_NAME[dayMonthMatch[2].toLowerCase()];
+  }
+  if (!monthNumber || day === undefined || !Number.isInteger(day) || day < 1 || day > 31) {
     return '';
   }
 

@@ -12,9 +12,12 @@ describe('ContactFormSuccess', () => {
       />,
     );
 
-    expect(
-      screen.getByRole('heading', { name: 'Thanks for reaching out!' }),
-    ).toBeInTheDocument();
+    const title = screen.getByRole('heading', { name: 'Thanks for reaching out!' });
+    expect(title).toBeInTheDocument();
     expect(screen.getByText('We will reply shortly.')).toBeInTheDocument();
+
+    const successContainer = title.closest('div');
+    expect(successContainer).not.toBeNull();
+    expect(successContainer?.className).not.toContain('es-bg-surface-muted');
   });
 });

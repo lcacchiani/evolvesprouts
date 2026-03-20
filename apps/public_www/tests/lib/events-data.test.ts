@@ -3,8 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import enContent from '@/content/en.json';
 import zhHKContent from '@/content/zh-HK.json';
 import temporaryEventsPayload from '@/content/events.json';
+import easterWorkshopLandingContent from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
 import myBestAuntieTrainingCourseContent from '@/content/my-best-auntie-training-courses.json';
 import { createCrmApiClient } from '@/lib/crm-api-client';
+import {
+  PUBLIC_SITE_IANA_TIMEZONE,
+  formatHeroFullDateLine,
+} from '@/lib/site-datetime';
 import {
   fetchEventsPayload,
   getLandingPageBookingEventContent,
@@ -39,6 +44,7 @@ function formatExpectedDateLabel(
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
   }).format(new Date(isoDateTime));
 }
 
@@ -55,15 +61,18 @@ function formatExpectedTimeLabel(
           hour: '2-digit',
           minute: '2-digit',
           hour12: false,
+          timeZone: PUBLIC_SITE_IANA_TIMEZONE,
         })
       : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true,
+          timeZone: PUBLIC_SITE_IANA_TIMEZONE,
         });
   const timeZoneLabel = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
     timeZoneName: 'short',
   })
     .formatToParts(startDate)
@@ -78,27 +87,8 @@ function formatExpectedTimeLabel(
 function formatExpectedLandingPageEyebrowDate(
   isoDateTime: string,
   locale: 'en' | 'zh-CN' | 'zh-HK',
-): string {
-  const date = new Date(isoDateTime);
-  if (locale === 'en') {
-    const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    }).formatToParts(date);
-    const weekday = parts.find((part) => part.type === 'weekday')?.value;
-    const day = parts.find((part) => part.type === 'day')?.value;
-    const month = parts.find((part) => part.type === 'month')?.value;
-    return `${weekday} ${day} ${month}`;
-  }
-
-  const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    month: 'long',
-    day: 'numeric',
-  }).formatToParts(date);
-  const month = parts.find((part) => part.type === 'month')?.value;
-  const day = parts.find((part) => part.type === 'day')?.value;
-  return `${month} ${day} 日`;
+): string | undefined {
+  return formatHeroFullDateLine(isoDateTime, locale);
 }
 
 describe('events-data', () => {
@@ -327,6 +317,45 @@ describe('events-data', () => {
       selectedDateStartTime: '2026-04-06T02:00:00Z',
     });
   });
+
+  it('merges landing page bookingTopicsField onto event-booking modal payload when landing_page matches', () => {
+    const payload = {
+      data: [
+        {
+          id: 'easter-workshop',
+          title: 'Easter Workshop',
+          description: 'Workshop description',
+          booking_system: 'event-booking',
+          landing_page: 'easter-2026-montessori-play-coaching-workshop',
+          location_name: 'Venue',
+          location_address: '123 Road',
+          location_url: 'https://maps.google.com/?q=test',
+          dates: [
+            {
+              id: 'session-1',
+              start_datetime: '2026-04-06T02:00:00Z',
+              end_datetime: '2026-04-06T03:00:00Z',
+            },
+          ],
+          price: 350,
+          currency: 'HKD',
+          is_fully_booked: false,
+        },
+      ],
+    };
+
+    const eventsEn = normalizeEvents(payload, enContent.events, 'en');
+    expect(eventsEn[0]?.bookingModalPayload?.variant).toBe('event');
+    expect(eventsEn[0]?.bookingModalPayload).toMatchObject({
+      topicsFieldConfig: easterWorkshopLandingContent.en.cta.bookingTopicsField,
+    });
+
+    const eventsZh = normalizeEvents(payload, enContent.events, 'zh-CN');
+    expect(eventsZh[0]?.bookingModalPayload).toMatchObject({
+      topicsFieldConfig: easterWorkshopLandingContent['zh-CN'].cta.bookingTopicsField,
+    });
+  });
+
   it('does not use legacy CTA candidate keys without external_url', () => {
     const payload = {
       data: [

@@ -209,16 +209,13 @@
       ],
       "ga4KeyEvent": false
     },
-    "booking_receipt_print_click": {
+    "booking_thank_you_ics_download": {
       "requiredCustomParams": [
-        "payment_method",
         "total_amount"
       ],
       "allowedCustomParams": [
-        "payment_method",
-        "total_amount",
-        "age_group",
-        "cohort_date"
+        "cohort_date",
+        "total_amount"
       ],
       "ga4KeyEvent": false
     },

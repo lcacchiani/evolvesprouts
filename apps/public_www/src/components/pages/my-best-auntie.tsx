@@ -1,4 +1,5 @@
 import type { Locale, SiteContent } from '@/content';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
@@ -14,6 +15,8 @@ interface MyBestAuntiePageProps {
 }
 
 export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
+  const publicSiteConfig = resolvePublicSiteConfig();
+
   return (
     <PageLayout
       navbarContent={content.navbar}
@@ -38,6 +41,8 @@ export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
         modalContent={content.myBestAuntie.modal}
         bookingModalContent={content.bookingModal}
         commonAccessibility={content.common.accessibility}
+        thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
+        thankYouWhatsappCtaLabel={content.contactUs.form.contactMethodLinks.whatsapp}
       />
       <Faq content={content.faq} />
       <FreeIntroSession content={content.freeIntroSession} />

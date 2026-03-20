@@ -31,6 +31,7 @@ describe('LandingPageHero section', () => {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
+      timeZone: 'Asia/Hong_Kong',
     });
     const expectedTimeChip = `${timeFormatter.format(new Date(eventContent.startDateTime))} - ${timeFormatter.format(new Date(eventContent.endDateTime))}`;
     const ctaPriceLabel = 'HK$350';
@@ -110,8 +111,18 @@ describe('LandingPageHero section', () => {
     expect(screen.getByTestId('landing-page-partner-logo-baumhaus')).toHaveClass('h-8');
     expect(screen.queryByText('Helpers Welcome')).not.toBeInTheDocument();
     const heroImage = screen.getByRole('img', { name: easterWorkshopContent.en.hero.imageAlt });
+    const heroImageMaxWidthClass = `max-w-[${easterWorkshopContent.en.hero.imageMaxWidthPercent}%]`;
     expect(heroImage).toBeInTheDocument();
-    expect(heroImage.parentElement).toHaveClass('es-landing-page-hero-image-wrap');
+    expect(heroImage.parentElement).toHaveClass(
+      'es-landing-page-hero-image-wrap',
+      'mx-auto',
+      'w-full',
+      'justify-self-center',
+      heroImageMaxWidthClass,
+    );
+    expect(heroImage.parentElement?.parentElement).toHaveClass(
+      'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]',
+    );
   });
 
   it('does not render subtitle block when subtitle is empty', () => {

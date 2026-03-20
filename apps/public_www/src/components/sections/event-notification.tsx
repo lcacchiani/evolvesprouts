@@ -299,21 +299,13 @@ export function EventNotification({
                 aria-live='polite'
               >
                 <div className='flex min-h-0 items-start gap-3 overflow-hidden rounded-xl es-bg-surface-success-pale p-4'>
-                  <svg
-                    aria-hidden='true'
-                    viewBox='0 0 20 20'
+                  {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+                  <img
+                    src='/images/form-success-check-icon.svg'
+                    alt=''
+                    aria-hidden
                     className='mt-0.5 h-5 w-5 shrink-0'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      d='M16.25 5.625L8.125 13.75L3.75 9.375'
-                      stroke='var(--es-color-text-success, #2C6C25)'
-                      strokeWidth='2.1'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                  </svg>
+                  />
                   <p className='text-base leading-7 es-text-success'>
                     {content.successMessage}
                   </p>

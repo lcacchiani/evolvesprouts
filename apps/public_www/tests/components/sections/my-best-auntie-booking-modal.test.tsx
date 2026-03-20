@@ -41,6 +41,10 @@ import trainingCoursesContent from '@/content/my-best-auntie-training-courses.js
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
+import {
+  formatSiteCompactDate,
+  formatSiteTimeOfDay,
+} from '@/lib/site-datetime';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -133,6 +137,9 @@ const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal.paymentModal;
 const thankYouModalContent = enContent.bookingModal.thankYouModal;
 const selectedCohort = bookingSectionContent.cohorts[0];
+if (!selectedCohort) {
+  throw new Error('Test content must include at least one cohort.');
+}
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
@@ -152,21 +159,37 @@ const reservationSummary: ReservationSummary = {
   paymentMethod: 'Pay via FPS QR',
   totalAmount: 9000,
   eventTitle: 'My Best Auntie',
-  dateStartTime: '2026-04-08T12:00:00Z',
+  dateStartTime: selectedCohort.dates[0]?.start_datetime,
+  dateEndTime: selectedCohort.dates[0]?.end_datetime,
+  courseSessions: selectedCohort.dates.slice(0, 2).map((part) => {
+    return {
+      dateStartTime: part.start_datetime,
+      dateEndTime: part.end_datetime,
+    };
+  }),
+  eventSubtitle: myBestAuntieModalContent.subtitle,
+  locationName: selectedCohort.location_name,
+  locationAddress: selectedCohort.location_address,
+  locationDirectionHref: selectedCohort.location_url,
 };
 
-if (!selectedCohort) {
-  throw new Error('Test content must include at least one cohort.');
-}
 const selectedCohortDate = selectedCohort.dates[0]?.start_datetime.slice(0, 10);
 if (!selectedCohortDate) {
   throw new Error('Selected cohort must include a valid primary session date.');
 }
 
+function renderWithPortalContainer(ui: ReactNode) {
+  const renderView = render(ui);
+  return {
+    ...renderView,
+    container: document.body,
+  };
+}
+
 function renderBookingModal(
   props: Partial<ComponentProps<typeof MyBestAuntieBookingModal>> = {},
 ) {
-  return render(
+  return renderWithPortalContainer(
     <MyBestAuntieBookingModal
       modalContent={myBestAuntieModalContent}
       paymentModalContent={bookingModalContent}
@@ -250,7 +273,6 @@ describe('my-best-auntie booking modals footer content', () => {
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        homeHref='/en'
         onClose={() => {}}
       />,
     );
@@ -263,7 +285,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(thankYouDescriptionId).toBeTruthy();
     expect(
       document.getElementById(thankYouDescriptionId ?? '')?.textContent ?? '',
-    ).toContain(thankYouModalContent.subtitle);
+    ).toContain(thankYouModalContent.successLabel);
   });
 
   it('hides child age group and renders icon-based payment option radios in booking modal', () => {
@@ -931,9 +953,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(screen.getByText(bookingModalContent.directionLabel).className).toContain(
       'es-link-external-label--direction',
     );
-    const directionIcon = directionLink.querySelector(
-      'svg[data-external-link-icon="true"]',
-    );
+    const directionIcon = directionLink.querySelector('.es-ui-icon-mask--external-link');
     expect(directionIcon).not.toBeNull();
     expect(directionIcon?.getAttribute('class')).toContain('es-link-external-icon');
 
@@ -943,9 +963,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
     expect(termsLink).toHaveAttribute('target', '_blank');
     expect(termsLink).toHaveAttribute('rel', 'noopener');
-    expect(
-      termsLink.querySelector('svg[data-external-link-icon="true"]'),
-    ).toBeNull();
+    expect(termsLink.querySelector('.es-ui-icon-mask--external-link')).toBeNull();
     expect(
       screen.queryByRole('link', {
         name: bookingSectionContent.learnMoreLabel,
@@ -958,12 +976,11 @@ describe('my-best-auntie booking modals footer content', () => {
   });
 
   it('does not render thank-you modal copyright footer section', () => {
-    const { container } = render(
+    const { container } = renderWithPortalContainer(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        homeHref='/en'
         onClose={() => {}}
       />,
     );
@@ -976,89 +993,105 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(container.querySelector('img[src="/images/evolvesprouts-logo.svg"]')).toBeNull();
   });
 
-  it('uses shared calendar icon and renders prefixed thank-you chips', () => {
-    const { container } = render(
+  it('renders thank-you detail cards and directions link', () => {
+    const { container } = renderWithPortalContainer(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        homeHref='/en'
         onClose={() => {}}
       />,
     );
 
-    expect(container.querySelector('span.es-mask-calendar-heading')).not.toBeNull();
+    expect(container.querySelectorAll('.es-booking-thank-you-detail-card')).toHaveLength(4);
     expect(
-      screen.getByText((_, element) => {
-        const text = element?.textContent ?? '';
-        return (
-          element?.tagName.toLowerCase() === 'p' &&
-          text.includes(thankYouModalContent.subtitle) &&
-          text.includes(reservationSummary.attendeeEmail)
-        );
+      container.querySelector('.es-booking-thank-you-detail-icon-mask--training'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('.es-booking-thank-you-detail-icon-mask--calendar'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('.es-booking-thank-you-detail-icon-mask--location'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('.es-booking-thank-you-detail-icon-mask--dollar'),
+    ).not.toBeNull();
+    expect(screen.getByText(reservationSummary.eventTitle)).toBeInTheDocument();
+    expect(screen.getByText(myBestAuntieModalContent.subtitle)).toBeInTheDocument();
+    const sessionLines =
+      reservationSummary.courseSessions?.map((session) => {
+        const datePart = formatSiteCompactDate(session.dateStartTime, 'en');
+        const timePart = formatSiteTimeOfDay(session.dateStartTime, 'en');
+        return `${datePart}, ${timePart}`;
+      }) ?? [];
+    expect(sessionLines).toHaveLength(2);
+    for (const line of sessionLines) {
+      expect(screen.getByText(line)).toBeInTheDocument();
+    }
+    expect(screen.getByText(thankYouModalContent.paymentConfirmationNote)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: thankYouModalContent.downloadCalendarInviteLabel,
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        `${thankYouModalContent.trainingPrefix}${reservationSummary.eventTitle}`,
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        `${thankYouModalContent.childAgeGroupPrefix}${reservationSummary.ageGroup}`,
-      ),
-    ).toBeInTheDocument();
-    expect(container.querySelector('img[src="/images/baby.svg"]')).not.toBeNull();
-    expect(container.querySelector('img[src="/images/dollar-symbol.svg"]')).not.toBeNull();
-    const amountChip = screen.getByText(`${thankYouModalContent.amountPrefix}HK$9,000`);
-    expect(
-      amountChip,
-    ).toBeInTheDocument();
-    expect(amountChip.className).toContain('font-medium');
-    expect(amountChip.className).not.toContain('font-semibold');
-    expect(
-      screen.getByText((content) => {
-        return content.startsWith(thankYouModalContent.transactionDatePrefix);
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        `${thankYouModalContent.paymentMethodPrefix}${reservationSummary.paymentMethod}`,
-      ),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(thankYouModalContent.totalLabel)).not.toBeInTheDocument();
+    expect(screen.getByText(selectedCohort.location_name)).toBeInTheDocument();
+    expect(screen.getByText(selectedCohort.location_address)).toBeInTheDocument();
+    const directionLink = screen.getByRole('link', {
+      name: thankYouModalContent.directionLabel,
+    });
+    expect(directionLink).toHaveAttribute('href', reservationSummary.locationDirectionHref);
   });
 
-  it('tracks receipt print clicks from thank-you modal', () => {
-    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
-    const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
+  it('renders WhatsApp follow-up when href and label are provided', () => {
+    render(
+      <MyBestAuntieThankYouModal
+        locale='en'
+        content={thankYouModalContent}
+        summary={reservationSummary}
+        whatsappHref='https://wa.me/85294479843'
+        whatsappCtaLabel={enContent.contactUs.form.contactMethodLinks.whatsapp}
+        onClose={() => {}}
+      />,
+    );
+
+    expect(screen.getByText(thankYouModalContent.followUpPrompt)).toBeInTheDocument();
+    const whatsappLink = screen.getByRole('link', {
+      name: enContent.contactUs.form.contactMethodLinks.whatsapp,
+    });
+    expect(whatsappLink).toHaveAttribute('href', 'https://wa.me/85294479843');
+  });
+
+  it('tracks thank-you calendar download clicks', () => {
+    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     render(
       <MyBestAuntieThankYouModal
         locale='en'
         content={thankYouModalContent}
         summary={reservationSummary}
-        homeHref='/en'
         onClose={() => {}}
       />,
     );
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: thankYouModalContent.printLabel,
+        name: thankYouModalContent.downloadCalendarInviteLabel,
       }),
     );
 
     expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
-      'booking_receipt_print_click',
+      'booking_thank_you_ics_download',
       expect.objectContaining({
         sectionId: 'my-best-auntie-booking',
         ctaLocation: 'thank_you_modal',
       }),
     );
 
-    openSpy.mockRestore();
-    printSpy.mockRestore();
+    createObjectUrlSpy.mockRestore();
+    revokeSpy.mockRestore();
+    clickSpy.mockRestore();
   });
 
   it('allows only one discount code to be applied at a time', async () => {

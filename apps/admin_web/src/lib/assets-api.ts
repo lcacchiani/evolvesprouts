@@ -46,6 +46,10 @@ type ApiCreateAssetPayload = ApiCreateAssetResponse | ApiDataWrapper<ApiCreateAs
 type ApiAssetShareLinkPayload =
   | ApiAssetShareLinkResponse
   | ApiDataWrapper<ApiAssetShareLinkResponse>;
+type ApiAssetDownloadResponse = ApiSchemas['AssetDownloadResponse'];
+type ApiAssetDownloadPayload =
+  | ApiAssetDownloadResponse
+  | ApiDataWrapper<ApiAssetDownloadResponse>;
 
 export interface CreateAdminAssetResult {
   asset: AdminAsset | null;
@@ -87,6 +91,10 @@ function isApiAssetGrantResponse(value: unknown): value is ApiAssetGrantResponse
 
 function isApiAssetShareLinkResponse(value: unknown): value is ApiAssetShareLinkResponse {
   return isRecord(value) && typeof value.share_url === 'string';
+}
+
+function isApiAssetDownloadResponse(value: unknown): value is ApiAssetDownloadResponse {
+  return isRecord(value) && typeof value.download_url === 'string';
 }
 
 function parseAssetType(value: unknown): AssetType {
@@ -322,6 +330,23 @@ export async function deleteAdminAsset(assetId: string): Promise<void> {
     method: 'DELETE',
     expectedSuccessStatuses: [200, 202, 204],
   });
+}
+
+/** Resolves a time-limited CloudFront URL; uses the user download route (admins have access). */
+export async function getUserAssetDownloadUrl(assetId: string): Promise<string> {
+  const payload = await adminApiRequest<ApiAssetDownloadPayload>({
+    endpointPath: `/v1/user/assets/${assetId}/download`,
+    method: 'GET',
+  });
+  const root = unwrapPayload(payload);
+  if (!isApiAssetDownloadResponse(root)) {
+    throw new Error('Download URL was not returned by the API.');
+  }
+  const url = asTrimmedString(root.download_url);
+  if (!url) {
+    throw new Error('Download URL was not returned by the API.');
+  }
+  return url;
 }
 
 export async function listAdminAssetGrants(assetId: string): Promise<AssetGrant[]> {

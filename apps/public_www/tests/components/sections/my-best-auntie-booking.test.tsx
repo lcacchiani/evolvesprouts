@@ -6,6 +6,7 @@ import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-bes
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import { formatCohortValue, formatPartDateTimeLabel } from '@/lib/format';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -44,54 +45,6 @@ function formatCohortPreviewLabel(value: string): string {
   return firstDateSegment.replace(/\s+(am|pm)$/i, '$1');
 }
 
-function formatPartDateTimeLabel(startDateTime: string): string {
-  const date = new Date(startDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const month = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-  }).format(date);
-  const day = new Intl.DateTimeFormat('en-US', {
-    day: '2-digit',
-  }).format(date);
-  const time = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-    .format(date)
-    .replace(' AM', ' am')
-    .replace(' PM', ' pm');
-
-  return `${month} ${day} @ ${time}`;
-}
-
-function formatCohortLabel(cohortValue: string): string {
-  const match = /^(\d{2})-(\d{2})$/.exec(cohortValue.trim());
-  if (!match) {
-    return cohortValue;
-  }
-
-  const monthNumber = Number(match[1]);
-  const yearSuffix = Number(match[2]);
-  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
-    return cohortValue;
-  }
-
-  if (!Number.isInteger(yearSuffix)) {
-    return cohortValue;
-  }
-
-  const year = 2000 + yearSuffix;
-  const monthLabel = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
-  return `${monthLabel}, ${year}`;
-}
-
 function formatNextCohortLabel(scheduleLabel: string, ageGroupLabel: string): string {
   return `${scheduleLabel} for ${ageGroupLabel} age group`;
 }
@@ -119,7 +72,7 @@ function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingC
 }
 
 function getPrimarySessionDateTimeLabel(cohort: BookingCohort): string {
-  return formatPartDateTimeLabel(cohort.dates[0]?.start_datetime ?? '');
+  return formatPartDateTimeLabel(cohort.dates[0]?.start_datetime ?? '', 'en');
 }
 
 function formatCohortPrice(cohort: BookingCohort): string {
@@ -240,7 +193,7 @@ describe('MyBestAuntieBooking section', () => {
 
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(formatCohortLabel(firstAgeFirstCohort.cohort)),
+        name: new RegExp(formatCohortValue(firstAgeFirstCohort.cohort, 'en')),
       }).className,
     ).toContain('es-btn--state-active');
 
@@ -271,18 +224,18 @@ describe('MyBestAuntieBooking section', () => {
     );
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(formatCohortLabel(secondAgeFirstCohort.cohort)),
+        name: new RegExp(formatCohortValue(secondAgeFirstCohort.cohort, 'en')),
       }).className,
     ).toContain('es-btn--state-active');
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(formatCohortLabel(secondAgeSecondCohort.cohort)),
+        name: new RegExp(formatCohortValue(secondAgeSecondCohort.cohort, 'en')),
       }).className,
     ).toContain('es-btn--state-inactive');
 
     fireEvent.click(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(formatCohortLabel(secondAgeSecondCohort.cohort)),
+        name: new RegExp(formatCohortValue(secondAgeSecondCohort.cohort, 'en')),
       }),
     );
     expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
@@ -295,7 +248,7 @@ describe('MyBestAuntieBooking section', () => {
 
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(formatCohortLabel(secondAgeSecondCohort.cohort)),
+        name: new RegExp(formatCohortValue(secondAgeSecondCohort.cohort, 'en')),
       }).className,
     ).toContain('es-btn--state-active');
     expect(screen.getByText(formattedSecondCohortDate)).toBeInTheDocument();
@@ -372,7 +325,7 @@ describe('MyBestAuntieBooking section', () => {
       throw new Error('Test content must include second date option.');
     }
     const secondDateButton = screen.getByRole('button', {
-      name: new RegExp(formatCohortLabel(secondDateOption.cohort)),
+      name: new RegExp(formatCohortValue(secondDateOption.cohort, 'en')),
     });
     expect(secondDateButton.className).toContain('es-btn--selection');
     expect(secondDateButton.className).toContain('es-btn--state-inactive');
@@ -384,7 +337,7 @@ describe('MyBestAuntieBooking section', () => {
     const availabilityLine = secondDateCardContent?.lastElementChild;
     expect(dateLine?.className).toContain('justify-center');
     expect(availabilityLine?.className).toContain('text-center');
-    expect(dateLine?.textContent).toContain(formatCohortLabel(secondDateOption.cohort));
+    expect(dateLine?.textContent).toContain(formatCohortValue(secondDateOption.cohort, 'en'));
     expect(availabilityLine?.textContent).toContain(
       formatSpacesLeftLabel(secondDateOption.spaces_left),
     );
@@ -422,7 +375,7 @@ describe('MyBestAuntieBooking section', () => {
       name: bookingContent.dateSelectorLabel,
     });
     const firstDateButton = within(dateSelectorRegion).getByRole('button', {
-      name: new RegExp(formatCohortLabel(firstDateOption.cohort)),
+      name: new RegExp(formatCohortValue(firstDateOption.cohort, 'en')),
     });
 
     for (const button of [firstAgeButton, firstDateButton]) {
@@ -676,7 +629,7 @@ describe('MyBestAuntieBooking section', () => {
     });
 
     const soldOutButton = within(dateSelectorRegion).getByRole('button', {
-      name: new RegExp(formatCohortLabel(soldOutCohort!.cohort)),
+      name: new RegExp(formatCohortValue(soldOutCohort!.cohort, 'en')),
     });
     expect(soldOutButton.getAttribute('aria-disabled')).toBe('true');
     expect(soldOutButton.className).toContain('pointer-events-none');
@@ -694,7 +647,7 @@ describe('MyBestAuntieBooking section', () => {
     expect(firstAvailableCohort).toBeDefined();
     expect(
       within(dateSelectorRegion).getByRole('button', {
-        name: new RegExp(formatCohortLabel(firstAvailableCohort!.cohort)),
+        name: new RegExp(formatCohortValue(firstAvailableCohort!.cohort, 'en')),
       }).className,
     ).toContain('es-btn--state-active');
   });

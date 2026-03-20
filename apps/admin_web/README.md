@@ -25,7 +25,7 @@ Set these variables before running or building the app:
 
 ## Assets admin page
 
-After authentication, the app renders the first admin module: **Client Assets**.
+After authentication, the app renders the first admin module: **Assets**.
 This screen supports:
 
 - listing assets with filters and pagination

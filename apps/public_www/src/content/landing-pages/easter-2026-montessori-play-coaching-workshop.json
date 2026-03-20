@@ -4,7 +4,7 @@
       "title": "Easter 2026 Montessori Play Coaching Workshop",
       "description": "A hands-on Easter workshop that helps parents and caregivers use Montessori-inspired play strategies with confidence.",
       "socialImage": {
-        "url": "/images/evolvesprouts-logo.svg",
+        "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "Easter 2026 Montessori Play Coaching Workshop by Evolve Sprouts"
       }
     },
@@ -12,7 +12,8 @@
       "subtitle": "",
       "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
       "imageAlt": "Child busy playing with a Montessori-style toy",
-      "imageSrc": "/images/hero/child-landing-hero.webp"
+      "imageSrc": "/images/hero/child-landing-hero.webp",
+      "imageMaxWidthPercent": 90
     },
     "outline": {
       "eyebrow": "Why this matters",
@@ -51,32 +52,32 @@
         {
           "icon": "🎯",
           "title": "Live Montessori coaching",
-          "description": "60 minutes of hands-on coaching with Ida, with your child in the room"
+          "description": "60 minutes of hands-on coaching with Ida, with your child in the room."
         },
         {
           "icon": "🧸",
           "title": "Happy Baton toy invitations",
-          "description": "Age-appropriate pre-loved toys selected for your child ahead of the session"
+          "description": "Age-appropriate pre-loved toys selected for your child ahead of the session."
         },
         {
           "icon": "💚",
           "title": "Personalised Auntie Challenge card pack",
-          "description": "Written by Ida for your family — weeks 2–5 of challenges to continue at home"
+          "description": "Written by Ida for your family — weeks 2–5 of challenges to continue at home."
         },
         {
           "icon": "📋",
           "title": "Parent reference card",
-          "description": "The 3 core principles from the session, to keep at home"
+          "description": "The 3 core principles from the session, to keep at home."
         },
         {
           "icon": "🏡",
           "title": "Access to Baumhaus space",
-          "description": "Use of the shared playroom + the Happy Baton pre-loved toy pop-up sale"
+          "description": "Use of the shared playroom + the Happy Baton pre-loved toy pop-up sale."
         },
         {
           "icon": "🌿",
           "title": "A taste of the Evolve Sprouts programme",
-          "description": "See the method live before committing to the full 9-week helper training"
+          "description": "See the method live before committing to the full 9-week helper training."
         }
       ]
     },
@@ -113,7 +114,12 @@
       "buttonLabel": "Reserve my spot",
       "buttonLabelTemplate": "Reserve my spot — {price}",
       "fullyBookedButtonLabel": "Fully booked - Get in touch to join the waiting list",
-      "fullyBookedWaitlistMessageTemplate": "I would like to join the waiting list for the event {eventTitle}."
+      "fullyBookedWaitlistMessageTemplate": "I would like to join the waiting list for the event {eventTitle}.",
+      "bookingTopicsField": {
+        "label": "What's your child's age?",
+        "placeholder": "This will help me better personalise your experience",
+        "required": true
+      }
     }
   },
   "zh-CN": {
@@ -121,7 +127,7 @@
       "title": "2026 复活节蒙特梭利游戏教练工作坊",
       "description": "一场复活节实操工作坊，帮助家长与照护者更有信心地使用蒙特梭利启发式亲子游戏策略。",
       "socialImage": {
-        "url": "/images/evolvesprouts-logo.svg",
+        "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "Evolve Sprouts 2026 复活节蒙特梭利游戏教练工作坊"
       }
     },
@@ -129,7 +135,8 @@
       "subtitle": "",
       "description": "欢迎参加复活节工作坊。我们将聚焦尊重式引导、可落地的日常节奏，以及你回家就能应用的蒙特梭利启发式游戏方法。",
       "imageAlt": "家长与孩子参加蒙特梭利游戏教练工作坊",
-      "imageSrc": "/images/hero/child-landing-hero.webp"
+      "imageSrc": "/images/hero/child-landing-hero.webp",
+      "imageMaxWidthPercent": 65
     },
     "outline": {
       "eyebrow": "为什么这很重要",
@@ -168,32 +175,32 @@
         {
           "icon": "🎯",
           "title": "蒙特梭利现场教练指导",
-          "description": "60 分钟与 Ida 的实操指导，孩子全程在场"
+          "description": "60 分钟与 Ida 的实操指导，孩子全程在场。"
         },
         {
           "icon": "🧸",
           "title": "Happy Baton 玩具邀请",
-          "description": "课前按孩子年龄准备好的精选二手玩具"
+          "description": "课前按孩子年龄准备好的精选二手玩具。"
         },
         {
           "icon": "💚",
           "title": "个性化 Auntie Challenge 挑战卡组",
-          "description": "由 Ida 为你的家庭编写——第 2 至第 5 周可在家持续练习"
+          "description": "由 Ida 为你的家庭编写——第 2 至第 5 周可在家持续练习。"
         },
         {
           "icon": "📋",
           "title": "家长参考卡",
-          "description": "带走课程中的 3 个核心原则，方便在家随时对照"
+          "description": "带走课程中的 3 个核心原则，方便在家随时对照。"
         },
         {
           "icon": "🏡",
           "title": "Baumhaus 场地使用",
-          "description": "可使用共享游戏室 + 参与 Happy Baton 二手玩具快闪选购"
+          "description": "可使用共享游戏室 + 参与 Happy Baton 二手玩具快闪选购。"
         },
         {
           "icon": "🌿",
           "title": "体验 Evolve Sprouts programme",
-          "description": "在决定参加完整 9 周帮手培训前，先现场感受整套方法"
+          "description": "在决定参加完整 9 周帮手培训前，先现场感受整套方法。"
         }
       ]
     },
@@ -230,7 +237,12 @@
       "buttonLabel": "预留我的名额",
       "buttonLabelTemplate": "预留我的名额 — {price}",
       "fullyBookedButtonLabel": "已满额 - 联系我们加入候补名单",
-      "fullyBookedWaitlistMessageTemplate": "我想加入活动《{eventTitle}》的候补名单。"
+      "fullyBookedWaitlistMessageTemplate": "我想加入活动《{eventTitle}》的候补名单。",
+      "bookingTopicsField": {
+        "label": "您的孩子几岁了？",
+        "placeholder": "这将帮助我更好地为您定制体验",
+        "required": true
+      }
     }
   },
   "zh-HK": {
@@ -238,7 +250,7 @@
       "title": "2026 復活節蒙特梭利遊戲教練工作坊",
       "description": "一場復活節實作工作坊，幫助家長與照顧者更有信心地運用蒙特梭利啟發式親子遊戲策略。",
       "socialImage": {
-        "url": "/images/evolvesprouts-logo.svg",
+        "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "Evolve Sprouts 2026 復活節蒙特梭利遊戲教練工作坊"
       }
     },
@@ -246,7 +258,8 @@
       "subtitle": "",
       "description": "歡迎參加復活節工作坊。我們將聚焦尊重式引導、可落地的日常節奏，以及你回家即可應用的蒙特梭利啟發式遊戲方法。",
       "imageAlt": "家長與小朋友參與蒙特梭利遊戲教練工作坊",
-      "imageSrc": "/images/hero/child-landing-hero.webp"
+      "imageSrc": "/images/hero/child-landing-hero.webp",
+      "imageMaxWidthPercent": 65
     },
     "outline": {
       "eyebrow": "為什麼這很重要",
@@ -285,32 +298,32 @@
         {
           "icon": "🎯",
           "title": "蒙特梭利即場教練指導",
-          "description": "60 分鐘與 Ida 的實戰指導，孩子全程在場"
+          "description": "60 分鐘與 Ida 的實戰指導，孩子全程在場。"
         },
         {
           "icon": "🧸",
           "title": "Happy Baton 玩具邀請",
-          "description": "課前按孩子年齡預備的精選二手玩具"
+          "description": "課前按孩子年齡預備的精選二手玩具。"
         },
         {
           "icon": "💚",
           "title": "個人化 Auntie Challenge 挑戰卡組",
-          "description": "由 Ida 為你家庭撰寫——第 2 至第 5 週可在家持續實踐"
+          "description": "由 Ida 為你家庭撰寫——第 2 至第 5 週可在家持續實踐。"
         },
         {
           "icon": "📋",
           "title": "家長參考卡",
-          "description": "帶走課堂 3 個核心原則，方便在家隨時對照"
+          "description": "帶走課堂 3 個核心原則，方便在家隨時對照。"
         },
         {
           "icon": "🏡",
           "title": "Baumhaus 場地使用",
-          "description": "可使用共享遊戲室 + 參與 Happy Baton 二手玩具快閃選購"
+          "description": "可使用共享遊戲室 + 參與 Happy Baton 二手玩具快閃選購。"
         },
         {
           "icon": "🌿",
           "title": "體驗 Evolve Sprouts programme",
-          "description": "在決定參加完整 9 週姐姐培訓前，先現場感受整套方法"
+          "description": "在決定參加完整 9 週姐姐培訓前，先現場感受整套方法。"
         }
       ]
     },
@@ -347,7 +360,12 @@
       "buttonLabel": "預留我的名額",
       "buttonLabelTemplate": "預留我的名額 — {price}",
       "fullyBookedButtonLabel": "已滿額 - 聯絡我們加入候補名單",
-      "fullyBookedWaitlistMessageTemplate": "我想加入活動《{eventTitle}》的候補名單。"
+      "fullyBookedWaitlistMessageTemplate": "我想加入活動《{eventTitle}》的候補名單。",
+      "bookingTopicsField": {
+        "label": "你的小朋友幾歲？",
+        "placeholder": "這有助我更好地為你度身打造體驗",
+        "required": true
+      }
     }
   }
 }

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 import { EXPENSE_STATUSES, type Expense, type ExpenseLineItem, type ExpenseStatus } from '@/types/expenses';
 
 interface ExpensesEditorPanelProps {
@@ -95,6 +95,20 @@ function toLineItemsJson(value: ExpenseLineItem[]): string {
   );
 }
 
+function lineItemDecimalFromJson(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
 function parseLineItemsJson(value: string): ExpenseLineItem[] {
   if (!value.trim()) {
     return [];
@@ -110,9 +124,9 @@ function parseLineItemsJson(value: string): ExpenseLineItem[] {
     const record = entry as Record<string, unknown>;
     return {
       description: typeof record.description === 'string' ? record.description : null,
-      quantity: typeof record.quantity === 'string' ? record.quantity : null,
-      unitPrice: typeof record.unit_price === 'string' ? record.unit_price : null,
-      amount: typeof record.amount === 'string' ? record.amount : null,
+      quantity: lineItemDecimalFromJson(record.quantity),
+      unitPrice: lineItemDecimalFromJson(record.unit_price),
+      amount: lineItemDecimalFromJson(record.amount),
     };
   });
 }
@@ -133,6 +147,7 @@ export function ExpensesEditorPanel({
   onReparse,
   onStartCreate,
 }: ExpensesEditorPanelProps) {
+  const currencyOptions = getCurrencyOptions();
   const [status, setStatus] = useState<ExpenseStatus>(selectedExpense?.status ?? 'submitted');
   const [vendorName, setVendorName] = useState(selectedExpense?.vendorName ?? '');
   const [invoiceNumber, setInvoiceNumber] = useState(selectedExpense?.invoiceNumber ?? '');
@@ -232,7 +247,7 @@ export function ExpensesEditorPanel({
           {selectedExpense.parseConfidence ? ` (confidence ${selectedExpense.parseConfidence})` : ''}
         </div>
       ) : null}
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-3 md:grid-cols-3 [&>div]:min-w-0'>
         <div>
           <Label htmlFor='expense-status'>Status</Label>
           <Select id='expense-status' value={status} onChange={(event) => setStatus(event.target.value as ExpenseStatus)}>
@@ -253,15 +268,31 @@ export function ExpensesEditorPanel({
         </div>
         <div>
           <Label htmlFor='expense-invoice-date'>Invoice date</Label>
-          <Input id='expense-invoice-date' type='date' value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} />
+          <Input
+            id='expense-invoice-date'
+            type='date'
+            value={invoiceDate}
+            onChange={(event) => setInvoiceDate(event.target.value)}
+          />
         </div>
         <div>
           <Label htmlFor='expense-due-date'>Due date</Label>
-          <Input id='expense-due-date' type='date' value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+          <Input
+            id='expense-due-date'
+            type='date'
+            value={dueDate}
+            onChange={(event) => setDueDate(event.target.value)}
+          />
         </div>
         <div>
           <Label htmlFor='expense-currency'>Currency</Label>
-          <Input id='expense-currency' value={currency} onChange={(event) => setCurrency(event.target.value)} />
+          <Select id='expense-currency' value={currency} onChange={(event) => setCurrency(event.target.value)}>
+            {currencyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         </div>
         <div>
           <Label htmlFor='expense-subtotal'>Subtotal</Label>

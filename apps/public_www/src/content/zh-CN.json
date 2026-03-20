@@ -323,7 +323,7 @@
       "submitLabel": "发送留言！",
       "formDescription": "想用“漂流瓶”方式留言？填写下方联系表单，我们会像小芽发芽一样尽快回复你。",
       "successTitle": "感谢你的留言！",
-      "successDescription": "我们已经收到你的留言，会尽快为你跟进处理。",
+      "successDescription": "我们已经收到你的留言，会尽快回复你。",
       "submitErrorMessage": "出了点问题，请稍后再试。",
       "captchaLabel": "请完成 CAPTCHA 验证",
       "captchaRequiredError": "提交前请先完成 CAPTCHA 验证。",
@@ -1122,21 +1122,16 @@
     },
     "thankYouModal": {
       "closeLabel": "关闭",
-      "title": "我们会尽快与您联系",
-      "subtitle": "确认邮件已发送至。",
+      "title": "我们会尽快与您联系。",
+      "subtitle": "",
       "successLabel": "谢谢你！",
       "courseLabel": "我的最佳阿姨培训课程。",
-      "transactionDateLabel": "交易日期",
-      "paymentMethodLabel": "付款方式",
-      "totalLabel": "总计",
-      "transactionDatePrefix": "交易日期：",
-      "paymentMethodPrefix": "付款方式：",
-      "childAgeGroupPrefix": "孩子年龄组别：",
-      "amountPrefix": "金额：",
-      "trainingPrefix": "培训：",
-      "printLabel": "打印",
-      "backHomeLabel": "返回首页",
-      "noEmailFallback": "你的邮箱地址"
+      "summaryLocationVirtualFallback": "线上 Zoom 会议",
+      "summaryEmptyValue": "—",
+      "downloadCalendarInviteLabel": "下载邀请并添加到你的个人日历",
+      "paymentConfirmationNote": "收到付款后，你的名额才会确认",
+      "directionLabel": "查看路线",
+      "followUpPrompt": "有任何问题想立即了解？"
     }
   },
   "aboutUs": {

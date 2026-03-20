@@ -50,4 +50,34 @@ describe('ReservationFormFields', () => {
       screen.getByText(enContent.bookingModal.paymentModal.emailValidationError),
     ).toBeInTheDocument();
   });
+
+  it('uses payload topics field overrides and required state', () => {
+    render(
+      <ReservationFormFields
+        content={enContent.bookingModal.paymentModal}
+        fullName=''
+        email=''
+        phone=''
+        interestedTopics=''
+        hasEmailError={false}
+        topicsFieldConfig={{
+          label: "What's your child's age?",
+          placeholder: 'This will help me better personalise your experience',
+          required: true,
+        }}
+        onFullNameChange={() => {}}
+        onEmailChange={() => {}}
+        onEmailBlur={() => {}}
+        onPhoneChange={() => {}}
+        onTopicsChange={() => {}}
+      />,
+    );
+
+    const topicsInput = screen.getByLabelText(/What's your child's age\?/i);
+    expect(topicsInput).toBeRequired();
+    expect(topicsInput).toHaveAttribute(
+      'placeholder',
+      'This will help me better personalise your experience',
+    );
+  });
 });

@@ -13,8 +13,17 @@ describe('format helpers', () => {
     expect(options.some((option) => option.value === 'HKD' && option.label === 'HKD Hong Kong Dollar')).toBe(true);
   });
 
-  it('formats dates using UK locale and timezone', () => {
-    expect(formatDate('2026-03-01T10:00:00Z')).toBe('01 Mar 2026, 10:00');
+  it('formats dates in the local timezone and default locale', () => {
+    const iso = '2026-03-01T10:00:00Z';
+    const parsed = new Date(iso);
+    const expected = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(parsed);
+    expect(formatDate(iso)).toBe(expected);
     expect(formatDate(null)).toBe('—');
   });
 });

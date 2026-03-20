@@ -129,13 +129,17 @@ describe('structured-data builders', () => {
         summary: 'A practical workshop for parents.',
         dateLabel: '12 Apr 2026',
         timeLabel: '10:00 AM',
-        locationName: 'In-person',
-        locationAddress: 'Mid-Levels, Hong Kong',
+        isVirtualEvent: false,
+        locationName: 'Baumhaus',
+        locationAddress: '1/F Kar Yau Building, Wan Chai',
         ctaHref: 'https://example.com/register',
         ctaLabel: 'Reserve your spot',
         tags: ['Workshop'],
         status: 'open',
         timestamp: Date.parse('2026-04-12T10:00:00.000Z'),
+        endTimestamp: Date.parse('2026-04-12T11:00:00.000Z'),
+        price: 350,
+        currency: 'HKD',
       },
       {
         id: 'event-without-time',
@@ -143,6 +147,7 @@ describe('structured-data builders', () => {
         summary: 'Should not render in JSON-LD.',
         dateLabel: '',
         timeLabel: '',
+        isVirtualEvent: false,
         locationName: '',
         locationAddress: '',
         ctaHref: '',
@@ -164,8 +169,30 @@ describe('structured-data builders', () => {
       '@id': expect.stringContaining('#event-'),
       name: 'Montessori Workshop',
       startDate: '2026-04-12T10:00:00.000Z',
+      endDate: '2026-04-12T11:00:00.000Z',
+      image: expect.stringContaining('/images/evolvesprouts-logo.svg'),
       organizer: {
         '@id': expect.stringContaining('#organization'),
+      },
+      performer: {
+        '@id': expect.stringContaining('#organization'),
+      },
+      location: {
+        '@type': 'Place',
+        name: 'Baumhaus',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '1/F Kar Yau Building, Wan Chai',
+          addressLocality: 'Hong Kong',
+          addressCountry: 'HK',
+        },
+      },
+      offers: {
+        '@type': 'Offer',
+        price: '350',
+        priceCurrency: 'HKD',
+        availability: 'https://schema.org/InStock',
+        validFrom: '2026-04-12T10:00:00.000Z',
       },
     });
   });
@@ -183,14 +210,29 @@ describe('structured-data builders', () => {
       description:
         'A practical Montessori-inspired play coaching workshop for children ages 1-4, with parent and child participation (helpers warmly welcome).',
       startDate: '2026-04-06T02:00:00.000Z',
+      image: expect.stringContaining('/images/evolvesprouts-logo.svg'),
       organizer: {
         '@id': expect.stringContaining('#organization'),
+      },
+      performer: {
+        '@id': expect.stringContaining('#organization'),
+      },
+      location: {
+        '@type': 'Place',
+        name: 'Baumhaus',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: expect.any(String),
+          addressLocality: 'Hong Kong',
+          addressCountry: 'HK',
+        },
       },
       offers: {
         '@type': 'Offer',
         price: '350',
         priceCurrency: 'HKD',
         availability: 'https://schema.org/InStock',
+        validFrom: expect.any(String),
       },
     });
   });

@@ -33,6 +33,16 @@ describe('LandingPageDetails section', () => {
     expect(document.querySelectorAll('.es-landing-page-details-card').length).toBe(
       easterWorkshopContent.en.details.items.length,
     );
+    const cards = document.querySelectorAll('.es-landing-page-details-card');
+    cards.forEach((card) => {
+      expect(card).toHaveClass('min-h-[200px]');
+    });
+    const titleRows = document.querySelectorAll('.es-landing-page-details-card-title-row');
+    expect(titleRows.length).toBe(easterWorkshopContent.en.details.items.length);
+    titleRows.forEach((titleRow) => {
+      expect(titleRow).toHaveClass('flex');
+      expect(titleRow).toHaveClass('justify-between');
+    });
     expect(document.querySelectorAll('.es-landing-page-details-card-icon').length).toBe(
       easterWorkshopContent.en.details.items.length,
     );
@@ -64,6 +74,8 @@ describe('LandingPageDetails section', () => {
       name: easterWorkshopContent.en.cta.buttonLabel,
     });
     expect(ctaButton).toBeInTheDocument();
+    expect(ctaButton).toHaveClass('w-full');
+    expect(ctaButton.className).toContain('max-w-[488px]');
     expect(ctaButton.parentElement).toHaveClass('mt-8');
     expect(ctaButton.parentElement).toHaveClass('flex');
     expect(ctaButton.parentElement).toHaveClass('justify-center');

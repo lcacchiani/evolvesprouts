@@ -27,7 +27,7 @@ describe('Connect section', () => {
     expect(blueGlyph).not.toBeNull();
     expect(greenGlyph).not.toBeNull();
     expect(orangeGlyph).not.toBeNull();
-    expect(blueGlyph?.querySelector('path')?.getAttribute('stroke')).toBe('currentColor');
+    expect(blueGlyph?.querySelector('.es-ui-icon-mask--connect-glyph-arrow')).not.toBeNull();
 
     const emailLink = screen.getByRole('link', {
       name: content.contactUs.connect.cards[0].ctaLabel,

@@ -1,0 +1,21 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  viewBox="0 0 28 28"
+  fill="none"
+>
+  <circle
+    cx="14"
+    cy="14"
+    r="12.5"
+    fill="rgba(93, 157, 73, 0.14)"
+    stroke="var(--es-color-accent-green, #5D9D49)"
+  />
+  <path
+    d="M8.5 14.7L12.2 18.2L19.6 10.7"
+    stroke="var(--es-color-accent-green, #5D9D49)"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

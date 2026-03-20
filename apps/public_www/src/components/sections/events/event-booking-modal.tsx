@@ -19,7 +19,10 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  BookingTopicsFieldConfig,
+  ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import type {
   BookingPaymentModalContent,
   Locale,
@@ -33,6 +36,7 @@ interface EventBookingModalProps {
   locale?: Locale;
   paymentModalContent: BookingPaymentModalContent;
   bookingPayload: EventBookingModalPayload;
+  topicsFieldConfig?: BookingTopicsFieldConfig;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -41,9 +45,11 @@ export function EventBookingModal({
   locale = 'en',
   paymentModalContent,
   bookingPayload,
+  topicsFieldConfig: topicsFieldConfigProp,
   onClose,
   onSubmitReservation,
 }: EventBookingModalProps) {
+  const topicsFieldConfig = topicsFieldConfigProp ?? bookingPayload.topicsFieldConfig;
   const modalPanelRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogTitleId = useId();
@@ -60,11 +66,11 @@ export function EventBookingModal({
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
     return bookingPayload.dateParts.map((part) => {
       return {
-        date: formatPartDateTimeLabel(part.startDateTime),
+        date: formatPartDateTimeLabel(part.startDateTime, locale),
         description: part.description,
       };
     });
-  }, [bookingPayload.dateParts]);
+  }, [bookingPayload.dateParts, locale]);
 
   return (
     <ModalOverlay
@@ -98,15 +104,28 @@ export function EventBookingModal({
               venueName={bookingPayload.locationName}
               venueAddress={bookingPayload.locationAddress}
               directionHref={bookingPayload.directionHref}
+              detailsVariant='event'
             />
             <BookingReservationForm
               locale={locale}
               content={paymentModalContent}
               eventTitle={bookingPayload.title}
+              eventSubtitle={bookingPayload.subtitle}
+              courseSessions={bookingPayload.dateParts.map((part) => {
+                return {
+                  dateStartTime: part.startDateTime,
+                  dateEndTime: part.endDateTime,
+                };
+              })}
               selectedAgeGroupLabel=''
               selectedCohortDateLabel={bookingPayload.selectedDateLabel}
               selectedDateStartTime={bookingPayload.selectedDateStartTime}
               selectedCohortPrice={bookingPayload.originalAmount}
+              venueName={bookingPayload.locationName}
+              venueAddress={bookingPayload.locationAddress}
+              venueDirectionHref={bookingPayload.directionHref}
+              dateEndTime={bookingPayload.dateParts[0]?.endDateTime ?? ''}
+              topicsFieldConfig={topicsFieldConfig}
               descriptionId={dialogDescriptionId}
               analyticsSectionId='events-booking'
               metaPixelContentName='event_booking'

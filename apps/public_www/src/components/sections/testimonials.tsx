@@ -89,51 +89,24 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 24 24'
-      className={`h-8 w-8 es-text-icon ${rotationClass}`}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M8 4L16 12L8 20'
-        stroke='currentColor'
-        strokeWidth='2.4'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
+    <span
+      aria-hidden
+      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-8 w-8 shrink-0 es-text-icon ${rotationClass}`}
+    />
   );
 }
 
 function ParentIcon() {
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 134 134'
-      className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px] es-text-body'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <circle
-        cx='67'
-        cy='46'
-        r='20'
-        stroke='currentColor'
-        strokeWidth='6'
-        opacity='0.9'
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+      <img
+        src='/images/testimonials-parent-icon.svg'
+        alt=''
+        aria-hidden
+        className='h-[58px] w-[58px] sm:h-[68px] sm:w-[68px]'
       />
-      <path
-        d='M31 106C35.2 85.4 49.4 75 67 75C84.6 75 98.8 85.4 103 106'
-        stroke='currentColor'
-        strokeWidth='6'
-        strokeLinecap='round'
-        opacity='0.9'
-      />
-      <circle cx='95' cy='43' r='8' fill='currentColor' opacity='0.22' />
-      <circle cx='39' cy='89' r='7' fill='currentColor' opacity='0.22' />
-    </svg>
+    </>
   );
 }
 
@@ -386,72 +359,63 @@ function DesktopAuthorRow({
   return (
     <div
       data-testid='testimonials-desktop-controls'
-      className='hidden sm:block'
+      className='hidden px-6 sm:block sm:px-9 lg:px-12'
     >
-      <div
-        className={buildSectionSplitLayoutClassName(
-          'es-section-split-layout--testimonials',
-        )}
-      >
-        <div className='hidden lg:block' aria-hidden='true' />
-        <div className='px-6 sm:px-9 lg:px-12'>
-          <div className='mt-6 mb-6'>
-            <div className='mx-auto flex w-full max-w-[500px] items-center gap-3'>
-              <ButtonPrimitive
-                variant='control'
-                onClick={onPrevious}
-                aria-label={previousButtonLabel}
-                className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
-              >
-                <ChevronIcon direction='left' />
-              </ButtonPrimitive>
-              <div className='relative min-w-0 flex-1 overflow-hidden text-center'>
-                {anim.slots.map(({ index, state }) => {
-                  const story = stories[index];
-                  if (!story?.author && !story?.service) return null;
-                  let slotClassName = '';
-                  if (state === 'exiting') {
-                    slotClassName =
-                      anim.dir === 'next'
-                        ? 'es-author-exit-left absolute inset-x-0 top-0'
-                        : 'es-author-exit-right absolute inset-x-0 top-0';
-                  } else if (state === 'entering') {
-                    slotClassName =
-                      anim.dir === 'next'
-                        ? 'es-author-enter-from-right'
-                        : 'es-author-enter-from-left';
-                  }
-                  return (
-                    <div
-                      key={`${index}-${state}`}
-                      className={slotClassName || undefined}
+      <div className='mt-6 mb-6'>
+        <div className='mx-auto flex w-full max-w-[500px] items-center gap-3'>
+          <ButtonPrimitive
+            variant='control'
+            onClick={onPrevious}
+            aria-label={previousButtonLabel}
+            className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
+          >
+            <ChevronIcon direction='left' />
+          </ButtonPrimitive>
+          <div className='relative min-w-0 flex-1 overflow-hidden text-center'>
+            {anim.slots.map(({ index, state }) => {
+              const story = stories[index];
+              if (!story?.author && !story?.service) return null;
+              let slotClassName = '';
+              if (state === 'exiting') {
+                slotClassName =
+                  anim.dir === 'next'
+                    ? 'es-author-exit-left absolute inset-x-0 top-0'
+                    : 'es-author-exit-right absolute inset-x-0 top-0';
+              } else if (state === 'entering') {
+                slotClassName =
+                  anim.dir === 'next'
+                    ? 'es-author-enter-from-right'
+                    : 'es-author-enter-from-left';
+              }
+              return (
+                <div
+                  key={`${index}-${state}`}
+                  className={slotClassName || undefined}
+                >
+                  {story.author && (
+                    <p className='mx-auto max-w-[350px] es-testimonials-author'>
+                      {story.author}
+                    </p>
+                  )}
+                  {story.service && (
+                    <p
+                      className={`mx-auto max-w-[350px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
                     >
-                      {story.author && (
-                        <p className='mx-auto max-w-[350px] es-testimonials-author'>
-                          {story.author}
-                        </p>
-                      )}
-                      {story.service && (
-                        <p
-                          className={`mx-auto max-w-[350px] es-testimonials-meta ${story.author ? 'mt-1' : ''}`}
-                        >
-                          {story.service}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <ButtonPrimitive
-                variant='control'
-                onClick={onNext}
-                aria-label={nextButtonLabel}
-                className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
-              >
-                <ChevronIcon direction='right' />
-              </ButtonPrimitive>
-            </div>
+                      {story.service}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
+          <ButtonPrimitive
+            variant='control'
+            onClick={onNext}
+            aria-label={nextButtonLabel}
+            className={`${TESTIMONIAL_CONTROL_BUTTON_CLASSNAME} shrink-0`}
+          >
+            <ChevronIcon direction='right' />
+          </ButtonPrimitive>
         </div>
       </div>
     </div>

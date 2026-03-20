@@ -24,6 +24,8 @@ interface LandingPageCtaProps {
   fullyBookedCtaLabel?: string;
   fullyBookedWaitlistHref?: string;
   bookingModalContent: BookingModalContent;
+  thankYouWhatsappHref?: string;
+  thankYouWhatsappCtaLabel?: string;
   ariaLabel?: string;
 }
 
@@ -39,6 +41,8 @@ export function LandingPageCta({
   fullyBookedCtaLabel,
   fullyBookedWaitlistHref,
   bookingModalContent,
+  thankYouWhatsappHref,
+  thankYouWhatsappCtaLabel,
   ariaLabel,
 }: LandingPageCtaProps) {
   return (
@@ -67,6 +71,8 @@ export function LandingPageCta({
           fullyBookedCtaLabel={fullyBookedCtaLabel}
           fullyBookedWaitlistHref={fullyBookedWaitlistHref}
           bookingModalContent={bookingModalContent}
+          thankYouWhatsappHref={thankYouWhatsappHref}
+          thankYouWhatsappCtaLabel={thankYouWhatsappCtaLabel}
           analyticsSectionId='landing-page-cta'
           ctaLocation='landing_page'
           buttonClassName='mt-8'

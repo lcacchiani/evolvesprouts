@@ -1,6 +1,6 @@
-import type { ReactNode, SVGProps } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 
-interface ExternalLinkIconProps extends SVGProps<SVGSVGElement> {
+interface ExternalLinkIconProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'children'> {
   className?: string;
 }
 
@@ -11,39 +11,12 @@ interface ExternalLinkInlineContentProps {
   externalLabelClassName?: string;
 }
 
-export function ExternalLinkIcon({
-  className,
-  ...svgProps
-}: ExternalLinkIconProps) {
-  const mergedClassName = className
-    ? `es-link-external-icon ${className}`
-    : 'es-link-external-icon';
+export function ExternalLinkIcon({ className, ...props }: ExternalLinkIconProps) {
+  const mergedClassName = ['es-ui-icon-mask es-ui-icon-mask--external-link es-link-external-icon', className]
+    .filter(Boolean)
+    .join(' ');
 
-  return (
-    <svg
-      aria-hidden='true'
-      data-external-link-icon='true'
-      viewBox='0 0 16 16'
-      className={mergedClassName}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...svgProps}
-    >
-      <path
-        d='M1 11L7 5'
-        stroke='currentColor'
-        strokeWidth='1.8'
-        strokeLinecap='round'
-      />
-      <path
-        d='M2.5 5H7V9.5'
-        stroke='currentColor'
-        strokeWidth='1.8'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  );
+  return <span aria-hidden className={mergedClassName} {...props} />;
 }
 
 export function ExternalLinkInlineContent({

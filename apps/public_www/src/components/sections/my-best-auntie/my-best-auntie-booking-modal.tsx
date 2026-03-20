@@ -79,15 +79,16 @@ export function MyBestAuntieBookingModal({
     const summaries = modalContent.partSummaries ?? [];
     return (selectedCohort?.dates ?? []).map((part, index) => {
       return {
-        date: formatPartDateTimeLabel(part.start_datetime),
+        date: formatPartDateTimeLabel(part.start_datetime, locale),
         description: summaries[index] ?? '',
       };
     });
-  }, [selectedCohort, modalContent.partSummaries]);
+  }, [selectedCohort, modalContent.partSummaries, locale]);
 
   const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
+  const selectedDateEndTime = selectedCohort?.dates[0]?.end_datetime ?? '';
   const selectedCohortDateLabelText =
-    selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '');
+    selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '', locale);
   const selectedVenueName = selectedCohort?.location_name ?? '';
   const selectedVenueAddress = selectedCohort?.location_address ?? '';
   const selectedVenueDirectionHref = selectedCohort?.location_url ?? '#';
@@ -124,15 +125,27 @@ export function MyBestAuntieBookingModal({
               venueName={selectedVenueName}
               venueAddress={selectedVenueAddress}
               directionHref={selectedVenueDirectionHref}
+              detailsVariant='my-best-auntie'
             />
             <BookingReservationForm
               locale={locale}
               content={paymentModalContent}
               eventTitle={modalContent.title}
+              eventSubtitle={modalContent.subtitle}
+              courseSessions={(selectedCohort?.dates ?? []).map((part) => {
+                return {
+                  dateStartTime: part.start_datetime,
+                  dateEndTime: part.end_datetime,
+                };
+              })}
               selectedAgeGroupLabel={selectedAgeGroupLabel}
               selectedCohortDateLabel={selectedCohortDateLabelText}
               selectedDateStartTime={selectedDateStartTime}
               selectedCohortPrice={originalAmount}
+              venueName={selectedVenueName}
+              venueAddress={selectedVenueAddress}
+              venueDirectionHref={selectedVenueDirectionHref}
+              dateEndTime={selectedDateEndTime}
               descriptionId={dialogDescriptionId}
               analyticsSectionId={analyticsSectionId}
               metaPixelContentName={metaPixelContentName}

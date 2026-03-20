@@ -1,6 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import type { KeyboardEvent } from 'react';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
@@ -29,7 +30,6 @@ interface ExpensesListPanelProps {
   onQueryChange: (value: string) => void;
   onStatusChange: (value: ExpenseStatus | '') => void;
   onParseStatusChange: (value: ExpenseParseStatus | '') => void;
-  onClearFilters: () => void;
 }
 
 export function ExpensesListPanel({
@@ -47,16 +47,25 @@ export function ExpensesListPanel({
   onQueryChange,
   onStatusChange,
   onParseStatusChange,
-  onClearFilters,
 }: ExpensesListPanelProps) {
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, expenseId: string) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onSelectExpense(expenseId);
+    }
+  };
+
   return (
     <PaginatedTableCard
-      title='Submitted invoices'
+      title='Submitted Expenses'
       isLoading={isLoading}
       isLoadingMore={isLoadingMore}
       hasMore={hasMore}
       error={error}
-      loadingLabel='Loading expense invoices...'
+      loadingLabel='Loading submitted expenses...'
       onLoadMore={onLoadMore}
       toolbar={
         <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-4'>
@@ -99,45 +108,48 @@ export function ExpensesListPanel({
               ))}
             </Select>
           </div>
-          <div className='md:col-span-4'>
-            <Button type='button' variant='ghost' onClick={onClearFilters}>
-              Clear filters
-            </Button>
-          </div>
         </div>
       }
     >
       <div className='rounded-md border border-slate-200'>
-        <table className='w-full min-w-[980px] divide-y divide-slate-200 text-left'>
+        <table className='w-full min-w-[560px] divide-y divide-slate-200 text-left'>
           <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
             <tr>
               <th className='px-4 py-3 font-semibold'>Vendor</th>
-              <th className='px-4 py-3 font-semibold'>Invoice</th>
               <th className='px-4 py-3 font-semibold'>Total</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold'>Parse</th>
               <th className='px-4 py-3 font-semibold'>Created</th>
             </tr>
           </thead>
           <tbody className='divide-y divide-slate-200 bg-white text-sm'>
-            {expenses.map((expense) => (
-              <tr
-                key={expense.id}
-                className={`cursor-pointer transition ${
-                  selectedExpenseId === expense.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                }`}
-                onClick={() => onSelectExpense(expense.id)}
-              >
-                <td className='px-4 py-3'>{expense.vendorName ?? '—'}</td>
-                <td className='px-4 py-3'>{expense.invoiceNumber ?? expense.id.slice(0, 8)}</td>
-                <td className='px-4 py-3'>
-                  {expense.total ? `${expense.total} ${expense.currency ?? ''}` : '—'}
-                </td>
-                <td className='px-4 py-3'>{formatEnumLabel(expense.status)}</td>
-                <td className='px-4 py-3'>{formatEnumLabel(expense.parseStatus)}</td>
-                <td className='px-4 py-3'>{formatDate(expense.createdAt)}</td>
-              </tr>
-            ))}
+            {expenses.map((expense) => {
+              const isSelected = expense.id === selectedExpenseId;
+              return (
+                <tr
+                  key={expense.id}
+                  className={`cursor-pointer transition hover:bg-slate-50 ${
+                    isSelected ? 'bg-slate-100' : ''
+                  }`}
+                  onClick={() => onSelectExpense(expense.id)}
+                  onKeyDown={(event) => handleRowKeyDown(event, expense.id)}
+                  tabIndex={0}
+                  role='row'
+                  aria-selected={isSelected}
+                >
+                  <td className='px-4 py-3'>
+                    <p className='font-medium text-slate-900'>{expense.vendorName ?? '—'}</p>
+                    <p className='mt-0.5 text-xs text-slate-500'>
+                      {expense.invoiceNumber ?? expense.id.slice(0, 8)}
+                    </p>
+                  </td>
+                  <td className='px-4 py-3'>
+                    {expense.total ? `${expense.total} ${expense.currency ?? ''}` : '—'}
+                  </td>
+                  <td className='px-4 py-3'>{formatEnumLabel(expense.status)}</td>
+                  <td className='px-4 py-3'>{formatDate(expense.createdAt)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

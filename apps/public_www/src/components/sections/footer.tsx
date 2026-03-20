@@ -222,21 +222,15 @@ function FooterDesktopColumn({
 
 function AccordionChevronIcon() {
   return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 18 10'
-      className='h-[9px] w-[17px] shrink-0 transition-transform duration-300 group-open:rotate-180'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M2 1.5L9 8L16 1.5'
-        stroke='rgba(51,51,51,0.9)'
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG asset from /public/images */}
+      <img
+        src='/images/footer-accordion-chevron-icon.svg'
+        alt=''
+        aria-hidden
+        className='h-[9px] w-[17px] shrink-0 transition-transform duration-300 group-open:rotate-180'
       />
-    </svg>
+    </>
   );
 }
 

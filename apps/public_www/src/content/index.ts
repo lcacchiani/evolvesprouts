@@ -89,6 +89,7 @@ export interface LandingPageLocaleContent {
     description: string;
     imageAlt: string;
     imageSrc: string;
+    imageMaxWidthPercent?: number;
   };
   outline: {
     eyebrow?: string;
@@ -131,6 +132,11 @@ export interface LandingPageLocaleContent {
     buttonLabelTemplate?: string;
     fullyBookedButtonLabel?: string;
     fullyBookedWaitlistMessageTemplate?: string;
+    bookingTopicsField?: {
+      label: string;
+      placeholder: string;
+      required: boolean;
+    };
   };
 }
 

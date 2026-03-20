@@ -1,3 +1,4 @@
+import type { BookingTopicsFieldConfig } from '@/components/sections/booking-modal/types';
 import type {
   EventsContent,
   Locale,
@@ -12,6 +13,17 @@ import {
 import { type CrmApiClient, buildCrmApiUrl } from '@/lib/crm-api-client';
 import { formatCohortValue } from '@/lib/format';
 import { ROUTES } from '@/lib/routes';
+import {
+  appendTimeZoneLabel,
+  formatHeroFullDateLine,
+  formatSiteCompactDate,
+  formatSiteTimeOfDay,
+  formatSiteTimeZoneShortName,
+} from '@/lib/site-datetime';
+import {
+  getLandingPageContent,
+  isValidLandingPageSlug,
+} from '@/lib/landing-pages';
 import { isHttpHref } from '@/lib/url-utils';
 
 type EventStatus = 'open' | 'fully_booked';
@@ -45,6 +57,8 @@ export interface EventBookingModalPayload {
   dateParts: EventBookingDatePart[];
   selectedDateLabel: string;
   selectedDateStartTime: string;
+  /** From landing page JSON `cta.bookingTopicsField` when `landing_page` matches a registered page. */
+  topicsFieldConfig?: BookingTopicsFieldConfig;
 }
 
 interface MyBestAuntieEventCohortDate {
@@ -104,6 +118,9 @@ export interface EventCardData {
   partners?: string[];
   status: EventStatus;
   timestamp: number | null;
+  endTimestamp?: number | null;
+  price?: number;
+  currency?: string;
   bookingSystem?: string;
   bookingModalPayload?: EventCardBookingModalPayload;
 }
@@ -137,25 +154,12 @@ export interface LandingPageStructuredDataContent {
   offerAvailability: 'InStock' | 'SoldOut';
 }
 
-const UK_EVENTS_LOCALE = 'en-GB';
-const DATE_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
-const TIME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
-const TIME_ZONE_NAME_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
-
 function resolveEventsLocale(locale?: string): Locale {
   if (locale === 'zh-CN' || locale === 'zh-HK') {
     return locale;
   }
 
   return 'en';
-}
-
-function resolveDateTimeLocale(locale: Locale): string {
-  if (locale === 'en') {
-    return UK_EVENTS_LOCALE;
-  }
-
-  return locale;
 }
 
 function formatEnumLikeLabel(value: string): string {
@@ -178,61 +182,6 @@ function formatEnumLikeLabel(value: string): string {
     .filter((entry) => entry.length > 0)
     .map((entry) => entry.charAt(0).toUpperCase() + entry.slice(1).toLowerCase())
     .join(' ');
-}
-
-function getDateFormatter(locale: Locale): Intl.DateTimeFormat {
-  const formatterKey = locale;
-  const cachedFormatter = DATE_FORMATTER_CACHE.get(formatterKey);
-  if (cachedFormatter) {
-    return cachedFormatter;
-  }
-
-  const nextFormatter = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-  DATE_FORMATTER_CACHE.set(formatterKey, nextFormatter);
-  return nextFormatter;
-}
-
-function getTimeFormatter(locale: Locale): Intl.DateTimeFormat {
-  const formatterKey = locale;
-  const cachedFormatter = TIME_FORMATTER_CACHE.get(formatterKey);
-  if (cachedFormatter) {
-    return cachedFormatter;
-  }
-
-  const nextFormatter =
-    locale === 'en'
-      ? new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        })
-      : new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        });
-  TIME_FORMATTER_CACHE.set(formatterKey, nextFormatter);
-  return nextFormatter;
-}
-
-function getTimeZoneNameFormatter(locale: Locale): Intl.DateTimeFormat {
-  const formatterKey = locale;
-  const cachedFormatter = TIME_ZONE_NAME_FORMATTER_CACHE.get(formatterKey);
-  if (cachedFormatter) {
-    return cachedFormatter;
-  }
-
-  const nextFormatter = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  });
-  TIME_ZONE_NAME_FORMATTER_CACHE.set(formatterKey, nextFormatter);
-  return nextFormatter;
 }
 
 function sanitizeExternalHref(value: string | undefined): string {
@@ -357,6 +306,34 @@ function resolvePartnerSlugs(value: unknown): string[] {
   return Array.from(new Set(slugs));
 }
 
+function resolveBookingTopicsFieldFromLandingPage(
+  record: Record<string, unknown>,
+  locale: Locale,
+): BookingTopicsFieldConfig | undefined {
+  const landingPageSlug =
+    readCandidateText(record, ['landing_page', 'landingPage'])?.trim() ?? '';
+  if (!landingPageSlug || !isValidLandingPageSlug(landingPageSlug)) {
+    return undefined;
+  }
+
+  const pageLocale = getLandingPageContent(landingPageSlug, locale);
+  const field = pageLocale?.cta.bookingTopicsField;
+  if (!field) {
+    return undefined;
+  }
+
+  const label = readOptionalText(field.label);
+  if (!label) {
+    return undefined;
+  }
+
+  return {
+    label,
+    placeholder: readOptionalText(field.placeholder),
+    required: Boolean(field.required),
+  };
+}
+
 function resolveBookingDateParts(
   record: Record<string, unknown>,
   defaultDescription: string,
@@ -407,7 +384,7 @@ function buildEventBookingModalPayload(
   const dateParts = resolveBookingDateParts(record, summary ?? '');
   const selectedDateStartTime = dateParts[0]?.startDateTime ?? '';
   const selectedDateLabel =
-    formatUtcDateLabel(selectedDateStartTime, locale) || title;
+    formatSiteCompactDate(selectedDateStartTime, locale) || title;
   const originalAmount = resolveNumericCandidate(record, [
     'price',
     'cost',
@@ -416,6 +393,8 @@ function buildEventBookingModalPayload(
     'eventPrice',
     'event_price',
   ]) ?? 0;
+
+  const topicsFieldConfig = resolveBookingTopicsFieldFromLandingPage(record, locale);
 
   return {
     variant: 'event',
@@ -429,11 +408,13 @@ function buildEventBookingModalPayload(
     dateParts,
     selectedDateLabel,
     selectedDateStartTime,
+    ...(topicsFieldConfig ? { topicsFieldConfig } : {}),
   };
 }
 
 function buildMyBestAuntieBookingModalPayload(
   record: Record<string, unknown>,
+  locale: Locale,
 ): MyBestAuntieBookingModalPayload | null {
   const id = readCandidateText(record, ['id', 'eventId', 'slug']) ?? '';
   const ageGroup = readCandidateText(record, ['age_group']) ?? '';
@@ -499,7 +480,7 @@ function buildMyBestAuntieBookingModalPayload(
     variant: 'my-best-auntie',
     bookingSystem: MY_BEST_AUNTIE_BOOKING_SYSTEM,
     selectedAgeGroupLabel: ageGroup,
-    selectedCohortDateLabel: formatCohortValue(cohortValue),
+    selectedCohortDateLabel: formatCohortValue(cohortValue, locale),
     selectedCohort,
   };
 }
@@ -527,67 +508,10 @@ function resolveBookingModalPayload(
   }
 
   if (bookingSystem === MY_BEST_AUNTIE_BOOKING_SYSTEM) {
-    return buildMyBestAuntieBookingModalPayload(record) ?? undefined;
+    return buildMyBestAuntieBookingModalPayload(record, locale) ?? undefined;
   }
 
   return undefined;
-}
-
-function formatUtcDateLabel(isoDateTime: string, locale: Locale): string {
-  const date = new Date(isoDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  return getDateFormatter(locale).format(date);
-}
-
-function formatUtcTimeLabel(isoDateTime: string, locale: Locale): string {
-  const date = new Date(isoDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  return getTimeFormatter(locale).format(date);
-}
-
-function formatUtcTimeZoneLabel(isoDateTime: string, locale: Locale): string {
-  const date = new Date(isoDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const timeZoneNamePart = getTimeZoneNameFormatter(locale)
-    .formatToParts(date)
-    .find((part) => part.type === 'timeZoneName')
-    ?.value;
-
-  return readOptionalText(timeZoneNamePart) ?? '';
-}
-
-function appendTimeZoneLabel(
-  timeLabel: string | undefined,
-  timeZoneLabel: string | undefined,
-): string | undefined {
-  const normalizedTimeLabel = readOptionalText(timeLabel);
-  if (!normalizedTimeLabel) {
-    return undefined;
-  }
-
-  const normalizedTimeZoneLabel = readOptionalText(timeZoneLabel);
-  if (!normalizedTimeZoneLabel) {
-    return normalizedTimeLabel;
-  }
-
-  if (
-    normalizedTimeLabel
-      .toLowerCase()
-      .includes(normalizedTimeZoneLabel.toLowerCase())
-  ) {
-    return normalizedTimeLabel;
-  }
-
-  return `${normalizedTimeLabel} ${normalizedTimeZoneLabel}`;
 }
 
 function extractTrailingLocationSegment(value: string | undefined): string | undefined {
@@ -675,11 +599,13 @@ function resolveDateTimeDetails(
   timeLabel?: string;
   timeZoneLabel?: string;
   timestamp: number | null;
+  endTimestamp?: number | null;
 } {
   const dateEntries = Array.isArray(record.dates) ? record.dates : [];
-  const firstDateRecord = dateEntries
+  const dateRecords = dateEntries
     .map((entry) => toRecord(entry))
-    .find((entry): entry is Record<string, unknown> => entry !== null);
+    .filter((entry): entry is Record<string, unknown> => entry !== null);
+  const firstDateRecord = dateRecords[0] ?? null;
 
   if (!firstDateRecord) {
     return { timestamp: null };
@@ -700,20 +626,28 @@ function resolveDateTimeDetails(
     return { timestamp: null };
   }
 
-  const dateLabel = formatUtcDateLabel(startDateTime, locale);
-  const startTimeLabel = formatUtcTimeLabel(startDateTime, locale);
-  const endTimeLabel = endDateTime ? formatUtcTimeLabel(endDateTime, locale) : '';
+  const lastDateRecord = dateRecords[dateRecords.length - 1] ?? firstDateRecord;
+  const lastEndDateTime = readCandidateText(lastDateRecord, [
+    'end_datetime',
+    'endDateTime',
+    'end',
+  ]) ?? endDateTime;
+
+  const dateLabel = formatSiteCompactDate(startDateTime, locale);
+  const startTimeLabel = formatSiteTimeOfDay(startDateTime, locale);
+  const endTimeLabel = endDateTime ? formatSiteTimeOfDay(endDateTime, locale) : '';
   const timeLabel =
     startTimeLabel && endTimeLabel
       ? `${startTimeLabel} - ${endTimeLabel}`
       : startTimeLabel;
-  const timeZoneLabel = formatUtcTimeZoneLabel(startDateTime, locale);
+  const timeZoneLabel = formatSiteTimeZoneShortName(startDateTime, locale);
 
   return {
     dateLabel: dateLabel || undefined,
     timeLabel: timeLabel || undefined,
     timeZoneLabel: timeZoneLabel || undefined,
     timestamp: parseTimestamp(startDateTime),
+    endTimestamp: parseTimestamp(lastEndDateTime),
   };
 }
 
@@ -922,52 +856,6 @@ function formatLandingPageEventCtaPriceLabel(
   }
 
   return formattedAmount;
-}
-
-function formatLandingPageEyebrowDate(
-  isoDateTime: string | undefined,
-  locale: Locale,
-): string | undefined {
-  const normalizedIsoDateTime = readOptionalText(isoDateTime);
-  if (!normalizedIsoDateTime) {
-    return undefined;
-  }
-
-  const date = new Date(normalizedIsoDateTime);
-  if (Number.isNaN(date.getTime())) {
-    return undefined;
-  }
-
-  if (locale === 'en') {
-    const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    }).formatToParts(date);
-    const weekday = readOptionalText(parts.find((part) => part.type === 'weekday')?.value);
-    const day = readOptionalText(parts.find((part) => part.type === 'day')?.value);
-    const month = readOptionalText(parts.find((part) => part.type === 'month')?.value);
-    if (weekday && day && month) {
-      return `${weekday} ${day} ${month}`;
-    }
-  }
-
-  if (locale === 'zh-CN' || locale === 'zh-HK') {
-    const parts = new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-      month: 'long',
-      day: 'numeric',
-    }).formatToParts(date);
-    const month = readOptionalText(parts.find((part) => part.type === 'month')?.value);
-    const day = readOptionalText(parts.find((part) => part.type === 'day')?.value);
-    if (month && day) {
-      return `${month} ${day} 日`;
-    }
-  }
-
-  return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
-    day: 'numeric',
-    month: 'long',
-  }).format(date);
 }
 
 export async function fetchEventsPayload(
@@ -1291,6 +1179,19 @@ function normalizeEventCard(
   const tags = readTagList(record);
   const partners = resolvePartnerSlugs(record.partners);
   const { costLabel, isFreeCost } = resolveEventCost(record, content);
+  const rawPrice = resolveNumericCandidate(record, [
+    'price',
+    'cost',
+    'amount',
+    'fee',
+    'eventPrice',
+    'event_price',
+  ]);
+  const rawCurrency = readCandidateText(record, [
+    'currency',
+    'priceCurrency',
+    'price_currency',
+  ]);
 
   return {
     id: rawId || fallbackId,
@@ -1313,6 +1214,9 @@ function normalizeEventCard(
     partners: partners.length > 0 ? partners : undefined,
     status,
     timestamp,
+    endTimestamp: dateTimeDetails.endTimestamp,
+    price: rawPrice ?? undefined,
+    currency: rawCurrency ?? undefined,
     bookingSystem,
     bookingModalPayload,
   };
@@ -1454,7 +1358,7 @@ export function getLandingPageBookingEventContent(
     bookingPayload: resolvedPayload?.variant === 'event' ? resolvedPayload : null,
     ctaPriceLabel: formatLandingPageEventCtaPriceLabel(eventRecord),
     spacesLeft: spacesLeft ?? undefined,
-    eyebrowDateLabel: formatLandingPageEyebrowDate(firstStartDateTime, normalizedLocale),
+    eyebrowDateLabel: formatHeroFullDateLine(firstStartDateTime, normalizedLocale),
   };
 }
 

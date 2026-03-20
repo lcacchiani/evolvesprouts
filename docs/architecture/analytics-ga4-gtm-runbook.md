@@ -65,7 +65,7 @@ Canonical machine-readable contract:
 | `booking_submit_success` | `/v1/reservations` success | `section_id`, `payment_method`, `total_amount`, `age_group`, `cohort_date` | Yes |
 | `booking_submit_error` | `/v1/reservations` error | `section_id`, `payment_method`, `error_type` | No |
 | `booking_thank_you_view` | Thank-you modal shown | `section_id`, `payment_method`, `total_amount` | No |
-| `booking_receipt_print_click` | Print action in thank-you modal | `section_id`, `payment_method`, `total_amount` | No |
+| `booking_thank_you_ics_download` | Thank-you modal calendar (.ics) download | `section_id`, `cohort_date`, `total_amount` | No |
 | `landing_page_cta_click` | Landing page primary CTA click | `section_id='landing-page-cta'`, `landing_page_slug` | No |
 | `links_hub_click` | Link-in-bio hub button click | `section_id='links-hub'`, `content_name` | No |
 

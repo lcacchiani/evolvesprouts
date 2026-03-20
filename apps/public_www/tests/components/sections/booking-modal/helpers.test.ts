@@ -45,14 +45,15 @@ describe('booking modal helpers', () => {
   });
 
   it('extracts and normalizes the time range from a part date string', () => {
-    expect(extractTimeRangeFromPartDate('Apr 08 @ 12:00 pm - 2:00 pm')).toBe(
-      '12:00 pm - 2:00 pm',
-    );
+    expect(extractTimeRangeFromPartDate('08 Apr @ 09:00 - 11:00')).toBe('09:00 - 11:00');
     expect(extractTimeRangeFromPartDate('Apr 08')).toBe('');
   });
 
   it('extracts a cohort ISO date from the part date and month label', () => {
     expect(extractIsoDateFromPartDate('Apr 08 @ 12:00 pm - 2:00 pm', 'Apr, 2026')).toBe(
+      '2026-04-08',
+    );
+    expect(extractIsoDateFromPartDate('08 Apr @ 09:00 - 11:00', 'Apr, 2026')).toBe(
       '2026-04-08',
     );
     expect(extractIsoDateFromPartDate('Invalid', 'Apr, 2026')).toBe('');
@@ -62,10 +63,11 @@ describe('booking modal helpers', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-02-19T08:00:00.000Z'));
 
-    const expected = new Intl.DateTimeFormat('en', {
+    const expected = new Intl.DateTimeFormat('en-GB', {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
+      timeZone: 'Asia/Hong_Kong',
     }).format(new Date());
 
     expect(resolveLocalizedDate('en')).toBe(expected);

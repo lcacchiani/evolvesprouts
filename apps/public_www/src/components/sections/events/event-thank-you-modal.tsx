@@ -1,13 +1,13 @@
 'use client';
 
 import {
-  type MyBestAuntieThankYouModalProps,
   MyBestAuntieThankYouModal,
+  type MyBestAuntieThankYouModalProps,
 } from '@/components/sections/booking-modal/thank-you-modal';
 
 type EventThankYouModalProps = Omit<
   MyBestAuntieThankYouModalProps,
-  'analyticsSectionId' | 'showChildAgeGroupChip'
+  'analyticsSectionId'
 >;
 
 export function EventThankYouModal(props: EventThankYouModalProps) {
@@ -15,7 +15,6 @@ export function EventThankYouModal(props: EventThankYouModalProps) {
     <MyBestAuntieThankYouModal
       {...props}
       analyticsSectionId='events-booking'
-      showChildAgeGroupChip={false}
     />
   );
 }

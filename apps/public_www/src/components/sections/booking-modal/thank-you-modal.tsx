@@ -1,9 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { useId, useRef } from 'react';
+import { useId, useMemo, useRef } from 'react';
 
+import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SmartLink } from '@/components/shared/smart-link';
 import {
   OverlayDialogPanel,
   OverlayScrollableBody,
@@ -12,224 +14,135 @@ import {
   CloseButton,
   ModalOverlay,
 } from '@/components/sections/booking-modal/shared';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import type {
+  ReservationCourseSession,
+  ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import type { BookingThankYouModalContent, Locale } from '@/content';
-import {
-  resolveLocalizedDate,
-} from '@/components/sections/booking-modal/helpers';
 import { trackAnalyticsEvent } from '@/lib/analytics';
+import {
+  buildBookingIcsCalendarContent,
+  buildEvolveSproutsThankYouIcsFilenameBase,
+  triggerBookingIcsDownload,
+} from '@/lib/booking-calendar-download';
 import { formatCurrencyHkd } from '@/lib/format';
+import {
+  formatSiteCompactDate,
+  formatSiteTimeOfDay,
+} from '@/lib/site-datetime';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { getHrefKind } from '@/lib/url-utils';
+
+const THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME =
+  'h-[54px] w-full rounded-control px-6 text-[16px] font-semibold sm:h-[60px] sm:text-[18px]';
 
 export interface MyBestAuntieThankYouModalProps {
   locale: Locale;
   content: BookingThankYouModalContent;
   summary: ReservationSummary | null;
-  homeHref: string;
   analyticsSectionId?: string;
-  showChildAgeGroupChip?: boolean;
+  whatsappHref?: string;
+  whatsappCtaLabel?: string;
   onClose: () => void;
 }
 
-const PRINT_WINDOW_FEATURES = 'noopener,noreferrer,width=880,height=700';
-const BABY_ICON_SOURCE = '/images/baby.svg';
-const DOLLAR_SYMBOL_ICON_SOURCE = '/images/dollar-symbol.svg';
-const EN_LOCALE = 'en-US';
+const WHATSAPP_ICON_SRC = '/images/contact-whatsapp.svg';
 
-function formatPrefixedValue(prefix: string, value: string): string {
-  const normalizedValue = value.trim();
-  if (!normalizedValue) {
+type ThankYouCardIconId = 'training' | 'calendar' | 'location' | 'dollar';
+
+function ThankYouDetailCardIcon({ icon }: { icon: ThankYouCardIconId }) {
+  return (
+    <span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl es-booking-thank-you-detail-card-icon-wrap'>
+      <span
+        className={`es-booking-thank-you-detail-icon-mask es-booking-thank-you-detail-icon-mask--${icon}`}
+        aria-hidden='true'
+      />
+    </span>
+  );
+}
+
+function formatSummaryDatePart(dateStartTime: string | undefined, locale: Locale): string {
+  const normalized = dateStartTime?.trim() ?? '';
+  if (!normalized) {
     return '';
   }
 
-  return `${prefix}${normalizedValue}`;
+  return formatSiteCompactDate(normalized, locale);
 }
 
-function resolveSummaryDateStart(dateStartTime?: string): Date | null {
-  const normalizedDateStartTime = dateStartTime?.trim() ?? '';
-  if (!normalizedDateStartTime) {
-    return null;
-  }
-
-  const parsedDate = new Date(normalizedDateStartTime);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-
-  return parsedDate;
-}
-
-function formatSummaryDateLabel(dateStartTime: string | undefined, locale: Locale): string {
-  const parsedDate = resolveSummaryDateStart(dateStartTime);
-  if (!parsedDate) {
+function formatSummaryTimePart(dateStartTime: string | undefined, locale: Locale): string {
+  const normalized = dateStartTime?.trim() ?? '';
+  if (!normalized) {
     return '';
   }
 
-  return new Intl.DateTimeFormat(locale === 'en' ? EN_LOCALE : locale, {
-    month: 'short',
-    day: '2-digit',
-    timeZone: 'UTC',
-  }).format(parsedDate);
+  return formatSiteTimeOfDay(normalized, locale);
 }
 
-function formatSummaryTimeLabel(dateStartTime: string | undefined, locale: Locale): string {
-  const parsedDate = resolveSummaryDateStart(dateStartTime);
-  if (!parsedDate) {
-    return '';
+function formatSummaryDateTimeLine(
+  dateStartTime: string | undefined,
+  locale: Locale,
+): string {
+  const datePart = formatSummaryDatePart(dateStartTime, locale);
+  const timePart = formatSummaryTimePart(dateStartTime, locale);
+  if (datePart && timePart) {
+    return `${datePart}, ${timePart}`;
   }
 
-  return new Intl.DateTimeFormat(locale === 'en' ? EN_LOCALE : locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: 'UTC',
-  })
-    .format(parsedDate)
-    .replace(' AM', ' am')
-    .replace(' PM', ' pm');
+  return datePart || timePart;
 }
 
-function appendPrintChip({
-  popupDocument,
-  container,
-  value,
-}: {
-  popupDocument: Document;
-  container: HTMLElement;
-  value: string;
-}): void {
-  if (!value) {
-    return;
+function resolveThankYouLocationDisplay(
+  summary: ReservationSummary | null,
+  virtualFallback: string,
+): string {
+  const name = summary?.locationName?.trim() ?? '';
+  const address = summary?.locationAddress?.trim() ?? '';
+  const segments = [name, address].filter(Boolean);
+  if (segments.length > 0) {
+    return segments.join(', ');
   }
 
-  const chip = popupDocument.createElement('span');
-  chip.className = 'chip';
-  chip.textContent = value;
-  container.append(chip);
+  return virtualFallback;
 }
 
-function renderPrintDocument({
-  popupDocument,
-  locale,
-  successLabel,
-  title,
-  subtitle,
-  attendeeEmail,
-  trainingChipText,
-  scheduleDateLabel,
-  scheduleTimeLabel,
-  childAgeGroupChipText,
-  amountChipText,
-  transactionDateChipText,
-  paymentMethodChipText,
-}: {
-  popupDocument: Document;
-  locale: Locale;
-  successLabel: string;
-  title: string;
-  subtitle: string;
-  attendeeEmail: string;
-  trainingChipText: string;
-  scheduleDateLabel: string;
-  scheduleTimeLabel: string;
-  childAgeGroupChipText: string;
-  amountChipText: string;
-  transactionDateChipText: string;
-  paymentMethodChipText: string;
-}): void {
-  popupDocument.title = successLabel;
-  popupDocument.documentElement.lang = locale;
-  popupDocument.head.replaceChildren();
-  popupDocument.body.replaceChildren();
-
-  const metaCharset = popupDocument.createElement('meta');
-  metaCharset.setAttribute('charset', 'utf-8');
-
-  const styleElement = popupDocument.createElement('style');
-  styleElement.textContent =
-    'body { font-family: "Poppins", sans-serif; margin: 24px; color: #333; }' +
-    'h1 { margin: 0 0 8px; }' +
-    'p { margin: 0 0 8px; }' +
-    '.card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }' +
-    '.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }' +
-    '.chips + .chips { margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd; }' +
-    '.chip { display: inline-flex; align-items: center; border: 1px solid #ddd; border-radius: 999px; padding: 8px 14px; background: #fff; font-weight: 600; }';
-  popupDocument.head.append(metaCharset, styleElement);
-
-  const heading = popupDocument.createElement('h1');
-  heading.textContent = successLabel;
-
-  const titleText = popupDocument.createElement('p');
-  titleText.textContent = title;
-
-  const subtitleText = popupDocument.createElement('p');
-  subtitleText.textContent = `${subtitle} ${attendeeEmail}`;
-
-  const card = popupDocument.createElement('div');
-  card.className = 'card';
-
-  const summaryChips = popupDocument.createElement('div');
-  summaryChips.className = 'chips';
-  appendPrintChip({
-    popupDocument,
-    container: summaryChips,
-    value: trainingChipText,
-  });
-  appendPrintChip({
-    popupDocument,
-    container: summaryChips,
-    value: scheduleDateLabel,
-  });
-  appendPrintChip({
-    popupDocument,
-    container: summaryChips,
-    value: scheduleTimeLabel,
-  });
-  appendPrintChip({
-    popupDocument,
-    container: summaryChips,
-    value: childAgeGroupChipText,
-  });
-  appendPrintChip({
-    popupDocument,
-    container: summaryChips,
-    value: amountChipText,
-  });
-
-  const transactionChips = popupDocument.createElement('div');
-  transactionChips.className = 'chips';
-  appendPrintChip({
-    popupDocument,
-    container: transactionChips,
-    value: transactionDateChipText,
-  });
-  appendPrintChip({
-    popupDocument,
-    container: transactionChips,
-    value: paymentMethodChipText,
-  });
-
-  card.append(summaryChips);
-  if (transactionChips.childElementCount > 0) {
-    card.append(transactionChips);
+function resolveThankYouCourseSessions(summary: ReservationSummary | null): ReservationCourseSession[] {
+  if (!summary) {
+    return [];
   }
 
-  popupDocument.body.append(heading, titleText, subtitleText, card);
+  if (summary.courseSessions && summary.courseSessions.length > 0) {
+    return summary.courseSessions;
+  }
+
+  const start = summary.dateStartTime?.trim() ?? '';
+  if (!start) {
+    return [];
+  }
+
+  return [
+    {
+      dateStartTime: start,
+      dateEndTime: summary.dateEndTime?.trim() || undefined,
+    },
+  ];
 }
 
 export function MyBestAuntieThankYouModal({
   locale,
   content,
   summary,
-  homeHref,
   analyticsSectionId = 'my-best-auntie-booking',
-  showChildAgeGroupChip = true,
+  whatsappHref,
+  whatsappCtaLabel,
   onClose,
 }: MyBestAuntieThankYouModalProps) {
   const modalPanelRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogTitleId = useId();
+  const dialogSuccessId = useId();
   const dialogDescriptionId = useId();
 
   useModalLockBody({ onEscape: onClose });
@@ -240,72 +153,94 @@ export function MyBestAuntieThankYouModal({
     restoreFocus: true,
   });
 
-  const transactionDate = resolveLocalizedDate(locale);
-  const attendeeEmail = summary?.attendeeEmail ?? content.noEmailFallback;
+  const subtitleText = content.subtitle?.trim() ?? '';
+  const hasSubtitleBlock = subtitleText.length > 0;
+  const attendeeEmail = summary?.attendeeEmail ?? '';
   const eventTitle = summary?.eventTitle ?? content.courseLabel;
-  const trainingChipText = formatPrefixedValue(content.trainingPrefix, eventTitle);
-  const scheduleDateLabel = formatSummaryDateLabel(summary?.dateStartTime, locale);
-  const scheduleTimeLabel = formatSummaryTimeLabel(summary?.dateStartTime, locale);
-  const paymentMethod = summary?.paymentMethod?.trim() ?? '';
-  const childAgeGroupChipText = showChildAgeGroupChip
-    ? formatPrefixedValue(
-        content.childAgeGroupPrefix,
-        summary?.ageGroup ?? '',
-      )
-    : '';
-  const amountChipText = formatPrefixedValue(
-    content.amountPrefix,
-    summary ? formatCurrencyHkd(summary.totalAmount, locale) : '',
+  const eventSubtitle = summary?.eventSubtitle?.trim() ?? '';
+  const thankYouSessions = useMemo(
+    () => resolveThankYouCourseSessions(summary),
+    [summary],
   );
-  const transactionDateChipText = formatPrefixedValue(
-    content.transactionDatePrefix,
-    transactionDate,
-  );
-  const paymentMethodChipText = formatPrefixedValue(
-    content.paymentMethodPrefix,
-    paymentMethod,
-  );
+  const dateTimeLines = useMemo(() => {
+    return thankYouSessions
+      .map((session) => formatSummaryDateTimeLine(session.dateStartTime, locale))
+      .filter((line) => line.length > 0);
+  }, [thankYouSessions, locale]);
 
-  function handlePrint() {
-    if (!summary) {
+  const locationLine = resolveThankYouLocationDisplay(
+    summary,
+    content.summaryLocationVirtualFallback,
+  );
+  const amountLine = summary
+    ? formatCurrencyHkd(summary.totalAmount, locale)
+    : content.summaryEmptyValue;
+  const locationNameRaw = summary?.locationName?.trim() ?? '';
+  const locationAddressRaw = summary?.locationAddress?.trim() ?? '';
+  const hasStructuredVenue =
+    locationNameRaw.length > 0 || locationAddressRaw.length > 0;
+  const directionHref = summary?.locationDirectionHref?.trim() ?? '';
+  const showDirectionsLink =
+    hasStructuredVenue && getHrefKind(directionHref) === 'http';
+
+  const describedByIds = hasSubtitleBlock
+    ? `${dialogSuccessId} ${dialogDescriptionId}`
+    : dialogSuccessId;
+
+  const normalizedWhatsappHref = whatsappHref?.trim() ?? '';
+  const normalizedWhatsappLabel = whatsappCtaLabel?.trim() ?? '';
+  const showWhatsappFollowUp =
+    normalizedWhatsappHref.length > 0 && normalizedWhatsappLabel.length > 0;
+
+  const icsBody = useMemo(() => {
+    if (thankYouSessions.length === 0) {
+      return null;
+    }
+
+    return buildBookingIcsCalendarContent({
+      title: eventTitle,
+      location: locationLine,
+      sessions: thankYouSessions.map((session) => {
+        return {
+          dateStartTime: session.dateStartTime,
+          dateEndTime: session.dateEndTime,
+        };
+      }),
+    });
+  }, [thankYouSessions, eventTitle, locationLine]);
+
+  const canDownloadIcs = Boolean(icsBody);
+
+  function handleDownloadIcs() {
+    if (!icsBody || !summary) {
       return;
     }
 
-    trackAnalyticsEvent('booking_receipt_print_click', {
+    const cohortDate =
+      thankYouSessions[0]?.dateStartTime.split('T')[0] ?? '';
+
+    trackAnalyticsEvent('booking_thank_you_ics_download', {
       sectionId: analyticsSectionId,
       ctaLocation: 'thank_you_modal',
       params: {
-        payment_method: paymentMethod,
+        cohort_date: cohortDate,
         total_amount: summary.totalAmount,
-        age_group: summary.ageGroup,
-        cohort_date: summary.dateStartTime?.split('T')[0] ?? '',
       },
     });
 
-    const popup = window.open('', '_blank', PRINT_WINDOW_FEATURES);
-    if (!popup) {
-      window.print();
-      return;
-    }
-    renderPrintDocument({
-      popupDocument: popup.document,
-      locale,
-      successLabel: content.successLabel,
-      title: content.title,
-      subtitle: content.subtitle,
-      attendeeEmail,
-      trainingChipText,
-      scheduleDateLabel,
-      scheduleTimeLabel,
-      childAgeGroupChipText,
-      amountChipText,
-      transactionDateChipText,
-      paymentMethodChipText,
-    });
-    popup.focus();
-    popup.print();
-    popup.close();
+    triggerBookingIcsDownload(
+      icsBody,
+      buildEvolveSproutsThankYouIcsFilenameBase(eventTitle),
+    );
   }
+
+  const locationTitle = hasStructuredVenue
+    ? (locationNameRaw || locationAddressRaw)
+    : locationLine;
+  const showLocationAddressBelow =
+    hasStructuredVenue
+    && locationNameRaw.length > 0
+    && locationAddressRaw.length > 0;
 
   return (
     <ModalOverlay
@@ -315,9 +250,9 @@ export function MyBestAuntieThankYouModal({
       <OverlayDialogPanel
         panelRef={modalPanelRef}
         ariaLabelledBy={dialogTitleId}
-        ariaDescribedBy={dialogDescriptionId}
+        ariaDescribedBy={describedByIds}
         tabIndex={-1}
-        className='es-my-best-auntie-thank-you-panel'
+        className='es-my-best-auntie-thank-you-panel es-section-bg-overlay es-booking-thank-you-modal-section-bg'
       >
         <header className='flex justify-end px-4 pb-6 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton
@@ -339,7 +274,10 @@ export function MyBestAuntieThankYouModal({
                 aria-hidden='true'
               />
             </div>
-            <h3 className='mt-3 text-[22px] font-normal leading-none es-text-heading sm:text-[28px]'>
+            <h3
+              id={dialogSuccessId}
+              className='mt-3 text-[22px] font-normal leading-none es-text-heading sm:text-[28px]'
+            >
               {content.successLabel}
             </h3>
             <h2
@@ -348,120 +286,148 @@ export function MyBestAuntieThankYouModal({
             >
               {content.title}
             </h2>
-            <p
-              id={dialogDescriptionId}
-              className='mt-3 text-lg leading-7 es-my-best-auntie-thank-you-body'
-            >
-              {content.subtitle}
-              {' '}
-              <span className='font-semibold es-text-emphasis'>
-                {attendeeEmail}
-              </span>
-            </p>
+            {hasSubtitleBlock ? (
+              <p
+                id={dialogDescriptionId}
+                className='mt-3 text-lg leading-7 es-my-best-auntie-thank-you-body'
+              >
+                {content.subtitle}
+                {' '}
+                <span className='font-semibold es-text-emphasis'>
+                  {attendeeEmail}
+                </span>
+              </p>
+            ) : null}
           </div>
 
-          <section className='relative z-10 mx-auto mt-10 max-w-[713px] overflow-hidden rounded-2xl border es-border-panel es-bg-surface-muted px-4 py-7 shadow-[0_9px_9px_rgba(49,86,153,0.08),0_9px_18px_rgba(49,86,153,0.06)] sm:px-8 sm:py-10'>
-            <div className='relative z-10 border-b es-divider-blue pb-8'>
-              <div className='flex flex-wrap gap-2'>
-                {trainingChipText ? (
-                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                    {trainingChipText}
-                  </span>
+          <section className='relative z-10 mx-auto mt-10 w-full max-w-[713px] px-4 sm:px-0'>
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5'>
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
+                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
+                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
+                    {eventTitle}
+                  </h3>
+                  <ThankYouDetailCardIcon icon='training' />
+                </div>
+                {eventSubtitle ? (
+                  <p className='mt-3 text-left es-booking-thank-you-detail-card-description'>
+                    {eventSubtitle}
+                  </p>
                 ) : null}
-                {scheduleDateLabel ? (
-                  <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                    <span
-                      className='h-6 w-6 shrink-0 es-mask-calendar-heading'
-                      aria-hidden='true'
-                    />
-                    {scheduleDateLabel}
-                  </span>
-                ) : null}
-                {scheduleTimeLabel ? (
-                  <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                    <Image
-                      src='/images/clock.svg'
-                      alt=''
-                      width={24}
-                      height={24}
-                      aria-hidden='true'
-                    />
-                    {scheduleTimeLabel}
-                  </span>
-                ) : null}
-                {childAgeGroupChipText ? (
-                  <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                    <Image
-                      src={BABY_ICON_SOURCE}
-                      alt=''
-                      width={24}
-                      height={24}
-                      aria-hidden='true'
-                    />
-                    {childAgeGroupChipText}
-                  </span>
-                ) : null}
-                {amountChipText ? (
-                  <span className='inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                    <Image
-                      src={DOLLAR_SYMBOL_ICON_SOURCE}
-                      alt=''
-                      width={24}
-                      height={24}
-                      aria-hidden='true'
-                    />
-                    {amountChipText}
-                  </span>
-                ) : null}
-              </div>
-            </div>
+              </article>
 
-            <div className='relative z-10 border-b es-divider-blue py-8'>
-              <div className='flex flex-wrap gap-2'>
-                {transactionDateChipText ? (
-                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                    {transactionDateChipText}
-                  </span>
-                ) : null}
-                {paymentMethodChipText ? (
-                  <span className='inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-medium es-text-muted'>
-                    {paymentMethodChipText}
-                  </span>
-                ) : null}
-              </div>
-            </div>
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
+                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
+                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
+                    {amountLine}
+                  </h3>
+                  <ThankYouDetailCardIcon icon='dollar' />
+                </div>
+                <p className='mt-3 text-left es-booking-thank-you-detail-card-description'>
+                  {content.paymentConfirmationNote}
+                </p>
+              </article>
 
-            <div className='relative z-10 pt-7'>
-              <div className='flex flex-wrap justify-end gap-3'>
-                <ButtonPrimitive
-                  variant='outline'
-                  onClick={handlePrint}
-                  className='h-[54px] gap-2 rounded-control px-6 text-[16px] font-semibold sm:h-[60px] sm:px-8 sm:text-[18px]'
-                >
-                  <svg
-                    width='24'
-                    height='24'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                    aria-hidden='true'
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
+                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
+                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
+                    {locationTitle}
+                  </h3>
+                  <ThankYouDetailCardIcon icon='location' />
+                </div>
+                <div className='mt-3 flex w-full flex-col text-left'>
+                  {showLocationAddressBelow ? (
+                    <p className='es-booking-thank-you-detail-card-description'>
+                      {locationAddressRaw}
+                    </p>
+                  ) : null}
+                  {showDirectionsLink ? (
+                    <SmartLink
+                      href={directionHref}
+                      className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
+                    >
+                      {({ isExternalHttp }) => (
+                        <ExternalLinkInlineContent
+                          isExternalHttp={isExternalHttp}
+                          externalLabelClassName='es-link-external-label--direction'
+                        >
+                          {content.directionLabel}
+                        </ExternalLinkInlineContent>
+                      )}
+                    </SmartLink>
+                  ) : null}
+                </div>
+              </article>
+
+              <article className='flex h-full min-h-[200px] flex-col rounded-card-xl p-6 sm:p-8 es-booking-thank-you-detail-card'>
+                <div className='flex items-center justify-between gap-4 es-booking-thank-you-detail-card-title-row'>
+                  <h3 className='min-w-0 flex-1 text-left es-booking-thank-you-detail-card-title'>
+                    {dateTimeLines.length === 0 ? (
+                      content.summaryEmptyValue
+                    ) : (
+                      dateTimeLines.map((line, index) => {
+                        return (
+                          <span
+                            key={`${line}-${index}`}
+                            className={
+                              index > 0
+                                ? 'mt-1 block'
+                                : 'block'
+                            }
+                          >
+                            {line}
+                          </span>
+                        );
+                      })
+                    )}
+                  </h3>
+                  <ThankYouDetailCardIcon icon='calendar' />
+                </div>
+                <div className='mt-auto flex w-full pt-4 sm:pt-3'>
+                  <ButtonPrimitive
+                    variant='outline'
+                    type='button'
+                    disabled={!canDownloadIcs}
+                    onClick={handleDownloadIcs}
+                    className={THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME}
                   >
-                    <path
-                      d='M16 8V5H8V8H6V3H18V8H16ZM18 12.5C18.2833 12.5 18.5208 12.4042 18.7125 12.2125C18.9042 12.0208 19 11.7833 19 11.5C19 11.2167 18.9042 10.9792 18.7125 10.7875C18.5208 10.5958 18.2833 10.5 18 10.5C17.7167 10.5 17.4792 10.5958 17.2875 10.7875C17.0958 10.9792 17 11.2167 17 11.5C17 11.7833 17.0958 12.0208 17.2875 12.2125C17.4792 12.4042 17.7167 12.5 18 12.5ZM16 19V15H8V19H16ZM18 21H6V17H2V11C2 10.15 2.29167 9.4375 2.875 8.8625C3.45833 8.2875 4.16667 8 5 8H19C19.85 8 20.5625 8.2875 21.1375 8.8625C21.7125 9.4375 22 10.15 22 11V17H18V21ZM20 15V11C20 10.7167 19.9042 10.4792 19.7125 10.2875C19.5208 10.0958 19.2833 10 19 10H5C4.71667 10 4.47917 10.0958 4.2875 10.2875C4.09583 10.4792 4 10.7167 4 11V15H6V13H18V15H20Z'
-                      fill='currentColor'
-                    />
-                  </svg>
-                  {content.printLabel}
-                </ButtonPrimitive>
-                <ButtonPrimitive
-                  href={homeHref}
-                  variant='primary'
-                >
-                  {content.backHomeLabel}
-                </ButtonPrimitive>
-              </div>
+                    {content.downloadCalendarInviteLabel}
+                  </ButtonPrimitive>
+                </div>
+              </article>
             </div>
           </section>
+
+          {showWhatsappFollowUp ? (
+            <div className='relative z-10 mx-auto mt-8 max-w-[713px] text-center'>
+              <p className='text-lg leading-7 es-my-best-auntie-thank-you-body'>
+                {content.followUpPrompt}
+              </p>
+              <ButtonPrimitive
+                variant='primary'
+                href={normalizedWhatsappHref}
+                openInNewTab
+                className='mt-4 w-full sm:w-auto es-btn--whatsapp-cta'
+                onClick={() => {
+                  trackAnalyticsEvent('whatsapp_click', {
+                    sectionId: 'booking-thank-you-modal',
+                    ctaLocation: 'thank_you_follow_up',
+                  });
+                  trackMetaPixelEvent('Contact', { content_name: 'whatsapp' });
+                }}
+              >
+                <span>{normalizedWhatsappLabel}</span>
+                <Image
+                  src={WHATSAPP_ICON_SRC}
+                  alt=''
+                  aria-hidden='true'
+                  width={16}
+                  height={16}
+                  className='h-4 w-4 shrink-0'
+                />
+              </ButtonPrimitive>
+            </div>
+          ) : null}
         </OverlayScrollableBody>
       </OverlayDialogPanel>
     </ModalOverlay>

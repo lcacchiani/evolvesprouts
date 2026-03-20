@@ -3,8 +3,11 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
+import {
+  type BookingTopicsFieldConfig,
+  type ReservationSummary,
+} from '@/components/sections/booking-modal/types';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
-import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import type {
   BookingModalContent,
   LandingPagesCommonContent,
@@ -43,6 +46,8 @@ export interface LandingPageBookingCtaActionProps {
   fullyBookedCtaLabel?: string;
   fullyBookedWaitlistHref?: string;
   bookingModalContent: BookingModalContent;
+  thankYouWhatsappHref?: string;
+  thankYouWhatsappCtaLabel?: string;
   analyticsSectionId: string;
   ctaLocation: string;
   buttonClassName?: string;
@@ -100,6 +105,8 @@ export function LandingPageBookingCtaAction({
   fullyBookedCtaLabel,
   fullyBookedWaitlistHref,
   bookingModalContent,
+  thankYouWhatsappHref,
+  thankYouWhatsappCtaLabel,
   analyticsSectionId,
   ctaLocation,
   buttonClassName,
@@ -111,6 +118,7 @@ export function LandingPageBookingCtaAction({
 
   const selectedDateLabel = bookingPayload?.selectedDateLabel ?? '';
   const selectedDate = bookingPayload?.selectedDateStartTime?.split('T')[0] ?? '';
+  const topicsFieldConfig: BookingTopicsFieldConfig | undefined = content.bookingTopicsField;
   const defaultCtaLabel = resolveCtaLabel(content, commonContent, ctaPriceLabel);
   const ctaLabel = isFullyBooked
     ? resolveFullyBookedCtaLabel(content, commonContent, fullyBookedCtaLabel)
@@ -207,6 +215,7 @@ export function LandingPageBookingCtaAction({
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={bookingPayload}
+          topicsFieldConfig={topicsFieldConfig}
           onClose={() => {
             setIsPaymentModalOpen(false);
           }}
@@ -221,12 +230,10 @@ export function LandingPageBookingCtaAction({
       {isThankYouModalOpen && (
         <EventThankYouModal
           locale={locale}
-          content={{
-            ...bookingModalContent.thankYouModal,
-            backHomeLabel: commonContent.backToHomeLabel,
-          }}
+          content={bookingModalContent.thankYouModal}
           summary={reservationSummary}
-          homeHref={`/${locale}`}
+          whatsappHref={thankYouWhatsappHref}
+          whatsappCtaLabel={thankYouWhatsappCtaLabel}
           onClose={() => {
             setIsThankYouModalOpen(false);
           }}

@@ -377,6 +377,18 @@ describe('ContactUsForm section', () => {
           name: enContent.contactUs.form.submitLabel,
         }),
       ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('heading', {
+          level: 2,
+          name: enContent.contactUs.form.formTitle,
+        }),
+      ).not.toBeInTheDocument();
+      const contactFormPanel = document.getElementById('contact-form');
+      expect(contactFormPanel).not.toBeNull();
+      expect(contactFormPanel?.className).toContain('flex');
+      expect(contactFormPanel?.className).toContain('min-h-full');
+      expect(contactFormPanel?.className).toContain('items-center');
+      expect(contactFormPanel?.className).toContain('justify-center');
       expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
         'contact_form_submit_attempt',
         {

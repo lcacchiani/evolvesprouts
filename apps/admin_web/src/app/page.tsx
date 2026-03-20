@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { key: 'sales', label: 'Sales' },
   { key: 'services', label: 'Services' },
   { key: 'finance', label: 'Finance' },
-  { key: 'assets', label: 'Client assets' },
+  { key: 'assets', label: 'Assets' },
 ] as const;
 
 function LoginGate() {

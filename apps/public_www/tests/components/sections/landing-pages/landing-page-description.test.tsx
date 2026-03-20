@@ -39,6 +39,10 @@ describe('LandingPageDescription section', () => {
     expect(document.querySelectorAll('.es-landing-page-description-card-number').length).toBe(
       easterWorkshopContent.en.description.items.length,
     );
+    const firstDescription = document.querySelector('.es-landing-page-description-card-description');
+    expect(firstDescription).not.toBeNull();
+    expect(firstDescription).toHaveClass('mt-3');
+    expect(firstDescription).toHaveClass('sm:mt-1.5');
   });
 
   it('renders shared CTA action at the bottom when shared props are provided', () => {
