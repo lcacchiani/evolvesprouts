@@ -1,9 +1,7 @@
 'use client';
 
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type { KeyboardEvent } from 'react';
 
-import { MarkPaidIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
@@ -27,12 +25,8 @@ interface ExpensesListPanelProps {
   isLoadingMore: boolean;
   hasMore: boolean;
   error: string;
-  isDeletingExpenseId: string | null;
-  isMarkingPaidExpenseId: string | null;
   onLoadMore: () => Promise<void> | void;
   onSelectExpense: (expenseId: string) => void;
-  onMarkPaid: (expenseId: string) => Promise<void>;
-  onCancelExpense: (expenseId: string, reason: string) => Promise<void>;
   onQueryChange: (value: string) => void;
   onStatusChange: (value: ExpenseStatus | '') => void;
   onParseStatusChange: (value: ExpenseParseStatus | '') => void;
@@ -48,12 +42,8 @@ export function ExpensesListPanel({
   isLoadingMore,
   hasMore,
   error,
-  isDeletingExpenseId,
-  isMarkingPaidExpenseId,
   onLoadMore,
   onSelectExpense,
-  onMarkPaid,
-  onCancelExpense,
   onQueryChange,
   onStatusChange,
   onParseStatusChange,
@@ -66,20 +56,6 @@ export function ExpensesListPanel({
       event.preventDefault();
       onSelectExpense(expenseId);
     }
-  };
-
-  const handleMarkPaid = (expenseId: string, event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    void onMarkPaid(expenseId);
-  };
-
-  const handleVoid = (expenseId: string, event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    const reason = window.prompt('Void reason');
-    if (!reason || !reason.trim()) {
-      return;
-    }
-    void onCancelExpense(expenseId, reason);
   };
 
   return (
@@ -136,21 +112,18 @@ export function ExpensesListPanel({
       }
     >
       <div className='rounded-md border border-slate-200'>
-        <table className='w-full min-w-[720px] divide-y divide-slate-200 text-left'>
+        <table className='w-full min-w-[560px] divide-y divide-slate-200 text-left'>
           <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
             <tr>
               <th className='px-4 py-3 font-semibold'>Vendor</th>
               <th className='px-4 py-3 font-semibold'>Total</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Created</th>
-              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </thead>
           <tbody className='divide-y divide-slate-200 bg-white text-sm'>
             {expenses.map((expense) => {
               const isSelected = expense.id === selectedExpenseId;
-              const canMarkPaid = expense.status !== 'paid' && expense.status !== 'voided';
-              const canVoid = expense.status !== 'voided';
               return (
                 <tr
                   key={expense.id}
@@ -174,32 +147,6 @@ export function ExpensesListPanel({
                   </td>
                   <td className='px-4 py-3'>{formatEnumLabel(expense.status)}</td>
                   <td className='px-4 py-3'>{formatDate(expense.createdAt)}</td>
-                  <td className='px-4 py-3 text-right'>
-                    <div className='flex justify-end gap-1'>
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='outline'
-                        onClick={(event) => handleMarkPaid(expense.id, event)}
-                        disabled={!canMarkPaid || isMarkingPaidExpenseId === expense.id}
-                        title='Mark paid'
-                        aria-label='Mark paid'
-                      >
-                        <MarkPaidIcon className='h-4 w-4' />
-                      </Button>
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='danger'
-                        onClick={(event) => handleVoid(expense.id, event)}
-                        disabled={!canVoid || isDeletingExpenseId === expense.id}
-                        title='Void expense'
-                        aria-label='Void expense'
-                      >
-                        <VoidExpenseIcon className='h-4 w-4' />
-                      </Button>
-                    </div>
-                  </td>
                 </tr>
               );
             })}

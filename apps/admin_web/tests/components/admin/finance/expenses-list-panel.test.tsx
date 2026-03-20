@@ -34,7 +34,7 @@ const baseExpense: Expense = {
 };
 
 describe('ExpensesListPanel', () => {
-  it('renders operations column without Invoice or Parse headers', () => {
+  it('renders core columns without Invoice, Parse, or Operations headers', () => {
     render(
       <ExpensesListPanel
         expenses={[baseExpense]}
@@ -46,12 +46,8 @@ describe('ExpensesListPanel', () => {
         isLoadingMore={false}
         hasMore={false}
         error=''
-        isDeletingExpenseId={null}
-        isMarkingPaidExpenseId={null}
         onLoadMore={vi.fn()}
         onSelectExpense={vi.fn()}
-        onMarkPaid={vi.fn()}
-        onCancelExpense={vi.fn()}
         onQueryChange={vi.fn()}
         onStatusChange={vi.fn()}
         onParseStatusChange={vi.fn()}
@@ -60,14 +56,15 @@ describe('ExpensesListPanel', () => {
 
     expect(screen.queryByRole('columnheader', { name: 'Invoice' })).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: 'Parse' })).not.toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Operations' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Mark paid' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Void expense' })).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Operations' })).not.toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Vendor' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Created' })).toBeInTheDocument();
   });
 
-  it('calls onMarkPaid without selecting row when mark paid is clicked', async () => {
+  it('calls onSelectExpense when a row is clicked', async () => {
     const user = userEvent.setup();
-    const onMarkPaid = vi.fn().mockResolvedValue(undefined);
     const onSelectExpense = vi.fn();
 
     render(
@@ -81,20 +78,15 @@ describe('ExpensesListPanel', () => {
         isLoadingMore={false}
         hasMore={false}
         error=''
-        isDeletingExpenseId={null}
-        isMarkingPaidExpenseId={null}
         onLoadMore={vi.fn()}
         onSelectExpense={onSelectExpense}
-        onMarkPaid={onMarkPaid}
-        onCancelExpense={vi.fn()}
         onQueryChange={vi.fn()}
         onStatusChange={vi.fn()}
         onParseStatusChange={vi.fn()}
       />
     );
 
-    await user.click(screen.getByRole('button', { name: 'Mark paid' }));
-    expect(onMarkPaid).toHaveBeenCalledWith('exp-1');
-    expect(onSelectExpense).not.toHaveBeenCalled();
+    await user.click(screen.getByText('Acme Co'));
+    expect(onSelectExpense).toHaveBeenCalledWith('exp-1');
   });
 });
