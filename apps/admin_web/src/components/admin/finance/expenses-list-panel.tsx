@@ -36,7 +36,6 @@ interface ExpensesListPanelProps {
   onQueryChange: (value: string) => void;
   onStatusChange: (value: ExpenseStatus | '') => void;
   onParseStatusChange: (value: ExpenseParseStatus | '') => void;
-  onClearFilters: () => void;
 }
 
 export function ExpensesListPanel({
@@ -58,7 +57,6 @@ export function ExpensesListPanel({
   onQueryChange,
   onStatusChange,
   onParseStatusChange,
-  onClearFilters,
 }: ExpensesListPanelProps) {
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, expenseId: string) => {
     if (event.target !== event.currentTarget) {
@@ -86,12 +84,12 @@ export function ExpensesListPanel({
 
   return (
     <PaginatedTableCard
-      title='Submitted invoices'
+      title='Submitted Expenses'
       isLoading={isLoading}
       isLoadingMore={isLoadingMore}
       hasMore={hasMore}
       error={error}
-      loadingLabel='Loading expense invoices...'
+      loadingLabel='Loading submitted expenses...'
       onLoadMore={onLoadMore}
       toolbar={
         <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-4'>
@@ -133,11 +131,6 @@ export function ExpensesListPanel({
                 </option>
               ))}
             </Select>
-          </div>
-          <div className='md:col-span-4'>
-            <Button type='button' variant='ghost' onClick={onClearFilters}>
-              Clear filters
-            </Button>
           </div>
         </div>
       }

@@ -55,7 +55,6 @@ describe('ExpensesListPanel', () => {
         onQueryChange={vi.fn()}
         onStatusChange={vi.fn()}
         onParseStatusChange={vi.fn()}
-        onClearFilters={vi.fn()}
       />
     );
 
@@ -91,7 +90,6 @@ describe('ExpensesListPanel', () => {
         onQueryChange={vi.fn()}
         onStatusChange={vi.fn()}
         onParseStatusChange={vi.fn()}
-        onClearFilters={vi.fn()}
       />
     );
 

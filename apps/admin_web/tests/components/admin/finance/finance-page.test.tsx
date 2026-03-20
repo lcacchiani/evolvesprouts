@@ -7,7 +7,6 @@ const { mockUseExpenses, state } = vi.hoisted(() => {
     items: [],
     filters: { query: '', status: '', parseStatus: '' },
     setFilter: vi.fn(),
-    clearFilters: vi.fn(),
     isLoading: false,
     isLoadingMore: false,
     error: '',
@@ -58,11 +57,11 @@ describe('FinancePage', () => {
     expect(screen.getByRole('heading', { name: 'Client invoices' })).toBeInTheDocument();
   });
 
-  it('renders expense editor before submitted invoices list', () => {
+  it('renders expense editor before submitted expenses list', () => {
     render(<FinancePage />);
 
     const editorHeading = screen.getByRole('heading', { name: 'Expenses' });
-    const listHeading = screen.getByRole('heading', { name: 'Submitted invoices' });
+    const listHeading = screen.getByRole('heading', { name: 'Submitted Expenses' });
 
     expect(editorHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

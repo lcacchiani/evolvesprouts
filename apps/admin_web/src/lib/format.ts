@@ -5,16 +5,17 @@ export function toTitleCase(value: string): string {
     .join(' ');
 }
 
-const UK_LOCALE = 'en-GB';
-const UK_TIME_ZONE = 'Europe/London';
-const UK_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(UK_LOCALE, {
-  day: '2-digit',
+/** Same date/time field choices as the app shell navbar timestamp (local TZ + default locale). */
+export const NAVBAR_LOCAL_DATETIME_OPTIONS: Intl.DateTimeFormatOptions = {
   month: 'short',
-  year: 'numeric',
+  day: 'numeric',
   hour: '2-digit',
   minute: '2-digit',
-  hour12: false,
-  timeZone: UK_TIME_ZONE,
+};
+
+const LOCAL_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  ...NAVBAR_LOCAL_DATETIME_OPTIONS,
+  year: 'numeric',
 });
 
 const DEFAULT_CURRENCY = 'HKD';
@@ -78,7 +79,7 @@ export function formatDate(value: string | null): string {
     return value;
   }
 
-  return UK_DATE_TIME_FORMATTER.format(parsedDate);
+  return LOCAL_DATE_TIME_FORMATTER.format(parsedDate);
 }
 
 export function formatDateForInput(value: Date): string {
