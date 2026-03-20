@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 
+const CHEVRON_PATH_D = 'M8 4L16 12L8 20';
+
 vi.mock('next/link', () => ({
   default: ({
     href,
@@ -45,7 +47,7 @@ describe('SectionCtaAnchor', () => {
     expect(link.className).toContain('es-btn');
     expect(link.className).toContain('es-btn--primary');
     expect(link.querySelector('svg[data-external-link-icon="true"]')).toBeNull();
-    expect(link.querySelector('path[d="M7 4L13 10L7 16"]')).not.toBeNull();
+    expect(link.querySelector(`path[d="${CHEVRON_PATH_D}"]`)).not.toBeNull();
   });
 
   it('uses currentColor for outline chevron stroke', () => {
@@ -56,7 +58,7 @@ describe('SectionCtaAnchor', () => {
     );
 
     const link = screen.getByRole('link', { name: 'About us' });
-    const chevronPath = link.querySelector('path[d="M7 4L13 10L7 16"]');
+    const chevronPath = link.querySelector(`path[d="${CHEVRON_PATH_D}"]`);
 
     expect(link.className).toContain('es-btn--outline');
     expect(chevronPath).not.toBeNull();
@@ -73,6 +75,6 @@ describe('SectionCtaAnchor', () => {
     expect(screen.getByText('Email us').className).not.toContain(
       'es-link-external-label',
     );
-    expect(link.querySelector('path[d="M7 4L13 10L7 16"]')).not.toBeNull();
+    expect(link.querySelector(`path[d="${CHEVRON_PATH_D}"]`)).not.toBeNull();
   });
 });

@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 
-import Chevron24Icon from '@/components/icons/svg/chevron-24-icon.svg';
+import ChevronRightIcon from '@/components/icons/svg/chevron-right-icon.svg';
 import TestimonialsParentIconSvg from '@/components/icons/svg/testimonials-parent-icon.svg';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
@@ -91,7 +91,7 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   const rotationClass = direction === 'left' ? 'rotate-180' : '';
 
   return (
-    <Chevron24Icon
+    <ChevronRightIcon
       aria-hidden
       className={`h-8 w-8 es-text-icon ${rotationClass}`}
     />
