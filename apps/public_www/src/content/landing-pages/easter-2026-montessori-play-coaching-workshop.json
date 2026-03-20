@@ -12,7 +12,8 @@
       "subtitle": "",
       "description": "Join us for an Easter workshop focused on respectful guidance, practical routines, and Montessori-inspired play you can use right away at home.",
       "imageAlt": "Child busy playing with a Montessori-style toy",
-      "imageSrc": "/images/hero/child-landing-hero.webp"
+      "imageSrc": "/images/hero/child-landing-hero.webp",
+      "imageMaxWidthPercent": 65
     },
     "outline": {
       "eyebrow": "Why this matters",
@@ -134,7 +135,8 @@
       "subtitle": "",
       "description": "欢迎参加复活节工作坊。我们将聚焦尊重式引导、可落地的日常节奏，以及你回家就能应用的蒙特梭利启发式游戏方法。",
       "imageAlt": "家长与孩子参加蒙特梭利游戏教练工作坊",
-      "imageSrc": "/images/hero/child-landing-hero.webp"
+      "imageSrc": "/images/hero/child-landing-hero.webp",
+      "imageMaxWidthPercent": 65
     },
     "outline": {
       "eyebrow": "为什么这很重要",
@@ -256,7 +258,8 @@
       "subtitle": "",
       "description": "歡迎參加復活節工作坊。我們將聚焦尊重式引導、可落地的日常節奏，以及你回家即可應用的蒙特梭利啟發式遊戲方法。",
       "imageAlt": "家長與小朋友參與蒙特梭利遊戲教練工作坊",
-      "imageSrc": "/images/hero/child-landing-hero.webp"
+      "imageSrc": "/images/hero/child-landing-hero.webp",
+      "imageMaxWidthPercent": 65
     },
     "outline": {
       "eyebrow": "為什麼這很重要",
