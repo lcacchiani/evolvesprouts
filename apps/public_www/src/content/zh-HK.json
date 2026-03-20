@@ -1122,21 +1122,19 @@
     },
     "thankYouModal": {
       "closeLabel": "關閉",
-      "title": "我們會盡快與你聯絡",
-      "subtitle": "確認電郵已發送至。",
+      "title": "我們會盡快與你聯絡。",
+      "subtitle": "",
       "successLabel": "多謝你！",
       "courseLabel": "我的最佳姨姨培訓課程。",
-      "transactionDateLabel": "交易日期",
-      "paymentMethodLabel": "付款方式",
-      "totalLabel": "總計",
-      "transactionDatePrefix": "交易日期：",
-      "paymentMethodPrefix": "付款方式：",
-      "childAgeGroupPrefix": "孩子年齡組別：",
-      "amountPrefix": "金額：",
-      "trainingPrefix": "培訓：",
-      "printLabel": "列印",
-      "backHomeLabel": "返回首頁",
-      "noEmailFallback": "你的電郵地址"
+      "summaryHeading": "摘要",
+      "summaryEventLabel": "活動名稱",
+      "summaryDateTimeLabel": "日期與時間",
+      "summaryLocationLabel": "地點",
+      "summaryAmountLabel": "金額",
+      "summaryLocationVirtualFallback": "網上 Zoom 會議",
+      "summaryEmptyValue": "—",
+      "downloadCalendarLabel": "下載日曆（.ics）",
+      "followUpPrompt": "有任何問題想即時了解？"
     }
   },
   "aboutUs": {

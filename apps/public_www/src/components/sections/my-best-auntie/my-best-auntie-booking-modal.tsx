@@ -86,6 +86,7 @@ export function MyBestAuntieBookingModal({
   }, [selectedCohort, modalContent.partSummaries, locale]);
 
   const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
+  const selectedDateEndTime = selectedCohort?.dates[0]?.end_datetime ?? '';
   const selectedCohortDateLabelText =
     selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '', locale);
   const selectedVenueName = selectedCohort?.location_name ?? '';
@@ -134,6 +135,9 @@ export function MyBestAuntieBookingModal({
               selectedCohortDateLabel={selectedCohortDateLabelText}
               selectedDateStartTime={selectedDateStartTime}
               selectedCohortPrice={originalAmount}
+              venueName={selectedVenueName}
+              venueAddress={selectedVenueAddress}
+              dateEndTime={selectedDateEndTime}
               descriptionId={dialogDescriptionId}
               analyticsSectionId={analyticsSectionId}
               metaPixelContentName={metaPixelContentName}

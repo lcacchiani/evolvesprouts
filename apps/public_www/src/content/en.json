@@ -1122,21 +1122,19 @@
     },
     "thankYouModal": {
       "closeLabel": "Close",
-      "title": "We will get in touch shortly",
-      "subtitle": "A confirmation email has been sent to.",
-      "successLabel": "Thank You!",
+      "title": "We will get in touch shortly.",
+      "subtitle": "",
+      "successLabel": "Thank you!",
       "courseLabel": "My Best Auntie Training Course.",
-      "transactionDateLabel": "Transaction Date",
-      "paymentMethodLabel": "Payment Method",
-      "totalLabel": "Total",
-      "transactionDatePrefix": "Transaction date: ",
-      "paymentMethodPrefix": "Payment method: ",
-      "childAgeGroupPrefix": "Child age group: ",
-      "amountPrefix": "Amount: ",
-      "trainingPrefix": "Training: ",
-      "printLabel": "Print",
-      "backHomeLabel": "Back To Home",
-      "noEmailFallback": "your email address"
+      "summaryHeading": "Summary",
+      "summaryEventLabel": "Event name",
+      "summaryDateTimeLabel": "Date & time",
+      "summaryLocationLabel": "Location",
+      "summaryAmountLabel": "Amount",
+      "summaryLocationVirtualFallback": "Virtual Zoom call",
+      "summaryEmptyValue": "—",
+      "downloadCalendarLabel": "Download calendar (.ics)",
+      "followUpPrompt": "Any immediate questions?"
     }
   },
   "aboutUs": {

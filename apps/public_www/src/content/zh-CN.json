@@ -1122,21 +1122,19 @@
     },
     "thankYouModal": {
       "closeLabel": "关闭",
-      "title": "我们会尽快与您联系",
-      "subtitle": "确认邮件已发送至。",
+      "title": "我们会尽快与您联系。",
+      "subtitle": "",
       "successLabel": "谢谢你！",
       "courseLabel": "我的最佳阿姨培训课程。",
-      "transactionDateLabel": "交易日期",
-      "paymentMethodLabel": "付款方式",
-      "totalLabel": "总计",
-      "transactionDatePrefix": "交易日期：",
-      "paymentMethodPrefix": "付款方式：",
-      "childAgeGroupPrefix": "孩子年龄组别：",
-      "amountPrefix": "金额：",
-      "trainingPrefix": "培训：",
-      "printLabel": "打印",
-      "backHomeLabel": "返回首页",
-      "noEmailFallback": "你的邮箱地址"
+      "summaryHeading": "摘要",
+      "summaryEventLabel": "活动名称",
+      "summaryDateTimeLabel": "日期与时间",
+      "summaryLocationLabel": "地点",
+      "summaryAmountLabel": "金额",
+      "summaryLocationVirtualFallback": "线上 Zoom 会议",
+      "summaryEmptyValue": "—",
+      "downloadCalendarLabel": "下载日历（.ics）",
+      "followUpPrompt": "有任何问题想立即了解？"
     }
   },
   "aboutUs": {
