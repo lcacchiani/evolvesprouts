@@ -21,13 +21,16 @@ export function AdminTabStrip<T extends string>({
   'aria-label': ariaLabel,
 }: AdminTabStripProps<T>) {
   return (
-    <div className='flex flex-wrap gap-2' role='tablist' aria-label={ariaLabel}>
+    <div
+      className='flex flex-wrap gap-2'
+      role='group'
+      aria-label={ariaLabel ?? 'Section views'}
+    >
       {items.map((item) => (
         <Button
           key={item.key}
           type='button'
-          role='tab'
-          aria-selected={activeKey === item.key}
+          aria-pressed={activeKey === item.key}
           variant={activeKey === item.key ? 'secondary' : 'ghost'}
           onClick={() => onChange(item.key)}
         >

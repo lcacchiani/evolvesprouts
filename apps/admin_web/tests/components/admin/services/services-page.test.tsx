@@ -111,10 +111,10 @@ describe('ServicesPage', () => {
     const user = userEvent.setup();
     render(<ServicesPage />);
 
-    expect(screen.getByRole('tab', { name: 'Catalog' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Catalog' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'New service' })).not.toBeInTheDocument();
-    await user.click(screen.getByRole('tab', { name: 'Discount codes' }));
+    await user.click(screen.getByRole('button', { name: 'Discount codes' }));
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
   });
 

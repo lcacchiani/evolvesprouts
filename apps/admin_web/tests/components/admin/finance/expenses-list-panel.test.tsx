@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ExpensesListPanel } from '@/components/admin/finance/expenses-list-panel';
 
@@ -33,36 +33,49 @@ const baseExpense: Expense = {
   attachments: [],
 };
 
-const noopRowActions = {
-  isVoidingId: null as string | null,
-  isMarkingPaidId: null as string | null,
-  isReparsingId: null as string | null,
-  onReparse: vi.fn(),
-  onMarkPaid: vi.fn(),
-  onVoidExpense: vi.fn(),
+function makeRowActions(overrides: {
+  isVoidingId?: string | null;
+  isMarkingPaidId?: string | null;
+  isReparsingId?: string | null;
+  onReparse?: () => Promise<void> | void;
+  onMarkPaid?: () => Promise<void> | void;
+  onVoidExpense?: (expenseId: string, reason: string) => Promise<void> | void;
+} = {}) {
+  return {
+    isVoidingId: null as string | null,
+    isMarkingPaidId: null as string | null,
+    isReparsingId: null as string | null,
+    onReparse: vi.fn().mockResolvedValue(undefined),
+    onMarkPaid: vi.fn().mockResolvedValue(undefined),
+    onVoidExpense: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  };
+}
+
+const listProps = {
+  expenses: [baseExpense],
+  selectedExpenseId: null,
+  query: '',
+  status: '' as const,
+  parseStatus: '' as const,
+  isLoading: false,
+  isLoadingMore: false,
+  hasMore: false,
+  error: '',
+  onLoadMore: vi.fn(),
+  onSelectExpense: vi.fn(),
+  onQueryChange: vi.fn(),
+  onStatusChange: vi.fn(),
+  onParseStatusChange: vi.fn(),
 };
 
 describe('ExpensesListPanel', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('renders core columns without Invoice or Parse headers', () => {
-    render(
-      <ExpensesListPanel
-        expenses={[baseExpense]}
-        selectedExpenseId={null}
-        query=''
-        status=''
-        parseStatus=''
-        isLoading={false}
-        isLoadingMore={false}
-        hasMore={false}
-        error=''
-        {...noopRowActions}
-        onLoadMore={vi.fn()}
-        onSelectExpense={vi.fn()}
-        onQueryChange={vi.fn()}
-        onStatusChange={vi.fn()}
-        onParseStatusChange={vi.fn()}
-      />
-    );
+    render(<ExpensesListPanel {...listProps} {...makeRowActions()} />);
 
     expect(screen.queryByRole('columnheader', { name: 'Invoice' })).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: 'Parse' })).not.toBeInTheDocument();
@@ -77,27 +90,111 @@ describe('ExpensesListPanel', () => {
     const user = userEvent.setup();
     const onSelectExpense = vi.fn();
 
-    render(
-      <ExpensesListPanel
-        expenses={[baseExpense]}
-        selectedExpenseId={null}
-        query=''
-        status=''
-        parseStatus=''
-        isLoading={false}
-        isLoadingMore={false}
-        hasMore={false}
-        error=''
-        {...noopRowActions}
-        onLoadMore={vi.fn()}
-        onSelectExpense={onSelectExpense}
-        onQueryChange={vi.fn()}
-        onStatusChange={vi.fn()}
-        onParseStatusChange={vi.fn()}
-      />
-    );
+    render(<ExpensesListPanel {...listProps} {...makeRowActions()} onSelectExpense={onSelectExpense} />);
 
     await user.click(screen.getByText('Acme Co'));
     expect(onSelectExpense).toHaveBeenCalledWith('exp-1');
+  });
+
+  it('calls onReparse when Reparse is clicked', async () => {
+    const user = userEvent.setup();
+    const rowActions = makeRowActions();
+
+    render(<ExpensesListPanel {...listProps} {...rowActions} />);
+
+    await user.click(screen.getByRole('button', { name: 'Reparse' }));
+    expect(rowActions.onReparse).toHaveBeenCalledWith('exp-1');
+  });
+
+  it('calls onMarkPaid when Paid is clicked', async () => {
+    const user = userEvent.setup();
+    const rowActions = makeRowActions();
+
+    render(<ExpensesListPanel {...listProps} {...rowActions} />);
+
+    await user.click(screen.getByRole('button', { name: 'Paid' }));
+    expect(rowActions.onMarkPaid).toHaveBeenCalledWith('exp-1');
+  });
+
+  it('void dialog requires a reason before confirming', async () => {
+    const user = userEvent.setup();
+    const rowActions = makeRowActions();
+
+    render(<ExpensesListPanel {...listProps} {...rowActions} />);
+
+    await user.click(screen.getByRole('button', { name: 'Void' }));
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Void expense' }));
+    expect(screen.getByText('Reason is required.')).toBeInTheDocument();
+    expect(rowActions.onVoidExpense).not.toHaveBeenCalled();
+  });
+
+  it('void dialog calls onVoidExpense with reason and closes on success', async () => {
+    const user = userEvent.setup();
+    const rowActions = makeRowActions();
+
+    render(<ExpensesListPanel {...listProps} {...rowActions} />);
+
+    await user.click(screen.getByRole('button', { name: 'Void' }));
+    await user.type(screen.getByLabelText('Reason'), 'Duplicate entry');
+    await user.click(screen.getByRole('button', { name: 'Void expense' }));
+
+    await waitFor(() => {
+      expect(rowActions.onVoidExpense).toHaveBeenCalledWith('exp-1', 'Duplicate entry');
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('void dialog shows API error and stays open on failure', async () => {
+    const user = userEvent.setup();
+    const rowActions = makeRowActions({
+      onVoidExpense: vi.fn().mockRejectedValue(new Error('Service unavailable')),
+    });
+
+    render(<ExpensesListPanel {...listProps} {...rowActions} />);
+
+    await user.click(screen.getByRole('button', { name: 'Void' }));
+    await user.type(screen.getByLabelText('Reason'), 'Bad invoice');
+    await user.click(screen.getByRole('button', { name: 'Void expense' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Service unavailable')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(rowActions.onVoidExpense).toHaveBeenCalledWith('exp-1', 'Bad invoice');
+  });
+
+  it('disables void confirm while void mutation is in flight for that expense', async () => {
+    const user = userEvent.setup();
+    let resolveVoid: () => void;
+    const voidPromise = new Promise<void>((resolve) => {
+      resolveVoid = resolve;
+    });
+    const onVoidExpense = vi.fn(() => voidPromise);
+
+    const { rerender } = render(
+      <ExpensesListPanel {...listProps} {...makeRowActions({ onVoidExpense, isVoidingId: null })} />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Void' }));
+    await user.type(screen.getByLabelText('Reason'), 'Waiting');
+    const confirmPromise = user.click(screen.getByRole('button', { name: 'Void expense' }));
+
+    rerender(
+      <ExpensesListPanel
+        {...listProps}
+        {...makeRowActions({ onVoidExpense, isVoidingId: 'exp-1' })}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Void expense' })).toBeDisabled();
+    });
+
+    resolveVoid!();
+    await confirmPromise;
   });
 });

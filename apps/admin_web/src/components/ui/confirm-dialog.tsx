@@ -16,6 +16,8 @@ export interface ConfirmDialogProps {
   onCancel: () => void;
   /** Optional fields (for example a void reason) rendered between the description and actions. */
   children?: ReactNode;
+  /** When true, the confirm action is non-interactive (for example during an in-flight mutation). */
+  confirmDisabled?: boolean;
 }
 
 export function ConfirmDialog({
@@ -28,6 +30,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   children,
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
@@ -114,7 +117,12 @@ export function ConfirmDialog({
             <Button type='button' variant='secondary' onClick={onCancel}>
               {cancelLabel}
             </Button>
-            <Button type='button' variant={variant === 'danger' ? 'danger' : 'primary'} onClick={onConfirm}>
+            <Button
+              type='button'
+              variant={variant === 'danger' ? 'danger' : 'primary'}
+              disabled={confirmDisabled}
+              onClick={onConfirm}
+            >
               {confirmLabel}
             </Button>
           </div>

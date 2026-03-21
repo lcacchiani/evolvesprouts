@@ -267,9 +267,12 @@ should extend the shared primitives rather than reintroducing one-off layouts.
 - **Top-level navigation** in `apps/admin_web/src/app/page.tsx` must list areas
   alphabetically: **Assets**, **Finance**, **Sales**, **Services**. The default
   section after sign-in is **Finance** unless product requirements change.
-- **In-area tabs** (for example Finance, Services, Sales pipeline vs analytics)
+- **In-area view switchers** (for example Finance, Services, Sales pipeline vs analytics)
   must use `AdminTabStrip` from `apps/admin_web/src/components/ui/admin-tab-strip.tsx`
-  instead of ad-hoc button rows.
+  instead of ad-hoc button rows. It is implemented as a **button group** (`role="group"`,
+  `aria-pressed` on the active control), not ARIA tabs; do not add `role="tablist"` /
+  `role="tab"` without the full tabpanel pattern (panels, `aria-controls`, roving tabindex,
+  arrow keys).
 - **Listing blocks** use `PaginatedTableCard` plus `AdminDataTable`,
   `AdminDataTableHead`, and `AdminDataTableBody` from
   `apps/admin_web/src/components/ui/admin-data-table.tsx`. Structure: card

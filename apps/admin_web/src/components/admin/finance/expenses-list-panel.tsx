@@ -106,8 +106,8 @@ export function ExpensesListPanel({
     try {
       await onVoidExpense(voidExpenseId, voidReason.trim());
       closeVoidDialog();
-    } catch {
-      // Hook surfaces mutation errors for the editor banner.
+    } catch (caught) {
+      setVoidError(caught instanceof Error ? caught.message : 'Could not void this expense.');
     }
   };
 
@@ -246,6 +246,7 @@ export function ExpensesListPanel({
         confirmLabel='Void expense'
         cancelLabel='Cancel'
         variant='danger'
+        confirmDisabled={Boolean(voidExpenseId && isVoidingId === voidExpenseId)}
         onCancel={closeVoidDialog}
         onConfirm={() => void confirmVoid()}
       >

@@ -69,15 +69,15 @@ describe('FinancePage', () => {
     const user = userEvent.setup();
     render(<FinancePage />);
 
-    expect(screen.getByRole('tab', { name: 'Expenses' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Vendors' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Client invoices' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Expenses' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Vendors' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Client invoices' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Expense details' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: 'Vendors' }));
+    await user.click(screen.getByRole('button', { name: 'Vendors' }));
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: 'Client invoices' }));
+    await user.click(screen.getByRole('button', { name: 'Client invoices' }));
     expect(screen.getByRole('heading', { name: 'Client invoices' })).toBeInTheDocument();
   });
 
