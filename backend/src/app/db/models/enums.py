@@ -268,3 +268,13 @@ class ExpenseParseStatus(str, enum.Enum):
     PROCESSING = "processing"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
+
+
+class InboundEmailStatus(str, enum.Enum):
+    """Processing lifecycle for inbound email ingestion records."""
+
+    RECEIVED = "received"
+    PROCESSING = "processing"
+    STORED = "stored"
+    SKIPPED = "skipped"
+    FAILED = "failed"

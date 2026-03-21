@@ -10,6 +10,7 @@ import * as kms from "aws-cdk-lib/aws-kms";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as ses from "aws-cdk-lib/aws-ses";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sns from "aws-cdk-lib/aws-sns";
@@ -448,6 +449,25 @@ export class ApiStack extends cdk.Stack {
         "SES-verified sender email address for access request notifications. " +
         "Can be the same as SupportEmail.",
     });
+    const inboundEmailDomainName = new cdk.CfnParameter(
+      this,
+      "InboundEmailDomainName",
+      {
+        type: "String",
+        description:
+          "SES-verified subdomain used for inbound invoice email receiving (for example inbound.example.com).",
+      }
+    );
+    const inboundInvoiceRecipientLocalPart = new cdk.CfnParameter(
+      this,
+      "InboundInvoiceRecipientLocalPart",
+      {
+        type: "String",
+        default: "invoices",
+        description:
+          "Local-part for the SES-managed inbound invoice mailbox on the configured inbound email domain.",
+      }
+    );
     const turnstileSecretKey = new cdk.CfnParameter(
       this,
       "TurnstileSecretKey",
@@ -1019,6 +1039,34 @@ export class ApiStack extends cdk.Stack {
       ],
     });
 
+    const inboundInvoiceRawEmailBucketName = [
+      name("inbound-email-raw"),
+      cdk.Aws.ACCOUNT_ID,
+      cdk.Aws.REGION,
+    ].join("-");
+
+    const inboundInvoiceRawEmailBucket = new s3.Bucket(
+      this,
+      "InboundInvoiceRawEmailBucket",
+      {
+        bucketName: inboundInvoiceRawEmailBucketName,
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        encryption: s3.BucketEncryption.S3_MANAGED,
+        enforceSSL: true,
+        versioned: true,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
+        serverAccessLogsBucket: clientAssetsLogBucket,
+        serverAccessLogsPrefix: "inbound-email-raw-access-logs/",
+        lifecycleRules: [
+          {
+            id: "ExpireNoncurrentRawEmailVersions",
+            enabled: true,
+            noncurrentVersionExpiration: cdk.Duration.days(90),
+          },
+        ],
+      }
+    );
+
     const assetDownloadCloudFrontPublicKeyPem = new cdk.CfnParameter(
       this,
       "AssetDownloadCloudFrontPublicKeyPem",
@@ -1265,6 +1313,11 @@ export class ApiStack extends cdk.Stack {
       alias: name("sqs-encryption-key"),
       description: "KMS key for SQS queue encryption",
     });
+    const inboundInvoiceRecipientAddress = cdk.Fn.join("", [
+      inboundInvoiceRecipientLocalPart.valueAsString,
+      "@",
+      inboundEmailDomainName.valueAsString,
+    ]);
 
     const bookingRequestDLQ = new sqs.Queue(this, "BookingRequestDLQ", {
       queueName: name("booking-request-dlq"),
@@ -1507,6 +1560,173 @@ export class ApiStack extends cdk.Stack {
         evaluationPeriods: 1,
         treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
       }
+    );
+
+    // -------------------------------------------------------------------------
+    // Inbound invoice email processing (SES + S3 + SNS + SQS)
+    // -------------------------------------------------------------------------
+
+    const inboundInvoiceDLQ = new sqs.Queue(this, "InboundInvoiceDLQ", {
+      queueName: name("inbound-invoice-email-dlq"),
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const inboundInvoiceQueue = new sqs.Queue(this, "InboundInvoiceQueue", {
+      queueName: name("inbound-invoice-email-queue"),
+      visibilityTimeout: cdk.Duration.seconds(60),
+      deadLetterQueue: {
+        queue: inboundInvoiceDLQ,
+        maxReceiveCount: 3,
+      },
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const inboundInvoiceTopic = new sns.Topic(this, "InboundInvoiceTopic", {
+      topicName: name("inbound-invoice-email-events"),
+      masterKey: sqsEncryptionKey,
+    });
+    inboundInvoiceTopic.addSubscription(
+      new snsSubscriptions.SqsSubscription(inboundInvoiceQueue)
+    );
+
+    const inboundInvoiceProcessor = createPythonFunction(
+      "InboundInvoiceEmailProcessor",
+      {
+        handler: "lambda/inbound_invoice_email/handler.lambda_handler",
+        timeout: cdk.Duration.seconds(30),
+        environment: {
+          DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
+          DATABASE_NAME: "evolvesprouts",
+          DATABASE_USERNAME: "evolvesprouts_admin",
+          DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
+          DATABASE_IAM_AUTH: "true",
+          CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
+          EXPENSE_PARSE_TOPIC_ARN: expenseParserTopic.topicArn,
+        },
+      }
+    );
+    database.grantAdminUserSecretRead(inboundInvoiceProcessor);
+    database.grantConnect(inboundInvoiceProcessor, "evolvesprouts_admin");
+    clientAssetsBucket.grantReadWrite(inboundInvoiceProcessor);
+    inboundInvoiceRawEmailBucket.grantRead(inboundInvoiceProcessor);
+    expenseParserTopic.grantPublish(inboundInvoiceProcessor);
+    inboundInvoiceProcessor.addEventSource(
+      new lambdaEventSources.SqsEventSource(inboundInvoiceQueue, {
+        batchSize: 1,
+      })
+    );
+
+    const inboundInvoiceDlqAlarm = new cdk.aws_cloudwatch.Alarm(
+      this,
+      "InboundInvoiceDLQAlarm",
+      {
+        alarmName: name("inbound-invoice-email-dlq-alarm"),
+        alarmDescription:
+          "Inbound invoice email messages failed processing and landed in DLQ",
+        metric: inboundInvoiceDLQ.metricApproximateNumberOfMessagesVisible({
+          period: cdk.Duration.minutes(5),
+        }),
+        threshold: 1,
+        evaluationPeriods: 1,
+        treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
+      }
+    );
+
+    const inboundInvoiceReceiptRole = new iam.Role(
+      this,
+      "InboundInvoiceReceiptRole",
+      {
+        assumedBy: new iam.ServicePrincipal("ses.amazonaws.com"),
+        description:
+          "Allows SES receipt rules to store raw invoice emails in S3 and notify SNS",
+      }
+    );
+    inboundInvoiceReceiptRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:PutObject"],
+        resources: [`${inboundInvoiceRawEmailBucket.bucketArn}/raw/*`],
+      })
+    );
+    inboundInvoiceReceiptRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["sns:Publish"],
+        resources: [inboundInvoiceTopic.topicArn],
+      })
+    );
+
+    const inboundInvoiceReceiptRuleSet = new ses.CfnReceiptRuleSet(
+      this,
+      "InboundInvoiceReceiptRuleSet",
+      {
+        ruleSetName: name("inbound-invoice-email-rule-set"),
+      }
+    );
+
+    const inboundInvoiceReceiptRule = new ses.CfnReceiptRule(
+      this,
+      "InboundInvoiceReceiptRule",
+      {
+        ruleSetName: inboundInvoiceReceiptRuleSet.ref,
+        rule: {
+          name: name("inbound-invoice-email-rule"),
+          enabled: true,
+          scanEnabled: true,
+          tlsPolicy: "Optional",
+          recipients: [inboundInvoiceRecipientAddress],
+          actions: [
+            {
+              s3Action: {
+                bucketName: inboundInvoiceRawEmailBucket.bucketName,
+                objectKeyPrefix: "raw/",
+                topicArn: inboundInvoiceTopic.topicArn,
+                iamRoleArn: inboundInvoiceReceiptRole.roleArn,
+              },
+            },
+          ],
+        },
+      }
+    );
+
+    const activateInboundInvoiceReceiptRuleSetPolicy =
+      customresources.AwsCustomResourcePolicy.fromStatements([
+        new iam.PolicyStatement({
+          actions: ["ses:SetActiveReceiptRuleSet"],
+          resources: ["*"],
+        }),
+      ]);
+    const activateInboundInvoiceReceiptRuleSet =
+      new customresources.AwsCustomResource(
+        this,
+        "ActivateInboundInvoiceReceiptRuleSet",
+        {
+          policy: activateInboundInvoiceReceiptRuleSetPolicy,
+          onCreate: {
+            service: "SES",
+            action: "setActiveReceiptRuleSet",
+            parameters: {
+              RuleSetName: inboundInvoiceReceiptRuleSet.ref,
+            },
+            physicalResourceId: customresources.PhysicalResourceId.of(
+              `${name("inbound-invoice-email-rule-set")}-active`
+            ),
+          },
+          onUpdate: {
+            service: "SES",
+            action: "setActiveReceiptRuleSet",
+            parameters: {
+              RuleSetName: inboundInvoiceReceiptRuleSet.ref,
+            },
+            physicalResourceId: customresources.PhysicalResourceId.of(
+              `${name("inbound-invoice-email-rule-set")}-active`
+            ),
+          },
+        }
+      );
+    activateInboundInvoiceReceiptRuleSet.node.addDependency(
+      inboundInvoiceReceiptRule
     );
 
     // Migration function
@@ -2689,6 +2909,30 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ExpenseParserDLQUrl", {
       value: expenseParserDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed expense parser jobs",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceRecipientAddress", {
+      value: inboundInvoiceRecipientAddress,
+      description: "SES-managed inbound recipient address for invoice automation",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceRawEmailBucketName", {
+      value: inboundInvoiceRawEmailBucket.bucketName,
+      description: "S3 bucket storing raw inbound invoice emails",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceTopicArn", {
+      value: inboundInvoiceTopic.topicArn,
+      description: "SNS topic ARN for inbound invoice email events",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceQueueUrl", {
+      value: inboundInvoiceQueue.queueUrl,
+      description: "SQS queue URL for inbound invoice email processing",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceDLQUrl", {
+      value: inboundInvoiceDLQ.queueUrl,
+      description: "SQS dead letter queue URL for failed inbound invoice emails",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceMxTarget", {
+      value: `10 inbound-smtp.${cdk.Stack.of(this).region}.amazonaws.com`,
+      description: "MX target to configure for the SES inbound email subdomain",
     });
 
     const customAuthDomainOutput = new cdk.CfnOutput(
