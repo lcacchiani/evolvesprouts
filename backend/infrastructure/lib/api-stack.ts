@@ -1080,7 +1080,6 @@ export class ApiStack extends cdk.Stack {
         },
       }
     );
-    assetsBucketMigrationResource.node.addDependency(assetsBucket);
 
     const assetDownloadCloudFrontPublicKeyPem = new cdk.CfnParameter(
       this,
@@ -1184,7 +1183,6 @@ export class ApiStack extends cdk.Stack {
     );
     const assetDownloadDistributionCfn =
       assetDownloadDistribution.node.defaultChild as cloudfront.CfnDistribution;
-    assetDownloadDistribution.node.addDependency(assetsBucketMigrationResource);
     assetDownloadDistributionCfn.addPropertyOverride(
       "DistributionConfig.WebACLId",
       cdk.Fn.conditionIf(
@@ -1222,7 +1220,6 @@ export class ApiStack extends cdk.Stack {
         ADMIN_GROUP: adminGroupName,
       },
     });
-    adminFunction.node.addDependency(assetsBucketMigrationResource);
     database.grantAdminUserSecretRead(adminFunction);
     database.grantConnect(adminFunction, "evolvesprouts_admin");
     assetsBucket.grantReadWrite(adminFunction);
@@ -1550,7 +1547,6 @@ export class ApiStack extends cdk.Stack {
         AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
       },
     });
-    expenseParserFunction.node.addDependency(assetsBucketMigrationResource);
     database.grantAdminUserSecretRead(expenseParserFunction);
     database.grantConnect(expenseParserFunction, "evolvesprouts_admin");
     assetsBucket.grantRead(expenseParserFunction);
@@ -1625,7 +1621,6 @@ export class ApiStack extends cdk.Stack {
         },
       }
     );
-    inboundInvoiceProcessor.node.addDependency(assetsBucketMigrationResource);
     database.grantAdminUserSecretRead(inboundInvoiceProcessor);
     database.grantConnect(inboundInvoiceProcessor, "evolvesprouts_admin");
     assetsBucket.grantReadWrite(inboundInvoiceProcessor);
