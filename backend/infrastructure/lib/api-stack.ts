@@ -1652,6 +1652,36 @@ export class ApiStack extends cdk.Stack {
     );
     const inboundInvoiceReceiptRuleName = name("inbound-invoice-email-rule");
     const inboundInvoiceReceiptRuleSourceArn = `arn:${cdk.Aws.PARTITION}:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:receipt-rule-set/${inboundInvoiceReceiptRuleSetName}:receipt-rule/${inboundInvoiceReceiptRuleName}`;
+    const inboundInvoiceTopicPolicyResult = inboundInvoiceTopic.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: "AllowSesInboundInvoicePublish",
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
+        actions: ["sns:Publish"],
+        resources: [inboundInvoiceTopic.topicArn],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+          },
+        },
+      })
+    );
+    sqsEncryptionKey.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: "AllowSesInboundInvoiceTopicEncryption",
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
+        actions: ["kms:GenerateDataKey*", "kms:Decrypt"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+          },
+        },
+      })
+    );
     const inboundInvoiceReceiptRole = new iam.Role(
       this,
       "InboundInvoiceReceiptRole",
@@ -1741,6 +1771,14 @@ export class ApiStack extends cdk.Stack {
     );
     if (assetsBucketPolicy) {
       inboundInvoiceReceiptRule.node.addDependency(assetsBucketPolicy);
+    }
+    if (
+      inboundInvoiceTopicPolicyResult.statementAdded &&
+      inboundInvoiceTopicPolicyResult.policyDependable
+    ) {
+      inboundInvoiceReceiptRule.node.addDependency(
+        inboundInvoiceTopicPolicyResult.policyDependable
+      );
     }
 
     const activateInboundInvoiceReceiptRuleSetPolicy =
