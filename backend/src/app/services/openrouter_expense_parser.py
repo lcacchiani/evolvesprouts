@@ -87,7 +87,7 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
 
 
 def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
-    bucket = _require_env("CLIENT_ASSETS_BUCKET_NAME")
+    bucket = _require_env("ASSETS_BUCKET_NAME")
     max_file_bytes = _parse_max_file_bytes()
 
     s3_key = str(asset.get("s3_key") or "").strip()

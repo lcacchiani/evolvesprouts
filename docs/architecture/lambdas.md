@@ -142,6 +142,17 @@ their primary responsibilities.
   - `API_KEY_NAME_PREFIX`: prefix for key names
   - `GRACE_PERIOD_HOURS`: hours to keep old key active (default 24)
 
+### Assets bucket migrator
+- Function: AssetsBucketMigratorFunction
+- Handler: backend/lambda/assets_bucket_migrator/handler.py
+- Trigger: CloudFormation custom resource during the assets-bucket rename
+- Purpose: copy current objects from the retained legacy
+  `evolvesprouts-client-assets-*` bucket into the new `evolvesprouts-assets-*`
+  bucket before runtime dependencies switch to the renamed bucket
+- VPC: Yes
+- Permissions: S3 read for the retained legacy assets bucket, S3 read/write for
+  the new assets bucket
+
 ### Booking request processor
 - Function: BookingRequestProcessor
 - Handler: backend/lambda/manager_request_processor/handler.py
@@ -189,10 +200,28 @@ their primary responsibilities.
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
-  - `CLIENT_ASSETS_BUCKET_NAME`
+  - `ASSETS_BUCKET_NAME`
   - `OPENROUTER_API_KEY_SECRET_ARN`, `OPENROUTER_CHAT_COMPLETIONS_URL`,
     `OPENROUTER_MODEL`, `OPENROUTER_MAX_FILE_BYTES`
   - `AWS_PROXY_FUNCTION_ARN`
+
+### Inbound invoice email processor
+- Function: InboundInvoiceEmailProcessor
+- Handler: backend/lambda/inbound_invoice_email/handler.py
+- Trigger: SQS queue (`evolvesprouts-inbound-invoice-email-queue`) fed by SES
+  receipt-rule notifications through SNS
+- Purpose: convert inbound invoice email attachments into `assets`,
+  `expenses`, and `expense_attachments` rows, then enqueue the existing
+  expense parser workflow
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
+- VPC: Yes
+- Permissions: S3 read/write for the assets bucket (including the
+  `inbound-email/raw/` prefix), SNS publish to the expense parser topic
+- Environment:
+  - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
+    `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
+  - `ASSETS_BUCKET_NAME`
+  - `EXPENSE_PARSE_TOPIC_ARN`
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction

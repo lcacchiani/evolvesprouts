@@ -418,7 +418,7 @@ def serialize_grant(grant: AssetAccessGrant) -> dict[str, Any]:
 
 
 def _require_assets_bucket_name() -> str:
-    return require_env("CLIENT_ASSETS_BUCKET_NAME")
+    return require_env("ASSETS_BUCKET_NAME")
 
 
 def _presign_ttl_seconds() -> int:

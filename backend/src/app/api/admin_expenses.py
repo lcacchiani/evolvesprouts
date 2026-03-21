@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-import json
-import os
 from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
@@ -37,7 +35,7 @@ from app.db.engine import get_engine
 from app.db.models import ExpenseParseStatus, ExpenseStatus
 from app.db.repositories import ExpenseRepository
 from app.exceptions import NotFoundError, ValidationError
-from app.services.aws_clients import get_sns_client
+from app.services.expense_events import enqueue_expense_parse
 from app.utils import json_response
 from app.utils.logging import get_logger
 
@@ -45,7 +43,6 @@ logger = get_logger(__name__)
 
 _DEFAULT_LIMIT = 25
 _MAX_LIMIT = 100
-_EVENT_TYPE_PARSE_REQUESTED = "expense.parse_requested"
 
 
 def handle_admin_expenses_request(
@@ -185,7 +182,7 @@ def _create_expense(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
         session.commit()
 
         if payload["parse_requested"]:
-            _enqueue_parse(expense.id)
+            enqueue_expense_parse(expense.id)
 
         refreshed = expense_repo.get_with_attachments(expense.id)
         if refreshed is None:
@@ -348,7 +345,7 @@ def _reparse_expense(
         repository.update(expense)
         session.commit()
 
-    _enqueue_parse(expense_id)
+    enqueue_expense_parse(expense_id)
     return json_response(202, {"message": "Parse request accepted"}, event=event)
 
 
@@ -418,37 +415,13 @@ def _amend_expense(
         session.commit()
 
         if payload["parse_requested"]:
-            _enqueue_parse(amendment.id)
+            enqueue_expense_parse(amendment.id)
         refreshed = expense_repo.get_with_attachments(amendment.id)
         if refreshed is None:
             raise NotFoundError("Expense", str(amendment.id))
         return json_response(
             201, {"expense": serialize_expense(refreshed)}, event=event
         )
-
-
-def _enqueue_parse(expense_id: UUID) -> None:
-    topic_arn = os.getenv("EXPENSE_PARSE_TOPIC_ARN", "").strip()
-    if not topic_arn:
-        raise ValidationError(
-            "Expense parser topic is not configured", field="configuration"
-        )
-    get_sns_client().publish(
-        TopicArn=topic_arn,
-        Message=json.dumps(
-            {
-                "event_type": _EVENT_TYPE_PARSE_REQUESTED,
-                "expense_id": str(expense_id),
-                "requested_at": datetime.now(UTC).isoformat(),
-            }
-        ),
-        MessageAttributes={
-            "event_type": {
-                "DataType": "String",
-                "StringValue": _EVENT_TYPE_PARSE_REQUESTED,
-            }
-        },
-    )
 
 
 def _parse_limit(event: Mapping[str, Any]) -> int:

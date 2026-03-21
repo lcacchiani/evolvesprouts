@@ -7,6 +7,7 @@ from app.db.models.crm_note import CrmNote
 from app.db.models.discount_code import DiscountCode
 from app.db.models.enrollment import Enrollment
 from app.db.models.expense import Expense, ExpenseAttachment
+from app.db.models.inbound_email import InboundEmail
 from app.db.models.enums import (
     AccessGrantType,
     AssetType,
@@ -22,6 +23,7 @@ from app.db.models.enums import (
     EventCategory,
     FamilyRole,
     FunnelStage,
+    InboundEmailStatus,
     InstanceStatus,
     LeadEventType,
     LeadType,
@@ -94,6 +96,8 @@ __all__ = [
     "FamilyTag",
     "FunnelStage",
     "GeographicArea",
+    "InboundEmail",
+    "InboundEmailStatus",
     "InstanceSessionSlot",
     "InstanceStatus",
     "LeadEventType",

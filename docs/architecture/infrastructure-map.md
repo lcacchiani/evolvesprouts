@@ -57,6 +57,7 @@ and edge proxy. It is managed manually through the Cloudflare dashboard
 | CNAME | `media.evolvesprouts.com` | CloudFront distribution (asset downloads) | Yes |
 | CNAME | `auth.evolvesprouts.com` | Cognito custom domain CloudFront | No |
 | MX | `evolvesprouts.com` | iCloud Mail | N/A |
+| MX | `inbound.evolvesprouts.com` | `10 inbound-smtp.ap-southeast-1.amazonaws.com` | N/A |
 
 ### Cloudflare Turnstile (CAPTCHA)
 
@@ -263,9 +264,11 @@ All functions use Python 3.12, KMS-encrypted environment variables,
 | HealthCheckFunction | `lambda/health/handler.py` | API Gateway | Health check with DB connectivity test |
 | MigrationFunction | `lambda/migrations/handler.py` | CloudFormation | Alembic migrations + seed data |
 | AdminBootstrapFunction | `lambda/admin_bootstrap/handler.py` | CloudFormation | Initial admin user creation in Cognito |
+| AssetsBucketMigratorFunction | `lambda/assets_bucket_migrator/handler.py` | CloudFormation | Copy retained legacy asset objects into the renamed assets bucket during migration |
 | ApiKeyRotationFunction | `lambda/api_key_rotation/handler.py` | EventBridge (90 days) | API key rotation |
 | BookingRequestProcessor | `lambda/manager_request_processor/handler.py` | SQS | Process booking/ticket requests |
 | MediaRequestProcessor | `lambda/media_processor/handler.py` | SQS | Process media leads → DB + Mailchimp + SES |
+| InboundInvoiceEmailProcessor | `lambda/inbound_invoice_email/handler.py` | SQS | Store inbound invoice attachments as expenses and enqueue parsing |
 
 ### Auth functions (not in VPC)
 
@@ -324,7 +327,8 @@ Cognito User Pool (evolvesprouts-user-pool)
 
 ## Messaging (SNS + SQS)
 
-Async processing for form submissions and booking requests.
+Async processing for form submissions, booking requests, and inbound invoice
+email ingestion.
 
 ```
 API Lambda
@@ -338,12 +342,21 @@ API Lambda
              └─▶ SQS: evolvesprouts-media-queue
                        └─▶ MediaRequestProcessor Lambda
                        └─▶ DLQ: evolvesprouts-media-dlq
+
+SES inbound (inbound.evolvesprouts.com)
+    │
+    └─▶ S3: evolvesprouts-assets-*/inbound-email/raw/*
+             └─▶ SNS: evolvesprouts-inbound-invoice-email-events
+                      └─▶ SQS: evolvesprouts-inbound-invoice-email-queue
+                                └─▶ InboundInvoiceEmailProcessor Lambda
+                                └─▶ DLQ: evolvesprouts-inbound-invoice-email-dlq
 ```
 
 | Topic | Queue | Processor | Events |
 |---|---|---|---|
 | `evolvesprouts-booking-request-events` | `evolvesprouts-booking-request-queue` | BookingRequestProcessor | `booking_request.submitted`, `organization_suggestion.submitted` |
 | `evolvesprouts-media-events` | `evolvesprouts-media-queue` | MediaRequestProcessor | `media_request.submitted` |
+| `evolvesprouts-inbound-invoice-email-events` | `evolvesprouts-inbound-invoice-email-queue` | InboundInvoiceEmailProcessor | SES receipt-rule S3 notifications for inbound invoice emails |
 
 All queues use KMS encryption (`alias/evolvesprouts-sqs-encryption-key`).
 Failed messages go to dead-letter queues with CloudWatch alarms.
@@ -356,7 +369,7 @@ Cloudflare (media.evolvesprouts.com)
         ▼
 CloudFront distribution
         │
-        ├─▶ Default: S3 (evolvesprouts-client-assets-*)
+        ├─▶ Default: S3 (evolvesprouts-assets-*)
         │     └─▶ Signed URLs only (CloudFront key pair)
         │
         └─▶ v1/assets/share/*: API Gateway
@@ -366,7 +379,7 @@ CloudFront distribution
 
 | Resource | Purpose |
 |---|---|
-| S3 bucket | `evolvesprouts-client-assets-{account}-{region}` |
+| S3 bucket | `evolvesprouts-assets-{account}-{region}` |
 | CloudFront key group | Signs download URLs |
 | Custom domain | `media.evolvesprouts.com` |
 
