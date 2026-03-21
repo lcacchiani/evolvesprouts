@@ -182,6 +182,35 @@ Constraints and indexes:
 - `expense_attachments_expense_idx` on `expense_id`
 - `expense_attachments_asset_idx` on `asset_id`
 
+## Table: inbound_emails
+
+Purpose: Tracks SES-managed inbound email processing for idempotency, replay, and
+linkage to stored expense records.
+
+Columns:
+- `id` (UUID, PK, default `gen_random_uuid()`)
+- `ses_message_id` (varchar(255), required, unique) — SES receipt identifier
+- `recipient` (varchar(320), required) — matched inbound mailbox address
+- `source_email` (varchar(320), nullable) — parsed sender address
+- `subject` (varchar(500), nullable)
+- `received_at` (timestamptz, required)
+- `raw_s3_bucket` (varchar(255), required)
+- `raw_s3_key` (text, required) — raw `.eml` object key in the inbound-email bucket
+- `spam_status`, `virus_status`, `spf_status`, `dkim_status`, `dmarc_status`
+  (varchar(32), nullable) — SES verdict summaries
+- `processing_status` (varchar(32), required, default `received`) —
+  `received | processing | stored | skipped | failed`
+- `failure_reason` (text, nullable)
+- `expense_id` (UUID, FK → `expenses.id`, nullable) — created expense linked to the email
+- `created_at` / `updated_at` (timestamptz, default `now()`)
+
+Constraints and indexes:
+- `inbound_emails_processing_status_check` restricts allowed processing states
+- `inbound_emails_ses_message_id_idx` unique index on `ses_message_id`
+- `inbound_emails_processing_status_idx` on `processing_status`
+- `inbound_emails_expense_id_idx` on `expense_id`
+- `set_updated_at()` trigger updates `updated_at` on write
+
 **Stable share links** (`/v1/assets/share/{token}`):
 - A token in `asset_share_links.share_token` acts as a bearer capability.
 - Requests with a valid token resolve the asset and redirect to a fresh

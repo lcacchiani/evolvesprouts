@@ -31,7 +31,10 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         else:
             processed += 1
 
-    logger.info("Inbound invoice email batch processed", extra={"processed": processed, "skipped": skipped})
+    logger.info(
+        "Inbound invoice email batch processed",
+        extra={"processed": processed, "skipped": skipped},
+    )
 
     return {
         "statusCode": 200,
@@ -59,7 +62,9 @@ def _parse_inbound_notification(message: Mapping[str, Any]) -> InboundInvoiceEma
     raw_s3_bucket = _required_text(
         action.get("bucketName"), field="receipt.action.bucketName"
     )
-    raw_s3_key = _required_text(action.get("objectKey"), field="receipt.action.objectKey")
+    raw_s3_key = _required_text(
+        action.get("objectKey"), field="receipt.action.objectKey"
+    )
     source_email = _optional_text(mail.get("source"))
     subject = _optional_text(_mapping(mail.get("commonHeaders")).get("subject"))
     received_at = _parse_timestamp(mail.get("timestamp"))

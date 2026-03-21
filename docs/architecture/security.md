@@ -273,6 +273,22 @@ fail-closed outbound policy:
 - Parser updates expense parse status to `failed` on upstream/service errors so
   operators can retry explicitly (`/v1/admin/expenses/{id}/reparse`).
 
+### Inbound invoice email handling
+
+Inbound invoice email ingestion stores raw `.eml` payloads in a dedicated S3
+bucket before attachments are copied into the private assets bucket.
+
+Requirements:
+
+- Treat raw inbound email as sensitive content. Do not expose the raw-email
+  bucket through public or signed-download routes.
+- Do not log raw email bodies, headers, or attachment bytes.
+- Mask sender addresses in application logs with `mask_email()`.
+- Keep SES receipt processing least-privilege: only the configured receipt role
+  can write raw email objects and publish the notification topic.
+- Keep inbound attachments `visibility=restricted` when they are promoted into
+  the assets bucket for expense parsing and admin review.
+
 ---
 
 ## Infrastructure Security

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 from typing import cast
 from uuid import UUID, uuid4
@@ -21,7 +21,11 @@ from app.db.models import (
     InboundEmail,
     InboundEmailStatus,
 )
-from app.db.repositories import AssetRepository, ExpenseRepository, InboundEmailRepository
+from app.db.repositories import (
+    AssetRepository,
+    ExpenseRepository,
+    InboundEmailRepository,
+)
 from app.services.aws_clients import get_s3_client
 from app.services.expense_events import enqueue_expense_parse
 from app.services.inbound_email import (
@@ -135,7 +139,9 @@ def _store_expense_from_email(
     s3_client = get_s3_client()
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=_SYSTEM_ACTOR, request_id=event.ses_message_id)
+        set_audit_context(
+            session, user_id=_SYSTEM_ACTOR, request_id=event.ses_message_id
+        )
         inbound_repo = InboundEmailRepository(session)
         asset_repo = AssetRepository(session)
         expense_repo = ExpenseRepository(session)
@@ -242,7 +248,9 @@ def _upsert_tracking_record(
     failure_reason: str | None = None,
 ) -> None:
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=_SYSTEM_ACTOR, request_id=event.ses_message_id)
+        set_audit_context(
+            session, user_id=_SYSTEM_ACTOR, request_id=event.ses_message_id
+        )
         repository = InboundEmailRepository(session)
         tracking = repository.find_by_ses_message_id(event.ses_message_id)
         if tracking is None:
@@ -346,7 +354,9 @@ def _cleanup_uploaded_objects(s3_keys: list[str]) -> None:
         try:
             s3_client.delete_object(Bucket=bucket_name, Key=s3_key)
         except Exception:
-            logger.warning("Failed to clean up uploaded asset object", extra={"s3_key": s3_key})
+            logger.warning(
+                "Failed to clean up uploaded asset object", extra={"s3_key": s3_key}
+            )
 
 
 def _sender_name_fallback(parsed_email: ParsedInboundEmail) -> str | None:

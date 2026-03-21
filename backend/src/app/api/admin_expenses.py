@@ -43,6 +43,8 @@ logger = get_logger(__name__)
 
 _DEFAULT_LIMIT = 25
 _MAX_LIMIT = 100
+
+
 def handle_admin_expenses_request(
     event: Mapping[str, Any],
     method: str,
@@ -420,6 +422,8 @@ def _amend_expense(
         return json_response(
             201, {"expense": serialize_expense(refreshed)}, event=event
         )
+
+
 def _parse_limit(event: Mapping[str, Any]) -> int:
     raw = query_param(event, "limit")
     if raw is None or raw == "":

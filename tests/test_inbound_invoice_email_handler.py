@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 from typing import Any
+from pathlib import Path
 from uuid import UUID
 
 from app.db.models import InboundEmailStatus
@@ -9,9 +11,19 @@ from app.services.inbound_invoice_ingest import InboundInvoiceProcessResult
 
 
 def _load_handler_module() -> Any:
-    from lambda.inbound_invoice_email import handler
-
-    return handler
+    module_name = "inbound_invoice_email_handler"
+    module_path = (
+        Path(__file__).resolve().parents[1]
+        / "backend"
+        / "lambda"
+        / "inbound_invoice_email"
+        / "handler.py"
+    )
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_parse_inbound_notification_uses_s3_alert_details() -> None:

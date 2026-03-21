@@ -108,6 +108,7 @@ credentials):
 |--------------|------------|------------------|-------|
 | S3 Bucket | `ClientAssetsBucket` | `evolvesprouts-client-assets-{account}-{region}` | Private bucket for assets |
 | S3 Bucket | `ClientAssetsLogBucket` | `evolvesprouts-client-assets-logs-{account}-{region}` | Access logs for the assets bucket |
+| S3 Bucket | `InboundInvoiceRawEmailBucket` | `evolvesprouts-inbound-email-raw-{account}-{region}` | Private bucket for raw inbound invoice emails |
 
 ## Asset download CDN (CloudFront)
 
@@ -317,6 +318,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `BookingRequestProcessor` | `lambda/manager_request_processor/handler.lambda_handler` | 512 MB | 10s | Yes | SQS-triggered request processor |
 | `MediaRequestProcessor` | `lambda/media_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor |
 | `ExpenseParserFunction` | `lambda/expense_parser/handler.lambda_handler` | 512 MB | 90s | Yes | SQS-triggered expense invoice parser |
+| `InboundInvoiceEmailProcessor` | `lambda/inbound_invoice_email/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered inbound invoice email processor |
 
 ### Lambda Resources Per Function
 
@@ -353,6 +355,7 @@ For each function above, the following resources are created:
 | `BookingRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email |
 | `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email, read Mailchimp secret, invoke `AwsApiProxyFunction` |
 | `ExpenseParserFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for the assets bucket, read OpenRouter API secret, invoke `AwsApiProxyFunction` |
+| `InboundInvoiceEmailProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for the raw inbound-email bucket, S3 read/write for the assets bucket, publish to the expense parser SNS topic |
 
 **Lambda Log Groups:**
 - Explicitly created by CDK with KMS encryption
@@ -520,6 +523,8 @@ configured by stack custom resources (including retention and KMS association).
 | `RunSeedData` | String | No | No | Run seed data after migrations (default: `false`) |
 | `SupportEmail` | String | No | No | Email to receive booking request notifications |
 | `SesSenderEmail` | String | No | No | SES-verified sender email for notifications |
+| `InboundEmailDomainName` | String | Yes | No | SES-verified inbound email subdomain for invoice ingestion |
+| `InboundInvoiceRecipientLocalPart` | String | No | No | Local-part for the SES-managed invoice mailbox (default: `invoices`) |
 | `TurnstileSecretKey` | String | No | Yes | Cloudflare Turnstile secret key |
 | `MailchimpApiSecretArn` | String | Yes | Yes | Existing Secrets Manager ARN for Mailchimp API key |
 | `MailchimpListId` | String | Yes | No | Mailchimp audience/list ID |
@@ -567,6 +572,12 @@ configured by stack custom resources (including retention and KMS association).
 | `ExpenseParserTopicArn` | SNS topic ARN | Expense parser events topic |
 | `ExpenseParserQueueUrl` | SQS queue URL | Expense parser processing queue |
 | `ExpenseParserDLQUrl` | SQS DLQ URL | Failed expense parser messages |
+| `InboundInvoiceRecipientAddress` | Email address | SES-managed inbound invoice mailbox |
+| `InboundInvoiceRawEmailBucketName` | S3 bucket name | Raw inbound invoice email bucket |
+| `InboundInvoiceTopicArn` | SNS topic ARN | Inbound invoice email events topic |
+| `InboundInvoiceQueueUrl` | SQS queue URL | Inbound invoice email processing queue |
+| `InboundInvoiceDLQUrl` | SQS DLQ URL | Failed inbound invoice email messages |
+| `InboundInvoiceMxTarget` | MX record target | SES inbound SMTP target for the invoice subdomain |
 | `CognitoCustomDomainCloudFront` | CloudFront distribution | Custom auth domain target (conditional) |
 | `ApiCustomDomainTarget` | CNAME target | API custom domain DNS target (conditional) |
 | `ApiCustomDomainUrl` | Custom domain URL | API custom domain URL (conditional) |

@@ -194,6 +194,24 @@ their primary responsibilities.
     `OPENROUTER_MODEL`, `OPENROUTER_MAX_FILE_BYTES`
   - `AWS_PROXY_FUNCTION_ARN`
 
+### Inbound invoice email processor
+- Function: InboundInvoiceEmailProcessor
+- Handler: backend/lambda/inbound_invoice_email/handler.py
+- Trigger: SQS queue (`evolvesprouts-inbound-invoice-email-queue`) fed by SES
+  receipt-rule notifications through SNS
+- Purpose: convert inbound invoice email attachments into `assets`,
+  `expenses`, and `expense_attachments` rows, then enqueue the existing
+  expense parser workflow
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
+- VPC: Yes
+- Permissions: S3 read for the raw inbound-email bucket, S3 read/write for the
+  client assets bucket, SNS publish to the expense parser topic
+- Environment:
+  - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
+    `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
+  - `CLIENT_ASSETS_BUCKET_NAME`
+  - `EXPENSE_PARSE_TOPIC_ARN`
+
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction
 - Handler: backend/lambda/aws_proxy/handler.py

@@ -66,7 +66,9 @@ def parse_raw_email(raw_email: bytes) -> ParsedInboundEmail:
     from_name, from_email = _normalize_address(message.get("from"))
     recipients = tuple(
         address
-        for _name, address in getaddresses(message.get_all("to", []) + message.get_all("cc", []))
+        for _name, address in getaddresses(
+            message.get_all("to", []) + message.get_all("cc", [])
+        )
         if address
     )
     subject = _optional_text(message.get("subject"))
