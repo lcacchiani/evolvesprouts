@@ -19,7 +19,7 @@ export function SourceBreakdown({ sourceBreakdown }: SourceBreakdownProps) {
     }));
 
   return (
-    <Card title='Source breakdown'>
+    <Card title='Source Breakdown'>
       {entries.length === 0 ? (
         <p className='text-sm text-slate-600'>No source data available.</p>
       ) : (

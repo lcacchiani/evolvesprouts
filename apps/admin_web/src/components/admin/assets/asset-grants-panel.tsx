@@ -6,6 +6,7 @@ import type { AdminAsset, AssetGrant, CreateAssetGrantInput } from '@/types/asse
 
 import { ACCESS_GRANT_TYPES } from '@/types/assets';
 
+import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { StatusBanner } from '@/components/status-banner';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
@@ -57,7 +58,7 @@ export function AssetGrantsPanel({
     return (
       <>
         <Card
-          title='Access grants'
+          title='Access Grants'
           description='Select an asset to review and manage access grants.'
         >
           <p className='text-sm text-slate-600'>
@@ -104,7 +105,7 @@ export function AssetGrantsPanel({
     <>
       <div className='space-y-6'>
         <AdminEditorCard
-          title='Add grant'
+          title='Add Grant'
           description={`Asset: ${selectedAsset.title} (${selectedAsset.visibility})`}
           actions={
             <Button type='submit' form={ASSET_GRANT_FORM_ID} disabled={isSavingGrant}>
@@ -166,7 +167,7 @@ export function AssetGrantsPanel({
         </AdminEditorCard>
 
         <PaginatedTableCard
-          title='Existing grants'
+          title='Grants'
           isLoading={isLoadingGrants}
           isLoadingMore={false}
           hasMore={false}
@@ -205,8 +206,18 @@ export function AssetGrantsPanel({
                         variant='danger'
                         onClick={() => void handleDelete(grant.id)}
                         disabled={isDeletingGrantId === grant.id}
+                        aria-label='Revoke grant'
+                        title='Revoke grant'
+                        aria-busy={isDeletingGrantId === grant.id}
                       >
-                        {isDeletingGrantId === grant.id ? 'Removing...' : 'Revoke'}
+                        {isDeletingGrantId === grant.id ? (
+                          <span
+                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent'
+                            aria-hidden
+                          />
+                        ) : (
+                          <DeleteIcon className='h-4 w-4' />
+                        )}
                       </Button>
                     </td>
                   </tr>

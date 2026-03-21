@@ -21,7 +21,7 @@ export function FinancePage() {
       <div className='space-y-6'>
         <FinanceHeader activeView={activeView} onSetView={setActiveView} />
         <Card
-          title='Client invoices'
+          title='Client Invoices'
           description='Scaffold ready'
           className='space-y-2'
         >

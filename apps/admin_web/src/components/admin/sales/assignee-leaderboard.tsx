@@ -22,7 +22,7 @@ function resolveUserLabel(sub: string | null, users: AdminUser[]): string {
 
 export function AssigneeLeaderboard({ users, values }: AssigneeLeaderboardProps) {
   return (
-    <Card title='Team performance'>
+    <Card title='Team Performance'>
       <div className='overflow-x-auto rounded-md border border-slate-200'>
         <table className='w-full min-w-[520px] divide-y divide-slate-200 text-left'>
           <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>

@@ -2,6 +2,7 @@
 
 import type { AdminUser, LeadSummary } from '@/types/leads';
 
+import { ArrowRightIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatEnumLabel } from '@/lib/format';
 
@@ -69,8 +70,15 @@ export function LeadsTableRow({
         </span>
       </td>
       <td className='px-3 py-2 text-right' onClick={(event) => event.stopPropagation()}>
-        <Button type='button' size='sm' variant='ghost' onClick={() => onSelect(lead.id)}>
-          Open
+        <Button
+          type='button'
+          size='sm'
+          variant='ghost'
+          onClick={() => onSelect(lead.id)}
+          aria-label='Open lead'
+          title='Open lead'
+        >
+          <ArrowRightIcon className='h-4 w-4' />
         </Button>
       </td>
     </tr>

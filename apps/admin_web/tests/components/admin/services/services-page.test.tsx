@@ -114,15 +114,15 @@ describe('ServicesPage', () => {
     expect(screen.getByRole('button', { name: 'Catalog' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'New service' })).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Discount codes' }));
+    await user.click(screen.getByRole('button', { name: 'Discount Codes' }));
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
   });
 
   it('renders service detail before the services list', () => {
     render(<ServicesPage />);
 
-    const detailHeading = screen.getByRole('heading', { name: 'Services' });
-    const listHeading = screen.getByRole('heading', { name: 'Existing Services' });
+    const detailHeading = screen.getByRole('heading', { name: 'Service' });
+    const listHeading = screen.getByRole('heading', { name: 'Services' });
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -130,8 +130,8 @@ describe('ServicesPage', () => {
   it('renders instance detail before the instances list', () => {
     render(<ServicesPage />);
 
-    const detailHeading = screen.getByRole('heading', { name: 'Instances' });
-    const listHeading = screen.getByRole('heading', { name: 'Existing Instances' });
+    const detailHeading = screen.getByRole('heading', { name: 'Instance' });
+    const listHeading = screen.getByRole('heading', { name: 'Instances' });
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

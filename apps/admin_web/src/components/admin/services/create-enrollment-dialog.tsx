@@ -41,7 +41,7 @@ export function CreateEnrollmentDialog({
   return (
     <FormDialog
       open={open}
-      title='Create enrollment'
+      title='Create Enrollment'
       isLoading={isLoading}
       error={error}
       submitLabel='Create enrollment'

@@ -98,7 +98,7 @@ export function CreateInstanceDialog({
   return (
     <FormDialog
       open={open}
-      title='Create instance'
+      title='Create Instance'
       isLoading={isLoading}
       error={error}
       submitLabel='Create instance'

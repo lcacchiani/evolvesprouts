@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import { PencilIcon } from '@/components/icons/action-icons';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -199,8 +200,10 @@ export function VendorsPanel({
                       setWebsite(vendor.website ?? '');
                       setActive(vendor.active);
                     }}
+                    aria-label='Edit vendor'
+                    title='Edit vendor'
                   >
-                    Edit
+                    <PencilIcon className='h-4 w-4' />
                   </Button>
                 </td>
               </tr>

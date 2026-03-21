@@ -153,7 +153,7 @@ export function InstanceDetailPanel({
 
   return (
     <AdminEditorCard
-      title='Instances'
+      title='Instance'
       description='Add or update an instance using the same fields below.'
       actions={
         serviceType ? (

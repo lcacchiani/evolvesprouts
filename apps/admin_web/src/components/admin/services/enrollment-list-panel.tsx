@@ -142,7 +142,7 @@ export function EnrollmentListPanel({
   return (
     <>
       <AdminEditorCard
-        title='Enrollments'
+        title='Enrollment'
         description='Add or update an enrollment using the same fields below.'
         actions={
           <>
@@ -243,7 +243,7 @@ export function EnrollmentListPanel({
       </AdminEditorCard>
 
       <PaginatedTableCard
-        title='Existing Enrollments'
+        title='Enrollments'
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}

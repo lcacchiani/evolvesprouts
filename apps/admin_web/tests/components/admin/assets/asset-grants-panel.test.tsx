@@ -66,7 +66,7 @@ describe('AssetGrantsPanel', () => {
     const user = userEvent.setup();
     const { onDeleteGrant } = renderPanel({ grants: [GRANT] });
 
-    await user.click(screen.getByRole('button', { name: 'Revoke' }));
+    await user.click(screen.getByRole('button', { name: 'Revoke grant' }));
     const dialog = screen.getByRole('alertdialog');
     await user.click(within(dialog).getByRole('button', { name: 'Revoke' }));
 

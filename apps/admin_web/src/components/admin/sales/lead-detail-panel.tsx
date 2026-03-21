@@ -113,7 +113,7 @@ export function LeadDetailPanel({
   if (mode === 'create') {
     return (
       <AdminEditorCard
-        title='Create lead'
+        title='Create Lead'
         description='Create a new lead inline above the pipeline table.'
         actions={
           <>
@@ -131,7 +131,7 @@ export function LeadDetailPanel({
         }
       >
         {error ? (
-          <StatusBanner variant='error' title='Create lead'>
+          <StatusBanner variant='error' title='Create Lead'>
             {error}
           </StatusBanner>
         ) : null}
@@ -236,7 +236,7 @@ export function LeadDetailPanel({
   }
 
   return (
-    <Card title='Lead details' className='space-y-4'>
+    <Card title='Lead Details' className='space-y-4'>
       <div className='flex justify-start gap-2'>
         <Button type='button' onClick={onStartCreate}>
           New lead

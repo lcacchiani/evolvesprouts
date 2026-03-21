@@ -21,7 +21,7 @@ function resolveActorLabel(createdBy: string | null, users: AdminUser[]): string
 
 export function ActivityTimeline({ events, users }: ActivityTimelineProps) {
   return (
-    <Card title='Activity timeline'>
+    <Card title='Activity Timeline'>
       <ol className='space-y-3'>
         {events.length === 0 ? (
           <li className='text-sm text-slate-600'>No activity yet.</li>

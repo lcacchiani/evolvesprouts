@@ -7,7 +7,7 @@ export type FinanceView = 'expenses' | 'vendors' | 'client-invoices';
 export const FINANCE_TAB_ITEMS: readonly AdminTabItem<FinanceView>[] = [
   { key: 'expenses', label: 'Expenses' },
   { key: 'vendors', label: 'Vendors' },
-  { key: 'client-invoices', label: 'Client invoices' },
+  { key: 'client-invoices', label: 'Client Invoices' },
 ] as const;
 
 export interface FinanceHeaderProps {

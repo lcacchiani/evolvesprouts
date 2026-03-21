@@ -16,7 +16,7 @@ export function TimeInStage({ values }: TimeInStageProps) {
   }));
 
   return (
-    <Card title='Time in stage'>
+    <Card title='Time in Stage'>
       {entries.length === 0 ? (
         <p className='text-sm text-slate-600'>No stage timing data.</p>
       ) : (
