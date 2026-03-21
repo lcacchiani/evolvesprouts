@@ -47,7 +47,7 @@ def test_parse_inbound_notification_uses_s3_alert_details() -> None:
                 "dmarcVerdict": {"status": "GRAY"},
                 "action": {
                     "bucketName": "raw-email-bucket",
-                    "objectKey": "raw/ses-message-123",
+                    "objectKey": "inbound-email/raw/ses-message-123",
                 },
             },
         }
@@ -56,7 +56,7 @@ def test_parse_inbound_notification_uses_s3_alert_details() -> None:
     assert notification.ses_message_id == "ses-message-123"
     assert notification.recipient == "invoices@inbound.example.com"
     assert notification.raw_s3_bucket == "raw-email-bucket"
-    assert notification.raw_s3_key == "raw/ses-message-123"
+    assert notification.raw_s3_key == "inbound-email/raw/ses-message-123"
     assert notification.spam_status == "PASS"
     assert notification.virus_status == "PASS"
     assert notification.spf_status == "FAIL"
@@ -92,7 +92,7 @@ def test_lambda_handler_counts_processed_and_skipped(monkeypatch: Any) -> None:
                                     "recipients": ["invoices@inbound.example.com"],
                                     "action": {
                                         "bucketName": "raw-bucket",
-                                        "objectKey": "raw/store-me",
+                                        "objectKey": "inbound-email/raw/store-me",
                                     },
                                 },
                             }
@@ -115,7 +115,7 @@ def test_lambda_handler_counts_processed_and_skipped(monkeypatch: Any) -> None:
                                     "recipients": ["invoices@inbound.example.com"],
                                     "action": {
                                         "bucketName": "raw-bucket",
-                                        "objectKey": "raw/skip-me",
+                                        "objectKey": "inbound-email/raw/skip-me",
                                     },
                                 },
                             }

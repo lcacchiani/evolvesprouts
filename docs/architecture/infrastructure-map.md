@@ -344,7 +344,7 @@ API Lambda
 
 SES inbound (inbound.evolvesprouts.com)
     │
-    └─▶ S3: evolvesprouts-inbound-email-raw-*
+    └─▶ S3: evolvesprouts-client-assets-*/inbound-email/raw/*
              └─▶ SNS: evolvesprouts-inbound-invoice-email-events
                       └─▶ SQS: evolvesprouts-inbound-invoice-email-queue
                                 └─▶ InboundInvoiceEmailProcessor Lambda

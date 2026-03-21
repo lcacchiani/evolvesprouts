@@ -108,7 +108,7 @@ credentials):
 |--------------|------------|------------------|-------|
 | S3 Bucket | `ClientAssetsBucket` | `evolvesprouts-client-assets-{account}-{region}` | Private bucket for assets |
 | S3 Bucket | `ClientAssetsLogBucket` | `evolvesprouts-client-assets-logs-{account}-{region}` | Access logs for the assets bucket |
-| S3 Bucket | `InboundInvoiceRawEmailBucket` | `evolvesprouts-inbound-email-raw-{account}-{region}` | Private bucket for raw inbound invoice emails |
+| S3 Prefix | `ClientAssetsBucket/inbound-email/raw/` | `s3://evolvesprouts-client-assets-{account}-{region}/inbound-email/raw/` | Reserved prefix for raw inbound invoice emails |
 
 ## Asset download CDN (CloudFront)
 
@@ -573,7 +573,7 @@ configured by stack custom resources (including retention and KMS association).
 | `ExpenseParserQueueUrl` | SQS queue URL | Expense parser processing queue |
 | `ExpenseParserDLQUrl` | SQS DLQ URL | Failed expense parser messages |
 | `InboundInvoiceRecipientAddress` | Email address | SES-managed inbound invoice mailbox |
-| `InboundInvoiceRawEmailBucketName` | S3 bucket name | Raw inbound invoice email bucket |
+| `InboundInvoiceRawEmailPrefix` | S3 object-key prefix | Reserved prefix for raw inbound invoice emails inside `ClientAssetsBucket` |
 | `InboundInvoiceTopicArn` | SNS topic ARN | Inbound invoice email events topic |
 | `InboundInvoiceQueueUrl` | SQS queue URL | Inbound invoice email processing queue |
 | `InboundInvoiceDLQUrl` | SQS DLQ URL | Failed inbound invoice email messages |

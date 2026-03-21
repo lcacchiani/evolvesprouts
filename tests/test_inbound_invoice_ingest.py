@@ -21,7 +21,7 @@ def _base_event() -> InboundInvoiceEmailEvent:
         subject="Invoice",
         received_at=datetime(2026, 3, 21, 10, 0, tzinfo=UTC),
         raw_s3_bucket="raw-bucket",
-        raw_s3_key="raw/ses-123",
+        raw_s3_key="inbound-email/raw/ses-123",
     )
 
 

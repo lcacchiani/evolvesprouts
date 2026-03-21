@@ -1039,33 +1039,7 @@ export class ApiStack extends cdk.Stack {
       ],
     });
 
-    const inboundInvoiceRawEmailBucketName = [
-      name("inbound-email-raw"),
-      cdk.Aws.ACCOUNT_ID,
-      cdk.Aws.REGION,
-    ].join("-");
-
-    const inboundInvoiceRawEmailBucket = new s3.Bucket(
-      this,
-      "InboundInvoiceRawEmailBucket",
-      {
-        bucketName: inboundInvoiceRawEmailBucketName,
-        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-        encryption: s3.BucketEncryption.S3_MANAGED,
-        enforceSSL: true,
-        versioned: true,
-        removalPolicy: cdk.RemovalPolicy.RETAIN,
-        serverAccessLogsBucket: clientAssetsLogBucket,
-        serverAccessLogsPrefix: "inbound-email-raw-access-logs/",
-        lifecycleRules: [
-          {
-            id: "ExpireNoncurrentRawEmailVersions",
-            enabled: true,
-            noncurrentVersionExpiration: cdk.Duration.days(90),
-          },
-        ],
-      }
-    );
+    const inboundInvoiceRawEmailPrefix = "inbound-email/raw/";
 
     const assetDownloadCloudFrontPublicKeyPem = new cdk.CfnParameter(
       this,
@@ -1611,7 +1585,6 @@ export class ApiStack extends cdk.Stack {
     database.grantAdminUserSecretRead(inboundInvoiceProcessor);
     database.grantConnect(inboundInvoiceProcessor, "evolvesprouts_admin");
     clientAssetsBucket.grantReadWrite(inboundInvoiceProcessor);
-    inboundInvoiceRawEmailBucket.grantRead(inboundInvoiceProcessor);
     expenseParserTopic.grantPublish(inboundInvoiceProcessor);
     inboundInvoiceProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(inboundInvoiceQueue, {
@@ -1647,7 +1620,9 @@ export class ApiStack extends cdk.Stack {
     inboundInvoiceReceiptRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ["s3:PutObject"],
-        resources: [`${inboundInvoiceRawEmailBucket.bucketArn}/raw/*`],
+        resources: [
+          `${clientAssetsBucket.bucketArn}/${inboundInvoiceRawEmailPrefix}*`,
+        ],
       })
     );
     inboundInvoiceReceiptRole.addToPolicy(
@@ -1679,8 +1654,8 @@ export class ApiStack extends cdk.Stack {
           actions: [
             {
               s3Action: {
-                bucketName: inboundInvoiceRawEmailBucket.bucketName,
-                objectKeyPrefix: "raw/",
+                bucketName: clientAssetsBucket.bucketName,
+                objectKeyPrefix: inboundInvoiceRawEmailPrefix,
                 topicArn: inboundInvoiceTopic.topicArn,
                 iamRoleArn: inboundInvoiceReceiptRole.roleArn,
               },
@@ -2914,9 +2889,10 @@ export class ApiStack extends cdk.Stack {
       value: inboundInvoiceRecipientAddress,
       description: "SES-managed inbound recipient address for invoice automation",
     });
-    new cdk.CfnOutput(this, "InboundInvoiceRawEmailBucketName", {
-      value: inboundInvoiceRawEmailBucket.bucketName,
-      description: "S3 bucket storing raw inbound invoice emails",
+    new cdk.CfnOutput(this, "InboundInvoiceRawEmailPrefix", {
+      value: inboundInvoiceRawEmailPrefix,
+      description:
+        "Reserved object-key prefix in ClientAssetsBucket for raw inbound invoice emails",
     });
     new cdk.CfnOutput(this, "InboundInvoiceTopicArn", {
       value: inboundInvoiceTopic.topicArn,

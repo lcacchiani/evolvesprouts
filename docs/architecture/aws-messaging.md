@@ -146,13 +146,15 @@ topic so machine-only mailbox traffic can land directly in the expenses domain.
 - Public-facing mailbox stays `invoices@evolvesprouts.com` in iCloud Mail.
 - iCloud forwards invoice mail to the SES-managed address on
   `inbound.evolvesprouts.com`.
-- SES receipt rules match the inbound recipient and store the raw `.eml` in S3.
+- SES receipt rules match the inbound recipient and store the raw `.eml` in
+  `ClientAssetsBucket` under a reserved prefix.
 
-### S3 bucket: `evolvesprouts-inbound-email-raw-<account>-<region>`
+### Raw email storage: `ClientAssetsBucket` prefix `inbound-email/raw/`
 
-- Stores the original raw email payload for replay/debugging.
-- Versioned, private, SSL-only, and retained on stack updates/deletes.
-- Server access logs flow into the shared client-assets log bucket.
+- Stores the original raw email payload for replay/debugging inside the existing
+  private assets bucket.
+- Uses a reserved prefix so raw `.eml` objects stay separated from normal asset
+  objects while still reusing the existing private bucket controls.
 
 ### SNS Topic: `evolvesprouts-inbound-invoice-email-events`
 
@@ -270,7 +272,7 @@ SQS retries or mailbox forwarding duplicates.
 | `ExpenseParserQueueUrl` | SQS queue URL for expense parser processing |
 | `ExpenseParserDLQUrl` | Dead letter queue URL for failed expense parser jobs |
 | `InboundInvoiceRecipientAddress` | SES-managed recipient address for invoice automation |
-| `InboundInvoiceRawEmailBucketName` | S3 bucket storing raw inbound invoice emails |
+| `InboundInvoiceRawEmailPrefix` | Reserved object-key prefix for raw inbound invoice emails |
 | `InboundInvoiceTopicArn` | SNS topic ARN for inbound invoice email events |
 | `InboundInvoiceQueueUrl` | SQS queue URL for inbound invoice email processing |
 | `InboundInvoiceDLQUrl` | Dead letter queue URL for failed inbound invoice emails |

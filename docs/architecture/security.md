@@ -275,13 +275,14 @@ fail-closed outbound policy:
 
 ### Inbound invoice email handling
 
-Inbound invoice email ingestion stores raw `.eml` payloads in a dedicated S3
-bucket before attachments are copied into the private assets bucket.
+Inbound invoice email ingestion stores raw `.eml` payloads in the private
+assets bucket under a reserved prefix before attachments are copied into normal
+expense asset keys.
 
 Requirements:
 
-- Treat raw inbound email as sensitive content. Do not expose the raw-email
-  bucket through public or signed-download routes.
+- Treat raw inbound email as sensitive content. Do not expose the
+  `inbound-email/raw/` prefix through public or signed-download routes.
 - Do not log raw email bodies, headers, or attachment bytes.
 - Mask sender addresses in application logs with `mask_email()`.
 - Keep SES receipt processing least-privilege: only the configured receipt role
