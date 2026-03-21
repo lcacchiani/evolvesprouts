@@ -12,6 +12,7 @@ import { CONTACT_SOURCES, LEAD_TYPES } from '@/types/leads';
 import type { AdminUser, ContactSource, FunnelStage, LeadDetail, LeadType } from '@/types/leads';
 
 import { StatusBanner } from '@/components/status-banner';
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -109,27 +110,32 @@ export function LeadDetailPanel({
     }
   };
 
-  return (
-    <Card
-      title={mode === 'create' ? 'Create lead' : 'Lead details'}
-      description={mode === 'create' ? 'Create a new lead inline above the pipeline table.' : undefined}
-      className='space-y-4'
-    >
-      {mode === 'edit' ? (
-        <div className='flex justify-start gap-2'>
-          <Button type='button' onClick={onStartCreate}>
-            New lead
-          </Button>
-        </div>
-      ) : null}
+  if (mode === 'create') {
+    return (
+      <AdminEditorCard
+        title='Create lead'
+        description='Create a new lead inline above the pipeline table.'
+        actions={
+          <>
+            <Button type='button' variant='secondary' onClick={onCancelCreate} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button
+              type='button'
+              onClick={() => void handleCreate()}
+              disabled={isLoading || createForm.firstName.trim().length === 0}
+            >
+              {isLoading ? 'Creating...' : 'Create lead'}
+            </Button>
+          </>
+        }
+      >
+        {error ? (
+          <StatusBanner variant='error' title='Create lead'>
+            {error}
+          </StatusBanner>
+        ) : null}
 
-      {error ? (
-        <StatusBanner variant='error' title={mode === 'create' ? 'Create lead' : 'Lead'}>
-          {error}
-        </StatusBanner>
-      ) : null}
-
-      {mode === 'create' ? (
         <div className='space-y-3'>
           <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
             <Input
@@ -224,20 +230,26 @@ export function LeadDetailPanel({
             placeholder='Initial note'
             rows={3}
           />
-          <div className='flex justify-start gap-2'>
-            <Button type='button' variant='secondary' onClick={onCancelCreate} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button
-              type='button'
-              onClick={() => void handleCreate()}
-              disabled={isLoading || createForm.firstName.trim().length === 0}
-            >
-              {isLoading ? 'Creating...' : 'Create lead'}
-            </Button>
-          </div>
         </div>
-      ) : !lead ? (
+      </AdminEditorCard>
+    );
+  }
+
+  return (
+    <Card title='Lead details' className='space-y-4'>
+      <div className='flex justify-start gap-2'>
+        <Button type='button' onClick={onStartCreate}>
+          New lead
+        </Button>
+      </div>
+
+      {error ? (
+        <StatusBanner variant='error' title='Lead'>
+          {error}
+        </StatusBanner>
+      ) : null}
+
+      {!lead ? (
         <p className='text-sm text-slate-600'>Select a lead to view details, or create a new lead.</p>
       ) : (
         <div className='space-y-4'>

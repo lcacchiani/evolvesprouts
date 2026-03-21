@@ -33,8 +33,17 @@ const baseExpense: Expense = {
   attachments: [],
 };
 
+const noopRowActions = {
+  isVoidingId: null as string | null,
+  isMarkingPaidId: null as string | null,
+  isReparsingId: null as string | null,
+  onReparse: vi.fn(),
+  onMarkPaid: vi.fn(),
+  onVoidExpense: vi.fn(),
+};
+
 describe('ExpensesListPanel', () => {
-  it('renders core columns without Invoice, Parse, or Operations headers', () => {
+  it('renders core columns without Invoice or Parse headers', () => {
     render(
       <ExpensesListPanel
         expenses={[baseExpense]}
@@ -46,6 +55,7 @@ describe('ExpensesListPanel', () => {
         isLoadingMore={false}
         hasMore={false}
         error=''
+        {...noopRowActions}
         onLoadMore={vi.fn()}
         onSelectExpense={vi.fn()}
         onQueryChange={vi.fn()}
@@ -56,7 +66,7 @@ describe('ExpensesListPanel', () => {
 
     expect(screen.queryByRole('columnheader', { name: 'Invoice' })).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: 'Parse' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('columnheader', { name: 'Operations' })).not.toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Operations' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Vendor' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
@@ -78,6 +88,7 @@ describe('ExpensesListPanel', () => {
         isLoadingMore={false}
         hasMore={false}
         error=''
+        {...noopRowActions}
         onLoadMore={vi.fn()}
         onSelectExpense={onSelectExpense}
         onQueryChange={vi.fn()}
