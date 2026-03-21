@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 
-export type FinanceView = 'expenses' | 'client-invoices';
+export type FinanceView = 'expenses' | 'vendors' | 'client-invoices';
 
 export interface FinanceHeaderProps {
   activeView: FinanceView;
@@ -14,6 +14,9 @@ export function FinanceHeader({ activeView, onSetView }: FinanceHeaderProps) {
     <div className='flex gap-2'>
       <Button type='button' variant={activeView === 'expenses' ? 'secondary' : 'ghost'} onClick={() => onSetView('expenses')}>
         Expenses
+      </Button>
+      <Button type='button' variant={activeView === 'vendors' ? 'secondary' : 'ghost'} onClick={() => onSetView('vendors')}>
+        Vendors
       </Button>
       <Button
         type='button'

@@ -12,9 +12,12 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 import { EXPENSE_STATUSES, type Expense, type ExpenseLineItem, type ExpenseStatus } from '@/types/expenses';
+import type { Vendor } from '@/types/vendors';
 
 interface ExpensesEditorPanelProps {
   selectedExpense: Expense | null;
+  vendorOptions: Vendor[];
+  isLoadingVendors: boolean;
   isSaving: boolean;
   isUploadingFiles: boolean;
   isDeletingCurrentExpense: boolean;
@@ -24,7 +27,7 @@ interface ExpensesEditorPanelProps {
   onCreate: (payload: {
     input: {
       status: ExpenseStatus;
-      vendorName: string | null;
+      vendorId: string | null;
       invoiceNumber: string | null;
       invoiceDate: string | null;
       dueDate: string | null;
@@ -42,7 +45,7 @@ interface ExpensesEditorPanelProps {
     expenseId: string;
     input: {
       status: ExpenseStatus;
-      vendorName: string | null;
+      vendorId: string | null;
       invoiceNumber: string | null;
       invoiceDate: string | null;
       dueDate: string | null;
@@ -61,7 +64,7 @@ interface ExpensesEditorPanelProps {
     expenseId: string;
     input: {
       status: ExpenseStatus;
-      vendorName: string | null;
+      vendorId: string | null;
       invoiceNumber: string | null;
       invoiceDate: string | null;
       dueDate: string | null;
@@ -133,6 +136,8 @@ function parseLineItemsJson(value: string): ExpenseLineItem[] {
 
 export function ExpensesEditorPanel({
   selectedExpense,
+  vendorOptions,
+  isLoadingVendors,
   isSaving,
   isUploadingFiles,
   isDeletingCurrentExpense,
@@ -149,7 +154,7 @@ export function ExpensesEditorPanel({
 }: ExpensesEditorPanelProps) {
   const currencyOptions = getCurrencyOptions();
   const [status, setStatus] = useState<ExpenseStatus>(selectedExpense?.status ?? 'submitted');
-  const [vendorName, setVendorName] = useState(selectedExpense?.vendorName ?? '');
+  const [vendorId, setVendorId] = useState(selectedExpense?.vendorId ?? '');
   const [invoiceNumber, setInvoiceNumber] = useState(selectedExpense?.invoiceNumber ?? '');
   const [invoiceDate, setInvoiceDate] = useState(selectedExpense?.invoiceDate ?? '');
   const [dueDate, setDueDate] = useState(selectedExpense?.dueDate ?? '');
@@ -186,7 +191,7 @@ export function ExpensesEditorPanel({
 
     const payloadInput = {
       status,
-      vendorName: vendorName.trim() || null,
+      vendorId: vendorId.trim() || null,
       invoiceNumber: invoiceNumber.trim() || null,
       invoiceDate: invoiceDate.trim() || null,
       dueDate: dueDate.trim() || null,
@@ -260,7 +265,15 @@ export function ExpensesEditorPanel({
         </div>
         <div>
           <Label htmlFor='expense-vendor'>Vendor</Label>
-          <Input id='expense-vendor' value={vendorName} onChange={(event) => setVendorName(event.target.value)} />
+          <Select id='expense-vendor' value={vendorId} onChange={(event) => setVendorId(event.target.value)}>
+            <option value=''>{isLoadingVendors ? 'Loading vendors...' : 'Select vendor'}</option>
+            {vendorOptions.map((vendor) => (
+              <option key={vendor.id} value={vendor.id}>
+                {vendor.name}
+                {vendor.active ? '' : ' (Inactive)'}
+              </option>
+            ))}
+          </Select>
         </div>
         <div>
           <Label htmlFor='expense-invoice-number'>Invoice number</Label>

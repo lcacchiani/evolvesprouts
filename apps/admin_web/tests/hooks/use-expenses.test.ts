@@ -71,6 +71,7 @@ const SAMPLE_EXPENSE: Expense = {
   amendsExpenseId: null,
   status: 'submitted',
   parseStatus: 'succeeded',
+  vendorId: 'vendor-1',
   vendorName: 'Acme Corp',
   invoiceNumber: 'INV-100',
   invoiceDate: '2026-03-01',
@@ -182,7 +183,7 @@ describe('useExpenses', () => {
       await result.current.createExpenseEntry({
         input: {
           status: 'submitted',
-          vendorName: 'Acme',
+          vendorId: 'vendor-1',
           invoiceNumber: null,
           invoiceDate: null,
           dueDate: null,
@@ -204,7 +205,7 @@ describe('useExpenses', () => {
       expect.objectContaining({
         attachmentAssetIds: ['asset-1'],
         status: 'submitted',
-        vendorName: 'Acme',
+        vendorId: 'vendor-1',
       })
     );
     expect(mockRefetch).toHaveBeenCalled();
@@ -220,7 +221,7 @@ describe('useExpenses', () => {
         expenseId: 'exp-1',
         input: {
           status: 'submitted',
-          vendorName: 'Updated Corp',
+          vendorId: 'vendor-2',
           invoiceNumber: null,
           invoiceDate: null,
           dueDate: null,
@@ -239,7 +240,7 @@ describe('useExpenses', () => {
 
     expect(mockUpdateAdminExpense).toHaveBeenCalledWith(
       'exp-1',
-      expect.objectContaining({ vendorName: 'Updated Corp' })
+      expect.objectContaining({ vendorId: 'vendor-2' })
     );
     expect(mockRefetch).toHaveBeenCalled();
   });
@@ -278,7 +279,7 @@ describe('useExpenses', () => {
         expenseId: 'exp-1',
         input: {
           status: 'submitted',
-          vendorName: 'Acme',
+          vendorId: 'vendor-1',
           invoiceNumber: null,
           invoiceDate: null,
           dueDate: null,
@@ -323,7 +324,7 @@ describe('useExpenses', () => {
         await result.current.createExpenseEntry({
           input: {
             status: 'submitted',
-            vendorName: null,
+            vendorId: null,
             invoiceNumber: null,
             invoiceDate: null,
             dueDate: null,
@@ -356,7 +357,7 @@ describe('useExpenses', () => {
         await result.current.createExpenseEntry({
           input: {
             status: 'submitted',
-            vendorName: null,
+            vendorId: null,
             invoiceNumber: null,
             invoiceDate: null,
             dueDate: null,
@@ -388,7 +389,7 @@ describe('useExpenses', () => {
         await result.current.createExpenseEntry({
           input: {
             status: 'submitted',
-            vendorName: null,
+            vendorId: null,
             invoiceNumber: null,
             invoiceDate: null,
             dueDate: null,

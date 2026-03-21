@@ -115,9 +115,10 @@ def _process_expense(expense_id: str) -> None:
         refreshed_expense = repository.get_with_attachments(_to_uuid(expense_id))
         if refreshed_expense is None:
             return
-        refreshed_expense.vendor_name = _pick_text(
-            parsed.get("vendor_name"), fallback=refreshed_expense.vendor_name
-        )
+        if refreshed_expense.vendor_id is None:
+            refreshed_expense.vendor_name = _pick_text(
+                parsed.get("vendor_name"), fallback=refreshed_expense.vendor_name
+            )
         refreshed_expense.invoice_number = _pick_text(
             parsed.get("invoice_number"), fallback=refreshed_expense.invoice_number
         )

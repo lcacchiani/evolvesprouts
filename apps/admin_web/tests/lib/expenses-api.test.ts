@@ -29,6 +29,7 @@ describe('expenses-api', () => {
           amends_expense_id: null,
           status: 'submitted',
           parse_status: 'succeeded',
+          vendor_id: 'vendor-1',
           vendor_name: 'Acme',
           invoice_number: 'INV-100',
           invoice_date: '2026-03-01',
@@ -68,6 +69,7 @@ describe('expenses-api', () => {
     expect(result.nextCursor).toBe('cursor-1');
     expect(result.items[0]).toMatchObject({
       id: 'exp-1',
+      vendorId: 'vendor-1',
       vendorName: 'Acme',
       parseStatus: 'succeeded',
     });
@@ -89,6 +91,7 @@ describe('expenses-api', () => {
         amends_expense_id: null,
         status: 'submitted',
         parse_status: 'queued',
+        vendor_id: 'vendor-1',
         vendor_name: 'Acme',
         invoice_number: 'INV-101',
         invoice_date: null,
@@ -115,7 +118,7 @@ describe('expenses-api', () => {
 
     await createAdminExpense({
       status: 'submitted',
-      vendorName: ' Acme ',
+      vendorId: ' vendor-1 ',
       invoiceNumber: ' INV-101 ',
       currency: ' HKD ',
       subtotal: ' 100.00 ',
@@ -132,7 +135,7 @@ describe('expenses-api', () => {
         endpointPath: '/v1/admin/expenses',
         method: 'POST',
         body: expect.objectContaining({
-          vendor_name: 'Acme',
+          vendor_id: 'vendor-1',
           invoice_number: 'INV-101',
           currency: 'HKD',
           notes: null,
@@ -151,6 +154,7 @@ describe('expenses-api', () => {
           amends_expense_id: null,
           status: 'submitted',
           parse_status: 'succeeded',
+          vendor_id: null,
           vendor_name: 'Vendor',
           invoice_number: null,
           invoice_date: null,

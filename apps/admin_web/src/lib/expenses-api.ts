@@ -88,6 +88,7 @@ function parseExpense(value: ApiExpense): Expense {
     amendsExpenseId: asNullableString(value.amends_expense_id ?? null),
     status: value.status,
     parseStatus: value.parse_status,
+    vendorId: asNullableString(value.vendor_id ?? null),
     vendorName: asNullableString(value.vendor_name ?? null),
     invoiceNumber: asNullableString(value.invoice_number ?? null),
     invoiceDate: asNullableString(value.invoice_date ?? null),
@@ -114,7 +115,7 @@ function parseExpense(value: ApiExpense): Expense {
 function normalizeExpenseInput(input: UpsertExpenseInput): ApiCreateExpenseRequest {
   return {
     status: input.status,
-    vendor_name: input.vendorName?.trim() || null,
+    vendor_id: input.vendorId?.trim() || null,
     invoice_number: input.invoiceNumber?.trim() || null,
     invoice_date: input.invoiceDate?.trim() || null,
     due_date: input.dueDate?.trim() || null,

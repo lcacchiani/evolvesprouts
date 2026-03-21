@@ -13,6 +13,7 @@ from app.db.repositories.enrollment import EnrollmentRepository
 from app.db.repositories.expense import ExpenseRepository
 from app.db.repositories.geographic_area import GeographicAreaRepository
 from app.db.repositories.location import LocationRepository
+from app.db.repositories.organization import OrganizationRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.db.repositories.service import ServiceRepository
 from app.db.repositories.service_instance import ServiceInstanceRepository
@@ -28,6 +29,7 @@ __all__ = [
     "ExpenseRepository",
     "GeographicAreaRepository",
     "LocationRepository",
+    "OrganizationRepository",
     "SalesLeadRepository",
     "ServiceRepository",
     "ServiceInstanceRepository",

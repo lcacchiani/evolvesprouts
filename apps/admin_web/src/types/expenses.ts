@@ -42,6 +42,7 @@ export interface Expense {
   amendsExpenseId: OptionalToNullable<ApiExpense['amends_expense_id']>;
   status: ExpenseStatus;
   parseStatus: ExpenseParseStatus;
+  vendorId: OptionalToNullable<ApiExpense['vendor_id']>;
   vendorName: OptionalToNullable<ApiExpense['vendor_name']>;
   invoiceNumber: OptionalToNullable<ApiExpense['invoice_number']>;
   invoiceDate: OptionalToNullable<ApiExpense['invoice_date']>;
@@ -80,7 +81,7 @@ export interface PaginatedExpenseList {
 
 export interface UpsertExpenseInput {
   status?: ExpenseStatus;
-  vendorName?: string | null;
+  vendorId?: string | null;
   invoiceNumber?: string | null;
   invoiceDate?: string | null;
   dueDate?: string | null;

@@ -38,7 +38,8 @@ class ExpenseRepository(BaseRepository[Expense]):
         statement = (
             select(Expense)
             .options(
-                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset)
+                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset),
+                selectinload(Expense.vendor),
             )
             .order_by(Expense.created_at.desc(), Expense.id.desc())
         )
@@ -97,7 +98,8 @@ class ExpenseRepository(BaseRepository[Expense]):
         statement = (
             select(Expense)
             .options(
-                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset)
+                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset),
+                selectinload(Expense.vendor),
             )
             .where(Expense.id == expense_id)
         )
@@ -111,6 +113,7 @@ class ExpenseRepository(BaseRepository[Expense]):
         parse_status: ExpenseParseStatus,
         amends_expense_id: UUID | None = None,
         vendor_name: str | None = None,
+        vendor_id: UUID | None = None,
         invoice_number: str | None = None,
         invoice_date: date | None = None,
         due_date: date | None = None,
@@ -128,6 +131,7 @@ class ExpenseRepository(BaseRepository[Expense]):
             parse_status=parse_status,
             amends_expense_id=amends_expense_id,
             vendor_name=vendor_name,
+            vendor_id=vendor_id,
             invoice_number=invoice_number,
             invoice_date=invoice_date,
             due_date=due_date,
