@@ -133,7 +133,7 @@ export function ServiceDetailPanel({
 
   return (
     <AdminEditorCard
-      title='Services'
+      title='Service'
       description='Add or update a service using the same fields below.'
       actions={
         <>

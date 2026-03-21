@@ -102,7 +102,7 @@ describe('ExpensesListPanel', () => {
 
     render(<ExpensesListPanel {...listProps} {...rowActions} />);
 
-    await user.click(screen.getByRole('button', { name: 'Reparse' }));
+    await user.click(screen.getByRole('button', { name: 'Reparse expense' }));
     expect(rowActions.onReparse).toHaveBeenCalledWith('exp-1');
   });
 
@@ -112,7 +112,7 @@ describe('ExpensesListPanel', () => {
 
     render(<ExpensesListPanel {...listProps} {...rowActions} />);
 
-    await user.click(screen.getByRole('button', { name: 'Paid' }));
+    await user.click(screen.getByRole('button', { name: 'Mark expense as paid' }));
     expect(rowActions.onMarkPaid).toHaveBeenCalledWith('exp-1');
   });
 

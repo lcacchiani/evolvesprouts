@@ -234,7 +234,7 @@ export function ExpensesEditorPanel({
 
   return (
     <AdminEditorCard
-      title='Expense details'
+      title='Expense Details'
       description='Upload invoice documents, verify parsed fields, and keep amendment history.'
       actions={
         <>

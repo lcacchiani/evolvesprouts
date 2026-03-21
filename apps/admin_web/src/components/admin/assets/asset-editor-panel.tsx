@@ -106,7 +106,7 @@ export function AssetEditorPanel({
 
   const isEditMode = Boolean(selectedAsset);
 
-  const cardTitle = isEditMode ? 'Edit asset' : 'Create asset';
+  const cardTitle = isEditMode ? 'Edit Asset' : 'Create Asset';
   const cardDescription = isEditMode
     ? 'Update metadata and visibility for the selected asset.'
     : 'Create a new PDF asset and upload content automatically with a presigned URL.';

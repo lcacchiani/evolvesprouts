@@ -70,7 +70,7 @@ export function InstanceListPanel({
   return (
     <>
       <PaginatedTableCard
-        title='Existing Instances'
+        title='Instances'
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}

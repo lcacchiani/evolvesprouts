@@ -62,7 +62,8 @@ export function LeadsTable({
 
   return (
     <PaginatedTableCard
-      title={`Leads (${totalCount})`}
+      title='Leads'
+      description={`${totalCount.toLocaleString()} total`}
       isLoading={isLoading}
       isLoadingMore={isLoadingMore}
       hasMore={hasMore}

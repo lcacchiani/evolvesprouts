@@ -148,7 +148,7 @@ export function DiscountCodesPanel({
   return (
     <div className='space-y-6'>
       <AdminEditorCard
-        title='Discount code'
+        title='Discount Code'
         description='Create a new code or select a row below to update. Codes cannot be changed after creation.'
         actions={
           <>
@@ -229,7 +229,7 @@ export function DiscountCodesPanel({
       </AdminEditorCard>
 
       <PaginatedTableCard
-        title='Discount codes'
+        title='Discount Codes'
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
