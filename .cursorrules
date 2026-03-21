@@ -282,7 +282,9 @@ should extend the shared primitives rather than reintroducing one-off layouts.
   optional **description**, field area, then **actions** in a single row with
   `justify-start` and `gap-2`. **Create** shows only the primary button.
   **Update** shows **Cancel** (secondary) to the **left** of the primary save
-  action.
+  action. When the field area is a `<form>`, give it a stable `id` and attach
+  the submit control with `type='submit'` and `form='<id>'` so the primary
+  button can live in the card actions row without nesting forms invalidly.
 - **Delete, void, and other row-scoped destructive or state-changing actions**
   belong in the table **Operations** column (with `ConfirmDialog` where
   appropriate), not in the editor footer. `ConfirmDialog` may render optional
