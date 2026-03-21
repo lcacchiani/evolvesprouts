@@ -1656,20 +1656,25 @@ export class ApiStack extends cdk.Stack {
           "Allows SES receipt rules to store raw invoice emails in S3 and notify SNS",
       }
     );
-    inboundInvoiceReceiptRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ["s3:PutObject"],
-        resources: [
-          `${assetsBucket.bucketArn}/${inboundInvoiceRawEmailPrefix}*`,
+    const inboundInvoiceReceiptPolicy = new iam.Policy(
+      this,
+      "InboundInvoiceReceiptPolicy",
+      {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["s3:PutObject"],
+            resources: [
+              `${assetsBucket.bucketArn}/${inboundInvoiceRawEmailPrefix}*`,
+            ],
+          }),
+          new iam.PolicyStatement({
+            actions: ["sns:Publish"],
+            resources: [inboundInvoiceTopic.topicArn],
+          }),
         ],
-      })
+      }
     );
-    inboundInvoiceReceiptRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ["sns:Publish"],
-        resources: [inboundInvoiceTopic.topicArn],
-      })
-    );
+    inboundInvoiceReceiptRole.attachInlinePolicy(inboundInvoiceReceiptPolicy);
 
     const inboundInvoiceReceiptRuleSet = new ses.CfnReceiptRuleSet(
       this,
@@ -1703,12 +1708,8 @@ export class ApiStack extends cdk.Stack {
         },
       }
     );
-    // Ensure SES validates the receipt role only after its default policy exists.
-    if (inboundInvoiceReceiptRole.policy) {
-      inboundInvoiceReceiptRule.node.addDependency(
-        inboundInvoiceReceiptRole.policy
-      );
-    }
+    // Ensure SES validates the receipt role only after its policy exists.
+    inboundInvoiceReceiptRule.node.addDependency(inboundInvoiceReceiptPolicy);
 
     const activateInboundInvoiceReceiptRuleSetPolicy =
       customresources.AwsCustomResourcePolicy.fromStatements([
