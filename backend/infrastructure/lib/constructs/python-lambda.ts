@@ -56,6 +56,8 @@ export interface PythonLambdaProps {
   logEncryptionKey?: kms.IKey;
   /** Dead letter queue for failed invocations. */
   deadLetterQueue?: sqs.IQueue;
+  /** Set to false to skip explicit log-group creation/management. */
+  manageLogGroup?: boolean;
 }
 
 /**
@@ -152,16 +154,19 @@ export class PythonLambda extends Construct {
       });
 
     const logEncryptionKey = props.logEncryptionKey ?? this.createLogEncryptionKey();
+    const shouldManageLogGroup = props.manageLogGroup !== false;
 
     // Standard 90-day log retention for all Lambda functions
     // SECURITY: Encrypted with KMS key
     // Use standard /aws/lambda/{functionName} naming convention
-    const logGroup = new logs.LogGroup(this, "LogGroup", {
-      logGroupName: `/aws/lambda/${props.functionName}`,
-      retention: STANDARD_LOG_RETENTION,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      encryptionKey: logEncryptionKey,
-    });
+    const logGroup = shouldManageLogGroup
+      ? new logs.LogGroup(this, "LogGroup", {
+          logGroupName: `/aws/lambda/${props.functionName}`,
+          retention: STANDARD_LOG_RETENTION,
+          removalPolicy: cdk.RemovalPolicy.RETAIN,
+          encryptionKey: logEncryptionKey,
+        })
+      : undefined;
 
     // COST OPTIMIZATION: Use ARM64 architecture for 20% cost savings
     // Graviton2 processors offer better price-performance ratio
