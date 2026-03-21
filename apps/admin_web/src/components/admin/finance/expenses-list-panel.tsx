@@ -3,6 +3,7 @@
 import type { KeyboardEvent } from 'react';
 import { useState } from 'react';
 
+import { MarkPaidIcon, RotateIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -114,7 +115,7 @@ export function ExpensesListPanel({
   return (
     <>
       <PaginatedTableCard
-        title='Submitted expenses'
+        title='Submitted Expenses'
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
@@ -209,8 +210,18 @@ export function ExpensesListPanel({
                         variant='outline'
                         disabled={isReparsingId === expense.id}
                         onClick={() => void onReparse(expense.id)}
+                        aria-label='Reparse expense'
+                        title='Reparse expense'
+                        aria-busy={isReparsingId === expense.id}
                       >
-                        {isReparsingId === expense.id ? '…' : 'Reparse'}
+                        {isReparsingId === expense.id ? (
+                          <span
+                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
+                            aria-hidden
+                          />
+                        ) : (
+                          <RotateIcon className='h-4 w-4' />
+                        )}
                       </Button>
                       <Button
                         type='button'
@@ -218,8 +229,18 @@ export function ExpensesListPanel({
                         variant='outline'
                         disabled={isMarkingPaidId === expense.id || expense.status === 'paid'}
                         onClick={() => void onMarkPaid(expense.id)}
+                        aria-label='Mark expense as paid'
+                        title='Mark expense as paid'
+                        aria-busy={isMarkingPaidId === expense.id}
                       >
-                        {isMarkingPaidId === expense.id ? '…' : 'Paid'}
+                        {isMarkingPaidId === expense.id ? (
+                          <span
+                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
+                            aria-hidden
+                          />
+                        ) : (
+                          <MarkPaidIcon className='h-4 w-4' />
+                        )}
                       </Button>
                       <Button
                         type='button'
@@ -227,8 +248,18 @@ export function ExpensesListPanel({
                         variant='danger'
                         disabled={isVoidingId === expense.id || expense.status === 'voided'}
                         onClick={() => openVoidDialog(expense.id)}
+                        aria-label='Void'
+                        title='Void expense'
+                        aria-busy={isVoidingId === expense.id}
                       >
-                        {isVoidingId === expense.id ? '…' : 'Void'}
+                        {isVoidingId === expense.id ? (
+                          <span
+                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent'
+                            aria-hidden
+                          />
+                        ) : (
+                          <VoidExpenseIcon className='h-4 w-4' />
+                        )}
                       </Button>
                     </div>
                   </td>
