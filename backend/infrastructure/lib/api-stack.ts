@@ -1184,7 +1184,6 @@ export class ApiStack extends cdk.Stack {
     );
     const assetDownloadDistributionCfn =
       assetDownloadDistribution.node.defaultChild as cloudfront.CfnDistribution;
-    assetDownloadDistribution.node.addDependency(assetsBucketMigrationResource);
     assetDownloadDistributionCfn.addPropertyOverride(
       "DistributionConfig.WebACLId",
       cdk.Fn.conditionIf(
@@ -1222,7 +1221,6 @@ export class ApiStack extends cdk.Stack {
         ADMIN_GROUP: adminGroupName,
       },
     });
-    adminFunction.node.addDependency(assetsBucketMigrationResource);
     database.grantAdminUserSecretRead(adminFunction);
     database.grantConnect(adminFunction, "evolvesprouts_admin");
     assetsBucket.grantReadWrite(adminFunction);
