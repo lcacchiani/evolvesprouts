@@ -1703,6 +1703,12 @@ export class ApiStack extends cdk.Stack {
         },
       }
     );
+    // Ensure SES validates the receipt role only after its default policy exists.
+    if (inboundInvoiceReceiptRole.policy) {
+      inboundInvoiceReceiptRule.node.addDependency(
+        inboundInvoiceReceiptRole.policy
+      );
+    }
 
     const activateInboundInvoiceReceiptRuleSetPolicy =
       customresources.AwsCustomResourcePolicy.fromStatements([
