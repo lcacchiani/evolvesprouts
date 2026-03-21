@@ -84,8 +84,8 @@ describe('SalesPage', () => {
     const user = userEvent.setup();
     render(<SalesPage />);
 
-    expect(screen.getByRole('button', { name: 'Pipeline' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Analytics' }));
+    expect(screen.getByRole('tab', { name: 'Pipeline' })).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Analytics' }));
     expect(state.setActiveView).toHaveBeenCalledWith('analytics');
   });
 

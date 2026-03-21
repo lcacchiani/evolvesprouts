@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { FileUploadButton } from '@/components/ui/file-upload-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,9 +20,6 @@ interface ExpensesEditorPanelProps {
   isLoadingVendors: boolean;
   isSaving: boolean;
   isUploadingFiles: boolean;
-  isDeletingCurrentExpense: boolean;
-  isMarkingCurrentExpensePaid: boolean;
-  isReparsingCurrentExpense: boolean;
   mutationError: string;
   onCreate: (payload: {
     input: {
@@ -79,9 +76,6 @@ interface ExpensesEditorPanelProps {
     newFiles: File[];
     existingAttachmentAssetIds: string[];
   }) => Promise<void>;
-  onCancelExpense: (expenseId: string, reason: string) => Promise<void>;
-  onMarkPaid: (expenseId: string) => Promise<void>;
-  onReparse: (expenseId: string) => Promise<void>;
   onStartCreate: () => void;
 }
 
@@ -140,16 +134,10 @@ export function ExpensesEditorPanel({
   isLoadingVendors,
   isSaving,
   isUploadingFiles,
-  isDeletingCurrentExpense,
-  isMarkingCurrentExpensePaid,
-  isReparsingCurrentExpense,
   mutationError,
   onCreate,
   onUpdate,
   onAmend,
-  onCancelExpense,
-  onMarkPaid,
-  onReparse,
   onStartCreate,
 }: ExpensesEditorPanelProps) {
   const currencyOptions = getCurrencyOptions();
@@ -235,11 +223,31 @@ export function ExpensesEditorPanel({
     }
   }
 
+  const primaryLabel =
+    isSaving || isUploadingFiles
+      ? 'Saving...'
+      : isTerminal
+        ? 'Create amendment'
+        : selectedExpense
+          ? 'Update expense'
+          : 'Submit expense';
+
   return (
-    <Card
-      title='Expenses'
+    <AdminEditorCard
+      title='Expense details'
       description='Upload invoice documents, verify parsed fields, and keep amendment history.'
-      className='space-y-4'
+      actions={
+        <>
+          {selectedExpense ? (
+            <Button type='button' variant='secondary' onClick={onStartCreate} disabled={isSaving || isUploadingFiles}>
+              Cancel
+            </Button>
+          ) : null}
+          <Button type='button' onClick={() => void handleSave()} disabled={isSaving || isUploadingFiles}>
+            {primaryLabel}
+          </Button>
+        </>
+      }
     >
       {mutationError ? (
         <StatusBanner variant='error' title='Expense'>
@@ -371,58 +379,6 @@ export function ExpensesEditorPanel({
         <input type='checkbox' checked={parseRequested} onChange={(event) => setParseRequested(event.target.checked)} />
         Queue parse after save
       </label>
-      <div className='flex flex-wrap gap-2'>
-        <Button type='button' onClick={() => void handleSave()} disabled={isSaving || isUploadingFiles}>
-          {isSaving || isUploadingFiles
-            ? 'Saving...'
-            : isTerminal
-              ? 'Create amendment'
-              : selectedExpense
-                ? 'Update expense'
-                : 'Submit expense'}
-        </Button>
-        {selectedExpense ? (
-          <Button type='button' variant='secondary' onClick={onStartCreate} disabled={isSaving || isUploadingFiles}>
-            New expense
-          </Button>
-        ) : null}
-        {selectedExpense ? (
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => void onReparse(selectedExpense.id)}
-            disabled={isReparsingCurrentExpense}
-          >
-            {isReparsingCurrentExpense ? 'Queueing parse...' : 'Reparse'}
-          </Button>
-        ) : null}
-        {selectedExpense ? (
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => void onMarkPaid(selectedExpense.id)}
-            disabled={isMarkingCurrentExpensePaid || selectedExpense.status === 'paid'}
-          >
-            {isMarkingCurrentExpensePaid ? 'Marking paid...' : 'Mark paid'}
-          </Button>
-        ) : null}
-        {selectedExpense ? (
-          <Button
-            type='button'
-            variant='danger'
-            onClick={() => {
-              const reason = window.prompt('Void reason');
-              if (!reason || !reason.trim()) {
-                return;
-              }
-              void onCancelExpense(selectedExpense.id, reason);
-            }}
-            disabled={isDeletingCurrentExpense || selectedExpense.status === 'voided'}
-          >
-            {isDeletingCurrentExpense ? 'Voiding...' : 'Void'}
-          </Button>
-        ) : null}
-      </div>
-    </Card>
+    </AdminEditorCard>
   );
 }

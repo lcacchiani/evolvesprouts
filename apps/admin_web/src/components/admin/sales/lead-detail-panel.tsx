@@ -115,17 +115,13 @@ export function LeadDetailPanel({
       description={mode === 'create' ? 'Create a new lead inline above the pipeline table.' : undefined}
       className='space-y-4'
     >
-      <div className='flex justify-end gap-2'>
-        {mode === 'create' ? (
-          <Button type='button' variant='secondary' onClick={onCancelCreate} disabled={isLoading}>
-            Cancel
-          </Button>
-        ) : (
+      {mode === 'edit' ? (
+        <div className='flex justify-start gap-2'>
           <Button type='button' onClick={onStartCreate}>
             New lead
           </Button>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {error ? (
         <StatusBanner variant='error' title={mode === 'create' ? 'Create lead' : 'Lead'}>
@@ -228,7 +224,10 @@ export function LeadDetailPanel({
             placeholder='Initial note'
             rows={3}
           />
-          <div className='flex justify-end'>
+          <div className='flex justify-start gap-2'>
+            <Button type='button' variant='secondary' onClick={onCancelCreate} disabled={isLoading}>
+              Cancel
+            </Button>
             <Button
               type='button'
               onClick={() => void handleCreate()}

@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
@@ -84,100 +86,128 @@ export function VendorsPanel({
   }
 
   return (
-    <PaginatedTableCard
-      title='Vendors'
-      isLoading={isLoading}
-      isLoadingMore={isLoadingMore}
-      hasMore={hasMore}
-      error={error}
-      loadingLabel='Loading vendors...'
-      onLoadMore={onLoadMore}
-      toolbar={
-        <div className='mb-3 space-y-3'>
-          <div className='grid grid-cols-1 gap-2 sm:grid-cols-4'>
-            <Input
-              value={filters.query}
-              onChange={(event) => onFilterChange('query', event.target.value)}
-              placeholder='Search vendor name'
-            />
+    <div className='space-y-6'>
+      <AdminEditorCard
+        title='Vendor'
+        description='Create a new vendor or select one in the table below to update.'
+        actions={
+          <>
+            {editorMode === 'edit' ? (
+              <Button type='button' variant='secondary' onClick={resetCreateForm} disabled={isSaving}>
+                Cancel
+              </Button>
+            ) : null}
+            <Button type='button' disabled={isSaving || !name.trim()} onClick={() => void handleSubmit()}>
+              {editorMode === 'create' ? 'Create vendor' : 'Update vendor'}
+            </Button>
+          </>
+        }
+      >
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+          <div>
+            <Label htmlFor='vendor-name'>Name</Label>
+            <Input id='vendor-name' value={name} onChange={(event) => setName(event.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor='vendor-website'>Website</Label>
+            <Input id='vendor-website' value={website} onChange={(event) => setWebsite(event.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor='vendor-active'>Status</Label>
             <Select
-              value={filters.active}
-              onChange={(event) => onFilterChange('active', event.target.value as VendorFilters['active'])}
+              id='vendor-active'
+              value={active ? 'true' : 'false'}
+              onChange={(event) => setActive(event.target.value === 'true')}
             >
-              <option value=''>All</option>
               <option value='true'>Active</option>
               <option value='false'>Inactive</option>
             </Select>
-            <div className='sm:col-span-2 flex justify-end gap-2'>
-              {editorMode === 'edit' ? (
-                <Button type='button' variant='secondary' onClick={resetCreateForm}>
-                  Cancel edit
-                </Button>
-              ) : null}
-              <Button type='button' onClick={resetCreateForm}>
-                New vendor
-              </Button>
-            </div>
           </div>
-          <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
-            <div>
-              <Label htmlFor='vendor-name'>Name</Label>
-              <Input id='vendor-name' value={name} onChange={(event) => setName(event.target.value)} />
+        </div>
+      </AdminEditorCard>
+
+      <PaginatedTableCard
+        title='Vendors'
+        isLoading={isLoading}
+        isLoadingMore={isLoadingMore}
+        hasMore={hasMore}
+        error={error}
+        loadingLabel='Loading vendors...'
+        onLoadMore={onLoadMore}
+        toolbar={
+          <div className='mb-3 flex flex-wrap items-end gap-3'>
+            <div className='min-w-[200px] flex-1'>
+              <Label htmlFor='vendors-search'>Search</Label>
+              <Input
+                id='vendors-search'
+                value={filters.query}
+                onChange={(event) => onFilterChange('query', event.target.value)}
+                placeholder='Vendor name'
+              />
             </div>
-            <div>
-              <Label htmlFor='vendor-website'>Website</Label>
-              <Input id='vendor-website' value={website} onChange={(event) => setWebsite(event.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor='vendor-active'>Status</Label>
+            <div className='min-w-[140px]'>
+              <Label htmlFor='vendors-active'>Status</Label>
               <Select
-                id='vendor-active'
-                value={active ? 'true' : 'false'}
-                onChange={(event) => setActive(event.target.value === 'true')}
+                id='vendors-active'
+                value={filters.active}
+                onChange={(event) => onFilterChange('active', event.target.value as VendorFilters['active'])}
               >
+                <option value=''>All</option>
                 <option value='true'>Active</option>
                 <option value='false'>Inactive</option>
               </Select>
             </div>
           </div>
-          <div className='flex justify-end gap-2'>
-            <Button type='button' size='sm' disabled={isSaving || !name.trim()} onClick={() => void handleSubmit()}>
-              {editorMode === 'create' ? 'Create vendor' : 'Save vendor'}
-            </Button>
-          </div>
-        </div>
-      }
-    >
-      <table className='w-full min-w-[760px] text-left text-sm'>
-        <thead className='text-slate-500'>
-          <tr>
-            <th className='py-2 pr-3 font-medium'>Name</th>
-            <th className='py-2 pr-3 font-medium'>Website</th>
-            <th className='py-2 pr-3 font-medium'>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {vendors.map((vendor) => (
-            <tr
-              key={vendor.id}
-              className={`cursor-pointer border-t ${
-                selectedVendorId === vendor.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-              }`}
-              onClick={() => {
-                setSelectedVendorId(vendor.id);
-                setEditorMode('edit');
-                setName(vendor.name);
-                setWebsite(vendor.website ?? '');
-                setActive(vendor.active);
-              }}
-            >
-              <td className='py-2 pr-3'>{vendor.name}</td>
-              <td className='py-2 pr-3'>{vendor.website ?? '—'}</td>
-              <td className='py-2 pr-3'>{vendor.active ? 'Active' : 'Inactive'}</td>
+        }
+      >
+        <AdminDataTable tableClassName='min-w-[760px]'>
+          <AdminDataTableHead>
+            <tr>
+              <th className='px-4 py-3 font-semibold'>Name</th>
+              <th className='px-4 py-3 font-semibold'>Website</th>
+              <th className='px-4 py-3 font-semibold'>Status</th>
+              <th className='px-4 py-3 font-semibold text-right'>Operations</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </PaginatedTableCard>
+          </AdminDataTableHead>
+          <AdminDataTableBody>
+            {vendors.map((vendor) => (
+              <tr
+                key={vendor.id}
+                className={`cursor-pointer transition ${
+                  selectedVendorId === vendor.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                }`}
+                onClick={() => {
+                  setSelectedVendorId(vendor.id);
+                  setEditorMode('edit');
+                  setName(vendor.name);
+                  setWebsite(vendor.website ?? '');
+                  setActive(vendor.active);
+                }}
+              >
+                <td className='px-4 py-3'>{vendor.name}</td>
+                <td className='px-4 py-3'>{vendor.website ?? '—'}</td>
+                <td className='px-4 py-3'>{vendor.active ? 'Active' : 'Inactive'}</td>
+                <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
+                  <Button
+                    type='button'
+                    size='sm'
+                    variant='ghost'
+                    onClick={() => {
+                      setSelectedVendorId(vendor.id);
+                      setEditorMode('edit');
+                      setName(vendor.name);
+                      setWebsite(vendor.website ?? '');
+                      setActive(vendor.active);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </AdminDataTableBody>
+        </AdminDataTable>
+      </PaginatedTableCard>
+    </div>
   );
 }

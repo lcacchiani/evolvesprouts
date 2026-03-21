@@ -7,8 +7,13 @@ import { LeadsTable } from './leads-table';
 import { SalesHeader } from './sales-header';
 
 import { StatusBanner } from '@/components/status-banner';
-import { Button } from '@/components/ui/button';
-import { useSalesPage } from '@/hooks/use-sales-page';
+import { AdminTabStrip } from '@/components/ui/admin-tab-strip';
+import { type SalesView, useSalesPage } from '@/hooks/use-sales-page';
+
+const SALES_TAB_ITEMS: { key: SalesView; label: string }[] = [
+  { key: 'pipeline', label: 'Pipeline' },
+  { key: 'analytics', label: 'Analytics' },
+];
 
 export function SalesPage() {
   const state = useSalesPage();
@@ -27,22 +32,12 @@ export function SalesPage() {
         </StatusBanner>
       ) : null}
 
-      <div className='flex gap-2'>
-        <Button
-          type='button'
-          variant={state.activeView === 'pipeline' ? 'secondary' : 'ghost'}
-          onClick={() => state.setActiveView('pipeline')}
-        >
-          Pipeline
-        </Button>
-        <Button
-          type='button'
-          variant={state.activeView === 'analytics' ? 'secondary' : 'ghost'}
-          onClick={() => state.setActiveView('analytics')}
-        >
-          Analytics
-        </Button>
-      </div>
+      <AdminTabStrip
+        aria-label='Sales views'
+        items={SALES_TAB_ITEMS}
+        activeKey={state.activeView}
+        onChange={state.setActiveView}
+      />
 
       <SalesHeader
         activeView={state.activeView}

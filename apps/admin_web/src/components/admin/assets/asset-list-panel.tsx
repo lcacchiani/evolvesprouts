@@ -10,11 +10,12 @@ import { DeleteIcon } from '@/components/icons/action-icons';
 import OpenInNewTabIcon from '@/components/icons/svg/open-in-new-tab-icon.svg';
 import { getUserAssetDownloadUrl } from '@/lib/assets-api';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { StatusBanner } from '@/components/status-banner';
+import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { formatDate, toTitleCase } from '@/lib/format';
 
@@ -98,136 +99,123 @@ export function AssetListPanel({
 
   return (
     <>
-      <Card
+      <PaginatedTableCard
         title='Assets'
         description='Manage document (PDF) assets delivered through presigned URLs.'
-        className='space-y-4'
-      >
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_180px]'>
-          <Input
-            value={filters.query ?? ''}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder='Search by title or file name'
-          />
-          <Select
-            value={filters.visibility ?? ''}
-            onChange={(event) => onVisibilityChange(event.target.value as AssetVisibility | '')}
-            aria-label='Filter by visibility'
-          >
-            <option value=''>All visibility</option>
-            {ASSET_VISIBILITIES.map((visibility) => (
-              <option key={visibility} value={visibility}>
-                {toTitleCase(visibility)}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        {assetsError ? (
-          <StatusBanner variant='error' title='Assets'>
-            {assetsError}
-          </StatusBanner>
-        ) : null}
-
-        {viewAssetError ? (
-          <p className='text-sm text-red-600' role='alert'>
-            {viewAssetError}
-          </p>
-        ) : null}
-
-        <div className='overflow-x-auto rounded-md border border-slate-200'>
-          <table className='w-full min-w-[860px] divide-y divide-slate-200 text-left'>
-            <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
-              <tr>
-                <th className='px-4 py-3 font-semibold'>Title</th>
-                <th className='px-4 py-3 font-semibold'>Visibility</th>
-                <th className='px-4 py-3 font-semibold'>File</th>
-                <th className='px-4 py-3 font-semibold'>Updated</th>
-                <th className='px-4 py-3 font-semibold text-right'>Operations</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-slate-200 bg-white text-sm'>
-              {isLoadingAssets ? (
-                <tr>
-                  <td className='px-4 py-8 text-slate-600' colSpan={5}>
-                    Loading assets...
-                  </td>
-                </tr>
-              ) : assets.length === 0 ? (
-                <tr>
-                  <td className='px-4 py-8 text-slate-600' colSpan={5}>
-                    No assets found for the current filters.
-                  </td>
-                </tr>
-              ) : (
-                assets.map((asset) => {
-                  const isSelected = asset.id === selectedAssetId;
-                  return (
-                    <tr
-                      key={asset.id}
-                      className={`cursor-pointer transition hover:bg-slate-50 ${
-                        isSelected ? 'bg-slate-100' : ''
-                      }`}
-                      onClick={() => onSelectAsset(asset.id)}
-                      onKeyDown={(event) => handleRowKeyDown(event, asset.id)}
-                      tabIndex={0}
-                      role='row'
-                      aria-selected={isSelected}
-                    >
-                      <td className='px-4 py-3'>
-                        <p className='font-medium text-slate-900'>{asset.title}</p>
-                        <p className='mt-0.5 text-xs text-slate-500'>{asset.id}</p>
-                      </td>
-                      <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.visibility)}</td>
-                      <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>
-                      <td className='px-4 py-3 text-slate-700'>{formatDate(asset.updatedAt)}</td>
-                      <td className='px-4 py-3 text-right'>
-                        <div className='flex justify-end gap-1'>
-                          <Button
-                            type='button'
-                            size='sm'
-                            variant='outline'
-                            onClick={(event) => void handleOpenAssetInNewTab(asset, event)}
-                            disabled={openingAssetId === asset.id}
-                            title='Open asset in new tab'
-                            aria-label='Open asset in new tab'
-                          >
-                            <OpenInNewTabIcon className='h-4 w-4' />
-                          </Button>
-                          <Button
-                            type='button'
-                            size='sm'
-                            variant='danger'
-                            onClick={(event) => void handleDeleteAsset(asset, event)}
-                            disabled={isDeletingAssetId === asset.id}
-                            title='Delete asset'
-                            aria-label='Delete asset'
-                          >
-                            <DeleteIcon className='h-4 w-4' />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {nextCursor ? (
-          <div className='flex justify-center pt-2'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => void onLoadMore()}
-              disabled={isLoadingMoreAssets}
-            >
-              {isLoadingMoreAssets ? 'Loading...' : 'Load more'}
-            </Button>
+        isLoading={isLoadingAssets}
+        isLoadingMore={isLoadingMoreAssets}
+        hasMore={Boolean(nextCursor)}
+        error={assetsError}
+        loadingLabel='Loading assets...'
+        onLoadMore={onLoadMore}
+        toolbar={
+          <div className='mb-3 space-y-2'>
+            <div className='flex flex-wrap items-end gap-3'>
+              <div className='min-w-[200px] flex-1'>
+                <Label htmlFor='assets-search'>Search</Label>
+                <Input
+                  id='assets-search'
+                  value={filters.query ?? ''}
+                  onChange={(event) => onQueryChange(event.target.value)}
+                  placeholder='Title or file name'
+                />
+              </div>
+              <div className='min-w-[180px]'>
+                <Label htmlFor='assets-visibility'>Visibility</Label>
+                <Select
+                  id='assets-visibility'
+                  value={filters.visibility ?? ''}
+                  onChange={(event) => onVisibilityChange(event.target.value as AssetVisibility | '')}
+                >
+                  <option value=''>All</option>
+                  {ASSET_VISIBILITIES.map((visibility) => (
+                    <option key={visibility} value={visibility}>
+                      {toTitleCase(visibility)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+            {viewAssetError ? (
+              <p className='text-sm text-red-600' role='alert'>
+                {viewAssetError}
+              </p>
+            ) : null}
           </div>
-        ) : null}
-      </Card>
+        }
+      >
+        <AdminDataTable tableClassName='min-w-[860px]'>
+          <AdminDataTableHead>
+            <tr>
+              <th className='px-4 py-3 font-semibold'>Title</th>
+              <th className='px-4 py-3 font-semibold'>Visibility</th>
+              <th className='px-4 py-3 font-semibold'>File</th>
+              <th className='px-4 py-3 font-semibold'>Updated</th>
+              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+            </tr>
+          </AdminDataTableHead>
+          <AdminDataTableBody>
+            {isLoadingAssets ? null : assets.length === 0 ? (
+              <tr>
+                <td className='px-4 py-8 text-slate-600' colSpan={5}>
+                  No assets found for the current filters.
+                </td>
+              </tr>
+            ) : (
+              assets.map((asset) => {
+                const isSelected = asset.id === selectedAssetId;
+                return (
+                  <tr
+                    key={asset.id}
+                    className={`cursor-pointer transition hover:bg-slate-50 ${
+                      isSelected ? 'bg-slate-100' : ''
+                    }`}
+                    onClick={() => onSelectAsset(asset.id)}
+                    onKeyDown={(event) => handleRowKeyDown(event, asset.id)}
+                    tabIndex={0}
+                    role='row'
+                    aria-selected={isSelected}
+                  >
+                    <td className='px-4 py-3'>
+                      <p className='font-medium text-slate-900'>{asset.title}</p>
+                      <p className='mt-0.5 text-xs text-slate-500'>{asset.id}</p>
+                    </td>
+                    <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.visibility)}</td>
+                    <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>
+                    <td className='px-4 py-3 text-slate-700'>{formatDate(asset.updatedAt)}</td>
+                    <td className='px-4 py-3 text-right'>
+                      <div className='flex justify-end gap-1'>
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='outline'
+                          onClick={(event) => void handleOpenAssetInNewTab(asset, event)}
+                          disabled={openingAssetId === asset.id}
+                          title='Open asset in new tab'
+                          aria-label='Open asset in new tab'
+                        >
+                          <OpenInNewTabIcon className='h-4 w-4' />
+                        </Button>
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='danger'
+                          onClick={(event) => void handleDeleteAsset(asset, event)}
+                          disabled={isDeletingAssetId === asset.id}
+                          title='Delete asset'
+                          aria-label='Delete asset'
+                        >
+                          <DeleteIcon className='h-4 w-4' />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </AdminDataTableBody>
+        </AdminDataTable>
+      </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
     </>
   );

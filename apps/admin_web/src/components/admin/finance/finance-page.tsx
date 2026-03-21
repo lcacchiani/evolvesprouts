@@ -56,12 +56,6 @@ export function FinancePage() {
     );
   }
 
-  const isSelectedDeleting = Boolean(expenses.selectedExpenseId) && expenses.isDeletingId === expenses.selectedExpenseId;
-  const isSelectedMarkingPaid =
-    Boolean(expenses.selectedExpenseId) && expenses.isMarkingPaidId === expenses.selectedExpenseId;
-  const isSelectedReparsing =
-    Boolean(expenses.selectedExpenseId) && expenses.isReparsingId === expenses.selectedExpenseId;
-
   return (
     <div className='space-y-6'>
       <FinanceHeader activeView={activeView} onSetView={setActiveView} />
@@ -70,18 +64,12 @@ export function FinancePage() {
         selectedExpense={expenses.selectedExpense}
         isSaving={expenses.isSaving}
         isUploadingFiles={expenses.isUploadingFiles}
-        isDeletingCurrentExpense={isSelectedDeleting}
-        isMarkingCurrentExpensePaid={isSelectedMarkingPaid}
-        isReparsingCurrentExpense={isSelectedReparsing}
         mutationError={expenses.mutationError}
         vendorOptions={vendors.vendors}
         isLoadingVendors={vendors.isLoading}
         onCreate={expenses.createExpenseEntry}
         onUpdate={expenses.updateExpenseEntry}
         onAmend={expenses.amendExpenseEntry}
-        onCancelExpense={expenses.cancelExpenseEntry}
-        onMarkPaid={expenses.markPaidExpenseEntry}
-        onReparse={expenses.reparseExpenseEntry}
         onStartCreate={expenses.clearSelectedExpense}
       />
       <ExpensesListPanel
@@ -94,11 +82,17 @@ export function FinancePage() {
         isLoadingMore={expenses.isLoadingMore}
         hasMore={expenses.hasMore}
         error={expenses.error}
+        isVoidingId={expenses.isDeletingId}
+        isMarkingPaidId={expenses.isMarkingPaidId}
+        isReparsingId={expenses.isReparsingId}
         onLoadMore={expenses.loadMore}
         onSelectExpense={expenses.selectExpense}
         onQueryChange={(value) => expenses.setFilter('query', value)}
         onStatusChange={(value) => expenses.setFilter('status', value)}
         onParseStatusChange={(value) => expenses.setFilter('parseStatus', value)}
+        onReparse={expenses.reparseExpenseEntry}
+        onMarkPaid={expenses.markPaidExpenseEntry}
+        onVoidExpense={expenses.cancelExpenseEntry}
       />
     </div>
   );

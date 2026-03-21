@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,6 +14,8 @@ export interface ConfirmDialogProps {
   variant?: 'danger' | 'default';
   onConfirm: () => void;
   onCancel: () => void;
+  /** Optional fields (for example a void reason) rendered between the description and actions. */
+  children?: ReactNode;
 }
 
 export function ConfirmDialog({
@@ -25,6 +27,7 @@ export function ConfirmDialog({
   variant = 'default',
   onConfirm,
   onCancel,
+  children,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
@@ -106,6 +109,7 @@ export function ConfirmDialog({
               {description}
             </p>
           </div>
+          {children}
           <div className='flex justify-end gap-2'>
             <Button type='button' variant='secondary' onClick={onCancel}>
               {cancelLabel}
