@@ -72,7 +72,7 @@ describe('FinancePage', () => {
     expect(screen.getByRole('button', { name: 'Expenses' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Vendors' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Client invoices' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Expenses' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Expense details' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Vendors' }));
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
@@ -84,8 +84,8 @@ describe('FinancePage', () => {
   it('renders expense editor before submitted expenses list', () => {
     render(<FinancePage />);
 
-    const editorHeading = screen.getByRole('heading', { name: 'Expenses' });
-    const listHeading = screen.getByRole('heading', { name: 'Submitted Expenses' });
+    const editorHeading = screen.getByRole('heading', { name: 'Expense details' });
+    const listHeading = screen.getByRole('heading', { name: 'Submitted expenses' });
 
     expect(editorHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

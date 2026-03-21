@@ -1,8 +1,14 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { AdminTabStrip, type AdminTabItem } from '@/components/ui/admin-tab-strip';
 
 export type FinanceView = 'expenses' | 'vendors' | 'client-invoices';
+
+export const FINANCE_TAB_ITEMS: readonly AdminTabItem<FinanceView>[] = [
+  { key: 'expenses', label: 'Expenses' },
+  { key: 'vendors', label: 'Vendors' },
+  { key: 'client-invoices', label: 'Client invoices' },
+] as const;
 
 export interface FinanceHeaderProps {
   activeView: FinanceView;
@@ -11,20 +17,11 @@ export interface FinanceHeaderProps {
 
 export function FinanceHeader({ activeView, onSetView }: FinanceHeaderProps) {
   return (
-    <div className='flex gap-2'>
-      <Button type='button' variant={activeView === 'expenses' ? 'secondary' : 'ghost'} onClick={() => onSetView('expenses')}>
-        Expenses
-      </Button>
-      <Button type='button' variant={activeView === 'vendors' ? 'secondary' : 'ghost'} onClick={() => onSetView('vendors')}>
-        Vendors
-      </Button>
-      <Button
-        type='button'
-        variant={activeView === 'client-invoices' ? 'secondary' : 'ghost'}
-        onClick={() => onSetView('client-invoices')}
-      >
-        Client invoices
-      </Button>
-    </div>
+    <AdminTabStrip
+      aria-label='Finance views'
+      items={FINANCE_TAB_ITEMS}
+      activeKey={activeView}
+      onChange={onSetView}
+    />
   );
 }

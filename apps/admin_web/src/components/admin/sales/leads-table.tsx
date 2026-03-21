@@ -4,9 +4,8 @@ import { useMemo, useState } from 'react';
 
 import type { AdminUser, FunnelStage, LeadListFilters, LeadSummary } from '@/types/leads';
 
-import { StatusBanner } from '@/components/status-banner';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 
 import { LeadsBulkActions } from './leads-bulk-actions';
 import { LeadsFilterBar } from './leads-filter-bar';
@@ -62,95 +61,83 @@ export function LeadsTable({
   };
 
   return (
-    <Card title={`Leads (${totalCount})`} className='space-y-4'>
-      <LeadsFilterBar
-        filters={filters}
-        users={users}
-        onFilterChange={onFilterChange}
-      />
-      <LeadsBulkActions
-        selectedCount={selectedIds.length}
-        users={users}
-        onBulkAssign={(assignedTo) => {
-          const normalizedAssignedTo = assignedTo === '__none__' ? null : assignedTo;
-          void onBulkAssign(selectedIds, normalizedAssignedTo);
-          setSelectedIds([]);
-        }}
-        onBulkStageChange={(
-          stage,
-          lostReason
-        ) => {
-          void onBulkStageChange(selectedIds, stage, lostReason);
-          setSelectedIds([]);
-        }}
-      />
-
-      {error ? (
-        <StatusBanner variant='error' title='Leads'>
-          {error}
-        </StatusBanner>
-      ) : null}
-
-      <div className='overflow-x-auto rounded-md border border-slate-200'>
-        <table className='w-full min-w-[1080px] divide-y divide-slate-200 text-left'>
-          <thead className='sticky top-0 z-10 bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
-            <tr>
-              <th className='px-3 py-3'>
-                <input
-                  type='checkbox'
-                  checked={leads.length > 0 && selectedIds.length === leads.length}
-                  onChange={(event) =>
-                    setSelectedIds(event.target.checked ? leads.map((lead) => lead.id) : [])
-                  }
-                />
-              </th>
-              <th className='px-3 py-3 font-semibold'>Name</th>
-              <th className='px-3 py-3 font-semibold'>Email</th>
-              <th className='px-3 py-3 font-semibold'>Source</th>
-              <th className='px-3 py-3 font-semibold'>Stage</th>
-              <th className='px-3 py-3 font-semibold'>Assigned</th>
-              <th className='px-3 py-3 font-semibold'>Created</th>
-              <th className='px-3 py-3 font-semibold'>Days in stage</th>
-              <th className='px-3 py-3 font-semibold text-right'>Actions</th>
-            </tr>
-          </thead>
-          <tbody className='divide-y divide-slate-200 bg-white'>
-            {isLoading ? (
-              <tr>
-                <td colSpan={9} className='px-3 py-8 text-sm text-slate-600'>
-                  Loading leads...
-                </td>
-              </tr>
-            ) : leads.length === 0 ? (
-              <tr>
-                <td colSpan={9} className='px-3 py-8 text-sm text-slate-600'>
-                  No leads found for these filters.
-                </td>
-              </tr>
-            ) : (
-              leads.map((lead) => (
-                <LeadsTableRow
-                  key={lead.id}
-                  lead={lead}
-                  users={users}
-                  isSelected={selectedLeadId === lead.id}
-                  isChecked={selectedSet.has(lead.id)}
-                  onSelect={onSelectLead}
-                  onCheck={handleCheck}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {hasMore ? (
-        <div className='flex justify-center'>
-          <Button type='button' variant='outline' onClick={() => void onLoadMore()} disabled={isLoadingMore}>
-            {isLoadingMore ? 'Loading...' : 'Load more'}
-          </Button>
+    <PaginatedTableCard
+      title={`Leads (${totalCount})`}
+      isLoading={isLoading}
+      isLoadingMore={isLoadingMore}
+      hasMore={hasMore}
+      error={error}
+      loadingLabel='Loading leads...'
+      onLoadMore={onLoadMore}
+      toolbar={
+        <div className='mb-3 space-y-3'>
+          <LeadsFilterBar filters={filters} users={users} onFilterChange={onFilterChange} />
+          <LeadsBulkActions
+            selectedCount={selectedIds.length}
+            users={users}
+            onBulkAssign={(assignedTo) => {
+              const normalizedAssignedTo = assignedTo === '__none__' ? null : assignedTo;
+              void onBulkAssign(selectedIds, normalizedAssignedTo);
+              setSelectedIds([]);
+            }}
+            onBulkStageChange={(stage, lostReason) => {
+              void onBulkStageChange(selectedIds, stage, lostReason);
+              setSelectedIds([]);
+            }}
+          />
         </div>
-      ) : null}
-    </Card>
+      }
+    >
+      <AdminDataTable tableClassName='min-w-[1080px]'>
+        <AdminDataTableHead sticky>
+          <tr>
+            <th className='px-3 py-3'>
+              <input
+                type='checkbox'
+                checked={leads.length > 0 && selectedIds.length === leads.length}
+                onChange={(event) =>
+                  setSelectedIds(event.target.checked ? leads.map((lead) => lead.id) : [])
+                }
+              />
+            </th>
+            <th className='px-3 py-3 font-semibold'>Name</th>
+            <th className='px-3 py-3 font-semibold'>Email</th>
+            <th className='px-3 py-3 font-semibold'>Source</th>
+            <th className='px-3 py-3 font-semibold'>Stage</th>
+            <th className='px-3 py-3 font-semibold'>Assigned</th>
+            <th className='px-3 py-3 font-semibold'>Created</th>
+            <th className='px-3 py-3 font-semibold'>Days in stage</th>
+            <th className='px-3 py-3 text-right font-semibold'>Operations</th>
+          </tr>
+        </AdminDataTableHead>
+        <AdminDataTableBody>
+          {isLoading ? (
+            <tr>
+              <td colSpan={9} className='px-3 py-8 text-sm text-slate-600'>
+                Loading leads...
+              </td>
+            </tr>
+          ) : leads.length === 0 ? (
+            <tr>
+              <td colSpan={9} className='px-3 py-8 text-sm text-slate-600'>
+                No leads found for these filters.
+              </td>
+            </tr>
+          ) : (
+            leads.map((lead) => (
+              <LeadsTableRow
+                key={lead.id}
+                lead={lead}
+                users={users}
+                isSelected={selectedLeadId === lead.id}
+                isChecked={selectedSet.has(lead.id)}
+                onSelect={onSelectLead}
+                onCheck={handleCheck}
+              />
+            ))
+          )}
+        </AdminDataTableBody>
+      </AdminDataTable>
+    </PaginatedTableCard>
   );
 }

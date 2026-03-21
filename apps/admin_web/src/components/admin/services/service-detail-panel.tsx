@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -132,10 +132,63 @@ export function ServiceDetailPanel({
   };
 
   return (
-    <Card
+    <AdminEditorCard
       title='Services'
       description='Add or update a service using the same fields below.'
-      className='space-y-4'
+      actions={
+        <>
+          {isEditMode ? (
+            <>
+              <Button type='button' variant='secondary' onClick={onCancelSelection} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button
+                type='button'
+                disabled={isLoading || !service}
+                onClick={() => {
+                  if (!service) {
+                    return;
+                  }
+                  void onUpdate({
+                    title: serviceForm.title.trim(),
+                    description: serviceForm.description.trim() || null,
+                    delivery_mode: serviceForm.deliveryMode,
+                    status: serviceForm.status,
+                    ...buildTypeSpecificPayload(service.serviceType),
+                  });
+                }}
+              >
+                {isLoading ? 'Updating...' : 'Update service'}
+              </Button>
+              <Button
+                type='button'
+                variant='outline'
+                disabled={isLoading || !coverFileName.trim() || !service}
+                onClick={() => void onUploadCover(coverFileName.trim(), 'image/jpeg')}
+              >
+                Generate cover upload URL
+              </Button>
+            </>
+          ) : (
+            <Button
+              type='button'
+              disabled={isLoading || !serviceForm.title.trim()}
+              onClick={() =>
+                void onCreate({
+                  service_type: serviceType,
+                  title: serviceForm.title.trim(),
+                  description: serviceForm.description.trim() || null,
+                  delivery_mode: serviceForm.deliveryMode,
+                  status: serviceForm.status,
+                  ...buildTypeSpecificPayload(serviceType),
+                })
+              }
+            >
+              {isLoading ? 'Adding...' : 'Add service'}
+            </Button>
+          )}
+        </>
+      }
     >
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div>
@@ -186,66 +239,6 @@ export function ServiceDetailPanel({
       ) : null}
 
       {error ? <p className='text-sm text-red-600'>{error}</p> : null}
-
-      <div className='flex flex-wrap justify-start gap-2'>
-        {isEditMode ? (
-          <Button
-            type='button'
-            disabled={isLoading || !service}
-            onClick={() => {
-              if (!service) {
-                return;
-              }
-              void onUpdate({
-                title: serviceForm.title.trim(),
-                description: serviceForm.description.trim() || null,
-                delivery_mode: serviceForm.deliveryMode,
-                status: serviceForm.status,
-                ...buildTypeSpecificPayload(service.serviceType),
-              });
-            }}
-          >
-            {isLoading ? 'Updating...' : 'Update Service'}
-          </Button>
-        ) : (
-          <Button
-            type='button'
-            disabled={isLoading || !serviceForm.title.trim()}
-            onClick={() =>
-              void onCreate({
-                service_type: serviceType,
-                title: serviceForm.title.trim(),
-                description: serviceForm.description.trim() || null,
-                delivery_mode: serviceForm.deliveryMode,
-                status: serviceForm.status,
-                ...buildTypeSpecificPayload(serviceType),
-              })
-            }
-          >
-            {isLoading ? 'Adding...' : 'Add Service'}
-          </Button>
-        )}
-        {isEditMode ? (
-          <>
-            <Button
-              type='button'
-              variant='secondary'
-              onClick={onCancelSelection}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              disabled={isLoading || !coverFileName.trim() || !service}
-              onClick={() => void onUploadCover(coverFileName.trim(), 'image/jpeg')}
-            >
-              Generate cover upload URL
-            </Button>
-          </>
-        ) : null}
-      </div>
-    </Card>
+    </AdminEditorCard>
   );
 }

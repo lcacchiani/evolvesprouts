@@ -16,8 +16,8 @@ import { TrainingFormFields, type TrainingFormState } from './training-form-fiel
 import type { components } from '@/types/generated/admin-api.generated';
 import type { ServiceInstance, ServiceType } from '@/types/services';
 
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 
 type ApiSchemas = components['schemas'];
 
@@ -152,10 +152,38 @@ export function InstanceDetailPanel({
   });
 
   return (
-    <Card
+    <AdminEditorCard
       title='Instances'
       description='Add or update an instance using the same fields below.'
-      className='space-y-4'
+      actions={
+        serviceType ? (
+          <>
+            {isEditMode ? (
+              <>
+                <Button type='button' variant='secondary' disabled={isLoading} onClick={onCancelSelection}>
+                  Cancel
+                </Button>
+                <Button
+                  type='button'
+                  disabled={isLoading || !instance}
+                  onClick={() => {
+                    if (!instance) {
+                      return;
+                    }
+                    void onUpdate(instance.id, buildUpdatePayload());
+                  }}
+                >
+                  {isLoading ? 'Updating...' : 'Update instance'}
+                </Button>
+              </>
+            ) : (
+              <Button type='button' disabled={isLoading} onClick={() => void onCreate(buildCreatePayload())}>
+                {isLoading ? 'Adding...' : 'Add instance'}
+              </Button>
+            )}
+          </>
+        ) : undefined
+      }
     >
       {!serviceType ? (
         <p className='text-sm text-slate-500'>Select a service before creating or editing instances.</p>
@@ -173,41 +201,8 @@ export function InstanceDetailPanel({
           ) : null}
 
           {error ? <p className='text-sm text-red-600'>{error}</p> : null}
-
-          <div className='flex flex-wrap justify-start gap-2'>
-            {isEditMode ? (
-              <Button
-                type='button'
-                disabled={isLoading || !instance}
-                onClick={() => {
-                  if (!instance) {
-                    return;
-                  }
-                  void onUpdate(instance.id, buildUpdatePayload());
-                }}
-              >
-                {isLoading ? 'Updating...' : 'Update Instance'}
-              </Button>
-            ) : (
-              <Button type='button' disabled={isLoading} onClick={() => void onCreate(buildCreatePayload())}>
-                {isLoading ? 'Adding...' : 'Add Instance'}
-              </Button>
-            )}
-            {isEditMode ? (
-              <>
-                <Button
-                  type='button'
-                  variant='secondary'
-                  disabled={isLoading}
-                  onClick={onCancelSelection}
-                >
-                  Cancel
-                </Button>
-              </>
-            ) : null}
-          </div>
         </>
       )}
-    </Card>
+    </AdminEditorCard>
   );
 }

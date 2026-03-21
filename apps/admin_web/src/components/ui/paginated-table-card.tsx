@@ -7,6 +7,7 @@ import { Card } from './card';
 
 export interface PaginatedTableCardProps {
   title: string;
+  description?: string;
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
@@ -19,6 +20,7 @@ export interface PaginatedTableCardProps {
 
 export function PaginatedTableCard({
   title,
+  description,
   isLoading,
   isLoadingMore,
   hasMore,
@@ -29,7 +31,7 @@ export function PaginatedTableCard({
   children,
 }: PaginatedTableCardProps) {
   return (
-    <Card title={title}>
+    <Card title={title} description={description}>
       {toolbar}
       {error ? <p className='mb-2 text-sm text-red-600'>{error}</p> : null}
       <div className='overflow-x-auto'>

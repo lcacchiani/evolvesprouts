@@ -9,13 +9,15 @@ import { ASSET_VISIBILITIES } from '@/types/assets';
 
 import { AssetShareLinkSection } from '@/components/admin/assets/asset-share-link-section';
 import { StatusBanner } from '@/components/status-banner';
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { FileUploadButton } from '@/components/ui/file-upload-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+
+const ASSET_EDITOR_FORM_ID = 'admin-asset-editor-form';
 
 interface AssetEditorPanelProps {
   selectedAsset: AdminAsset | null;
@@ -181,7 +183,31 @@ export function AssetEditorPanel({
   };
 
   return (
-    <Card title={cardTitle} description={cardDescription} className='space-y-4'>
+    <AdminEditorCard
+      title={cardTitle}
+      description={cardDescription}
+      actions={
+        <>
+          {isEditMode ? (
+            <Button
+              type='button'
+              variant='secondary'
+              onClick={handleCancel}
+              disabled={isSavingAsset || isDeletingCurrentAsset}
+            >
+              Cancel
+            </Button>
+          ) : null}
+          <Button
+            type='submit'
+            form={ASSET_EDITOR_FORM_ID}
+            disabled={isSavingAsset}
+          >
+            {submitLabel}
+          </Button>
+        </>
+      }
+    >
       {assetMutationError ? (
         <StatusBanner variant='error' title='Asset'>
           {assetMutationError}
@@ -221,7 +247,7 @@ export function AssetEditorPanel({
         </StatusBanner>
       ) : null}
 
-      <form onSubmit={handleSubmit} className='space-y-4'>
+      <form id={ASSET_EDITOR_FORM_ID} onSubmit={handleSubmit} className='space-y-4'>
         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
           <div className='space-y-2'>
             <Label htmlFor='asset-title'>Title *</Label>
@@ -308,23 +334,7 @@ export function AssetEditorPanel({
             placeholder='Optional summary shown in client applications.'
           />
         </div>
-
-        <div className='flex flex-wrap items-center justify-end gap-2'>
-          {isEditMode ? (
-            <Button
-              type='button'
-              variant='secondary'
-              onClick={handleCancel}
-              disabled={isSavingAsset || isDeletingCurrentAsset}
-            >
-              Cancel
-            </Button>
-          ) : null}
-          <Button type='submit' disabled={isSavingAsset}>
-            {submitLabel}
-          </Button>
-        </div>
       </form>
-    </Card>
+    </AdminEditorCard>
   );
 }

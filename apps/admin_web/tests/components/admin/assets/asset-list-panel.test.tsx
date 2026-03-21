@@ -84,7 +84,7 @@ describe('AssetListPanel', () => {
     const { onQueryChange, onLoadMore } = renderPanel();
 
     expect(screen.getByText('Infant Nutrition Guide')).toBeInTheDocument();
-    await user.type(screen.getByPlaceholderText('Search by title or file name'), 'guide');
+    await user.type(screen.getByLabelText('Search'), 'guide');
     expect(onQueryChange).toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'Load more' }));
