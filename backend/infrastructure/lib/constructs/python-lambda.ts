@@ -56,6 +56,8 @@ export interface PythonLambdaProps {
   logEncryptionKey?: kms.IKey;
   /** Dead letter queue for failed invocations. */
   deadLetterQueue?: sqs.IQueue;
+  /** Whether CDK should manage a dedicated CloudWatch log group resource. */
+  manageLogGroup?: boolean;
 }
 
 /**
@@ -151,17 +153,19 @@ export class PythonLambda extends Construct {
         retentionPeriod: cdk.Duration.days(14),
       });
 
-    const logEncryptionKey = props.logEncryptionKey ?? this.createLogEncryptionKey();
+    const manageLogGroup = props.manageLogGroup ?? true;
+    const logEncryptionKey = manageLogGroup
+      ? props.logEncryptionKey ?? this.createLogEncryptionKey()
+      : undefined;
 
-    // Standard 90-day log retention for all Lambda functions
-    // SECURITY: Encrypted with KMS key
-    // Use standard /aws/lambda/{functionName} naming convention
-    const logGroup = new logs.LogGroup(this, "LogGroup", {
-      logGroupName: `/aws/lambda/${props.functionName}`,
-      retention: STANDARD_LOG_RETENTION,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      encryptionKey: logEncryptionKey,
-    });
+    const logGroup = manageLogGroup
+      ? new logs.LogGroup(this, "LogGroup", {
+          logGroupName: `/aws/lambda/${props.functionName}`,
+          retention: STANDARD_LOG_RETENTION,
+          removalPolicy: cdk.RemovalPolicy.RETAIN,
+          encryptionKey: logEncryptionKey,
+        })
+      : undefined;
 
     // COST OPTIMIZATION: Use ARM64 architecture for 20% cost savings
     // Graviton2 processors offer better price-performance ratio

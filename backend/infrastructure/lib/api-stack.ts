@@ -921,6 +921,7 @@ export class ApiStack extends cdk.Stack {
         // Set to true for functions that need internet access but not database
         // access (e.g., authorizers that fetch JWKS from Cognito)
         noVpc?: boolean;
+        manageLogGroup?: boolean;
       }
     ) => {
       const factory = props.noVpc ? noVpcLambdaFactory : lambdaFactory;
@@ -932,6 +933,7 @@ export class ApiStack extends cdk.Stack {
         extraCopyPaths: props.extraCopyPaths,
         securityGroups: props.noVpc ? undefined : (props.securityGroups ?? [lambdaSecurityGroup]),
         memorySize: props.memorySize,
+        manageLogGroup: props.manageLogGroup,
       });
       return pythonLambda.function;
     };
@@ -1057,6 +1059,7 @@ export class ApiStack extends cdk.Stack {
         handler: "lambda/assets_bucket_migrator/handler.lambda_handler",
         timeout: cdk.Duration.minutes(15),
         memorySize: 512,
+        manageLogGroup: false,
       }
     );
     legacyClientAssetsBucket.grantRead(assetsBucketMigratorFunction);
@@ -1610,6 +1613,7 @@ export class ApiStack extends cdk.Stack {
       {
         handler: "lambda/inbound_invoice_email/handler.lambda_handler",
         timeout: cdk.Duration.seconds(30),
+        manageLogGroup: false,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",
