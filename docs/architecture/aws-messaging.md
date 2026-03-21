@@ -147,9 +147,9 @@ topic so machine-only mailbox traffic can land directly in the expenses domain.
 - iCloud forwards invoice mail to the SES-managed address on
   `inbound.evolvesprouts.com`.
 - SES receipt rules match the inbound recipient and store the raw `.eml` in
-  `ClientAssetsBucket` under a reserved prefix.
+  `AssetsBucket` under a reserved prefix.
 
-### Raw email storage: `ClientAssetsBucket` prefix `inbound-email/raw/`
+### Raw email storage: `AssetsBucket` prefix `inbound-email/raw/`
 
 - Stores the original raw email payload for replay/debugging inside the existing
   private assets bucket.
@@ -255,7 +255,7 @@ SQS retries or mailbox forwarding duplicates.
 | `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |
 | `OPENROUTER_MODEL` | OpenRouter model identifier |
 | `OPENROUTER_MAX_FILE_BYTES` | Attachment size limit for parser |
-| `CLIENT_ASSETS_BUCKET_NAME` | Existing private assets bucket for expense attachments |
+| `ASSETS_BUCKET_NAME` | Existing private assets bucket for expense attachments |
 | `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events |
 
 ## Stack Outputs

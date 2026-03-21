@@ -326,7 +326,7 @@ Requirements:
   loaded at runtime; never commit private keys in source control.
 - CloudFront distributions serving assets must restrict S3 origin access
   via Origin Access Control (OAC).
-- The client-asset CloudFront distribution supports optional AWS WAF
+- The assets CloudFront distribution supports optional AWS WAF
   association through `AssetDownloadWafWebAclArn` (global WebACL ARN in
   `us-east-1`).
 

@@ -947,14 +947,14 @@ export class ApiStack extends cdk.Stack {
     );
 
     // Assets logging bucket
-    const clientAssetsLogBucketName = [
-      name("client-assets-logs"),
+    const assetsLogBucketName = [
+      name("assets-logs"),
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
 
-    const clientAssetsLogBucket = new s3.Bucket(this, "ClientAssetsLogBucket", {
-      bucketName: clientAssetsLogBucketName,
+    const assetsLogBucket = new s3.Bucket(this, "AssetsLogBucket", {
+      bucketName: assetsLogBucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
@@ -971,9 +971,9 @@ export class ApiStack extends cdk.Stack {
       ],
     });
 
-    const clientAssetsLogBucketCfn = clientAssetsLogBucket.node
+    const assetsLogBucketCfn = assetsLogBucket.node
       .defaultChild as s3.CfnBucket;
-    clientAssetsLogBucketCfn.addMetadata("checkov", {
+    assetsLogBucketCfn.addMetadata("checkov", {
       skip: [
         {
           id: "CKV_AWS_18",
@@ -984,20 +984,25 @@ export class ApiStack extends cdk.Stack {
     });
 
     // Assets bucket
-    const clientAssetsBucketName = [
+    const legacyClientAssetsBucketName = [
       name("client-assets"),
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
+    const assetsBucketName = [
+      name("assets"),
+      cdk.Aws.ACCOUNT_ID,
+      cdk.Aws.REGION,
+    ].join("-");
 
-    const clientAssetsBucket = new s3.Bucket(this, "ClientAssetsBucket", {
-      bucketName: clientAssetsBucketName,
+    const assetsBucket = new s3.Bucket(this, "AssetsBucket", {
+      bucketName: assetsBucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
       versioned: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
-      serverAccessLogsBucket: clientAssetsLogBucket,
+      serverAccessLogsBucket: assetsLogBucket,
       serverAccessLogsPrefix: "s3-access-logs/",
       intelligentTieringConfigurations: [
         {
@@ -1041,6 +1046,42 @@ export class ApiStack extends cdk.Stack {
 
     const inboundInvoiceRawEmailPrefix = "inbound-email/raw/";
 
+    const legacyClientAssetsBucket = s3.Bucket.fromBucketName(
+      this,
+      "LegacyClientAssetsBucket",
+      legacyClientAssetsBucketName
+    );
+    const assetsBucketMigratorFunction = createPythonFunction(
+      "AssetsBucketMigratorFunction",
+      {
+        handler: "lambda/assets_bucket_migrator/handler.lambda_handler",
+        timeout: cdk.Duration.minutes(15),
+        memorySize: 512,
+      }
+    );
+    legacyClientAssetsBucket.grantRead(assetsBucketMigratorFunction);
+    assetsBucket.grantReadWrite(assetsBucketMigratorFunction);
+    assetsBucketMigratorFunction.addPermission(
+      "AssetsBucketMigratorInvokePermission",
+      {
+        principal: new iam.ServicePrincipal("cloudformation.amazonaws.com"),
+        sourceArn: cdk.Stack.of(this).stackId,
+        sourceAccount: cdk.Stack.of(this).account,
+      }
+    );
+    const assetsBucketMigrationResource = new cdk.CustomResource(
+      this,
+      "AssetsBucketMigration",
+      {
+        serviceToken: assetsBucketMigratorFunction.functionArn,
+        properties: {
+          SourceBucketName: legacyClientAssetsBucketName,
+          DestinationBucketName: assetsBucket.bucketName,
+        },
+      }
+    );
+    assetsBucketMigrationResource.node.addDependency(assetsBucket);
+
     const assetDownloadCloudFrontPublicKeyPem = new cdk.CfnParameter(
       this,
       "AssetDownloadCloudFrontPublicKeyPem",
@@ -1066,7 +1107,7 @@ export class ApiStack extends cdk.Stack {
       {
         type: "String",
         description:
-          "Custom domain for client-asset downloads (for example media.evolvesprouts.com).",
+          "Custom domain for asset downloads (for example media.evolvesprouts.com).",
       }
     );
     const assetDownloadCustomDomainCertificateArn = new cdk.CfnParameter(
@@ -1075,7 +1116,7 @@ export class ApiStack extends cdk.Stack {
       {
         type: "String",
         description:
-          "ACM certificate ARN for the client-asset download custom domain (must be in us-east-1).",
+          "ACM certificate ARN for the asset download custom domain (must be in us-east-1).",
       }
     );
     const assetDownloadWafWebAclArn = new cdk.CfnParameter(
@@ -1085,7 +1126,7 @@ export class ApiStack extends cdk.Stack {
         type: "String",
         default: "",
         description:
-          "Optional WAF WebACL ARN for client-asset CloudFront protection (must be from us-east-1).",
+          "Optional WAF WebACL ARN for asset CloudFront protection (must be from us-east-1).",
         allowedPattern: "^$|arn:aws:wafv2:us-east-1:[0-9]+:global/webacl/.+$",
         constraintDescription:
           "Must be empty or a valid WAF WebACL ARN from us-east-1.",
@@ -1106,7 +1147,7 @@ export class ApiStack extends cdk.Stack {
       "AssetDownloadPublicKey",
       {
         encodedKey: assetDownloadCloudFrontPublicKeyPem.valueAsString,
-        comment: "Public key for client asset CloudFront signed URLs.",
+        comment: "Public key for asset CloudFront signed URLs.",
       }
     );
     const assetDownloadKeyGroup = new cloudfront.KeyGroup(
@@ -1114,7 +1155,7 @@ export class ApiStack extends cdk.Stack {
       "AssetDownloadKeyGroup",
       {
         items: [assetDownloadPublicKey],
-        comment: "Trusted key group for client asset CloudFront signed URLs.",
+        comment: "Trusted key group for asset CloudFront signed URLs.",
       }
     );
     const assetDownloadCustomDomainCertificate =
@@ -1130,10 +1171,10 @@ export class ApiStack extends cdk.Stack {
         domainNames: [assetDownloadCustomDomainName.valueAsString],
         certificate: assetDownloadCustomDomainCertificate,
         enableLogging: true,
-        logBucket: clientAssetsLogBucket,
+        logBucket: assetsLogBucket,
         logFilePrefix: "cloudfront-download-access-logs/",
         defaultBehavior: {
-          origin: origins.S3BucketOrigin.withOriginAccessControl(clientAssetsBucket),
+          origin: origins.S3BucketOrigin.withOriginAccessControl(assetsBucket),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -1143,6 +1184,7 @@ export class ApiStack extends cdk.Stack {
     );
     const assetDownloadDistributionCfn =
       assetDownloadDistribution.node.defaultChild as cloudfront.CfnDistribution;
+    assetDownloadDistribution.node.addDependency(assetsBucketMigrationResource);
     assetDownloadDistributionCfn.addPropertyOverride(
       "DistributionConfig.WebACLId",
       cdk.Fn.conditionIf(
@@ -1163,8 +1205,7 @@ export class ApiStack extends cdk.Stack {
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
         CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
-        CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
-        MEDIA_BUCKET_NAME: clientAssetsBucket.bucketName,
+        ASSETS_BUCKET_NAME: assetsBucket.bucketName,
         ASSET_PRESIGN_TTL_SECONDS: "900",
         ASSET_DOWNLOAD_LINK_EXPIRY_DAYS: "9999",
         ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN:
@@ -1181,9 +1222,10 @@ export class ApiStack extends cdk.Stack {
         ADMIN_GROUP: adminGroupName,
       },
     });
+    adminFunction.node.addDependency(assetsBucketMigrationResource);
     database.grantAdminUserSecretRead(adminFunction);
     database.grantConnect(adminFunction, "evolvesprouts_admin");
-    clientAssetsBucket.grantReadWrite(adminFunction);
+    assetsBucket.grantReadWrite(adminFunction);
     secretsmanager.Secret.fromSecretCompleteArn(
       this,
       "AssetDownloadPrivateKeySecret",
@@ -1499,7 +1541,7 @@ export class ApiStack extends cdk.Stack {
         DATABASE_USERNAME: "evolvesprouts_admin",
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
-        CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
+        ASSETS_BUCKET_NAME: assetsBucket.bucketName,
         OPENROUTER_API_KEY_SECRET_ARN: openrouterApiSecret.secretArn,
         OPENROUTER_CHAT_COMPLETIONS_URL:
           openrouterChatCompletionsUrl.valueAsString,
@@ -1508,9 +1550,10 @@ export class ApiStack extends cdk.Stack {
         AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
       },
     });
+    expenseParserFunction.node.addDependency(assetsBucketMigrationResource);
     database.grantAdminUserSecretRead(expenseParserFunction);
     database.grantConnect(expenseParserFunction, "evolvesprouts_admin");
-    clientAssetsBucket.grantRead(expenseParserFunction);
+    assetsBucket.grantRead(expenseParserFunction);
     openrouterApiSecret.grantRead(expenseParserFunction);
     awsProxyFunction.grantInvoke(expenseParserFunction);
 
@@ -1577,14 +1620,15 @@ export class ApiStack extends cdk.Stack {
           DATABASE_USERNAME: "evolvesprouts_admin",
           DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
           DATABASE_IAM_AUTH: "true",
-          CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
+          ASSETS_BUCKET_NAME: assetsBucket.bucketName,
           EXPENSE_PARSE_TOPIC_ARN: expenseParserTopic.topicArn,
         },
       }
     );
+    inboundInvoiceProcessor.node.addDependency(assetsBucketMigrationResource);
     database.grantAdminUserSecretRead(inboundInvoiceProcessor);
     database.grantConnect(inboundInvoiceProcessor, "evolvesprouts_admin");
-    clientAssetsBucket.grantReadWrite(inboundInvoiceProcessor);
+    assetsBucket.grantReadWrite(inboundInvoiceProcessor);
     expenseParserTopic.grantPublish(inboundInvoiceProcessor);
     inboundInvoiceProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(inboundInvoiceQueue, {
@@ -1621,7 +1665,7 @@ export class ApiStack extends cdk.Stack {
       new iam.PolicyStatement({
         actions: ["s3:PutObject"],
         resources: [
-          `${clientAssetsBucket.bucketArn}/${inboundInvoiceRawEmailPrefix}*`,
+          `${assetsBucket.bucketArn}/${inboundInvoiceRawEmailPrefix}*`,
         ],
       })
     );
@@ -1654,7 +1698,7 @@ export class ApiStack extends cdk.Stack {
           actions: [
             {
               s3Action: {
-                bucketName: clientAssetsBucket.bucketName,
+                bucketName: assetsBucket.bucketName,
                 objectKeyPrefix: inboundInvoiceRawEmailPrefix,
                 topicArn: inboundInvoiceTopic.topicArn,
                 iamRoleArn: inboundInvoiceReceiptRole.roleArn,
@@ -2821,27 +2865,27 @@ export class ApiStack extends cdk.Stack {
       value: userPoolClient.ref,
     });
 
-    new cdk.CfnOutput(this, "ClientAssetsBucketName", {
-      value: clientAssetsBucket.bucketName,
+    new cdk.CfnOutput(this, "AssetsBucketName", {
+      value: assetsBucket.bucketName,
     });
 
-    new cdk.CfnOutput(this, "ClientAssetsLogBucketName", {
-      value: clientAssetsLogBucket.bucketName,
+    new cdk.CfnOutput(this, "AssetsLogBucketName", {
+      value: assetsLogBucket.bucketName,
     });
-    new cdk.CfnOutput(this, "ClientAssetsDownloadDistributionDomain", {
+    new cdk.CfnOutput(this, "AssetsDownloadDistributionDomain", {
       value: assetDownloadDistribution.distributionDomainName,
     });
-    new cdk.CfnOutput(this, "ClientAssetsDownloadCloudFrontKeyPairId", {
+    new cdk.CfnOutput(this, "AssetsDownloadCloudFrontKeyPairId", {
       value: assetDownloadPublicKey.publicKeyId,
     });
-    new cdk.CfnOutput(this, "ClientAssetsDownloadCustomDomainTarget", {
+    new cdk.CfnOutput(this, "AssetsDownloadCustomDomainTarget", {
       value: assetDownloadDistribution.distributionDomainName,
       description:
-        "CNAME target for the client-asset download custom domain in DNS.",
+        "CNAME target for the asset download custom domain in DNS.",
     });
-    new cdk.CfnOutput(this, "ClientAssetsDownloadCustomDomainUrl", {
+    new cdk.CfnOutput(this, "AssetsDownloadCustomDomainUrl", {
       value: `https://${assetDownloadCustomDomainName.valueAsString}`,
-      description: "Client-asset download custom domain URL.",
+      description: "Asset download custom domain URL.",
     });
 
     new cdk.CfnOutput(this, "BookingRequestTopicArn", {
@@ -2892,7 +2936,7 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "InboundInvoiceRawEmailPrefix", {
       value: inboundInvoiceRawEmailPrefix,
       description:
-        "Reserved object-key prefix in ClientAssetsBucket for raw inbound invoice emails",
+        "Reserved object-key prefix in AssetsBucket for raw inbound invoice emails",
     });
     new cdk.CfnOutput(this, "InboundInvoiceTopicArn", {
       value: inboundInvoiceTopic.topicArn,

@@ -134,7 +134,7 @@ def _store_expense_from_email(
     parsed_email: ParsedInboundEmail,
     invoice_attachments: list[InvoiceAttachment],
 ) -> UUID:
-    assets_bucket = require_env("CLIENT_ASSETS_BUCKET_NAME")
+    assets_bucket = require_env("ASSETS_BUCKET_NAME")
     uploaded_objects: list[str] = []
     s3_client = get_s3_client()
 
@@ -348,7 +348,7 @@ def _should_skip_email(event: InboundInvoiceEmailEvent) -> bool:
 def _cleanup_uploaded_objects(s3_keys: list[str]) -> None:
     if not s3_keys:
         return
-    bucket_name = require_env("CLIENT_ASSETS_BUCKET_NAME")
+    bucket_name = require_env("ASSETS_BUCKET_NAME")
     s3_client = get_s3_client()
     for s3_key in s3_keys:
         try:

@@ -264,6 +264,7 @@ All functions use Python 3.12, KMS-encrypted environment variables,
 | HealthCheckFunction | `lambda/health/handler.py` | API Gateway | Health check with DB connectivity test |
 | MigrationFunction | `lambda/migrations/handler.py` | CloudFormation | Alembic migrations + seed data |
 | AdminBootstrapFunction | `lambda/admin_bootstrap/handler.py` | CloudFormation | Initial admin user creation in Cognito |
+| AssetsBucketMigratorFunction | `lambda/assets_bucket_migrator/handler.py` | CloudFormation | Copy retained legacy asset objects into the renamed assets bucket during migration |
 | ApiKeyRotationFunction | `lambda/api_key_rotation/handler.py` | EventBridge (90 days) | API key rotation |
 | BookingRequestProcessor | `lambda/manager_request_processor/handler.py` | SQS | Process booking/ticket requests |
 | MediaRequestProcessor | `lambda/media_processor/handler.py` | SQS | Process media leads → DB + Mailchimp + SES |
@@ -344,7 +345,7 @@ API Lambda
 
 SES inbound (inbound.evolvesprouts.com)
     │
-    └─▶ S3: evolvesprouts-client-assets-*/inbound-email/raw/*
+    └─▶ S3: evolvesprouts-assets-*/inbound-email/raw/*
              └─▶ SNS: evolvesprouts-inbound-invoice-email-events
                       └─▶ SQS: evolvesprouts-inbound-invoice-email-queue
                                 └─▶ InboundInvoiceEmailProcessor Lambda
@@ -368,7 +369,7 @@ Cloudflare (media.evolvesprouts.com)
         ▼
 CloudFront distribution
         │
-        ├─▶ Default: S3 (evolvesprouts-client-assets-*)
+        ├─▶ Default: S3 (evolvesprouts-assets-*)
         │     └─▶ Signed URLs only (CloudFront key pair)
         │
         └─▶ v1/assets/share/*: API Gateway
@@ -378,7 +379,7 @@ CloudFront distribution
 
 | Resource | Purpose |
 |---|---|
-| S3 bucket | `evolvesprouts-client-assets-{account}-{region}` |
+| S3 bucket | `evolvesprouts-assets-{account}-{region}` |
 | CloudFront key group | Signs download URLs |
 | Custom domain | `media.evolvesprouts.com` |
 

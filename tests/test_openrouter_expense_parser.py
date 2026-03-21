@@ -23,7 +23,7 @@ def _set_common_env(monkeypatch: Any) -> None:
     )
     monkeypatch.setenv("OPENROUTER_MODEL", "openai/gpt-4.1-mini")
     monkeypatch.setenv("OPENROUTER_API_KEY_SECRET_ARN", "arn:aws:secretsmanager:test")
-    monkeypatch.setenv("CLIENT_ASSETS_BUCKET_NAME", "assets-bucket")
+    monkeypatch.setenv("ASSETS_BUCKET_NAME", "assets-bucket")
     parser._api_key_cache = None
 
 
