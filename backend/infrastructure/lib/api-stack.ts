@@ -1647,14 +1647,34 @@ export class ApiStack extends cdk.Stack {
       }
     );
 
+    const inboundInvoiceReceiptRuleSetName = name(
+      "inbound-invoice-email-rule-set"
+    );
+    const inboundInvoiceReceiptRuleName = name("inbound-invoice-email-rule");
+    const inboundInvoiceReceiptRuleSourceArn = `arn:${cdk.Aws.PARTITION}:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:receipt-rule-set/${inboundInvoiceReceiptRuleSetName}:receipt-rule/${inboundInvoiceReceiptRuleName}`;
     const inboundInvoiceReceiptRole = new iam.Role(
       this,
       "InboundInvoiceReceiptRole",
       {
-        assumedBy: new iam.ServicePrincipal("ses.amazonaws.com"),
+        assumedBy: new iam.ServicePrincipal("ses.amazonaws.com", {
+          conditions: {
+            StringEquals: {
+              "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            },
+            ArnLike: {
+              "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+            },
+          },
+        }),
         description:
           "Allows SES receipt rules to store raw invoice emails in S3 and notify SNS",
       }
+    );
+    inboundInvoiceReceiptRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:GetBucketLocation", "s3:ListBucket"],
+        resources: [assetsBucket.bucketArn],
+      })
     );
     inboundInvoiceReceiptRole.addToPolicy(
       new iam.PolicyStatement({
@@ -1670,12 +1690,28 @@ export class ApiStack extends cdk.Stack {
         resources: [inboundInvoiceTopic.topicArn],
       })
     );
+    assetsBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: "AllowSesInboundInvoiceWrites",
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
+        actions: ["s3:PutObject"],
+        resources: [`${assetsBucket.bucketArn}/${inboundInvoiceRawEmailPrefix}*`],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+          },
+        },
+      })
+    );
+    const assetsBucketPolicy = assetsBucket.policy;
 
     const inboundInvoiceReceiptRuleSet = new ses.CfnReceiptRuleSet(
       this,
       "InboundInvoiceReceiptRuleSet",
       {
-        ruleSetName: name("inbound-invoice-email-rule-set"),
+        ruleSetName: inboundInvoiceReceiptRuleSetName,
       }
     );
 
@@ -1685,7 +1721,7 @@ export class ApiStack extends cdk.Stack {
       {
         ruleSetName: inboundInvoiceReceiptRuleSet.ref,
         rule: {
-          name: name("inbound-invoice-email-rule"),
+          name: inboundInvoiceReceiptRuleName,
           enabled: true,
           scanEnabled: true,
           tlsPolicy: "Optional",
@@ -1703,6 +1739,9 @@ export class ApiStack extends cdk.Stack {
         },
       }
     );
+    if (assetsBucketPolicy) {
+      inboundInvoiceReceiptRule.node.addDependency(assetsBucketPolicy);
+    }
 
     const activateInboundInvoiceReceiptRuleSetPolicy =
       customresources.AwsCustomResourcePolicy.fromStatements([
@@ -1717,6 +1756,7 @@ export class ApiStack extends cdk.Stack {
         "ActivateInboundInvoiceReceiptRuleSet",
         {
           policy: activateInboundInvoiceReceiptRuleSetPolicy,
+          installLatestAwsSdk: false,
           onCreate: {
             service: "SES",
             action: "setActiveReceiptRuleSet",
