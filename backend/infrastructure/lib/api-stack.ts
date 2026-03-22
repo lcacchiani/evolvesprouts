@@ -1714,12 +1714,7 @@ export class ApiStack extends cdk.Stack {
         ],
       })
     );
-    inboundInvoiceReceiptRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ["sns:Publish"],
-        resources: [inboundInvoiceTopic.topicArn],
-      })
-    );
+    inboundInvoiceTopic.grantPublish(inboundInvoiceReceiptRole);
     assetsBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         sid: "AllowSesInboundInvoiceWrites",
@@ -1779,6 +1774,11 @@ export class ApiStack extends cdk.Stack {
       inboundInvoiceReceiptRule.node.addDependency(
         inboundInvoiceTopicPolicyResult.policyDependable
       );
+    }
+    const receiptRoleDefaultPolicy =
+      inboundInvoiceReceiptRole.node.tryFindChild("DefaultPolicy");
+    if (receiptRoleDefaultPolicy) {
+      inboundInvoiceReceiptRule.node.addDependency(receiptRoleDefaultPolicy);
     }
 
     const activateInboundInvoiceReceiptRuleSetPolicy =
