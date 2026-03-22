@@ -175,6 +175,72 @@ def test_parse_invoice_sends_pdfs_as_file_with_explicit_plugin(monkeypatch: Any)
     ]
 
 
+def test_parse_invoice_sends_plain_text_body_as_file(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    text_bytes = b"Invoice INV-T\nTotal 42.00 USD\n"
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            assert Bucket == "assets-bucket"
+            assert Key == "uploads/email-invoice-body.txt"
+            return {"Body": _FakeBody(text_bytes)}
+
+    captured_request: dict[str, Any] = {}
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        captured_request.update(kwargs)
+        return {
+            "status": 200,
+            "body": json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": json.dumps(
+                                    {
+                                        "vendor_name": "Text Vendor",
+                                        "invoice_number": "INV-T",
+                                        "invoice_date": None,
+                                        "due_date": None,
+                                        "currency": "USD",
+                                        "subtotal": None,
+                                        "tax": None,
+                                        "total": 42,
+                                        "line_items": [],
+                                        "confidence": 0.5,
+                                    }
+                                )
+                            }
+                        }
+                    ]
+                }
+            ),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    parser.parse_invoice_from_assets(
+        [
+            {
+                "id": "asset-txt",
+                "s3_key": "uploads/email-invoice-body.txt",
+                "file_name": "email-invoice-body.txt",
+                "content_type": "text/plain",
+            }
+        ]
+    )
+
+    payload = json.loads(captured_request["body"])
+    user_content = payload["messages"][1]["content"]
+    file_input = user_content[1]
+
+    assert file_input["type"] == "file"
+    assert file_input["file"]["file_data"].startswith("data:text/plain;base64,")
+    assert "plugins" not in payload
+
+
 def test_parse_invoice_uses_configured_pdf_engine(monkeypatch: Any) -> None:
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)

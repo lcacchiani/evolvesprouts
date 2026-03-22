@@ -178,7 +178,10 @@ topic so machine-only mailbox traffic can land directly in the expenses domain.
 
 - Triggered by `evolvesprouts-inbound-invoice-email-queue`.
 - Loads the raw email object from the inbound-email S3 bucket.
-- Parses MIME headers and extracts supported invoice attachments.
+- Parses MIME headers and extracts supported invoice attachments, or—when
+  there are no supported attachments—extracts visible text from the email body
+  (`text/plain` preferred, otherwise stripped `text/html`) and stores it as a
+  synthetic `text/plain` asset for parsing.
 - Creates `assets`, `expenses`, and `expense_attachments` rows.
 - Tracks idempotency in the `inbound_emails` table using SES `messageId`.
 - Reuses the existing `expense.parse_requested` topic after the expense row

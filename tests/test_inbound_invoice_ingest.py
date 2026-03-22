@@ -70,8 +70,8 @@ def test_process_inbound_invoice_email_marks_failed_when_no_supported_attachment
         ),
     )
     monkeypatch.setattr(
-        "app.services.inbound_invoice_ingest.select_invoice_attachments",
-        lambda _attachments: [],
+        "app.services.inbound_invoice_ingest.invoice_attachments_for_ingest",
+        lambda _parsed: [],
     )
     monkeypatch.setattr(
         "app.services.inbound_invoice_ingest._upsert_tracking_record",
@@ -87,7 +87,8 @@ def test_process_inbound_invoice_email_marks_failed_when_no_supported_attachment
         (InboundEmailStatus.PROCESSING, None),
         (
             InboundEmailStatus.FAILED,
-            "Inbound email does not include supported invoice attachments",
+            "Inbound email does not include supported invoice attachments "
+            "or enough body text to parse",
         ),
     ]
 

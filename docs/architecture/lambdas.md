@@ -210,9 +210,9 @@ their primary responsibilities.
 - Handler: backend/lambda/inbound_invoice_email/handler.py
 - Trigger: SQS queue (`evolvesprouts-inbound-invoice-email-queue`) fed by SES
   receipt-rule notifications through SNS
-- Purpose: convert inbound invoice email attachments into `assets`,
-  `expenses`, and `expense_attachments` rows, then enqueue the existing
-  expense parser workflow
+- Purpose: convert inbound invoice email attachments (or synthetic body text
+  when there are no supported files) into `assets`, `expenses`, and
+  `expense_attachments` rows, then enqueue the existing expense parser workflow
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read/write for the assets bucket (including the

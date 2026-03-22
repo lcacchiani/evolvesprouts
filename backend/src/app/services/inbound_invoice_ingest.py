@@ -29,10 +29,11 @@ from app.db.repositories import (
 from app.services.aws_clients import get_s3_client
 from app.services.expense_events import enqueue_expense_parse
 from app.services.inbound_email import (
+    EMAIL_INVOICE_BODY_FILE_NAME,
     InvoiceAttachment,
     ParsedInboundEmail,
+    invoice_attachments_for_ingest,
     parse_raw_email,
-    select_invoice_attachments,
 )
 from app.utils import require_env
 from app.utils.logging import get_logger, mask_email
@@ -90,16 +91,19 @@ def process_inbound_invoice_email(
     raw_email = _load_raw_email(event.raw_s3_bucket, event.raw_s3_key)
     parsed_email = parse_raw_email(raw_email)
     source_email = parsed_email.from_email or event.source_email
-    invoice_attachments = select_invoice_attachments(parsed_email.attachments)
+    invoice_attachments = invoice_attachments_for_ingest(parsed_email)
     if not invoice_attachments:
         _upsert_tracking_record(
             event,
             status=InboundEmailStatus.FAILED,
             parsed_email=parsed_email,
-            failure_reason="Inbound email does not include supported invoice attachments",
+            failure_reason=(
+                "Inbound email does not include supported invoice attachments "
+                "or enough body text to parse"
+            ),
         )
         logger.info(
-            "Inbound invoice email skipped without supported attachments",
+            "Inbound invoice email skipped without attachments or parseable body",
             extra={
                 "ses_message_id": event.ses_message_id,
                 "source_email_masked": mask_email(source_email or ""),
@@ -170,7 +174,11 @@ def _store_expense_from_email(
                 asset_repo.create_asset(
                     asset_id=asset_id,
                     title=_build_asset_title(attachment.file_name),
-                    description="Imported from inbound invoice email",
+                    description=(
+                        "Invoice text extracted from inbound email body"
+                        if attachment.file_name == EMAIL_INVOICE_BODY_FILE_NAME
+                        else "Imported from inbound invoice email"
+                    ),
                     asset_type=_asset_type_for_attachment(attachment),
                     s3_key=s3_key,
                     file_name=attachment.file_name,

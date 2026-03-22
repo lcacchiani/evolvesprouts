@@ -34,7 +34,10 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
     for asset in assets:
         attachment_content = _build_attachment_content(asset)
         content.append(attachment_content)
-        if attachment_content.get("type") == "file":
+        if (
+            attachment_content.get("type") == "file"
+            and _normalize_content_type(asset) == "application/pdf"
+        ):
             has_pdf_attachment = True
 
     payload: dict[str, Any] = {
@@ -132,6 +135,8 @@ def _normalize_content_type(asset: Mapping[str, Any]) -> str:
         return "image/jpeg"
     if lowered_name.endswith(".webp"):
         return "image/webp"
+    if lowered_name.endswith(".txt"):
+        return "text/plain"
     return "application/octet-stream"
 
 
@@ -312,5 +317,6 @@ def _schema_prompt() -> str:
         '"currency": "string|null", "subtotal": "number|null", "tax": "number|null", '
         '"total": "number|null", "line_items": [{"description":"string|null","quantity":"number|null",'
         '"unit_price":"number|null","amount":"number|null"}], "confidence":"number|null"}. '
-        "Use null for unknown values. No markdown. No prose."
+        "Use null for unknown values. No markdown. No prose. "
+        "Input may be plain text pasted in an email body rather than a PDF or image."
     )

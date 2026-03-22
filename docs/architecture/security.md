@@ -257,7 +257,8 @@ Process to add a new public API path:
 
 ### Third-party invoice parser egress controls
 
-Expense invoice parsing sends attachment content to OpenRouter and must follow a
+Expense invoice parsing sends attachment bytes (or email-body text saved as a
+`text/plain` asset for inbound mail) to OpenRouter and must follow a
 fail-closed outbound policy:
 
 - In-VPC Lambdas **must not** call OpenRouter directly.
@@ -276,8 +277,8 @@ fail-closed outbound policy:
 ### Inbound invoice email handling
 
 Inbound invoice email ingestion stores raw `.eml` payloads in the private
-assets bucket under a reserved prefix before attachments are copied into normal
-expense asset keys.
+assets bucket under a reserved prefix before attachments (or body-extracted
+invoice text) are copied into normal expense asset keys.
 
 Requirements:
 
