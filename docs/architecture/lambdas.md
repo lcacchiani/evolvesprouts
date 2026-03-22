@@ -192,7 +192,10 @@ their primary responsibilities.
 - Handler: backend/lambda/expense_parser/handler.py
 - Trigger: SQS queue (`evolvesprouts-expense-parser-queue`)
 - Purpose: process async invoice parse requests and enrich expense records
-  using OpenRouter via `AwsApiProxyFunction`
+  using OpenRouter via `AwsApiProxyFunction`; when `vendor_id` is unset and the
+  model returns `vendor_name`, attempts a unique match among **active** vendor
+  organizations (case-insensitive exact name, else single `ILIKE` substring hit)
+  and sets `vendor_id` plus canonical `vendor_name` when unambiguous
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
