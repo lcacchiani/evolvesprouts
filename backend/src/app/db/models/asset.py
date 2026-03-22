@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from collections.abc import Iterable
 from uuid import UUID
@@ -15,6 +16,9 @@ from sqlalchemy.types import TIMESTAMP
 
 from app.db.base import Base
 from app.db.models.enums import AccessGrantType, AssetType, AssetVisibility
+
+if TYPE_CHECKING:
+    from app.db.models.tag import AssetTag
 
 
 def _enum_values(
@@ -90,7 +94,7 @@ class Asset(Base):
         cascade="all, delete-orphan",
         uselist=False,
     )
-    asset_tags: Mapped[list["AssetTag"]] = relationship(  # noqa: F821
+    asset_tags: Mapped[list[AssetTag]] = relationship(
         "AssetTag",
         back_populates="asset",
         cascade="all, delete-orphan",
