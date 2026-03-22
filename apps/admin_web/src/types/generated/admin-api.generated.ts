@@ -65,7 +65,16 @@ export interface paths {
          */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Case-insensitive match on title, file name, or resource key. */
+                    query?: string;
+                    visibility?: "public" | "restricted";
+                    asset_type?: "guide" | "video" | "pdf" | "document";
+                    /** @description When set to expense_attachment, return only assets tagged as linked to an expense (expense_attachments). */
+                    tag_name?: "expense_attachment";
+                    cursor?: string;
+                    limit?: number;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -2412,6 +2421,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AssetTagRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Optional CSS color (e.g. hex). */
+            color?: string | null;
+        };
         Asset: {
             /** Format: uuid */
             id: string;
@@ -2426,6 +2442,8 @@ export interface components {
             resource_key?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
+            /** @description Tags on this asset. Non-admin asset list responses use an empty array when tags are not loaded. */
+            tags: components["schemas"]["AssetTagRef"][];
             created_by?: string | null;
             /** Format: date-time */
             created_at?: string | null;

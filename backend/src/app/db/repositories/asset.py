@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.models import (
@@ -16,8 +16,10 @@ from app.db.models import (
     Asset,
     AssetAccessGrant,
     AssetShareLink,
+    AssetTag,
     AssetType,
     AssetVisibility,
+    Tag,
 )
 from app.db.repositories.base import BaseRepository
 
@@ -41,6 +43,8 @@ class AssetRepository(BaseRepository[Asset]):
         query: str | None = None,
         visibility: AssetVisibility | None = None,
         asset_type: AssetType | None = None,
+        tag_name: str | None = None,
+        load_tags: bool = False,
     ) -> Sequence[Asset]:
         """List assets with optional filtering and cursor pagination."""
         statement = select(Asset)
@@ -50,6 +54,17 @@ class AssetRepository(BaseRepository[Asset]):
             statement = statement.where(Asset.visibility == visibility)
         if asset_type is not None:
             statement = statement.where(Asset.asset_type == asset_type)
+        if tag_name is not None:
+            tag_subq = (
+                select(Tag.id)
+                .where(func.lower(Tag.name) == tag_name.lower())
+                .limit(1)
+                .scalar_subquery()
+            )
+            statement = statement.join(
+                AssetTag,
+                AssetTag.asset_id == Asset.id,
+            ).where(AssetTag.tag_id == tag_subq)
         if query:
             escaped = _escape_like_pattern(query.strip())
             pattern = f"%{escaped}%"
@@ -60,8 +75,21 @@ class AssetRepository(BaseRepository[Asset]):
                     Asset.resource_key.ilike(pattern, escape="\\"),
                 )
             )
+        if load_tags:
+            statement = statement.options(
+                selectinload(Asset.asset_tags).selectinload(AssetTag.tag),
+            )
         statement = statement.order_by(Asset.id).limit(limit)
         return self._session.execute(statement).scalars().all()
+
+    def get_with_asset_tags(self, asset_id: UUID) -> Asset | None:
+        """Load one asset with tag associations for admin responses."""
+        stmt = (
+            select(Asset)
+            .options(selectinload(Asset.asset_tags).selectinload(AssetTag.tag))
+            .where(Asset.id == asset_id)
+        )
+        return self._session.execute(stmt).scalar_one_or_none()
 
     def list_public_assets(
         self,

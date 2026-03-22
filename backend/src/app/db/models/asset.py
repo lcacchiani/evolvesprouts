@@ -90,6 +90,11 @@ class Asset(Base):
         cascade="all, delete-orphan",
         uselist=False,
     )
+    asset_tags: Mapped[list["AssetTag"]] = relationship(  # noqa: F821
+        "AssetTag",
+        back_populates="asset",
+        cascade="all, delete-orphan",
+    )
 
 
 class AssetAccessGrant(Base):

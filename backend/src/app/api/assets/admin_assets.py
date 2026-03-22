@@ -107,7 +107,7 @@ def handle_admin_assets_request(
 def _list_assets(event: Mapping[str, Any]) -> dict[str, Any]:
     limit = parse_limit(event)
     cursor = parse_cursor(event)
-    query, visibility, asset_type = parse_admin_asset_list_filters(event)
+    query, visibility, asset_type, tag_name = parse_admin_asset_list_filters(event)
 
     with Session(get_engine()) as session:
         repository = AssetRepository(session)
@@ -117,6 +117,8 @@ def _list_assets(event: Mapping[str, Any]) -> dict[str, Any]:
             query=query,
             visibility=visibility,
             asset_type=asset_type,
+            tag_name=tag_name,
+            load_tags=True,
         )
         return paginate_response(
             items=assets,
@@ -153,10 +155,10 @@ def _create_asset(event: Mapping[str, Any], created_by: str) -> dict[str, Any]:
             s3_key=s3_key, content_type=payload["content_type"]
         )
         session.commit()
-
+        loaded = repository.get_with_asset_tags(asset_id) or asset
         return json_response(
             201,
-            {"asset": serialize_asset(asset), **upload},
+            {"asset": serialize_asset(loaded), **upload},
             event=event,
         )
 
@@ -164,7 +166,7 @@ def _create_asset(event: Mapping[str, Any], created_by: str) -> dict[str, Any]:
 def _get_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:
     with Session(get_engine()) as session:
         repository = AssetRepository(session)
-        asset = repository.get_by_id(asset_id)
+        asset = repository.get_with_asset_tags(asset_id)
         if asset is None:
             raise NotFoundError("Asset", str(asset_id))
         return json_response(200, {"asset": serialize_asset(asset)}, event=event)
@@ -205,7 +207,12 @@ def _update_asset(
             visibility=payload.get("visibility"),
         )
         session.commit()
-        return json_response(200, {"asset": serialize_asset(updated)}, event=event)
+        refreshed = repository.get_with_asset_tags(asset_id)
+        return json_response(
+            200,
+            {"asset": serialize_asset(refreshed or updated)},
+            event=event,
+        )
 
 
 def _delete_asset(event: Mapping[str, Any], asset_id: UUID) -> dict[str, Any]:

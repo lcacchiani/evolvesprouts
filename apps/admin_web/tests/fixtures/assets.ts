@@ -10,6 +10,7 @@ const DEFAULT_ADMIN_ASSET: AdminAsset = {
   resourceKey: null,
   contentType: 'application/pdf',
   visibility: 'restricted',
+  tags: [],
   createdBy: 'admin@example.com',
   createdAt: '2026-02-27T00:00:00.000Z',
   updatedAt: '2026-02-27T00:00:00.000Z',

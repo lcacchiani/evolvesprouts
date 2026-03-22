@@ -23,6 +23,15 @@ export const ASSET_VISIBILITIES = defineEnumValues<AssetVisibility>()(
   ['public', 'restricted'] as const satisfies readonly AssetVisibility[]
 );
 
+/** System tag name for assets linked to an expense (matches admin API `tag_name` filter). */
+export const EXPENSE_ATTACHMENT_ASSET_TAG = 'expense_attachment' as const;
+
+export type AdminAssetTag = {
+  id: string;
+  name: string;
+  color: string | null;
+};
+
 export type AccessGrantType = ApiAssetGrant['grant_type'];
 export const ACCESS_GRANT_TYPES = defineEnumValues<AccessGrantType>()(
   ['all_authenticated', 'organization', 'user'] as const satisfies readonly AccessGrantType[]
@@ -38,6 +47,7 @@ export interface AdminAsset {
   resourceKey: OptionalToNullable<ApiAsset['resource_key']>;
   contentType: OptionalToNullable<ApiAsset['content_type']>;
   visibility: AssetVisibility;
+  tags: AdminAssetTag[];
   createdBy: OptionalToNullable<ApiAsset['created_by']>;
   createdAt: OptionalToNullable<ApiAsset['created_at']>;
   updatedAt: OptionalToNullable<ApiAsset['updated_at']>;
@@ -61,6 +71,8 @@ export interface ListAdminAssetsInput {
   query?: string;
   visibility?: AssetVisibility | '';
   assetType?: AssetType | '';
+  /** When set to expense_attachment, lists only assets with that tag. */
+  tagName?: typeof EXPENSE_ATTACHMENT_ASSET_TAG | '';
   cursor?: string | null;
   limit?: number;
 }

@@ -9,6 +9,7 @@ import pytest
 from app.api.admin_request import parse_cursor
 from app.api.assets.assets_common import (
     paginate_response,
+    parse_admin_asset_list_filters,
     parse_create_asset_payload,
     parse_partial_update_asset_payload,
 )
@@ -107,3 +108,22 @@ def test_parse_partial_update_asset_payload_supports_clearing_resource_key() -> 
     payload = parse_partial_update_asset_payload(event)
 
     assert payload == {"resource_key": None}
+
+
+def test_parse_admin_asset_list_filters_accepts_expense_attachment_tag() -> None:
+    event = {
+        "queryStringParameters": {"tag_name": "expense_attachment"},
+        "headers": {},
+    }
+    query, visibility, asset_type, tag_name = parse_admin_asset_list_filters(event)
+    assert tag_name == "expense_attachment"
+    assert query is None
+
+
+def test_parse_admin_asset_list_filters_rejects_unknown_tag_name() -> None:
+    event = {
+        "queryStringParameters": {"tag_name": "unknown"},
+        "headers": {},
+    }
+    with pytest.raises(ValidationError, match="tag_name must be expense_attachment"):
+        parse_admin_asset_list_filters(event)

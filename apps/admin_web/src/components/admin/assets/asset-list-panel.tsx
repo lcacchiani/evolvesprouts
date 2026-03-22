@@ -2,9 +2,9 @@
 
 import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 
-import type { AdminAsset, AssetVisibility } from '@/types/assets';
+import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
 
-import { ASSET_VISIBILITIES } from '@/types/assets';
+import { ASSET_VISIBILITIES, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 
 import { DeleteIcon } from '@/components/icons/action-icons';
 import OpenInNewTabIcon from '@/components/icons/svg/open-in-new-tab-icon.svg';
@@ -25,6 +25,7 @@ export interface AssetListPanelProps {
   filters: {
     query?: string;
     visibility?: AssetVisibility | '';
+    tagName?: ListAdminAssetsInput['tagName'];
   };
   isLoadingAssets: boolean;
   isLoadingMoreAssets: boolean;
@@ -33,6 +34,7 @@ export interface AssetListPanelProps {
   nextCursor: string | null;
   onQueryChange: (value: string) => void;
   onVisibilityChange: (value: AssetVisibility | '') => void;
+  onTagNameChange: (value: ListAdminAssetsInput['tagName']) => void;
   onLoadMore: () => Promise<void>;
   onSelectAsset: (assetId: string) => void;
   onDeleteAsset: (assetId: string) => Promise<void>;
@@ -49,6 +51,7 @@ export function AssetListPanel({
   nextCursor,
   onQueryChange,
   onVisibilityChange,
+  onTagNameChange,
   onLoadMore,
   onSelectAsset,
   onDeleteAsset,
@@ -135,6 +138,23 @@ export function AssetListPanel({
                   ))}
                 </Select>
               </div>
+              <div className='min-w-[200px]'>
+                <Label htmlFor='assets-expense-tag'>Expense link</Label>
+                <Select
+                  id='assets-expense-tag'
+                  value={filters.tagName ?? ''}
+                  onChange={(event) =>
+                    onTagNameChange(
+                      event.target.value === EXPENSE_ATTACHMENT_ASSET_TAG
+                        ? EXPENSE_ATTACHMENT_ASSET_TAG
+                        : ''
+                    )
+                  }
+                >
+                  <option value=''>All assets</option>
+                  <option value={EXPENSE_ATTACHMENT_ASSET_TAG}>Expense invoices only</option>
+                </Select>
+              </div>
             </div>
             {viewAssetError ? (
               <p className='text-sm text-red-600' role='alert'>
@@ -148,6 +168,7 @@ export function AssetListPanel({
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Title</th>
+              <th className='px-4 py-3 font-semibold'>Tags</th>
               <th className='px-4 py-3 font-semibold'>Visibility</th>
               <th className='px-4 py-3 font-semibold'>File</th>
               <th className='px-4 py-3 font-semibold'>Updated</th>
@@ -157,13 +178,16 @@ export function AssetListPanel({
           <AdminDataTableBody>
             {isLoadingAssets ? null : assets.length === 0 ? (
               <tr>
-                <td className='px-4 py-8 text-slate-600' colSpan={5}>
+                <td className='px-4 py-8 text-slate-600' colSpan={6}>
                   No assets found for the current filters.
                 </td>
               </tr>
             ) : (
               assets.map((asset) => {
                 const isSelected = asset.id === selectedAssetId;
+                const isExpenseLinked = asset.tags.some(
+                  (tag) => tag.name.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG
+                );
                 return (
                   <tr
                     key={asset.id}
@@ -179,6 +203,15 @@ export function AssetListPanel({
                     <td className='px-4 py-3'>
                       <p className='font-medium text-slate-900'>{asset.title}</p>
                       <p className='mt-0.5 text-xs text-slate-500'>{asset.id}</p>
+                    </td>
+                    <td className='px-4 py-3 text-slate-700'>
+                      {isExpenseLinked ? (
+                        <span className='rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900'>
+                          Expense
+                        </span>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.visibility)}</td>
                     <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>

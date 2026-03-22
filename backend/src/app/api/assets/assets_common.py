@@ -25,9 +25,11 @@ from app.db.models import (
     AssetVisibility,
 )
 from app.exceptions import ValidationError
+from app.services.asset_expense_tagging import EXPENSE_ATTACHMENT_TAG_NAME
 from app.services.aws_clients import get_s3_client
 from app.services.cloudfront_signing import generate_signed_download_url
 from app.utils import json_response, require_env
+from sqlalchemy import inspect
 
 _MAX_FILE_NAME_LENGTH = 255
 _MAX_MIME_TYPE_LENGTH = 127
@@ -135,7 +137,7 @@ def extract_identity(event: Mapping[str, Any]) -> RequestIdentity:
 
 def parse_admin_asset_list_filters(
     event: Mapping[str, Any],
-) -> tuple[str | None, AssetVisibility | None, AssetType | None]:
+) -> tuple[str | None, AssetVisibility | None, AssetType | None, str | None]:
     """Parse admin list filter query parameters."""
     query = query_param(event, "query")
     query = query.strip() if query else None
@@ -150,7 +152,18 @@ def parse_admin_asset_list_filters(
     if asset_type_raw:
         asset_type = parse_asset_type(asset_type_raw)
 
-    return query, visibility, asset_type
+    tag_name_raw = query_param(event, "tag_name")
+    tag_name: str | None = None
+    if tag_name_raw and tag_name_raw.strip():
+        normalized = tag_name_raw.strip().lower()
+        if normalized != EXPENSE_ATTACHMENT_TAG_NAME.lower():
+            raise ValidationError(
+                "tag_name must be expense_attachment",
+                field="tag_name",
+            )
+        tag_name = EXPENSE_ATTACHMENT_TAG_NAME
+
+    return query, visibility, asset_type, tag_name
 
 
 def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -387,6 +400,28 @@ def delete_s3_object(*, s3_key: str) -> None:
     s3_client.delete_object(Bucket=bucket_name, Key=s3_key)
 
 
+def _serialize_asset_tags_if_loaded(asset: Asset) -> list[dict[str, Any]]:
+    """Include tags only when the relationship is preloaded (avoids N+1 queries)."""
+    state = inspect(asset)
+    if state.transient:
+        return []
+    if "asset_tags" in state.unloaded:
+        return []
+    rows: list[dict[str, Any]] = []
+    for link in asset.asset_tags:
+        tag = link.tag
+        if tag is None:
+            continue
+        rows.append(
+            {
+                "id": str(tag.id),
+                "name": tag.name,
+                "color": tag.color,
+            }
+        )
+    return sorted(rows, key=lambda item: item["name"].lower())
+
+
 def serialize_asset(asset: Asset) -> dict[str, Any]:
     """Serialize Asset model to API payload."""
     return {
@@ -402,6 +437,7 @@ def serialize_asset(asset: Asset) -> dict[str, Any]:
         "created_by": asset.created_by,
         "created_at": asset.created_at.isoformat() if asset.created_at else None,
         "updated_at": asset.updated_at.isoformat() if asset.updated_at else None,
+        "tags": _serialize_asset_tags_if_loaded(asset),
     }
 
 

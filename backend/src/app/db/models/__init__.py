@@ -59,7 +59,7 @@ from app.db.models.service_instance import (
     ServiceInstance,
     TrainingInstanceDetails,
 )
-from app.db.models.tag import ContactTag, FamilyTag, OrganizationTag, Tag
+from app.db.models.tag import AssetTag, ContactTag, FamilyTag, OrganizationTag, Tag
 from app.db.models.ticket import Ticket
 
 __all__ = [
@@ -67,6 +67,7 @@ __all__ = [
     "Asset",
     "AssetAccessGrant",
     "AssetShareLink",
+    "AssetTag",
     "AssetType",
     "AssetVisibility",
     "AuditLog",
