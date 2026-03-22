@@ -4,15 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { listAdminAssets } from '@/lib/assets-api';
 import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
+import { EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 
 import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
 
-type Filters = Pick<ListAdminAssetsInput, 'query' | 'visibility'>;
+type Filters = Pick<ListAdminAssetsInput, 'query' | 'visibility' | 'tagName'>;
 
 const DEFAULT_FILTERS: Filters = {
   query: '',
   visibility: '',
+  tagName: '',
 };
 
 const ASSET_LIST_TYPE_FILTER = 'document' as const;
@@ -28,6 +30,7 @@ export interface UseAssetListReturn {
   selectedAsset: AdminAsset | null;
   setQueryFilter: (query: string) => void;
   setVisibilityFilter: (visibility: AssetVisibility | '') => void;
+  setTagNameFilter: (tagName: ListAdminAssetsInput['tagName']) => void;
   refreshAssets: (nextFilters?: Partial<Filters>) => Promise<void>;
   loadMoreAssets: () => Promise<void>;
   selectAsset: (assetId: string) => void;
@@ -160,6 +163,19 @@ export function useAssetList(): UseAssetListReturn {
     [refreshAssets]
   );
 
+  const setTagNameFilter = useCallback(
+    (tagName: ListAdminAssetsInput['tagName']) => {
+      const nextFilters = {
+        ...filtersRef.current,
+        tagName: tagName ?? '',
+      };
+      filtersRef.current = nextFilters;
+      setFilters(nextFilters);
+      void refreshAssets(nextFilters);
+    },
+    [refreshAssets]
+  );
+
   const selectAsset = useCallback((assetId: string) => {
     setSelectedAssetId(assetId);
   }, []);
@@ -171,6 +187,10 @@ export function useAssetList(): UseAssetListReturn {
   const applyCreatedAsset = useCallback(
     async (createdAsset: AdminAsset | null) => {
       if (!createdAsset) {
+        await refreshAssets();
+        return;
+      }
+      if (filtersRef.current.tagName === EXPENSE_ATTACHMENT_ASSET_TAG) {
         await refreshAssets();
         return;
       }
@@ -210,6 +230,7 @@ export function useAssetList(): UseAssetListReturn {
     selectedAsset,
     setQueryFilter,
     setVisibilityFilter,
+    setTagNameFilter,
     refreshAssets,
     loadMoreAssets,
     selectAsset,

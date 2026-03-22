@@ -14,6 +14,7 @@ from sqlalchemy.types import TIMESTAMP
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.db.models.asset import Asset
     from app.db.models.contact import Contact
     from app.db.models.family import Family
     from app.db.models.organization import Organization
@@ -58,6 +59,11 @@ class Tag(Base):
     )
     organization_tags: Mapped[list[OrganizationTag]] = relationship(
         "OrganizationTag",
+        back_populates="tag",
+        cascade="all, delete-orphan",
+    )
+    asset_tags: Mapped[list["AssetTag"]] = relationship(
+        "AssetTag",
         back_populates="tag",
         cascade="all, delete-orphan",
     )
@@ -153,4 +159,35 @@ class OrganizationTag(Base):
     tag: Mapped[Tag] = relationship(
         "Tag",
         back_populates="organization_tags",
+    )
+
+
+class AssetTag(Base):
+    """Tag association for assets (files)."""
+
+    __tablename__ = "asset_tags"
+
+    asset_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    tag_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("tags.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+    )
+
+    asset: Mapped["Asset"] = relationship(
+        "Asset",
+        back_populates="asset_tags",
+    )
+    tag: Mapped[Tag] = relationship(
+        "Tag",
+        back_populates="asset_tags",
     )

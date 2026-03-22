@@ -44,6 +44,7 @@ describe('assets-api', () => {
             created_by: 'admin@example.com',
             created_at: '2026-02-27T00:00:00.000Z',
             updated_at: '2026-02-27T00:00:00.000Z',
+            tags: [],
           },
         ],
         next_cursor: 'cursor-1',
@@ -83,6 +84,20 @@ describe('assets-api', () => {
     expect(request.endpointPath).toContain('limit=10');
   });
 
+  it('includes tag_name when filtering expense-linked assets', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [],
+        next_cursor: null,
+      },
+    });
+
+    await listAdminAssets({ tagName: 'expense_attachment' });
+
+    const request = mockAdminApiRequest.mock.calls[0][0];
+    expect(request.endpointPath).toContain('tag_name=expense_attachment');
+  });
+
   it('creates asset with snake_case request body and parses upload details', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {
@@ -98,6 +113,7 @@ describe('assets-api', () => {
           created_by: null,
           created_at: null,
           updated_at: null,
+          tags: [],
         },
         upload_url: 'https://uploads.example.com/asset-2',
         upload_method: 'PUT',

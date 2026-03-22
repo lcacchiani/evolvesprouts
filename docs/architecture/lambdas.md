@@ -192,7 +192,11 @@ their primary responsibilities.
 - Handler: backend/lambda/expense_parser/handler.py
 - Trigger: SQS queue (`evolvesprouts-expense-parser-queue`)
 - Purpose: process async invoice parse requests and enrich expense records
-  using OpenRouter via `AwsApiProxyFunction`
+  using OpenRouter via `AwsApiProxyFunction`; when `vendor_id` is unset and the
+  model returns `vendor_name`, attempts a unique match among **active** vendor
+  organizations: case-insensitive exact trimmed name, else a single `ILIKE`
+  substring hit only when the parsed string is long enough and not
+  generic-only tokens (weak matches never write `vendor_id`)
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
@@ -210,9 +214,9 @@ their primary responsibilities.
 - Handler: backend/lambda/inbound_invoice_email/handler.py
 - Trigger: SQS queue (`evolvesprouts-inbound-invoice-email-queue`) fed by SES
   receipt-rule notifications through SNS
-- Purpose: convert inbound invoice email attachments into `assets`,
-  `expenses`, and `expense_attachments` rows, then enqueue the existing
-  expense parser workflow
+- Purpose: convert inbound invoice email attachments (or synthetic body text
+  when there are no supported files) into `assets`, `expenses`, and
+  `expense_attachments` rows, then enqueue the existing expense parser workflow
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read/write for the assets bucket (including the
@@ -222,6 +226,9 @@ their primary responsibilities.
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `ASSETS_BUCKET_NAME`
   - `EXPENSE_PARSE_TOPIC_ARN`
+  - `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` (optional comma-separated
+    substrings; empty disables filtering; see `InboundInvoiceAllowedSenderPatterns`
+    CDK parameter / GitHub var `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`)
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction

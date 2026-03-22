@@ -527,6 +527,7 @@ configured by stack custom resources (including retention and KMS association).
 | `SesSenderEmail` | String | No | No | SES-verified sender email for notifications |
 | `InboundEmailDomainName` | String | Yes | No | SES-verified inbound email subdomain for invoice ingestion |
 | `InboundInvoiceRecipientLocalPart` | String | No | No | Local-part for the SES-managed invoice mailbox (default: `invoices`) |
+| `InboundInvoiceAllowedSenderPatterns` | String | No | No | Comma-separated sender substrings; empty disables allowlisting (GitHub var `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`) |
 | `TurnstileSecretKey` | String | No | Yes | Cloudflare Turnstile secret key |
 | `MailchimpApiSecretArn` | String | Yes | Yes | Existing Secrets Manager ARN for Mailchimp API key |
 | `MailchimpListId` | String | Yes | No | Mailchimp audience/list ID |

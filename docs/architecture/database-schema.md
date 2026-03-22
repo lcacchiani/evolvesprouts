@@ -115,6 +115,23 @@ Indexes:
 - `asset_share_links_asset_idx` unique index on `asset_id`
 - `asset_share_links_token_idx` unique index on `share_token`
 
+## Table: asset_tags
+
+Purpose: Associates `tags` rows with `assets` (for example marking files used as
+expense invoice attachments).
+
+Columns:
+- `asset_id` (UUID, PK, FK → `assets.id`, cascade delete)
+- `tag_id` (UUID, PK, FK → `tags.id`, cascade delete)
+- `created_at` (timestamptz, default `now()`)
+
+Indexes:
+- `asset_tags_tag_idx` on `tag_id`
+
+The `expense_attachment` tag is maintained in application code when
+`expense_attachments` rows are created or replaced; migration `0014_add_asset_tags`
+backfills from existing `expense_attachments`.
+
 ## Access control logic
 
 **Public assets** (`visibility = 'public'`):
@@ -287,10 +304,10 @@ Indexes:
 - `organization_members` links contacts to organizations with role/title.
 - Membership rows use `ON DELETE CASCADE`.
 
-### `tags`, `contact_tags`, `family_tags`, `organization_tags`
+### `tags`, `contact_tags`, `family_tags`, `organization_tags`, `asset_tags`
 
 - `tags` stores reusable labels.
-- Junction tables model many-to-many tagging across contacts/families/orgs.
+- Junction tables model many-to-many tagging across contacts/families/orgs/assets.
 - Junction rows use composite primary keys and cascade deletion.
 
 ### `sales_leads`

@@ -27,6 +27,7 @@ const FIXTURE_ASSET = createAdminAssetFixture({
 function renderPanel(overrides: Partial<ComponentProps<typeof AssetListPanel>> = {}) {
   const onQueryChange = vi.fn();
   const onVisibilityChange = vi.fn();
+  const onTagNameChange = vi.fn();
   const onLoadMore = vi.fn().mockResolvedValue(undefined);
   const onSelectAsset = vi.fn();
   const onDeleteAsset = vi.fn().mockResolvedValue(undefined);
@@ -35,7 +36,7 @@ function renderPanel(overrides: Partial<ComponentProps<typeof AssetListPanel>> =
     <AssetListPanel
       assets={[FIXTURE_ASSET]}
       selectedAssetId={null}
-      filters={{ query: '', visibility: '' }}
+      filters={{ query: '', visibility: '', tagName: '' }}
       isLoadingAssets={false}
       isLoadingMoreAssets={false}
       isDeletingAssetId={null}
@@ -43,6 +44,7 @@ function renderPanel(overrides: Partial<ComponentProps<typeof AssetListPanel>> =
       nextCursor='cursor-1'
       onQueryChange={onQueryChange}
       onVisibilityChange={onVisibilityChange}
+      onTagNameChange={onTagNameChange}
       onLoadMore={onLoadMore}
       onSelectAsset={onSelectAsset}
       onDeleteAsset={onDeleteAsset}
@@ -53,6 +55,7 @@ function renderPanel(overrides: Partial<ComponentProps<typeof AssetListPanel>> =
   return {
     onQueryChange,
     onVisibilityChange,
+    onTagNameChange,
     onLoadMore,
     onSelectAsset,
     onDeleteAsset,

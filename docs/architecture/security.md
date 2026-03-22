@@ -257,7 +257,8 @@ Process to add a new public API path:
 
 ### Third-party invoice parser egress controls
 
-Expense invoice parsing sends attachment content to OpenRouter and must follow a
+Expense invoice parsing sends attachment bytes (or email-body text saved as a
+`text/plain` asset for inbound mail) to OpenRouter and must follow a
 fail-closed outbound policy:
 
 - In-VPC Lambdas **must not** call OpenRouter directly.
@@ -276,8 +277,8 @@ fail-closed outbound policy:
 ### Inbound invoice email handling
 
 Inbound invoice email ingestion stores raw `.eml` payloads in the private
-assets bucket under a reserved prefix before attachments are copied into normal
-expense asset keys.
+assets bucket under a reserved prefix before attachments (or body-extracted
+invoice text) are copied into normal expense asset keys.
 
 Requirements:
 
@@ -285,6 +286,12 @@ Requirements:
   `inbound-email/raw/` prefix through public or signed-download routes.
 - Do not log raw email bodies, headers, or attachment bytes.
 - Mask sender addresses in application logs with `mask_email()`.
+- Optional sender allowlist: when `InboundInvoiceAllowedSenderPatterns` is
+  non-empty (deployed from GitHub Actions variable
+  `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` into Lambda env
+  `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`), messages whose SES envelope
+  `source` and RFC822 `From` address both fail substring matching are marked
+  failed in `inbound_emails` and are not ingested as expenses.
 - Keep SES receipt processing least-privilege: only the configured receipt role
   can write raw email objects and publish the notification topic.
 - Keep inbound attachments `visibility=restricted` when they are promoted into

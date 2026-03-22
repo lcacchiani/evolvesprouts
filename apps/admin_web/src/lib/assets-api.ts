@@ -4,6 +4,7 @@ import { isRecord } from './type-guards';
 
 import type {
   AdminAsset,
+  AdminAssetTag,
   AssetGrant,
   AssetType,
   AssetVisibility,
@@ -13,7 +14,12 @@ import type {
   PaginatedList,
   UpsertAdminAssetInput,
 } from '@/types/assets';
-import { ACCESS_GRANT_TYPES, ASSET_TYPES, ASSET_VISIBILITIES } from '@/types/assets';
+import {
+  ACCESS_GRANT_TYPES,
+  ASSET_TYPES,
+  ASSET_VISIBILITIES,
+  EXPENSE_ATTACHMENT_ASSET_TAG,
+} from '@/types/assets';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
@@ -111,6 +117,17 @@ function parseVisibility(value: unknown): AssetVisibility {
   return 'restricted';
 }
 
+function parseAssetTagRef(value: unknown): AdminAssetTag | null {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string') {
+    return null;
+  }
+  return {
+    id: value.id,
+    name: value.name,
+    color: asNullableString(value.color ?? null),
+  };
+}
+
 function parseGrantType(value: unknown): AssetGrant['grantType'] {
   if (typeof value === 'string' && ACCESS_GRANT_TYPES.includes(value as AssetGrant['grantType'])) {
     return value as AssetGrant['grantType'];
@@ -119,6 +136,11 @@ function parseGrantType(value: unknown): AssetGrant['grantType'] {
 }
 
 function parseAsset(value: ApiAsset): AdminAsset {
+  const tagsRaw = value.tags;
+  const tags = Array.isArray(tagsRaw)
+    ? tagsRaw.map(parseAssetTagRef).filter((tag): tag is AdminAssetTag => tag !== null)
+    : [];
+
   return {
     id: asTrimmedString(value.id) ?? '',
     title: asTrimmedString(value.title) ?? 'Untitled asset',
@@ -129,6 +151,7 @@ function parseAsset(value: ApiAsset): AdminAsset {
     resourceKey: asNullableString(value.resource_key ?? null),
     contentType: asNullableString(value.content_type ?? null),
     visibility: parseVisibility(value.visibility),
+    tags,
     createdBy: asNullableString(value.created_by ?? null),
     createdAt: asNullableString(value.created_at ?? null),
     updatedAt: asNullableString(value.updated_at ?? null),
@@ -258,6 +281,9 @@ export async function listAdminAssets(
   }
   if (input.assetType?.trim()) {
     params.set('asset_type', input.assetType);
+  }
+  if (input.tagName?.trim() === EXPENSE_ATTACHMENT_ASSET_TAG) {
+    params.set('tag_name', EXPENSE_ATTACHMENT_ASSET_TAG);
   }
   if (input.cursor?.trim()) {
     params.set('cursor', input.cursor);

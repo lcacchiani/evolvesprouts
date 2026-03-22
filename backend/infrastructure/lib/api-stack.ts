@@ -468,6 +468,18 @@ export class ApiStack extends cdk.Stack {
           "Local-part for the SES-managed inbound invoice mailbox on the configured inbound email domain.",
       }
     );
+    const inboundInvoiceAllowedSenderPatterns = new cdk.CfnParameter(
+      this,
+      "InboundInvoiceAllowedSenderPatterns",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Comma-separated substrings (case-insensitive). Inbound invoice mail " +
+          "must match at least one pattern on SES envelope source or RFC822 From. " +
+          "Empty disables allowlisting.",
+      }
+    );
     const turnstileSecretKey = new cdk.CfnParameter(
       this,
       "TurnstileSecretKey",
@@ -1618,6 +1630,8 @@ export class ApiStack extends cdk.Stack {
           DATABASE_IAM_AUTH: "true",
           ASSETS_BUCKET_NAME: assetsBucket.bucketName,
           EXPENSE_PARSE_TOPIC_ARN: expenseParserTopic.topicArn,
+          INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS:
+            inboundInvoiceAllowedSenderPatterns.valueAsString,
         },
       }
     );

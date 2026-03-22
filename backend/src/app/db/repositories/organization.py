@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
@@ -14,6 +15,60 @@ from app.db.repositories.base import BaseRepository
 def _escape_like_pattern(pattern: str) -> str:
     """Escape LIKE pattern special characters."""
     return pattern.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _normalize_vendor_match_name(parsed_vendor_name: str) -> str:
+    """Normalize parser output for vendor matching (trim, collapse whitespace)."""
+    return re.sub(r"\s+", " ", parsed_vendor_name.strip())
+
+
+# Substring (ILIKE) auto-link is risky; require a substantial name and reject
+# generic-only strings before applying Tier 2 matching.
+_MIN_CHARS_FOR_VENDOR_FUZZY_MATCH = 12
+_GENERIC_VENDOR_NAME_TOKENS: frozenset[str] = frozenset(
+    {
+        "and",
+        "bv",
+        "co",
+        "company",
+        "corp",
+        "corporation",
+        "gmbh",
+        "group",
+        "holding",
+        "holdings",
+        "inc",
+        "incorporated",
+        "limited",
+        "llc",
+        "ltd",
+        "nv",
+        "plc",
+        "pte",
+        "sa",
+        "services",
+        "service",
+        "the",
+    }
+)
+
+
+def _vendor_token_key(token: str) -> str:
+    return token.strip(".,;:\"'()[]").lower()
+
+
+def _should_skip_vendor_fuzzy_match(normalized: str) -> bool:
+    """Block weak parser output from Tier 2 vendor FK linking."""
+    if len(normalized) < _MIN_CHARS_FOR_VENDOR_FUZZY_MATCH:
+        return True
+    tokens = [_vendor_token_key(t) for t in normalized.split() if t.strip()]
+    if not tokens:
+        return True
+    if len(tokens) == 1 and tokens[0] in _GENERIC_VENDOR_NAME_TOKENS:
+        return True
+    if all(t in _GENERIC_VENDOR_NAME_TOKENS for t in tokens):
+        return True
+    return False
 
 
 class OrganizationRepository(BaseRepository[Organization]):
@@ -91,3 +146,51 @@ class OrganizationRepository(BaseRepository[Organization]):
             Organization.relationship_type == RelationshipType.VENDOR,
         )
         return self._session.execute(statement).scalar_one_or_none()
+
+    def try_resolve_active_vendor_by_parsed_name(
+        self, parsed_vendor_name: str
+    ) -> Organization | None:
+        """Match parsed invoice vendor text to at most one active vendor org.
+
+        Tier 1: case-insensitive equality on trimmed names.
+        Tier 2: single ILIKE substring match among active vendors only, only when
+        the normalized parser string is long enough and not generic-only tokens.
+        Returns None when ambiguous or unmatched.
+        """
+        normalized = _normalize_vendor_match_name(parsed_vendor_name)
+        if not normalized:
+            return None
+
+        exact_stmt = (
+            select(Organization)
+            .where(
+                Organization.relationship_type == RelationshipType.VENDOR,
+                Organization.archived_at.is_(None),
+                func.lower(func.trim(Organization.name)) == normalized.lower(),
+            )
+            .limit(2)
+        )
+        exact_hits = list(self._session.execute(exact_stmt).scalars().all())
+        if len(exact_hits) == 1:
+            return exact_hits[0]
+        if len(exact_hits) > 1:
+            return None
+
+        if _should_skip_vendor_fuzzy_match(normalized):
+            return None
+
+        escaped = _escape_like_pattern(normalized)
+        pattern = f"%{escaped}%"
+        fuzzy_stmt = (
+            select(Organization)
+            .where(
+                Organization.relationship_type == RelationshipType.VENDOR,
+                Organization.archived_at.is_(None),
+                Organization.name.ilike(pattern, escape="\\"),
+            )
+            .limit(2)
+        )
+        fuzzy_hits = list(self._session.execute(fuzzy_stmt).scalars().all())
+        if len(fuzzy_hits) == 1:
+            return fuzzy_hits[0]
+        return None
