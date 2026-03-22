@@ -182,6 +182,10 @@ topic so machine-only mailbox traffic can land directly in the expenses domain.
   there are no supported attachments—extracts visible text from the email body
   (`text/plain` preferred, otherwise stripped `text/html`) and stores it as a
   synthetic `text/plain` asset for parsing.
+- When `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` is set (non-empty), rejects
+  messages whose SES envelope `source` and RFC822 `From` both miss every
+  comma-separated substring (case-insensitive); those rows are recorded as
+  failed in `inbound_emails` without creating expenses.
 - Creates `assets`, `expenses`, and `expense_attachments` rows.
 - Tracks idempotency in the `inbound_emails` table using SES `messageId`.
 - Reuses the existing `expense.parse_requested` topic after the expense row

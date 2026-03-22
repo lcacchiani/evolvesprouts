@@ -120,3 +120,91 @@ def test_process_inbound_invoice_email_skips_spam_without_loading_raw_email(
 
     assert result == InboundInvoiceProcessResult(status=InboundEmailStatus.SKIPPED)
     assert statuses == [InboundEmailStatus.SKIPPED]
+
+
+def test_process_inbound_invoice_email_fails_when_sender_not_allowlisted(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv(
+        "INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS",
+        "@only-this.org",
+    )
+    upsert_calls: list[tuple[InboundEmailStatus, str | None]] = []
+
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._get_tracking_record",
+        lambda _message_id: None,
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._load_raw_email",
+        lambda _bucket, _key: b"raw-email",
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest.parse_raw_email",
+        lambda _raw_email: SimpleNamespace(
+            from_email="billing@example.com",
+            subject="Invoice",
+            from_name="Vendor",
+            attachments=(),
+        ),
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._upsert_tracking_record",
+        lambda _event, *, status, parsed_email=None, failure_reason=None: upsert_calls.append(
+            (status, failure_reason)
+        ),
+    )
+
+    result = process_inbound_invoice_email(_base_event())
+
+    assert result == InboundInvoiceProcessResult(status=InboundEmailStatus.FAILED)
+    assert upsert_calls == [
+        (InboundEmailStatus.PROCESSING, None),
+        (
+            InboundEmailStatus.FAILED,
+            "Sender address is not allowlisted for inbound invoice processing",
+        ),
+    ]
+
+
+def test_process_inbound_invoice_email_allowlisted_by_envelope_substring(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv(
+        "INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS",
+        "billing@",
+    )
+    upsert_calls: list[tuple[InboundEmailStatus, str | None]] = []
+
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._get_tracking_record",
+        lambda _message_id: None,
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._load_raw_email",
+        lambda _bucket, _key: b"raw-email",
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest.parse_raw_email",
+        lambda _raw_email: SimpleNamespace(
+            from_email="other@example.com",
+            subject="Invoice",
+            from_name="Vendor",
+            attachments=(),
+        ),
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest.invoice_attachments_for_ingest",
+        lambda _parsed: [],
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._upsert_tracking_record",
+        lambda _event, *, status, parsed_email=None, failure_reason=None: upsert_calls.append(
+            (status, failure_reason)
+        ),
+    )
+
+    process_inbound_invoice_email(_base_event())
+
+    assert upsert_calls[-1][0] == InboundEmailStatus.FAILED
+    assert "allowlisted" not in (upsert_calls[-1][1] or "")

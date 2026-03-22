@@ -28,6 +28,7 @@ from app.db.repositories import (
 )
 from app.services.aws_clients import get_s3_client
 from app.services.expense_events import enqueue_expense_parse
+from app.services.inbound_invoice_allowlist import inbound_invoice_sender_is_allowed
 from app.services.inbound_email import (
     EMAIL_INVOICE_BODY_FILE_NAME,
     InvoiceAttachment,
@@ -43,6 +44,9 @@ logger = get_logger(__name__)
 _SYSTEM_ACTOR = "system"
 _MAX_ASSET_TITLE_LENGTH = 255
 _MAX_EXPENSE_NOTES_LENGTH = 5000
+_SENDER_NOT_ALLOWLISTED_REASON = (
+    "Sender address is not allowlisted for inbound invoice processing"
+)
 
 
 @dataclass(frozen=True)
@@ -90,6 +94,27 @@ def process_inbound_invoice_email(
     _upsert_tracking_record(event, status=InboundEmailStatus.PROCESSING)
     raw_email = _load_raw_email(event.raw_s3_bucket, event.raw_s3_key)
     parsed_email = parse_raw_email(raw_email)
+    if not inbound_invoice_sender_is_allowed(
+        envelope_from=event.source_email,
+        header_from=parsed_email.from_email,
+    ):
+        _upsert_tracking_record(
+            event,
+            status=InboundEmailStatus.FAILED,
+            parsed_email=parsed_email,
+            failure_reason=_SENDER_NOT_ALLOWLISTED_REASON,
+        )
+        logger.info(
+            "Inbound invoice email rejected by sender allowlist",
+            extra={
+                "ses_message_id": event.ses_message_id,
+                "source_email_masked": mask_email(
+                    parsed_email.from_email or event.source_email or ""
+                ),
+            },
+        )
+        return InboundInvoiceProcessResult(status=InboundEmailStatus.FAILED)
+
     source_email = parsed_email.from_email or event.source_email
     invoice_attachments = invoice_attachments_for_ingest(parsed_email)
     if not invoice_attachments:

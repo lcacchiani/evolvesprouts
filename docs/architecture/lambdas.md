@@ -226,6 +226,9 @@ their primary responsibilities.
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `ASSETS_BUCKET_NAME`
   - `EXPENSE_PARSE_TOPIC_ARN`
+  - `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` (optional comma-separated
+    substrings; empty disables filtering; see `InboundInvoiceAllowedSenderPatterns`
+    CDK parameter / GitHub var `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`)
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction
