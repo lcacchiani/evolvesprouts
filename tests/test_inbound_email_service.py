@@ -107,6 +107,26 @@ def test_parse_raw_email_extracts_plain_body_text() -> None:
     assert "199.00" in parsed.body_text
 
 
+def test_parse_raw_email_prefers_substantial_html_over_short_plain() -> None:
+    message = EmailMessage()
+    message["From"] = "Vendor <billing@example.com>"
+    message["To"] = "invoices@inbound.example.com"
+    message["Subject"] = "Invoice"
+    message.set_content("See below.")
+    message.add_alternative(
+        "<html><body><p>Invoice INV-888</p>"
+        "<p>Subtotal 100.00 USD</p><p>Tax 0</p><p>Total 100.00 USD</p>"
+        "<p>Thank you for your business.</p></body></html>",
+        subtype="html",
+    )
+
+    parsed = parse_raw_email(message.as_bytes())
+
+    assert parsed.body_text is not None
+    assert "INV-888" in parsed.body_text
+    assert "100.00" in parsed.body_text
+
+
 def test_parse_raw_email_extracts_visible_text_from_html_body() -> None:
     message = EmailMessage()
     message["From"] = "Vendor <billing@example.com>"

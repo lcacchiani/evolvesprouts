@@ -72,14 +72,31 @@ def test_try_resolve_fuzzy_used_when_exact_misses(mock_session: MagicMock) -> No
 
 
 def test_try_resolve_fuzzy_ambiguous_returns_none(mock_session: MagicMock) -> None:
-    o1 = SimpleNamespace(id=UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), name="Acme A")
-    o2 = SimpleNamespace(id=UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), name="Acme B")
+    """Short parsed names skip Tier 2; ambiguous multi-match is not evaluated."""
     empty = MagicMock()
     empty.scalars.return_value.all.return_value = []
-    two = MagicMock()
-    two.scalars.return_value.all.return_value = [o1, o2]
-    mock_session.execute.side_effect = [empty, two]
+    mock_session.execute.return_value = empty
 
     repo = OrganizationRepository(mock_session)
     assert repo.try_resolve_active_vendor_by_parsed_name("Acme") is None
-    assert mock_session.execute.call_count == 2
+    assert mock_session.execute.call_count == 1
+
+
+def test_try_resolve_fuzzy_skipped_for_short_substring_query(mock_session: MagicMock) -> None:
+    empty = MagicMock()
+    empty.scalars.return_value.all.return_value = []
+    mock_session.execute.return_value = empty
+
+    repo = OrganizationRepository(mock_session)
+    assert repo.try_resolve_active_vendor_by_parsed_name("Limited") is None
+    assert mock_session.execute.call_count == 1
+
+
+def test_try_resolve_fuzzy_skipped_when_only_generic_tokens(mock_session: MagicMock) -> None:
+    empty = MagicMock()
+    empty.scalars.return_value.all.return_value = []
+    mock_session.execute.return_value = empty
+
+    repo = OrganizationRepository(mock_session)
+    assert repo.try_resolve_active_vendor_by_parsed_name("Limited Company Inc") is None
+    assert mock_session.execute.call_count == 1

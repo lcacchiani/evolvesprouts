@@ -298,26 +298,52 @@ def _normalize_body_text(text: str) -> str:
     return normalized.strip()
 
 
+def _pick_best_invoice_body(*, plain_norm: str, html_norm: str) -> str | None:
+    """Prefer long enough text/plain; otherwise use HTML body if it qualifies.
+
+    When both are shorter than the ingest minimum, return the longer candidate so
+    short boilerplate plain does not hide a richer HTML invoice body.
+    """
+    plain_norm = plain_norm.strip()
+    html_norm = html_norm.strip()
+    pl = len(plain_norm)
+    hl = len(html_norm)
+    if pl >= _MIN_INVOICE_BODY_CHARS:
+        return plain_norm
+    if hl >= _MIN_INVOICE_BODY_CHARS:
+        return html_norm
+    if plain_norm and html_norm:
+        return plain_norm if pl >= hl else html_norm
+    if plain_norm:
+        return plain_norm
+    if html_norm:
+        return html_norm
+    return None
+
+
 def _extract_body_text(message: Message) -> str | None:
-    """Prefer text/plain; fall back to visible text from text/html."""
+    """Combine text/plain and text/html parts; prefer plain when it is substantial."""
+    plain_norm = ""
+    html_norm = ""
     get_body = getattr(message, "get_body", None)
     if callable(get_body):
-        for prefer in (("plain",), ("html",)):
-            part = get_body(preferencelist=prefer)
-            if part is None:
-                continue
-            payload = _part_text_payload(part)
-            if payload is None or not payload.strip():
-                continue
-            ctype = (part.get_content_type() or "").strip().lower()
+        plain_part = get_body(preferencelist=("plain",))
+        if plain_part is not None:
+            ctype = (plain_part.get_content_type() or "").strip().lower()
             if ctype == "text/plain":
-                normalized = _normalize_body_text(payload)
-            elif ctype == "text/html":
-                normalized = _normalize_body_text(_strip_html_to_text(payload))
-            else:
-                continue
-            if normalized:
-                return normalized
+                payload = _part_text_payload(plain_part)
+                if payload and payload.strip():
+                    plain_norm = _normalize_body_text(payload)
+        html_part = get_body(preferencelist=("html",))
+        if html_part is not None:
+            ctype = (html_part.get_content_type() or "").strip().lower()
+            if ctype == "text/html":
+                payload = _part_text_payload(html_part)
+                if payload and payload.strip():
+                    html_norm = _normalize_body_text(_strip_html_to_text(payload))
+    picked = _pick_best_invoice_body(plain_norm=plain_norm, html_norm=html_norm)
+    if picked:
+        return picked
     return _extract_body_text_from_walk(message)
 
 
@@ -337,10 +363,12 @@ def _extract_body_text_from_walk(message: Message) -> str | None:
             plain_chunks.append(payload)
         elif ctype == "text/html":
             html_chunks.append(payload)
-    if plain_chunks:
-        return _normalize_body_text("\n\n".join(plain_chunks))
-    if html_chunks:
-        return _normalize_body_text(
-            _strip_html_to_text("\n\n".join(html_chunks)),
-        )
-    return None
+    plain_merged = (
+        _normalize_body_text("\n\n".join(plain_chunks)) if plain_chunks else ""
+    )
+    html_merged = (
+        _normalize_body_text(_strip_html_to_text("\n\n".join(html_chunks)))
+        if html_chunks
+        else ""
+    )
+    return _pick_best_invoice_body(plain_norm=plain_merged, html_norm=html_merged)

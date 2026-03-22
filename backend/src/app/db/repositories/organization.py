@@ -22,6 +22,55 @@ def _normalize_vendor_match_name(parsed_vendor_name: str) -> str:
     return re.sub(r"\s+", " ", parsed_vendor_name.strip())
 
 
+# Substring (ILIKE) auto-link is risky; require a substantial name and reject
+# generic-only strings before applying Tier 2 matching.
+_MIN_CHARS_FOR_VENDOR_FUZZY_MATCH = 12
+_GENERIC_VENDOR_NAME_TOKENS: frozenset[str] = frozenset(
+    {
+        "and",
+        "bv",
+        "co",
+        "company",
+        "corp",
+        "corporation",
+        "gmbh",
+        "group",
+        "holding",
+        "holdings",
+        "inc",
+        "incorporated",
+        "limited",
+        "llc",
+        "ltd",
+        "nv",
+        "plc",
+        "pte",
+        "sa",
+        "services",
+        "service",
+        "the",
+    }
+)
+
+
+def _vendor_token_key(token: str) -> str:
+    return token.strip(".,;:\"'()[]").lower()
+
+
+def _should_skip_vendor_fuzzy_match(normalized: str) -> bool:
+    """Block weak parser output from Tier 2 vendor FK linking."""
+    if len(normalized) < _MIN_CHARS_FOR_VENDOR_FUZZY_MATCH:
+        return True
+    tokens = [_vendor_token_key(t) for t in normalized.split() if t.strip()]
+    if not tokens:
+        return True
+    if len(tokens) == 1 and tokens[0] in _GENERIC_VENDOR_NAME_TOKENS:
+        return True
+    if all(t in _GENERIC_VENDOR_NAME_TOKENS for t in tokens):
+        return True
+    return False
+
+
 class OrganizationRepository(BaseRepository[Organization]):
     """Repository helpers for organization records."""
 
@@ -104,7 +153,8 @@ class OrganizationRepository(BaseRepository[Organization]):
         """Match parsed invoice vendor text to at most one active vendor org.
 
         Tier 1: case-insensitive equality on trimmed names.
-        Tier 2: single ILIKE substring match among active vendors only.
+        Tier 2: single ILIKE substring match among active vendors only, only when
+        the normalized parser string is long enough and not generic-only tokens.
         Returns None when ambiguous or unmatched.
         """
         normalized = _normalize_vendor_match_name(parsed_vendor_name)
@@ -124,6 +174,9 @@ class OrganizationRepository(BaseRepository[Organization]):
         if len(exact_hits) == 1:
             return exact_hits[0]
         if len(exact_hits) > 1:
+            return None
+
+        if _should_skip_vendor_fuzzy_match(normalized):
             return None
 
         escaped = _escape_like_pattern(normalized)

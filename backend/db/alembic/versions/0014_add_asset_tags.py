@@ -68,3 +68,13 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("asset_tags_tag_idx", table_name="asset_tags")
     op.drop_table("asset_tags")
+    op.execute(
+        """
+        DELETE FROM tags
+        WHERE lower(name) = lower('expense_attachment')
+          AND NOT EXISTS (SELECT 1 FROM contact_tags WHERE tag_id = tags.id)
+          AND NOT EXISTS (SELECT 1 FROM family_tags WHERE tag_id = tags.id)
+          AND NOT EXISTS (SELECT 1 FROM organization_tags WHERE tag_id = tags.id)
+          AND NOT EXISTS (SELECT 1 FROM service_tags WHERE tag_id = tags.id)
+        """
+    )

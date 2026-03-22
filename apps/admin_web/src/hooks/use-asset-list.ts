@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { listAdminAssets } from '@/lib/assets-api';
 import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
+import { EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 
 import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
@@ -186,6 +187,10 @@ export function useAssetList(): UseAssetListReturn {
   const applyCreatedAsset = useCallback(
     async (createdAsset: AdminAsset | null) => {
       if (!createdAsset) {
+        await refreshAssets();
+        return;
+      }
+      if (filtersRef.current.tagName === EXPENSE_ATTACHMENT_ASSET_TAG) {
         await refreshAssets();
         return;
       }
