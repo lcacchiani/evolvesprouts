@@ -1720,6 +1720,12 @@ export class ApiStack extends cdk.Stack {
         resources: [inboundInvoiceTopic.topicArn],
       })
     );
+    inboundInvoiceReceiptRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["kms:GenerateDataKey*", "kms:Decrypt"],
+        resources: [sqsEncryptionKey.keyArn],
+      })
+    );
     assetsBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         sid: "AllowSesInboundInvoiceWrites",
