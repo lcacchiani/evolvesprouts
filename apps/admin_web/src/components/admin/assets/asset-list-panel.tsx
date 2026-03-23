@@ -4,7 +4,11 @@ import { useMemo, useState, type KeyboardEvent, type MouseEvent } from 'react';
 
 import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
 
-import { ASSET_VISIBILITIES, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
+import {
+  ASSET_VISIBILITIES,
+  CLIENT_DOCUMENT_ASSET_TAG,
+  EXPENSE_ATTACHMENT_ASSET_TAG,
+} from '@/types/assets';
 
 import { DeleteIcon } from '@/components/icons/action-icons';
 import OpenInNewTabIcon from '@/components/icons/svg/open-in-new-tab-icon.svg';
@@ -225,17 +229,16 @@ export function AssetListPanel({
                       ) : (
                         <div className='flex flex-wrap gap-1'>
                           {sortedTags.map((tag) => {
-                            const isExpense =
-                              tag.name.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG;
+                            const nameLower = tag.name.toLowerCase();
+                            const isExpense = nameLower === EXPENSE_ATTACHMENT_ASSET_TAG;
+                            const isClient = nameLower === CLIENT_DOCUMENT_ASSET_TAG;
+                            const pillClass = isExpense
+                              ? 'rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900'
+                              : isClient
+                                ? 'rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-900'
+                                : 'rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800';
                             return (
-                              <span
-                                key={tag.id}
-                                className={
-                                  isExpense
-                                    ? 'rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900'
-                                    : 'rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800'
-                                }
-                              >
+                              <span key={tag.id} className={pillClass}>
                                 {formatAssetTagDisplayName(tag.name)}
                               </span>
                             );
