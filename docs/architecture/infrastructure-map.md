@@ -42,9 +42,13 @@ supporting services.
 
 ## Cloudflare
 
-Cloudflare sits in front of all public-facing services as a DNS provider
-and edge proxy. It is managed manually through the Cloudflare dashboard
-(no infrastructure-as-code).
+Cloudflare sits in front of public-facing services as a DNS provider and edge
+proxy. DNS is managed manually through the Cloudflare dashboard (no
+infrastructure-as-code). **Response header transform rules** for Chromium
+Private Network Access (CORS) are applied with the repository script
+`scripts/cloudflare_apply_private_network_access_rule.py` or the GitHub Actions
+workflow `.github/workflows/cloudflare-pna-header.yml` (requires an API token
+with Transform Rules permissions; see script docstring).
 
 ### DNS records
 
@@ -52,7 +56,7 @@ and edge proxy. It is managed manually through the Cloudflare dashboard
 |---|---|---|---|
 | CNAME | `www.evolvesprouts.com` | CloudFront distribution (public website) | Yes |
 | CNAME | `www-staging.evolvesprouts.com` | CloudFront distribution (staging) | Yes |
-| CNAME | `api.evolvesprouts.com` | API Gateway custom domain | No (grey cloud) |
+| CNAME | `api.evolvesprouts.com` | Regional API Gateway (`execute-api` hostname) | Yes (orange cloud) — **required** for Cloudflare response header transforms on API traffic |
 | CNAME | `admin.evolvesprouts.com` | CloudFront distribution (admin web) | Yes |
 | CNAME | `media.evolvesprouts.com` | CloudFront distribution (asset downloads) | Yes |
 | CNAME | `auth.evolvesprouts.com` | Cognito custom domain CloudFront | No |
@@ -76,7 +80,8 @@ Bot protection for public forms (media download, reservations).
 | Secret | Purpose |
 |---|---|
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account identifier |
-| `CLOUDFLARE_API_TOKEN` | API token for DNS management (used by deployment workflows if needed) |
+| `CLOUDFLARE_API_TOKEN` | API token (often DNS-scoped) for zone/DNS operations |
+| `CLOUDFLARE_RULESETS_API_TOKEN` | Optional: token with **Zone → Transform Rules → Edit** for `scripts/cloudflare_apply_private_network_access_rule.py` / `cloudflare-pna-header` workflow when `CLOUDFLARE_API_TOKEN` cannot access Rulesets |
 
 ## AWS account
 
