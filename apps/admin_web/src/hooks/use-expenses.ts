@@ -9,7 +9,6 @@ import {
   createAdminExpense,
   listAdminExpenses,
   markAdminExpensePaid,
-  reparseAdminExpense,
   updateAdminExpense,
 } from '@/lib/expenses-api';
 import type { Expense, ExpenseParseStatus, ExpenseStatus, UpsertExpenseInput } from '@/types/expenses';
@@ -38,7 +37,6 @@ export function useExpenses() {
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [isMarkingPaidId, setIsMarkingPaidId] = useState<string | null>(null);
-  const [isReparsingId, setIsReparsingId] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState('');
 
   const fetchExpenses = useCallback(
@@ -258,23 +256,6 @@ export function useExpenses() {
     [list]
   );
 
-  const reparseExpenseEntry = useCallback(
-    async (expenseId: string) => {
-      setIsReparsingId(expenseId);
-      setMutationError('');
-      try {
-        await reparseAdminExpense(expenseId);
-        await list.refetch();
-      } catch (error) {
-        setMutationError(toErrorMessage(error, 'Failed to queue parse request.'));
-        throw error;
-      } finally {
-        setIsReparsingId(null);
-      }
-    },
-    [list]
-  );
-
   return {
     ...list,
     selectedExpenseId,
@@ -283,7 +264,6 @@ export function useExpenses() {
     isUploadingFiles,
     isDeletingId,
     isMarkingPaidId,
-    isReparsingId,
     mutationError,
     selectExpense,
     clearSelectedExpense,
@@ -293,6 +273,5 @@ export function useExpenses() {
     amendExpenseEntry,
     cancelExpenseEntry,
     markPaidExpenseEntry,
-    reparseExpenseEntry,
   };
 }

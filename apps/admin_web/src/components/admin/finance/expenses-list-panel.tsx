@@ -3,7 +3,7 @@
 import type { KeyboardEvent } from 'react';
 import { useState } from 'react';
 
-import { MarkPaidIcon, RotateIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
+import { MarkPaidIcon, VoidExpenseIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -33,13 +33,11 @@ interface ExpensesListPanelProps {
   error: string;
   isVoidingId: string | null;
   isMarkingPaidId: string | null;
-  isReparsingId: string | null;
   onLoadMore: () => Promise<void> | void;
   onSelectExpense: (expenseId: string) => void;
   onQueryChange: (value: string) => void;
   onStatusChange: (value: ExpenseStatus | '') => void;
   onParseStatusChange: (value: ExpenseParseStatus | '') => void;
-  onReparse: (expenseId: string) => Promise<void> | void;
   onMarkPaid: (expenseId: string) => Promise<void> | void;
   onVoidExpense: (expenseId: string, reason: string) => Promise<void> | void;
 }
@@ -56,13 +54,11 @@ export function ExpensesListPanel({
   error,
   isVoidingId,
   isMarkingPaidId,
-  isReparsingId,
   onLoadMore,
   onSelectExpense,
   onQueryChange,
   onStatusChange,
   onParseStatusChange,
-  onReparse,
   onMarkPaid,
   onVoidExpense,
 }: ExpensesListPanelProps) {
@@ -204,25 +200,6 @@ export function ExpensesListPanel({
                   <td className='px-4 py-3'>{formatDate(expense.createdAt)}</td>
                   <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                     <div className='flex flex-wrap justify-end gap-1'>
-                      <Button
-                        type='button'
-                        size='sm'
-                        variant='outline'
-                        disabled={isReparsingId === expense.id}
-                        onClick={() => void onReparse(expense.id)}
-                        aria-label='Reparse expense'
-                        title='Reparse expense'
-                        aria-busy={isReparsingId === expense.id}
-                      >
-                        {isReparsingId === expense.id ? (
-                          <span
-                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
-                            aria-hidden
-                          />
-                        ) : (
-                          <RotateIcon className='h-4 w-4' />
-                        )}
-                      </Button>
                       <Button
                         type='button'
                         size='sm'

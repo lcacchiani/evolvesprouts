@@ -36,16 +36,12 @@ const baseExpense: Expense = {
 function makeRowActions(overrides: {
   isVoidingId?: string | null;
   isMarkingPaidId?: string | null;
-  isReparsingId?: string | null;
-  onReparse?: () => Promise<void> | void;
   onMarkPaid?: () => Promise<void> | void;
   onVoidExpense?: (expenseId: string, reason: string) => Promise<void> | void;
 } = {}) {
   return {
     isVoidingId: null as string | null,
     isMarkingPaidId: null as string | null,
-    isReparsingId: null as string | null,
-    onReparse: vi.fn().mockResolvedValue(undefined),
     onMarkPaid: vi.fn().mockResolvedValue(undefined),
     onVoidExpense: vi.fn().mockResolvedValue(undefined),
     ...overrides,
@@ -94,16 +90,6 @@ describe('ExpensesListPanel', () => {
 
     await user.click(screen.getByText('Acme Co'));
     expect(onSelectExpense).toHaveBeenCalledWith('exp-1');
-  });
-
-  it('calls onReparse when Reparse is clicked', async () => {
-    const user = userEvent.setup();
-    const rowActions = makeRowActions();
-
-    render(<ExpensesListPanel {...listProps} {...rowActions} />);
-
-    await user.click(screen.getByRole('button', { name: 'Reparse expense' }));
-    expect(rowActions.onReparse).toHaveBeenCalledWith('exp-1');
   });
 
   it('calls onMarkPaid when Paid is clicked', async () => {

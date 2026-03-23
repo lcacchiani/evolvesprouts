@@ -20,7 +20,6 @@ const { mockUseExpenses, expensesState, mockUseVendors, vendorsState } = vi.hois
     isUploadingFiles: false,
     isDeletingId: null as string | null,
     isMarkingPaidId: null as string | null,
-    isReparsingId: null as string | null,
     mutationError: '',
     selectExpense: vi.fn(),
     clearSelectedExpense: vi.fn(),
@@ -30,7 +29,6 @@ const { mockUseExpenses, expensesState, mockUseVendors, vendorsState } = vi.hois
     amendExpenseEntry: vi.fn(),
     cancelExpenseEntry: vi.fn(),
     markPaidExpenseEntry: vi.fn(),
-    reparseExpenseEntry: vi.fn(),
   };
   const vendorsState = {
     vendors: [],

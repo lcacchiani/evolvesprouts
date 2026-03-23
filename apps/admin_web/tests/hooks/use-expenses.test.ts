@@ -7,7 +7,6 @@ const {
   mockAmendAdminExpense,
   mockCancelAdminExpense,
   mockMarkAdminExpensePaid,
-  mockReparseAdminExpense,
   mockCreateAdminAsset,
   mockUploadFileToPresignedUrl,
   mockRefetch,
@@ -34,7 +33,6 @@ const {
     mockAmendAdminExpense: vi.fn(),
     mockCancelAdminExpense: vi.fn(),
     mockMarkAdminExpensePaid: vi.fn(),
-    mockReparseAdminExpense: vi.fn(),
     mockCreateAdminAsset: vi.fn(),
     mockUploadFileToPresignedUrl: vi.fn(),
     mockRefetch,
@@ -53,7 +51,6 @@ vi.mock('@/lib/expenses-api', () => ({
   amendAdminExpense: mockAmendAdminExpense,
   cancelAdminExpense: mockCancelAdminExpense,
   markAdminExpensePaid: mockMarkAdminExpensePaid,
-  reparseAdminExpense: mockReparseAdminExpense,
 }));
 
 vi.mock('@/lib/assets-api', () => ({
@@ -300,18 +297,6 @@ describe('useExpenses', () => {
       'exp-1',
       expect.objectContaining({ notes: 'Amendment' })
     );
-    expect(mockRefetch).toHaveBeenCalled();
-  });
-
-  it('reparse queues and refetches', async () => {
-    mockReparseAdminExpense.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useExpenses());
-
-    await act(async () => {
-      await result.current.reparseExpenseEntry('exp-1');
-    });
-
-    expect(mockReparseAdminExpense).toHaveBeenCalledWith('exp-1');
     expect(mockRefetch).toHaveBeenCalled();
   });
 
