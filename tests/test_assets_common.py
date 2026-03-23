@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from types import SimpleNamespace
 from uuid import UUID, uuid4
 
 import pytest
 
 from app.api.admin_request import parse_cursor
 from app.api.assets.assets_common import (
+    asset_links_expense_attachment,
     paginate_response,
     parse_admin_asset_list_filters,
     parse_create_asset_payload,
     parse_partial_update_asset_payload,
+    parse_update_asset_payload,
 )
 from app.exceptions import ValidationError
 
@@ -60,6 +63,20 @@ def test_paginate_response_returns_null_cursor_for_last_page() -> None:
 
     body = json.loads(response["body"])
     assert body["next_cursor"] is None
+
+
+def test_paginate_response_merges_extra_fields() -> None:
+    items = [_DummyAsset(id=uuid4(), title="one")]
+    response = paginate_response(
+        items=items,
+        limit=2,
+        event={"headers": {}},
+        serializer=_serialize_dummy_asset,
+        extra_fields={"linked_tag_names": ["alpha", "beta"]},
+    )
+
+    body = json.loads(response["body"])
+    assert body["linked_tag_names"] == ["alpha", "beta"]
 
 
 def test_parse_partial_update_asset_payload_requires_updatable_field() -> None:
@@ -120,10 +137,115 @@ def test_parse_admin_asset_list_filters_accepts_expense_attachment_tag() -> None
     assert query is None
 
 
-def test_parse_admin_asset_list_filters_rejects_unknown_tag_name() -> None:
+def test_parse_admin_asset_list_filters_accepts_any_tag_name_for_list_validation() -> None:
     event = {
         "queryStringParameters": {"tag_name": "unknown"},
         "headers": {},
     }
-    with pytest.raises(ValidationError, match="tag_name must be expense_attachment"):
+    query, visibility, asset_type, tag_name = parse_admin_asset_list_filters(event)
+    assert tag_name == "unknown"
+    assert query is None
+
+
+def test_parse_admin_asset_list_filters_rejects_overlong_tag_name() -> None:
+    event = {
+        "queryStringParameters": {"tag_name": "x" * 101},
+        "headers": {},
+    }
+    with pytest.raises(ValidationError, match="tag_name is too long"):
         parse_admin_asset_list_filters(event)
+
+
+def test_parse_create_asset_payload_accepts_client_document_tag() -> None:
+    event = {
+        "body": json.dumps(
+            {
+                "title": "Guide",
+                "file_name": "guide.pdf",
+                "asset_type": "document",
+                "visibility": "restricted",
+                "client_tag": "client_document",
+            }
+        ),
+        "isBase64Encoded": False,
+    }
+    payload = parse_create_asset_payload(event)
+    assert payload["client_tag"] == "client_document"
+
+
+def test_parse_create_asset_payload_omits_client_tag_when_absent() -> None:
+    event = {
+        "body": json.dumps(
+            {
+                "title": "Guide",
+                "file_name": "guide.pdf",
+                "asset_type": "document",
+                "visibility": "restricted",
+            }
+        ),
+        "isBase64Encoded": False,
+    }
+    payload = parse_create_asset_payload(event)
+    assert payload["client_tag"] is None
+
+
+def test_parse_create_asset_payload_rejects_invalid_client_tag() -> None:
+    event = {
+        "body": json.dumps(
+            {
+                "title": "Guide",
+                "file_name": "guide.pdf",
+                "asset_type": "document",
+                "visibility": "restricted",
+                "client_tag": "nope",
+            }
+        ),
+        "isBase64Encoded": False,
+    }
+    with pytest.raises(ValidationError, match="client_tag must be null"):
+        parse_create_asset_payload(event)
+
+
+def test_parse_update_asset_payload_tracks_client_tag_presence() -> None:
+    base = {
+        "title": "Guide",
+        "file_name": "guide.pdf",
+        "asset_type": "document",
+        "visibility": "restricted",
+    }
+    without = {
+        "body": json.dumps(base),
+        "isBase64Encoded": False,
+    }
+    parsed = parse_update_asset_payload(without)
+    assert parsed["client_tag_specified"] is False
+
+    with_tag = {
+        "body": json.dumps({**base, "client_tag": None}),
+        "isBase64Encoded": False,
+    }
+    parsed = parse_update_asset_payload(with_tag)
+    assert parsed["client_tag_specified"] is True
+    assert parsed["client_tag"] is None
+
+
+def test_parse_partial_update_accepts_client_tag_only() -> None:
+    event = {
+        "body": json.dumps({"client_tag": "client_document"}),
+        "isBase64Encoded": False,
+    }
+    payload = parse_partial_update_asset_payload(event)
+    assert payload["client_tag_specified"] is True
+    assert payload["client_tag"] == "client_document"
+
+
+def test_asset_links_expense_attachment_detects_tag() -> None:
+    asset = SimpleNamespace(
+        asset_tags=[
+            SimpleNamespace(tag=SimpleNamespace(name="expense_attachment")),
+        ]
+    )
+    assert asset_links_expense_attachment(asset) is True
+
+    other = SimpleNamespace(asset_tags=[SimpleNamespace(tag=SimpleNamespace(name="client_document"))])
+    assert asset_links_expense_attachment(other) is False

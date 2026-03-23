@@ -70,8 +70,8 @@ export interface paths {
                     query?: string;
                     visibility?: "public" | "restricted";
                     asset_type?: "guide" | "video" | "pdf" | "document";
-                    /** @description When set to expense_attachment, return only assets tagged as linked to an expense (expense_attachments). */
-                    tag_name?: "expense_attachment";
+                    /** @description When set, return only assets that have this tag (case-insensitive name match). The tag must be linked to at least one asset that matches the optional asset_type filter. */
+                    tag_name?: string;
                     cursor?: string;
                     limit?: number;
                 };
@@ -2465,6 +2465,8 @@ export interface components {
         AssetListResponse: {
             items: components["schemas"]["Asset"][];
             next_cursor?: string | null;
+            /** @description Admin asset list only. Distinct tag names linked to at least one asset matching the request's asset_type filter (when provided). Omitted or empty when not applicable. */
+            linked_tag_names?: string[];
         };
         AssetResponse: {
             asset: components["schemas"]["Asset"];
@@ -3085,6 +3087,11 @@ export interface components {
             content_type?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
+            /**
+             * @description Optional. When set to client_document, links the asset to the client_document tag after create. When omitted or null, no client tag is linked.
+             * @enum {string|null}
+             */
+            client_tag?: "client_document" | null;
         };
         UpdateAssetRequest: components["schemas"]["CreateAssetRequest"];
         PartialUpdateAssetRequest: {
@@ -3097,6 +3104,11 @@ export interface components {
             content_type?: string | null;
             /** @enum {string} */
             visibility?: "public" | "restricted";
+            /**
+             * @description When present, sets or clears the client_document tag on the asset. Omit this property to leave the client tag unchanged. Must not be sent for assets that have the expense_attachment tag (400).
+             * @enum {string|null}
+             */
+            client_tag?: "client_document" | null;
         };
         CreateAssetResponse: {
             asset: components["schemas"]["Asset"];

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { useMemo, useState, type KeyboardEvent, type MouseEvent } from 'react';
 
 import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
 
@@ -17,10 +17,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import { formatDate, toTitleCase } from '@/lib/format';
+import { formatAssetTagDisplayName, formatDate, toTitleCase } from '@/lib/format';
 
 export interface AssetListPanelProps {
   assets: AdminAsset[];
+  /** Tag names returned by the admin asset list API for the current asset type scope. */
+  linkedTagNames: string[];
   selectedAssetId: string | null;
   filters: {
     query?: string;
@@ -42,6 +44,7 @@ export interface AssetListPanelProps {
 
 export function AssetListPanel({
   assets,
+  linkedTagNames,
   selectedAssetId,
   filters,
   isLoadingAssets,
@@ -59,6 +62,15 @@ export function AssetListPanel({
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [openingAssetId, setOpeningAssetId] = useState<string | null>(null);
   const [viewAssetError, setViewAssetError] = useState('');
+
+  const tagFilterOptions = useMemo(() => {
+    const names = [...linkedTagNames];
+    const current = filters.tagName?.trim() ?? '';
+    if (current && !names.includes(current)) {
+      names.push(current);
+    }
+    return names.sort((a, b) => a.localeCompare(b));
+  }, [linkedTagNames, filters.tagName]);
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, assetId: string) => {
     if (event.target !== event.currentTarget) {
@@ -139,20 +151,20 @@ export function AssetListPanel({
                 </Select>
               </div>
               <div className='min-w-[200px]'>
-                <Label htmlFor='assets-expense-tag'>Expense link</Label>
+                <Label htmlFor='assets-tag-filter'>Tags</Label>
                 <Select
-                  id='assets-expense-tag'
+                  id='assets-tag-filter'
                   value={filters.tagName ?? ''}
                   onChange={(event) =>
-                    onTagNameChange(
-                      event.target.value === EXPENSE_ATTACHMENT_ASSET_TAG
-                        ? EXPENSE_ATTACHMENT_ASSET_TAG
-                        : ''
-                    )
+                    onTagNameChange(event.target.value === '' ? '' : event.target.value)
                   }
                 >
-                  <option value=''>All assets</option>
-                  <option value={EXPENSE_ATTACHMENT_ASSET_TAG}>Expense invoices only</option>
+                  <option value=''>All tags</option>
+                  {tagFilterOptions.map((name) => (
+                    <option key={name} value={name}>
+                      {formatAssetTagDisplayName(name)}
+                    </option>
+                  ))}
                 </Select>
               </div>
             </div>
@@ -188,6 +200,9 @@ export function AssetListPanel({
                 const isExpenseLinked = asset.tags.some(
                   (tag) => tag.name.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG
                 );
+                const sortedTags = [...asset.tags].sort((a, b) =>
+                  a.name.localeCompare(b.name)
+                );
                 return (
                   <tr
                     key={asset.id}
@@ -205,12 +220,27 @@ export function AssetListPanel({
                       <p className='mt-0.5 text-xs text-slate-500'>{asset.id}</p>
                     </td>
                     <td className='px-4 py-3 text-slate-700'>
-                      {isExpenseLinked ? (
-                        <span className='rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900'>
-                          Expense
-                        </span>
-                      ) : (
+                      {sortedTags.length === 0 ? (
                         '—'
+                      ) : (
+                        <div className='flex flex-wrap gap-1'>
+                          {sortedTags.map((tag) => {
+                            const isExpense =
+                              tag.name.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG;
+                            return (
+                              <span
+                                key={tag.id}
+                                className={
+                                  isExpense
+                                    ? 'rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900'
+                                    : 'rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800'
+                                }
+                              >
+                                {formatAssetTagDisplayName(tag.name)}
+                              </span>
+                            );
+                          })}
+                        </div>
                       )}
                     </td>
                     <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.visibility)}</td>
@@ -234,9 +264,17 @@ export function AssetListPanel({
                           size='sm'
                           variant='danger'
                           onClick={(event) => void handleDeleteAsset(asset, event)}
-                          disabled={isDeletingAssetId === asset.id}
-                          title='Delete asset'
-                          aria-label='Delete asset'
+                          disabled={isDeletingAssetId === asset.id || isExpenseLinked}
+                          title={
+                            isExpenseLinked
+                              ? 'Cannot delete assets linked to expenses'
+                              : 'Delete asset'
+                          }
+                          aria-label={
+                            isExpenseLinked
+                              ? 'Cannot delete: asset is linked to expenses'
+                              : 'Delete asset'
+                          }
                         >
                           <DeleteIcon className='h-4 w-4' />
                         </Button>

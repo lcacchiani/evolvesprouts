@@ -35,6 +35,7 @@ function renderPanel(overrides: Partial<ComponentProps<typeof AssetListPanel>> =
   render(
     <AssetListPanel
       assets={[FIXTURE_ASSET]}
+      linkedTagNames={[]}
       selectedAssetId={null}
       filters={{ query: '', visibility: '', tagName: '' }}
       isLoadingAssets={false}
@@ -119,5 +120,20 @@ describe('AssetListPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(onDeleteAsset).toHaveBeenCalledWith('asset-1');
+  });
+
+  it('disables delete for assets tagged as expense attachments', () => {
+    const expenseAsset = createAdminAssetFixture({
+      title: 'Invoice PDF',
+      tags: [{ id: 'tag-exp', name: 'expense_attachment', color: null }],
+    });
+    renderPanel({ assets: [expenseAsset] });
+
+    const row = screen.getByText('Invoice PDF').closest('tr');
+    expect(row).toBeTruthy();
+    const deleteButton = within(row as HTMLElement).getByRole('button', {
+      name: 'Cannot delete: asset is linked to expenses',
+    });
+    expect(deleteButton).toBeDisabled();
   });
 });

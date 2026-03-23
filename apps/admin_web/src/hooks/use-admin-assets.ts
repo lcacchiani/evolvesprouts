@@ -10,6 +10,7 @@ export function useAdminAssets() {
   const {
     filters,
     assets,
+    linkedTagNames,
     nextCursor,
     isLoadingAssets,
     isLoadingMoreAssets,
@@ -77,6 +78,7 @@ export function useAdminAssets() {
   return {
     filters,
     assets,
+    linkedTagNames,
     nextCursor,
     isLoadingAssets,
     isLoadingMoreAssets,

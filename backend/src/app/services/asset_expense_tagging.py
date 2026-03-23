@@ -13,6 +13,9 @@ from app.db.models import AssetTag, ExpenseAttachment, Tag
 # System tag applied to assets referenced by expense_attachments (unique name).
 EXPENSE_ATTACHMENT_TAG_NAME = "expense_attachment"
 
+# Admin-assignable tag for client-facing documents (optional on assets).
+CLIENT_DOCUMENT_TAG_NAME = "client_document"
+
 
 def expense_attachment_tag_id(session: Session) -> UUID | None:
     """Resolve the expense_attachment tag id, if present."""

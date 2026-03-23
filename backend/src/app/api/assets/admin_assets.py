@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.api.admin_request import parse_uuid
 from app.api.assets.assets_common import (
+    asset_links_expense_attachment,
     build_s3_key,
     delete_s3_object,
     extract_identity,
@@ -38,6 +39,7 @@ from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
 from app.exceptions import NotFoundError, ValidationError
+from app.services.asset_expense_tagging import CLIENT_DOCUMENT_TAG_NAME
 from app.utils import get_logger, json_response
 
 logger = get_logger(__name__)
@@ -111,13 +113,22 @@ def _list_assets(event: Mapping[str, Any]) -> dict[str, Any]:
 
     with Session(get_engine()) as session:
         repository = AssetRepository(session)
+        canonical_tag: str | None = None
+        if tag_name:
+            canonical_tag = repository.resolve_asset_tag_filter_name(
+                tag_name,
+                asset_type=asset_type,
+            )
+        linked_tag_names = repository.list_distinct_linked_asset_tag_names(
+            asset_type=asset_type,
+        )
         assets = repository.list_assets(
             limit=limit + 1,
             cursor=cursor,
             query=query,
             visibility=visibility,
             asset_type=asset_type,
-            tag_name=tag_name,
+            tag_name=canonical_tag,
             load_tags=True,
         )
         return paginate_response(
@@ -125,6 +136,7 @@ def _list_assets(event: Mapping[str, Any]) -> dict[str, Any]:
             limit=limit,
             event=event,
             serializer=serialize_asset,
+            extra_fields={"linked_tag_names": linked_tag_names},
         )
 
 
@@ -154,6 +166,8 @@ def _create_asset(event: Mapping[str, Any], created_by: str) -> dict[str, Any]:
         upload = generate_upload_url(
             s3_key=s3_key, content_type=payload["content_type"]
         )
+        if payload.get("client_tag") == CLIENT_DOCUMENT_TAG_NAME:
+            repository.set_client_document_tag_link(asset_id, link=True)
         session.commit()
         loaded = repository.get_with_asset_tags(asset_id) or asset
         return json_response(
@@ -191,7 +205,7 @@ def _update_asset(
             session, user_id=identity.user_sub or "", request_id=request_id
         )
         repository = AssetRepository(session)
-        asset = repository.get_by_id(asset_id)
+        asset = repository.get_with_asset_tags(asset_id)
         if asset is None:
             raise NotFoundError("Asset", str(asset_id))
 
@@ -206,6 +220,16 @@ def _update_asset(
             content_type=payload.get("content_type"),
             visibility=payload.get("visibility"),
         )
+        if payload.get("client_tag_specified"):
+            if asset_links_expense_attachment(asset):
+                raise ValidationError(
+                    "client_tag cannot be changed for assets linked to an expense",
+                    field="client_tag",
+                )
+            repository.set_client_document_tag_link(
+                asset_id,
+                link=payload.get("client_tag") == CLIENT_DOCUMENT_TAG_NAME,
+            )
         session.commit()
         refreshed = repository.get_with_asset_tags(asset_id)
         return json_response(

@@ -1,8 +1,22 @@
+import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
+
 export function toTitleCase(value: string): string {
   return value
     .split('_')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+/** User-visible label for an asset tag name (API snake_case). */
+export function formatAssetTagDisplayName(tagName: string): string {
+  const lower = tagName.toLowerCase();
+  if (lower === EXPENSE_ATTACHMENT_ASSET_TAG) {
+    return 'Expense';
+  }
+  if (lower === CLIENT_DOCUMENT_ASSET_TAG) {
+    return 'Client';
+  }
+  return toTitleCase(tagName.toLowerCase());
 }
 
 /** Same date/time field choices as the app shell navbar timestamp (local TZ + default locale). */

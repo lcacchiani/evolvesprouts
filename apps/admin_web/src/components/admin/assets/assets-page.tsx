@@ -16,6 +16,7 @@ export function AssetsPage() {
   const {
     filters,
     assets,
+    linkedTagNames,
     nextCursor,
     isLoadingAssets,
     isLoadingMoreAssets,
@@ -122,6 +123,7 @@ export function AssetsPage() {
 
       <AssetListPanel
         assets={assets}
+        linkedTagNames={linkedTagNames}
         selectedAssetId={selectedAssetId}
         filters={filters}
         isLoadingAssets={isLoadingAssets}
