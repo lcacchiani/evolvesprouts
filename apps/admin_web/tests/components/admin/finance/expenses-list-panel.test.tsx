@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ExpensesListPanel } from '@/components/admin/finance/expenses-list-panel';
+import { formatDate } from '@/lib/format';
 
 import type { Expense } from '@/types/expenses';
 
@@ -83,7 +84,28 @@ describe('ExpensesListPanel', () => {
     expect(screen.getByRole('columnheader', { name: 'Vendor' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Created' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Issued' })).toBeInTheDocument();
+  });
+
+  it('shows invoice date in Issued column and labels missing currency', () => {
+    render(
+      <ExpensesListPanel
+        {...listProps}
+        expenses={[
+          {
+            ...baseExpense,
+            invoiceDate: '2026-02-15',
+            currency: null,
+            total: '30.00',
+          },
+        ]}
+        {...makeRowActions()}
+      />
+    );
+
+    expect(screen.getByText(formatDate('2026-02-15'))).toBeInTheDocument();
+    expect(screen.getByText('30.00')).toBeInTheDocument();
+    expect(screen.getByText('No currency code')).toBeInTheDocument();
   });
 
   it('calls onSelectExpense when a row is clicked', async () => {

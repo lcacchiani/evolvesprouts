@@ -172,7 +172,7 @@ export function ExpensesListPanel({
               <th className='px-4 py-3 font-semibold'>Vendor</th>
               <th className='px-4 py-3 font-semibold'>Total</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
-              <th className='px-4 py-3 font-semibold'>Created</th>
+              <th className='px-4 py-3 font-semibold'>Issued</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
@@ -198,10 +198,23 @@ export function ExpensesListPanel({
                     </p>
                   </td>
                   <td className='px-4 py-3'>
-                    {expense.total ? `${expense.total} ${expense.currency ?? ''}` : '—'}
+                    {!expense.total ? (
+                      '—'
+                    ) : expense.currency ? (
+                      <span className='tabular-nums'>
+                        {expense.total} {expense.currency}
+                      </span>
+                    ) : (
+                      <div>
+                        <span className='tabular-nums'>{expense.total}</span>
+                        <p className='mt-0.5 text-xs text-slate-500'>No currency code</p>
+                      </div>
+                    )}
                   </td>
                   <td className='px-4 py-3'>{formatEnumLabel(expense.status)}</td>
-                  <td className='px-4 py-3'>{formatDate(expense.createdAt)}</td>
+                  <td className='px-4 py-3'>
+                    {expense.invoiceDate ? formatDate(expense.invoiceDate) : '—'}
+                  </td>
                   <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                     <div className='flex flex-wrap justify-end gap-1'>
                       <Button
