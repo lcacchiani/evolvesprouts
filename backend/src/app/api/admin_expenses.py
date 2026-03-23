@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.api.admin_expenses_common import (
     _STATUS_TERMINAL,
     apply_common_fields,
+    ensure_expense_ready_to_mark_paid,
     parse_create_payload,
     parse_optional_parse_status,
     parse_optional_status,
@@ -309,6 +310,7 @@ def _mark_expense_paid(
             raise ValidationError(
                 "Voided expenses cannot be marked paid", field="status"
             )
+        ensure_expense_ready_to_mark_paid(expense)
         expense.status = ExpenseStatus.PAID
         expense.paid_at = now
         expense.updated_by = actor_sub

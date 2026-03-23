@@ -22,6 +22,32 @@ _STATUS_TERMINAL = {
 }
 
 
+def ensure_expense_ready_to_mark_paid(expense: Expense) -> None:
+    """Require core invoice fields before an expense may transition to paid."""
+    missing: list[str] = []
+    if expense.vendor_id is None:
+        missing.append("vendor")
+    if expense.invoice_date is None:
+        missing.append("invoice date")
+    currency = expense.currency
+    if currency is None or not str(currency).strip():
+        missing.append("currency")
+    if expense.total is None:
+        missing.append("total")
+    if not missing:
+        return
+    if len(missing) == 1:
+        suffix = f"{missing[0]} is set"
+    elif len(missing) == 2:
+        suffix = f"{missing[0]} and {missing[1]} are set"
+    else:
+        suffix = f"{', '.join(missing[:-1])}, and {missing[-1]} are set"
+    raise ValidationError(
+        f"Cannot mark expense as paid until {suffix}.",
+        field="expense",
+    )
+
+
 def serialize_expense(expense: Expense) -> dict[str, Any]:
     """Serialize expense model for API responses."""
     attachments = sorted(expense.attachments, key=lambda item: item.sort_order)

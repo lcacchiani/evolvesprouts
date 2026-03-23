@@ -2179,7 +2179,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Mark an expense as paid */
+        /**
+         * Mark an expense as paid
+         * @description Requires a linked vendor, invoice date, currency code, and total amount. Returns 400 if any of these are missing.
+         */
         post: {
             parameters: {
                 query?: never;

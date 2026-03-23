@@ -24,6 +24,22 @@ import {
   type ExpenseStatus,
 } from '@/types/expenses';
 
+function expenseHasRequiredFieldsForMarkPaid(expense: Expense): boolean {
+  if (expense.vendorId == null || String(expense.vendorId).trim() === '') {
+    return false;
+  }
+  if (expense.invoiceDate == null || String(expense.invoiceDate).trim() === '') {
+    return false;
+  }
+  if (expense.currency == null || expense.currency.trim() === '') {
+    return false;
+  }
+  if (expense.total == null || String(expense.total).trim() === '') {
+    return false;
+  }
+  return true;
+}
+
 interface ExpensesListPanelProps {
   expenses: Expense[];
   selectedExpenseId: string | null;
@@ -274,10 +290,20 @@ export function ExpensesListPanel({
                         type='button'
                         size='sm'
                         variant='outline'
-                        disabled={isMarkingPaidId === expense.id || expense.status === 'paid'}
+                        disabled={
+                          isMarkingPaidId === expense.id ||
+                          expense.status === 'paid' ||
+                          !expenseHasRequiredFieldsForMarkPaid(expense)
+                        }
                         onClick={() => void onMarkPaid(expense.id)}
                         aria-label='Mark expense as paid'
-                        title='Mark expense as paid'
+                        title={
+                          expense.status === 'paid'
+                            ? 'Already marked paid'
+                            : expenseHasRequiredFieldsForMarkPaid(expense)
+                              ? 'Mark expense as paid'
+                              : 'Vendor, invoice date, currency, and total are required before marking paid'
+                        }
                         aria-busy={isMarkingPaidId === expense.id}
                       >
                         {isMarkingPaidId === expense.id ? (

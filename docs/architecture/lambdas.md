@@ -41,8 +41,9 @@ their primary responsibilities.
   `asset_type` scope; create/update accept optional `client_tag` for the
   `client_document` tag, forbidden when the asset is expense-linked), geographic area browsing, location CRUD,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
-  vendor management, expense invoice ingestion/listing/amendment/void/pay flows,
-  and admin-user listing for lead assignment,
+  vendor management, expense invoice ingestion/listing/amendment/void/pay flows
+  (mark-paid requires vendor, invoice date, currency, and total), and admin-user
+  listing for lead assignment,
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
