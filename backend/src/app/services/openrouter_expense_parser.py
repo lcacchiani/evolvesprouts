@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import base64
 import json
+import math
 import os
+import re
 from typing import Any
 from collections.abc import Mapping, Sequence
 
@@ -196,10 +198,53 @@ def _normalize_result(parsed: dict[str, Any]) -> dict[str, Any]:
                         item.get("description"), max_length=500
                     ),
                     "quantity": _optional_number(item.get("quantity")),
-                    "unit_price": _optional_number(item.get("unit_price")),
-                    "amount": _optional_number(item.get("amount")),
+                    "unit_price": _optional_money(item.get("unit_price")),
+                    "amount": _optional_money(item.get("amount")),
                 }
             )
+
+    subtotal = _optional_money(parsed.get("subtotal"))
+    if subtotal is None:
+        subtotal = _first_optional_money(
+            parsed,
+            (
+                "sub_total",
+                "net_amount",
+                "pretax_total",
+                "amount_ex_tax",
+                "subtotal_ex_tax",
+            ),
+        )
+
+    tax = _optional_money(parsed.get("tax"))
+    if tax is None:
+        tax = _first_optional_money(
+            parsed,
+            (
+                "tax_amount",
+                "gst",
+                "vat",
+                "sales_tax",
+            ),
+        )
+
+    total = _optional_money(parsed.get("total"))
+    if total is None:
+        total = _first_optional_money(
+            parsed,
+            (
+                "grand_total",
+                "invoice_total",
+                "total_amount",
+                "amount_due",
+                "balance_due",
+                "balance",
+                "amount",
+            ),
+        )
+
+    if total is None:
+        total = _sum_line_item_amounts(normalized_line_items)
 
     return {
         "vendor_name": _optional_text(parsed.get("vendor_name"), max_length=255),
@@ -207,9 +252,9 @@ def _normalize_result(parsed: dict[str, Any]) -> dict[str, Any]:
         "invoice_date": _optional_iso_date(parsed.get("invoice_date")),
         "due_date": _optional_iso_date(parsed.get("due_date")),
         "currency": _optional_currency(parsed.get("currency")),
-        "subtotal": _optional_number(parsed.get("subtotal")),
-        "tax": _optional_number(parsed.get("tax")),
-        "total": _optional_number(parsed.get("total")),
+        "subtotal": subtotal,
+        "tax": tax,
+        "total": total,
         "line_items": normalized_line_items,
         "confidence": _optional_number(parsed.get("confidence")),
         "raw": parsed,
@@ -271,6 +316,117 @@ def _optional_number(value: Any) -> float | None:
         return None
 
 
+def _optional_money(value: Any) -> float | None:
+    """Parse a monetary field from JSON (handles formatted strings from the model)."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return float(value)
+    if isinstance(value, float):
+        if math.isnan(value) or math.isinf(value):
+            return None
+        return value
+    return _parse_money_string(str(value))
+
+
+def _first_optional_money(
+    parsed: dict[str, Any], keys: tuple[str, ...]
+) -> float | None:
+    for key in keys:
+        found = _optional_money(parsed.get(key))
+        if found is not None:
+            return found
+    return None
+
+
+def _sum_line_item_amounts(line_items: list[dict[str, Any]]) -> float | None:
+    """Use sum of line amounts as total only when every line has a parsed amount."""
+    if not line_items:
+        return None
+    amounts: list[float] = []
+    for item in line_items:
+        raw = item.get("amount")
+        if raw is None:
+            return None
+        parsed = _optional_money(raw)
+        if parsed is None:
+            return None
+        amounts.append(parsed)
+    return sum(amounts)
+
+
+def _parse_money_string(raw: str) -> float | None:
+    s = raw.strip()
+    if not s:
+        return None
+
+    neg = False
+    if s.startswith("(") and s.endswith(")"):
+        neg = True
+        s = s[1:-1].strip()
+    elif s.startswith("-"):
+        neg = True
+        s = s[1:].strip()
+
+    s = re.sub(
+        r"\s*(USD|EUR|GBP|AUD|NZD|CAD|HKD|CNY|JPY|CHF|SGD|INR|[A-Z]{3})\s*$",
+        "",
+        s,
+        flags=re.IGNORECASE,
+    ).strip()
+
+    for sym in (
+        "$",
+        "\u00a3",
+        "\u20ac",
+        "\u00a5",
+        "\u20b9",
+        "\u00a2",
+        "\u20a1",
+    ):
+        s = s.replace(sym, "")
+    s = s.replace("\u00a0", " ").strip()
+
+    compact = s.replace(" ", "")
+    m = re.search(
+        r"[+-]?(?:\d[\d.,]*\d|\d+\.\d+|\.\d+|\d+)",
+        compact,
+    )
+    if not m:
+        return None
+    numeric = m.group(0)
+    try:
+        normalized = _normalize_decimal_grouping(numeric)
+        out = float(normalized)
+    except ValueError:
+        return None
+    return -out if neg else out
+
+
+def _normalize_decimal_grouping(s: str) -> str:
+    """Turn locale-style digit grouping into a float() parseable string."""
+    negative = s.startswith("-")
+    s = s.lstrip("+").lstrip("-")
+    if not s:
+        raise ValueError
+    if "," in s and "." in s:
+        if s.rfind(",") > s.rfind("."):
+            s = s.replace(".", "").replace(",", ".")
+        else:
+            s = s.replace(",", "")
+    elif "," in s:
+        parts = s.split(",")
+        if len(parts) == 2 and len(parts[1]) <= 2 and parts[1].isdigit():
+            lead = parts[0].replace(".", "")
+            s = f"{lead}.{parts[1]}"
+        else:
+            s = s.replace(",", "")
+    prefix = "-" if negative else ""
+    return prefix + s
+
+
 def _optional_iso_date(value: Any) -> str | None:
     normalized = _optional_text(value, max_length=20)
     if normalized is None:
@@ -325,5 +481,7 @@ def _schema_prompt() -> str:
         '"total": "number|null", "line_items": [{"description":"string|null","quantity":"number|null",'
         '"unit_price":"number|null","amount":"number|null"}], "confidence":"number|null"}. '
         "Use null for unknown values. No markdown. No prose. "
+        "For subtotal, tax, and total prefer JSON numbers; if you use strings, use "
+        "plain digits only (no currency symbols or thousands separators) when possible. "
         "Input may be plain text pasted in an email body rather than a PDF or image."
     )

@@ -203,6 +203,10 @@ their primary responsibilities.
   string contains a specific vendor list name, the longest such match wins when
   unambiguous (covers legal invoice names vs shorter list labels). Weak matches
   never write `vendor_id`.
+  Parsed `subtotal` / `tax` / `total` accept common formatted strings (currency
+  symbols, thousands separators, alternate keys such as `amount`), and infer
+  `total` from line-item amounts when every line has an `amount` and top-level
+  totals are missing.
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
