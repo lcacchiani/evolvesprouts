@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import Image from 'next/image';
 
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
@@ -23,6 +24,10 @@ interface BookingEventDetailsProps {
   venueAddress: string;
   directionHref: string;
   detailsVariant?: 'event' | 'my-best-auntie';
+  myBestAuntiePartSupportLabels?: {
+    homeVisit: string;
+    parentCall: string;
+  };
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
@@ -31,6 +36,10 @@ const COURSE_OVERVIEW_PART_ICONS = [
   '/images/limits.svg',
   '/images/independence.svg',
 ] as const;
+const COURSE_OVERVIEW_PART_SUPPORT_ICON_SOURCES = {
+  homeVisit: '/images/coaching.svg',
+  parentCall: '/images/telephone.svg',
+} as const;
 type PartChipTone = (typeof PART_CHIP_TONES)[number];
 
 function resolvePartChipTone(index: number): PartChipTone {
@@ -83,8 +92,21 @@ export function BookingEventDetails({
   venueAddress,
   directionHref,
   detailsVariant = 'my-best-auntie',
+  myBestAuntiePartSupportLabels,
 }: BookingEventDetailsProps) {
   const isEventDetailsVariant = detailsVariant === 'event';
+  const myBestAuntiePartSupportRows = [
+    {
+      key: 'homeVisit',
+      iconSrc: COURSE_OVERVIEW_PART_SUPPORT_ICON_SOURCES.homeVisit,
+      label: myBestAuntiePartSupportLabels?.homeVisit?.trim() ?? '',
+    },
+    {
+      key: 'parentCall',
+      iconSrc: COURSE_OVERVIEW_PART_SUPPORT_ICON_SOURCES.parentCall,
+      label: myBestAuntiePartSupportLabels?.parentCall?.trim() ?? '',
+    },
+  ].filter((row) => row.label.length > 0);
   const eventScheduleRows = activePartRows
     .map((part) => part.date.trim())
     .filter((date): date is string => Boolean(date));
@@ -160,6 +182,37 @@ export function BookingEventDetails({
                     <p className='col-start-2 text-[15px] leading-[22px] es-text-body'>
                       {renderQuotedDescriptionText(part.description)}
                     </p>
+                    {myBestAuntiePartSupportRows.map((supportRow) => {
+                      return (
+                        <Fragment key={`${index}-${supportRow.key}`}>
+                          <span
+                            data-course-part-support-chip='true'
+                            className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
+                          >
+                            <span
+                              data-course-part-line='support-gap-connector'
+                              className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
+                              aria-hidden='true'
+                            />
+                            <Image
+                              src={supportRow.iconSrc}
+                              alt=''
+                              width={28}
+                              height={28}
+                              data-course-part-support-icon='true'
+                              className='h-7 w-7 shrink-0 object-contain'
+                              aria-hidden='true'
+                            />
+                          </span>
+                          <p
+                            data-course-part-support-label='true'
+                            className='text-[15px] font-semibold leading-6 es-text-heading'
+                          >
+                            {supportRow.label}
+                          </p>
+                        </Fragment>
+                      );
+                    })}
                   </div>
                 </li>
               );

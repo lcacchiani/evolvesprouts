@@ -828,6 +828,46 @@ describe('my-best-auntie booking modals footer content', () => {
     ]);
   });
 
+  it('renders coaching and telephone support rows for each course part', () => {
+    const { container } = renderBookingModal();
+
+    const supportIcons = Array.from(
+      container.querySelectorAll('img[data-course-part-support-icon="true"]'),
+    );
+    const supportLabels = Array.from(
+      container.querySelectorAll('p[data-course-part-support-label="true"]'),
+    );
+    const supportChips = Array.from(
+      container.querySelectorAll('span[data-course-part-support-chip="true"]'),
+    );
+    const supportGapConnectors = Array.from(
+      container.querySelectorAll('span[data-course-part-line="support-gap-connector"]'),
+    );
+
+    expect(supportIcons).toHaveLength(6);
+    expect(supportChips).toHaveLength(6);
+    expect(supportLabels).toHaveLength(6);
+    expect(supportGapConnectors).toHaveLength(6);
+    expect(supportIcons.map((icon) => icon.getAttribute('src'))).toEqual([
+      '/images/coaching.svg',
+      '/images/telephone.svg',
+      '/images/coaching.svg',
+      '/images/telephone.svg',
+      '/images/coaching.svg',
+      '/images/telephone.svg',
+    ]);
+    expect(
+      supportLabels.map((label) => label.textContent),
+    ).toEqual([
+      myBestAuntieModalContent.partSupportLabels.homeVisit,
+      myBestAuntieModalContent.partSupportLabels.parentCall,
+      myBestAuntieModalContent.partSupportLabels.homeVisit,
+      myBestAuntieModalContent.partSupportLabels.parentCall,
+      myBestAuntieModalContent.partSupportLabels.homeVisit,
+      myBestAuntieModalContent.partSupportLabels.parentCall,
+    ]);
+  });
+
   it('renders timeline segments, 50px part spacing, and numeric part chips', () => {
     const { container } = renderBookingModal();
     const timelineList = container.querySelector('ul.space-y-\\[50px\\]');
