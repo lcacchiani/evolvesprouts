@@ -176,10 +176,10 @@ required domain-derived origins above.
 
 ### Private Network Access (Chromium)
 
-API responses and OPTIONS preflight integrations include
-`Access-Control-Allow-Private-Network: true` so Chromium can complete CORS when it
-treats a request as crossing address spaces (otherwise the browser reports errors
-about the `local` address space).
+Application responses include `Access-Control-Allow-Private-Network: true`.
+API Gateway REST preflight mappings currently do not inject this header because
+`method.response.header.Access-Control-Allow-Private-Network` is rejected by
+API Gateway validation.
 
 ### Input Validation
 
