@@ -132,6 +132,10 @@ The `expense_attachment` tag is maintained in application code when
 `expense_attachments` rows are created or replaced; migration `0014_add_asset_tags`
 backfills from existing `expense_attachments`.
 
+The `client_document` tag is a system tag for admin-assignable client-facing
+documents; migration `0015_add_client_document_tag` ensures it exists (seed data
+also inserts it for fresh databases).
+
 ## Access control logic
 
 **Public assets** (`visibility = 'public'`):
