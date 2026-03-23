@@ -24,9 +24,10 @@ const baseExpense: Expense = {
   amendsExpenseId: null,
   status: 'submitted',
   parseStatus: 'succeeded',
+  vendorId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
   vendorName: 'Acme Co',
   invoiceNumber: 'INV-9',
-  invoiceDate: null,
+  invoiceDate: '2026-03-01',
   dueDate: null,
   currency: 'HKD',
   subtotal: '10.00',
@@ -190,6 +191,46 @@ describe('ExpensesListPanel', () => {
 
     await user.click(screen.getByRole('button', { name: 'Mark expense as paid' }));
     expect(rowActions.onMarkPaid).toHaveBeenCalledWith('exp-1');
+  });
+
+  it('disables mark paid when vendor, invoice date, currency, or total is missing', () => {
+    const rowActions = makeRowActions();
+
+    const { rerender } = render(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, vendorId: null }]}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Mark expense as paid' })).toBeDisabled();
+
+    rerender(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, invoiceDate: null }]}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Mark expense as paid' })).toBeDisabled();
+
+    rerender(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, currency: null }]}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Mark expense as paid' })).toBeDisabled();
+
+    rerender(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, total: null }]}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Mark expense as paid' })).toBeDisabled();
   });
 
   it('void dialog requires a reason before confirming', async () => {
