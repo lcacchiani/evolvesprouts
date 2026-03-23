@@ -101,11 +101,11 @@ def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
     if len(body) > max_file_bytes:
         raise RuntimeError(f"Attachment {asset.get('id')} exceeds parser size limit")
     content_type = _normalize_content_type(asset)
-    encoded = base64.b64encode(body).decode("utf-8")
     filename = str(asset.get("file_name") or "attachment")
-    data_url = f"data:{content_type};base64,{encoded}"
 
     if content_type.startswith("image/"):
+        encoded = base64.b64encode(body).decode("utf-8")
+        data_url = f"data:{content_type};base64,{encoded}"
         return {
             "type": "image_url",
             "image_url": {
@@ -113,6 +113,13 @@ def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
             },
         }
 
+    mime_primary = content_type.split(";", 1)[0].strip()
+    if mime_primary == "text/plain":
+        text = body.decode("utf-8")
+        return {"type": "text", "text": text}
+
+    encoded = base64.b64encode(body).decode("utf-8")
+    data_url = f"data:{content_type};base64,{encoded}"
     return {
         "type": "file",
         "file": {
