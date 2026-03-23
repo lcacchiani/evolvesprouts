@@ -4,6 +4,7 @@ import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AssetListPanel } from '@/components/admin/assets/asset-list-panel';
+import { CLIENT_DOCUMENT_ASSET_TAG } from '@/types/assets';
 import { createAdminAssetFixture } from '../../../fixtures/assets';
 
 const { mockGetUserAssetDownloadUrl } = vi.hoisted(() => ({
@@ -120,6 +121,18 @@ describe('AssetListPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(onDeleteAsset).toHaveBeenCalledWith('asset-1');
+  });
+
+  it('renders client document tag with green pill styling', () => {
+    const clientAsset = createAdminAssetFixture({
+      title: 'Client-facing PDF',
+      tags: [{ id: 'tag-cli', name: CLIENT_DOCUMENT_ASSET_TAG, color: null }],
+    });
+    renderPanel({ assets: [clientAsset] });
+
+    const tagPill = screen.getByText('Client').closest('span');
+    expect(tagPill).toBeTruthy();
+    expect(tagPill).toHaveClass('bg-green-100', 'text-green-900');
   });
 
   it('disables delete for assets tagged as expense attachments', () => {
