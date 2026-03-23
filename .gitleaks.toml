@@ -5,7 +5,7 @@ useDefault = true
 
 [allowlist]
 description = "Allow non-secret media resource taxonomy keys"
-regexTarget = "match"
+regexTarget = "line"
 regexes = [
   '''\b4-ways-patience\b''',
   '''"ApiCustomDomainName"\s*:\s*"[^"]*"''',
