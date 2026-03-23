@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { useMemo, type KeyboardEvent, type MouseEvent } from 'react';
 
 import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
 
@@ -10,10 +10,10 @@ import {
   EXPENSE_ATTACHMENT_ASSET_TAG,
 } from '@/types/assets';
 
+import { OpenAdminAssetInNewTabButton } from '@/components/admin/shared/open-admin-asset-in-new-tab-button';
 import { DeleteIcon } from '@/components/icons/action-icons';
-import OpenInNewTabIcon from '@/components/icons/svg/open-in-new-tab-icon.svg';
-import { getUserAssetDownloadUrl } from '@/lib/assets-api';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useOpenAdminAssetInNewTab } from '@/hooks/use-open-admin-asset-in-new-tab';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -64,8 +64,7 @@ export function AssetListPanel({
   onDeleteAsset,
 }: AssetListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
-  const [openingAssetId, setOpeningAssetId] = useState<string | null>(null);
-  const [viewAssetError, setViewAssetError] = useState('');
+  const { openingAssetId, openError: viewAssetError, openAssetInNewTab } = useOpenAdminAssetInNewTab();
 
   const tagFilterOptions = useMemo(() => {
     const names = [...linkedTagNames];
@@ -99,21 +98,6 @@ export function AssetListPanel({
       return;
     }
     await onDeleteAsset(asset.id);
-  };
-
-  const handleOpenAssetInNewTab = async (asset: AdminAsset, event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    setViewAssetError('');
-    setOpeningAssetId(asset.id);
-    try {
-      const url = await getUserAssetDownloadUrl(asset.id);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not open asset.';
-      setViewAssetError(message);
-    } finally {
-      setOpeningAssetId(null);
-    }
   };
 
   return (
@@ -251,17 +235,14 @@ export function AssetListPanel({
                     <td className='px-4 py-3 text-slate-700'>{formatDate(asset.updatedAt)}</td>
                     <td className='px-4 py-3 text-right'>
                       <div className='flex justify-end gap-1'>
-                        <Button
-                          type='button'
-                          size='sm'
-                          variant='outline'
-                          onClick={(event) => void handleOpenAssetInNewTab(asset, event)}
-                          disabled={openingAssetId === asset.id}
-                          title='Open asset in new tab'
-                          aria-label='Open asset in new tab'
-                        >
-                          <OpenInNewTabIcon className='h-4 w-4' />
-                        </Button>
+                        <OpenAdminAssetInNewTabButton
+                          assetId={asset.id}
+                          isOpening={openingAssetId === asset.id}
+                          onOpen={(assetId, event) => {
+                            event.stopPropagation();
+                            void openAssetInNewTab(assetId);
+                          }}
+                        />
                         <Button
                           type='button'
                           size='sm'

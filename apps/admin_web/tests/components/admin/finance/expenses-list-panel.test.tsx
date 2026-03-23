@@ -2,6 +2,18 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const { mockGetUserAssetDownloadUrl } = vi.hoisted(() => ({
+  mockGetUserAssetDownloadUrl: vi.fn(),
+}));
+
+vi.mock('@/lib/assets-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/assets-api')>();
+  return {
+    ...actual,
+    getUserAssetDownloadUrl: mockGetUserAssetDownloadUrl,
+  };
+});
+
 import { ExpensesListPanel } from '@/components/admin/finance/expenses-list-panel';
 import { formatDate } from '@/lib/format';
 
@@ -73,6 +85,7 @@ const listProps = {
 describe('ExpensesListPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetUserAssetDownloadUrl.mockReset();
   });
 
   it('renders core columns without Invoice or Parse headers', () => {
@@ -85,6 +98,47 @@ describe('ExpensesListPanel', () => {
     expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Issued' })).toBeInTheDocument();
+  });
+
+  it('opens primary expense attachment in a new tab', async () => {
+    const user = userEvent.setup();
+    mockGetUserAssetDownloadUrl.mockResolvedValueOnce('https://cdn.example.com/invoice.pdf');
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+    render(
+      <ExpensesListPanel
+        {...listProps}
+        expenses={[
+          {
+            ...baseExpense,
+            attachments: [
+              {
+                id: 'ea-1',
+                assetId: 'asset-doc-1',
+                sortOrder: 0,
+                fileName: 'invoice.pdf',
+                contentType: 'application/pdf',
+                assetTitle: null,
+              },
+            ],
+          },
+        ]}
+        {...makeRowActions()}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Open invoice document in new tab' }));
+
+    expect(mockGetUserAssetDownloadUrl).toHaveBeenCalledWith('asset-doc-1');
+    expect(openSpy).toHaveBeenCalledWith('https://cdn.example.com/invoice.pdf', '_blank', 'noopener,noreferrer');
+
+    openSpy.mockRestore();
+  });
+
+  it('disables document open when expense has no attachments', () => {
+    render(<ExpensesListPanel {...listProps} {...makeRowActions()} />);
+
+    expect(screen.getByRole('button', { name: 'No invoice document available' })).toBeDisabled();
   });
 
   it('shows invoice date in Issued column and labels missing currency', () => {
