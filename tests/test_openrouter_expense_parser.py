@@ -290,6 +290,64 @@ def test_parse_invoice_uses_configured_pdf_engine(monkeypatch: Any) -> None:
     assert payload["plugins"][0]["pdf"]["engine"] == "pdf-text"
 
 
+def test_normalize_result_parses_currency_formatted_total() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": "Acme",
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": "USD",
+            "subtotal": None,
+            "tax": None,
+            "total": "$1,234.56",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["total"] == 1234.56
+
+
+def test_normalize_result_maps_amount_key_to_total() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": None,
+            "tax": None,
+            "total": None,
+            "amount": "€ 99,00",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["total"] == 99.0
+
+
+def test_normalize_result_total_from_line_items_when_total_missing() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": None,
+            "tax": None,
+            "total": None,
+            "line_items": [
+                {"description": "A", "quantity": 1, "unit_price": 10, "amount": "10.00"},
+                {"description": "B", "quantity": 1, "unit_price": 5, "amount": "$5.00"},
+            ],
+            "confidence": None,
+        }
+    )
+    assert out["total"] == 15.0
+
+
 def test_parse_invoice_surfaces_openrouter_error_body(monkeypatch: Any) -> None:
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)

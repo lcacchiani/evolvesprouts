@@ -197,9 +197,16 @@ their primary responsibilities.
 - Purpose: process async invoice parse requests and enrich expense records
   using OpenRouter via `AwsApiProxyFunction`; when `vendor_id` is unset and the
   model returns `vendor_name`, attempts a unique match among **active** vendor
-  organizations: case-insensitive exact trimmed name, else a single `ILIKE`
-  substring hit only when the parsed string is long enough and not
-  generic-only tokens (weak matches never write `vendor_id`)
+  organizations: case-insensitive exact trimmed name; else a single `ILIKE`
+  substring hit when the vendor name contains the parsed string (only when the
+  parsed string is long enough and not generic-only tokens); else, if the parsed
+  string contains a specific vendor list name, the longest such match wins when
+  unambiguous (covers legal invoice names vs shorter list labels). Weak matches
+  never write `vendor_id`.
+  Parsed `subtotal` / `tax` / `total` accept common formatted strings (currency
+  symbols, thousands separators, alternate keys such as `amount`), and infer
+  `total` from line-item amounts when every line has an `amount` and top-level
+  totals are missing.
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
