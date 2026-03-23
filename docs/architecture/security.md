@@ -177,21 +177,15 @@ required domain-derived origins above.
 ### Private Network Access (Chromium)
 
 Lambda responses (via `get_cors_headers()`) include
-`Access-Control-Allow-Private-Network: true` on integration responses.
+`Access-Control-Allow-Private-Network: true` when Chromium’s Private Network
+Access preflight requires it on **integration** responses.
 
 API Gateway REST API **rejects** this header on MOCK `OPTIONS` integration and
-method response mappings, so preflight responses from generated CORS `OPTIONS`
-methods cannot emit it at API Gateway.
-
-For browser clients that call the API through a **Cloudflare-proxied** hostname
-(for example `api.<your-domain>` with orange-cloud DNS), apply a **response
-header transform** rule via
-`scripts/cloudflare_apply_private_network_access_rule.py` (or the GitHub
-workflow `cloudflare-pna-header.yml`). That upserts
-`Access-Control-Allow-Private-Network: true` on matching responses. The API
-token must include **Zone → Transform Rules → Edit** (DNS-only tokens cannot
-call the Rulesets API); use `CLOUDFLARE_RULESETS_API_TOKEN` when the default
-`CLOUDFLARE_API_TOKEN` is restricted to DNS.
+method response mappings (`Invalid mapping expression parameter` for
+`method.response.header.Access-Control-Allow-Private-Network`), so preflight
+responses from generated CORS `OPTIONS` methods cannot emit it through API
+Gateway alone. If preflight must carry this header end-to-end, add it at an edge
+layer (for example a CloudFront response headers policy in front of the API).
 
 ### Input Validation
 

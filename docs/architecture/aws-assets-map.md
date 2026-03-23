@@ -368,12 +368,6 @@ For each function above, the following resources are created:
 
 ## API Gateway
 
-Chromium **Private Network Access** (`Access-Control-Allow-Private-Network` on
-OPTIONS preflight) cannot be set on API Gateway MOCK CORS integrations. That
-header is applied at **Cloudflare** for proxied API hostnames; see
-[`infrastructure-map.md`](infrastructure-map.md) and
-`scripts/cloudflare_apply_private_network_access_rule.py`.
-
 ### REST API
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
