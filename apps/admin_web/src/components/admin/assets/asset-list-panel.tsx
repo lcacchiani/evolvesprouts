@@ -197,6 +197,9 @@ export function AssetListPanel({
             ) : (
               assets.map((asset) => {
                 const isSelected = asset.id === selectedAssetId;
+                const isExpenseLinked = asset.tags.some(
+                  (tag) => tag.name.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG
+                );
                 const sortedTags = [...asset.tags].sort((a, b) =>
                   a.name.localeCompare(b.name)
                 );
@@ -261,9 +264,17 @@ export function AssetListPanel({
                           size='sm'
                           variant='danger'
                           onClick={(event) => void handleDeleteAsset(asset, event)}
-                          disabled={isDeletingAssetId === asset.id}
-                          title='Delete asset'
-                          aria-label='Delete asset'
+                          disabled={isDeletingAssetId === asset.id || isExpenseLinked}
+                          title={
+                            isExpenseLinked
+                              ? 'Cannot delete assets linked to expenses'
+                              : 'Delete asset'
+                          }
+                          aria-label={
+                            isExpenseLinked
+                              ? 'Cannot delete: asset is linked to expenses'
+                              : 'Delete asset'
+                          }
                         >
                           <DeleteIcon className='h-4 w-4' />
                         </Button>
