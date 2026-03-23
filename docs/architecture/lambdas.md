@@ -207,6 +207,9 @@ their primary responsibilities.
   symbols, thousands separators, alternate keys such as `amount`), and infer
   `total` from line-item amounts when every line has an `amount` and top-level
   totals are missing.
+  When `currency` is still unset, monetary strings that contain a bare `$` (not
+  `HK$`, `S$`, etc.) and no other currency markers infer `USD`; the model may
+  also return `$` as `currency`, which normalizes to `USD`.
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
