@@ -1,8 +1,18 @@
+import { EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
+
 export function toTitleCase(value: string): string {
   return value
     .split('_')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+/** User-visible label for an asset tag name (API snake_case). */
+export function formatAssetTagDisplayName(tagName: string): string {
+  if (tagName.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG) {
+    return 'Expense';
+  }
+  return toTitleCase(tagName.toLowerCase());
 }
 
 /** Same date/time field choices as the app shell navbar timestamp (local TZ + default locale). */

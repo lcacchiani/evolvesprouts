@@ -70,8 +70,8 @@ export interface paths {
                     query?: string;
                     visibility?: "public" | "restricted";
                     asset_type?: "guide" | "video" | "pdf" | "document";
-                    /** @description When set to expense_attachment, return only assets tagged as linked to an expense (expense_attachments). */
-                    tag_name?: "expense_attachment";
+                    /** @description When set, return only assets that have this tag (case-insensitive name match). The tag must be linked to at least one asset that matches the optional asset_type filter. */
+                    tag_name?: string;
                     cursor?: string;
                     limit?: number;
                 };
@@ -2465,6 +2465,8 @@ export interface components {
         AssetListResponse: {
             items: components["schemas"]["Asset"][];
             next_cursor?: string | null;
+            /** @description Admin asset list only. Distinct tag names linked to at least one asset matching the request's asset_type filter (when provided). Omitted or empty when not applicable. */
+            linked_tag_names?: string[];
         };
         AssetResponse: {
             asset: components["schemas"]["Asset"];

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { listAdminAssets } from '@/lib/assets-api';
 import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/assets';
-import { EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 
 import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
@@ -22,6 +21,7 @@ const ASSET_LIST_TYPE_FILTER = 'document' as const;
 export interface UseAssetListReturn {
   filters: Filters;
   assets: AdminAsset[];
+  linkedTagNames: string[];
   nextCursor: string | null;
   isLoadingAssets: boolean;
   isLoadingMoreAssets: boolean;
@@ -45,6 +45,7 @@ export function useAssetList(): UseAssetListReturn {
   const filtersRef = useRef<Filters>(DEFAULT_FILTERS);
   const latestRefreshRequestIdRef = useRef(0);
   const [assets, setAssets] = useState<AdminAsset[]>([]);
+  const [linkedTagNames, setLinkedTagNames] = useState<string[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
   const [isLoadingMoreAssets, setIsLoadingMoreAssets] = useState(false);
@@ -83,6 +84,7 @@ export function useAssetList(): UseAssetListReturn {
       }
 
       setAssets(response.items);
+      setLinkedTagNames(response.linkedTagNames);
       setNextCursor(response.nextCursor);
       setSelectedAssetId((currentId) => {
         if (!currentId) {
@@ -121,6 +123,7 @@ export function useAssetList(): UseAssetListReturn {
       });
 
       setAssets((previous) => [...previous, ...response.items]);
+      setLinkedTagNames(response.linkedTagNames);
       setNextCursor(response.nextCursor);
     } catch (error) {
       setAssetsError(toErrorMessage(error, 'Failed to load more assets.'));
@@ -190,7 +193,7 @@ export function useAssetList(): UseAssetListReturn {
         await refreshAssets();
         return;
       }
-      if (filtersRef.current.tagName === EXPENSE_ATTACHMENT_ASSET_TAG) {
+      if (filtersRef.current.tagName) {
         await refreshAssets();
         return;
       }
@@ -222,6 +225,7 @@ export function useAssetList(): UseAssetListReturn {
   return {
     filters,
     assets,
+    linkedTagNames,
     nextCursor,
     isLoadingAssets,
     isLoadingMoreAssets,

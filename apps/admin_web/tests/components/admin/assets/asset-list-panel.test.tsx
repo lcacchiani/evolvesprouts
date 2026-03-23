@@ -35,6 +35,7 @@ function renderPanel(overrides: Partial<ComponentProps<typeof AssetListPanel>> =
   render(
     <AssetListPanel
       assets={[FIXTURE_ASSET]}
+      linkedTagNames={[]}
       selectedAssetId={null}
       filters={{ query: '', visibility: '', tagName: '' }}
       isLoadingAssets={false}

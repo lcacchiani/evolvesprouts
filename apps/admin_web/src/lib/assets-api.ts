@@ -4,6 +4,7 @@ import { isRecord } from './type-guards';
 
 import type {
   AdminAsset,
+  AdminAssetListResult,
   AdminAssetTag,
   AssetGrant,
   AssetType,
@@ -14,12 +15,7 @@ import type {
   PaginatedList,
   UpsertAdminAssetInput,
 } from '@/types/assets';
-import {
-  ACCESS_GRANT_TYPES,
-  ASSET_TYPES,
-  ASSET_VISIBILITIES,
-  EXPENSE_ATTACHMENT_ASSET_TAG,
-} from '@/types/assets';
+import { ACCESS_GRANT_TYPES, ASSET_TYPES, ASSET_VISIBILITIES } from '@/types/assets';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
@@ -172,26 +168,31 @@ function parseGrant(value: ApiAssetGrant): AssetGrant {
 function extractAssetList(payload: ApiAssetListPayload): {
   items: AdminAsset[];
   nextCursor: string | null;
+  linkedTagNames: string[];
 } {
   const root = unwrapPayload(payload);
   if (Array.isArray(root)) {
     return {
       items: root.filter(isApiAsset).map((entry) => parseAsset(entry)),
       nextCursor: null,
+      linkedTagNames: [],
     };
   }
 
   if (!isRecord(root)) {
-    return { items: [], nextCursor: null };
+    return { items: [], nextCursor: null, linkedTagNames: [] };
   }
 
   const items = Array.isArray(root.items)
     ? root.items.filter((entry): entry is ApiAsset => isApiAsset(entry)).map((entry) => parseAsset(entry))
     : [];
 
+  const asList = root as ApiAssetListResponse;
+
   return {
     items,
-    nextCursor: asTrimmedString((root as ApiAssetListResponse).next_cursor) ?? null,
+    nextCursor: asTrimmedString(asList.next_cursor) ?? null,
+    linkedTagNames: asStringArray(asList.linked_tag_names),
   };
 }
 
@@ -271,7 +272,7 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetReques
 
 export async function listAdminAssets(
   input: ListAdminAssetsInput = {}
-): Promise<PaginatedList<AdminAsset>> {
+): Promise<AdminAssetListResult> {
   const params = new URLSearchParams();
   if (input.query?.trim()) {
     params.set('query', input.query.trim());
@@ -282,8 +283,9 @@ export async function listAdminAssets(
   if (input.assetType?.trim()) {
     params.set('asset_type', input.assetType);
   }
-  if (input.tagName?.trim() === EXPENSE_ATTACHMENT_ASSET_TAG) {
-    params.set('tag_name', EXPENSE_ATTACHMENT_ASSET_TAG);
+  const tagFilter = input.tagName?.trim();
+  if (tagFilter) {
+    params.set('tag_name', tagFilter);
   }
   if (input.cursor?.trim()) {
     params.set('cursor', input.cursor);
@@ -303,6 +305,7 @@ export async function listAdminAssets(
   return {
     items: list.items,
     nextCursor: list.nextCursor,
+    linkedTagNames: list.linkedTagNames,
   };
 }
 

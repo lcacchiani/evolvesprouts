@@ -48,6 +48,7 @@ describe('assets-api', () => {
           },
         ],
         next_cursor: 'cursor-1',
+        linked_tag_names: ['expense_attachment', 'custom_tag'],
       },
     });
 
@@ -60,6 +61,7 @@ describe('assets-api', () => {
     });
 
     expect(result.nextCursor).toBe('cursor-1');
+    expect(result.linkedTagNames).toEqual(['expense_attachment', 'custom_tag']);
     expect(result.items[0]).toMatchObject({
       id: 'asset-1',
       assetType: 'document',
@@ -84,7 +86,7 @@ describe('assets-api', () => {
     expect(request.endpointPath).toContain('limit=10');
   });
 
-  it('includes tag_name when filtering expense-linked assets', async () => {
+  it('includes tag_name query param when filtering by tag', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {
         items: [],
@@ -96,6 +98,20 @@ describe('assets-api', () => {
 
     const request = mockAdminApiRequest.mock.calls[0][0];
     expect(request.endpointPath).toContain('tag_name=expense_attachment');
+  });
+
+  it('includes tag_name for arbitrary linked tag filters', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [],
+        next_cursor: null,
+      },
+    });
+
+    await listAdminAssets({ tagName: 'custom_tag' });
+
+    const request = mockAdminApiRequest.mock.calls[0][0];
+    expect(request.endpointPath).toContain('tag_name=custom_tag');
   });
 
   it('creates asset with snake_case request body and parses upload details', async () => {

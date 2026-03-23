@@ -71,10 +71,15 @@ export interface ListAdminAssetsInput {
   query?: string;
   visibility?: AssetVisibility | '';
   assetType?: AssetType | '';
-  /** When set to expense_attachment, lists only assets with that tag. */
-  tagName?: typeof EXPENSE_ATTACHMENT_ASSET_TAG | '';
+  /** When set, lists only assets with this tag (canonical API tag name). */
+  tagName?: string;
   cursor?: string | null;
   limit?: number;
+}
+
+export interface AdminAssetListResult extends PaginatedList<AdminAsset> {
+  /** Tag names linked to at least one asset (same asset_type scope as the request). */
+  linkedTagNames: string[];
 }
 
 export interface UpsertAdminAssetInput {
