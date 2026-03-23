@@ -346,6 +346,79 @@ def test_normalize_result_total_from_line_items_when_total_missing() -> None:
         }
     )
     assert out["total"] == 15.0
+    assert out["currency"] == "USD"
+
+
+def test_normalize_result_maps_currency_dollar_sign_to_usd() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": "$",
+            "subtotal": None,
+            "tax": None,
+            "total": 30,
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["currency"] == "USD"
+
+
+def test_normalize_result_infers_usd_from_plain_dollar_total_string() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": None,
+            "tax": None,
+            "total": "$30.00",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["currency"] == "USD"
+
+
+def test_normalize_result_does_not_infer_usd_for_hk_dollar() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": None,
+            "tax": None,
+            "total": "HK$100.00",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["currency"] is None
+
+
+def test_normalize_result_does_not_infer_usd_when_euro_marker_present() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": "€10.00",
+            "tax": None,
+            "total": "$5.00",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["currency"] is None
 
 
 def test_parse_invoice_surfaces_openrouter_error_body(monkeypatch: Any) -> None:

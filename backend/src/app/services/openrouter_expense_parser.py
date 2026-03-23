@@ -246,12 +246,16 @@ def _normalize_result(parsed: dict[str, Any]) -> dict[str, Any]:
     if total is None:
         total = _sum_line_item_amounts(normalized_line_items)
 
+    currency = _optional_currency(parsed.get("currency"))
+    if currency is None and _infer_usd_from_dollar_signs(parsed):
+        currency = "USD"
+
     return {
         "vendor_name": _optional_text(parsed.get("vendor_name"), max_length=255),
         "invoice_number": _optional_text(parsed.get("invoice_number"), max_length=128),
         "invoice_date": _optional_iso_date(parsed.get("invoice_date")),
         "due_date": _optional_iso_date(parsed.get("due_date")),
-        "currency": _optional_currency(parsed.get("currency")),
+        "currency": currency,
         "subtotal": subtotal,
         "tax": tax,
         "total": total,
@@ -440,11 +444,93 @@ def _optional_iso_date(value: Any) -> str | None:
         return None
 
 
+_MONETARY_STRING_KEYS = (
+    "subtotal",
+    "tax",
+    "total",
+    "grand_total",
+    "invoice_total",
+    "total_amount",
+    "amount_due",
+    "balance_due",
+    "balance",
+    "amount",
+    "sub_total",
+    "net_amount",
+    "pretax_total",
+    "amount_ex_tax",
+    "subtotal_ex_tax",
+    "tax_amount",
+    "gst",
+    "vat",
+    "sales_tax",
+)
+
+# Dollar prefixes that are not US dollars (avoid inferring USD from these).
+_DISAMBIGUATED_DOLLAR_MARKERS = (
+    "HK$",
+    "NT$",
+    "S$",
+    "SG$",
+    "NZ$",
+    "CA$",
+    "C$",
+    "A$",
+    "MX$",
+    "AU$",
+)
+
+_OTHER_CURRENCY_MARKERS_RE = re.compile(r"[£€¥₹\u00a3\u20ac\u00a5\u20b9]")
+
+
 def _optional_currency(value: Any) -> str | None:
-    normalized = _optional_text(value, max_length=3)
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    compact = raw.replace("\u00a0", " ").replace(" ", "").upper()
+    if compact in {"$", "US$", "USD"}:
+        return "USD"
+    if re.fullmatch(r"\$+", raw.strip()):
+        return "USD"
+    normalized = _optional_text(raw, max_length=3)
     if normalized is None:
         return None
-    return normalized.upper()
+    letters_only = re.sub(r"[^A-Za-z]", "", normalized)
+    if len(letters_only) == 3:
+        return letters_only.upper()
+    return None
+
+
+def _infer_usd_from_dollar_signs(parsed: dict[str, Any]) -> bool:
+    """True when monetary strings show $ but no other currency markers."""
+    parts: list[str] = []
+    for key in _MONETARY_STRING_KEYS:
+        val = parsed.get(key)
+        if isinstance(val, str) and val.strip():
+            parts.append(val)
+    line_items = parsed.get("line_items")
+    if isinstance(line_items, list):
+        for item in line_items:
+            if not isinstance(item, dict):
+                continue
+            for li_key in ("amount", "unit_price"):
+                val = item.get(li_key)
+                if isinstance(val, str) and val.strip():
+                    parts.append(val)
+    if not parts:
+        return False
+    combined = "\n".join(parts)
+    if "$" not in combined:
+        return False
+    upper = combined.upper()
+    for marker in _DISAMBIGUATED_DOLLAR_MARKERS:
+        if marker.upper() in upper:
+            return False
+    if _OTHER_CURRENCY_MARKERS_RE.search(combined):
+        return False
+    return True
 
 
 def _parse_max_file_bytes() -> int:
@@ -483,5 +569,7 @@ def _schema_prompt() -> str:
         "Use null for unknown values. No markdown. No prose. "
         "For subtotal, tax, and total prefer JSON numbers; if you use strings, use "
         "plain digits only (no currency symbols or thousands separators) when possible. "
+        "If the invoice shows only the $ symbol for money (not HK$, S$, etc.), set "
+        "currency to USD. "
         "Input may be plain text pasted in an email body rather than a PDF or image."
     )
