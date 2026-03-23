@@ -25,6 +25,10 @@ from app.db.models import (
     AssetVisibility,
 )
 from app.exceptions import ValidationError
+from app.services.asset_expense_tagging import (
+    CLIENT_DOCUMENT_TAG_NAME,
+    EXPENSE_ATTACHMENT_TAG_NAME,
+)
 from app.services.aws_clients import get_s3_client
 from app.services.cloudfront_signing import generate_signed_download_url
 from app.utils import json_response, require_env
@@ -162,9 +166,7 @@ def parse_admin_asset_list_filters(
     return query, visibility, asset_type, tag_name
 
 
-def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
-    """Parse and validate create asset request payload."""
-    body = parse_body(event)
+def _parse_asset_core_fields_for_write(body: Mapping[str, Any]) -> dict[str, Any]:
     title = _required_text(body, "title", max_length=255)
     description = _optional_text(body, "description", max_length=5000)
     file_name = _required_text(
@@ -180,7 +182,6 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     visibility = parse_asset_visibility(
         _optional_field(body, "visibility") or "restricted"
     )
-
     return {
         "title": title,
         "description": description,
@@ -192,9 +193,52 @@ def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _parse_client_tag_required_value(body: Mapping[str, Any]) -> str | None:
+    raw = _optional_field(body, "client_tag", "clientTag")
+    if raw is None:
+        return None
+    if not isinstance(raw, str):
+        raise ValidationError("client_tag must be a string or null", field="client_tag")
+    normalized = raw.strip().lower()
+    if normalized == CLIENT_DOCUMENT_TAG_NAME.lower():
+        return CLIENT_DOCUMENT_TAG_NAME
+    raise ValidationError(
+        'client_tag must be null or "client_document"',
+        field="client_tag",
+    )
+
+
+def _parse_client_tag_for_create(body: Mapping[str, Any]) -> str | None:
+    if not _has_any_field(body, "client_tag", "clientTag"):
+        return None
+    return _parse_client_tag_required_value(body)
+
+
+def parse_create_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
+    """Parse and validate create asset request payload."""
+    body = parse_body(event)
+    result = _parse_asset_core_fields_for_write(body)
+    result["client_tag"] = _parse_client_tag_for_create(body)
+    return result
+
+
 def parse_update_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate full update asset request payload."""
-    return parse_create_asset_payload(event)
+    body = parse_body(event)
+    result = _parse_asset_core_fields_for_write(body)
+    specified = _has_any_field(body, "client_tag", "clientTag")
+    result["client_tag_specified"] = specified
+    result["client_tag"] = _parse_client_tag_required_value(body) if specified else None
+    return result
+
+
+def asset_links_expense_attachment(asset: Asset) -> bool:
+    """Return True when the asset carries the expense_attachment tag (relationship loaded)."""
+    for link in asset.asset_tags:
+        tag = link.tag
+        if tag is not None and tag.name.lower() == EXPENSE_ATTACHMENT_TAG_NAME.lower():
+            return True
+    return False
 
 
 def parse_partial_update_asset_payload(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -234,6 +278,10 @@ def parse_partial_update_asset_payload(event: Mapping[str, Any]) -> dict[str, An
         if not visibility_raw:
             raise ValidationError("visibility is required", field="visibility")
         payload["visibility"] = parse_asset_visibility(visibility_raw)
+
+    if _has_any_field(body, "client_tag", "clientTag"):
+        payload["client_tag_specified"] = True
+        payload["client_tag"] = _parse_client_tag_required_value(body)
 
     if not payload:
         raise ValidationError(

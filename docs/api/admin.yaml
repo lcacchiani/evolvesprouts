@@ -3306,6 +3306,13 @@ components:
         visibility:
           type: string
           enum: [public, restricted]
+        client_tag:
+          type: string
+          nullable: true
+          enum: [client_document]
+          description: >
+            Optional. When set to client_document, links the asset to the client_document tag after create.
+            When omitted or null, no client tag is linked.
     UpdateAssetRequest:
       allOf:
         - $ref: "#/components/schemas/CreateAssetRequest"
@@ -3336,6 +3343,13 @@ components:
         visibility:
           type: string
           enum: [public, restricted]
+        client_tag:
+          type: string
+          nullable: true
+          enum: [client_document]
+          description: >
+            When present, sets or clears the client_document tag on the asset. Omit this property to leave
+            the client tag unchanged. Must not be sent for assets that have the expense_attachment tag (400).
     CreateAssetResponse:
       type: object
       required:

@@ -3087,6 +3087,11 @@ export interface components {
             content_type?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
+            /**
+             * @description Optional. When set to client_document, links the asset to the client_document tag after create. When omitted or null, no client tag is linked.
+             * @enum {string|null}
+             */
+            client_tag?: "client_document" | null;
         };
         UpdateAssetRequest: components["schemas"]["CreateAssetRequest"];
         PartialUpdateAssetRequest: {
@@ -3099,6 +3104,11 @@ export interface components {
             content_type?: string | null;
             /** @enum {string} */
             visibility?: "public" | "restricted";
+            /**
+             * @description When present, sets or clears the client_document tag on the asset. Omit this property to leave the client tag unchanged. Must not be sent for assets that have the expense_attachment tag (400).
+             * @enum {string|null}
+             */
+            client_tag?: "client_document" | null;
         };
         CreateAssetResponse: {
             asset: components["schemas"]["Asset"];

@@ -147,6 +147,7 @@ describe('assets-api', () => {
       fileName: ' nutrition.pdf ',
       contentType: ' application/pdf ',
       visibility: 'public',
+      clientTag: null,
     });
 
     expect(mockAdminApiRequest).toHaveBeenCalledWith(
@@ -161,6 +162,7 @@ describe('assets-api', () => {
           resource_key: null,
           content_type: 'application/pdf',
           visibility: 'public',
+          client_tag: null,
         },
       })
     );

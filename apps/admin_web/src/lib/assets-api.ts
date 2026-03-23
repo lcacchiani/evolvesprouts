@@ -259,7 +259,7 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetReques
   const trimmedResourceKey = input.resourceKey?.trim() ?? '';
   const trimmedContentType = input.contentType?.trim() ?? '';
 
-  return {
+  const body: ApiCreateAssetRequest = {
     title: input.title.trim(),
     description: trimmedDescription || null,
     asset_type: input.assetType,
@@ -268,6 +268,10 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetReques
     content_type: trimmedContentType || null,
     visibility: input.visibility,
   };
+  if (input.clientTag !== undefined) {
+    body.client_tag = input.clientTag;
+  }
+  return body;
 }
 
 export async function listAdminAssets(

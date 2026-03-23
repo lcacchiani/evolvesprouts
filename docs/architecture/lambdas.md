@@ -38,7 +38,8 @@ their primary responsibilities.
   API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
 - Purpose: asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
-  `asset_type` scope), geographic area browsing, location CRUD,
+  `asset_type` scope; create/update accept optional `client_tag` for the
+  `client_document` tag, forbidden when the asset is expense-linked), geographic area browsing, location CRUD,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
   vendor management, expense invoice ingestion/listing/amendment/void/pay flows,
   and admin-user listing for lead assignment,

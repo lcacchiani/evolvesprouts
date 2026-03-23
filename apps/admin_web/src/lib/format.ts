@@ -1,4 +1,4 @@
-import { EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
+import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 
 export function toTitleCase(value: string): string {
   return value
@@ -9,8 +9,12 @@ export function toTitleCase(value: string): string {
 
 /** User-visible label for an asset tag name (API snake_case). */
 export function formatAssetTagDisplayName(tagName: string): string {
-  if (tagName.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG) {
+  const lower = tagName.toLowerCase();
+  if (lower === EXPENSE_ATTACHMENT_ASSET_TAG) {
     return 'Expense';
+  }
+  if (lower === CLIENT_DOCUMENT_ASSET_TAG) {
+    return 'Client';
   }
   return toTitleCase(tagName.toLowerCase());
 }

@@ -7,7 +7,8 @@ from datetime import UTC, datetime
 
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, delete, func, or_, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -23,6 +24,7 @@ from app.db.models import (
 )
 from app.db.repositories.base import BaseRepository
 from app.exceptions import ValidationError
+from app.services.asset_expense_tagging import CLIENT_DOCUMENT_TAG_NAME
 
 
 def _escape_like_pattern(pattern: str) -> str:
@@ -237,6 +239,33 @@ class AssetRepository(BaseRepository[Asset]):
             created_by=created_by,
         )
         return self.create(entity)
+
+    def set_client_document_tag_link(self, asset_id: UUID, *, link: bool) -> None:
+        """Add or remove only the client_document tag; does not touch other tags."""
+        stmt = select(Tag.id).where(
+            func.lower(Tag.name) == CLIENT_DOCUMENT_TAG_NAME.lower()
+        )
+        tag_id = self._session.execute(stmt).scalar_one_or_none()
+        if tag_id is None:
+            raise ValidationError(
+                "client_document tag is not configured",
+                field="client_tag",
+            )
+        if link:
+            insert_stmt = pg_insert(AssetTag).values(asset_id=asset_id, tag_id=tag_id)
+            self._session.execute(
+                insert_stmt.on_conflict_do_nothing(constraint="asset_tags_pkey")
+            )
+        else:
+            self._session.execute(
+                delete(AssetTag).where(
+                    and_(
+                        AssetTag.asset_id == asset_id,
+                        AssetTag.tag_id == tag_id,
+                    )
+                )
+            )
+        self._session.flush()
 
     def update_asset(
         self,
