@@ -23,6 +23,79 @@ import * as fs from "fs";
 import * as path from "path";
 import { DatabaseConstruct, PythonLambdaFactory, STANDARD_LOG_RETENTION } from "./constructs";
 
+/**
+ * CDK {@link apigateway.CorsOptions} does not support
+ * Access-Control-Allow-Private-Network. OPTIONS methods use MOCK integrations;
+ * this aspect adds the header so Chromium Private Network Access preflights succeed.
+ */
+class ApiGatewayOptionsPrivateNetworkCorsAspect implements cdk.IAspect {
+  public visit(node: IConstruct): void {
+    if (!(node instanceof apigateway.CfnMethod)) {
+      return;
+    }
+    if (node.httpMethod !== "OPTIONS") {
+      return;
+    }
+    const integration = node.integration as
+      | apigateway.CfnMethod.IntegrationProperty
+      | undefined;
+    if (!integration || cdk.Tokenization.isResolvable(integration)) {
+      return;
+    }
+    const integrationResponses = integration.integrationResponses;
+    if (
+      !integrationResponses ||
+      cdk.Tokenization.isResolvable(integrationResponses) ||
+      !Array.isArray(integrationResponses)
+    ) {
+      return;
+    }
+    for (const ir of integrationResponses) {
+      if (cdk.Tokenization.isResolvable(ir)) {
+        continue;
+      }
+      const resp = ir as apigateway.CfnMethod.IntegrationResponseProperty & {
+        responseParameters?: Record<string, string>;
+      };
+      const existingIrParams =
+        resp.responseParameters &&
+        !cdk.Tokenization.isResolvable(resp.responseParameters)
+          ? { ...resp.responseParameters }
+          : {};
+      resp.responseParameters = {
+        ...existingIrParams,
+        "method.response.header.Access-Control-Allow-Private-Network": "'true'",
+      };
+    }
+
+    const methodResponses = node.methodResponses;
+    if (
+      !methodResponses ||
+      cdk.Tokenization.isResolvable(methodResponses) ||
+      !Array.isArray(methodResponses)
+    ) {
+      return;
+    }
+    for (const mr of methodResponses) {
+      if (cdk.Tokenization.isResolvable(mr)) {
+        continue;
+      }
+      const mresp = mr as apigateway.CfnMethod.MethodResponseProperty & {
+        responseParameters?: Record<string, boolean | cdk.IResolvable>;
+      };
+      const existingMrParams =
+        mresp.responseParameters &&
+        !cdk.Tokenization.isResolvable(mresp.responseParameters)
+          ? { ...mresp.responseParameters }
+          : {};
+      mresp.responseParameters = {
+        ...existingMrParams,
+        "method.response.header.Access-Control-Allow-Private-Network": true,
+      };
+    }
+  }
+}
+
 class CdkInternalLambdaCheckovSuppression implements cdk.IAspect {
   public visit(node: IConstruct): void {
     const cfnType = (node as cdk.CfnResource).cfnResourceType;
@@ -2289,6 +2362,7 @@ export class ApiStack extends cdk.Stack {
         },
       },
     });
+    cdk.Aspects.of(api).add(new ApiGatewayOptionsPrivateNetworkCorsAspect());
     api.deploymentStage.node.addDependency(apiAccessLogGroupRetention);
     api.deploymentStage.node.addDependency(apiAccessLogGroupKey);
 
@@ -2308,6 +2382,7 @@ export class ApiStack extends cdk.Stack {
       "Access-Control-Allow-Headers":
         "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Turnstile-Token'",
       "Access-Control-Allow-Methods": "'GET,POST,PUT,DELETE,OPTIONS'",
+      "Access-Control-Allow-Private-Network": "'true'",
       Vary: "'Origin'",
     };
     api.addGatewayResponse("GatewayResponseDefault4XX", {
