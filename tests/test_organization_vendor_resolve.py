@@ -71,6 +71,61 @@ def test_try_resolve_fuzzy_used_when_exact_misses(mock_session: MagicMock) -> No
     assert mock_session.execute.call_count == 2
 
 
+def test_try_resolve_reverse_when_list_name_shorter_than_parsed(mock_session: MagicMock) -> None:
+    """Legal name on invoice contains shorter vendor list label (e.g. Canva Pty Ltd vs Canva)."""
+    vendor = SimpleNamespace(
+        id=UUID("dddddddd-dddd-dddd-dddd-dddddddddddd"), name="Canva"
+    )
+    empty = MagicMock()
+    empty.scalars.return_value.all.return_value = []
+    tier3 = MagicMock()
+    tier3.scalars.return_value.all.return_value = [vendor]
+    mock_session.execute.side_effect = [empty, empty, tier3]
+
+    repo = OrganizationRepository(mock_session)
+    out = repo.try_resolve_active_vendor_by_parsed_name("Canva Pty Ltd")
+
+    assert out is vendor
+    assert mock_session.execute.call_count == 3
+
+
+def test_try_resolve_reverse_prefers_longest_vendor_name(mock_session: MagicMock) -> None:
+    v_short = SimpleNamespace(id=UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), name="Canva")
+    v_long = SimpleNamespace(
+        id=UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), name="Canva Pty"
+    )
+    empty = MagicMock()
+    empty.scalars.return_value.all.return_value = []
+    tier3 = MagicMock()
+    tier3.scalars.return_value.all.return_value = [v_short, v_long]
+    mock_session.execute.side_effect = [empty, empty, tier3]
+
+    repo = OrganizationRepository(mock_session)
+    out = repo.try_resolve_active_vendor_by_parsed_name("Canva Pty Ltd")
+
+    assert out is v_long
+    assert mock_session.execute.call_count == 3
+
+
+def test_try_resolve_reverse_tie_longest_length_returns_none(mock_session: MagicMock) -> None:
+    a = SimpleNamespace(id=UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), name="Acme US")
+    b = SimpleNamespace(id=UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), name="Acme UK")
+    empty = MagicMock()
+    empty.scalars.return_value.all.return_value = []
+    tier3 = MagicMock()
+    tier3.scalars.return_value.all.return_value = [a, b]
+    mock_session.execute.side_effect = [empty, empty, tier3]
+
+    repo = OrganizationRepository(mock_session)
+    assert (
+        repo.try_resolve_active_vendor_by_parsed_name(
+            "Bill from Acme US and Acme UK consolidated"
+        )
+        is None
+    )
+    assert mock_session.execute.call_count == 3
+
+
 def test_try_resolve_fuzzy_ambiguous_returns_none(mock_session: MagicMock) -> None:
     """Short parsed names skip Tier 2; ambiguous multi-match is not evaluated."""
     empty = MagicMock()

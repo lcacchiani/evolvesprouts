@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, literal, or_, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Organization, RelationshipType
@@ -69,6 +69,21 @@ def _should_skip_vendor_fuzzy_match(normalized: str) -> bool:
     if all(t in _GENERIC_VENDOR_NAME_TOKENS for t in tokens):
         return True
     return False
+
+
+def _is_substantial_vendor_name_for_reverse_match(normalized_vendor_name: str) -> bool:
+    """Whether a vendor list name is specific enough to appear inside parsed text."""
+    v = _normalize_vendor_match_name(normalized_vendor_name)
+    if len(v) < 3:
+        return False
+    tokens = [_vendor_token_key(t) for t in v.split() if t.strip()]
+    if not tokens:
+        return False
+    if len(tokens) == 1 and tokens[0] in _GENERIC_VENDOR_NAME_TOKENS:
+        return False
+    if all(t in _GENERIC_VENDOR_NAME_TOKENS for t in tokens):
+        return False
+    return True
 
 
 class OrganizationRepository(BaseRepository[Organization]):
@@ -154,7 +169,12 @@ class OrganizationRepository(BaseRepository[Organization]):
 
         Tier 1: case-insensitive equality on trimmed names.
         Tier 2: single ILIKE substring match among active vendors only, only when
-        the normalized parser string is long enough and not generic-only tokens.
+        the normalized parser string is long enough and not generic-only tokens
+        (vendor.name contains the parsed string).
+        Tier 3: when Tier 2 finds no hit, match vendors whose list name appears inside
+        the parsed string and passes a specificity check; if several qualify, the
+        longest name wins only when that length is unique (invoice legal name vs
+        shorter list label).
         Returns None when ambiguous or unmatched.
         """
         normalized = _normalize_vendor_match_name(parsed_vendor_name)
@@ -193,4 +213,37 @@ class OrganizationRepository(BaseRepository[Organization]):
         fuzzy_hits = list(self._session.execute(fuzzy_stmt).scalars().all())
         if len(fuzzy_hits) == 1:
             return fuzzy_hits[0]
+        if len(fuzzy_hits) > 1:
+            return None
+
+        return self._try_resolve_vendor_name_contained_in_parsed(normalized=normalized)
+
+    def _try_resolve_vendor_name_contained_in_parsed(
+        self, *, normalized: str
+    ) -> Organization | None:
+        """Tier 3: parsed invoice vendor text contains an active vendor list name."""
+        norm_lower = normalized.lower()
+        rev_stmt = select(Organization).where(
+            Organization.relationship_type == RelationshipType.VENDOR,
+            Organization.archived_at.is_(None),
+            func.strpos(
+                literal(norm_lower),
+                func.lower(func.trim(Organization.name)),
+            )
+            > 0,
+        )
+        rows = list(self._session.execute(rev_stmt).scalars().all())
+        substantial = [
+            o for o in rows if _is_substantial_vendor_name_for_reverse_match(o.name)
+        ]
+        if not substantial:
+            return None
+        best_len = max(len(_normalize_vendor_match_name(o.name)) for o in substantial)
+        best = [
+            o
+            for o in substantial
+            if len(_normalize_vendor_match_name(o.name)) == best_len
+        ]
+        if len(best) == 1:
+            return best[0]
         return None
