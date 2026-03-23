@@ -1508,6 +1508,9 @@ paths:
       - $ref: "#/components/parameters/ExpenseId"
     post:
       summary: Mark an expense as paid
+      description: >
+        Requires a linked vendor, invoice date, currency code, and total amount.
+        Returns 400 if any of these are missing.
       security:
         - AdminBearerAuth: []
       responses:
