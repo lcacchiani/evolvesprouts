@@ -174,6 +174,13 @@ Optional extra origins can be added via `CORS_ALLOWED_ORIGINS` or CDK context
 `corsAllowedOrigins`, but when no extras are configured the default is only the
 required domain-derived origins above.
 
+### Private Network Access (Chromium)
+
+API responses and OPTIONS preflight integrations include
+`Access-Control-Allow-Private-Network: true` so Chromium can complete CORS when it
+treats a request as crossing address spaces (otherwise the browser reports errors
+about the `local` address space).
+
 ### Input Validation
 
 Always validate and sanitize user input:
