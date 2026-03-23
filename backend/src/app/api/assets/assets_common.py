@@ -25,7 +25,6 @@ from app.db.models import (
     AssetVisibility,
 )
 from app.exceptions import ValidationError
-from app.services.asset_expense_tagging import EXPENSE_ATTACHMENT_TAG_NAME
 from app.services.aws_clients import get_s3_client
 from app.services.cloudfront_signing import generate_signed_download_url
 from app.utils import json_response, require_env
@@ -155,13 +154,10 @@ def parse_admin_asset_list_filters(
     tag_name_raw = query_param(event, "tag_name")
     tag_name: str | None = None
     if tag_name_raw and tag_name_raw.strip():
-        normalized = tag_name_raw.strip().lower()
-        if normalized != EXPENSE_ATTACHMENT_TAG_NAME.lower():
-            raise ValidationError(
-                "tag_name must be expense_attachment",
-                field="tag_name",
-            )
-        tag_name = EXPENSE_ATTACHMENT_TAG_NAME
+        normalized = tag_name_raw.strip()
+        if len(normalized) > 100:
+            raise ValidationError("tag_name is too long", field="tag_name")
+        tag_name = normalized
 
     return query, visibility, asset_type, tag_name
 
@@ -314,18 +310,22 @@ def paginate_response(
     limit: int,
     event: Mapping[str, Any],
     serializer: Callable[[Any], dict[str, Any]],
+    extra_fields: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a standard paginated API response payload."""
     page_items = list(items[:limit])
     next_cursor = (
         encode_cursor(page_items[-1].id) if len(items) > limit and page_items else None
     )
+    body: dict[str, Any] = {
+        "items": [serializer(item) for item in page_items],
+        "next_cursor": next_cursor,
+    }
+    if extra_fields:
+        body.update(dict(extra_fields))
     return json_response(
         200,
-        {
-            "items": [serializer(item) for item in page_items],
-            "next_cursor": next_cursor,
-        },
+        body,
         event=event,
     )
 

@@ -62,6 +62,20 @@ def test_paginate_response_returns_null_cursor_for_last_page() -> None:
     assert body["next_cursor"] is None
 
 
+def test_paginate_response_merges_extra_fields() -> None:
+    items = [_DummyAsset(id=uuid4(), title="one")]
+    response = paginate_response(
+        items=items,
+        limit=2,
+        event={"headers": {}},
+        serializer=_serialize_dummy_asset,
+        extra_fields={"linked_tag_names": ["alpha", "beta"]},
+    )
+
+    body = json.loads(response["body"])
+    assert body["linked_tag_names"] == ["alpha", "beta"]
+
+
 def test_parse_partial_update_asset_payload_requires_updatable_field() -> None:
     event = {
         "body": "{}",
@@ -120,10 +134,20 @@ def test_parse_admin_asset_list_filters_accepts_expense_attachment_tag() -> None
     assert query is None
 
 
-def test_parse_admin_asset_list_filters_rejects_unknown_tag_name() -> None:
+def test_parse_admin_asset_list_filters_accepts_any_tag_name_for_list_validation() -> None:
     event = {
         "queryStringParameters": {"tag_name": "unknown"},
         "headers": {},
     }
-    with pytest.raises(ValidationError, match="tag_name must be expense_attachment"):
+    query, visibility, asset_type, tag_name = parse_admin_asset_list_filters(event)
+    assert tag_name == "unknown"
+    assert query is None
+
+
+def test_parse_admin_asset_list_filters_rejects_overlong_tag_name() -> None:
+    event = {
+        "queryStringParameters": {"tag_name": "x" * 101},
+        "headers": {},
+    }
+    with pytest.raises(ValidationError, match="tag_name is too long"):
         parse_admin_asset_list_filters(event)

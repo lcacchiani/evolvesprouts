@@ -105,10 +105,10 @@ paths:
           required: false
           schema:
             type: string
-            enum: [expense_attachment]
+            maxLength: 100
           description: >
-            When set to expense_attachment, return only assets tagged as linked
-            to an expense (expense_attachments).
+            When set, return only assets that have this tag (case-insensitive name match).
+            The tag must be linked to at least one asset that matches the optional asset_type filter.
         - name: cursor
           in: query
           required: false
@@ -1851,6 +1851,13 @@ components:
         next_cursor:
           type: string
           nullable: true
+        linked_tag_names:
+          type: array
+          items:
+            type: string
+          description: >
+            Admin asset list only. Distinct tag names linked to at least one asset matching
+            the request's asset_type filter (when provided). Omitted or empty when not applicable.
     AssetResponse:
       type: object
       required:

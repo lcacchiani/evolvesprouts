@@ -22,6 +22,7 @@ from app.db.models import (
     Tag,
 )
 from app.db.repositories.base import BaseRepository
+from app.exceptions import ValidationError
 
 
 def _escape_like_pattern(pattern: str) -> str:
@@ -34,6 +35,48 @@ class AssetRepository(BaseRepository[Asset]):
 
     def __init__(self, session: Session):
         super().__init__(session, Asset)
+
+    def resolve_asset_tag_filter_name(
+        self,
+        raw_tag_name: str,
+        *,
+        asset_type: AssetType | None,
+    ) -> str:
+        """Return canonical Tag.name for admin list filter, or raise ValidationError."""
+        needle = raw_tag_name.strip().lower()
+        stmt = (
+            select(Tag.name)
+            .join(AssetTag, AssetTag.tag_id == Tag.id)
+            .join(Asset, Asset.id == AssetTag.asset_id)
+            .where(func.lower(Tag.name) == needle)
+        )
+        if asset_type is not None:
+            stmt = stmt.where(Asset.asset_type == asset_type)
+        stmt = stmt.distinct().limit(1)
+        found = self._session.execute(stmt).scalar_one_or_none()
+        if found is None:
+            raise ValidationError(
+                "tag_name does not match a tag linked to an asset",
+                field="tag_name",
+            )
+        return found
+
+    def list_distinct_linked_asset_tag_names(
+        self,
+        *,
+        asset_type: AssetType | None = None,
+    ) -> list[str]:
+        """Distinct tag names that appear on at least one asset (optional type filter)."""
+        stmt = (
+            select(Tag.name)
+            .join(AssetTag, AssetTag.tag_id == Tag.id)
+            .join(Asset, Asset.id == AssetTag.asset_id)
+            .distinct()
+            .order_by(Tag.name)
+        )
+        if asset_type is not None:
+            stmt = stmt.where(Asset.asset_type == asset_type)
+        return list(self._session.scalars(stmt).all())
 
     def list_assets(
         self,

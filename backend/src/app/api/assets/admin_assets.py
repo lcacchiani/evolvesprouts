@@ -111,13 +111,22 @@ def _list_assets(event: Mapping[str, Any]) -> dict[str, Any]:
 
     with Session(get_engine()) as session:
         repository = AssetRepository(session)
+        canonical_tag: str | None = None
+        if tag_name:
+            canonical_tag = repository.resolve_asset_tag_filter_name(
+                tag_name,
+                asset_type=asset_type,
+            )
+        linked_tag_names = repository.list_distinct_linked_asset_tag_names(
+            asset_type=asset_type,
+        )
         assets = repository.list_assets(
             limit=limit + 1,
             cursor=cursor,
             query=query,
             visibility=visibility,
             asset_type=asset_type,
-            tag_name=tag_name,
+            tag_name=canonical_tag,
             load_tags=True,
         )
         return paginate_response(
@@ -125,6 +134,7 @@ def _list_assets(event: Mapping[str, Any]) -> dict[str, Any]:
             limit=limit,
             event=event,
             serializer=serialize_asset,
+            extra_fields={"linked_tag_names": linked_tag_names},
         )
 
 
