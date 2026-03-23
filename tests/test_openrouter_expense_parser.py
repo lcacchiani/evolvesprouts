@@ -175,7 +175,7 @@ def test_parse_invoice_sends_pdfs_as_file_with_explicit_plugin(monkeypatch: Any)
     ]
 
 
-def test_parse_invoice_sends_plain_text_body_as_file(monkeypatch: Any) -> None:
+def test_parse_invoice_sends_plain_text_body_as_text_block(monkeypatch: Any) -> None:
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
     text_bytes = b"Invoice INV-T\nTotal 42.00 USD\n"
@@ -234,10 +234,10 @@ def test_parse_invoice_sends_plain_text_body_as_file(monkeypatch: Any) -> None:
 
     payload = json.loads(captured_request["body"])
     user_content = payload["messages"][1]["content"]
-    file_input = user_content[1]
+    text_input = user_content[1]
 
-    assert file_input["type"] == "file"
-    assert file_input["file"]["file_data"].startswith("data:text/plain;base64,")
+    assert text_input["type"] == "text"
+    assert text_input["text"] == text_bytes.decode("utf-8")
     assert "plugins" not in payload
 
 
