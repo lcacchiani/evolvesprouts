@@ -146,8 +146,30 @@ topic so machine-only mailbox traffic can land directly in the expenses domain.
 - Public-facing mailbox stays `invoices@evolvesprouts.com` in iCloud Mail.
 - iCloud forwards invoice mail to the SES-managed address on
   `inbound.evolvesprouts.com`.
-- SES receipt rules match the inbound recipient and store the raw `.eml` in
-  `AssetsBucket` under a reserved prefix.
+- SES receipt rules match **the verified inbound subdomain** (any local part on
+  that domain) and store the raw `.eml` in `AssetsBucket` under a reserved
+  prefix. Stack output `InboundInvoiceRecipientAddress` still documents the
+  canonical mailbox (`invoices@` + inbound domain by default).
+
+### Troubleshooting inbound delivery (550 / mailbox unavailable)
+
+SMTP `550 5.1.1 mailbox unavailable` from `inbound-smtp.<region>.amazonaws.com`
+usually means SES rejected the recipient **before** storing mail. Check, in the
+same region as the MX record:
+
+1. **SES verified identity** — Domain `inbound.evolvesprouts.com` (or your
+   configured inbound domain) must be verified for **receiving**, and the active
+   receipt rule set must include the inbound invoice rule (see CDK custom
+   resource `ActivateInboundInvoiceReceiptRuleSet`).
+2. **DNS** — MX for the inbound subdomain must point at
+   `10 inbound-smtp.<region>.amazonaws.com` (see stack output
+   `InboundInvoiceMxTarget`).
+3. **Recipient must be a valid address** — The envelope `RCPT TO` must be a
+   normal `local@domain` string with **no spaces** around `@`. Some clients
+   show bounces like `invoices @domain` or `invoices@ domain`; that form is
+   invalid and SES will reject it. Re-type the address, remove the recipient
+   from Contacts and add it again, or forward from iCloud to the SES address
+   instead of pasting into Bcc/To.
 
 ### Raw email storage: `AssetsBucket` prefix `inbound-email/raw/`
 

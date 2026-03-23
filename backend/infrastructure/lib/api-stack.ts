@@ -1754,6 +1754,9 @@ export class ApiStack extends cdk.Stack {
       }
     );
 
+    // Match the verified inbound subdomain (not only local-part@domain). SES
+    // accepts any address on that domain; keeps receipt working if the mailbox
+    // local-part param drifts, and matches standard forms like invoices+tag@.
     const inboundInvoiceReceiptRule = new ses.CfnReceiptRule(
       this,
       "InboundInvoiceReceiptRule",
@@ -1764,7 +1767,7 @@ export class ApiStack extends cdk.Stack {
           enabled: true,
           scanEnabled: true,
           tlsPolicy: "Optional",
-          recipients: [inboundInvoiceRecipientAddress],
+          recipients: [inboundEmailDomainName.valueAsString],
           actions: [
             {
               s3Action: {
