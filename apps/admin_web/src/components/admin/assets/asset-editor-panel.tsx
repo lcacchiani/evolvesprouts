@@ -158,7 +158,7 @@ export function AssetEditorPanel({
     };
     const normalizedResourceKey = normalizeResourceKey(formState.resourceKey);
     if (formState.resourceKey.trim() && !normalizedResourceKey) {
-      setFormError('Resource key tag must include letters or numbers.');
+      setFormError('Resource key must include letters or numbers.');
       return;
     }
     payload.resourceKey = normalizedResourceKey || null;
@@ -281,7 +281,7 @@ export function AssetEditorPanel({
             </Select>
           </div>
           <div className='space-y-2'>
-            <Label htmlFor='asset-resource-key'>Resource key tag</Label>
+            <Label htmlFor='asset-resource-key'>Resource key</Label>
             <Input
               id='asset-resource-key'
               value={formState.resourceKey}
