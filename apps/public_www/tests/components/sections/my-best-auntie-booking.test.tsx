@@ -624,6 +624,7 @@ describe('MyBestAuntieBooking section', () => {
     const privateProgrammeCta = screen.getByRole('link', {
       name: bookingContent.privateProgrammeCtaLabel,
     });
+    expect(privateProgrammeCta.className).toContain('es-btn--primary');
     expect(privateProgrammeCta.className).toContain('es-btn--outline');
     expect(privateProgrammeCta).toHaveAttribute('href', privateProgrammeWhatsappHref);
   });
