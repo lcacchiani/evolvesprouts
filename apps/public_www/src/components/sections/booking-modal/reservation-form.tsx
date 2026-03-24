@@ -275,8 +275,7 @@ export function BookingReservationForm({
   const isStripePaymentMethodSelected = selectedPaymentMethod === PAYMENT_METHOD_STRIPE;
   const isStripeUnavailable = stripePromise === null;
   const isStripeReady = Boolean(
-    stripePromise &&
-      stripeElementsOptions &&
+    stripeElementsOptions &&
       stripePaymentIntent &&
       stripePaymentIntentKey === stripePaymentIntentRequestKey,
   );
@@ -917,7 +916,7 @@ export function BookingReservationForm({
                         <p className='text-sm es-text-heading'>
                           {content.paymentMethodStripeLoadingLabel}
                         </p>
-                      ) : isStripeReady && stripePromise && stripeElementsOptions ? (
+                      ) : isStripeReady && stripeElementsOptions ? (
                         <Elements
                           key={stripePaymentIntent?.payment_intent_id}
                           stripe={stripePromise}

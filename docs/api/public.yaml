@@ -552,6 +552,10 @@ components:
           type: boolean
         agreed_to_terms_and_conditions:
           type: boolean
+        stripe_payment_intent_id:
+          type: string
+          description: Required when payment method is Stripe/card-wallet flow.
+          pattern: '^pi_[A-Za-z0-9]+$'
     ReservationPaymentIntentRequest:
       type: object
       required:
