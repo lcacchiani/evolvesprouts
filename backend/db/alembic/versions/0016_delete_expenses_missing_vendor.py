@@ -1,34 +1,37 @@
-"""Remove expenses with no vendor and their orphan attachment assets.
+"""Clean up bad expense rows, fix EPrint100 link, drop expenses.vendor_name.
 
-Deletes operational rows where both managed vendor (`vendor_id`) and display
-vendor label (`vendor_name`) are absent: `vendor_id` IS NULL and
-`vendor_name` is NULL or blank after trim.
+Data steps (in order):
+1. Null `amends_expense_id` pointing at expenses that will be deleted.
+2. Collect attachment asset ids for rows to delete, then delete those expenses
+   (cascade removes `expense_attachments`), then delete unreferenced assets.
+3. Delete expenses with `vendor_name` exactly
+   'Contact Person: Luca Cacchiani' (and orphan assets same as above).
+4. Set `vendor_id` for expenses whose `vendor_name` is 'EPrint100' from the
+   active vendor organization named 'EPrint100' (`relationship_type` = vendor,
+   `archived_at` IS NULL). Rows are skipped if zero or multiple such orgs exist.
+5. Drop column `vendor_name` from `expenses`.
 
-For each such expense, linked `expense_attachments` rows are removed (via
-cascade on expense delete). Attachment `assets` are deleted only when no
-other table still references them (`expense_attachments`, `asset_access_grants`,
-`asset_share_links`, `service_assets`, `sales_leads`).
-
-Amendment links (`amends_expense_id`) pointing at deleted expenses are nulled
-first so FK chains do not block deletion.
+Rows deleted in step 2 match: `vendor_id` IS NULL AND (`vendor_name` IS NULL OR
+trim(`vendor_name`) = '').
 
 Seed-data assessment:
-1. Seed SQL does not insert expense rows; no conflict.
-2. No new NOT NULL/CHECK columns.
-3. No renames/drops.
-4. No new tables.
-5. No enum changes.
-6. No seed insert-order impact.
+1. Seed does not insert expenses; compatible.
+2. Dropped column was optional on `expenses` only; seed unaffected.
+3. N/A
+4. N/A
+5. N/A
+6. N/A
 
 Result: No seed updates required.
 
-Downgrade: Irreversible data deletion; downgrade is a no-op.
+Downgrade: Restores nullable `vendor_name`; cannot restore deleted rows.
 """
 
 from __future__ import annotations
 
 from typing import Union
 
+import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0016_del_exp_no_vendor"
@@ -38,15 +41,18 @@ depends_on: Union[str, tuple[str, ...], None] = None
 
 
 def upgrade() -> None:
-    """Delete expenses without vendor and unreferenced attachment assets."""
+    """Run expense clean-up, EPrint100 backfill, and drop vendor_name."""
     op.execute(
         """
         UPDATE expenses e
         SET amends_expense_id = NULL
         FROM expenses tgt
         WHERE e.amends_expense_id = tgt.id
-          AND tgt.vendor_id IS NULL
-          AND (tgt.vendor_name IS NULL OR trim(tgt.vendor_name) = '')
+          AND (
+              (tgt.vendor_id IS NULL
+               AND (tgt.vendor_name IS NULL OR trim(tgt.vendor_name) = ''))
+              OR trim(tgt.vendor_name) = 'Contact Person: Luca Cacchiani'
+          )
         """
     )
 
@@ -67,8 +73,9 @@ def upgrade() -> None:
         WHERE ea.expense_id IN (
             SELECT e.id
             FROM expenses e
-            WHERE e.vendor_id IS NULL
-              AND (e.vendor_name IS NULL OR trim(e.vendor_name) = '')
+            WHERE (e.vendor_id IS NULL
+                   AND (e.vendor_name IS NULL OR trim(e.vendor_name) = ''))
+               OR trim(e.vendor_name) = 'Contact Person: Luca Cacchiani'
         )
         ON CONFLICT (id) DO NOTHING
         """
@@ -77,8 +84,9 @@ def upgrade() -> None:
     op.execute(
         """
         DELETE FROM expenses e
-        WHERE e.vendor_id IS NULL
-          AND (e.vendor_name IS NULL OR trim(e.vendor_name) = '')
+        WHERE (e.vendor_id IS NULL
+               AND (e.vendor_name IS NULL OR trim(e.vendor_name) = ''))
+           OR trim(e.vendor_name) = 'Contact Person: Luca Cacchiani'
         """
     )
 
@@ -104,6 +112,32 @@ def upgrade() -> None:
         """
     )
 
+    op.execute(
+        """
+        UPDATE expenses e
+        SET vendor_id = v.id
+        FROM organizations v
+        WHERE e.vendor_id IS NULL
+          AND trim(e.vendor_name) = 'EPrint100'
+          AND v.relationship_type = 'vendor'
+          AND v.archived_at IS NULL
+          AND lower(trim(v.name)) = lower(trim('EPrint100'))
+          AND (
+              SELECT COUNT(*)
+              FROM organizations o2
+              WHERE o2.relationship_type = 'vendor'
+                AND o2.archived_at IS NULL
+                AND lower(trim(o2.name)) = lower(trim('EPrint100'))
+          ) = 1
+        """
+    )
+
+    op.drop_column("expenses", "vendor_name")
+
 
 def downgrade() -> None:
-    """Data migration; deleted rows cannot be restored."""
+    """Re-add vendor_name; deleted expense data is not restored."""
+    op.add_column(
+        "expenses",
+        sa.Column("vendor_name", sa.String(255), nullable=True),
+    )

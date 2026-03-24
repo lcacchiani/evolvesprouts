@@ -136,9 +136,12 @@ The `client_document` tag is a system tag for admin-assignable client-facing
 documents; migration `0015_add_client_document_tag` ensures it exists (seed data
 also inserts it for fresh databases).
 
-Migration `0016_delete_expenses_missing_vendor` removes expense rows with no
-vendor (`vendor_id` null and `vendor_name` null or whitespace-only) and deletes
-linked attachment assets only when no other table still references them.
+Migration `0016_delete_expenses_missing_vendor` removes expenses with no vendor
+(`vendor_id` null and legacy `vendor_name` null or whitespace-only), removes the
+expense with `vendor_name` 'Contact Person: Luca Cacchiani', sets `vendor_id`
+from the unique active vendor org named `EPrint100` where `vendor_name` was
+`EPrint100` and `vendor_id` was null, deletes orphan attachment assets (same
+rules as before), and drops column `expenses.vendor_name`.
 
 ## Access control logic
 
@@ -167,7 +170,6 @@ Columns:
 - `status` (enum `expense_status`, required, default `draft`)
 - `parse_status` (enum `expense_parse_status`, required, default `not_requested`)
 - `vendor_id` (UUID, FK → `organizations.id`, nullable) — managed vendor selection
-- `vendor_name` (varchar(255), optional) — denormalized vendor label for history/parser fallback
 - `invoice_number` (varchar(128), optional)
 - `invoice_date` (date, optional)
 - `due_date` (date, optional)
