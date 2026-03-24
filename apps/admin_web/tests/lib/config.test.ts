@@ -95,4 +95,23 @@ describe('config helpers', () => {
 
     expect(config.getCognitoDomain()).toBe('https://auth.example.com');
   });
+
+  it('returns HKD when admin default currency env is missing or invalid', async () => {
+    delete process.env.NEXT_PUBLIC_ADMIN_DEFAULT_CURRENCY;
+    vi.resetModules();
+    const { getAdminDefaultCurrencyCode } = await import('@/lib/config');
+    expect(getAdminDefaultCurrencyCode()).toBe('HKD');
+
+    process.env.NEXT_PUBLIC_ADMIN_DEFAULT_CURRENCY = 'xx';
+    vi.resetModules();
+    const { getAdminDefaultCurrencyCode: readAgain } = await import('@/lib/config');
+    expect(readAgain()).toBe('HKD');
+  });
+
+  it('normalizes admin default currency env to uppercase', async () => {
+    process.env.NEXT_PUBLIC_ADMIN_DEFAULT_CURRENCY = ' usd ';
+    vi.resetModules();
+    const { getAdminDefaultCurrencyCode } = await import('@/lib/config');
+    expect(getAdminDefaultCurrencyCode()).toBe('USD');
+  });
 });

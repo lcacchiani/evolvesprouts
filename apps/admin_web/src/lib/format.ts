@@ -1,3 +1,4 @@
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 
 export function toTitleCase(value: string): string {
@@ -32,11 +33,21 @@ const LOCAL_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
   year: 'numeric',
 });
 
-const DEFAULT_CURRENCY = 'HKD';
-const DEFAULT_CURRENCY_LABEL = 'Hong Kong Dollar';
+const DEFAULT_CURRENCY_LABEL_HKD = 'Hong Kong Dollar';
 
-/** Currencies shown in admin currency dropdowns (order preserved; HKD first as default). */
+/** Fixed allowlist for admin currency dropdowns; default currency (env) is listed first. */
 const ADMIN_SELECTABLE_CURRENCY_CODES = ['HKD', 'USD', 'CNY', 'SGD'] as const;
+
+function getAdminSelectableCurrencyCodesOrdered(): string[] {
+  const defaultCode = getAdminDefaultCurrencyCode();
+  const inAllowlist = ADMIN_SELECTABLE_CURRENCY_CODES.includes(
+    defaultCode as (typeof ADMIN_SELECTABLE_CURRENCY_CODES)[number]
+  );
+  if (inAllowlist) {
+    return [defaultCode, ...ADMIN_SELECTABLE_CURRENCY_CODES.filter((c) => c !== defaultCode)];
+  }
+  return [defaultCode, ...ADMIN_SELECTABLE_CURRENCY_CODES];
+}
 
 type CurrencyOption = {
   value: string;
@@ -67,9 +78,9 @@ export function getCurrencyOptions(): CurrencyOption[] {
     return cachedCurrencyOptions;
   }
 
-  const options = ADMIN_SELECTABLE_CURRENCY_CODES.map((code) => {
-    if (code === DEFAULT_CURRENCY) {
-      return { value: code, label: `${code} ${DEFAULT_CURRENCY_LABEL}` };
+  const options = getAdminSelectableCurrencyCodesOrdered().map((code) => {
+    if (code === 'HKD') {
+      return { value: code, label: `${code} ${DEFAULT_CURRENCY_LABEL_HKD}` };
     }
     return { value: code, label: `${code} ${getCurrencyName(code)}` };
   });

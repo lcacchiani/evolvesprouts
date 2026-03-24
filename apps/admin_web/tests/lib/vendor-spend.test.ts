@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { clearFrankfurterRateCacheForTests } from '@/lib/frankfurter-exchange';
-import { computeVendorSpendHkdByVendorId } from '@/lib/vendor-spend-hkd';
+import { clearCurrencyConversionRateCacheForTests } from '@/lib/currency-converter';
+import { computeVendorSpendInDefaultCurrencyByVendorId } from '@/lib/vendor-spend';
 import type { Expense } from '@/types/expenses';
 
 function baseExpense(overrides: Partial<Expense>): Expense {
@@ -35,17 +35,17 @@ function baseExpense(overrides: Partial<Expense>): Expense {
   };
 }
 
-describe('computeVendorSpendHkdByVendorId', () => {
+describe('computeVendorSpendInDefaultCurrencyByVendorId', () => {
   beforeEach(() => {
-    clearFrankfurterRateCacheForTests();
+    clearCurrencyConversionRateCacheForTests();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    clearFrankfurterRateCacheForTests();
+    clearCurrencyConversionRateCacheForTests();
   });
 
-  it('aggregates HKD totals per vendor and skips voided', async () => {
+  it('aggregates totals per vendor and skips voided', async () => {
     const expenses: Expense[] = [
       baseExpense({ id: 'a', vendorId: 'v1', total: '100', currency: 'HKD' }),
       baseExpense({ id: 'b', vendorId: 'v1', total: '50.5', currency: 'HKD' }),
@@ -53,7 +53,7 @@ describe('computeVendorSpendHkdByVendorId', () => {
       baseExpense({ id: 'd', vendorId: 'v1', status: 'voided', total: '999', currency: 'HKD' }),
     ];
 
-    const map = await computeVendorSpendHkdByVendorId(expenses);
+    const map = await computeVendorSpendInDefaultCurrencyByVendorId(expenses);
     expect(map.get('v1')).toBeCloseTo(150.5, 5);
     expect(map.get('v2')).toBeCloseTo(10, 5);
   });
@@ -68,7 +68,7 @@ describe('computeVendorSpendHkdByVendorId', () => {
     );
 
     const expenses: Expense[] = [baseExpense({ id: 'u', vendorId: 'v1', total: '10', currency: 'USD' })];
-    const map = await computeVendorSpendHkdByVendorId(expenses);
+    const map = await computeVendorSpendInDefaultCurrencyByVendorId(expenses);
     expect(map.get('v1')).toBeCloseTo(80, 5);
   });
 });

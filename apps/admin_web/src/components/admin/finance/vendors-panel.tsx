@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import { formatHkdAmount } from '@/lib/vendor-spend-hkd';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import { formatAmountInDefaultCurrency } from '@/lib/vendor-spend';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import type { Vendor, VendorFilters } from '@/types/vendors';
@@ -29,7 +30,7 @@ interface VendorsPanelProps {
   onLoadMore: () => Promise<void> | void;
   onCreate: (payload: ApiSchemas['CreateVendorRequest']) => Promise<unknown> | void;
   onUpdate: (vendorId: string, payload: ApiSchemas['UpdateVendorRequest']) => Promise<unknown> | void;
-  vendorSpendHkdByVendorId: Map<string, number>;
+  vendorSpendByVendorId: Map<string, number>;
   isVendorSpendLoading: boolean;
   vendorSpendError?: string;
 }
@@ -46,10 +47,11 @@ export function VendorsPanel({
   onLoadMore,
   onCreate,
   onUpdate,
-  vendorSpendHkdByVendorId,
+  vendorSpendByVendorId,
   isVendorSpendLoading,
   vendorSpendError,
 }: VendorsPanelProps) {
+  const spendColumnLabel = `Total spend (${getAdminDefaultCurrencyCode()})`;
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -179,7 +181,7 @@ export function VendorsPanel({
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold text-right'>Total spend (HKD)</th>
+              <th className='px-4 py-3 font-semibold text-right'>{spendColumnLabel}</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold text-right'>Operations</th>
             </tr>
@@ -204,7 +206,7 @@ export function VendorsPanel({
                   {isVendorSpendLoading ? (
                     '…'
                   ) : (
-                    formatHkdAmount(vendorSpendHkdByVendorId.get(vendor.id) ?? 0)
+                    formatAmountInDefaultCurrency(vendorSpendByVendorId.get(vendor.id) ?? 0)
                   )}
                 </td>
                 <td className='px-4 py-3'>{vendor.active ? 'Active' : 'Inactive'}</td>

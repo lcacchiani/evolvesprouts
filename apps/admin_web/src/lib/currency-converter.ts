@@ -1,6 +1,11 @@
+/**
+ * Frankfurter-based FX helpers for the admin portal.
+ * Use {@link getCurrencyConversionMultiplier} to convert amounts between ISO 4217 codes.
+ */
+
 const DEFAULT_FRANKFURTER_API_ORIGIN = 'https://api.frankfurter.dev';
 
-function frankfurterApiOrigin(): string {
+export function getFrankfurterApiOrigin(): string {
   const fromEnv = process.env.NEXT_PUBLIC_FRANKFURTER_API_ORIGIN?.trim();
   if (fromEnv) {
     try {
@@ -30,25 +35,28 @@ function isFrankfurterRateRow(value: unknown): value is FrankfurterRateRow {
   );
 }
 
-const rateToHkdCache = new Map<string, Promise<number>>();
+const conversionRateCache = new Map<string, Promise<number>>();
 
 /**
- * Returns the multiplier to convert `amount` in `currency` to HKD: `amount * rate === HKD`.
+ * Returns the multiplier so that `amountInFrom * multiplier` equals the value in `toCurrency`
+ * (Frankfurter daily rate: base = from, quote = to).
  */
-export function getHkdMultiplier(currency: string): Promise<number> {
-  const code = currency.trim().toUpperCase();
-  if (!code || code === 'HKD') {
+export function getCurrencyConversionMultiplier(fromCurrency: string, toCurrency: string): Promise<number> {
+  const from = fromCurrency.trim().toUpperCase();
+  const to = toCurrency.trim().toUpperCase();
+  if (!from || !to || from === to) {
     return Promise.resolve(1);
   }
 
-  const cached = rateToHkdCache.get(code);
+  const cacheKey = `${from}->${to}`;
+  const cached = conversionRateCache.get(cacheKey);
   if (cached) {
     return cached;
   }
 
   const request = (async () => {
-    const origin = frankfurterApiOrigin();
-    const url = `${origin}/v2/rates?base=${encodeURIComponent(code)}&quotes=HKD`;
+    const origin = getFrankfurterApiOrigin();
+    const url = `${origin}/v2/rates?base=${encodeURIComponent(from)}&quotes=${encodeURIComponent(to)}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Frankfurter request failed (${response.status}).`);
@@ -60,10 +68,10 @@ export function getHkdMultiplier(currency: string): Promise<number> {
     return data[0].rate;
   })();
 
-  rateToHkdCache.set(code, request);
+  conversionRateCache.set(cacheKey, request);
   return request;
 }
 
-export function clearFrankfurterRateCacheForTests(): void {
-  rateToHkdCache.clear();
+export function clearCurrencyConversionRateCacheForTests(): void {
+  conversionRateCache.clear();
 }

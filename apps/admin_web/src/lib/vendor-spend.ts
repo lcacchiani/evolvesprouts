@@ -1,4 +1,5 @@
-import { getHkdMultiplier } from '@/lib/frankfurter-exchange';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import { getCurrencyConversionMultiplier } from '@/lib/currency-converter';
 import type { Expense } from '@/types/expenses';
 
 function parsePositiveAmount(value: string | null | undefined): number | null {
@@ -25,10 +26,14 @@ function expenseCountsTowardVendorSpend(expense: Expense): boolean {
 }
 
 /**
- * Sums expense totals per vendor in HKD using Frankfurter rates.
+ * Sums expense totals per vendor in the admin default display currency (see
+ * NEXT_PUBLIC_ADMIN_DEFAULT_CURRENCY) using Frankfurter rates.
  * Expenses without a positive `total`, without `currency`, or voided are skipped.
  */
-export async function computeVendorSpendHkdByVendorId(expenses: Expense[]): Promise<Map<string, number>> {
+export async function computeVendorSpendInDefaultCurrencyByVendorId(
+  expenses: Expense[]
+): Promise<Map<string, number>> {
+  const targetCurrency = getAdminDefaultCurrencyCode();
   const totals = new Map<string, number>();
   const pending: { vendorId: string; amount: number; currency: string }[] = [];
 
@@ -49,24 +54,27 @@ export async function computeVendorSpendHkdByVendorId(expenses: Expense[]): Prom
   const multipliers = new Map<string, number>();
   await Promise.all(
     uniqueCurrencies.map(async (code) => {
-      const mult = await getHkdMultiplier(code);
+      const mult = await getCurrencyConversionMultiplier(code, targetCurrency);
       multipliers.set(code, mult);
     })
   );
 
   for (const { vendorId, amount, currency } of pending) {
     const mult = multipliers.get(currency) ?? 1;
-    const hkd = amount * mult;
-    totals.set(vendorId, (totals.get(vendorId) ?? 0) + hkd);
+    const converted = amount * mult;
+    totals.set(vendorId, (totals.get(vendorId) ?? 0) + converted);
   }
 
   return totals;
 }
 
-export function formatHkdAmount(value: number): string {
-  return new Intl.NumberFormat('en-HK', {
+/** Format a numeric amount using the admin default display currency. */
+export function formatAmountInDefaultCurrency(value: number): string {
+  const code = getAdminDefaultCurrencyCode();
+  const locale = code === 'HKD' ? 'en-HK' : undefined;
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'HKD',
+    currency: code,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);

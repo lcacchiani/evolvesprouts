@@ -29,7 +29,7 @@ describe('VendorsPanel', () => {
         onLoadMore={vi.fn()}
         onCreate={vi.fn()}
         onUpdate={vi.fn()}
-        vendorSpendHkdByVendorId={new Map([['vendor-1', 1234.56]])}
+        vendorSpendByVendorId={new Map([['vendor-1', 1234.56]])}
         isVendorSpendLoading={false}
       />
     );
@@ -58,7 +58,7 @@ describe('VendorsPanel', () => {
         onLoadMore={vi.fn()}
         onCreate={onCreate}
         onUpdate={vi.fn()}
-        vendorSpendHkdByVendorId={new Map()}
+        vendorSpendByVendorId={new Map()}
         isVendorSpendLoading={false}
       />
     );

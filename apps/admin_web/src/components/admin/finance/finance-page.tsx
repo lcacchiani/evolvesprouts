@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { useExpenses } from '@/hooks/use-expenses';
-import { useVendorSpendHkd } from '@/hooks/use-vendor-spend-hkd';
+import { useVendorSpendDefaultCurrency } from '@/hooks/use-vendor-spend-default-currency';
 import { useVendors } from '@/hooks/use-vendors';
 import { listAllAdminExpenses } from '@/lib/expenses-api';
 import type { Expense } from '@/types/expenses';
@@ -21,7 +21,7 @@ export function FinancePage() {
   const vendors = useVendors();
   const [vendorSpendExpenses, setVendorSpendExpenses] = useState<Expense[] | null>(null);
   const [vendorSpendFetchError, setVendorSpendFetchError] = useState('');
-  const vendorSpend = useVendorSpendHkd(activeView === 'vendors' ? vendorSpendExpenses : null);
+  const vendorSpend = useVendorSpendDefaultCurrency(activeView === 'vendors' ? vendorSpendExpenses : null);
 
   const setFinanceView = useCallback((view: FinanceView) => {
     setActiveView(view);
@@ -92,7 +92,7 @@ export function FinancePage() {
           onLoadMore={vendors.loadMore}
           onCreate={vendors.createVendor}
           onUpdate={vendors.updateVendor}
-          vendorSpendHkdByVendorId={vendorSpend.byVendorId}
+          vendorSpendByVendorId={vendorSpend.byVendorId}
           isVendorSpendLoading={vendorSpendExpenses === null || vendorSpend.isLoading}
           vendorSpendError={[vendorSpendFetchError, vendorSpend.error].filter(Boolean).join(' ') || undefined}
         />
