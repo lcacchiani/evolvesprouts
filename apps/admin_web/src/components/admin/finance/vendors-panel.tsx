@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
-import { PencilIcon } from '@/components/icons/action-icons';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,6 +56,7 @@ export function VendorsPanel({
   const [name, setName] = useState('');
   const [website, setWebsite] = useState('');
   const [active, setActive] = useState(true);
+  const [deactivatingVendorId, setDeactivatingVendorId] = useState<string | null>(null);
 
   const selectedVendor = useMemo(
     () => vendors.find((entry) => entry.id === selectedVendorId) ?? null,
@@ -92,6 +92,17 @@ export function VendorsPanel({
       });
     } catch {
       // Keep inline form state so users can retry.
+    }
+  }
+
+  async function handleDeactivateVendor(vendorId: string) {
+    setDeactivatingVendorId(vendorId);
+    try {
+      await onUpdate(vendorId, { active: false });
+    } catch {
+      // Errors surface via list/refetch; user can retry.
+    } finally {
+      setDeactivatingVendorId(null);
     }
   }
 
@@ -214,18 +225,21 @@ export function VendorsPanel({
                   <Button
                     type='button'
                     size='sm'
-                    variant='ghost'
-                    onClick={() => {
-                      setSelectedVendorId(vendor.id);
-                      setEditorMode('edit');
-                      setName(vendor.name);
-                      setWebsite(vendor.website ?? '');
-                      setActive(vendor.active);
-                    }}
-                    aria-label='Edit vendor'
-                    title='Edit vendor'
+                    variant='danger'
+                    disabled={!vendor.active || isSaving}
+                    onClick={() => void handleDeactivateVendor(vendor.id)}
+                    aria-label='Make vendor inactive'
+                    title={vendor.active ? 'Make vendor inactive' : 'Vendor is already inactive'}
+                    aria-busy={deactivatingVendorId === vendor.id}
                   >
-                    <PencilIcon className='h-4 w-4' />
+                    {deactivatingVendorId === vendor.id ? (
+                      <span
+                        className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent'
+                        aria-hidden
+                      />
+                    ) : (
+                      'Inactive'
+                    )}
                   </Button>
                 </td>
               </tr>
