@@ -289,7 +289,7 @@ export function ExpensesListPanel({
                       <Button
                         type='button'
                         size='sm'
-                        variant='outline'
+                        variant='success'
                         disabled={
                           isMarkingPaidId === expense.id ||
                           expense.status === 'paid' ||
@@ -308,7 +308,7 @@ export function ExpensesListPanel({
                       >
                         {isMarkingPaidId === expense.id ? (
                           <span
-                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-600 border-t-transparent'
+                            className='inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent'
                             aria-hidden
                           />
                         ) : (
