@@ -175,6 +175,72 @@ def test_parse_invoice_sends_pdfs_as_file_with_explicit_plugin(monkeypatch: Any)
     ]
 
 
+def test_parse_invoice_sends_plain_text_body_as_text_block(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    text_bytes = b"Invoice INV-T\nTotal 42.00 USD\n"
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            assert Bucket == "assets-bucket"
+            assert Key == "uploads/email-invoice-body.txt"
+            return {"Body": _FakeBody(text_bytes)}
+
+    captured_request: dict[str, Any] = {}
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        captured_request.update(kwargs)
+        return {
+            "status": 200,
+            "body": json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": json.dumps(
+                                    {
+                                        "vendor_name": "Text Vendor",
+                                        "invoice_number": "INV-T",
+                                        "invoice_date": None,
+                                        "due_date": None,
+                                        "currency": "USD",
+                                        "subtotal": None,
+                                        "tax": None,
+                                        "total": 42,
+                                        "line_items": [],
+                                        "confidence": 0.5,
+                                    }
+                                )
+                            }
+                        }
+                    ]
+                }
+            ),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    parser.parse_invoice_from_assets(
+        [
+            {
+                "id": "asset-txt",
+                "s3_key": "uploads/email-invoice-body.txt",
+                "file_name": "email-invoice-body.txt",
+                "content_type": "text/plain",
+            }
+        ]
+    )
+
+    payload = json.loads(captured_request["body"])
+    user_content = payload["messages"][1]["content"]
+    text_input = user_content[1]
+
+    assert text_input["type"] == "text"
+    assert text_input["text"] == text_bytes.decode("utf-8")
+    assert "plugins" not in payload
+
+
 def test_parse_invoice_uses_configured_pdf_engine(monkeypatch: Any) -> None:
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
@@ -222,6 +288,137 @@ def test_parse_invoice_uses_configured_pdf_engine(monkeypatch: Any) -> None:
 
     payload = json.loads(captured_request["body"])
     assert payload["plugins"][0]["pdf"]["engine"] == "pdf-text"
+
+
+def test_normalize_result_parses_currency_formatted_total() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": "Acme",
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": "USD",
+            "subtotal": None,
+            "tax": None,
+            "total": "$1,234.56",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["total"] == 1234.56
+
+
+def test_normalize_result_maps_amount_key_to_total() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": None,
+            "tax": None,
+            "total": None,
+            "amount": "€ 99,00",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["total"] == 99.0
+
+
+def test_normalize_result_total_from_line_items_when_total_missing() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": None,
+            "tax": None,
+            "total": None,
+            "line_items": [
+                {"description": "A", "quantity": 1, "unit_price": 10, "amount": "10.00"},
+                {"description": "B", "quantity": 1, "unit_price": 5, "amount": "$5.00"},
+            ],
+            "confidence": None,
+        }
+    )
+    assert out["total"] == 15.0
+    assert out["currency"] == "USD"
+
+
+def test_normalize_result_maps_currency_dollar_sign_to_usd() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": "$",
+            "subtotal": None,
+            "tax": None,
+            "total": 30,
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["currency"] == "USD"
+
+
+def test_normalize_result_infers_usd_from_plain_dollar_total_string() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": None,
+            "tax": None,
+            "total": "$30.00",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["currency"] == "USD"
+
+
+def test_normalize_result_does_not_infer_usd_for_hk_dollar() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": None,
+            "tax": None,
+            "total": "HK$100.00",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["currency"] is None
+
+
+def test_normalize_result_does_not_infer_usd_when_euro_marker_present() -> None:
+    out = parser._normalize_result(
+        {
+            "vendor_name": None,
+            "invoice_number": None,
+            "invoice_date": None,
+            "due_date": None,
+            "currency": None,
+            "subtotal": "€10.00",
+            "tax": None,
+            "total": "$5.00",
+            "line_items": [],
+            "confidence": None,
+        }
+    )
+    assert out["currency"] is None
 
 
 def test_parse_invoice_surfaces_openrouter_error_body(monkeypatch: Any) -> None:

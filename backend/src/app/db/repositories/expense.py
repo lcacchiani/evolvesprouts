@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import Expense, ExpenseAttachment, ExpenseParseStatus, ExpenseStatus
 from app.db.repositories.base import BaseRepository
+from app.services.asset_expense_tagging import sync_expense_attachment_tags_for_assets
 
 
 def _escape_like_pattern(pattern: str) -> str:
@@ -146,8 +147,19 @@ class ExpenseRepository(BaseRepository[Expense]):
 
     def replace_attachments(self, expense: Expense, asset_ids: list[UUID]) -> Expense:
         """Replace expense attachments with the provided asset IDs."""
-        expense.attachments = [
+        previous_ids = {row.asset_id for row in expense.attachments}
+        # Flush deletes before inserting replacements. A single flush can otherwise
+        # INSERT new (expense_id, asset_id) rows while old rows still exist, hitting
+        # expense_attachments_unique_idx (seen on PATCH /v1/admin/expenses/{id}).
+        expense.attachments.clear()
+        self._session.flush()
+        expense.attachments.extend(
             ExpenseAttachment(asset_id=asset_id, sort_order=index)
             for index, asset_id in enumerate(asset_ids)
-        ]
-        return self.update(expense)
+        )
+        updated = self.update(expense)
+        self._session.flush()
+        sync_expense_attachment_tags_for_assets(
+            self._session, previous_ids | set(asset_ids)
+        )
+        return updated

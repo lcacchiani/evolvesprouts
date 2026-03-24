@@ -36,10 +36,14 @@ their primary responsibilities.
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
   API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
-- Purpose: asset metadata CRUD, geographic area browsing, location CRUD,
+- Purpose: asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
+  filters and accepts `tag_name` for any tag linked to assets in the requested
+  `asset_type` scope; create/update accept optional `client_tag` for the
+  `client_document` tag, forbidden when the asset is expense-linked), geographic area browsing, location CRUD,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
-  vendor management, expense invoice ingestion/listing/amendment/void/pay flows,
-  and admin-user listing for lead assignment,
+  vendor management, expense invoice ingestion/listing/amendment/void/pay flows
+  (mark-paid requires vendor, invoice date, currency, and total), and admin-user
+  listing for lead assignment,
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
@@ -192,7 +196,21 @@ their primary responsibilities.
 - Handler: backend/lambda/expense_parser/handler.py
 - Trigger: SQS queue (`evolvesprouts-expense-parser-queue`)
 - Purpose: process async invoice parse requests and enrich expense records
-  using OpenRouter via `AwsApiProxyFunction`
+  using OpenRouter via `AwsApiProxyFunction`; when `vendor_id` is unset and the
+  model returns `vendor_name`, attempts a unique match among **active** vendor
+  organizations: case-insensitive exact trimmed name; else a single `ILIKE`
+  substring hit when the vendor name contains the parsed string (only when the
+  parsed string is long enough and not generic-only tokens); else, if the parsed
+  string contains a specific vendor list name, the longest such match wins when
+  unambiguous (covers legal invoice names vs shorter list labels). Weak matches
+  never write `vendor_id`.
+  Parsed `subtotal` / `tax` / `total` accept common formatted strings (currency
+  symbols, thousands separators, alternate keys such as `amount`), and infer
+  `total` from line-item amounts when every line has an `amount` and top-level
+  totals are missing.
+  When `currency` is still unset, monetary strings that contain a bare `$` (not
+  `HK$`, `S$`, etc.) and no other currency markers infer `USD`; the model may
+  also return `$` as `currency`, which normalizes to `USD`.
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
@@ -210,9 +228,9 @@ their primary responsibilities.
 - Handler: backend/lambda/inbound_invoice_email/handler.py
 - Trigger: SQS queue (`evolvesprouts-inbound-invoice-email-queue`) fed by SES
   receipt-rule notifications through SNS
-- Purpose: convert inbound invoice email attachments into `assets`,
-  `expenses`, and `expense_attachments` rows, then enqueue the existing
-  expense parser workflow
+- Purpose: convert inbound invoice email attachments (or synthetic body text
+  when there are no supported files) into `assets`, `expenses`, and
+  `expense_attachments` rows, then enqueue the existing expense parser workflow
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read/write for the assets bucket (including the
@@ -222,6 +240,9 @@ their primary responsibilities.
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
   - `ASSETS_BUCKET_NAME`
   - `EXPENSE_PARSE_TOPIC_ARN`
+  - `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` (optional comma-separated
+    substrings; empty disables filtering; see `InboundInvoiceAllowedSenderPatterns`
+    CDK parameter / GitHub var `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`)
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction

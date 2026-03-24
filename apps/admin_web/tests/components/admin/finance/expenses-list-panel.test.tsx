@@ -2,7 +2,20 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const { mockGetUserAssetDownloadUrl } = vi.hoisted(() => ({
+  mockGetUserAssetDownloadUrl: vi.fn(),
+}));
+
+vi.mock('@/lib/assets-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/assets-api')>();
+  return {
+    ...actual,
+    getUserAssetDownloadUrl: mockGetUserAssetDownloadUrl,
+  };
+});
+
 import { ExpensesListPanel } from '@/components/admin/finance/expenses-list-panel';
+import { formatDate } from '@/lib/format';
 
 import type { Expense } from '@/types/expenses';
 
@@ -11,9 +24,10 @@ const baseExpense: Expense = {
   amendsExpenseId: null,
   status: 'submitted',
   parseStatus: 'succeeded',
+  vendorId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
   vendorName: 'Acme Co',
   invoiceNumber: 'INV-9',
-  invoiceDate: null,
+  invoiceDate: '2026-03-01',
   dueDate: null,
   currency: 'HKD',
   subtotal: '10.00',
@@ -72,6 +86,7 @@ const listProps = {
 describe('ExpensesListPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetUserAssetDownloadUrl.mockReset();
   });
 
   it('renders core columns without Invoice or Parse headers', () => {
@@ -83,7 +98,69 @@ describe('ExpensesListPanel', () => {
     expect(screen.getByRole('columnheader', { name: 'Vendor' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Created' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Issued' })).toBeInTheDocument();
+  });
+
+  it('opens primary expense attachment in a new tab', async () => {
+    const user = userEvent.setup();
+    mockGetUserAssetDownloadUrl.mockResolvedValueOnce('https://cdn.example.com/invoice.pdf');
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+    render(
+      <ExpensesListPanel
+        {...listProps}
+        expenses={[
+          {
+            ...baseExpense,
+            attachments: [
+              {
+                id: 'ea-1',
+                assetId: 'asset-doc-1',
+                sortOrder: 0,
+                fileName: 'invoice.pdf',
+                contentType: 'application/pdf',
+                assetTitle: null,
+              },
+            ],
+          },
+        ]}
+        {...makeRowActions()}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Open invoice document in new tab' }));
+
+    expect(mockGetUserAssetDownloadUrl).toHaveBeenCalledWith('asset-doc-1');
+    expect(openSpy).toHaveBeenCalledWith('https://cdn.example.com/invoice.pdf', '_blank', 'noopener,noreferrer');
+
+    openSpy.mockRestore();
+  });
+
+  it('disables document open when expense has no attachments', () => {
+    render(<ExpensesListPanel {...listProps} {...makeRowActions()} />);
+
+    expect(screen.getByRole('button', { name: 'No invoice document available' })).toBeDisabled();
+  });
+
+  it('shows invoice date in Issued column and labels missing currency', () => {
+    render(
+      <ExpensesListPanel
+        {...listProps}
+        expenses={[
+          {
+            ...baseExpense,
+            invoiceDate: '2026-02-15',
+            currency: null,
+            total: '30.00',
+          },
+        ]}
+        {...makeRowActions()}
+      />
+    );
+
+    expect(screen.getByText(formatDate('2026-02-15'))).toBeInTheDocument();
+    expect(screen.getByText('30.00')).toBeInTheDocument();
+    expect(screen.getByText('No currency code')).toBeInTheDocument();
   });
 
   it('calls onSelectExpense when a row is clicked', async () => {
@@ -114,6 +191,46 @@ describe('ExpensesListPanel', () => {
 
     await user.click(screen.getByRole('button', { name: 'Mark expense as paid' }));
     expect(rowActions.onMarkPaid).toHaveBeenCalledWith('exp-1');
+  });
+
+  it('disables mark paid when vendor, invoice date, currency, or total is missing', () => {
+    const rowActions = makeRowActions();
+
+    const { rerender } = render(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, vendorId: null }]}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Mark expense as paid' })).toBeDisabled();
+
+    rerender(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, invoiceDate: null }]}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Mark expense as paid' })).toBeDisabled();
+
+    rerender(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, currency: null }]}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Mark expense as paid' })).toBeDisabled();
+
+    rerender(
+      <ExpensesListPanel
+        {...listProps}
+        {...rowActions}
+        expenses={[{ ...baseExpense, total: null }]}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Mark expense as paid' })).toBeDisabled();
   });
 
   it('void dialog requires a reason before confirming', async () => {

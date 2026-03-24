@@ -10,6 +10,7 @@ export function useAdminAssets() {
   const {
     filters,
     assets,
+    linkedTagNames,
     nextCursor,
     isLoadingAssets,
     isLoadingMoreAssets,
@@ -18,6 +19,7 @@ export function useAdminAssets() {
     selectedAsset,
     setQueryFilter,
     setVisibilityFilter,
+    setTagNameFilter,
     refreshAssets,
     loadMoreAssets,
     selectAsset: selectAssetInList,
@@ -76,6 +78,7 @@ export function useAdminAssets() {
   return {
     filters,
     assets,
+    linkedTagNames,
     nextCursor,
     isLoadingAssets,
     isLoadingMoreAssets,
@@ -96,6 +99,7 @@ export function useAdminAssets() {
     isDeletingGrantId,
     setQueryFilter,
     setVisibilityFilter,
+    setTagNameFilter,
     refreshAssets,
     loadMoreAssets,
     selectAsset,

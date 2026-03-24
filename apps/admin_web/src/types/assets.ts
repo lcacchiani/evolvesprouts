@@ -23,6 +23,18 @@ export const ASSET_VISIBILITIES = defineEnumValues<AssetVisibility>()(
   ['public', 'restricted'] as const satisfies readonly AssetVisibility[]
 );
 
+/** System tag name for assets linked to an expense (matches admin API `tag_name` filter). */
+export const EXPENSE_ATTACHMENT_ASSET_TAG = 'expense_attachment' as const;
+
+/** Admin-assignable client-facing document tag (matches admin API `client_tag`). */
+export const CLIENT_DOCUMENT_ASSET_TAG = 'client_document' as const;
+
+export type AdminAssetTag = {
+  id: string;
+  name: string;
+  color: string | null;
+};
+
 export type AccessGrantType = ApiAssetGrant['grant_type'];
 export const ACCESS_GRANT_TYPES = defineEnumValues<AccessGrantType>()(
   ['all_authenticated', 'organization', 'user'] as const satisfies readonly AccessGrantType[]
@@ -38,6 +50,7 @@ export interface AdminAsset {
   resourceKey: OptionalToNullable<ApiAsset['resource_key']>;
   contentType: OptionalToNullable<ApiAsset['content_type']>;
   visibility: AssetVisibility;
+  tags: AdminAssetTag[];
   createdBy: OptionalToNullable<ApiAsset['created_by']>;
   createdAt: OptionalToNullable<ApiAsset['created_at']>;
   updatedAt: OptionalToNullable<ApiAsset['updated_at']>;
@@ -61,8 +74,15 @@ export interface ListAdminAssetsInput {
   query?: string;
   visibility?: AssetVisibility | '';
   assetType?: AssetType | '';
+  /** When set, lists only assets with this tag (canonical API tag name). */
+  tagName?: string;
   cursor?: string | null;
   limit?: number;
+}
+
+export interface AdminAssetListResult extends PaginatedList<AdminAsset> {
+  /** Tag names linked to at least one asset (same asset_type scope as the request). */
+  linkedTagNames: string[];
 }
 
 export interface UpsertAdminAssetInput {
@@ -73,6 +93,10 @@ export interface UpsertAdminAssetInput {
   resourceKey?: OptionalToNullable<ApiCreateAssetRequest['resource_key']>;
   contentType?: OptionalToNullable<ApiCreateAssetRequest['content_type']>;
   visibility: ApiCreateAssetRequest['visibility'];
+  /**
+   * Maps to API `client_tag`. Omit on update when the asset is expense-tagged (API forbids the field).
+   */
+  clientTag?: ApiCreateAssetRequest['client_tag'];
 }
 
 export interface CreatedAssetUpload {

@@ -84,3 +84,17 @@ export function getAdminApiBaseUrl(): string {
   }
   return normalizeAdminApiBaseUrl(appConfig.adminApiBaseUrl);
 }
+
+const FALLBACK_ADMIN_DEFAULT_CURRENCY = 'HKD';
+
+/**
+ * ISO 4217 code for admin UI defaults (expense currency, vendor spend column, FX target).
+ * Set `NEXT_PUBLIC_ADMIN_DEFAULT_CURRENCY` (e.g. HKD). Invalid or empty values fall back to HKD.
+ */
+export function getAdminDefaultCurrencyCode(): string {
+  const raw = process.env.NEXT_PUBLIC_ADMIN_DEFAULT_CURRENCY?.trim().toUpperCase();
+  if (raw && /^[A-Z]{3}$/.test(raw)) {
+    return raw;
+  }
+  return FALLBACK_ADMIN_DEFAULT_CURRENCY;
+}

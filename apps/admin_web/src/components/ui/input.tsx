@@ -18,8 +18,6 @@ export function Input({ className, type, ...props }: InputProps) {
         'disabled:bg-slate-100 sm:h-9 sm:text-sm',
         isDatePicker &&
           '[&::-webkit-calendar-picker-indicator]:ml-0 [&::-webkit-calendar-picker-indicator]:shrink-0 [&::-webkit-datetime-edit-fields-wrapper]:py-0',
-        type === 'date' && 'max-w-[12rem]',
-        type === 'datetime-local' && 'max-w-[24rem]',
         className
       )}
       {...props}

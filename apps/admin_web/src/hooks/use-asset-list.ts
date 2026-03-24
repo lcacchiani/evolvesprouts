@@ -8,11 +8,12 @@ import type { AdminAsset, AssetVisibility, ListAdminAssetsInput } from '@/types/
 import { toErrorMessage } from './hook-errors';
 import { useDebouncedCallback } from './use-debounced-callback';
 
-type Filters = Pick<ListAdminAssetsInput, 'query' | 'visibility'>;
+type Filters = Pick<ListAdminAssetsInput, 'query' | 'visibility' | 'tagName'>;
 
 const DEFAULT_FILTERS: Filters = {
   query: '',
   visibility: '',
+  tagName: '',
 };
 
 const ASSET_LIST_TYPE_FILTER = 'document' as const;
@@ -20,6 +21,7 @@ const ASSET_LIST_TYPE_FILTER = 'document' as const;
 export interface UseAssetListReturn {
   filters: Filters;
   assets: AdminAsset[];
+  linkedTagNames: string[];
   nextCursor: string | null;
   isLoadingAssets: boolean;
   isLoadingMoreAssets: boolean;
@@ -28,6 +30,7 @@ export interface UseAssetListReturn {
   selectedAsset: AdminAsset | null;
   setQueryFilter: (query: string) => void;
   setVisibilityFilter: (visibility: AssetVisibility | '') => void;
+  setTagNameFilter: (tagName: ListAdminAssetsInput['tagName']) => void;
   refreshAssets: (nextFilters?: Partial<Filters>) => Promise<void>;
   loadMoreAssets: () => Promise<void>;
   selectAsset: (assetId: string) => void;
@@ -42,6 +45,7 @@ export function useAssetList(): UseAssetListReturn {
   const filtersRef = useRef<Filters>(DEFAULT_FILTERS);
   const latestRefreshRequestIdRef = useRef(0);
   const [assets, setAssets] = useState<AdminAsset[]>([]);
+  const [linkedTagNames, setLinkedTagNames] = useState<string[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
   const [isLoadingMoreAssets, setIsLoadingMoreAssets] = useState(false);
@@ -80,6 +84,7 @@ export function useAssetList(): UseAssetListReturn {
       }
 
       setAssets(response.items);
+      setLinkedTagNames(response.linkedTagNames);
       setNextCursor(response.nextCursor);
       setSelectedAssetId((currentId) => {
         if (!currentId) {
@@ -118,6 +123,7 @@ export function useAssetList(): UseAssetListReturn {
       });
 
       setAssets((previous) => [...previous, ...response.items]);
+      setLinkedTagNames(response.linkedTagNames);
       setNextCursor(response.nextCursor);
     } catch (error) {
       setAssetsError(toErrorMessage(error, 'Failed to load more assets.'));
@@ -160,6 +166,19 @@ export function useAssetList(): UseAssetListReturn {
     [refreshAssets]
   );
 
+  const setTagNameFilter = useCallback(
+    (tagName: ListAdminAssetsInput['tagName']) => {
+      const nextFilters = {
+        ...filtersRef.current,
+        tagName: tagName ?? '',
+      };
+      filtersRef.current = nextFilters;
+      setFilters(nextFilters);
+      void refreshAssets(nextFilters);
+    },
+    [refreshAssets]
+  );
+
   const selectAsset = useCallback((assetId: string) => {
     setSelectedAssetId(assetId);
   }, []);
@@ -171,6 +190,10 @@ export function useAssetList(): UseAssetListReturn {
   const applyCreatedAsset = useCallback(
     async (createdAsset: AdminAsset | null) => {
       if (!createdAsset) {
+        await refreshAssets();
+        return;
+      }
+      if (filtersRef.current.tagName) {
         await refreshAssets();
         return;
       }
@@ -202,6 +225,7 @@ export function useAssetList(): UseAssetListReturn {
   return {
     filters,
     assets,
+    linkedTagNames,
     nextCursor,
     isLoadingAssets,
     isLoadingMoreAssets,
@@ -210,6 +234,7 @@ export function useAssetList(): UseAssetListReturn {
     selectedAsset,
     setQueryFilter,
     setVisibilityFilter,
+    setTagNameFilter,
     refreshAssets,
     loadMoreAssets,
     selectAsset,

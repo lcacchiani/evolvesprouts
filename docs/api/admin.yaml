@@ -81,6 +81,46 @@ paths:
       description: Admin-only route for listing managed assets.
       security:
         - AdminBearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Case-insensitive match on title, file name, or resource key.
+        - name: visibility
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [public, restricted]
+        - name: asset_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [guide, video, pdf, document]
+        - name: tag_name
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+          description: >
+            When set, return only assets that have this tag (case-insensitive name match).
+            The tag must be linked to at least one asset that matches the optional asset_type filter.
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
       responses:
         "200":
           description: Asset list response.
@@ -1468,6 +1508,9 @@ paths:
       - $ref: "#/components/parameters/ExpenseId"
     post:
       summary: Mark an expense as paid
+      description: >
+        Requires a linked vendor, invoice date, currency code, and total amount.
+        Returns 400 if any of these are missing.
       security:
         - AdminBearerAuth: []
       responses:
@@ -1706,6 +1749,21 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
 
   schemas:
+    AssetTagRef:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+          nullable: true
+          description: Optional CSS color (e.g. hex).
     Asset:
       type: object
       required:
@@ -1715,6 +1773,7 @@ components:
         - s3_key
         - file_name
         - visibility
+        - tags
       properties:
         id:
           type: string
@@ -1741,6 +1800,11 @@ components:
         visibility:
           type: string
           enum: [public, restricted]
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetTagRef"
+          description: Tags on this asset. Non-admin asset list responses use an empty array when tags are not loaded.
         created_by:
           type: string
           nullable: true
@@ -1790,6 +1854,13 @@ components:
         next_cursor:
           type: string
           nullable: true
+        linked_tag_names:
+          type: array
+          items:
+            type: string
+          description: >
+            Admin asset list only. Distinct tag names linked to at least one asset matching
+            the request's asset_type filter (when provided). Omitted or empty when not applicable.
     AssetResponse:
       type: object
       required:
@@ -3238,6 +3309,13 @@ components:
         visibility:
           type: string
           enum: [public, restricted]
+        client_tag:
+          type: string
+          nullable: true
+          enum: [client_document]
+          description: >
+            Optional. When set to client_document, links the asset to the client_document tag after create.
+            When omitted or null, no client tag is linked.
     UpdateAssetRequest:
       allOf:
         - $ref: "#/components/schemas/CreateAssetRequest"
@@ -3268,6 +3346,13 @@ components:
         visibility:
           type: string
           enum: [public, restricted]
+        client_tag:
+          type: string
+          nullable: true
+          enum: [client_document]
+          description: >
+            When present, sets or clears the client_document tag on the asset. Omit this property to leave
+            the client tag unchanged. Must not be sent for assets that have the expense_attachment tag (400).
     CreateAssetResponse:
       type: object
       required:

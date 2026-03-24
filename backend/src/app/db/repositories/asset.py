@@ -7,8 +7,9 @@ from datetime import UTC, datetime
 
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, delete, func, or_, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.models import (
@@ -16,10 +17,14 @@ from app.db.models import (
     Asset,
     AssetAccessGrant,
     AssetShareLink,
+    AssetTag,
     AssetType,
     AssetVisibility,
+    Tag,
 )
 from app.db.repositories.base import BaseRepository
+from app.exceptions import ValidationError
+from app.services.asset_expense_tagging import CLIENT_DOCUMENT_TAG_NAME
 
 
 def _escape_like_pattern(pattern: str) -> str:
@@ -33,6 +38,48 @@ class AssetRepository(BaseRepository[Asset]):
     def __init__(self, session: Session):
         super().__init__(session, Asset)
 
+    def resolve_asset_tag_filter_name(
+        self,
+        raw_tag_name: str,
+        *,
+        asset_type: AssetType | None,
+    ) -> str:
+        """Return canonical Tag.name for admin list filter, or raise ValidationError."""
+        needle = raw_tag_name.strip().lower()
+        stmt = (
+            select(Tag.name)
+            .join(AssetTag, AssetTag.tag_id == Tag.id)
+            .join(Asset, Asset.id == AssetTag.asset_id)
+            .where(func.lower(Tag.name) == needle)
+        )
+        if asset_type is not None:
+            stmt = stmt.where(Asset.asset_type == asset_type)
+        stmt = stmt.distinct().limit(1)
+        found = self._session.execute(stmt).scalar_one_or_none()
+        if found is None:
+            raise ValidationError(
+                "tag_name does not match a tag linked to an asset",
+                field="tag_name",
+            )
+        return found
+
+    def list_distinct_linked_asset_tag_names(
+        self,
+        *,
+        asset_type: AssetType | None = None,
+    ) -> list[str]:
+        """Distinct tag names that appear on at least one asset (optional type filter)."""
+        stmt = (
+            select(Tag.name)
+            .join(AssetTag, AssetTag.tag_id == Tag.id)
+            .join(Asset, Asset.id == AssetTag.asset_id)
+            .distinct()
+            .order_by(Tag.name)
+        )
+        if asset_type is not None:
+            stmt = stmt.where(Asset.asset_type == asset_type)
+        return list(self._session.scalars(stmt).all())
+
     def list_assets(
         self,
         *,
@@ -41,6 +88,8 @@ class AssetRepository(BaseRepository[Asset]):
         query: str | None = None,
         visibility: AssetVisibility | None = None,
         asset_type: AssetType | None = None,
+        tag_name: str | None = None,
+        load_tags: bool = False,
     ) -> Sequence[Asset]:
         """List assets with optional filtering and cursor pagination."""
         statement = select(Asset)
@@ -50,6 +99,17 @@ class AssetRepository(BaseRepository[Asset]):
             statement = statement.where(Asset.visibility == visibility)
         if asset_type is not None:
             statement = statement.where(Asset.asset_type == asset_type)
+        if tag_name is not None:
+            tag_subq = (
+                select(Tag.id)
+                .where(func.lower(Tag.name) == tag_name.lower())
+                .limit(1)
+                .scalar_subquery()
+            )
+            statement = statement.join(
+                AssetTag,
+                AssetTag.asset_id == Asset.id,
+            ).where(AssetTag.tag_id == tag_subq)
         if query:
             escaped = _escape_like_pattern(query.strip())
             pattern = f"%{escaped}%"
@@ -60,8 +120,21 @@ class AssetRepository(BaseRepository[Asset]):
                     Asset.resource_key.ilike(pattern, escape="\\"),
                 )
             )
+        if load_tags:
+            statement = statement.options(
+                selectinload(Asset.asset_tags).selectinload(AssetTag.tag),
+            )
         statement = statement.order_by(Asset.id).limit(limit)
         return self._session.execute(statement).scalars().all()
+
+    def get_with_asset_tags(self, asset_id: UUID) -> Asset | None:
+        """Load one asset with tag associations for admin responses."""
+        stmt = (
+            select(Asset)
+            .options(selectinload(Asset.asset_tags).selectinload(AssetTag.tag))
+            .where(Asset.id == asset_id)
+        )
+        return self._session.execute(stmt).scalar_one_or_none()
 
     def list_public_assets(
         self,
@@ -166,6 +239,33 @@ class AssetRepository(BaseRepository[Asset]):
             created_by=created_by,
         )
         return self.create(entity)
+
+    def set_client_document_tag_link(self, asset_id: UUID, *, link: bool) -> None:
+        """Add or remove only the client_document tag; does not touch other tags."""
+        stmt = select(Tag.id).where(
+            func.lower(Tag.name) == CLIENT_DOCUMENT_TAG_NAME.lower()
+        )
+        tag_id = self._session.execute(stmt).scalar_one_or_none()
+        if tag_id is None:
+            raise ValidationError(
+                "client_document tag is not configured",
+                field="client_tag",
+            )
+        if link:
+            insert_stmt = pg_insert(AssetTag).values(asset_id=asset_id, tag_id=tag_id)
+            self._session.execute(
+                insert_stmt.on_conflict_do_nothing(constraint="asset_tags_pkey")
+            )
+        else:
+            self._session.execute(
+                delete(AssetTag).where(
+                    and_(
+                        AssetTag.asset_id == asset_id,
+                        AssetTag.tag_id == tag_id,
+                    )
+                )
+            )
+        self._session.flush()
 
     def update_asset(
         self,

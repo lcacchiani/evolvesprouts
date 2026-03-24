@@ -1,8 +1,23 @@
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
+
 export function toTitleCase(value: string): string {
   return value
     .split('_')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+/** User-visible label for an asset tag name (API snake_case). */
+export function formatAssetTagDisplayName(tagName: string): string {
+  const lower = tagName.toLowerCase();
+  if (lower === EXPENSE_ATTACHMENT_ASSET_TAG) {
+    return 'Expense';
+  }
+  if (lower === CLIENT_DOCUMENT_ASSET_TAG) {
+    return 'Client';
+  }
+  return toTitleCase(tagName.toLowerCase());
 }
 
 /** Same date/time field choices as the app shell navbar timestamp (local TZ + default locale). */
@@ -18,8 +33,21 @@ const LOCAL_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
   year: 'numeric',
 });
 
-const DEFAULT_CURRENCY = 'HKD';
-const DEFAULT_CURRENCY_LABEL = 'Hong Kong Dollar';
+const DEFAULT_CURRENCY_LABEL_HKD = 'Hong Kong Dollar';
+
+/** Fixed allowlist for admin currency dropdowns; default currency (env) is listed first. */
+const ADMIN_SELECTABLE_CURRENCY_CODES = ['HKD', 'USD', 'CNY', 'SGD'] as const;
+
+function getAdminSelectableCurrencyCodesOrdered(): string[] {
+  const defaultCode = getAdminDefaultCurrencyCode();
+  const inAllowlist = ADMIN_SELECTABLE_CURRENCY_CODES.includes(
+    defaultCode as (typeof ADMIN_SELECTABLE_CURRENCY_CODES)[number]
+  );
+  if (inAllowlist) {
+    return [defaultCode, ...ADMIN_SELECTABLE_CURRENCY_CODES.filter((c) => c !== defaultCode)];
+  }
+  return [defaultCode, ...ADMIN_SELECTABLE_CURRENCY_CODES];
+}
 
 type CurrencyOption = {
   value: string;
@@ -50,17 +78,9 @@ export function getCurrencyOptions(): CurrencyOption[] {
     return cachedCurrencyOptions;
   }
 
-  const intlWithSupportedValues = globalThis.Intl as unknown as {
-    supportedValuesOf?: (key: 'currency') => string[];
-  };
-  const currencyCodes =
-    intlWithSupportedValues.supportedValuesOf?.('currency')?.map((entry) => entry.toUpperCase()) ??
-    [DEFAULT_CURRENCY];
-
-  const dedupedCodes = Array.from(new Set([DEFAULT_CURRENCY, ...currencyCodes])).sort();
-  const options = dedupedCodes.map((code) => {
-    if (code === DEFAULT_CURRENCY) {
-      return { value: code, label: `${code} ${DEFAULT_CURRENCY_LABEL}` };
+  const options = getAdminSelectableCurrencyCodesOrdered().map((code) => {
+    if (code === 'HKD') {
+      return { value: code, label: `${code} ${DEFAULT_CURRENCY_LABEL_HKD}` };
     }
     return { value: code, label: `${code} ${getCurrencyName(code)}` };
   });

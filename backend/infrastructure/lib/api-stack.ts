@@ -468,6 +468,18 @@ export class ApiStack extends cdk.Stack {
           "Local-part for the SES-managed inbound invoice mailbox on the configured inbound email domain.",
       }
     );
+    const inboundInvoiceAllowedSenderPatterns = new cdk.CfnParameter(
+      this,
+      "InboundInvoiceAllowedSenderPatterns",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Comma-separated substrings (case-insensitive). Inbound invoice mail " +
+          "must match at least one pattern on SES envelope source or RFC822 From. " +
+          "Empty disables allowlisting.",
+      }
+    );
     const turnstileSecretKey = new cdk.CfnParameter(
       this,
       "TurnstileSecretKey",
@@ -1622,6 +1634,8 @@ export class ApiStack extends cdk.Stack {
           DATABASE_IAM_AUTH: "true",
           ASSETS_BUCKET_NAME: assetsBucket.bucketName,
           EXPENSE_PARSE_TOPIC_ARN: expenseParserTopic.topicArn,
+          INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS:
+            inboundInvoiceAllowedSenderPatterns.valueAsString,
         },
       }
     );
@@ -1656,6 +1670,36 @@ export class ApiStack extends cdk.Stack {
     );
     const inboundInvoiceReceiptRuleName = name("inbound-invoice-email-rule");
     const inboundInvoiceReceiptRuleSourceArn = `arn:${cdk.Aws.PARTITION}:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:receipt-rule-set/${inboundInvoiceReceiptRuleSetName}:receipt-rule/${inboundInvoiceReceiptRuleName}`;
+    const inboundInvoiceTopicPolicyResult = inboundInvoiceTopic.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: "AllowSesInboundInvoicePublish",
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
+        actions: ["sns:Publish"],
+        resources: [inboundInvoiceTopic.topicArn],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+          },
+        },
+      })
+    );
+    sqsEncryptionKey.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: "AllowSesInboundInvoiceTopicEncryption",
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
+        actions: ["kms:GenerateDataKey*", "kms:Decrypt"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+          },
+        },
+      })
+    );
     const inboundInvoiceReceiptRole = new iam.Role(
       this,
       "InboundInvoiceReceiptRole",
@@ -1688,12 +1732,7 @@ export class ApiStack extends cdk.Stack {
         ],
       })
     );
-    inboundInvoiceReceiptRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ["sns:Publish"],
-        resources: [inboundInvoiceTopic.topicArn],
-      })
-    );
+    inboundInvoiceTopic.grantPublish(inboundInvoiceReceiptRole);
     assetsBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         sid: "AllowSesInboundInvoiceWrites",
@@ -1745,6 +1784,19 @@ export class ApiStack extends cdk.Stack {
     );
     if (assetsBucketPolicy) {
       inboundInvoiceReceiptRule.node.addDependency(assetsBucketPolicy);
+    }
+    if (
+      inboundInvoiceTopicPolicyResult.statementAdded &&
+      inboundInvoiceTopicPolicyResult.policyDependable
+    ) {
+      inboundInvoiceReceiptRule.node.addDependency(
+        inboundInvoiceTopicPolicyResult.policyDependable
+      );
+    }
+    const receiptRoleDefaultPolicy =
+      inboundInvoiceReceiptRole.node.tryFindChild("DefaultPolicy");
+    if (receiptRoleDefaultPolicy) {
+      inboundInvoiceReceiptRule.node.addDependency(receiptRoleDefaultPolicy);
     }
 
     const activateInboundInvoiceReceiptRuleSetPolicy =
@@ -2194,7 +2246,7 @@ export class ApiStack extends cdk.Stack {
       restApiName: name("api"),
       defaultCorsPreflightOptions: {
         allowOrigins: corsAllowedOrigins,
-        allowMethods: ["GET", "OPTIONS", "POST", "PUT", "DELETE"],
+        allowMethods: ["GET", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"],
         allowHeaders: [
           "Content-Type",
           "Authorization",
@@ -2259,7 +2311,7 @@ export class ApiStack extends cdk.Stack {
       "Access-Control-Allow-Origin": `'${corsAllowedOrigins[0]}'`,
       "Access-Control-Allow-Headers":
         "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Turnstile-Token'",
-      "Access-Control-Allow-Methods": "'GET,POST,PUT,DELETE,OPTIONS'",
+      "Access-Control-Allow-Methods": "'GET,POST,PUT,PATCH,DELETE,OPTIONS'",
       Vary: "'Origin'",
     };
     api.addGatewayResponse("GatewayResponseDefault4XX", {

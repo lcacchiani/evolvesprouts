@@ -29,13 +29,85 @@ describe('VendorsPanel', () => {
         onLoadMore={vi.fn()}
         onCreate={vi.fn()}
         onUpdate={vi.fn()}
+        vendorSpendByVendorId={new Map([['vendor-1', 1234.56]])}
+        isVendorSpendLoading={false}
       />
     );
 
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Website' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
+    const columnHeaders = screen.getAllByRole('columnheader').map((el) => el.textContent?.trim() ?? '');
+    expect(columnHeaders).toEqual(['Name', 'Status', 'Total spend (HKD)', 'Operations']);
+    expect(screen.getByText('HK$1,234.56')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make vendor inactive' })).toBeInTheDocument();
+  });
+
+  it('deactivates a vendor from the operations column', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <VendorsPanel
+        vendors={[
+          {
+            id: 'vendor-1',
+            name: 'Acme Vendor',
+            website: 'https://vendor.example.com',
+            active: true,
+            archivedAt: null,
+            createdAt: null,
+            updatedAt: null,
+          },
+        ]}
+        filters={{ query: '', active: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        vendorSpendByVendorId={new Map()}
+        isVendorSpendLoading={false}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Make vendor inactive' }));
+
+    expect(onUpdate).toHaveBeenCalledWith('vendor-1', { active: false });
+  });
+
+  it('disables inactive action when vendor is already inactive', () => {
+    render(
+      <VendorsPanel
+        vendors={[
+          {
+            id: 'vendor-1',
+            name: 'Old Vendor',
+            website: null,
+            active: false,
+            archivedAt: null,
+            createdAt: null,
+            updatedAt: null,
+          },
+        ]}
+        filters={{ query: '', active: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        vendorSpendByVendorId={new Map()}
+        isVendorSpendLoading={false}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Make vendor inactive' })).toBeDisabled();
   });
 
   it('creates a vendor from inline editor', async () => {
@@ -55,6 +127,8 @@ describe('VendorsPanel', () => {
         onLoadMore={vi.fn()}
         onCreate={onCreate}
         onUpdate={vi.fn()}
+        vendorSpendByVendorId={new Map()}
+        isVendorSpendLoading={false}
       />
     );
 

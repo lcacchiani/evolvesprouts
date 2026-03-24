@@ -174,6 +174,19 @@ Optional extra origins can be added via `CORS_ALLOWED_ORIGINS` or CDK context
 `corsAllowedOrigins`, but when no extras are configured the default is only the
 required domain-derived origins above.
 
+### Private Network Access (Chromium)
+
+Lambda responses (via `get_cors_headers()`) include
+`Access-Control-Allow-Private-Network: true` when Chromium’s Private Network
+Access preflight requires it on **integration** responses.
+
+API Gateway REST API **rejects** this header on MOCK `OPTIONS` integration and
+method response mappings (`Invalid mapping expression parameter` for
+`method.response.header.Access-Control-Allow-Private-Network`), so preflight
+responses from generated CORS `OPTIONS` methods cannot emit it through API
+Gateway alone. If preflight must carry this header end-to-end, add it at an edge
+layer (for example a CloudFront response headers policy in front of the API).
+
 ### Input Validation
 
 Always validate and sanitize user input:
@@ -257,7 +270,8 @@ Process to add a new public API path:
 
 ### Third-party invoice parser egress controls
 
-Expense invoice parsing sends attachment content to OpenRouter and must follow a
+Expense invoice parsing sends attachment bytes (or email-body text saved as a
+`text/plain` asset for inbound mail) to OpenRouter and must follow a
 fail-closed outbound policy:
 
 - In-VPC Lambdas **must not** call OpenRouter directly.
@@ -276,8 +290,8 @@ fail-closed outbound policy:
 ### Inbound invoice email handling
 
 Inbound invoice email ingestion stores raw `.eml` payloads in the private
-assets bucket under a reserved prefix before attachments are copied into normal
-expense asset keys.
+assets bucket under a reserved prefix before attachments (or body-extracted
+invoice text) are copied into normal expense asset keys.
 
 Requirements:
 
@@ -285,6 +299,12 @@ Requirements:
   `inbound-email/raw/` prefix through public or signed-download routes.
 - Do not log raw email bodies, headers, or attachment bytes.
 - Mask sender addresses in application logs with `mask_email()`.
+- Optional sender allowlist: when `InboundInvoiceAllowedSenderPatterns` is
+  non-empty (deployed from GitHub Actions variable
+  `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` into Lambda env
+  `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`), messages whose SES envelope
+  `source` and RFC822 `From` address both fail substring matching are marked
+  failed in `inbound_emails` and are not ingested as expenses.
 - Keep SES receipt processing least-privilege: only the configured receipt role
   can write raw email objects and publish the notification topic.
 - Keep inbound attachments `visibility=restricted` when they are promoted into
