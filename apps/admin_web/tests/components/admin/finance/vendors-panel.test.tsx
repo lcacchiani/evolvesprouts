@@ -35,9 +35,8 @@ describe('VendorsPanel', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Total spend (HKD)' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
+    const columnHeaders = screen.getAllByRole('columnheader').map((el) => el.textContent?.trim() ?? '');
+    expect(columnHeaders).toEqual(['Name', 'Status', 'Total spend (HKD)', 'Operations']);
     expect(screen.getByText('HK$1,234.56')).toBeInTheDocument();
   });
 

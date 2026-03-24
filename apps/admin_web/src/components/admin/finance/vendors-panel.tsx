@@ -181,8 +181,8 @@ export function VendorsPanel({
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold text-right'>{spendColumnLabel}</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
+              <th className='px-4 py-3 font-semibold text-right'>{spendColumnLabel}</th>
               <th className='px-4 py-3 font-semibold text-right'>Operations</th>
             </tr>
           </AdminDataTableHead>
@@ -202,6 +202,7 @@ export function VendorsPanel({
                 }}
               >
                 <td className='px-4 py-3'>{vendor.name}</td>
+                <td className='px-4 py-3'>{vendor.active ? 'Active' : 'Inactive'}</td>
                 <td className='px-4 py-3 text-right tabular-nums'>
                   {isVendorSpendLoading ? (
                     '…'
@@ -209,7 +210,6 @@ export function VendorsPanel({
                     formatAmountInDefaultCurrency(vendorSpendByVendorId.get(vendor.id) ?? 0)
                   )}
                 </td>
-                <td className='px-4 py-3'>{vendor.active ? 'Active' : 'Inactive'}</td>
                 <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                   <Button
                     type='button'
