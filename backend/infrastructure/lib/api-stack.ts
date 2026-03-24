@@ -2242,7 +2242,7 @@ export class ApiStack extends cdk.Stack {
       restApiName: name("api"),
       defaultCorsPreflightOptions: {
         allowOrigins: corsAllowedOrigins,
-        allowMethods: ["GET", "OPTIONS", "POST", "PUT", "DELETE"],
+        allowMethods: ["GET", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"],
         allowHeaders: [
           "Content-Type",
           "Authorization",
