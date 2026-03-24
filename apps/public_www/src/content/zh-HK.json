@@ -995,6 +995,8 @@
       "soldOutStampLabel": "已售罄",
       "spacesLeftLabelTemplate": "剩餘 {count} 個名額",
       "confirmAndPayLabel": "確認並付款！",
+      "privateProgrammeCtaLabel": "想要完全私人課程？",
+      "privateProgrammePrefillMessage": "我想了解更多 My Best Auntie 私人課程",
       "learnMoreLabel": "了解更多課程內容",
       "learnMoreHref": "/services/my-best-auntie-training-course",
       "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}歲組）",

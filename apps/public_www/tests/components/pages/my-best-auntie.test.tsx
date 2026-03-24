@@ -5,6 +5,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { MyBestAuntiePage } from '@/components/pages/my-best-auntie';
 import enContent from '@/content/en.json';
 
+const BOOKING_PROPS_SPY = vi.fn();
+
 vi.mock('@/components/shared/page-layout', () => ({
   PageLayout: ({ children }: { children: ReactNode }) => (
     <div data-testid='page-layout'>{children}</div>
@@ -19,13 +21,24 @@ vi.mock('@/components/sections/my-best-auntie/my-best-auntie-booking', () => ({
   MyBestAuntieBooking: ({
     content,
     locale,
+    privateProgrammeWhatsappHref,
   }: {
     content: { title: string };
     locale: string;
+    privateProgrammeWhatsappHref?: string;
   }) => (
-    <section data-testid='my-best-auntie-booking'>
-      {content.title} ({locale})
-    </section>
+    (() => {
+      BOOKING_PROPS_SPY({
+        content,
+        locale,
+        privateProgrammeWhatsappHref,
+      });
+      return (
+        <section data-testid='my-best-auntie-booking'>
+          {content.title} ({locale})
+        </section>
+      );
+    })()
   ),
 }));
 vi.mock('@/components/sections/my-best-auntie/my-best-auntie-description', () => ({
@@ -56,6 +69,7 @@ vi.mock('@/components/sections/free-intro-session', () => ({
 
 describe('MyBestAuntiePage', () => {
   it('assembles the booking flow page and forwards locale', () => {
+    BOOKING_PROPS_SPY.mockClear();
     render(<MyBestAuntiePage locale='zh-HK' content={enContent} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
@@ -88,5 +102,12 @@ describe('MyBestAuntiePage', () => {
     expect(
       screen.getByText(`${enContent.myBestAuntie.booking.title} (zh-HK)`),
     ).toBeInTheDocument();
+    expect(BOOKING_PROPS_SPY).toHaveBeenCalledTimes(1);
+    const bookingProps = BOOKING_PROPS_SPY.mock.calls[0][0] as {
+      privateProgrammeWhatsappHref?: string;
+    };
+    expect(bookingProps.privateProgrammeWhatsappHref).toBe(
+      enContent.freeIntroSession.ctaHref,
+    );
   });
 });

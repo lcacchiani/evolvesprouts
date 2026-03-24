@@ -7,6 +7,7 @@ import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { formatCohortValue, formatPartDateTimeLabel } from '@/lib/format';
+import { buildWhatsappPrefilledHref } from '@/lib/site-config';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -61,6 +62,11 @@ const bookingContent = {
 } as BookingContent;
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal;
+const privateProgrammeWhatsappHref = buildWhatsappPrefilledHref(
+  enContent.freeIntroSession.ctaHref,
+  bookingContent.privateProgrammePrefillMessage,
+  enContent.freeIntroSession.phoneNumber,
+) || enContent.freeIntroSession.ctaHref;
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
@@ -602,6 +608,24 @@ describe('MyBestAuntieBooking section', () => {
         ctaLocation: 'booking_section',
       }),
     );
+  });
+
+  it('renders private programme CTA as outline link with dedicated WhatsApp message', () => {
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+        privateProgrammeWhatsappHref={privateProgrammeWhatsappHref}
+      />,
+    );
+
+    const privateProgrammeCta = screen.getByRole('link', {
+      name: bookingContent.privateProgrammeCtaLabel,
+    });
+    expect(privateProgrammeCta.className).toContain('es-btn--outline');
+    expect(privateProgrammeCta).toHaveAttribute('href', privateProgrammeWhatsappHref);
   });
 
   it('renders sold-out date cards as disabled with stamp and skips them for initial selection', () => {

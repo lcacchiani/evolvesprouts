@@ -1,5 +1,5 @@
 import type { Locale, SiteContent } from '@/content';
-import { resolvePublicSiteConfig } from '@/lib/site-config';
+import { buildWhatsappPrefilledHref, resolvePublicSiteConfig } from '@/lib/site-config';
 import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
 import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
@@ -16,6 +16,11 @@ interface MyBestAuntiePageProps {
 
 export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
   const publicSiteConfig = resolvePublicSiteConfig();
+  const privateProgrammeWhatsappHref = buildWhatsappPrefilledHref(
+    content.freeIntroSession.ctaHref,
+    content.myBestAuntie.booking.privateProgrammePrefillMessage,
+    content.freeIntroSession.phoneNumber,
+  ) || content.freeIntroSession.ctaHref;
 
   return (
     <PageLayout
@@ -43,6 +48,7 @@ export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
         commonAccessibility={content.common.accessibility}
         thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
         thankYouWhatsappCtaLabel={content.contactUs.form.contactMethodLinks.whatsapp}
+        privateProgrammeWhatsappHref={privateProgrammeWhatsappHref}
       />
       <Faq content={content.faq} />
       <FreeIntroSession content={content.freeIntroSession} />
