@@ -136,6 +136,10 @@ The `client_document` tag is a system tag for admin-assignable client-facing
 documents; migration `0015_add_client_document_tag` ensures it exists (seed data
 also inserts it for fresh databases).
 
+Migration `0016_delete_expenses_missing_vendor` removes expense rows with no
+vendor (`vendor_id` null and `vendor_name` null or whitespace-only) and deletes
+linked attachment assets only when no other table still references them.
+
 ## Access control logic
 
 **Public assets** (`visibility = 'public'`):
