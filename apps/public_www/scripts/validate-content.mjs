@@ -6,17 +6,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CONTENT_DIR = path.resolve(__dirname, '..', 'src', 'content');
 const LOCALE_APP_DIR = path.resolve(__dirname, '..', 'src', 'app', '[locale]');
-/** Repo-root production params (CI / local may omit NEXT_PUBLIC_EMAIL). */
-const PRODUCTION_PARAMS_PATH = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'backend',
-  'infrastructure',
-  'params',
-  'production.json',
-);
 
 const LOCALE_FILES = [
   ['en', 'en.json'],
@@ -278,29 +267,8 @@ function validateHrefValue(value, keyPath, errors) {
   errors.push(`${keyPath}: unsupported href format "${normalizedValue}"`);
 }
 
-async function resolveContactEmailForValidation() {
-  const fromEnv = process.env[CONTACT_EMAIL_ENV_NAME]?.trim() ?? '';
-  if (EMAIL_VALUE_REGEX.test(fromEnv)) {
-    return fromEnv;
-  }
-
-  try {
-    const raw = await readFile(PRODUCTION_PARAMS_PATH, 'utf8');
-    const params = JSON.parse(raw);
-    const supportEmail =
-      typeof params.SupportEmail === 'string' ? params.SupportEmail.trim() : '';
-    if (EMAIL_VALUE_REGEX.test(supportEmail)) {
-      return supportEmail;
-    }
-  } catch {
-    // Missing params file or invalid JSON when not running from monorepo root.
-  }
-
-  return '';
-}
-
-function validateConfiguredContactEmail(errors, contactEmail) {
-  const normalizedValue = contactEmail?.trim() ?? '';
+function validateConfiguredContactEmail(errors) {
+  const normalizedValue = process.env[CONTACT_EMAIL_ENV_NAME]?.trim() ?? '';
   if (!EMAIL_VALUE_REGEX.test(normalizedValue)) {
     errors.push(
       `${CONTACT_EMAIL_ENV_NAME} must be configured with a valid email address for content interpolation.`,
@@ -471,8 +439,7 @@ async function main() {
   const englishContent = localeMap.en;
   const errors = [];
 
-  const contactEmail = await resolveContactEmailForValidation();
-  validateConfiguredContactEmail(errors, contactEmail);
+  validateConfiguredContactEmail(errors);
 
   for (const [locale] of LOCALE_FILES) {
     const localeContent = localeMap[locale];
