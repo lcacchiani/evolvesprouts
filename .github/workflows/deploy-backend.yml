@@ -217,8 +217,28 @@ jobs:
           fi
 
           IFS=$', \n\t' read -r -a STACK_LIST <<< "$CDK_STACKS"
-          npx cdk deploy --no-notices --require-approval never \
-            "${QUALIFIER_ARGS[@]}" "${PARAM_ARGS[@]}" "${STACK_LIST[@]}"
+
+          # Lambda occasionally returns 500 during UpdateFunctionCode (SDK retries
+          # exhaust inside CloudFormation). Brief backoff + redeploy usually succeeds.
+          MAX_CDK_DEPLOY_ATTEMPTS=3
+          attempt=1
+          deploy_exit=1
+          while [ "$attempt" -le "$MAX_CDK_DEPLOY_ATTEMPTS" ]; do
+            echo "CDK deploy attempt ${attempt} of ${MAX_CDK_DEPLOY_ATTEMPTS}"
+            if npx cdk deploy --no-notices --require-approval never \
+              "${QUALIFIER_ARGS[@]}" "${PARAM_ARGS[@]}" "${STACK_LIST[@]}"; then
+              exit 0
+            fi
+            deploy_exit=$?
+            if [ "$attempt" -eq "$MAX_CDK_DEPLOY_ATTEMPTS" ]; then
+              break
+            fi
+            delay=$((45 * attempt))
+            echo "CDK deploy failed (exit ${deploy_exit}); waiting ${delay}s before retry..."
+            sleep "$delay"
+            attempt=$((attempt + 1))
+          done
+          exit "$deploy_exit"
         env:
           CDK_STACKS: ${{ github.event.inputs.cdk_stacks || vars.CDK_STACKS || 'all stacks' }}
           RUN_SEED_DATA: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_seed_data || 'false' }}
