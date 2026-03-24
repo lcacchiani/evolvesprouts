@@ -174,6 +174,19 @@ Optional extra origins can be added via `CORS_ALLOWED_ORIGINS` or CDK context
 `corsAllowedOrigins`, but when no extras are configured the default is only the
 required domain-derived origins above.
 
+### Private Network Access (Chromium)
+
+Lambda responses (via `get_cors_headers()`) include
+`Access-Control-Allow-Private-Network: true` when Chromium’s Private Network
+Access preflight requires it on **integration** responses.
+
+API Gateway REST API **rejects** this header on MOCK `OPTIONS` integration and
+method response mappings (`Invalid mapping expression parameter` for
+`method.response.header.Access-Control-Allow-Private-Network`), so preflight
+responses from generated CORS `OPTIONS` methods cannot emit it through API
+Gateway alone. If preflight must carry this header end-to-end, add it at an edge
+layer (for example a CloudFront response headers policy in front of the API).
+
 ### Input Validation
 
 Always validate and sanitize user input:
