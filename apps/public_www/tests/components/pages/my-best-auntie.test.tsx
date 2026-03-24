@@ -106,9 +106,8 @@ describe('MyBestAuntiePage', () => {
     const bookingProps = BOOKING_PROPS_SPY.mock.calls[0][0] as {
       privateProgrammeWhatsappHref?: string;
     };
-    expect(bookingProps.privateProgrammeWhatsappHref).toContain('https://wa.me');
-    expect(decodeURIComponent(bookingProps.privateProgrammeWhatsappHref ?? '')).toContain(
-      enContent.myBestAuntie.booking.privateProgrammePrefillMessage,
+    expect(bookingProps.privateProgrammeWhatsappHref).toBe(
+      enContent.freeIntroSession.ctaHref,
     );
   });
 });
