@@ -23,7 +23,7 @@ export function getFrankfurterApiOrigin(): string {
 type FrankfurterRateRow = {
   base?: string;
   quote?: string;
-  rate?: number;
+  rate: number;
 };
 
 function isFrankfurterRateRow(value: unknown): value is FrankfurterRateRow {
