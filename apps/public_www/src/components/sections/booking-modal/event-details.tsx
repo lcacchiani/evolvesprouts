@@ -176,7 +176,7 @@ export function BookingEventDetails({
                       />
                       <span
                         data-course-part-icon='true'
-                        className='es-mask-calendar-current h-7 w-7 shrink-0'
+                        className='es-mask-calendar-current h-7 w-7 shrink-0 text-black'
                         aria-hidden='true'
                       />
                     </span>
