@@ -7,6 +7,7 @@ import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { formatCohortValue, formatPartDateTimeLabel } from '@/lib/format';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
 vi.mock('next/image', () => ({
   default: ({
@@ -22,7 +23,12 @@ vi.mock('@/lib/analytics', () => ({
   trackEcommerceEvent: vi.fn(),
 }));
 
+vi.mock('@/lib/meta-pixel', () => ({
+  trackMetaPixelEvent: vi.fn(),
+}));
+
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
+const mockedTrackMetaPixelEvent = vi.mocked(trackMetaPixelEvent);
 
 beforeAll(() => {
   Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
@@ -38,6 +44,7 @@ beforeAll(() => {
 afterEach(() => {
   window.history.replaceState({}, '', '/');
   mockedTrackAnalyticsEvent.mockReset();
+  mockedTrackMetaPixelEvent.mockReset();
 });
 
 function formatCohortPreviewLabel(value: string): string {
@@ -55,9 +62,18 @@ type BookingContent = typeof enContent.myBestAuntie.booking & {
 };
 type BookingCohort = BookingContent['cohorts'][number];
 
+const privateProgrammePrefill =
+  enContent.myBestAuntie.booking.privateProgrammeWhatsappPrefillMessage;
+const privateProgrammeWhatsappTestHref = (() => {
+  const url = new URL('https://wa.me/85294479843');
+  url.searchParams.set('text', privateProgrammePrefill);
+  return url.toString();
+})();
+
 const bookingContent = {
   ...enContent.myBestAuntie.booking,
   cohorts: trainingCoursesContent.data,
+  privateProgrammeWhatsappHref: privateProgrammeWhatsappTestHref,
 } as BookingContent;
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal;
@@ -97,6 +113,62 @@ function formatSpacesLeftLabel(count: number): string {
 }
 
 describe('MyBestAuntieBooking section', () => {
+  it('renders private programme WhatsApp link with prefilled message to the left of confirm CTA', () => {
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
+
+    const whatsappLink = screen.getByRole('link', {
+      name: bookingContent.privateProgrammeWhatsappAriaLabel,
+    });
+    expect(whatsappLink).toHaveAttribute('href', privateProgrammeWhatsappTestHref);
+    expect(whatsappLink).toHaveAttribute('target', '_blank');
+    expect(whatsappLink.className).toContain('es-btn--primary-outline');
+
+    const confirmButton = screen.getByRole('button', {
+      name: bookingContent.confirmAndPayLabel,
+    });
+    expect(
+      whatsappLink.compareDocumentPosition(confirmButton) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    fireEvent.click(whatsappLink);
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('whatsapp_click', {
+      sectionId: 'my-best-auntie-booking',
+      ctaLocation: 'private_programme_whatsapp',
+    });
+    expect(mockedTrackMetaPixelEvent).toHaveBeenCalledWith('Contact', {
+      content_name: 'whatsapp',
+    });
+  });
+
+  it('omits private programme WhatsApp link when href is not a wa.me URL', () => {
+    const contentWithoutWhatsapp = {
+      ...bookingContent,
+      privateProgrammeWhatsappHref: '/services/my-best-auntie-training-course',
+    };
+
+    render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={contentWithoutWhatsapp}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
+
+    expect(
+      screen.queryByRole('link', {
+        name: bookingContent.privateProgrammeWhatsappAriaLabel,
+      }),
+    ).toBeNull();
+  });
+
   it('auto-opens payment modal when booking_system query targets my-best-auntie booking', async () => {
     window.history.replaceState(
       {},
@@ -311,7 +383,8 @@ describe('MyBestAuntieBooking section', () => {
     const ctaButton = screen.getByRole('button', {
       name: bookingContent.confirmAndPayLabel,
     });
-    expect(ctaButton.className).not.toContain('w-full');
+    expect(ctaButton.className).toContain('w-full');
+    expect(ctaButton.className).toContain('sm:w-auto');
     expect(ctaButton.className).toContain('es-btn--primary');
 
     const firstAgeOption = bookingContent.ageOptions[0];
