@@ -1,23 +1,13 @@
-import { Fragment } from 'react';
-import Image from 'next/image';
-
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SmartLink } from '@/components/shared/smart-link';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
 
-export interface MyBestAuntiePartDetailLine {
-  title: string;
-  description: string;
-}
-
 export interface BookingEventDetailPart {
   date: string;
   /** Event booking modal: single description under the session date. */
   description?: string;
-  /** My Best Auntie modal: titled lines (group session, visits, etc.) per cohort week. */
-  detailLines?: MyBestAuntiePartDetailLine[];
 }
 
 interface BookingEventDetailsProps {
@@ -35,55 +25,10 @@ interface BookingEventDetailsProps {
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
-const COURSE_OVERVIEW_PART_ICONS = [
-  '/images/home.svg',
-  '/images/limits.svg',
-  '/images/independence.svg',
-] as const;
-const COURSE_OVERVIEW_PART_SUPPORT_ICON_SOURCES = {
-  homeVisit: '/images/coaching.svg',
-  parentCall: '/images/telephone.svg',
-  challenge: '/images/cubes.svg',
-} as const;
 type PartChipTone = (typeof PART_CHIP_TONES)[number];
-
-function normalizeDetailLineTitleKey(title: string): string {
-  return title.trim().toLowerCase();
-}
-
-function resolveMyBestAuntieDetailLineIconSrc(
-  partIndex: number,
-  lineTitle: string,
-): string {
-  const key = normalizeDetailLineTitleKey(lineTitle);
-  if (key.includes('home visit') || key.includes('上門') || key.includes('上门')) {
-    return COURSE_OVERVIEW_PART_SUPPORT_ICON_SOURCES.homeVisit;
-  }
-  if (key.includes('parent call') || key.includes('家長') || key.includes('家长')) {
-    return COURSE_OVERVIEW_PART_SUPPORT_ICON_SOURCES.parentCall;
-  }
-  if (key.includes('challenge') || key.includes('練習') || key.includes('练习')) {
-    return COURSE_OVERVIEW_PART_SUPPORT_ICON_SOURCES.challenge;
-  }
-  if (
-    key.includes('group') ||
-    key.includes('小组') ||
-    key.includes('小組')
-  ) {
-    return getPartIconSource(partIndex);
-  }
-  return getPartIconSource(partIndex);
-}
 
 function resolvePartChipTone(index: number): PartChipTone {
   return PART_CHIP_TONES[index] ?? PART_CHIP_TONES[PART_CHIP_TONES.length - 1];
-}
-
-function getPartIconSource(index: number): string {
-  return (
-    COURSE_OVERVIEW_PART_ICONS[index] ??
-    COURSE_OVERVIEW_PART_ICONS[COURSE_OVERVIEW_PART_ICONS.length - 1]
-  );
 }
 
 function getPartChipClassName(index: number): string {
@@ -164,7 +109,7 @@ export function BookingEventDetails({
                       )}`}
                     />
                   </span>
-                  <div className='relative z-10 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 sm:gap-x-4'>
+                  <div className='relative z-10 grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 sm:gap-x-4'>
                     <span
                       data-course-part-chip='true'
                       className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
@@ -183,67 +128,20 @@ export function BookingEventDetails({
 
                     <div
                       data-course-part-date-block='true'
-                      className='flex min-w-0 items-center gap-2'
+                      className='flex min-w-0 flex-col gap-2'
                     >
                       <p className='min-w-0 text-[17px] font-semibold leading-6 es-text-heading'>
                         {part.date}
                       </p>
+                      {part.description?.trim() ? (
+                        <p
+                          data-course-part-schedule-block='true'
+                          className='whitespace-pre-line text-[15px] leading-[22px] es-text-body'
+                        >
+                          {renderQuotedDescriptionText(part.description)}
+                        </p>
+                      ) : null}
                     </div>
-
-                    {!isEventDetailsVariant &&
-                    part.detailLines &&
-                    part.detailLines.length > 0 ? (
-                      part.detailLines.map((line, lineIndex) => {
-                        const iconSrc = resolveMyBestAuntieDetailLineIconSrc(
-                          index,
-                          line.title,
-                        );
-                        return (
-                          <Fragment key={`${index}-detail-${lineIndex}`}>
-                            <span
-                              data-course-part-support-chip='true'
-                              className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
-                            >
-                              <span
-                                data-course-part-line='support-gap-connector'
-                                className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
-                                aria-hidden='true'
-                              />
-                              <Image
-                                src={iconSrc}
-                                alt=''
-                                width={28}
-                                height={28}
-                                data-course-part-support-icon='true'
-                                className='h-7 w-7 shrink-0 object-contain'
-                                aria-hidden='true'
-                              />
-                            </span>
-                            <div
-                              data-course-part-detail-line='true'
-                              className='col-start-2 min-w-0 space-y-1'
-                            >
-                              <p
-                                data-course-part-detail-title='true'
-                                className='text-[15px] font-semibold leading-6 es-text-heading'
-                              >
-                                {line.title}
-                              </p>
-                              <p
-                                data-course-part-detail-description='true'
-                                className='text-[15px] leading-[22px] es-text-body'
-                              >
-                                {renderQuotedDescriptionText(line.description)}
-                              </p>
-                            </div>
-                          </Fragment>
-                        );
-                      })
-                    ) : part.description?.trim() ? (
-                      <p className='col-start-2 text-[15px] leading-[22px] es-text-body'>
-                        {renderQuotedDescriptionText(part.description)}
-                      </p>
-                    ) : null}
                   </div>
                 </li>
               );

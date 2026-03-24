@@ -1006,63 +1006,8 @@
     "modal": {
       "title": "My Best Auntie Training Course",
       "subtitle": "9 weeks. 3 group sessions. 3 home visits. 3 parent calls.",
-      "phaseWeekRangeLabelTemplate": "Phase {phaseNumber}: Week {startWeek}-{endWeek} ({startDate} - {endDate})",
-      "partSummaries": [
-        [
-          {
-            "title": "Group session",
-            "description": "We set up your home for independence and observe how your helper connects with your child."
-          },
-          {
-            "title": "Home visit",
-            "description": "I come to your home — what to move, what to change. Then I watch how she talks to your child and responds when things get hard."
-          },
-          {
-            "title": "Parent call",
-            "description": "What did we find? What needs to shift?"
-          },
-          {
-            "title": "Challenge (example)",
-            "description": "She rearranges one area for independence and logs how your child responds."
-          }
-        ],
-        [
-          {
-            "title": "Group session",
-            "description": "No threats, no bribes. She learns to guide with calm consistency."
-          },
-          {
-            "title": "Home visit",
-            "description": "We practise boundaries in real time — mealtimes, screen time, getting dressed, saying goodbye."
-          },
-          {
-            "title": "Parent call",
-            "description": "Are the rules consistent between you and your helper?"
-          },
-          {
-            "title": "Challenge (example)",
-            "description": "She handles one daily boundary on her own for a full week."
-          }
-        ],
-        [
-          {
-            "title": "Group session",
-            "description": "She steps back. Your child steps up."
-          },
-          {
-            "title": "Home visit",
-            "description": "She leads. I observe. This is where the training becomes hers."
-          },
-          {
-            "title": "Parent call",
-            "description": "Final alignment — how to keep this going long after the course ends."
-          },
-          {
-            "title": "Challenge (example)",
-            "description": "She identifies 3 things the child can do alone — and lets go."
-          }
-        ]
-      ]
+      "weekRangeHeadlineTemplate": "{startDate} - {endDate}",
+      "partScheduleBlockTemplate": "Group session: {groupSessionDateTime}\nHome visit: scheduled individually\nParent call: scheduled individually"
     },
     "description": {
       "eyebrow": "Course Highlights",

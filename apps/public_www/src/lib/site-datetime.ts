@@ -232,12 +232,12 @@ export function formatPartDateTimeLabel(
   return `${dateStr} @ ${timeStr}`;
 }
 
-/** Three-week phase window length from each group session start (21 calendar days). */
-const MY_BEST_AUNTIE_PHASE_WINDOW_MS = 21 * 24 * 60 * 60 * 1000;
+/** Phase window length from each group session start (20 calendar days). */
+const MY_BEST_AUNTIE_PHASE_WINDOW_MS = 20 * 24 * 60 * 60 * 1000;
 
 /**
  * Calendar start and end labels for a My Best Auntie phase row (month + day only, no year),
- * in {@link PUBLIC_SITE_IANA_TIMEZONE}. End is start + 21 days.
+ * in {@link PUBLIC_SITE_IANA_TIMEZONE}. End is start + 20 days.
  */
 export function formatMyBestAuntiePhaseWindowDateLabels(
   startDateTime: string,

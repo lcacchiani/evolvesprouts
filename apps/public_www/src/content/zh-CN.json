@@ -1006,63 +1006,8 @@
     "modal": {
       "title": "我的最佳阿姨培训课程",
       "subtitle": "9周。3次小组课程。3次上门家访。3次家长通话。",
-      "phaseWeekRangeLabelTemplate": "第 {phaseNumber} 阶段：第 {startWeek}-{endWeek} 周（{startDate} - {endDate}）",
-      "partSummaries": [
-        [
-          {
-            "title": "小组课",
-            "description": "我们会把家调整成支持孩子独立的环境，并观察你的阿姨如何与你的孩子建立连接。"
-          },
-          {
-            "title": "上门家访",
-            "description": "我会来到你家——该移动什么、该改变什么。然后我会观察她如何与孩子交流，以及在困难时刻如何回应。"
-          },
-          {
-            "title": "家长通话",
-            "description": "我们发现了什么？需要调整什么？"
-          },
-          {
-            "title": "练习示例",
-            "description": "她整理出一个支持独立的区域，并记录孩子的反应。"
-          }
-        ],
-        [
-          {
-            "title": "小组课",
-            "description": "不威胁，不贿赂。她会学会用冷静且一致的方式引导孩子。"
-          },
-          {
-            "title": "上门家访",
-            "description": "我们在真实情境中练习边界——用餐、屏幕时间、穿衣、道别。"
-          },
-          {
-            "title": "家长通话",
-            "description": "你和阿姨之间的规则是否一致？"
-          },
-          {
-            "title": "练习示例",
-            "description": "在一整周里，她独立处理一项日常边界。"
-          }
-        ],
-        [
-          {
-            "title": "小组课",
-            "description": "她学会后退一步，你的孩子就能向前一步。"
-          },
-          {
-            "title": "上门家访",
-            "description": "由她主导。我来观察。培训在这一刻真正属于她。"
-          },
-          {
-            "title": "家长通话",
-            "description": "最后对齐——如何在课程结束后仍持续下去。"
-          },
-          {
-            "title": "练习示例",
-            "description": "她找出3件孩子可以独立完成的事——然后放手。"
-          }
-        ]
-      ]
+      "weekRangeHeadlineTemplate": "{startDate} - {endDate}",
+      "partScheduleBlockTemplate": "小组课程：{groupSessionDateTime}\n上门家访：单独安排\n家长通话：单独安排"
     },
     "description": {
       "eyebrow": "课程亮点",
