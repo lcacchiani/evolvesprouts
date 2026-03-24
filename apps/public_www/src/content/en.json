@@ -995,6 +995,8 @@
       "soldOutStampLabel": "Sold Out",
       "spacesLeftLabelTemplate": "{count} spots left",
       "confirmAndPayLabel": "Confirm and Pay!",
+      "privateProgrammeCtaLabel": "Want a fully private programme?",
+      "privateProgrammePrefillMessage": "I would like to know more about My Best Auntie private programme",
       "learnMoreLabel": "Learn More About Course",
       "learnMoreHref": "/services/my-best-auntie-training-course",
       "nextCohortLabelTemplate": "{scheduleLabel} for {ageGroupLabel} age group",
