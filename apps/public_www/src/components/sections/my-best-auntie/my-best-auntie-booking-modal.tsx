@@ -78,39 +78,34 @@ export function MyBestAuntieBookingModal({
   const originalAmount = selectedCohort?.price ?? 0;
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
-    const weekSummaries = modalContent.partSummaries ?? [];
-    return (selectedCohort?.dates ?? []).map((part, index) => {
-      const lines = weekSummaries[index] ?? [];
-      const detailLines = lines
-        .map((line) => {
-          return {
-            title: line.title?.trim() ?? '',
-            description: line.description?.trim() ?? '',
-          };
-        })
-        .filter((line) => line.title.length > 0 || line.description.length > 0);
+    return (selectedCohort?.dates ?? []).map((part) => {
       const phaseWindow = formatMyBestAuntiePhaseWindowDateLabels(
         part.start_datetime,
         locale,
       );
-      const startWeek = index * 3 + 1;
-      const endWeek = index * 3 + 3;
       const dateLabel =
         phaseWindow !== null
-          ? formatContentTemplate(modalContent.phaseWeekRangeLabelTemplate, {
-              phaseNumber: index + 1,
-              startWeek,
-              endWeek,
+          ? formatContentTemplate(modalContent.weekRangeHeadlineTemplate, {
               startDate: phaseWindow.startLabel,
               endDate: phaseWindow.endLabel,
             })
           : formatPartDateTimeLabel(part.start_datetime, locale);
+      const groupSessionDateTime = formatPartDateTimeLabel(
+        part.start_datetime,
+        locale,
+      );
+      const description = formatContentTemplate(
+        modalContent.partScheduleBlockTemplate,
+        {
+          groupSessionDateTime,
+        },
+      );
       return {
         date: dateLabel,
-        detailLines,
+        description,
       };
     });
-  }, [selectedCohort, modalContent.partSummaries, modalContent.phaseWeekRangeLabelTemplate, locale]);
+  }, [selectedCohort, modalContent.weekRangeHeadlineTemplate, modalContent.partScheduleBlockTemplate, locale]);
 
   const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
   const selectedDateEndTime = selectedCohort?.dates[0]?.end_datetime ?? '';

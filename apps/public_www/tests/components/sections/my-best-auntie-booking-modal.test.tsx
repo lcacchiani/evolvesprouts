@@ -332,17 +332,17 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(partCalendarIcons).toHaveLength(3);
   });
 
-  it('renders phase week range labels without year in the details column', () => {
-    renderBookingModal();
-    expect(
-      screen.getByText('Phase 1: Week 1-3 (19 Apr - 10 May)'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Phase 2: Week 4-6 (10 May - 31 May)'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Phase 3: Week 7-9 (31 May - 21 Jun)'),
-    ).toBeInTheDocument();
+  it('renders week range headlines and schedule blocks without year in the details column', () => {
+    const { container } = renderBookingModal();
+    expect(screen.getByText('19 Apr - 10 May')).toBeInTheDocument();
+    expect(screen.getByText('10 May - 31 May')).toBeInTheDocument();
+    expect(screen.getByText('31 May - 21 Jun')).toBeInTheDocument();
+    const firstScheduleBlock = container.querySelector(
+      'p[data-course-part-schedule-block="true"]',
+    );
+    expect(firstScheduleBlock?.textContent).toBe(
+      'Group session: 19 Apr @ 09:00\nHome visit: scheduled individually\nParent call: scheduled individually',
+    );
   });
 
   it('validates reservation email only after blur', () => {
@@ -840,78 +840,32 @@ describe('my-best-auntie booking modals footer content', () => {
     }
   });
 
-  it('renders part summary title and description rows for each course week', () => {
+  it('renders one schedule block per course part and no support detail rows', () => {
     const { container } = renderBookingModal();
 
-    const supportIcons = Array.from(
+    expect(
       container.querySelectorAll('img[data-course-part-support-icon="true"]'),
-    );
-    const detailTitles = Array.from(
-      container.querySelectorAll('p[data-course-part-detail-title="true"]'),
-    );
-    const detailDescriptions = Array.from(
-      container.querySelectorAll('p[data-course-part-detail-description="true"]'),
-    );
-    const supportChips = Array.from(
+    ).toHaveLength(0);
+    expect(
       container.querySelectorAll('span[data-course-part-support-chip="true"]'),
-    );
-    const supportGapConnectors = Array.from(
+    ).toHaveLength(0);
+    expect(
+      container.querySelectorAll('p[data-course-part-detail-title="true"]'),
+    ).toHaveLength(0);
+    expect(
+      container.querySelectorAll('p[data-course-part-detail-description="true"]'),
+    ).toHaveLength(0);
+    expect(
       container.querySelectorAll('span[data-course-part-line="support-gap-connector"]'),
-    );
+    ).toHaveLength(0);
 
-    expect(supportIcons).toHaveLength(12);
-    expect(supportChips).toHaveLength(12);
-    expect(detailTitles).toHaveLength(12);
-    expect(detailDescriptions).toHaveLength(12);
-    expect(supportGapConnectors).toHaveLength(12);
-    expect(supportIcons.map((icon) => icon.getAttribute('src'))).toEqual([
-      '/images/home.svg',
-      '/images/coaching.svg',
-      '/images/telephone.svg',
-      '/images/cubes.svg',
-      '/images/limits.svg',
-      '/images/coaching.svg',
-      '/images/telephone.svg',
-      '/images/cubes.svg',
-      '/images/independence.svg',
-      '/images/coaching.svg',
-      '/images/telephone.svg',
-      '/images/cubes.svg',
-    ]);
-    const week0 = myBestAuntieModalContent.partSummaries[0];
-    const week1 = myBestAuntieModalContent.partSummaries[1];
-    const week2 = myBestAuntieModalContent.partSummaries[2];
-    if (!week0 || !week1 || !week2) {
-      throw new Error('Test content must include three part summary weeks.');
-    }
-    expect(detailTitles.map((node) => node.textContent)).toEqual([
-      week0[0]?.title,
-      week0[1]?.title,
-      week0[2]?.title,
-      week0[3]?.title,
-      week1[0]?.title,
-      week1[1]?.title,
-      week1[2]?.title,
-      week1[3]?.title,
-      week2[0]?.title,
-      week2[1]?.title,
-      week2[2]?.title,
-      week2[3]?.title,
-    ]);
-    expect(detailDescriptions.map((node) => node.textContent)).toEqual([
-      week0[0]?.description,
-      week0[1]?.description,
-      week0[2]?.description,
-      week0[3]?.description,
-      week1[0]?.description,
-      week1[1]?.description,
-      week1[2]?.description,
-      week1[3]?.description,
-      week2[0]?.description,
-      week2[1]?.description,
-      week2[2]?.description,
-      week2[3]?.description,
-    ]);
+    const scheduleBlocks = container.querySelectorAll(
+      'p[data-course-part-schedule-block="true"]',
+    );
+    expect(scheduleBlocks).toHaveLength(3);
+    expect(scheduleBlocks[0]?.textContent).toContain('Group session:');
+    expect(scheduleBlocks[0]?.textContent).toContain('Home visit:');
+    expect(scheduleBlocks[0]?.textContent).toContain('Parent call:');
   });
 
   it('renders timeline segments, 50px part spacing, and numeric part chips', () => {
@@ -981,14 +935,15 @@ describe('my-best-auntie booking modals footer content', () => {
 
     const firstPartRow = firstPartChip?.closest('div');
     expect(firstPartRow?.className).toContain('grid-cols-[auto_minmax(0,1fr)]');
-    expect(firstPartRow?.className).toContain('items-center');
+    expect(firstPartRow?.className).toContain('items-start');
 
     const firstPartDateBlock = firstPartItem?.querySelector(
       'div[data-course-part-date-block="true"]',
     ) as HTMLDivElement | null;
     expect(firstPartDateBlock).not.toBeNull();
     expect(firstPartDateBlock?.className).toContain('flex');
-    expect(firstPartDateBlock?.className).toContain('items-center');
+    expect(firstPartDateBlock?.className).toContain('flex-col');
+    expect(firstPartDateBlock?.className).toContain('gap-2');
     expect(
       firstPartDateBlock?.querySelector('span[data-course-part-date-icon="true"]'),
     ).toBeNull();
