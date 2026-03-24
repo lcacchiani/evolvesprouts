@@ -35,6 +35,9 @@ const LOCAL_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
 const DEFAULT_CURRENCY = 'HKD';
 const DEFAULT_CURRENCY_LABEL = 'Hong Kong Dollar';
 
+/** Currencies shown in admin currency dropdowns (order preserved). */
+const ADMIN_SELECTABLE_CURRENCY_CODES = ['USD', 'CNY', 'HKD', 'SGD'] as const;
+
 type CurrencyOption = {
   value: string;
   label: string;
@@ -64,15 +67,7 @@ export function getCurrencyOptions(): CurrencyOption[] {
     return cachedCurrencyOptions;
   }
 
-  const intlWithSupportedValues = globalThis.Intl as unknown as {
-    supportedValuesOf?: (key: 'currency') => string[];
-  };
-  const currencyCodes =
-    intlWithSupportedValues.supportedValuesOf?.('currency')?.map((entry) => entry.toUpperCase()) ??
-    [DEFAULT_CURRENCY];
-
-  const dedupedCodes = Array.from(new Set([DEFAULT_CURRENCY, ...currencyCodes])).sort();
-  const options = dedupedCodes.map((code) => {
+  const options = ADMIN_SELECTABLE_CURRENCY_CODES.map((code) => {
     if (code === DEFAULT_CURRENCY) {
       return { value: code, label: `${code} ${DEFAULT_CURRENCY_LABEL}` };
     }
