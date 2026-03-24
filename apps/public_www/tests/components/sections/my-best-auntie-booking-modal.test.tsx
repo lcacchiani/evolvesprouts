@@ -326,9 +326,10 @@ describe('my-best-auntie booking modals footer content', () => {
     const { container } = renderBookingModal();
 
     expect(screen.queryByText('Course Schedule')).not.toBeInTheDocument();
-    expect(container.querySelectorAll('span.es-mask-calendar-heading').length).toBeGreaterThan(
-      0,
+    const partCalendarIcons = container.querySelectorAll(
+      'span[data-course-part-icon="true"].es-mask-calendar-current',
     );
+    expect(partCalendarIcons).toHaveLength(3);
   });
 
   it('validates reservation email only after blur', () => {
@@ -814,18 +815,16 @@ describe('my-best-auntie booking modals footer content', () => {
     });
   });
 
-  it('uses my best auntie outline icons for all course part chips', () => {
+  it('uses calendar mask icons inside each course part chip', () => {
     const { container } = renderBookingModal();
 
     const partIcons = Array.from(
-      container.querySelectorAll('img[data-course-part-icon="true"]'),
+      container.querySelectorAll('span[data-course-part-icon="true"]'),
     );
     expect(partIcons).toHaveLength(3);
-    expect(partIcons.map((icon) => icon.getAttribute('src'))).toEqual([
-      '/images/home.svg',
-      '/images/limits.svg',
-      '/images/independence.svg',
-    ]);
+    for (const icon of partIcons) {
+      expect(icon.className).toContain('es-mask-calendar-current');
+    }
   });
 
   it('renders part summary title and description rows for each course week', () => {
@@ -962,10 +961,10 @@ describe('my-best-auntie booking modals footer content', () => {
     const firstPartItem = firstPartChip?.closest('li') ?? null;
     expect(firstPartItem?.className).toContain('es-my-best-auntie-booking-part-item');
     const firstPartIcon = firstPartItem?.querySelector(
-      'img[data-course-part-icon="true"]',
-    ) as HTMLImageElement | null;
+      'span[data-course-part-icon="true"]',
+    ) as HTMLSpanElement | null;
     expect(firstPartIcon).not.toBeNull();
-    expect(firstPartIcon?.getAttribute('src')).toBe('/images/home.svg');
+    expect(firstPartIcon?.className).toContain('es-mask-calendar-current');
 
     const firstPartRow = firstPartChip?.closest('div');
     expect(firstPartRow?.className).toContain('grid-cols-[auto_minmax(0,1fr)]');
@@ -977,12 +976,9 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(firstPartDateBlock).not.toBeNull();
     expect(firstPartDateBlock?.className).toContain('flex');
     expect(firstPartDateBlock?.className).toContain('items-center');
-
-    const firstPartDateIcon = firstPartDateBlock?.querySelector(
-      'span[data-course-part-date-icon="true"]',
-    ) as HTMLSpanElement | null;
-    expect(firstPartDateIcon?.className).toContain('h-6');
-    expect(firstPartDateIcon?.className).toContain('shrink-0');
+    expect(
+      firstPartDateBlock?.querySelector('span[data-course-part-date-icon="true"]'),
+    ).toBeNull();
 
     const firstPartDateText = firstPartDateBlock?.querySelector('p');
     expect(firstPartDateText?.className).toContain('min-w-0');
