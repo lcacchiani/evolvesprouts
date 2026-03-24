@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-const { mockUseExpenses, expensesState, mockUseVendors, vendorsState } = vi.hoisted(() => {
+const { mockUseExpenses, expensesState, mockUseVendors, vendorsState, mockListAllAdminExpenses } = vi.hoisted(() => {
   const state = {
     items: [],
     filters: { query: '', status: '', parseStatus: '' },
@@ -52,6 +52,7 @@ const { mockUseExpenses, expensesState, mockUseVendors, vendorsState } = vi.hois
     mockUseExpenses: vi.fn(() => state),
     vendorsState,
     mockUseVendors: vi.fn(() => vendorsState),
+    mockListAllAdminExpenses: vi.fn().mockResolvedValue([]),
   };
 });
 
@@ -61,6 +62,14 @@ vi.mock('@/hooks/use-expenses', () => ({
 vi.mock('@/hooks/use-vendors', () => ({
   useVendors: mockUseVendors,
 }));
+
+vi.mock('@/lib/expenses-api', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/expenses-api')>('@/lib/expenses-api');
+  return {
+    ...actual,
+    listAllAdminExpenses: mockListAllAdminExpenses,
+  };
+});
 
 import { FinancePage } from '@/components/admin/finance/finance-page';
 
@@ -76,6 +85,7 @@ describe('FinancePage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Vendors' }));
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
+    expect(mockListAllAdminExpenses).toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'Client Invoices' }));
     expect(screen.getByRole('heading', { name: 'Client Invoices' })).toBeInTheDocument();
@@ -92,8 +102,8 @@ describe('FinancePage', () => {
 
   it('uses expense hook state', () => {
     render(<FinancePage />);
-    expect(mockUseExpenses).toHaveBeenCalledTimes(1);
-    expect(mockUseVendors).toHaveBeenCalledTimes(1);
+    expect(mockUseExpenses).toHaveBeenCalled();
+    expect(mockUseVendors).toHaveBeenCalled();
     expect(expensesState.items).toEqual([]);
     expect(vendorsState.vendors).toEqual([]);
   });

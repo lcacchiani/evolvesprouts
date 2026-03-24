@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
+import { formatAmountInDefaultCurrency } from '@/lib/vendor-spend';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import type { Vendor, VendorFilters } from '@/types/vendors';
@@ -28,6 +30,9 @@ interface VendorsPanelProps {
   onLoadMore: () => Promise<void> | void;
   onCreate: (payload: ApiSchemas['CreateVendorRequest']) => Promise<unknown> | void;
   onUpdate: (vendorId: string, payload: ApiSchemas['UpdateVendorRequest']) => Promise<unknown> | void;
+  vendorSpendByVendorId: Map<string, number>;
+  isVendorSpendLoading: boolean;
+  vendorSpendError?: string;
 }
 
 export function VendorsPanel({
@@ -42,7 +47,11 @@ export function VendorsPanel({
   onLoadMore,
   onCreate,
   onUpdate,
+  vendorSpendByVendorId,
+  isVendorSpendLoading,
+  vendorSpendError,
 }: VendorsPanelProps) {
+  const spendColumnLabel = `Total spend (${getAdminDefaultCurrencyCode()})`;
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -136,27 +145,34 @@ export function VendorsPanel({
         loadingLabel='Loading vendors...'
         onLoadMore={onLoadMore}
         toolbar={
-          <div className='mb-3 flex flex-wrap items-end gap-3'>
-            <div className='min-w-[200px] flex-1'>
-              <Label htmlFor='vendors-search'>Search</Label>
-              <Input
-                id='vendors-search'
-                value={filters.query}
-                onChange={(event) => onFilterChange('query', event.target.value)}
-                placeholder='Vendor name'
-              />
-            </div>
-            <div className='min-w-[140px]'>
-              <Label htmlFor='vendors-active'>Status</Label>
-              <Select
-                id='vendors-active'
-                value={filters.active}
-                onChange={(event) => onFilterChange('active', event.target.value as VendorFilters['active'])}
-              >
-                <option value=''>All</option>
-                <option value='true'>Active</option>
-                <option value='false'>Inactive</option>
-              </Select>
+          <div className='mb-3 space-y-2'>
+            {vendorSpendError ? (
+              <p className='text-sm text-amber-700' role='status'>
+                {vendorSpendError}
+              </p>
+            ) : null}
+            <div className='flex flex-wrap items-end gap-3'>
+              <div className='min-w-[200px] flex-1'>
+                <Label htmlFor='vendors-search'>Search</Label>
+                <Input
+                  id='vendors-search'
+                  value={filters.query}
+                  onChange={(event) => onFilterChange('query', event.target.value)}
+                  placeholder='Vendor name'
+                />
+              </div>
+              <div className='min-w-[140px]'>
+                <Label htmlFor='vendors-active'>Status</Label>
+                <Select
+                  id='vendors-active'
+                  value={filters.active}
+                  onChange={(event) => onFilterChange('active', event.target.value as VendorFilters['active'])}
+                >
+                  <option value=''>All</option>
+                  <option value='true'>Active</option>
+                  <option value='false'>Inactive</option>
+                </Select>
+              </div>
             </div>
           </div>
         }
@@ -165,7 +181,7 @@ export function VendorsPanel({
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
-              <th className='px-4 py-3 font-semibold'>Website</th>
+              <th className='px-4 py-3 font-semibold text-right'>{spendColumnLabel}</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold text-right'>Operations</th>
             </tr>
@@ -186,7 +202,13 @@ export function VendorsPanel({
                 }}
               >
                 <td className='px-4 py-3'>{vendor.name}</td>
-                <td className='px-4 py-3'>{vendor.website ?? '—'}</td>
+                <td className='px-4 py-3 text-right tabular-nums'>
+                  {isVendorSpendLoading ? (
+                    '…'
+                  ) : (
+                    formatAmountInDefaultCurrency(vendorSpendByVendorId.get(vendor.id) ?? 0)
+                  )}
+                </td>
                 <td className='px-4 py-3'>{vendor.active ? 'Active' : 'Inactive'}</td>
                 <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                   <Button

@@ -29,13 +29,16 @@ describe('VendorsPanel', () => {
         onLoadMore={vi.fn()}
         onCreate={vi.fn()}
         onUpdate={vi.fn()}
+        vendorSpendByVendorId={new Map([['vendor-1', 1234.56]])}
+        isVendorSpendLoading={false}
       />
     );
 
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Website' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Total spend (HKD)' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
+    expect(screen.getByText('HK$1,234.56')).toBeInTheDocument();
   });
 
   it('creates a vendor from inline editor', async () => {
@@ -55,6 +58,8 @@ describe('VendorsPanel', () => {
         onLoadMore={vi.fn()}
         onCreate={onCreate}
         onUpdate={vi.fn()}
+        vendorSpendByVendorId={new Map()}
+        isVendorSpendLoading={false}
       />
     );
 

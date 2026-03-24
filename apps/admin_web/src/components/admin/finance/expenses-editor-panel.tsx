@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 import { EXPENSE_STATUSES, type Expense, type ExpenseLineItem, type ExpenseStatus } from '@/types/expenses';
 import type { Vendor } from '@/types/vendors';
@@ -146,7 +147,9 @@ export function ExpensesEditorPanel({
   const [invoiceNumber, setInvoiceNumber] = useState(selectedExpense?.invoiceNumber ?? '');
   const [invoiceDate, setInvoiceDate] = useState(selectedExpense?.invoiceDate ?? '');
   const [dueDate, setDueDate] = useState(selectedExpense?.dueDate ?? '');
-  const [currency, setCurrency] = useState(selectedExpense?.currency ?? 'HKD');
+  const [currency, setCurrency] = useState(
+    selectedExpense?.currency ?? getAdminDefaultCurrencyCode()
+  );
   const [subtotal, setSubtotal] = useState(selectedExpense?.subtotal ?? '');
   const [tax, setTax] = useState(selectedExpense?.tax ?? '');
   const [total, setTotal] = useState(selectedExpense?.total ?? '');
