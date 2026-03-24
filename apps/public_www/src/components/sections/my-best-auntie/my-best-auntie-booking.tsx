@@ -599,7 +599,8 @@ export function MyBestAuntieBooking({
               </ButtonPrimitive>
               {privateProgrammeWhatsappHref ? (
                 <ButtonPrimitive
-                  variant='outline'
+                  variant='primary'
+                  className='es-btn--outline'
                   href={privateProgrammeWhatsappHref}
                 >
                   {content.privateProgrammeCtaLabel}
