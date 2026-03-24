@@ -76,11 +76,20 @@ export function MyBestAuntieBookingModal({
   const originalAmount = selectedCohort?.price ?? 0;
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
-    const summaries = modalContent.partSummaries ?? [];
+    const weekSummaries = modalContent.partSummaries ?? [];
     return (selectedCohort?.dates ?? []).map((part, index) => {
+      const lines = weekSummaries[index] ?? [];
+      const detailLines = lines
+        .map((line) => {
+          return {
+            title: line.title?.trim() ?? '',
+            description: line.description?.trim() ?? '',
+          };
+        })
+        .filter((line) => line.title.length > 0 || line.description.length > 0);
       return {
         date: formatPartDateTimeLabel(part.start_datetime, locale),
-        description: summaries[index] ?? '',
+        detailLines,
       };
     });
   }, [selectedCohort, modalContent.partSummaries, locale]);
@@ -126,7 +135,6 @@ export function MyBestAuntieBookingModal({
               venueAddress={selectedVenueAddress}
               directionHref={selectedVenueDirectionHref}
               detailsVariant='my-best-auntie'
-              myBestAuntiePartSupportLabels={modalContent.partSupportLabels}
             />
             <BookingReservationForm
               locale={locale}

@@ -828,14 +828,17 @@ describe('my-best-auntie booking modals footer content', () => {
     ]);
   });
 
-  it('renders coaching and telephone support rows for each course part', () => {
+  it('renders part summary title and description rows for each course week', () => {
     const { container } = renderBookingModal();
 
     const supportIcons = Array.from(
       container.querySelectorAll('img[data-course-part-support-icon="true"]'),
     );
-    const supportLabels = Array.from(
-      container.querySelectorAll('p[data-course-part-support-label="true"]'),
+    const detailTitles = Array.from(
+      container.querySelectorAll('p[data-course-part-detail-title="true"]'),
+    );
+    const detailDescriptions = Array.from(
+      container.querySelectorAll('p[data-course-part-detail-description="true"]'),
     );
     const supportChips = Array.from(
       container.querySelectorAll('span[data-course-part-support-chip="true"]'),
@@ -844,27 +847,58 @@ describe('my-best-auntie booking modals footer content', () => {
       container.querySelectorAll('span[data-course-part-line="support-gap-connector"]'),
     );
 
-    expect(supportIcons).toHaveLength(6);
-    expect(supportChips).toHaveLength(6);
-    expect(supportLabels).toHaveLength(6);
-    expect(supportGapConnectors).toHaveLength(6);
+    expect(supportIcons).toHaveLength(12);
+    expect(supportChips).toHaveLength(12);
+    expect(detailTitles).toHaveLength(12);
+    expect(detailDescriptions).toHaveLength(12);
+    expect(supportGapConnectors).toHaveLength(12);
     expect(supportIcons.map((icon) => icon.getAttribute('src'))).toEqual([
+      '/images/home.svg',
       '/images/coaching.svg',
       '/images/telephone.svg',
+      '/images/cubes.svg',
+      '/images/limits.svg',
       '/images/coaching.svg',
       '/images/telephone.svg',
+      '/images/cubes.svg',
+      '/images/independence.svg',
       '/images/coaching.svg',
       '/images/telephone.svg',
+      '/images/cubes.svg',
     ]);
-    expect(
-      supportLabels.map((label) => label.textContent),
-    ).toEqual([
-      myBestAuntieModalContent.partSupportLabels.homeVisit,
-      myBestAuntieModalContent.partSupportLabels.parentCall,
-      myBestAuntieModalContent.partSupportLabels.homeVisit,
-      myBestAuntieModalContent.partSupportLabels.parentCall,
-      myBestAuntieModalContent.partSupportLabels.homeVisit,
-      myBestAuntieModalContent.partSupportLabels.parentCall,
+    const week0 = myBestAuntieModalContent.partSummaries[0];
+    const week1 = myBestAuntieModalContent.partSummaries[1];
+    const week2 = myBestAuntieModalContent.partSummaries[2];
+    if (!week0 || !week1 || !week2) {
+      throw new Error('Test content must include three part summary weeks.');
+    }
+    expect(detailTitles.map((node) => node.textContent)).toEqual([
+      week0[0]?.title,
+      week0[1]?.title,
+      week0[2]?.title,
+      week0[3]?.title,
+      week1[0]?.title,
+      week1[1]?.title,
+      week1[2]?.title,
+      week1[3]?.title,
+      week2[0]?.title,
+      week2[1]?.title,
+      week2[2]?.title,
+      week2[3]?.title,
+    ]);
+    expect(detailDescriptions.map((node) => node.textContent)).toEqual([
+      week0[0]?.description,
+      week0[1]?.description,
+      week0[2]?.description,
+      week0[3]?.description,
+      week1[0]?.description,
+      week1[1]?.description,
+      week1[2]?.description,
+      week1[3]?.description,
+      week2[0]?.description,
+      week2[1]?.description,
+      week2[2]?.description,
+      week2[3]?.description,
     ]);
   });
 
