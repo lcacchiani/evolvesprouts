@@ -24,6 +24,7 @@ describe('reservations-data', () => {
         price: 9000,
         reservation_pending_until_payment_confirmed: true,
         agreed_to_terms_and_conditions: true,
+        stripe_payment_intent_id: 'pi_test_123',
       },
       turnstileToken: 'mock-turnstile-token',
     });
@@ -34,6 +35,7 @@ describe('reservations-data', () => {
       body: expect.objectContaining({
         full_name: 'Test User',
         email: 'test@example.com',
+        stripe_payment_intent_id: 'pi_test_123',
       }),
       turnstileToken: 'mock-turnstile-token',
       expectedSuccessStatuses: [200, 202],

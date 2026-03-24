@@ -13,6 +13,7 @@ export interface ReservationSubmissionPayload {
   price: number;
   reservation_pending_until_payment_confirmed: boolean;
   agreed_to_terms_and_conditions: boolean;
+  stripe_payment_intent_id?: string;
 }
 
 interface SubmitReservationOptions {

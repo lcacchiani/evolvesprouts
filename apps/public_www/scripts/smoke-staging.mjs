@@ -451,6 +451,22 @@ function buildApiCases(turnstileToken) {
       includeTurnstileHeader: true,
       turnstileToken: normalizedTurnstileToken,
     },
+    {
+      name: 'reservation payment-intent endpoint',
+      method: 'POST',
+      proxyPath: '/www/v1/reservations/payment-intent',
+      directPath: '/v1/reservations/payment-intent',
+      apiBaseType: 'crm',
+      body: {
+        cohort_age: '3-5 years',
+        cohort_date: '2030-01-01',
+        price: 1,
+      },
+      allowedStatuses: new Set([200, 400, 403]),
+      expectedStatuses: new Set([200]),
+      includeTurnstileHeader: true,
+      turnstileToken: normalizedTurnstileToken,
+    },
   ];
 }
 

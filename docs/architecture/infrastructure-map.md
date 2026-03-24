@@ -174,9 +174,10 @@ API Gateway (evolvesprouts-api)
   │     Authorization: None (Mailchimp callback)
   │
   └─▶ /www/v1/* ────────────▶ AdminFunction (VPC)
-        Authorization: API Key (via CloudFront origin header)
-        Routes: /www/v1/calendar/events, /www/v1/discounts/validate,
-                /www/v1/reservations, /www/v1/contact-us
+       Authorization: API Key (via CloudFront origin header)
+       Routes: /www/v1/calendar/events, /www/v1/discounts/validate,
+               /www/v1/reservations, /www/v1/reservations/payment-intent,
+               /www/v1/contact-us
 ```
 
 ### API Gateway configuration

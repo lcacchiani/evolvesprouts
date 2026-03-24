@@ -9,18 +9,21 @@ const {
   originalBankName,
   originalBankAccountHolder,
   originalBankAccountNumber,
+  originalStripePublishableKey,
 } = vi.hoisted(() => {
   const originalFpsMerchantName = process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME;
   const originalFpsMobileNumber = process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER;
   const originalBankName = process.env.NEXT_PUBLIC_BANK_NAME;
   const originalBankAccountHolder = process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER;
   const originalBankAccountNumber = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER;
+  const originalStripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
   process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME = 'Test FPS Merchant';
   process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = '85200000000';
   process.env.NEXT_PUBLIC_BANK_NAME = 'Test Bank';
   process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER = 'Test Account Holder';
   process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER = '123-456-789';
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_mock_123';
 
   return {
     originalFpsMerchantName,
@@ -28,6 +31,7 @@ const {
     originalBankName,
     originalBankAccountHolder,
     originalBankAccountNumber,
+    originalStripePublishableKey,
   };
 });
 
@@ -41,6 +45,7 @@ import trainingCoursesContent from '@/content/my-best-auntie-training-courses.js
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
+import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
 import {
   formatSiteCompactDate,
   formatSiteTimeOfDay,
@@ -70,6 +75,24 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('@stripe/stripe-js', () => ({
+  loadStripe: vi.fn(() => Promise.resolve({})),
+}));
+
+vi.mock('@stripe/react-stripe-js', () => ({
+  Elements: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  PaymentElement: () => <div data-testid='mock-stripe-payment-element' />,
+  useElements: () => ({}),
+  useStripe: () => ({
+    confirmPayment: vi.fn(async () => ({
+      paymentIntent: {
+        id: 'pi_test_booking_modal',
+        status: 'succeeded',
+      },
+    })),
+  }),
+}));
+
 vi.mock('@/lib/crm-api-client', async () => {
   const actual = await vi.importActual<typeof import('@/lib/crm-api-client')>(
     '@/lib/crm-api-client',
@@ -93,6 +116,14 @@ vi.mock('@/lib/discounts-data', async () => {
     validateDiscountCode: vi.fn(() => Promise.resolve(null)),
   };
 });
+
+vi.mock('@/lib/reservation-payments-data', () => ({
+  createReservationPaymentIntent: vi.fn(() =>
+    Promise.resolve({
+      payment_intent_id: 'pi_mock_123',
+      client_secret: 'pi_mock_123_secret_abc',
+    })),
+}));
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
@@ -143,6 +174,7 @@ if (!selectedCohort) {
 }
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
+const mockedCreateReservationPaymentIntent = vi.mocked(createReservationPaymentIntent);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
 const testFpsMerchantName = 'Test FPS Merchant';
@@ -214,6 +246,7 @@ beforeEach(() => {
 afterEach(() => {
   mockedCreateCrmApiClient.mockReturnValue(null);
   mockedValidateDiscountCode.mockReset();
+  mockedCreateReservationPaymentIntent.mockReset();
   mockedTrackAnalyticsEvent.mockReset();
 
   if (originalTurnstileSiteKey === undefined) {
@@ -250,6 +283,12 @@ afterEach(() => {
     delete process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER;
   } else {
     process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER = originalBankAccountNumber;
+  }
+
+  if (originalStripePublishableKey === undefined) {
+    delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  } else {
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = originalStripePublishableKey;
   }
 });
 
@@ -697,6 +736,7 @@ describe('my-best-auntie booking modals footer content', () => {
           price: 9000,
           reservation_pending_until_payment_confirmed: true,
           agreed_to_terms_and_conditions: true,
+          stripe_payment_intent_id: undefined,
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],
@@ -823,6 +863,90 @@ describe('my-best-auntie booking modals footer content', () => {
         expect.objectContaining({
           sectionId: 'my-best-auntie-booking',
           ctaLocation: 'reservation_form',
+        }),
+      );
+    });
+  });
+
+  it('submits Stripe payment method with payment intent id in reservation payload', async () => {
+    const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
+    const onSubmitReservation = vi.fn();
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: requestSpy,
+    });
+    mockedCreateReservationPaymentIntent.mockResolvedValue({
+      payment_intent_id: 'pi_test_booking_modal',
+      client_secret: 'pi_test_booking_modal_secret_abc',
+    });
+
+    renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+      onSubmitReservation,
+    });
+
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: bookingModalContent.paymentMethodStripeValue,
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    await waitFor(() => {
+      expect(mockedCreateReservationPaymentIntent).toHaveBeenCalled();
+    });
+
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
+      target: { value: 'ida@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
+      target: { value: 'Need details' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.submitStripeLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(requestSpy).toHaveBeenCalledWith({
+        endpointPath: '/v1/reservations',
+        method: 'POST',
+        body: {
+          full_name: 'Test User',
+          email: 'ida@example.com',
+          phone_number: '85212345678',
+          cohort_age: '18-24 months',
+          cohort_date: selectedCohortDate,
+          comments: 'Need details',
+          discount_code: undefined,
+          price: 9000,
+          reservation_pending_until_payment_confirmed: true,
+          agreed_to_terms_and_conditions: true,
+          stripe_payment_intent_id: 'pi_test_booking_modal',
+        },
+        turnstileToken: 'mock-turnstile-token',
+        expectedSuccessStatuses: [200, 202],
+      });
+    });
+    await waitFor(() => {
+      expect(onSubmitReservation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethod: bookingModalContent.paymentMethodStripeValue,
         }),
       );
     });

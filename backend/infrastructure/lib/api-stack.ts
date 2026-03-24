@@ -523,6 +523,26 @@ export class ApiStack extends cdk.Stack {
           "Shared secret token required by the public Mailchimp webhook endpoint",
       }
     );
+    const evolveSproutsStripeSecretKey = new cdk.CfnParameter(
+      this,
+      "EvolveSproutsStripeSecretKey",
+      {
+        type: "String",
+        noEcho: true,
+        default: "",
+        description: "Stripe secret key for inline modal reservation payments",
+      }
+    );
+    const evolveSproutsStripePaymentMethodConfigurationId = new cdk.CfnParameter(
+      this,
+      "EvolveSproutsStripePaymentMethodConfigurationId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Optional Stripe payment method configuration ID used for public reservation PaymentIntents",
+      }
+    );
     const mediaDefaultResourceKey = new cdk.CfnParameter(
       this,
       "MediaDefaultResourceKey",
@@ -1190,6 +1210,9 @@ export class ApiStack extends cdk.Stack {
         ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
         MAILCHIMP_WEBHOOK_SECRET: mailchimpWebhookSecret.valueAsString,
+        EVOLVESPROUTS_STRIPE_SECRET_KEY: evolveSproutsStripeSecretKey.valueAsString,
+        EVOLVESPROUTS_STRIPE_PAYMENT_METHOD_CONFIGURATION_ID:
+          evolveSproutsStripePaymentMethodConfigurationId.valueAsString,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         ADMIN_GROUP: adminGroupName,
       },
@@ -1226,6 +1249,7 @@ export class ApiStack extends cdk.Stack {
       "https://nominatim.openstreetmap.org/search",
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
       `https://${mailchimpServerPrefix.valueAsString}.api.mailchimp.com/3.0/`,
+      "https://api.stripe.com/v1/",
       openrouterChatCompletionsUrl.valueAsString,
     ];
 
@@ -2373,6 +2397,15 @@ export class ApiStack extends cdk.Stack {
 
     const mediaRequest = v1.addResource("media-request");
     mediaRequest.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+    const reservations = v1.addResource("reservations");
+    reservations.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+    reservations.addResource("payment-intent").addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });

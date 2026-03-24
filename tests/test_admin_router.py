@@ -35,8 +35,12 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/v1/assets/share/token-123",
         "/v1/assets/public/abc/download",
         "/v1/media-request",
+        "/v1/reservations",
+        "/v1/reservations/payment-intent",
         "/v1/mailchimp/webhook",
         "/www/v1/media-request",
+        "/www/v1/reservations",
+        "/www/v1/reservations/payment-intent",
     )
     for path in routes:
         handler = _match_handler(event=event, method="GET", path=path)
@@ -46,9 +50,19 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
 def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> None:
     event = {"headers": {}}
     assert _match_handler(event=event, method="POST", path="/v1/reservations") is not None
+    assert (
+        _match_handler(event=event, method="POST", path="/v1/reservations/payment-intent")
+        is not None
+    )
     assert _match_handler(event=event, method="POST", path="/v1/media-request") is not None
     assert (
         _match_handler(event=event, method="POST", path="/v1/mailchimp/webhook")
+        is not None
+    )
+    assert (
+        _match_handler(
+            event=event, method="POST", path="/www/v1/reservations/payment-intent"
+        )
         is not None
     )
     assert (
@@ -57,6 +71,12 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
     )
     assert (
         _match_handler(event=event, method="POST", path="/v1/reservations/extra") is None
+    )
+    assert (
+        _match_handler(
+            event=event, method="POST", path="/v1/reservations/payment-intent/extra"
+        )
+        is None
     )
     assert (
         _match_handler(event=event, method="POST", path="/v1/media-request/extra")
@@ -68,6 +88,12 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
     )
     assert (
         _match_handler(event=event, method="POST", path="/www/v1/media-request/extra")
+        is None
+    )
+    assert (
+        _match_handler(
+            event=event, method="POST", path="/www/v1/reservations/payment-intent/extra"
+        )
         is None
     )
 

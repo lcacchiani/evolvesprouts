@@ -234,6 +234,36 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /www/v1/reservations/payment-intent:
+    post:
+      summary: Create reservation payment intent
+      description: Create a Stripe PaymentIntent for inline booking modal payment.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationPaymentIntentRequest"
+      responses:
+        "200":
+          description: PaymentIntent created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationPaymentIntentResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "502":
+          description: Upstream payment provider initialization failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /www/v1/contact-us:
     post:
       summary: Submit contact-us form
@@ -522,6 +552,40 @@ components:
           type: boolean
         agreed_to_terms_and_conditions:
           type: boolean
+        stripe_payment_intent_id:
+          type: string
+          description: Required when payment method is Stripe/card-wallet flow.
+          pattern: '^pi_[A-Za-z0-9]+$'
+    ReservationPaymentIntentRequest:
+      type: object
+      required:
+        - cohort_age
+        - cohort_date
+        - price
+      properties:
+        cohort_age:
+          type: string
+          maxLength: 200
+        cohort_date:
+          type: string
+          maxLength: 100
+        discount_code:
+          type: string
+          maxLength: 100
+        price:
+          type: number
+          minimum: 0
+          maximum: 1000000
+    ReservationPaymentIntentResponse:
+      type: object
+      required:
+        - payment_intent_id
+        - client_secret
+      properties:
+        payment_intent_id:
+          type: string
+        client_secret:
+          type: string
     ContactUsSubmissionRequest:
       type: object
       required:

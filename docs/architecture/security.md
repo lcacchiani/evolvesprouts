@@ -268,6 +268,14 @@ Process to add a new public API path:
 6. Monitor API and CloudFront logs for unexpected request patterns after
    rollout.
 
+Current allowlisted public website POST paths include:
+
+- `/www/v1/contact-us`
+- `/www/v1/discounts/validate`
+- `/www/v1/media-request`
+- `/www/v1/reservations`
+- `/www/v1/reservations/payment-intent`
+
 ### Third-party invoice parser egress controls
 
 Expense invoice parsing sends attachment bytes (or email-body text saved as a
