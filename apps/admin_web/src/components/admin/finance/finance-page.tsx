@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Card } from '@/components/ui/card';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import { useExpenses } from '@/hooks/use-expenses';
+import { useVendorSpendHkd } from '@/hooks/use-vendor-spend-hkd';
 import { useVendors } from '@/hooks/use-vendors';
+import { listAllAdminExpenses } from '@/lib/expenses-api';
+import type { Expense } from '@/types/expenses';
 
 import { ExpensesEditorPanel } from './expenses-editor-panel';
 import { ExpensesListPanel } from './expenses-list-panel';
@@ -15,11 +19,48 @@ export function FinancePage() {
   const [activeView, setActiveView] = useState<FinanceView>('expenses');
   const expenses = useExpenses();
   const vendors = useVendors();
+  const [vendorSpendExpenses, setVendorSpendExpenses] = useState<Expense[] | null>(null);
+  const [vendorSpendFetchError, setVendorSpendFetchError] = useState('');
+  const vendorSpend = useVendorSpendHkd(activeView === 'vendors' ? vendorSpendExpenses : null);
+
+  const setFinanceView = useCallback((view: FinanceView) => {
+    setActiveView(view);
+    if (view !== 'vendors') {
+      setVendorSpendExpenses(null);
+      setVendorSpendFetchError('');
+      return;
+    }
+    setVendorSpendExpenses(null);
+    setVendorSpendFetchError('');
+  }, []);
+
+  useEffect(() => {
+    if (activeView !== 'vendors') {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const all = await listAllAdminExpenses();
+        if (!cancelled) {
+          setVendorSpendExpenses(all);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setVendorSpendFetchError(toErrorMessage(error, 'Failed to load expenses for spend totals.'));
+          setVendorSpendExpenses([]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeView]);
 
   if (activeView === 'client-invoices') {
     return (
       <div className='space-y-6'>
-        <FinanceHeader activeView={activeView} onSetView={setActiveView} />
+        <FinanceHeader activeView={activeView} onSetView={setFinanceView} />
         <Card
           title='Client Invoices'
           description='Scaffold ready'
@@ -38,7 +79,7 @@ export function FinancePage() {
   if (activeView === 'vendors') {
     return (
       <div className='space-y-6'>
-        <FinanceHeader activeView={activeView} onSetView={setActiveView} />
+        <FinanceHeader activeView={activeView} onSetView={setFinanceView} />
         <VendorsPanel
           vendors={vendors.vendors}
           filters={vendors.filters}
@@ -51,6 +92,9 @@ export function FinancePage() {
           onLoadMore={vendors.loadMore}
           onCreate={vendors.createVendor}
           onUpdate={vendors.updateVendor}
+          vendorSpendHkdByVendorId={vendorSpend.byVendorId}
+          isVendorSpendLoading={vendorSpendExpenses === null || vendorSpend.isLoading}
+          vendorSpendError={[vendorSpendFetchError, vendorSpend.error].filter(Boolean).join(' ') || undefined}
         />
       </div>
     );
@@ -58,7 +102,7 @@ export function FinancePage() {
 
   return (
     <div className='space-y-6'>
-      <FinanceHeader activeView={activeView} onSetView={setActiveView} />
+      <FinanceHeader activeView={activeView} onSetView={setFinanceView} />
       <ExpensesEditorPanel
         key={expenses.selectedExpense?.id ?? 'new-expense'}
         selectedExpense={expenses.selectedExpense}

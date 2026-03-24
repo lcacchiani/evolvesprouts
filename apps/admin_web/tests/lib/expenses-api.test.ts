@@ -14,7 +14,7 @@ vi.mock('@/lib/api-admin-client', async () => {
   };
 });
 
-import { createAdminExpense, listAdminExpenses } from '@/lib/expenses-api';
+import { createAdminExpense, listAdminExpenses, listAllAdminExpenses } from '@/lib/expenses-api';
 
 describe('expenses-api', () => {
   beforeEach(() => {
@@ -82,6 +82,99 @@ describe('expenses-api', () => {
     expect(request.endpointPath).toContain('parse_status=succeeded');
     expect(request.endpointPath).toContain('cursor=abc');
     expect(request.endpointPath).toContain('limit=10');
+  });
+
+  it('caps list expense page size at 100', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      items: [],
+      next_cursor: null,
+      total_count: 0,
+    });
+
+    await listAdminExpenses({ limit: 500 });
+
+    const request = mockAdminApiRequest.mock.calls[0][0];
+    expect(request.endpointPath).toContain('limit=100');
+  });
+
+  it('lists all expenses by following cursors', async () => {
+    mockAdminApiRequest
+      .mockResolvedValueOnce({
+        items: [
+          {
+            id: 'exp-a',
+            amends_expense_id: null,
+            status: 'submitted',
+            parse_status: 'succeeded',
+            vendor_id: 'v1',
+            vendor_name: 'A',
+            invoice_number: null,
+            invoice_date: null,
+            due_date: null,
+            currency: 'HKD',
+            subtotal: null,
+            tax: null,
+            total: '10.00',
+            line_items: [],
+            parse_confidence: null,
+            parser_raw: null,
+            notes: null,
+            void_reason: null,
+            submitted_at: null,
+            paid_at: null,
+            voided_at: null,
+            created_by: 'admin-sub',
+            updated_by: null,
+            created_at: '2026-03-01T00:00:00.000Z',
+            updated_at: '2026-03-01T00:00:00.000Z',
+            attachments: [],
+          },
+        ],
+        next_cursor: 'next-1',
+        total_count: 2,
+      })
+      .mockResolvedValueOnce({
+        items: [
+          {
+            id: 'exp-b',
+            amends_expense_id: null,
+            status: 'paid',
+            parse_status: 'succeeded',
+            vendor_id: 'v1',
+            vendor_name: 'A',
+            invoice_number: null,
+            invoice_date: null,
+            due_date: null,
+            currency: 'HKD',
+            subtotal: null,
+            tax: null,
+            total: '20.00',
+            line_items: [],
+            parse_confidence: null,
+            parser_raw: null,
+            notes: null,
+            void_reason: null,
+            submitted_at: null,
+            paid_at: null,
+            voided_at: null,
+            created_by: 'admin-sub',
+            updated_by: null,
+            created_at: '2026-03-02T00:00:00.000Z',
+            updated_at: '2026-03-02T00:00:00.000Z',
+            attachments: [],
+          },
+        ],
+        next_cursor: null,
+        total_count: 2,
+      });
+
+    const all = await listAllAdminExpenses();
+
+    expect(all).toHaveLength(2);
+    expect(all.map((e) => e.id)).toEqual(['exp-a', 'exp-b']);
+    expect(mockAdminApiRequest).toHaveBeenCalledTimes(2);
+    expect(mockAdminApiRequest.mock.calls[0][0].endpointPath).not.toContain('cursor=');
+    expect(mockAdminApiRequest.mock.calls[1][0].endpointPath).toContain('cursor=next-1');
   });
 
   it('creates expense with normalized request body', async () => {
