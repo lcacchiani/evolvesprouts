@@ -933,6 +933,7 @@ export class ApiStack extends cdk.Stack {
         // Set to true for functions that need internet access but not database
         // access (e.g., authorizers that fetch JWKS from Cognito)
         noVpc?: boolean;
+        manageLogGroup?: boolean;
       }
     ) => {
       const factory = props.noVpc ? noVpcLambdaFactory : lambdaFactory;
@@ -944,6 +945,7 @@ export class ApiStack extends cdk.Stack {
         extraCopyPaths: props.extraCopyPaths,
         securityGroups: props.noVpc ? undefined : (props.securityGroups ?? [lambdaSecurityGroup]),
         memorySize: props.memorySize,
+        manageLogGroup: props.manageLogGroup,
       });
       return pythonLambda.function;
     };
@@ -996,11 +998,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     // Assets bucket
-    const legacyClientAssetsBucketName = [
-      name("client-assets"),
-      cdk.Aws.ACCOUNT_ID,
-      cdk.Aws.REGION,
-    ].join("-");
     const assetsBucketName = [
       name("assets"),
       cdk.Aws.ACCOUNT_ID,
@@ -1057,41 +1054,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     const inboundInvoiceRawEmailPrefix = "inbound-email/raw/";
-
-    const legacyClientAssetsBucket = s3.Bucket.fromBucketName(
-      this,
-      "LegacyClientAssetsBucket",
-      legacyClientAssetsBucketName
-    );
-    const assetsBucketMigratorFunction = createPythonFunction(
-      "AssetsBucketMigratorFunction",
-      {
-        handler: "lambda/assets_bucket_migrator/handler.lambda_handler",
-        timeout: cdk.Duration.minutes(15),
-        memorySize: 512,
-      }
-    );
-    legacyClientAssetsBucket.grantRead(assetsBucketMigratorFunction);
-    assetsBucket.grantReadWrite(assetsBucketMigratorFunction);
-    assetsBucketMigratorFunction.addPermission(
-      "AssetsBucketMigratorInvokePermission",
-      {
-        principal: new iam.ServicePrincipal("cloudformation.amazonaws.com"),
-        sourceArn: cdk.Stack.of(this).stackId,
-        sourceAccount: cdk.Stack.of(this).account,
-      }
-    );
-    const assetsBucketMigrationResource = new cdk.CustomResource(
-      this,
-      "AssetsBucketMigration",
-      {
-        serviceToken: assetsBucketMigratorFunction.functionArn,
-        properties: {
-          SourceBucketName: legacyClientAssetsBucketName,
-          DestinationBucketName: assetsBucket.bucketName,
-        },
-      }
-    );
 
     const assetDownloadCloudFrontPublicKeyPem = new cdk.CfnParameter(
       this,
@@ -1622,6 +1584,7 @@ export class ApiStack extends cdk.Stack {
       {
         handler: "lambda/inbound_invoice_email/handler.lambda_handler",
         timeout: cdk.Duration.seconds(30),
+        manageLogGroup: false,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",

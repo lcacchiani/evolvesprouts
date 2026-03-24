@@ -146,17 +146,6 @@ their primary responsibilities.
   - `API_KEY_NAME_PREFIX`: prefix for key names
   - `GRACE_PERIOD_HOURS`: hours to keep old key active (default 24)
 
-### Assets bucket migrator
-- Function: AssetsBucketMigratorFunction
-- Handler: backend/lambda/assets_bucket_migrator/handler.py
-- Trigger: CloudFormation custom resource during the assets-bucket rename
-- Purpose: copy current objects from the retained legacy
-  `evolvesprouts-client-assets-*` bucket into the new `evolvesprouts-assets-*`
-  bucket before runtime dependencies switch to the renamed bucket
-- VPC: Yes
-- Permissions: S3 read for the retained legacy assets bucket, S3 read/write for
-  the new assets bucket
-
 ### Booking request processor
 - Function: BookingRequestProcessor
 - Handler: backend/lambda/manager_request_processor/handler.py
