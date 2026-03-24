@@ -1004,6 +1004,7 @@
     "modal": {
       "title": "我的最佳姨姨培訓課程",
       "subtitle": "9 週。3 次小組課。3 次上門家訪。3 次家長通話。",
+      "phaseWeekRangeLabelTemplate": "第 {phaseNumber} 階段：第 {startWeek}-{endWeek} 週（{startDate} - {endDate}）",
       "partSummaries": [
         [
           {

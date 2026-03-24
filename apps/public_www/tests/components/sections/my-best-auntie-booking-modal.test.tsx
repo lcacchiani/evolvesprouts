@@ -332,6 +332,19 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(partCalendarIcons).toHaveLength(3);
   });
 
+  it('renders phase week range labels without year in the details column', () => {
+    renderBookingModal();
+    expect(
+      screen.getByText('Phase 1: Week 1-3 (19 Apr - 10 May)'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Phase 2: Week 4-6 (10 May - 31 May)'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Phase 3: Week 7-9 (31 May - 21 Jun)'),
+    ).toBeInTheDocument();
+  });
+
   it('validates reservation email only after blur', () => {
     renderBookingModal();
 

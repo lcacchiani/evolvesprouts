@@ -1004,6 +1004,7 @@
     "modal": {
       "title": "我的最佳阿姨培训课程",
       "subtitle": "9周。3次小组课程。3次上门家访。3次家长通话。",
+      "phaseWeekRangeLabelTemplate": "第 {phaseNumber} 阶段：第 {startWeek}-{endWeek} 周（{startDate} - {endDate}）",
       "partSummaries": [
         [
           {
