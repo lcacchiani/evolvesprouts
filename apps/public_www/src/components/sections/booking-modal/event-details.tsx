@@ -174,13 +174,9 @@ export function BookingEventDetails({
                         className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
                         aria-hidden='true'
                       />
-                      <Image
-                        src={getPartIconSource(index)}
-                        alt=''
-                        width={28}
-                        height={28}
+                      <span
                         data-course-part-icon='true'
-                        className='h-7 w-7 shrink-0 object-contain'
+                        className='es-mask-calendar-current h-7 w-7 shrink-0'
                         aria-hidden='true'
                       />
                     </span>
@@ -189,11 +185,6 @@ export function BookingEventDetails({
                       data-course-part-date-block='true'
                       className='flex min-w-0 items-center gap-2'
                     >
-                      <span
-                        data-course-part-date-icon='true'
-                        className='es-mask-calendar-heading h-6 w-6 shrink-0'
-                        aria-hidden='true'
-                      />
                       <p className='min-w-0 text-[17px] font-semibold leading-6 es-text-heading'>
                         {part.date}
                       </p>
