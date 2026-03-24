@@ -26,10 +26,12 @@ import type {
   MyBestAuntieBookingContent,
   MyBestAuntieModalContent,
 } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import {
   formatCohortValue,
   formatPartDateTimeLabel,
 } from '@/lib/format';
+import { formatMyBestAuntiePhaseWindowDateLabels } from '@/lib/site-datetime';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
@@ -87,12 +89,28 @@ export function MyBestAuntieBookingModal({
           };
         })
         .filter((line) => line.title.length > 0 || line.description.length > 0);
+      const phaseWindow = formatMyBestAuntiePhaseWindowDateLabels(
+        part.start_datetime,
+        locale,
+      );
+      const startWeek = index * 3 + 1;
+      const endWeek = index * 3 + 3;
+      const dateLabel =
+        phaseWindow !== null
+          ? formatContentTemplate(modalContent.phaseWeekRangeLabelTemplate, {
+              phaseNumber: index + 1,
+              startWeek,
+              endWeek,
+              startDate: phaseWindow.startLabel,
+              endDate: phaseWindow.endLabel,
+            })
+          : formatPartDateTimeLabel(part.start_datetime, locale);
       return {
-        date: formatPartDateTimeLabel(part.start_datetime, locale),
+        date: dateLabel,
         detailLines,
       };
     });
-  }, [selectedCohort, modalContent.partSummaries, locale]);
+  }, [selectedCohort, modalContent.partSummaries, modalContent.phaseWeekRangeLabelTemplate, locale]);
 
   const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
   const selectedDateEndTime = selectedCohort?.dates[0]?.end_datetime ?? '';
