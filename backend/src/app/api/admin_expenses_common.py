@@ -55,7 +55,7 @@ def serialize_expense(expense: Expense) -> dict[str, Any]:
         expense.vendor.name
         if expense.vendor is not None
         and expense.vendor.relationship_type.value == "vendor"
-        else expense.vendor_name
+        else None
     )
     return {
         "id": str(expense.id),
@@ -139,6 +139,11 @@ def parse_create_payload(body: dict[str, Any]) -> dict[str, Any]:
         optional_field(body, "parse_requested", "parseRequested"),
         default=True,
     )
+    if payload["vendor_id"] is None:
+        raise ValidationError(
+            "vendor_id is required",
+            field="vendor_id",
+        )
     return payload
 
 
@@ -148,11 +153,6 @@ def parse_update_payload(
     allow_empty: bool = True,
 ) -> dict[str, Any]:
     """Parse update/amend payload."""
-    if optional_field(body, "vendor_name", "vendorName") is not None:
-        raise ValidationError(
-            "vendor_name is not supported. Use vendor_id from managed vendors.",
-            field="vendor_id",
-        )
     payload: dict[str, Any] = {
         "status": parse_optional_status(optional_field(body, "status")),
         "vendor_id": parse_optional_uuid(

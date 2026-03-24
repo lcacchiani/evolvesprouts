@@ -25,6 +25,7 @@ from app.db.repositories import (
     AssetRepository,
     ExpenseRepository,
     InboundEmailRepository,
+    OrganizationRepository,
 )
 from app.services.aws_clients import get_s3_client
 from app.services.expense_events import enqueue_expense_parse
@@ -73,6 +74,10 @@ class InboundInvoiceProcessResult:
 
     status: InboundEmailStatus
     expense_id: UUID | None = None
+
+
+class InboundInvoiceVendorResolutionError(Exception):
+    """Raised when vendor_id cannot be resolved for an inbound invoice expense."""
 
 
 def process_inbound_invoice_email(
@@ -136,11 +141,28 @@ def process_inbound_invoice_email(
         )
         return InboundInvoiceProcessResult(status=InboundEmailStatus.FAILED)
 
-    expense_id = _store_expense_from_email(
-        event=event,
-        parsed_email=parsed_email,
-        invoice_attachments=invoice_attachments,
-    )
+    try:
+        expense_id = _store_expense_from_email(
+            event=event,
+            parsed_email=parsed_email,
+            invoice_attachments=invoice_attachments,
+        )
+    except InboundInvoiceVendorResolutionError as exc:
+        _upsert_tracking_record(
+            event,
+            status=InboundEmailStatus.FAILED,
+            parsed_email=parsed_email,
+            failure_reason=str(exc),
+        )
+        logger.info(
+            "Inbound invoice email failed vendor resolution",
+            extra={
+                "ses_message_id": event.ses_message_id,
+                "source_email_masked": mask_email(source_email or ""),
+            },
+        )
+        return InboundInvoiceProcessResult(status=InboundEmailStatus.FAILED)
+
     _ensure_parse_requested(expense_id)
     logger.info(
         "Stored inbound invoice email",
@@ -174,12 +196,17 @@ def _store_expense_from_email(
         inbound_repo = InboundEmailRepository(session)
         asset_repo = AssetRepository(session)
         expense_repo = ExpenseRepository(session)
+        vendor_id = _resolve_inbound_vendor_id(session, parsed_email)
+        if vendor_id is None:
+            raise InboundInvoiceVendorResolutionError(
+                "Could not resolve vendor_id from inbound email sender for expense creation"
+            )
 
         expense = expense_repo.create_expense(
             created_by=_SYSTEM_ACTOR,
             status=ExpenseStatus.SUBMITTED,
             parse_status=ExpenseParseStatus.NOT_REQUESTED,
-            vendor_name=_sender_name_fallback(parsed_email),
+            vendor_id=vendor_id,
             notes=_build_expense_notes(event, parsed_email),
         )
         expense.submitted_at = event.received_at
@@ -392,9 +419,26 @@ def _cleanup_uploaded_objects(s3_keys: list[str]) -> None:
             )
 
 
-def _sender_name_fallback(parsed_email: ParsedInboundEmail) -> str | None:
+def _resolve_inbound_vendor_id(
+    session: Session, parsed_email: ParsedInboundEmail
+) -> UUID | None:
+    """Match sender display name or email local-part to a unique active vendor."""
+    org_repo = OrganizationRepository(session)
+    candidates: list[str] = []
     if parsed_email.from_name:
-        return parsed_email.from_name[:255]
+        candidates.append(parsed_email.from_name.strip())
+    if parsed_email.from_email and "@" in parsed_email.from_email:
+        local = parsed_email.from_email.split("@", 1)[0].strip()
+        if local:
+            candidates.append(local)
+    seen: set[str] = set()
+    for raw in candidates:
+        if not raw or raw in seen:
+            continue
+        seen.add(raw)
+        matched = org_repo.try_resolve_active_vendor_by_parsed_name(raw)
+        if matched is not None:
+            return matched.id
     return None
 
 

@@ -156,6 +156,7 @@ export function ExpensesEditorPanel({
   const [notes, setNotes] = useState(selectedExpense?.notes ?? '');
   const [lineItemsJson, setLineItemsJson] = useState(selectedExpense ? toLineItemsJson(selectedExpense.lineItems) : '[]');
   const [lineItemsError, setLineItemsError] = useState('');
+  const [lineItemsDisclosureOpen, setLineItemsDisclosureOpen] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [parseRequested, setParseRequested] = useState(!selectedExpense);
   const [carryExistingAttachments, setCarryExistingAttachments] = useState(true);
@@ -177,6 +178,7 @@ export function ExpensesEditorPanel({
       setLineItemsError('');
     } catch (error) {
       setLineItemsError(error instanceof Error ? error.message : 'Line items JSON is invalid.');
+      setLineItemsDisclosureOpen(true);
       return;
     }
 
@@ -335,16 +337,31 @@ export function ExpensesEditorPanel({
         <Label htmlFor='expense-notes'>Notes</Label>
         <Textarea id='expense-notes' value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
       </div>
-      <div>
-        <Label htmlFor='expense-line-items'>Line items JSON</Label>
-        <Textarea
-          id='expense-line-items'
-          value={lineItemsJson}
-          onChange={(event) => setLineItemsJson(event.target.value)}
-          rows={6}
-        />
-        {lineItemsError ? <p className='mt-1 text-sm text-red-600'>{lineItemsError}</p> : null}
-      </div>
+      <details
+        className='rounded-md border border-slate-200 bg-white'
+        open={lineItemsDisclosureOpen}
+        onToggle={(event) => {
+          setLineItemsDisclosureOpen(event.currentTarget.open);
+        }}
+      >
+        <summary
+          className='cursor-pointer select-none px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50'
+          aria-controls='expense-line-items-panel'
+        >
+          Line items (JSON)
+        </summary>
+        <div className='border-t border-slate-200 px-3 pb-3 pt-2' id='expense-line-items-panel'>
+          <Label htmlFor='expense-line-items'>Line items JSON</Label>
+          <Textarea
+            id='expense-line-items'
+            aria-invalid={lineItemsError ? true : undefined}
+            value={lineItemsJson}
+            onChange={(event) => setLineItemsJson(event.target.value)}
+            rows={6}
+          />
+          {lineItemsError ? <p className='mt-1 text-sm text-red-600'>{lineItemsError}</p> : null}
+        </div>
+      </details>
       <div className='space-y-2'>
         <Label htmlFor='expense-files'>Attachments (PDF, PNG, JPG, WEBP; max 15MB each)</Label>
         <FileUploadButton

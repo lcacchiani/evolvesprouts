@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
+import { VendorInactiveIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
@@ -226,6 +227,7 @@ export function VendorsPanel({
                     type='button'
                     size='sm'
                     variant='danger'
+                    className='w-8 min-w-8 px-0'
                     disabled={!vendor.active || isSaving}
                     onClick={() => void handleDeactivateVendor(vendor.id)}
                     aria-label='Make vendor inactive'
@@ -238,7 +240,7 @@ export function VendorsPanel({
                         aria-hidden
                       />
                     ) : (
-                      'Inactive'
+                      <VendorInactiveIcon className='h-4 w-4 shrink-0' aria-hidden />
                     )}
                   </Button>
                 </td>

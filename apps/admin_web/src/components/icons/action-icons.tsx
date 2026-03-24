@@ -7,3 +7,4 @@ export { default as MarkPaidIcon } from './svg/mark-paid-icon.svg';
 export { default as VoidExpenseIcon } from './svg/void-expense-icon.svg';
 export { default as PencilIcon } from './svg/pencil-icon.svg';
 export { default as ArrowRightIcon } from './svg/arrow-right-icon.svg';
+export { default as VendorInactiveIcon } from './svg/vendor-inactive-icon.svg';

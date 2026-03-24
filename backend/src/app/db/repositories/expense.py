@@ -8,9 +8,11 @@ from decimal import Decimal
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, aliased, selectinload
 
 from app.db.models import Expense, ExpenseAttachment, ExpenseParseStatus, ExpenseStatus
+from app.db.models import Organization
+from app.db.models.enums import RelationshipType
 from app.db.repositories.base import BaseRepository
 from app.services.asset_expense_tagging import sync_expense_attachment_tags_for_assets
 
@@ -36,8 +38,10 @@ class ExpenseRepository(BaseRepository[Expense]):
         parse_status: ExpenseParseStatus | None = None,
     ) -> Sequence[Expense]:
         """List expenses with optional filters and cursor pagination."""
+        vendor_org = aliased(Organization)
         statement = (
             select(Expense)
+            .outerjoin(vendor_org, Expense.vendor_id == vendor_org.id)
             .options(
                 selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset),
                 selectinload(Expense.vendor),
@@ -63,7 +67,10 @@ class ExpenseRepository(BaseRepository[Expense]):
             pattern = f"%{escaped}%"
             statement = statement.where(
                 or_(
-                    Expense.vendor_name.ilike(pattern, escape="\\"),
+                    and_(
+                        vendor_org.relationship_type == RelationshipType.VENDOR,
+                        vendor_org.name.ilike(pattern, escape="\\"),
+                    ),
                     Expense.invoice_number.ilike(pattern, escape="\\"),
                 )
             )
@@ -78,7 +85,12 @@ class ExpenseRepository(BaseRepository[Expense]):
         parse_status: ExpenseParseStatus | None = None,
     ) -> int:
         """Count expenses with matching filters."""
-        statement = select(func.count()).select_from(Expense)
+        vendor_org = aliased(Organization)
+        statement = (
+            select(func.count())
+            .select_from(Expense)
+            .outerjoin(vendor_org, Expense.vendor_id == vendor_org.id)
+        )
         if status is not None:
             statement = statement.where(Expense.status == status)
         if parse_status is not None:
@@ -88,7 +100,10 @@ class ExpenseRepository(BaseRepository[Expense]):
             pattern = f"%{escaped}%"
             statement = statement.where(
                 or_(
-                    Expense.vendor_name.ilike(pattern, escape="\\"),
+                    and_(
+                        vendor_org.relationship_type == RelationshipType.VENDOR,
+                        vendor_org.name.ilike(pattern, escape="\\"),
+                    ),
                     Expense.invoice_number.ilike(pattern, escape="\\"),
                 )
             )
@@ -113,7 +128,6 @@ class ExpenseRepository(BaseRepository[Expense]):
         status: ExpenseStatus,
         parse_status: ExpenseParseStatus,
         amends_expense_id: UUID | None = None,
-        vendor_name: str | None = None,
         vendor_id: UUID | None = None,
         invoice_number: str | None = None,
         invoice_date: date | None = None,
@@ -131,7 +145,6 @@ class ExpenseRepository(BaseRepository[Expense]):
             status=status,
             parse_status=parse_status,
             amends_expense_id=amends_expense_id,
-            vendor_name=vendor_name,
             vendor_id=vendor_id,
             invoice_number=invoice_number,
             invoice_date=invoice_date,

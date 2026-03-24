@@ -3456,6 +3456,9 @@ components:
         vendor_name:
           type: string
           nullable: true
+          description: >
+            Name of the linked vendor organization when vendor_id resolves to a
+            vendor; derived for display, not stored on the expense row.
         invoice_number:
           type: string
           nullable: true
@@ -3548,6 +3551,7 @@ components:
     CreateExpenseRequest:
       type: object
       required:
+        - vendor_id
         - attachment_asset_ids
       properties:
         status:
