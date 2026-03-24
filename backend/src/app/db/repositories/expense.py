@@ -148,10 +148,15 @@ class ExpenseRepository(BaseRepository[Expense]):
     def replace_attachments(self, expense: Expense, asset_ids: list[UUID]) -> Expense:
         """Replace expense attachments with the provided asset IDs."""
         previous_ids = {row.asset_id for row in expense.attachments}
-        expense.attachments = [
+        # Flush deletes before inserting replacements. A single flush can otherwise
+        # INSERT new (expense_id, asset_id) rows while old rows still exist, hitting
+        # expense_attachments_unique_idx (seen on PATCH /v1/admin/expenses/{id}).
+        expense.attachments.clear()
+        self._session.flush()
+        expense.attachments.extend(
             ExpenseAttachment(asset_id=asset_id, sort_order=index)
             for index, asset_id in enumerate(asset_ids)
-        ]
+        )
         updated = self.update(expense)
         self._session.flush()
         sync_expense_attachment_tags_for_assets(
