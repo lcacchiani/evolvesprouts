@@ -262,6 +262,16 @@ function withConfiguredRuntimeContent(
     BUSINESS_PHONE_PLACEHOLDER,
     configuredBusinessPhoneNumber,
   );
+  const configuredPrivateProgrammeWhatsappHref = resolvePlaceholderValue(
+    content.myBestAuntie.booking.privateProgrammeWhatsappHref,
+    WHATSAPP_URL_PLACEHOLDER,
+    configuredWhatsappUrl,
+  );
+  const configuredPrivateProgrammeWhatsappPhoneNumber = resolvePlaceholderValue(
+    content.myBestAuntie.booking.privateProgrammeWhatsappPhoneNumber,
+    BUSINESS_PHONE_PLACEHOLDER,
+    configuredBusinessPhoneNumber,
+  );
   const baseNavbarCtaHref = configuredNavbarHref
     || content.whatsappContact.href
     || ROUTES.servicesMyBestAuntieTrainingCourse;
@@ -278,6 +288,14 @@ function withConfiguredRuntimeContent(
     content.freeIntroSession.prefillMessage,
     configuredFreeIntroSessionPhoneNumber,
   ) || baseFreeIntroSessionCtaHref;
+  const basePrivateProgrammeWhatsappHref = configuredPrivateProgrammeWhatsappHref
+    || content.whatsappContact.href
+    || ROUTES.servicesMyBestAuntieTrainingCourse;
+  const privateProgrammeWhatsappHref = buildWhatsappPrefilledHref(
+    basePrivateProgrammeWhatsappHref,
+    content.myBestAuntie.booking.privateProgrammeWhatsappPrefillMessage,
+    configuredPrivateProgrammeWhatsappPhoneNumber,
+  ) || basePrivateProgrammeWhatsappHref;
   const resolvedContactEmail = contactEmail?.trim() || undefined;
   const contactUsContent = resolvedContactEmail
     ? {
@@ -302,6 +320,11 @@ function withConfiguredRuntimeContent(
   const rawFreeIntroSessionPhoneNumber = content.freeIntroSession.phoneNumber.trim();
   const freeIntroSessionPhoneNumber =
     configuredFreeIntroSessionPhoneNumber || rawFreeIntroSessionPhoneNumber;
+  const rawPrivateProgrammeWhatsappPhoneNumber =
+    content.myBestAuntie.booking.privateProgrammeWhatsappPhoneNumber.trim();
+  const privateProgrammeWhatsappPhoneNumber =
+    configuredPrivateProgrammeWhatsappPhoneNumber
+    || rawPrivateProgrammeWhatsappPhoneNumber;
 
   const sanitizedNavbarPhoneNumber =
     navbarPhoneNumber === BUSINESS_PHONE_PLACEHOLDER ? '' : navbarPhoneNumber;
@@ -309,6 +332,10 @@ function withConfiguredRuntimeContent(
     freeIntroSessionPhoneNumber === BUSINESS_PHONE_PLACEHOLDER
       ? ''
       : freeIntroSessionPhoneNumber;
+  const sanitizedPrivateProgrammeWhatsappPhoneNumber =
+    privateProgrammeWhatsappPhoneNumber === BUSINESS_PHONE_PLACEHOLDER
+      ? ''
+      : privateProgrammeWhatsappPhoneNumber;
 
   const sanitizedNavbarHref =
     navbarCtaHref === WHATSAPP_URL_PLACEHOLDER
@@ -318,6 +345,10 @@ function withConfiguredRuntimeContent(
     freeIntroSessionCtaHref === WHATSAPP_URL_PLACEHOLDER
       ? ROUTES.servicesMyBestAuntieTrainingCourse
       : freeIntroSessionCtaHref;
+  const sanitizedPrivateProgrammeWhatsappHref =
+    privateProgrammeWhatsappHref === WHATSAPP_URL_PLACEHOLDER
+      ? ROUTES.servicesMyBestAuntieTrainingCourse
+      : privateProgrammeWhatsappHref;
 
   const interpolated: SiteContent = {
     ...content,
@@ -333,6 +364,14 @@ function withConfiguredRuntimeContent(
       ...content.freeIntroSession,
       ctaHref: sanitizedFreeIntroSessionHref,
       phoneNumber: sanitizedFreeIntroSessionPhoneNumber,
+    },
+    myBestAuntie: {
+      ...content.myBestAuntie,
+      booking: {
+        ...content.myBestAuntie.booking,
+        privateProgrammeWhatsappHref: sanitizedPrivateProgrammeWhatsappHref,
+        privateProgrammeWhatsappPhoneNumber: sanitizedPrivateProgrammeWhatsappPhoneNumber,
+      },
     },
     contactUs: contactUsContent,
   };

@@ -193,11 +193,12 @@ function validateHrefValue(value, keyPath, errors) {
     if (
       keyPath.endsWith('.navbar.bookNow.href')
       || keyPath.endsWith('.freeIntroSession.ctaHref')
+      || keyPath.endsWith('.myBestAuntie.booking.privateProgrammeWhatsappHref')
     ) {
       return;
     }
     errors.push(
-      `${keyPath}: placeholder "${WHATSAPP_URL_PLACEHOLDER}" is only allowed for navbar.bookNow.href and freeIntroSession.ctaHref`,
+      `${keyPath}: placeholder "${WHATSAPP_URL_PLACEHOLDER}" is only allowed for navbar.bookNow.href, freeIntroSession.ctaHref, and myBestAuntie.booking.privateProgrammeWhatsappHref`,
     );
     return;
   }
