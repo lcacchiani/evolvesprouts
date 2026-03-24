@@ -192,7 +192,8 @@ their primary responsibilities.
   parsed string is long enough and not generic-only tokens); else, if the parsed
   string contains a specific vendor list name, the longest such match wins when
   unambiguous (covers legal invoice names vs shorter list labels). Weak matches
-  never write `vendor_id`.
+  never write `vendor_id`. Parsed vendor text is not stored on the expense row;
+  only `vendor_id` is updated when a match is found.
   Parsed `subtotal` / `tax` / `total` accept common formatted strings (currency
   symbols, thousands separators, alternate keys such as `amount`), and infer
   `total` from line-item amounts when every line has an `amount` and top-level

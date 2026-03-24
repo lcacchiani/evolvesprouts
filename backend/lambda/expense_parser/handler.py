@@ -123,17 +123,6 @@ def _process_expense(expense_id: str) -> None:
                 ).try_resolve_active_vendor_by_parsed_name(parsed_vendor_only)
                 if matched_vendor is not None:
                     refreshed_expense.vendor_id = matched_vendor.id
-                    refreshed_expense.vendor_name = matched_vendor.name
-                else:
-                    refreshed_expense.vendor_name = _pick_text(
-                        parsed.get("vendor_name"),
-                        fallback=refreshed_expense.vendor_name,
-                    )
-            else:
-                refreshed_expense.vendor_name = _pick_text(
-                    parsed.get("vendor_name"),
-                    fallback=refreshed_expense.vendor_name,
-                )
         refreshed_expense.invoice_number = _pick_text(
             parsed.get("invoice_number"), fallback=refreshed_expense.invoice_number
         )

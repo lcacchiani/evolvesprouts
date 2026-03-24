@@ -163,7 +163,6 @@ def _create_expense(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             created_by=actor_sub,
             status=payload["status"],
             parse_status=parse_status,
-            vendor_name=vendor.name if vendor is not None else None,
             vendor_id=vendor.id if vendor is not None else None,
             invoice_number=payload["invoice_number"],
             invoice_date=payload["invoice_date"],
@@ -232,7 +231,6 @@ def _update_expense(
             vendor = resolve_vendor(session, payload["vendor_id"])
             if vendor is not None:
                 expense.vendor_id = vendor.id
-                expense.vendor_name = vendor.name
         if payload["status"] is not None and payload["status"] != expense.status:
             expense.status = payload["status"]
             if (
@@ -374,6 +372,16 @@ def _amend_expense(
         if source.status == ExpenseStatus.VOIDED:
             raise ValidationError("Voided expenses cannot be amended", field="status")
 
+        effective_vendor_id = source.vendor_id
+        if payload["vendor_id"] is not None:
+            vendor = resolve_vendor(session, payload["vendor_id"])
+            effective_vendor_id = vendor.id if vendor is not None else None
+        if effective_vendor_id is None:
+            raise ValidationError(
+                "vendor_id is required to create an amendment",
+                field="vendor_id",
+            )
+
         amendment = expense_repo.create_expense(
             created_by=actor_sub,
             status=payload["status"] or ExpenseStatus.DRAFT,
@@ -383,8 +391,7 @@ def _amend_expense(
                 else ExpenseParseStatus.NOT_REQUESTED
             ),
             amends_expense_id=source.id,
-            vendor_name=source.vendor_name,
-            vendor_id=source.vendor_id,
+            vendor_id=effective_vendor_id,
             invoice_number=source.invoice_number,
             invoice_date=source.invoice_date,
             due_date=source.due_date,
@@ -396,11 +403,6 @@ def _amend_expense(
             notes=source.notes,
         )
         apply_common_fields(amendment, payload)
-        if payload["vendor_id"] is not None:
-            vendor = resolve_vendor(session, payload["vendor_id"])
-            if vendor is not None:
-                amendment.vendor_id = vendor.id
-                amendment.vendor_name = vendor.name
         if amendment.status == ExpenseStatus.SUBMITTED:
             amendment.submitted_at = now
 

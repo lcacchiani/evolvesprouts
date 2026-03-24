@@ -89,7 +89,6 @@ class Expense(Base):
         nullable=False,
         server_default=text("'not_requested'"),
     )
-    vendor_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     vendor_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("organizations.id", ondelete="SET NULL"),

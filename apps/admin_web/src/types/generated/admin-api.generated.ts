@@ -3158,6 +3158,7 @@ export interface components {
             parse_status: components["schemas"]["ExpenseParseStatus"];
             /** Format: uuid */
             vendor_id?: string | null;
+            /** @description Name of the linked vendor organization when vendor_id resolves to a vendor; derived for display, not stored on the expense row. */
             vendor_name?: string | null;
             invoice_number?: string | null;
             /** Format: date */
@@ -3200,7 +3201,7 @@ export interface components {
         CreateExpenseRequest: {
             status?: components["schemas"]["ExpenseStatus"];
             /** Format: uuid */
-            vendor_id?: string | null;
+            vendor_id: string | null;
             invoice_number?: string | null;
             /** Format: date */
             invoice_date?: string | null;
