@@ -334,9 +334,9 @@ describe('my-best-auntie booking modals footer content', () => {
 
   it('renders week range headlines and schedule blocks without year in the details column', () => {
     const { container } = renderBookingModal();
-    expect(screen.getByText('19 Apr - 10 May')).toBeInTheDocument();
-    expect(screen.getByText('10 May - 31 May')).toBeInTheDocument();
-    expect(screen.getByText('31 May - 21 Jun')).toBeInTheDocument();
+    expect(screen.getByText('19 Apr - 09 May')).toBeInTheDocument();
+    expect(screen.getByText('10 May - 30 May')).toBeInTheDocument();
+    expect(screen.getByText('31 May - 20 Jun')).toBeInTheDocument();
     const firstScheduleBlock = container.querySelector(
       'p[data-course-part-schedule-block="true"]',
     );
