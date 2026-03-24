@@ -125,6 +125,7 @@ Workflow: `.github/workflows/smoke-public-www-staging.yml`
     - `POST /www/v1/discounts/validate`
     - `POST /www/v1/media-request`
     - `POST /www/v1/reservations`
+    - `POST /www/v1/reservations/payment-intent`
   - when same-origin `/www/*` checks return `404`, retries API checks through
     configured fallback API base URLs before failing
 

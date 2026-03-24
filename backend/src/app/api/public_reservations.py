@@ -132,6 +132,11 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         _MAX_LABEL_LENGTH,
     )
     total_amount = _parse_total_amount(body.get("totalAmount"))
+    stripe_payment_intent_id = _optional_text(
+        body.get("stripe_payment_intent_id"),
+        "stripe_payment_intent_id",
+        200,
+    )
     schedule_date_label = _optional_text(
         body.get("scheduleDateLabel"),
         "scheduleDateLabel",
@@ -161,6 +166,7 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "schedule_date_label": schedule_date_label,
         "schedule_time_label": schedule_time_label,
         "interested_topics": interested_topics,
+        "stripe_payment_intent_id": stripe_payment_intent_id,
     }
 
 
@@ -188,6 +194,9 @@ def _send_reservation_email(reservation_payload: Mapping[str, Any]) -> None:
         f"Payment Method: {reservation_payload['payment_method']}",
         f"Total Amount: {reservation_payload['total_amount']}",
     ]
+    stripe_payment_intent_id = reservation_payload.get("stripe_payment_intent_id")
+    if stripe_payment_intent_id:
+        email_body_lines.append(f"Stripe PaymentIntent ID: {stripe_payment_intent_id}")
     schedule_date_label = reservation_payload.get("schedule_date_label")
     if schedule_date_label:
         email_body_lines.append(f"Schedule Date: {schedule_date_label}")

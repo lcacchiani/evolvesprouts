@@ -23,7 +23,9 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/media-request`, `/v1/admin/geographic-areas`,
+  `/v1/media-request`, `/v1/reservations`,
+  `/v1/reservations/payment-intent`,
+  `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
   `/v1/admin/leads/*`, `/v1/admin/users`,
@@ -51,7 +53,9 @@ their primary responsibilities.
   updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
   verification (via `AwsApiProxyFunction`) and SNS event publishing on
   `/v1/media-request`, Mailchimp webhook ingestion and contact sync-status
-  reconciliation on `/v1/mailchimp/webhook`, and signed upload/download URL generation in
+  reconciliation on `/v1/mailchimp/webhook`, Stripe PaymentIntent creation for
+  inline public booking modal payments on `/v1/reservations/payment-intent`
+  (via `AwsApiProxyFunction`), and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check

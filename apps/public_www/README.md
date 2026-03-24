@@ -178,6 +178,7 @@ What the runner validates:
   - `POST /www/v1/discounts/validate`
   - `POST /www/v1/media-request`
   - `POST /www/v1/reservations`
+  - `POST /www/v1/reservations/payment-intent`
 
 Status handling for CTA APIs:
 
@@ -227,6 +228,7 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `NEXT_PUBLIC_ASSET_SHARE_BASE_URL`
 - `NEXT_PUBLIC_FPS_MERCHANT_NAME`
 - `NEXT_PUBLIC_FPS_MOBILE_NUMBER`
