@@ -44,9 +44,11 @@ describe('assets-api', () => {
             created_by: 'admin@example.com',
             created_at: '2026-02-27T00:00:00.000Z',
             updated_at: '2026-02-27T00:00:00.000Z',
+            tags: [],
           },
         ],
         next_cursor: 'cursor-1',
+        linked_tag_names: ['expense_attachment', 'custom_tag'],
       },
     });
 
@@ -59,6 +61,7 @@ describe('assets-api', () => {
     });
 
     expect(result.nextCursor).toBe('cursor-1');
+    expect(result.linkedTagNames).toEqual(['expense_attachment', 'custom_tag']);
     expect(result.items[0]).toMatchObject({
       id: 'asset-1',
       assetType: 'document',
@@ -83,6 +86,34 @@ describe('assets-api', () => {
     expect(request.endpointPath).toContain('limit=10');
   });
 
+  it('includes tag_name query param when filtering by tag', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [],
+        next_cursor: null,
+      },
+    });
+
+    await listAdminAssets({ tagName: 'expense_attachment' });
+
+    const request = mockAdminApiRequest.mock.calls[0][0];
+    expect(request.endpointPath).toContain('tag_name=expense_attachment');
+  });
+
+  it('includes tag_name for arbitrary linked tag filters', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        items: [],
+        next_cursor: null,
+      },
+    });
+
+    await listAdminAssets({ tagName: 'custom_tag' });
+
+    const request = mockAdminApiRequest.mock.calls[0][0];
+    expect(request.endpointPath).toContain('tag_name=custom_tag');
+  });
+
   it('creates asset with snake_case request body and parses upload details', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {
@@ -98,6 +129,7 @@ describe('assets-api', () => {
           created_by: null,
           created_at: null,
           updated_at: null,
+          tags: [],
         },
         upload_url: 'https://uploads.example.com/asset-2',
         upload_method: 'PUT',
@@ -115,6 +147,7 @@ describe('assets-api', () => {
       fileName: ' nutrition.pdf ',
       contentType: ' application/pdf ',
       visibility: 'public',
+      clientTag: null,
     });
 
     expect(mockAdminApiRequest).toHaveBeenCalledWith(
@@ -129,6 +162,7 @@ describe('assets-api', () => {
           resource_key: null,
           content_type: 'application/pdf',
           visibility: 'public',
+          client_tag: null,
         },
       })
     );

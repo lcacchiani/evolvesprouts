@@ -18,8 +18,10 @@ from app.api.admin_leads import handle_admin_leads_request
 from app.api.admin_locations import handle_admin_locations_request
 from app.api.admin_services import handle_admin_services_request
 from app.api.admin_users import handle_admin_users_request
+from app.api.admin_vendors import handle_admin_vendors_request
 from app.api.public_media import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
+from app.api.public_reservation_payments import handle_public_reservation_payment_intent
 from app.api.public_reservations import _handle_public_reservation
 from app.exceptions import AppError, ValidationError
 from app.utils import json_response
@@ -46,9 +48,23 @@ _ROUTES: tuple[
         lambda event, method, _path: _handle_public_reservation(event, method),
     ),
     (
+        "/v1/reservations/payment-intent",
+        True,
+        lambda event, method, _path: handle_public_reservation_payment_intent(
+            event, method
+        ),
+    ),
+    (
         "/www/v1/reservations",
         True,
         lambda event, method, _path: _handle_public_reservation(event, method),
+    ),
+    (
+        "/www/v1/reservations/payment-intent",
+        True,
+        lambda event, method, _path: handle_public_reservation_payment_intent(
+            event, method
+        ),
     ),
     (
         "/v1/media-request",
@@ -99,6 +115,11 @@ _ROUTES: tuple[
         "/v1/admin/expenses",
         False,
         handle_admin_expenses_request,
+    ),
+    (
+        "/v1/admin/vendors",
+        False,
+        handle_admin_vendors_request,
     ),
     ("/v1/admin/assets", False, handle_admin_assets_request),
     ("/v1/user/assets", False, handle_user_assets_request),

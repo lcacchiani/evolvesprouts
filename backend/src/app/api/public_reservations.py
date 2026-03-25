@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
+import json
 import os
+import re
 from decimal import Decimal
 from decimal import InvalidOperation
 from typing import Any
 from collections.abc import Mapping
+from urllib.parse import quote
 
 from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_email, validate_string_length
 from app.exceptions import ValidationError
+from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.email import send_email
 from app.services.turnstile import (
     extract_client_ip,
@@ -28,6 +32,8 @@ _MAX_LABEL_LENGTH = 200
 _MAX_PAYMENT_METHOD_LENGTH = 100
 _MAX_TOPICS_LENGTH = 1000
 _MAX_TOTAL_AMOUNT = Decimal("1000000")
+_STRIPE_PAYMENT_INTENTS_URL_PREFIX = "https://api.stripe.com/v1/payment_intents/"
+_STRIPE_PAYMENT_INTENT_ID_PATTERN = re.compile(r"^pi_[A-Za-z0-9]+$")
 
 
 def _handle_public_reservation(
@@ -57,6 +63,14 @@ def _handle_public_reservation(
 
     body = parse_body(event)
     reservation_payload = _validate_reservation_payload(body)
+    try:
+        _validate_payment_confirmation(reservation_payload)
+    except ValidationError as exc:
+        return json_response(
+            exc.status_code,
+            exc.to_dict(),
+            event=event,
+        )
     try:
         _send_reservation_email(reservation_payload)
     except RuntimeError:
@@ -132,6 +146,11 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         _MAX_LABEL_LENGTH,
     )
     total_amount = _parse_total_amount(body.get("totalAmount"))
+    stripe_payment_intent_id = _optional_text(
+        body.get("stripe_payment_intent_id"),
+        "stripe_payment_intent_id",
+        200,
+    )
     schedule_date_label = _optional_text(
         body.get("scheduleDateLabel"),
         "scheduleDateLabel",
@@ -161,7 +180,142 @@ def _validate_reservation_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "schedule_date_label": schedule_date_label,
         "schedule_time_label": schedule_time_label,
         "interested_topics": interested_topics,
+        "stripe_payment_intent_id": stripe_payment_intent_id,
     }
+
+
+def _validate_payment_confirmation(reservation_payload: Mapping[str, Any]) -> None:
+    """Validate Stripe payment confirmation details for Stripe reservations."""
+    payment_method = (
+        str(reservation_payload.get("payment_method") or "").strip().lower()
+    )
+    stripe_payment_intent_id = str(
+        reservation_payload.get("stripe_payment_intent_id") or ""
+    ).strip()
+
+    expects_stripe_payment = "stripe" in payment_method or "apple pay" in payment_method
+    if not expects_stripe_payment:
+        return
+
+    if not stripe_payment_intent_id:
+        raise ValidationError(
+            "stripe_payment_intent_id is required for Stripe payment method",
+            field="stripe_payment_intent_id",
+        )
+
+    if not _STRIPE_PAYMENT_INTENT_ID_PATTERN.match(stripe_payment_intent_id):
+        raise ValidationError(
+            "stripe_payment_intent_id must be a valid PaymentIntent id",
+            field="stripe_payment_intent_id",
+        )
+
+    stripe_secret_key = os.getenv("EVOLVESPROUTS_STRIPE_SECRET_KEY", "").strip()
+    if not stripe_secret_key:
+        logger.error(
+            "EVOLVESPROUTS_STRIPE_SECRET_KEY is not configured for reservation verification"
+        )
+        raise ValidationError(
+            "Payment verification is unavailable. Please try again later.",
+            field="stripe_payment_intent_id",
+        )
+
+    stripe_intent = _retrieve_stripe_payment_intent(
+        stripe_secret_key=stripe_secret_key,
+        payment_intent_id=stripe_payment_intent_id,
+    )
+    _assert_stripe_payment_matches_reservation(
+        stripe_intent=stripe_intent,
+        reservation_payload=reservation_payload,
+    )
+
+
+def _retrieve_stripe_payment_intent(
+    *,
+    stripe_secret_key: str,
+    payment_intent_id: str,
+) -> Mapping[str, Any]:
+    request_url = (
+        f"{_STRIPE_PAYMENT_INTENTS_URL_PREFIX}{quote(payment_intent_id, safe='')}"
+    )
+    try:
+        stripe_response = http_invoke(
+            method="GET",
+            url=request_url,
+            headers={
+                "Authorization": f"Bearer {stripe_secret_key}",
+            },
+            timeout=20,
+        )
+    except AwsProxyError as exc:
+        logger.warning(
+            "Stripe payment intent retrieval failed via proxy",
+            extra={"code": exc.code},
+        )
+        raise ValidationError(
+            "Payment verification failed. Please try again.",
+            field="stripe_payment_intent_id",
+        ) from exc
+
+    status_code = _safe_status_code(stripe_response.get("status"))
+    response_body = _parse_response_json(stripe_response.get("body"))
+    if status_code != 200 or not isinstance(response_body, Mapping):
+        logger.warning(
+            "Stripe payment intent retrieval returned unexpected response",
+            extra={"status_code": status_code},
+        )
+        raise ValidationError(
+            "Payment verification failed. Please try again.",
+            field="stripe_payment_intent_id",
+        )
+    return response_body
+
+
+def _assert_stripe_payment_matches_reservation(
+    *,
+    stripe_intent: Mapping[str, Any],
+    reservation_payload: Mapping[str, Any],
+) -> None:
+    intent_status = str(stripe_intent.get("status") or "").strip().lower()
+    if intent_status != "succeeded":
+        raise ValidationError(
+            "Stripe payment is not confirmed",
+            field="stripe_payment_intent_id",
+        )
+
+    try:
+        intent_amount_minor_units = int(stripe_intent.get("amount") or 0)
+    except (TypeError, ValueError):
+        intent_amount_minor_units = 0
+    expected_amount_minor_units = int(
+        Decimal(str(reservation_payload["total_amount"])) * Decimal("100")
+    )
+    if intent_amount_minor_units != expected_amount_minor_units:
+        raise ValidationError(
+            "Stripe payment amount does not match reservation amount",
+            field="stripe_payment_intent_id",
+        )
+
+
+def _safe_status_code(value: Any) -> int:
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _parse_response_json(raw_body: Any) -> Mapping[str, Any] | None:
+    if not isinstance(raw_body, str):
+        return None
+    body = raw_body.strip()
+    if not body:
+        return None
+    try:
+        parsed = json.loads(body)
+    except json.JSONDecodeError:
+        return None
+    if isinstance(parsed, Mapping):
+        return parsed
+    return None
 
 
 def _send_reservation_email(reservation_payload: Mapping[str, Any]) -> None:
@@ -188,6 +342,9 @@ def _send_reservation_email(reservation_payload: Mapping[str, Any]) -> None:
         f"Payment Method: {reservation_payload['payment_method']}",
         f"Total Amount: {reservation_payload['total_amount']}",
     ]
+    stripe_payment_intent_id = reservation_payload.get("stripe_payment_intent_id")
+    if stripe_payment_intent_id:
+        email_body_lines.append(f"Stripe PaymentIntent ID: {stripe_payment_intent_id}")
     schedule_date_label = reservation_payload.get("schedule_date_label")
     if schedule_date_label:
         email_body_lines.append(f"Schedule Date: {schedule_date_label}")

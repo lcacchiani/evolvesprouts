@@ -65,7 +65,16 @@ export interface paths {
          */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Case-insensitive match on title, file name, or resource key. */
+                    query?: string;
+                    visibility?: "public" | "restricted";
+                    asset_type?: "guide" | "video" | "pdf" | "document";
+                    /** @description When set, return only assets that have this tag (case-insensitive name match). The tag must be linked to at least one asset that matches the optional asset_type filter. */
+                    tag_name?: string;
+                    cursor?: string;
+                    limit?: number;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -1820,6 +1829,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/vendors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List vendors */
+        get: {
+            parameters: {
+                query?: {
+                    query?: string;
+                    active?: boolean;
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Vendor list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VendorListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Create vendor */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateVendorRequest"];
+                };
+            };
+            responses: {
+                /** @description Vendor created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VendorResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vendors/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Vendor identifier. */
+                id: components["parameters"]["VendorId"];
+            };
+            cookie?: never;
+        };
+        /** Get vendor */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Vendor identifier. */
+                    id: components["parameters"]["VendorId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Vendor response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VendorResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update vendor */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Vendor identifier. */
+                    id: components["parameters"]["VendorId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateVendorRequest"];
+                };
+            };
+            responses: {
+                /** @description Vendor response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VendorResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        trace?: never;
+    };
     "/v1/admin/expenses": {
         parameters: {
             query?: never;
@@ -2026,7 +2179,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Mark an expense as paid */
+        /**
+         * Mark an expense as paid
+         * @description Requires a linked vendor, invoice date, currency code, and total amount. Returns 400 if any of these are missing.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -2268,6 +2424,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AssetTagRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Optional CSS color (e.g. hex). */
+            color?: string | null;
+        };
         Asset: {
             /** Format: uuid */
             id: string;
@@ -2282,6 +2445,8 @@ export interface components {
             resource_key?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
+            /** @description Tags on this asset. Non-admin asset list responses use an empty array when tags are not loaded. */
+            tags: components["schemas"]["AssetTagRef"][];
             created_by?: string | null;
             /** Format: date-time */
             created_at?: string | null;
@@ -2303,6 +2468,8 @@ export interface components {
         AssetListResponse: {
             items: components["schemas"]["Asset"][];
             next_cursor?: string | null;
+            /** @description Admin asset list only. Distinct tag names linked to at least one asset matching the request's asset_type filter (when provided). Omitted or empty when not applicable. */
+            linked_tag_names?: string[];
         };
         AssetResponse: {
             asset: components["schemas"]["Asset"];
@@ -2815,6 +2982,37 @@ export interface components {
             max_uses?: number | null;
             active?: boolean;
         };
+        Vendor: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            website?: string | null;
+            active: boolean;
+            /** Format: date-time */
+            archived_at?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+        };
+        VendorResponse: {
+            vendor: components["schemas"]["Vendor"];
+        };
+        VendorListResponse: {
+            items: components["schemas"]["Vendor"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        CreateVendorRequest: {
+            name: string;
+            website?: string | null;
+            active?: boolean | null;
+        };
+        UpdateVendorRequest: {
+            name?: string;
+            website?: string | null;
+            active?: boolean;
+        };
         AdminUser: {
             sub: string;
             email?: string | null;
@@ -2892,6 +3090,11 @@ export interface components {
             content_type?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
+            /**
+             * @description Optional. When set to client_document, links the asset to the client_document tag after create. When omitted or null, no client tag is linked.
+             * @enum {string|null}
+             */
+            client_tag?: "client_document" | null;
         };
         UpdateAssetRequest: components["schemas"]["CreateAssetRequest"];
         PartialUpdateAssetRequest: {
@@ -2904,6 +3107,11 @@ export interface components {
             content_type?: string | null;
             /** @enum {string} */
             visibility?: "public" | "restricted";
+            /**
+             * @description When present, sets or clears the client_document tag on the asset. Omit this property to leave the client tag unchanged. Must not be sent for assets that have the expense_attachment tag (400).
+             * @enum {string|null}
+             */
+            client_tag?: "client_document" | null;
         };
         CreateAssetResponse: {
             asset: components["schemas"]["Asset"];
@@ -2948,6 +3156,9 @@ export interface components {
             amends_expense_id?: string | null;
             status: components["schemas"]["ExpenseStatus"];
             parse_status: components["schemas"]["ExpenseParseStatus"];
+            /** Format: uuid */
+            vendor_id?: string | null;
+            /** @description Name of the linked vendor organization when vendor_id resolves to a vendor; derived for display, not stored on the expense row. */
             vendor_name?: string | null;
             invoice_number?: string | null;
             /** Format: date */
@@ -2989,7 +3200,8 @@ export interface components {
         };
         CreateExpenseRequest: {
             status?: components["schemas"]["ExpenseStatus"];
-            vendor_name?: string | null;
+            /** Format: uuid */
+            vendor_id: string | null;
             invoice_number?: string | null;
             /** Format: date */
             invoice_date?: string | null;
@@ -3006,7 +3218,8 @@ export interface components {
         };
         UpdateExpenseRequest: {
             status?: components["schemas"]["ExpenseStatus"];
-            vendor_name?: string | null;
+            /** Format: uuid */
+            vendor_id?: string | null;
             invoice_number?: string | null;
             /** Format: date */
             invoice_date?: string | null;
@@ -3086,6 +3299,8 @@ export interface components {
         EnrollmentId: string;
         /** @description Discount code identifier. */
         DiscountCodeId: string;
+        /** @description Vendor identifier. */
+        VendorId: string;
         /** @description Expense identifier. */
         ExpenseId: string;
     };

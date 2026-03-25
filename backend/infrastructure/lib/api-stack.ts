@@ -10,6 +10,7 @@ import * as kms from "aws-cdk-lib/aws-kms";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as ses from "aws-cdk-lib/aws-ses";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sns from "aws-cdk-lib/aws-sns";
@@ -448,6 +449,37 @@ export class ApiStack extends cdk.Stack {
         "SES-verified sender email address for access request notifications. " +
         "Can be the same as SupportEmail.",
     });
+    const inboundEmailDomainName = new cdk.CfnParameter(
+      this,
+      "InboundEmailDomainName",
+      {
+        type: "String",
+        description:
+          "SES-verified subdomain used for inbound invoice email receiving (for example inbound.example.com).",
+      }
+    );
+    const inboundInvoiceRecipientLocalPart = new cdk.CfnParameter(
+      this,
+      "InboundInvoiceRecipientLocalPart",
+      {
+        type: "String",
+        default: "invoices",
+        description:
+          "Local-part for the SES-managed inbound invoice mailbox on the configured inbound email domain.",
+      }
+    );
+    const inboundInvoiceAllowedSenderPatterns = new cdk.CfnParameter(
+      this,
+      "InboundInvoiceAllowedSenderPatterns",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Comma-separated substrings (case-insensitive). Inbound invoice mail " +
+          "must match at least one pattern on SES envelope source or RFC822 From. " +
+          "Empty disables allowlisting.",
+      }
+    );
     const turnstileSecretKey = new cdk.CfnParameter(
       this,
       "TurnstileSecretKey",
@@ -489,6 +521,26 @@ export class ApiStack extends cdk.Stack {
         default: "",
         description:
           "Shared secret token required by the public Mailchimp webhook endpoint",
+      }
+    );
+    const evolveSproutsStripeSecretKey = new cdk.CfnParameter(
+      this,
+      "EvolveSproutsStripeSecretKey",
+      {
+        type: "String",
+        noEcho: true,
+        default: "",
+        description: "Stripe secret key for inline modal reservation payments",
+      }
+    );
+    const evolveSproutsStripePaymentMethodConfigurationId = new cdk.CfnParameter(
+      this,
+      "EvolveSproutsStripePaymentMethodConfigurationId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Optional Stripe payment method configuration ID used for public reservation PaymentIntents",
       }
     );
     const mediaDefaultResourceKey = new cdk.CfnParameter(
@@ -901,6 +953,7 @@ export class ApiStack extends cdk.Stack {
         // Set to true for functions that need internet access but not database
         // access (e.g., authorizers that fetch JWKS from Cognito)
         noVpc?: boolean;
+        manageLogGroup?: boolean;
       }
     ) => {
       const factory = props.noVpc ? noVpcLambdaFactory : lambdaFactory;
@@ -912,6 +965,7 @@ export class ApiStack extends cdk.Stack {
         extraCopyPaths: props.extraCopyPaths,
         securityGroups: props.noVpc ? undefined : (props.securityGroups ?? [lambdaSecurityGroup]),
         memorySize: props.memorySize,
+        manageLogGroup: props.manageLogGroup,
       });
       return pythonLambda.function;
     };
@@ -927,14 +981,14 @@ export class ApiStack extends cdk.Stack {
     );
 
     // Assets logging bucket
-    const clientAssetsLogBucketName = [
-      name("client-assets-logs"),
+    const assetsLogBucketName = [
+      name("assets-logs"),
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
 
-    const clientAssetsLogBucket = new s3.Bucket(this, "ClientAssetsLogBucket", {
-      bucketName: clientAssetsLogBucketName,
+    const assetsLogBucket = new s3.Bucket(this, "AssetsLogBucket", {
+      bucketName: assetsLogBucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
@@ -951,9 +1005,9 @@ export class ApiStack extends cdk.Stack {
       ],
     });
 
-    const clientAssetsLogBucketCfn = clientAssetsLogBucket.node
+    const assetsLogBucketCfn = assetsLogBucket.node
       .defaultChild as s3.CfnBucket;
-    clientAssetsLogBucketCfn.addMetadata("checkov", {
+    assetsLogBucketCfn.addMetadata("checkov", {
       skip: [
         {
           id: "CKV_AWS_18",
@@ -964,20 +1018,20 @@ export class ApiStack extends cdk.Stack {
     });
 
     // Assets bucket
-    const clientAssetsBucketName = [
-      name("client-assets"),
+    const assetsBucketName = [
+      name("assets"),
       cdk.Aws.ACCOUNT_ID,
       cdk.Aws.REGION,
     ].join("-");
 
-    const clientAssetsBucket = new s3.Bucket(this, "ClientAssetsBucket", {
-      bucketName: clientAssetsBucketName,
+    const assetsBucket = new s3.Bucket(this, "AssetsBucket", {
+      bucketName: assetsBucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
       versioned: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
-      serverAccessLogsBucket: clientAssetsLogBucket,
+      serverAccessLogsBucket: assetsLogBucket,
       serverAccessLogsPrefix: "s3-access-logs/",
       intelligentTieringConfigurations: [
         {
@@ -1019,6 +1073,8 @@ export class ApiStack extends cdk.Stack {
       ],
     });
 
+    const inboundInvoiceRawEmailPrefix = "inbound-email/raw/";
+
     const assetDownloadCloudFrontPublicKeyPem = new cdk.CfnParameter(
       this,
       "AssetDownloadCloudFrontPublicKeyPem",
@@ -1044,7 +1100,7 @@ export class ApiStack extends cdk.Stack {
       {
         type: "String",
         description:
-          "Custom domain for client-asset downloads (for example media.evolvesprouts.com).",
+          "Custom domain for asset downloads (for example media.evolvesprouts.com).",
       }
     );
     const assetDownloadCustomDomainCertificateArn = new cdk.CfnParameter(
@@ -1053,7 +1109,7 @@ export class ApiStack extends cdk.Stack {
       {
         type: "String",
         description:
-          "ACM certificate ARN for the client-asset download custom domain (must be in us-east-1).",
+          "ACM certificate ARN for the asset download custom domain (must be in us-east-1).",
       }
     );
     const assetDownloadWafWebAclArn = new cdk.CfnParameter(
@@ -1063,7 +1119,7 @@ export class ApiStack extends cdk.Stack {
         type: "String",
         default: "",
         description:
-          "Optional WAF WebACL ARN for client-asset CloudFront protection (must be from us-east-1).",
+          "Optional WAF WebACL ARN for asset CloudFront protection (must be from us-east-1).",
         allowedPattern: "^$|arn:aws:wafv2:us-east-1:[0-9]+:global/webacl/.+$",
         constraintDescription:
           "Must be empty or a valid WAF WebACL ARN from us-east-1.",
@@ -1084,7 +1140,7 @@ export class ApiStack extends cdk.Stack {
       "AssetDownloadPublicKey",
       {
         encodedKey: assetDownloadCloudFrontPublicKeyPem.valueAsString,
-        comment: "Public key for client asset CloudFront signed URLs.",
+        comment: "Public key for asset CloudFront signed URLs.",
       }
     );
     const assetDownloadKeyGroup = new cloudfront.KeyGroup(
@@ -1092,7 +1148,7 @@ export class ApiStack extends cdk.Stack {
       "AssetDownloadKeyGroup",
       {
         items: [assetDownloadPublicKey],
-        comment: "Trusted key group for client asset CloudFront signed URLs.",
+        comment: "Trusted key group for asset CloudFront signed URLs.",
       }
     );
     const assetDownloadCustomDomainCertificate =
@@ -1108,10 +1164,10 @@ export class ApiStack extends cdk.Stack {
         domainNames: [assetDownloadCustomDomainName.valueAsString],
         certificate: assetDownloadCustomDomainCertificate,
         enableLogging: true,
-        logBucket: clientAssetsLogBucket,
+        logBucket: assetsLogBucket,
         logFilePrefix: "cloudfront-download-access-logs/",
         defaultBehavior: {
-          origin: origins.S3BucketOrigin.withOriginAccessControl(clientAssetsBucket),
+          origin: origins.S3BucketOrigin.withOriginAccessControl(assetsBucket),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -1141,8 +1197,7 @@ export class ApiStack extends cdk.Stack {
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
         CORS_ALLOWED_ORIGINS: corsAllowedOrigins.join(","),
-        CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
-        MEDIA_BUCKET_NAME: clientAssetsBucket.bucketName,
+        ASSETS_BUCKET_NAME: assetsBucket.bucketName,
         ASSET_PRESIGN_TTL_SECONDS: "900",
         ASSET_DOWNLOAD_LINK_EXPIRY_DAYS: "9999",
         ASSET_DOWNLOAD_CLOUDFRONT_DOMAIN:
@@ -1155,13 +1210,16 @@ export class ApiStack extends cdk.Stack {
         ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
         MAILCHIMP_WEBHOOK_SECRET: mailchimpWebhookSecret.valueAsString,
+        EVOLVESPROUTS_STRIPE_SECRET_KEY: evolveSproutsStripeSecretKey.valueAsString,
+        EVOLVESPROUTS_STRIPE_PAYMENT_METHOD_CONFIGURATION_ID:
+          evolveSproutsStripePaymentMethodConfigurationId.valueAsString,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         ADMIN_GROUP: adminGroupName,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
     database.grantConnect(adminFunction, "evolvesprouts_admin");
-    clientAssetsBucket.grantReadWrite(adminFunction);
+    assetsBucket.grantReadWrite(adminFunction);
     secretsmanager.Secret.fromSecretCompleteArn(
       this,
       "AssetDownloadPrivateKeySecret",
@@ -1191,6 +1249,7 @@ export class ApiStack extends cdk.Stack {
       "https://nominatim.openstreetmap.org/search",
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
       `https://${mailchimpServerPrefix.valueAsString}.api.mailchimp.com/3.0/`,
+      "https://api.stripe.com/v1/",
       openrouterChatCompletionsUrl.valueAsString,
     ];
 
@@ -1265,6 +1324,11 @@ export class ApiStack extends cdk.Stack {
       alias: name("sqs-encryption-key"),
       description: "KMS key for SQS queue encryption",
     });
+    const inboundInvoiceRecipientAddress = cdk.Fn.join("", [
+      inboundInvoiceRecipientLocalPart.valueAsString,
+      "@",
+      inboundEmailDomainName.valueAsString,
+    ]);
 
     const bookingRequestDLQ = new sqs.Queue(this, "BookingRequestDLQ", {
       queueName: name("booking-request-dlq"),
@@ -1472,7 +1536,7 @@ export class ApiStack extends cdk.Stack {
         DATABASE_USERNAME: "evolvesprouts_admin",
         DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
         DATABASE_IAM_AUTH: "true",
-        CLIENT_ASSETS_BUCKET_NAME: clientAssetsBucket.bucketName,
+        ASSETS_BUCKET_NAME: assetsBucket.bucketName,
         OPENROUTER_API_KEY_SECRET_ARN: openrouterApiSecret.secretArn,
         OPENROUTER_CHAT_COMPLETIONS_URL:
           openrouterChatCompletionsUrl.valueAsString,
@@ -1483,7 +1547,7 @@ export class ApiStack extends cdk.Stack {
     });
     database.grantAdminUserSecretRead(expenseParserFunction);
     database.grantConnect(expenseParserFunction, "evolvesprouts_admin");
-    clientAssetsBucket.grantRead(expenseParserFunction);
+    assetsBucket.grantRead(expenseParserFunction);
     openrouterApiSecret.grantRead(expenseParserFunction);
     awsProxyFunction.grantInvoke(expenseParserFunction);
 
@@ -1507,6 +1571,255 @@ export class ApiStack extends cdk.Stack {
         evaluationPeriods: 1,
         treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
       }
+    );
+
+    // -------------------------------------------------------------------------
+    // Inbound invoice email processing (SES + S3 + SNS + SQS)
+    // -------------------------------------------------------------------------
+
+    const inboundInvoiceDLQ = new sqs.Queue(this, "InboundInvoiceDLQ", {
+      queueName: name("inbound-invoice-email-dlq"),
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const inboundInvoiceQueue = new sqs.Queue(this, "InboundInvoiceQueue", {
+      queueName: name("inbound-invoice-email-queue"),
+      visibilityTimeout: cdk.Duration.seconds(60),
+      deadLetterQueue: {
+        queue: inboundInvoiceDLQ,
+        maxReceiveCount: 3,
+      },
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const inboundInvoiceTopic = new sns.Topic(this, "InboundInvoiceTopic", {
+      topicName: name("inbound-invoice-email-events"),
+      masterKey: sqsEncryptionKey,
+    });
+    inboundInvoiceTopic.addSubscription(
+      new snsSubscriptions.SqsSubscription(inboundInvoiceQueue)
+    );
+
+    const inboundInvoiceProcessor = createPythonFunction(
+      "InboundInvoiceEmailProcessor",
+      {
+        handler: "lambda/inbound_invoice_email/handler.lambda_handler",
+        timeout: cdk.Duration.seconds(30),
+        manageLogGroup: false,
+        environment: {
+          DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
+          DATABASE_NAME: "evolvesprouts",
+          DATABASE_USERNAME: "evolvesprouts_admin",
+          DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
+          DATABASE_IAM_AUTH: "true",
+          ASSETS_BUCKET_NAME: assetsBucket.bucketName,
+          EXPENSE_PARSE_TOPIC_ARN: expenseParserTopic.topicArn,
+          INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS:
+            inboundInvoiceAllowedSenderPatterns.valueAsString,
+        },
+      }
+    );
+    database.grantAdminUserSecretRead(inboundInvoiceProcessor);
+    database.grantConnect(inboundInvoiceProcessor, "evolvesprouts_admin");
+    assetsBucket.grantReadWrite(inboundInvoiceProcessor);
+    expenseParserTopic.grantPublish(inboundInvoiceProcessor);
+    inboundInvoiceProcessor.addEventSource(
+      new lambdaEventSources.SqsEventSource(inboundInvoiceQueue, {
+        batchSize: 1,
+      })
+    );
+
+    const inboundInvoiceDlqAlarm = new cdk.aws_cloudwatch.Alarm(
+      this,
+      "InboundInvoiceDLQAlarm",
+      {
+        alarmName: name("inbound-invoice-email-dlq-alarm"),
+        alarmDescription:
+          "Inbound invoice email messages failed processing and landed in DLQ",
+        metric: inboundInvoiceDLQ.metricApproximateNumberOfMessagesVisible({
+          period: cdk.Duration.minutes(5),
+        }),
+        threshold: 1,
+        evaluationPeriods: 1,
+        treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
+      }
+    );
+
+    const inboundInvoiceReceiptRuleSetName = name(
+      "inbound-invoice-email-rule-set"
+    );
+    const inboundInvoiceReceiptRuleName = name("inbound-invoice-email-rule");
+    const inboundInvoiceReceiptRuleSourceArn = `arn:${cdk.Aws.PARTITION}:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:receipt-rule-set/${inboundInvoiceReceiptRuleSetName}:receipt-rule/${inboundInvoiceReceiptRuleName}`;
+    const inboundInvoiceTopicPolicyResult = inboundInvoiceTopic.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: "AllowSesInboundInvoicePublish",
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
+        actions: ["sns:Publish"],
+        resources: [inboundInvoiceTopic.topicArn],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+          },
+        },
+      })
+    );
+    sqsEncryptionKey.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: "AllowSesInboundInvoiceTopicEncryption",
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
+        actions: ["kms:GenerateDataKey*", "kms:Decrypt"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+          },
+        },
+      })
+    );
+    const inboundInvoiceReceiptRole = new iam.Role(
+      this,
+      "InboundInvoiceReceiptRole",
+      {
+        assumedBy: new iam.ServicePrincipal("ses.amazonaws.com", {
+          conditions: {
+            StringEquals: {
+              "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            },
+            ArnLike: {
+              "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+            },
+          },
+        }),
+        description:
+          "Allows SES receipt rules to store raw invoice emails in S3 and notify SNS",
+      }
+    );
+    inboundInvoiceReceiptRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:GetBucketLocation", "s3:ListBucket"],
+        resources: [assetsBucket.bucketArn],
+      })
+    );
+    inboundInvoiceReceiptRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:PutObject"],
+        resources: [
+          `${assetsBucket.bucketArn}/${inboundInvoiceRawEmailPrefix}*`,
+        ],
+      })
+    );
+    inboundInvoiceTopic.grantPublish(inboundInvoiceReceiptRole);
+    assetsBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: "AllowSesInboundInvoiceWrites",
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
+        actions: ["s3:PutObject"],
+        resources: [`${assetsBucket.bucketArn}/${inboundInvoiceRawEmailPrefix}*`],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
+            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
+          },
+        },
+      })
+    );
+    const assetsBucketPolicy = assetsBucket.policy;
+
+    const inboundInvoiceReceiptRuleSet = new ses.CfnReceiptRuleSet(
+      this,
+      "InboundInvoiceReceiptRuleSet",
+      {
+        ruleSetName: inboundInvoiceReceiptRuleSetName,
+      }
+    );
+
+    const inboundInvoiceReceiptRule = new ses.CfnReceiptRule(
+      this,
+      "InboundInvoiceReceiptRule",
+      {
+        ruleSetName: inboundInvoiceReceiptRuleSet.ref,
+        rule: {
+          name: inboundInvoiceReceiptRuleName,
+          enabled: true,
+          scanEnabled: true,
+          tlsPolicy: "Optional",
+          recipients: [inboundInvoiceRecipientAddress],
+          actions: [
+            {
+              s3Action: {
+                bucketName: assetsBucket.bucketName,
+                objectKeyPrefix: inboundInvoiceRawEmailPrefix,
+                topicArn: inboundInvoiceTopic.topicArn,
+                iamRoleArn: inboundInvoiceReceiptRole.roleArn,
+              },
+            },
+          ],
+        },
+      }
+    );
+    if (assetsBucketPolicy) {
+      inboundInvoiceReceiptRule.node.addDependency(assetsBucketPolicy);
+    }
+    if (
+      inboundInvoiceTopicPolicyResult.statementAdded &&
+      inboundInvoiceTopicPolicyResult.policyDependable
+    ) {
+      inboundInvoiceReceiptRule.node.addDependency(
+        inboundInvoiceTopicPolicyResult.policyDependable
+      );
+    }
+    const receiptRoleDefaultPolicy =
+      inboundInvoiceReceiptRole.node.tryFindChild("DefaultPolicy");
+    if (receiptRoleDefaultPolicy) {
+      inboundInvoiceReceiptRule.node.addDependency(receiptRoleDefaultPolicy);
+    }
+
+    const activateInboundInvoiceReceiptRuleSetPolicy =
+      customresources.AwsCustomResourcePolicy.fromStatements([
+        new iam.PolicyStatement({
+          actions: ["ses:SetActiveReceiptRuleSet"],
+          resources: ["*"],
+        }),
+      ]);
+    const activateInboundInvoiceReceiptRuleSet =
+      new customresources.AwsCustomResource(
+        this,
+        "ActivateInboundInvoiceReceiptRuleSet",
+        {
+          policy: activateInboundInvoiceReceiptRuleSetPolicy,
+          installLatestAwsSdk: false,
+          onCreate: {
+            service: "SES",
+            action: "setActiveReceiptRuleSet",
+            parameters: {
+              RuleSetName: inboundInvoiceReceiptRuleSet.ref,
+            },
+            physicalResourceId: customresources.PhysicalResourceId.of(
+              `${name("inbound-invoice-email-rule-set")}-active`
+            ),
+          },
+          onUpdate: {
+            service: "SES",
+            action: "setActiveReceiptRuleSet",
+            parameters: {
+              RuleSetName: inboundInvoiceReceiptRuleSet.ref,
+            },
+            physicalResourceId: customresources.PhysicalResourceId.of(
+              `${name("inbound-invoice-email-rule-set")}-active`
+            ),
+          },
+        }
+      );
+    activateInboundInvoiceReceiptRuleSet.node.addDependency(
+      inboundInvoiceReceiptRule
     );
 
     // Migration function
@@ -1916,7 +2229,7 @@ export class ApiStack extends cdk.Stack {
       restApiName: name("api"),
       defaultCorsPreflightOptions: {
         allowOrigins: corsAllowedOrigins,
-        allowMethods: ["GET", "OPTIONS", "POST", "PUT", "DELETE"],
+        allowMethods: ["GET", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"],
         allowHeaders: [
           "Content-Type",
           "Authorization",
@@ -1981,7 +2294,7 @@ export class ApiStack extends cdk.Stack {
       "Access-Control-Allow-Origin": `'${corsAllowedOrigins[0]}'`,
       "Access-Control-Allow-Headers":
         "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Turnstile-Token'",
-      "Access-Control-Allow-Methods": "'GET,POST,PUT,DELETE,OPTIONS'",
+      "Access-Control-Allow-Methods": "'GET,POST,PUT,PATCH,DELETE,OPTIONS'",
       Vary: "'Origin'",
     };
     api.addGatewayResponse("GatewayResponseDefault4XX", {
@@ -2084,6 +2397,15 @@ export class ApiStack extends cdk.Stack {
 
     const mediaRequest = v1.addResource("media-request");
     mediaRequest.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+    const reservations = v1.addResource("reservations");
+    reservations.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+    reservations.addResource("payment-intent").addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
@@ -2336,6 +2658,26 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
     adminDiscountCodeById.addMethod("DELETE", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    // Admin vendor routes
+    const adminVendors = admin.addResource("vendors");
+    adminVendors.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminVendors.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminVendorById = adminVendors.addResource("{id}");
+    adminVendorById.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    adminVendorById.addMethod("PATCH", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
@@ -2606,27 +2948,27 @@ export class ApiStack extends cdk.Stack {
       value: userPoolClient.ref,
     });
 
-    new cdk.CfnOutput(this, "ClientAssetsBucketName", {
-      value: clientAssetsBucket.bucketName,
+    new cdk.CfnOutput(this, "AssetsBucketName", {
+      value: assetsBucket.bucketName,
     });
 
-    new cdk.CfnOutput(this, "ClientAssetsLogBucketName", {
-      value: clientAssetsLogBucket.bucketName,
+    new cdk.CfnOutput(this, "AssetsLogBucketName", {
+      value: assetsLogBucket.bucketName,
     });
-    new cdk.CfnOutput(this, "ClientAssetsDownloadDistributionDomain", {
+    new cdk.CfnOutput(this, "AssetsDownloadDistributionDomain", {
       value: assetDownloadDistribution.distributionDomainName,
     });
-    new cdk.CfnOutput(this, "ClientAssetsDownloadCloudFrontKeyPairId", {
+    new cdk.CfnOutput(this, "AssetsDownloadCloudFrontKeyPairId", {
       value: assetDownloadPublicKey.publicKeyId,
     });
-    new cdk.CfnOutput(this, "ClientAssetsDownloadCustomDomainTarget", {
+    new cdk.CfnOutput(this, "AssetsDownloadCustomDomainTarget", {
       value: assetDownloadDistribution.distributionDomainName,
       description:
-        "CNAME target for the client-asset download custom domain in DNS.",
+        "CNAME target for the asset download custom domain in DNS.",
     });
-    new cdk.CfnOutput(this, "ClientAssetsDownloadCustomDomainUrl", {
+    new cdk.CfnOutput(this, "AssetsDownloadCustomDomainUrl", {
       value: `https://${assetDownloadCustomDomainName.valueAsString}`,
-      description: "Client-asset download custom domain URL.",
+      description: "Asset download custom domain URL.",
     });
 
     new cdk.CfnOutput(this, "BookingRequestTopicArn", {
@@ -2669,6 +3011,31 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ExpenseParserDLQUrl", {
       value: expenseParserDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed expense parser jobs",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceRecipientAddress", {
+      value: inboundInvoiceRecipientAddress,
+      description: "SES-managed inbound recipient address for invoice automation",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceRawEmailPrefix", {
+      value: inboundInvoiceRawEmailPrefix,
+      description:
+        "Reserved object-key prefix in AssetsBucket for raw inbound invoice emails",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceTopicArn", {
+      value: inboundInvoiceTopic.topicArn,
+      description: "SNS topic ARN for inbound invoice email events",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceQueueUrl", {
+      value: inboundInvoiceQueue.queueUrl,
+      description: "SQS queue URL for inbound invoice email processing",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceDLQUrl", {
+      value: inboundInvoiceDLQ.queueUrl,
+      description: "SQS dead letter queue URL for failed inbound invoice emails",
+    });
+    new cdk.CfnOutput(this, "InboundInvoiceMxTarget", {
+      value: `10 inbound-smtp.${cdk.Stack.of(this).region}.amazonaws.com`,
+      description: "MX target to configure for the SES inbound email subdomain",
     });
 
     const customAuthDomainOutput = new cdk.CfnOutput(

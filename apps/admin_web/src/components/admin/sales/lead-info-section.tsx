@@ -9,7 +9,7 @@ export interface LeadInfoSectionProps {
 
 export function LeadInfoSection({ lead }: LeadInfoSectionProps) {
   return (
-    <Card title='Lead info' className='space-y-2'>
+    <Card title='Lead Info' className='space-y-2'>
       <div className='grid grid-cols-1 gap-2 text-sm text-slate-700'>
         <p>
           <span className='font-medium text-slate-900'>Name:</span>{' '}

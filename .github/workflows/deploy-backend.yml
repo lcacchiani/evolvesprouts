@@ -217,8 +217,28 @@ jobs:
           fi
 
           IFS=$', \n\t' read -r -a STACK_LIST <<< "$CDK_STACKS"
-          npx cdk deploy --no-notices --require-approval never \
-            "${QUALIFIER_ARGS[@]}" "${PARAM_ARGS[@]}" "${STACK_LIST[@]}"
+
+          # Lambda occasionally returns 500 during UpdateFunctionCode (SDK retries
+          # exhaust inside CloudFormation). Brief backoff + redeploy usually succeeds.
+          MAX_CDK_DEPLOY_ATTEMPTS=3
+          attempt=1
+          deploy_exit=1
+          while [ "$attempt" -le "$MAX_CDK_DEPLOY_ATTEMPTS" ]; do
+            echo "CDK deploy attempt ${attempt} of ${MAX_CDK_DEPLOY_ATTEMPTS}"
+            if npx cdk deploy --no-notices --require-approval never \
+              "${QUALIFIER_ARGS[@]}" "${PARAM_ARGS[@]}" "${STACK_LIST[@]}"; then
+              exit 0
+            fi
+            deploy_exit=$?
+            if [ "$attempt" -eq "$MAX_CDK_DEPLOY_ATTEMPTS" ]; then
+              break
+            fi
+            delay=$((45 * attempt))
+            echo "CDK deploy failed (exit ${deploy_exit}); waiting ${delay}s before retry..."
+            sleep "$delay"
+            attempt=$((attempt + 1))
+          done
+          exit "$deploy_exit"
         env:
           CDK_STACKS: ${{ github.event.inputs.cdk_stacks || vars.CDK_STACKS || 'all stacks' }}
           RUN_SEED_DATA: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_seed_data || 'false' }}
@@ -236,6 +256,7 @@ jobs:
           CDK_PARAM_OPENROUTER_API_KEY: ${{ secrets.CDK_PARAM_OPENROUTER_API_KEY }}
           CDK_PARAM_OPENROUTER_CHAT_COMPLETIONS_URL: ${{ vars.CDK_PARAM_OPENROUTER_CHAT_COMPLETIONS_URL }}
           CDK_PARAM_OPENROUTER_MODEL: ${{ vars.CDK_PARAM_OPENROUTER_MODEL }}
+          CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS: ${{ vars.CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS }}
           CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD: ${{ secrets.CDK_PARAM_ADMIN_BOOTSTRAP_TEMP_PASSWORD }}
           CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PUBLIC_KEY_PEM: ${{ secrets.CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PUBLIC_KEY_PEM }}
           CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN: ${{ secrets.CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN }}

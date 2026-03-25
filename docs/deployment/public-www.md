@@ -50,6 +50,7 @@ Public WWW CRM API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - GitHub variable `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+- GitHub variable `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - GitHub variable `NEXT_PUBLIC_FPS_MERCHANT_NAME` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_GTM_ID`
@@ -125,6 +126,7 @@ Workflow: `.github/workflows/smoke-public-www-staging.yml`
     - `POST /www/v1/discounts/validate`
     - `POST /www/v1/media-request`
     - `POST /www/v1/reservations`
+    - `POST /www/v1/reservations/payment-intent`
   - when same-origin `/www/*` checks return `404`, retries API checks through
     configured fallback API base URLs before failing
 

@@ -995,6 +995,8 @@
       "soldOutStampLabel": "已售罄",
       "spacesLeftLabelTemplate": "剩余 {count} 个名额",
       "confirmAndPayLabel": "确认并付款！",
+      "privateProgrammeCtaLabel": "想了解完全私密课程吗？",
+      "privateProgrammePrefillMessage": "我想了解更多 My Best Auntie 完全私密课程",
       "learnMoreLabel": "了解更多课程内容",
       "learnMoreHref": "/services/my-best-auntie-training-course",
       "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}岁组）",
@@ -1004,11 +1006,8 @@
     "modal": {
       "title": "我的最佳阿姨培训课程",
       "subtitle": "9周。3次小组课程。3次上门家访。3次家长通话。",
-      "partSummaries": [
-        "我们会把家调整成支持独立的环境，并观察你的阿姨如何与你的孩子建立连接。",
-        "不威胁，不贿赂。她会学会用冷静且一致的方式引导孩子。",
-        "她学会后退一步，你的孩子就能向前一步。"
-      ]
+      "weekRangeHeadlineTemplate": "{startDate} - {endDate}",
+      "partScheduleBlockTemplate": "小组课程：{groupSessionDateTime}\n上门家访：单独安排\n家长通话：单独安排"
     },
     "description": {
       "eyebrow": "课程亮点",
@@ -1094,6 +1093,9 @@
       "paymentMethodValue": "通过 FPS 二维码付款",
       "paymentFpsQrInstruction": "请使用你常用的银行应用扫描此 FPS 二维码。",
       "paymentMethodBankTransferValue": "银行转账",
+      "paymentMethodStripeValue": "银行卡 / Apple Pay / Google Pay / Link",
+      "paymentMethodStripeLoadingLabel": "正在加载 Stripe 支付方式...",
+      "paymentMethodStripeUnavailableLabel": "Stripe 支付方式暂不可用，请选择其他付款方式。",
       "paymentBankNameLabel": "银行名称",
       "paymentBankAccountHolderLabel": "账户名称",
       "paymentBankAccountNumberLabel": "账号",
@@ -1111,6 +1113,7 @@
       "termsLinkLabel": "条款与细则",
       "termsHref": "/terms",
       "submitLabel": "立即预留我的名额",
+      "submitStripeLabel": "立即付款并预留名额",
       "captchaLabel": "请完成 CAPTCHA 验证",
       "captchaRequiredError": "提交前请先完成 CAPTCHA 验证。",
       "captchaLoadError": "CAPTCHA 加载失败，请刷新后重试。",

@@ -55,6 +55,7 @@ interface MyBestAuntieBookingProps {
   commonAccessibility?: CommonAccessibilityContent;
   thankYouWhatsappHref?: string;
   thankYouWhatsappCtaLabel?: string;
+  privateProgrammeWhatsappHref?: string;
 }
 
 function DateArrowIcon({ direction }: { direction: 'left' | 'right' }) {
@@ -215,6 +216,7 @@ export function MyBestAuntieBooking({
   commonAccessibility = enContent.common.accessibility,
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
+  privateProgrammeWhatsappHref,
 }: MyBestAuntieBookingProps) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isThankYouModalOpen, setIsThankYouModalOpen] = useState(false);
@@ -552,49 +554,59 @@ export function MyBestAuntieBooking({
               </div>
             </div>
 
-            <ButtonPrimitive
-              variant='primary'
-              onClick={() => {
-                if (!selectedCohort || selectedCohort.is_fully_booked) {
-                  return;
-                }
-                trackAnalyticsEvent('booking_confirm_pay_click', {
-                  sectionId: 'my-best-auntie-booking',
-                  ctaLocation: 'booking_section',
-                  params: {
-                    age_group: selectedAgeOption?.label ?? '',
-                    cohort_label: selectedDateOption?.label ?? '',
-                    cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
-                    total_amount: selectedCohort.price,
-                  },
-                });
-                trackAnalyticsEvent('booking_modal_open', {
-                  sectionId: 'my-best-auntie-booking',
-                  ctaLocation: 'booking_section',
-                  params: {
-                    age_group: selectedAgeOption?.label ?? '',
-                    cohort_label: selectedDateOption?.label ?? '',
-                    cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
-                  },
-                });
-                trackMetaPixelEvent('InitiateCheckout', { content_name: 'my_best_auntie' });
-                trackEcommerceEvent('begin_checkout', {
-                  value: selectedCohort.price,
-                  items: [{
-                    item_id: `mba-${selectedCohort.age_group}`,
-                    item_name: 'My Best Auntie',
-                    item_category: selectedCohort.age_group,
-                    price: selectedCohort.price,
-                    quantity: 1,
-                  }],
-                });
-                setIsPaymentModalOpen(true);
-              }}
-              disabled={!selectedCohort || selectedCohort.is_fully_booked}
-              className='mt-7'
-            >
-              {content.confirmAndPayLabel}
-            </ButtonPrimitive>
+            <div className='mt-7 flex flex-wrap items-center gap-3'>
+              <ButtonPrimitive
+                variant='primary'
+                onClick={() => {
+                  if (!selectedCohort || selectedCohort.is_fully_booked) {
+                    return;
+                  }
+                  trackAnalyticsEvent('booking_confirm_pay_click', {
+                    sectionId: 'my-best-auntie-booking',
+                    ctaLocation: 'booking_section',
+                    params: {
+                      age_group: selectedAgeOption?.label ?? '',
+                      cohort_label: selectedDateOption?.label ?? '',
+                      cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
+                      total_amount: selectedCohort.price,
+                    },
+                  });
+                  trackAnalyticsEvent('booking_modal_open', {
+                    sectionId: 'my-best-auntie-booking',
+                    ctaLocation: 'booking_section',
+                    params: {
+                      age_group: selectedAgeOption?.label ?? '',
+                      cohort_label: selectedDateOption?.label ?? '',
+                      cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
+                    },
+                  });
+                  trackMetaPixelEvent('InitiateCheckout', { content_name: 'my_best_auntie' });
+                  trackEcommerceEvent('begin_checkout', {
+                    value: selectedCohort.price,
+                    items: [{
+                      item_id: `mba-${selectedCohort.age_group}`,
+                      item_name: 'My Best Auntie',
+                      item_category: selectedCohort.age_group,
+                      price: selectedCohort.price,
+                      quantity: 1,
+                    }],
+                  });
+                  setIsPaymentModalOpen(true);
+                }}
+                disabled={!selectedCohort || selectedCohort.is_fully_booked}
+              >
+                {content.confirmAndPayLabel}
+              </ButtonPrimitive>
+              {privateProgrammeWhatsappHref ? (
+                <ButtonPrimitive
+                  variant='primary'
+                  className='es-btn--outline'
+                  href={privateProgrammeWhatsappHref}
+                >
+                  {content.privateProgrammeCtaLabel}
+                </ButtonPrimitive>
+              ) : null}
+            </div>
           </aside>
         </SectionContainer>
       </SectionShell>

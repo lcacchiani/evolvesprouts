@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import base64
 import json
+import math
 import os
+import re
 from typing import Any
 from collections.abc import Mapping, Sequence
 
@@ -34,7 +36,10 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
     for asset in assets:
         attachment_content = _build_attachment_content(asset)
         content.append(attachment_content)
-        if attachment_content.get("type") == "file":
+        if (
+            attachment_content.get("type") == "file"
+            and _normalize_content_type(asset) == "application/pdf"
+        ):
             has_pdf_attachment = True
 
     payload: dict[str, Any] = {
@@ -87,7 +92,7 @@ def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, 
 
 
 def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
-    bucket = _require_env("CLIENT_ASSETS_BUCKET_NAME")
+    bucket = _require_env("ASSETS_BUCKET_NAME")
     max_file_bytes = _parse_max_file_bytes()
 
     s3_key = str(asset.get("s3_key") or "").strip()
@@ -98,11 +103,11 @@ def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
     if len(body) > max_file_bytes:
         raise RuntimeError(f"Attachment {asset.get('id')} exceeds parser size limit")
     content_type = _normalize_content_type(asset)
-    encoded = base64.b64encode(body).decode("utf-8")
     filename = str(asset.get("file_name") or "attachment")
-    data_url = f"data:{content_type};base64,{encoded}"
 
     if content_type.startswith("image/"):
+        encoded = base64.b64encode(body).decode("utf-8")
+        data_url = f"data:{content_type};base64,{encoded}"
         return {
             "type": "image_url",
             "image_url": {
@@ -110,6 +115,13 @@ def _build_attachment_content(asset: Mapping[str, Any]) -> dict[str, Any]:
             },
         }
 
+    mime_primary = content_type.split(";", 1)[0].strip()
+    if mime_primary == "text/plain":
+        text = body.decode("utf-8")
+        return {"type": "text", "text": text}
+
+    encoded = base64.b64encode(body).decode("utf-8")
+    data_url = f"data:{content_type};base64,{encoded}"
     return {
         "type": "file",
         "file": {
@@ -132,6 +144,8 @@ def _normalize_content_type(asset: Mapping[str, Any]) -> str:
         return "image/jpeg"
     if lowered_name.endswith(".webp"):
         return "image/webp"
+    if lowered_name.endswith(".txt"):
+        return "text/plain"
     return "application/octet-stream"
 
 
@@ -184,20 +198,67 @@ def _normalize_result(parsed: dict[str, Any]) -> dict[str, Any]:
                         item.get("description"), max_length=500
                     ),
                     "quantity": _optional_number(item.get("quantity")),
-                    "unit_price": _optional_number(item.get("unit_price")),
-                    "amount": _optional_number(item.get("amount")),
+                    "unit_price": _optional_money(item.get("unit_price")),
+                    "amount": _optional_money(item.get("amount")),
                 }
             )
+
+    subtotal = _optional_money(parsed.get("subtotal"))
+    if subtotal is None:
+        subtotal = _first_optional_money(
+            parsed,
+            (
+                "sub_total",
+                "net_amount",
+                "pretax_total",
+                "amount_ex_tax",
+                "subtotal_ex_tax",
+            ),
+        )
+
+    tax = _optional_money(parsed.get("tax"))
+    if tax is None:
+        tax = _first_optional_money(
+            parsed,
+            (
+                "tax_amount",
+                "gst",
+                "vat",
+                "sales_tax",
+            ),
+        )
+
+    total = _optional_money(parsed.get("total"))
+    if total is None:
+        total = _first_optional_money(
+            parsed,
+            (
+                "grand_total",
+                "invoice_total",
+                "total_amount",
+                "amount_due",
+                "balance_due",
+                "balance",
+                "amount",
+            ),
+        )
+
+    if total is None:
+        total = _sum_line_item_amounts(normalized_line_items)
+
+    currency = _optional_currency(parsed.get("currency"))
+    if currency is None and _infer_usd_from_dollar_signs(parsed):
+        currency = "USD"
 
     return {
         "vendor_name": _optional_text(parsed.get("vendor_name"), max_length=255),
         "invoice_number": _optional_text(parsed.get("invoice_number"), max_length=128),
         "invoice_date": _optional_iso_date(parsed.get("invoice_date")),
         "due_date": _optional_iso_date(parsed.get("due_date")),
-        "currency": _optional_currency(parsed.get("currency")),
-        "subtotal": _optional_number(parsed.get("subtotal")),
-        "tax": _optional_number(parsed.get("tax")),
-        "total": _optional_number(parsed.get("total")),
+        "currency": currency,
+        "subtotal": subtotal,
+        "tax": tax,
+        "total": total,
         "line_items": normalized_line_items,
         "confidence": _optional_number(parsed.get("confidence")),
         "raw": parsed,
@@ -259,6 +320,117 @@ def _optional_number(value: Any) -> float | None:
         return None
 
 
+def _optional_money(value: Any) -> float | None:
+    """Parse a monetary field from JSON (handles formatted strings from the model)."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return float(value)
+    if isinstance(value, float):
+        if math.isnan(value) or math.isinf(value):
+            return None
+        return value
+    return _parse_money_string(str(value))
+
+
+def _first_optional_money(
+    parsed: dict[str, Any], keys: tuple[str, ...]
+) -> float | None:
+    for key in keys:
+        found = _optional_money(parsed.get(key))
+        if found is not None:
+            return found
+    return None
+
+
+def _sum_line_item_amounts(line_items: list[dict[str, Any]]) -> float | None:
+    """Use sum of line amounts as total only when every line has a parsed amount."""
+    if not line_items:
+        return None
+    amounts: list[float] = []
+    for item in line_items:
+        raw = item.get("amount")
+        if raw is None:
+            return None
+        parsed = _optional_money(raw)
+        if parsed is None:
+            return None
+        amounts.append(parsed)
+    return sum(amounts)
+
+
+def _parse_money_string(raw: str) -> float | None:
+    s = raw.strip()
+    if not s:
+        return None
+
+    neg = False
+    if s.startswith("(") and s.endswith(")"):
+        neg = True
+        s = s[1:-1].strip()
+    elif s.startswith("-"):
+        neg = True
+        s = s[1:].strip()
+
+    s = re.sub(
+        r"\s*(USD|EUR|GBP|AUD|NZD|CAD|HKD|CNY|JPY|CHF|SGD|INR|[A-Z]{3})\s*$",
+        "",
+        s,
+        flags=re.IGNORECASE,
+    ).strip()
+
+    for sym in (
+        "$",
+        "\u00a3",
+        "\u20ac",
+        "\u00a5",
+        "\u20b9",
+        "\u00a2",
+        "\u20a1",
+    ):
+        s = s.replace(sym, "")
+    s = s.replace("\u00a0", " ").strip()
+
+    compact = s.replace(" ", "")
+    m = re.search(
+        r"[+-]?(?:\d[\d.,]*\d|\d+\.\d+|\.\d+|\d+)",
+        compact,
+    )
+    if not m:
+        return None
+    numeric = m.group(0)
+    try:
+        normalized = _normalize_decimal_grouping(numeric)
+        out = float(normalized)
+    except ValueError:
+        return None
+    return -out if neg else out
+
+
+def _normalize_decimal_grouping(s: str) -> str:
+    """Turn locale-style digit grouping into a float() parseable string."""
+    negative = s.startswith("-")
+    s = s.lstrip("+").lstrip("-")
+    if not s:
+        raise ValueError
+    if "," in s and "." in s:
+        if s.rfind(",") > s.rfind("."):
+            s = s.replace(".", "").replace(",", ".")
+        else:
+            s = s.replace(",", "")
+    elif "," in s:
+        parts = s.split(",")
+        if len(parts) == 2 and len(parts[1]) <= 2 and parts[1].isdigit():
+            lead = parts[0].replace(".", "")
+            s = f"{lead}.{parts[1]}"
+        else:
+            s = s.replace(",", "")
+    prefix = "-" if negative else ""
+    return prefix + s
+
+
 def _optional_iso_date(value: Any) -> str | None:
     normalized = _optional_text(value, max_length=20)
     if normalized is None:
@@ -272,11 +444,93 @@ def _optional_iso_date(value: Any) -> str | None:
         return None
 
 
+_MONETARY_STRING_KEYS = (
+    "subtotal",
+    "tax",
+    "total",
+    "grand_total",
+    "invoice_total",
+    "total_amount",
+    "amount_due",
+    "balance_due",
+    "balance",
+    "amount",
+    "sub_total",
+    "net_amount",
+    "pretax_total",
+    "amount_ex_tax",
+    "subtotal_ex_tax",
+    "tax_amount",
+    "gst",
+    "vat",
+    "sales_tax",
+)
+
+# Dollar prefixes that are not US dollars (avoid inferring USD from these).
+_DISAMBIGUATED_DOLLAR_MARKERS = (
+    "HK$",
+    "NT$",
+    "S$",
+    "SG$",
+    "NZ$",
+    "CA$",
+    "C$",
+    "A$",
+    "MX$",
+    "AU$",
+)
+
+_OTHER_CURRENCY_MARKERS_RE = re.compile(r"[£€¥₹\u00a3\u20ac\u00a5\u20b9]")
+
+
 def _optional_currency(value: Any) -> str | None:
-    normalized = _optional_text(value, max_length=3)
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    compact = raw.replace("\u00a0", " ").replace(" ", "").upper()
+    if compact in {"$", "US$", "USD"}:
+        return "USD"
+    if re.fullmatch(r"\$+", raw.strip()):
+        return "USD"
+    normalized = _optional_text(raw, max_length=3)
     if normalized is None:
         return None
-    return normalized.upper()
+    letters_only = re.sub(r"[^A-Za-z]", "", normalized)
+    if len(letters_only) == 3:
+        return letters_only.upper()
+    return None
+
+
+def _infer_usd_from_dollar_signs(parsed: dict[str, Any]) -> bool:
+    """True when monetary strings show $ but no other currency markers."""
+    parts: list[str] = []
+    for key in _MONETARY_STRING_KEYS:
+        val = parsed.get(key)
+        if isinstance(val, str) and val.strip():
+            parts.append(val)
+    line_items = parsed.get("line_items")
+    if isinstance(line_items, list):
+        for item in line_items:
+            if not isinstance(item, dict):
+                continue
+            for li_key in ("amount", "unit_price"):
+                val = item.get(li_key)
+                if isinstance(val, str) and val.strip():
+                    parts.append(val)
+    if not parts:
+        return False
+    combined = "\n".join(parts)
+    if "$" not in combined:
+        return False
+    upper = combined.upper()
+    for marker in _DISAMBIGUATED_DOLLAR_MARKERS:
+        if marker.upper() in upper:
+            return False
+    if _OTHER_CURRENCY_MARKERS_RE.search(combined):
+        return False
+    return True
 
 
 def _parse_max_file_bytes() -> int:
@@ -312,5 +566,10 @@ def _schema_prompt() -> str:
         '"currency": "string|null", "subtotal": "number|null", "tax": "number|null", '
         '"total": "number|null", "line_items": [{"description":"string|null","quantity":"number|null",'
         '"unit_price":"number|null","amount":"number|null"}], "confidence":"number|null"}. '
-        "Use null for unknown values. No markdown. No prose."
+        "Use null for unknown values. No markdown. No prose. "
+        "For subtotal, tax, and total prefer JSON numbers; if you use strings, use "
+        "plain digits only (no currency symbols or thousands separators) when possible. "
+        "If the invoice shows only the $ symbol for money (not HK$, S$, etc.), set "
+        "currency to USD. "
+        "Input may be plain text pasted in an email body rather than a PDF or image."
     )

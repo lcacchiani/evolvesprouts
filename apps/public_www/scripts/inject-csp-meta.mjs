@@ -19,6 +19,15 @@ const GTM_DETECT_MARKER = 'init-gtm.js';
 const META_PIXEL_SCRIPT_ORIGINS = ['https://connect.facebook.net'];
 const META_PIXEL_CONNECT_ORIGINS = ['https://www.facebook.com'];
 const META_PIXEL_DETECT_MARKER = 'init-meta-pixel.js';
+const STRIPE_SCRIPT_ORIGINS = ['https://js.stripe.com'];
+const STRIPE_CONNECT_ORIGINS = [
+  'https://api.stripe.com',
+  'https://m.stripe.network',
+  'https://r.stripe.com',
+];
+const STRIPE_FRAME_ORIGINS = ['https://js.stripe.com', 'https://hooks.stripe.com'];
+const STRIPE_DETECT_MARKER = 'stripe-js';
+const STRIPE_PUBLISHABLE_KEY_ENV_NAME = 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY';
 
 const CRM_API_CONNECT_ORIGINS = resolveCrmApiConnectOrigins();
 
@@ -54,7 +63,7 @@ function resolveCrmApiConnectOrigins() {
   return [parsedBaseUrl.origin];
 }
 
-function buildCspDirectiveBase(hasGtm, hasMetaPixel) {
+function buildCspDirectiveBase(hasGtm, hasMetaPixel, hasStripe) {
   const connectSources = [
     "'self'",
     ...CRM_API_CONNECT_ORIGINS,
@@ -66,7 +75,15 @@ function buildCspDirectiveBase(hasGtm, hasMetaPixel) {
   if (hasMetaPixel) {
     connectSources.push(...META_PIXEL_CONNECT_ORIGINS);
   }
+  if (hasStripe) {
+    connectSources.push(...STRIPE_CONNECT_ORIGINS);
+  }
   const dedupedConnectSources = [...new Set(connectSources)];
+  const frameSources = ["'self'", TURNSTILE_ORIGIN];
+  if (hasStripe) {
+    frameSources.push(...STRIPE_FRAME_ORIGINS);
+  }
+  const dedupedFrameSources = [...new Set(frameSources)];
 
   return [
     "default-src 'self'",
@@ -75,8 +92,9 @@ function buildCspDirectiveBase(hasGtm, hasMetaPixel) {
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com data:",
     `connect-src ${dedupedConnectSources.join(' ')}`,
-    `frame-src 'self' ${TURNSTILE_ORIGIN}`,
+    `frame-src ${dedupedFrameSources.join(' ')}`,
     "form-action 'self' mailto:",
+    "worker-src 'self' blob:",
   ];
 }
 
@@ -212,14 +230,19 @@ function buildCspValue(html) {
 
   const hasGtm = html.includes(GTM_DETECT_MARKER);
   const hasMetaPixel = html.includes(META_PIXEL_DETECT_MARKER);
+  const hasStripe =
+    html.includes(STRIPE_DETECT_MARKER) ||
+    Boolean(process.env[STRIPE_PUBLISHABLE_KEY_ENV_NAME]?.trim());
   const gtmScriptOrigins = hasGtm ? GTM_SCRIPT_ORIGINS : [];
   const metaPixelScriptOrigins = hasMetaPixel ? META_PIXEL_SCRIPT_ORIGINS : [];
+  const stripeScriptOrigins = hasStripe ? STRIPE_SCRIPT_ORIGINS : [];
 
   const scriptDirectiveSources = [
     "'self'",
     TURNSTILE_ORIGIN,
     ...gtmScriptOrigins,
     ...metaPixelScriptOrigins,
+    ...stripeScriptOrigins,
     ...scriptHashes,
   ].join(' ');
   const styleDirectiveSources = [
@@ -230,7 +253,7 @@ function buildCspValue(html) {
   ].join(' ');
 
   const directives = [
-    ...buildCspDirectiveBase(hasGtm, hasMetaPixel),
+    ...buildCspDirectiveBase(hasGtm, hasMetaPixel, hasStripe),
     `script-src ${scriptDirectiveSources}`,
     `style-src ${styleDirectiveSources}`,
   ];

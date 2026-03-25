@@ -334,10 +334,12 @@ function handler(event) {
     'POST': {
       '/www/v1/discounts/validate': true,
       '/www/v1/reservations': true,
+      '/www/v1/reservations/payment-intent': true,
       '/www/v1/contact-us': true
     }
   };
   if (allowlist[method] && allowlist[method][uri]) {
+    request.uri = uri.substring(4);
     return request;
   }
 

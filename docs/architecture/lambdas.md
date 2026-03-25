@@ -23,11 +23,14 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/media-request`, `/v1/admin/geographic-areas`,
+  `/v1/media-request`, `/v1/reservations`,
+  `/v1/reservations/payment-intent`,
+  `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
   `/v1/admin/leads/*`, `/v1/admin/users`,
   `/v1/admin/services/*`, `/v1/admin/discount-codes/*`,
+  `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`
@@ -35,10 +38,14 @@ their primary responsibilities.
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
   API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
-- Purpose: asset metadata CRUD, geographic area browsing, location CRUD,
+- Purpose: asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
+  filters and accepts `tag_name` for any tag linked to assets in the requested
+  `asset_type` scope; create/update accept optional `client_tag` for the
+  `client_document` tag, forbidden when the asset is expense-linked), geographic area browsing, location CRUD,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
-  expense invoice ingestion/listing/amendment/void/pay flows,
-  and admin-user listing for lead assignment,
+  vendor management, expense invoice ingestion/listing/amendment/void/pay flows
+  (mark-paid requires vendor, invoice date, currency, and total), and admin-user
+  listing for lead assignment,
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
@@ -46,7 +53,9 @@ their primary responsibilities.
   updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
   verification (via `AwsApiProxyFunction`) and SNS event publishing on
   `/v1/media-request`, Mailchimp webhook ingestion and contact sync-status
-  reconciliation on `/v1/mailchimp/webhook`, and signed upload/download URL generation in
+  reconciliation on `/v1/mailchimp/webhook`, Stripe PaymentIntent creation for
+  inline public booking modal payments on `/v1/reservations/payment-intent`
+  (via `AwsApiProxyFunction`), and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
 ### Health check
@@ -180,7 +189,22 @@ their primary responsibilities.
 - Handler: backend/lambda/expense_parser/handler.py
 - Trigger: SQS queue (`evolvesprouts-expense-parser-queue`)
 - Purpose: process async invoice parse requests and enrich expense records
-  using OpenRouter via `AwsApiProxyFunction`
+  using OpenRouter via `AwsApiProxyFunction`; when `vendor_id` is unset and the
+  model returns `vendor_name`, attempts a unique match among **active** vendor
+  organizations: case-insensitive exact trimmed name; else a single `ILIKE`
+  substring hit when the vendor name contains the parsed string (only when the
+  parsed string is long enough and not generic-only tokens); else, if the parsed
+  string contains a specific vendor list name, the longest such match wins when
+  unambiguous (covers legal invoice names vs shorter list labels). Weak matches
+  never write `vendor_id`. Parsed vendor text is not stored on the expense row;
+  only `vendor_id` is updated when a match is found.
+  Parsed `subtotal` / `tax` / `total` accept common formatted strings (currency
+  symbols, thousands separators, alternate keys such as `amount`), and infer
+  `total` from line-item amounts when every line has an `amount` and top-level
+  totals are missing.
+  When `currency` is still unset, monetary strings that contain a bare `$` (not
+  `HK$`, `S$`, etc.) and no other currency markers infer `USD`; the model may
+  also return `$` as `currency`, which normalizes to `USD`.
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: S3 read for the assets bucket, Secrets Manager read for OpenRouter key,
@@ -188,10 +212,31 @@ their primary responsibilities.
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
-  - `CLIENT_ASSETS_BUCKET_NAME`
+  - `ASSETS_BUCKET_NAME`
   - `OPENROUTER_API_KEY_SECRET_ARN`, `OPENROUTER_CHAT_COMPLETIONS_URL`,
     `OPENROUTER_MODEL`, `OPENROUTER_MAX_FILE_BYTES`
   - `AWS_PROXY_FUNCTION_ARN`
+
+### Inbound invoice email processor
+- Function: InboundInvoiceEmailProcessor
+- Handler: backend/lambda/inbound_invoice_email/handler.py
+- Trigger: SQS queue (`evolvesprouts-inbound-invoice-email-queue`) fed by SES
+  receipt-rule notifications through SNS
+- Purpose: convert inbound invoice email attachments (or synthetic body text
+  when there are no supported files) into `assets`, `expenses`, and
+  `expense_attachments` rows, then enqueue the existing expense parser workflow
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
+- VPC: Yes
+- Permissions: S3 read/write for the assets bucket (including the
+  `inbound-email/raw/` prefix), SNS publish to the expense parser topic
+- Environment:
+  - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
+    `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
+  - `ASSETS_BUCKET_NAME`
+  - `EXPENSE_PARSE_TOPIC_ARN`
+  - `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` (optional comma-separated
+    substrings; empty disables filtering; see `InboundInvoiceAllowedSenderPatterns`
+    CDK parameter / GitHub var `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`)
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction

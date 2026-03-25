@@ -9,18 +9,21 @@ const {
   originalBankName,
   originalBankAccountHolder,
   originalBankAccountNumber,
+  originalStripePublishableKey,
 } = vi.hoisted(() => {
   const originalFpsMerchantName = process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME;
   const originalFpsMobileNumber = process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER;
   const originalBankName = process.env.NEXT_PUBLIC_BANK_NAME;
   const originalBankAccountHolder = process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER;
   const originalBankAccountNumber = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER;
+  const originalStripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
   process.env.NEXT_PUBLIC_FPS_MERCHANT_NAME = 'Test FPS Merchant';
   process.env.NEXT_PUBLIC_FPS_MOBILE_NUMBER = '85200000000';
   process.env.NEXT_PUBLIC_BANK_NAME = 'Test Bank';
   process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER = 'Test Account Holder';
   process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER = '123-456-789';
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_mock_123';
 
   return {
     originalFpsMerchantName,
@@ -28,6 +31,7 @@ const {
     originalBankName,
     originalBankAccountHolder,
     originalBankAccountNumber,
+    originalStripePublishableKey,
   };
 });
 
@@ -41,6 +45,7 @@ import trainingCoursesContent from '@/content/my-best-auntie-training-courses.js
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
+import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
 import {
   formatSiteCompactDate,
   formatSiteTimeOfDay,
@@ -70,6 +75,24 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('@stripe/stripe-js', () => ({
+  loadStripe: vi.fn(() => Promise.resolve({})),
+}));
+
+vi.mock('@stripe/react-stripe-js', () => ({
+  Elements: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  PaymentElement: () => <div data-testid='mock-stripe-payment-element' />,
+  useElements: () => ({}),
+  useStripe: () => ({
+    confirmPayment: vi.fn(async () => ({
+      paymentIntent: {
+        id: 'pi_test_booking_modal',
+        status: 'succeeded',
+      },
+    })),
+  }),
+}));
+
 vi.mock('@/lib/crm-api-client', async () => {
   const actual = await vi.importActual<typeof import('@/lib/crm-api-client')>(
     '@/lib/crm-api-client',
@@ -93,6 +116,14 @@ vi.mock('@/lib/discounts-data', async () => {
     validateDiscountCode: vi.fn(() => Promise.resolve(null)),
   };
 });
+
+vi.mock('@/lib/reservation-payments-data', () => ({
+  createReservationPaymentIntent: vi.fn(() =>
+    Promise.resolve({
+      payment_intent_id: 'pi_mock_123',
+      client_secret: 'pi_mock_123_secret_abc',
+    })),
+}));
 
 vi.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: vi.fn(),
@@ -143,6 +174,7 @@ if (!selectedCohort) {
 }
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
+const mockedCreateReservationPaymentIntent = vi.mocked(createReservationPaymentIntent);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 const testTurnstileSiteKey = 'test-turnstile-site-key';
 const testFpsMerchantName = 'Test FPS Merchant';
@@ -214,6 +246,7 @@ beforeEach(() => {
 afterEach(() => {
   mockedCreateCrmApiClient.mockReturnValue(null);
   mockedValidateDiscountCode.mockReset();
+  mockedCreateReservationPaymentIntent.mockReset();
   mockedTrackAnalyticsEvent.mockReset();
 
   if (originalTurnstileSiteKey === undefined) {
@@ -250,6 +283,12 @@ afterEach(() => {
     delete process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER;
   } else {
     process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER = originalBankAccountNumber;
+  }
+
+  if (originalStripePublishableKey === undefined) {
+    delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  } else {
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = originalStripePublishableKey;
   }
 });
 
@@ -320,14 +359,31 @@ describe('my-best-auntie booking modals footer content', () => {
       within(paymentBlock as HTMLDivElement).getByText(bookingModalContent.paymentMethodLabel),
     )
       .toBeInTheDocument();
+    expect(
+      paymentBlock?.querySelector('img[data-booking-stripe-icon="true"]'),
+    ).not.toBeNull();
   });
 
   it('does not render course schedule heading and uses shared calendar icon in booking modal', () => {
     const { container } = renderBookingModal();
 
     expect(screen.queryByText('Course Schedule')).not.toBeInTheDocument();
-    expect(container.querySelectorAll('span.es-mask-calendar-heading').length).toBeGreaterThan(
-      0,
+    const partCalendarIcons = container.querySelectorAll(
+      'span[data-course-part-icon="true"].es-mask-calendar-current',
+    );
+    expect(partCalendarIcons).toHaveLength(3);
+  });
+
+  it('renders week range headlines and schedule blocks without year in the details column', () => {
+    const { container } = renderBookingModal();
+    expect(screen.getByText('19 Apr - 09 May')).toBeInTheDocument();
+    expect(screen.getByText('10 May - 30 May')).toBeInTheDocument();
+    expect(screen.getByText('31 May - 20 Jun')).toBeInTheDocument();
+    const firstScheduleBlock = container.querySelector(
+      'p[data-course-part-schedule-block="true"]',
+    );
+    expect(firstScheduleBlock?.textContent).toBe(
+      'Group session: 19 Apr @ 09:00\nHome visit: scheduled individually\nParent call: scheduled individually',
     );
   });
 
@@ -683,6 +739,7 @@ describe('my-best-auntie booking modals footer content', () => {
           price: 9000,
           reservation_pending_until_payment_confirmed: true,
           agreed_to_terms_and_conditions: true,
+          stripe_payment_intent_id: undefined,
         },
         turnstileToken: 'mock-turnstile-token',
         expectedSuccessStatuses: [200, 202],
@@ -814,18 +871,149 @@ describe('my-best-auntie booking modals footer content', () => {
     });
   });
 
-  it('uses my best auntie outline icons for all course part chips', () => {
+  it('submits Stripe payment method with payment intent id in reservation payload', async () => {
+    const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
+    const onSubmitReservation = vi.fn();
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: requestSpy,
+    });
+    mockedCreateReservationPaymentIntent.mockResolvedValue({
+      payment_intent_id: 'pi_test_booking_modal',
+      client_secret: 'pi_test_booking_modal_secret_abc',
+    });
+
+    renderBookingModal({
+      selectedAgeGroupLabel: '18-24 months',
+      onSubmitReservation,
+    });
+
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: bookingModalContent.paymentMethodStripeValue,
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    await waitFor(() => {
+      expect(mockedCreateReservationPaymentIntent).toHaveBeenCalled();
+    });
+
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.fullNameLabel)), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.emailLabel)), {
+      target: { value: 'ida@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(new RegExp(bookingModalContent.phoneLabel)), {
+      target: { value: '85212345678' },
+    });
+    fireEvent.change(screen.getByLabelText(bookingModalContent.topicsInterestLabel), {
+      target: { value: 'Need details' },
+    });
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.pendingReservationAcknowledgementLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: new RegExp(bookingModalContent.termsLinkLabel),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.submitStripeLabel,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(requestSpy).toHaveBeenCalledWith({
+        endpointPath: '/v1/reservations',
+        method: 'POST',
+        body: {
+          full_name: 'Test User',
+          email: 'ida@example.com',
+          phone_number: '85212345678',
+          cohort_age: '18-24 months',
+          cohort_date: selectedCohortDate,
+          comments: 'Need details',
+          discount_code: undefined,
+          price: 9000,
+          reservation_pending_until_payment_confirmed: true,
+          agreed_to_terms_and_conditions: true,
+          stripe_payment_intent_id: 'pi_test_booking_modal',
+        },
+        turnstileToken: 'mock-turnstile-token',
+        expectedSuccessStatuses: [200, 202],
+      });
+    });
+    await waitFor(() => {
+      expect(onSubmitReservation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethod: bookingModalContent.paymentMethodStripeValue,
+        }),
+      );
+    });
+  });
+
+  it('shows Stripe loading copy before captcha is solved', () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    renderBookingModal();
+
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: bookingModalContent.paymentMethodStripeValue,
+      }),
+    );
+
+    expect(
+      screen.getByText(bookingModalContent.paymentMethodStripeLoadingLabel),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(bookingModalContent.paymentMethodStripeUnavailableLabel),
+    ).not.toBeInTheDocument();
+  });
+
+  it('uses calendar mask icons inside each course part chip', () => {
     const { container } = renderBookingModal();
 
     const partIcons = Array.from(
-      container.querySelectorAll('img[data-course-part-icon="true"]'),
+      container.querySelectorAll('span[data-course-part-icon="true"]'),
     );
     expect(partIcons).toHaveLength(3);
-    expect(partIcons.map((icon) => icon.getAttribute('src'))).toEqual([
-      '/images/home.svg',
-      '/images/limits.svg',
-      '/images/independence.svg',
-    ]);
+    for (const icon of partIcons) {
+      expect(icon.className).toContain('es-mask-calendar-current');
+    }
+  });
+
+  it('renders one schedule block per course part and no support detail rows', () => {
+    const { container } = renderBookingModal();
+
+    expect(
+      container.querySelectorAll('img[data-course-part-support-icon="true"]'),
+    ).toHaveLength(0);
+    expect(
+      container.querySelectorAll('span[data-course-part-support-chip="true"]'),
+    ).toHaveLength(0);
+    expect(
+      container.querySelectorAll('p[data-course-part-detail-title="true"]'),
+    ).toHaveLength(0);
+    expect(
+      container.querySelectorAll('p[data-course-part-detail-description="true"]'),
+    ).toHaveLength(0);
+    expect(
+      container.querySelectorAll('span[data-course-part-line="support-gap-connector"]'),
+    ).toHaveLength(0);
+
+    const scheduleBlocks = container.querySelectorAll(
+      'p[data-course-part-schedule-block="true"]',
+    );
+    expect(scheduleBlocks).toHaveLength(3);
+    expect(scheduleBlocks[0]?.textContent).toContain('Group session:');
+    expect(scheduleBlocks[0]?.textContent).toContain('Home visit:');
+    expect(scheduleBlocks[0]?.textContent).toContain('Parent call:');
   });
 
   it('renders timeline segments, 50px part spacing, and numeric part chips', () => {
@@ -888,27 +1076,25 @@ describe('my-best-auntie booking modals footer content', () => {
     const firstPartItem = firstPartChip?.closest('li') ?? null;
     expect(firstPartItem?.className).toContain('es-my-best-auntie-booking-part-item');
     const firstPartIcon = firstPartItem?.querySelector(
-      'img[data-course-part-icon="true"]',
-    ) as HTMLImageElement | null;
+      'span[data-course-part-icon="true"]',
+    ) as HTMLSpanElement | null;
     expect(firstPartIcon).not.toBeNull();
-    expect(firstPartIcon?.getAttribute('src')).toBe('/images/home.svg');
+    expect(firstPartIcon?.className).toContain('es-mask-calendar-current');
 
     const firstPartRow = firstPartChip?.closest('div');
     expect(firstPartRow?.className).toContain('grid-cols-[auto_minmax(0,1fr)]');
-    expect(firstPartRow?.className).toContain('items-center');
+    expect(firstPartRow?.className).toContain('items-start');
 
     const firstPartDateBlock = firstPartItem?.querySelector(
       'div[data-course-part-date-block="true"]',
     ) as HTMLDivElement | null;
     expect(firstPartDateBlock).not.toBeNull();
     expect(firstPartDateBlock?.className).toContain('flex');
-    expect(firstPartDateBlock?.className).toContain('items-center');
-
-    const firstPartDateIcon = firstPartDateBlock?.querySelector(
-      'span[data-course-part-date-icon="true"]',
-    ) as HTMLSpanElement | null;
-    expect(firstPartDateIcon?.className).toContain('h-6');
-    expect(firstPartDateIcon?.className).toContain('shrink-0');
+    expect(firstPartDateBlock?.className).toContain('flex-col');
+    expect(firstPartDateBlock?.className).toContain('gap-2');
+    expect(
+      firstPartDateBlock?.querySelector('span[data-course-part-date-icon="true"]'),
+    ).toBeNull();
 
     const firstPartDateText = firstPartDateBlock?.querySelector('p');
     expect(firstPartDateText?.className).toContain('min-w-0');
@@ -971,7 +1157,7 @@ describe('my-best-auntie booking modals footer content', () => {
       }),
     ).toBeNull();
 
-    expect(container.querySelector('span.es-mask-credit-card-danger')).not.toBeNull();
+    expect(container.querySelector('span.es-mask-dollar-danger')).not.toBeNull();
     expect(container.querySelector('span.es-mask-location-danger')).not.toBeNull();
     expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(1);
   });

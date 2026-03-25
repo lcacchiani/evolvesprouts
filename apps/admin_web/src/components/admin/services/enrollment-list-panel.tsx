@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from 'react';
 
+import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -140,10 +141,39 @@ export function EnrollmentListPanel({
 
   return (
     <>
-      <Card
-        title='Enrollments'
+      <AdminEditorCard
+        title='Enrollment'
         description='Add or update an enrollment using the same fields below.'
-        className='space-y-3'
+        actions={
+          <>
+            {isEditMode ? (
+              <Button type='button' variant='secondary' disabled={isMutating} onClick={resetCreateForm}>
+                Cancel
+              </Button>
+            ) : null}
+            {isEditMode ? (
+              <Button
+                type='button'
+                disabled={isMutating || !selectedEnrollment}
+                onClick={() => void handleSave()}
+              >
+                {isMutating ? 'Updating...' : 'Update enrollment'}
+              </Button>
+            ) : (
+              <Button
+                type='button'
+                disabled={
+                  !canCreate ||
+                  isMutating ||
+                  (!contactId.trim() && !familyId.trim() && !organizationId.trim())
+                }
+                onClick={() => void handleSave()}
+              >
+                {isMutating ? 'Adding...' : 'Add enrollment'}
+              </Button>
+            )}
+          </>
+        }
       >
         {!canCreate ? (
           <p className='text-xs text-slate-500'>
@@ -210,34 +240,10 @@ export function EnrollmentListPanel({
           <Label htmlFor='enrollment-notes'>Notes</Label>
           <Textarea id='enrollment-notes' value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
         </div>
-        <div className='flex justify-start gap-2'>
-          {isEditMode ? (
-            <Button
-              type='button'
-              disabled={isMutating || !selectedEnrollment}
-              onClick={() => void handleSave()}
-            >
-              {isMutating ? 'Updating...' : 'Update Enrollment'}
-            </Button>
-          ) : (
-            <Button
-              type='button'
-              disabled={!canCreate || isMutating || (!contactId.trim() && !familyId.trim() && !organizationId.trim())}
-              onClick={() => void handleSave()}
-            >
-              {isMutating ? 'Adding...' : 'Add Enrollment'}
-            </Button>
-          )}
-          {isEditMode ? (
-            <Button type='button' variant='secondary' disabled={isMutating} onClick={resetCreateForm}>
-              Cancel
-            </Button>
-          ) : null}
-        </div>
-      </Card>
+      </AdminEditorCard>
 
       <PaginatedTableCard
-        title='Existing Enrollments'
+        title='Enrollments'
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
@@ -245,55 +251,53 @@ export function EnrollmentListPanel({
         loadingLabel='Loading enrollments...'
         onLoadMore={onLoadMore}
       >
-        <div className='rounded-md border border-slate-200'>
-          <table className='w-full min-w-[840px] divide-y divide-slate-200 text-left'>
-            <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
-              <tr>
-                <th className='px-4 py-3 font-semibold'>Parent</th>
-                <th className='px-4 py-3 font-semibold'>Status</th>
-                <th className='px-4 py-3 font-semibold'>Amount</th>
-                <th className='px-4 py-3 font-semibold'>Enrolled at</th>
-                <th className='px-4 py-3 font-semibold text-right'>Operations</th>
+        <AdminDataTable tableClassName='min-w-[840px]'>
+          <AdminDataTableHead>
+            <tr>
+              <th className='px-4 py-3 font-semibold'>Parent</th>
+              <th className='px-4 py-3 font-semibold'>Status</th>
+              <th className='px-4 py-3 font-semibold'>Amount</th>
+              <th className='px-4 py-3 font-semibold'>Enrolled at</th>
+              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+            </tr>
+          </AdminDataTableHead>
+          <AdminDataTableBody>
+            {enrollments.map((enrollment) => (
+              <tr
+                key={enrollment.id}
+                className={`cursor-pointer transition ${
+                  selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                }`}
+                onClick={() => applyEnrollmentSelection(enrollment)}
+              >
+                <td className='px-4 py-3'>
+                  {enrollment.contactId ?? enrollment.familyId ?? enrollment.organizationId ?? '-'}
+                </td>
+                <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
+                <td className='px-4 py-3'>
+                  {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
+                </td>
+                <td className='px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
+                <td className='px-4 py-3 text-right'>
+                  <Button
+                    type='button'
+                    size='sm'
+                    variant='danger'
+                    disabled={isMutating}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void handleDeleteEnrollment(enrollment);
+                    }}
+                    aria-label='Delete enrollment'
+                    title='Delete enrollment'
+                  >
+                    <DeleteIcon className='h-4 w-4' />
+                  </Button>
+                </td>
               </tr>
-            </thead>
-            <tbody className='divide-y divide-slate-200 bg-white text-sm'>
-              {enrollments.map((enrollment) => (
-                <tr
-                  key={enrollment.id}
-                  className={`cursor-pointer transition ${
-                    selectedEnrollmentId === enrollment.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                  }`}
-                  onClick={() => applyEnrollmentSelection(enrollment)}
-                >
-                  <td className='px-4 py-3'>
-                    {enrollment.contactId ?? enrollment.familyId ?? enrollment.organizationId ?? '-'}
-                  </td>
-                  <td className='px-4 py-3'>{formatEnumLabel(enrollment.status)}</td>
-                  <td className='px-4 py-3'>
-                    {enrollment.amountPaid ? `${enrollment.amountPaid} ${enrollment.currency ?? ''}` : '-'}
-                  </td>
-                  <td className='px-4 py-3'>{formatDate(enrollment.enrolledAt)}</td>
-                  <td className='px-4 py-3 text-right'>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='danger'
-                      disabled={isMutating}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void handleDeleteEnrollment(enrollment);
-                      }}
-                      aria-label='Delete enrollment'
-                      title='Delete enrollment'
-                    >
-                      <DeleteIcon className='h-4 w-4' />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </AdminDataTableBody>
+        </AdminDataTable>
       </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
     </>

@@ -995,6 +995,8 @@
       "soldOutStampLabel": "Sold Out",
       "spacesLeftLabelTemplate": "{count} spots left",
       "confirmAndPayLabel": "Confirm and Pay!",
+      "privateProgrammeCtaLabel": "Want a fully private programme?",
+      "privateProgrammePrefillMessage": "I would like to know more about My Best Auntie private programme",
       "learnMoreLabel": "Learn More About Course",
       "learnMoreHref": "/services/my-best-auntie-training-course",
       "nextCohortLabelTemplate": "{scheduleLabel} for {ageGroupLabel} age group",
@@ -1004,11 +1006,8 @@
     "modal": {
       "title": "My Best Auntie Training Course",
       "subtitle": "9 weeks. 3 group sessions. 3 home visits. 3 parent calls.",
-      "partSummaries": [
-        "We set up your home for independence and observe how your helper connects with your child.",
-        "No threats, no bribes. She learns to guide with calm consistency.",
-        "She steps back. Your child steps up."
-      ]
+      "weekRangeHeadlineTemplate": "{startDate} - {endDate}",
+      "partScheduleBlockTemplate": "Group session: {groupSessionDateTime}\nHome visit: scheduled individually\nParent call: scheduled individually"
     },
     "description": {
       "eyebrow": "Course Highlights",
@@ -1094,6 +1093,9 @@
       "paymentMethodValue": "Pay via FPS QR",
       "paymentFpsQrInstruction": "Scan this FPS QR code using your preferred banking app.",
       "paymentMethodBankTransferValue": "Bank Transfer",
+      "paymentMethodStripeValue": "Card / Apple Pay / Google Pay / Link",
+      "paymentMethodStripeLoadingLabel": "Loading secure card and wallet payment options...",
+      "paymentMethodStripeUnavailableLabel": "Card and wallet payments are currently unavailable. Please choose another payment option.",
       "paymentBankNameLabel": "Bank name",
       "paymentBankAccountHolderLabel": "Account holder",
       "paymentBankAccountNumberLabel": "Account number",
@@ -1111,6 +1113,7 @@
       "termsLinkLabel": "Terms & Conditions",
       "termsHref": "/terms",
       "submitLabel": "Reserve My Spot",
+      "submitStripeLabel": "Pay & Reserve My Spot",
       "captchaLabel": "Please complete CAPTCHA verification",
       "captchaRequiredError": "Please complete CAPTCHA verification before submitting.",
       "captchaLoadError": "CAPTCHA failed to load. Please refresh and try again.",

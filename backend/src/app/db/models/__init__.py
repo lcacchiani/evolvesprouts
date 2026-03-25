@@ -7,6 +7,7 @@ from app.db.models.crm_note import CrmNote
 from app.db.models.discount_code import DiscountCode
 from app.db.models.enrollment import Enrollment
 from app.db.models.expense import Expense, ExpenseAttachment
+from app.db.models.inbound_email import InboundEmail
 from app.db.models.enums import (
     AccessGrantType,
     AssetType,
@@ -22,6 +23,7 @@ from app.db.models.enums import (
     EventCategory,
     FamilyRole,
     FunnelStage,
+    InboundEmailStatus,
     InstanceStatus,
     LeadEventType,
     LeadType,
@@ -57,7 +59,7 @@ from app.db.models.service_instance import (
     ServiceInstance,
     TrainingInstanceDetails,
 )
-from app.db.models.tag import ContactTag, FamilyTag, OrganizationTag, Tag
+from app.db.models.tag import AssetTag, ContactTag, FamilyTag, OrganizationTag, Tag
 from app.db.models.ticket import Ticket
 
 __all__ = [
@@ -65,6 +67,7 @@ __all__ = [
     "Asset",
     "AssetAccessGrant",
     "AssetShareLink",
+    "AssetTag",
     "AssetType",
     "AssetVisibility",
     "AuditLog",
@@ -94,6 +97,8 @@ __all__ = [
     "FamilyTag",
     "FunnelStage",
     "GeographicArea",
+    "InboundEmail",
+    "InboundEmailStatus",
     "InstanceSessionSlot",
     "InstanceStatus",
     "LeadEventType",

@@ -88,7 +88,7 @@ export function CreateLeadDialog({
   return (
     <FormDialog
       open={open}
-      title='Create lead'
+      title='Create Lead'
       isLoading={isLoading}
       error=''
       submitLabel='Create lead'
@@ -97,7 +97,7 @@ export function CreateLeadDialog({
       onSubmit={handleSubmit}
     >
       {error ? (
-        <StatusBanner variant='error' title='Create lead'>
+        <StatusBanner variant='error' title='Create Lead'>
           {error}
         </StatusBanner>
       ) : null}

@@ -42,7 +42,7 @@ export function CreateDiscountCodeDialog({
   return (
     <FormDialog
       open={open}
-      title='Create discount code'
+      title='Create Discount Code'
       isLoading={isLoading}
       error={error}
       submitLabel='Create code'

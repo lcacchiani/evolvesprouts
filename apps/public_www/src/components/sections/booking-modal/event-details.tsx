@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SmartLink } from '@/components/shared/smart-link';
@@ -8,7 +6,8 @@ import { formatCurrencyHkd } from '@/lib/format';
 
 export interface BookingEventDetailPart {
   date: string;
-  description: string;
+  /** Event booking modal: single description under the session date. */
+  description?: string;
 }
 
 interface BookingEventDetailsProps {
@@ -26,22 +25,10 @@ interface BookingEventDetailsProps {
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
-const COURSE_OVERVIEW_PART_ICONS = [
-  '/images/home.svg',
-  '/images/limits.svg',
-  '/images/independence.svg',
-] as const;
 type PartChipTone = (typeof PART_CHIP_TONES)[number];
 
 function resolvePartChipTone(index: number): PartChipTone {
   return PART_CHIP_TONES[index] ?? PART_CHIP_TONES[PART_CHIP_TONES.length - 1];
-}
-
-function getPartIconSource(index: number): string {
-  return (
-    COURSE_OVERVIEW_PART_ICONS[index] ??
-    COURSE_OVERVIEW_PART_ICONS[COURSE_OVERVIEW_PART_ICONS.length - 1]
-  );
 }
 
 function getPartChipClassName(index: number): string {
@@ -122,7 +109,7 @@ export function BookingEventDetails({
                       )}`}
                     />
                   </span>
-                  <div className='relative z-10 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 sm:gap-x-4'>
+                  <div className='relative z-10 grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 sm:gap-x-4'>
                     <span
                       data-course-part-chip='true'
                       className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 ${getPartChipClassName(index)}`}
@@ -132,34 +119,29 @@ export function BookingEventDetails({
                         className={`pointer-events-none absolute -left-[25px] top-1/2 -translate-y-1/2 ${getPartGapConnectorClassName(index)}`}
                         aria-hidden='true'
                       />
-                      <Image
-                        src={getPartIconSource(index)}
-                        alt=''
-                        width={28}
-                        height={28}
+                      <span
                         data-course-part-icon='true'
-                        className='h-7 w-7 shrink-0 object-contain'
+                        className='es-mask-calendar-current h-7 w-7 shrink-0 text-black'
                         aria-hidden='true'
                       />
                     </span>
 
                     <div
                       data-course-part-date-block='true'
-                      className='flex min-w-0 items-center gap-2'
+                      className='flex min-w-0 flex-col gap-2'
                     >
-                      <span
-                        data-course-part-date-icon='true'
-                        className='es-mask-calendar-heading h-6 w-6 shrink-0'
-                        aria-hidden='true'
-                      />
                       <p className='min-w-0 text-[17px] font-semibold leading-6 es-text-heading'>
                         {part.date}
                       </p>
+                      {part.description?.trim() ? (
+                        <p
+                          data-course-part-schedule-block='true'
+                          className='whitespace-pre-line text-[15px] leading-[22px] es-text-body'
+                        >
+                          {renderQuotedDescriptionText(part.description)}
+                        </p>
+                      ) : null}
                     </div>
-
-                    <p className='col-start-2 text-[15px] leading-[22px] es-text-body'>
-                      {renderQuotedDescriptionText(part.description)}
-                    </p>
                   </div>
                 </li>
               );
@@ -204,7 +186,7 @@ export function BookingEventDetails({
           <div className='flex items-start gap-4'>
             <span className='es-icon-circle-lg'>
               <span
-                className='es-mask-credit-card-danger h-[46px] w-[46px] shrink-0'
+                className='es-mask-dollar-danger h-[46px] w-[46px] shrink-0'
                 aria-hidden='true'
               />
             </span>

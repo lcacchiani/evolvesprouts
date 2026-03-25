@@ -1318,7 +1318,7 @@
     -webkit-mask-size: contain;
   }
 
-  .es-mask-credit-card-danger {
+  .es-mask-dollar-danger {
     background-color: var(--es-color-booking-highlight-icon, #B42318);
     mask-image: url('/images/dollar-symbol.svg');
     -webkit-mask-image: url('/images/dollar-symbol.svg');

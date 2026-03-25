@@ -15,7 +15,7 @@ export function ConversionFunnel({ rates }: ConversionFunnelProps) {
     percentage: value * 100,
   }));
   return (
-    <Card title='Conversion funnel'>
+    <Card title='Conversion Funnel'>
       {entries.length === 0 ? (
         <p className='text-sm text-slate-600'>No conversion data.</p>
       ) : (

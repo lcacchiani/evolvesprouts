@@ -26,10 +26,12 @@ import type {
   MyBestAuntieBookingContent,
   MyBestAuntieModalContent,
 } from '@/content';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import {
   formatCohortValue,
   formatPartDateTimeLabel,
 } from '@/lib/format';
+import { formatMyBestAuntiePhaseWindowDateLabels } from '@/lib/site-datetime';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
@@ -76,14 +78,34 @@ export function MyBestAuntieBookingModal({
   const originalAmount = selectedCohort?.price ?? 0;
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
-    const summaries = modalContent.partSummaries ?? [];
-    return (selectedCohort?.dates ?? []).map((part, index) => {
+    return (selectedCohort?.dates ?? []).map((part) => {
+      const phaseWindow = formatMyBestAuntiePhaseWindowDateLabels(
+        part.start_datetime,
+        locale,
+      );
+      const dateLabel =
+        phaseWindow !== null
+          ? formatContentTemplate(modalContent.weekRangeHeadlineTemplate, {
+              startDate: phaseWindow.startLabel,
+              endDate: phaseWindow.endLabel,
+            })
+          : formatPartDateTimeLabel(part.start_datetime, locale);
+      const groupSessionDateTime = formatPartDateTimeLabel(
+        part.start_datetime,
+        locale,
+      );
+      const description = formatContentTemplate(
+        modalContent.partScheduleBlockTemplate,
+        {
+          groupSessionDateTime,
+        },
+      );
       return {
-        date: formatPartDateTimeLabel(part.start_datetime, locale),
-        description: summaries[index] ?? '',
+        date: dateLabel,
+        description,
       };
     });
-  }, [selectedCohort, modalContent.partSummaries, locale]);
+  }, [selectedCohort, modalContent.weekRangeHeadlineTemplate, modalContent.partScheduleBlockTemplate, locale]);
 
   const selectedDateStartTime = selectedCohort?.dates[0]?.start_datetime ?? '';
   const selectedDateEndTime = selectedCohort?.dates[0]?.end_datetime ?? '';

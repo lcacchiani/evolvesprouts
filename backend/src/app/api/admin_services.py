@@ -300,9 +300,7 @@ def _create_cover_image_upload(
         extra={"service_id": str(service_id), "actor_sub": actor_sub},
     )
 
-    media_bucket = os.getenv("MEDIA_BUCKET_NAME") or require_env(
-        "CLIENT_ASSETS_BUCKET_NAME"
-    )
+    media_bucket = require_env("ASSETS_BUCKET_NAME")
     ttl = _presign_ttl_seconds()
     expires_at = datetime.now(UTC) + timedelta(seconds=ttl)
     s3_client = get_s3_client()

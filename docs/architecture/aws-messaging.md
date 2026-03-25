@@ -136,6 +136,61 @@ admin API requests while files are parsed by OpenRouter.
 - Fetches file bytes from S3 and calls OpenRouter via `AwsApiProxyFunction`.
 - Updates `expenses` parse status and extracted fields.
 
+## Inbound invoice email flow
+
+Inbound invoice emails use SES receipt rules plus the existing expense parser
+topic so machine-only mailbox traffic can land directly in the expenses domain.
+
+### Receiving address
+
+- Public-facing mailbox stays `invoices@evolvesprouts.com` in iCloud Mail.
+- iCloud forwards invoice mail to the SES-managed address on
+  `inbound.evolvesprouts.com`.
+- SES receipt rules match the inbound recipient and store the raw `.eml` in
+  `AssetsBucket` under a reserved prefix.
+
+### Raw email storage: `AssetsBucket` prefix `inbound-email/raw/`
+
+- Stores the original raw email payload for replay/debugging inside the existing
+  private assets bucket.
+- Uses a reserved prefix so raw `.eml` objects stay separated from normal asset
+  objects while still reusing the existing private bucket controls.
+
+### SNS Topic: `evolvesprouts-inbound-invoice-email-events`
+
+- Receives SES S3-action notifications for matching inbound emails.
+- Fans out to the subscribed SQS queue.
+
+### SQS Queue: `evolvesprouts-inbound-invoice-email-queue`
+
+- Subscribes to the inbound invoice SNS topic.
+- 60 second visibility timeout.
+- 3 retry attempts before DLQ.
+- KMS encryption using the shared queue key.
+
+### Dead Letter Queue: `evolvesprouts-inbound-invoice-email-dlq`
+
+- Receives inbound invoice messages that fail processing 3 times.
+- 14 day retention for investigation.
+- CloudWatch alarm triggers when messages appear.
+
+### Processor Lambda: `InboundInvoiceEmailProcessor`
+
+- Triggered by `evolvesprouts-inbound-invoice-email-queue`.
+- Loads the raw email object from the inbound-email S3 bucket.
+- Parses MIME headers and extracts supported invoice attachments, or—when
+  there are no supported attachments—extracts visible text from the email body
+  (`text/plain` preferred, otherwise stripped `text/html`) and stores it as a
+  synthetic `text/plain` asset for parsing.
+- When `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` is set (non-empty), rejects
+  messages whose SES envelope `source` and RFC822 `From` both miss every
+  comma-separated substring (case-insensitive); those rows are recorded as
+  failed in `inbound_emails` without creating expenses.
+- Creates `assets`, `expenses`, and `expense_attachments` rows.
+- Tracks idempotency in the `inbound_emails` table using SES `messageId`.
+- Reuses the existing `expense.parse_requested` topic after the expense row
+  is created so `ExpenseParserFunction` performs the OpenRouter extraction.
+
 ## API Behavior
 
 User-facing submission endpoints are under `/v1/user/`. Admin review
@@ -162,6 +217,10 @@ endpoints are at `/v1/admin/tickets`. For full endpoint details
 
 The processor checks if a ticket with the same `ticket_id` already exists before inserting. This handles SQS's at-least-once delivery guarantee.
 
+Inbound invoice processing uses the SES `mail.messageId` value stored in
+`inbound_emails.ses_message_id` to prevent duplicate expense creation across
+SQS retries or mailbox forwarding duplicates.
+
 ## Files
 
 | File | Description |
@@ -170,6 +229,8 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `backend/src/app/api/admin.py` | API handler with SNS publish |
 | `backend/lambda/manager_request_processor/handler.py` | SQS booking request processor |
 | `backend/lambda/media_processor/handler.py` | SQS media request processor |
+| `backend/lambda/inbound_invoice_email/handler.py` | SQS inbound invoice email processor |
+| `backend/src/app/services/inbound_invoice_ingest.py` | Expense + asset creation from inbound email |
 | `backend/src/app/db/repositories/ticket.py` | Repository with `find_by_ticket_id` |
 
 ## Environment Variables
@@ -201,6 +262,8 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |
 | `OPENROUTER_MODEL` | OpenRouter model identifier |
 | `OPENROUTER_MAX_FILE_BYTES` | Attachment size limit for parser |
+| `ASSETS_BUCKET_NAME` | Existing private assets bucket for expense attachments |
+| `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events |
 
 ## Stack Outputs
 
@@ -215,6 +278,12 @@ The processor checks if a ticket with the same `ticket_id` already exists before
 | `ExpenseParserTopicArn` | SNS topic ARN for expense parser events |
 | `ExpenseParserQueueUrl` | SQS queue URL for expense parser processing |
 | `ExpenseParserDLQUrl` | Dead letter queue URL for failed expense parser jobs |
+| `InboundInvoiceRecipientAddress` | SES-managed recipient address for invoice automation |
+| `InboundInvoiceRawEmailPrefix` | Reserved object-key prefix for raw inbound invoice emails |
+| `InboundInvoiceTopicArn` | SNS topic ARN for inbound invoice email events |
+| `InboundInvoiceQueueUrl` | SQS queue URL for inbound invoice email processing |
+| `InboundInvoiceDLQUrl` | Dead letter queue URL for failed inbound invoice emails |
+| `InboundInvoiceMxTarget` | MX target for the SES inbound subdomain |
 
 ## Monitoring
 

@@ -232,6 +232,34 @@ export function formatPartDateTimeLabel(
   return `${dateStr} @ ${timeStr}`;
 }
 
+/** Phase window length from each group session start (20 calendar days). */
+const MY_BEST_AUNTIE_PHASE_WINDOW_MS = 20 * 24 * 60 * 60 * 1000;
+
+/**
+ * Calendar start and end labels for a My Best Auntie phase row (month + day only, no year),
+ * in {@link PUBLIC_SITE_IANA_TIMEZONE}. End is start + 20 days.
+ */
+export function formatMyBestAuntiePhaseWindowDateLabels(
+  startDateTime: string,
+  locale: Locale,
+): { startLabel: string; endLabel: string } | null {
+  const date = new Date(startDateTime);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const end = new Date(date.getTime() + MY_BEST_AUNTIE_PHASE_WINDOW_MS);
+  if (Number.isNaN(end.getTime())) {
+    return null;
+  }
+
+  const formatter = getPartDateFormatter(locale);
+  return {
+    startLabel: formatter.format(date),
+    endLabel: formatter.format(end),
+  };
+}
+
 export function formatTodayLongDate(locale: Locale): string {
   return new Intl.DateTimeFormat(resolveDateTimeLocale(locale), {
     day: '2-digit',

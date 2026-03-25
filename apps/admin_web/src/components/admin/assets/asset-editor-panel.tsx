@@ -5,17 +5,23 @@ import { useMemo, useState, type FormEvent } from 'react';
 import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
 import { toTitleCase } from '@/lib/format';
-import { ASSET_VISIBILITIES } from '@/types/assets';
+import {
+  ASSET_VISIBILITIES,
+  CLIENT_DOCUMENT_ASSET_TAG,
+  EXPENSE_ATTACHMENT_ASSET_TAG,
+} from '@/types/assets';
 
 import { AssetShareLinkSection } from '@/components/admin/assets/asset-share-link-section';
 import { StatusBanner } from '@/components/status-banner';
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { FileUploadButton } from '@/components/ui/file-upload-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+
+const ASSET_EDITOR_FORM_ID = 'admin-asset-editor-form';
 
 interface AssetEditorPanelProps {
   selectedAsset: AdminAsset | null;
@@ -33,6 +39,7 @@ interface AssetEditorPanelProps {
       fileName: string;
       resourceKey: string | null;
       visibility: AssetVisibility;
+      clientTag: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
     },
     file: File
   ) => Promise<void>;
@@ -44,6 +51,7 @@ interface AssetEditorPanelProps {
       fileName: string;
       resourceKey: string | null;
       visibility: AssetVisibility;
+      clientTag?: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
     }
   ) => Promise<void>;
   onStartCreate: () => void;
@@ -54,6 +62,8 @@ interface AssetFormState {
   description: string;
   resourceKey: string;
   visibility: AssetVisibility;
+  /** Select value: empty string = no client tag; client_document = Client */
+  clientTag: '' | typeof CLIENT_DOCUMENT_ASSET_TAG;
 }
 
 const EMPTY_ASSET_FORM: AssetFormState = {
@@ -61,9 +71,14 @@ const EMPTY_ASSET_FORM: AssetFormState = {
   description: '',
   resourceKey: '',
   visibility: 'restricted',
+  clientTag: '',
 };
 
 const RESOURCE_KEY_MAX_LENGTH = 64;
+
+function assetHasClientDocumentTag(asset: AdminAsset): boolean {
+  return asset.tags.some((t) => t.name.toLowerCase() === CLIENT_DOCUMENT_ASSET_TAG);
+}
 
 function toFormState(asset: AdminAsset): AssetFormState {
   return {
@@ -71,6 +86,7 @@ function toFormState(asset: AdminAsset): AssetFormState {
     description: asset.description ?? '',
     resourceKey: asset.resourceKey ?? '',
     visibility: asset.visibility,
+    clientTag: assetHasClientDocumentTag(asset) ? CLIENT_DOCUMENT_ASSET_TAG : '',
   };
 }
 
@@ -103,8 +119,11 @@ export function AssetEditorPanel({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const isEditMode = Boolean(selectedAsset);
+  const isExpenseLinked = Boolean(
+    selectedAsset?.tags.some((t) => t.name.toLowerCase() === EXPENSE_ATTACHMENT_ASSET_TAG)
+  );
 
-  const cardTitle = isEditMode ? 'Edit asset' : 'Create asset';
+  const cardTitle = isEditMode ? 'Edit Asset' : 'Create Asset';
   const cardDescription = isEditMode
     ? 'Update metadata and visibility for the selected asset.'
     : 'Create a new PDF asset and upload content automatically with a presigned URL.';
@@ -141,28 +160,32 @@ export function AssetEditorPanel({
       }
     }
 
-    const payload: {
-      title: string;
-      description: string | null;
-      fileName: string;
-      resourceKey: string | null;
-      visibility: AssetVisibility;
-    } = {
+    const core = {
       title,
       description: formState.description.trim() || null,
       fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
-      resourceKey: null,
+      resourceKey: null as string | null,
       visibility: formState.visibility,
     };
     const normalizedResourceKey = normalizeResourceKey(formState.resourceKey);
     if (formState.resourceKey.trim() && !normalizedResourceKey) {
-      setFormError('Resource key tag must include letters or numbers.');
+      setFormError('Resource key must include letters or numbers.');
       return;
     }
-    payload.resourceKey = normalizedResourceKey || null;
+    core.resourceKey = normalizedResourceKey || null;
+
+    const clientTagValue: typeof CLIENT_DOCUMENT_ASSET_TAG | null =
+      formState.clientTag === CLIENT_DOCUMENT_ASSET_TAG ? CLIENT_DOCUMENT_ASSET_TAG : null;
 
     if (isEditMode && selectedAsset) {
-      await onUpdate(selectedAsset.id, payload);
+      await onUpdate(selectedAsset.id, {
+        ...core,
+        ...(isExpenseLinked
+          ? {}
+          : {
+              clientTag: clientTagValue,
+            }),
+      });
       return;
     }
 
@@ -170,7 +193,7 @@ export function AssetEditorPanel({
       setFormError('Select a PDF file to upload.');
       return;
     }
-    await onCreate(payload, fileToUpload);
+    await onCreate({ ...core, clientTag: clientTagValue }, fileToUpload);
   };
 
   const handleCancel = () => {
@@ -181,7 +204,31 @@ export function AssetEditorPanel({
   };
 
   return (
-    <Card title={cardTitle} description={cardDescription} className='space-y-4'>
+    <AdminEditorCard
+      title={cardTitle}
+      description={cardDescription}
+      actions={
+        <>
+          {isEditMode ? (
+            <Button
+              type='button'
+              variant='secondary'
+              onClick={handleCancel}
+              disabled={isSavingAsset || isDeletingCurrentAsset}
+            >
+              Cancel
+            </Button>
+          ) : null}
+          <Button
+            type='submit'
+            form={ASSET_EDITOR_FORM_ID}
+            disabled={isSavingAsset}
+          >
+            {submitLabel}
+          </Button>
+        </>
+      }
+    >
       {assetMutationError ? (
         <StatusBanner variant='error' title='Asset'>
           {assetMutationError}
@@ -221,7 +268,7 @@ export function AssetEditorPanel({
         </StatusBanner>
       ) : null}
 
-      <form onSubmit={handleSubmit} className='space-y-4'>
+      <form id={ASSET_EDITOR_FORM_ID} onSubmit={handleSubmit} className='space-y-4'>
         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
           <div className='space-y-2'>
             <Label htmlFor='asset-title'>Title *</Label>
@@ -255,7 +302,7 @@ export function AssetEditorPanel({
             </Select>
           </div>
           <div className='space-y-2'>
-            <Label htmlFor='asset-resource-key'>Resource key tag</Label>
+            <Label htmlFor='asset-resource-key'>Resource key</Label>
             <Input
               id='asset-resource-key'
               value={formState.resourceKey}
@@ -297,6 +344,39 @@ export function AssetEditorPanel({
         </div>
 
         <div className='space-y-2'>
+          <Label htmlFor='asset-tag'>Tag</Label>
+          {isEditMode && isExpenseLinked ? (
+            <Select
+              id='asset-tag'
+              value='expense'
+              disabled
+              aria-label='Tag (linked to expense; not editable)'
+              title='Tags cannot be changed for assets linked to an expense.'
+            >
+              <option value='expense'>Expense</option>
+            </Select>
+          ) : (
+            <Select
+              id='asset-tag'
+              value={formState.clientTag}
+              disabled={isSavingAsset}
+              onChange={(event) =>
+                setFormState((previous) => ({
+                  ...previous,
+                  clientTag:
+                    event.target.value === CLIENT_DOCUMENT_ASSET_TAG
+                      ? CLIENT_DOCUMENT_ASSET_TAG
+                      : '',
+                }))
+              }
+            >
+              <option value=''>No tag</option>
+              <option value={CLIENT_DOCUMENT_ASSET_TAG}>Client</option>
+            </Select>
+          )}
+        </div>
+
+        <div className='space-y-2'>
           <Label htmlFor='asset-description'>Description</Label>
           <Textarea
             id='asset-description'
@@ -308,23 +388,7 @@ export function AssetEditorPanel({
             placeholder='Optional summary shown in client applications.'
           />
         </div>
-
-        <div className='flex flex-wrap items-center justify-end gap-2'>
-          {isEditMode ? (
-            <Button
-              type='button'
-              variant='secondary'
-              onClick={handleCancel}
-              disabled={isSavingAsset || isDeletingCurrentAsset}
-            >
-              Cancel
-            </Button>
-          ) : null}
-          <Button type='submit' disabled={isSavingAsset}>
-            {submitLabel}
-          </Button>
-        </div>
       </form>
-    </Card>
+    </AdminEditorCard>
   );
 }

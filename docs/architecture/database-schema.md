@@ -115,6 +115,34 @@ Indexes:
 - `asset_share_links_asset_idx` unique index on `asset_id`
 - `asset_share_links_token_idx` unique index on `share_token`
 
+## Table: asset_tags
+
+Purpose: Associates `tags` rows with `assets` (for example marking files used as
+expense invoice attachments).
+
+Columns:
+- `asset_id` (UUID, PK, FK → `assets.id`, cascade delete)
+- `tag_id` (UUID, PK, FK → `tags.id`, cascade delete)
+- `created_at` (timestamptz, default `now()`)
+
+Indexes:
+- `asset_tags_tag_idx` on `tag_id`
+
+The `expense_attachment` tag is maintained in application code when
+`expense_attachments` rows are created or replaced; migration `0014_add_asset_tags`
+backfills from existing `expense_attachments`.
+
+The `client_document` tag is a system tag for admin-assignable client-facing
+documents; migration `0015_add_client_document_tag` ensures it exists (seed data
+also inserts it for fresh databases).
+
+Migration `0016_delete_expenses_missing_vendor` removes expenses with no vendor
+(`vendor_id` null and legacy `vendor_name` null or whitespace-only), removes the
+expense with `vendor_name` 'Contact Person: Luca Cacchiani', sets `vendor_id`
+from the unique active vendor org named `EPrint100` where `vendor_name` was
+`EPrint100` and `vendor_id` was null, deletes orphan attachment assets (same
+rules as before), and drops column `expenses.vendor_name`.
+
 ## Access control logic
 
 **Public assets** (`visibility = 'public'`):
@@ -141,7 +169,7 @@ Columns:
 - `amends_expense_id` (UUID, FK → `expenses.id`, nullable) — source record for amendment history
 - `status` (enum `expense_status`, required, default `draft`)
 - `parse_status` (enum `expense_parse_status`, required, default `not_requested`)
-- `vendor_name` (varchar(255), optional)
+- `vendor_id` (UUID, FK → `organizations.id`, nullable) — managed vendor selection
 - `invoice_number` (varchar(128), optional)
 - `invoice_date` (date, optional)
 - `due_date` (date, optional)
@@ -161,7 +189,8 @@ Constraints and indexes:
 - `expenses_amendment_not_self` prevents self-referencing amendment links
 - `expenses_parse_confidence_range` enforces `0..1`
 - `expenses_status_idx`, `expenses_parse_status_idx`,
-  `expenses_invoice_date_idx`, `expenses_amends_expense_idx`
+  `expenses_invoice_date_idx`, `expenses_amends_expense_idx`,
+  `expenses_vendor_idx`
 - `set_updated_at()` trigger updates `updated_at` on write
 
 ## Table: expense_attachments
@@ -179,6 +208,35 @@ Constraints and indexes:
 - Unique index on (`expense_id`, `asset_id`) to avoid duplicate links
 - `expense_attachments_expense_idx` on `expense_id`
 - `expense_attachments_asset_idx` on `asset_id`
+
+## Table: inbound_emails
+
+Purpose: Tracks SES-managed inbound email processing for idempotency, replay, and
+linkage to stored expense records.
+
+Columns:
+- `id` (UUID, PK, default `gen_random_uuid()`)
+- `ses_message_id` (varchar(255), required, unique) — SES receipt identifier
+- `recipient` (varchar(320), required) — matched inbound mailbox address
+- `source_email` (varchar(320), nullable) — parsed sender address
+- `subject` (varchar(500), nullable)
+- `received_at` (timestamptz, required)
+- `raw_s3_bucket` (varchar(255), required)
+- `raw_s3_key` (text, required) — raw `.eml` object key in the inbound-email bucket
+- `spam_status`, `virus_status`, `spf_status`, `dkim_status`, `dmarc_status`
+  (varchar(32), nullable) — SES verdict summaries
+- `processing_status` (varchar(32), required, default `received`) —
+  `received | processing | stored | skipped | failed`
+- `failure_reason` (text, nullable)
+- `expense_id` (UUID, FK → `expenses.id`, nullable) — created expense linked to the email
+- `created_at` / `updated_at` (timestamptz, default `now()`)
+
+Constraints and indexes:
+- `inbound_emails_processing_status_check` restricts allowed processing states
+- `inbound_emails_ses_message_id_idx` unique index on `ses_message_id`
+- `inbound_emails_processing_status_idx` on `processing_status`
+- `inbound_emails_expense_id_idx` on `expense_id`
+- `set_updated_at()` trigger updates `updated_at` on write
 
 **Stable share links** (`/v1/assets/share/{token}`):
 - A token in `asset_share_links.share_token` acts as a bearer capability.
@@ -256,10 +314,10 @@ Indexes:
 - `organization_members` links contacts to organizations with role/title.
 - Membership rows use `ON DELETE CASCADE`.
 
-### `tags`, `contact_tags`, `family_tags`, `organization_tags`
+### `tags`, `contact_tags`, `family_tags`, `organization_tags`, `asset_tags`
 
 - `tags` stores reusable labels.
-- Junction tables model many-to-many tagging across contacts/families/orgs.
+- Junction tables model many-to-many tagging across contacts/families/orgs/assets.
 - Junction rows use composite primary keys and cascade deletion.
 
 ### `sales_leads`

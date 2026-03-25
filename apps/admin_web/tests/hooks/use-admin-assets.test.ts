@@ -19,8 +19,9 @@ const {
   const mockClearGrantMutationError = vi.fn();
 
   const listState = {
-    filters: { query: '', visibility: '' },
+    filters: { query: '', visibility: '', tagName: '' },
     assets: [],
+    linkedTagNames: [],
     nextCursor: null,
     isLoadingAssets: false,
     isLoadingMoreAssets: false,
@@ -29,6 +30,7 @@ const {
     selectedAsset: { id: 'asset-1', title: 'Asset 1' },
     setQueryFilter: vi.fn(),
     setVisibilityFilter: vi.fn(),
+    setTagNameFilter: vi.fn(),
     refreshAssets: vi.fn(),
     loadMoreAssets: vi.fn(),
     selectAsset: mockSelectAssetInList,
@@ -140,6 +142,7 @@ describe('useAdminAssets', () => {
 
     expect(result.current.filters).toEqual(listState.filters);
     expect(result.current.assets).toEqual(listState.assets);
+    expect(result.current.linkedTagNames).toEqual(listState.linkedTagNames);
     expect(result.current.assetMutationError).toBe(mutationState.assetMutationError);
     expect(result.current.grants).toEqual(grantsState.grants);
     expect(result.current.createAssetEntry).toBe(mutationState.createAssetEntry);

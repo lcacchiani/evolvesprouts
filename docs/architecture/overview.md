@@ -64,7 +64,8 @@ Flutter Mobile / Next.js Admin
   calls, `ALLOWED_HTTP_URLS` for outbound HTTP).  See
   `backend/src/app/services/aws_proxy.py`.
 - Asynchronous messaging (SNS + SQS) is used for manager access requests
-  and organization suggestions. See [`docs/architecture/aws-messaging.md`](aws-messaging.md).
+  organization suggestions, and inbound invoice email processing. See
+  [`docs/architecture/aws-messaging.md`](aws-messaging.md).
 - SQLAlchemy models map to Aurora PostgreSQL.
 - Alembic manages schema migrations, executed via a custom resource Lambda
   during deploy.
@@ -81,6 +82,7 @@ Key entities:
 - `assets`
 - `asset_access_grants`
 - `tickets` (manager access workflow + organization suggestion workflow)
+- `inbound_emails` (SES/S3 invoice email tracking and idempotency)
 - `audit_log` (automatic change tracking via triggers)
 
 All times are stored in UTC.

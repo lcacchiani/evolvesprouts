@@ -63,6 +63,14 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
         send_cfn_response(event, context, "SUCCESS", data, physical_id)
         return {"PhysicalResourceId": physical_id, "Data": data}
     except Exception as exc:
+        if _should_ignore_missing_revision_during_update(event, exc):
+            logger.warning(
+                "Skipping migration failure during update because the database is already at a newer revision than the bundled rollback code",
+                extra={"error_message": str(exc)},
+            )
+            data = {"status": "skipped", "reason": "database_revision_ahead"}
+            send_cfn_response(event, context, "SUCCESS", data, physical_id)
+            return {"PhysicalResourceId": physical_id, "Data": data}
         error_type = type(exc).__name__
         error_msg = str(exc)
         truncated_msg = error_msg[:200] if len(error_msg) > 200 else error_msg
@@ -82,6 +90,17 @@ def lambda_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
             reason,
         )
         return {"PhysicalResourceId": physical_id, "Data": data}
+
+
+def _should_ignore_missing_revision_during_update(
+    event: Mapping[str, Any],
+    exc: Exception,
+) -> bool:
+    request_type = str(event.get("RequestType") or "")
+    if request_type != "Update":
+        return False
+    error_message = str(exc)
+    return "Can't locate revision identified by" in error_message
 
 
 def _handle_seed_only(event: Mapping[str, Any], context: Any) -> dict[str, Any]:

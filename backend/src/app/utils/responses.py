@@ -132,7 +132,11 @@ def get_cors_headers(
             "Content-Type,Authorization,X-Amz-Date,X-Api-Key,"
             "X-Amz-Security-Token,X-Turnstile-Token"
         ),
-        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+        # Chromium Private Network Access: browsers may send
+        # Access-Control-Request-Private-Network on preflight; without this
+        # allow header, requests fail with "local address space" CORS errors.
+        "Access-Control-Allow-Private-Network": "true",
     }
     if allow_origin:
         headers["Access-Control-Allow-Origin"] = allow_origin

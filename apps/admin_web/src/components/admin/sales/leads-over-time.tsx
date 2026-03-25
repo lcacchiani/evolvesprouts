@@ -9,7 +9,7 @@ export interface LeadsOverTimeProps {
 
 export function LeadsOverTime({ values }: LeadsOverTimeProps) {
   return (
-    <Card title='Leads over time'>
+    <Card title='Leads Over Time'>
       {values.length === 0 ? (
         <p className='text-sm text-slate-600'>No trend data.</p>
       ) : (

@@ -1,8 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { AdminTabStrip, type AdminTabItem } from '@/components/ui/admin-tab-strip';
 
 import type { ServicesView } from '@/hooks/use-services-page';
+
+export const SERVICES_TAB_ITEMS: readonly AdminTabItem<ServicesView>[] = [
+  { key: 'catalog', label: 'Catalog' },
+  { key: 'discount-codes', label: 'Discount Codes' },
+] as const;
 
 export interface ServicesHeaderProps {
   activeView: ServicesView;
@@ -11,21 +16,11 @@ export interface ServicesHeaderProps {
 
 export function ServicesHeader({ activeView, onSetView }: ServicesHeaderProps) {
   return (
-    <div className='flex gap-2'>
-      <Button
-        type='button'
-        variant={activeView === 'catalog' ? 'secondary' : 'ghost'}
-        onClick={() => onSetView('catalog')}
-      >
-        Catalog
-      </Button>
-      <Button
-        type='button'
-        variant={activeView === 'discount-codes' ? 'secondary' : 'ghost'}
-        onClick={() => onSetView('discount-codes')}
-      >
-        Discount codes
-      </Button>
-    </div>
+    <AdminTabStrip
+      aria-label='Services views'
+      items={SERVICES_TAB_ITEMS}
+      activeKey={activeView}
+      onChange={onSetView}
+    />
   );
 }

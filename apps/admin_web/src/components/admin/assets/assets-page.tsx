@@ -16,6 +16,7 @@ export function AssetsPage() {
   const {
     filters,
     assets,
+    linkedTagNames,
     nextCursor,
     isLoadingAssets,
     isLoadingMoreAssets,
@@ -36,6 +37,7 @@ export function AssetsPage() {
     isDeletingGrantId,
     setQueryFilter,
     setVisibilityFilter,
+    setTagNameFilter,
     loadMoreAssets,
     selectAsset,
     clearSelectedAsset,
@@ -121,6 +123,7 @@ export function AssetsPage() {
 
       <AssetListPanel
         assets={assets}
+        linkedTagNames={linkedTagNames}
         selectedAssetId={selectedAssetId}
         filters={filters}
         isLoadingAssets={isLoadingAssets}
@@ -130,6 +133,7 @@ export function AssetsPage() {
         nextCursor={nextCursor}
         onQueryChange={setQueryFilter}
         onVisibilityChange={setVisibilityFilter}
+        onTagNameChange={setTagNameFilter}
         onLoadMore={loadMoreAssets}
         onSelectAsset={selectAsset}
         onDeleteAsset={async (assetId) => {

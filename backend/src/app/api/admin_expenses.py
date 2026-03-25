@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-import json
-import os
 from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
@@ -14,12 +12,14 @@ from sqlalchemy.orm import Session
 from app.api.admin_expenses_common import (
     _STATUS_TERMINAL,
     apply_common_fields,
+    ensure_expense_ready_to_mark_paid,
     parse_create_payload,
     parse_optional_parse_status,
     parse_optional_status,
     parse_optional_string,
     parse_update_payload,
     required_string,
+    resolve_vendor,
     resolve_asset_ids,
     serialize_expense,
 )
@@ -36,7 +36,7 @@ from app.db.engine import get_engine
 from app.db.models import ExpenseParseStatus, ExpenseStatus
 from app.db.repositories import ExpenseRepository
 from app.exceptions import NotFoundError, ValidationError
-from app.services.aws_clients import get_sns_client
+from app.services.expense_events import enqueue_expense_parse
 from app.utils import json_response
 from app.utils.logging import get_logger
 
@@ -44,7 +44,6 @@ logger = get_logger(__name__)
 
 _DEFAULT_LIMIT = 25
 _MAX_LIMIT = 100
-_EVENT_TYPE_PARSE_REQUESTED = "expense.parse_requested"
 
 
 def handle_admin_expenses_request(
@@ -159,11 +158,12 @@ def _create_expense(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id)
         expense_repo = ExpenseRepository(session)
+        vendor = resolve_vendor(session, payload["vendor_id"])
         expense = expense_repo.create_expense(
             created_by=actor_sub,
             status=payload["status"],
             parse_status=parse_status,
-            vendor_name=payload["vendor_name"],
+            vendor_id=vendor.id if vendor is not None else None,
             invoice_number=payload["invoice_number"],
             invoice_date=payload["invoice_date"],
             due_date=payload["due_date"],
@@ -182,7 +182,7 @@ def _create_expense(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
         session.commit()
 
         if payload["parse_requested"]:
-            _enqueue_parse(expense.id)
+            enqueue_expense_parse(expense.id)
 
         refreshed = expense_repo.get_with_attachments(expense.id)
         if refreshed is None:
@@ -227,6 +227,10 @@ def _update_expense(
             )
 
         apply_common_fields(expense, payload)
+        if payload["vendor_id"] is not None:
+            vendor = resolve_vendor(session, payload["vendor_id"])
+            if vendor is not None:
+                expense.vendor_id = vendor.id
         if payload["status"] is not None and payload["status"] != expense.status:
             expense.status = payload["status"]
             if (
@@ -304,6 +308,7 @@ def _mark_expense_paid(
             raise ValidationError(
                 "Voided expenses cannot be marked paid", field="status"
             )
+        ensure_expense_ready_to_mark_paid(expense)
         expense.status = ExpenseStatus.PAID
         expense.paid_at = now
         expense.updated_by = actor_sub
@@ -340,7 +345,7 @@ def _reparse_expense(
         repository.update(expense)
         session.commit()
 
-    _enqueue_parse(expense_id)
+    enqueue_expense_parse(expense_id)
     return json_response(202, {"message": "Parse request accepted"}, event=event)
 
 
@@ -367,6 +372,16 @@ def _amend_expense(
         if source.status == ExpenseStatus.VOIDED:
             raise ValidationError("Voided expenses cannot be amended", field="status")
 
+        effective_vendor_id = source.vendor_id
+        if payload["vendor_id"] is not None:
+            vendor = resolve_vendor(session, payload["vendor_id"])
+            effective_vendor_id = vendor.id if vendor is not None else None
+        if effective_vendor_id is None:
+            raise ValidationError(
+                "vendor_id is required to create an amendment",
+                field="vendor_id",
+            )
+
         amendment = expense_repo.create_expense(
             created_by=actor_sub,
             status=payload["status"] or ExpenseStatus.DRAFT,
@@ -376,7 +391,7 @@ def _amend_expense(
                 else ExpenseParseStatus.NOT_REQUESTED
             ),
             amends_expense_id=source.id,
-            vendor_name=source.vendor_name,
+            vendor_id=effective_vendor_id,
             invoice_number=source.invoice_number,
             invoice_date=source.invoice_date,
             due_date=source.due_date,
@@ -404,37 +419,13 @@ def _amend_expense(
         session.commit()
 
         if payload["parse_requested"]:
-            _enqueue_parse(amendment.id)
+            enqueue_expense_parse(amendment.id)
         refreshed = expense_repo.get_with_attachments(amendment.id)
         if refreshed is None:
             raise NotFoundError("Expense", str(amendment.id))
         return json_response(
             201, {"expense": serialize_expense(refreshed)}, event=event
         )
-
-
-def _enqueue_parse(expense_id: UUID) -> None:
-    topic_arn = os.getenv("EXPENSE_PARSE_TOPIC_ARN", "").strip()
-    if not topic_arn:
-        raise ValidationError(
-            "Expense parser topic is not configured", field="configuration"
-        )
-    get_sns_client().publish(
-        TopicArn=topic_arn,
-        Message=json.dumps(
-            {
-                "event_type": _EVENT_TYPE_PARSE_REQUESTED,
-                "expense_id": str(expense_id),
-                "requested_at": datetime.now(UTC).isoformat(),
-            }
-        ),
-        MessageAttributes={
-            "event_type": {
-                "DataType": "String",
-                "StringValue": _EVENT_TYPE_PARSE_REQUESTED,
-            }
-        },
-    )
 
 
 def _parse_limit(event: Mapping[str, Any]) -> int:

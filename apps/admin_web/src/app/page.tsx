@@ -12,17 +12,15 @@ import { LoginScreen } from '../components/login-screen';
 import { StatusBanner } from '../components/status-banner';
 
 const NAV_ITEMS = [
+  { key: 'assets', label: 'Assets' },
+  { key: 'finance', label: 'Finance' },
   { key: 'sales', label: 'Sales' },
   { key: 'services', label: 'Services' },
-  { key: 'finance', label: 'Finance' },
-  { key: 'assets', label: 'Assets' },
 ] as const;
 
 function LoginGate() {
   const { status, user, logout } = useAuth();
-  const [activeSectionKey, setActiveSectionKey] = useState<(typeof NAV_ITEMS)[number]['key']>(
-    'sales'
-  );
+  const [activeSectionKey, setActiveSectionKey] = useState<(typeof NAV_ITEMS)[number]['key']>('finance');
 
   if (status === 'loading') {
     return (
@@ -44,14 +42,14 @@ function LoginGate() {
         userEmail={user?.email}
         lastAuthTime={user?.lastAuthTime}
       >
-        {activeSectionKey === 'sales' ? (
-          <SalesPage />
-        ) : activeSectionKey === 'services' ? (
-          <ServicesPage />
+        {activeSectionKey === 'assets' ? (
+          <AssetsPage />
         ) : activeSectionKey === 'finance' ? (
           <FinancePage />
+        ) : activeSectionKey === 'sales' ? (
+          <SalesPage />
         ) : (
-          <AssetsPage />
+          <ServicesPage />
         )}
       </AppShell>
     );

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.db.engine import get_engine
 from app.db.models import ExpenseParseStatus
-from app.db.repositories import ExpenseRepository
+from app.db.repositories import ExpenseRepository, OrganizationRepository
 from app.services.openrouter_expense_parser import parse_invoice_from_assets
 from app.utils.logging import configure_logging, get_logger
 
@@ -115,9 +115,14 @@ def _process_expense(expense_id: str) -> None:
         refreshed_expense = repository.get_with_attachments(_to_uuid(expense_id))
         if refreshed_expense is None:
             return
-        refreshed_expense.vendor_name = _pick_text(
-            parsed.get("vendor_name"), fallback=refreshed_expense.vendor_name
-        )
+        if refreshed_expense.vendor_id is None:
+            parsed_vendor_only = _pick_text(parsed.get("vendor_name"), fallback=None)
+            if parsed_vendor_only:
+                matched_vendor = OrganizationRepository(
+                    session
+                ).try_resolve_active_vendor_by_parsed_name(parsed_vendor_only)
+                if matched_vendor is not None:
+                    refreshed_expense.vendor_id = matched_vendor.id
         refreshed_expense.invoice_number = _pick_text(
             parsed.get("invoice_number"), fallback=refreshed_expense.invoice_number
         )

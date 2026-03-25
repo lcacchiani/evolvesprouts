@@ -1,5 +1,15 @@
 import Image from 'next/image';
-import { type FormEvent, useMemo, useState } from 'react';
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import { loadStripe, type StripeElementsOptions } from '@stripe/stripe-js';
+import {
+  type FormEvent,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { ReservationFormDiscountCodeInput } from '@/components/sections/booking-modal/reservation-form-discount-code-input';
 import { ReservationFormFields } from '@/components/sections/booking-modal/reservation-form-fields';
@@ -20,6 +30,10 @@ import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
+import {
+  createReservationPaymentIntent,
+  type ReservationPaymentIntentResponse,
+} from '@/lib/reservation-payments-data';
 import {
   submitReservation,
   type ReservationSubmissionPayload,
@@ -53,21 +67,33 @@ const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
 const FPS_ICON_SOURCE = '/images/fps-logo.svg';
 const BANK_ICON_SOURCE = '/images/bank.svg';
+const STRIPE_CARD_ICON_SOURCE = '/images/credit-cards.svg';
 const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME ?? '';
 const BANK_ACCOUNT_HOLDER = process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER ?? '';
 const BANK_ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? '';
 const BANK_DETAIL_PLACEHOLDER = '--';
 const PAYMENT_METHOD_FPS = 'fps_qr';
 const PAYMENT_METHOD_BANK_TRANSFER = 'bank_transfer';
+const PAYMENT_METHOD_STRIPE = 'stripe';
+const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
+const stripePromise = STRIPE_PUBLISHABLE_KEY.trim()
+  ? loadStripe(STRIPE_PUBLISHABLE_KEY.trim())
+  : null;
+const STRIPE_PAYMENT_ELEMENT_ERROR_ID = 'booking-modal-stripe-payment-error';
 
 type PaymentMethodOption =
   | typeof PAYMENT_METHOD_FPS
-  | typeof PAYMENT_METHOD_BANK_TRANSFER;
+  | typeof PAYMENT_METHOD_BANK_TRANSFER
+  | typeof PAYMENT_METHOD_STRIPE;
 
 function getPaymentMethodLabel(
   content: BookingPaymentModalContent,
   selectedPaymentMethod: PaymentMethodOption,
 ): string {
+  if (selectedPaymentMethod === PAYMENT_METHOD_STRIPE) {
+    return content.paymentMethodStripeValue;
+  }
+
   if (selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER) {
     return content.paymentMethodBankTransferValue;
   }
@@ -91,6 +117,71 @@ function getBankTransferDetails(content: BookingPaymentModalContent) {
     },
   ];
 }
+
+function getSubmitButtonLabel(
+  content: BookingPaymentModalContent,
+  selectedPaymentMethod: PaymentMethodOption,
+): string {
+  if (selectedPaymentMethod === PAYMENT_METHOD_STRIPE) {
+    return content.submitStripeLabel;
+  }
+  return content.submitLabel;
+}
+
+interface StripePaymentFieldsProps {
+  fallbackErrorMessage: string;
+}
+
+interface StripePaymentFieldsHandle {
+  confirmPayment: () => Promise<{
+    paymentIntentId: string;
+  } | {
+    errorMessage: string;
+  }>;
+}
+
+const StripePaymentFields = forwardRef<StripePaymentFieldsHandle, StripePaymentFieldsProps>(
+  function StripePaymentFields({ fallbackErrorMessage }, ref) {
+    const stripe = useStripe();
+    const elements = useElements();
+
+    useImperativeHandle(ref, () => {
+      return {
+        async confirmPayment() {
+          if (!stripe || !elements) {
+            return { errorMessage: fallbackErrorMessage };
+          }
+
+          const confirmation = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+              return_url: window.location.href,
+            },
+            redirect: 'if_required',
+          });
+
+          if (confirmation.error) {
+            return {
+              errorMessage: confirmation.error.message?.trim() || fallbackErrorMessage,
+            };
+          }
+
+          if (!confirmation.paymentIntent || confirmation.paymentIntent.status !== 'succeeded') {
+            return {
+              errorMessage: fallbackErrorMessage,
+            };
+          }
+
+          return {
+            paymentIntentId: confirmation.paymentIntent.id,
+          };
+        },
+      };
+    }, [elements, fallbackErrorMessage, stripe]);
+
+    return <PaymentElement options={{ layout: 'tabs' }} />;
+  },
+);
 
 export function BookingReservationForm({
   locale,
@@ -147,6 +238,12 @@ export function BookingReservationForm({
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethodOption>(
     PAYMENT_METHOD_FPS,
   );
+  const [stripePaymentIntent, setStripePaymentIntent] =
+    useState<ReservationPaymentIntentResponse | null>(null);
+  const [stripePaymentIntentKey, setStripePaymentIntentKey] = useState('');
+  const [isStripePaymentIntentLoading, setIsStripePaymentIntentLoading] = useState(false);
+  const stripePaymentFieldsRef = useRef<StripePaymentFieldsHandle | null>(null);
+  const stripePaymentIntentAbortControllerRef = useRef<AbortController | null>(null);
 
   const originalAmount = selectedCohortPrice;
   const totalAmount = useMemo(() => {
@@ -155,6 +252,34 @@ export function BookingReservationForm({
   const discountAmount = Math.max(0, originalAmount - totalAmount);
   const hasEmailError = isEmailTouched && !isValidEmail(email);
   const isTopicsFieldRequired = topicsFieldConfig?.required ?? false;
+  const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
+  const normalizedCohortDate =
+    (normalizedStartDateTime.split('T')[0] ?? '') ||
+    sanitizeSingleLineValue(selectedCohortDateLabel);
+  const stripePaymentIntentRequestKey = [
+    sanitizeSingleLineValue(selectedAgeGroupLabel),
+    normalizedCohortDate,
+    String(totalAmount),
+    discountRule?.code ?? '',
+  ].join('|');
+  const stripeElementsOptions = useMemo<StripeElementsOptions | null>(() => {
+    if (!stripePaymentIntent) {
+      return null;
+    }
+    return {
+      clientSecret: stripePaymentIntent.client_secret,
+      appearance: {
+        theme: 'stripe',
+      },
+    };
+  }, [stripePaymentIntent]);
+  const isStripePaymentMethodSelected = selectedPaymentMethod === PAYMENT_METHOD_STRIPE;
+  const isStripeUnavailable = stripePromise === null;
+  const isStripeReady = Boolean(
+    stripeElementsOptions &&
+      stripePaymentIntent &&
+      stripePaymentIntentKey === stripePaymentIntentRequestKey,
+  );
   const captchaErrorMessage = !isCaptchaConfigured
     ? content.captchaUnavailableError
     : hasCaptchaLoadError
@@ -172,7 +297,94 @@ export function BookingReservationForm({
     !hasTermsAgreement ||
     !captchaToken ||
     isCaptchaUnavailable ||
+    (isStripePaymentMethodSelected && (isStripePaymentIntentLoading || !isStripeReady)) ||
     isSubmitting;
+
+  useEffect(() => {
+    if (!isStripePaymentMethodSelected) {
+      return;
+    }
+    if (isStripeUnavailable || !normalizedCohortDate) {
+      return;
+    }
+    if (
+      stripePaymentIntent &&
+      stripePaymentIntentKey === stripePaymentIntentRequestKey
+    ) {
+      return;
+    }
+
+    const crmApiClient = createPublicCrmApiClient();
+    if (!crmApiClient) {
+      return;
+    }
+
+    stripePaymentIntentAbortControllerRef.current?.abort();
+    const abortController = new AbortController();
+    stripePaymentIntentAbortControllerRef.current = abortController;
+    let isCancelled = false;
+    setIsStripePaymentIntentLoading(true);
+    clearSubmissionError();
+    if (!captchaToken) {
+      setStripePaymentIntent(null);
+      setStripePaymentIntentKey('');
+      setIsStripePaymentIntentLoading(false);
+      return;
+    }
+    void createReservationPaymentIntent(crmApiClient, {
+      payload: {
+        cohort_age: sanitizeSingleLineValue(selectedAgeGroupLabel) || 'unspecified',
+        cohort_date: normalizedCohortDate,
+        discount_code: discountRule?.code || undefined,
+        price: totalAmount,
+      },
+      turnstileToken: captchaToken,
+      signal: abortController.signal,
+    })
+      .then((response) => {
+        if (isCancelled) {
+          return;
+        }
+        setStripePaymentIntent(response);
+        setStripePaymentIntentKey(stripePaymentIntentRequestKey);
+      })
+      .catch((error) => {
+        if (isCancelled) {
+          return;
+        }
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        setStripePaymentIntent(null);
+        setStripePaymentIntentKey('');
+        setSubmissionError(content.submitErrorMessage);
+      })
+      .finally(() => {
+        if (isCancelled) {
+          return;
+        }
+        setIsStripePaymentIntentLoading(false);
+      });
+
+    return () => {
+      isCancelled = true;
+      abortController.abort();
+    };
+  }, [
+    clearSubmissionError,
+    content.submitErrorMessage,
+    discountRule?.code,
+    captchaToken,
+    isStripePaymentMethodSelected,
+    isStripeUnavailable,
+    normalizedCohortDate,
+    selectedAgeGroupLabel,
+    setSubmissionError,
+    stripePaymentIntent,
+    stripePaymentIntentKey,
+    stripePaymentIntentRequestKey,
+    totalAmount,
+  ]);
 
   async function handleApplyDiscount() {
     if (discountRule) {
@@ -317,10 +529,6 @@ export function BookingReservationForm({
         return href;
       })(),
     };
-    const normalizedStartDateTime = sanitizeSingleLineValue(selectedDateStartTime);
-    const normalizedCohortDate =
-      (normalizedStartDateTime.split('T')[0] ?? '') ||
-      sanitizeSingleLineValue(selectedCohortDateLabel);
     const crmApiClient = createPublicCrmApiClient();
     if (!crmApiClient || !captchaToken) {
       trackAnalyticsEvent('booking_submit_error', {
@@ -337,6 +545,10 @@ export function BookingReservationForm({
       setSubmissionError(content.submitErrorMessage);
       return;
     }
+    if (isStripePaymentMethodSelected && !isStripeReady) {
+      setSubmissionError(content.submitErrorMessage);
+      return;
+    }
     const reservationPayload: ReservationSubmissionPayload = {
       full_name: reservationSummary.attendeeName,
       email: reservationSummary.attendeeEmail,
@@ -349,9 +561,37 @@ export function BookingReservationForm({
       reservation_pending_until_payment_confirmed:
         hasPendingReservationAcknowledgement,
       agreed_to_terms_and_conditions: hasTermsAgreement,
+      stripe_payment_intent_id: undefined,
     };
 
     await withSubmitting(async () => {
+      let stripePaymentIntentId: string | undefined;
+      if (isStripePaymentMethodSelected) {
+        const stripePaymentFields = stripePaymentFieldsRef.current;
+        if (!stripePaymentFields) {
+          setSubmissionError(content.submitErrorMessage);
+          return;
+        }
+        const stripeConfirmation = await stripePaymentFields.confirmPayment();
+        if ('errorMessage' in stripeConfirmation) {
+          trackAnalyticsEvent('booking_submit_error', {
+            sectionId: analyticsSectionId,
+            ctaLocation: 'reservation_form',
+            params: {
+              payment_method: selectedPaymentMethod,
+              age_group: selectedAgeGroupLabel,
+              cohort_date: normalizedCohortDate,
+              total_amount: totalAmount,
+              error_type: 'payment_error',
+            },
+          });
+          setSubmissionError(stripeConfirmation.errorMessage);
+          return;
+        }
+        stripePaymentIntentId = stripeConfirmation.paymentIntentId;
+        reservationPayload.stripe_payment_intent_id = stripePaymentIntentId;
+      }
+
       const submissionResult = await ServerSubmissionResult.resolve({
         request: () =>
           submitReservation(crmApiClient, {
@@ -382,7 +622,7 @@ export function BookingReservationForm({
         trackEcommerceEvent('purchase', {
           value: totalAmount,
           paymentType: selectedPaymentMethod,
-          transactionId: `${normalizedCohortDate}-${Date.now()}`,
+          transactionId: stripePaymentIntentId ?? `${normalizedCohortDate}-${Date.now()}`,
           items: [{
             item_id: `mba-${selectedAgeGroupLabel}`,
             item_name: eventTitle,
@@ -578,6 +818,54 @@ export function BookingReservationForm({
                         className='h-6 w-6 shrink-0'
                       />
                     </label>
+                    <label
+                      className={`es-focus-ring flex h-[53px] w-full cursor-pointer items-center justify-center rounded-lg border p-2 ${
+                        selectedPaymentMethod === PAYMENT_METHOD_STRIPE
+                          ? 'border-black/20 es-bg-surface-muted'
+                          : 'border-transparent'
+                      }`}
+                    >
+                      <input
+                        type='radio'
+                        name='booking-payment-method'
+                        value={PAYMENT_METHOD_STRIPE}
+                        checked={selectedPaymentMethod === PAYMENT_METHOD_STRIPE}
+                        onChange={() => {
+                          setSelectedPaymentMethod(PAYMENT_METHOD_STRIPE);
+                          trackAnalyticsEvent('booking_payment_method_selected', {
+                            sectionId: analyticsSectionId,
+                            ctaLocation: 'payment_method',
+                            params: {
+                              payment_method: PAYMENT_METHOD_STRIPE,
+                            },
+                          });
+                          trackEcommerceEvent('add_payment_info', {
+                            value: totalAmount,
+                            paymentType: PAYMENT_METHOD_STRIPE,
+                            items: [{
+                              item_id: `mba-${selectedAgeGroupLabel}`,
+                              item_name: eventTitle,
+                              item_category: selectedAgeGroupLabel,
+                              price: totalAmount,
+                              quantity: 1,
+                            }],
+                          });
+                        }}
+                        className='sr-only'
+                      />
+                      <span className='sr-only'>
+                        {content.paymentMethodStripeValue}
+                      </span>
+                      <Image
+                        src={STRIPE_CARD_ICON_SOURCE}
+                        alt=''
+                        data-booking-stripe-icon='true'
+                        aria-hidden='true'
+                        width={24}
+                        height={24}
+                        className='h-6 w-6 shrink-0'
+                      />
+                    </label>
                   </div>
                 </div>
                 <div
@@ -600,7 +888,7 @@ export function BookingReservationForm({
                         {content.paymentFpsQrInstruction}
                       </p>
                     </div>
-                  ) : (
+                  ) : selectedPaymentMethod === PAYMENT_METHOD_BANK_TRANSFER ? (
                     <div
                       data-booking-payment-details='bank-transfer'
                       className='flex h-full w-full flex-col items-center justify-center'
@@ -621,6 +909,32 @@ export function BookingReservationForm({
                           </div>
                         ))}
                       </dl>
+                    </div>
+                  ) : (
+                    <div
+                      data-booking-payment-details='stripe'
+                      className='w-full'
+                    >
+                      {isStripeUnavailable ? (
+                        <p className='text-sm font-semibold es-text-danger-strong'>
+                          {content.paymentMethodStripeUnavailableLabel}
+                        </p>
+                      ) : isStripeReady && stripeElementsOptions ? (
+                        <Elements
+                          key={stripePaymentIntent?.payment_intent_id}
+                          stripe={stripePromise}
+                          options={stripeElementsOptions}
+                        >
+                          <StripePaymentFields
+                            ref={stripePaymentFieldsRef}
+                            fallbackErrorMessage={content.submitErrorMessage}
+                          />
+                        </Elements>
+                      ) : (
+                        <p className='text-sm es-text-heading'>
+                          {content.paymentMethodStripeLoadingLabel}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -720,7 +1034,7 @@ export function BookingReservationForm({
             }
             className='mt-1 w-full'
           >
-            {content.submitLabel}
+            {isStripePaymentMethodSelected ? content.submitStripeLabel : content.submitLabel}
           </ButtonPrimitive>
         </form>
       </section>

@@ -4,27 +4,28 @@ import { useMemo, useState } from 'react';
 
 import { StatusBanner } from '@/components/status-banner';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { FileUploadButton } from '@/components/ui/file-upload-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 import { EXPENSE_STATUSES, type Expense, type ExpenseLineItem, type ExpenseStatus } from '@/types/expenses';
+import type { Vendor } from '@/types/vendors';
 
 interface ExpensesEditorPanelProps {
   selectedExpense: Expense | null;
+  vendorOptions: Vendor[];
+  isLoadingVendors: boolean;
   isSaving: boolean;
   isUploadingFiles: boolean;
-  isDeletingCurrentExpense: boolean;
-  isMarkingCurrentExpensePaid: boolean;
-  isReparsingCurrentExpense: boolean;
   mutationError: string;
   onCreate: (payload: {
     input: {
       status: ExpenseStatus;
-      vendorName: string | null;
+      vendorId: string | null;
       invoiceNumber: string | null;
       invoiceDate: string | null;
       dueDate: string | null;
@@ -42,7 +43,7 @@ interface ExpensesEditorPanelProps {
     expenseId: string;
     input: {
       status: ExpenseStatus;
-      vendorName: string | null;
+      vendorId: string | null;
       invoiceNumber: string | null;
       invoiceDate: string | null;
       dueDate: string | null;
@@ -61,7 +62,7 @@ interface ExpensesEditorPanelProps {
     expenseId: string;
     input: {
       status: ExpenseStatus;
-      vendorName: string | null;
+      vendorId: string | null;
       invoiceNumber: string | null;
       invoiceDate: string | null;
       dueDate: string | null;
@@ -76,9 +77,6 @@ interface ExpensesEditorPanelProps {
     newFiles: File[];
     existingAttachmentAssetIds: string[];
   }) => Promise<void>;
-  onCancelExpense: (expenseId: string, reason: string) => Promise<void>;
-  onMarkPaid: (expenseId: string) => Promise<void>;
-  onReparse: (expenseId: string) => Promise<void>;
   onStartCreate: () => void;
 }
 
@@ -133,33 +131,32 @@ function parseLineItemsJson(value: string): ExpenseLineItem[] {
 
 export function ExpensesEditorPanel({
   selectedExpense,
+  vendorOptions,
+  isLoadingVendors,
   isSaving,
   isUploadingFiles,
-  isDeletingCurrentExpense,
-  isMarkingCurrentExpensePaid,
-  isReparsingCurrentExpense,
   mutationError,
   onCreate,
   onUpdate,
   onAmend,
-  onCancelExpense,
-  onMarkPaid,
-  onReparse,
   onStartCreate,
 }: ExpensesEditorPanelProps) {
   const currencyOptions = getCurrencyOptions();
   const [status, setStatus] = useState<ExpenseStatus>(selectedExpense?.status ?? 'submitted');
-  const [vendorName, setVendorName] = useState(selectedExpense?.vendorName ?? '');
+  const [vendorId, setVendorId] = useState(selectedExpense?.vendorId ?? '');
   const [invoiceNumber, setInvoiceNumber] = useState(selectedExpense?.invoiceNumber ?? '');
   const [invoiceDate, setInvoiceDate] = useState(selectedExpense?.invoiceDate ?? '');
   const [dueDate, setDueDate] = useState(selectedExpense?.dueDate ?? '');
-  const [currency, setCurrency] = useState(selectedExpense?.currency ?? 'HKD');
+  const [currency, setCurrency] = useState(
+    selectedExpense?.currency ?? getAdminDefaultCurrencyCode()
+  );
   const [subtotal, setSubtotal] = useState(selectedExpense?.subtotal ?? '');
   const [tax, setTax] = useState(selectedExpense?.tax ?? '');
   const [total, setTotal] = useState(selectedExpense?.total ?? '');
   const [notes, setNotes] = useState(selectedExpense?.notes ?? '');
   const [lineItemsJson, setLineItemsJson] = useState(selectedExpense ? toLineItemsJson(selectedExpense.lineItems) : '[]');
   const [lineItemsError, setLineItemsError] = useState('');
+  const [lineItemsDisclosureOpen, setLineItemsDisclosureOpen] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [parseRequested, setParseRequested] = useState(!selectedExpense);
   const [carryExistingAttachments, setCarryExistingAttachments] = useState(true);
@@ -181,12 +178,13 @@ export function ExpensesEditorPanel({
       setLineItemsError('');
     } catch (error) {
       setLineItemsError(error instanceof Error ? error.message : 'Line items JSON is invalid.');
+      setLineItemsDisclosureOpen(true);
       return;
     }
 
     const payloadInput = {
       status,
-      vendorName: vendorName.trim() || null,
+      vendorId: vendorId.trim() || null,
       invoiceNumber: invoiceNumber.trim() || null,
       invoiceDate: invoiceDate.trim() || null,
       dueDate: dueDate.trim() || null,
@@ -230,11 +228,31 @@ export function ExpensesEditorPanel({
     }
   }
 
+  const primaryLabel =
+    isSaving || isUploadingFiles
+      ? 'Saving...'
+      : isTerminal
+        ? 'Create amendment'
+        : selectedExpense
+          ? 'Update expense'
+          : 'Submit expense';
+
   return (
-    <Card
-      title='Expenses'
+    <AdminEditorCard
+      title='Expense Details'
       description='Upload invoice documents, verify parsed fields, and keep amendment history.'
-      className='space-y-4'
+      actions={
+        <>
+          {selectedExpense ? (
+            <Button type='button' variant='secondary' onClick={onStartCreate} disabled={isSaving || isUploadingFiles}>
+              Cancel
+            </Button>
+          ) : null}
+          <Button type='button' onClick={() => void handleSave()} disabled={isSaving || isUploadingFiles}>
+            {primaryLabel}
+          </Button>
+        </>
+      }
     >
       {mutationError ? (
         <StatusBanner variant='error' title='Expense'>
@@ -260,7 +278,15 @@ export function ExpensesEditorPanel({
         </div>
         <div>
           <Label htmlFor='expense-vendor'>Vendor</Label>
-          <Input id='expense-vendor' value={vendorName} onChange={(event) => setVendorName(event.target.value)} />
+          <Select id='expense-vendor' value={vendorId} onChange={(event) => setVendorId(event.target.value)}>
+            <option value=''>{isLoadingVendors ? 'Loading vendors...' : 'Select vendor'}</option>
+            {vendorOptions.map((vendor) => (
+              <option key={vendor.id} value={vendor.id}>
+                {vendor.name}
+                {vendor.active ? '' : ' (Inactive)'}
+              </option>
+            ))}
+          </Select>
         </div>
         <div>
           <Label htmlFor='expense-invoice-number'>Invoice number</Label>
@@ -311,16 +337,31 @@ export function ExpensesEditorPanel({
         <Label htmlFor='expense-notes'>Notes</Label>
         <Textarea id='expense-notes' value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
       </div>
-      <div>
-        <Label htmlFor='expense-line-items'>Line items JSON</Label>
-        <Textarea
-          id='expense-line-items'
-          value={lineItemsJson}
-          onChange={(event) => setLineItemsJson(event.target.value)}
-          rows={6}
-        />
-        {lineItemsError ? <p className='mt-1 text-sm text-red-600'>{lineItemsError}</p> : null}
-      </div>
+      <details
+        className='rounded-md border border-slate-200 bg-white'
+        open={lineItemsDisclosureOpen}
+        onToggle={(event) => {
+          setLineItemsDisclosureOpen(event.currentTarget.open);
+        }}
+      >
+        <summary
+          className='cursor-pointer select-none px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50'
+          aria-controls='expense-line-items-panel'
+        >
+          Line items (JSON)
+        </summary>
+        <div className='border-t border-slate-200 px-3 pb-3 pt-2' id='expense-line-items-panel'>
+          <Label htmlFor='expense-line-items'>Line items JSON</Label>
+          <Textarea
+            id='expense-line-items'
+            aria-invalid={lineItemsError ? true : undefined}
+            value={lineItemsJson}
+            onChange={(event) => setLineItemsJson(event.target.value)}
+            rows={6}
+          />
+          {lineItemsError ? <p className='mt-1 text-sm text-red-600'>{lineItemsError}</p> : null}
+        </div>
+      </details>
       <div className='space-y-2'>
         <Label htmlFor='expense-files'>Attachments (PDF, PNG, JPG, WEBP; max 15MB each)</Label>
         <FileUploadButton
@@ -358,58 +399,6 @@ export function ExpensesEditorPanel({
         <input type='checkbox' checked={parseRequested} onChange={(event) => setParseRequested(event.target.checked)} />
         Queue parse after save
       </label>
-      <div className='flex flex-wrap gap-2'>
-        <Button type='button' onClick={() => void handleSave()} disabled={isSaving || isUploadingFiles}>
-          {isSaving || isUploadingFiles
-            ? 'Saving...'
-            : isTerminal
-              ? 'Create amendment'
-              : selectedExpense
-                ? 'Update expense'
-                : 'Submit expense'}
-        </Button>
-        {selectedExpense ? (
-          <Button type='button' variant='secondary' onClick={onStartCreate} disabled={isSaving || isUploadingFiles}>
-            New expense
-          </Button>
-        ) : null}
-        {selectedExpense ? (
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => void onReparse(selectedExpense.id)}
-            disabled={isReparsingCurrentExpense}
-          >
-            {isReparsingCurrentExpense ? 'Queueing parse...' : 'Reparse'}
-          </Button>
-        ) : null}
-        {selectedExpense ? (
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => void onMarkPaid(selectedExpense.id)}
-            disabled={isMarkingCurrentExpensePaid || selectedExpense.status === 'paid'}
-          >
-            {isMarkingCurrentExpensePaid ? 'Marking paid...' : 'Mark paid'}
-          </Button>
-        ) : null}
-        {selectedExpense ? (
-          <Button
-            type='button'
-            variant='danger'
-            onClick={() => {
-              const reason = window.prompt('Void reason');
-              if (!reason || !reason.trim()) {
-                return;
-              }
-              void onCancelExpense(selectedExpense.id, reason);
-            }}
-            disabled={isDeletingCurrentExpense || selectedExpense.status === 'voided'}
-          >
-            {isDeletingCurrentExpense ? 'Voiding...' : 'Void'}
-          </Button>
-        ) : null}
-      </div>
-    </Card>
+    </AdminEditorCard>
   );
 }

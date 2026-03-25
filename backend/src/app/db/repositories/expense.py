@@ -8,10 +8,13 @@ from decimal import Decimal
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, aliased, selectinload
 
 from app.db.models import Expense, ExpenseAttachment, ExpenseParseStatus, ExpenseStatus
+from app.db.models import Organization
+from app.db.models.enums import RelationshipType
 from app.db.repositories.base import BaseRepository
+from app.services.asset_expense_tagging import sync_expense_attachment_tags_for_assets
 
 
 def _escape_like_pattern(pattern: str) -> str:
@@ -35,10 +38,13 @@ class ExpenseRepository(BaseRepository[Expense]):
         parse_status: ExpenseParseStatus | None = None,
     ) -> Sequence[Expense]:
         """List expenses with optional filters and cursor pagination."""
+        vendor_org = aliased(Organization)
         statement = (
             select(Expense)
+            .outerjoin(vendor_org, Expense.vendor_id == vendor_org.id)
             .options(
-                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset)
+                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset),
+                selectinload(Expense.vendor),
             )
             .order_by(Expense.created_at.desc(), Expense.id.desc())
         )
@@ -61,7 +67,10 @@ class ExpenseRepository(BaseRepository[Expense]):
             pattern = f"%{escaped}%"
             statement = statement.where(
                 or_(
-                    Expense.vendor_name.ilike(pattern, escape="\\"),
+                    and_(
+                        vendor_org.relationship_type == RelationshipType.VENDOR,
+                        vendor_org.name.ilike(pattern, escape="\\"),
+                    ),
                     Expense.invoice_number.ilike(pattern, escape="\\"),
                 )
             )
@@ -76,7 +85,12 @@ class ExpenseRepository(BaseRepository[Expense]):
         parse_status: ExpenseParseStatus | None = None,
     ) -> int:
         """Count expenses with matching filters."""
-        statement = select(func.count()).select_from(Expense)
+        vendor_org = aliased(Organization)
+        statement = (
+            select(func.count())
+            .select_from(Expense)
+            .outerjoin(vendor_org, Expense.vendor_id == vendor_org.id)
+        )
         if status is not None:
             statement = statement.where(Expense.status == status)
         if parse_status is not None:
@@ -86,7 +100,10 @@ class ExpenseRepository(BaseRepository[Expense]):
             pattern = f"%{escaped}%"
             statement = statement.where(
                 or_(
-                    Expense.vendor_name.ilike(pattern, escape="\\"),
+                    and_(
+                        vendor_org.relationship_type == RelationshipType.VENDOR,
+                        vendor_org.name.ilike(pattern, escape="\\"),
+                    ),
                     Expense.invoice_number.ilike(pattern, escape="\\"),
                 )
             )
@@ -97,7 +114,8 @@ class ExpenseRepository(BaseRepository[Expense]):
         statement = (
             select(Expense)
             .options(
-                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset)
+                selectinload(Expense.attachments).selectinload(ExpenseAttachment.asset),
+                selectinload(Expense.vendor),
             )
             .where(Expense.id == expense_id)
         )
@@ -110,7 +128,7 @@ class ExpenseRepository(BaseRepository[Expense]):
         status: ExpenseStatus,
         parse_status: ExpenseParseStatus,
         amends_expense_id: UUID | None = None,
-        vendor_name: str | None = None,
+        vendor_id: UUID | None = None,
         invoice_number: str | None = None,
         invoice_date: date | None = None,
         due_date: date | None = None,
@@ -127,7 +145,7 @@ class ExpenseRepository(BaseRepository[Expense]):
             status=status,
             parse_status=parse_status,
             amends_expense_id=amends_expense_id,
-            vendor_name=vendor_name,
+            vendor_id=vendor_id,
             invoice_number=invoice_number,
             invoice_date=invoice_date,
             due_date=due_date,
@@ -142,8 +160,19 @@ class ExpenseRepository(BaseRepository[Expense]):
 
     def replace_attachments(self, expense: Expense, asset_ids: list[UUID]) -> Expense:
         """Replace expense attachments with the provided asset IDs."""
-        expense.attachments = [
+        previous_ids = {row.asset_id for row in expense.attachments}
+        # Flush deletes before inserting replacements. A single flush can otherwise
+        # INSERT new (expense_id, asset_id) rows while old rows still exist, hitting
+        # expense_attachments_unique_idx (seen on PATCH /v1/admin/expenses/{id}).
+        expense.attachments.clear()
+        self._session.flush()
+        expense.attachments.extend(
             ExpenseAttachment(asset_id=asset_id, sort_order=index)
             for index, asset_id in enumerate(asset_ids)
-        ]
-        return self.update(expense)
+        )
+        updated = self.update(expense)
+        self._session.flush()
+        sync_expense_attachment_tags_for_assets(
+            self._session, previous_ids | set(asset_ids)
+        )
+        return updated

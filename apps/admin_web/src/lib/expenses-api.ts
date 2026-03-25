@@ -88,6 +88,7 @@ function parseExpense(value: ApiExpense): Expense {
     amendsExpenseId: asNullableString(value.amends_expense_id ?? null),
     status: value.status,
     parseStatus: value.parse_status,
+    vendorId: asNullableString(value.vendor_id ?? null),
     vendorName: asNullableString(value.vendor_name ?? null),
     invoiceNumber: asNullableString(value.invoice_number ?? null),
     invoiceDate: asNullableString(value.invoice_date ?? null),
@@ -114,7 +115,7 @@ function parseExpense(value: ApiExpense): Expense {
 function normalizeExpenseInput(input: UpsertExpenseInput): ApiCreateExpenseRequest {
   return {
     status: input.status,
-    vendor_name: input.vendorName?.trim() || null,
+    vendor_id: input.vendorId?.trim() || null,
     invoice_number: input.invoiceNumber?.trim() || null,
     invoice_date: input.invoiceDate?.trim() || null,
     due_date: input.dueDate?.trim() || null,
@@ -150,6 +151,8 @@ function extractExpense(payload: ApiExpensePayload): Expense | null {
   return null;
 }
 
+const EXPENSE_LIST_PAGE_LIMIT = 100;
+
 export async function listAdminExpenses(
   input: ListAdminExpensesInput = {}
 ): Promise<PaginatedExpenseList> {
@@ -167,7 +170,7 @@ export async function listAdminExpenses(
     params.set('cursor', input.cursor);
   }
   if (typeof input.limit === 'number' && Number.isFinite(input.limit) && input.limit > 0) {
-    params.set('limit', `${Math.floor(input.limit)}`);
+    params.set('limit', `${Math.min(Math.floor(input.limit), EXPENSE_LIST_PAGE_LIMIT)}`);
   }
   const queryString = params.toString();
   const endpointPath = queryString ? `/v1/admin/expenses?${queryString}` : '/v1/admin/expenses';
@@ -183,6 +186,24 @@ export async function listAdminExpenses(
     nextCursor: asNullableString(root.next_cursor ?? null),
     totalCount: typeof root.total_count === 'number' ? root.total_count : 0,
   };
+}
+
+/** Fetches every expense page (for client-side aggregates such as vendor spend). */
+export async function listAllAdminExpenses(): Promise<Expense[]> {
+  const all: Expense[] = [];
+  let cursor: string | null = null;
+  do {
+    const page = await listAdminExpenses({
+      query: '',
+      status: '',
+      parseStatus: '',
+      cursor,
+      limit: EXPENSE_LIST_PAGE_LIMIT,
+    });
+    all.push(...page.items);
+    cursor = page.nextCursor;
+  } while (cursor);
+  return all;
 }
 
 export async function getAdminExpense(expenseId: string): Promise<Expense | null> {

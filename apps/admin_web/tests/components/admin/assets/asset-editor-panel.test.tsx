@@ -23,6 +23,8 @@ vi.mock('@/lib/assets-api', () => ({
 }));
 
 import { AssetEditorPanel } from '@/components/admin/assets/asset-editor-panel';
+import { CLIENT_DOCUMENT_ASSET_TAG } from '@/types/assets';
+
 import { createAdminAssetFixture } from '../../../fixtures/assets';
 
 const SELECTED_ASSET = createAdminAssetFixture({
@@ -95,6 +97,28 @@ describe('AssetEditorPanel', () => {
     expect(onCreate).not.toHaveBeenCalled();
   });
 
+  it('submits create payload with client_tag when Client is selected', async () => {
+    const user = userEvent.setup();
+    const { onCreate } = renderEditor();
+
+    await user.type(screen.getByLabelText('Title *'), 'New guide');
+    const fileInput = screen.getByLabelText('Upload PDF file');
+    const pdf = new File(['%PDF-1.4'], 'guide.pdf', { type: 'application/pdf' });
+    await user.upload(fileInput, pdf);
+    await user.selectOptions(screen.getByLabelText('Tag'), CLIENT_DOCUMENT_ASSET_TAG);
+    await user.click(screen.getByRole('button', { name: 'Create asset' }));
+
+    await waitFor(() => {
+      expect(onCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'New guide',
+          clientTag: CLIENT_DOCUMENT_ASSET_TAG,
+        }),
+        pdf
+      );
+    });
+  });
+
   it('submits update payload in edit mode', async () => {
     const user = userEvent.setup();
     const { onUpdate } = renderEditor({ selectedAsset: SELECTED_ASSET });
@@ -111,7 +135,43 @@ describe('AssetEditorPanel', () => {
         fileName: 'infant-guide.pdf',
         resourceKey: null,
         visibility: 'restricted',
+        clientTag: null,
       });
+    });
+  });
+
+  it('submits client_tag when Client tag is selected on update', async () => {
+    const user = userEvent.setup();
+    const assetWithClient = createAdminAssetFixture({
+      tags: [{ id: 't1', name: 'client_document', color: null }],
+    });
+    const { onUpdate } = renderEditor({ selectedAsset: assetWithClient });
+
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledWith(
+        'asset-1',
+        expect.objectContaining({ clientTag: CLIENT_DOCUMENT_ASSET_TAG })
+      );
+    });
+  });
+
+  it('disables tag select and omits client_tag when asset is expense-linked', async () => {
+    const user = userEvent.setup();
+    const expenseAsset = createAdminAssetFixture({
+      tags: [{ id: 't1', name: 'expense_attachment', color: null }],
+    });
+    const { onUpdate } = renderEditor({ selectedAsset: expenseAsset });
+
+    expect(screen.getByLabelText('Tag (linked to expense; not editable)')).toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalled();
+      const payload = onUpdate.mock.calls[0][1] as Record<string, unknown>;
+      expect(payload).not.toHaveProperty('clientTag');
     });
   });
 

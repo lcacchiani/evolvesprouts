@@ -259,6 +259,41 @@ repo root
 - "New" and row selection actions must switch the same inline panel between
   create and edit modes.
 
+### Admin Web shell and layout standard (MANDATORY for `apps/admin_web/**`)
+
+These rules are the product standard for admin UI consistency. Future changes
+should extend the shared primitives rather than reintroducing one-off layouts.
+
+- **Top-level navigation** in `apps/admin_web/src/app/page.tsx` must list areas
+  alphabetically: **Assets**, **Finance**, **Sales**, **Services**. The default
+  section after sign-in is **Finance** unless product requirements change.
+- **In-area view switchers** (for example Finance, Services, Sales pipeline vs analytics)
+  must use `AdminTabStrip` from `apps/admin_web/src/components/ui/admin-tab-strip.tsx`
+  instead of ad-hoc button rows. It is implemented as a **button group** (`role="group"`,
+  `aria-pressed` on the active control), not ARIA tabs; do not add `role="tablist"` /
+  `role="tab"` without the full tabpanel pattern (panels, `aria-controls`, roving tabindex,
+  arrow keys).
+- **Listing blocks** use `PaginatedTableCard` plus `AdminDataTable`,
+  `AdminDataTableHead`, and `AdminDataTableBody` from
+  `apps/admin_web/src/components/ui/admin-data-table.tsx`. Structure: card
+  **title** (and optional **description**), a **single toolbar row** with
+  **search and filters** (labels + controls, one horizontal band on desktop),
+  then the **table** with a trailing **Operations** column (right-aligned
+  header) for row actions.
+- **Inline editor blocks** use `AdminEditorCard` from
+  `apps/admin_web/src/components/ui/admin-editor-card.tsx`: **title**,
+  optional **description**, field area, then **actions** in a single row with
+  `justify-start` and `gap-2`. **Create** shows only the primary button.
+  **Update** shows **Cancel** (secondary) to the **left** of the primary save
+  action. When the field area is a `<form>`, give it a stable `id` and attach
+  the submit control with `type='submit'` and `form='<id>'` so the primary
+  button can live in the card actions row without nesting forms invalidly.
+- **Delete, void, and other row-scoped destructive or state-changing actions**
+  belong in the table **Operations** column (with `ConfirmDialog` where
+  appropriate), not in the editor footer. `ConfirmDialog` may render optional
+  `children` between the description and the action buttons when extra input
+  is required (for example a void reason).
+
 ### Public WWW XSS policy (MANDATORY for `apps/public_www/**`)
 
 - Do not use `dangerouslySetInnerHTML`.

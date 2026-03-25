@@ -995,6 +995,8 @@
       "soldOutStampLabel": "已售罄",
       "spacesLeftLabelTemplate": "剩餘 {count} 個名額",
       "confirmAndPayLabel": "確認並付款！",
+      "privateProgrammeCtaLabel": "想要完全私人課程？",
+      "privateProgrammePrefillMessage": "我想了解更多 My Best Auntie 私人課程",
       "learnMoreLabel": "了解更多課程內容",
       "learnMoreHref": "/services/my-best-auntie-training-course",
       "nextCohortLabelTemplate": "{scheduleLabel}（{ageGroupLabel}歲組）",
@@ -1004,11 +1006,8 @@
     "modal": {
       "title": "我的最佳姨姨培訓課程",
       "subtitle": "9 週。3 次小組課。3 次上門家訪。3 次家長通話。",
-      "partSummaries": [
-        "我哋會先將屋企設定成支持孩子獨立嘅環境，並觀察你嘅姨姨點樣同你嘅小朋友建立連結。",
-        "唔靠威脅，唔靠利誘。佢會學識用冷靜而一致嘅方式去引導。",
-        "佢退後一步，你嘅小朋友就會向前一步。"
-      ]
+      "weekRangeHeadlineTemplate": "{startDate} - {endDate}",
+      "partScheduleBlockTemplate": "小組課：{groupSessionDateTime}\n上門家訪：單獨安排\n家長通話：單獨安排"
     },
     "description": {
       "eyebrow": "課程亮點",
@@ -1094,6 +1093,9 @@
       "paymentMethodValue": "以 FPS 二維碼付款",
       "paymentFpsQrInstruction": "使用你常用的銀行應用程式掃描此 FPS 二維碼。",
       "paymentMethodBankTransferValue": "銀行轉帳",
+      "paymentMethodStripeValue": "信用卡 / Apple Pay / Google Pay",
+      "paymentMethodStripeLoadingLabel": "正在初始化安全付款表單...",
+      "paymentMethodStripeUnavailableLabel": "Stripe 付款暫時未能使用，請選擇其他付款方式。",
       "paymentBankNameLabel": "銀行名稱",
       "paymentBankAccountHolderLabel": "戶口名稱",
       "paymentBankAccountNumberLabel": "戶口號碼",
@@ -1110,7 +1112,8 @@
       "termsAgreementLabel": "我同意",
       "termsLinkLabel": "條款及細則",
       "termsHref": "/terms",
-      "submitLabel": "立即預留我的名額",
+      "submitLabel": "立即付款並預留名額",
+      "submitStripeLabel": "立即付款並預留名額",
       "captchaLabel": "請完成 CAPTCHA 驗證",
       "captchaRequiredError": "提交前請先完成 CAPTCHA 驗證。",
       "captchaLoadError": "CAPTCHA 載入失敗，請重新整理後再試。",

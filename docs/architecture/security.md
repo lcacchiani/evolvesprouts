@@ -174,6 +174,19 @@ Optional extra origins can be added via `CORS_ALLOWED_ORIGINS` or CDK context
 `corsAllowedOrigins`, but when no extras are configured the default is only the
 required domain-derived origins above.
 
+### Private Network Access (Chromium)
+
+Lambda responses (via `get_cors_headers()`) include
+`Access-Control-Allow-Private-Network: true` when Chromium’s Private Network
+Access preflight requires it on **integration** responses.
+
+API Gateway REST API **rejects** this header on MOCK `OPTIONS` integration and
+method response mappings (`Invalid mapping expression parameter` for
+`method.response.header.Access-Control-Allow-Private-Network`), so preflight
+responses from generated CORS `OPTIONS` methods cannot emit it through API
+Gateway alone. If preflight must carry this header end-to-end, add it at an edge
+layer (for example a CloudFront response headers policy in front of the API).
+
 ### Input Validation
 
 Always validate and sanitize user input:
@@ -255,9 +268,18 @@ Process to add a new public API path:
 6. Monitor API and CloudFront logs for unexpected request patterns after
    rollout.
 
+Current allowlisted public website POST paths include:
+
+- `/www/v1/contact-us`
+- `/www/v1/discounts/validate`
+- `/www/v1/media-request`
+- `/www/v1/reservations`
+- `/www/v1/reservations/payment-intent`
+
 ### Third-party invoice parser egress controls
 
-Expense invoice parsing sends attachment content to OpenRouter and must follow a
+Expense invoice parsing sends attachment bytes (or email-body text saved as a
+`text/plain` asset for inbound mail) to OpenRouter and must follow a
 fail-closed outbound policy:
 
 - In-VPC Lambdas **must not** call OpenRouter directly.
@@ -272,6 +294,29 @@ fail-closed outbound policy:
   forwarding payloads.
 - Parser updates expense parse status to `failed` on upstream/service errors so
   operators can retry explicitly (`/v1/admin/expenses/{id}/reparse`).
+
+### Inbound invoice email handling
+
+Inbound invoice email ingestion stores raw `.eml` payloads in the private
+assets bucket under a reserved prefix before attachments (or body-extracted
+invoice text) are copied into normal expense asset keys.
+
+Requirements:
+
+- Treat raw inbound email as sensitive content. Do not expose the
+  `inbound-email/raw/` prefix through public or signed-download routes.
+- Do not log raw email bodies, headers, or attachment bytes.
+- Mask sender addresses in application logs with `mask_email()`.
+- Optional sender allowlist: when `InboundInvoiceAllowedSenderPatterns` is
+  non-empty (deployed from GitHub Actions variable
+  `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` into Lambda env
+  `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`), messages whose SES envelope
+  `source` and RFC822 `From` address both fail substring matching are marked
+  failed in `inbound_emails` and are not ingested as expenses.
+- Keep SES receipt processing least-privilege: only the configured receipt role
+  can write raw email objects and publish the notification topic.
+- Keep inbound attachments `visibility=restricted` when they are promoted into
+  the assets bucket for expense parsing and admin review.
 
 ---
 
@@ -309,7 +354,7 @@ fail-closed outbound policy:
   loaded at runtime; never commit private keys in source control.
 - CloudFront distributions serving assets must restrict S3 origin access
   via Origin Access Control (OAC).
-- The client-asset CloudFront distribution supports optional AWS WAF
+- The assets CloudFront distribution supports optional AWS WAF
   association through `AssetDownloadWafWebAclArn` (global WebACL ARN in
   `us-east-1`).
 
@@ -350,7 +395,7 @@ Staging additionally sets:
 
 - `X-Robots-Tag: noindex, nofollow, noarchive`
 
-#### Analytics CSP allowlist
+#### Analytics and payments CSP allowlist
 
 When Google Tag Manager is enabled (`NEXT_PUBLIC_GTM_ID` is set at build
 time), the CSP injection script conditionally adds:
@@ -371,6 +416,19 @@ GTM is gated at runtime to fire only on hosts in
 `NEXT_PUBLIC_SITE_ORIGIN`). Staging, localhost, and preview hosts receive zero
 GTM network requests unless explicitly allowlisted, even though the CSP permits
 the Google domains.
+
+When Stripe payment UI is enabled in the public website build output, the CSP
+injection script conditionally adds Stripe origins:
+
+- `script-src`: `https://js.stripe.com`
+- `connect-src`: `https://api.stripe.com`, `https://m.stripe.network`,
+  `https://r.stripe.com`
+- `frame-src`: `https://js.stripe.com`, `https://hooks.stripe.com`
+- `worker-src`: includes `blob:` to support browser workers used by Stripe.js
+
+These Stripe origins are only injected when Stripe client code is present in
+the generated HTML. This keeps the allowlist minimal for pages/builds that do
+not include Stripe.
 
 ### Database Security
 

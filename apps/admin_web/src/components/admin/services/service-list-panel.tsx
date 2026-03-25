@@ -2,7 +2,9 @@
 
 import type { KeyboardEvent, MouseEvent } from 'react';
 
+import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -76,7 +78,7 @@ export function ServiceListPanel({
   return (
     <>
       <PaginatedTableCard
-        title='Existing Services'
+        title='Services'
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
@@ -84,87 +86,97 @@ export function ServiceListPanel({
         loadingLabel='Loading services...'
         onLoadMore={onLoadMore}
         toolbar={
-          <div className='mb-3 grid grid-cols-1 gap-2 sm:grid-cols-3'>
-            <Select
-              value={filters.serviceType}
-              onChange={(event) =>
-                onFilterChange('serviceType', event.target.value as ServiceListFilters['serviceType'])
-              }
-            >
-              <option value=''>All types</option>
-              {SERVICE_TYPES.map((entry) => (
-                <option key={entry} value={entry}>
-                  {formatEnumLabel(entry)}
-                </option>
-              ))}
-            </Select>
-            <Select
-              value={filters.status}
-              onChange={(event) => onFilterChange('status', event.target.value as ServiceListFilters['status'])}
-            >
-              <option value=''>All statuses</option>
-              {SERVICE_STATUSES.map((entry) => (
-                <option key={entry} value={entry}>
-                  {formatEnumLabel(entry)}
-                </option>
-              ))}
-            </Select>
-            <Input
-              value={filters.search}
-              onChange={(event) => onFilterChange('search', event.target.value)}
-              placeholder='Search title/description'
-            />
+          <div className='mb-3 flex flex-wrap items-end gap-3'>
+            <div className='min-w-[140px]'>
+              <Label htmlFor='services-filter-type'>Type</Label>
+              <Select
+                id='services-filter-type'
+                value={filters.serviceType}
+                onChange={(event) =>
+                  onFilterChange('serviceType', event.target.value as ServiceListFilters['serviceType'])
+                }
+              >
+                <option value=''>All types</option>
+                {SERVICE_TYPES.map((entry) => (
+                  <option key={entry} value={entry}>
+                    {formatEnumLabel(entry)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className='min-w-[140px]'>
+              <Label htmlFor='services-filter-status'>Status</Label>
+              <Select
+                id='services-filter-status'
+                value={filters.status}
+                onChange={(event) => onFilterChange('status', event.target.value as ServiceListFilters['status'])}
+              >
+                <option value=''>All statuses</option>
+                {SERVICE_STATUSES.map((entry) => (
+                  <option key={entry} value={entry}>
+                    {formatEnumLabel(entry)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className='min-w-[200px] flex-1'>
+              <Label htmlFor='services-filter-search'>Search</Label>
+              <Input
+                id='services-filter-search'
+                value={filters.search}
+                onChange={(event) => onFilterChange('search', event.target.value)}
+                placeholder='Title or description'
+              />
+            </div>
           </div>
         }
       >
-        <div className='rounded-md border border-slate-200'>
-          <table className='w-full min-w-[840px] divide-y divide-slate-200 text-left'>
-            <thead className='bg-slate-100 text-xs uppercase tracking-[0.08em] text-slate-700'>
-              <tr>
-                <th className='px-4 py-3 font-semibold'>Title</th>
-                <th className='px-4 py-3 font-semibold'>Type</th>
-                <th className='px-4 py-3 font-semibold'>Status</th>
-                <th className='px-4 py-3 font-semibold'>Delivery</th>
-                <th className='px-4 py-3 font-semibold'>Created</th>
-                <th className='px-4 py-3 font-semibold text-right'>Operations</th>
+        <AdminDataTable tableClassName='min-w-[840px]'>
+          <AdminDataTableHead>
+            <tr>
+              <th className='px-4 py-3 font-semibold'>Title</th>
+              <th className='px-4 py-3 font-semibold'>Type</th>
+              <th className='px-4 py-3 font-semibold'>Status</th>
+              <th className='px-4 py-3 font-semibold'>Delivery</th>
+              <th className='px-4 py-3 font-semibold'>Created</th>
+              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
+            </tr>
+          </AdminDataTableHead>
+          <AdminDataTableBody>
+            {services.map((service) => (
+              <tr
+                key={service.id}
+                className={`cursor-pointer transition ${
+                  selectedServiceId === service.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                }`}
+                onClick={() => onSelectService(service.id)}
+                onKeyDown={(event) => handleRowKeyDown(event, service.id)}
+                tabIndex={0}
+                role='row'
+                aria-selected={selectedServiceId === service.id}
+              >
+                <td className='px-4 py-3'>{service.title}</td>
+                <td className='px-4 py-3'>{formatEnumLabel(service.serviceType)}</td>
+                <td className='px-4 py-3'>{formatEnumLabel(service.status)}</td>
+                <td className='px-4 py-3'>{formatEnumLabel(service.deliveryMode)}</td>
+                <td className='px-4 py-3'>{formatDate(service.createdAt)}</td>
+                <td className='px-4 py-3 text-right'>
+                  <Button
+                    type='button'
+                    size='sm'
+                    variant='danger'
+                    onClick={(event) => void handleDeleteService(service, event)}
+                    disabled={isMutating}
+                    aria-label='Delete service'
+                    title='Delete service'
+                  >
+                    <DeleteIcon className='h-4 w-4' />
+                  </Button>
+                </td>
               </tr>
-            </thead>
-            <tbody className='divide-y divide-slate-200 bg-white text-sm'>
-              {services.map((service) => (
-                <tr
-                  key={service.id}
-                  className={`cursor-pointer transition ${
-                    selectedServiceId === service.id ? 'bg-slate-100' : 'hover:bg-slate-50'
-                  }`}
-                  onClick={() => onSelectService(service.id)}
-                  onKeyDown={(event) => handleRowKeyDown(event, service.id)}
-                  tabIndex={0}
-                  role='row'
-                  aria-selected={selectedServiceId === service.id}
-                >
-                  <td className='px-4 py-3'>{service.title}</td>
-                  <td className='px-4 py-3'>{formatEnumLabel(service.serviceType)}</td>
-                  <td className='px-4 py-3'>{formatEnumLabel(service.status)}</td>
-                  <td className='px-4 py-3'>{formatEnumLabel(service.deliveryMode)}</td>
-                  <td className='px-4 py-3'>{formatDate(service.createdAt)}</td>
-                  <td className='px-4 py-3 text-right'>
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='danger'
-                      onClick={(event) => void handleDeleteService(service, event)}
-                      disabled={isMutating}
-                      aria-label='Delete service'
-                      title='Delete service'
-                    >
-                      <DeleteIcon className='h-4 w-4' />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </AdminDataTableBody>
+        </AdminDataTable>
       </PaginatedTableCard>
       <ConfirmDialog {...confirmDialogProps} />
     </>
