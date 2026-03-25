@@ -243,6 +243,10 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 - `NEXT_PUBLIC_BUSINESS_PHONE_NUMBER`
 - `NEXT_PUBLIC_SITEMAP_LASTMOD` (optional ISO date string)
 
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is required at build time for Stripe
+payment support. The content validation step fails the build if this variable is
+missing or not a publishable key (`pk_...`).
+
 Use `NEXT_PUBLIC_WWW_CRM_API_BASE_URL=/www` to route requests through the
 same-origin CloudFront API proxy and avoid cross-origin CORS preflight issues.
 Set `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS` to a comma-separated hostname

@@ -395,7 +395,7 @@ Staging additionally sets:
 
 - `X-Robots-Tag: noindex, nofollow, noarchive`
 
-#### Analytics CSP allowlist
+#### Analytics and payments CSP allowlist
 
 When Google Tag Manager is enabled (`NEXT_PUBLIC_GTM_ID` is set at build
 time), the CSP injection script conditionally adds:
@@ -416,6 +416,19 @@ GTM is gated at runtime to fire only on hosts in
 `NEXT_PUBLIC_SITE_ORIGIN`). Staging, localhost, and preview hosts receive zero
 GTM network requests unless explicitly allowlisted, even though the CSP permits
 the Google domains.
+
+When Stripe payment UI is enabled in the public website build output, the CSP
+injection script conditionally adds Stripe origins:
+
+- `script-src`: `https://js.stripe.com`
+- `connect-src`: `https://api.stripe.com`, `https://m.stripe.network`,
+  `https://r.stripe.com`
+- `frame-src`: `https://js.stripe.com`, `https://hooks.stripe.com`
+- `worker-src`: includes `blob:` to support browser workers used by Stripe.js
+
+These Stripe origins are only injected when Stripe client code is present in
+the generated HTML. This keeps the allowlist minimal for pages/builds that do
+not include Stripe.
 
 ### Database Security
 
