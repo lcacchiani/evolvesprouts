@@ -13,6 +13,7 @@ const LOCALE_FILES = [
   ['zh-HK', 'zh-HK.json'],
 ];
 const CONTACT_EMAIL_ENV_NAME = 'NEXT_PUBLIC_EMAIL';
+const STRIPE_PUBLISHABLE_KEY_ENV_NAME = 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY';
 const CONTACT_EMAIL_PLACEHOLDER = '{{CONTACT_EMAIL}}';
 const CONTACT_EMAIL_MAILTO_PLACEHOLDER = `mailto:${CONTACT_EMAIL_PLACEHOLDER}`;
 const WHATSAPP_URL_PLACEHOLDER = '{{WHATSAPP_URL}}';
@@ -276,6 +277,21 @@ function validateConfiguredContactEmail(errors) {
   }
 }
 
+function validateConfiguredStripePublishableKey(errors) {
+  const normalizedValue = process.env[STRIPE_PUBLISHABLE_KEY_ENV_NAME]?.trim() ?? '';
+  if (!normalizedValue) {
+    errors.push(
+      `${STRIPE_PUBLISHABLE_KEY_ENV_NAME} must be configured for Stripe payment initialization.`,
+    );
+    return;
+  }
+  if (!normalizedValue.startsWith('pk_')) {
+    errors.push(
+      `${STRIPE_PUBLISHABLE_KEY_ENV_NAME} must be a valid Stripe publishable key (expected prefix "pk_").`,
+    );
+  }
+}
+
 function normalizeInternalRoutePath(value) {
   let parsedUrl;
   try {
@@ -440,6 +456,7 @@ async function main() {
   const errors = [];
 
   validateConfiguredContactEmail(errors);
+  validateConfiguredStripePublishableKey(errors);
 
   for (const [locale] of LOCALE_FILES) {
     const localeContent = localeMap[locale];
