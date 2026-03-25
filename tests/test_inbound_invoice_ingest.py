@@ -208,3 +208,56 @@ def test_process_inbound_invoice_email_allowlisted_by_envelope_substring(
 
     assert upsert_calls[-1][0] == InboundEmailStatus.FAILED
     assert "allowlisted" not in (upsert_calls[-1][1] or "")
+
+
+def test_process_inbound_invoice_email_stores_and_enqueues_parse(
+    monkeypatch: Any,
+) -> None:
+    upsert_calls: list[tuple[InboundEmailStatus, str | None]] = []
+    parse_requests: list[UUID] = []
+    stored_expense_id = UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._get_tracking_record",
+        lambda _message_id: None,
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._load_raw_email",
+        lambda _bucket, _key: b"raw-email",
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest.parse_raw_email",
+        lambda _raw_email: SimpleNamespace(
+            from_email="billing@example.com",
+            subject="Invoice",
+            from_name="Unknown Vendor",
+            attachments=(),
+        ),
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest.invoice_attachments_for_ingest",
+        lambda _parsed: [SimpleNamespace(file_name="invoice.pdf")],
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._store_expense_from_email",
+        lambda **_kwargs: stored_expense_id,
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._ensure_parse_requested",
+        lambda expense_id: parse_requests.append(expense_id),
+    )
+    monkeypatch.setattr(
+        "app.services.inbound_invoice_ingest._upsert_tracking_record",
+        lambda _event, *, status, parsed_email=None, failure_reason=None: upsert_calls.append(
+            (status, failure_reason)
+        ),
+    )
+
+    result = process_inbound_invoice_email(_base_event())
+
+    assert result == InboundInvoiceProcessResult(
+        status=InboundEmailStatus.STORED,
+        expense_id=stored_expense_id,
+    )
+    assert parse_requests == [stored_expense_id]
+    assert upsert_calls == [(InboundEmailStatus.PROCESSING, None)]
