@@ -76,10 +76,6 @@ class InboundInvoiceProcessResult:
     expense_id: UUID | None = None
 
 
-class InboundInvoiceVendorResolutionError(Exception):
-    """Raised when vendor_id cannot be resolved for an inbound invoice expense."""
-
-
 def process_inbound_invoice_email(
     event: InboundInvoiceEmailEvent,
 ) -> InboundInvoiceProcessResult:
@@ -141,27 +137,11 @@ def process_inbound_invoice_email(
         )
         return InboundInvoiceProcessResult(status=InboundEmailStatus.FAILED)
 
-    try:
-        expense_id = _store_expense_from_email(
-            event=event,
-            parsed_email=parsed_email,
-            invoice_attachments=invoice_attachments,
-        )
-    except InboundInvoiceVendorResolutionError as exc:
-        _upsert_tracking_record(
-            event,
-            status=InboundEmailStatus.FAILED,
-            parsed_email=parsed_email,
-            failure_reason=str(exc),
-        )
-        logger.info(
-            "Inbound invoice email failed vendor resolution",
-            extra={
-                "ses_message_id": event.ses_message_id,
-                "source_email_masked": mask_email(source_email or ""),
-            },
-        )
-        return InboundInvoiceProcessResult(status=InboundEmailStatus.FAILED)
+    expense_id = _store_expense_from_email(
+        event=event,
+        parsed_email=parsed_email,
+        invoice_attachments=invoice_attachments,
+    )
 
     _ensure_parse_requested(expense_id)
     logger.info(
@@ -198,8 +178,14 @@ def _store_expense_from_email(
         expense_repo = ExpenseRepository(session)
         vendor_id = _resolve_inbound_vendor_id(session, parsed_email)
         if vendor_id is None:
-            raise InboundInvoiceVendorResolutionError(
-                "Could not resolve vendor_id from inbound email sender for expense creation"
+            logger.info(
+                "Inbound invoice vendor unresolved; creating expense without vendor",
+                extra={
+                    "ses_message_id": event.ses_message_id,
+                    "source_email_masked": mask_email(
+                        parsed_email.from_email or event.source_email or ""
+                    ),
+                },
             )
 
         expense = expense_repo.create_expense(
