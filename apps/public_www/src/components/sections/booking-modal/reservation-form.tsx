@@ -325,6 +325,8 @@ export function BookingReservationForm({
     setIsStripePaymentIntentLoading(true);
     clearSubmissionError();
     if (!captchaToken) {
+      setStripePaymentIntent(null);
+      setStripePaymentIntentKey('');
       setIsStripePaymentIntentLoading(false);
       return;
     }
@@ -908,13 +910,9 @@ export function BookingReservationForm({
                       data-booking-payment-details='stripe'
                       className='w-full'
                     >
-                  {isStripeUnavailable ? (
+                      {isStripeUnavailable ? (
                         <p className='text-sm font-semibold es-text-danger-strong'>
                           {content.paymentMethodStripeUnavailableLabel}
-                        </p>
-                      ) : isStripePaymentIntentLoading ? (
-                        <p className='text-sm es-text-heading'>
-                          {content.paymentMethodStripeLoadingLabel}
                         </p>
                       ) : isStripeReady && stripeElementsOptions ? (
                         <Elements
@@ -928,8 +926,8 @@ export function BookingReservationForm({
                           />
                         </Elements>
                       ) : (
-                        <p className='text-sm font-semibold es-text-danger-strong'>
-                          {content.paymentMethodStripeUnavailableLabel}
+                        <p className='text-sm es-text-heading'>
+                          {content.paymentMethodStripeLoadingLabel}
                         </p>
                       )}
                     </div>
