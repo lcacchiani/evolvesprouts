@@ -27,6 +27,7 @@ const STRIPE_CONNECT_ORIGINS = [
 ];
 const STRIPE_FRAME_ORIGINS = ['https://js.stripe.com', 'https://hooks.stripe.com'];
 const STRIPE_DETECT_MARKER = 'stripe-js';
+const STRIPE_PUBLISHABLE_KEY_ENV_NAME = 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY';
 
 const CRM_API_CONNECT_ORIGINS = resolveCrmApiConnectOrigins();
 
@@ -229,7 +230,9 @@ function buildCspValue(html) {
 
   const hasGtm = html.includes(GTM_DETECT_MARKER);
   const hasMetaPixel = html.includes(META_PIXEL_DETECT_MARKER);
-  const hasStripe = html.includes(STRIPE_DETECT_MARKER);
+  const hasStripe =
+    html.includes(STRIPE_DETECT_MARKER) ||
+    Boolean(process.env[STRIPE_PUBLISHABLE_KEY_ENV_NAME]?.trim());
   const gtmScriptOrigins = hasGtm ? GTM_SCRIPT_ORIGINS : [];
   const metaPixelScriptOrigins = hasMetaPixel ? META_PIXEL_SCRIPT_ORIGINS : [];
   const stripeScriptOrigins = hasStripe ? STRIPE_SCRIPT_ORIGINS : [];
