@@ -8,9 +8,9 @@ describe('format helpers', () => {
     expect(formatEnumLabel('in_person')).toBe('In Person');
   });
 
-  it('exposes only HKD, USD, CNY, and SGD in currency options with expected labels', () => {
+  it('exposes only HKD, USD, CNY, EUR, and SGD in currency options with expected labels', () => {
     const options = getCurrencyOptions();
-    expect(options.map((o) => o.value)).toEqual(['HKD', 'USD', 'CNY', 'SGD']);
+    expect(options.map((o) => o.value)).toEqual(['HKD', 'USD', 'CNY', 'EUR', 'SGD']);
     expect(options.some((option) => option.value === 'HKD' && option.label === 'HKD Hong Kong Dollar')).toBe(true);
   });
 

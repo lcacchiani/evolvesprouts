@@ -36,7 +36,7 @@ const LOCAL_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
 const DEFAULT_CURRENCY_LABEL_HKD = 'Hong Kong Dollar';
 
 /** Fixed allowlist for admin currency dropdowns; default currency (env) is listed first. */
-const ADMIN_SELECTABLE_CURRENCY_CODES = ['HKD', 'USD', 'CNY', 'SGD'] as const;
+const ADMIN_SELECTABLE_CURRENCY_CODES = ['HKD', 'USD', 'EUR', 'CNY', 'SGD'] as const;
 
 function getAdminSelectableCurrencyCodesOrdered(): string[] {
   const defaultCode = getAdminDefaultCurrencyCode();
