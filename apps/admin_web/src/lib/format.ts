@@ -32,6 +32,11 @@ const LOCAL_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
   ...NAVBAR_LOCAL_DATETIME_OPTIONS,
   year: 'numeric',
 });
+const LOCAL_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
 
 const DEFAULT_CURRENCY_LABEL_HKD = 'Hong Kong Dollar';
 
@@ -100,6 +105,19 @@ export function formatDate(value: string | null): string {
   }
 
   return LOCAL_DATE_TIME_FORMATTER.format(parsedDate);
+}
+
+export function formatDateOnly(value: string | null): string {
+  if (!value) {
+    return '—';
+  }
+
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value;
+  }
+
+  return LOCAL_DATE_FORMATTER.format(parsedDate);
 }
 
 export function formatDateForInput(value: Date): string {

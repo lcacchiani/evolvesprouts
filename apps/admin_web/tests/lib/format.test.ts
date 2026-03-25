@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDate, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
+import { formatDate, formatDateOnly, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 describe('format helpers', () => {
   it('formats snake_case values into title case labels', () => {
@@ -26,5 +26,17 @@ describe('format helpers', () => {
     }).format(parsed);
     expect(formatDate(iso)).toBe(expected);
     expect(formatDate(null)).toBe('—');
+  });
+
+  it('formats date-only values in the local timezone and default locale', () => {
+    const iso = '2026-03-01T10:00:00Z';
+    const parsed = new Date(iso);
+    const expected = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(parsed);
+    expect(formatDateOnly(iso)).toBe(expected);
+    expect(formatDateOnly(null)).toBe('—');
   });
 });
