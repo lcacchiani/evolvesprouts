@@ -388,6 +388,34 @@ function handler(event) {
 `),
       },
     );
+    const wwwApiErrorResponseFunction = new cloudfront.Function(
+      this,
+      `${config.idPrefix}WwwApiErrorResponseFunction`,
+      {
+        comment:
+          "Convert HTML error pages to JSON for /www API proxy behaviors.",
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
+        code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var response = event.response;
+  var statusCode = parseInt(response.statusCode, 10);
+  if (statusCode < 400 || statusCode >= 600) {
+    return response;
+  }
+  var ct = response.headers['content-type'];
+  var contentType = (ct && ct.value) ? ct.value : '';
+  if (contentType.indexOf('text/html') !== -1) {
+    response.statusCode = 502;
+    response.statusDescription = 'Bad Gateway';
+    response.headers['content-type'] = { value: 'application/json; charset=utf-8' };
+    response.headers['cache-control'] = { value: 'no-store' };
+    response.body = '{"error":"The request could not be processed. Please try again."}';
+  }
+  return response;
+}
+`),
+      },
+    );
 
     const customHeaders: cloudfront.ResponseCustomHeader[] = [
       {
@@ -502,6 +530,10 @@ function handler(event) {
                 function: mediaRequestProxyFunction,
                 eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
               },
+              {
+                function: wwwApiErrorResponseFunction,
+                eventType: cloudfront.FunctionEventType.VIEWER_RESPONSE,
+              },
             ],
           },
           "www/*": {
@@ -516,6 +548,10 @@ function handler(event) {
               {
                 function: wwwProxyAllowlistFunction,
                 eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+              },
+              {
+                function: wwwApiErrorResponseFunction,
+                eventType: cloudfront.FunctionEventType.VIEWER_RESPONSE,
               },
             ],
           },
