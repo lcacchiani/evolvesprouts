@@ -339,7 +339,6 @@ function handler(event) {
     }
   };
   if (allowlist[method] && allowlist[method][uri]) {
-    request.uri = uri.substring(4);
     return request;
   }
 
