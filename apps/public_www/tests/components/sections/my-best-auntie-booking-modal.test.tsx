@@ -359,6 +359,9 @@ describe('my-best-auntie booking modals footer content', () => {
       within(paymentBlock as HTMLDivElement).getByText(bookingModalContent.paymentMethodLabel),
     )
       .toBeInTheDocument();
+    expect(
+      paymentBlock?.querySelector('[data-booking-stripe-icon="true"].es-mask-credit-card-danger'),
+    ).not.toBeNull();
   });
 
   it('does not render course schedule heading and uses shared calendar icon in booking modal', () => {
@@ -1154,7 +1157,7 @@ describe('my-best-auntie booking modals footer content', () => {
       }),
     ).toBeNull();
 
-    expect(container.querySelector('span.es-mask-credit-card-danger')).not.toBeNull();
+    expect(container.querySelector('span.es-mask-dollar-danger')).not.toBeNull();
     expect(container.querySelector('span.es-mask-location-danger')).not.toBeNull();
     expect(container.querySelectorAll('div.border-b.border-black\\/15')).toHaveLength(1);
   });

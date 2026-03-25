@@ -186,7 +186,7 @@ export function BookingEventDetails({
           <div className='flex items-start gap-4'>
             <span className='es-icon-circle-lg'>
               <span
-                className='es-mask-credit-card-danger h-[46px] w-[46px] shrink-0'
+                className='es-mask-dollar-danger h-[46px] w-[46px] shrink-0'
                 aria-hidden='true'
               />
             </span>
