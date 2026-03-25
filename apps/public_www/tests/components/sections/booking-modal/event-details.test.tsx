@@ -57,7 +57,7 @@ describe('BookingEventDetails (event variant)', () => {
     expect(screen.queryByText('Legacy schedule description two')).not.toBeInTheDocument();
 
     expect(screen.getByText('HK$1,280')).toBeInTheDocument();
-    expect(container.querySelector('span.es-mask-credit-card-danger')).not.toBeNull();
+    expect(container.querySelector('span.es-mask-dollar-danger')).not.toBeNull();
     expect(container.querySelector('span.es-mask-location-danger')).not.toBeNull();
   });
 });

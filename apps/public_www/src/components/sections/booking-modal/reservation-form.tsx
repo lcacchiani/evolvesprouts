@@ -67,6 +67,7 @@ const CAPTCHA_ERROR_MESSAGE_ID = 'booking-modal-captcha-error-message';
 const SUBMIT_ERROR_MESSAGE_ID = 'booking-modal-submit-error-message';
 const FPS_ICON_SOURCE = '/images/fps-logo.svg';
 const BANK_ICON_SOURCE = '/images/bank.svg';
+const STRIPE_CARD_ICON_SOURCE = '/images/credit-cards.svg';
 const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME ?? '';
 const BANK_ACCOUNT_HOLDER = process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER ?? '';
 const BANK_ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? '';
@@ -855,10 +856,14 @@ export function BookingReservationForm({
                       <span className='sr-only'>
                         {content.paymentMethodStripeValue}
                       </span>
-                      <span
+                      <Image
+                        src={STRIPE_CARD_ICON_SOURCE}
+                        alt=''
                         data-booking-stripe-icon='true'
-                        className='es-mask-credit-card-danger h-6 w-6 shrink-0'
                         aria-hidden='true'
+                        width={24}
+                        height={24}
+                        className='h-6 w-6 shrink-0'
                       />
                     </label>
                   </div>
