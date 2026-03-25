@@ -15,7 +15,7 @@ vi.mock('@/lib/assets-api', async (importOriginal) => {
 });
 
 import { ExpensesListPanel } from '@/components/admin/finance/expenses-list-panel';
-import { formatDate } from '@/lib/format';
+import { formatDateOnly } from '@/lib/format';
 
 import type { Expense } from '@/types/expenses';
 
@@ -142,14 +142,14 @@ describe('ExpensesListPanel', () => {
     expect(screen.getByRole('button', { name: 'No invoice document available' })).toBeDisabled();
   });
 
-  it('shows invoice date in Issued column and labels missing currency', () => {
+  it('shows invoice date without time in Issued column and labels missing currency', () => {
     render(
       <ExpensesListPanel
         {...listProps}
         expenses={[
           {
             ...baseExpense,
-            invoiceDate: '2026-02-15',
+            invoiceDate: '2026-02-15T14:30:00Z',
             currency: null,
             total: '30.00',
           },
@@ -158,7 +158,7 @@ describe('ExpensesListPanel', () => {
       />
     );
 
-    expect(screen.getByText(formatDate('2026-02-15'))).toBeInTheDocument();
+    expect(screen.getByText(formatDateOnly('2026-02-15T14:30:00Z'))).toBeInTheDocument();
     expect(screen.getByText('30.00')).toBeInTheDocument();
     expect(screen.getByText('No currency code')).toBeInTheDocument();
   });

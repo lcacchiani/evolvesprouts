@@ -15,7 +15,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useOpenAdminAssetInNewTab } from '@/hooks/use-open-admin-asset-in-new-tab';
 import { primaryExpenseAttachmentAssetId } from '@/lib/expense-attachments';
-import { formatDate, formatEnumLabel } from '@/lib/format';
+import { formatDateOnly, formatEnumLabel } from '@/lib/format';
 import {
   EXPENSE_PARSE_STATUSES,
   EXPENSE_STATUSES,
@@ -240,9 +240,7 @@ export function ExpensesListPanel({
                     )}
                   </td>
                   <td className='px-4 py-3'>{formatEnumLabel(expense.status)}</td>
-                  <td className='px-4 py-3'>
-                    {expense.invoiceDate ? formatDate(expense.invoiceDate) : '—'}
-                  </td>
+                  <td className='px-4 py-3'>{formatDateOnly(expense.invoiceDate)}</td>
                   <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                     <div className='flex flex-wrap justify-end gap-1'>
                       <OpenAdminAssetInNewTabButton
