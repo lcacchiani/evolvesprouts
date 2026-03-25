@@ -939,6 +939,27 @@ describe('my-best-auntie booking modals footer content', () => {
     });
   });
 
+  it('shows Stripe loading copy before captcha is solved', () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    renderBookingModal();
+
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: bookingModalContent.paymentMethodStripeValue,
+      }),
+    );
+
+    expect(
+      screen.getByText(bookingModalContent.paymentMethodStripeLoadingLabel),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(bookingModalContent.paymentMethodStripeUnavailableLabel),
+    ).not.toBeInTheDocument();
+  });
+
   it('uses calendar mask icons inside each course part chip', () => {
     const { container } = renderBookingModal();
 
