@@ -360,7 +360,7 @@ describe('my-best-auntie booking modals footer content', () => {
     )
       .toBeInTheDocument();
     expect(
-      paymentBlock?.querySelector('[data-booking-stripe-icon="true"].es-mask-credit-card-danger'),
+      paymentBlock?.querySelector('img[data-booking-stripe-icon="true"]'),
     ).not.toBeNull();
   });
 

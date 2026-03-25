@@ -1318,12 +1318,6 @@
     -webkit-mask-size: contain;
   }
 
-  .es-mask-credit-card-danger {
-    background-color: var(--es-color-booking-highlight-icon, #B42318);
-    mask-image: url('/images/credit-cards.svg');
-    -webkit-mask-image: url('/images/credit-cards.svg');
-  }
-
   .es-mask-dollar-danger {
     background-color: var(--es-color-booking-highlight-icon, #B42318);
     mask-image: url('/images/dollar-symbol.svg');
