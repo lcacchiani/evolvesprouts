@@ -6,7 +6,7 @@ import type {
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { PageLayout } from '@/components/shared/page-layout';
 import { AboutUsIdaCoach } from '@/components/sections/about-us-ida-coach';
-import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
+import { Testimonials } from '@/components/sections/testimonials';
 import { LandingPageCta } from '@/components/sections/landing-pages/landing-page-cta';
 import { LandingPageDescription } from '@/components/sections/landing-pages/landing-page-description';
 import { LandingPageDetails } from '@/components/sections/landing-pages/landing-page-details';
@@ -159,7 +159,7 @@ export function LandingPage({
         sharedCtaProps={sharedCtaProps}
         ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
       />
-      <DeferredTestimonials
+      <Testimonials
         content={siteContent.testimonials}
         commonAccessibility={siteContent.common.accessibility}
       />

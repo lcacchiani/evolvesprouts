@@ -56,9 +56,9 @@ vi.mock('@/components/sections/faq', () => ({
     <section data-testid='faq'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/deferred-testimonials', () => ({
-  DeferredTestimonials: ({ content }: { content: { title: string } }) => (
-    <section data-testid='deferred-testimonials'>{content.title}</section>
+vi.mock('@/components/sections/testimonials', () => ({
+  Testimonials: ({ content }: { content: { title: string } }) => (
+    <section data-testid='testimonials'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/free-intro-session', () => ({
@@ -76,7 +76,7 @@ describe('MyBestAuntiePage', () => {
     expect(screen.getByTestId('my-best-auntie-hero')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-description')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-outline')).toBeInTheDocument();
-    expect(screen.getByTestId('deferred-testimonials')).toBeInTheDocument();
+    expect(screen.getByTestId('testimonials')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-booking')).toBeInTheDocument();
     expect(screen.getByTestId('faq')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('MyBestAuntiePage', () => {
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
-      screen.getByTestId('deferred-testimonials').compareDocumentPosition(
+      screen.getByTestId('testimonials').compareDocumentPosition(
         screen.getByTestId('my-best-auntie-booking'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
