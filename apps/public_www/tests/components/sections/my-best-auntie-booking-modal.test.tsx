@@ -43,7 +43,7 @@ import type { ReservationSummary } from '@/components/sections/booking-modal/typ
 import enContent from '@/content/en.json';
 import trainingCoursesContent from '@/content/my-best-auntie-training-courses.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
-import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import { createPublicAdminApiClient, createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { validateDiscountCode } from '@/lib/discounts-data';
 import { createReservationPaymentIntent } from '@/lib/reservation-payments-data';
 import {
@@ -100,6 +100,7 @@ vi.mock('@/lib/crm-api-client', async () => {
 
   return {
     ...actual,
+    createPublicAdminApiClient: vi.fn(() => null),
     createPublicCrmApiClient: vi.fn(() => null),
     isAbortRequestError: (error: unknown) =>
       error instanceof Error && error.name === 'AbortError',
@@ -173,6 +174,7 @@ if (!selectedCohort) {
   throw new Error('Test content must include at least one cohort.');
 }
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
+const mockedCreateAdminApiClient = vi.mocked(createPublicAdminApiClient);
 const mockedValidateDiscountCode = vi.mocked(validateDiscountCode);
 const mockedCreateReservationPaymentIntent = vi.mocked(createReservationPaymentIntent);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
@@ -245,6 +247,7 @@ beforeEach(() => {
 
 afterEach(() => {
   mockedCreateCrmApiClient.mockReturnValue(null);
+  mockedCreateAdminApiClient.mockReturnValue(null);
   mockedValidateDiscountCode.mockReset();
   mockedCreateReservationPaymentIntent.mockReset();
   mockedTrackAnalyticsEvent.mockReset();
@@ -600,6 +603,9 @@ describe('my-best-auntie booking modals footer content', () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: vi.fn(),
     });
+    mockedCreateAdminApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
     mockedValidateDiscountCode.mockResolvedValue({
       code: 'SAVE10',
       type: 'percent',
@@ -689,6 +695,9 @@ describe('my-best-auntie booking modals footer content', () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: requestSpy,
     });
+    mockedCreateAdminApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
 
     renderBookingModal({
       selectedAgeGroupLabel: '18-24 months',
@@ -766,6 +775,9 @@ describe('my-best-auntie booking modals footer content', () => {
     const onSubmitReservation = vi.fn();
     mockedCreateCrmApiClient.mockReturnValue({
       request: requestSpy,
+    });
+    mockedCreateAdminApiClient.mockReturnValue({
+      request: vi.fn(),
     });
 
     const { container } = renderBookingModal({
@@ -877,6 +889,9 @@ describe('my-best-auntie booking modals footer content', () => {
     mockedCreateCrmApiClient.mockReturnValue({
       request: requestSpy,
     });
+    mockedCreateAdminApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
     mockedCreateReservationPaymentIntent.mockResolvedValue({
       payment_intent_id: 'pi_test_booking_modal',
       client_secret: 'pi_test_booking_modal_secret_abc',
@@ -957,6 +972,9 @@ describe('my-best-auntie booking modals footer content', () => {
 
   it('shows Stripe loading copy before captcha is solved', () => {
     mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreateAdminApiClient.mockReturnValue({
       request: vi.fn(),
     });
 
@@ -1283,6 +1301,9 @@ describe('my-best-auntie booking modals footer content', () => {
 
   it('allows only one discount code to be applied at a time', async () => {
     mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreateAdminApiClient.mockReturnValue({
       request: vi.fn(),
     });
     mockedValidateDiscountCode.mockResolvedValue({

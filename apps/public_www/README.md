@@ -227,6 +227,7 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 - `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
+- `NEXT_PUBLIC_ADMIN_API_BASE_URL`
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `NEXT_PUBLIC_ASSET_SHARE_BASE_URL`
@@ -254,6 +255,9 @@ allowlist (for example
 `www.evolvesprouts.com,www-staging.evolvesprouts.com`) so browser clients only
 switch to `/www` proxy routing on approved hosts.
 CSP generation also derives `connect-src` API origins from this variable.
+`NEXT_PUBLIC_ADMIN_API_BASE_URL` is used by public Stripe payment-intent
+initialization (`/v1/reservations/payment-intent`) and also contributes to CSP
+`connect-src` origins when configured as an absolute URL.
 Use Cloudflare Turnstile test key `1x00000000000000000000AA` for local-only
 testing.
 Set `NEXT_PUBLIC_ASSET_SHARE_BASE_URL` to the media/share base URL used by the

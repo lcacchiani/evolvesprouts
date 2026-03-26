@@ -6,6 +6,7 @@ import { JSDOM } from 'jsdom';
 const BUILD_OUTPUT_DIRECTORY = resolve('out');
 const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
 const CRM_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_WWW_CRM_API_BASE_URL';
+const ADMIN_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_ADMIN_API_BASE_URL';
 
 const GTM_SCRIPT_ORIGINS = ['https://www.googletagmanager.com'];
 const GTM_CONNECT_ORIGINS = [
@@ -29,16 +30,23 @@ const STRIPE_FRAME_ORIGINS = ['https://js.stripe.com', 'https://hooks.stripe.com
 const STRIPE_DETECT_MARKER = 'stripe-js';
 const STRIPE_PUBLISHABLE_KEY_ENV_NAME = 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY';
 
-const CRM_API_CONNECT_ORIGINS = resolveCrmApiConnectOrigins();
+const CRM_API_CONNECT_ORIGINS = resolveApiConnectOrigins({
+  envName: CRM_API_BASE_URL_ENV_NAME,
+  allowRelativePath: true,
+});
+const ADMIN_API_CONNECT_ORIGINS = resolveApiConnectOrigins({
+  envName: ADMIN_API_BASE_URL_ENV_NAME,
+  allowRelativePath: true,
+});
 
-function resolveCrmApiConnectOrigins() {
-  const configuredBaseUrl = process.env[CRM_API_BASE_URL_ENV_NAME]?.trim() ?? '';
+function resolveApiConnectOrigins({ envName, allowRelativePath }) {
+  const configuredBaseUrl = process.env[envName]?.trim() ?? '';
   if (configuredBaseUrl === '') {
     return [];
   }
 
-  // Relative paths (for example "/www") are same-origin and covered by 'self'.
-  if (configuredBaseUrl.startsWith('/')) {
+  // Relative paths (for example "/www" or "/prod") are same-origin and covered by 'self'.
+  if (allowRelativePath && configuredBaseUrl.startsWith('/')) {
     return [];
   }
 
@@ -47,7 +55,7 @@ function resolveCrmApiConnectOrigins() {
     parsedBaseUrl = new URL(configuredBaseUrl);
   } catch {
     throw new Error(
-      `${CRM_API_BASE_URL_ENV_NAME} must be an absolute URL or a relative path like "/www".`,
+      `${envName} must be an absolute URL or a relative path.`,
     );
   }
 
@@ -56,7 +64,7 @@ function resolveCrmApiConnectOrigins() {
   const isLocalhostHttpOrigin = protocol === 'http:' && hostname === 'localhost';
   if (protocol !== 'https:' && !isLocalhostHttpOrigin) {
     throw new Error(
-      `${CRM_API_BASE_URL_ENV_NAME} must use https, or http://localhost for local development.`,
+      `${envName} must use https, or http://localhost for local development.`,
     );
   }
 
@@ -67,6 +75,7 @@ function buildCspDirectiveBase(hasGtm, hasMetaPixel, hasStripe) {
   const connectSources = [
     "'self'",
     ...CRM_API_CONNECT_ORIGINS,
+    ...ADMIN_API_CONNECT_ORIGINS,
     TURNSTILE_ORIGIN,
   ];
   if (hasGtm) {
