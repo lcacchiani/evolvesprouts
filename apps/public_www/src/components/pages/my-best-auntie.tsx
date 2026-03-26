@@ -2,7 +2,7 @@ import type { Locale, SiteContent } from '@/content';
 import { buildWhatsappPrefilledHref, resolvePublicSiteConfig } from '@/lib/site-config';
 import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
-import { DeferredTestimonials } from '@/components/sections/deferred-testimonials';
+import { Testimonials } from '@/components/sections/testimonials';
 import { MyBestAuntieHero } from '@/components/sections/my-best-auntie/my-best-auntie-hero';
 import { MyBestAuntieBooking } from '@/components/sections/my-best-auntie/my-best-auntie-booking';
 import { MyBestAuntieDescription } from '@/components/sections/my-best-auntie/my-best-auntie-description';
@@ -36,7 +36,7 @@ export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
         content={content.myBestAuntie.outline}
         commonAccessibility={content.common.accessibility}
       />
-      <DeferredTestimonials
+      <Testimonials
         content={content.testimonials}
         commonAccessibility={content.common.accessibility}
       />
