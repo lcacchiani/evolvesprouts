@@ -15,6 +15,7 @@
   "MaxChallengeAttempts": "3",
   "PublicApiKeyValue": "<FROM_GITHUB_SECRET: CDK_PARAM_PUBLIC_API_KEY_VALUE>",
   "TurnstileSecretKey": "<FROM_GITHUB_SECRET: CDK_PARAM_TURNSTILE_SECRET_KEY>",
+  "EvolveSproutsStripeSecretKey": "<FROM_GITHUB_SECRET: CDK_PARAM_STRIPE_SECRET_KEY>",
   "LegacyPublicApiBaseUrl": "<FROM_GITHUB_VAR: NEXT_PUBLIC_WWW_CRM_API_BASE_URL>",
   "LegacyPublicApiKey": "<FROM_GITHUB_SECRET: CDK_PARAM_LEGACY_PUBLIC_API_KEY>",
   "DeviceAttestationJwksUrl": "https://firebaseappcheck.googleapis.com/v1/jwks",
