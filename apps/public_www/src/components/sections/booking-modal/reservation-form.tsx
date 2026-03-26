@@ -100,7 +100,7 @@ function resolvePaymentMethodFlags(
 ): PaymentMethodFlags {
   let fpsQr = content.paymentOptionsFpsQrEnabled !== false;
   let bankTransfer = content.paymentOptionsBankTransferEnabled !== false;
-  let stripeCards = content.paymentOptionsStripeCardsEnabled === true;
+  let stripeCards = content.paymentOptionsStripeCardsEnabled !== false;
   if (!fpsQr && !bankTransfer && !stripeCards) {
     fpsQr = true;
     bankTransfer = true;
