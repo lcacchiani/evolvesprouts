@@ -168,6 +168,10 @@ const bookingSectionContent = {
 };
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal.paymentModal;
+const bookingModalStripeEnabledContent = {
+  ...bookingModalContent,
+  paymentOptionsStripeCardsEnabled: true,
+};
 const thankYouModalContent = enContent.bookingModal.thankYouModal;
 const selectedCohort = bookingSectionContent.cohorts[0];
 if (!selectedCohort) {
@@ -364,7 +368,7 @@ describe('my-best-auntie booking modals footer content', () => {
       .toBeInTheDocument();
     expect(
       paymentBlock?.querySelector('img[data-booking-stripe-icon="true"]'),
-    ).not.toBeNull();
+    ).toBeNull();
   });
 
   it('does not render course schedule heading and uses shared calendar icon in booking modal', () => {
@@ -900,11 +904,12 @@ describe('my-best-auntie booking modals footer content', () => {
     renderBookingModal({
       selectedAgeGroupLabel: '18-24 months',
       onSubmitReservation,
+      paymentModalContent: bookingModalStripeEnabledContent,
     });
 
     fireEvent.click(
       screen.getByRole('radio', {
-        name: bookingModalContent.paymentMethodStripeValue,
+        name: bookingModalStripeEnabledContent.paymentMethodStripeValue,
       }),
     );
     fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
@@ -964,7 +969,7 @@ describe('my-best-auntie booking modals footer content', () => {
     await waitFor(() => {
       expect(onSubmitReservation).toHaveBeenCalledWith(
         expect.objectContaining({
-          paymentMethod: bookingModalContent.paymentMethodStripeValue,
+          paymentMethod: bookingModalStripeEnabledContent.paymentMethodStripeValue,
         }),
       );
     });
@@ -978,19 +983,21 @@ describe('my-best-auntie booking modals footer content', () => {
       request: vi.fn(),
     });
 
-    renderBookingModal();
+    renderBookingModal({
+      paymentModalContent: bookingModalStripeEnabledContent,
+    });
 
     fireEvent.click(
       screen.getByRole('radio', {
-        name: bookingModalContent.paymentMethodStripeValue,
+        name: bookingModalStripeEnabledContent.paymentMethodStripeValue,
       }),
     );
 
     expect(
-      screen.getByText(bookingModalContent.paymentMethodStripeLoadingLabel),
+      screen.getByText(bookingModalStripeEnabledContent.paymentMethodStripeLoadingLabel),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(bookingModalContent.paymentMethodStripeUnavailableLabel),
+      screen.queryByText(bookingModalStripeEnabledContent.paymentMethodStripeUnavailableLabel),
     ).not.toBeInTheDocument();
   });
 
