@@ -83,10 +83,10 @@ def verify_turnstile_token(token: str, remote_ip: str | None = None) -> bool:
             body=urlencode(request_data),
             timeout=10,
         )
-    except AwsProxyError as exc:
+    except (AwsProxyError, RuntimeError) as exc:
         logger.warning(
             "Turnstile verification request failed via proxy",
-            extra={"code": exc.code},
+            extra={"code": getattr(exc, "code", type(exc).__name__)},
         )
         return False
 
