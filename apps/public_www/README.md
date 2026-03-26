@@ -192,8 +192,8 @@ Optional environment variables:
 - `SMOKE_TIMEOUT_MS` (default `15000`)
 - `SMOKE_TURNSTILE_TOKEN` (optional token for Turnstile-protected endpoints)
 - `SMOKE_MAX_PAGES` (limit number of page checks)
-- `SMOKE_CRM_API_BASE_URL` (optional CRM API base fallback for `/v1/*` routes;
-  falls back to `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`)
+- `SMOKE_CRM_API_BASE_URL` (optional API base fallback for `/v1/*` routes;
+  falls back to `NEXT_PUBLIC_ADMIN_API_BASE_URL`)
 - `SMOKE_MEDIA_API_BASE_URL` (optional media API base fallback for
   `/v1/media-request`; falls back to `NEXT_PUBLIC_ADMIN_API_BASE_URL`)
 
@@ -224,7 +224,6 @@ remove the compatibility shim and the override.
 
 To enable public website CRM API calls (including My Best Auntie discount code lookup), set:
 
-- `NEXT_PUBLIC_WWW_CRM_API_BASE_URL`
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - `NEXT_PUBLIC_ADMIN_API_BASE_URL`
@@ -248,16 +247,18 @@ To enable public website CRM API calls (including My Best Auntie discount code l
 payment support. The content validation step fails the build if this variable is
 missing or not a publishable key (`pk_...`).
 
-Use `NEXT_PUBLIC_WWW_CRM_API_BASE_URL=/www` to route requests through the
+Use `NEXT_PUBLIC_ADMIN_API_BASE_URL=/www` to route requests through the
 same-origin CloudFront API proxy and avoid cross-origin CORS preflight issues.
 Set `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS` to a comma-separated hostname
 allowlist (for example
 `www.evolvesprouts.com,www-staging.evolvesprouts.com`) so browser clients only
 switch to `/www` proxy routing on approved hosts.
-CSP generation also derives `connect-src` API origins from this variable.
-`NEXT_PUBLIC_ADMIN_API_BASE_URL` is used by public Stripe payment-intent
-initialization (`/v1/reservations/payment-intent`) and also contributes to CSP
-`connect-src` origins when configured as an absolute URL.
+CSP generation derives `connect-src` API origins from
+`NEXT_PUBLIC_ADMIN_API_BASE_URL`.
+`NEXT_PUBLIC_ADMIN_API_BASE_URL` is used by public website API calls including
+legacy bridge routes and Stripe payment-intent initialization
+(`/v1/reservations/payment-intent`), and contributes to CSP `connect-src`
+origins when configured as an absolute URL.
 Public website contact-us, discount validation, and reservation submission now
 use the legacy bridge routes:
 

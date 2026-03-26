@@ -5,7 +5,6 @@ import { JSDOM } from 'jsdom';
 
 const BUILD_OUTPUT_DIRECTORY = resolve('out');
 const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
-const CRM_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_WWW_CRM_API_BASE_URL';
 const ADMIN_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_ADMIN_API_BASE_URL';
 
 const GTM_SCRIPT_ORIGINS = ['https://www.googletagmanager.com'];
@@ -30,10 +29,6 @@ const STRIPE_FRAME_ORIGINS = ['https://js.stripe.com', 'https://hooks.stripe.com
 const STRIPE_DETECT_MARKER = 'stripe-js';
 const STRIPE_PUBLISHABLE_KEY_ENV_NAME = 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY';
 
-const CRM_API_CONNECT_ORIGINS = resolveApiConnectOrigins({
-  envName: CRM_API_BASE_URL_ENV_NAME,
-  allowRelativePath: true,
-});
 const ADMIN_API_CONNECT_ORIGINS = resolveApiConnectOrigins({
   envName: ADMIN_API_BASE_URL_ENV_NAME,
   allowRelativePath: true,
@@ -74,7 +69,6 @@ function resolveApiConnectOrigins({ envName, allowRelativePath }) {
 function buildCspDirectiveBase(hasGtm, hasMetaPixel, hasStripe) {
   const connectSources = [
     "'self'",
-    ...CRM_API_CONNECT_ORIGINS,
     ...ADMIN_API_CONNECT_ORIGINS,
     TURNSTILE_ORIGIN,
   ];

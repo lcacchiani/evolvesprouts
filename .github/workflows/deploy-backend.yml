@@ -142,7 +142,7 @@ jobs:
               "PublicWwwCertificateArn",
               "PublicWwwStagingDomainName",
               "PublicWwwStagingCertificateArn",
-              "PublicWwwCrmApiBaseUrl",
+              "PublicWwwApiBaseUrl",
               "PublicWwwMediaRequestApiBaseUrl",
               "WafWebAclArn",
           }

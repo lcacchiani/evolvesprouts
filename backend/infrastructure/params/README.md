@@ -46,7 +46,7 @@ Public website legacy-bridge routes (`/v1/legacy/*`) require:
 For CI placeholder resolution:
 
 - set `LegacyPublicApiBaseUrl` to `<FROM_GITHUB_VAR: NEXT_PUBLIC_WWW_CRM_API_BASE_URL>`
-- set `LegacyPublicApiKey` to `<FROM_GITHUB_SECRET: CDK_PARAM_PUBLIC_API_KEY_VALUE>`
+- set `LegacyPublicApiKey` to `<FROM_GITHUB_SECRET: CDK_PARAM_LEGACY_PUBLIC_API_KEY>`
 
 ## OpenRouter invoice parsing parameters
 

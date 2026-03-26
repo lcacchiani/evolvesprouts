@@ -11,6 +11,7 @@ interface WebsiteEnvironmentConfig {
   readonly domainName: string;
   readonly certificateArn: string;
   readonly apiOriginDomainName: string;
+  readonly apiOriginPath: string;
   readonly mediaRequestApiOriginDomainName: string;
   readonly mediaRequestApiOriginPath: string;
   readonly bucketNamePrefix: string;
@@ -81,20 +82,23 @@ export class PublicWwwStack extends cdk.Stack {
         description: "ACM certificate ARN for staging public website domain.",
       },
     );
-    const publicWwwCrmApiBaseUrl = new cdk.CfnParameter(
+    const publicWwwApiBaseUrl = new cdk.CfnParameter(
       this,
-      "PublicWwwCrmApiBaseUrl",
+      "PublicWwwApiBaseUrl",
       {
         type: "String",
         description:
-          "Absolute HTTPS public CRM API base URL used by the /www proxy (for example https://api.example.com/www).",
-        allowedPattern: "^https://[^/]+/www/?$",
+          "Absolute HTTPS public API base URL used by the /www proxy (for example https://api.example.com/prod or https://api.example.com/www).",
+        allowedPattern: "^https://[^/]+/[^/]+/?$",
         constraintDescription:
-          "Must be an absolute HTTPS URL ending in /www.",
+          "Must be an absolute HTTPS URL ending in a single path segment (for example /prod or /www).",
       },
     );
     const publicWwwApiOriginDomainName = resolveApiOriginDomainName(
-      publicWwwCrmApiBaseUrl.valueAsString,
+      publicWwwApiBaseUrl.valueAsString,
+    );
+    const publicWwwApiOriginPath = resolveApiOriginPath(
+      publicWwwApiBaseUrl.valueAsString,
     );
     const publicWwwMediaRequestApiBaseUrl = new cdk.CfnParameter(
       this,
@@ -136,6 +140,7 @@ export class PublicWwwStack extends cdk.Stack {
       domainName: productionDomainName.valueAsString,
       certificateArn: productionCertificateArn.valueAsString,
       apiOriginDomainName: publicWwwApiOriginDomainName,
+      apiOriginPath: publicWwwApiOriginPath,
       mediaRequestApiOriginDomainName: publicWwwMediaRequestApiOriginDomainName,
       mediaRequestApiOriginPath: publicWwwMediaRequestApiOriginPath,
       bucketNamePrefix: "evolvesprouts-public-www",
@@ -154,6 +159,7 @@ export class PublicWwwStack extends cdk.Stack {
       domainName: stagingDomainName.valueAsString,
       certificateArn: stagingCertificateArn.valueAsString,
       apiOriginDomainName: publicWwwApiOriginDomainName,
+      apiOriginPath: publicWwwApiOriginPath,
       mediaRequestApiOriginDomainName: publicWwwMediaRequestApiOriginDomainName,
       mediaRequestApiOriginPath: publicWwwMediaRequestApiOriginPath,
       bucketNamePrefix: "evolvesprouts-staging-www",
@@ -275,6 +281,7 @@ export class PublicWwwStack extends cdk.Stack {
     });
     const wwwApiOrigin = new origins.HttpOrigin(config.apiOriginDomainName, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+      originPath: config.apiOriginPath,
     });
     const mediaRequestApiOrigin = new origins.HttpOrigin(
       config.mediaRequestApiOriginDomainName,
