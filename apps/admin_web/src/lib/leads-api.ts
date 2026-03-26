@@ -1,7 +1,7 @@
 import { ensureFreshTokens } from './auth';
 import { adminApiRequest } from './api-admin-client';
 import { asNullableString, asNumber, unwrapPayload } from './api-payload';
-import { getAdminApiBaseUrl } from './config';
+import { getApiBaseUrl } from './config';
 import { isRecord } from './type-guards';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -281,7 +281,7 @@ export async function exportLeadsCsv(params: LeadListParams): Promise<Blob> {
     throw new Error('Your session has expired. Please sign in again.');
   }
 
-  const response = await fetch(`${getAdminApiBaseUrl()}/v1/admin/leads/export${buildLeadListQuery(params)}`, {
+  const response = await fetch(`${getApiBaseUrl()}/v1/admin/leads/export${buildLeadListQuery(params)}`, {
     method: 'GET',
     headers: {
       Accept: 'text/csv',

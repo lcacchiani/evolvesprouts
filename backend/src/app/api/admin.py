@@ -21,6 +21,11 @@ from app.api.admin_users import handle_admin_users_request
 from app.api.admin_vendors import handle_admin_vendors_request
 from app.api.public_media import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
+from app.api.public_legacy_proxy import (
+    handle_legacy_contact_us,
+    handle_legacy_discount_validate,
+    handle_legacy_reservations,
+)
 from app.api.public_reservation_payments import handle_public_reservation_payment_intent
 from app.api.public_reservations import _handle_public_reservation
 from app.exceptions import AppError, ValidationError
@@ -65,6 +70,36 @@ _ROUTES: tuple[
         lambda event, method, _path: handle_public_reservation_payment_intent(
             event, method
         ),
+    ),
+    (
+        "/v1/legacy/reservations",
+        True,
+        lambda event, method, _path: handle_legacy_reservations(event, method),
+    ),
+    (
+        "/www/v1/legacy/reservations",
+        True,
+        lambda event, method, _path: handle_legacy_reservations(event, method),
+    ),
+    (
+        "/v1/legacy/contact-us",
+        True,
+        lambda event, method, _path: handle_legacy_contact_us(event, method),
+    ),
+    (
+        "/www/v1/legacy/contact-us",
+        True,
+        lambda event, method, _path: handle_legacy_contact_us(event, method),
+    ),
+    (
+        "/v1/legacy/discounts/validate",
+        True,
+        lambda event, method, _path: handle_legacy_discount_validate(event, method),
+    ),
+    (
+        "/www/v1/legacy/discounts/validate",
+        True,
+        lambda event, method, _path: handle_legacy_discount_validate(event, method),
     ),
     (
         "/v1/media-request",

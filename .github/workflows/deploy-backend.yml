@@ -142,7 +142,7 @@ jobs:
               "PublicWwwCertificateArn",
               "PublicWwwStagingDomainName",
               "PublicWwwStagingCertificateArn",
-              "PublicWwwCrmApiBaseUrl",
+              "PublicWwwApiBaseUrl",
               "PublicWwwMediaRequestApiBaseUrl",
               "WafWebAclArn",
           }
@@ -253,6 +253,8 @@ jobs:
           CDK_PARAM_MAILCHIMP_SERVER_PREFIX: ${{ vars.CDK_PARAM_MAILCHIMP_SERVER_PREFIX }}
           CDK_PARAM_MAILCHIMP_WEBHOOK_SECRET: ${{ secrets.CDK_PARAM_MAILCHIMP_WEBHOOK_SECRET }}
           CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY: ${{ vars.CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY }}
+          CDK_PARAM_LEGACY_PUBLIC_API_BASE_URL: ${{ vars.CDK_PARAM_LEGACY_PUBLIC_API_BASE_URL }}
+          CDK_PARAM_LEGACY_PUBLIC_API_KEY: ${{ secrets.CDK_PARAM_LEGACY_PUBLIC_API_KEY }}
           CDK_PARAM_OPENROUTER_API_KEY: ${{ secrets.CDK_PARAM_OPENROUTER_API_KEY }}
           CDK_PARAM_OPENROUTER_CHAT_COMPLETIONS_URL: ${{ vars.CDK_PARAM_OPENROUTER_CHAT_COMPLETIONS_URL }}
           CDK_PARAM_OPENROUTER_MODEL: ${{ vars.CDK_PARAM_OPENROUTER_MODEL }}
@@ -262,4 +264,4 @@ jobs:
           CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN: ${{ secrets.CDK_PARAM_ASSET_DOWNLOAD_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN }}
           APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
           NEXT_PUBLIC_WWW_CRM_API_BASE_URL: ${{ vars.NEXT_PUBLIC_WWW_CRM_API_BASE_URL }}
-          NEXT_PUBLIC_ADMIN_API_BASE_URL: ${{ vars.NEXT_PUBLIC_ADMIN_API_BASE_URL }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}

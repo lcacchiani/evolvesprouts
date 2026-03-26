@@ -53,8 +53,7 @@ const CRM_GET_CACHE_SWEEP_WRITE_INTERVAL = 25;
 const getRequestCache = new Map<string, CachedGetEntry>();
 let getCacheWriteCount = 0;
 const WWW_PROXY_ALLOWED_HOSTS_ENV_NAME = 'NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS';
-const CRM_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_WWW_CRM_API_BASE_URL';
-const ADMIN_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_ADMIN_API_BASE_URL';
+const API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_API_BASE_URL';
 const WWW_API_PATH_PREFIX = '/www';
 
 interface CrmApiUrlOptions {
@@ -149,7 +148,7 @@ function normalizeAbsolutePathname(pathname: string): string {
 }
 
 function resolveConfiguredApiHostname(): string | null {
-  const configuredBaseUrl = process.env[CRM_API_BASE_URL_ENV_NAME]?.trim() ?? '';
+  const configuredBaseUrl = process.env[API_BASE_URL_ENV_NAME]?.trim() ?? '';
   if (!configuredBaseUrl || configuredBaseUrl.startsWith('/')) {
     return null;
   }
@@ -368,15 +367,16 @@ export function createCrmApiClient(config: CrmApiClientConfig): CrmApiClient | n
 
 export function createPublicCrmApiClient(options: CrmApiUrlOptions = {}): CrmApiClient | null {
   return createCrmApiClient({
-    baseUrl: process.env.NEXT_PUBLIC_WWW_CRM_API_BASE_URL ?? '',
+    baseUrl: process.env[API_BASE_URL_ENV_NAME] ?? '',
     apiKey: process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '',
     preferSameOriginProxy: options.preferSameOriginProxy,
+    allowAnyBasePath: true,
   });
 }
 
-export function createPublicAdminApiClient(): CrmApiClient | null {
+export function createPublicApiClient(): CrmApiClient | null {
   return createCrmApiClient({
-    baseUrl: process.env[ADMIN_API_BASE_URL_ENV_NAME] ?? '',
+    baseUrl: process.env[API_BASE_URL_ENV_NAME] ?? '',
     apiKey: process.env.NEXT_PUBLIC_WWW_CRM_API_KEY ?? '',
     preferSameOriginProxy: false,
     allowAnyBasePath: true,

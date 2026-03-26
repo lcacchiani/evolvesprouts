@@ -357,7 +357,7 @@ describe('ContactUsForm section', () => {
 
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith({
-        endpointPath: '/v1/contact-us',
+        endpointPath: '/v1/legacy/contact-us',
         method: 'POST',
         body: {
           first_name: 'Ida',

@@ -490,6 +490,23 @@ export class ApiStack extends cdk.Stack {
         description: "Cloudflare Turnstile server-side secret key",
       }
     );
+    const legacyPublicApiBaseUrl = new cdk.CfnParameter(
+      this,
+      "LegacyPublicApiBaseUrl",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Legacy public API base URL used by /v1/legacy/* bridge routes (for example https://api.evolvesprouts.com).",
+      }
+    );
+    const legacyPublicApiKey = new cdk.CfnParameter(this, "LegacyPublicApiKey", {
+      type: "String",
+      noEcho: true,
+      default: "",
+      description:
+        "Optional x-api-key injected by /v1/legacy/* bridge routes when upstream requires a different key.",
+    });
     const mailchimpApiSecretArn = new cdk.CfnParameter(
       this,
       "MailchimpApiSecretArn",
@@ -1215,6 +1232,8 @@ export class ApiStack extends cdk.Stack {
           evolveSproutsStripePaymentMethodConfigurationId.valueAsString,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         ADMIN_GROUP: adminGroupName,
+        LEGACY_PUBLIC_API_BASE_URL: legacyPublicApiBaseUrl.valueAsString,
+        LEGACY_PUBLIC_API_KEY: legacyPublicApiKey.valueAsString,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
@@ -1250,6 +1269,8 @@ export class ApiStack extends cdk.Stack {
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
       `https://${mailchimpServerPrefix.valueAsString}.api.mailchimp.com/3.0/`,
       "https://api.stripe.com/v1/",
+      `${legacyPublicApiBaseUrl.valueAsString}/v1/`,
+      `${legacyPublicApiBaseUrl.valueAsString}v1/`,
       openrouterChatCompletionsUrl.valueAsString,
     ];
 
@@ -2409,6 +2430,22 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
+    const legacy = v1.addResource("legacy");
+    legacy.addResource("reservations").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+    legacy.addResource("contact-us").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+    legacy
+      .addResource("discounts")
+      .addResource("validate")
+      .addMethod("POST", adminIntegration, {
+        authorizationType: apigateway.AuthorizationType.NONE,
+        apiKeyRequired: true,
+      });
     const mailchimpWebhook = v1.addResource("mailchimp").addResource("webhook");
     const mailchimpWebhookPostMethod = mailchimpWebhook.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,

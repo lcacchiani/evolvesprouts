@@ -1,6 +1,6 @@
 import type { CrmApiClient } from '@/lib/crm-api-client';
 
-export const RESERVATIONS_API_PATH = '/v1/reservations';
+export const RESERVATIONS_API_PATH = '/v1/legacy/reservations';
 
 export interface ReservationSubmissionPayload {
   full_name: string;
