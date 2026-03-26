@@ -430,6 +430,19 @@ These Stripe origins are only injected when Stripe client code is present in
 the generated HTML. This keeps the allowlist minimal for pages/builds that do
 not include Stripe.
 
+#### Permissions-Policy for Stripe Payment Request API
+
+The CloudFront `Permissions-Policy` header restricts browser features to a
+minimal set. Most features are fully disabled (for example `camera=()`,
+`geolocation=()`). The `payment` feature is an exception: Stripe's Payment
+Element renders inside an iframe from `https://js.stripe.com` and requires
+access to the Payment Request API. Blocking `payment` entirely causes the
+Stripe card input to render an empty box.
+
+The policy sets `payment=(self "https://js.stripe.com")` so the Payment
+Request API is available to the site origin and to Stripe's embedded iframe
+while remaining blocked for all other third-party origins.
+
 ### Database Security
 
 - Always use SSL: `sslmode=require`
