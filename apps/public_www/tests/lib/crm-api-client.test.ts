@@ -102,6 +102,50 @@ describe('crm-api-client', () => {
         apiKey: '   ',
       }),
     ).toBeNull();
+    expect(
+      createCrmApiClient({
+        baseUrl: '/prod',
+        apiKey: 'public-key',
+      }),
+    ).toBeNull();
+  });
+
+  it('accepts relative stage paths when any base path is allowed', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const client = createCrmApiClient({
+      baseUrl: '/prod',
+      apiKey: 'public-key',
+      allowAnyBasePath: true,
+      preferSameOriginProxy: false,
+    });
+    if (!client) {
+      throw new Error('Expected CRM API client to be configured');
+    }
+
+    await client.request({
+      endpointPath: '/v1/reservations/payment-intent',
+      method: 'POST',
+      body: { price: 1 },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/prod/v1/reservations/payment-intent',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          Accept: 'application/json',
+          'x-api-key': 'public-key',
+          'Content-Type': 'application/json',
+        }),
+      }),
+    );
   });
 
   it('sends GET requests with expected headers', async () => {

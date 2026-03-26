@@ -28,7 +28,10 @@ import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
-import { createPublicCrmApiClient } from '@/lib/crm-api-client';
+import {
+  createPublicAdminApiClient,
+  createPublicCrmApiClient,
+} from '@/lib/crm-api-client';
 import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
 import {
   createReservationPaymentIntent,
@@ -314,8 +317,8 @@ export function BookingReservationForm({
       return;
     }
 
-    const crmApiClient = createPublicCrmApiClient();
-    if (!crmApiClient) {
+    const adminApiClient = createPublicAdminApiClient();
+    if (!adminApiClient) {
       return;
     }
 
@@ -331,7 +334,7 @@ export function BookingReservationForm({
       setIsStripePaymentIntentLoading(false);
       return;
     }
-    void createReservationPaymentIntent(crmApiClient, {
+    void createReservationPaymentIntent(adminApiClient, {
       payload: {
         cohort_age: sanitizeSingleLineValue(selectedAgeGroupLabel) || 'unspecified',
         cohort_date: normalizedCohortDate,
