@@ -1,5 +1,5 @@
 import { ensureFreshTokens } from './auth';
-import { getAdminApiBaseUrl } from './config';
+import { getApiBaseUrl } from './config';
 import { isRecord } from './type-guards';
 
 export type AdminApiMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -112,7 +112,7 @@ export async function adminApiRequest<TPayload = unknown>({
     requestHeaders['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${getAdminApiBaseUrl()}${normalizedEndpointPath}`, requestInit);
+  const response = await fetch(`${getApiBaseUrl()}${normalizedEndpointPath}`, requestInit);
   const payload = await parseResponsePayload(response);
 
   if (!response.ok) {

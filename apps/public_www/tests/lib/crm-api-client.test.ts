@@ -20,7 +20,7 @@ afterEach(() => {
 
 describe('crm-api-client', () => {
   beforeEach(() => {
-    vi.stubEnv('NEXT_PUBLIC_ADMIN_API_BASE_URL', 'https://api.evolvesprouts.com/www');
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.evolvesprouts.com/www');
     vi.stubEnv(
       'NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS',
       'www.evolvesprouts.com,www-staging.evolvesprouts.com',

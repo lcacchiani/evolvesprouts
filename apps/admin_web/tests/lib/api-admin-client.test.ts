@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockEnsureFreshTokens, mockGetAdminApiBaseUrl } = vi.hoisted(() => ({
+const { mockEnsureFreshTokens, mockGetApiBaseUrl } = vi.hoisted(() => ({
   mockEnsureFreshTokens: vi.fn(),
-  mockGetAdminApiBaseUrl: vi.fn(),
+  mockGetApiBaseUrl: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -10,7 +10,7 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 vi.mock('@/lib/config', () => ({
-  getAdminApiBaseUrl: mockGetAdminApiBaseUrl,
+  getApiBaseUrl: mockGetApiBaseUrl,
 }));
 
 import { AdminApiError, adminApiRequest, isAbortRequestError } from '@/lib/api-admin-client';
@@ -18,13 +18,13 @@ import { AdminApiError, adminApiRequest, isAbortRequestError } from '@/lib/api-a
 describe('adminApiRequest', () => {
   beforeEach(() => {
     mockEnsureFreshTokens.mockReset();
-    mockGetAdminApiBaseUrl.mockReset();
+    mockGetApiBaseUrl.mockReset();
     vi.mocked(fetch).mockReset();
 
     mockEnsureFreshTokens.mockResolvedValue({
       idToken: 'id-token',
     });
-    mockGetAdminApiBaseUrl.mockReturnValue('https://api.example.com');
+    mockGetApiBaseUrl.mockReturnValue('https://api.example.com');
   });
 
   it('sends authorized request and returns parsed payload', async () => {

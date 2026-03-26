@@ -6,7 +6,7 @@ const ENV_KEYS = [
   'NEXT_PUBLIC_COGNITO_DOMAIN',
   'NEXT_PUBLIC_COGNITO_CLIENT_ID',
   'NEXT_PUBLIC_COGNITO_USER_POOL_ID',
-  'NEXT_PUBLIC_ADMIN_API_BASE_URL',
+  'NEXT_PUBLIC_API_BASE_URL',
 ] as const;
 
 function setConfigEnv(overrides: Partial<Record<(typeof ENV_KEYS)[number], string>>) {
@@ -51,11 +51,11 @@ describe('config helpers', () => {
       NEXT_PUBLIC_COGNITO_DOMAIN: 'auth.example.com',
       NEXT_PUBLIC_COGNITO_CLIENT_ID: 'client-id',
       NEXT_PUBLIC_COGNITO_USER_POOL_ID: 'pool-id',
-      NEXT_PUBLIC_ADMIN_API_BASE_URL: 'https://api.example.com/base/path///',
+      NEXT_PUBLIC_API_BASE_URL: 'https://api.example.com/base/path///',
     });
 
-    expect(config.getAdminApiConfigError()).toBe('');
-    expect(config.getAdminApiBaseUrl()).toBe('https://api.example.com/base/path');
+    expect(config.getApiConfigError()).toBe('');
+    expect(config.getApiBaseUrl()).toBe('https://api.example.com/base/path');
   });
 
   it('normalizes relative admin API base path', async () => {
@@ -63,10 +63,10 @@ describe('config helpers', () => {
       NEXT_PUBLIC_COGNITO_DOMAIN: 'auth.example.com',
       NEXT_PUBLIC_COGNITO_CLIENT_ID: 'client-id',
       NEXT_PUBLIC_COGNITO_USER_POOL_ID: 'pool-id',
-      NEXT_PUBLIC_ADMIN_API_BASE_URL: '///prod///',
+      NEXT_PUBLIC_API_BASE_URL: '///prod///',
     });
 
-    expect(config.getAdminApiBaseUrl()).toBe('/prod');
+    expect(config.getApiBaseUrl()).toBe('/prod');
   });
 
   it('returns validation error for invalid admin API base URL', async () => {
@@ -74,14 +74,14 @@ describe('config helpers', () => {
       NEXT_PUBLIC_COGNITO_DOMAIN: 'auth.example.com',
       NEXT_PUBLIC_COGNITO_CLIENT_ID: 'client-id',
       NEXT_PUBLIC_COGNITO_USER_POOL_ID: 'pool-id',
-      NEXT_PUBLIC_ADMIN_API_BASE_URL: 'ftp://api.example.com',
+      NEXT_PUBLIC_API_BASE_URL: 'ftp://api.example.com',
     });
 
-    expect(config.getAdminApiConfigError()).toBe(
-      'NEXT_PUBLIC_ADMIN_API_BASE_URL is invalid. Use an absolute URL or relative path.'
+    expect(config.getApiConfigError()).toBe(
+      'NEXT_PUBLIC_API_BASE_URL is invalid. Use an absolute URL or relative path.'
     );
-    expect(() => config.getAdminApiBaseUrl()).toThrow(
-      'NEXT_PUBLIC_ADMIN_API_BASE_URL is invalid. Use an absolute URL or relative path.'
+    expect(() => config.getApiBaseUrl()).toThrow(
+      'NEXT_PUBLIC_API_BASE_URL is invalid. Use an absolute URL or relative path.'
     );
   });
 
@@ -90,7 +90,7 @@ describe('config helpers', () => {
       NEXT_PUBLIC_COGNITO_DOMAIN: 'auth.example.com///',
       NEXT_PUBLIC_COGNITO_CLIENT_ID: 'client-id',
       NEXT_PUBLIC_COGNITO_USER_POOL_ID: 'pool-id',
-      NEXT_PUBLIC_ADMIN_API_BASE_URL: '/prod',
+      NEXT_PUBLIC_API_BASE_URL: '/prod',
     });
 
     expect(config.getCognitoDomain()).toBe('https://auth.example.com');

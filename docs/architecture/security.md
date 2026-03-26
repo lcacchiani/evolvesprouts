@@ -222,7 +222,7 @@ return {"error": "Internal server error"}  # Generic response to client
 The public website (`apps/public_www`) uses a browser-visible key:
 
 - `NEXT_PUBLIC_WWW_CRM_API_KEY`
-- `NEXT_PUBLIC_ADMIN_API_BASE_URL`
+- `NEXT_PUBLIC_API_BASE_URL`
 - `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 
 This key is intentionally public and must remain strictly scoped.

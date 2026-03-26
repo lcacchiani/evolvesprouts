@@ -16,9 +16,9 @@ Set these variables before running or building the app:
 - `NEXT_PUBLIC_COGNITO_DOMAIN`
 - `NEXT_PUBLIC_COGNITO_CLIENT_ID`
 - `NEXT_PUBLIC_COGNITO_USER_POOL_ID`
-- `NEXT_PUBLIC_ADMIN_API_BASE_URL`
+- `NEXT_PUBLIC_API_BASE_URL`
 
-`NEXT_PUBLIC_ADMIN_API_BASE_URL` accepts:
+`NEXT_PUBLIC_API_BASE_URL` accepts:
 
 - an absolute API URL (example: `https://api.evolvesprouts.com`)
 - or a relative proxy base path (example: `/prod`)

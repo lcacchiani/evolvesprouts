@@ -29,7 +29,7 @@ import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import {
-  createPublicAdminApiClient,
+  createPublicApiClient,
   createPublicCrmApiClient,
 } from '@/lib/crm-api-client';
 import { type DiscountRule, validateDiscountCode } from '@/lib/discounts-data';
@@ -317,7 +317,7 @@ export function BookingReservationForm({
       return;
     }
 
-    const adminApiClient = createPublicAdminApiClient();
+    const adminApiClient = createPublicApiClient();
     if (!adminApiClient) {
       return;
     }

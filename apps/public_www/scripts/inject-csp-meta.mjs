@@ -5,7 +5,7 @@ import { JSDOM } from 'jsdom';
 
 const BUILD_OUTPUT_DIRECTORY = resolve('out');
 const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
-const ADMIN_API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_ADMIN_API_BASE_URL';
+const API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_API_BASE_URL';
 
 const GTM_SCRIPT_ORIGINS = ['https://www.googletagmanager.com'];
 const GTM_CONNECT_ORIGINS = [
@@ -30,7 +30,7 @@ const STRIPE_DETECT_MARKER = 'stripe-js';
 const STRIPE_PUBLISHABLE_KEY_ENV_NAME = 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY';
 
 const ADMIN_API_CONNECT_ORIGINS = resolveApiConnectOrigins({
-  envName: ADMIN_API_BASE_URL_ENV_NAME,
+  envName: API_BASE_URL_ENV_NAME,
   allowRelativePath: true,
 });
 

@@ -38,13 +38,13 @@ Provide these parameters in `backend/infrastructure/params/production.json`:
 - `PublicWwwCertificateArn`: ACM certificate ARN for production
 - `PublicWwwStagingDomainName`: `www-staging.evolvesprouts.com`
 - `PublicWwwStagingCertificateArn`: ACM certificate ARN for staging
-- `PublicWwwApiBaseUrl`: `<FROM_GITHUB_VAR: NEXT_PUBLIC_ADMIN_API_BASE_URL>`
-- `PublicWwwMediaRequestApiBaseUrl`: `<FROM_GITHUB_VAR: NEXT_PUBLIC_ADMIN_API_BASE_URL>`
+- `PublicWwwApiBaseUrl`: `<FROM_GITHUB_VAR: NEXT_PUBLIC_API_BASE_URL>`
+- `PublicWwwMediaRequestApiBaseUrl`: `<FROM_GITHUB_VAR: NEXT_PUBLIC_API_BASE_URL>`
 - `WafWebAclArn`: optional CloudFront WAF ACL ARN (us-east-1)
 
 Public WWW API configuration is provided at build time via:
 
-- GitHub variable `NEXT_PUBLIC_ADMIN_API_BASE_URL`
+- GitHub variable `NEXT_PUBLIC_API_BASE_URL`
 - GitHub variable `NEXT_PUBLIC_EVENTS_SOURCE` (`content` to source events from `apps/public_www/src/content/events.json`)
 - GitHub variable `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
@@ -70,11 +70,11 @@ the hostname resolved from `NEXT_PUBLIC_SITE_ORIGIN`.
 
 `evolvesprouts-public-www` CloudFront proxies `https://{www-domain}/www/*`
 to the host resolved from `PublicWwwApiBaseUrl` (derived from
-`NEXT_PUBLIC_ADMIN_API_BASE_URL`) with caching disabled for those requests.
+`NEXT_PUBLIC_API_BASE_URL`) with caching disabled for those requests.
 `POST /www/v1/media-request` is routed by a path-specific CloudFront behavior
 to the execute-api origin resolved from `PublicWwwMediaRequestApiBaseUrl`, with
 URI rewrite to `/v1/media-request`.
-Set `NEXT_PUBLIC_ADMIN_API_BASE_URL` to `/www` in runtime client config to
+Set `NEXT_PUBLIC_API_BASE_URL` to `/www` in runtime client config to
 keep browser API calls same-origin and avoid cross-origin CORS preflight
 failures.
 
@@ -112,7 +112,7 @@ Workflow: `.github/workflows/smoke-public-www-staging.yml`
 - Required secret:
   - `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - Optional variables for API endpoint fallbacks:
-  - `NEXT_PUBLIC_ADMIN_API_BASE_URL` (used by smoke as
+  - `NEXT_PUBLIC_API_BASE_URL` (used by smoke as
     `SMOKE_CRM_API_BASE_URL` and `SMOKE_MEDIA_API_BASE_URL`)
 - Behavior:
   - runs `npm run smoke:staging` in `apps/public_www`

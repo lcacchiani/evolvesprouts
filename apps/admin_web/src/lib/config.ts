@@ -2,21 +2,21 @@ export interface AppConfig {
   cognitoDomain: string;
   cognitoClientId: string;
   cognitoUserPoolId: string;
-  adminApiBaseUrl: string;
+  apiBaseUrl: string;
 }
 
 export const appConfig: AppConfig = {
   cognitoDomain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN ?? '',
   cognitoClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? '',
   cognitoUserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID ?? '',
-  adminApiBaseUrl: process.env.NEXT_PUBLIC_ADMIN_API_BASE_URL ?? '',
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? '',
 };
 
 function trimTrailingSlashes(value: string) {
   return value.replace(/\/+$/, '');
 }
 
-function normalizeAdminApiBaseUrl(value: string): string {
+function normalizeApiBaseUrl(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) {
     return '';
@@ -64,25 +64,25 @@ export function getCognitoDomain() {
   return trimTrailingSlashes(withScheme);
 }
 
-export function getAdminApiConfigError(): string {
-  if (!appConfig.adminApiBaseUrl.trim()) {
-    return 'NEXT_PUBLIC_ADMIN_API_BASE_URL is missing.';
+export function getApiConfigError(): string {
+  if (!appConfig.apiBaseUrl.trim()) {
+    return 'NEXT_PUBLIC_API_BASE_URL is missing.';
   }
 
-  const normalizedBaseUrl = normalizeAdminApiBaseUrl(appConfig.adminApiBaseUrl);
+  const normalizedBaseUrl = normalizeApiBaseUrl(appConfig.apiBaseUrl);
   if (!normalizedBaseUrl) {
-    return 'NEXT_PUBLIC_ADMIN_API_BASE_URL is invalid. Use an absolute URL or relative path.';
+    return 'NEXT_PUBLIC_API_BASE_URL is invalid. Use an absolute URL or relative path.';
   }
 
   return '';
 }
 
-export function getAdminApiBaseUrl(): string {
-  const configError = getAdminApiConfigError();
+export function getApiBaseUrl(): string {
+  const configError = getApiConfigError();
   if (configError) {
     throw new Error(configError);
   }
-  return normalizeAdminApiBaseUrl(appConfig.adminApiBaseUrl);
+  return normalizeApiBaseUrl(appConfig.apiBaseUrl);
 }
 
 const FALLBACK_ADMIN_DEFAULT_CURRENCY = 'HKD';

@@ -6,13 +6,13 @@ import { AssetListPanel } from './asset-list-panel';
 
 import { StatusBanner } from '@/components/status-banner';
 import { useAdminAssets } from '@/hooks/use-admin-assets';
-import { getAdminApiConfigError } from '@/lib/config';
+import { getApiConfigError } from '@/lib/config';
 
 const DEFAULT_ASSET_TYPE = 'document' as const;
 const DEFAULT_CONTENT_TYPE = 'application/pdf' as const;
 
 export function AssetsPage() {
-  const adminApiConfigError = getAdminApiConfigError();
+  const apiConfigError = getApiConfigError();
   const {
     filters,
     assets,
@@ -51,9 +51,9 @@ export function AssetsPage() {
 
   return (
     <div className='space-y-6'>
-      {adminApiConfigError ? (
+      {apiConfigError ? (
         <StatusBanner variant='error' title='Configuration'>
-          {adminApiConfigError}
+          {apiConfigError}
         </StatusBanner>
       ) : null}
 

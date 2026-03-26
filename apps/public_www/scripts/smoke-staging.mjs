@@ -1,10 +1,10 @@
 const SMOKE_BASE_URL_ENV = 'SMOKE_BASE_URL';
 const SMOKE_API_KEY_ENV = 'SMOKE_API_KEY';
-const SMOKE_ADMIN_API_BASE_URL_ENV = 'SMOKE_ADMIN_API_BASE_URL';
+const SMOKE_API_BASE_URL_ENV = 'SMOKE_API_BASE_URL';
 const SMOKE_MEDIA_API_BASE_URL_ENV = 'SMOKE_MEDIA_API_BASE_URL';
 const FALLBACK_API_KEY_ENV = 'NEXT_PUBLIC_WWW_CRM_API_KEY';
-const FALLBACK_ADMIN_API_BASE_URL_ENV = 'NEXT_PUBLIC_ADMIN_API_BASE_URL';
-const FALLBACK_MEDIA_API_BASE_URL_ENV = 'NEXT_PUBLIC_ADMIN_API_BASE_URL';
+const FALLBACK_API_BASE_URL_ENV = 'NEXT_PUBLIC_API_BASE_URL';
+const FALLBACK_MEDIA_API_BASE_URL_ENV = 'NEXT_PUBLIC_API_BASE_URL';
 const SMOKE_TIMEOUT_MS_ENV = 'SMOKE_TIMEOUT_MS';
 const SMOKE_TURNSTILE_TOKEN_ENV = 'SMOKE_TURNSTILE_TOKEN';
 const SMOKE_MAX_PAGES_ENV = 'SMOKE_MAX_PAGES';
@@ -45,8 +45,8 @@ Optional:
   ${SMOKE_TIMEOUT_MS_ENV}          Per-request timeout in milliseconds (default: ${DEFAULT_TIMEOUT_MS})
   ${SMOKE_TURNSTILE_TOKEN_ENV}     Optional Turnstile token for protected endpoints
   ${SMOKE_MAX_PAGES_ENV}           Optional max number of discovered pages to check
-  ${SMOKE_ADMIN_API_BASE_URL_ENV}  Optional admin API base URL fallback for /v1 endpoints
-                                   Falls back to ${FALLBACK_ADMIN_API_BASE_URL_ENV} if unset.
+  ${SMOKE_API_BASE_URL_ENV}  Optional API base URL fallback for /v1 endpoints
+                                   Falls back to ${FALLBACK_API_BASE_URL_ENV} if unset.
   ${SMOKE_MEDIA_API_BASE_URL_ENV}  Optional media API base URL fallback for /v1/media-request
                                    Falls back to ${FALLBACK_MEDIA_API_BASE_URL_ENV} if unset.
 `);
@@ -486,7 +486,7 @@ function buildApiCandidateUrls({
   return [...new Set(candidateUrls)];
 }
 
-async function runApiChecks({ baseUrl, timeoutMs, adminApiBaseUrl, mediaApiBaseUrl }) {
+async function runApiChecks({ baseUrl, timeoutMs, apiBaseUrl, mediaApiBaseUrl }) {
   logSection('CTA API smoke checks');
 
   const apiKey = (process.env[SMOKE_API_KEY_ENV] ?? process.env[FALLBACK_API_KEY_ENV] ?? '').trim();
@@ -505,7 +505,7 @@ async function runApiChecks({ baseUrl, timeoutMs, adminApiBaseUrl, mediaApiBaseU
     const endpointUrls = buildApiCandidateUrls({
       apiCase,
       baseUrl,
-      crmApiBaseUrl: adminApiBaseUrl,
+      crmApiBaseUrl: apiBaseUrl,
       mediaApiBaseUrl,
     });
     const headers = {
@@ -641,9 +641,9 @@ async function main() {
   const baseUrl = resolveBaseUrl();
   const timeoutMs = resolveTimeoutMs();
   const maxPages = resolveMaxPages();
-  const adminApiBaseUrl = resolveOptionalApiBaseUrl({
-    primaryEnvName: SMOKE_ADMIN_API_BASE_URL_ENV,
-    fallbackEnvName: FALLBACK_ADMIN_API_BASE_URL_ENV,
+  const apiBaseUrl = resolveOptionalApiBaseUrl({
+    primaryEnvName: SMOKE_API_BASE_URL_ENV,
+    fallbackEnvName: FALLBACK_API_BASE_URL_ENV,
     baseUrl,
   });
   const mediaApiBaseUrl = resolveOptionalApiBaseUrl({
@@ -658,8 +658,8 @@ async function main() {
   if (maxPages !== null) {
     console.log(`Max pages: ${maxPages}`);
   }
-  if (adminApiBaseUrl) {
-    console.log(`Admin API fallback base: ${adminApiBaseUrl.toString()}`);
+  if (apiBaseUrl) {
+    console.log(`API fallback base: ${apiBaseUrl.toString()}`);
   }
   if (mediaApiBaseUrl) {
     console.log(`Media API fallback base: ${mediaApiBaseUrl.toString()}`);
@@ -670,7 +670,7 @@ async function main() {
     results.push(await runPageChecks({ baseUrl, timeoutMs, maxPages }));
   }
   if (args.shouldCheckApis) {
-    results.push(await runApiChecks({ baseUrl, timeoutMs, adminApiBaseUrl, mediaApiBaseUrl }));
+    results.push(await runApiChecks({ baseUrl, timeoutMs, apiBaseUrl, mediaApiBaseUrl }));
   }
 
   const hasFailures = results.some((result) => result.failed > 0);
