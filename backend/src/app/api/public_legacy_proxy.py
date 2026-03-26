@@ -102,7 +102,9 @@ def _handle_legacy_proxy(
             "Legacy proxy payload parsing failed",
             extra={"path": target_path, "error": type(exc).__name__},
         )
-        return json_response(400, {"error": "Request body must be valid JSON"}, event=event)
+        return json_response(
+            400, {"error": "Request body must be valid JSON"}, event=event
+        )
 
     request_body = json.dumps(payload, separators=(",", ":"))
     if len(request_body.encode("utf-8")) > _MAX_BODY_BYTES:
