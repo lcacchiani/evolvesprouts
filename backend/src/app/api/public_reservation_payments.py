@@ -85,7 +85,7 @@ def handle_public_reservation_payment_intent(
     if discount_code:
         request_fields["metadata[discount_code]"] = discount_code
     payment_method_configuration_id = os.getenv(
-        "EVOLVESPROUTS_STRIPE_PAYMENT_METHOD_CONFIGURATION_ID", ""
+        "STRIPE_PAYMENT_METHOD_CONFIGURATION_ID", ""
     ).strip()
     if payment_method_configuration_id:
         request_fields["payment_method_configuration"] = payment_method_configuration_id
