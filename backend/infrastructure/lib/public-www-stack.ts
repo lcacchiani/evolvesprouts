@@ -33,9 +33,11 @@ const PUBLIC_WWW_HEADER_CONTENT_SECURITY_POLICY = [
   "frame-ancestors 'none'",
 ].join("; ");
 
+const STRIPE_JS_ORIGIN = "https://js.stripe.com";
+
 const PUBLIC_WWW_PERMISSIONS_POLICY =
   "accelerometer=(), camera=(), geolocation=(), gyroscope=(), " +
-  "magnetometer=(), microphone=(), payment=(), usb=()";
+  `magnetometer=(), microphone=(), payment=(self "${STRIPE_JS_ORIGIN}"), usb=()`;
 
 export class PublicWwwStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
