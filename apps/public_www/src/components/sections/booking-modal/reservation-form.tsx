@@ -104,7 +104,6 @@ function resolvePaymentMethodFlags(
   if (!fpsQr && !bankTransfer && !stripeCards) {
     fpsQr = true;
     bankTransfer = true;
-    stripeCards = false;
   }
   return { fpsQr, bankTransfer, stripeCards };
 }
