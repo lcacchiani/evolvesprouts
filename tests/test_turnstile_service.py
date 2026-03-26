@@ -65,3 +65,19 @@ def test_verify_turnstile_token_returns_false_on_proxy_error(
     )
 
     assert verify_turnstile_token("token") is False
+
+
+def test_verify_turnstile_token_returns_false_on_runtime_error(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv("TURNSTILE_SECRET_KEY", "test-secret")
+
+    def _raise_runtime_error(**_: Any) -> dict[str, Any]:
+        raise RuntimeError("AWS_PROXY_FUNCTION_ARN is not configured")
+
+    monkeypatch.setattr(
+        "app.services.turnstile.http_invoke",
+        _raise_runtime_error,
+    )
+
+    assert verify_turnstile_token("token") is False

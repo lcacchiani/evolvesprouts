@@ -68,6 +68,8 @@ def handle_public_reservation_payment_intent(
         )
 
     body = parse_body(event)
+    if not isinstance(body, Mapping):
+        raise ValidationError("Request body must be a JSON object")
     payment_payload = _validate_payment_payload(body)
     amount_minor_units = _to_minor_units(payment_payload["price"])
 
@@ -99,10 +101,10 @@ def handle_public_reservation_payment_intent(
             body=urlencode(request_fields),
             timeout=20,
         )
-    except AwsProxyError as exc:
+    except (AwsProxyError, RuntimeError) as exc:
         logger.warning(
             "Stripe payment intent request failed via proxy",
-            extra={"code": exc.code},
+            extra={"code": getattr(exc, "code", type(exc).__name__)},
         )
         return json_response(
             502,
