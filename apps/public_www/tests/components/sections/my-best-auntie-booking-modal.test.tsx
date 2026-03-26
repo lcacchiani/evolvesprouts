@@ -368,7 +368,7 @@ describe('my-best-auntie booking modals footer content', () => {
       .toBeInTheDocument();
     expect(
       paymentBlock?.querySelector('img[data-booking-stripe-icon="true"]'),
-    ).toBeNull();
+    ).not.toBeNull();
   });
 
   it('does not render course schedule heading and uses shared calendar icon in booking modal', () => {

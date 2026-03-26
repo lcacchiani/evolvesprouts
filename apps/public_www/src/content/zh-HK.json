@@ -1092,7 +1092,7 @@
       "paymentMethodLabel": "付款方式",
       "paymentOptionsFpsQrEnabled": true,
       "paymentOptionsBankTransferEnabled": true,
-      "paymentOptionsStripeCardsEnabled": false,
+      "paymentOptionsStripeCardsEnabled": true,
       "paymentMethodValue": "以 FPS 二維碼付款",
       "paymentFpsQrInstruction": "使用你常用的銀行應用程式掃描此 FPS 二維碼。",
       "paymentMethodBankTransferValue": "銀行轉帳",
