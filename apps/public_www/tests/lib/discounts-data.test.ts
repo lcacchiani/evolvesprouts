@@ -15,10 +15,10 @@ afterEach(() => {
 describe('discounts-data', () => {
   it('builds the discount validation endpoint from CRM API base URL', () => {
     expect(buildDiscountValidationApiUrl('https://api.evolvesprouts.com/www')).toBe(
-      'https://api.evolvesprouts.com/www/v1/discounts/validate',
+      'https://api.evolvesprouts.com/www/v1/legacy/discounts/validate',
     );
     expect(buildDiscountValidationApiUrl('https://api.evolvesprouts.com/www/')).toBe(
-      'https://api.evolvesprouts.com/www/v1/discounts/validate',
+      'https://api.evolvesprouts.com/www/v1/legacy/discounts/validate',
     );
     expect(buildDiscountValidationApiUrl('api.evolvesprouts.com/www/')).toBe('');
     expect(buildDiscountValidationApiUrl('   ')).toBe('');
@@ -94,7 +94,7 @@ describe('discounts-data', () => {
     );
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.evolvesprouts.com/www/v1/discounts/validate',
+      'https://api.evolvesprouts.com/www/v1/legacy/discounts/validate',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({

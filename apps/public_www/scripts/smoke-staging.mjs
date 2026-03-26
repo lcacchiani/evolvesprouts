@@ -387,8 +387,8 @@ function buildApiCases(turnstileToken) {
     {
       name: 'contact-us CTA endpoint',
       method: 'POST',
-      proxyPath: '/www/v1/contact-us',
-      directPath: '/v1/contact-us',
+      proxyPath: '/www/v1/legacy/contact-us',
+      directPath: '/v1/legacy/contact-us',
       apiBaseType: 'crm',
       body: {
         first_name: 'Smoke',
@@ -403,8 +403,8 @@ function buildApiCases(turnstileToken) {
     {
       name: 'discount validate CTA endpoint',
       method: 'POST',
-      proxyPath: '/www/v1/discounts/validate',
-      directPath: '/v1/discounts/validate',
+      proxyPath: '/www/v1/legacy/discounts/validate',
+      directPath: '/v1/legacy/discounts/validate',
       apiBaseType: 'crm',
       body: {
         code: 'SMOKE-CHECK',
@@ -432,8 +432,8 @@ function buildApiCases(turnstileToken) {
     {
       name: 'reservation CTA endpoint',
       method: 'POST',
-      proxyPath: '/www/v1/reservations',
-      directPath: '/v1/reservations',
+      proxyPath: '/www/v1/legacy/reservations',
+      directPath: '/v1/legacy/reservations',
       apiBaseType: 'crm',
       body: {
         full_name: 'Smoke Runner',

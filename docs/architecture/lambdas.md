@@ -25,6 +25,9 @@ their primary responsibilities.
 - Trigger: API Gateway — currently wired for
   `/v1/media-request`, `/v1/reservations`,
   `/v1/reservations/payment-intent`,
+  `/v1/legacy/reservations`,
+  `/v1/legacy/contact-us`,
+  `/v1/legacy/discounts/validate`,
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
@@ -53,7 +56,9 @@ their primary responsibilities.
   updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
   verification (via `AwsApiProxyFunction`) and SNS event publishing on
   `/v1/media-request`, Mailchimp webhook ingestion and contact sync-status
-  reconciliation on `/v1/mailchimp/webhook`, Stripe PaymentIntent creation for
+  reconciliation on `/v1/mailchimp/webhook`, legacy public API bridge routing
+  on `/v1/legacy/*` (proxying to upstream legacy endpoints via
+  `AwsApiProxyFunction`), Stripe PaymentIntent creation for
   inline public booking modal payments on `/v1/reservations/payment-intent`
   (via `AwsApiProxyFunction`), and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.

@@ -332,10 +332,10 @@ function handler(event) {
       '/www/v1/calendar/events': true
     },
     'POST': {
-      '/www/v1/discounts/validate': true,
-      '/www/v1/reservations': true,
+      '/www/v1/legacy/discounts/validate': true,
+      '/www/v1/legacy/reservations': true,
       '/www/v1/reservations/payment-intent': true,
-      '/www/v1/contact-us': true
+      '/www/v1/legacy/contact-us': true
     }
   };
   if (allowlist[method] && allowlist[method][uri]) {

@@ -735,7 +735,7 @@ describe('my-best-auntie booking modals footer content', () => {
 
     await waitFor(() => {
       expect(requestSpy).toHaveBeenCalledWith({
-        endpointPath: '/v1/reservations',
+        endpointPath: '/v1/legacy/reservations',
         method: 'POST',
         body: {
           full_name: 'Test User',
@@ -942,7 +942,7 @@ describe('my-best-auntie booking modals footer content', () => {
 
     await waitFor(() => {
       expect(requestSpy).toHaveBeenCalledWith({
-        endpointPath: '/v1/reservations',
+        endpointPath: '/v1/legacy/reservations',
         method: 'POST',
         body: {
           full_name: 'Test User',

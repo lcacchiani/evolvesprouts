@@ -174,10 +174,10 @@ What the runner validates:
 - Page smoke: fetches all pages discovered from `/sitemap.xml` (with URLs
   remapped to the target smoke origin) and fails on broken HTTP responses.
 - CTA API smoke:
-  - `POST /www/v1/contact-us`
-  - `POST /www/v1/discounts/validate`
+  - `POST /www/v1/legacy/contact-us`
+  - `POST /www/v1/legacy/discounts/validate`
   - `POST /www/v1/media-request`
-  - `POST /www/v1/reservations`
+  - `POST /www/v1/legacy/reservations`
   - `POST /www/v1/reservations/payment-intent`
 
 Status handling for CTA APIs:
@@ -258,6 +258,12 @@ CSP generation also derives `connect-src` API origins from this variable.
 `NEXT_PUBLIC_ADMIN_API_BASE_URL` is used by public Stripe payment-intent
 initialization (`/v1/reservations/payment-intent`) and also contributes to CSP
 `connect-src` origins when configured as an absolute URL.
+Public website contact-us, discount validation, and reservation submission now
+use the legacy bridge routes:
+
+- `/v1/legacy/contact-us`
+- `/v1/legacy/discounts/validate`
+- `/v1/legacy/reservations`
 Use Cloudflare Turnstile test key `1x00000000000000000000AA` for local-only
 testing.
 Set `NEXT_PUBLIC_ASSET_SHARE_BASE_URL` to the media/share base URL used by the
