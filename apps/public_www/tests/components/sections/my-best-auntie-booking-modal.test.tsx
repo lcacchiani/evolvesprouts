@@ -34,6 +34,7 @@ const {
     originalStripePublishableKey,
   };
 });
+const mockedStripeElementsProps = vi.hoisted(() => vi.fn());
 
 import {
   MyBestAuntieBookingModal,
@@ -80,7 +81,17 @@ vi.mock('@stripe/stripe-js', () => ({
 }));
 
 vi.mock('@stripe/react-stripe-js', () => ({
-  Elements: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  Elements: ({
+    children,
+    ...props
+  }: {
+    children: ReactNode;
+    options?: unknown;
+    stripe?: unknown;
+  }) => {
+    mockedStripeElementsProps(props);
+    return <div>{children}</div>;
+  },
   PaymentElement: () => <div data-testid='mock-stripe-payment-element' />,
   useElements: () => ({}),
   useStripe: () => ({
@@ -255,6 +266,7 @@ afterEach(() => {
   mockedValidateDiscountCode.mockReset();
   mockedCreateReservationPaymentIntent.mockReset();
   mockedTrackAnalyticsEvent.mockReset();
+  mockedStripeElementsProps.mockReset();
 
   if (originalTurnstileSiteKey === undefined) {
     delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -999,6 +1011,71 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(
       screen.queryByText(bookingModalStripeEnabledContent.paymentMethodStripeUnavailableLabel),
     ).not.toBeInTheDocument();
+  });
+
+  it('passes branded appearance options to Stripe Elements', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreateReservationPaymentIntent.mockResolvedValue({
+      payment_intent_id: 'pi_test_booking_modal',
+      client_secret: 'pi_test_booking_modal_secret_abc',
+    });
+
+    renderBookingModal({
+      paymentModalContent: bookingModalStripeEnabledContent,
+    });
+
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: bookingModalStripeEnabledContent.paymentMethodStripeValue,
+      }),
+    );
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-stripe-payment-element')).toBeInTheDocument();
+      expect(mockedStripeElementsProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          options: expect.objectContaining({
+            clientSecret: 'pi_test_booking_modal_secret_abc',
+            appearance: expect.objectContaining({
+              theme: 'stripe',
+              variables: expect.objectContaining({
+                colorPrimary: '#C84A16',
+                colorBackground: '#FFFFFF',
+                colorText: '#333333',
+                colorTextSecondary: '#5A5A5A',
+                colorTextPlaceholder: '#8A8A8A',
+                colorDanger: '#B42318',
+                fontFamily:
+                  'Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                borderRadius: '10px',
+                spacingUnit: '4px',
+              }),
+              rules: expect.objectContaining({
+                '.Label': expect.objectContaining({
+                  color: '#333333',
+                  fontWeight: '600',
+                }),
+                '.Input': expect.objectContaining({
+                  border: '1px solid #CAD6E5',
+                }),
+                '.Input:focus': expect.objectContaining({
+                  borderColor: '#C84A16',
+                }),
+                '.Error': expect.objectContaining({
+                  color: '#B42318',
+                }),
+              }),
+            }),
+          }),
+        }),
+      );
+    });
   });
 
   it('uses calendar mask icons inside each course part chip', () => {
