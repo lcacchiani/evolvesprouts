@@ -3,9 +3,11 @@
  * (they are nested with inBundle: true in the lockfile).
  *
  * - minimatch: ReDoS advisories GHSA-7r86-cg39-jmmj, GHSA-23c5-xmqv-rm74
+ * - brace-expansion: GHSA-f886-m6hf-6m8v (DoS via zero-step sequence)
  * - yaml: GHSA-48c2-rrv3-qjmp (stack overflow via deeply nested YAML)
  *
  * TODO: Remove minimatch workaround once aws-cdk-lib ships with minimatch >= 10.2.3.
+ * TODO: Remove brace-expansion workaround once aws-cdk-lib bundles brace-expansion >= 5.0.5.
  * TODO: Remove yaml workaround once aws-cdk-lib depends on yaml >= 1.10.3.
  */
 
@@ -55,6 +57,9 @@ function patchBundledDep(bundledFolderName, npmPackageName, resolveSourceRoot) {
 }
 
 patchBundledDep("minimatch", "minimatch", (name) =>
+  path.dirname(require.resolve(`${name}/package.json`))
+);
+patchBundledDep("brace-expansion", "brace-expansion", (name) =>
   path.dirname(require.resolve(`${name}/package.json`))
 );
 patchBundledDep("yaml", "yaml", (name) =>
