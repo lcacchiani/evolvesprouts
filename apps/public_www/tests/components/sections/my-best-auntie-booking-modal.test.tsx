@@ -35,6 +35,7 @@ const {
   };
 });
 const mockedStripeElementsProps = vi.hoisted(() => vi.fn());
+const mockedStripePaymentElementProps = vi.hoisted(() => vi.fn());
 
 import {
   MyBestAuntieBookingModal,
@@ -92,7 +93,10 @@ vi.mock('@stripe/react-stripe-js', () => ({
     mockedStripeElementsProps(props);
     return <div>{children}</div>;
   },
-  PaymentElement: () => <div data-testid='mock-stripe-payment-element' />,
+  PaymentElement: (props: { options?: unknown }) => {
+    mockedStripePaymentElementProps(props);
+    return <div data-testid='mock-stripe-payment-element' />;
+  },
   useElements: () => ({}),
   useStripe: () => ({
     confirmPayment: vi.fn(async () => ({
@@ -267,6 +271,7 @@ afterEach(() => {
   mockedCreateReservationPaymentIntent.mockReset();
   mockedTrackAnalyticsEvent.mockReset();
   mockedStripeElementsProps.mockReset();
+  mockedStripePaymentElementProps.mockReset();
 
   if (originalTurnstileSiteKey === undefined) {
     delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -1038,6 +1043,13 @@ describe('my-best-auntie booking modals footer content', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('mock-stripe-payment-element')).toBeInTheDocument();
+      expect(mockedStripePaymentElementProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          options: expect.objectContaining({
+            layout: 'accordion',
+          }),
+        }),
+      );
       expect(mockedStripeElementsProps).toHaveBeenCalledWith(
         expect.objectContaining({
           options: expect.objectContaining({
