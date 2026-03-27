@@ -82,7 +82,143 @@ const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
 const stripePromise = STRIPE_PUBLISHABLE_KEY.trim()
   ? loadStripe(STRIPE_PUBLISHABLE_KEY.trim())
   : null;
-const STRIPE_PAYMENT_ELEMENT_ERROR_ID = 'booking-modal-stripe-payment-error';
+
+const STRIPE_APPEARANCE_FALLBACKS = {
+  brandOrange: '#C84A16',
+  surfaceWhite: '#FFFFFF',
+  surfaceMuted: '#F8F8F8',
+  textHeading: '#333333',
+  textNeutralStrong: '#5A5A5A',
+  textPlaceholder: '#8A8A8A',
+  textDangerStrong: '#B42318',
+  borderInput: '#CAD6E5',
+} as const;
+
+function resolveCssColorToken(cssVariableName: string, fallbackHex: string): string {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return fallbackHex;
+  }
+  const resolvedValue = window
+    .getComputedStyle(document.documentElement)
+    .getPropertyValue(cssVariableName)
+    .trim();
+  if (!resolvedValue) {
+    return fallbackHex;
+  }
+  return resolvedValue;
+}
+
+function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions['appearance']> {
+  const colorPrimary = resolveCssColorToken(
+    '--es-color-brand-orange',
+    STRIPE_APPEARANCE_FALLBACKS.brandOrange,
+  );
+  const colorBackground = resolveCssColorToken(
+    '--es-color-surface-white',
+    STRIPE_APPEARANCE_FALLBACKS.surfaceWhite,
+  );
+  const colorBackgroundMuted = resolveCssColorToken(
+    '--es-color-surface-muted',
+    STRIPE_APPEARANCE_FALLBACKS.surfaceMuted,
+  );
+  const colorText = resolveCssColorToken(
+    '--es-color-text-heading',
+    STRIPE_APPEARANCE_FALLBACKS.textHeading,
+  );
+  const colorTextSecondary = resolveCssColorToken(
+    '--es-color-text-neutral-strong',
+    STRIPE_APPEARANCE_FALLBACKS.textNeutralStrong,
+  );
+  const colorTextPlaceholder = resolveCssColorToken(
+    '--es-color-text-placeholder',
+    STRIPE_APPEARANCE_FALLBACKS.textPlaceholder,
+  );
+  const colorDanger = resolveCssColorToken(
+    '--es-color-text-danger-strong',
+    STRIPE_APPEARANCE_FALLBACKS.textDangerStrong,
+  );
+  const borderInput = resolveCssColorToken(
+    '--es-color-border-input',
+    STRIPE_APPEARANCE_FALLBACKS.borderInput,
+  );
+
+  return {
+    theme: 'stripe',
+    variables: {
+      colorPrimary,
+      colorBackground,
+      colorText,
+      colorTextSecondary,
+      colorTextPlaceholder,
+      colorDanger,
+      fontFamily: 'Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      borderRadius: '10px',
+      spacingUnit: '4px',
+    },
+    rules: {
+      '.Label': {
+        color: colorText,
+        fontWeight: '600',
+      },
+      '.Input': {
+        border: `1px solid ${borderInput}`,
+        boxShadow: 'none',
+        color: colorText,
+      },
+      '.Input::placeholder': {
+        color: colorTextPlaceholder,
+      },
+      '.Input:focus': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+      },
+      '.Input:focus-visible': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+      },
+      '.Input--invalid': {
+        borderColor: colorDanger,
+        boxShadow: 'none',
+      },
+      '.Input--invalid:focus': {
+        borderColor: colorDanger,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(180, 35, 24, 0.55)`,
+      },
+      '.Error': {
+        color: colorDanger,
+      },
+      '.Tab': {
+        border: `1px solid ${borderInput}`,
+        backgroundColor: colorBackgroundMuted,
+        color: colorText,
+      },
+      '.Tab:hover': {
+        backgroundColor: colorBackground,
+        color: colorText,
+      },
+      '.Tab:focus': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+      },
+      '.Tab:focus-visible': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+      },
+      '.Tab--selected': {
+        backgroundColor: colorBackground,
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 2px rgba(200, 74, 22, 0.65)`,
+        color: colorText,
+      },
+      '.TabIcon': {
+        color: colorTextSecondary,
+      },
+      '.TabIcon--selected': {
+        color: colorPrimary,
+      },
+    },
+  };
+}
 
 type PaymentMethodOption =
   | typeof PAYMENT_METHOD_FPS
@@ -334,9 +470,7 @@ export function BookingReservationForm({
     }
     return {
       clientSecret: stripePaymentIntent.client_secret,
-      appearance: {
-        theme: 'stripe',
-      },
+      appearance: getStripePaymentElementAppearance(),
     };
   }, [stripePaymentIntent]);
   const isStripePaymentMethodSelected = selectedPaymentMethod === PAYMENT_METHOD_STRIPE;
