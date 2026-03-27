@@ -86,6 +86,7 @@ const stripePromise = STRIPE_PUBLISHABLE_KEY.trim()
 const STRIPE_APPEARANCE_FALLBACKS = {
   brandOrange: '#C84A16',
   surfaceWhite: '#FFFFFF',
+  surfaceMuted: '#F8F8F8',
   textHeading: '#333333',
   textNeutralStrong: '#5A5A5A',
   textPlaceholder: '#8A8A8A',
@@ -115,6 +116,10 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
   const colorBackground = resolveCssColorToken(
     '--es-color-surface-white',
     STRIPE_APPEARANCE_FALLBACKS.surfaceWhite,
+  );
+  const colorBackgroundMuted = resolveCssColorToken(
+    '--es-color-surface-muted',
+    STRIPE_APPEARANCE_FALLBACKS.surfaceMuted,
   );
   const colorText = resolveCssColorToken(
     '--es-color-text-heading',
@@ -165,25 +170,44 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
       },
       '.Input:focus': {
         borderColor: colorPrimary,
-        boxShadow: '0 0 0 2px rgba(200, 74, 22, 0.2)',
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+      },
+      '.Input:focus-visible': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
       },
       '.Input--invalid': {
         borderColor: colorDanger,
         boxShadow: 'none',
+      },
+      '.Input--invalid:focus': {
+        borderColor: colorDanger,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(180, 35, 24, 0.55)`,
       },
       '.Error': {
         color: colorDanger,
       },
       '.Tab': {
         border: `1px solid ${borderInput}`,
-        color: colorTextSecondary,
-      },
-      '.Tab:hover': {
+        backgroundColor: colorBackgroundMuted,
         color: colorText,
       },
-      '.Tab--selected': {
+      '.Tab:hover': {
+        backgroundColor: colorBackground,
+        color: colorText,
+      },
+      '.Tab:focus': {
         borderColor: colorPrimary,
-        boxShadow: '0 0 0 1px rgba(200, 74, 22, 0.35)',
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+      },
+      '.Tab:focus-visible': {
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+      },
+      '.Tab--selected': {
+        backgroundColor: colorBackground,
+        borderColor: colorPrimary,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 2px rgba(200, 74, 22, 0.65)`,
         color: colorText,
       },
       '.TabIcon': {

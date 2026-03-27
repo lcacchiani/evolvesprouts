@@ -1066,9 +1066,33 @@ describe('my-best-auntie booking modals footer content', () => {
                 }),
                 '.Input:focus': expect.objectContaining({
                   borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 3px rgba(200, 74, 22, 0.55)',
+                }),
+                '.Input:focus-visible': expect.objectContaining({
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 3px rgba(200, 74, 22, 0.55)',
                 }),
                 '.Error': expect.objectContaining({
                   color: '#B42318',
+                }),
+                '.Tab': expect.objectContaining({
+                  backgroundColor: '#F8F8F8',
+                  border: '1px solid #CAD6E5',
+                  color: '#333333',
+                }),
+                '.Tab:focus': expect.objectContaining({
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 3px rgba(200, 74, 22, 0.55)',
+                }),
+                '.Tab:focus-visible': expect.objectContaining({
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 3px rgba(200, 74, 22, 0.55)',
+                }),
+                '.Tab--selected': expect.objectContaining({
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#C84A16',
+                  boxShadow: '0 0 0 1px #FFFFFF, 0 0 0 2px rgba(200, 74, 22, 0.65)',
+                  color: '#333333',
                 }),
               }),
             }),
