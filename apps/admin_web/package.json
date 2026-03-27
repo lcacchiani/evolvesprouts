@@ -36,7 +36,7 @@
     "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vite-plugin-svgr": "^4.5.0",
     "vitest": "^4.1.2"
   },
