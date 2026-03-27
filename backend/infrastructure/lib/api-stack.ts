@@ -1228,7 +1228,7 @@ export class ApiStack extends cdk.Stack {
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
         MAILCHIMP_WEBHOOK_SECRET: mailchimpWebhookSecret.valueAsString,
         EVOLVESPROUTS_STRIPE_SECRET_KEY: evolveSproutsStripeSecretKey.valueAsString,
-        EVOLVESPROUTS_STRIPE_PAYMENT_METHOD_CONFIGURATION_ID:
+        STRIPE_PAYMENT_METHOD_CONFIGURATION_ID:
           evolveSproutsStripePaymentMethodConfigurationId.valueAsString,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         ADMIN_GROUP: adminGroupName,
