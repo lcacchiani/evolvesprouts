@@ -361,7 +361,7 @@ const StripePaymentFields = forwardRef<StripePaymentFieldsHandle, StripePaymentF
       };
     }, [elements, fallbackErrorMessage, stripe]);
 
-    return <PaymentElement options={{ layout: 'tabs' }} />;
+    return <PaymentElement options={{ layout: 'accordion' }} />;
   },
 );
 
