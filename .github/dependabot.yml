@@ -51,6 +51,9 @@ updates:
       # Ignore major version updates - review manually
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # aws-cdk-lib currently pins yaml@1.10.2 transitively; the 1.x patched
+      # version (>=1.10.3) is not resolvable in Dependabot security jobs yet.
+      - dependency-name: "yaml"
 
   # Python - Lambda backend
   - package-ecosystem: "pip"
