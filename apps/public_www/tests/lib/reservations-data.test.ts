@@ -24,6 +24,7 @@ describe('reservations-data', () => {
         price: 9000,
         reservation_pending_until_payment_confirmed: true,
         agreed_to_terms_and_conditions: true,
+        payment_method: 'stripe',
         stripe_payment_intent_id: 'pi_test_123',
       },
       turnstileToken: 'mock-turnstile-token',

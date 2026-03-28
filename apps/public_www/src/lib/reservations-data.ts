@@ -2,6 +2,9 @@ import type { CrmApiClient } from '@/lib/crm-api-client';
 
 export const RESERVATIONS_API_PATH = '/v1/legacy/reservations';
 
+/** Machine code for how the attendee will pay; matches booking modal analytics. */
+export type ReservationPaymentMethodCode = 'fps_qr' | 'bank_transfer' | 'stripe';
+
 export interface ReservationSubmissionPayload {
   full_name: string;
   email: string;
@@ -13,6 +16,7 @@ export interface ReservationSubmissionPayload {
   price: number;
   reservation_pending_until_payment_confirmed: boolean;
   agreed_to_terms_and_conditions: boolean;
+  payment_method: ReservationPaymentMethodCode;
   stripe_payment_intent_id?: string;
 }
 

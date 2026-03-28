@@ -769,6 +769,7 @@ describe('my-best-auntie booking modals footer content', () => {
           price: 9000,
           reservation_pending_until_payment_confirmed: true,
           agreed_to_terms_and_conditions: true,
+          payment_method: 'fps_qr',
           stripe_payment_intent_id: undefined,
         },
         turnstileToken: 'mock-turnstile-token',
@@ -889,6 +890,13 @@ describe('my-best-auntie booking modals footer content', () => {
     );
 
     await waitFor(() => {
+      expect(requestSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: expect.objectContaining({
+            payment_method: 'bank_transfer',
+          }),
+        }),
+      );
       expect(onSubmitReservation).toHaveBeenCalledWith(
         expect.objectContaining({
           paymentMethod: bookingModalContent.paymentMethodBankTransferValue,
@@ -977,6 +985,7 @@ describe('my-best-auntie booking modals footer content', () => {
           price: 9000,
           reservation_pending_until_payment_confirmed: true,
           agreed_to_terms_and_conditions: true,
+          payment_method: 'stripe',
           stripe_payment_intent_id: 'pi_test_booking_modal',
         },
         turnstileToken: 'mock-turnstile-token',

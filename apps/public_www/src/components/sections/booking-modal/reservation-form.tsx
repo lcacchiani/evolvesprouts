@@ -39,6 +39,7 @@ import {
 } from '@/lib/reservation-payments-data';
 import {
   submitReservation,
+  type ReservationPaymentMethodCode,
   type ReservationSubmissionPayload,
 } from '@/lib/reservations-data';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
@@ -225,10 +226,7 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
   };
 }
 
-type PaymentMethodOption =
-  | typeof PAYMENT_METHOD_FPS
-  | typeof PAYMENT_METHOD_BANK_TRANSFER
-  | typeof PAYMENT_METHOD_STRIPE;
+type PaymentMethodOption = ReservationPaymentMethodCode;
 
 type PaymentMethodFlags = {
   fpsQr: boolean;
@@ -781,6 +779,7 @@ export function BookingReservationForm({
       reservation_pending_until_payment_confirmed:
         hasPendingReservationAcknowledgement,
       agreed_to_terms_and_conditions: hasTermsAgreement,
+      payment_method: selectedPaymentMethod,
       stripe_payment_intent_id: undefined,
     };
 
