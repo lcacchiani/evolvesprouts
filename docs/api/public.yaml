@@ -522,6 +522,7 @@ components:
         - price
         - reservation_pending_until_payment_confirmed
         - agreed_to_terms_and_conditions
+        - payment_method
       properties:
         full_name:
           type: string
@@ -552,6 +553,15 @@ components:
           type: boolean
         agreed_to_terms_and_conditions:
           type: boolean
+        payment_method:
+          type: string
+          description: >
+            How the attendee will pay. Values match the public booking modal
+            (FPS QR, bank transfer, or Stripe).
+          enum:
+            - fps_qr
+            - bank_transfer
+            - stripe
         stripe_payment_intent_id:
           type: string
           description: Required when payment method is Stripe/card-wallet flow.
