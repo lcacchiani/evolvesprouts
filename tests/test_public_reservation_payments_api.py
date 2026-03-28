@@ -214,10 +214,11 @@ def test_payment_intent_requests_card_only_when_no_pm_configuration(
     assert "automatic_payment_methods[enabled]" not in form
 
 
-def test_payment_intent_uses_automatic_payment_methods_when_pm_configuration_set(
+def test_payment_intent_stays_card_only_when_pm_configuration_env_set(
     api_gateway_event: Any,
     monkeypatch: Any,
 ) -> None:
+    """STRIPE_PAYMENT_METHOD_CONFIGURATION_ID is ignored; intents remain card-only."""
     event = api_gateway_event(
         method="POST",
         path="/v1/reservations/payment-intent",
@@ -248,6 +249,6 @@ def test_payment_intent_uses_automatic_payment_methods_when_pm_configuration_set
 
     assert response["statusCode"] == 200
     form = parse_qs(str(captured.get("body")))
-    assert form.get("automatic_payment_methods[enabled]") == ["true"]
-    assert form.get("payment_method_configuration") == ["pmc_test_123"]
-    assert "payment_method_types[0]" not in form
+    assert form.get("payment_method_types[0]") == ["card"]
+    assert "automatic_payment_methods[enabled]" not in form
+    assert "payment_method_configuration" not in form

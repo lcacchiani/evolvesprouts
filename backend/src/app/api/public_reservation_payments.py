@@ -83,15 +83,9 @@ def handle_public_reservation_payment_intent(
     discount_code = payment_payload.get("discount_code")
     if discount_code:
         request_fields["metadata[discount_code]"] = discount_code
-    payment_method_configuration_id = os.getenv(
-        "STRIPE_PAYMENT_METHOD_CONFIGURATION_ID", ""
-    ).strip()
-    if payment_method_configuration_id:
-        request_fields["payment_method_configuration"] = payment_method_configuration_id
-        request_fields["automatic_payment_methods[enabled]"] = "true"
-    else:
-        # Card-only keeps the inline Payment Element to a single form (no method picker row).
-        request_fields["payment_method_types[0]"] = "card"
+    # Card-only PaymentIntent: no payment_method_configuration / automatic payment
+    # methods, so the Payment Element stays card entry only (no Google Pay / Apple Pay tabs).
+    request_fields["payment_method_types[0]"] = "card"
 
     try:
         stripe_response = http_invoke(
