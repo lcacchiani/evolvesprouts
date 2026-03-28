@@ -1046,7 +1046,8 @@ describe('my-best-auntie booking modals footer content', () => {
       expect(mockedStripePaymentElementProps).toHaveBeenCalledWith(
         expect.objectContaining({
           options: expect.objectContaining({
-            layout: 'accordion',
+            layout: 'tabs',
+            paymentMethodOrder: ['card'],
           }),
         }),
       );
@@ -1086,6 +1087,11 @@ describe('my-best-auntie booking modals footer content', () => {
                 }),
                 '.Error': expect.objectContaining({
                   color: '#B42318',
+                }),
+                '.Block': expect.objectContaining({
+                  border: 'none',
+                  boxShadow: 'none',
+                  backgroundColor: 'transparent',
                 }),
                 '.Tab': expect.objectContaining({
                   backgroundColor: '#F8F8F8',

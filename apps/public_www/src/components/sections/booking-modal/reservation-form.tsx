@@ -187,6 +187,11 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
       '.Error': {
         color: colorDanger,
       },
+      '.Block': {
+        border: 'none',
+        boxShadow: 'none',
+        backgroundColor: 'transparent',
+      },
       '.Tab': {
         border: `1px solid ${borderInput}`,
         backgroundColor: colorBackgroundMuted,
@@ -361,7 +366,14 @@ const StripePaymentFields = forwardRef<StripePaymentFieldsHandle, StripePaymentF
       };
     }, [elements, fallbackErrorMessage, stripe]);
 
-    return <PaymentElement options={{ layout: 'accordion' }} />;
+    return (
+      <PaymentElement
+        options={{
+          layout: 'tabs',
+          paymentMethodOrder: ['card'],
+        }}
+      />
+    );
   },
 );
 
