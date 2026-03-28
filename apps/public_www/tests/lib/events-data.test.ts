@@ -474,7 +474,7 @@ describe('events-data', () => {
     expect(bookingEventContent).not.toBeNull();
     expect(bookingEventContent).toMatchObject({
       status: 'open',
-      spacesLeft: 6,
+      spacesLeft: 5,
       eyebrowDateLabel: formatExpectedLandingPageEyebrowDate('2026-04-06T02:00:00Z', 'en'),
       ctaPriceLabel: 'HK$350',
       bookingPayload: {
