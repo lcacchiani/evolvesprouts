@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from urllib.parse import parse_qs
 
 from app.api.admin import _safe_handler
 from app.api.public_reservation_payments import handle_public_reservation_payment_intent
@@ -173,3 +174,80 @@ def test_payment_intent_returns_client_secret_on_success(
         "payment_intent_id": "pi_123",
         "client_secret": "placeholder",
     }
+
+
+def test_payment_intent_requests_card_only_when_no_pm_configuration(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/reservations/payment-intent",
+        body=json.dumps(_valid_payment_body()),
+        headers={"X-Turnstile-Token": "test-token"},
+    )
+    monkeypatch.delenv("STRIPE_PAYMENT_METHOD_CONFIGURATION_ID", raising=False)
+    monkeypatch.setenv("EVOLVESPROUTS_STRIPE_SECRET_KEY", "sk_test_123")
+    monkeypatch.setattr(
+        "app.api.public_reservation_payments.verify_turnstile_token",
+        lambda *_args, **_kwargs: True,
+    )
+    captured: dict[str, Any] = {}
+
+    def capture_invoke(**kwargs: Any) -> dict[str, Any]:
+        captured["body"] = kwargs.get("body")
+        return {
+            "status": 200,
+            "body": json.dumps({"id": "pi_123", "client_secret": "placeholder"}),
+        }
+
+    monkeypatch.setattr(
+        "app.api.public_reservation_payments.http_invoke",
+        capture_invoke,
+    )
+
+    response = handle_public_reservation_payment_intent(event, "POST")
+
+    assert response["statusCode"] == 200
+    form = parse_qs(str(captured.get("body")))
+    assert form.get("payment_method_types[0]") == ["card"]
+    assert "automatic_payment_methods[enabled]" not in form
+
+
+def test_payment_intent_uses_automatic_payment_methods_when_pm_configuration_set(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/reservations/payment-intent",
+        body=json.dumps(_valid_payment_body()),
+        headers={"X-Turnstile-Token": "test-token"},
+    )
+    monkeypatch.setenv("EVOLVESPROUTS_STRIPE_SECRET_KEY", "sk_test_123")
+    monkeypatch.setenv("STRIPE_PAYMENT_METHOD_CONFIGURATION_ID", "pmc_test_123")
+    monkeypatch.setattr(
+        "app.api.public_reservation_payments.verify_turnstile_token",
+        lambda *_args, **_kwargs: True,
+    )
+    captured: dict[str, Any] = {}
+
+    def capture_invoke(**kwargs: Any) -> dict[str, Any]:
+        captured["body"] = kwargs.get("body")
+        return {
+            "status": 200,
+            "body": json.dumps({"id": "pi_123", "client_secret": "placeholder"}),
+        }
+
+    monkeypatch.setattr(
+        "app.api.public_reservation_payments.http_invoke",
+        capture_invoke,
+    )
+
+    response = handle_public_reservation_payment_intent(event, "POST")
+
+    assert response["statusCode"] == 200
+    form = parse_qs(str(captured.get("body")))
+    assert form.get("automatic_payment_methods[enabled]") == ["true"]
+    assert form.get("payment_method_configuration") == ["pmc_test_123"]
+    assert "payment_method_types[0]" not in form

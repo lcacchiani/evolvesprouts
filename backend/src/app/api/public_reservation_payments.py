@@ -76,7 +76,6 @@ def handle_public_reservation_payment_intent(
     request_fields: dict[str, str] = {
         "amount": str(amount_minor_units),
         "currency": "hkd",
-        "automatic_payment_methods[enabled]": "true",
         "description": "Evolve Sprouts reservation payment",
         "metadata[cohort_age]": payment_payload["cohort_age"],
         "metadata[cohort_date]": payment_payload["cohort_date"],
@@ -89,6 +88,10 @@ def handle_public_reservation_payment_intent(
     ).strip()
     if payment_method_configuration_id:
         request_fields["payment_method_configuration"] = payment_method_configuration_id
+        request_fields["automatic_payment_methods[enabled]"] = "true"
+    else:
+        # Card-only keeps the inline Payment Element to a single form (no method picker row).
+        request_fields["payment_method_types[0]"] = "card"
 
     try:
         stripe_response = http_invoke(
