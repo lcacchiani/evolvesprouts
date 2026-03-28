@@ -17,6 +17,7 @@ from app.api.admin_request import parse_body
 from app.api.admin_validators import validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
+from app.services.stripe_payment_context import resolve_public_www_stripe_secret_key
 from app.services.turnstile import (
     extract_client_ip,
     extract_turnstile_token,
@@ -43,9 +44,9 @@ def handle_public_reservation_payment_intent(
     if method != "POST":
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
-    stripe_secret_key = os.getenv("EVOLVESPROUTS_STRIPE_SECRET_KEY", "").strip()
+    stripe_secret_key = resolve_public_www_stripe_secret_key(event)
     if not stripe_secret_key:
-        logger.error("EVOLVESPROUTS_STRIPE_SECRET_KEY is not configured")
+        logger.error("Stripe secret key is not configured for this request context")
         return json_response(
             500,
             {"error": "Service configuration error. Please contact support."},

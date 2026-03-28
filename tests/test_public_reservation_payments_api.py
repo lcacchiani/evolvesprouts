@@ -252,3 +252,46 @@ def test_payment_intent_stays_card_only_when_pm_configuration_env_set(
     assert form.get("payment_method_types[0]") == ["card"]
     assert "automatic_payment_methods[enabled]" not in form
     assert "payment_method_configuration" not in form
+
+
+def test_payment_intent_uses_staging_secret_when_origin_matches_staging_site(
+    api_gateway_event: Any,
+    monkeypatch: Any,
+) -> None:
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/reservations/payment-intent",
+        body=json.dumps(_valid_payment_body()),
+        headers={
+            "X-Turnstile-Token": "test-token",
+            "Origin": "https://www-staging.example.com",
+        },
+    )
+    monkeypatch.setenv("EVOLVESPROUTS_STRIPE_SECRET_KEY", "sk_live_prod")
+    monkeypatch.setenv("EVOLVESPROUTS_STRIPE_STAGING_SECRET_KEY", "sk_test_staging")
+    monkeypatch.setenv(
+        "PUBLIC_WWW_STAGING_SITE_ORIGIN",
+        "https://www-staging.example.com",
+    )
+    monkeypatch.setattr(
+        "app.api.public_reservation_payments.verify_turnstile_token",
+        lambda *_args, **_kwargs: True,
+    )
+    captured: dict[str, Any] = {}
+
+    def capture_invoke(**kwargs: Any) -> dict[str, Any]:
+        captured["auth"] = (kwargs.get("headers") or {}).get("Authorization")
+        return {
+            "status": 200,
+            "body": json.dumps({"id": "pi_123", "client_secret": "placeholder"}),
+        }
+
+    monkeypatch.setattr(
+        "app.api.public_reservation_payments.http_invoke",
+        capture_invoke,
+    )
+
+    response = handle_public_reservation_payment_intent(event, "POST")
+
+    assert response["statusCode"] == 200
+    assert captured.get("auth") == "Bearer sk_test_staging"
