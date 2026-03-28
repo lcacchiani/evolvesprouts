@@ -497,7 +497,7 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(paymentOptions?.className).toContain('es-border-input');
     expect(paymentOptions?.className).toContain('es-bg-surface-white');
     expect(paymentOptions?.className).toContain('p-[10px]');
-    expect(paymentOptions?.className).toContain('h-[244px]');
+    expect(paymentOptions?.className).toContain('min-h-[244px]');
     const paymentOptionsColumns = paymentOptions?.querySelector(
       'div[data-booking-payment-options-columns="true"]',
     ) as HTMLDivElement | null;

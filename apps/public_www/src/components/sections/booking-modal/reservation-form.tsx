@@ -911,7 +911,7 @@ export function BookingReservationForm({
             </p>
             <div
               data-booking-payment-options='true'
-              className='flex h-[244px] flex-col rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
+              className='flex min-h-[244px] flex-col rounded-[14px] border es-border-input es-bg-surface-white p-[10px]'
             >
               <p
                 data-booking-payment-confirmation-note='true'
@@ -921,7 +921,7 @@ export function BookingReservationForm({
               </p>
               <div
                 data-booking-payment-options-columns='true'
-                className={`grid h-full min-h-0 flex-1 gap-3 ${
+                className={`grid min-h-0 flex-1 gap-3 ${
                   showPaymentMethodPickers ? 'grid-cols-5' : 'grid-cols-1'
                 }`}
               >
