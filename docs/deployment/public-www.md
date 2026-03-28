@@ -18,10 +18,13 @@ The release process is **staging first**:
 1. Push to `main` deploys to staging.
 2. CI stores the exact built artifact at
    `s3://<staging-bucket>/releases/<release_id>/`.
-3. Manual promotion copies that immutable artifact to production.
+3. Manual promotion **still requires a matching staging release id** (for
+   traceability), but CI **rebuilds** the static site with the **production**
+   GitHub Environment variables and syncs that output to the production bucket.
 
-This guarantees production receives the exact artifact that was verified on
-staging.
+Staging and production can therefore use different `NEXT_PUBLIC_*` values (for
+example Stripe publishable keys) while keeping the same git revision as the
+promoted staging release.
 
 ## Prerequisites
 
@@ -49,7 +52,12 @@ Public WWW API configuration is provided at build time via:
 - GitHub variable `NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS`
 - GitHub secret `NEXT_PUBLIC_WWW_CRM_API_KEY`
 - GitHub variable `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
-- GitHub variable `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- GitHub variable `NEXT_PUBLIC_STAGING_STRIPE_PUBLISHABLE_KEY` (staging
+  environment; test `pk_test_…` for the public booking modal)
+- GitHub variable `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (production environment;
+  live `pk_live_…`; used when rebuilding during promotion)
+- If `NEXT_PUBLIC_STAGING_STRIPE_PUBLISHABLE_KEY` is unset in the staging
+  environment, staging builds fall back to `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - GitHub variable `NEXT_PUBLIC_FPS_MERCHANT_NAME` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (or secret fallback)
 - GitHub variable `NEXT_PUBLIC_GTM_ID`
@@ -138,11 +146,17 @@ Workflow: `.github/workflows/promote-public-www.yml`
     staging release
   - `promotion_mode=maintenance_on` to deploy a static maintenance page to
     production and block `https://www.evolvesprouts.com/www/*` at CloudFront
+- Required for promotion builds (not `maintenance_on`): `AssetDownloadCustomDomainName`
+  in `backend/infrastructure/params/production.json` (same source as staging
+  deploys for `NEXT_PUBLIC_ASSET_SHARE_BASE_URL`).
 - Behavior:
   - `latest_staging` / `release_id`:
-    - copy `releases/<release_id>/` from staging assets to production root
-    - preserve existing `_next/static` hashed assets to avoid stale HTML
-      requesting deleted chunks
+    - resolve `release_id` from the staging bucket marker or workflow input
+    - verify that `releases/<release_id>/` exists in the staging bucket
+    - run `npm ci` + `npm run build` in `apps/public_www` with **production**
+      GitHub Environment variables (including `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`)
+    - sync `apps/public_www/out` to the production bucket (not a copy of the
+      staging S3 artifact)
     - restore `/www/*` CloudFront proxy allowlist behavior
     - fully invalidate production CloudFront
   - `maintenance_on`:

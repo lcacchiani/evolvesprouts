@@ -430,6 +430,11 @@ These Stripe origins are only injected when Stripe client code is present in
 the generated HTML. This keeps the allowlist minimal for pages/builds that do
 not include Stripe.
 
+The Admin Lambda selects live vs staging Stripe API credentials for public
+reservation payment flows by comparing the browser `Origin` or `Referer`
+(HTTPS only) to `PUBLIC_WWW_STAGING_SITE_ORIGIN`; requests without a matching
+staging origin use the live secret.
+
 #### Permissions-Policy for Stripe Payment Request API
 
 The CloudFront `Permissions-Policy` header restricts browser features to a

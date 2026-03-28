@@ -37,12 +37,23 @@ jobs:
 
       - name: Resolve public site domains from infrastructure params
         id: resolve_public_site_domains
+        env:
+          INPUT_PROMOTION_MODE: ${{ github.event.inputs.promotion_mode }}
         run: |
           PRODUCTION_SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwDomainName', '')).strip())")"
           STAGING_SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwStagingDomainName', '')).strip())")"
+          ASSET_SHARE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('AssetDownloadCustomDomainName', '')).strip())")"
           if [ -z "$PRODUCTION_SITE_DOMAIN" ] || [ -z "$STAGING_SITE_DOMAIN" ]; then
             echo "PublicWwwDomainName and PublicWwwStagingDomainName are required in backend/infrastructure/params/production.json"
             exit 1
+          fi
+          PROMO_MODE="${INPUT_PROMOTION_MODE:-latest_staging}"
+          if [ "$PROMO_MODE" != "maintenance_on" ]; then
+            if [ -z "$ASSET_SHARE_DOMAIN" ]; then
+              echo "AssetDownloadCustomDomainName is required in backend/infrastructure/params/production.json for production promotion builds"
+              exit 1
+            fi
+            echo "asset_share_base_url=https://${ASSET_SHARE_DOMAIN}" >> "$GITHUB_OUTPUT"
           fi
           echo "production_site_origin=https://${PRODUCTION_SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "staging_site_origin=https://${STAGING_SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
@@ -114,6 +125,47 @@ jobs:
           INPUT_RELEASE_ID: ${{ inputs.release_id }}
           STACK_NAME: evolvesprouts-public-www
 
+      - name: Set up Node.js
+        if: ${{ steps.resolve_release.outputs.maintenance_mode != 'true' }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: apps/public_www/package-lock.json
+
+      - name: Install public website dependencies
+        if: ${{ steps.resolve_release.outputs.maintenance_mode != 'true' }}
+        run: npm ci
+        working-directory: apps/public_www
+
+      - name: Build public website for production
+        if: ${{ steps.resolve_release.outputs.maintenance_mode != 'true' }}
+        run: npm run build
+        working-directory: apps/public_www
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_PUBLIC_SITE_ORIGIN: ${{ steps.resolve_public_site_domains.outputs.production_site_origin }}
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+          NEXT_PUBLIC_FPS_MERCHANT_NAME: ${{ vars.NEXT_PUBLIC_FPS_MERCHANT_NAME }}
+          NEXT_PUBLIC_FPS_MOBILE_NUMBER: ${{ vars.NEXT_PUBLIC_FPS_MOBILE_NUMBER }}
+          NEXT_PUBLIC_BANK_NAME: ${{ vars.NEXT_PUBLIC_BANK_NAME }}
+          NEXT_PUBLIC_BANK_ACCOUNT_HOLDER: ${{ vars.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER }}
+          NEXT_PUBLIC_BANK_ACCOUNT_NUMBER: ${{ vars.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_EVENTS_SOURCE: ${{ vars.NEXT_PUBLIC_EVENTS_SOURCE }}
+          NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS: ${{ vars.NEXT_PUBLIC_WWW_PROXY_ALLOWED_HOSTS }}
+          NEXT_PUBLIC_WWW_CRM_API_KEY: ${{ secrets.NEXT_PUBLIC_WWW_CRM_API_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_ASSET_SHARE_BASE_URL: ${{ steps.resolve_public_site_domains.outputs.asset_share_base_url }}
+          NEXT_PUBLIC_GTM_ID: ${{ vars.NEXT_PUBLIC_GTM_ID }}
+          NEXT_PUBLIC_META_PIXEL_ID: ${{ vars.NEXT_PUBLIC_META_PIXEL_ID }}
+          NEXT_PUBLIC_EMAIL: ${{ vars.NEXT_PUBLIC_EMAIL }}
+          NEXT_PUBLIC_WHATSAPP_URL: ${{ vars.NEXT_PUBLIC_WHATSAPP_URL }}
+          NEXT_PUBLIC_INSTAGRAM_URL: ${{ vars.NEXT_PUBLIC_INSTAGRAM_URL }}
+          NEXT_PUBLIC_LINKEDIN_URL: ${{ vars.NEXT_PUBLIC_LINKEDIN_URL }}
+          NEXT_PUBLIC_BUSINESS_ADDRESS: ${{ vars.NEXT_PUBLIC_BUSINESS_ADDRESS }}
+          NEXT_PUBLIC_BUSINESS_PHONE_NUMBER: ${{ vars.NEXT_PUBLIC_BUSINESS_PHONE_NUMBER }}
+
       - name: Promote release or enable maintenance mode
         run: |
           if [ -f 'scripts/deploy/deploy-public-www.sh' ]; then
@@ -127,6 +179,7 @@ jobs:
           PUBLIC_WWW_ENVIRONMENT: production
           PUBLIC_WWW_MAINTENANCE_MODE: ${{ steps.resolve_release.outputs.maintenance_mode }}
           PUBLIC_WWW_PROMOTE_RELEASE_ID: ${{ steps.resolve_release.outputs.release_id }}
+          PUBLIC_WWW_PROMOTION_BUILD_DIR: ${{ steps.resolve_release.outputs.maintenance_mode != 'true' && format('{0}/apps/public_www/out', github.workspace) || '' }}
           NEXT_PUBLIC_EMAIL: ${{ vars.NEXT_PUBLIC_EMAIL }}
           NEXT_PUBLIC_WHATSAPP_URL: ${{ vars.NEXT_PUBLIC_WHATSAPP_URL }}
           NEXT_PUBLIC_INSTAGRAM_URL: ${{ vars.NEXT_PUBLIC_INSTAGRAM_URL }}
@@ -149,8 +202,9 @@ jobs:
               echo ''
               echo "- Promotion mode: \`${PROMOTION_MODE}\`"
               echo "- Release ID: \`${RELEASE_ID}\`"
-              echo '- Source environment: `staging`'
+              echo '- Source environment: `staging` (release id gates promotion eligibility)'
               echo '- Target environment: `production`'
+              echo '- Build: fresh static export with **production** GitHub Environment variables (including live Stripe publishable key)'
               echo '- Stack: `evolvesprouts-public-www`'
               echo "- Production URL: \`${{ steps.resolve_public_site_domains.outputs.production_site_origin }}\`"
             } >> "$GITHUB_STEP_SUMMARY"
