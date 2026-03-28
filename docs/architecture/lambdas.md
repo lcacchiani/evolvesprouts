@@ -60,6 +60,8 @@ their primary responsibilities.
   on `/v1/legacy/*` (proxying to upstream legacy endpoints via
   `AwsApiProxyFunction`), Stripe PaymentIntent creation for
   inline public booking modal payments on `/v1/reservations/payment-intent`
+  (card-only when `STRIPE_PAYMENT_METHOD_CONFIGURATION_ID` is unset;
+  otherwise `payment_method_configuration` with automatic payment methods)
   (via `AwsApiProxyFunction`), and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
