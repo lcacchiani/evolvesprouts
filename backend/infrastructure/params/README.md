@@ -65,6 +65,14 @@ For CI deployments using placeholder resolution:
 `production.json` uses placeholder values that resolve from GitHub variables
 and secrets during CI deploy.
 
+## Stripe reservation payments
+
+- `EvolveSproutsStripeSecretKey`: live secret (`CDK_PARAM_STRIPE_SECRET_KEY` in CI).
+- `EvolveSproutsStripeStagingSecretKey`: test secret for the staging public site
+  (`CDK_PARAM_STAGING_STRIPE_SECRET_KEY` in CI). The Admin Lambda also receives
+  `PUBLIC_WWW_STAGING_SITE_ORIGIN` from `PublicWwwStagingDomainName` to pick the
+  staging key when the browser `Origin`/`Referer` matches.
+
 ## Local deploy
 
 ```bash

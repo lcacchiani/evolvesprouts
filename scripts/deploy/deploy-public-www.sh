@@ -626,10 +626,23 @@ if [ -n "$PROMOTE_RELEASE_ID" ]; then
     exit 1
   fi
 
-  echo "Promoting release '$PROMOTE_RELEASE_ID' from staging to production"
-  sync_release_artifacts \
-    "s3://$SOURCE_BUCKET_NAME/releases/$PROMOTE_RELEASE_ID" \
-    "s3://$TARGET_BUCKET_NAME"
+  if [ -n "${PUBLIC_WWW_PROMOTION_BUILD_DIR:-}" ]; then
+    PROMOTION_BUILD_DIR="${PUBLIC_WWW_PROMOTION_BUILD_DIR}"
+    if [ ! -d "$PROMOTION_BUILD_DIR" ]; then
+      echo "Promotion build directory not found: $PROMOTION_BUILD_DIR"
+      exit 1
+    fi
+    BUILD_DIR="$PROMOTION_BUILD_DIR"
+    echo "Promoting release '$PROMOTE_RELEASE_ID' to production using local build output"
+    optimize_images_for_deploy
+    echo "Syncing Public WWW to s3://$TARGET_BUCKET_NAME"
+    sync_site_artifacts "$BUILD_DIR" "s3://$TARGET_BUCKET_NAME"
+  else
+    echo "Promoting release '$PROMOTE_RELEASE_ID' from staging to production (S3 artifact copy)"
+    sync_release_artifacts \
+      "s3://$SOURCE_BUCKET_NAME/releases/$PROMOTE_RELEASE_ID" \
+      "s3://$TARGET_BUCKET_NAME"
+  fi
 
   apply_www_proxy_mode \
     "$STACK_NAME" \

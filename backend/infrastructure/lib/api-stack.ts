@@ -547,7 +547,18 @@ export class ApiStack extends cdk.Stack {
         type: "String",
         noEcho: true,
         default: "",
-        description: "Stripe secret key for inline modal reservation payments",
+        description: "Stripe live secret key for inline modal reservation payments",
+      }
+    );
+    const evolveSproutsStripeStagingSecretKey = new cdk.CfnParameter(
+      this,
+      "EvolveSproutsStripeStagingSecretKey",
+      {
+        type: "String",
+        noEcho: true,
+        default: "",
+        description:
+          "Stripe test secret key for staging public website reservation payments",
       }
     );
     const evolveSproutsStripePaymentMethodConfigurationId = new cdk.CfnParameter(
@@ -1228,6 +1239,9 @@ export class ApiStack extends cdk.Stack {
           assetDownloadCloudFrontPrivateKeySecretArn.valueAsString,
         MAILCHIMP_WEBHOOK_SECRET: mailchimpWebhookSecret.valueAsString,
         EVOLVESPROUTS_STRIPE_SECRET_KEY: evolveSproutsStripeSecretKey.valueAsString,
+        EVOLVESPROUTS_STRIPE_STAGING_SECRET_KEY:
+          evolveSproutsStripeStagingSecretKey.valueAsString,
+        PUBLIC_WWW_STAGING_SITE_ORIGIN: `https://${publicWwwStagingDomainName.valueAsString}`,
         STRIPE_PAYMENT_METHOD_CONFIGURATION_ID:
           evolveSproutsStripePaymentMethodConfigurationId.valueAsString,
         COGNITO_USER_POOL_ID: userPool.userPoolId,

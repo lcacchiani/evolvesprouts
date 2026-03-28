@@ -61,7 +61,11 @@ their primary responsibilities.
   `AwsApiProxyFunction`), Stripe PaymentIntent creation for
   inline public booking modal payments on `/v1/reservations/payment-intent`
   (card-only `payment_method_types[]=card`; wallet buttons are disabled in the
-  public Payment Element; `STRIPE_PAYMENT_METHOD_CONFIGURATION_ID` is not used)
+  public Payment Element; `STRIPE_PAYMENT_METHOD_CONFIGURATION_ID` is not used).
+  When `PUBLIC_WWW_STAGING_SITE_ORIGIN` and `EVOLVESPROUTS_STRIPE_STAGING_SECRET_KEY`
+  are set, requests whose `Origin` or `Referer` matches that staging site use
+  the staging Stripe secret; otherwise the live `EVOLVESPROUTS_STRIPE_SECRET_KEY`
+  is used (reservation submission uses the same selection for PaymentIntent retrieval).
   (via `AwsApiProxyFunction`), and signed upload/download URL generation in
   `backend/src/app/api/admin.py`.
 
