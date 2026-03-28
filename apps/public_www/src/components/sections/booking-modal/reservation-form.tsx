@@ -371,6 +371,10 @@ const StripePaymentFields = forwardRef<StripePaymentFieldsHandle, StripePaymentF
         options={{
           layout: 'tabs',
           paymentMethodOrder: ['card'],
+          wallets: {
+            applePay: 'never',
+            googlePay: 'never',
+          },
         }}
       />
     );

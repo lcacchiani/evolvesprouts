@@ -1048,6 +1048,10 @@ describe('my-best-auntie booking modals footer content', () => {
           options: expect.objectContaining({
             layout: 'tabs',
             paymentMethodOrder: ['card'],
+            wallets: {
+              applePay: 'never',
+              googlePay: 'never',
+            },
           }),
         }),
       );
