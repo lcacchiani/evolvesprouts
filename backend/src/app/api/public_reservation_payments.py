@@ -6,7 +6,6 @@ This module creates Stripe PaymentIntents for inline booking-modal payment.
 from __future__ import annotations
 
 import json
-import os
 from decimal import Decimal
 from decimal import InvalidOperation
 from typing import Any
