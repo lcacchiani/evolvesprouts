@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntiePage } from '@/components/pages/my-best-auntie';
-import enContent from '@/content/en.json';
+import { getContent } from '@/content';
 
 const BOOKING_PROPS_SPY = vi.fn();
 
@@ -70,7 +70,8 @@ vi.mock('@/components/sections/free-intro-session', () => ({
 describe('MyBestAuntiePage', () => {
   it('assembles the booking flow page and forwards locale', () => {
     BOOKING_PROPS_SPY.mockClear();
-    render(<MyBestAuntiePage locale='zh-HK' content={enContent} />);
+    const content = getContent('zh-HK');
+    render(<MyBestAuntiePage locale='zh-HK' content={content} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('my-best-auntie-hero')).toBeInTheDocument();
@@ -100,14 +101,14 @@ describe('MyBestAuntiePage', () => {
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
-      screen.getByText(`${enContent.myBestAuntie.booking.title} (zh-HK)`),
+      screen.getByText(`${content.myBestAuntie.booking.title} (zh-HK)`),
     ).toBeInTheDocument();
     expect(BOOKING_PROPS_SPY).toHaveBeenCalledTimes(1);
     const bookingProps = BOOKING_PROPS_SPY.mock.calls[0][0] as {
       privateProgrammeWhatsappHref?: string;
     };
     expect(bookingProps.privateProgrammeWhatsappHref).toBe(
-      enContent.freeIntroSession.ctaHref,
+      content.freeIntroSession.ctaHref,
     );
   });
 });
