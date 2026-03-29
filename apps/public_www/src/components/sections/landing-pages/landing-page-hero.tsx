@@ -6,6 +6,10 @@ import {
   useState,
 } from 'react';
 
+import {
+  HeroQuickFactChips,
+  type HeroQuickFactChip,
+} from '@/components/sections/shared/hero-quick-fact-chips';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
@@ -45,22 +49,12 @@ interface LandingPageHeroProps {
   ariaLabel?: string;
 }
 
-type HeroChipType = 'date' | 'time' | 'location' | 'category';
-
-interface HeroChip {
-  type: HeroChipType;
-  label: string;
-}
-
 const PARTNER_LOGO_EXTENSIONS = ['webp', 'svg'] as const;
 const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = {
   'evolvesprouts': ['/images/evolvesprouts-logo.svg'],
   'baumhaus': ['/images/partners/baumhaus.webp'],
   'happy-baton': ['/images/partners/happy-baton.webp'],
 };
-const CALENDAR_ICON_SRC = '/images/calendar.svg';
-const CLOCK_ICON_SRC = '/images/clock.svg';
-const LOCATION_ICON_SRC = '/images/location.svg';
 const HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT: Readonly<Record<number, string>> = {
   50: 'max-w-[50%]',
   55: 'max-w-[55%]',
@@ -159,12 +153,12 @@ function PartnerLogo({ partner }: { partner: string }) {
 function buildHeroChips(
   eventContent: LandingPageHeroEventContent | null,
   locale: Locale,
-): HeroChip[] {
+): HeroQuickFactChip[] {
   if (!eventContent) {
     return [];
   }
 
-  const dedupedChips: HeroChip[] = [];
+  const dedupedChips: HeroQuickFactChip[] = [];
   const seen = new Set<string>();
 
   for (const chip of [
@@ -202,20 +196,6 @@ function buildHeroChips(
   }
 
   return dedupedChips;
-}
-
-function resolveHeroChipIconSource(type: HeroChipType): string | null {
-  if (type === 'date') {
-    return CALENDAR_ICON_SRC;
-  }
-  if (type === 'time') {
-    return CLOCK_ICON_SRC;
-  }
-  if (type === 'location') {
-    return LOCATION_ICON_SRC;
-  }
-
-  return null;
 }
 
 export function LandingPageHero({
@@ -280,31 +260,7 @@ export function LandingPageHero({
             </div>
           ) : null}
           <p className='es-type-body'>{renderQuotedDescriptionText(content.description)}</p>
-          {chips.length > 0 ? (
-            <div className='flex flex-wrap gap-3'>
-              {chips.map((chip, index) => {
-                const iconSource = resolveHeroChipIconSource(chip.type);
-                return (
-                  <span
-                    key={`${chip.label}-${index}`}
-                    className='inline-flex items-center gap-1.5 rounded-full border es-border-soft es-bg-surface-soft px-4 py-2 text-sm font-semibold es-text-heading'
-                  >
-                    {iconSource ? (
-                      <Image
-                        src={iconSource}
-                        alt=''
-                        aria-hidden='true'
-                        width={14}
-                        height={14}
-                        className='h-3.5 w-3.5 shrink-0 self-center'
-                      />
-                    ) : null}
-                    <span className='inline-flex items-center'>{chip.label}</span>
-                  </span>
-                );
-              })}
-            </div>
-          ) : null}
+          <HeroQuickFactChips chips={chips} />
           <LandingPageBookingCtaAction
             locale={locale}
             slug={slug}
