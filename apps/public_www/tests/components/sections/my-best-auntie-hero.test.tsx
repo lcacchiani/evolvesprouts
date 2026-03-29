@@ -30,11 +30,12 @@ describe('MyBestAuntieHero', () => {
     expect(section.className).toContain('pt-0');
     expect(section.className).toContain('sm:pt-[60px]');
     expect(screen.getByText(content.subtitle)).toBeInTheDocument();
+    expect(screen.getByText(content.description)).toBeInTheDocument();
+    const testimonial = screen.getByText(content.testimonialAttribution).closest('blockquote');
+    expect(testimonial).toBeInTheDocument();
+    expect(testimonial).toHaveTextContent(content.testimonialQuote);
     expect(
-      screen.getByText(/Not a parenting philosophy lecture\./),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/No Montessori knowledge required\./),
+      screen.getByText(content.testimonialAttribution),
     ).toBeInTheDocument();
 
     const ctaLink = screen.getByRole('link', { name: content.ctaLabel });

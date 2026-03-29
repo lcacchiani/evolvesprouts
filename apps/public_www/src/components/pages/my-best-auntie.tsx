@@ -15,10 +15,24 @@ interface MyBestAuntiePageProps {
   content: SiteContent;
 }
 
+type BookingWithOptionalCohorts = SiteContent['myBestAuntie']['booking'] & {
+  cohorts?: SiteContent['myBestAuntie']['booking']['cohorts'];
+};
+
+function resolveOptionalBookingCohorts(
+  booking: SiteContent['myBestAuntie']['booking'],
+): SiteContent['myBestAuntie']['booking']['cohorts'] | undefined {
+  return (booking as BookingWithOptionalCohorts).cohorts;
+}
+
 function resolveHeroCohortSummary(
-  cohorts: SiteContent['myBestAuntie']['booking']['cohorts'],
+  cohorts: SiteContent['myBestAuntie']['booking']['cohorts'] | undefined,
   locale: string,
 ): { lowestPrice: number | undefined; nextCohortLabel: string | undefined } {
+  if (!Array.isArray(cohorts) || cohorts.length === 0) {
+    return { lowestPrice: undefined, nextCohortLabel: undefined };
+  }
+
   const available = cohorts.filter((c) => !c.is_fully_booked);
   if (available.length === 0) {
     return { lowestPrice: undefined, nextCohortLabel: undefined };
@@ -46,7 +60,7 @@ export function MyBestAuntiePage({ locale, content }: MyBestAuntiePageProps) {
   ) || content.freeIntroSession.ctaHref;
 
   const { lowestPrice, nextCohortLabel } = resolveHeroCohortSummary(
-    content.myBestAuntie.booking.cohorts,
+    resolveOptionalBookingCohorts(content.myBestAuntie.booking),
     locale,
   );
 
