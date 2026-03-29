@@ -16,9 +16,12 @@ interface MyBestAuntiePageProps {
 }
 
 function resolveHeroCohortSummary(
-  cohorts: SiteContent['myBestAuntie']['booking']['cohorts'],
+  cohorts: SiteContent['myBestAuntie']['booking']['cohorts'] | undefined,
   locale: string,
 ): { lowestPrice: number | undefined; nextCohortLabel: string | undefined } {
+  if (!cohorts || cohorts.length === 0) {
+    return { lowestPrice: undefined, nextCohortLabel: undefined };
+  }
   const available = cohorts.filter((c) => !c.is_fully_booked);
   if (available.length === 0) {
     return { lowestPrice: undefined, nextCohortLabel: undefined };
