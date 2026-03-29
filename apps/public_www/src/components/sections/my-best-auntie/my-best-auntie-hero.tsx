@@ -5,6 +5,10 @@ import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
 } from '@/components/sections/shared/section-container';
+import {
+  HeroQuickFactChips,
+  type HeroQuickFactChip,
+} from '@/components/sections/shared/hero-quick-fact-chips';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
@@ -20,55 +24,44 @@ interface MyBestAuntieHeroProps {
 
 const MY_BEST_AUNTIE_HERO_CTA_CLASSNAME = 'mt-auto max-w-[360px]';
 
-function QuickFacts({
-  content,
-  lowestPrice,
-  nextCohortLabel,
-}: {
-  content: MyBestAuntieHeroContent;
-  lowestPrice?: number;
-  nextCohortLabel?: string;
-}) {
+function buildMyBestAuntieHeroChips(
+  content: MyBestAuntieHeroContent,
+  lowestPrice: number | undefined,
+  nextCohortLabel: string | undefined,
+): HeroQuickFactChip[] {
   const quickFacts = (content as Record<string, unknown>).quickFacts as
     | { durationLabel: string; homeVisitsLabel: string; priceTemplate: string; nextCohortTemplate: string }
     | undefined;
 
   if (!quickFacts) {
-    return null;
+    return [];
   }
 
-  const items: string[] = [quickFacts.durationLabel];
+  const chips: HeroQuickFactChip[] = [
+    { type: 'duration', label: quickFacts.durationLabel.trim() },
+  ];
 
   if (lowestPrice !== undefined) {
-    items.push(
-      formatContentTemplate(quickFacts.priceTemplate, {
+    chips.push({
+      type: 'price',
+      label: formatContentTemplate(quickFacts.priceTemplate, {
         price: lowestPrice.toLocaleString(),
-      }),
-    );
+      }).trim(),
+    });
   }
 
   if (nextCohortLabel) {
-    items.push(
-      formatContentTemplate(quickFacts.nextCohortTemplate, {
+    chips.push({
+      type: 'cohort',
+      label: formatContentTemplate(quickFacts.nextCohortTemplate, {
         cohortLabel: nextCohortLabel,
-      }),
-    );
+      }).trim(),
+    });
   }
 
-  items.push(quickFacts.homeVisitsLabel);
+  chips.push({ type: 'visits', label: quickFacts.homeVisitsLabel.trim() });
 
-  return (
-    <div className='mt-5 flex flex-wrap gap-x-4 gap-y-2'>
-      {items.map((item, index) => (
-        <span key={item} className='flex items-center gap-x-4 text-sm font-medium es-text-body'>
-          {index > 0 && (
-            <span className='es-text-muted' aria-hidden='true'>·</span>
-          )}
-          {item}
-        </span>
-      ))}
-    </div>
-  );
+  return chips.filter((chip) => chip.label.length > 0);
 }
 
 function MicroTestimonial({ content }: { content: MyBestAuntieHeroContent }) {
@@ -99,6 +92,7 @@ export function MyBestAuntieHero({
   nextCohortLabel,
 }: MyBestAuntieHeroProps) {
   const description = resolveMyBestAuntieHeroDescription(content);
+  const heroChips = buildMyBestAuntieHeroChips(content, lowestPrice, nextCohortLabel);
 
   return (
     <SectionShell
@@ -122,10 +116,10 @@ export function MyBestAuntieHero({
               description={content.subtitle}
               descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
             />
-            <QuickFacts
-              content={content}
-              lowestPrice={lowestPrice}
-              nextCohortLabel={nextCohortLabel}
+            <HeroQuickFactChips
+              chips={heroChips}
+              className='mt-5'
+              data-testid='my-best-auntie-hero-quick-facts'
             />
             <p className='mt-4 max-w-[720px] es-type-body'>
               {renderQuotedDescriptionText(description)}
