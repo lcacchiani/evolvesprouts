@@ -62,7 +62,7 @@ const bookingContent = {
 } as BookingContent;
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal;
-const privateProgrammeWhatsappHref = buildWhatsappPrefilledHref(
+const privateProgrammeFallbackWhatsappHref = buildWhatsappPrefilledHref(
   enContent.freeIntroSession.ctaHref,
   bookingContent.privateProgrammePrefillMessage,
   enContent.freeIntroSession.phoneNumber,
@@ -619,6 +619,7 @@ describe('MyBestAuntieBooking section', () => {
   });
 
   it('renders private programme CTA as outline link with dedicated WhatsApp message', () => {
+    const privateProgrammeWhatsappHref = 'https://wa.me/85294479843?text=private-programme';
     render(
       <MyBestAuntieBooking
         locale='en'
@@ -635,6 +636,11 @@ describe('MyBestAuntieBooking section', () => {
     expect(privateProgrammeCta.className).toContain('es-btn--primary');
     expect(privateProgrammeCta.className).toContain('es-btn--outline');
     expect(privateProgrammeCta).toHaveAttribute('href', privateProgrammeWhatsappHref);
+    const externalLabel = privateProgrammeCta.querySelector('.es-link-external-label');
+    expect(externalLabel).not.toBeNull();
+    expect(externalLabel?.className).toContain('es-link-external-label--with-icon');
+    const externalIcon = privateProgrammeCta.querySelector('.es-ui-icon-mask--external-link');
+    expect(externalIcon).not.toBeNull();
   });
 
   it('renders sold-out date cards as disabled with stamp and skips them for initial selection', () => {
