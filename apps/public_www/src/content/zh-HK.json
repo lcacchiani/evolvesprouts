@@ -931,10 +931,18 @@
     "hero": {
       "title": "My Best Auntie — 香港蒙特梭利家傭育兒培訓",
       "subtitle": "香港領先的家傭育兒培訓課程——實戰、蒙特梭利導向、專為真實生活而設。",
-      "description": "這不是一堂育兒理念講座，也不是一本她永遠不會讀完的厚手冊。這是一個專為香港家庭設計的家傭育兒培訓實戰課程——提供真實情境、真實話術與真實策略，讓她由第一天就可以應用。\n無需蒙特梭利背景。無需育兒經驗。只要願意學習——以及你願意相信，她其實可以做得更多。",
-      "ctaLabel": "立即預訂名額！",
+      "description": "一個實戰課程，幫助你嘅家傭掌握蒙特梭利日常技能——用餐、遊戲、過渡同獨立能力培養。真實情境、真實話術、真實策略，由第一日起即可運用。無需任何育兒經驗。",
+      "ctaLabel": "查看日期與價格",
       "ctaHref": "#my-best-auntie-booking",
-      "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
+      "imageAlt": "Evolve Sprouts 的 Ida De Gregorio",
+      "quickFacts": {
+        "durationLabel": "9 週",
+        "homeVisitsLabel": "3 次上門指導",
+        "priceTemplate": "HK${price} 起",
+        "nextCohortTemplate": "下期：{cohortLabel}"
+      },
+      "testimonialQuote": "課程之後，我哋嘅家傭每朝都自動安排獨立遊戲，唔使再提醒。",
+      "testimonialAttribution": "— 香港家長"
     },
     "outline": {
       "eyebrow": "課程大綱",

@@ -931,10 +931,18 @@
     "hero": {
       "title": "My Best Auntie — Montessori Childcare Training for Helpers in Hong Kong",
       "subtitle": "Hong Kong's leading domestic helper childcare training programme — practical, Montessori-based, and designed for real life.",
-      "description": "Not a parenting philosophy lecture. Not a thick manual she'll never read. This is a hands-on domestic helper childcare training course designed specifically for Hong Kong families — with real scenarios, real scripts, and real strategies she can use from day one.\nNo Montessori knowledge required. No parenting experience required. Just a willingness to learn — and your trust that she's capable of so much more.",
-      "ctaLabel": "Book your spot now!",
+      "description": "A hands-on programme that gives your domestic helper practical Montessori skills for everyday routines — meals, play, transitions, and independence. Real scenarios, real scripts, real strategies she can use from day one. No prior experience required.",
+      "ctaLabel": "See dates & pricing",
       "ctaHref": "#my-best-auntie-booking",
-      "imageAlt": "Ida De Gregorio from Evolve Sprouts"
+      "imageAlt": "Ida De Gregorio from Evolve Sprouts",
+      "quickFacts": {
+        "durationLabel": "9 weeks",
+        "homeVisitsLabel": "3 home visits",
+        "priceTemplate": "From HK${price}",
+        "nextCohortTemplate": "Next: {cohortLabel}"
+      },
+      "testimonialQuote": "After the programme, our helper sets up independent play every morning without being asked.",
+      "testimonialAttribution": "— Parent, Hong Kong"
     },
     "outline": {
       "eyebrow": "Course Outline",
