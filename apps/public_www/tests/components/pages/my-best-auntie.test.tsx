@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { MyBestAuntiePage } from '@/components/pages/my-best-auntie';
 import { getContent } from '@/content';
+import { buildWhatsappPrefilledHref } from '@/lib/site-config';
 
 const BOOKING_PROPS_SPY = vi.fn();
 
@@ -108,7 +109,11 @@ describe('MyBestAuntiePage', () => {
       privateProgrammeWhatsappHref?: string;
     };
     expect(bookingProps.privateProgrammeWhatsappHref).toBe(
-      content.freeIntroSession.ctaHref,
+      buildWhatsappPrefilledHref(
+        content.freeIntroSession.ctaHref,
+        content.myBestAuntie.booking.privateProgrammePrefillMessage,
+        content.freeIntroSession.phoneNumber,
+      ) || content.freeIntroSession.ctaHref,
     );
   });
 });
