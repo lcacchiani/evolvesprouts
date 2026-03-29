@@ -36,10 +36,10 @@
       }
     ],
     "bookNow": {
-      "label": "Free Intro Session",
+      "label": "Free Intro Call",
       "href": "{{WHATSAPP_URL}}",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
-      "prefillMessage": "Hi, I'd like to book a free session!"
+      "prefillMessage": "Hi, I'd like to book a free intro call!"
     },
     "languageSelector": {
       "menuAriaLabel": "Select language",
@@ -77,7 +77,7 @@
     "subtitle": "No blame. No judgment. Just the practical training every family in Hong Kong deserves.",
     "cta": "Train your helper today",
     "ctaHref": "/services/my-best-auntie-training-course",
-    "ctaPrefillMessage": "Hi, I'd like to book a free session!",
+    "ctaPrefillMessage": "Hi, I'd like to book a free intro call!",
     "description": "Trusted by families across Hong Kong. AMI Montessori-certified. Designed for real life.",
     "imageAlt": "Montessori auntie training for Hong Kong families"
   },
@@ -337,11 +337,11 @@
       "cards": [
         {
           "question": "What happens after I message you?",
-          "answer": "I'll reply within 24-48 hours. If the course sounds like a fit, I'll invite you to a free intro session so we can talk about your family's situation."
+          "answer": "I'll reply within 24-48 hours. If the course sounds like a fit, I'll invite you to a free intro call so we can talk about your family's situation."
         },
         {
           "question": "I'm not sure this is for us yet.",
-          "answer": "That's exactly what the intro session is for. No commitment, no payment. Just a conversation."
+          "answer": "That's exactly what the intro call is for. No commitment, no payment. Just a conversation."
         }
       ]
     },
@@ -687,11 +687,11 @@
   "freeIntroSession": {
     "title": "Ready to give your helper the tools she needs?",
     "eventPageTitle": "Not sure yet? Start here",
-    "description": "Book a free 15-minute intro session. No commitment. Just a conversation about your family.",
-    "ctaLabel": "Book Free Intro on WhatsApp",
+    "description": "Book a free 15-minute intro call. No commitment. Just a conversation about your family.",
+    "ctaLabel": "Book Free Intro Call on WhatsApp",
     "ctaHref": "{{WHATSAPP_URL}}",
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
-    "prefillMessage": "Hi, I'd like to book a free session!"
+    "prefillMessage": "Hi, I'd like to book a free intro call!"
   },
   "whoops": {
     "code": "404",
@@ -1090,6 +1090,7 @@
       "refundHint": "Full refund up to 7 days prior.",
       "directionLabel": "Get Directions",
       "reservationTitle": "Reservation",
+      "selectedAgeGroupTitleTemplate": "{title} for age group {ageGroupLabel}",
       "reservationDescription": "Please complete your details. We will send payment confirmation by email.",
       "selectedAgeGroupLabel": "Child age group",
       "fullNameLabel": "Full Name",

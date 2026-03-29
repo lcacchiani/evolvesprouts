@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
+import { ExternalLinkInlineContent } from '@/components/shared/external-link-icon';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import {
@@ -603,7 +604,11 @@ export function MyBestAuntieBooking({
                   className='es-btn--outline'
                   href={privateProgrammeWhatsappHref}
                 >
-                  {content.privateProgrammeCtaLabel}
+                  {({ isExternalHttp }) => (
+                    <ExternalLinkInlineContent isExternalHttp={isExternalHttp}>
+                      {content.privateProgrammeCtaLabel}
+                    </ExternalLinkInlineContent>
+                  )}
                 </ButtonPrimitive>
               ) : null}
             </div>

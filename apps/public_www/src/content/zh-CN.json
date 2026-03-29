@@ -39,7 +39,7 @@
       "label": "预约免费入门咨询",
       "href": "{{WHATSAPP_URL}}",
       "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
-      "prefillMessage": "你好，我想预约一个免费咨询！"
+      "prefillMessage": "你好，我想预约一次免费介绍通话！"
     },
     "languageSelector": {
       "menuAriaLabel": "选择语言",
@@ -77,7 +77,7 @@
     "subtitle": "不责备，不评判。只提供每个香港家庭都值得拥有的实用培训。",
     "cta": "今天就培训你的阿姨",
     "ctaHref": "/services/my-best-auntie-training-course",
-    "ctaPrefillMessage": "你好，我想预约一个免费咨询！",
+    "ctaPrefillMessage": "你好，我想预约一次免费介绍通话！",
     "description": "深受全港家庭信赖。AMI 蒙特梭利认证。为真实生活而设计。",
     "imageAlt": "面向香港家庭的蒙特梭利阿姨培训"
   },
@@ -337,11 +337,11 @@
       "cards": [
         {
           "question": "我给你发消息后会发生什么？",
-          "answer": "我会在 24-48 小时内回复你。如果这个课程看起来适合你，我会邀请你参加一节免费介绍会，我们可以聊聊你家庭的情况。"
+          "answer": "我会在 24-48 小时内回复你。如果这个课程看起来适合你，我会邀请你参加一节免费介绍通话，我们可以聊聊你家庭的情况。"
         },
         {
           "question": "我还不确定这是否适合我们。",
-          "answer": "这正是免费介绍会的意义。无需承诺，无需付款。只是一次交流。"
+          "answer": "这正是免费介绍通话的意义。无需承诺，无需付款。只是一次交流。"
         }
       ]
     },
@@ -687,11 +687,11 @@
   "freeIntroSession": {
     "title": "准备好给你的助手她需要的工具了吗？",
     "eventPageTitle": "还不确定？从这里开始",
-    "description": "预约一次 15 分钟免费介绍会。无需承诺，只是聊聊你的家庭情况。",
-    "ctaLabel": "在 WhatsApp 预约免费介绍会",
+    "description": "预约一次 15 分钟免费介绍通话。无需承诺，只是聊聊你的家庭情况。",
+    "ctaLabel": "在 WhatsApp 预约免费介绍通话",
     "ctaHref": "{{WHATSAPP_URL}}",
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
-    "prefillMessage": "你好，我想预约一个免费咨询！"
+    "prefillMessage": "你好，我想预约一次免费介绍通话！"
   },
   "whoops": {
     "code": "404",
@@ -1090,6 +1090,7 @@
       "refundHint": "开课前 7 天可全额退款。",
       "directionLabel": "查看路线",
       "reservationTitle": "报名信息",
+      "selectedAgeGroupTitleTemplate": "{title}（适用于{ageGroupLabel}年龄组）",
       "reservationDescription": "请填写你的信息，我们会通过邮箱发送付款确认。",
       "selectedAgeGroupLabel": "孩子年龄组",
       "fullNameLabel": "姓名",

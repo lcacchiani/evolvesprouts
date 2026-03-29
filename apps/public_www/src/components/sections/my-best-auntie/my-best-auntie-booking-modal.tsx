@@ -111,6 +111,13 @@ export function MyBestAuntieBookingModal({
   const selectedDateEndTime = selectedCohort?.dates[0]?.end_datetime ?? '';
   const selectedCohortDateLabelText =
     selectedCohortDateLabel || formatCohortValue(selectedCohort?.cohort ?? '', locale);
+  const selectedAgeGroupLabelText = selectedAgeGroupLabel.trim();
+  const detailsTitle = selectedAgeGroupLabelText
+    ? formatContentTemplate(paymentModalContent.selectedAgeGroupTitleTemplate ?? '', {
+        title: modalContent.title,
+        ageGroupLabel: selectedAgeGroupLabelText,
+      }) || modalContent.title
+    : modalContent.title;
   const selectedVenueName = selectedCohort?.location_name ?? '';
   const selectedVenueAddress = selectedCohort?.location_address ?? '';
   const selectedVenueDirectionHref = selectedCohort?.location_url ?? '#';
@@ -139,7 +146,7 @@ export function MyBestAuntieBookingModal({
             <BookingEventDetails
               locale={locale}
               headingId={dialogTitleId}
-              title={modalContent.title}
+              title={detailsTitle}
               subtitle={modalContent.subtitle}
               content={paymentModalContent}
               activePartRows={activePartRows}
