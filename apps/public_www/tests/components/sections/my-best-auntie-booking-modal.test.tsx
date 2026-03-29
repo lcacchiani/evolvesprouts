@@ -360,7 +360,10 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(
       screen.queryByText(bookingModalContent.selectedAgeGroupLabel),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText('18-24 months')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', {
+      level: 2,
+      name: `My Best Auntie Training Course for age group 18-24 months`,
+    })).toBeInTheDocument();
     expect(
       screen.getByText(bookingModalContent.paymentMethodLabel),
     ).toBeInTheDocument();
@@ -396,6 +399,17 @@ describe('my-best-auntie booking modals footer content', () => {
       'span[data-course-part-icon="true"].es-mask-calendar-current',
     );
     expect(partCalendarIcons).toHaveLength(3);
+  });
+
+  it('keeps the base left column title when no age group is selected', () => {
+    renderBookingModal({
+      selectedAgeGroupLabel: '   ',
+    });
+
+    expect(screen.getByRole('heading', {
+      level: 2,
+      name: myBestAuntieModalContent.title,
+    })).toBeInTheDocument();
   });
 
   it('renders week range headlines and schedule blocks without year in the details column', () => {

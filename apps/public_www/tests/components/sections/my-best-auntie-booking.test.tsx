@@ -67,6 +67,8 @@ const privateProgrammeWhatsappHref = buildWhatsappPrefilledHref(
   bookingContent.privateProgrammePrefillMessage,
   enContent.freeIntroSession.phoneNumber,
 ) || enContent.freeIntroSession.ctaHref;
+const selectedAgeGroupTitleTemplate =
+  bookingModalContent.paymentModal.selectedAgeGroupTitleTemplate;
 
 function getCohortsForAge(content: BookingContent, ageGroupId: string): BookingCohort[] {
   return content.cohorts
@@ -102,6 +104,12 @@ function formatSpacesLeftLabel(count: number): string {
   return bookingContent.spacesLeftLabelTemplate.replace('{count}', String(count));
 }
 
+function getBookingModalTitleForAgeGroup(ageGroupLabel: string): string {
+  return selectedAgeGroupTitleTemplate
+    .replace('{title}', myBestAuntieModalContent.title)
+    .replace('{ageGroupLabel}', ageGroupLabel);
+}
+
 describe('MyBestAuntieBooking section', () => {
   it('auto-opens payment modal when booking_system query targets my-best-auntie booking', async () => {
     window.history.replaceState(
@@ -121,7 +129,7 @@ describe('MyBestAuntieBooking section', () => {
 
     expect(
       await screen.findByRole('dialog', {
-        name: myBestAuntieModalContent.title,
+        name: getBookingModalTitleForAgeGroup(bookingContent.ageOptions[0]!.label),
       }),
     ).toBeInTheDocument();
   });
@@ -592,7 +600,7 @@ describe('MyBestAuntieBooking section', () => {
     );
 
     expect(await screen.findByRole('dialog', {
-      name: myBestAuntieModalContent.title,
+      name: getBookingModalTitleForAgeGroup(bookingContent.ageOptions[0]!.label),
     })).toBeInTheDocument();
     expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith(
       'booking_confirm_pay_click',
