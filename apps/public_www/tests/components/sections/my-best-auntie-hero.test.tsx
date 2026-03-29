@@ -30,12 +30,17 @@ describe('MyBestAuntieHero', () => {
     expect(section.className).toContain('pt-0');
     expect(section.className).toContain('sm:pt-[60px]');
     expect(screen.getByText(content.subtitle)).toBeInTheDocument();
+    expect(screen.getByText(content.quickFacts.durationLabel)).toBeInTheDocument();
+    expect(screen.getByText(content.quickFacts.homeVisitsLabel)).toBeInTheDocument();
     expect(
-      screen.getByText(/Not a parenting philosophy lecture\./),
+      screen.getByText(/No prior experience required/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/No Montessori knowledge required\./),
+      screen.getByText(
+        /After the programme, our helper sets up independent play every morning/,
+      ),
     ).toBeInTheDocument();
+    expect(screen.getByText(content.testimonialAttribution)).toBeInTheDocument();
 
     const ctaLink = screen.getByRole('link', { name: content.ctaLabel });
     expect(ctaLink).toHaveAttribute('href', content.ctaHref);
