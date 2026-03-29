@@ -153,6 +153,7 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
       colorTextPlaceholder,
       colorDanger,
       fontFamily: 'Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSizeBase: '14px',
       borderRadius: '10px',
       spacingUnit: '4px',
     },

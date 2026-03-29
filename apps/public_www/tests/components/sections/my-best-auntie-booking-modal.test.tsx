@@ -1093,6 +1093,7 @@ describe('my-best-auntie booking modals footer content', () => {
                 colorDanger: '#B42318',
                 fontFamily:
                   'Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                fontSizeBase: '14px',
                 borderRadius: '10px',
                 spacingUnit: '4px',
               }),
