@@ -68,4 +68,53 @@ describe('VenuesPanel', () => {
       address: '1 Test Road',
     });
   });
+
+  it('lists name, address, area, and operations columns without coordinates or updated', () => {
+    render(
+      <VenuesPanel
+        venues={[
+          {
+            id: 'loc-1',
+            name: 'Studio A',
+            address: '1 Main St',
+            areaId: 'area-1',
+            lat: 1,
+            lng: 2,
+            createdAt: null,
+            updatedAt: '2025-01-01T00:00:00Z',
+          },
+        ]}
+        geographicAreas={[
+          {
+            id: 'area-1',
+            parentId: null,
+            name: 'Hong Kong',
+            level: 'country',
+            code: 'HK',
+            active: true,
+            displayOrder: 0,
+          },
+        ]}
+        areasLoading={false}
+        filters={{ areaId: '', search: '' }}
+        isLoading={false}
+        isLoadingMore={false}
+        isSaving={false}
+        hasMore={false}
+        error=''
+        onFilterChange={vi.fn()}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Address' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Area' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Operations' })).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Coordinates' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Updated' })).not.toBeInTheDocument();
+  });
 });

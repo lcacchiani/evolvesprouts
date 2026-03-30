@@ -240,7 +240,7 @@ export function VenuesPanel({
           }}
         >
           <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-            <div className='sm:col-span-2'>
+            <div>
               <Label htmlFor='venue-name'>Location name</Label>
               <Input
                 id='venue-name'
@@ -266,7 +266,7 @@ export function VenuesPanel({
                 ))}
               </Select>
             </div>
-            <div>
+            <div className='sm:col-span-2'>
               <Label htmlFor='venue-address'>Address</Label>
               <Input
                 id='venue-address'
@@ -366,14 +366,12 @@ export function VenuesPanel({
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[720px]'>
+        <AdminDataTable tableClassName='min-w-[520px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Address</th>
               <th className='px-4 py-3 font-semibold'>Area</th>
-              <th className='px-4 py-3 font-semibold'>Coordinates</th>
-              <th className='px-4 py-3 font-semibold'>Updated</th>
               <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
@@ -391,10 +389,6 @@ export function VenuesPanel({
                   <td className='px-4 py-3'>{row.name?.trim() || '—'}</td>
                   <td className='px-4 py-3'>{row.address?.trim() || '—'}</td>
                   <td className='px-4 py-3'>{area?.name ?? row.areaId}</td>
-                  <td className='px-4 py-3'>
-                    {row.lat !== null && row.lng !== null ? `${row.lat}, ${row.lng}` : '—'}
-                  </td>
-                  <td className='px-4 py-3'>{row.updatedAt ?? '—'}</td>
                   <td className='px-4 py-3 text-right' onClick={(event) => event.stopPropagation()}>
                     <Button
                       type='button'
