@@ -559,44 +559,6 @@ export async function listDiscountCodes(
   };
 }
 
-export async function listLocations(
-  params: { areaId?: string; cursor?: string | null; limit?: number },
-  signal?: AbortSignal
-): Promise<{ items: LocationSummary[]; nextCursor: string | null }> {
-  const query = new URLSearchParams();
-  if (params.cursor) query.set('cursor', params.cursor);
-  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
-  if (params.areaId) query.set('area_id', params.areaId);
-  const queryString = query.toString();
-  const payload = await adminApiRequest<ApiLocationListResponse>({
-    endpointPath: `/v1/admin/locations${queryString ? `?${queryString}` : ''}`,
-    method: 'GET',
-    signal,
-  });
-  const root = unwrapPayload(payload);
-  return {
-    items: Array.isArray(root.items) ? root.items.map((entry) => parseLocationSummary(entry)) : [],
-    nextCursor: asNullableString(root.next_cursor),
-  };
-}
-
-export async function listAllLocations(signal?: AbortSignal): Promise<LocationSummary[]> {
-  const all: LocationSummary[] = [];
-  let cursor: string | null = null;
-  do {
-    const page = await listLocations(
-      {
-        cursor,
-        limit: 200,
-      },
-      signal
-    );
-    all.push(...page.items);
-    cursor = page.nextCursor;
-  } while (cursor);
-  return all;
-}
-
 export async function createDiscountCode(
   body: ApiCreateDiscountCodeRequest
 ): Promise<DiscountCode | null> {
