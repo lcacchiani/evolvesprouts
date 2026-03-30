@@ -10,6 +10,7 @@ info:
     - `GET /health`
     - `GET /v1/admin/geographic-areas`
     - `GET|POST /v1/admin/locations`
+    - `POST /v1/admin/locations/geocode`
     - `GET|PUT|PATCH|DELETE /v1/admin/locations/{id}`
     - `GET /v1/admin/users`
     - `GET|POST /v1/admin/services`
@@ -501,6 +502,47 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /v1/admin/locations/geocode:
+    post:
+      summary: Geocode a venue address
+      description: |
+        Resolves latitude and longitude using OpenStreetMap Nominatim via the
+        AWS HTTP proxy. The server combines the submitted address with the
+        geographic area hierarchy (and country code when present) to bias results.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeocodeLocationRequest"
+      responses:
+        "200":
+          description: Geocoding result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeocodeLocationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "502":
+          description: Geocoding provider or proxy error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Geocoding is not configured (for example missing proxy or headers).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/admin/locations/{id}:
     parameters:
@@ -3269,6 +3311,34 @@ components:
           type: integer
           minimum: 0
           description: Total number of locations matching the current filters (not page size).
+    GeocodeLocationRequest:
+      type: object
+      required:
+        - area_id
+        - address
+      properties:
+        area_id:
+          type: string
+          format: uuid
+        address:
+          type: string
+          maxLength: 500
+    GeocodeLocationResponse:
+      type: object
+      required:
+        - lat
+        - lng
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+        display_name:
+          type: string
+          description: Provider-resolved label for the top match.
+          nullable: true
     CreateLocationRequest:
       type: object
       required:

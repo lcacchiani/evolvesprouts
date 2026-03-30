@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -26,6 +26,7 @@ from app.db.engine import get_engine
 from app.db.models import Location
 from app.db.repositories import GeographicAreaRepository, LocationRepository
 from app.exceptions import NotFoundError, ValidationError
+from app.services.nominatim_geocode import geocode_address_with_context
 from app.utils import json_response
 
 
@@ -38,6 +39,11 @@ def handle_admin_locations_request(
     parts = split_route_parts(path)
     if len(parts) < 2 or parts[0] != "admin" or parts[1] != "locations":
         return json_response(404, {"error": "Not found"}, event=event)
+
+    if len(parts) == 3 and parts[2] == "geocode":
+        if method == "POST":
+            return _geocode_location(event)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 2:
         if method == "GET":
@@ -59,6 +65,40 @@ def handle_admin_locations_request(
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
+
+
+def _geocode_location(event: Mapping[str, Any]) -> dict[str, Any]:
+    body = parse_body(event)
+    address = cast(
+        str,
+        _parse_address(body.get("address"), required=True),
+    )
+
+    area_id_raw = body.get("area_id")
+    if area_id_raw is None:
+        raise ValidationError("area_id is required", field="area_id")
+    area_id = parse_uuid(str(area_id_raw))
+
+    with Session(get_engine()) as session:
+        geo_repo = GeographicAreaRepository(session)
+        area = geo_repo.get_by_id(area_id)
+        if area is None:
+            raise ValidationError("area_id not found", field="area_id")
+
+        ancestors = geo_repo.get_ancestors(area_id)
+        context_names = [a.name for a in ancestors if a.name]
+        area_context = ", ".join(context_names)
+        country_code = ancestors[0].code if ancestors else None
+
+    lat, lng, display_name = geocode_address_with_context(
+        address=address,
+        area_context=area_context,
+        country_code=country_code,
+    )
+    payload: dict[str, Any] = {"lat": lat, "lng": lng}
+    if display_name:
+        payload["display_name"] = display_name
+    return json_response(200, payload, event=event)
 
 
 def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:

@@ -1250,6 +1250,8 @@ export class ApiStack extends cdk.Stack {
         INSTRUCTOR_GROUP: "instructor",
         LEGACY_PUBLIC_API_BASE_URL: legacyPublicApiBaseUrl.valueAsString,
         LEGACY_PUBLIC_API_KEY: legacyPublicApiKey.valueAsString,
+        NOMINATIM_USER_AGENT: nominatimUserAgent.valueAsString,
+        NOMINATIM_REFERER: nominatimReferer.valueAsString,
       },
     });
     database.grantAdminUserSecretRead(adminFunction);
@@ -2553,6 +2555,11 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
     adminLocations.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+    const adminLocationsGeocode = adminLocations.addResource("geocode");
+    adminLocationsGeocode.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });

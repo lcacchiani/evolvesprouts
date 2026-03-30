@@ -44,6 +44,8 @@ type ApiLocationResponse = ApiSchemas['LocationResponse'];
 type ApiGeographicAreaListResponse = ApiSchemas['GeographicAreaListResponse'];
 type ApiCreateLocationRequest = ApiSchemas['CreateLocationRequest'];
 type ApiUpdateLocationRequest = ApiSchemas['UpdateLocationRequest'];
+type ApiGeocodeLocationRequest = ApiSchemas['GeocodeLocationRequest'];
+type ApiGeocodeLocationResponse = ApiSchemas['GeocodeLocationResponse'];
 
 function parseSessionSlot(value: unknown): SessionSlot {
   const item = isRecord(value) ? value : {};
@@ -344,6 +346,35 @@ export async function listAllLocations(signal?: AbortSignal): Promise<LocationSu
     cursor = page.nextCursor;
   } while (cursor);
   return all;
+}
+
+export interface GeocodeLocationResult {
+  lat: number;
+  lng: number;
+  displayName: string | null;
+}
+
+export async function geocodeVenueAddress(
+  body: ApiGeocodeLocationRequest,
+  signal?: AbortSignal
+): Promise<GeocodeLocationResult> {
+  const payload = await adminApiRequest<ApiGeocodeLocationResponse>({
+    endpointPath: '/v1/admin/locations/geocode',
+    method: 'POST',
+    body,
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  const lat = typeof root.lat === 'number' ? root.lat : NaN;
+  const lng = typeof root.lng === 'number' ? root.lng : NaN;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    throw new Error('Geocoding response was invalid.');
+  }
+  return {
+    lat,
+    lng,
+    displayName: asNullableString(root.display_name),
+  };
 }
 
 export async function createLocation(body: ApiCreateLocationRequest): Promise<LocationSummary | null> {
