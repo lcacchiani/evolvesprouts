@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ConsultationFormFields, type ConsultationFormState } from './consultation-form-fields';
 import { EventFormFields, type EventFormState } from './event-form-fields';
@@ -18,6 +18,7 @@ import type { LocationSummary, ServiceInstance, ServiceSummary, ServiceType } fr
 
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
+import { useInstructorUsers } from '@/hooks/use-instructor-users';
 
 type ApiSchemas = components['schemas'];
 
@@ -41,6 +42,18 @@ export interface InstanceDetailPanelProps {
   ) => Promise<void> | void;
 }
 
+function mergeServiceIntoInstanceForm(
+  prev: InstanceFormState,
+  service: ServiceSummary
+): InstanceFormState {
+  return {
+    ...prev,
+    title: service.title,
+    description: service.description ?? '',
+    deliveryMode: service.deliveryMode,
+  };
+}
+
 export function InstanceDetailPanel({
   instance,
   selectedServiceId,
@@ -57,6 +70,11 @@ export function InstanceDetailPanel({
   onUpdate,
 }: InstanceDetailPanelProps) {
   const isEditMode = Boolean(instance);
+  const lastMergedServiceIdForCreateRef = useRef<string | null>(null);
+  const { users: instructorUsers, isLoading: isLoadingInstructors } = useInstructorUsers(
+    Boolean(selectedServiceId)
+  );
+
   const [instanceForm, setInstanceForm] = useState<InstanceFormState>(
     instance
       ? {
@@ -105,12 +123,45 @@ export function InstanceDetailPanel({
       : DEFAULT_CONSULTATION_FORM
   );
 
-  const selectedService = useMemo(
-    () => serviceOptions.find((entry) => entry.id === selectedServiceId) ?? null,
-    [serviceOptions, selectedServiceId]
+  const handleSelectService = useCallback(
+    (serviceId: string | null) => {
+      onSelectService(serviceId);
+      if (!serviceId) {
+        lastMergedServiceIdForCreateRef.current = null;
+        return;
+      }
+      const svc = serviceOptions.find((entry) => entry.id === serviceId);
+      if (!svc) {
+        return;
+      }
+      lastMergedServiceIdForCreateRef.current = serviceId;
+      setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
+    },
+    [onSelectService, serviceOptions]
   );
+
+  useEffect(() => {
+    if (instance || !selectedServiceId) {
+      return;
+    }
+    const svc = serviceOptions.find((entry) => entry.id === selectedServiceId);
+    if (!svc) {
+      return;
+    }
+    if (lastMergedServiceIdForCreateRef.current === selectedServiceId) {
+      return;
+    }
+    lastMergedServiceIdForCreateRef.current = selectedServiceId;
+    queueMicrotask(() => {
+      setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
+    });
+  }, [instance, selectedServiceId, serviceOptions]);
+
+  const selectedService =
+    serviceOptions.find((entry) => entry.id === selectedServiceId) ?? null;
   const effectiveServiceType = serviceType ?? selectedService?.serviceType ?? 'training_course';
   const canSubmit = Boolean(selectedServiceId);
+  const typeFieldsLocked = !selectedServiceId;
 
   const buildCreatePayload = (): ApiSchemas['CreateInstanceRequest'] => {
     const payload: ApiSchemas['CreateInstanceRequest'] = {
@@ -221,17 +272,23 @@ export function InstanceDetailPanel({
         serviceOptions={serviceOptions}
         locationOptions={locationOptions}
         isLoadingLocations={isLoadingLocations}
-        onSelectService={onSelectService}
+        instructorOptions={instructorUsers}
+        isLoadingInstructors={isLoadingInstructors}
+        onSelectService={handleSelectService}
         onChange={setInstanceForm}
       />
       {effectiveServiceType === 'training_course' ? (
-        <TrainingFormFields value={trainingForm} onChange={setTrainingForm} />
+        <TrainingFormFields disabled={typeFieldsLocked} value={trainingForm} onChange={setTrainingForm} />
       ) : null}
       {effectiveServiceType === 'event' ? (
-        <EventFormFields value={eventForm} onChange={setEventForm} />
+        <EventFormFields disabled={typeFieldsLocked} value={eventForm} onChange={setEventForm} />
       ) : null}
       {effectiveServiceType === 'consultation' ? (
-        <ConsultationFormFields value={consultationForm} onChange={setConsultationForm} />
+        <ConsultationFormFields
+          disabled={typeFieldsLocked}
+          value={consultationForm}
+          onChange={setConsultationForm}
+        />
       ) : null}
 
       {locationError ? <p className='text-sm text-red-600'>{locationError}</p> : null}

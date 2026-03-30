@@ -8,6 +8,7 @@ import type { SessionSlot } from '@/types/services';
 
 export interface SessionSlotEditorProps {
   slots: SessionSlot[];
+  disabled?: boolean;
   onChange: (slots: SessionSlot[]) => void;
 }
 
@@ -22,7 +23,7 @@ function emptySlot(sortOrder: number): SessionSlot {
   };
 }
 
-export function SessionSlotEditor({ slots, onChange }: SessionSlotEditorProps) {
+export function SessionSlotEditor({ slots, disabled = false, onChange }: SessionSlotEditorProps) {
   return (
     <div className='space-y-2'>
       <div className='flex items-center justify-between'>
@@ -31,6 +32,7 @@ export function SessionSlotEditor({ slots, onChange }: SessionSlotEditorProps) {
           type='button'
           variant='secondary'
           size='sm'
+          disabled={disabled}
           onClick={() => onChange([...slots, emptySlot(slots.length)])}
         >
           Add slot
@@ -42,6 +44,7 @@ export function SessionSlotEditor({ slots, onChange }: SessionSlotEditorProps) {
           <div key={`${slot.id ?? 'new'}-${index}`} className='grid grid-cols-1 gap-2 rounded-md border p-3 sm:grid-cols-5'>
             <Input
               type='datetime-local'
+              disabled={disabled}
               value={(slot.startsAt ?? '').slice(0, 16)}
               onChange={(event) => {
                 const next = [...slots];
@@ -51,6 +54,7 @@ export function SessionSlotEditor({ slots, onChange }: SessionSlotEditorProps) {
             />
             <Input
               type='datetime-local'
+              disabled={disabled}
               value={(slot.endsAt ?? '').slice(0, 16)}
               onChange={(event) => {
                 const next = [...slots];
@@ -59,6 +63,7 @@ export function SessionSlotEditor({ slots, onChange }: SessionSlotEditorProps) {
               }}
             />
             <Input
+              disabled={disabled}
               value={slot.locationId ?? ''}
               onChange={(event) => {
                 const next = [...slots];
@@ -69,6 +74,7 @@ export function SessionSlotEditor({ slots, onChange }: SessionSlotEditorProps) {
             />
             <Input
               type='number'
+              disabled={disabled}
               value={slot.sortOrder ?? index}
               onChange={(event) => {
                 const next = [...slots];
@@ -79,6 +85,7 @@ export function SessionSlotEditor({ slots, onChange }: SessionSlotEditorProps) {
             <Button
               type='button'
               variant='ghost'
+              disabled={disabled}
               onClick={() => onChange(slots.filter((_, itemIndex) => itemIndex !== index))}
             >
               Remove

@@ -55,6 +55,7 @@ describe('InstanceDetailPanel', () => {
 
     expect(screen.getByLabelText('Service')).toBeInTheDocument();
     expect(screen.getByLabelText('Location')).toBeInTheDocument();
+    expect(screen.getByLabelText('Title')).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Add instance' })).not.toBeInTheDocument();
   });
 
@@ -120,5 +121,39 @@ describe('InstanceDetailPanel', () => {
     await user.selectOptions(screen.getByLabelText('Service'), 'service-2');
 
     expect(onSelectService).toHaveBeenCalledWith('service-2');
+  });
+
+  it('prefills title, description, and delivery from the selected service', async () => {
+    const user = userEvent.setup();
+    const onSelectService = vi.fn();
+
+    render(
+      <InstanceDetailPanel
+        instance={null}
+        selectedServiceId={null}
+        serviceOptions={[
+          buildServiceSummary({
+            description: 'Service body',
+            deliveryMode: 'hybrid',
+          }),
+        ]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType={null}
+        isLoading={false}
+        error=''
+        onSelectService={onSelectService}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    await user.selectOptions(screen.getByLabelText('Service'), 'service-1');
+
+    expect(onSelectService).toHaveBeenCalledWith('service-1');
+    expect(screen.getByLabelText('Title')).toHaveValue('Alpha service');
+    expect(screen.getByLabelText('Description')).toHaveValue('Service body');
+    expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
   });
 });

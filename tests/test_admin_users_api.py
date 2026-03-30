@@ -28,3 +28,32 @@ def test_handle_admin_users_rejects_non_get(api_gateway_event: Any) -> None:
         "/v1/admin/users",
     )
     assert response["statusCode"] == 405
+
+
+def test_handle_admin_instructors_dispatches_get(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    monkeypatch.setattr(
+        admin_users,
+        "_list_users_in_cognito_group",
+        lambda _event, _group: marker,
+    )
+
+    response = admin_users.handle_admin_instructors_request(
+        api_gateway_event(method="GET", path="/v1/admin/instructors"),
+        "GET",
+        "/v1/admin/instructors",
+    )
+
+    assert response is marker
+
+
+def test_handle_admin_instructors_rejects_non_get(api_gateway_event: Any) -> None:
+    response = admin_users.handle_admin_instructors_request(
+        api_gateway_event(method="POST", path="/v1/admin/instructors"),
+        "POST",
+        "/v1/admin/instructors",
+    )
+    assert response["statusCode"] == 405

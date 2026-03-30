@@ -26,7 +26,25 @@ def handle_admin_users_request(
     return _list_admin_users(event)
 
 
-def _list_admin_users(event: Mapping[str, Any]) -> dict[str, Any]:
+def handle_admin_instructors_request(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> dict[str, Any]:
+    """Handle /v1/admin/instructors routes."""
+    parts = split_route_parts(path)
+    if len(parts) != 2 or parts[0] != "admin" or parts[1] != "instructors":
+        return json_response(404, {"error": "Not found"}, event=event)
+    if method != "GET":
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+    group_name = os.getenv("INSTRUCTOR_GROUP", "instructor").strip() or "instructor"
+    return _list_users_in_cognito_group(event, group_name)
+
+
+def _list_users_in_cognito_group(
+    event: Mapping[str, Any],
+    group_name: str,
+) -> dict[str, Any]:
     user_pool_id = os.getenv("COGNITO_USER_POOL_ID")
     if not user_pool_id:
         raise ValidationError(
@@ -34,7 +52,6 @@ def _list_admin_users(event: Mapping[str, Any]) -> dict[str, Any]:
             field="COGNITO_USER_POOL_ID",
         )
 
-    group_name = os.getenv("ADMIN_GROUP", "admin").strip() or "admin"
     users: list[dict[str, Any]] = []
     next_token: str | None = None
 
@@ -64,6 +81,12 @@ def _list_admin_users(event: Mapping[str, Any]) -> dict[str, Any]:
             break
 
     return json_response(200, {"items": users}, event=event)
+
+
+def _list_admin_users(event: Mapping[str, Any]) -> dict[str, Any]:
+    """List users in the admin Cognito group."""
+    group_name = os.getenv("ADMIN_GROUP", "admin").strip() or "admin"
+    return _list_users_in_cognito_group(event, group_name)
 
 
 def _extract_cognito_attribute(attributes: Any, key: str) -> str | None:

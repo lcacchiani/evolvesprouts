@@ -702,6 +702,7 @@ export class ApiStack extends cdk.Stack {
     const userPoolGroups = [
       { name: adminGroupName, description: "Administrative users" },
       { name: "manager", description: "Manager users" },
+      { name: "instructor", description: "Instructor users" },
     ];
 
     const googleProvider = new cognito.CfnUserPoolIdentityProvider(
@@ -1246,6 +1247,7 @@ export class ApiStack extends cdk.Stack {
           evolveSproutsStripePaymentMethodConfigurationId.valueAsString,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         ADMIN_GROUP: adminGroupName,
+        INSTRUCTOR_GROUP: "instructor",
         LEGACY_PUBLIC_API_BASE_URL: legacyPublicApiBaseUrl.valueAsString,
         LEGACY_PUBLIC_API_KEY: legacyPublicApiKey.valueAsString,
       },
@@ -2610,6 +2612,12 @@ export class ApiStack extends cdk.Stack {
     // Admin users route for assignee picker
     const adminUsers = admin.addResource("users");
     adminUsers.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
+    const adminInstructors = admin.addResource("instructors");
+    adminInstructors.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });

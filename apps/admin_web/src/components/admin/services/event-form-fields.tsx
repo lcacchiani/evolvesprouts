@@ -13,16 +13,18 @@ export interface EventFormState {
 
 export interface EventFormFieldsProps {
   value: EventFormState;
+  disabled?: boolean;
   onChange: (value: EventFormState) => void;
 }
 
-export function EventFormFields({ value, onChange }: EventFormFieldsProps) {
+export function EventFormFields({ value, disabled = false, onChange }: EventFormFieldsProps) {
   return (
     <div>
       <Label htmlFor='event-category'>Event category</Label>
       <Select
         id='event-category'
         value={value.eventCategory}
+        disabled={disabled}
         onChange={(event) => onChange({ eventCategory: event.target.value as EventCategory })}
       >
         {EVENT_CATEGORIES.map((entry) => (
