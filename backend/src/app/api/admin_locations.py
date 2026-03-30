@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -69,7 +69,10 @@ def handle_admin_locations_request(
 
 def _geocode_location(event: Mapping[str, Any]) -> dict[str, Any]:
     body = parse_body(event)
-    address = _parse_address(body.get("address"), required=True)
+    address = cast(
+        str,
+        _parse_address(body.get("address"), required=True),
+    )
 
     area_id_raw = body.get("area_id")
     if area_id_raw is None:

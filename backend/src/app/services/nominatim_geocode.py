@@ -104,6 +104,10 @@ def geocode_address_with_context(
 
     lat_raw = first.get("lat")
     lon_raw = first.get("lon")
+    if not isinstance(lat_raw, (str, int, float)) or not isinstance(
+        lon_raw, (str, int, float)
+    ):
+        raise AppError("Invalid geocoding response", status_code=502)
     try:
         lat = float(lat_raw)
         lng = float(lon_raw)
