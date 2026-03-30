@@ -5,6 +5,7 @@ import { StatusBanner } from '@/components/status-banner';
 import { useServicesPage } from '@/hooks/use-services-page';
 
 import { DiscountCodesPanel } from './discount-codes-panel';
+import { VenuesPanel } from './venues-panel';
 import { EnrollmentListPanel } from './enrollment-list-panel';
 import { InstanceDetailPanel } from './instance-detail-panel';
 import { InstanceListPanel } from './instance-list-panel';
@@ -29,7 +30,8 @@ export function ServicesPage() {
     state.instanceMutations.error ||
     state.enrollmentList.error ||
     state.enrollmentMutations.error ||
-    state.discountCodes.error;
+    state.discountCodes.error ||
+    state.venues.error;
 
   return (
     <div className='space-y-4'>
@@ -180,7 +182,7 @@ export function ServicesPage() {
             }}
           />
         </>
-      ) : (
+      ) : state.activeView === 'discount-codes' ? (
         <DiscountCodesPanel
           codes={state.discountCodes.codes}
           filters={state.discountCodes.filters}
@@ -194,6 +196,23 @@ export function ServicesPage() {
           onCreate={state.discountCodes.createCode}
           onUpdate={state.discountCodes.updateCode}
           onDelete={state.discountCodes.deleteCode}
+        />
+      ) : (
+        <VenuesPanel
+          venues={state.venues.venues}
+          geographicAreas={state.venues.geographicAreas}
+          areasLoading={state.venues.areasLoading}
+          filters={state.venues.filters}
+          isLoading={state.venues.isLoading}
+          isLoadingMore={state.venues.isLoadingMore}
+          isSaving={state.venues.isSaving}
+          hasMore={state.venues.hasMore}
+          error={state.venues.error}
+          onFilterChange={state.venues.setFilter}
+          onLoadMore={state.venues.loadMore}
+          onCreate={state.venues.createVenue}
+          onUpdate={state.venues.updateVenue}
+          onDelete={state.venues.deleteVenue}
         />
       )}
     </div>

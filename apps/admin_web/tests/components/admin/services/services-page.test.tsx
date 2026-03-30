@@ -99,6 +99,24 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       updateCode: vi.fn().mockResolvedValue(null),
       deleteCode: vi.fn().mockResolvedValue(undefined),
     },
+    venues: {
+      venues: [],
+      geographicAreas: [],
+      areasLoading: false,
+      filters: { areaId: '', search: '' },
+      setFilter: vi.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      isSaving: false,
+      error: '',
+      refetch: vi.fn().mockResolvedValue(undefined),
+      loadMore: vi.fn().mockResolvedValue(undefined),
+      hasMore: false,
+      totalCount: 0,
+      createVenue: vi.fn().mockResolvedValue(null),
+      updateVenue: vi.fn().mockResolvedValue(null),
+      deleteVenue: vi.fn().mockResolvedValue(undefined),
+    },
   };
   return {
     state,
@@ -128,6 +146,8 @@ describe('ServicesPage', () => {
     expect(state.setActiveView).toHaveBeenCalledWith('events');
     await user.click(screen.getByRole('button', { name: 'Discount Codes' }));
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
+    await user.click(screen.getByRole('button', { name: 'Venues' }));
+    expect(state.setActiveView).toHaveBeenCalledWith('venues');
   });
 
   it('renders service detail before the services list', () => {

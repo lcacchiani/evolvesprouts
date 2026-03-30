@@ -8,6 +8,7 @@ export const SERVICES_TAB_ITEMS: readonly AdminTabItem<ServicesView>[] = [
   { key: 'catalog', label: 'Service Catalogue' },
   { key: 'events', label: 'Events' },
   { key: 'discount-codes', label: 'Discount Codes' },
+  { key: 'venues', label: 'Venues' },
 ] as const;
 
 export interface ServicesHeaderProps {
