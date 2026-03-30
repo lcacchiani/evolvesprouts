@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
+import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
@@ -185,11 +186,7 @@ export function ExpensesListPanel({
                 </Select>
               </div>
             </div>
-            {documentOpenError ? (
-              <p className='text-sm text-red-600' role='alert'>
-                {documentOpenError}
-              </p>
-            ) : null}
+            {documentOpenError ? <AdminInlineError>{documentOpenError}</AdminInlineError> : null}
           </div>
         }
       >
@@ -364,7 +361,7 @@ export function ExpensesListPanel({
             rows={3}
             placeholder='Required'
           />
-          {voidError ? <p className='text-sm text-red-600'>{voidError}</p> : null}
+          {voidError ? <AdminInlineError>{voidError}</AdminInlineError> : null}
         </div>
       </ConfirmDialog>
     </>

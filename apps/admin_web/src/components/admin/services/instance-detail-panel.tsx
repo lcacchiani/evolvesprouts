@@ -23,6 +23,7 @@ import type {
 
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
+import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 
 type ApiSchemas = components['schemas'];
@@ -314,8 +315,8 @@ export function InstanceDetailPanel({
         />
       ) : null}
 
-      {locationError ? <p className='text-sm text-red-600'>{locationError}</p> : null}
-      {error ? <p className='text-sm text-red-600'>{error}</p> : null}
+      {locationError ? <AdminInlineError>{locationError}</AdminInlineError> : null}
+      {error ? <AdminInlineError>{error}</AdminInlineError> : null}
     </AdminEditorCard>
   );
 }

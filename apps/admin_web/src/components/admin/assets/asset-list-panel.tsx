@@ -18,6 +18,7 @@ import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/compon
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
+import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
@@ -156,11 +157,7 @@ export function AssetListPanel({
                 </Select>
               </div>
             </div>
-            {viewAssetError ? (
-              <p className='text-sm text-red-600' role='alert'>
-                {viewAssetError}
-              </p>
-            ) : null}
+            {viewAssetError ? <AdminInlineError>{viewAssetError}</AdminInlineError> : null}
           </div>
         }
       >
