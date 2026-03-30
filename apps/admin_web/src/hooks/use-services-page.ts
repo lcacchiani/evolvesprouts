@@ -12,7 +12,7 @@ import { useServiceDetail } from './use-service-detail';
 import { useServiceList } from './use-service-list';
 import { useServiceMutations } from './use-service-mutations';
 
-export type ServicesView = 'catalog' | 'discount-codes';
+export type ServicesView = 'catalog' | 'events' | 'discount-codes';
 
 export function useServicesPage() {
   const [activeView, setActiveView] = useState<ServicesView>('catalog');
