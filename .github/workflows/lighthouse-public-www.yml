@@ -2,6 +2,11 @@ name: Lighthouse Public Website
 
 on:
   workflow_dispatch:
+    inputs:
+      page_paths:
+        description: 'Comma/newline-separated page paths or full URLs to audit (e.g. /en/, /en/about-us)'
+        required: false
+        default: '/en/,/zh-CN/,/zh-HK/'
 
 permissions:
   contents: read
@@ -61,7 +66,43 @@ jobs:
 
       - name: Run Lighthouse CI
         working-directory: apps/public_www
-        run: npm run lighthouse:ci
+        env:
+          LIGHTHOUSE_PAGE_PATHS: ${{ inputs.page_paths }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const baseConfigPath = path.resolve('.lighthouserc.json');
+          const runtimeConfigPath = path.resolve('.lighthouserc.runtime.json');
+          const rawInput = (process.env.LIGHTHOUSE_PAGE_PATHS ?? '').trim();
+          const defaultTargets = ['/en/', '/zh-CN/', '/zh-HK/'];
+          const requestedTargets = (rawInput ? rawInput.split(/[\n,]+/) : defaultTargets)
+            .map((value) => value.trim())
+            .filter(Boolean);
+
+          const normalizedUrls = requestedTargets.map((target) => {
+            if (/^https?:\/\//i.test(target)) {
+              return target;
+            }
+
+            const normalizedPath = target.startsWith('/') ? target : `/${target}`;
+            return `http://localhost:9000${normalizedPath}`;
+          });
+
+          const config = JSON.parse(fs.readFileSync(baseConfigPath, 'utf8'));
+          config.ci = config.ci ?? {};
+          config.ci.collect = config.ci.collect ?? {};
+          config.ci.collect.url = normalizedUrls;
+
+          fs.writeFileSync(runtimeConfigPath, `${JSON.stringify(config, null, 2)}\n`);
+          console.log('Lighthouse targets:');
+          for (const url of normalizedUrls) {
+            console.log(`- ${url}`);
+          }
+          NODE
+
+          npx lhci autorun --config=.lighthouserc.runtime.json
 
       - name: Upload Lighthouse artifacts
         if: always()
