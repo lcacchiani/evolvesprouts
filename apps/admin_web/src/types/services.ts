@@ -123,6 +123,28 @@ export interface LocationSummary {
   updatedAt: string | null;
 }
 
+export type GeographicAreaLevel = ApiSchemas['GeographicArea']['level'];
+
+export interface GeographicAreaSummary {
+  id: string;
+  parentId: string | null;
+  name: string;
+  level: GeographicAreaLevel;
+  code: string | null;
+  active: boolean;
+  displayOrder: number;
+}
+
+export interface VenueFilters {
+  areaId: string;
+  search: string;
+}
+
+export const DEFAULT_VENUE_FILTERS: VenueFilters = {
+  areaId: '',
+  search: '',
+};
+
 export interface EventTicketTier {
   id: string | null;
   instanceId: string | null;

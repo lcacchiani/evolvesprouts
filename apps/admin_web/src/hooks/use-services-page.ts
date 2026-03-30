@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { useDiscountCodes } from './use-discount-codes';
+import { useVenues } from './use-venues';
 import { useEnrollmentList } from './use-enrollment-list';
 import { useEnrollmentMutations } from './use-enrollment-mutations';
 import { useInstanceList } from './use-instance-list';
@@ -12,7 +13,7 @@ import { useServiceDetail } from './use-service-detail';
 import { useServiceList } from './use-service-list';
 import { useServiceMutations } from './use-service-mutations';
 
-export type ServicesView = 'catalog' | 'discount-codes';
+export type ServicesView = 'catalog' | 'discount-codes' | 'venues';
 
 export function useServicesPage() {
   const [activeView, setActiveView] = useState<ServicesView>('catalog');
@@ -32,6 +33,11 @@ export function useServicesPage() {
   const enrollmentList = useEnrollmentList(selectedServiceId, selectedInstanceId);
   const locationList = useLocationList();
   const discountCodes = useDiscountCodes();
+  const venues = useVenues({
+    onMutationSuccess: async () => {
+      await locationList.refetch();
+    },
+  });
 
   const serviceMutations = useServiceMutations({
     onSuccess: async (serviceId) => {
@@ -91,5 +97,6 @@ export function useServicesPage() {
     enrollmentMutations,
     locationList,
     discountCodes,
+    venues,
   };
 }

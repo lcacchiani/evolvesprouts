@@ -603,6 +603,8 @@ export interface paths {
                     limit?: number;
                     cursor?: string;
                     area_id?: string;
+                    /** @description Case-insensitive substring match on address. */
+                    search?: string;
                 };
                 header?: never;
                 path?: never;
@@ -3104,6 +3106,8 @@ export interface components {
         LocationListResponse: {
             items: components["schemas"]["Location"][];
             next_cursor?: string | null;
+            /** @description Total number of locations matching the current filters (not page size). */
+            total_count: number;
         };
         CreateLocationRequest: {
             /** Format: uuid */

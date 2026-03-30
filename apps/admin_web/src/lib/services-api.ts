@@ -9,12 +9,14 @@ import type {
   Enrollment,
   EnrollmentListFilters,
   EventTicketTier,
+  GeographicAreaSummary,
   LocationSummary,
   ServiceDetail,
   ServiceInstance,
   ServiceListFilters,
   ServiceSummary,
   SessionSlot,
+  VenueFilters,
 } from '@/types/services';
 
 type ApiSchemas = components['schemas'];
@@ -38,6 +40,10 @@ type ApiCreateDiscountCodeRequest = ApiSchemas['CreateDiscountCodeRequest'];
 type ApiUpdateDiscountCodeRequest = ApiSchemas['UpdateDiscountCodeRequest'];
 type ApiCreateCoverImageUploadRequest = ApiSchemas['CreateServiceCoverImageUploadRequest'];
 type ApiLocationListResponse = ApiSchemas['LocationListResponse'];
+type ApiLocationResponse = ApiSchemas['LocationResponse'];
+type ApiGeographicAreaListResponse = ApiSchemas['GeographicAreaListResponse'];
+type ApiCreateLocationRequest = ApiSchemas['CreateLocationRequest'];
+type ApiUpdateLocationRequest = ApiSchemas['UpdateLocationRequest'];
 
 function parseSessionSlot(value: unknown): SessionSlot {
   const item = isRecord(value) ? value : {};
@@ -75,6 +81,19 @@ function parseLocationSummary(value: unknown): LocationSummary {
     lng: typeof item.lng === 'number' ? item.lng : null,
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
+  };
+}
+
+function parseGeographicAreaSummary(value: unknown): GeographicAreaSummary {
+  const item = isRecord(value) ? value : {};
+  return {
+    id: asNullableString(item.id) ?? '',
+    parentId: asNullableString(item.parent_id),
+    name: asNullableString(item.name) ?? '',
+    level: (asNullableString(item.level) ?? 'district') as GeographicAreaSummary['level'],
+    code: asNullableString(item.code),
+    active: asBoolean(item.active, true),
+    displayOrder: asNumber(item.display_order, 0),
   };
 }
 
@@ -268,14 +287,32 @@ function buildServiceListQuery(params: Partial<ServiceListFilters> & { cursor?: 
   return queryString ? `?${queryString}` : '';
 }
 
-export async function listLocations(
-  params: { cursor?: string | null; limit?: number; areaId?: string },
+export async function listGeographicAreas(
+  params: { flat?: boolean; activeOnly?: boolean } = {},
   signal?: AbortSignal
-): Promise<{ items: LocationSummary[]; nextCursor: string | null }> {
+): Promise<GeographicAreaSummary[]> {
+  const query = new URLSearchParams();
+  if (params.flat) query.set('flat', 'true');
+  if (params.activeOnly === false) query.set('active_only', 'false');
+  const queryString = query.toString();
+  const payload = await adminApiRequest<ApiGeographicAreaListResponse>({
+    endpointPath: `/v1/admin/geographic-areas${queryString ? `?${queryString}` : ''}`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((entry) => parseGeographicAreaSummary(entry)) : [];
+}
+
+export async function listLocations(
+  params: Partial<VenueFilters> & { cursor?: string | null; limit?: number },
+  signal?: AbortSignal
+): Promise<{ items: LocationSummary[]; nextCursor: string | null; totalCount: number }> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
   if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
   if (params.areaId) query.set('area_id', params.areaId);
+  if (params.search?.trim()) query.set('search', params.search.trim());
   const queryString = query.toString();
 
   const payload = await adminApiRequest<ApiLocationListResponse>({
@@ -287,6 +324,7 @@ export async function listLocations(
   return {
     items: Array.isArray(root.items) ? root.items.map((entry) => parseLocationSummary(entry)) : [],
     nextCursor: asNullableString(root.next_cursor),
+    totalCount: asNumber(root.total_count, 0),
   };
 }
 
@@ -305,6 +343,38 @@ export async function listAllLocations(signal?: AbortSignal): Promise<LocationSu
     cursor = page.nextCursor;
   } while (cursor);
   return all;
+}
+
+export async function createLocation(body: ApiCreateLocationRequest): Promise<LocationSummary | null> {
+  const payload = await adminApiRequest<ApiLocationResponse>({
+    endpointPath: '/v1/admin/locations',
+    method: 'POST',
+    body,
+    expectedSuccessStatuses: [200, 201],
+  });
+  const root = unwrapPayload(payload);
+  return root.location ? parseLocationSummary(root.location) : null;
+}
+
+export async function updateLocation(
+  id: string,
+  body: ApiUpdateLocationRequest
+): Promise<LocationSummary | null> {
+  const payload = await adminApiRequest<ApiLocationResponse>({
+    endpointPath: `/v1/admin/locations/${id}`,
+    method: 'PUT',
+    body,
+  });
+  const root = unwrapPayload(payload);
+  return root.location ? parseLocationSummary(root.location) : null;
+}
+
+export async function deleteLocation(id: string): Promise<void> {
+  await adminApiRequest({
+    endpointPath: `/v1/admin/locations/${id}`,
+    method: 'DELETE',
+    expectedSuccessStatuses: [200, 204],
+  });
 }
 
 export async function listServices(
