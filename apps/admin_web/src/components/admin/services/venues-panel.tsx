@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/components/ui/admin-data-table';
@@ -12,7 +12,10 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { toErrorMessage } from '@/hooks/hook-errors';
 import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
+import { AdminApiError } from '@/lib/api-admin-client';
+import { geocodeVenueAddress } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import type { GeographicAreaSummary, LocationSummary, VenueFilters } from '@/types/services';
@@ -69,6 +72,8 @@ export function VenuesPanel({
   const [address, setAddress] = useState('');
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
+  const [geocodeError, setGeocodeError] = useState('');
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   const areaOptions = useMemo(() => {
     return [...geographicAreas].sort((a, b) => {
@@ -106,6 +111,10 @@ export function VenuesPanel({
     !coordinatesInvalid &&
     !onlyOneCoordinate;
 
+  useEffect(() => {
+    setGeocodeError('');
+  }, [address, areaId, selectedVenueId]);
+
   const resetCreateForm = () => {
     setEditorMode('create');
     setSelectedVenueId(null);
@@ -114,6 +123,32 @@ export function VenuesPanel({
     setAddress('');
     setLat('');
     setLng('');
+    setGeocodeError('');
+  };
+
+  const fillCoordinatesFromAddress = async () => {
+    const trimmedAddress = address.trim();
+    if (!areaId || !trimmedAddress || !areasReady) {
+      return;
+    }
+    setGeocodeError('');
+    setIsGeocoding(true);
+    try {
+      const result = await geocodeVenueAddress({
+        area_id: areaId,
+        address: trimmedAddress,
+      });
+      setLat(String(result.lat));
+      setLng(String(result.lng));
+    } catch (error) {
+      const fallback =
+        error instanceof AdminApiError && error.statusCode === 404
+          ? 'Geocoding is not available in this environment yet.'
+          : 'Geocoding failed. Check the address and geographic area, then try again.';
+      setGeocodeError(toErrorMessage(error, fallback));
+    } finally {
+      setIsGeocoding(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -240,6 +275,23 @@ export function VenuesPanel({
                 disabled={isSaving}
               />
             </div>
+          </div>
+          <div className='flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center'>
+            <Button
+              type='button'
+              variant='secondary'
+              disabled={
+                isSaving ||
+                isGeocoding ||
+                !areasReady ||
+                !areaId ||
+                !address.trim()
+              }
+              onClick={() => void fillCoordinatesFromAddress()}
+            >
+              {isGeocoding ? 'Looking up…' : 'Fill coordinates from address'}
+            </Button>
+            {geocodeError ? <p className='text-sm text-red-600'>{geocodeError}</p> : null}
           </div>
           <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
             <div>

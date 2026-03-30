@@ -661,6 +661,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/locations/geocode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Geocode a venue address
+         * @description Resolves latitude and longitude using OpenStreetMap Nominatim via the
+         *     AWS HTTP proxy. The server combines the submitted address with the
+         *     geographic area hierarchy (and country code when present) to bias results.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GeocodeLocationRequest"];
+                };
+            };
+            responses: {
+                /** @description Geocoding result. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GeocodeLocationResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Geocoding provider or proxy error. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Geocoding is not configured (for example missing proxy or headers). */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/locations/{id}": {
         parameters: {
             query?: never;
@@ -3109,6 +3175,19 @@ export interface components {
             next_cursor?: string | null;
             /** @description Total number of locations matching the current filters (not page size). */
             total_count: number;
+        };
+        GeocodeLocationRequest: {
+            /** Format: uuid */
+            area_id: string;
+            address: string;
+        };
+        GeocodeLocationResponse: {
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lng: number;
+            /** @description Provider-resolved label for the top match. */
+            display_name?: string | null;
         };
         CreateLocationRequest: {
             /** Format: uuid */
