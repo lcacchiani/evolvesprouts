@@ -2733,6 +2733,8 @@ export interface components {
             created_at?: string | null;
             /** Format: date-time */
             updated_at?: string | null;
+            /** @description Present for training_course rows when details exist. */
+            training_details?: components["schemas"]["ServiceTrainingDetails"] | null;
         };
         Service: components["schemas"]["ServiceSummary"] & {
             tag_ids?: string[];

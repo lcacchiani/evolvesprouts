@@ -14,7 +14,12 @@ import { InstanceFormFields, type InstanceFormState } from './instance-form-fiel
 import { TrainingFormFields, type TrainingFormState } from './training-form-fields';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import type { LocationSummary, ServiceInstance, ServiceSummary, ServiceType } from '@/types/services';
+import type {
+  LocationSummary,
+  ServiceInstance,
+  ServiceSummary,
+  ServiceType,
+} from '@/types/services';
 
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +56,22 @@ function mergeServiceIntoInstanceForm(
     title: service.title,
     description: service.description ?? '',
     deliveryMode: service.deliveryMode,
+  };
+}
+
+function mergeServiceIntoTrainingForm(
+  prev: TrainingFormState,
+  service: ServiceSummary
+): TrainingFormState {
+  if (service.serviceType !== 'training_course' || !service.trainingDetails) {
+    return prev;
+  }
+  const td = service.trainingDetails;
+  return {
+    ...prev,
+    pricingUnit: td.pricingUnit,
+    defaultPrice: td.defaultPrice ?? '',
+    defaultCurrency: td.defaultCurrency ?? 'HKD',
   };
 }
 
@@ -136,6 +157,7 @@ export function InstanceDetailPanel({
       }
       lastMergedServiceIdForCreateRef.current = serviceId;
       setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
+      setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
     },
     [onSelectService, serviceOptions]
   );
@@ -154,6 +176,7 @@ export function InstanceDetailPanel({
     lastMergedServiceIdForCreateRef.current = selectedServiceId;
     queueMicrotask(() => {
       setInstanceForm((prev) => mergeServiceIntoInstanceForm(prev, svc));
+      setTrainingForm((prev) => mergeServiceIntoTrainingForm(prev, svc));
     });
   }, [instance, selectedServiceId, serviceOptions]);
 
