@@ -36,6 +36,11 @@ describe('services-api', () => {
             created_by: 'admin-1',
             created_at: '2026-03-01T00:00:00.000Z',
             updated_at: '2026-03-01T00:00:00.000Z',
+            training_details: {
+              pricing_unit: 'per_family',
+              default_price: '120.50',
+              default_currency: 'HKD',
+            },
           },
         ],
         next_cursor: 'cursor-1',
@@ -58,6 +63,11 @@ describe('services-api', () => {
       serviceType: 'training_course',
       deliveryMode: 'online',
       status: 'draft',
+      trainingDetails: {
+        pricingUnit: 'per_family',
+        defaultPrice: '120.50',
+        defaultCurrency: 'HKD',
+      },
     });
 
     expect(mockAdminApiRequest).toHaveBeenCalledWith(

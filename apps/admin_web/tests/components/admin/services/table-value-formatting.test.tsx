@@ -19,6 +19,7 @@ const SERVICE_FIXTURE: ServiceSummary = {
   createdBy: 'admin-sub',
   createdAt: '2026-03-01T10:00:00Z',
   updatedAt: '2026-03-01T10:00:00Z',
+  trainingDetails: null,
 };
 
 const INSTANCE_FIXTURE: ServiceInstance = {

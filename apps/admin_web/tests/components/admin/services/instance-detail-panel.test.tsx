@@ -17,6 +17,7 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
     createdBy: 'admin-sub',
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
+    trainingDetails: null,
     ...overrides,
   };
 }
@@ -123,7 +124,7 @@ describe('InstanceDetailPanel', () => {
     expect(onSelectService).toHaveBeenCalledWith('service-2');
   });
 
-  it('prefills title, description, and delivery from the selected service', async () => {
+  it('prefills title, description, delivery, and training pricing from the selected service', async () => {
     const user = userEvent.setup();
     const onSelectService = vi.fn();
 
@@ -135,6 +136,11 @@ describe('InstanceDetailPanel', () => {
           buildServiceSummary({
             description: 'Service body',
             deliveryMode: 'hybrid',
+            trainingDetails: {
+              pricingUnit: 'per_family',
+              defaultPrice: '199.00',
+              defaultCurrency: 'USD',
+            },
           }),
         ]}
         locationOptions={[buildLocationSummary()]}
@@ -155,5 +161,8 @@ describe('InstanceDetailPanel', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('Alpha service');
     expect(screen.getByLabelText('Description')).toHaveValue('Service body');
     expect(screen.getByLabelText('Delivery mode')).toHaveValue('hybrid');
+    expect(screen.getByLabelText('Pricing unit')).toHaveValue('per_family');
+    expect(screen.getByLabelText('Default price')).toHaveValue('199.00');
+    expect(screen.getByLabelText('Currency')).toHaveValue('USD');
   });
 });

@@ -72,6 +72,11 @@ export interface ServiceSummary {
   createdBy: string;
   createdAt: string | null;
   updatedAt: string | null;
+  trainingDetails: {
+    pricingUnit: TrainingPricingUnit;
+    defaultPrice: string | null;
+    defaultCurrency: string | null;
+  } | null;
 }
 
 export interface ServiceDetail extends ServiceSummary {

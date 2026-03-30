@@ -80,6 +80,7 @@ function parseLocationSummary(value: unknown): LocationSummary {
 
 function parseServiceSummary(value: unknown): ServiceSummary {
   const item = isRecord(value) ? value : {};
+  const trainingRaw = isRecord(item.training_details) ? item.training_details : null;
   return {
     id: asNullableString(item.id) ?? '',
     serviceType: (asNullableString(item.service_type) ?? 'training_course') as ServiceSummary['serviceType'],
@@ -91,6 +92,14 @@ function parseServiceSummary(value: unknown): ServiceSummary {
     createdBy: asNullableString(item.created_by) ?? '',
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
+    trainingDetails: trainingRaw
+      ? {
+          pricingUnit: (asNullableString(trainingRaw.pricing_unit) ??
+            'per_person') as NonNullable<ServiceSummary['trainingDetails']>['pricingUnit'],
+          defaultPrice: asNullableString(trainingRaw.default_price),
+          defaultCurrency: asNullableString(trainingRaw.default_currency),
+        }
+      : null,
   };
 }
 
