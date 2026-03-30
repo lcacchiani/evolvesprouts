@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 
 import { INSTANCE_STATUSES, SERVICE_DELIVERY_MODES } from '@/types/services';
 import type { InstanceStatus, LocationSummary, ServiceDeliveryMode, ServiceSummary } from '@/types/services';
@@ -42,10 +42,6 @@ export interface InstanceFormFieldsProps {
   isLoadingInstructors?: boolean;
   onSelectService?: (serviceId: string | null) => void;
   onChange: (value: InstanceFormState) => void;
-}
-
-function getLocationLabel(location: LocationSummary): string {
-  return location.address?.trim() ? location.address : location.id;
 }
 
 function getInstructorOptionLabel(entry: InstanceInstructorOption): string {
@@ -180,7 +176,7 @@ export function InstanceFormFields({
               ) : null}
               {locationOptions.map((location) => (
                 <option key={location.id} value={location.id}>
-                  {getLocationLabel(location)}
+                  {formatLocationLabel(location)}
                 </option>
               ))}
             </Select>
@@ -256,6 +252,8 @@ export function InstanceFormFields({
       <SessionSlotEditor
         slots={value.sessionSlots}
         disabled={instanceFieldsLocked}
+        locationOptions={locationOptions}
+        isLoadingLocations={isLoadingLocations}
         onChange={(sessionSlots) => onChange({ ...value, sessionSlots })}
       />
     </div>

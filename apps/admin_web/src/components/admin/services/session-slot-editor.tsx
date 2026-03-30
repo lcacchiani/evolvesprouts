@@ -4,12 +4,16 @@ import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
+import { formatLocationLabel } from '@/lib/format';
 
-import type { SessionSlot } from '@/types/services';
+import type { LocationSummary, SessionSlot } from '@/types/services';
 
 export interface SessionSlotEditorProps {
   slots: SessionSlot[];
   disabled?: boolean;
+  locationOptions?: LocationSummary[];
+  isLoadingLocations?: boolean;
   onChange: (slots: SessionSlot[]) => void;
 }
 
@@ -24,7 +28,15 @@ function emptySlot(sortOrder: number): SessionSlot {
   };
 }
 
-export function SessionSlotEditor({ slots, disabled = false, onChange }: SessionSlotEditorProps) {
+export function SessionSlotEditor({
+  slots,
+  disabled = false,
+  locationOptions = [],
+  isLoadingLocations = false,
+  onChange,
+}: SessionSlotEditorProps) {
+  const hasLocationOptions = locationOptions.length > 0;
+
   return (
     <div className='space-y-2'>
       <div className='flex items-center justify-between'>
@@ -82,17 +94,43 @@ export function SessionSlotEditor({ slots, disabled = false, onChange }: Session
               <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-location`}>
                 Location
               </Label>
-              <Input
-                id={`slot-${index}-location`}
-                disabled={disabled}
-                value={slot.locationId ?? ''}
-                onChange={(event) => {
-                  const next = [...slots];
-                  next[index] = { ...slot, locationId: event.target.value || null };
-                  onChange(next);
-                }}
-                placeholder='Location UUID'
-              />
+              {hasLocationOptions || isLoadingLocations ? (
+                <Select
+                  id={`slot-${index}-location`}
+                  disabled={disabled}
+                  value={slot.locationId ?? ''}
+                  onChange={(event) => {
+                    const next = [...slots];
+                    next[index] = { ...slot, locationId: event.target.value || null };
+                    onChange(next);
+                  }}
+                >
+                  <option value=''>
+                    {isLoadingLocations ? 'Loading locations...' : 'None'}
+                  </option>
+                  {slot.locationId &&
+                  !locationOptions.some((loc) => loc.id === slot.locationId) ? (
+                    <option value={slot.locationId}>{slot.locationId}</option>
+                  ) : null}
+                  {locationOptions.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {formatLocationLabel(location)}
+                    </option>
+                  ))}
+                </Select>
+              ) : (
+                <Input
+                  id={`slot-${index}-location`}
+                  disabled={disabled}
+                  value={slot.locationId ?? ''}
+                  onChange={(event) => {
+                    const next = [...slots];
+                    next[index] = { ...slot, locationId: event.target.value || null };
+                    onChange(next);
+                  }}
+                  placeholder='Location UUID'
+                />
+              )}
             </div>
             <div className='space-y-1'>
               <Label className='text-xs font-medium text-slate-600' htmlFor={`slot-${index}-sort`}>

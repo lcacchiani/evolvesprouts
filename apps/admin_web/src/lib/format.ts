@@ -1,5 +1,19 @@
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
+import type { LocationSummary } from '@/types/services';
+
+/** Short user-visible label for a location (venue name, address, or id). */
+export function formatLocationLabel(location: LocationSummary): string {
+  const name = location.name?.trim();
+  if (name) {
+    return name;
+  }
+  const address = location.address?.trim();
+  if (address) {
+    return address;
+  }
+  return location.id;
+}
 
 export function toTitleCase(value: string): string {
   return value

@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Location
@@ -48,9 +48,13 @@ class LocationRepository(BaseRepository[Location]):
             query = query.where(Location.area_id == area_id)
         if search and search.strip():
             pattern = f"%{_escape_ilike_pattern(search.strip())}%"
-            query = query.where(Location.address.isnot(None)).where(
-                Location.address.ilike(pattern, escape="\\")
+            name_match = Location.name.isnot(None) & Location.name.ilike(
+                pattern, escape="\\"
             )
+            address_match = Location.address.isnot(None) & Location.address.ilike(
+                pattern, escape="\\"
+            )
+            query = query.where(or_(name_match, address_match))
         return self._session.execute(query.limit(limit)).scalars().all()
 
     def count_with_filters(
@@ -65,9 +69,13 @@ class LocationRepository(BaseRepository[Location]):
             query = query.where(Location.area_id == area_id)
         if search and search.strip():
             pattern = f"%{_escape_ilike_pattern(search.strip())}%"
-            query = query.where(Location.address.isnot(None)).where(
-                Location.address.ilike(pattern, escape="\\")
+            name_match = Location.name.isnot(None) & Location.name.ilike(
+                pattern, escape="\\"
             )
+            address_match = Location.address.isnot(None) & Location.address.ilike(
+                pattern, escape="\\"
+            )
+            query = query.where(or_(name_match, address_match))
         return int(self._session.execute(query).scalar_one())
 
     def find_by_address_case_insensitive(

@@ -279,6 +279,7 @@ and organizations.
 
 Columns:
 - `id` (UUID, PK, default `gen_random_uuid()`)
+- `name` (text, nullable) — display label for the venue/location
 - `area_id` (UUID, FK → geographic_areas.id, required)
 - `address` (text, nullable)
 - `lat` (numeric(9,6), nullable)

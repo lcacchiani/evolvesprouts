@@ -25,6 +25,7 @@ function buildServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSu
 function buildLocationSummary(overrides: Partial<LocationSummary> = {}): LocationSummary {
   return {
     id: 'location-1',
+    name: null,
     areaId: 'area-1',
     address: 'Central Studio',
     lat: null,

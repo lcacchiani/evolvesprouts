@@ -15,7 +15,11 @@ from app.api.admin_request import (
     parse_uuid,
     query_param,
 )
-from app.api.admin_validators import MAX_ADDRESS_LENGTH, validate_string_length
+from app.api.admin_validators import (
+    MAX_ADDRESS_LENGTH,
+    MAX_NAME_LENGTH,
+    validate_string_length,
+)
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
@@ -105,6 +109,7 @@ def _create_location(event: Mapping[str, Any]) -> dict[str, Any]:
     if area_id_raw is None:
         raise ValidationError("area_id is required", field="area_id")
     area_id = parse_uuid(str(area_id_raw))
+    name = _parse_name(body.get("name"), required=False)
     address = _parse_address(body.get("address"), required=False)
     lat = _parse_optional_float(body.get("lat"), field="lat")
     lng = _parse_optional_float(body.get("lng"), field="lng")
@@ -123,6 +128,7 @@ def _create_location(event: Mapping[str, Any]) -> dict[str, Any]:
         location_repo = LocationRepository(session)
         location = Location(
             area_id=area_id,
+            name=name,
             address=address,
             lat=lat,
             lng=lng,
@@ -181,6 +187,9 @@ def _update_location(
                 raise ValidationError("area_id not found", field="area_id")
             location.area_id = area_id  # type: ignore[assignment]
 
+        if "name" in body:
+            location.name = _parse_name(body.get("name"), required=False)
+
         if "address" in body:
             location.address = _parse_address(body.get("address"), required=False)
 
@@ -221,6 +230,7 @@ def _delete_location(event: Mapping[str, Any], location_id: UUID) -> dict[str, A
 def _serialize_location(location: Location) -> dict[str, Any]:
     return {
         "id": str(location.id),
+        "name": location.name,
         "area_id": str(location.area_id),
         "address": location.address,
         "lat": location.lat,
@@ -250,6 +260,15 @@ def _parse_optional_uuid(value: str | None, *, field: str) -> UUID | None:
         return parse_uuid(value.strip())
     except ValidationError as exc:
         raise ValidationError(exc.message, field=field) from exc
+
+
+def _parse_name(value: Any, *, required: bool) -> str | None:
+    return validate_string_length(
+        value,
+        "name",
+        max_length=MAX_NAME_LENGTH,
+        required=required,
+    )
 
 
 def _parse_address(value: Any, *, required: bool) -> str | None:

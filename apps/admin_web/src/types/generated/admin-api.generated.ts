@@ -603,7 +603,7 @@ export interface paths {
                     limit?: number;
                     cursor?: string;
                     area_id?: string;
-                    /** @description Case-insensitive substring match on address. */
+                    /** @description Case-insensitive substring match on location name or address. */
                     search?: string;
                 };
                 header?: never;
@@ -3088,6 +3088,7 @@ export interface components {
         Location: {
             /** Format: uuid */
             id: string;
+            name?: string | null;
             /** Format: uuid */
             area_id: string;
             address?: string | null;
@@ -3112,6 +3113,7 @@ export interface components {
         CreateLocationRequest: {
             /** Format: uuid */
             area_id: string;
+            name?: string | null;
             address?: string | null;
             /** Format: double */
             lat?: number | null;
@@ -3122,6 +3124,7 @@ export interface components {
         PartialUpdateLocationRequest: {
             /** Format: uuid */
             area_id?: string;
+            name?: string | null;
             address?: string | null;
             /** Format: double */
             lat?: number | null;
