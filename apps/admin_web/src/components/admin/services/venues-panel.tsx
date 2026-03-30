@@ -7,6 +7,7 @@ import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/compon
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
+import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
@@ -216,6 +217,20 @@ export function VenuesPanel({
         description='Create a venue or select a row below to update. Geographic area is required.'
         actions={
           <>
+            <Button
+              type='button'
+              variant='secondary'
+              disabled={
+                isSaving ||
+                isGeocoding ||
+                !areasReady ||
+                !areaId ||
+                !address.trim()
+              }
+              onClick={() => void fillCoordinatesFromAddress()}
+            >
+              {isGeocoding ? 'Looking up…' : 'Fill coordinates from address'}
+            </Button>
             {editorMode === 'edit' ? (
               <Button type='button' variant='secondary' onClick={resetCreateForm} disabled={isSaving}>
                 Cancel
@@ -276,23 +291,6 @@ export function VenuesPanel({
               />
             </div>
           </div>
-          <div className='flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center'>
-            <Button
-              type='button'
-              variant='secondary'
-              disabled={
-                isSaving ||
-                isGeocoding ||
-                !areasReady ||
-                !areaId ||
-                !address.trim()
-              }
-              onClick={() => void fillCoordinatesFromAddress()}
-            >
-              {isGeocoding ? 'Looking up…' : 'Fill coordinates from address'}
-            </Button>
-            {geocodeError ? <p className='text-sm text-red-600'>{geocodeError}</p> : null}
-          </div>
           <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
             <div>
               <Label htmlFor='venue-lat'>Latitude</Label>
@@ -315,16 +313,17 @@ export function VenuesPanel({
               />
             </div>
           </div>
+          {geocodeError ? <AdminInlineError>{geocodeError}</AdminInlineError> : null}
           {(latParseError || lngParseError) ? (
-            <p className='text-sm text-red-600'>Latitude and longitude must be valid numbers.</p>
+            <AdminInlineError>Latitude and longitude must be valid numbers.</AdminInlineError>
           ) : null}
           {onlyOneCoordinate ? (
-            <p className='text-sm text-red-600'>Provide both latitude and longitude, or leave both empty.</p>
+            <AdminInlineError>Provide both latitude and longitude, or leave both empty.</AdminInlineError>
           ) : null}
           {(latRangeError || lngRangeError) ? (
-            <p className='text-sm text-red-600'>
+            <AdminInlineError>
               Latitude must be between -90 and 90; longitude between -180 and 180.
-            </p>
+            </AdminInlineError>
           ) : null}
         </form>
       </AdminEditorCard>

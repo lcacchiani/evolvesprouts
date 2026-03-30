@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
+import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -238,7 +239,7 @@ export function ServiceDetailPanel({
         </div>
       ) : null}
 
-      {error ? <p className='text-sm text-red-600'>{error}</p> : null}
+      {error ? <AdminInlineError>{error}</AdminInlineError> : null}
     </AdminEditorCard>
   );
 }

@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react';
 
+import { StatusBanner } from '@/components/status-banner';
+
 import { Button } from './button';
 import { Card } from './card';
 
@@ -33,7 +35,13 @@ export function PaginatedTableCard({
   return (
     <Card title={title} description={description}>
       {toolbar}
-      {error ? <p className='mb-2 text-sm text-red-600'>{error}</p> : null}
+      {error ? (
+        <div className='mb-2'>
+          <StatusBanner variant='error' title={title}>
+            {error}
+          </StatusBanner>
+        </div>
+      ) : null}
       <div className='overflow-x-auto'>
         {children}
       </div>
