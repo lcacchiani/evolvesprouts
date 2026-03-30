@@ -73,7 +73,7 @@ export function InstanceFormFields({
             <Select
               id='instance-service-id'
               value={serviceId && serviceExists ? serviceId : ''}
-              onChange={(event) => onSelectService(event.target.value || null)}
+              onChange={(event) => onSelectService?.(event.target.value || null)}
             >
               <option value=''>Select service</option>
               {serviceId && !serviceExists ? (
