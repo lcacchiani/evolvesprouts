@@ -27,7 +27,12 @@ depends_on: Union[str, tuple[str, ...], None] = None
 def upgrade() -> None:
     op.add_column(
         "locations",
-        sa.Column("name", sa.Text(), nullable=True, comment="Display label for the venue/location"),
+        sa.Column(
+            "name",
+            sa.Text(),
+            nullable=True,
+            comment="Display label for the venue/location",
+        ),
     )
 
 
