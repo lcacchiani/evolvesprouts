@@ -30,7 +30,9 @@ their primary responsibilities.
   `/v1/legacy/discounts/validate`,
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
-  `/v1/admin/locations/*`, `/v1/admin/assets/*`,
+  `/v1/admin/locations/*` (including `POST /v1/admin/locations/geocode` for
+  Nominatim-backed address geocoding via `AwsApiProxyFunction`),
+  `/v1/admin/assets/*`,
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `/v1/admin/services/*`, `/v1/admin/discount-codes/*`,
   `/v1/admin/vendors/*`,
@@ -45,6 +47,8 @@ their primary responsibilities.
   filters and accepts `tag_name` for any tag linked to assets in the requested
   `asset_type` scope; create/update accept optional `client_tag` for the
   `client_document` tag, forbidden when the asset is expense-linked), geographic area browsing, location CRUD
+  and geocoding (`POST /v1/admin/locations/geocode` uses `NOMINATIM_USER_AGENT` and
+  `NOMINATIM_REFERER` with the HTTP proxy to OpenStreetMap Nominatim),
   (list supports optional `area_id`, `search` on address, cursor pagination, and `total_count`),
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
   vendor management, expense invoice ingestion/listing/amendment/void/pay flows

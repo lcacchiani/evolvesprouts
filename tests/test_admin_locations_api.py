@@ -6,6 +6,22 @@ from uuid import uuid4
 from app.api import admin_locations
 
 
+def test_handle_admin_locations_dispatches_geocode_post(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    monkeypatch.setattr(admin_locations, "_geocode_location", lambda _: marker)
+
+    response = admin_locations.handle_admin_locations_request(
+        api_gateway_event(method="POST", path="/v1/admin/locations/geocode"),
+        "POST",
+        "/v1/admin/locations/geocode",
+    )
+
+    assert response is marker
+
+
 def test_handle_admin_locations_dispatches_collection_get(
     monkeypatch: Any,
     api_gateway_event: Any,
