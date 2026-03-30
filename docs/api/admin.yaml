@@ -461,7 +461,7 @@ paths:
         - name: search
           in: query
           required: false
-          description: Case-insensitive substring match on address.
+          description: Case-insensitive substring match on location name or address.
           schema:
             type: string
             maxLength: 500
@@ -3219,6 +3219,10 @@ components:
         id:
           type: string
           format: uuid
+        name:
+          type: string
+          maxLength: 200
+          nullable: true
         area_id:
           type: string
           format: uuid
@@ -3273,6 +3277,10 @@ components:
         area_id:
           type: string
           format: uuid
+        name:
+          type: string
+          maxLength: 200
+          nullable: true
         address:
           type: string
           maxLength: 500
@@ -3299,6 +3307,10 @@ components:
         area_id:
           type: string
           format: uuid
+        name:
+          type: string
+          maxLength: 200
+          nullable: true
         address:
           type: string
           maxLength: 500

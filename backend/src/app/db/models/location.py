@@ -30,6 +30,11 @@ class Location(Base):
         primary_key=True,
         server_default=text("gen_random_uuid()"),
     )
+    name: Mapped[str | None] = mapped_column(
+        Text(),
+        nullable=True,
+        comment="Display label for the venue/location",
+    )
     area_id: Mapped[str] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("geographic_areas.id"),
