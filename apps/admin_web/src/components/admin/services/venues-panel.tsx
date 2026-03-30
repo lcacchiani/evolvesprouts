@@ -240,7 +240,7 @@ export function VenuesPanel({
           }}
         >
           <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-            <div className='sm:col-span-2'>
+            <div>
               <Label htmlFor='venue-name'>Location name</Label>
               <Input
                 id='venue-name'
@@ -266,7 +266,7 @@ export function VenuesPanel({
                 ))}
               </Select>
             </div>
-            <div>
+            <div className='sm:col-span-2'>
               <Label htmlFor='venue-address'>Address</Label>
               <Input
                 id='venue-address'
