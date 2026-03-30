@@ -7,6 +7,7 @@ import { useEnrollmentList } from './use-enrollment-list';
 import { useEnrollmentMutations } from './use-enrollment-mutations';
 import { useInstanceList } from './use-instance-list';
 import { useInstanceMutations } from './use-instance-mutations';
+import { useLocationList } from './use-location-list';
 import { useServiceDetail } from './use-service-detail';
 import { useServiceList } from './use-service-list';
 import { useServiceMutations } from './use-service-mutations';
@@ -29,6 +30,7 @@ export function useServicesPage() {
   const serviceDetail = useServiceDetail(selectedServiceId);
   const instanceList = useInstanceList(selectedServiceId);
   const enrollmentList = useEnrollmentList(selectedServiceId, selectedInstanceId);
+  const locationList = useLocationList();
   const discountCodes = useDiscountCodes();
 
   const serviceMutations = useServiceMutations({
@@ -87,6 +89,7 @@ export function useServicesPage() {
     instanceMutations,
     enrollmentList,
     enrollmentMutations,
+    locationList,
     discountCodes,
   };
 }

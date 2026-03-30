@@ -77,6 +77,12 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       updateEnrollmentEntry: vi.fn().mockResolvedValue(null),
       deleteEnrollmentEntry: vi.fn().mockResolvedValue(undefined),
     },
+    locationList: {
+      locations: [],
+      isLoading: false,
+      error: '',
+      refetch: vi.fn().mockResolvedValue(undefined),
+    },
     discountCodes: {
       codes: [],
       filters: { active: '', search: '' },

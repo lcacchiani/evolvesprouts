@@ -91,22 +91,28 @@ export function ServicesPage() {
           <InstanceDetailPanel
             key={`${state.selectedInstanceId ?? 'create-instance'}-${state.selectedService?.serviceType ?? 'none'}`}
             instance={state.selectedInstance}
+            selectedServiceId={state.selectedServiceId}
+            serviceOptions={state.serviceList.services}
+            locationOptions={state.locationList.locations}
+            isLoadingLocations={state.locationList.isLoading}
             serviceType={state.selectedService?.serviceType ?? null}
             isLoading={state.instanceMutations.isLoading}
             error={state.instanceMutations.error}
+            locationError={state.locationList.error}
+            onSelectService={state.setSelectedServiceId}
             onCancelSelection={() => state.setSelectedInstanceId(null)}
-            onCreate={async (payload) => {
-              if (!state.selectedServiceId) {
+            onCreate={async (serviceId, payload) => {
+              if (!serviceId) {
                 return;
               }
-              await state.instanceMutations.createInstanceEntry(state.selectedServiceId, payload);
+              await state.instanceMutations.createInstanceEntry(serviceId, payload);
               state.setSelectedInstanceId(null);
             }}
-            onUpdate={async (instanceId, payload) => {
-              if (!state.selectedServiceId) {
+            onUpdate={async (serviceId, instanceId, payload) => {
+              if (!serviceId) {
                 return;
               }
-              await state.instanceMutations.updateInstanceEntry(state.selectedServiceId, instanceId, payload);
+              await state.instanceMutations.updateInstanceEntry(serviceId, instanceId, payload);
             }}
           />
           <InstanceListPanel

@@ -55,4 +55,26 @@ describe('EnrollmentListPanel', () => {
     expect(screen.getByLabelText('Family ID')).toBeDisabled();
     expect(screen.getByLabelText('Organization ID')).toBeDisabled();
   });
+
+  it('uses selectable currency options in the enrollment editor', () => {
+    render(
+      <EnrollmentListPanel
+        enrollments={[]}
+        canCreate={true}
+        isLoading={false}
+        isLoadingMore={false}
+        hasMore={false}
+        error=''
+        isMutating={false}
+        onLoadMore={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    const currencyField = screen.getByLabelText('Currency');
+    expect(currencyField.tagName).toBe('SELECT');
+    expect(screen.getByRole('option', { name: 'HKD Hong Kong Dollar' })).toBeInTheDocument();
+  });
 });
