@@ -13,7 +13,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, getCurrencyOptions } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import { DISCOUNT_TYPES } from '@/types/services';
@@ -66,6 +66,7 @@ export function DiscountCodesPanel({
   const [currency, setCurrency] = useState('HKD');
   const [maxUses, setMaxUses] = useState('');
   const [active, setActive] = useState(true);
+  const currencyOptions = getCurrencyOptions();
 
   const selectedCode = useMemo(
     () => codes.find((entry) => entry.id === selectedCodeId) ?? null,
@@ -199,7 +200,17 @@ export function DiscountCodesPanel({
           </div>
           <div>
             <Label htmlFor='discount-currency'>Currency</Label>
-            <Input id='discount-currency' value={currency} onChange={(event) => setCurrency(event.target.value)} />
+            <Select
+              id='discount-currency'
+              value={currency}
+              onChange={(event) => setCurrency(event.target.value)}
+            >
+              {currencyOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
           </div>
           <div>
             <Label htmlFor='discount-max-uses'>Max uses</Label>

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mockUseServicesPage, state } = vi.hoisted(() => {
   const state = {
@@ -131,13 +131,19 @@ vi.mock('@/hooks/use-services-page', () => ({
 import { ServicesPage } from '@/components/admin/services/services-page';
 
 describe('ServicesPage', () => {
+  beforeEach(() => {
+    state.activeView = 'catalog';
+  });
+
   it('renders tabs-only header and switches views', async () => {
     const user = userEvent.setup();
     render(<ServicesPage />);
 
-    expect(screen.getByRole('button', { name: 'Catalog' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Service Catalogue' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'New service' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Events' }));
+    expect(state.setActiveView).toHaveBeenCalledWith('events');
     await user.click(screen.getByRole('button', { name: 'Discount Codes' }));
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
     await user.click(screen.getByRole('button', { name: 'Venues' }));
@@ -153,7 +159,8 @@ describe('ServicesPage', () => {
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('renders instance detail before the instances list', () => {
+  it('renders instance detail before the instances list on Events', () => {
+    state.activeView = 'events';
     render(<ServicesPage />);
 
     const detailHeading = screen.getByRole('heading', { name: 'Instance' });

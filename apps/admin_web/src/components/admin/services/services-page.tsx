@@ -90,6 +90,9 @@ export function ServicesPage() {
               await state.serviceMutations.deleteServiceEntry(serviceId);
             }}
           />
+        </>
+      ) : state.activeView === 'events' ? (
+        <>
           <InstanceDetailPanel
             key={`${state.selectedInstanceId ?? 'create-instance'}-${state.selectedService?.serviceType ?? 'none'}`}
             instance={state.selectedInstance}
