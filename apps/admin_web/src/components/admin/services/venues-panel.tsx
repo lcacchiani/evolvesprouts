@@ -12,7 +12,7 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { formatEnumLabel } from '@/lib/format';
+import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 
 import type { components } from '@/types/generated/admin-api.generated';
 import type { GeographicAreaSummary, LocationSummary, VenueFilters } from '@/types/services';
@@ -64,6 +64,7 @@ export function VenuesPanel({
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
+  const [name, setName] = useState('');
   const [areaId, setAreaId] = useState('');
   const [address, setAddress] = useState('');
   const [lat, setLat] = useState('');
@@ -108,6 +109,7 @@ export function VenuesPanel({
   const resetCreateForm = () => {
     setEditorMode('create');
     setSelectedVenueId(null);
+    setName('');
     setAreaId('');
     setAddress('');
     setLat('');
@@ -122,6 +124,7 @@ export function VenuesPanel({
     const lngValue: number | null = lngTrim === '' ? null : lngNum;
     const payload: ApiSchemas['CreateLocationRequest'] = {
       area_id: areaId,
+      name: name.trim() || null,
       address: address.trim() || null,
       lat: latValue,
       lng: lngValue,
@@ -144,6 +147,7 @@ export function VenuesPanel({
   const applyVenueSelection = (entry: LocationSummary) => {
     setSelectedVenueId(entry.id);
     setEditorMode('edit');
+    setName(entry.name ?? '');
     setAreaId(entry.areaId);
     setAddress(entry.address ?? '');
     setLat(entry.lat !== null ? String(entry.lat) : '');
@@ -151,7 +155,7 @@ export function VenuesPanel({
   };
 
   const handleDeleteVenue = async (entry: LocationSummary) => {
-    const label = entry.address?.trim() || 'this venue';
+    const label = formatLocationLabel(entry);
     const confirmed = await requestConfirm({
       title: 'Delete venue',
       description: `Delete ${label}? This action cannot be undone.`,
@@ -201,6 +205,16 @@ export function VenuesPanel({
           }}
         >
           <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+            <div className='sm:col-span-2'>
+              <Label htmlFor='venue-name'>Location name</Label>
+              <Input
+                id='venue-name'
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                disabled={isSaving}
+                placeholder='e.g. Central Studio'
+              />
+            </div>
             <div>
               <Label htmlFor='venue-area'>Geographic area</Label>
               <Select
@@ -294,7 +308,7 @@ export function VenuesPanel({
                 id='venues-filter-search'
                 value={filters.search}
                 onChange={(event) => onFilterChange('search', event.target.value)}
-                placeholder='Address'
+                placeholder='Name or address'
               />
             </div>
           </div>
@@ -303,6 +317,7 @@ export function VenuesPanel({
         <AdminDataTable tableClassName='min-w-[720px]'>
           <AdminDataTableHead>
             <tr>
+              <th className='px-4 py-3 font-semibold'>Name</th>
               <th className='px-4 py-3 font-semibold'>Address</th>
               <th className='px-4 py-3 font-semibold'>Area</th>
               <th className='px-4 py-3 font-semibold'>Coordinates</th>
@@ -321,6 +336,7 @@ export function VenuesPanel({
                   }`}
                   onClick={() => applyVenueSelection(row)}
                 >
+                  <td className='px-4 py-3'>{row.name?.trim() || '—'}</td>
                   <td className='px-4 py-3'>{row.address?.trim() || '—'}</td>
                   <td className='px-4 py-3'>{area?.name ?? row.areaId}</td>
                   <td className='px-4 py-3'>

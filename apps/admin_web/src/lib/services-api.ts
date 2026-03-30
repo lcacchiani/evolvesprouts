@@ -75,6 +75,7 @@ function parseLocationSummary(value: unknown): LocationSummary {
   const item = isRecord(value) ? value : {};
   return {
     id: asNullableString(item.id) ?? '',
+    name: asNullableString(item.name),
     areaId: asNullableString(item.area_id) ?? '',
     address: asNullableString(item.address),
     lat: typeof item.lat === 'number' ? item.lat : null,

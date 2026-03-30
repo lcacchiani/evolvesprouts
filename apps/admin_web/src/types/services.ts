@@ -115,6 +115,7 @@ export interface SessionSlot {
 
 export interface LocationSummary {
   id: string;
+  name: string | null;
   areaId: string;
   address: string | null;
   lat: number | null;
