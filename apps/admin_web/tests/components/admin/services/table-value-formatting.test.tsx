@@ -138,6 +138,7 @@ describe('services tables value formatting', () => {
           onFilterChange={vi.fn()}
           onLoadMore={vi.fn()}
           onCreate={vi.fn()}
+          onUpdate={vi.fn()}
           onDelete={vi.fn()}
         />
       </>
@@ -146,6 +147,7 @@ describe('services tables value formatting', () => {
     const tables = screen.getAllByRole('table');
     expect(within(tables[0] as HTMLElement).getByText('In Progress')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('Percentage')).toBeInTheDocument();
+    expect(screen.getByLabelText('Currency').tagName).toBe('SELECT');
   });
 
   it('formats enum and date values in enrollment table rows', () => {
