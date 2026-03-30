@@ -5,7 +5,8 @@ import { AdminTabStrip, type AdminTabItem } from '@/components/ui/admin-tab-stri
 import type { ServicesView } from '@/hooks/use-services-page';
 
 export const SERVICES_TAB_ITEMS: readonly AdminTabItem<ServicesView>[] = [
-  { key: 'catalog', label: 'Catalog' },
+  { key: 'catalog', label: 'Service Catalogue' },
+  { key: 'events', label: 'Events' },
   { key: 'discount-codes', label: 'Discount Codes' },
 ] as const;
 
