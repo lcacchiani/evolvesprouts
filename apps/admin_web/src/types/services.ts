@@ -108,6 +108,16 @@ export interface SessionSlot {
   sortOrder: number | null;
 }
 
+export interface LocationSummary {
+  id: string;
+  areaId: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
 export interface EventTicketTier {
   id: string | null;
   instanceId: string | null;

@@ -9,6 +9,7 @@ import type {
   Enrollment,
   EnrollmentListFilters,
   EventTicketTier,
+  LocationSummary,
   ServiceDetail,
   ServiceInstance,
   ServiceListFilters,
@@ -36,6 +37,7 @@ type ApiDiscountCodeResponse = ApiSchemas['DiscountCodeResponse'];
 type ApiCreateDiscountCodeRequest = ApiSchemas['CreateDiscountCodeRequest'];
 type ApiUpdateDiscountCodeRequest = ApiSchemas['UpdateDiscountCodeRequest'];
 type ApiCreateCoverImageUploadRequest = ApiSchemas['CreateServiceCoverImageUploadRequest'];
+type ApiLocationListResponse = ApiSchemas['LocationListResponse'];
 
 function parseSessionSlot(value: unknown): SessionSlot {
   const item = isRecord(value) ? value : {};
@@ -60,6 +62,19 @@ function parseTicketTier(value: unknown): EventTicketTier {
     currency: asNullableString(item.currency) ?? 'HKD',
     maxQuantity: typeof item.max_quantity === 'number' ? item.max_quantity : null,
     sortOrder: typeof item.sort_order === 'number' ? item.sort_order : null,
+  };
+}
+
+function parseLocationSummary(value: unknown): LocationSummary {
+  const item = isRecord(value) ? value : {};
+  return {
+    id: asNullableString(item.id) ?? '',
+    areaId: asNullableString(item.area_id) ?? '',
+    address: asNullableString(item.address),
+    lat: typeof item.lat === 'number' ? item.lat : null,
+    lng: typeof item.lng === 'number' ? item.lng : null,
+    createdAt: asNullableString(item.created_at),
+    updatedAt: asNullableString(item.updated_at),
   };
 }
 
@@ -242,6 +257,45 @@ function buildServiceListQuery(params: Partial<ServiceListFilters> & { cursor?: 
   if (params.search?.trim()) query.set('search', params.search.trim());
   const queryString = query.toString();
   return queryString ? `?${queryString}` : '';
+}
+
+export async function listLocations(
+  params: { cursor?: string | null; limit?: number; areaId?: string },
+  signal?: AbortSignal
+): Promise<{ items: LocationSummary[]; nextCursor: string | null }> {
+  const query = new URLSearchParams();
+  if (params.cursor) query.set('cursor', params.cursor);
+  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (params.areaId) query.set('area_id', params.areaId);
+  const queryString = query.toString();
+
+  const payload = await adminApiRequest<ApiLocationListResponse>({
+    endpointPath: `/v1/admin/locations${queryString ? `?${queryString}` : ''}`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return {
+    items: Array.isArray(root.items) ? root.items.map((entry) => parseLocationSummary(entry)) : [],
+    nextCursor: asNullableString(root.next_cursor),
+  };
+}
+
+export async function listAllLocations(signal?: AbortSignal): Promise<LocationSummary[]> {
+  const all: LocationSummary[] = [];
+  let cursor: string | null = null;
+  do {
+    const page = await listLocations(
+      {
+        cursor,
+        limit: 100,
+      },
+      signal
+    );
+    all.push(...page.items);
+    cursor = page.nextCursor;
+  } while (cursor);
+  return all;
 }
 
 export async function listServices(
