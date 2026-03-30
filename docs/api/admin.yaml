@@ -2401,6 +2401,11 @@ components:
           type: string
           format: date-time
           nullable: true
+        training_details:
+          allOf:
+            - $ref: "#/components/schemas/ServiceTrainingDetails"
+          nullable: true
+          description: Present for training_course rows when details exist.
     Service:
       allOf:
         - $ref: "#/components/schemas/ServiceSummary"

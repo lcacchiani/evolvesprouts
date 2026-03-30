@@ -48,7 +48,8 @@ their primary responsibilities.
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
   vendor management, expense invoice ingestion/listing/amendment/void/pay flows
   (mark-paid requires vendor, invoice date, currency, and total), and admin-user
-  listing for lead assignment and instructor-group listing for service instances,
+  listing for lead assignment and instructor-group listing for service instances
+  (service list items may include nullable `training_details` for training courses),
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
