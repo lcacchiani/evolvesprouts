@@ -31,7 +31,7 @@ their primary responsibilities.
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*`, `/v1/admin/assets/*`,
-  `/v1/admin/leads/*`, `/v1/admin/users`,
+  `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `/v1/admin/services/*`, `/v1/admin/discount-codes/*`,
   `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
@@ -48,7 +48,7 @@ their primary responsibilities.
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
   vendor management, expense invoice ingestion/listing/amendment/void/pay flows
   (mark-paid requires vendor, invoice date, currency, and total), and admin-user
-  listing for lead assignment,
+  listing for lead assignment and instructor-group listing for service instances,
   grant management,
   stable share-link lifecycle (read/create/rotate/revoke + domain allowlist
   policy), share-link source-domain enforcement, conditional JWT
