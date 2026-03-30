@@ -8,13 +8,9 @@ import type { AdminUser } from '@/types/leads';
 type ApiSchemas = components['schemas'];
 type ApiAdminUserListResponse = ApiSchemas['AdminUserListResponse'];
 
-export async function listAdminUsers(): Promise<{ items: AdminUser[] }> {
-  const payload = await adminApiRequest<ApiAdminUserListResponse>({
-    endpointPath: '/v1/admin/users',
-    method: 'GET',
-  });
-  const root = unwrapPayload(payload);
-  const items = Array.isArray(root.items)
+function mapAdminUserItems(raw: unknown): AdminUser[] {
+  const root = unwrapPayload(raw as ApiAdminUserListResponse);
+  return Array.isArray(root.items)
     ? root.items
         .filter((entry) => isRecord(entry))
         .map((entry) => ({
@@ -24,5 +20,20 @@ export async function listAdminUsers(): Promise<{ items: AdminUser[] }> {
         }))
         .filter((entry) => entry.sub.length > 0)
     : [];
-  return { items };
+}
+
+export async function listAdminUsers(): Promise<{ items: AdminUser[] }> {
+  const payload = await adminApiRequest<ApiAdminUserListResponse>({
+    endpointPath: '/v1/admin/users',
+    method: 'GET',
+  });
+  return { items: mapAdminUserItems(payload) };
+}
+
+export async function listInstructorUsers(): Promise<{ items: AdminUser[] }> {
+  const payload = await adminApiRequest<ApiAdminUserListResponse>({
+    endpointPath: '/v1/admin/instructors',
+    method: 'GET',
+  });
+  return { items: mapAdminUserItems(payload) };
 }

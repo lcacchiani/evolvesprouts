@@ -16,10 +16,11 @@ export interface TrainingFormState {
 
 export interface TrainingFormFieldsProps {
   value: TrainingFormState;
+  disabled?: boolean;
   onChange: (value: TrainingFormState) => void;
 }
 
-export function TrainingFormFields({ value, onChange }: TrainingFormFieldsProps) {
+export function TrainingFormFields({ value, disabled = false, onChange }: TrainingFormFieldsProps) {
   const currencyOptions = getCurrencyOptions();
 
   return (
@@ -30,6 +31,7 @@ export function TrainingFormFields({ value, onChange }: TrainingFormFieldsProps)
           <Select
             id='training-pricing-unit'
             value={value.pricingUnit}
+            disabled={disabled}
             onChange={(event) =>
               onChange({ ...value, pricingUnit: event.target.value as TrainingPricingUnit })
             }
@@ -46,6 +48,7 @@ export function TrainingFormFields({ value, onChange }: TrainingFormFieldsProps)
           <Input
             id='training-default-price'
             value={value.defaultPrice}
+            disabled={disabled}
             onChange={(event) => onChange({ ...value, defaultPrice: event.target.value })}
             placeholder='0.00'
           />
@@ -55,6 +58,7 @@ export function TrainingFormFields({ value, onChange }: TrainingFormFieldsProps)
           <Select
             id='training-default-currency'
             value={value.defaultCurrency}
+            disabled={disabled}
             onChange={(event) => onChange({ ...value, defaultCurrency: event.target.value })}
           >
             {currencyOptions.map((option) => (
