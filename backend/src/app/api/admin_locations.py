@@ -61,13 +61,27 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
     limit = _parse_limit(event)
     cursor = parse_cursor(query_param(event, "cursor"))
     area_id = _parse_optional_uuid(query_param(event, "area_id"), field="area_id")
+    search_raw = query_param(event, "search")
+    search: str | None = None
+    if search_raw is not None and str(search_raw).strip() != "":
+        search = validate_string_length(
+            search_raw,
+            "search",
+            max_length=MAX_ADDRESS_LENGTH,
+            required=False,
+        )
 
     with Session(get_engine()) as session:
         location_repo = LocationRepository(session)
-        if area_id is not None:
-            rows = list(location_repo.find_by_area(area_id, limit=limit + 1))
-        else:
-            rows = list(location_repo.get_all(limit=limit + 1, cursor=cursor))
+        total_count = location_repo.count_with_filters(area_id=area_id, search=search)
+        rows = list(
+            location_repo.list_with_filters(
+                limit=limit + 1,
+                cursor=cursor,
+                area_id=area_id,
+                search=search,
+            )
+        )
         has_more = len(rows) > limit
         rows = rows[:limit]
         next_cursor = encode_cursor(rows[-1].id) if has_more and rows else None
@@ -76,6 +90,7 @@ def _list_locations(event: Mapping[str, Any]) -> dict[str, Any]:
             {
                 "items": [_serialize_location(location) for location in rows],
                 "next_cursor": next_cursor,
+                "total_count": total_count,
             },
             event=event,
         )

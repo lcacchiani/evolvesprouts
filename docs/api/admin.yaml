@@ -458,6 +458,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: search
+          in: query
+          required: false
+          description: Case-insensitive substring match on address.
+          schema:
+            type: string
+            maxLength: 500
       responses:
         "200":
           description: Location list response.
@@ -3245,6 +3252,7 @@ components:
       type: object
       required:
         - items
+        - total_count
       properties:
         items:
           type: array
@@ -3253,6 +3261,10 @@ components:
         next_cursor:
           type: string
           nullable: true
+        total_count:
+          type: integer
+          minimum: 0
+          description: Total number of locations matching the current filters (not page size).
     CreateLocationRequest:
       type: object
       required:
