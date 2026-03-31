@@ -24,7 +24,10 @@ from app.api.admin_crm_helpers import (
     replace_contact_tags,
     serialize_tag_ref,
 )
-from app.api.admin_crm_serializers import serialize_contact_summary
+from app.api.admin_crm_serializers import (
+    serialize_contact_picker_row,
+    serialize_contact_summary,
+)
 from app.api.admin_request import (
     encode_cursor,
     parse_body,
@@ -128,12 +131,12 @@ def _sync_memberships_from_body(
     want_fam = family_ids[0] if family_ids else None
     want_org = organization_ids[0] if organization_ids else None
 
-    for m in existing_fam:
-        if want_fam is None or m.family_id != want_fam:
-            session.delete(m)
-    for m in existing_org:
-        if want_org is None or m.organization_id != want_org:
-            session.delete(m)
+    for fam_member in existing_fam:
+        if want_fam is None or fam_member.family_id != want_fam:
+            session.delete(fam_member)
+    for org_member in existing_org:
+        if want_org is None or org_member.organization_id != want_org:
+            session.delete(org_member)
     session.flush()
 
     if want_fam is not None:
@@ -215,6 +218,11 @@ def handle_admin_contacts_request(
             return _list_contact_tags(event)
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
+    if len(parts) == 3 and parts[2] == "search":
+        if method == "GET":
+            return _search_contacts_for_picker(event)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
     if len(parts) == 2:
         if method == "GET":
             return _list_contacts(event)
@@ -233,6 +241,39 @@ def handle_admin_contacts_request(
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
+
+
+def _search_contacts_for_picker(event: Mapping[str, Any]) -> dict[str, Any]:
+    limit = parse_crm_limit(event, default=_DEFAULT_LIMIT)
+    raw_query = validate_string_length(
+        query_param(event, "query"),
+        "query",
+        max_length=255,
+        required=True,
+    )
+    if raw_query is None:
+        raise ValidationError("query is required", field="query")
+    query = raw_query.strip()
+    if len(query) < 2:
+        raise ValidationError("query must be at least 2 characters", field="query")
+    exclude_id = parse_optional_uuid(
+        query_param(event, "exclude_contact_id"), "exclude_contact_id"
+    )
+
+    with Session(get_engine()) as session:
+        repository = ContactRepository(session)
+        rows = repository.search_for_admin_picker(
+            limit=limit,
+            query=query,
+            active=True,
+        )
+        if exclude_id is not None:
+            rows = [r for r in rows if r.id != exclude_id]
+        return json_response(
+            200,
+            {"items": [serialize_contact_picker_row(r) for r in rows]},
+            event=event,
+        )
 
 
 def _list_contact_tags(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -525,6 +566,7 @@ def _update_contact(
 
         effective_source = contact.source
         if effective_source == ContactSource.REFERRAL:
+            ref_uuid: UUID
             if referral_in_body:
                 if referral_id_value is None:
                     raise ValidationError(
@@ -538,16 +580,17 @@ def _update_contact(
                     if contact.source_metadata
                     else None
                 )
-                ref_uuid = (
+                parsed_meta = (
                     parse_optional_uuid(raw_meta, "referral_contact_id")
                     if raw_meta is not None and str(raw_meta).strip() != ""
                     else None
                 )
-                if ref_uuid is None:
+                if parsed_meta is None:
                     raise ValidationError(
                         "referral_contact_id is required when source is referral",
                         field="referral_contact_id",
                     )
+                ref_uuid = parsed_meta
             _validate_referrer_contact(
                 session,
                 referrer_id=ref_uuid,

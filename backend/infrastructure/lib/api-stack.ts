@@ -2749,6 +2749,11 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
     });
+    const adminContactsSearch = adminContacts.addResource("search");
+    adminContactsSearch.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
     const adminContactById = adminContacts.addResource("{id}");
     adminContactById.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,

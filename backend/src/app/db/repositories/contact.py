@@ -182,6 +182,39 @@ class ContactRepository(BaseRepository[Contact]):
         ).limit(limit)
         return list(self._session.execute(statement).scalars().all())
 
+    def search_for_admin_picker(
+        self,
+        *,
+        limit: int,
+        query: str,
+        active: bool | None = True,
+    ) -> list[Contact]:
+        """Lightweight contact search for admin pickers (label fields only)."""
+        from app.db.repositories.organization import _escape_like_pattern
+
+        statement = select(Contact)
+        escaped = _escape_like_pattern(query.strip())
+        pattern = f"%{escaped}%"
+        statement = statement.where(
+            or_(
+                Contact.first_name.ilike(pattern, escape="\\"),
+                Contact.last_name.ilike(pattern, escape="\\"),
+                Contact.email.ilike(pattern, escape="\\"),
+                Contact.phone.ilike(pattern, escape="\\"),
+                Contact.instagram_handle.ilike(pattern, escape="\\"),
+            )
+        )
+        if active is True:
+            statement = statement.where(Contact.archived_at.is_(None))
+        if active is False:
+            statement = statement.where(Contact.archived_at.is_not(None))
+        statement = statement.order_by(
+            func.lower(Contact.first_name),
+            func.lower(Contact.last_name),
+            Contact.id,
+        ).limit(limit)
+        return list(self._session.execute(statement).scalars().all())
+
     def count_for_admin(
         self,
         *,

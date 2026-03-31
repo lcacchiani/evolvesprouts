@@ -24,6 +24,7 @@ info:
     - `GET|POST /v1/admin/discount-codes`
     - `PUT|DELETE /v1/admin/discount-codes/{id}`
     - `GET /v1/admin/contacts/tags`
+    - `GET /v1/admin/contacts/search`
     - `GET|POST /v1/admin/contacts`
     - `GET|PATCH /v1/admin/contacts/{id}`
     - `GET /v1/admin/families/picker`
@@ -1425,6 +1426,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CrmTagListResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/contacts/search:
+    get:
+      summary: Search CRM contacts for pickers
+      description: |
+        Returns active contacts matching a case-insensitive substring on name, email, phone, or Instagram.
+        Requires at least two characters in `query`. Intended for referral and other admin pickers.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 255
+        - name: exclude_contact_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Omit this contact from results (e.g. the subject contact when choosing a referrer).
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Matching contacts as id/label rows.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmPickerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
 

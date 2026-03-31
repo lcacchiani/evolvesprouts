@@ -43,6 +43,17 @@ def serialize_location_venue(location: Location) -> dict[str, Any]:
     }
 
 
+def serialize_contact_picker_row(contact: Contact) -> dict[str, Any]:
+    parts = [contact.first_name or "", contact.last_name or ""]
+    label = (
+        " ".join(p for p in parts if p).strip()
+        or (contact.email or "")
+        or (contact.instagram_handle or "")
+        or str(contact.id)
+    )
+    return {"id": str(contact.id), "label": label}
+
+
 def serialize_contact_summary(contact: Contact) -> dict[str, Any]:
     family_ids = {str(m.family_id) for m in contact.family_members}
     organization_ids = {str(m.organization_id) for m in contact.organization_members}

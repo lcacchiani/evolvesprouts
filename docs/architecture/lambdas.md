@@ -33,7 +33,8 @@ their primary responsibilities.
   `/v1/admin/locations/*` (including `POST /v1/admin/locations/geocode` for
   Nominatim-backed address geocoding via `AwsApiProxyFunction`),
   `/v1/admin/assets/*`,
-  `/v1/admin/contacts/*` (including `GET /v1/admin/contacts/tags` for tag pickers),
+  `/v1/admin/contacts/*` (including `GET /v1/admin/contacts/tags` for tag pickers and
+  `GET /v1/admin/contacts/search` for contact picker search),
   `/v1/admin/families/picker`, `/v1/admin/families/*`,
   `/v1/admin/organizations/picker`, `/v1/admin/organizations/*` (CRM organisations excluding
   vendors; vendors remain under `/v1/admin/vendors`),
