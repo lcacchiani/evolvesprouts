@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Sequence
 from typing import Any
 from urllib.parse import urlencode
@@ -12,10 +13,26 @@ from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.utils import require_env
 
 _NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search"
+# Segment like "5/F" or "12 / f" (unit floor marker); keep text after that segment only.
+_FLOOR_SEGMENT = re.compile(r"^\d+\s*/\s*[Ff]$")
 
 
-def _nominatim_countrycodes(country_iso_codes: Sequence[str] | None) -> str | None:
-    """Build Nominatim ``countrycodes`` query value from DB-derived ISO codes."""
+def _geocode_query_text(address: str) -> str:
+    """Free-text query for the geocoder: drop unit/floor prefix before a ``n/nF`` segment."""
+    raw = address.strip()
+    if not raw:
+        return ""
+    parts = [p.strip() for p in raw.split(",")]
+    parts = [p for p in parts if p]
+    for i, part in enumerate(parts):
+        if _FLOOR_SEGMENT.match(part):
+            tail = ", ".join(parts[i + 1 :]).strip()
+            return tail if tail else raw
+    return raw
+
+
+def _countrycodes_param(country_iso_codes: Sequence[str] | None) -> str | None:
+    """Build ``countrycodes`` query value from DB-derived ISO codes."""
     if not country_iso_codes:
         return None
     seen: set[str] = set()
@@ -34,38 +51,32 @@ def _nominatim_countrycodes(country_iso_codes: Sequence[str] | None) -> str | No
 def geocode_address_with_context(
     *,
     address: str,
-    area_context: str,
     country_iso_codes: Sequence[str] | None = None,
 ) -> tuple[float, float, str | None]:
-    """Return (lat, lng, display_name) for a free-text address with area context.
+    """Return (lat, lng, display_name) for a free-text address.
 
     Args:
-        address: Street or venue address (trimmed).
-        area_context: Comma-separated geographic names (e.g. city, region).
+        address: Street or venue address. Unit/floor segments before a ``n/F``
+            marker are dropped from the geocoder query (e.g. everything through
+            ``5/F`` is removed).
         country_iso_codes: Optional ISO 3166-1 alpha-2 values (e.g. from
-            ``geographic_areas`` and ``sovereign_country_id``) for Nominatim
-            ``countrycodes`` (comma-separated OR filter).
+            ``geographic_areas`` and ``sovereign_country_id``) for the
+            ``countrycodes`` query parameter (comma-separated OR filter).
 
     Raises:
-        ValidationError: When input is empty or Nominatim returns no results.
+        ValidationError: When input is empty or the provider returns no results.
         AppError: On proxy failures, bad HTTP status, or invalid response payload.
     """
-    addr = address.strip()
-    if not addr:
+    q = _geocode_query_text(address)
+    if not q:
         raise ValidationError("address is required", field="address")
-
-    query_parts = [addr]
-    ctx = area_context.strip()
-    if ctx:
-        query_parts.append(ctx)
-    q = ", ".join(query_parts)
 
     params: dict[str, str | int] = {
         "format": "json",
         "limit": 1,
         "q": q,
     }
-    codes = _nominatim_countrycodes(country_iso_codes)
+    codes = _countrycodes_param(country_iso_codes)
     if codes:
         params["countrycodes"] = codes
 

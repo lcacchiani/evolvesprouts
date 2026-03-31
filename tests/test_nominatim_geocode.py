@@ -27,6 +27,8 @@ def test_geocode_success_with_multiple_country_codes(monkeypatch: Any) -> None:
         assert headers.get("Referer") == "https://example.com"
         codes = parse_qs(urlparse(url).query).get("countrycodes", [""])[0]
         assert codes.lower() == "hk,cn"
+        q = parse_qs(urlparse(url).query).get("q", [""])[0]
+        assert q == "123 Main St"
         payload = '[{"lat":"1.5","lon":"2.5","display_name":"Somewhere"}]'
         return {"status": 200, "body": payload}
 
@@ -34,12 +36,63 @@ def test_geocode_success_with_multiple_country_codes(monkeypatch: Any) -> None:
 
     lat, lng, name = nominatim_geocode.geocode_address_with_context(
         address="123 Main St",
-        area_context="City",
         country_iso_codes=["HK", "CN"],
     )
     assert lat == 1.5
     assert lng == 2.5
     assert name == "Somewhere"
+
+
+def test_geocode_strips_address_through_floor_segment(monkeypatch: Any) -> None:
+    monkeypatch.setenv("NOMINATIM_USER_AGENT", "TestAgent/1.0")
+    monkeypatch.setenv("NOMINATIM_REFERER", "https://example.com")
+
+    seen: list[str] = []
+
+    def capture_url(
+        method: str,
+        url: str,
+        headers: dict[str, str] | None = None,
+        body: str | None = None,
+        timeout: int = 10,
+    ) -> dict[str, Any]:
+        seen.append(url)
+        return {"status": 200, "body": '[{"lat":"0","lon":"0","display_name":"x"}]'}
+
+    monkeypatch.setattr(nominatim_geocode, "http_invoke", capture_url)
+
+    addr = (
+        "507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan"
+    )
+    nominatim_geocode.geocode_address_with_context(address=addr, country_iso_codes=None)
+    q = parse_qs(urlparse(seen[0]).query).get("q", [""])[0]
+    assert q == "Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan"
+
+
+def test_geocode_strips_floor_segment_with_spaces(monkeypatch: Any) -> None:
+    monkeypatch.setenv("NOMINATIM_USER_AGENT", "TestAgent/1.0")
+    monkeypatch.setenv("NOMINATIM_REFERER", "https://example.com")
+
+    seen: list[str] = []
+
+    def capture_url(
+        method: str,
+        url: str,
+        headers: dict[str, str] | None = None,
+        body: str | None = None,
+        timeout: int = 10,
+    ) -> dict[str, Any]:
+        seen.append(url)
+        return {"status": 200, "body": '[{"lat":"0","lon":"0","display_name":"x"}]'}
+
+    monkeypatch.setattr(nominatim_geocode, "http_invoke", capture_url)
+
+    nominatim_geocode.geocode_address_with_context(
+        address="A, 12 / f, B Street",
+        country_iso_codes=None,
+    )
+    q = parse_qs(urlparse(seen[0]).query).get("q", [""])[0]
+    assert q == "B Street"
 
 
 def test_geocode_countrycodes_order_and_dedupe(monkeypatch: Any) -> None:
@@ -70,7 +123,6 @@ def test_geocode_countrycodes_order_and_dedupe(monkeypatch: Any) -> None:
         seen.clear()
         nominatim_geocode.geocode_address_with_context(
             address="1 Test St",
-            area_context="",
             country_iso_codes=codes,
         )
         got = parse_qs(urlparse(seen[0]).query).get("countrycodes", [""])[0]
@@ -81,7 +133,6 @@ def test_geocode_rejects_empty_address() -> None:
     with pytest.raises(ValidationError):
         nominatim_geocode.geocode_address_with_context(
             address="   ",
-            area_context="",
             country_iso_codes=None,
         )
 
@@ -100,7 +151,6 @@ def test_geocode_proxy_error(monkeypatch: Any) -> None:
     with pytest.raises(AppError) as exc:
         nominatim_geocode.geocode_address_with_context(
             address="x",
-            area_context="",
             country_iso_codes=None,
         )
     assert exc.value.status_code == 502
@@ -119,6 +169,5 @@ def test_geocode_no_results(monkeypatch: Any) -> None:
     with pytest.raises(ValidationError):
         nominatim_geocode.geocode_address_with_context(
             address="nowhere",
-            area_context="",
             country_iso_codes=None,
         )

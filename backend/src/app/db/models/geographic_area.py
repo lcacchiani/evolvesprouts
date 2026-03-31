@@ -60,7 +60,7 @@ class GeographicArea(Base):
         UUID(as_uuid=True),
         ForeignKey("geographic_areas.id", ondelete="SET NULL"),
         nullable=True,
-        comment="Sovereign country row for Nominatim countrycodes (e.g. HK → China)",
+        comment="Sovereign country row for geocoding ISO country filters (e.g. HK → China)",
     )
 
     parent: Mapped[GeographicArea | None] = relationship(

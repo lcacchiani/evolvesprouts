@@ -263,7 +263,7 @@ Columns:
 - `code` (text, nullable) — ISO country code for country rows
 - `sovereign_country_id` (UUID, FK → geographic_areas.id, nullable, ON DELETE SET NULL)
   — optional link from a territory country row to its sovereign country row (used when
-  composing Nominatim `countrycodes`, e.g. HK + CN)
+  composing geocoding `countrycodes`, e.g. HK + CN)
 - `active` (boolean, required, default `true`)
 - `display_order` (integer, required, default `0`)
 

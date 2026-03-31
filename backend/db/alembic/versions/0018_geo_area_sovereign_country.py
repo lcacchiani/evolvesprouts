@@ -1,7 +1,8 @@
-"""Link territories to sovereign country for Nominatim countrycodes.
+"""Link territories to sovereign country for geocoding country filters.
 
 Adds ``sovereign_country_id`` (FK → geographic_areas) so geocoding can pass
-comma-separated ISO codes from DB rows (e.g. HK + China) without hardcoding CN.
+comma-separated ISO country codes from DB rows (e.g. HK + China) without
+hardcoding values in application code.
 
 Seed-data assessment:
 1. ``seed_data.sql`` does not touch ``geographic_areas``; compatible.
@@ -38,7 +39,7 @@ def upgrade() -> None:
             postgresql.UUID(as_uuid=True),
             sa.ForeignKey("geographic_areas.id", ondelete="SET NULL"),
             nullable=True,
-            comment="Parent sovereign country row for Nominatim countrycodes (e.g. HK → CN)",
+            comment="Parent sovereign country row for geocoding ISO filters (e.g. HK → CN)",
         ),
     )
 
