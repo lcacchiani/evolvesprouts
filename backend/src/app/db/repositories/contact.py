@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from uuid import UUID
+
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy.orm import Session, selectinload
 
 from app.db.models.contact import Contact
+from app.db.models.tag import ContactTag
 from app.db.models.enums import ContactSource, ContactType, RelationshipType
 from app.db.repositories.base import BaseRepository
 
@@ -125,3 +128,94 @@ class ContactRepository(BaseRepository[Contact]):
             return updated_contact, False
 
         return existing_contact, False
+
+    def list_for_admin(
+        self,
+        *,
+        limit: int,
+        cursor: UUID | None = None,
+        query: str | None = None,
+        active: bool | None = None,
+    ) -> list[Contact]:
+        """List contacts with optional text search and active (non-archived) filter."""
+        from app.db.repositories.organization import _escape_like_pattern
+
+        statement = select(Contact).options(
+            selectinload(Contact.contact_tags).selectinload(ContactTag.tag),
+            selectinload(Contact.family_members),
+            selectinload(Contact.organization_members),
+        )
+        if cursor is not None:
+            cursor_created_at = (
+                select(Contact.created_at).where(Contact.id == cursor).scalar_subquery()
+            )
+            statement = statement.where(
+                or_(
+                    Contact.created_at < cursor_created_at,
+                    and_(
+                        Contact.created_at == cursor_created_at,
+                        Contact.id < cursor,
+                    ),
+                )
+            )
+        if query:
+            escaped = _escape_like_pattern(query.strip())
+            pattern = f"%{escaped}%"
+            statement = statement.where(
+                or_(
+                    Contact.first_name.ilike(pattern, escape="\\"),
+                    Contact.last_name.ilike(pattern, escape="\\"),
+                    Contact.email.ilike(pattern, escape="\\"),
+                    Contact.phone.ilike(pattern, escape="\\"),
+                    Contact.instagram_handle.ilike(pattern, escape="\\"),
+                )
+            )
+        if active is True:
+            statement = statement.where(Contact.archived_at.is_(None))
+        if active is False:
+            statement = statement.where(Contact.archived_at.is_not(None))
+        statement = statement.order_by(
+            Contact.created_at.desc(),
+            Contact.id.desc(),
+        ).limit(limit)
+        return list(self._session.execute(statement).scalars().all())
+
+    def count_for_admin(
+        self,
+        *,
+        query: str | None = None,
+        active: bool | None = None,
+    ) -> int:
+        from app.db.repositories.organization import _escape_like_pattern
+
+        statement = select(func.count(Contact.id))
+        if query:
+            escaped = _escape_like_pattern(query.strip())
+            pattern = f"%{escaped}%"
+            statement = statement.where(
+                or_(
+                    Contact.first_name.ilike(pattern, escape="\\"),
+                    Contact.last_name.ilike(pattern, escape="\\"),
+                    Contact.email.ilike(pattern, escape="\\"),
+                    Contact.phone.ilike(pattern, escape="\\"),
+                    Contact.instagram_handle.ilike(pattern, escape="\\"),
+                )
+            )
+        if active is True:
+            statement = statement.where(Contact.archived_at.is_(None))
+        if active is False:
+            statement = statement.where(Contact.archived_at.is_not(None))
+        count = self._session.execute(statement).scalar_one_or_none()
+        return int(count or 0)
+
+    def get_by_id_for_admin(self, contact_id: UUID) -> Contact | None:
+        statement = (
+            select(Contact)
+            .where(Contact.id == contact_id)
+            .options(
+                selectinload(Contact.contact_tags).selectinload(ContactTag.tag),
+                selectinload(Contact.family_members),
+                selectinload(Contact.organization_members),
+            )
+        )
+        return self._session.execute(statement).scalar_one_or_none()

@@ -33,6 +33,9 @@ their primary responsibilities.
   `/v1/admin/locations/*` (including `POST /v1/admin/locations/geocode` for
   Nominatim-backed address geocoding via `AwsApiProxyFunction`),
   `/v1/admin/assets/*`,
+  `/v1/admin/contacts/*` (including `GET /v1/admin/contacts/tags` for tag pickers),
+  `/v1/admin/families/*`, `/v1/admin/organizations/*` (CRM organizations excluding
+  vendors; vendors remain under `/v1/admin/vendors`),
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
   cross-service instance listing with optional `service_id` / `service_type`
@@ -54,6 +57,8 @@ their primary responsibilities.
   `countrycodes` parameter is built from the root area `code` plus the sovereign
   country row's `code` when `geographic_areas.sovereign_country_id` is set),
   (list supports optional `area_id`, `search` on address, cursor pagination, and `total_count`),
+  CRM contact/family/organization management with soft-archive, locations, tags,
+  and family/organization membership rows,
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
   vendor management, expense invoice ingestion/listing/amendment/void/pay flows
   (mark-paid requires vendor, invoice date, currency, and total), and admin-user
