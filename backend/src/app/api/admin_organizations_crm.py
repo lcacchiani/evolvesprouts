@@ -10,9 +10,11 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_crm_helpers import (
+    crm_request_id,
     ensure_location_exists,
     parse_active_filter,
     parse_crm_limit,
+    parse_crm_relationship_type,
     parse_optional_bool_body,
     replace_organization_tags,
 )
@@ -35,7 +37,6 @@ from app.db.models import (
     OrganizationMember,
     OrganizationRole,
     OrganizationType,
-    RelationshipType,
 )
 from app.db.repositories import OrganizationRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
@@ -94,21 +95,6 @@ def handle_admin_organizations_crm_request(
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
-
-
-def _parse_relationship_type_crm(value: Any, *, field: str) -> RelationshipType:
-    if value is None or str(value).strip() == "":
-        return RelationshipType.PROSPECT
-    try:
-        parsed = RelationshipType(str(value).strip().lower())
-    except ValueError as exc:
-        raise ValidationError(f"Invalid {field}", field=field) from exc
-    if parsed == RelationshipType.VENDOR:
-        raise ValidationError(
-            "Vendor organizations are managed under Finance",
-            field=field,
-        )
-    return parsed
 
 
 def _parse_organization_type(value: Any, *, field: str) -> OrganizationType:
@@ -191,8 +177,8 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
     organization_type = _parse_organization_type(
         body.get("organization_type"), field="organization_type"
     )
-    relationship_type = _parse_relationship_type_crm(
-        body.get("relationship_type"), field="relationship_type"
+    relationship_type = parse_crm_relationship_type(
+        body.get("relationship_type"), field="relationship_type", forbid_vendor=True
     )
     website = validate_string_length(
         body.get("website"),
@@ -204,7 +190,7 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
     tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         ensure_location_exists(session, location_id)
         repository = OrganizationRepository(session)
         org = Organization(
@@ -239,7 +225,7 @@ def _update_organization(
     body = parse_body(event)
     now = datetime.now(UTC)
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = OrganizationRepository(session)
         org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
@@ -260,8 +246,10 @@ def _update_organization(
                 body.get("organization_type"), field="organization_type"
             )
         if "relationship_type" in body:
-            org.relationship_type = _parse_relationship_type_crm(
-                body.get("relationship_type"), field="relationship_type"
+            org.relationship_type = parse_crm_relationship_type(
+                body.get("relationship_type"),
+                field="relationship_type",
+                forbid_vendor=True,
             )
         if "website" in body:
             org.website = validate_string_length(
@@ -306,7 +294,7 @@ def _add_organization_member(
     role = _parse_organization_role(body.get("role"), field="role")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = OrganizationRepository(session)
         org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
@@ -340,7 +328,7 @@ def _remove_organization_member(
     actor_sub: str,
 ) -> dict[str, Any]:
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = OrganizationRepository(session)
         org = repository.get_crm_organization_by_id(organization_id)
         if org is None:
@@ -358,12 +346,3 @@ def _remove_organization_member(
             {"organization": serialize_organization_summary(loaded)},
             event=event,
         )
-
-
-def _request_id(event: Mapping[str, Any]) -> str:
-    request_context = event.get("requestContext")
-    if isinstance(request_context, Mapping):
-        request_id = request_context.get("requestId")
-        if isinstance(request_id, str):
-            return request_id.strip()
-    return ""

@@ -10,19 +10,12 @@ import {
   updateAdminOrganization,
 } from '@/lib/crm-api';
 import { DEFAULT_CRM_LIST_FILTERS, type CrmListFilters } from '@/types/crm';
+import { CRM_ENTITY_RELATIONSHIP_TYPES } from '@/types/crm-relationship';
 import type { components } from '@/types/generated/admin-api.generated';
 
 import { usePaginatedList } from './use-paginated-list';
 
 type ApiSchemas = components['schemas'];
-
-const CRM_RELATIONSHIP_OPTIONS: components['schemas']['CrmRelationshipType'][] = [
-  'prospect',
-  'client',
-  'past_client',
-  'partner',
-  'other',
-];
 
 export function useAdminCrmOrganizations() {
   const fetcher = useCallback(
@@ -100,6 +93,6 @@ export function useAdminCrmOrganizations() {
     addMember,
     removeMember,
     refetch: list.refetch,
-    crmRelationshipOptions: CRM_RELATIONSHIP_OPTIONS,
+    crmRelationshipOptions: CRM_ENTITY_RELATIONSHIP_TYPES,
   };
 }

@@ -12,9 +12,13 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatLocationLabel } from '@/lib/format';
+import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 import type { CrmTagRef } from '@/lib/crm-api';
 import type { CrmListFilters } from '@/types/crm';
+import {
+  CRM_ENTITY_RELATIONSHIP_TYPES,
+  relationshipTypeForCrmEditor,
+} from '@/types/crm-relationship';
 import type { LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
@@ -25,15 +29,6 @@ const CONTACT_TYPES: ApiSchemas['CrmContactType'][] = [
   'child',
   'helper',
   'professional',
-  'other',
-];
-
-const REL_TYPES: ApiSchemas['CrmRelationshipType'][] = [
-  'prospect',
-  'client',
-  'past_client',
-  'partner',
-  'vendor',
   'other',
 ];
 
@@ -51,10 +46,6 @@ const SOURCES: ApiSchemas['CrmContactSource'][] = [
   'public_website',
   'manual',
 ];
-
-function humanizeEnum(value: string): string {
-  return value.replaceAll('_', ' ');
-}
 
 export interface ContactsPanelProps {
   contacts: ReturnType<typeof useAdminCrmContacts>;
@@ -87,7 +78,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
   const [phone, setPhone] = useState('');
   const [contactType, setContactType] = useState<ApiSchemas['CrmContactType']>('parent');
   const [relationshipType, setRelationshipType] =
-    useState<ApiSchemas['CrmRelationshipType']>('prospect');
+    useState<(typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number]>('prospect');
   const [source, setSource] = useState<ApiSchemas['CrmContactSource']>('manual');
   const [sourceDetail, setSourceDetail] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -172,7 +163,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
     setInstagramHandle(row.instagram_handle ?? '');
     setPhone(row.phone ?? '');
     setContactType(row.contact_type);
-    setRelationshipType(row.relationship_type);
+    setRelationshipType(relationshipTypeForCrmEditor(row.relationship_type));
     setSource(row.source);
     setSourceDetail(row.source_detail ?? '');
     setDateOfBirth(row.date_of_birth ?? '');
@@ -185,7 +176,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
     <div className='space-y-6'>
       <AdminEditorCard
         title='Contact'
-        description='Create a contact or select a row below to edit. Mailchimp sync status is read-only from the API.'
+        description='Create a contact or select a row below to edit. Relationship excludes vendor (vendors are organisation records under Finance). Mailchimp sync status is read-only from the API.'
         actions={
           <>
             {editorMode === 'edit' ? (
@@ -268,7 +259,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
             >
               {CONTACT_TYPES.map((v) => (
                 <option key={v} value={v}>
-                  {humanizeEnum(v)}
+                  {formatEnumLabel(v)}
                 </option>
               ))}
             </Select>
@@ -279,12 +270,12 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
               id='crm-contact-rel'
               value={relationshipType}
               onChange={(e) =>
-                setRelationshipType(e.target.value as ApiSchemas['CrmRelationshipType'])
+                setRelationshipType(e.target.value as (typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number])
               }
             >
-              {REL_TYPES.map((v) => (
+              {CRM_ENTITY_RELATIONSHIP_TYPES.map((v) => (
                 <option key={v} value={v}>
-                  {humanizeEnum(v)}
+                  {formatEnumLabel(v)}
                 </option>
               ))}
             </Select>
@@ -298,7 +289,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
             >
               {SOURCES.map((v) => (
                 <option key={v} value={v}>
-                  {humanizeEnum(v)}
+                  {formatEnumLabel(v)}
                 </option>
               ))}
             </Select>
@@ -353,7 +344,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
           {editorMode === 'edit' && selected ? (
             <div className='lg:col-span-2 text-sm text-slate-600'>
               <p>
-                Mailchimp: {selected.mailchimp_status.replaceAll('_', ' ')} · Families:{' '}
+                Mailchimp: {formatEnumLabel(selected.mailchimp_status)} · Families:{' '}
                 {selected.family_ids.length} · Organisations: {selected.organization_ids.length}
               </p>
             </div>
@@ -420,7 +411,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
                 >
                   <td className='px-4 py-3'>{name}</td>
                   <td className='px-4 py-3'>{row.email ?? '—'}</td>
-                  <td className='px-4 py-3'>{humanizeEnum(row.contact_type)}</td>
+                  <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
                   <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
                 </tr>
               );

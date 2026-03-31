@@ -11,10 +11,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.admin_crm_helpers import (
+    crm_request_id,
     ensure_location_exists,
     list_all_tags_for_picker,
     parse_active_filter,
     parse_crm_limit,
+    parse_crm_relationship_type,
     parse_optional_bool_body,
     replace_contact_tags,
     serialize_tag_ref,
@@ -32,7 +34,7 @@ from app.api.admin_validators import validate_email, validate_string_length
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Contact, ContactSource, ContactType, RelationshipType
+from app.db.models import Contact, ContactSource, ContactType
 from app.db.repositories import ContactRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
@@ -168,15 +170,6 @@ def _parse_contact_source(value: Any, *, field: str) -> ContactSource:
         raise ValidationError(f"Invalid {field}", field=field) from exc
 
 
-def _parse_relationship_type(value: Any, *, field: str) -> RelationshipType:
-    if value is None or str(value).strip() == "":
-        return RelationshipType.PROSPECT
-    try:
-        return RelationshipType(str(value).strip().lower())
-    except ValueError as exc:
-        raise ValidationError(f"Invalid {field}", field=field) from exc
-
-
 def _create_contact(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
     body = parse_body(event)
     first_name = validate_string_length(
@@ -206,8 +199,8 @@ def _create_contact(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
         required=False,
     )
     contact_type = _parse_contact_type(body.get("contact_type"), field="contact_type")
-    relationship_type = _parse_relationship_type(
-        body.get("relationship_type"), field="relationship_type"
+    relationship_type = parse_crm_relationship_type(
+        body.get("relationship_type"), field="relationship_type", forbid_vendor=True
     )
     source = _parse_contact_source(body.get("source"), field="source")
     source_detail = validate_string_length(
@@ -223,7 +216,7 @@ def _create_contact(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
     tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         ensure_location_exists(session, location_id)
         repository = ContactRepository(session)
         contact = Contact(
@@ -270,7 +263,7 @@ def _update_contact(
     body = parse_body(event)
     now = datetime.now(UTC)
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = ContactRepository(session)
         contact = repository.get_by_id_for_admin(contact_id)
         if contact is None:
@@ -315,8 +308,10 @@ def _update_contact(
                 body.get("contact_type"), field="contact_type"
             )
         if "relationship_type" in body:
-            contact.relationship_type = _parse_relationship_type(
-                body.get("relationship_type"), field="relationship_type"
+            contact.relationship_type = parse_crm_relationship_type(
+                body.get("relationship_type"),
+                field="relationship_type",
+                forbid_vendor=True,
             )
         if "source" in body:
             contact.source = _parse_contact_source(body.get("source"), field="source")
@@ -362,12 +357,3 @@ def _update_contact(
             {"contact": serialize_contact_summary(loaded)},
             event=event,
         )
-
-
-def _request_id(event: Mapping[str, Any]) -> str:
-    request_context = event.get("requestContext")
-    if isinstance(request_context, Mapping):
-        request_id = request_context.get("requestId")
-        if isinstance(request_id, str):
-            return request_id.strip()
-    return ""

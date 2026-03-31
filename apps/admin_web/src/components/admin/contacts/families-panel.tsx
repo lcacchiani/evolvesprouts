@@ -12,22 +12,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import { formatLocationLabel } from '@/lib/format';
+import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
 import type { CrmTagRef } from '@/lib/crm-api';
 import type { CrmListFilters } from '@/types/crm';
+import {
+  CRM_ENTITY_RELATIONSHIP_TYPES,
+  relationshipTypeForCrmEditor,
+} from '@/types/crm-relationship';
 import type { LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
-
-const REL_TYPES: ApiSchemas['CrmRelationshipType'][] = [
-  'prospect',
-  'client',
-  'past_client',
-  'partner',
-  'vendor',
-  'other',
-];
 
 const FAMILY_ROLES: ApiSchemas['CrmFamilyRole'][] = [
   'parent',
@@ -36,10 +31,6 @@ const FAMILY_ROLES: ApiSchemas['CrmFamilyRole'][] = [
   'guardian',
   'other',
 ];
-
-function humanizeEnum(value: string): string {
-  return value.replaceAll('_', ' ');
-}
 
 export interface FamiliesPanelProps {
   families: ReturnType<typeof useAdminCrmFamilies>;
@@ -70,7 +61,7 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [familyName, setFamilyName] = useState('');
   const [relationshipType, setRelationshipType] =
-    useState<ApiSchemas['CrmRelationshipType']>('prospect');
+    useState<(typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number]>('prospect');
   const [locationId, setLocationId] = useState('');
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [active, setActive] = useState(true);
@@ -155,7 +146,7 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
     setSelectedId(id);
     setEditorMode('edit');
     setFamilyName(row.family_name);
-    setRelationshipType(row.relationship_type);
+    setRelationshipType(relationshipTypeForCrmEditor(row.relationship_type));
     setLocationId(row.location_id ?? '');
     setTagIds([...row.tag_ids]);
     setActive(row.active);
@@ -165,7 +156,7 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
     <div className='space-y-6'>
       <AdminEditorCard
         title='Family'
-        description='Create a family or select one below. Add members by linking an existing contact.'
+        description='Create a family or select one below. Add members by linking an existing contact. Relationship excludes vendor (aligned with non-vendor CRM entities).'
         actions={
           <>
             {editorMode === 'edit' ? (
@@ -199,12 +190,12 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
               id='crm-family-rel'
               value={relationshipType}
               onChange={(e) =>
-                setRelationshipType(e.target.value as ApiSchemas['CrmRelationshipType'])
+                setRelationshipType(e.target.value as (typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number])
               }
             >
-              {REL_TYPES.map((v) => (
+              {CRM_ENTITY_RELATIONSHIP_TYPES.map((v) => (
                 <option key={v} value={v}>
-                  {humanizeEnum(v)}
+                  {formatEnumLabel(v)}
                 </option>
               ))}
             </Select>
@@ -277,7 +268,7 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
                   >
                     {FAMILY_ROLES.map((r) => (
                       <option key={r} value={r}>
-                        {humanizeEnum(r)}
+                        {formatEnumLabel(r)}
                       </option>
                     ))}
                   </Select>
@@ -312,7 +303,7 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
                     <tr key={m.id}>
                       <td className='px-3 py-2'>{m.contact_label || m.contact_id}</td>
                       <td className='px-3 py-2'>
-                        {humanizeEnum(m.role)}
+                        {formatEnumLabel(m.role)}
                         {m.is_primary_contact ? ' · primary' : ''}
                       </td>
                       <td className='px-3 py-2 text-right'>

@@ -10,9 +10,11 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_crm_helpers import (
+    crm_request_id,
     ensure_location_exists,
     parse_active_filter,
     parse_crm_limit,
+    parse_crm_relationship_type,
     parse_optional_bool_body,
     replace_family_tags,
 )
@@ -29,7 +31,7 @@ from app.api.admin_validators import validate_string_length
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.audit import set_audit_context
 from app.db.engine import get_engine
-from app.db.models import Contact, Family, FamilyMember, FamilyRole, RelationshipType
+from app.db.models import Contact, Family, FamilyMember, FamilyRole
 from app.db.repositories import FamilyRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
@@ -87,15 +89,6 @@ def handle_admin_families_request(
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     return json_response(404, {"error": "Not found"}, event=event)
-
-
-def _parse_relationship_type(value: Any, *, field: str) -> RelationshipType:
-    if value is None or str(value).strip() == "":
-        return RelationshipType.PROSPECT
-    try:
-        return RelationshipType(str(value).strip().lower())
-    except ValueError as exc:
-        raise ValidationError(f"Invalid {field}", field=field) from exc
 
 
 def _parse_family_role(value: Any, *, field: str) -> FamilyRole:
@@ -164,14 +157,14 @@ def _create_family(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any
         max_length=150,
         required=True,
     )
-    relationship_type = _parse_relationship_type(
-        body.get("relationship_type"), field="relationship_type"
+    relationship_type = parse_crm_relationship_type(
+        body.get("relationship_type"), field="relationship_type", forbid_vendor=True
     )
     location_id = parse_optional_uuid(body.get("location_id"), "location_id")
     tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         ensure_location_exists(session, location_id)
         repository = FamilyRepository(session)
         family = Family(
@@ -202,7 +195,7 @@ def _update_family(
     body = parse_body(event)
     now = datetime.now(UTC)
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = FamilyRepository(session)
         family = repository.get_by_id_for_admin(family_id)
         if family is None:
@@ -219,8 +212,10 @@ def _update_family(
                 or family.family_name
             )
         if "relationship_type" in body:
-            family.relationship_type = _parse_relationship_type(
-                body.get("relationship_type"), field="relationship_type"
+            family.relationship_type = parse_crm_relationship_type(
+                body.get("relationship_type"),
+                field="relationship_type",
+                forbid_vendor=True,
             )
         if "location_id" in body:
             loc = parse_optional_uuid(body.get("location_id"), "location_id")
@@ -272,7 +267,7 @@ def _add_family_member(
         )
 
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = FamilyRepository(session)
         family = repository.get_by_id_for_admin(family_id)
         if family is None:
@@ -308,7 +303,7 @@ def _remove_family_member(
     actor_sub: str,
 ) -> dict[str, Any]:
     with Session(get_engine()) as session:
-        set_audit_context(session, user_id=actor_sub, request_id=_request_id(event))
+        set_audit_context(session, user_id=actor_sub, request_id=crm_request_id(event))
         repository = FamilyRepository(session)
         family = repository.get_by_id_for_admin(family_id)
         if family is None:
@@ -326,12 +321,3 @@ def _remove_family_member(
             {"family": serialize_family_summary(loaded)},
             event=event,
         )
-
-
-def _request_id(event: Mapping[str, Any]) -> str:
-    request_context = event.get("requestContext")
-    if isinstance(request_context, Mapping):
-        request_id = request_context.get("requestId")
-        if isinstance(request_id, str):
-            return request_id.strip()
-    return ""
