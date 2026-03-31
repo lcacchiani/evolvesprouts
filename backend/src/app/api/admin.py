@@ -22,6 +22,7 @@ from app.api.admin_users import (
     handle_admin_users_request,
 )
 from app.api.admin_contacts import handle_admin_contacts_request
+from app.api.admin_crm_picker import handle_admin_crm_picker_request
 from app.api.admin_families import handle_admin_families_request
 from app.api.admin_organizations_crm import handle_admin_organizations_crm_request
 from app.api.admin_vendors import handle_admin_vendors_request
@@ -168,9 +169,19 @@ _ROUTES: tuple[
         handle_admin_contacts_request,
     ),
     (
+        "/v1/admin/families/picker",
+        False,
+        handle_admin_crm_picker_request,
+    ),
+    (
         "/v1/admin/families",
         False,
         handle_admin_families_request,
+    ),
+    (
+        "/v1/admin/organizations/picker",
+        False,
+        handle_admin_crm_picker_request,
     ),
     (
         "/v1/admin/organizations",

@@ -10,6 +10,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_crm_helpers import (
+    assert_contact_can_join_organization,
     crm_request_id,
     ensure_location_exists,
     parse_active_filter,
@@ -302,6 +303,9 @@ def _add_organization_member(
         contact = session.get(Contact, contact_id)
         if contact is None:
             raise ValidationError("contact_id not found", field="contact_id")
+        assert_contact_can_join_organization(
+            session, contact_id=contact_id, organization_id=organization_id
+        )
 
         member = OrganizationMember(
             organization_id=organization_id,
@@ -309,6 +313,7 @@ def _add_organization_member(
             role=role,
         )
         session.add(member)
+        contact.location_id = None
         session.commit()
         loaded = repository.get_crm_organization_by_id(organization_id)
         if loaded is None:

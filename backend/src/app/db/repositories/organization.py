@@ -8,7 +8,7 @@ from uuid import UUID
 from sqlalchemy import and_, func, literal, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.db.models import Organization, RelationshipType
+from app.db.models import Location, Organization, RelationshipType
 from app.db.models.organization import OrganizationMember
 from app.db.models.tag import OrganizationTag
 from app.db.repositories.base import BaseRepository
@@ -175,6 +175,7 @@ class OrganizationRepository(BaseRepository[Organization]):
                 selectinload(Organization.organization_members).selectinload(
                     OrganizationMember.contact
                 ),
+                selectinload(Organization.location).selectinload(Location.area),
             )
         )
         if cursor is not None:
@@ -240,6 +241,7 @@ class OrganizationRepository(BaseRepository[Organization]):
                 selectinload(Organization.organization_members).selectinload(
                     OrganizationMember.contact
                 ),
+                selectinload(Organization.location).selectinload(Location.area),
             )
         )
         return self._session.execute(statement).scalar_one_or_none()

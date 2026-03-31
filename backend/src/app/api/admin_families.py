@@ -10,6 +10,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_crm_helpers import (
+    assert_contact_can_join_family,
     crm_request_id,
     ensure_location_exists,
     parse_active_filter,
@@ -275,6 +276,9 @@ def _add_family_member(
         contact = session.get(Contact, contact_id)
         if contact is None:
             raise ValidationError("contact_id not found", field="contact_id")
+        assert_contact_can_join_family(
+            session, contact_id=contact_id, family_id=family_id
+        )
 
         member = FamilyMember(
             family_id=family_id,
@@ -283,6 +287,7 @@ def _add_family_member(
             is_primary_contact=is_primary_contact,
         )
         session.add(member)
+        contact.location_id = None
         session.commit()
         session.refresh(member)
         loaded = repository.get_by_id_for_admin(family_id)

@@ -8,6 +8,7 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.db.models.contact import Contact
+from app.db.models.location import Location
 from app.db.models.tag import ContactTag
 from app.db.models.enums import ContactSource, ContactType, RelationshipType
 from app.db.repositories.base import BaseRepository
@@ -144,6 +145,7 @@ class ContactRepository(BaseRepository[Contact]):
             selectinload(Contact.contact_tags).selectinload(ContactTag.tag),
             selectinload(Contact.family_members),
             selectinload(Contact.organization_members),
+            selectinload(Contact.location).selectinload(Location.area),
         )
         if cursor is not None:
             cursor_created_at = (
@@ -216,6 +218,7 @@ class ContactRepository(BaseRepository[Contact]):
                 selectinload(Contact.contact_tags).selectinload(ContactTag.tag),
                 selectinload(Contact.family_members),
                 selectinload(Contact.organization_members),
+                selectinload(Contact.location).selectinload(Location.area),
             )
         )
         return self._session.execute(statement).scalar_one_or_none()
