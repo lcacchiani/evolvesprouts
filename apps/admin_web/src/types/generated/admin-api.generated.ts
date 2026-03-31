@@ -2035,6 +2035,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/contacts/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search CRM contacts for pickers
+         * @description Returns active contacts matching a case-insensitive substring on name, email, phone, or Instagram.
+         *     Requires at least two characters in `query`. Intended for referral and other admin pickers.
+         */
+        get: {
+            parameters: {
+                query: {
+                    query: string;
+                    /** @description Omit this contact from results (e.g. the subject contact when choosing a referrer). */
+                    exclude_contact_id?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Matching contacts as id/label rows. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/contacts": {
         parameters: {
             query?: never;
@@ -2178,6 +2225,50 @@ export interface paths {
                 404: components["responses"]["NotFound"];
             };
         };
+        trace?: never;
+    };
+    "/v1/admin/families/picker": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active CRM families for pickers
+         * @description Returns active families ordered by name for admin UI dropdowns.
+         *     At most 100 rows unless `limit` is set lower.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Picker list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/families": {
@@ -2417,6 +2508,50 @@ export interface paths {
                 404: components["responses"]["NotFound"];
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/picker": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active CRM organisations for pickers
+         * @description Returns active non-vendor organisations ordered by name for admin UI dropdowns.
+         *     At most 100 rows unless `limit` is set lower.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Picker list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4127,6 +4262,27 @@ export interface components {
         CrmTagListResponse: {
             items: components["schemas"]["CrmTagRef"][];
         };
+        CrmPickerListItem: {
+            /** Format: uuid */
+            id: string;
+            label: string;
+        };
+        CrmPickerListResponse: {
+            items: components["schemas"]["CrmPickerListItem"][];
+        };
+        CrmLocationVenueSummary: {
+            /** Format: uuid */
+            id: string;
+            name?: string | null;
+            /** Format: uuid */
+            area_id: string;
+            area_name: string;
+            address?: string | null;
+            /** Format: double */
+            lat?: number | null;
+            /** Format: double */
+            lng?: number | null;
+        };
         AdminContact: {
             /** Format: uuid */
             id: string;
@@ -4141,8 +4297,15 @@ export interface components {
             date_of_birth?: string | null;
             /** Format: uuid */
             location_id?: string | null;
+            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
             source: components["schemas"]["CrmContactSource"];
             source_detail?: string | null;
+            /**
+             * Format: uuid
+             * @description When `source` is `referral`, the contact UUID of the referring contact
+             *     (stored in `source_metadata`).
+             */
+            referral_contact_id?: string | null;
             mailchimp_status: components["schemas"]["CrmMailchimpSyncStatus"];
             active: boolean;
             /** Format: date-time */
@@ -4179,6 +4342,15 @@ export interface components {
             /** Format: uuid */
             location_id?: string | null;
             tag_ids?: string[];
+            /** @description Optional. At most one family. Omit or send an empty array to unlink. */
+            family_ids?: string[];
+            /** @description Optional. At most one organisation (non-vendor). Omit or send an empty array to unlink. */
+            organization_ids?: string[];
+            /**
+             * Format: uuid
+             * @description Required when `source` is `referral` on create.
+             */
+            referral_contact_id?: string | null;
         };
         UpdateAdminContactRequest: {
             first_name?: string;
@@ -4196,6 +4368,14 @@ export interface components {
             location_id?: string | null;
             active?: boolean;
             tag_ids?: string[];
+            family_ids?: string[];
+            organization_ids?: string[];
+            /**
+             * Format: uuid
+             * @description When `source` is `referral`, must be set to a valid active contact UUID
+             *     (omit or null to clear only when source is not referral).
+             */
+            referral_contact_id?: string | null;
         };
         AdminFamilyMember: {
             /** Format: uuid */
@@ -4213,6 +4393,7 @@ export interface components {
             relationship_type: components["schemas"]["CrmRelationshipType"];
             /** Format: uuid */
             location_id?: string | null;
+            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
             active: boolean;
             /** Format: date-time */
             archived_at?: string | null;
@@ -4270,6 +4451,7 @@ export interface components {
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
+            location_summary?: components["schemas"]["CrmLocationVenueSummary"] | null;
             active: boolean;
             /** Format: date-time */
             archived_at?: string | null;

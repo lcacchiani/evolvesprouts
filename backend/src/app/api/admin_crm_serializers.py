@@ -9,9 +9,49 @@ from app.db.models import (
     Contact,
     Family,
     FamilyMember,
+    Location,
     Organization,
     OrganizationMember,
 )
+
+REFERRAL_CONTACT_METADATA_KEY = "referral_contact_id"
+
+
+def _referral_contact_id_from_metadata(
+    metadata: dict[str, object] | None,
+) -> str | None:
+    if not metadata:
+        return None
+    raw = metadata.get(REFERRAL_CONTACT_METADATA_KEY)
+    if raw is None:
+        return None
+    normalized = str(raw).strip()
+    return normalized or None
+
+
+def serialize_location_venue(location: Location) -> dict[str, Any]:
+    area = location.area
+    area_name = area.name if area is not None else ""
+    return {
+        "id": str(location.id),
+        "name": location.name,
+        "area_id": str(location.area_id),
+        "area_name": area_name,
+        "address": location.address,
+        "lat": float(location.lat) if location.lat is not None else None,
+        "lng": float(location.lng) if location.lng is not None else None,
+    }
+
+
+def serialize_contact_picker_row(contact: Contact) -> dict[str, Any]:
+    parts = [contact.first_name or "", contact.last_name or ""]
+    label = (
+        " ".join(p for p in parts if p).strip()
+        or (contact.email or "")
+        or (contact.instagram_handle or "")
+        or str(contact.id)
+    )
+    return {"id": str(contact.id), "label": label}
 
 
 def serialize_contact_summary(contact: Contact) -> dict[str, Any]:
@@ -34,8 +74,14 @@ def serialize_contact_summary(contact: Contact) -> dict[str, Any]:
         if contact.date_of_birth
         else None,
         "location_id": str(contact.location_id) if contact.location_id else None,
+        "location_summary": serialize_location_venue(contact.location)
+        if contact.location_id is not None and contact.location is not None
+        else None,
         "source": contact.source.value,
         "source_detail": contact.source_detail,
+        "referral_contact_id": _referral_contact_id_from_metadata(
+            contact.source_metadata
+        ),
         "mailchimp_status": contact.mailchimp_status.value,
         "active": contact.archived_at is None,
         "archived_at": contact.archived_at,
@@ -77,6 +123,9 @@ def serialize_family_summary(family: Family) -> dict[str, Any]:
         "family_name": family.family_name,
         "relationship_type": family.relationship_type.value,
         "location_id": str(family.location_id) if family.location_id else None,
+        "location_summary": serialize_location_venue(family.location)
+        if family.location_id is not None and family.location is not None
+        else None,
         "active": family.archived_at is None,
         "archived_at": family.archived_at,
         "created_at": family.created_at,
@@ -117,6 +166,9 @@ def serialize_organization_summary(org: Organization) -> dict[str, Any]:
         "relationship_type": org.relationship_type.value,
         "website": org.website,
         "location_id": str(org.location_id) if org.location_id else None,
+        "location_summary": serialize_location_venue(org.location)
+        if org.location_id is not None and org.location is not None
+        else None,
         "active": org.archived_at is None,
         "archived_at": org.archived_at,
         "created_at": org.created_at,

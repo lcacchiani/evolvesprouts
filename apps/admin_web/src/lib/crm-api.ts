@@ -14,11 +14,13 @@ type ApiFamilyResponse = ApiSchemas['AdminFamilyResponse'];
 type ApiOrganizationList = ApiSchemas['AdminOrganizationListResponse'];
 type ApiOrganizationResponse = ApiSchemas['AdminOrganizationResponse'];
 type ApiTagList = ApiSchemas['CrmTagListResponse'];
+type ApiCrmPickerList = ApiSchemas['CrmPickerListResponse'];
 
 export type AdminContactRow = ApiSchemas['AdminContact'];
 export type AdminFamilyRow = ApiSchemas['AdminFamily'];
 export type AdminOrganizationRow = ApiSchemas['AdminOrganization'];
 export type CrmTagRef = ApiSchemas['CrmTagRef'];
+export type CrmPickerListItem = ApiSchemas['CrmPickerListItem'];
 
 function parseContact(value: unknown): AdminContactRow {
   const row = isRecord(value) ? value : {};
@@ -40,6 +42,11 @@ function parseTag(value: unknown): CrmTagRef {
   return row as CrmTagRef;
 }
 
+function parsePickerItem(value: unknown): CrmPickerListItem {
+  const row = isRecord(value) ? value : {};
+  return row as CrmPickerListItem;
+}
+
 export async function listCrmTags(signal?: AbortSignal): Promise<CrmTagRef[]> {
   const payload = await adminApiRequest<ApiTagList>({
     endpointPath: '/v1/admin/contacts/tags',
@@ -48,6 +55,60 @@ export async function listCrmTags(signal?: AbortSignal): Promise<CrmTagRef[]> {
   });
   const root = unwrapPayload(payload);
   return Array.isArray(root.items) ? root.items.map((t) => parseTag(t)) : [];
+}
+
+export async function listCrmFamilyPicker(signal?: AbortSignal): Promise<CrmPickerListItem[]> {
+  const payload = await adminApiRequest<ApiCrmPickerList>({
+    endpointPath: '/v1/admin/families/picker?limit=100',
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
+}
+
+export async function listCrmOrganizationPicker(signal?: AbortSignal): Promise<CrmPickerListItem[]> {
+  const payload = await adminApiRequest<ApiCrmPickerList>({
+    endpointPath: '/v1/admin/organizations/picker?limit=100',
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
+}
+
+export async function searchCrmContactsForPicker(
+  params: { query: string; excludeContactId?: string | null; limit?: number },
+  signal?: AbortSignal
+): Promise<CrmPickerListItem[]> {
+  const q = new URLSearchParams();
+  q.set('query', params.query.trim());
+  if (params.excludeContactId?.trim()) {
+    q.set('exclude_contact_id', params.excludeContactId.trim());
+  }
+  if (typeof params.limit === 'number') {
+    q.set('limit', `${params.limit}`);
+  }
+  const payload = await adminApiRequest<ApiCrmPickerList>({
+    endpointPath: `/v1/admin/contacts/search?${q.toString()}`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
+}
+
+export async function getAdminContact(
+  contactId: string,
+  signal?: AbortSignal
+): Promise<AdminContactRow | null> {
+  const payload = await adminApiRequest<ApiContactResponse>({
+    endpointPath: `/v1/admin/contacts/${contactId}`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return root.contact ? parseContact(root.contact) : null;
 }
 
 export async function listAdminContacts(

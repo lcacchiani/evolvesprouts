@@ -27,6 +27,27 @@ def test_handle_admin_contacts_tags_get(
     assert response is marker
 
 
+def test_handle_admin_contacts_search_get(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    monkeypatch.setattr(admin_contacts, "_search_contacts_for_picker", lambda _: marker)
+    monkeypatch.setattr(
+        admin_contacts,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_contacts.handle_admin_contacts_request(
+        api_gateway_event(method="GET", path="/v1/admin/contacts/search"),
+        "GET",
+        "/v1/admin/contacts/search",
+    )
+
+    assert response is marker
+
+
 def test_handle_admin_families_member_delete(
     monkeypatch: Any,
     api_gateway_event: Any,

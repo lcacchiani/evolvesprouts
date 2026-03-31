@@ -8,12 +8,12 @@ import { OrganizationsPanel } from '@/components/admin/contacts/organizations-pa
 import { StatusBanner } from '@/components/status-banner';
 import { AdminTabStrip } from '@/components/ui/admin-tab-strip';
 import { listCrmTags, type CrmTagRef } from '@/lib/crm-api';
-import { listAllLocations } from '@/lib/services-api';
+import { listAllLocations, listGeographicAreas } from '@/lib/services-api';
 import { toErrorMessage } from '@/hooks/hook-errors';
 import { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
 import { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
 import { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
-import type { LocationSummary } from '@/types/services';
+import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 
 const TAB_ITEMS = [
   { key: 'contacts', label: 'Contacts' },
@@ -27,6 +27,7 @@ export function ContactsPage() {
   const [activeView, setActiveView] = useState<ContactsView>('contacts');
   const [tags, setTags] = useState<CrmTagRef[]>([]);
   const [locations, setLocations] = useState<LocationSummary[]>([]);
+  const [geographicAreas, setGeographicAreas] = useState<GeographicAreaSummary[]>([]);
   const [pickerError, setPickerError] = useState('');
 
   const contacts = useAdminCrmContacts();
@@ -37,10 +38,15 @@ export function ContactsPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const [tagList, locList] = await Promise.all([listCrmTags(), listAllLocations()]);
+        const [tagList, locList, areaList] = await Promise.all([
+          listCrmTags(),
+          listAllLocations(),
+          listGeographicAreas({ flat: true, activeOnly: true }),
+        ]);
         if (!cancelled) {
           setTags(tagList);
           setLocations(locList);
+          setGeographicAreas(areaList);
           setPickerError('');
         }
       } catch (error) {
@@ -61,6 +67,16 @@ export function ContactsPage() {
       return { id: c.id, label };
     });
   }, [contacts.contacts]);
+
+  const contactsForMembership = useMemo(
+    () =>
+      contacts.contacts.map((c) => ({
+        id: c.id,
+        family_ids: c.family_ids,
+        organization_ids: c.organization_ids,
+      })),
+    [contacts.contacts]
+  );
 
   const hasAnyError =
     pickerError ||
@@ -84,20 +100,29 @@ export function ContactsPage() {
       />
 
       {activeView === 'contacts' ? (
-        <ContactsPanel contacts={contacts} tags={tags} locations={locations} />
+        <ContactsPanel
+          contacts={contacts}
+          tags={tags}
+          locations={locations}
+          geographicAreas={geographicAreas}
+        />
       ) : activeView === 'families' ? (
         <FamiliesPanel
           families={families}
           tags={tags}
           locations={locations}
+          geographicAreas={geographicAreas}
           contactOptions={contactOptions}
+          contactsForMembership={contactsForMembership}
         />
       ) : (
         <OrganizationsPanel
           organizations={organizations}
           tags={tags}
           locations={locations}
+          geographicAreas={geographicAreas}
           contactOptions={contactOptions}
+          contactsForMembership={contactsForMembership}
         />
       )}
     </div>

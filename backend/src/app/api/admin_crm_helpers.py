@@ -13,8 +13,10 @@ from app.api.admin_request import query_param
 from app.exceptions import ValidationError
 from app.db.models import (
     ContactTag,
+    FamilyMember,
     FamilyTag,
     Location,
+    OrganizationMember,
     OrganizationTag,
     RelationshipType,
     Tag,
@@ -65,6 +67,44 @@ def serialize_tag_ref(tag: Tag) -> dict[str, Any]:
         "name": tag.name,
         "color": tag.color,
     }
+
+
+def assert_contact_can_join_family(
+    session: Session,
+    *,
+    contact_id: UUID,
+    family_id: UUID,
+) -> None:
+    """At most one family per contact (may also belong to one organisation)."""
+    fam_stmt = select(FamilyMember.family_id).where(
+        FamilyMember.contact_id == contact_id
+    )
+    existing_family_ids = session.execute(fam_stmt).scalars().all()
+    for fid in existing_family_ids:
+        if fid != family_id:
+            raise ValidationError(
+                "Contact is already in another family; remove them from that family first",
+                field="contact_id",
+            )
+
+
+def assert_contact_can_join_organization(
+    session: Session,
+    *,
+    contact_id: UUID,
+    organization_id: UUID,
+) -> None:
+    """At most one organisation per contact (may also belong to one family)."""
+    org_stmt = select(OrganizationMember.organization_id).where(
+        OrganizationMember.contact_id == contact_id
+    )
+    existing_org_ids = session.execute(org_stmt).scalars().all()
+    for oid in existing_org_ids:
+        if oid != organization_id:
+            raise ValidationError(
+                "Contact is already in another organisation; remove them from that organisation first",
+                field="contact_id",
+            )
 
 
 def ensure_location_exists(session: Session, location_id: UUID | None) -> None:

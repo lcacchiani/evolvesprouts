@@ -6,6 +6,7 @@ import { ContactsPage } from '@/components/admin/contacts/contacts-page';
 
 const listCrmTags = vi.fn();
 const listAllLocations = vi.fn();
+const listGeographicAreas = vi.fn();
 
 vi.mock('@/lib/crm-api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/crm-api')>();
@@ -20,6 +21,7 @@ vi.mock('@/lib/services-api', async (importOriginal) => {
   return {
     ...actual,
     listAllLocations: (...args: unknown[]) => listAllLocations(...args),
+    listGeographicAreas: (...args: unknown[]) => listGeographicAreas(...args),
   };
 });
 
@@ -92,6 +94,7 @@ describe('ContactsPage', () => {
   it('loads tags and locations on mount', async () => {
     listCrmTags.mockResolvedValue([]);
     listAllLocations.mockResolvedValue([]);
+    listGeographicAreas.mockResolvedValue([]);
 
     render(<ContactsPage />);
 
@@ -99,12 +102,14 @@ describe('ContactsPage', () => {
       expect(listCrmTags).toHaveBeenCalled();
     });
     expect(listAllLocations).toHaveBeenCalled();
+    expect(listGeographicAreas).toHaveBeenCalled();
   });
 
   it('switches sub-views with the tab strip', async () => {
     const user = userEvent.setup();
     listCrmTags.mockResolvedValue([]);
     listAllLocations.mockResolvedValue([]);
+    listGeographicAreas.mockResolvedValue([]);
 
     render(<ContactsPage />);
 

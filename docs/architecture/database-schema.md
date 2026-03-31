@@ -300,8 +300,14 @@ Indexes:
 - Purpose: canonical contact profile for CRM and campaign sync.
 - Key fields: `email`, `first_name`, `contact_type`, `source`,
   `mailchimp_status`.
+- `source_metadata` (jsonb, nullable) may hold structured source data; the admin
+  API stores `referral_contact_id` (UUID string) when `source = referral`.
 - Key indexes: case-insensitive unique email/instagram indexes and source/type
   indexes.
+- Admin API rule: a contact may belong to at most one family and at most one
+  non-vendor organisation at a time (via `family_members` /
+  `organization_members`). While linked, `contacts.location_id` is cleared so
+  address is maintained on the family or organisation record.
 
 ### `families` and `family_members`
 
