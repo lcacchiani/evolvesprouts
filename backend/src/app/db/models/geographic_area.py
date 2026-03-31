@@ -56,6 +56,12 @@ class GeographicArea(Base):
         nullable=False,
         server_default=text("0"),
     )
+    sovereign_country_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("geographic_areas.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="Sovereign country row for Nominatim countrycodes (e.g. HK → China)",
+    )
 
     parent: Mapped[GeographicArea | None] = relationship(
         remote_side="GeographicArea.id",

@@ -23,6 +23,22 @@ class GeographicAreaRepository:
         """
         self._session = session
 
+    def get_sovereign_country_iso_code(self, country_area_id: UUID) -> str | None:
+        """ISO 3166-1 alpha-2 of the linked sovereign country row, if any.
+
+        Used to build Nominatim ``countrycodes`` for territories (e.g. HK + CN).
+        """
+        area = self.get_by_id(country_area_id)
+        if area is None or area.level != "country":
+            return None
+        sid = area.sovereign_country_id
+        if sid is None:
+            return None
+        sovereign = self.get_by_id(UUID(str(sid)))
+        if sovereign is None or sovereign.level != "country":
+            return None
+        return sovereign.code
+
     def get_by_id(self, area_id: UUID) -> GeographicArea | None:
         """Get a geographic area by its ID.
 

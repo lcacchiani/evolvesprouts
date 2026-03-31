@@ -65,6 +65,9 @@ def _serialize_geographic_area(area: GeographicArea) -> dict[str, Any]:
         "code": area.code,
         "active": area.active,
         "display_order": area.display_order,
+        "sovereign_country_id": str(area.sovereign_country_id)
+        if area.sovereign_country_id
+        else None,
     }
 
 

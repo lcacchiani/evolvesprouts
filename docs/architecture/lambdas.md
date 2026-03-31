@@ -48,7 +48,9 @@ their primary responsibilities.
   `asset_type` scope; create/update accept optional `client_tag` for the
   `client_document` tag, forbidden when the asset is expense-linked), geographic area browsing, location CRUD
   and geocoding (`POST /v1/admin/locations/geocode` uses `NOMINATIM_USER_AGENT` and
-  `NOMINATIM_REFERER` with the HTTP proxy to OpenStreetMap Nominatim),
+  `NOMINATIM_REFERER` with the HTTP proxy to OpenStreetMap Nominatim; Nominatim
+  `countrycodes` is built from the root area `code` plus the sovereign country
+  row's `code` when `geographic_areas.sovereign_country_id` is set),
   (list supports optional `area_id`, `search` on address, cursor pagination, and `total_count`),
   sales pipeline lead management (list/detail/create/update/notes/export/analytics),
   vendor management, expense invoice ingestion/listing/amendment/void/pay flows

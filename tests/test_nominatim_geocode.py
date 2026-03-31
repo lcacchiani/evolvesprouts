@@ -9,7 +9,7 @@ from app.exceptions import AppError, ValidationError
 from app.services import nominatim_geocode
 
 
-def test_geocode_success(monkeypatch: Any) -> None:
+def test_geocode_success_with_multiple_country_codes(monkeypatch: Any) -> None:
     monkeypatch.setenv("NOMINATIM_USER_AGENT", "TestAgent/1.0")
     monkeypatch.setenv("NOMINATIM_REFERER", "https://example.com")
 
@@ -35,14 +35,14 @@ def test_geocode_success(monkeypatch: Any) -> None:
     lat, lng, name = nominatim_geocode.geocode_address_with_context(
         address="123 Main St",
         area_context="City",
-        country_code="HK",
+        country_iso_codes=["HK", "CN"],
     )
     assert lat == 1.5
     assert lng == 2.5
     assert name == "Somewhere"
 
 
-def test_geocode_countrycodes_hk_mo_tw_include_cn(monkeypatch: Any) -> None:
+def test_geocode_countrycodes_order_and_dedupe(monkeypatch: Any) -> None:
     monkeypatch.setenv("NOMINATIM_USER_AGENT", "TestAgent/1.0")
     monkeypatch.setenv("NOMINATIM_REFERER", "https://example.com")
 
@@ -60,24 +60,21 @@ def test_geocode_countrycodes_hk_mo_tw_include_cn(monkeypatch: Any) -> None:
 
     monkeypatch.setattr(nominatim_geocode, "http_invoke", capture_url)
 
-    for code, expect in (("MO", "mo,cn"), ("mo", "mo,cn"), ("TW", "tw,cn"), ("tw", "tw,cn")):
+    for codes, expect in (
+        (["MO", "CN"], "mo,cn"),
+        (["mo", "cn"], "mo,cn"),
+        (["TW", " cn "], "tw,cn"),
+        (["SG"], "sg"),
+        (["HK", "CN", "hk"], "hk,cn"),
+    ):
         seen.clear()
         nominatim_geocode.geocode_address_with_context(
             address="1 Test St",
             area_context="",
-            country_code=code,
+            country_iso_codes=codes,
         )
         got = parse_qs(urlparse(seen[0]).query).get("countrycodes", [""])[0]
         assert got.lower() == expect
-
-    seen.clear()
-    nominatim_geocode.geocode_address_with_context(
-        address="1 Test St",
-        area_context="",
-        country_code="SG",
-    )
-    got_sg = parse_qs(urlparse(seen[0]).query).get("countrycodes", [""])[0]
-    assert got_sg.lower() == "sg"
 
 
 def test_geocode_rejects_empty_address() -> None:
@@ -85,7 +82,7 @@ def test_geocode_rejects_empty_address() -> None:
         nominatim_geocode.geocode_address_with_context(
             address="   ",
             area_context="",
-            country_code=None,
+            country_iso_codes=None,
         )
 
 
@@ -104,7 +101,7 @@ def test_geocode_proxy_error(monkeypatch: Any) -> None:
         nominatim_geocode.geocode_address_with_context(
             address="x",
             area_context="",
-            country_code=None,
+            country_iso_codes=None,
         )
     assert exc.value.status_code == 502
 
@@ -123,5 +120,5 @@ def test_geocode_no_results(monkeypatch: Any) -> None:
         nominatim_geocode.geocode_address_with_context(
             address="nowhere",
             area_context="",
-            country_code=None,
+            country_iso_codes=None,
         )

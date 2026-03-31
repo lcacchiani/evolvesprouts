@@ -674,7 +674,9 @@ export interface paths {
          * Geocode a venue address
          * @description Resolves latitude and longitude using OpenStreetMap Nominatim via the
          *     AWS HTTP proxy. The server combines the submitted address with the
-         *     geographic area hierarchy (and country code when present) to bias results.
+         *     geographic area hierarchy. Nominatim ``countrycodes`` is built from the
+         *     root area ISO code plus the sovereign country row's code when
+         *     ``sovereign_country_id`` is set (see ``GET /v1/admin/geographic-areas``).
          */
         post: {
             parameters: {
@@ -3145,6 +3147,11 @@ export interface components {
             /** @enum {string} */
             level: "country" | "region" | "city" | "district";
             code?: string | null;
+            /**
+             * Format: uuid
+             * @description FK to the sovereign country row (e.g. HK → China) for Nominatim country filter composition.
+             */
+            sovereign_country_id?: string | null;
             active: boolean;
             display_order: number;
         };

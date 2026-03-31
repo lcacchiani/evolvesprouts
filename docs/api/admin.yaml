@@ -509,7 +509,9 @@ paths:
       description: |
         Resolves latitude and longitude using OpenStreetMap Nominatim via the
         AWS HTTP proxy. The server combines the submitted address with the
-        geographic area hierarchy (and country code when present) to bias results.
+        geographic area hierarchy. Nominatim ``countrycodes`` is built from the
+        root area ISO code plus the sovereign country row's code when
+        ``sovereign_country_id`` is set (see ``GET /v1/admin/geographic-areas``).
       security:
         - AdminBearerAuth: []
       requestBody:
@@ -3239,6 +3241,13 @@ components:
         code:
           type: string
           nullable: true
+        sovereign_country_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            FK to the sovereign country row (e.g. HK → China) for Nominatim
+            country filter composition.
         active:
           type: boolean
         display_order:

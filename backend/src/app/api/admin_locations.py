@@ -88,12 +88,19 @@ def _geocode_location(event: Mapping[str, Any]) -> dict[str, Any]:
         ancestors = geo_repo.get_ancestors(area_id)
         context_names = [a.name for a in ancestors if a.name]
         area_context = ", ".join(context_names)
-        country_code = ancestors[0].code if ancestors else None
+        country_iso_codes: list[str] = []
+        root = ancestors[0] if ancestors else None
+        if root and root.code:
+            country_iso_codes.append(str(root.code))
+        if root is not None:
+            sovereign_code = geo_repo.get_sovereign_country_iso_code(root.id)
+            if sovereign_code:
+                country_iso_codes.append(str(sovereign_code))
 
     lat, lng, display_name = geocode_address_with_context(
         address=address,
         area_context=area_context,
-        country_code=country_code,
+        country_iso_codes=country_iso_codes,
     )
     payload: dict[str, Any] = {"lat": lat, "lng": lng}
     if display_name:
