@@ -21,6 +21,10 @@
             "href": "/services/my-best-auntie-training-course"
           },
           {
+            "label": "咨询服务",
+            "href": "/services/consultations"
+          },
+          {
             "label": "免费指南与资源",
             "href": "/free-guides-and-resources"
           }
@@ -111,6 +115,10 @@
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "我的最佳阿姨培训课程（香港蒙特梭利）"
       },
+      "consultations": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 蒙特梭利一次性咨询服务（香港）"
+      },
       "freeGuidesAndResources": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "Evolve Sprouts 免费育儿指南与资源"
@@ -135,6 +143,10 @@
     "events": {
       "title": "活动",
       "description": "参加 Evolve Sprouts 在香港举办的蒙特梭利工作坊、家长讲座及社区活动。为0-6岁儿童家庭量身打造的实用课程。"
+    },
+    "consultations": {
+      "title": "一次性咨询服务 — 蒙特梭利家庭支持",
+      "description": "还没准备好参加9周课程？预约一次蒙特梭利咨询 — 家庭环境评估、阿姨与孩子互动或亲子互动方向 — 提供基础版和深入版两个级别。"
     },
     "freeGuidesAndResources": {
       "title": "免费育儿指南与资源",
@@ -924,6 +936,10 @@
           "href": "/services/my-best-auntie-training-course"
         },
         {
+          "label": "咨询服务",
+          "href": "/services/consultations"
+        },
+        {
           "label": "免费指南与资源",
           "href": "/free-guides-and-resources"
         }
@@ -1158,6 +1174,139 @@
       "nextButtonAriaLabel": "下一组亮点卡片",
       "ctaLabel": "立即预订名额！",
       "ctaHref": "#my-best-auntie-booking"
+    }
+  },
+  "consultations": {
+    "hero": {
+      "title": "一次性咨询服务",
+      "subtitle": "还没准备好参加完整的9周课程？从这里开始。选择你的方向。选择你的级别。看看会有什么改变。",
+      "ctaLabel": "预约免费家庭咨询",
+      "ctaHref": "{{WHATSAPP_URL}}",
+      "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
+      "prefillMessage": "你好，我想预约一次免费咨询，讨论哪种方向和级别最适合我的家庭。",
+      "imageAlt": "Evolve Sprouts 一次性咨询课程"
+    },
+    "howItWorks": {
+      "eyebrow": "如何运作",
+      "title": "选择你的方向和级别",
+      "step1Title": "第一步 — 选择你的方向",
+      "focusAreas": [
+        {
+          "id": "home-assessment",
+          "icon": "\uD83C\uDFE0",
+          "title": "家居评估",
+          "description": "我会查看您的生活空间 — 卧室、厨房、客厅、游戏区 — 并告诉您如何改变，让家居支持孩子的独立性，而不是限制它。"
+        },
+        {
+          "id": "auntie-child",
+          "icon": "\uD83D\uDC76",
+          "title": "阿姨与孩子",
+          "description": "我会观察您的阿姨如何在您选择的特定领域与孩子互动 — 用餐、发脾气、睡眠、游戏、过渡 — 并给她当天就能使用的实用脚本。"
+        },
+        {
+          "id": "parent-child",
+          "icon": "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67",
+          "title": "亲子互动",
+          "description": "我会观察您如何与孩子互动 — 日常节奏、常规、独立性 — 并检查您和阿姨是否在传达一致的信息。"
+        }
+      ],
+      "step2Title": "第二步 — 选择你的级别",
+      "levels": [
+        {
+          "id": "essentials",
+          "badge": "✦",
+          "title": "基础版",
+          "features": [
+            "60分钟评估上门",
+            "书面报告及明确建议（1周内交付）",
+            "30分钟跟进通话"
+          ],
+          "bestFor": "适合：想要清楚了解需要改变什么、并能自行实施的家庭。"
+        },
+        {
+          "id": "deep-dive",
+          "badge": "✦✦",
+          "title": "深入版",
+          "includesLabel": "包含基础版全部内容，另加：",
+          "features": [
+            "第二次上门（60分钟，实操指导 — 1周内）",
+            "最后一次课程后2周的WhatsApp支持"
+          ],
+          "bestFor": "适合：希望我在改变真正发生时亲临现场的家庭 — 不仅是计划，还有执行。"
+        }
+      ]
+    },
+    "focusDetails": {
+      "eyebrow": "方向详情",
+      "title": "每个方向有何不同",
+      "description": "结构相同。不同的是观察的视角。",
+      "essentialsLabel": "✦ 基础版",
+      "deepDiveLabel": "✦✦ 深入版",
+      "areas": [
+        {
+          "id": "home-assessment",
+          "title": "家居评估",
+          "essentials": "我会走遍您的空间，解释哪些有效、哪些无效，并给您一份按优先级排列的改变清单。",
+          "deepDive": "我会再次上门，我们一起动手重新布置。我会向您的阿姨解释每个改变，让她理解其中的道理。"
+        },
+        {
+          "id": "auntie-child",
+          "title": "阿姨与孩子",
+          "essentials": "我们商定一个重点领域，我观察您的阿姨与孩子互动，然后给她2-3个每天可用的实用脚本。",
+          "deepDive": "我会再次上门，观察她如何运用这些策略。我会实时指导，深入探讨，增强她的信心。"
+        },
+        {
+          "id": "parent-child",
+          "title": "亲子互动",
+          "essentials": "我观察您如何与孩子互动，根据您的日常节奏指导蒙特梭利原则，并检查您与阿姨之间的一致性。",
+          "deepDive": "我会再次上门，看看日常流程如何变化，哪些地方仍然困难，如果您和阿姨之间出现分歧，我会帮助重新对齐。"
+        }
+      ]
+    },
+    "comparison": {
+      "eyebrow": "快速对比",
+      "title": "基础版 vs 深入版",
+      "essentialsLabel": "基础版",
+      "deepDiveLabel": "深入版",
+      "rows": [
+        {
+          "label": "评估上门",
+          "essentials": "60分钟",
+          "deepDive": "60分钟"
+        },
+        {
+          "label": "书面报告",
+          "essentials": "1周内",
+          "deepDive": "1周内"
+        },
+        {
+          "label": "跟进通话",
+          "essentials": "30分钟",
+          "deepDive": "30分钟"
+        },
+        {
+          "label": "第二次上门（实操）",
+          "essentials": "—",
+          "deepDive": "60分钟"
+        },
+        {
+          "label": "WhatsApp 支持",
+          "essentials": "—",
+          "deepDive": "2周"
+        }
+      ],
+      "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动"
+    },
+    "cta": {
+      "title": "知道您需要什么？",
+      "primaryCtaLabel": "预约免费家庭咨询",
+      "primaryCtaHref": "{{WHATSAPP_URL}}",
+      "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
+      "prefillMessage": "你好，我想预约一次免费咨询，讨论哪种方向和级别最适合我的家庭。",
+      "secondaryDescription": "不确定哪种方向或级别适合？这正是咨询的目的。我们会在20分钟内一起找到答案。",
+      "secondaryCtaLabel": "通过WhatsApp联系我",
+      "secondaryCtaHref": "{{WHATSAPP_URL}}",
+      "secondaryPrefillMessage": "你好，我不确定哪种咨询方向或级别适合我的家庭。我们可以聊聊吗？"
     }
   },
   "bookingModal": {
