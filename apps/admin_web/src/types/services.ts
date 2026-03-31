@@ -132,6 +132,7 @@ export interface GeographicAreaSummary {
   name: string;
   level: GeographicAreaLevel;
   code: string | null;
+  sovereignCountryId: string | null;
   active: boolean;
   displayOrder: number;
 }

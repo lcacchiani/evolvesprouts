@@ -95,6 +95,7 @@ function parseGeographicAreaSummary(value: unknown): GeographicAreaSummary {
     name: asNullableString(item.name) ?? '',
     level: (asNullableString(item.level) ?? 'district') as GeographicAreaSummary['level'],
     code: asNullableString(item.code),
+    sovereignCountryId: asNullableString(item.sovereign_country_id),
     active: asBoolean(item.active, true),
     displayOrder: asNumber(item.display_order, 0),
   };

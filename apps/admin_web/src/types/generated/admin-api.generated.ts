@@ -672,9 +672,14 @@ export interface paths {
         put?: never;
         /**
          * Geocode a venue address
-         * @description Resolves latitude and longitude using OpenStreetMap Nominatim via the
-         *     AWS HTTP proxy. The server combines the submitted address with the
-         *     geographic area hierarchy (and country code when present) to bias results.
+         * @description Resolves latitude and longitude using OpenStreetMap's public geocoder via
+         *     the AWS HTTP proxy. The free-text query uses the submitted address with
+         *     unit/floor prefixes removed through the first comma-separated segment
+         *     that contains ``/F`` (case-insensitive), e.g. ``G/F`` or ``5/F``. District
+         *     and country names from the
+         *     geographic area are not appended. The ``countrycodes`` query parameter is
+         *     built from the root area ISO code plus the sovereign country row's code
+         *     when ``sovereign_country_id`` is set (see ``GET /v1/admin/geographic-areas``).
          */
         post: {
             parameters: {
@@ -3145,6 +3150,11 @@ export interface components {
             /** @enum {string} */
             level: "country" | "region" | "city" | "district";
             code?: string | null;
+            /**
+             * Format: uuid
+             * @description FK to the sovereign country row (e.g. HK → China) for geocoding ``countrycodes`` composition.
+             */
+            sovereign_country_id?: string | null;
             active: boolean;
             display_order: number;
         };
