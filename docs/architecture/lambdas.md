@@ -34,7 +34,9 @@ their primary responsibilities.
   Nominatim-backed address geocoding via `AwsApiProxyFunction`),
   `/v1/admin/assets/*`,
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
-  `/v1/admin/services/*`, `/v1/admin/discount-codes/*`,
+  `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for
+  cross-service instance listing with optional `service_id` / `service_type`
+  filters), `/v1/admin/discount-codes/*`,
   `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,

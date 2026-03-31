@@ -25,6 +25,8 @@ const SERVICE_FIXTURE: ServiceSummary = {
 const INSTANCE_FIXTURE: ServiceInstance = {
   id: 'instance-1',
   serviceId: 'service-1',
+  parentServiceTitle: null,
+  parentServiceType: null,
   title: null,
   description: null,
   coverImageS3Key: null,

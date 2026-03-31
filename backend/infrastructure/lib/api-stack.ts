@@ -2640,6 +2640,12 @@ export class ApiStack extends cdk.Stack {
       authorizer: adminAuthorizer,
     });
 
+    const adminServicesAllInstances = adminServices.addResource("instances");
+    adminServicesAllInstances.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
+
     const adminServiceById = adminServices.addResource("{id}");
     adminServiceById.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,

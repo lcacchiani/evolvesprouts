@@ -161,6 +161,8 @@ export interface EventTicketTier {
 export interface ServiceInstance {
   id: string;
   serviceId: string;
+  parentServiceTitle: string | null;
+  parentServiceType: ServiceType | null;
   title: string | null;
   description: string | null;
   coverImageS3Key: string | null;

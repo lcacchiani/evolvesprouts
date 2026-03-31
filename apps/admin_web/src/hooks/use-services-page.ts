@@ -19,6 +19,7 @@ export function useServicesPage() {
   const [activeView, setActiveView] = useState<ServicesView>('catalog');
   const [selectedServiceIdState, setSelectedServiceIdState] = useState<string | null>(null);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
+  const [eventsInstanceServiceFilter, setEventsInstanceServiceFilter] = useState<string>('');
 
   const serviceList = useServiceList();
   const selectedServiceId = selectedServiceIdState;
@@ -29,8 +30,18 @@ export function useServicesPage() {
   }, []);
 
   const serviceDetail = useServiceDetail(selectedServiceId);
-  const instanceList = useInstanceList(selectedServiceId);
-  const enrollmentList = useEnrollmentList(selectedServiceId, selectedInstanceId);
+  const instanceList = useInstanceList(
+    activeView === 'events' ? null : selectedServiceId,
+    activeView === 'events'
+      ? {
+          listAllEventInstances: true,
+          filterServiceId: eventsInstanceServiceFilter || null,
+        }
+      : undefined
+  );
+  const enrollmentServiceId =
+    activeView === 'events' ? (selectedInstance?.serviceId ?? null) : selectedServiceId;
+  const enrollmentList = useEnrollmentList(enrollmentServiceId, selectedInstanceId);
   const locationList = useLocationList();
   const discountCodes = useDiscountCodes();
   const venues = useVenues({
@@ -88,6 +99,8 @@ export function useServicesPage() {
     selectedInstanceId,
     setSelectedInstanceId: setSelectedInstanceIdWithMode,
     selectedInstance,
+    eventsInstanceServiceFilter,
+    setEventsInstanceServiceFilter,
     serviceList,
     serviceDetail,
     serviceMutations,

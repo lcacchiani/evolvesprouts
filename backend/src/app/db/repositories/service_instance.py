@@ -15,7 +15,9 @@ from app.db.models import (
     EventTicketTier,
     InstanceSessionSlot,
     InstanceStatus,
+    Service,
     ServiceInstance,
+    ServiceType,
     TrainingInstanceDetails,
 )
 from app.db.repositories.base import BaseRepository
@@ -78,6 +80,71 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         statement = select(func.count(ServiceInstance.id)).where(
             ServiceInstance.service_id == service_id
         )
+        if status is not None:
+            statement = statement.where(ServiceInstance.status == status)
+        count = self._session.execute(statement).scalar_one_or_none()
+        return int(count or 0)
+
+    def list_instances_global(
+        self,
+        *,
+        limit: int,
+        status: InstanceStatus | None = None,
+        service_id: UUID | None = None,
+        service_type: ServiceType | None = None,
+        cursor_created_at: datetime | None = None,
+        cursor_id: UUID | None = None,
+    ) -> list[ServiceInstance]:
+        """List instances across services with optional filters and cursor pagination."""
+        statement = select(ServiceInstance).options(
+            selectinload(ServiceInstance.session_slots),
+            joinedload(ServiceInstance.training_details),
+            joinedload(ServiceInstance.consultation_details),
+            selectinload(ServiceInstance.ticket_tiers),
+            joinedload(ServiceInstance.service),
+        )
+        if service_type is not None:
+            statement = statement.join(
+                Service, ServiceInstance.service_id == Service.id
+            ).where(Service.service_type == service_type)
+            if service_id is not None:
+                statement = statement.where(ServiceInstance.service_id == service_id)
+        elif service_id is not None:
+            statement = statement.where(ServiceInstance.service_id == service_id)
+        if status is not None:
+            statement = statement.where(ServiceInstance.status == status)
+        if cursor_created_at is not None and cursor_id is not None:
+            statement = statement.where(
+                or_(
+                    ServiceInstance.created_at < cursor_created_at,
+                    and_(
+                        ServiceInstance.created_at == cursor_created_at,
+                        ServiceInstance.id < cursor_id,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            ServiceInstance.created_at.desc(), ServiceInstance.id.desc()
+        ).limit(limit)
+        return list(self._session.execute(statement).unique().scalars().all())
+
+    def count_instances_global(
+        self,
+        *,
+        status: InstanceStatus | None = None,
+        service_id: UUID | None = None,
+        service_type: ServiceType | None = None,
+    ) -> int:
+        """Count instances matching optional filters."""
+        statement = select(func.count(ServiceInstance.id))
+        if service_type is not None:
+            statement = statement.join(
+                Service, ServiceInstance.service_id == Service.id
+            ).where(Service.service_type == service_type)
+            if service_id is not None:
+                statement = statement.where(ServiceInstance.service_id == service_id)
+        elif service_id is not None:
+            statement = statement.where(ServiceInstance.service_id == service_id)
         if status is not None:
             statement = statement.where(ServiceInstance.status == status)
         count = self._session.execute(statement).scalar_one_or_none()

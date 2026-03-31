@@ -1303,6 +1303,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/services/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List service instances across services
+         * @description Returns instances from all services, optionally filtered by `service_type`
+         *     and/or `service_id`. Omit both filters to include every instance type.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                    status?: components["schemas"]["InstanceStatus"];
+                    /** @description When set, only instances for this service UUID. */
+                    service_id?: string;
+                    /** @description When set, only instances whose parent service has this type. */
+                    service_type?: components["schemas"]["ServiceType"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service instance list response. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InstanceListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/services/{id}": {
         parameters: {
             query?: never;
@@ -2936,6 +2987,10 @@ export interface components {
                 package_sessions?: number | null;
                 calendly_event_url?: string | null;
             } | null;
+            /** @description Parent service title (present on cross-service list responses). */
+            parent_service_title?: string | null;
+            /** @description Parent service type (present on cross-service list responses). */
+            parent_service_type?: components["schemas"]["ServiceType"] | null;
         };
         InstanceListResponse: {
             items: components["schemas"]["ServiceInstance"][];

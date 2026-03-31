@@ -184,9 +184,14 @@ function parseServiceDetail(value: unknown): ServiceDetail {
 
 function parseInstance(value: unknown): ServiceInstance {
   const item = isRecord(value) ? value : {};
+  const parentTypeRaw = asNullableString(item.parent_service_type);
   return {
     id: asNullableString(item.id) ?? '',
     serviceId: asNullableString(item.service_id) ?? '',
+    parentServiceTitle: asNullableString(item.parent_service_title),
+    parentServiceType: parentTypeRaw
+      ? (parentTypeRaw as ServiceInstance['parentServiceType'])
+      : null,
     title: asNullableString(item.title),
     description: asNullableString(item.description),
     coverImageS3Key: asNullableString(item.cover_image_s3_key),
@@ -514,6 +519,23 @@ function buildInstanceListQuery(params: { status?: string; cursor?: string | nul
   return queryString ? `?${queryString}` : '';
 }
 
+function buildGlobalInstanceListQuery(params: {
+  status?: string;
+  cursor?: string | null;
+  limit?: number;
+  serviceId?: string | null;
+  serviceType?: string | null;
+}) {
+  const query = new URLSearchParams();
+  if (params.cursor) query.set('cursor', params.cursor);
+  if (typeof params.limit === 'number') query.set('limit', `${params.limit}`);
+  if (params.status) query.set('status', params.status);
+  if (params.serviceId?.trim()) query.set('service_id', params.serviceId.trim());
+  if (params.serviceType?.trim()) query.set('service_type', params.serviceType.trim());
+  const queryString = query.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
 export async function listInstances(
   serviceId: string,
   params: { status?: string; cursor?: string | null; limit?: number },
@@ -521,6 +543,29 @@ export async function listInstances(
 ): Promise<{ items: ServiceInstance[]; nextCursor: string | null; totalCount: number }> {
   const payload = await adminApiRequest<ApiInstanceListResponse>({
     endpointPath: `/v1/admin/services/${serviceId}/instances${buildInstanceListQuery(params)}`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return {
+    items: Array.isArray(root.items) ? root.items.map((entry) => parseInstance(entry)) : [],
+    nextCursor: asNullableString(root.next_cursor),
+    totalCount: asNumber(root.total_count, 0),
+  };
+}
+
+export async function listAllInstances(
+  params: {
+    status?: string;
+    cursor?: string | null;
+    limit?: number;
+    serviceId?: string | null;
+    serviceType?: string | null;
+  },
+  signal?: AbortSignal
+): Promise<{ items: ServiceInstance[]; nextCursor: string | null; totalCount: number }> {
+  const payload = await adminApiRequest<ApiInstanceListResponse>({
+    endpointPath: `/v1/admin/services/instances${buildGlobalInstanceListQuery(params)}`,
     method: 'GET',
     signal,
   });
