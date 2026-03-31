@@ -1,0 +1,105 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+
+import { ContactsPanel } from '@/components/admin/contacts/contacts-panel';
+import { FamiliesPanel } from '@/components/admin/contacts/families-panel';
+import { OrganizationsPanel } from '@/components/admin/contacts/organizations-panel';
+import { StatusBanner } from '@/components/status-banner';
+import { AdminTabStrip } from '@/components/ui/admin-tab-strip';
+import { listCrmTags, type CrmTagRef } from '@/lib/crm-api';
+import { listAllLocations } from '@/lib/services-api';
+import { toErrorMessage } from '@/hooks/hook-errors';
+import { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
+import { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
+import { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
+import type { LocationSummary } from '@/types/services';
+
+const TAB_ITEMS = [
+  { key: 'contacts', label: 'Contacts' },
+  { key: 'families', label: 'Families' },
+  { key: 'organizations', label: 'Organisations' },
+] as const;
+
+type ContactsView = (typeof TAB_ITEMS)[number]['key'];
+
+export function ContactsPage() {
+  const [activeView, setActiveView] = useState<ContactsView>('contacts');
+  const [tags, setTags] = useState<CrmTagRef[]>([]);
+  const [locations, setLocations] = useState<LocationSummary[]>([]);
+  const [pickerError, setPickerError] = useState('');
+
+  const contacts = useAdminCrmContacts();
+  const families = useAdminCrmFamilies();
+  const organizations = useAdminCrmOrganizations();
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [tagList, locList] = await Promise.all([listCrmTags(), listAllLocations()]);
+        if (!cancelled) {
+          setTags(tagList);
+          setLocations(locList);
+          setPickerError('');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setPickerError(toErrorMessage(error, 'Failed to load tags or locations.'));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const contactOptions = useMemo(() => {
+    return contacts.contacts.map((c) => {
+      const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
+      const label = name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
+      return { id: c.id, label };
+    });
+  }, [contacts.contacts]);
+
+  const hasAnyError =
+    pickerError ||
+    contacts.error ||
+    families.error ||
+    organizations.error;
+
+  return (
+    <div className='space-y-4'>
+      {hasAnyError ? (
+        <StatusBanner variant='error' title='Contacts'>
+          {hasAnyError}
+        </StatusBanner>
+      ) : null}
+
+      <AdminTabStrip
+        items={TAB_ITEMS}
+        activeKey={activeView}
+        onChange={setActiveView}
+        aria-label='Contacts section views'
+      />
+
+      {activeView === 'contacts' ? (
+        <ContactsPanel contacts={contacts} tags={tags} locations={locations} />
+      ) : activeView === 'families' ? (
+        <FamiliesPanel
+          families={families}
+          tags={tags}
+          locations={locations}
+          contactOptions={contactOptions}
+        />
+      ) : (
+        <OrganizationsPanel
+          organizations={organizations}
+          tags={tags}
+          locations={locations}
+          contactOptions={contactOptions}
+        />
+      )}
+    </div>
+  );
+}
