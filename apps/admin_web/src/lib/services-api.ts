@@ -1,5 +1,5 @@
 import { adminApiRequest } from './api-admin-client';
-import { asBoolean, asNullableString, asNumber, unwrapPayload } from './api-payload';
+import { asBoolean, asNullableFiniteNumber, asNullableString, asNumber, unwrapPayload } from './api-payload';
 import { isRecord } from './type-guards';
 
 import type { components } from '@/types/generated/admin-api.generated';
@@ -80,8 +80,8 @@ function parseLocationSummary(value: unknown): LocationSummary {
     name: asNullableString(item.name),
     areaId: asNullableString(item.area_id) ?? '',
     address: asNullableString(item.address),
-    lat: typeof item.lat === 'number' ? item.lat : null,
-    lng: typeof item.lng === 'number' ? item.lng : null,
+    lat: asNullableFiniteNumber(item.lat),
+    lng: asNullableFiniteNumber(item.lng),
     createdAt: asNullableString(item.created_at),
     updatedAt: asNullableString(item.updated_at),
   };
