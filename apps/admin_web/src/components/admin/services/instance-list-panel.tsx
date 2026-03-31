@@ -6,6 +6,7 @@ import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/compon
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DeleteIcon } from '@/components/icons/action-icons';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
@@ -36,6 +37,10 @@ export interface InstanceListPanelProps {
     options: InstanceServiceFilterOption[];
     onChange: (serviceId: string) => void;
   };
+  searchFilter?: {
+    value: string;
+    onChange: (value: string) => void;
+  };
   /** When true, add a Service column (e.g. cross-service instance list). */
   showServiceColumn?: boolean;
 }
@@ -52,6 +57,7 @@ export function InstanceListPanel({
   onLoadMore,
   onDeleteInstance,
   serviceFilter,
+  searchFilter,
   showServiceColumn = false,
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
@@ -95,23 +101,36 @@ export function InstanceListPanel({
         loadingLabel='Loading instances...'
         onLoadMore={onLoadMore}
         toolbar={
-          serviceFilter ? (
+          serviceFilter || searchFilter ? (
             <div className='mb-3 flex flex-wrap items-end gap-3'>
-              <div className='min-w-[220px] flex-1'>
-                <Label htmlFor='instances-filter-service'>Service</Label>
-                <Select
-                  id='instances-filter-service'
-                  value={serviceFilter.value}
-                  onChange={(event) => serviceFilter.onChange(event.target.value)}
-                >
-                  <option value=''>All services</option>
-                  {serviceFilter.options.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.title}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+              {serviceFilter ? (
+                <div className='min-w-[220px] flex-1'>
+                  <Label htmlFor='instances-filter-service'>Service</Label>
+                  <Select
+                    id='instances-filter-service'
+                    value={serviceFilter.value}
+                    onChange={(event) => serviceFilter.onChange(event.target.value)}
+                  >
+                    <option value=''>All services</option>
+                    {serviceFilter.options.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.title}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              ) : null}
+              {searchFilter ? (
+                <div className='min-w-[220px] flex-1'>
+                  <Label htmlFor='instances-filter-search'>Search instances</Label>
+                  <Input
+                    id='instances-filter-search'
+                    value={searchFilter.value}
+                    onChange={(event) => searchFilter.onChange(event.target.value)}
+                    placeholder='Title, service, instructor, status'
+                  />
+                </div>
+              ) : null}
             </div>
           ) : undefined
         }

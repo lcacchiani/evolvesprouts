@@ -14,6 +14,8 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
     selectedInstance: null,
     eventsInstanceServiceFilter: '',
     setEventsInstanceServiceFilter: vi.fn(),
+    eventsInstanceSearchQuery: '',
+    setEventsInstanceSearchQuery: vi.fn(),
     serviceList: {
       services: [],
       filters: { serviceType: '', status: '', search: '' },
@@ -169,5 +171,15 @@ describe('ServicesPage', () => {
     const listHeading = screen.getByRole('heading', { name: 'Instances' });
 
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('wires instances search input changes on Events', async () => {
+    const user = userEvent.setup();
+    state.activeView = 'events';
+    render(<ServicesPage />);
+
+    await user.type(screen.getByLabelText('Search instances'), 'yoga');
+
+    expect(state.setEventsInstanceSearchQuery).toHaveBeenCalled();
   });
 });
