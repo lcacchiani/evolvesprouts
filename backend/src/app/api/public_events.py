@@ -3,23 +3,20 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session
 
 from app.db.engine import get_engine
-from app.db.models import Service, ServiceInstance, ServiceType
+from app.db.models import Service, ServiceInstance
 from app.db.models.enums import InstanceStatus
+from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import json_response
-from app.utils.logging import get_logger
-
-logger = get_logger(__name__)
 
 
-def handle_public_calendar_events_request(
+def handle_public_events(
     event: Mapping[str, Any],
     method: str,
 ) -> dict[str, Any]:
@@ -28,27 +25,32 @@ def handle_public_calendar_events_request(
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     with Session(get_engine()) as session:
-        items = _fetch_event_instances(session)
-    return json_response(200, {"events": items}, event=event)
-
-
-def _fetch_event_instances(session: Session) -> list[dict[str, Any]]:
-    statement = (
-        select(ServiceInstance)
-        .join(Service, Service.id == ServiceInstance.service_id)
-        .where(Service.service_type == ServiceType.EVENT)
-        .where(ServiceInstance.status != InstanceStatus.CANCELLED)
-        .options(
-            joinedload(ServiceInstance.service),
-            joinedload(ServiceInstance.location),
-            selectinload(ServiceInstance.session_slots).joinedload(
-                ServiceInstance.session_slots.property.mapper.class_.location
-            ),
-            selectinload(ServiceInstance.ticket_tiers),
+        repository = ServiceInstanceRepository(session)
+        items = _fetch_event_instances(
+            repository,
+            now=datetime.now(UTC),
         )
-        .order_by(ServiceInstance.created_at.desc(), ServiceInstance.id.desc())
+    # Keep a temporary alias for older consumers while "events" is canonical.
+    return json_response(200, {"events": items, "items": items}, event=event)
+
+
+def handle_public_calendar_events_request(
+    event: Mapping[str, Any],
+    method: str,
+) -> dict[str, Any]:
+    """Backward-compatible entrypoint for public calendar events."""
+    return handle_public_events(event, method)
+
+
+def _fetch_event_instances(
+    repository: ServiceInstanceRepository,
+    *,
+    now: datetime,
+) -> list[dict[str, Any]]:
+    rows = repository.list_event_instances_for_public_feed(
+        limit=100,
+        now=now,
     )
-    rows = session.execute(statement).unique().scalars().all()
     return [_serialize_public_event(instance) for instance in rows]
 
 
@@ -57,7 +59,9 @@ def _serialize_public_event(instance: ServiceInstance) -> dict[str, Any]:
     title = instance.title if instance.title else service.title
     summary = instance.description if instance.description else service.description
 
-    slots = sorted(instance.session_slots, key=lambda slot: (slot.sort_order, slot.starts_at))
+    slots = sorted(
+        instance.session_slots, key=lambda slot: (slot.sort_order, slot.starts_at)
+    )
     dates = [
         {
             "id": str(slot.id),
@@ -67,12 +71,18 @@ def _serialize_public_event(instance: ServiceInstance) -> dict[str, Any]:
         for slot in slots
     ]
 
-    primary_location = slots[0].location if slots and slots[0].location else instance.location
+    primary_location = (
+        slots[0].location if slots and slots[0].location else instance.location
+    )
     location_name = _clean_text(primary_location.name if primary_location else None)
-    location_address = _clean_text(primary_location.address if primary_location else None)
+    location_address = _clean_text(
+        primary_location.address if primary_location else None
+    )
 
     price, currency = _resolve_primary_ticket_price(instance)
-    booking_status = "fully_booked" if instance.status == InstanceStatus.FULL else "open"
+    booking_status = (
+        "fully_booked" if instance.status == InstanceStatus.FULL else "open"
+    )
     event_status = _map_instance_status(instance.status)
 
     payload: dict[str, Any] = {
@@ -104,7 +114,9 @@ def _serialize_public_event(instance: ServiceInstance) -> dict[str, Any]:
     return payload
 
 
-def _resolve_primary_ticket_price(instance: ServiceInstance) -> tuple[float | None, str | None]:
+def _resolve_primary_ticket_price(
+    instance: ServiceInstance,
+) -> tuple[float | None, str | None]:
     if not instance.ticket_tiers:
         return None, None
     sorted_tiers = sorted(
@@ -137,7 +149,9 @@ def _map_instance_status(status: InstanceStatus) -> str:
 
 
 def _is_virtual_delivery_mode(instance: ServiceInstance, service: Service) -> bool:
-    resolved = instance.delivery_mode if instance.delivery_mode else service.delivery_mode
+    resolved = (
+        instance.delivery_mode if instance.delivery_mode else service.delivery_mode
+    )
     return resolved.value == "online"
 
 

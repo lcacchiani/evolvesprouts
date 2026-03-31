@@ -64,7 +64,11 @@ def eventbrite_request(
         if status_code < 200 or status_code >= 300:
             detail = ""
             if parsed_body is not None:
-                detail = str(parsed_body.get("error_description") or parsed_body.get("error") or "")
+                detail = str(
+                    parsed_body.get("error_description")
+                    or parsed_body.get("error")
+                    or ""
+                )
             if not detail:
                 detail = raw_body[:500]
             raise EventbriteApiError(

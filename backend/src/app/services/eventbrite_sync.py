@@ -94,7 +94,10 @@ def sync_instance_to_eventbrite(
         session.commit()
         logger.info(
             "Eventbrite sync succeeded",
-            extra={"instance_id": str(instance_id), "eventbrite_event_id": instance.eventbrite_event_id},
+            extra={
+                "instance_id": str(instance_id),
+                "eventbrite_event_id": instance.eventbrite_event_id,
+            },
         )
         return {
             "status": "synced",
@@ -125,9 +128,7 @@ def _load_config() -> _EventbriteConfig:
                 token = token_candidate
     organization_id = os.getenv("EVENTBRITE_ORGANIZATION_ID", "").strip()
     if not token or not organization_id:
-        raise EventbriteSyncError(
-            "Eventbrite token and organization id are required"
-        )
+        raise EventbriteSyncError("Eventbrite token and organization id are required")
     return _EventbriteConfig(token=token, organization_id=organization_id)
 
 
@@ -156,7 +157,9 @@ def _event_url(event_id: str) -> str:
     return f"{base_url.rstrip('/')}/events/{event_id}/"
 
 
-def _create_event(instance: Any, *, config: _EventbriteConfig) -> tuple[str, str | None]:
+def _create_event(
+    instance: Any, *, config: _EventbriteConfig
+) -> tuple[str, str | None]:
     body = {"event": _build_event_payload(instance)}
     response = _eventbrite_call(
         method="POST",
@@ -181,12 +184,12 @@ def _update_event(instance: Any, *, config: _EventbriteConfig) -> None:
         config=config,
         payload=body,
     )
-    instance.eventbrite_event_url = _extract_event_url(response) or instance.eventbrite_event_url
+    instance.eventbrite_event_url = (
+        _extract_event_url(response) or instance.eventbrite_event_url
+    )
 
 
-def _sync_ticket_classes(
-    instance: Any, *, config: _EventbriteConfig
-) -> dict[str, str]:
+def _sync_ticket_classes(instance: Any, *, config: _EventbriteConfig) -> dict[str, str]:
     event_id = str(instance.eventbrite_event_id or "").strip()
     if not event_id:
         raise EventbriteSyncError("Eventbrite event id is required for ticket sync")
@@ -261,7 +264,9 @@ def _build_event_payload(instance: Any) -> dict[str, Any]:
         "description": {"html": description},
         "start": {
             "timezone": timezone,
-            "utc": first_slot.starts_at.astimezone(UTC).replace(microsecond=0).isoformat(),
+            "utc": first_slot.starts_at.astimezone(UTC)
+            .replace(microsecond=0)
+            .isoformat(),
         },
         "end": {
             "timezone": timezone,
@@ -280,7 +285,9 @@ def _build_ticket_class_payload(tier: Any) -> dict[str, Any]:
         "name": tier.name,
         "description": tier.description,
         "free": is_free,
-        "quantity_total": str(tier.max_quantity) if tier.max_quantity is not None else None,
+        "quantity_total": str(tier.max_quantity)
+        if tier.max_quantity is not None
+        else None,
     }
     payload = {key: value for key, value in payload.items() if value is not None}
     if not is_free:
@@ -309,7 +316,9 @@ def _compute_instance_hash(instance: Any) -> str:
         "title": instance.title,
         "description": instance.description,
         "status": instance.status.value,
-        "delivery_mode": instance.delivery_mode.value if instance.delivery_mode else None,
+        "delivery_mode": instance.delivery_mode.value
+        if instance.delivery_mode
+        else None,
         "slots": [
             {
                 "id": str(slot.id),
