@@ -20,6 +20,7 @@ export function useServicesPage() {
   const [selectedServiceIdState, setSelectedServiceIdState] = useState<string | null>(null);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [eventsInstanceServiceFilter, setEventsInstanceServiceFilter] = useState<string>('');
+  const [eventsInstanceSearchQuery, setEventsInstanceSearchQuery] = useState<string>('');
 
   const serviceList = useServiceList();
   const selectedServiceId = selectedServiceIdState;
@@ -102,6 +103,8 @@ export function useServicesPage() {
     selectedInstance,
     eventsInstanceServiceFilter,
     setEventsInstanceServiceFilter,
+    eventsInstanceSearchQuery,
+    setEventsInstanceSearchQuery,
     serviceList,
     serviceDetail,
     serviceMutations,

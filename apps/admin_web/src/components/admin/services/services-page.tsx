@@ -15,6 +15,23 @@ import { ServicesHeader } from './services-header';
 
 export function ServicesPage() {
   const state = useServicesPage();
+  const normalizedInstanceSearch = state.eventsInstanceSearchQuery.trim().toLowerCase();
+  const filteredInstances =
+    state.activeView === 'events' && normalizedInstanceSearch
+      ? state.instanceList.instances.filter((instance) => {
+          const searchable = [
+            instance.resolvedTitle,
+            instance.title,
+            instance.parentServiceTitle,
+            instance.instructorId,
+            instance.status,
+          ]
+            .filter((value): value is string => Boolean(value))
+            .join(' ')
+            .toLowerCase();
+          return searchable.includes(normalizedInstanceSearch);
+        })
+      : state.instanceList.instances;
   const eventsContextServiceId =
     state.activeView === 'events'
       ? (state.selectedInstance?.serviceId ?? state.selectedServiceId)
@@ -130,7 +147,7 @@ export function ServicesPage() {
             }}
           />
           <InstanceListPanel
-            instances={state.instanceList.instances}
+            instances={filteredInstances}
             selectedInstanceId={state.selectedInstanceId}
             isLoading={state.instanceList.isLoading}
             isLoadingMore={state.instanceList.isLoadingMore}
@@ -140,6 +157,10 @@ export function ServicesPage() {
             onSelectInstance={state.setSelectedInstanceId}
             onLoadMore={state.instanceList.loadMore}
             showServiceColumn
+            searchFilter={{
+              value: state.eventsInstanceSearchQuery,
+              onChange: state.setEventsInstanceSearchQuery,
+            }}
             serviceFilter={{
               value: state.eventsInstanceServiceFilter,
               options: eventServiceOptions.map((s) => ({ id: s.id, title: s.title })),
