@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 
@@ -24,7 +25,8 @@ def test_geocode_success(monkeypatch: Any) -> None:
         assert headers is not None
         assert headers.get("User-Agent") == "TestAgent/1.0"
         assert headers.get("Referer") == "https://example.com"
-        assert "countrycodes=hk" in url.lower()
+        codes = parse_qs(urlparse(url).query).get("countrycodes", [""])[0]
+        assert codes.lower() == "hk,cn"
         payload = '[{"lat":"1.5","lon":"2.5","display_name":"Somewhere"}]'
         return {"status": 200, "body": payload}
 
@@ -38,6 +40,44 @@ def test_geocode_success(monkeypatch: Any) -> None:
     assert lat == 1.5
     assert lng == 2.5
     assert name == "Somewhere"
+
+
+def test_geocode_countrycodes_hk_mo_tw_include_cn(monkeypatch: Any) -> None:
+    monkeypatch.setenv("NOMINATIM_USER_AGENT", "TestAgent/1.0")
+    monkeypatch.setenv("NOMINATIM_REFERER", "https://example.com")
+
+    seen: list[str] = []
+
+    def capture_url(
+        method: str,
+        url: str,
+        headers: dict[str, str] | None = None,
+        body: str | None = None,
+        timeout: int = 10,
+    ) -> dict[str, Any]:
+        seen.append(url)
+        return {"status": 200, "body": '[{"lat":"0","lon":"0","display_name":"x"}]'}
+
+    monkeypatch.setattr(nominatim_geocode, "http_invoke", capture_url)
+
+    for code, expect in (("MO", "mo,cn"), ("mo", "mo,cn"), ("TW", "tw,cn"), ("tw", "tw,cn")):
+        seen.clear()
+        nominatim_geocode.geocode_address_with_context(
+            address="1 Test St",
+            area_context="",
+            country_code=code,
+        )
+        got = parse_qs(urlparse(seen[0]).query).get("countrycodes", [""])[0]
+        assert got.lower() == expect
+
+    seen.clear()
+    nominatim_geocode.geocode_address_with_context(
+        address="1 Test St",
+        area_context="",
+        country_code="SG",
+    )
+    got_sg = parse_qs(urlparse(seen[0]).query).get("countrycodes", [""])[0]
+    assert got_sg.lower() == "sg"
 
 
 def test_geocode_rejects_empty_address() -> None:

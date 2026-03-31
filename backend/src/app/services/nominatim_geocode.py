@@ -12,6 +12,23 @@ from app.utils import require_env
 
 _NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search"
 
+# ISO 3166-1 alpha-2. Nominatim assigns some OSM features under CN vs HK/MO/TW;
+# `countrycodes` is an OR filter (comma-separated per Nominatim Search API).
+_CN_ALPHA2 = "cn"
+_TERRITORIES_ALSO_INDEXED_AS_CN = frozenset({"hk", "mo", "tw"})
+
+
+def _nominatim_countrycodes(country_code: str | None) -> str | None:
+    """Build Nominatim ``countrycodes`` query value, or None to omit the filter."""
+    if not country_code:
+        return None
+    cc = country_code.strip().lower()
+    if len(cc) != 2 or not cc.isalpha():
+        return None
+    if cc in _TERRITORIES_ALSO_INDEXED_AS_CN:
+        return f"{cc},{_CN_ALPHA2}"
+    return cc
+
 
 def geocode_address_with_context(
     *,
@@ -24,7 +41,9 @@ def geocode_address_with_context(
     Args:
         address: Street or venue address (trimmed).
         area_context: Comma-separated geographic names (e.g. city, region).
-        country_code: Optional ISO 3166-1 alpha-2 for ``countrycodes`` bias.
+        country_code: Optional ISO 3166-1 alpha-2 for ``countrycodes`` filter.
+            For HK, MO, and TW the value sent is ``hk,cn`` (etc.) so Nominatim
+            matches features indexed under either territory or China.
 
     Raises:
         ValidationError: When input is empty or Nominatim returns no results.
@@ -45,10 +64,9 @@ def geocode_address_with_context(
         "limit": 1,
         "q": q,
     }
-    if country_code:
-        cc = country_code.strip().lower()
-        if len(cc) == 2 and cc.isalpha():
-            params["countrycodes"] = cc
+    codes = _nominatim_countrycodes(country_code)
+    if codes:
+        params["countrycodes"] = codes
 
     url = f"{_NOMINATIM_SEARCH}?{urlencode(params)}"
     user_agent = require_env("NOMINATIM_USER_AGENT").strip()
