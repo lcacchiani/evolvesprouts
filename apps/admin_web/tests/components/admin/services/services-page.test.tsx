@@ -12,10 +12,12 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
     selectedInstanceId: null as string | null,
     setSelectedInstanceId: vi.fn(),
     selectedInstance: null,
-    eventsInstanceServiceFilter: '',
-    setEventsInstanceServiceFilter: vi.fn(),
-    eventsInstanceSearchQuery: '',
-    setEventsInstanceSearchQuery: vi.fn(),
+    instancesServiceFilter: '',
+    setInstancesServiceFilter: vi.fn(),
+    instancesServiceTypeFilter: '',
+    setInstancesServiceTypeFilter: vi.fn(),
+    instancesSearchQuery: '',
+    setInstancesSearchQuery: vi.fn(),
     serviceList: {
       services: [],
       filters: { serviceType: '', status: '', search: '' },
@@ -146,8 +148,8 @@ describe('ServicesPage', () => {
     expect(screen.getByRole('button', { name: 'Service Catalogue' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'New service' })).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Events' }));
-    expect(state.setActiveView).toHaveBeenCalledWith('events');
+    await user.click(screen.getByRole('button', { name: 'Instances' }));
+    expect(state.setActiveView).toHaveBeenCalledWith('instances');
     await user.click(screen.getByRole('button', { name: 'Discount Codes' }));
     expect(state.setActiveView).toHaveBeenCalledWith('discount-codes');
     await user.click(screen.getByRole('button', { name: 'Venues' }));
@@ -163,8 +165,8 @@ describe('ServicesPage', () => {
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('renders instance detail before the instances list on Events', () => {
-    state.activeView = 'events';
+  it('renders instance detail before the instances list on Instances', () => {
+    state.activeView = 'instances';
     render(<ServicesPage />);
 
     const detailHeading = screen.getByRole('heading', { name: 'Instance' });
@@ -173,13 +175,13 @@ describe('ServicesPage', () => {
     expect(detailHeading.compareDocumentPosition(listHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('wires instances search input changes on Events', async () => {
+  it('wires instances search input changes on Instances', async () => {
     const user = userEvent.setup();
-    state.activeView = 'events';
+    state.activeView = 'instances';
     render(<ServicesPage />);
 
     await user.type(screen.getByLabelText('Search instances'), 'yoga');
 
-    expect(state.setEventsInstanceSearchQuery).toHaveBeenCalled();
+    expect(state.setInstancesSearchQuery).toHaveBeenCalled();
   });
 });

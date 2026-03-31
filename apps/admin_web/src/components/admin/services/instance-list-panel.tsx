@@ -13,7 +13,8 @@ import { Select } from '@/components/ui/select';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel } from '@/lib/format';
 
-import type { ServiceInstance } from '@/types/services';
+import type { ServiceInstance, ServiceType } from '@/types/services';
+import { SERVICE_TYPES } from '@/types/services';
 
 export interface InstanceServiceFilterOption {
   id: string;
@@ -37,12 +38,19 @@ export interface InstanceListPanelProps {
     options: InstanceServiceFilterOption[];
     onChange: (serviceId: string) => void;
   };
+  /** When set, show a service type filter above the table (empty value = all types). */
+  serviceTypeFilter?: {
+    value: string;
+    onChange: (serviceType: string) => void;
+  };
   searchFilter?: {
     value: string;
     onChange: (value: string) => void;
   };
   /** When true, add a Service column (e.g. cross-service instance list). */
   showServiceColumn?: boolean;
+  /** When true, add a Type column showing the parent service type. */
+  showTypeColumn?: boolean;
 }
 
 export function InstanceListPanel({
@@ -57,8 +65,10 @@ export function InstanceListPanel({
   onLoadMore,
   onDeleteInstance,
   serviceFilter,
+  serviceTypeFilter,
   searchFilter,
   showServiceColumn = false,
+  showTypeColumn = false,
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
 
@@ -101,8 +111,25 @@ export function InstanceListPanel({
         loadingLabel='Loading instances...'
         onLoadMore={onLoadMore}
         toolbar={
-          serviceFilter || searchFilter ? (
+          serviceFilter || serviceTypeFilter || searchFilter ? (
             <div className='mb-3 flex flex-wrap items-end gap-3'>
+              {serviceTypeFilter ? (
+                <div className='min-w-[180px] flex-1'>
+                  <Label htmlFor='instances-filter-service-type'>Type</Label>
+                  <Select
+                    id='instances-filter-service-type'
+                    value={serviceTypeFilter.value}
+                    onChange={(event) => serviceTypeFilter.onChange(event.target.value)}
+                  >
+                    <option value=''>All types</option>
+                    {SERVICE_TYPES.map((serviceType) => (
+                      <option key={serviceType} value={serviceType}>
+                        {formatEnumLabel(serviceType)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              ) : null}
               {serviceFilter ? (
                 <div className='min-w-[220px] flex-1'>
                   <Label htmlFor='instances-filter-service'>Service</Label>
@@ -138,6 +165,9 @@ export function InstanceListPanel({
         <AdminDataTable tableClassName='min-w-[820px]'>
           <AdminDataTableHead>
             <tr>
+              {showTypeColumn ? (
+                <th className='px-4 py-3 font-semibold'>Type</th>
+              ) : null}
               {showServiceColumn ? (
                 <th className='px-4 py-3 font-semibold'>Service</th>
               ) : null}
@@ -161,6 +191,11 @@ export function InstanceListPanel({
                 role='row'
                 aria-selected={selectedInstanceId === instance.id}
               >
+                {showTypeColumn ? (
+                  <td className='px-4 py-3'>
+                    {instance.parentServiceType ? formatEnumLabel(instance.parentServiceType) : '-'}
+                  </td>
+                ) : null}
                 {showServiceColumn ? (
                   <td className='px-4 py-3'>{instance.parentServiceTitle ?? '-'}</td>
                 ) : null}
