@@ -19,6 +19,10 @@
           {
             "label": "家政助手培训课程",
             "href": "/services/my-best-auntie-training-course"
+          },
+          {
+            "label": "免费指南与资源",
+            "href": "/free-guides-and-resources"
           }
         ]
       },
@@ -106,6 +110,10 @@
       "trainingCourse": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "我的最佳阿姨培训课程（香港蒙特梭利）"
+      },
+      "freeGuidesAndResources": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 免费育儿指南与资源"
       }
     },
     "home": {
@@ -127,6 +135,10 @@
     "events": {
       "title": "活动",
       "description": "参加 Evolve Sprouts 在香港举办的蒙特梭利工作坊、家长讲座及社区活动。为0-6岁儿童家庭量身打造的实用课程。"
+    },
+    "freeGuidesAndResources": {
+      "title": "免费育儿指南与资源",
+      "description": "获取 Evolve Sprouts 在香港提供的免费蒙特梭利育儿指南、家政助手小贴士与温和教养资源。"
     },
     "links": {
       "title": "链接",
@@ -693,6 +705,70 @@
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
     "prefillMessage": "你好，我想预约一次免费介绍通话！"
   },
+  "freeGuidesAndResources": {
+    "hero": {
+      "eyebrow": "免费指南与资源",
+      "title": "免费育儿指南与资源",
+      "subtitle": "访问我们不断扩充的免费工具、指南与实用建议，面向香港家庭与家政助手。",
+      "description": "无论你在寻找温和教养灵感、蒙特梭利日常流程，还是适合家政助手的策略，这里都有可以立刻上手的资源。"
+    },
+    "library": {
+      "eyebrow": "资源库",
+      "title": "浏览我们的免费资源",
+      "searchPlaceholder": "搜索资源…",
+      "emptySearchResultsLabel": "没有符合你搜索条件的资源。",
+      "categories": [
+        {
+          "id": "all",
+          "label": "全部资源"
+        },
+        {
+          "id": "parenting-tips",
+          "label": "育儿贴士"
+        },
+        {
+          "id": "montessori",
+          "label": "蒙特梭利"
+        },
+        {
+          "id": "helper-training",
+          "label": "家政助手培训"
+        }
+      ],
+      "items": [
+        {
+          "id": "patience-free-guide",
+          "title": "教孩子学会耐心的 4 个简单方法",
+          "description": "送给忙碌家长的温和策略——今天就能开始实践的小贴士。",
+          "format": "PDF 指南",
+          "categoryId": "parenting-tips",
+          "ctaLabel": "获取免费指南",
+          "ctaHref": "#resources"
+        }
+      ]
+    },
+    "faq": {
+      "title": "常见问题",
+      "cards": [
+        {
+          "question": "这些资源真的免费吗？",
+          "answer": "是的——本页所有指南与资料均完全免费。我们相信每个家庭都应获得优质的育儿支持。"
+        },
+        {
+          "question": "指南是什么格式？",
+          "answer": "大多数指南为可下载的 PDF，可在任何设备上阅读。我们后续也会加入视频等更多形式。"
+        },
+        {
+          "question": "可以分享给我的家政助手吗？",
+          "answer": "当然可以！我们的资源面向家长与家政助手，分享有助于在温和教养上达成一致。"
+        },
+        {
+          "question": "你们多久发布新资源？",
+          "answer": "我们会定期新增指南与资料。订阅我们的电子通讯，第一时间获取上新通知。"
+        }
+      ]
+    }
+  },
   "whoops": {
     "code": "404",
     "title": "页面未找到",
@@ -848,8 +924,8 @@
           "href": "/services/my-best-auntie-training-course"
         },
         {
-          "label": "资源",
-          "href": "/#resources"
+          "label": "免费指南与资源",
+          "href": "/free-guides-and-resources"
         }
       ]
     },

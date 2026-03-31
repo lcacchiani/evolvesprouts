@@ -70,6 +70,12 @@ export type EventNotificationContent =
   SiteContent['events']['notification'];
 export type FreeIntroSessionContent =
   SiteContent['freeIntroSession'];
+export type FreeGuidesAndResourcesHeroContent =
+  SiteContent['freeGuidesAndResources']['hero'];
+export type FreeGuidesAndResourcesLibraryContent =
+  SiteContent['freeGuidesAndResources']['library'];
+export type FreeGuidesAndResourcesFaqContent =
+  SiteContent['freeGuidesAndResources']['faq'];
 export type FooterContent = SiteContent['footer'];
 export type LinksHubContent = SiteContent['links']['hub'];
 export type LandingPagesCommonContent = SiteContent['landingPages']['common'];
