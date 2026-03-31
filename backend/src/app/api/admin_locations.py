@@ -91,7 +91,9 @@ def _geocode_location(event: Mapping[str, Any]) -> dict[str, Any]:
         if root and root.code:
             country_iso_codes.append(str(root.code))
         if root is not None:
-            sovereign_code = geo_repo.get_sovereign_country_iso_code(root.id)
+            sovereign_code = geo_repo.get_sovereign_country_iso_code(
+                cast(UUID, root.id),
+            )
             if sovereign_code:
                 country_iso_codes.append(str(sovereign_code))
 

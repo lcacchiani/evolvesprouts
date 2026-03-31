@@ -26,7 +26,7 @@ class GeographicAreaRepository:
     def get_sovereign_country_iso_code(self, country_area_id: UUID) -> str | None:
         """ISO 3166-1 alpha-2 of the linked sovereign country row, if any.
 
-        Used to build Nominatim ``countrycodes`` for territories (e.g. HK + CN).
+        Used to build geocoding ``countrycodes`` for territories (e.g. HK + CN).
         """
         area = self.get_by_id(country_area_id)
         if area is None or area.level != "country":

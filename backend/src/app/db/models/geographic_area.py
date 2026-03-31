@@ -64,10 +64,12 @@ class GeographicArea(Base):
     )
 
     parent: Mapped[GeographicArea | None] = relationship(
-        remote_side="GeographicArea.id",
+        remote_side=[id],
+        foreign_keys=[parent_id],
         back_populates="children",
     )
     children: Mapped[list[GeographicArea]] = relationship(
+        foreign_keys=[parent_id],
         back_populates="parent",
         cascade="all, delete-orphan",
         order_by="GeographicArea.display_order",
