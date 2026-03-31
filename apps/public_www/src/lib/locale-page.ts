@@ -102,7 +102,7 @@ function findLabelInNavItems(
       return item.label;
     }
 
-    if (item.children?.length) {
+    if ('children' in item && item.children?.length) {
       const nested = findLabelInNavItems(item.children, href);
       if (nested) {
         return nested;
