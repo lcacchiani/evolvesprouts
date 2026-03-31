@@ -42,6 +42,9 @@ const pageSectionFiles = [
   'sprouts-squad-community.tsx',
   'event-notification.tsx',
   'free-intro-session.tsx',
+  'free-guides-and-resources-hero.tsx',
+  'free-guides-and-resources-library.tsx',
+  'free-guides-and-resources-faq.tsx',
 ] as const;
 
 function collectAppSourceFiles(targetDirectory: string): string[] {

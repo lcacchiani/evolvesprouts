@@ -219,6 +219,23 @@ export function buildFaqPageSchema(
   });
 }
 
+export function buildFreeGuidesAndResourcesFaqSchema(
+  faq: SiteContent['freeGuidesAndResources']['faq'],
+): JsonLdObject {
+  return compactJsonLdObject({
+    '@context': SCHEMA_CONTEXT,
+    '@type': 'FAQPage',
+    mainEntity: faq.cards.map((entry) => ({
+      '@type': 'Question',
+      name: entry.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: entry.answer,
+      },
+    })),
+  });
+}
+
 export function buildCourseSchema({
   locale,
   content,
