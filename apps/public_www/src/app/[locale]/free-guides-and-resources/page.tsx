@@ -9,7 +9,7 @@ import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
 import {
   buildBreadcrumbSchema,
-  buildFreeGuidesAndResourcesFaqSchema,
+  buildFaqJsonLd,
 } from '@/lib/structured-data';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
@@ -62,9 +62,7 @@ export default async function FreeGuidesAndResourcesRoutePage({
       />
       <StructuredDataScript
         id={`free-guides-and-resources-faq-jsonld-${locale}`}
-        data={buildFreeGuidesAndResourcesFaqSchema(
-          content.freeGuidesAndResources.faq,
-        )}
+        data={buildFaqJsonLd(content.freeGuidesAndResources.faq.cards)}
       />
     </>
   );

@@ -89,14 +89,12 @@ export function getFooterLinkLabel(
   );
 }
 
-type NavMenuLinkItem = {
-  href: string;
-  label: string;
-  children?: readonly NavMenuLinkItem[];
-};
+type NavbarTopMenuItem = SiteContent['navbar']['menuItems'][number];
+type NavbarSubmenuItem = NonNullable<NavbarTopMenuItem['children']>[number];
+type NavbarNavLinkItem = NavbarTopMenuItem | NavbarSubmenuItem;
 
 function findLabelInNavItems(
-  items: ReadonlyArray<NavMenuLinkItem>,
+  items: ReadonlyArray<NavbarNavLinkItem>,
   href: string,
 ): string | undefined {
   for (const item of items) {
@@ -116,7 +114,7 @@ function findLabelInNavItems(
 }
 
 function findLabelByHref(
-  itemSets: ReadonlyArray<ReadonlyArray<NavMenuLinkItem>>,
+  itemSets: ReadonlyArray<ReadonlyArray<NavbarNavLinkItem>>,
   href: string,
 ): string | undefined {
   for (const items of itemSets) {
