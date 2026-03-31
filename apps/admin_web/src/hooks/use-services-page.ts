@@ -13,14 +13,15 @@ import { useServiceDetail } from './use-service-detail';
 import { useServiceList } from './use-service-list';
 import { useServiceMutations } from './use-service-mutations';
 
-export type ServicesView = 'catalog' | 'events' | 'discount-codes' | 'venues';
+export type ServicesView = 'catalog' | 'instances' | 'discount-codes' | 'venues';
 
 export function useServicesPage() {
   const [activeView, setActiveView] = useState<ServicesView>('catalog');
   const [selectedServiceIdState, setSelectedServiceIdState] = useState<string | null>(null);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
-  const [eventsInstanceServiceFilter, setEventsInstanceServiceFilter] = useState<string>('');
-  const [eventsInstanceSearchQuery, setEventsInstanceSearchQuery] = useState<string>('');
+  const [instancesServiceFilter, setInstancesServiceFilter] = useState<string>('');
+  const [instancesServiceTypeFilter, setInstancesServiceTypeFilter] = useState<string>('');
+  const [instancesSearchQuery, setInstancesSearchQuery] = useState<string>('');
 
   const serviceList = useServiceList();
   const selectedServiceId = selectedServiceIdState;
@@ -32,11 +33,12 @@ export function useServicesPage() {
 
   const serviceDetail = useServiceDetail(selectedServiceId);
   const instanceList = useInstanceList(
-    activeView === 'events' ? null : selectedServiceId,
-    activeView === 'events'
+    activeView === 'instances' ? null : selectedServiceId,
+    activeView === 'instances'
       ? {
-          listAllEventInstances: true,
-          filterServiceId: eventsInstanceServiceFilter || null,
+          listAllInstances: true,
+          filterServiceId: instancesServiceFilter || null,
+          filterServiceType: instancesServiceTypeFilter || null,
         }
       : undefined
   );
@@ -51,7 +53,7 @@ export function useServicesPage() {
   );
 
   const enrollmentServiceId =
-    activeView === 'events' ? (selectedInstance?.serviceId ?? null) : selectedServiceId;
+    activeView === 'instances' ? (selectedInstance?.serviceId ?? null) : selectedServiceId;
   const enrollmentList = useEnrollmentList(enrollmentServiceId, selectedInstanceId);
   const locationList = useLocationList();
   const discountCodes = useDiscountCodes();
@@ -101,10 +103,12 @@ export function useServicesPage() {
     selectedInstanceId,
     setSelectedInstanceId: setSelectedInstanceIdWithMode,
     selectedInstance,
-    eventsInstanceServiceFilter,
-    setEventsInstanceServiceFilter,
-    eventsInstanceSearchQuery,
-    setEventsInstanceSearchQuery,
+    instancesServiceFilter,
+    setInstancesServiceFilter,
+    instancesServiceTypeFilter,
+    setInstancesServiceTypeFilter,
+    instancesSearchQuery,
+    setInstancesSearchQuery,
     serviceList,
     serviceDetail,
     serviceMutations,

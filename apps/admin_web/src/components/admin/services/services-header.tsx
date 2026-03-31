@@ -6,7 +6,7 @@ import type { ServicesView } from '@/hooks/use-services-page';
 
 export const SERVICES_TAB_ITEMS: readonly AdminTabItem<ServicesView>[] = [
   { key: 'catalog', label: 'Service Catalogue' },
-  { key: 'events', label: 'Events' },
+  { key: 'instances', label: 'Instances' },
   { key: 'discount-codes', label: 'Discount Codes' },
   { key: 'venues', label: 'Venues' },
 ] as const;

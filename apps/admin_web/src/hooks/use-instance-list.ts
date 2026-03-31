@@ -9,20 +9,23 @@ import { usePaginatedList } from './use-paginated-list';
 
 export interface InstanceListGlobalOptions {
   /** When true and serviceId is null, load via GET /v1/admin/services/instances. */
-  listAllEventInstances?: boolean;
-  /** Optional service UUID filter (only used with listAllEventInstances). */
+  listAllInstances?: boolean;
+  /** Optional service UUID filter (only used with listAllInstances). */
   filterServiceId?: string | null;
+  /** Optional service type filter (only used with listAllInstances). */
+  filterServiceType?: string | null;
 }
 
 export function useInstanceList(
   serviceId: string | null,
   globalOptions: InstanceListGlobalOptions | null = null
 ) {
-  const listAllEventInstances = Boolean(globalOptions?.listAllEventInstances);
+  const shouldListAll = Boolean(globalOptions?.listAllInstances);
   const filterServiceId = globalOptions?.filterServiceId?.trim() ?? '';
+  const filterServiceType = globalOptions?.filterServiceType?.trim() ?? '';
   const fetcher = useCallback(
     async ({ status, cursor, limit }: InstanceListFilters & { cursor: string | null; limit: number }) => {
-      const useGlobalList = !serviceId && listAllEventInstances;
+      const useGlobalList = !serviceId && shouldListAll;
       if (!serviceId && !useGlobalList) {
         return {
           items: [] as ServiceInstance[],
@@ -35,7 +38,7 @@ export function useInstanceList(
             status: status || undefined,
             cursor,
             limit,
-            serviceType: 'event',
+            serviceType: filterServiceType || undefined,
             serviceId: filterServiceId || undefined,
           })
         : listInstances(serviceId as string, {
@@ -44,7 +47,7 @@ export function useInstanceList(
             limit,
           });
     },
-    [serviceId, listAllEventInstances, filterServiceId]
+    [serviceId, shouldListAll, filterServiceId, filterServiceType]
   );
 
   const list = usePaginatedList<ServiceInstance, InstanceListFilters>({

@@ -15,9 +15,9 @@ import { ServicesHeader } from './services-header';
 
 export function ServicesPage() {
   const state = useServicesPage();
-  const normalizedInstanceSearch = state.eventsInstanceSearchQuery.trim().toLowerCase();
+  const normalizedInstanceSearch = state.instancesSearchQuery.trim().toLowerCase();
   const filteredInstances =
-    state.activeView === 'events' && normalizedInstanceSearch
+    state.activeView === 'instances' && normalizedInstanceSearch
       ? state.instanceList.instances.filter((instance) => {
           const searchable = [
             instance.resolvedTitle,
@@ -32,11 +32,11 @@ export function ServicesPage() {
           return searchable.includes(normalizedInstanceSearch);
         })
       : state.instanceList.instances;
-  const eventsContextServiceId =
-    state.activeView === 'events'
+  const instancesContextServiceId =
+    state.activeView === 'instances'
       ? (state.selectedInstance?.serviceId ?? state.selectedServiceId)
       : state.selectedServiceId;
-  const eventServiceOptions = state.serviceList.services.filter((s) => s.serviceType === 'event');
+  const allServiceOptions = state.serviceList.services;
   const selectedServiceDetail =
     state.selectedServiceId && state.serviceDetail.service?.id === state.selectedServiceId
       ? state.serviceDetail.service
@@ -113,13 +113,13 @@ export function ServicesPage() {
             }}
           />
         </>
-      ) : state.activeView === 'events' ? (
+      ) : state.activeView === 'instances' ? (
         <>
           <InstanceDetailPanel
             key={`${state.selectedInstanceId ?? 'create-instance'}-${state.selectedService?.serviceType ?? 'none'}`}
             instance={state.selectedInstance}
-            selectedServiceId={eventsContextServiceId}
-            serviceOptions={eventServiceOptions}
+            selectedServiceId={instancesContextServiceId}
+            serviceOptions={allServiceOptions}
             locationOptions={state.locationList.locations}
             isLoadingLocations={state.locationList.isLoading}
             serviceType={
@@ -157,14 +157,19 @@ export function ServicesPage() {
             onSelectInstance={state.setSelectedInstanceId}
             onLoadMore={state.instanceList.loadMore}
             showServiceColumn
+            showTypeColumn
             searchFilter={{
-              value: state.eventsInstanceSearchQuery,
-              onChange: state.setEventsInstanceSearchQuery,
+              value: state.instancesSearchQuery,
+              onChange: state.setInstancesSearchQuery,
+            }}
+            serviceTypeFilter={{
+              value: state.instancesServiceTypeFilter,
+              onChange: state.setInstancesServiceTypeFilter,
             }}
             serviceFilter={{
-              value: state.eventsInstanceServiceFilter,
-              options: eventServiceOptions.map((s) => ({ id: s.id, title: s.title })),
-              onChange: state.setEventsInstanceServiceFilter,
+              value: state.instancesServiceFilter,
+              options: allServiceOptions.map((s) => ({ id: s.id, title: s.title })),
+              onChange: state.setInstancesServiceFilter,
             }}
             onDeleteInstance={async (instanceId, serviceId) => {
               if (state.selectedInstanceId === instanceId) {
@@ -175,7 +180,7 @@ export function ServicesPage() {
           />
           <EnrollmentListPanel
             enrollments={state.enrollmentList.enrollments}
-            canCreate={Boolean(eventsContextServiceId && state.selectedInstanceId)}
+            canCreate={Boolean(instancesContextServiceId && state.selectedInstanceId)}
             isLoading={state.enrollmentList.isLoading}
             isLoadingMore={state.enrollmentList.isLoadingMore}
             hasMore={state.enrollmentList.hasMore}
@@ -183,32 +188,32 @@ export function ServicesPage() {
             isMutating={state.enrollmentMutations.isLoading}
             onLoadMore={state.enrollmentList.loadMore}
             onCreate={async (payload) => {
-              if (!eventsContextServiceId || !state.selectedInstanceId) {
+              if (!instancesContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.createEnrollmentEntry(
-                eventsContextServiceId,
+                instancesContextServiceId,
                 state.selectedInstanceId,
                 payload
               );
             }}
             onUpdate={async (enrollmentId, payload) => {
-              if (!eventsContextServiceId || !state.selectedInstanceId) {
+              if (!instancesContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.updateEnrollmentEntry(
-                eventsContextServiceId,
+                instancesContextServiceId,
                 state.selectedInstanceId,
                 enrollmentId,
                 payload
               );
             }}
             onDelete={async (enrollmentId) => {
-              if (!eventsContextServiceId || !state.selectedInstanceId) {
+              if (!instancesContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.deleteEnrollmentEntry(
-                eventsContextServiceId,
+                instancesContextServiceId,
                 state.selectedInstanceId,
                 enrollmentId
               );
