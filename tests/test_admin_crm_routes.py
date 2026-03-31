@@ -1,0 +1,87 @@
+from __future__ import annotations
+
+from typing import Any
+from uuid import uuid4
+
+from app.api import admin_contacts, admin_families, admin_organizations_crm
+
+
+def test_handle_admin_contacts_tags_get(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    monkeypatch.setattr(admin_contacts, "_list_contact_tags", lambda _: marker)
+    monkeypatch.setattr(
+        admin_contacts,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_contacts.handle_admin_contacts_request(
+        api_gateway_event(method="GET", path="/v1/admin/contacts/tags"),
+        "GET",
+        "/v1/admin/contacts/tags",
+    )
+
+    assert response is marker
+
+
+def test_handle_admin_families_member_delete(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    monkeypatch.setattr(
+        admin_families,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+    family_id = str(uuid4())
+    member_id = str(uuid4())
+
+    def _fake_remove(
+        _event: Any,
+        *,
+        family_id: Any,
+        member_id: Any,
+        actor_sub: str,
+    ) -> dict[str, Any]:
+        assert actor_sub == "admin-sub"
+        assert str(family_id)
+        assert str(member_id)
+        return marker
+
+    monkeypatch.setattr(admin_families, "_remove_family_member", _fake_remove)
+
+    response = admin_families.handle_admin_families_request(
+        api_gateway_event(
+            method="DELETE",
+            path=f"/v1/admin/families/{family_id}/members/{member_id}",
+        ),
+        "DELETE",
+        f"/v1/admin/families/{family_id}/members/{member_id}",
+    )
+
+    assert response is marker
+
+
+def test_handle_admin_organizations_crm_list_get(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    marker = {"statusCode": 200, "body": "{}"}
+    monkeypatch.setattr(admin_organizations_crm, "_list_organizations", lambda _: marker)
+    monkeypatch.setattr(
+        admin_organizations_crm,
+        "extract_identity",
+        lambda _event: type("Identity", (), {"user_sub": "admin-sub"})(),
+    )
+
+    response = admin_organizations_crm.handle_admin_organizations_crm_request(
+        api_gateway_event(method="GET", path="/v1/admin/organizations"),
+        "GET",
+        "/v1/admin/organizations",
+    )
+
+    assert response is marker

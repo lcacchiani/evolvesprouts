@@ -21,6 +21,9 @@ from app.api.admin_users import (
     handle_admin_instructors_request,
     handle_admin_users_request,
 )
+from app.api.admin_contacts import handle_admin_contacts_request
+from app.api.admin_families import handle_admin_families_request
+from app.api.admin_organizations_crm import handle_admin_organizations_crm_request
 from app.api.admin_vendors import handle_admin_vendors_request
 from app.api.public_media import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
@@ -158,6 +161,21 @@ _ROUTES: tuple[
         "/v1/admin/expenses",
         False,
         handle_admin_expenses_request,
+    ),
+    (
+        "/v1/admin/contacts",
+        False,
+        handle_admin_contacts_request,
+    ),
+    (
+        "/v1/admin/families",
+        False,
+        handle_admin_families_request,
+    ),
+    (
+        "/v1/admin/organizations",
+        False,
+        handle_admin_organizations_crm_request,
     ),
     (
         "/v1/admin/vendors",
