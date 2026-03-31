@@ -21,6 +21,10 @@
             "href": "/services/my-best-auntie-training-course"
           },
           {
+            "label": "諮詢服務",
+            "href": "/services/consultations"
+          },
+          {
             "label": "免費指南與資源",
             "href": "/free-guides-and-resources"
           }
@@ -111,6 +115,10 @@
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "我的最佳姨姨培訓課程（香港蒙特梭利）"
       },
+      "consultations": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts 蒙特梭利一次性諮詢服務（香港）"
+      },
       "freeGuidesAndResources": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "Evolve Sprouts 免費育兒指南與資源"
@@ -135,6 +143,10 @@
     "events": {
       "title": "活動",
       "description": "參加 Evolve Sprouts 在香港舉辦的蒙特梭利工作坊、家長講座及社區活動。為0-6歲兒童家庭量身打造的實用課程。"
+    },
+    "consultations": {
+      "title": "一次性諮詢服務 — 蒙特梭利家庭支援",
+      "description": "還未準備好參加9週課程？預約一次蒙特梭利諮詢 — 家居環境評估、姨姨與孩子互動或親子互動方向 — 提供基礎版和深入版兩個級別。"
     },
     "freeGuidesAndResources": {
       "title": "免費育兒指南與資源",
@@ -924,6 +936,10 @@
           "href": "/services/my-best-auntie-training-course"
         },
         {
+          "label": "諮詢服務",
+          "href": "/services/consultations"
+        },
+        {
           "label": "免費指南與資源",
           "href": "/free-guides-and-resources"
         }
@@ -1158,6 +1174,134 @@
       "nextButtonAriaLabel": "下一組亮點卡片",
       "ctaLabel": "立即預訂名額！",
       "ctaHref": "#my-best-auntie-booking"
+    }
+  },
+  "consultations": {
+    "hero": {
+      "title": "一次性諮詢服務",
+      "subtitle": "還未準備好參加完整的9週課程？從這裡開始。選擇你的方向。選擇你的級別。看看會有什麼改變。",
+      "ctaLabel": "預約免費家庭諮詢",
+      "ctaHref": "#consultations-cta",
+      "imageAlt": "Evolve Sprouts 一次性諮詢課程"
+    },
+    "howItWorks": {
+      "eyebrow": "如何運作",
+      "title": "選擇你的方向和級別",
+      "step1Title": "第一步 — 選擇你的方向",
+      "focusAreas": [
+        {
+          "id": "home-assessment",
+          "icon": "\uD83C\uDFE0",
+          "title": "家居評估",
+          "description": "我會查看您的生活空間 — 睡房、廚房、客廳、遊戲區 — 並告訴您如何改變，讓家居支持孩子的獨立性，而不是限制它。"
+        },
+        {
+          "id": "auntie-child",
+          "icon": "\uD83D\uDC76",
+          "title": "姨姨與孩子",
+          "description": "我會觀察您的姨姨如何在您選擇的特定領域與孩子互動 — 用餐、發脾氣、睡眠、遊戲、過渡 — 並給她當天就能使用的實用腳本。"
+        },
+        {
+          "id": "parent-child",
+          "icon": "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67",
+          "title": "親子互動",
+          "description": "我會觀察您如何與孩子互動 — 日常節奏、常規、獨立性 — 並檢查您和姨姨是否在傳達一致的訊息。"
+        }
+      ],
+      "step2Title": "第二步 — 選擇你的級別",
+      "levels": [
+        {
+          "id": "essentials",
+          "badge": "✦",
+          "title": "基礎版",
+          "features": [
+            "60分鐘評估上門",
+            "書面報告及明確建議（1週內交付）",
+            "30分鐘跟進通話"
+          ],
+          "bestFor": "適合：想要清楚了解需要改變什麼、並能自行實施的家庭。"
+        },
+        {
+          "id": "deep-dive",
+          "badge": "✦✦",
+          "title": "深入版",
+          "includesLabel": "包含基礎版全部內容，另加：",
+          "features": [
+            "第二次上門（60分鐘，實操指導 — 1週內）",
+            "最後一次課程後2週的WhatsApp支援"
+          ],
+          "bestFor": "適合：希望我在改變真正發生時親臨現場的家庭 — 不僅是計劃，還有執行。"
+        }
+      ]
+    },
+    "focusDetails": {
+      "eyebrow": "方向詳情",
+      "title": "每個方向有何不同",
+      "description": "結構相同。不同的是觀察的視角。",
+      "essentialsLabel": "✦ 基礎版",
+      "deepDiveLabel": "✦✦ 深入版",
+      "areas": [
+        {
+          "id": "home-assessment",
+          "title": "家居評估",
+          "essentials": "我會走遍您的空間，解釋哪些有效、哪些無效，並給您一份按優先級排列的改變清單。",
+          "deepDive": "我會再次上門，我們一起動手重新佈置。我會向您的姨姨解釋每個改變，讓她理解其中的道理。"
+        },
+        {
+          "id": "auntie-child",
+          "title": "姨姨與孩子",
+          "essentials": "我們商定一個重點領域，我觀察您的姨姨與孩子互動，然後給她2-3個每天可用的實用腳本。",
+          "deepDive": "我會再次上門，觀察她如何運用這些策略。我會即時指導，深入探討，增強她的信心。"
+        },
+        {
+          "id": "parent-child",
+          "title": "親子互動",
+          "essentials": "我觀察您如何與孩子互動，根據您的日常節奏指導蒙特梭利原則，並檢查您與姨姨之間的一致性。",
+          "deepDive": "我會再次上門，看看日常流程如何變化，哪些地方仍然困難，如果您和姨姨之間出現分歧，我會幫助重新對齊。"
+        }
+      ]
+    },
+    "comparison": {
+      "eyebrow": "快速對比",
+      "title": "基礎版 vs 深入版",
+      "essentialsLabel": "基礎版",
+      "deepDiveLabel": "深入版",
+      "rows": [
+        {
+          "label": "評估上門",
+          "essentials": "60分鐘",
+          "deepDive": "60分鐘"
+        },
+        {
+          "label": "書面報告",
+          "essentials": "1週內",
+          "deepDive": "1週內"
+        },
+        {
+          "label": "跟進通話",
+          "essentials": "30分鐘",
+          "deepDive": "30分鐘"
+        },
+        {
+          "label": "第二次上門（實操）",
+          "essentials": "—",
+          "deepDive": "60分鐘"
+        },
+        {
+          "label": "WhatsApp 支援",
+          "essentials": "—",
+          "deepDive": "2週"
+        }
+      ],
+      "footnote": "三種方向均可選擇：家居評估 · 姨姨與孩子 · 親子互動"
+    },
+    "cta": {
+      "title": "知道您需要什麼？",
+      "primaryCtaLabel": "預約免費家庭諮詢",
+      "primaryPrefillMessage": "你好，我想預約一次免費諮詢，討論哪種方向和級別最適合我的家庭。",
+      "secondaryDescription": "不確定哪種方向或級別適合？這正是諮詢的目的。我們會在20分鐘內一起找到答案。",
+      "secondaryCtaLabel": "透過WhatsApp聯絡我",
+      "secondaryPrefillMessage": "你好，我不確定哪種諮詢方向或級別適合我的家庭。我們可以聊聊嗎？"
     }
   },
   "bookingModal": {

@@ -9,6 +9,7 @@ export const ROUTES = {
   events: '/events',
   mediaDownload: '/media/download',
   privacy: '/privacy',
+  servicesConsultations: '/services/consultations',
   servicesMyBestAuntieTrainingCourse: '/services/my-best-auntie-training-course',
   servicesWorkshops: '/services/workshops',
   terms: '/terms',
@@ -33,6 +34,7 @@ export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.contact,
   ROUTES.privacy,
   ROUTES.terms,
+  ROUTES.servicesConsultations,
   ROUTES.servicesMyBestAuntieTrainingCourse,
   ROUTES.freeGuidesAndResources,
 ];

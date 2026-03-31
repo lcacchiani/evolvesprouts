@@ -21,6 +21,10 @@
             "href": "/services/my-best-auntie-training-course"
           },
           {
+            "label": "Consultations",
+            "href": "/services/consultations"
+          },
+          {
             "label": "Free Guides & Resources",
             "href": "/free-guides-and-resources"
           }
@@ -111,6 +115,10 @@
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "My Best Auntie Montessori training course in Hong Kong"
       },
+      "consultations": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Evolve Sprouts one-off Montessori consultations in Hong Kong"
+      },
       "freeGuidesAndResources": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "Free parenting guides and resources from Evolve Sprouts"
@@ -135,6 +143,10 @@
     "events": {
       "title": "Events",
       "description": "Join Evolve Sprouts Montessori workshops, parent talks, and community events in Hong Kong. Practical sessions for families with children aged 0-6."
+    },
+    "consultations": {
+      "title": "One-Off Consultations — Montessori Family Support",
+      "description": "Not ready for the full 9-week course? Book a one-off Montessori consultation — home assessment, auntie-child, or parent-child focus — with Essentials or Deep Dive levels."
     },
     "freeGuidesAndResources": {
       "title": "Free Parenting Guides & Resources",
@@ -924,6 +936,10 @@
           "href": "/services/my-best-auntie-training-course"
         },
         {
+          "label": "Consultations",
+          "href": "/services/consultations"
+        },
+        {
           "label": "Free Guides & Resources",
           "href": "/free-guides-and-resources"
         }
@@ -1158,6 +1174,134 @@
       "nextButtonAriaLabel": "Next highlight cards",
       "ctaLabel": "Book your spot now!",
       "ctaHref": "#my-best-auntie-booking"
+    }
+  },
+  "consultations": {
+    "hero": {
+      "title": "One-Off Consultations",
+      "subtitle": "Not ready for the full 9-week course? Start here. Pick your focus. Pick your level. See what changes.",
+      "ctaLabel": "Book a Free Family Consultation",
+      "ctaHref": "#consultations-cta",
+      "imageAlt": "Evolve Sprouts one-off consultation session"
+    },
+    "howItWorks": {
+      "eyebrow": "How It Works",
+      "title": "Choose Your Focus & Level",
+      "step1Title": "Step 1 — Choose your focus",
+      "focusAreas": [
+        {
+          "id": "home-assessment",
+          "icon": "\uD83C\uDFE0",
+          "title": "Home Assessment",
+          "description": "I look at your physical space — bedroom, kitchen, living room, play area — and show you what to change so your home supports your child's independence instead of limiting it."
+        },
+        {
+          "id": "auntie-child",
+          "icon": "\uD83D\uDC76",
+          "title": "Auntie-Child",
+          "description": "I observe how your helper interacts with your child in a specific area you choose — mealtimes, tantrums, sleep, play, transitions — and give her practical scripts she can use that same day."
+        },
+        {
+          "id": "parent-child",
+          "icon": "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67",
+          "title": "Parent-Child",
+          "description": "I observe how you engage with your child — daily rhythms, routines, independence — and check if you and your helper are sending consistent messages."
+        }
+      ],
+      "step2Title": "Step 2 — Choose your level",
+      "levels": [
+        {
+          "id": "essentials",
+          "badge": "✦",
+          "title": "Essentials",
+          "features": [
+            "60-minute assessment visit",
+            "Written report with clear recommendations (delivered within 1 week)",
+            "30-minute follow-up call"
+          ],
+          "bestFor": "Best for: families who want a clear picture of what to change and can implement on their own."
+        },
+        {
+          "id": "deep-dive",
+          "badge": "✦✦",
+          "title": "Deep Dive",
+          "includesLabel": "Everything in Essentials, plus:",
+          "features": [
+            "2nd visit (60 minutes, hands-on implementation — within 1 week)",
+            "2 weeks of WhatsApp support after the last session"
+          ],
+          "bestFor": "Best for: families who want me there when the changes actually happen — not just the plan, but the doing."
+        }
+      ]
+    },
+    "focusDetails": {
+      "eyebrow": "Focus Details",
+      "title": "What Makes Each Focus Different",
+      "description": "The structure is the same. What changes is the lens.",
+      "essentialsLabel": "✦ Essentials",
+      "deepDiveLabel": "✦✦ Deep Dive",
+      "areas": [
+        {
+          "id": "home-assessment",
+          "title": "Home Assessment",
+          "essentials": "I walk through your spaces, explain what works and what doesn't, and give you a prioritised list of changes.",
+          "deepDive": "I come back and we physically reorganise together. I explain every change to your helper so she understands the reasoning."
+        },
+        {
+          "id": "auntie-child",
+          "title": "Auntie-Child",
+          "essentials": "We agree on a focus area, I observe your helper with your child, and I give her 2–3 practical scripts to use daily.",
+          "deepDive": "I come back to see how she's applying the strategies. I coach in real time, go deeper, and build her confidence."
+        },
+        {
+          "id": "parent-child",
+          "title": "Parent-Child",
+          "essentials": "I observe how you interact with your child, coach you on Montessori principles adapted to your daily rhythm, and check alignment with your helper.",
+          "deepDive": "I come back to see how routines have shifted, what still feels hard, and re-align you and your helper if you've drifted apart."
+        }
+      ]
+    },
+    "comparison": {
+      "eyebrow": "Quick Comparison",
+      "title": "Essentials vs Deep Dive",
+      "essentialsLabel": "Essentials",
+      "deepDiveLabel": "Deep Dive",
+      "rows": [
+        {
+          "label": "Assessment visit",
+          "essentials": "60 mins",
+          "deepDive": "60 mins"
+        },
+        {
+          "label": "Written report",
+          "essentials": "Within 1 week",
+          "deepDive": "Within 1 week"
+        },
+        {
+          "label": "Follow-up call",
+          "essentials": "30 mins",
+          "deepDive": "30 mins"
+        },
+        {
+          "label": "2nd visit (hands-on)",
+          "essentials": "—",
+          "deepDive": "60 mins"
+        },
+        {
+          "label": "WhatsApp support",
+          "essentials": "—",
+          "deepDive": "2 weeks"
+        }
+      ],
+      "footnote": "Available for all three focus areas: Home Assessment · Auntie-Child · Parent-Child"
+    },
+    "cta": {
+      "title": "Know what you need?",
+      "primaryCtaLabel": "Book a Free Family Consultation",
+      "primaryPrefillMessage": "Hi, I'd like to book a free consultation to discuss which focus and level is right for my family.",
+      "secondaryDescription": "Not sure which focus or level is right? That's exactly what the consultation is for. We'll figure it out together in 20 minutes.",
+      "secondaryCtaLabel": "Message me on WhatsApp",
+      "secondaryPrefillMessage": "Hi, I'm not sure which consultation focus or level is right for my family. Can we chat?"
     }
   },
   "bookingModal": {
