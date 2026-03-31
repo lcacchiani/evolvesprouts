@@ -26,10 +26,12 @@ info:
     - `GET /v1/admin/contacts/tags`
     - `GET|POST /v1/admin/contacts`
     - `GET|PATCH /v1/admin/contacts/{id}`
+    - `GET /v1/admin/families/picker`
     - `GET|POST /v1/admin/families`
     - `GET|PATCH /v1/admin/families/{id}`
     - `POST /v1/admin/families/{id}/members`
     - `DELETE /v1/admin/families/{id}/members/{memberId}`
+    - `GET /v1/admin/organizations/picker`
     - `GET|POST /v1/admin/organizations`
     - `GET|PATCH /v1/admin/organizations/{id}`
     - `POST /v1/admin/organizations/{id}/members`
@@ -1528,6 +1530,33 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/families/picker:
+    get:
+      summary: List active CRM families for pickers
+      description: |
+        Returns active families ordered by name for admin UI dropdowns.
+        At most 100 rows unless `limit` is set lower.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Picker list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmPickerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /v1/admin/families:
     get:
       summary: List CRM families
@@ -1677,6 +1706,33 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /v1/admin/organizations/picker:
+    get:
+      summary: List active CRM organisations for pickers
+      description: |
+        Returns active non-vendor organisations ordered by name for admin UI dropdowns.
+        At most 100 rows unless `limit` is set lower.
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Picker list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmPickerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /v1/admin/organizations:
     get:
@@ -4372,6 +4428,56 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CrmTagRef"
+    CrmPickerListItem:
+      type: object
+      required:
+        - id
+        - label
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+    CrmPickerListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrmPickerListItem"
+    CrmLocationVenueSummary:
+      type: object
+      required:
+        - id
+        - area_id
+        - area_name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 200
+          nullable: true
+        area_id:
+          type: string
+          format: uuid
+        area_name:
+          type: string
+        address:
+          type: string
+          nullable: true
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lng:
+          type: number
+          format: double
+          nullable: true
     AdminContact:
       type: object
       required:
@@ -4416,11 +4522,22 @@ components:
           type: string
           format: uuid
           nullable: true
+        location_summary:
+          allOf:
+            - $ref: "#/components/schemas/CrmLocationVenueSummary"
+          nullable: true
         source:
           $ref: "#/components/schemas/CrmContactSource"
         source_detail:
           type: string
           nullable: true
+        referral_contact_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            When `source` is `referral`, the contact UUID of the referring contact
+            (stored in `source_metadata`).
         mailchimp_status:
           $ref: "#/components/schemas/CrmMailchimpSyncStatus"
         active:
@@ -4523,6 +4640,27 @@ components:
           items:
             type: string
             format: uuid
+        family_ids:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+          description: |
+            Optional. At most one family. Omit or send an empty array to unlink.
+        organization_ids:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+          description: |
+            Optional. At most one organisation (non-vendor). Omit or send an empty array to unlink.
+        referral_contact_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Required when `source` is `referral` on create.
     UpdateAdminContactRequest:
       type: object
       properties:
@@ -4568,6 +4706,25 @@ components:
           items:
             type: string
             format: uuid
+        family_ids:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+        organization_ids:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+        referral_contact_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            When `source` is `referral`, must be set to a valid active contact UUID
+            (omit or null to clear only when source is not referral).
     AdminFamilyMember:
       type: object
       required:
@@ -4610,6 +4767,10 @@ components:
         location_id:
           type: string
           format: uuid
+          nullable: true
+        location_summary:
+          allOf:
+            - $ref: "#/components/schemas/CrmLocationVenueSummary"
           nullable: true
         active:
           type: boolean
@@ -4755,6 +4916,10 @@ components:
         location_id:
           type: string
           format: uuid
+          nullable: true
+        location_summary:
+          allOf:
+            - $ref: "#/components/schemas/CrmLocationVenueSummary"
           nullable: true
         active:
           type: boolean

@@ -2760,6 +2760,11 @@ export class ApiStack extends cdk.Stack {
     });
 
     const adminFamilies = admin.addResource("families");
+    const adminFamiliesPicker = adminFamilies.addResource("picker");
+    adminFamiliesPicker.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
     adminFamilies.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
@@ -2789,6 +2794,11 @@ export class ApiStack extends cdk.Stack {
     });
 
     const adminOrganizationsCrm = admin.addResource("organizations");
+    const adminOrganizationsCrmPicker = adminOrganizationsCrm.addResource("picker");
+    adminOrganizationsCrmPicker.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: adminAuthorizer,
+    });
     adminOrganizationsCrm.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: adminAuthorizer,
