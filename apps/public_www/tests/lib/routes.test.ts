@@ -35,7 +35,7 @@ describe('routes', () => {
   it('builds locale-aware resources hash paths', () => {
     for (const locale of SUPPORTED_LOCALES) {
       expect(buildLocalizedResourcesHashPath(locale)).toBe(
-        `${localizePath(ROUTES.home, locale)}#resources`,
+        `${localizePath(ROUTES.freeGuidesAndResources, locale)}#resources`,
       );
     }
   });
