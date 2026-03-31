@@ -24,6 +24,21 @@
   textarea {
     touch-action: manipulation;
   }
+
+  /* Normalize Chrome/Safari date-input shadow-DOM sizing */
+  input[type="date"],
+  input[type="datetime-local"] {
+    &::-webkit-datetime-edit {
+      padding: 0;
+    }
+    &::-webkit-datetime-edit-fields-wrapper {
+      padding: 0;
+    }
+    &::-webkit-calendar-picker-indicator {
+      padding: 0;
+      margin-left: 0;
+    }
+  }
 }
 
 @layer utilities {

@@ -15,24 +15,28 @@ describe('Input', () => {
     let el = screen.getByLabelText('Date input');
     let className = el.getAttribute('class') ?? '';
 
+    expect(className).toContain('[&::-webkit-datetime-edit]:p-0');
+    expect(className).toContain('[&::-webkit-datetime-edit-fields-wrapper]:p-0');
     expect(className).toContain('[&::-webkit-calendar-picker-indicator]:ml-0');
     expect(className).toContain('[&::-webkit-calendar-picker-indicator]:shrink-0');
-    expect(className).toContain('[&::-webkit-datetime-edit-fields-wrapper]:py-0');
+    expect(className).toContain('[&::-webkit-calendar-picker-indicator]:p-0');
     expect(className).toContain('w-full');
     expect(className).not.toContain('max-w-[12rem]');
 
     rerender(<Input aria-label='Date input' type='datetime-local' />);
     el = screen.getByLabelText('Date input');
     className = el.getAttribute('class') ?? '';
+    expect(className).toContain('[&::-webkit-datetime-edit]:p-0');
     expect(className).toContain('[&::-webkit-calendar-picker-indicator]:ml-0');
     expect(className).not.toContain('max-w-[24rem]');
 
     rerender(<Input aria-label='Date input' type='text' />);
     className = screen.getByLabelText('Date input').getAttribute('class') ?? '';
 
+    expect(className).not.toContain('[&::-webkit-datetime-edit]:p-0');
     expect(className).not.toContain('[&::-webkit-calendar-picker-indicator]:ml-0');
     expect(className).not.toContain('[&::-webkit-calendar-picker-indicator]:shrink-0');
-    expect(className).not.toContain('[&::-webkit-datetime-edit-fields-wrapper]:py-0');
+    expect(className).not.toContain('[&::-webkit-datetime-edit-fields-wrapper]:p-0');
     expect(className).not.toContain('max-w-[12rem]');
     expect(className).not.toContain('max-w-[24rem]');
   });
