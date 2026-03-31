@@ -2,13 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { listInstances } from '@/lib/services-api';
+import { listAllInstances, listInstances } from '@/lib/services-api';
 import { DEFAULT_INSTANCE_LIST_FILTERS } from '@/types/services';
 import type { InstanceListFilters, ServiceInstance } from '@/types/services';
 
 import { toErrorMessage } from './hook-errors';
 
-export function useInstanceList(serviceId: string | null) {
+export interface InstanceListGlobalOptions {
+  /** When true and serviceId is null, load via GET /v1/admin/services/instances. */
+  listAllEventInstances?: boolean;
+  /** Optional service UUID filter (only used with listAllEventInstances). */
+  filterServiceId?: string | null;
+}
+
+export function useInstanceList(
+  serviceId: string | null,
+  globalOptions: InstanceListGlobalOptions | null = null
+) {
   const [filters, setFilters] = useState<InstanceListFilters>(DEFAULT_INSTANCE_LIST_FILTERS);
   const filtersRef = useRef<InstanceListFilters>(DEFAULT_INSTANCE_LIST_FILTERS);
 
@@ -19,12 +29,16 @@ export function useInstanceList(serviceId: string | null) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState('');
 
+  const listAllEventInstances = Boolean(globalOptions?.listAllEventInstances);
+  const filterServiceId = globalOptions?.filterServiceId?.trim() ?? '';
+
   useEffect(() => {
     filtersRef.current = filters;
   }, [filters]);
 
   const refetch = useCallback(async () => {
-    if (!serviceId) {
+    const useGlobalList = !serviceId && listAllEventInstances;
+    if (!serviceId && !useGlobalList) {
       setInstances([]);
       setNextCursor(null);
       setTotalCount(0);
@@ -34,11 +48,20 @@ export function useInstanceList(serviceId: string | null) {
     setIsLoading(true);
     setError('');
     try {
-      const response = await listInstances(serviceId, {
-        status: filtersRef.current.status || undefined,
-        cursor: null,
-        limit: 50,
-      });
+      const status = filtersRef.current.status || undefined;
+      const response = useGlobalList
+        ? await listAllInstances({
+            status,
+            cursor: null,
+            limit: 50,
+            serviceType: 'event',
+            serviceId: filterServiceId || undefined,
+          })
+        : await listInstances(serviceId as string, {
+            status,
+            cursor: null,
+            limit: 50,
+          });
       setInstances(response.items);
       setNextCursor(response.nextCursor);
       setTotalCount(response.totalCount);
@@ -47,24 +70,34 @@ export function useInstanceList(serviceId: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [serviceId]);
+  }, [serviceId, listAllEventInstances, filterServiceId]);
 
   useEffect(() => {
     void refetch();
   }, [refetch]);
 
   const loadMore = useCallback(async () => {
-    if (!serviceId || !nextCursor) {
+    const useGlobalList = !serviceId && listAllEventInstances;
+    if ((!serviceId && !useGlobalList) || !nextCursor) {
       return;
     }
     setIsLoadingMore(true);
     setError('');
     try {
-      const response = await listInstances(serviceId, {
-        status: filtersRef.current.status || undefined,
-        cursor: nextCursor,
-        limit: 50,
-      });
+      const status = filtersRef.current.status || undefined;
+      const response = useGlobalList
+        ? await listAllInstances({
+            status,
+            cursor: nextCursor,
+            limit: 50,
+            serviceType: 'event',
+            serviceId: filterServiceId || undefined,
+          })
+        : await listInstances(serviceId as string, {
+            status,
+            cursor: nextCursor,
+            limit: 50,
+          });
       setInstances((current) => [...current, ...response.items]);
       setNextCursor(response.nextCursor);
       setTotalCount(response.totalCount);
@@ -73,7 +106,7 @@ export function useInstanceList(serviceId: string | null) {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [nextCursor, serviceId]);
+  }, [nextCursor, serviceId, listAllEventInstances, filterServiceId]);
 
   const setFilter = useCallback(
     <TKey extends keyof InstanceListFilters>(key: TKey, value: InstanceListFilters[TKey]) => {

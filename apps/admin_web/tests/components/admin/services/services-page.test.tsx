@@ -12,6 +12,8 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
     selectedInstanceId: null as string | null,
     setSelectedInstanceId: vi.fn(),
     selectedInstance: null,
+    eventsInstanceServiceFilter: '',
+    setEventsInstanceServiceFilter: vi.fn(),
     serviceList: {
       services: [],
       filters: { serviceType: '', status: '', search: '' },

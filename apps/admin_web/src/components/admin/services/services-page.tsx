@@ -15,6 +15,11 @@ import { ServicesHeader } from './services-header';
 
 export function ServicesPage() {
   const state = useServicesPage();
+  const eventsContextServiceId =
+    state.activeView === 'events'
+      ? (state.selectedInstance?.serviceId ?? state.selectedServiceId)
+      : state.selectedServiceId;
+  const eventServiceOptions = state.serviceList.services.filter((s) => s.serviceType === 'event');
   const selectedServiceDetail =
     state.selectedServiceId && state.serviceDetail.service?.id === state.selectedServiceId
       ? state.serviceDetail.service
@@ -96,11 +101,15 @@ export function ServicesPage() {
           <InstanceDetailPanel
             key={`${state.selectedInstanceId ?? 'create-instance'}-${state.selectedService?.serviceType ?? 'none'}`}
             instance={state.selectedInstance}
-            selectedServiceId={state.selectedServiceId}
-            serviceOptions={state.serviceList.services}
+            selectedServiceId={eventsContextServiceId}
+            serviceOptions={eventServiceOptions}
             locationOptions={state.locationList.locations}
             isLoadingLocations={state.locationList.isLoading}
-            serviceType={state.selectedService?.serviceType ?? null}
+            serviceType={
+              state.selectedInstance?.parentServiceType ??
+              state.selectedService?.serviceType ??
+              null
+            }
             isLoading={state.instanceMutations.isLoading}
             error={state.instanceMutations.error}
             locationError={state.locationList.error}
@@ -130,19 +139,22 @@ export function ServicesPage() {
             isMutating={state.instanceMutations.isLoading}
             onSelectInstance={state.setSelectedInstanceId}
             onLoadMore={state.instanceList.loadMore}
-            onDeleteInstance={async (instanceId) => {
-              if (!state.selectedServiceId) {
-                return;
-              }
+            showServiceColumn
+            serviceFilter={{
+              value: state.eventsInstanceServiceFilter,
+              options: eventServiceOptions.map((s) => ({ id: s.id, title: s.title })),
+              onChange: state.setEventsInstanceServiceFilter,
+            }}
+            onDeleteInstance={async (instanceId, serviceId) => {
               if (state.selectedInstanceId === instanceId) {
                 state.setSelectedInstanceId(null);
               }
-              await state.instanceMutations.deleteInstanceEntry(state.selectedServiceId, instanceId);
+              await state.instanceMutations.deleteInstanceEntry(serviceId, instanceId);
             }}
           />
           <EnrollmentListPanel
             enrollments={state.enrollmentList.enrollments}
-            canCreate={Boolean(state.selectedServiceId && state.selectedInstanceId)}
+            canCreate={Boolean(eventsContextServiceId && state.selectedInstanceId)}
             isLoading={state.enrollmentList.isLoading}
             isLoadingMore={state.enrollmentList.isLoadingMore}
             hasMore={state.enrollmentList.hasMore}
@@ -150,32 +162,32 @@ export function ServicesPage() {
             isMutating={state.enrollmentMutations.isLoading}
             onLoadMore={state.enrollmentList.loadMore}
             onCreate={async (payload) => {
-              if (!state.selectedServiceId || !state.selectedInstanceId) {
+              if (!eventsContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.createEnrollmentEntry(
-                state.selectedServiceId,
+                eventsContextServiceId,
                 state.selectedInstanceId,
                 payload
               );
             }}
             onUpdate={async (enrollmentId, payload) => {
-              if (!state.selectedServiceId || !state.selectedInstanceId) {
+              if (!eventsContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.updateEnrollmentEntry(
-                state.selectedServiceId,
+                eventsContextServiceId,
                 state.selectedInstanceId,
                 enrollmentId,
                 payload
               );
             }}
             onDelete={async (enrollmentId) => {
-              if (!state.selectedServiceId || !state.selectedInstanceId) {
+              if (!eventsContextServiceId || !state.selectedInstanceId) {
                 return;
               }
               await state.enrollmentMutations.deleteEnrollmentEntry(
-                state.selectedServiceId,
+                eventsContextServiceId,
                 state.selectedInstanceId,
                 enrollmentId
               );

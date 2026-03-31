@@ -6,11 +6,18 @@ import { AdminDataTable, AdminDataTableBody, AdminDataTableHead } from '@/compon
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DeleteIcon } from '@/components/icons/action-icons';
+import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
+import { Select } from '@/components/ui/select';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { formatEnumLabel } from '@/lib/format';
 
 import type { ServiceInstance } from '@/types/services';
+
+export interface InstanceServiceFilterOption {
+  id: string;
+  title: string;
+}
 
 export interface InstanceListPanelProps {
   instances: ServiceInstance[];
@@ -22,7 +29,15 @@ export interface InstanceListPanelProps {
   isMutating: boolean;
   onSelectInstance: (instanceId: string) => void;
   onLoadMore: () => Promise<void> | void;
-  onDeleteInstance: (instanceId: string) => Promise<void>;
+  onDeleteInstance: (instanceId: string, serviceId: string) => Promise<void>;
+  /** When set, show a service filter above the table (empty value = all services). */
+  serviceFilter?: {
+    value: string;
+    options: InstanceServiceFilterOption[];
+    onChange: (serviceId: string) => void;
+  };
+  /** When true, add a Service column (e.g. cross-service instance list). */
+  showServiceColumn?: boolean;
 }
 
 export function InstanceListPanel({
@@ -36,6 +51,8 @@ export function InstanceListPanel({
   onSelectInstance,
   onLoadMore,
   onDeleteInstance,
+  serviceFilter,
+  showServiceColumn = false,
 }: InstanceListPanelProps) {
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
 
@@ -64,7 +81,7 @@ export function InstanceListPanel({
     if (!confirmed) {
       return;
     }
-    await onDeleteInstance(instance.id);
+    await onDeleteInstance(instance.id, instance.serviceId);
   };
 
   return (
@@ -77,10 +94,34 @@ export function InstanceListPanel({
         error={error}
         loadingLabel='Loading instances...'
         onLoadMore={onLoadMore}
+        toolbar={
+          serviceFilter ? (
+            <div className='mb-3 flex flex-wrap items-end gap-3'>
+              <div className='min-w-[220px] flex-1'>
+                <Label htmlFor='instances-filter-service'>Service</Label>
+                <Select
+                  id='instances-filter-service'
+                  value={serviceFilter.value}
+                  onChange={(event) => serviceFilter.onChange(event.target.value)}
+                >
+                  <option value=''>All services</option>
+                  {serviceFilter.options.map((entry) => (
+                    <option key={entry.id} value={entry.id}>
+                      {entry.title}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+          ) : undefined
+        }
       >
         <AdminDataTable tableClassName='min-w-[820px]'>
           <AdminDataTableHead>
             <tr>
+              {showServiceColumn ? (
+                <th className='px-4 py-3 font-semibold'>Service</th>
+              ) : null}
               <th className='px-4 py-3 font-semibold'>Title</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
               <th className='px-4 py-3 font-semibold'>Capacity</th>
@@ -101,6 +142,9 @@ export function InstanceListPanel({
                 role='row'
                 aria-selected={selectedInstanceId === instance.id}
               >
+                {showServiceColumn ? (
+                  <td className='px-4 py-3'>{instance.parentServiceTitle ?? '-'}</td>
+                ) : null}
                 <td className='px-4 py-3'>{instance.resolvedTitle ?? '-'}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(instance.status)}</td>
                 <td className='px-4 py-3'>{instance.maxCapacity ?? 'unlimited'}</td>

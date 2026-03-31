@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useDiscountCodes } from './use-discount-codes';
 import { useVenues } from './use-venues';
@@ -19,9 +19,7 @@ export function useServicesPage() {
   const [activeView, setActiveView] = useState<ServicesView>('catalog');
   const [selectedServiceIdState, setSelectedServiceIdState] = useState<string | null>(null);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
-
-  const prevActiveViewRef = useRef<ServicesView>('catalog');
-  const shouldAutoSelectFirstServiceOnEventsRef = useRef(false);
+  const [eventsInstanceServiceFilter, setEventsInstanceServiceFilter] = useState<string>('');
 
   const serviceList = useServiceList();
   const selectedServiceId = selectedServiceIdState;
@@ -32,8 +30,18 @@ export function useServicesPage() {
   }, []);
 
   const serviceDetail = useServiceDetail(selectedServiceId);
-  const instanceList = useInstanceList(selectedServiceId);
-  const enrollmentList = useEnrollmentList(selectedServiceId, selectedInstanceId);
+  const instanceList = useInstanceList(
+    activeView === 'events' ? null : selectedServiceId,
+    activeView === 'events'
+      ? {
+          listAllEventInstances: true,
+          filterServiceId: eventsInstanceServiceFilter || null,
+        }
+      : undefined
+  );
+  const enrollmentServiceId =
+    activeView === 'events' ? (selectedInstance?.serviceId ?? null) : selectedServiceId;
+  const enrollmentList = useEnrollmentList(enrollmentServiceId, selectedInstanceId);
   const locationList = useLocationList();
   const discountCodes = useDiscountCodes();
   const venues = useVenues({
@@ -82,36 +90,6 @@ export function useServicesPage() {
     setSelectedInstanceId(instanceId);
   }, []);
 
-  useEffect(() => {
-    const previous = prevActiveViewRef.current;
-    prevActiveViewRef.current = activeView;
-    if (activeView !== 'events') {
-      shouldAutoSelectFirstServiceOnEventsRef.current = false;
-      return;
-    }
-    if (previous !== 'events' && !selectedServiceId) {
-      shouldAutoSelectFirstServiceOnEventsRef.current = true;
-    }
-  }, [activeView, selectedServiceId]);
-
-  useEffect(() => {
-    if (activeView !== 'events') {
-      return;
-    }
-    if (!shouldAutoSelectFirstServiceOnEventsRef.current) {
-      return;
-    }
-    if (serviceList.isLoading) {
-      return;
-    }
-    const eventService = serviceList.services.find((entry) => entry.serviceType === 'event');
-    const first = eventService ?? serviceList.services[0];
-    if (first) {
-      setSelectedServiceIdState(first.id);
-    }
-    shouldAutoSelectFirstServiceOnEventsRef.current = false;
-  }, [activeView, serviceList.isLoading, serviceList.services]);
-
   return {
     activeView,
     setActiveView,
@@ -121,6 +99,8 @@ export function useServicesPage() {
     selectedInstanceId,
     setSelectedInstanceId: setSelectedInstanceIdWithMode,
     selectedInstance,
+    eventsInstanceServiceFilter,
+    setEventsInstanceServiceFilter,
     serviceList,
     serviceDetail,
     serviceMutations,

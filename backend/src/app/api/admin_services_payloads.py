@@ -86,6 +86,31 @@ def parse_instance_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def parse_global_instance_list_filters(event: Mapping[str, Any]) -> dict[str, Any]:
+    """Parse query filters for cross-service instance list endpoint."""
+    logger.debug("Parsing global service instance list filters")
+    limit = _parse_limit(query_param(event, "limit"))
+    cursor_created_at, cursor_id = parse_created_cursor(query_param(event, "cursor"))
+    return {
+        "limit": limit,
+        "cursor_created_at": cursor_created_at,
+        "cursor_id": cursor_id,
+        "status": parse_optional_enum(
+            query_param(event, "status"),
+            InstanceStatus,
+            "status",
+        ),
+        "service_id": parse_optional_uuid(
+            query_param(event, "service_id"), "service_id"
+        ),
+        "service_type": parse_optional_enum(
+            query_param(event, "service_type"),
+            ServiceType,
+            "service_type",
+        ),
+    }
+
+
 def parse_enrollment_filters(event: Mapping[str, Any]) -> dict[str, Any]:
     """Parse query filters for enrollment list endpoint."""
     logger.debug("Parsing enrollment list filters")
