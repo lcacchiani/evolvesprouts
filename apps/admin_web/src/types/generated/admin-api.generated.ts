@@ -2035,6 +2035,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/contacts/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search CRM contacts for pickers
+         * @description Returns active contacts matching a case-insensitive substring on name, email, phone, or Instagram.
+         *     Requires at least two characters in `query`. Intended for referral and other admin pickers.
+         */
+        get: {
+            parameters: {
+                query: {
+                    query: string;
+                    /** @description Omit this contact from results (e.g. the subject contact when choosing a referrer). */
+                    exclude_contact_id?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Matching contacts as id/label rows. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CrmPickerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/contacts": {
         parameters: {
             query?: never;

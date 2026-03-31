@@ -14,8 +14,10 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
   type CrmPickerListItem,
+  getAdminContact,
   listCrmFamilyPicker,
   listCrmOrganizationPicker,
+  searchCrmContactsForPicker,
   type CrmTagRef,
 } from '@/lib/crm-api';
 import { formatCrmVenueLocationLabel, formatEnumLabel } from '@/lib/format';
@@ -36,6 +38,11 @@ const CONTACT_TYPES: ApiSchemas['CrmContactType'][] = [
   'professional',
   'other',
 ];
+
+function formatContactPickerLabel(c: ApiSchemas['AdminContact']): string {
+  const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
+  return name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
+}
 
 const SOURCES: ApiSchemas['CrmContactSource'][] = [
   'free_guide',
@@ -122,6 +129,9 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
   const [source, setSource] = useState<ApiSchemas['CrmContactSource']>('manual');
   const [sourceDetail, setSourceDetail] = useState('');
   const [referralContactId, setReferralContactId] = useState('');
+  const [referralSearchInput, setReferralSearchInput] = useState('');
+  const [referralSearchResults, setReferralSearchResults] = useState<CrmPickerListItem[]>([]);
+  const [referralPinnedLabel, setReferralPinnedLabel] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [locationId, setLocationId] = useState('');
   const [familySelectId, setFamilySelectId] = useState('');
@@ -137,15 +147,83 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
   const linkedToFamilyOrOrg = Boolean(familySelectId.trim() || organizationSelectId.trim());
   const locationFieldLocked = linkedToFamilyOrOrg;
 
-  const referralPickerOptions = useMemo(() => {
-    return rows
-      .filter((c) => c.id !== selectedId)
-      .map((c) => {
-        const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
-        const label = name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
-        return { id: c.id, label };
+  const referralSelectOptions = useMemo(() => {
+    const byId = new Map<string, string>();
+    for (const r of referralSearchResults) {
+      byId.set(r.id, r.label);
+    }
+    const rid = referralContactId.trim();
+    if (rid && referralPinnedLabel.trim() && !byId.has(rid)) {
+      byId.set(rid, referralPinnedLabel.trim());
+    }
+    return Array.from(byId.entries()).map(([id, label]) => ({ id, label }));
+  }, [referralSearchResults, referralContactId, referralPinnedLabel]);
+
+  useEffect(() => {
+    if (source !== 'referral') {
+      queueMicrotask(() => {
+        setReferralSearchResults([]);
       });
-  }, [rows, selectedId]);
+      return;
+    }
+    const q = referralSearchInput.trim();
+    if (q.length < 2) {
+      queueMicrotask(() => {
+        setReferralSearchResults([]);
+      });
+      return;
+    }
+    let cancelled = false;
+    const handle = setTimeout(() => {
+      void (async () => {
+        try {
+          const items = await searchCrmContactsForPicker({
+            query: q,
+            excludeContactId: editorMode === 'edit' ? selectedId : null,
+            limit: 50,
+          });
+          if (!cancelled) {
+            setReferralSearchResults(Array.isArray(items) ? items : []);
+          }
+        } catch {
+          if (!cancelled) {
+            setReferralSearchResults([]);
+          }
+        }
+      })();
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [referralSearchInput, source, selectedId, editorMode]);
+
+  useEffect(() => {
+    if (source !== 'referral' || !referralContactId.trim()) {
+      queueMicrotask(() => {
+        setReferralPinnedLabel('');
+      });
+      return;
+    }
+    const id = referralContactId.trim();
+    let cancelled = false;
+    void (async () => {
+      try {
+        const c = await getAdminContact(id);
+        if (cancelled || !c) {
+          return;
+        }
+        setReferralPinnedLabel(formatContactPickerLabel(c));
+      } catch {
+        if (!cancelled) {
+          setReferralPinnedLabel('');
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [referralContactId, source]);
 
   function resetCreateForm() {
     setEditorMode('create');
@@ -160,6 +238,9 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
     setSource('manual');
     setSourceDetail('');
     setReferralContactId('');
+    setReferralSearchInput('');
+    setReferralSearchResults([]);
+    setReferralPinnedLabel('');
     setDateOfBirth('');
     setLocationId('');
     setFamilySelectId('');
@@ -247,6 +328,9 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
     setSource(row.source);
     setSourceDetail(row.source_detail ?? '');
     setReferralContactId(row.referral_contact_id ?? '');
+    setReferralSearchInput('');
+    setReferralSearchResults([]);
+    setReferralPinnedLabel('');
     setDateOfBirth(row.date_of_birth ?? '');
     setLocationId(row.location_id ?? '');
     setFamilySelectId(row.family_ids[0] ?? '');
@@ -374,6 +458,11 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
                 setSource(v);
                 if (v !== 'referral') {
                   setReferralContactId('');
+                  setReferralSearchInput('');
+                  setReferralSearchResults([]);
+                  setReferralPinnedLabel('');
+                } else {
+                  setReferralSearchResults([]);
                 }
               }}
             >
@@ -385,20 +474,37 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
             </Select>
           </div>
           {source === 'referral' ? (
-            <div>
-              <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
-              <Select
-                id='crm-contact-referral'
-                value={referralContactId}
-                onChange={(e) => setReferralContactId(e.target.value)}
-              >
-                <option value=''>Select contact</option>
-                {referralPickerOptions.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </Select>
+            <div className='space-y-2 lg:col-span-2'>
+              <Label htmlFor='crm-contact-referral-search'>Find referring contact</Label>
+              <Input
+                id='crm-contact-referral-search'
+                value={referralSearchInput}
+                onChange={(e) => setReferralSearchInput(e.target.value)}
+                placeholder='Type at least 2 characters (name, email, phone, Instagram)'
+                autoComplete='off'
+              />
+              <div>
+                <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
+                <Select
+                  id='crm-contact-referral'
+                  value={referralContactId}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setReferralContactId(v);
+                    const picked = referralSelectOptions.find((o) => o.id === v);
+                    if (picked) {
+                      setReferralPinnedLabel(picked.label);
+                    }
+                  }}
+                >
+                  <option value=''>Select contact</option>
+                  {referralSelectOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
           ) : null}
           <div>

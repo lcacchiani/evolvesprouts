@@ -77,6 +77,40 @@ export async function listCrmOrganizationPicker(signal?: AbortSignal): Promise<C
   return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
 }
 
+export async function searchCrmContactsForPicker(
+  params: { query: string; excludeContactId?: string | null; limit?: number },
+  signal?: AbortSignal
+): Promise<CrmPickerListItem[]> {
+  const q = new URLSearchParams();
+  q.set('query', params.query.trim());
+  if (params.excludeContactId?.trim()) {
+    q.set('exclude_contact_id', params.excludeContactId.trim());
+  }
+  if (typeof params.limit === 'number') {
+    q.set('limit', `${params.limit}`);
+  }
+  const payload = await adminApiRequest<ApiCrmPickerList>({
+    endpointPath: `/v1/admin/contacts/search?${q.toString()}`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
+}
+
+export async function getAdminContact(
+  contactId: string,
+  signal?: AbortSignal
+): Promise<AdminContactRow | null> {
+  const payload = await adminApiRequest<ApiContactResponse>({
+    endpointPath: `/v1/admin/contacts/${contactId}`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return root.contact ? parseContact(root.contact) : null;
+}
+
 export async function listAdminContacts(
   params: Partial<CrmListFilters> & { cursor?: string | null; limit?: number },
   signal?: AbortSignal
