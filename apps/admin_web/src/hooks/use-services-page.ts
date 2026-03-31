@@ -39,6 +39,10 @@ export function useServicesPage() {
         }
       : undefined
   );
+  const selectedInstance = useMemo(
+    () => instanceList.instances.find((entry) => entry.id === selectedInstanceId) ?? null,
+    [instanceList.instances, selectedInstanceId]
+  );
   const enrollmentServiceId =
     activeView === 'events' ? (selectedInstance?.serviceId ?? null) : selectedServiceId;
   const enrollmentList = useEnrollmentList(enrollmentServiceId, selectedInstanceId);
@@ -80,10 +84,6 @@ export function useServicesPage() {
   const selectedService = useMemo(
     () => serviceList.services.find((entry) => entry.id === selectedServiceId) ?? null,
     [serviceList.services, selectedServiceId]
-  );
-  const selectedInstance = useMemo(
-    () => instanceList.instances.find((entry) => entry.id === selectedInstanceId) ?? null,
-    [instanceList.instances, selectedInstanceId]
   );
 
   const setSelectedInstanceIdWithMode = useCallback((instanceId: string | null) => {
