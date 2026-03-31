@@ -19,6 +19,22 @@ export function asNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
+/** Parse optional lat/lng from API (number or legacy string-encoded decimal). */
+export function asNullableFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === '') {
+      return null;
+    }
+    const n = Number(trimmed);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
 export function asBoolean(value: unknown, fallback = false): boolean {
   return typeof value === 'boolean' ? value : fallback;
 }

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from decimal import Decimal
 from typing import Any, cast
 from uuid import UUID
 
@@ -273,14 +274,25 @@ def _delete_location(event: Mapping[str, Any], location_id: UUID) -> dict[str, A
         return json_response(204, {}, event=event)
 
 
+def _optional_coordinate_json(value: Any) -> float | None:
+    """Return a JSON number for API responses (OpenAPI: double), or None."""
+    if value is None:
+        return None
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (int, float)):
+        return float(value)
+    raise TypeError(f"coordinate must be numeric or None, got {type(value).__name__}")
+
+
 def _serialize_location(location: Location) -> dict[str, Any]:
     return {
         "id": str(location.id),
         "name": location.name,
         "area_id": str(location.area_id),
         "address": location.address,
-        "lat": location.lat,
-        "lng": location.lng,
+        "lat": _optional_coordinate_json(location.lat),
+        "lng": _optional_coordinate_json(location.lng),
         "created_at": location.created_at,
         "updated_at": location.updated_at,
     }
