@@ -40,7 +40,7 @@ export function ConsultationsCta({
 
           <SectionCtaAnchor
             href={resolvedSecondaryCtaHref}
-            variant='secondary'
+            variant='outline'
             className='w-fit'
             openInNewTab
           >
