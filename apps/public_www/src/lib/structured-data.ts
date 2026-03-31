@@ -202,13 +202,13 @@ export function buildBreadcrumbSchema({
   });
 }
 
-export function buildFaqPageSchema(
-  faq: SiteContent['faq'],
+export function buildFaqJsonLd(
+  entries: ReadonlyArray<{ question: string; answer: string }>,
 ): JsonLdObject {
   return compactJsonLdObject({
     '@context': SCHEMA_CONTEXT,
     '@type': 'FAQPage',
-    mainEntity: faq.questions.map((entry) => ({
+    mainEntity: entries.map((entry) => ({
       '@type': 'Question',
       name: entry.question,
       acceptedAnswer: {
@@ -217,6 +217,12 @@ export function buildFaqPageSchema(
       },
     })),
   });
+}
+
+export function buildFaqPageSchema(
+  faq: SiteContent['faq'],
+): JsonLdObject {
+  return buildFaqJsonLd(faq.questions);
 }
 
 export function buildCourseSchema({

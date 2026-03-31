@@ -19,6 +19,10 @@
           {
             "label": "Helper Training Course",
             "href": "/services/my-best-auntie-training-course"
+          },
+          {
+            "label": "Free Guides & Resources",
+            "href": "/free-guides-and-resources"
           }
         ]
       },
@@ -106,6 +110,10 @@
       "trainingCourse": {
         "url": "/images/seo/evolvesprouts-og-default.png",
         "alt": "My Best Auntie Montessori training course in Hong Kong"
+      },
+      "freeGuidesAndResources": {
+        "url": "/images/seo/evolvesprouts-og-default.png",
+        "alt": "Free parenting guides and resources from Evolve Sprouts"
       }
     },
     "home": {
@@ -127,6 +135,10 @@
     "events": {
       "title": "Events",
       "description": "Join Evolve Sprouts Montessori workshops, parent talks, and community events in Hong Kong. Practical sessions for families with children aged 0-6."
+    },
+    "freeGuidesAndResources": {
+      "title": "Free Parenting Guides & Resources",
+      "description": "Access free Montessori-inspired parenting guides, tips for helpers, and gentle discipline resources from Evolve Sprouts in Hong Kong."
     },
     "links": {
       "title": "Links",
@@ -693,6 +705,70 @@
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
     "prefillMessage": "Hi, I'd like to book a free intro call!"
   },
+  "freeGuidesAndResources": {
+    "hero": {
+      "eyebrow": "Free Guides & Resources",
+      "title": "Free Parenting Guides & Resources",
+      "subtitle": "Access our growing library of free tools, guides, and practical tips for families and helpers in Hong Kong.",
+      "description": "Whether you're looking for gentle discipline ideas, Montessori-inspired routines, or helper-friendly strategies, you'll find resources you can use right away."
+    },
+    "library": {
+      "eyebrow": "Resource Library",
+      "title": "Browse Our Free Resources",
+      "searchPlaceholder": "Search resources...",
+      "emptySearchResultsLabel": "No resources match your search.",
+      "categories": [
+        {
+          "id": "all",
+          "label": "All Resources"
+        },
+        {
+          "id": "parenting-tips",
+          "label": "Parenting Tips"
+        },
+        {
+          "id": "montessori",
+          "label": "Montessori"
+        },
+        {
+          "id": "helper-training",
+          "label": "Helper Training"
+        }
+      ],
+      "items": [
+        {
+          "id": "patience-free-guide",
+          "title": "4 Simple Ways to Teach Patience to Young Children",
+          "description": "Gentle strategies for busy parents — practical tips you can start using today.",
+          "format": "PDF Guide",
+          "categoryId": "parenting-tips",
+          "ctaLabel": "Get the Free Guide",
+          "ctaHref": "#resources"
+        }
+      ]
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "cards": [
+        {
+          "question": "Are these resources really free?",
+          "answer": "Yes — all guides and materials on this page are completely free. We believe every family deserves access to quality parenting support."
+        },
+        {
+          "question": "What format are the guides in?",
+          "answer": "Most guides are downloadable PDFs that you can read on any device. We will add video and other formats over time."
+        },
+        {
+          "question": "Can I share these with my helper?",
+          "answer": "Absolutely! Our resources are designed for both parents and helpers. Sharing them is a great way to align on gentle parenting strategies."
+        },
+        {
+          "question": "How often do you release new resources?",
+          "answer": "We add new guides and materials regularly. Sign up for our newsletter to be the first to know when something new is available."
+        }
+      ]
+    }
+  },
   "whoops": {
     "code": "404",
     "title": "Page not found",
@@ -848,8 +924,8 @@
           "href": "/services/my-best-auntie-training-course"
         },
         {
-          "label": "Resources",
-          "href": "/#resources"
+          "label": "Free Guides & Resources",
+          "href": "/free-guides-and-resources"
         }
       ]
     },

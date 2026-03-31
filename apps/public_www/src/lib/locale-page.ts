@@ -89,14 +89,38 @@ export function getFooterLinkLabel(
   );
 }
 
+type NavbarTopMenuItem = SiteContent['navbar']['menuItems'][number];
+type NavbarSubmenuItem = NonNullable<NavbarTopMenuItem['children']>[number];
+type NavbarNavLinkItem = NavbarTopMenuItem | NavbarSubmenuItem;
+
+function findLabelInNavItems(
+  items: ReadonlyArray<NavbarNavLinkItem>,
+  href: string,
+): string | undefined {
+  for (const item of items) {
+    if (item.href === href && item.label) {
+      return item.label;
+    }
+
+    if ('children' in item && item.children?.length) {
+      const nested = findLabelInNavItems(item.children, href);
+      if (nested) {
+        return nested;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function findLabelByHref(
-  itemSets: ReadonlyArray<ReadonlyArray<{ href: string; label: string }>>,
+  itemSets: ReadonlyArray<ReadonlyArray<NavbarNavLinkItem>>,
   href: string,
 ): string | undefined {
   for (const items of itemSets) {
-    const match = items.find((item) => item.href === href);
-    if (match?.label) {
-      return match.label;
+    const match = findLabelInNavItems(items, href);
+    if (match) {
+      return match;
     }
   }
 

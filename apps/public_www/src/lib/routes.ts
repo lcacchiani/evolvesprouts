@@ -4,6 +4,7 @@ import { localizePath } from '@/lib/locale-routing';
 export const ROUTES = {
   home: '/',
   about: '/about-us',
+  freeGuidesAndResources: '/free-guides-and-resources',
   contact: '/contact-us',
   events: '/events',
   mediaDownload: '/media/download',
@@ -33,8 +34,9 @@ export const INDEXED_ROUTE_PATHS: readonly AppRoutePath[] = [
   ROUTES.privacy,
   ROUTES.terms,
   ROUTES.servicesMyBestAuntieTrainingCourse,
+  ROUTES.freeGuidesAndResources,
 ];
 
 export function buildLocalizedResourcesHashPath(locale: Locale): string {
-  return `${localizePath(ROUTES.home, locale)}#resources`;
+  return `${localizePath(ROUTES.freeGuidesAndResources, locale)}#resources`;
 }
