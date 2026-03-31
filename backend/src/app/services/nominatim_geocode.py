@@ -13,19 +13,19 @@ from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.utils import require_env
 
 _NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search"
-# Segment like "5/F" or "12 / f" (unit floor marker); keep text after that segment only.
-_FLOOR_SEGMENT = re.compile(r"^\d+\s*/\s*[Ff]$")
+# Comma-separated segment contains a floor marker ``/F`` (case-insensitive), e.g. ``G/F``, ``5/F``.
+_FLOOR_SEGMENT = re.compile(r"/\s*[Ff]")
 
 
 def _geocode_query_text(address: str) -> str:
-    """Free-text query for the geocoder: drop unit/floor prefix before a ``n/nF`` segment."""
+    """Free-text query for the geocoder: drop segments through one with ``/F``."""
     raw = address.strip()
     if not raw:
         return ""
     parts = [p.strip() for p in raw.split(",")]
     parts = [p for p in parts if p]
     for i, part in enumerate(parts):
-        if _FLOOR_SEGMENT.match(part):
+        if _FLOOR_SEGMENT.search(part):
             tail = ", ".join(parts[i + 1 :]).strip()
             return tail if tail else raw
     return raw
@@ -56,9 +56,9 @@ def geocode_address_with_context(
     """Return (lat, lng, display_name) for a free-text address.
 
     Args:
-        address: Street or venue address. Unit/floor segments before a ``n/F``
-            marker are dropped from the geocoder query (e.g. everything through
-            ``5/F`` is removed).
+        address: Street or venue address. Comma-separated segments through the
+            first that contains ``/F`` (case-insensitive), e.g. ``G/F`` or ``5/F``,
+            are dropped from the geocoder query.
         country_iso_codes: Optional ISO 3166-1 alpha-2 values (e.g. from
             ``geographic_areas`` and ``sovereign_country_id``) for the
             ``countrycodes`` query parameter (comma-separated OR filter).

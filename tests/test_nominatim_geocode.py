@@ -69,6 +69,32 @@ def test_geocode_strips_address_through_floor_segment(monkeypatch: Any) -> None:
     assert q == "Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan"
 
 
+def test_geocode_strips_g_floor_segment(monkeypatch: Any) -> None:
+    monkeypatch.setenv("NOMINATIM_USER_AGENT", "TestAgent/1.0")
+    monkeypatch.setenv("NOMINATIM_REFERER", "https://example.com")
+
+    seen: list[str] = []
+
+    def capture_url(
+        method: str,
+        url: str,
+        headers: dict[str, str] | None = None,
+        body: str | None = None,
+        timeout: int = 10,
+    ) -> dict[str, Any]:
+        seen.append(url)
+        return {"status": 200, "body": '[{"lat":"0","lon":"0","display_name":"x"}]'}
+
+    monkeypatch.setattr(nominatim_geocode, "http_invoke", capture_url)
+
+    nominatim_geocode.geocode_address_with_context(
+        address="Shop 3, G/F, 10 Queen's Road",
+        country_iso_codes=None,
+    )
+    q = parse_qs(urlparse(seen[0]).query).get("q", [""])[0]
+    assert q == "10 Queen's Road"
+
+
 def test_geocode_strips_floor_segment_with_spaces(monkeypatch: Any) -> None:
     monkeypatch.setenv("NOMINATIM_USER_AGENT", "TestAgent/1.0")
     monkeypatch.setenv("NOMINATIM_REFERER", "https://example.com")
