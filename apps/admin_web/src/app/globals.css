@@ -29,12 +29,21 @@
    * Normalize Chrome/Safari date-input shadow-DOM sizing so date and
    * datetime-local inputs match the dimensions of plain text inputs.
    *
-   * Tailwind v4 preflight resets padding-block on individual date-edit
-   * fields but leaves padding-inline, min-height on the value display,
-   * and font inheritance gaps that widen and heighten the control.
+   * Root causes (all Chrome/Safari-specific):
+   *  - appearance:auto lets Chrome enforce native sizing that can override
+   *    explicit height/width.
+   *  - TW v4 preflight sets min-height:1lh on ::-webkit-date-and-time-value
+   *    and display:inline-flex on ::-webkit-datetime-edit, but its universal
+   *    reset (* { margin:0; padding:0 }) does NOT reach shadow-DOM
+   *    pseudo-elements, so Chrome UA defaults (font, margins, padding-inline
+   *    on individual fields) survive and compound into visible extra width
+   *    and height.
    */
   input[type="date"],
   input[type="datetime-local"] {
+    appearance: none;
+    -webkit-appearance: none;
+
     &::-webkit-date-and-time-value {
       min-height: 0;
     }
@@ -52,8 +61,12 @@
     &::-webkit-datetime-edit-hour-field,
     &::-webkit-datetime-edit-minute-field,
     &::-webkit-datetime-edit-second-field,
+    &::-webkit-datetime-edit-millisecond-field,
+    &::-webkit-datetime-edit-meridiem-field,
     &::-webkit-datetime-edit-text {
-      padding-inline: 0;
+      font: inherit;
+      padding: 0;
+      margin: 0;
     }
     &::-webkit-calendar-picker-indicator {
       padding: 0;
