@@ -38,7 +38,7 @@ from app.db.models import (
     RelationshipType,
 )
 from app.db.repositories import OrganizationRepository
-from app.exceptions import NotFoundError, ValidationError
+from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
 
 _DEFAULT_LIMIT = 25
@@ -221,7 +221,8 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
             )
         session.commit()
         loaded = repository.get_crm_organization_by_id(created.id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load organization after create")
         return json_response(
             201,
             {"organization": serialize_organization_summary(loaded)},
@@ -285,7 +286,8 @@ def _update_organization(
         repository.update(org)
         session.commit()
         loaded = repository.get_crm_organization_by_id(organization_id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load organization after update")
         return json_response(
             200,
             {"organization": serialize_organization_summary(loaded)},
@@ -321,7 +323,8 @@ def _add_organization_member(
         session.add(member)
         session.commit()
         loaded = repository.get_crm_organization_by_id(organization_id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load organization after adding member")
         return json_response(
             201,
             {"organization": serialize_organization_summary(loaded)},
@@ -348,7 +351,8 @@ def _remove_organization_member(
         session.delete(member)
         session.commit()
         loaded = repository.get_crm_organization_by_id(organization_id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load organization after removing member")
         return json_response(
             200,
             {"organization": serialize_organization_summary(loaded)},

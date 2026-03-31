@@ -34,7 +34,7 @@ from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Contact, ContactSource, ContactType, RelationshipType
 from app.db.repositories import ContactRepository
-from app.exceptions import NotFoundError, ValidationError
+from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
 
 _DEFAULT_LIMIT = 25
@@ -252,7 +252,8 @@ def _create_contact(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, An
             ) from exc
         session.refresh(created)
         loaded = repository.get_by_id_for_admin(created.id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load contact after create")
         return json_response(
             201,
             {"contact": serialize_contact_summary(loaded)},
@@ -354,7 +355,8 @@ def _update_contact(
             ) from exc
         session.refresh(updated)
         loaded = repository.get_by_id_for_admin(contact_id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load contact after update")
         return json_response(
             200,
             {"contact": serialize_contact_summary(loaded)},

@@ -31,7 +31,7 @@ from app.db.audit import set_audit_context
 from app.db.engine import get_engine
 from app.db.models import Contact, Family, FamilyMember, FamilyRole, RelationshipType
 from app.db.repositories import FamilyRepository
-from app.exceptions import NotFoundError, ValidationError
+from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
 
 _DEFAULT_LIMIT = 25
@@ -184,7 +184,8 @@ def _create_family(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any
             replace_family_tags(session, family_id=created.id, tag_ids=tag_ids)
         session.commit()
         loaded = repository.get_by_id_for_admin(created.id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load family after create")
         return json_response(
             201,
             {"family": serialize_family_summary(loaded)},
@@ -237,7 +238,8 @@ def _update_family(
         repository.update(family)
         session.commit()
         loaded = repository.get_by_id_for_admin(family_id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load family after update")
         return json_response(
             200,
             {"family": serialize_family_summary(loaded)},
@@ -289,7 +291,8 @@ def _add_family_member(
         session.commit()
         session.refresh(member)
         loaded = repository.get_by_id_for_admin(family_id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load family after adding member")
         return json_response(
             201,
             {"family": serialize_family_summary(loaded)},
@@ -316,7 +319,8 @@ def _remove_family_member(
         session.delete(member)
         session.commit()
         loaded = repository.get_by_id_for_admin(family_id)
-        assert loaded is not None
+        if loaded is None:
+            raise DatabaseError("Failed to load family after removing member")
         return json_response(
             200,
             {"family": serialize_family_summary(loaded)},
