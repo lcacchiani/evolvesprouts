@@ -25,18 +25,39 @@
     touch-action: manipulation;
   }
 
-  /* Normalize Chrome/Safari date-input shadow-DOM sizing */
+  /*
+   * Normalize Chrome/Safari date-input shadow-DOM sizing so date and
+   * datetime-local inputs match the dimensions of plain text inputs.
+   *
+   * Tailwind v4 preflight resets padding-block on individual date-edit
+   * fields but leaves padding-inline, min-height on the value display,
+   * and font inheritance gaps that widen and heighten the control.
+   */
   input[type="date"],
   input[type="datetime-local"] {
+    &::-webkit-date-and-time-value {
+      min-height: 0;
+    }
     &::-webkit-datetime-edit {
       padding: 0;
+      font: inherit;
+      line-height: inherit;
     }
     &::-webkit-datetime-edit-fields-wrapper {
       padding: 0;
     }
+    &::-webkit-datetime-edit-day-field,
+    &::-webkit-datetime-edit-month-field,
+    &::-webkit-datetime-edit-year-field,
+    &::-webkit-datetime-edit-hour-field,
+    &::-webkit-datetime-edit-minute-field,
+    &::-webkit-datetime-edit-second-field,
+    &::-webkit-datetime-edit-text {
+      padding-inline: 0;
+    }
     &::-webkit-calendar-picker-indicator {
       padding: 0;
-      margin-left: 0;
+      margin: 0;
     }
   }
 }
