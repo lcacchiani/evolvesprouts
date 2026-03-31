@@ -319,6 +319,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 | `MediaRequestProcessor` | `lambda/media_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor |
 | `ExpenseParserFunction` | `lambda/expense_parser/handler.lambda_handler` | 512 MB | 90s | Yes | SQS-triggered expense invoice parser |
 | `InboundInvoiceEmailProcessor` | `lambda/inbound_invoice_email/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered inbound invoice email processor |
+| `EventbriteSyncProcessor` | `lambda/eventbrite_sync_processor/handler.lambda_handler` | 512 MB | 60s | Yes | SQS-triggered Eventbrite sync processor |
 
 ### Lambda Resources Per Function
 
@@ -345,7 +346,7 @@ For each function above, the following resources are created:
 
 | Function | Additional Permissions |
 |----------|------------------------|
-| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking, media, and expense parser topics, SES send email, S3 read/write for the assets bucket |
+| `EvolvesproutsAdminFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, invoke `AwsApiProxyFunction`, SNS publish to booking, media, expense parser, and Eventbrite sync topics, SES send email, S3 read/write for the assets bucket |
 | `AwsApiProxyFunction` | Cognito admin operations (`ListUsers`, `ListUsersInGroup`, `AdminGetUser`, `AdminDeleteUser`, `AdminAddUserToGroup`, `AdminRemoveUserFromGroup`, `AdminListGroupsForUser`, `AdminUserGlobalSignOut`, `AdminUpdateUserAttributes`) |
 | `EvolvesproutsMigrationFunction` | Read DB secret, direct connect to Aurora as `postgres`, Cognito user management, CloudFormation invoke permission |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
@@ -356,6 +357,7 @@ For each function above, the following resources are created:
 | `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email, read Mailchimp secret, invoke `AwsApiProxyFunction` |
 | `ExpenseParserFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read for the assets bucket, read OpenRouter API secret, invoke `AwsApiProxyFunction` |
 | `InboundInvoiceEmailProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read/write for the assets bucket (including the `inbound-email/raw/` prefix), publish to the expense parser SNS topic |
+| `EventbriteSyncProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, read Eventbrite token secret, invoke `AwsApiProxyFunction` |
 
 **Lambda Log Groups:**
 - Explicitly created by CDK with KMS encryption
@@ -530,6 +532,9 @@ configured by stack custom resources (including retention and KMS association).
 | `MailchimpApiSecretArn` | String | Yes | Yes | Existing Secrets Manager ARN for Mailchimp API key |
 | `MailchimpListId` | String | Yes | No | Mailchimp audience/list ID |
 | `MailchimpServerPrefix` | String | Yes | No | Mailchimp server prefix (for example `us21`) |
+| `EventbriteTokenSecretArn` | String | No | Yes | Optional Secrets Manager ARN containing Eventbrite API token JSON (`{"token":"..."}`) |
+| `EventbriteOrganizationId` | String | No | No | Optional Eventbrite organization ID for DB-to-Eventbrite sync |
+| `EventbriteApiBaseUrl` | String | No | No | Eventbrite API base URL (default: `https://www.eventbriteapi.com/v3`) |
 | `MediaDefaultResourceKey` | String | Yes | No | Default media resource key used when request payload omits `resource_key` |
 | `ApiCustomDomainName` | String | No | No | Custom domain for the API (default: empty) |
 | `ApiCustomDomainCertificateArn` | String | No | No | ACM certificate ARN for API custom domain |
@@ -573,6 +578,9 @@ configured by stack custom resources (including retention and KMS association).
 | `ExpenseParserTopicArn` | SNS topic ARN | Expense parser events topic |
 | `ExpenseParserQueueUrl` | SQS queue URL | Expense parser processing queue |
 | `ExpenseParserDLQUrl` | SQS DLQ URL | Failed expense parser messages |
+| `EventbriteSyncTopicArn` | SNS topic ARN | Eventbrite sync events topic |
+| `EventbriteSyncQueueUrl` | SQS queue URL | Eventbrite sync processing queue |
+| `EventbriteSyncDLQUrl` | SQS DLQ URL | Failed Eventbrite sync jobs |
 | `InboundInvoiceRecipientAddress` | Email address | SES-managed inbound invoice mailbox |
 | `InboundInvoiceRawEmailPrefix` | S3 object-key prefix | Reserved prefix for raw inbound invoice emails inside `AssetsBucket` |
 | `InboundInvoiceTopicArn` | SNS topic ARN | Inbound invoice email events topic |

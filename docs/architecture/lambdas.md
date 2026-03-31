@@ -25,6 +25,7 @@ their primary responsibilities.
 - Trigger: API Gateway — currently wired for
   `/v1/media-request`, `/v1/reservations`,
   `/v1/reservations/payment-intent`,
+  `/v1/calendar/events`,
   `/v1/legacy/reservations`,
   `/v1/legacy/contact-us`,
   `/v1/legacy/discounts/validate`,
@@ -45,7 +46,9 @@ their primary responsibilities.
   `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
-  `/v1/assets/public/*`, and `/v1/assets/share/*`
+  `/v1/assets/public/*`, and `/v1/assets/share/*`,
+  plus public website proxy routes including
+  `/www/v1/calendar/events`
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
@@ -265,6 +268,24 @@ their primary responsibilities.
   - `INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS` (optional comma-separated
     substrings; empty disables filtering; see `InboundInvoiceAllowedSenderPatterns`
     CDK parameter / GitHub var `CDK_PARAM_INBOUND_INVOICE_ALLOWED_SENDER_PATTERNS`)
+
+### Eventbrite sync processor
+- Function: EventbriteSyncProcessor
+- Handler: backend/lambda/eventbrite_sync_processor/handler.py
+- Trigger: SQS queue (`evolvesprouts-eventbrite-sync-queue`)
+- Purpose: process async Eventbrite synchronization requests for event service instances
+  and upsert Eventbrite event/ticket metadata while keeping DB as source of truth
+- DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
+- VPC: Yes
+- Permissions: Secrets Manager read for Eventbrite token, Lambda invoke permission
+  for `AwsApiProxyFunction`
+- Environment:
+  - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
+    `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
+  - `AWS_PROXY_FUNCTION_ARN`
+  - `EVENTBRITE_API_BASE_URL`
+  - `EVENTBRITE_ORGANIZATION_ID`
+  - `EVENTBRITE_TOKEN_SECRET_ARN`
 
 ### AWS / HTTP proxy
 - Function: AwsApiProxyFunction

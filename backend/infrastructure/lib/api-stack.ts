@@ -1163,6 +1163,35 @@ export class ApiStack extends cdk.Stack {
         ),
       }
     );
+    const eventbriteTokenSecret = new cdk.CfnParameter(
+      this,
+      "EventbriteTokenSecretArn",
+      {
+        type: "String",
+        default: "",
+        noEcho: true,
+        description:
+          "Optional Secrets Manager ARN for Eventbrite API token JSON payload ({\"token\":\"...\"}).",
+      }
+    );
+    const eventbriteOrganizationId = new cdk.CfnParameter(
+      this,
+      "EventbriteOrganizationId",
+      {
+        type: "String",
+        default: "",
+        description: "Optional Eventbrite organization ID for sync.",
+      }
+    );
+    const eventbriteApiBaseUrl = new cdk.CfnParameter(
+      this,
+      "EventbriteApiBaseUrl",
+      {
+        type: "String",
+        default: "https://www.eventbriteapi.com/v3",
+        description: "Base URL for Eventbrite API.",
+      }
+    );
 
     const assetDownloadPublicKey = new cloudfront.PublicKey(
       this,
@@ -1604,6 +1633,90 @@ export class ApiStack extends cdk.Stack {
         alarmDescription:
           "Expense parser messages failed processing and landed in DLQ",
         metric: expenseParserDLQ.metricApproximateNumberOfMessagesVisible({
+          period: cdk.Duration.minutes(5),
+        }),
+        threshold: 1,
+        evaluationPeriods: 1,
+        treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
+      }
+    );
+
+    // -------------------------------------------------------------------------
+    // Eventbrite sync messaging (SNS + SQS)
+    // -------------------------------------------------------------------------
+
+    const eventbriteSyncDLQ = new sqs.Queue(this, "EventbriteSyncDLQ", {
+      queueName: name("eventbrite-sync-dlq"),
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const eventbriteSyncQueue = new sqs.Queue(this, "EventbriteSyncQueue", {
+      queueName: name("eventbrite-sync-queue"),
+      visibilityTimeout: cdk.Duration.seconds(120),
+      deadLetterQueue: {
+        queue: eventbriteSyncDLQ,
+        maxReceiveCount: 3,
+      },
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: sqsEncryptionKey,
+    });
+
+    const eventbriteSyncTopic = new sns.Topic(this, "EventbriteSyncTopic", {
+      topicName: name("eventbrite-sync-events"),
+      masterKey: sqsEncryptionKey,
+    });
+    eventbriteSyncTopic.addSubscription(
+      new snsSubscriptions.SqsSubscription(eventbriteSyncQueue)
+    );
+    eventbriteSyncTopic.grantPublish(adminFunction);
+    adminFunction.addEnvironment(
+      "EVENTBRITE_SYNC_TOPIC_ARN",
+      eventbriteSyncTopic.topicArn
+    );
+
+    const eventbriteSyncProcessor = createPythonFunction(
+      "EventbriteSyncProcessor",
+      {
+        handler: "lambda/eventbrite_sync_processor/handler.lambda_handler",
+        timeout: cdk.Duration.seconds(60),
+        environment: {
+          DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
+          DATABASE_NAME: "evolvesprouts",
+          DATABASE_USERNAME: "evolvesprouts_admin",
+          DATABASE_PROXY_ENDPOINT: database.proxy.endpoint,
+          DATABASE_IAM_AUTH: "true",
+          AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
+          EVENTBRITE_API_BASE_URL: eventbriteApiBaseUrl.valueAsString,
+          EVENTBRITE_ORGANIZATION_ID: eventbriteOrganizationId.valueAsString,
+          EVENTBRITE_TOKEN_SECRET_ARN: eventbriteTokenSecret.valueAsString,
+        },
+      }
+    );
+    database.grantAdminUserSecretRead(eventbriteSyncProcessor);
+    database.grantConnect(eventbriteSyncProcessor, "evolvesprouts_admin");
+    awsProxyFunction.grantInvoke(eventbriteSyncProcessor);
+    secretsmanager.Secret.fromSecretCompleteArn(
+      this,
+      "EventbriteTokenSecret",
+      eventbriteTokenSecret.valueAsString
+    ).grantRead(eventbriteSyncProcessor);
+
+    eventbriteSyncProcessor.addEventSource(
+      new lambdaEventSources.SqsEventSource(eventbriteSyncQueue, {
+        batchSize: 1,
+      })
+    );
+
+    const eventbriteSyncDlqAlarm = new cdk.aws_cloudwatch.Alarm(
+      this,
+      "EventbriteSyncDLQAlarm",
+      {
+        alarmName: name("eventbrite-sync-dlq-alarm"),
+        alarmDescription:
+          "Eventbrite sync messages failed processing and landed in DLQ",
+        metric: eventbriteSyncDLQ.metricApproximateNumberOfMessagesVisible({
           period: cdk.Duration.minutes(5),
         }),
         threshold: 1,
@@ -2439,6 +2552,11 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
+    const calendar = v1.addResource("calendar");
+    calendar.addResource("events").addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
     const reservations = v1.addResource("reservations");
     reservations.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
@@ -3181,6 +3299,18 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ExpenseParserDLQUrl", {
       value: expenseParserDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed expense parser jobs",
+    });
+    new cdk.CfnOutput(this, "EventbriteSyncTopicArn", {
+      value: eventbriteSyncTopic.topicArn,
+      description: "SNS topic ARN for Eventbrite sync events",
+    });
+    new cdk.CfnOutput(this, "EventbriteSyncQueueUrl", {
+      value: eventbriteSyncQueue.queueUrl,
+      description: "SQS queue URL for Eventbrite sync processing",
+    });
+    new cdk.CfnOutput(this, "EventbriteSyncDLQUrl", {
+      value: eventbriteSyncDLQ.queueUrl,
+      description: "SQS dead letter queue URL for failed Eventbrite sync jobs",
     });
     new cdk.CfnOutput(this, "InboundInvoiceRecipientAddress", {
       value: inboundInvoiceRecipientAddress,

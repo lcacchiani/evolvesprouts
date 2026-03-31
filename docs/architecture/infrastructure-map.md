@@ -170,6 +170,8 @@ API Gateway (evolvesprouts-api)
   ├─▶ /v1/media-request ────▶ AdminFunction (VPC) ──▶ SNS ──▶ SQS ──▶ MediaProcessor
   │     Authorization: API Key + Turnstile
   │
+  ├─▶ /v1/calendar/events ─▶ AdminFunction (VPC)
+  │
   ├─▶ /v1/mailchimp/webhook ▶ AdminFunction (VPC)
   │     Authorization: None (Mailchimp callback)
   │
@@ -338,10 +340,15 @@ API Lambda
     │                  └─▶ BookingRequestProcessor Lambda
     │                  └─▶ DLQ: evolvesprouts-booking-request-dlq
     │
-    └─▶ SNS: evolvesprouts-media-events
-             └─▶ SQS: evolvesprouts-media-queue
-                       └─▶ MediaRequestProcessor Lambda
-                       └─▶ DLQ: evolvesprouts-media-dlq
+    ├─▶ SNS: evolvesprouts-media-events
+    │        └─▶ SQS: evolvesprouts-media-queue
+    │                  └─▶ MediaRequestProcessor Lambda
+    │                  └─▶ DLQ: evolvesprouts-media-dlq
+    │
+    └─▶ SNS: evolvesprouts-eventbrite-sync-events
+             └─▶ SQS: evolvesprouts-eventbrite-sync-queue
+                       └─▶ EventbriteSyncProcessor Lambda
+                       └─▶ DLQ: evolvesprouts-eventbrite-sync-dlq
 
 SES inbound (inbound.evolvesprouts.com)
     │
@@ -356,6 +363,7 @@ SES inbound (inbound.evolvesprouts.com)
 |---|---|---|---|
 | `evolvesprouts-booking-request-events` | `evolvesprouts-booking-request-queue` | BookingRequestProcessor | `booking_request.submitted`, `organization_suggestion.submitted` |
 | `evolvesprouts-media-events` | `evolvesprouts-media-queue` | MediaRequestProcessor | `media_request.submitted` |
+| `evolvesprouts-eventbrite-sync-events` | `evolvesprouts-eventbrite-sync-queue` | EventbriteSyncProcessor | `eventbrite.instance_sync_requested` |
 | `evolvesprouts-inbound-invoice-email-events` | `evolvesprouts-inbound-invoice-email-queue` | InboundInvoiceEmailProcessor | SES receipt-rule S3 notifications for inbound invoice emails |
 
 All queues use KMS encryption (`alias/evolvesprouts-sqs-encryption-key`).

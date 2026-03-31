@@ -73,6 +73,39 @@ Current event types:
 - `organization_suggestion.submitted`
 - `media_request.submitted`
 - `expense.parse_requested`
+- `eventbrite.instance_sync_requested`
+
+## Eventbrite sync flow
+
+Event service instances use a dedicated SNS/SQS pipeline so admin edits can
+return quickly while Eventbrite synchronization runs asynchronously with retry
+and DLQ support.
+
+### SNS Topic: `evolvesprouts-eventbrite-sync-events`
+
+- Receives sync events from admin service-instance create/update/delete flows.
+- Fans out to subscribed SQS queue.
+
+### SQS Queue: `evolvesprouts-eventbrite-sync-queue`
+
+- Subscribes to Eventbrite sync SNS topic.
+- 120 second visibility timeout.
+- 3 retry attempts before DLQ.
+- KMS encryption using the shared queue key.
+
+### Dead Letter Queue: `evolvesprouts-eventbrite-sync-dlq`
+
+- Receives Eventbrite sync messages that fail processing 3 times.
+- 14 day retention for investigation.
+- CloudWatch alarm triggers when messages appear.
+
+### Processor Lambda: `EventbriteSyncProcessor`
+
+- Triggered by `evolvesprouts-eventbrite-sync-queue`.
+- Loads event instances from DB and computes an idempotency payload hash.
+- Upserts Eventbrite event and ticket classes through `AwsApiProxyFunction`.
+- Updates `service_instances` Eventbrite sync metadata fields
+  (`eventbrite_sync_status`, `eventbrite_last_*`, ticket-class map, retry count).
 
 ## Media messaging flow
 
@@ -226,7 +259,7 @@ SQS retries or mailbox forwarding duplicates.
 | File | Description |
 |------|-------------|
 | `backend/infrastructure/lib/api-stack.ts` | CDK infrastructure |
-| `backend/src/app/api/admin.py` | API handler with SNS publish |
+| `backend/src/app/api/admin.py` | API handler with SNS publish and public calendar feed routing |
 | `backend/lambda/manager_request_processor/handler.py` | SQS booking request processor |
 | `backend/lambda/media_processor/handler.py` | SQS media request processor |
 | `backend/lambda/inbound_invoice_email/handler.py` | SQS inbound invoice email processor |
@@ -242,6 +275,7 @@ SQS retries or mailbox forwarding duplicates.
 | `BOOKING_REQUEST_TOPIC_ARN` | SNS topic ARN (required) |
 | `MEDIA_REQUEST_TOPIC_ARN` | SNS topic ARN for media events (required) |
 | `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events (required) |
+| `EVENTBRITE_SYNC_TOPIC_ARN` | SNS topic ARN for Eventbrite sync events (required for Eventbrite DB-sync) |
 
 ### Processor Lambda
 
@@ -264,6 +298,9 @@ SQS retries or mailbox forwarding duplicates.
 | `OPENROUTER_MAX_FILE_BYTES` | Attachment size limit for parser |
 | `ASSETS_BUCKET_NAME` | Existing private assets bucket for expense attachments |
 | `EXPENSE_PARSE_TOPIC_ARN` | SNS topic ARN for expense parser events |
+| `EVENTBRITE_API_BASE_URL` | Eventbrite API base URL for sync processor |
+| `EVENTBRITE_ORGANIZATION_ID` | Eventbrite organization ID used for event upserts |
+| `EVENTBRITE_TOKEN_SECRET_ARN` | Secrets Manager ARN for Eventbrite API token JSON |
 
 ## Stack Outputs
 
@@ -278,6 +315,9 @@ SQS retries or mailbox forwarding duplicates.
 | `ExpenseParserTopicArn` | SNS topic ARN for expense parser events |
 | `ExpenseParserQueueUrl` | SQS queue URL for expense parser processing |
 | `ExpenseParserDLQUrl` | Dead letter queue URL for failed expense parser jobs |
+| `EventbriteSyncTopicArn` | SNS topic ARN for Eventbrite sync events |
+| `EventbriteSyncQueueUrl` | SQS queue URL for Eventbrite sync processing |
+| `EventbriteSyncDLQUrl` | Dead letter queue URL for failed Eventbrite sync jobs |
 | `InboundInvoiceRecipientAddress` | SES-managed recipient address for invoice automation |
 | `InboundInvoiceRawEmailPrefix` | Reserved object-key prefix for raw inbound invoice emails |
 | `InboundInvoiceTopicArn` | SNS topic ARN for inbound invoice email events |
