@@ -1181,9 +1181,7 @@
       "title": "一次性諮詢服務",
       "subtitle": "還未準備好參加完整的9週課程？從這裡開始。選擇你的方向。選擇你的級別。看看會有什麼改變。",
       "ctaLabel": "預約免費家庭諮詢",
-      "ctaHref": "{{WHATSAPP_URL}}",
-      "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
-      "prefillMessage": "你好，我想預約一次免費諮詢，討論哪種方向和級別最適合我的家庭。",
+      "ctaHref": "#consultations-cta",
       "imageAlt": "Evolve Sprouts 一次性諮詢課程"
     },
     "howItWorks": {
@@ -1300,12 +1298,9 @@
     "cta": {
       "title": "知道您需要什麼？",
       "primaryCtaLabel": "預約免費家庭諮詢",
-      "primaryCtaHref": "{{WHATSAPP_URL}}",
-      "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
-      "prefillMessage": "你好，我想預約一次免費諮詢，討論哪種方向和級別最適合我的家庭。",
+      "primaryPrefillMessage": "你好，我想預約一次免費諮詢，討論哪種方向和級別最適合我的家庭。",
       "secondaryDescription": "不確定哪種方向或級別適合？這正是諮詢的目的。我們會在20分鐘內一起找到答案。",
       "secondaryCtaLabel": "透過WhatsApp聯絡我",
-      "secondaryCtaHref": "{{WHATSAPP_URL}}",
       "secondaryPrefillMessage": "你好，我不確定哪種諮詢方向或級別適合我的家庭。我們可以聊聊嗎？"
     }
   },

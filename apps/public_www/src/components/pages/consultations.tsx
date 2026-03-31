@@ -13,40 +13,35 @@ interface ConsultationsPageProps {
   content: SiteContent;
 }
 
-function resolveWhatsappHref(
-  baseHref: string,
+function resolveCtaWhatsappHref(
+  baseWhatsappHref: string,
   prefillMessage: string,
   phoneNumber: string,
   fallbackHref: string,
 ): string {
   return (
-    buildWhatsappPrefilledHref(baseHref, prefillMessage, phoneNumber)
+    buildWhatsappPrefilledHref(baseWhatsappHref, prefillMessage, phoneNumber)
     || fallbackHref
   );
 }
 
 export function ConsultationsPage({ content }: ConsultationsPageProps) {
   const consultations = content.consultations;
+  const whatsappBaseHref = content.freeIntroSession.ctaHref;
+  const whatsappPhoneNumber = content.freeIntroSession.phoneNumber;
 
-  const heroCtaHref = resolveWhatsappHref(
-    consultations.hero.ctaHref,
-    consultations.hero.prefillMessage,
-    consultations.hero.phoneNumber,
-    consultations.hero.ctaHref,
+  const primaryCtaHref = resolveCtaWhatsappHref(
+    whatsappBaseHref,
+    consultations.cta.primaryPrefillMessage,
+    whatsappPhoneNumber,
+    whatsappBaseHref,
   );
 
-  const primaryCtaHref = resolveWhatsappHref(
-    consultations.cta.primaryCtaHref,
-    consultations.cta.prefillMessage,
-    consultations.cta.phoneNumber,
-    consultations.cta.primaryCtaHref,
-  );
-
-  const secondaryCtaHref = resolveWhatsappHref(
-    consultations.cta.secondaryCtaHref,
+  const secondaryCtaHref = resolveCtaWhatsappHref(
+    whatsappBaseHref,
     consultations.cta.secondaryPrefillMessage,
-    consultations.cta.phoneNumber,
-    consultations.cta.secondaryCtaHref,
+    whatsappPhoneNumber,
+    whatsappBaseHref,
   );
 
   return (
@@ -54,10 +49,7 @@ export function ConsultationsPage({ content }: ConsultationsPageProps) {
       navbarContent={content.navbar}
       footerContent={content.footer}
     >
-      <ConsultationsHero
-        content={consultations.hero}
-        resolvedCtaHref={heroCtaHref}
-      />
+      <ConsultationsHero content={consultations.hero} />
       <ConsultationsHowItWorks content={consultations.howItWorks} />
       <ConsultationsFocusDetails content={consultations.focusDetails} />
       <ConsultationsComparison content={consultations.comparison} />

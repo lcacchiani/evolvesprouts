@@ -9,13 +9,9 @@ import type { ConsultationsHeroContent } from '@/content';
 
 interface ConsultationsHeroProps {
   content: ConsultationsHeroContent;
-  resolvedCtaHref: string;
 }
 
-export function ConsultationsHero({
-  content,
-  resolvedCtaHref,
-}: ConsultationsHeroProps) {
+export function ConsultationsHero({ content }: ConsultationsHeroProps) {
   return (
     <SectionShell
       id='consultations-hero'
@@ -39,10 +35,9 @@ export function ConsultationsHero({
           />
           <div className='mt-8'>
             <SectionCtaAnchor
-              href={resolvedCtaHref}
+              href={content.ctaHref}
               variant='primary'
               className='max-w-[360px]'
-              openInNewTab
             >
               {content.ctaLabel}
             </SectionCtaAnchor>
