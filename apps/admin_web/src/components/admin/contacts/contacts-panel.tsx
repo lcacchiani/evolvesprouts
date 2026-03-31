@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
@@ -12,14 +12,19 @@ import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
-import type { CrmTagRef } from '@/lib/crm-api';
+import {
+  type CrmPickerListItem,
+  listCrmFamilyPicker,
+  listCrmOrganizationPicker,
+  type CrmTagRef,
+} from '@/lib/crm-api';
+import { formatCrmVenueLocationLabel, formatEnumLabel } from '@/lib/format';
 import type { CrmListFilters } from '@/types/crm';
 import {
   CRM_ENTITY_RELATIONSHIP_TYPES,
   relationshipTypeForCrmEditor,
 } from '@/types/crm-relationship';
-import type { LocationSummary } from '@/types/services';
+import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
@@ -51,9 +56,10 @@ export interface ContactsPanelProps {
   contacts: ReturnType<typeof useAdminCrmContacts>;
   tags: CrmTagRef[];
   locations: LocationSummary[];
+  geographicAreas: GeographicAreaSummary[];
 }
 
-export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps) {
+export function ContactsPanel({ contacts, tags, locations, geographicAreas }: ContactsPanelProps) {
   const {
     contacts: rows,
     filters,
@@ -63,11 +69,45 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
     hasMore,
     error,
     loadMore,
-    totalCount,
     isSaving,
     createContact,
     updateContact,
   } = contacts;
+
+  const [familyPicker, setFamilyPicker] = useState<CrmPickerListItem[]>([]);
+  const [organizationPicker, setOrganizationPicker] = useState<CrmPickerListItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [families, orgs] = await Promise.all([
+          listCrmFamilyPicker(),
+          listCrmOrganizationPicker(),
+        ]);
+        if (!cancelled) {
+          setFamilyPicker(Array.isArray(families) ? families : []);
+          setOrganizationPicker(Array.isArray(orgs) ? orgs : []);
+        }
+      } catch {
+        if (!cancelled) {
+          setFamilyPicker([]);
+          setOrganizationPicker([]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const areaNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const a of geographicAreas) {
+      map[a.id] = a.name;
+    }
+    return map;
+  }, [geographicAreas]);
 
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -81,8 +121,11 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
     useState<(typeof CRM_ENTITY_RELATIONSHIP_TYPES)[number]>('prospect');
   const [source, setSource] = useState<ApiSchemas['CrmContactSource']>('manual');
   const [sourceDetail, setSourceDetail] = useState('');
+  const [referralContactId, setReferralContactId] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [locationId, setLocationId] = useState('');
+  const [familySelectId, setFamilySelectId] = useState('');
+  const [organizationSelectId, setOrganizationSelectId] = useState('');
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [active, setActive] = useState(true);
 
@@ -90,6 +133,19 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
     () => rows.find((c) => c.id === selectedId) ?? null,
     [rows, selectedId]
   );
+
+  const linkedToFamilyOrOrg = Boolean(familySelectId.trim() || organizationSelectId.trim());
+  const locationFieldLocked = linkedToFamilyOrOrg;
+
+  const referralPickerOptions = useMemo(() => {
+    return rows
+      .filter((c) => c.id !== selectedId)
+      .map((c) => {
+        const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
+        const label = name ? `${name}${c.email ? ` · ${c.email}` : ''}` : c.email || c.id;
+        return { id: c.id, label };
+      });
+  }, [rows, selectedId]);
 
   function resetCreateForm() {
     setEditorMode('create');
@@ -103,8 +159,11 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
     setRelationshipType('prospect');
     setSource('manual');
     setSourceDetail('');
+    setReferralContactId('');
     setDateOfBirth('');
     setLocationId('');
+    setFamilySelectId('');
+    setOrganizationSelectId('');
     setTagIds([]);
     setActive(true);
   }
@@ -113,6 +172,15 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
     try {
       const dob = dateOfBirth.trim() ? dateOfBirth.trim() : null;
       const loc = locationId.trim() ? locationId.trim() : null;
+      const fam = familySelectId.trim();
+      const org = organizationSelectId.trim();
+      const family_ids = fam ? [fam] : [];
+      const organization_ids = org ? [org] : [];
+
+      if (source === 'referral' && !referralContactId.trim()) {
+        return;
+      }
+
       if (editorMode === 'create') {
         await createContact({
           first_name: firstName.trim(),
@@ -125,8 +193,12 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
           source,
           source_detail: sourceDetail.trim() || null,
           date_of_birth: dob,
-          location_id: loc,
+          location_id: linkedToFamilyOrOrg ? null : loc,
           tag_ids: tagIds,
+          family_ids,
+          organization_ids,
+          referral_contact_id:
+            source === 'referral' ? referralContactId.trim() : null,
         });
         resetCreateForm();
         return;
@@ -134,7 +206,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
       if (!selected) {
         return;
       }
-      await updateContact(selected.id, {
+      const body: ApiSchemas['UpdateAdminContactRequest'] = {
         first_name: firstName.trim(),
         last_name: lastName.trim() || null,
         email: email.trim() || null,
@@ -145,10 +217,18 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
         source,
         source_detail: sourceDetail.trim() || null,
         date_of_birth: dob,
-        location_id: loc,
         active,
         tag_ids: tagIds,
-      });
+        family_ids,
+        organization_ids,
+      };
+      if (source === 'referral') {
+        body.referral_contact_id = referralContactId.trim();
+      }
+      if (!locationFieldLocked) {
+        body.location_id = loc;
+      }
+      await updateContact(selected.id, body);
     } catch {
       // Retry with form state preserved.
     }
@@ -166,17 +246,25 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
     setRelationshipType(relationshipTypeForCrmEditor(row.relationship_type));
     setSource(row.source);
     setSourceDetail(row.source_detail ?? '');
+    setReferralContactId(row.referral_contact_id ?? '');
     setDateOfBirth(row.date_of_birth ?? '');
     setLocationId(row.location_id ?? '');
+    setFamilySelectId(row.family_ids[0] ?? '');
+    setOrganizationSelectId(row.organization_ids[0] ?? '');
     setTagIds([...row.tag_ids]);
     setActive(row.active);
   }
+
+  const saveDisabled =
+    isSaving ||
+    !firstName.trim() ||
+    (source === 'referral' && !referralContactId.trim());
 
   return (
     <div className='space-y-6'>
       <AdminEditorCard
         title='Contact'
-        description='Create a contact or select a row below to edit. Relationship excludes vendor (vendors are organisation records under Finance). Mailchimp sync status is read-only from the API.'
+        description='Create a contact or select a row below to edit. Relationship excludes vendor (vendors are organisation records under Finance). When this contact is linked to a family or organisation, set location on that record instead. Mailchimp sync status is read-only from the API.'
         actions={
           <>
             {editorMode === 'edit' ? (
@@ -184,11 +272,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
                 Cancel
               </Button>
             ) : null}
-            <Button
-              type='button'
-              disabled={isSaving || !firstName.trim()}
-              onClick={() => void handleSubmit()}
-            >
+            <Button type='button' disabled={saveDisabled} onClick={() => void handleSubmit()}>
               {editorMode === 'create' ? 'Create contact' : 'Update contact'}
             </Button>
           </>
@@ -285,7 +369,13 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
             <Select
               id='crm-contact-source'
               value={source}
-              onChange={(e) => setSource(e.target.value as ApiSchemas['CrmContactSource'])}
+              onChange={(e) => {
+                const v = e.target.value as ApiSchemas['CrmContactSource'];
+                setSource(v);
+                if (v !== 'referral') {
+                  setReferralContactId('');
+                }
+              }}
             >
               {SOURCES.map((v) => (
                 <option key={v} value={v}>
@@ -294,17 +384,102 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
               ))}
             </Select>
           </div>
+          {source === 'referral' ? (
+            <div>
+              <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
+              <Select
+                id='crm-contact-referral'
+                value={referralContactId}
+                onChange={(e) => setReferralContactId(e.target.value)}
+              >
+                <option value=''>Select contact</option>
+                {referralPickerOptions.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          ) : null}
           <div>
             <Label htmlFor='crm-contact-loc'>Location</Label>
             <Select
               id='crm-contact-loc'
-              value={locationId}
+              value={locationFieldLocked ? '' : locationId}
               onChange={(e) => setLocationId(e.target.value)}
+              disabled={locationFieldLocked}
             >
               <option value=''>None</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {formatLocationLabel(loc)}
+              {!locationFieldLocked
+                ? locations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {formatCrmVenueLocationLabel({
+                        id: loc.id,
+                        name: loc.name,
+                        address: loc.address,
+                        areaName: areaNameById[loc.areaId] ?? '',
+                      })}
+                    </option>
+                  ))
+                : null}
+            </Select>
+            {locationFieldLocked ? (
+              <p className='mt-1 text-sm text-slate-600'>
+                Location is managed on the linked family or organisation.
+              </p>
+            ) : null}
+            {!locationFieldLocked &&
+            editorMode === 'edit' &&
+            selected?.location_summary != null ? (
+              <p className='mt-1 text-sm text-slate-600'>
+                Current:{' '}
+                {formatCrmVenueLocationLabel({
+                  id: selected.location_summary.id,
+                  name: selected.location_summary.name,
+                  address: selected.location_summary.address,
+                  areaName: selected.location_summary.area_name,
+                })}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <Label htmlFor='crm-contact-family'>Family</Label>
+            <Select
+              id='crm-contact-family'
+              value={familySelectId}
+              onChange={(e) => {
+                const v = e.target.value;
+                setFamilySelectId(v);
+                if (v) {
+                  setLocationId('');
+                }
+              }}
+            >
+              <option value=''>None</option>
+              {familyPicker.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor='crm-contact-org'>Organisation</Label>
+            <Select
+              id='crm-contact-org'
+              value={organizationSelectId}
+              onChange={(e) => {
+                const v = e.target.value;
+                setOrganizationSelectId(v);
+                if (v) {
+                  setLocationId('');
+                }
+              }}
+            >
+              <option value=''>None</option>
+              {organizationPicker.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.label}
                 </option>
               ))}
             </Select>
@@ -343,10 +518,7 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
           </div>
           {editorMode === 'edit' && selected ? (
             <div className='lg:col-span-2 text-sm text-slate-600'>
-              <p>
-                Mailchimp: {formatEnumLabel(selected.mailchimp_status)} · Families:{' '}
-                {selected.family_ids.length} · Organisations: {selected.organization_ids.length}
-              </p>
+              <p>Mailchimp: {formatEnumLabel(selected.mailchimp_status)}</p>
             </div>
           ) : null}
         </div>
@@ -383,9 +555,6 @@ export function ContactsPanel({ contacts, tags, locations }: ContactsPanelProps)
                 <option value='false'>Archived</option>
               </Select>
             </div>
-            <p className='text-sm text-slate-600' aria-live='polite'>
-              {totalCount} total
-            </p>
           </div>
         }
       >

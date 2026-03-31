@@ -15,6 +15,31 @@ export function formatLocationLabel(location: LocationSummary): string {
   return location.id;
 }
 
+/** Full venue label: address (when present) plus geographic area name. */
+export function formatCrmVenueLocationLabel(location: {
+  name: string | null;
+  address: string | null;
+  areaName: string;
+  id: string;
+}): string {
+  const address = location.address?.trim();
+  const area = location.areaName?.trim();
+  const name = location.name?.trim();
+  const parts: string[] = [];
+  if (address) {
+    parts.push(address);
+  } else if (name) {
+    parts.push(name);
+  }
+  if (area) {
+    parts.push(area);
+  }
+  if (parts.length > 0) {
+    return parts.join(' · ');
+  }
+  return location.id;
+}
+
 export function toTitleCase(value: string): string {
   return value
     .split('_')

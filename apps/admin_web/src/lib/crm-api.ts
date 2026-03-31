@@ -14,11 +14,13 @@ type ApiFamilyResponse = ApiSchemas['AdminFamilyResponse'];
 type ApiOrganizationList = ApiSchemas['AdminOrganizationListResponse'];
 type ApiOrganizationResponse = ApiSchemas['AdminOrganizationResponse'];
 type ApiTagList = ApiSchemas['CrmTagListResponse'];
+type ApiCrmPickerList = ApiSchemas['CrmPickerListResponse'];
 
 export type AdminContactRow = ApiSchemas['AdminContact'];
 export type AdminFamilyRow = ApiSchemas['AdminFamily'];
 export type AdminOrganizationRow = ApiSchemas['AdminOrganization'];
 export type CrmTagRef = ApiSchemas['CrmTagRef'];
+export type CrmPickerListItem = ApiSchemas['CrmPickerListItem'];
 
 function parseContact(value: unknown): AdminContactRow {
   const row = isRecord(value) ? value : {};
@@ -40,6 +42,11 @@ function parseTag(value: unknown): CrmTagRef {
   return row as CrmTagRef;
 }
 
+function parsePickerItem(value: unknown): CrmPickerListItem {
+  const row = isRecord(value) ? value : {};
+  return row as CrmPickerListItem;
+}
+
 export async function listCrmTags(signal?: AbortSignal): Promise<CrmTagRef[]> {
   const payload = await adminApiRequest<ApiTagList>({
     endpointPath: '/v1/admin/contacts/tags',
@@ -48,6 +55,26 @@ export async function listCrmTags(signal?: AbortSignal): Promise<CrmTagRef[]> {
   });
   const root = unwrapPayload(payload);
   return Array.isArray(root.items) ? root.items.map((t) => parseTag(t)) : [];
+}
+
+export async function listCrmFamilyPicker(signal?: AbortSignal): Promise<CrmPickerListItem[]> {
+  const payload = await adminApiRequest<ApiCrmPickerList>({
+    endpointPath: '/v1/admin/families/picker?limit=100',
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
+}
+
+export async function listCrmOrganizationPicker(signal?: AbortSignal): Promise<CrmPickerListItem[]> {
+  const payload = await adminApiRequest<ApiCrmPickerList>({
+    endpointPath: '/v1/admin/organizations/picker?limit=100',
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((e) => parsePickerItem(e)) : [];
 }
 
 export async function listAdminContacts(

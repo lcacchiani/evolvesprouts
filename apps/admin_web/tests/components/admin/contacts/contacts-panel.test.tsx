@@ -6,6 +6,15 @@ import { ContactsPanel } from '@/components/admin/contacts/contacts-panel';
 
 import type { useAdminCrmContacts } from '@/hooks/use-admin-crm-contacts';
 
+vi.mock('@/lib/crm-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/crm-api')>();
+  return {
+    ...actual,
+    listCrmFamilyPicker: vi.fn().mockResolvedValue([]),
+    listCrmOrganizationPicker: vi.fn().mockResolvedValue([]),
+  };
+});
+
 function buildContactsHook(
   overrides: Partial<ReturnType<typeof useAdminCrmContacts>> = {}
 ): ReturnType<typeof useAdminCrmContacts> {
@@ -33,7 +42,9 @@ describe('ContactsPanel', () => {
     const createContact = vi.fn().mockResolvedValue(null);
     const contacts = buildContactsHook({ createContact });
 
-    render(<ContactsPanel contacts={contacts} tags={[]} locations={[]} />);
+    render(
+      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+    );
 
     await user.type(screen.getByLabelText('First name'), 'Jane');
     await user.click(screen.getByRole('button', { name: 'Create contact' }));
@@ -52,7 +63,9 @@ describe('ContactsPanel', () => {
     const loadMore = vi.fn().mockResolvedValue(undefined);
     const contacts = buildContactsHook({ hasMore: true, loadMore });
 
-    render(<ContactsPanel contacts={contacts} tags={[]} locations={[]} />);
+    render(
+      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+    );
 
     await user.click(screen.getByRole('button', { name: 'Load more' }));
 
@@ -62,7 +75,9 @@ describe('ContactsPanel', () => {
   it('shows list error from the hook in the table card', () => {
     const contacts = buildContactsHook({ error: 'Failed to load contacts' });
 
-    render(<ContactsPanel contacts={contacts} tags={[]} locations={[]} />);
+    render(
+      <ContactsPanel contacts={contacts} tags={[]} locations={[]} geographicAreas={[]} />
+    );
 
     expect(screen.getByText('Failed to load contacts')).toBeInTheDocument();
   });

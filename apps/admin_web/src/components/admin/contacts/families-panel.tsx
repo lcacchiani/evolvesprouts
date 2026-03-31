@@ -2,6 +2,16 @@
 
 import { useMemo, useState } from 'react';
 
+function contactEligibleForFamilyMember(
+  contact: { id: string; family_ids: string[]; organization_ids: string[] },
+  selectedFamilyId: string | null
+): boolean {
+  if (contact.family_ids.length === 0) {
+    return true;
+  }
+  return Boolean(selectedFamilyId && contact.family_ids.includes(selectedFamilyId));
+}
+
 import type { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
 import { Button } from '@/components/ui/button';
@@ -12,14 +22,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
+import { formatCrmVenueLocationLabel, formatEnumLabel } from '@/lib/format';
 import type { CrmTagRef } from '@/lib/crm-api';
 import type { CrmListFilters } from '@/types/crm';
 import {
   CRM_ENTITY_RELATIONSHIP_TYPES,
   relationshipTypeForCrmEditor,
 } from '@/types/crm-relationship';
-import type { LocationSummary } from '@/types/services';
+import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
 type ApiSchemas = components['schemas'];
@@ -36,10 +46,19 @@ export interface FamiliesPanelProps {
   families: ReturnType<typeof useAdminCrmFamilies>;
   tags: CrmTagRef[];
   locations: LocationSummary[];
+  geographicAreas: GeographicAreaSummary[];
   contactOptions: { id: string; label: string }[];
+  contactsForMembership: { id: string; family_ids: string[]; organization_ids: string[] }[];
 }
 
-export function FamiliesPanel({ families, tags, locations, contactOptions }: FamiliesPanelProps) {
+export function FamiliesPanel({
+  families,
+  tags,
+  locations,
+  geographicAreas,
+  contactOptions,
+  contactsForMembership,
+}: FamiliesPanelProps) {
   const {
     families: rows,
     filters,
@@ -49,7 +68,6 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
     hasMore,
     error,
     loadMore,
-    totalCount,
     isSaving,
     createFamily,
     updateFamily,
@@ -78,6 +96,24 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
     () => rows.find((f) => f.id === selectedId) ?? null,
     [rows, selectedId]
   );
+
+  const areaNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const a of geographicAreas) {
+      map[a.id] = a.name;
+    }
+    return map;
+  }, [geographicAreas]);
+
+  const memberContactOptions = useMemo(() => {
+    return contactOptions.filter((c) => {
+      const row = contactsForMembership.find((x) => x.id === c.id);
+      if (!row) {
+        return true;
+      }
+      return contactEligibleForFamilyMember(row, selectedId);
+    });
+  }, [contactOptions, contactsForMembership, selectedId]);
 
   function resetCreateForm() {
     setEditorMode('create');
@@ -210,10 +246,26 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
               <option value=''>None</option>
               {locations.map((loc) => (
                 <option key={loc.id} value={loc.id}>
-                  {formatLocationLabel(loc)}
+                  {formatCrmVenueLocationLabel({
+                    id: loc.id,
+                    name: loc.name,
+                    address: loc.address,
+                    areaName: areaNameById[loc.areaId] ?? '',
+                  })}
                 </option>
               ))}
             </Select>
+            {editorMode === 'edit' && selected?.location_summary != null ? (
+              <p className='mt-1 text-sm text-slate-600'>
+                Current:{' '}
+                {formatCrmVenueLocationLabel({
+                  id: selected.location_summary.id,
+                  name: selected.location_summary.name,
+                  address: selected.location_summary.address,
+                  areaName: selected.location_summary.area_name,
+                })}
+              </p>
+            ) : null}
           </div>
           {editorMode === 'edit' ? (
             <div>
@@ -250,7 +302,7 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
                     onChange={(e) => setMemberContactId(e.target.value)}
                   >
                     <option value=''>Select contact</option>
-                    {contactOptions.map((c) => (
+                    {memberContactOptions.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.label}
                       </option>
@@ -362,9 +414,6 @@ export function FamiliesPanel({ families, tags, locations, contactOptions }: Fam
                 <option value='false'>Archived</option>
               </Select>
             </div>
-            <p className='text-sm text-slate-600' aria-live='polite'>
-              {totalCount} total
-            </p>
           </div>
         }
       >

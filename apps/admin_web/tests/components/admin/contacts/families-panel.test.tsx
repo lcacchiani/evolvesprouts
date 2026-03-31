@@ -36,7 +36,14 @@ describe('FamiliesPanel', () => {
     const families = buildFamiliesHook({ createFamily });
 
     render(
-      <FamiliesPanel families={families} tags={[]} locations={[]} contactOptions={[]} />
+      <FamiliesPanel
+        families={families}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
     );
 
     await user.type(screen.getByLabelText('Family name'), 'The Smiths');
@@ -56,7 +63,14 @@ describe('FamiliesPanel', () => {
     const families = buildFamiliesHook({ hasMore: true, loadMore });
 
     render(
-      <FamiliesPanel families={families} tags={[]} locations={[]} contactOptions={[]} />
+      <FamiliesPanel
+        families={families}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        contactOptions={[]}
+        contactsForMembership={[]}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: 'Load more' }));
