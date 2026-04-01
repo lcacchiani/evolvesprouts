@@ -25,6 +25,8 @@
   .es-my-journey-section,
   .es-testimonials-section,
   .es-faq-section,
+  .es-free-guides-and-resources-hero-section,
+  .es-free-resources-section,
   .es-my-best-auntie-outline-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -150px;
@@ -42,10 +44,12 @@
   .es-contact-faq-section,
   .es-my-journey-section,
   .es-testimonials-section,
-  .es-faq-section {
+  .es-faq-section,
+  .es-free-guides-and-resources-hero-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
+  .es-free-resources-section,
   .es-my-best-auntie-outline-section {
     background-color: var(--figma-colors-desktop, #FFFFFF);
   }
@@ -395,6 +399,7 @@
 
   .es-why-us-section,
   .es-course-highlights-section,
+  .es-free-guides-and-resources-library-section,
   .es-my-best-auntie-description-section,
   .es-my-history-section,
   .es-about-us-ida-coach-section {
@@ -407,7 +412,8 @@
   }
 
   .es-why-us-section,
-  .es-course-highlights-section {
+  .es-course-highlights-section,
+  .es-free-guides-and-resources-library-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }
 
@@ -1444,7 +1450,39 @@
   }
 
   .es-free-resources-section {
-    background-color: var(--figma-colors-desktop, #FFFFFF);
+    position: relative;
+    isolation: isolate;
+  }
+
+  .es-free-resources-section-overlay {
+    background: radial-gradient(
+        circle at 16% 22%,
+        rgba(23, 72, 121, 0.1) 0%,
+        rgba(23, 72, 121, 0) 47%
+      ),
+      radial-gradient(
+        circle at 88% 78%,
+        rgba(231, 108, 61, 0.16) 0%,
+        rgba(231, 108, 61, 0) 52%
+      );
+  }
+
+  .es-free-guides-and-resources-library-section {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .es-free-guides-and-resources-library-overlay {
+    background: radial-gradient(
+        circle at 16% 22%,
+        rgba(23, 72, 121, 0.1) 0%,
+        rgba(23, 72, 121, 0) 47%
+      ),
+      radial-gradient(
+        circle at 88% 78%,
+        rgba(231, 108, 61, 0.16) 0%,
+        rgba(231, 108, 61, 0) 52%
+      );
   }
 
   .es-free-resources-pattern-bg {
@@ -1649,6 +1687,7 @@
     .es-my-best-auntie-hero-section,
     .es-my-best-auntie-outline-section,
     .es-course-highlights-section,
+    .es-free-guides-and-resources-library-section,
     .es-real-talk-section,
     .es-free-resources-section,
     .es-testimonials-section,

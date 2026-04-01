@@ -323,8 +323,13 @@ export function FreeResourcesForGentleParenting({
       id='resources'
       ariaLabel={content.title}
       dataFigmaNode='resources'
-      className='es-free-resources-section'
+      className='es-section-bg-overlay es-free-resources-section'
     >
+      <div
+        aria-hidden='true'
+        className='es-free-resources-section-overlay pointer-events-none absolute inset-0'
+      />
+
       <SectionContainer>
         <SectionHeader
           testId='free-resource-header'
