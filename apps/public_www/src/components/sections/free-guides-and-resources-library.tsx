@@ -147,7 +147,7 @@ export function FreeGuidesAndResourcesLibrary({
                       {item.description}
                     </p>
                     <ButtonPrimitive
-                      variant='outline'
+                      variant='primary-outline'
                       href={item.ctaHref}
                       className='mt-6 w-full sm:w-fit'
                     >
