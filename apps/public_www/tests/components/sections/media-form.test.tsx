@@ -1,7 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useLayoutEffect, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaForm } from '@/components/sections/media-form';
+import {
+  MediaFormProvider,
+  useMediaFormContext,
+} from '@/components/sections/shared/media-form-context';
 import enContent from '@/content/en.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
@@ -57,20 +62,34 @@ vi.mock('@/lib/analytics', () => ({
 const mockedCreateCrmApiClient = vi.mocked(createPublicCrmApiClient);
 const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
 
-function renderMediaForm() {
+function mediaFormProps() {
   const resourcesContent = enContent.resources;
-  return render(
-    <MediaForm
-      ctaLabel={resourcesContent.ctaLabel}
-      resourceKey={resourcesContent.resourceKey}
-      formFirstNameLabel={resourcesContent.formFirstNameLabel}
-      formEmailLabel={resourcesContent.formEmailLabel}
-      formSubmitLabel={resourcesContent.formSubmitLabel}
-      formSuccessTitle={resourcesContent.formSuccessTitle}
-      formSuccessBody={resourcesContent.formSuccessBody}
-      formErrorMessage={resourcesContent.formErrorMessage}
-    />,
-  );
+  return {
+    ctaLabel: resourcesContent.ctaLabel,
+    resourceKey: resourcesContent.resourceKey,
+    formFirstNameLabel: resourcesContent.formFirstNameLabel,
+    formEmailLabel: resourcesContent.formEmailLabel,
+    formSubmitLabel: resourcesContent.formSubmitLabel,
+    formSuccessTitle: resourcesContent.formSuccessTitle,
+    formSuccessBody: resourcesContent.formSuccessBody,
+    formErrorMessage: resourcesContent.formErrorMessage,
+  };
+}
+
+function renderMediaForm() {
+  return render(<MediaForm {...mediaFormProps()} />);
+}
+
+function renderWithMediaFormProvider(ui: ReactNode) {
+  return render(<MediaFormProvider>{ui}</MediaFormProvider>);
+}
+
+function MarkPageMediaFormSubmitted() {
+  const ctx = useMediaFormContext();
+  useLayoutEffect(() => {
+    ctx?.markFormSubmitted();
+  }, [ctx]);
+  return null;
 }
 
 describe('MediaForm', () => {
@@ -228,5 +247,63 @@ describe('MediaForm', () => {
     const submitButton = screen.getByRole('button', { name: enContent.resources.formSubmitLabel });
     expect(submitButton).toBeDisabled();
     expect(screen.getByText(enContent.resources.formErrorMessage)).toBeInTheDocument();
+  });
+
+  it('skips form and shows success when context hasSubmitted is true', () => {
+    renderWithMediaFormProvider(
+      <>
+        <MarkPageMediaFormSubmitted />
+        <MediaForm {...mediaFormProps()} />
+      </>,
+    );
+
+    expect(
+      screen.getByText(enContent.resources.formSuccessTitle),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: enContent.resources.ctaLabel }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('invokes onFormOpened when page-level submission auto-skips the form', () => {
+    const onFormOpened = vi.fn();
+    renderWithMediaFormProvider(
+      <>
+        <MarkPageMediaFormSubmitted />
+        <MediaForm {...mediaFormProps()} onFormOpened={onFormOpened} />
+      </>,
+    );
+
+    expect(onFormOpened).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls markFormSubmitted on successful submission so a second form shows success', async () => {
+    const request = vi.fn().mockResolvedValue(null);
+    mockedCreateCrmApiClient.mockReturnValue({ request });
+
+    renderWithMediaFormProvider(
+      <>
+        <MediaForm {...mediaFormProps()} analyticsSectionId='form-a' />
+        <MediaForm {...mediaFormProps()} analyticsSectionId='form-b' />
+      </>,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: enContent.resources.ctaLabel })[0]);
+    fireEvent.change(
+      screen.getByPlaceholderText(enContent.resources.formFirstNameLabel),
+      { target: { value: 'Ida' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText(enContent.resources.formEmailLabel), {
+      target: { value: 'ida@example.com' },
+    });
+    fireEvent.click(screen.getByTestId('mock-turnstile-captcha-solve'));
+    fireEvent.click(
+      screen.getByRole('button', { name: enContent.resources.formSubmitLabel }),
+    );
+
+    await waitFor(() => {
+      const titles = screen.getAllByText(enContent.resources.formSuccessTitle);
+      expect(titles).toHaveLength(2);
+    });
   });
 });

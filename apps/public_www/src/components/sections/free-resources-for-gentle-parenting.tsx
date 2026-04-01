@@ -247,6 +247,7 @@ export function FreeResourcesForGentleParenting({
   content,
 }: FreeResourcesForGentleParentingProps) {
   const [hasOpenedMediaForm, setHasOpenedMediaForm] = useState(false);
+
   const sectionConfig = readSectionConfig(content);
   const eyebrowLabel = readOptionalText(content.eyebrow) ?? content.title;
   const cardTitle = readOptionalText(content.cardTitle) ?? content.title;
