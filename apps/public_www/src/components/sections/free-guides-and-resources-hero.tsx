@@ -17,7 +17,7 @@ export function FreeGuidesAndResourcesHero({
       id='free-guides-and-resources-hero'
       ariaLabel={content.title}
       dataFigmaNode='free-guides-and-resources-hero'
-      className='es-section-bg-overlay overflow-hidden pt-0 sm:pt-[60px]'
+      className='es-section-bg-overlay es-free-guides-and-resources-hero-section overflow-hidden pt-0 sm:pt-[60px]'
     >
       <SectionContainer>
         <SectionHeader
