@@ -43,6 +43,11 @@ repo root
   - Avoid: "I am modifying..."
 - S3 bucket names must be 63 characters or less.
 - Never hardcode secrets, API keys, passwords, or tokens.
+- For CDK-created AWS Secrets Manager resources (`new secretsmanager.Secret(...)`)
+  in `backend/infrastructure/**`, always set an explicit `secretName`.
+- `secretName` must use the format `${resourcePrefix}-<kebab-case-suffix>`.
+- The suffix must be lowercase letters/numbers with hyphens (`-`) as separators
+  (for example `openrouter-api-secret`), with no spaces, underscores, or camelCase.
 - Categorically ban hardcoded environment-specific values (for example domains,
   origins, base URLs, emails, ARNs, account IDs, region-specific endpoints, and
   deployment/runtime configuration). Derive them from parameters, environment
