@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDate, formatDateOnly, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
+import {
+  formatDate,
+  formatDateOnly,
+  formatEnumLabel,
+  getContentLanguageOptions,
+  getCurrencyOptions,
+} from '@/lib/format';
 
 describe('format helpers', () => {
   it('formats snake_case values into title case labels', () => {
@@ -12,6 +18,14 @@ describe('format helpers', () => {
     const options = getCurrencyOptions();
     expect(options.map((o) => o.value)).toEqual(['HKD', 'USD', 'EUR', 'CNY', 'SGD']);
     expect(options.some((option) => option.value === 'HKD' && option.label === 'HKD Hong Kong Dollar')).toBe(true);
+  });
+
+  it('exposes en, zh-CN, and zh-HK in content language options with fixed labels', () => {
+    const options = getContentLanguageOptions();
+    expect(options.map((o) => o.value)).toEqual(['en', 'zh-CN', 'zh-HK']);
+    expect(options.find((o) => o.value === 'en')?.label).toBe('en English');
+    expect(options.find((o) => o.value === 'zh-CN')?.label).toBe('zh-CN Mandarin (Simplified)');
+    expect(options.find((o) => o.value === 'zh-HK')?.label).toBe('zh-HK Cantonese (Hong Kong)');
   });
 
   it('formats dates in the local timezone and default locale', () => {

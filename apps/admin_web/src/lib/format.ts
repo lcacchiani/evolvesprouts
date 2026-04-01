@@ -133,6 +133,52 @@ export function getCurrencyOptions(): CurrencyOption[] {
   return options;
 }
 
+/** BCP 47 tags for admin asset content language (matches public client-resources filter). */
+export const ADMIN_ASSET_CONTENT_LANGUAGE_TAGS = ['en', 'zh-CN', 'zh-HK'] as const;
+
+export type AdminSelectableContentLanguageTag = (typeof ADMIN_ASSET_CONTENT_LANGUAGE_TAGS)[number];
+
+type ContentLanguageOption = {
+  value: string;
+  label: string;
+};
+
+let cachedContentLanguageOptions: ContentLanguageOption[] | null = null;
+
+function getLanguageDisplayName(tag: string): string {
+  if (typeof Intl.DisplayNames === 'undefined') {
+    return tag;
+  }
+  try {
+    const displayNames = new Intl.DisplayNames(['en'], { type: 'language' });
+    return displayNames.of(tag) ?? tag;
+  } catch {
+    return tag;
+  }
+}
+
+/**
+ * Fixed allowlist for admin asset content-language dropdowns (ISO-style BCP 47 tags).
+ * Same pattern as {@link getCurrencyOptions}.
+ */
+export function getContentLanguageOptions(): ContentLanguageOption[] {
+  if (cachedContentLanguageOptions) {
+    return cachedContentLanguageOptions;
+  }
+
+  const labels: Record<(typeof ADMIN_ASSET_CONTENT_LANGUAGE_TAGS)[number], string> = {
+    en: 'English',
+    'zh-CN': 'Mandarin (Simplified)',
+    'zh-HK': 'Cantonese (Hong Kong)',
+  };
+
+  cachedContentLanguageOptions = ADMIN_ASSET_CONTENT_LANGUAGE_TAGS.map((tag) => ({
+    value: tag,
+    label: `${tag} ${labels[tag] ?? getLanguageDisplayName(tag)}`,
+  }));
+  return cachedContentLanguageOptions;
+}
+
 export function formatDate(value: string | null): string {
   if (!value) {
     return '—';

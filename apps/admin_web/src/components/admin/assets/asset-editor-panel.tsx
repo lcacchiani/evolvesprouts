@@ -4,7 +4,7 @@ import { useMemo, useState, type FormEvent } from 'react';
 
 import type { AdminAsset, AssetVisibility } from '@/types/assets';
 
-import { toTitleCase } from '@/lib/format';
+import { ADMIN_ASSET_CONTENT_LANGUAGE_TAGS, toTitleCase } from '@/lib/format';
 import {
   ASSET_VISIBILITIES,
   CLIENT_DOCUMENT_ASSET_TAG,
@@ -15,6 +15,7 @@ import { AssetShareLinkSection } from '@/components/admin/assets/asset-share-lin
 import { StatusBanner } from '@/components/status-banner';
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
+import { ContentLanguageSelect } from '@/components/ui/content-language-select';
 import { FileUploadButton } from '@/components/ui/file-upload-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,6 +40,7 @@ interface AssetEditorPanelProps {
       fileName: string;
       resourceKey: string | null;
       visibility: AssetVisibility;
+      contentLanguage: string | null;
       clientTag: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
     },
     file: File
@@ -51,6 +53,7 @@ interface AssetEditorPanelProps {
       fileName: string;
       resourceKey: string | null;
       visibility: AssetVisibility;
+      contentLanguage: string | null;
       clientTag?: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
     }
   ) => Promise<void>;
@@ -62,6 +65,8 @@ interface AssetFormState {
   description: string;
   resourceKey: string;
   visibility: AssetVisibility;
+  /** BCP 47 tag or empty when unset / unknown legacy value */
+  contentLanguage: string;
   /** Select value: empty string = no client tag; client_document = Client */
   clientTag: '' | typeof CLIENT_DOCUMENT_ASSET_TAG;
 }
@@ -71,6 +76,7 @@ const EMPTY_ASSET_FORM: AssetFormState = {
   description: '',
   resourceKey: '',
   visibility: 'restricted',
+  contentLanguage: '',
   clientTag: '',
 };
 
@@ -80,12 +86,27 @@ function assetHasClientDocumentTag(asset: AdminAsset): boolean {
   return asset.tags.some((t) => t.name.toLowerCase() === CLIENT_DOCUMENT_ASSET_TAG);
 }
 
+function toContentLanguageSelectValue(asset: AdminAsset): string {
+  const raw = asset.contentLanguage?.trim();
+  if (!raw) {
+    return '';
+  }
+  const lower = raw.toLowerCase();
+  for (const tag of ADMIN_ASSET_CONTENT_LANGUAGE_TAGS) {
+    if (tag.toLowerCase() === lower) {
+      return tag;
+    }
+  }
+  return '';
+}
+
 function toFormState(asset: AdminAsset): AssetFormState {
   return {
     title: asset.title,
     description: asset.description ?? '',
     resourceKey: asset.resourceKey ?? '',
     visibility: asset.visibility,
+    contentLanguage: toContentLanguageSelectValue(asset),
     clientTag: assetHasClientDocumentTag(asset) ? CLIENT_DOCUMENT_ASSET_TAG : '',
   };
 }
@@ -160,12 +181,16 @@ export function AssetEditorPanel({
       }
     }
 
+    const contentLanguageTrimmed = formState.contentLanguage.trim();
+    const contentLanguage = contentLanguageTrimmed === '' ? null : contentLanguageTrimmed;
+
     const core = {
       title,
       description: formState.description.trim() || null,
       fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
       resourceKey: null as string | null,
       visibility: formState.visibility,
+      contentLanguage,
     };
     const normalizedResourceKey = normalizeResourceKey(formState.resourceKey);
     if (formState.resourceKey.trim() && !normalizedResourceKey) {
@@ -343,37 +368,48 @@ export function AssetEditorPanel({
           ) : null}
         </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='asset-tag'>Tag</Label>
-          {isEditMode && isExpenseLinked ? (
-            <Select
-              id='asset-tag'
-              value='expense'
-              disabled
-              aria-label='Tag (linked to expense; not editable)'
-              title='Tags cannot be changed for assets linked to an expense.'
-            >
-              <option value='expense'>Expense</option>
-            </Select>
-          ) : (
-            <Select
-              id='asset-tag'
-              value={formState.clientTag}
-              disabled={isSavingAsset}
-              onChange={(event) =>
-                setFormState((previous) => ({
-                  ...previous,
-                  clientTag:
-                    event.target.value === CLIENT_DOCUMENT_ASSET_TAG
-                      ? CLIENT_DOCUMENT_ASSET_TAG
-                      : '',
-                }))
-              }
-            >
-              <option value=''>No tag</option>
-              <option value={CLIENT_DOCUMENT_ASSET_TAG}>Client</option>
-            </Select>
-          )}
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end'>
+          <div className='space-y-2'>
+            <Label htmlFor='asset-tag'>Tag</Label>
+            {isEditMode && isExpenseLinked ? (
+              <Select
+                id='asset-tag'
+                value='expense'
+                disabled
+                aria-label='Tag (linked to expense; not editable)'
+                title='Tags cannot be changed for assets linked to an expense.'
+              >
+                <option value='expense'>Expense</option>
+              </Select>
+            ) : (
+              <Select
+                id='asset-tag'
+                value={formState.clientTag}
+                disabled={isSavingAsset}
+                onChange={(event) =>
+                  setFormState((previous) => ({
+                    ...previous,
+                    clientTag:
+                      event.target.value === CLIENT_DOCUMENT_ASSET_TAG
+                        ? CLIENT_DOCUMENT_ASSET_TAG
+                        : '',
+                  }))
+                }
+              >
+                <option value=''>No tag</option>
+                <option value={CLIENT_DOCUMENT_ASSET_TAG}>Client</option>
+              </Select>
+            )}
+          </div>
+          <ContentLanguageSelect
+            id='asset-content-language'
+            label='Language'
+            value={formState.contentLanguage}
+            disabled={isSavingAsset}
+            onChange={(next) =>
+              setFormState((previous) => ({ ...previous, contentLanguage: next }))
+            }
+          />
         </div>
 
         <div className='space-y-2'>

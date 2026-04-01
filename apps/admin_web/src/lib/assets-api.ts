@@ -26,6 +26,7 @@ type ApiAssetGrant = ApiSchemas['AssetGrant'];
 type ApiAssetGrantResponse = ApiSchemas['AssetGrantResponse'];
 type ApiAssetGrantListResponse = ApiSchemas['AssetGrantListResponse'];
 type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
+type ApiPartialUpdateAssetRequest = ApiSchemas['PartialUpdateAssetRequest'];
 type ApiCreateAssetResponse = ApiSchemas['CreateAssetResponse'];
 type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
 type ApiAssetShareLinkResponse = ApiSchemas['AssetShareLinkResponse'];
@@ -146,6 +147,7 @@ function parseAsset(value: ApiAsset): AdminAsset {
     fileName: asTrimmedString(value.file_name) ?? '',
     resourceKey: asNullableString(value.resource_key ?? null),
     contentType: asNullableString(value.content_type ?? null),
+    contentLanguage: asNullableString(value.content_language ?? null),
     visibility: parseVisibility(value.visibility),
     tags,
     createdBy: asNullableString(value.created_by ?? null),
@@ -268,9 +270,49 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetReques
     content_type: trimmedContentType || null,
     visibility: input.visibility,
   };
+  if (input.contentLanguage !== undefined) {
+    body.content_language = input.contentLanguage;
+  }
   if (input.clientTag !== undefined) {
     body.client_tag = input.clientTag;
   }
+  return body;
+}
+
+function normalizePartialAssetInput(input: UpsertAdminAssetInput): ApiPartialUpdateAssetRequest {
+  const body: ApiPartialUpdateAssetRequest = {};
+
+  if (input.title !== undefined) {
+    body.title = input.title.trim();
+  }
+  if (input.description !== undefined) {
+    const trimmed = input.description?.trim() ?? '';
+    body.description = trimmed || null;
+  }
+  if (input.assetType !== undefined) {
+    body.asset_type = input.assetType;
+  }
+  if (input.fileName !== undefined) {
+    body.file_name = input.fileName.trim();
+  }
+  if (input.resourceKey !== undefined) {
+    const trimmed = input.resourceKey?.trim() ?? '';
+    body.resource_key = trimmed || null;
+  }
+  if (input.contentType !== undefined) {
+    const trimmed = input.contentType?.trim() ?? '';
+    body.content_type = trimmed || null;
+  }
+  if (input.contentLanguage !== undefined) {
+    body.content_language = input.contentLanguage;
+  }
+  if (input.visibility !== undefined) {
+    body.visibility = input.visibility;
+  }
+  if (input.clientTag !== undefined) {
+    body.client_tag = input.clientTag;
+  }
+
   return body;
 }
 
@@ -351,8 +393,8 @@ export async function updateAdminAsset(
 ): Promise<AdminAsset | null> {
   const payload = await adminApiRequest<ApiAssetPayload>({
     endpointPath: `/v1/admin/assets/${assetId}`,
-    method: 'PUT',
-    body: normalizeAssetInput(input),
+    method: 'PATCH',
+    body: normalizePartialAssetInput(input),
   });
   return extractAsset(payload);
 }

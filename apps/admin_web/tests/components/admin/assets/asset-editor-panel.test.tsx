@@ -97,6 +97,28 @@ describe('AssetEditorPanel', () => {
     expect(onCreate).not.toHaveBeenCalled();
   });
 
+  it('submits create payload with content_language when Language is selected', async () => {
+    const user = userEvent.setup();
+    const { onCreate } = renderEditor();
+
+    await user.type(screen.getByLabelText('Title *'), 'New guide');
+    const fileInput = screen.getByLabelText('Upload PDF file');
+    const pdf = new File(['%PDF-1.4'], 'guide.pdf', { type: 'application/pdf' });
+    await user.upload(fileInput, pdf);
+    await user.selectOptions(screen.getByLabelText('Language'), 'zh-HK');
+    await user.click(screen.getByRole('button', { name: 'Create asset' }));
+
+    await waitFor(() => {
+      expect(onCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'New guide',
+          contentLanguage: 'zh-HK',
+        }),
+        pdf
+      );
+    });
+  });
+
   it('submits create payload with client_tag when Client is selected', async () => {
     const user = userEvent.setup();
     const { onCreate } = renderEditor();
@@ -135,6 +157,7 @@ describe('AssetEditorPanel', () => {
         fileName: 'infant-guide.pdf',
         resourceKey: null,
         visibility: 'restricted',
+        contentLanguage: null,
         clientTag: null,
       });
     });
