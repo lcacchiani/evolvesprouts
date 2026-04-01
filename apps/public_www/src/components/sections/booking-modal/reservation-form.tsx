@@ -1236,7 +1236,6 @@ export function BookingReservationForm({
             <TurnstileCaptcha
               siteKey={turnstileSiteKey}
               widgetAction={captchaWidgetAction}
-              size='normal'
               onTokenChange={handleCaptchaTokenChange}
               onLoadError={handleCaptchaLoadError}
             />
