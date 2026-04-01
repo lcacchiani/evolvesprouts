@@ -225,11 +225,22 @@ jobs:
           deploy_exit=1
           while [ "$attempt" -le "$MAX_CDK_DEPLOY_ATTEMPTS" ]; do
             echo "CDK deploy attempt ${attempt} of ${MAX_CDK_DEPLOY_ATTEMPTS}"
-            if npx cdk deploy --no-notices --require-approval never \
-              "${QUALIFIER_ARGS[@]}" "${PARAM_ARGS[@]}" "${STACK_LIST[@]}"; then
+            ATTEMPT_LOG="$(mktemp)"
+            npx cdk deploy --no-notices --require-approval never \
+              "${QUALIFIER_ARGS[@]}" "${PARAM_ARGS[@]}" "${STACK_LIST[@]}" 2>&1 | tee "$ATTEMPT_LOG"
+            deploy_exit=${PIPESTATUS[0]}
+            if [ "$deploy_exit" -eq 0 ]; then
+              rm -f "$ATTEMPT_LOG"
               exit 0
             fi
-            deploy_exit=$?
+
+            if grep -Eiq 'HandlerErrorCode: (InvalidRequest|AlreadyExists)|must be in ARN format or "\\*"|already exists\.' "$ATTEMPT_LOG"; then
+              echo "Detected non-retryable CloudFormation error; failing fast without additional retries."
+              rm -f "$ATTEMPT_LOG"
+              exit "$deploy_exit"
+            fi
+
+            rm -f "$ATTEMPT_LOG"
             if [ "$attempt" -eq "$MAX_CDK_DEPLOY_ATTEMPTS" ]; then
               break
             fi
