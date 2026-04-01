@@ -83,8 +83,6 @@ export function FreeGuidesAndResourcesLibrary({
     return getVisibleItems(items, activeCategoryId, normalizedQuery);
   }, [items, activeCategoryId, normalizedQuery]);
 
-  const mediaCtaLabel =
-    mediaFormContent.ctaLabel ?? content.items[0]?.ctaLabel ?? '';
   const mediaResourceKey = mediaFormContent.resourceKey ?? '';
   const mediaFormFirstNameLabel = mediaFormContent.formFirstNameLabel;
   const mediaFormEmailLabel = mediaFormContent.formEmailLabel;
@@ -169,7 +167,7 @@ export function FreeGuidesAndResourcesLibrary({
                     </p>
                     {item.id === 'patience-free-guide' ? (
                       <MediaForm
-                        ctaLabel={mediaCtaLabel}
+                        ctaLabel={item.ctaLabel}
                         resourceKey={mediaResourceKey}
                         analyticsSectionId='free-guides-library'
                         formFirstNameLabel={mediaFormFirstNameLabel}
