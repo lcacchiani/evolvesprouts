@@ -233,6 +233,8 @@ def _create_instance(
         instance = ServiceInstance(
             service_id=service_id,
             title=payload["title"],
+            slug=payload["slug"],
+            landing_page=payload["landing_page"],
             description=payload["description"],
             cover_image_s3_key=payload["cover_image_s3_key"],
             status=payload["status"],
@@ -319,6 +321,10 @@ def _update_instance(
 
         if "title" in payload:
             instance.title = payload["title"]
+        if "slug" in payload:
+            instance.slug = payload["slug"]
+        if "landing_page" in payload:
+            instance.landing_page = payload["landing_page"]
         if "description" in payload:
             instance.description = payload["description"]
         if "cover_image_s3_key" in payload:

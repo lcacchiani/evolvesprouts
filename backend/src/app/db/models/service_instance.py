@@ -54,6 +54,7 @@ class ServiceInstance(Base):
         Index("svc_instances_service_idx", "service_id"),
         Index("svc_instances_status_idx", "status"),
         Index("svc_instances_instructor_idx", "instructor_id"),
+        Index("svc_instances_slug_uq", "slug", unique=True),
         CheckConstraint(
             "max_capacity IS NULL OR max_capacity > 0",
             name="service_instances_capacity_positive",
@@ -71,6 +72,8 @@ class ServiceInstance(Base):
         nullable=False,
     )
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    slug: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    landing_page: Mapped[str | None] = mapped_column(String(255), nullable=True)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     cover_image_s3_key: Mapped[str | None] = mapped_column(String(), nullable=True)
     status: Mapped[InstanceStatus] = mapped_column(

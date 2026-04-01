@@ -28,6 +28,7 @@ from app.api.admin_organizations_crm import handle_admin_organizations_crm_reque
 from app.api.admin_vendors import handle_admin_vendors_request
 from app.api.public_media import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
+from app.api.public_client_resources import handle_public_client_resources_request
 from app.api.public_events import handle_public_events
 from app.api.public_legacy_proxy import (
     handle_legacy_contact_us,
@@ -88,6 +89,20 @@ _ROUTES: tuple[
         "/www/v1/calendar/events",
         True,
         lambda event, method, _path: handle_public_events(event, method),
+    ),
+    (
+        "/v1/client-resources",
+        True,
+        lambda event, method, path: handle_public_client_resources_request(
+            event, method, path
+        ),
+    ),
+    (
+        "/www/v1/client-resources",
+        True,
+        lambda event, method, path: handle_public_client_resources_request(
+            event, method, path
+        ),
     ),
     (
         "/v1/legacy/reservations",

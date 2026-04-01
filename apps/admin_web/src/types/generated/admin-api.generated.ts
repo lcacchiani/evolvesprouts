@@ -3414,6 +3414,8 @@ export interface components {
             s3_key: string;
             file_name: string;
             content_type?: string | null;
+            /** @description BCP 47-style tag for the language of the file content (e.g. en, zh-HK). */
+            content_language?: string | null;
             /** @description Optional normalized key used to map public media submissions to this asset. */
             resource_key?: string | null;
             /** @enum {string} */
@@ -3760,6 +3762,9 @@ export interface components {
             /** Format: uuid */
             service_id: string;
             title?: string | null;
+            /** @description Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. */
+            slug?: string | null;
+            landing_page?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             status: components["schemas"]["InstanceStatus"];
@@ -4090,6 +4095,8 @@ export interface components {
             file_name: string;
             resource_key?: string | null;
             content_type?: string | null;
+            /** @description BCP 47-style tag for the language of the file content (e.g. en, zh-HK). Used by the public client-resources feed when filtering by `language`. */
+            content_language?: string | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
             /**
@@ -4107,6 +4114,8 @@ export interface components {
             file_name?: string;
             resource_key?: string | null;
             content_type?: string | null;
+            /** @description BCP 47-style tag for the language of the file content. Send null to clear. */
+            content_language?: string | null;
             /** @enum {string} */
             visibility?: "public" | "restricted";
             /**

@@ -8,6 +8,7 @@ info:
     This spec covers:
     - Public asset endpoints exposed by the backend API stack
       (`/v1/assets/public*`).
+    - Public client resource listing (`/v1/client-resources`, `/www/v1/client-resources`).
     - Public website endpoints consumed by `apps/public_www`, exposed via the
       CloudFront `/www/*` proxy allowlist in
       `backend/infrastructure/lib/public-www-stack.ts`.
@@ -150,6 +151,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/client-resources:
+    get:
+      summary: List public client resources
+      description: |
+        Lists **public** assets tagged `client_document` for the public website.
+        Optional `language` filters to assets whose `content_language` matches exactly
+        (BCP 47-style tag, e.g. `en`, `zh-HK`). Omitted `language` returns all matches,
+        including rows with null `content_language`.
+        Download files via `GET /v1/assets/public/{id}/download` (device attestation required).
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ClientResourceLanguage"
+        - $ref: "#/components/parameters/ListLimit"
+        - $ref: "#/components/parameters/ListCursor"
+      responses:
+        "200":
+          description: Client resource list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicClientResourceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /www/v1/client-resources:
+    get:
+      summary: List public client resources (website proxy path)
+      description: Same as `GET /v1/client-resources` for same-origin calls from `public_www`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ClientResourceLanguage"
+        - $ref: "#/components/parameters/ListLimit"
+        - $ref: "#/components/parameters/ListCursor"
+      responses:
+        "200":
+          description: Client resource list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicClientResourceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /www/v1/calendar/events:
     get:
@@ -374,6 +428,33 @@ components:
       schema:
         type: string
       description: Shared secret token configured for Mailchimp webhook requests.
+    ClientResourceLanguage:
+      name: language
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 35
+      description: |
+        Filter to assets whose `content_language` equals this tag (e.g. `en`, `zh-HK`).
+        When omitted, all matching public client resources are returned.
+    ListLimit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: Page size (default 25).
+    ListCursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Pagination cursor from the previous response's `next_cursor`.
 
   responses:
     BadRequest:
@@ -437,6 +518,53 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicAsset"
+        next_cursor:
+          type: string
+          nullable: true
+    PublicClientResource:
+      type: object
+      required:
+        - id
+        - title
+        - asset_type
+        - file_name
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        asset_type:
+          type: string
+          enum: [guide, video, pdf, document]
+        file_name:
+          type: string
+        resource_key:
+          type: string
+          nullable: true
+        content_language:
+          type: string
+          nullable: true
+          description: BCP 47-style language tag for file content (e.g. en, zh-HK).
+        content_type:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    PublicClientResourceListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicClientResource"
         next_cursor:
           type: string
           nullable: true
@@ -538,6 +666,18 @@ components:
           type: array
           items:
             type: string
+        slug:
+          type: string
+          nullable: true
+        landing_page:
+          type: string
+          nullable: true
+        spaces_total:
+          type: integer
+          nullable: true
+        spaces_left:
+          type: integer
+          nullable: true
         dates:
           type: array
           items:

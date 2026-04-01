@@ -55,10 +55,13 @@ def _fetch_event_instances(
         limit=100,
         now=now,
     )
-    return [_serialize_public_event(instance) for instance in rows]
+    return [_serialize_public_event(repository, instance) for instance in rows]
 
 
-def _serialize_public_event(instance: ServiceInstance) -> dict[str, Any]:
+def _serialize_public_event(
+    repository: ServiceInstanceRepository,
+    instance: ServiceInstance,
+) -> dict[str, Any]:
     service = instance.service
     title = instance.title if instance.title else service.title
     summary = instance.description if instance.description else service.description
@@ -115,6 +118,14 @@ def _serialize_public_event(instance: ServiceInstance) -> dict[str, Any]:
         payload["currency"] = currency
     if instance.eventbrite_event_url:
         payload["external_url"] = instance.eventbrite_event_url
+    if instance.slug is not None:
+        payload["slug"] = instance.slug
+    if instance.landing_page is not None:
+        payload["landing_page"] = instance.landing_page
+    if instance.max_capacity is not None:
+        filled = repository.get_enrollment_count(instance.id)
+        payload["spaces_total"] = instance.max_capacity
+        payload["spaces_left"] = max(0, instance.max_capacity - filled)
     return payload
 
 

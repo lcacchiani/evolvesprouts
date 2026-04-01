@@ -16,6 +16,9 @@ def _instance_row(
     status: Any,
     with_eventbrite_url: bool = False,
     delivery_mode_value: str = "in_person",
+    max_capacity: int | None = 10,
+    slug: str | None = "spring-workshop",
+    landing_page: str | None = "spring-workshop",
 ) -> Any:
     starts = datetime(2026, 4, 20, 18, 0, tzinfo=UTC)
     ends = datetime(2026, 4, 20, 20, 0, tzinfo=UTC)
@@ -30,9 +33,12 @@ def _instance_row(
     return SimpleNamespace(
         id=uuid4(),
         title="Spring Workshop",
+        slug=slug,
+        landing_page=landing_page,
         description="Learn together",
         status=status,
         service=service,
+        max_capacity=max_capacity,
         session_slots=[
             SimpleNamespace(
                 id=uuid4(),
@@ -93,6 +99,9 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
                 _instance_row(status=public_events.InstanceStatus.FULL),
             ]
 
+        def get_enrollment_count(self, instance_id: Any) -> int:
+            return 1
+
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
     monkeypatch.setattr(public_events, "get_engine", lambda: object())
     monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
@@ -106,4 +115,8 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
     assert "items" in body
     assert len(body["items"]) == 2
     assert body["items"][0]["external_url"] == "https://www.eventbrite.com/e/demo"
+    assert body["items"][0]["slug"] == "spring-workshop"
+    assert body["items"][0]["landing_page"] == "spring-workshop"
+    assert body["items"][0]["spaces_total"] == 10
+    assert body["items"][0]["spaces_left"] == 9
     assert body["items"][1]["booking_status"] == "fully_booked"

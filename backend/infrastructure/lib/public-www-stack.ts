@@ -338,7 +338,8 @@ function handler(event) {
 
   var allowlist = {
     'GET': {
-      '/www/v1/calendar/events': true
+      '/www/v1/calendar/events': true,
+      '/www/v1/client-resources': true
     },
     'POST': {
       '/www/v1/legacy/discounts/validate': true,

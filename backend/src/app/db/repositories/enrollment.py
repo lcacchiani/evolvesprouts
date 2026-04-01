@@ -9,13 +9,8 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.db.models import Enrollment, EnrollmentStatus, ServiceInstance
+from app.db.models.enums import CAPACITY_ENROLLMENT_STATUSES
 from app.db.repositories.base import BaseRepository
-
-_CAPACITY_ENROLLMENT_STATUSES = (
-    EnrollmentStatus.REGISTERED,
-    EnrollmentStatus.CONFIRMED,
-    EnrollmentStatus.COMPLETED,
-)
 
 
 class EnrollmentRepository(BaseRepository[Enrollment]):
@@ -93,7 +88,7 @@ class EnrollmentRepository(BaseRepository[Enrollment]):
             active_count_statement = (
                 select(func.count(Enrollment.id))
                 .where(Enrollment.instance_id == instance.id)
-                .where(Enrollment.status.in_(_CAPACITY_ENROLLMENT_STATUSES))
+                .where(Enrollment.status.in_(CAPACITY_ENROLLMENT_STATUSES))
             )
             active_count = int(
                 self._session.execute(active_count_statement).scalar_one_or_none() or 0

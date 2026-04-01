@@ -401,6 +401,7 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 |--------------|--------|---------------|-------------|-------|
 | `/health` | GET | IAM | `HealthCheckFunction` | Health check |
 | `/v1/media-request` | POST | None + API key | `EvolvesproutsAdminFunction` | Publishes `media_request.submitted` to SNS |
+| `/v1/client-resources` | GET | None + API key | `EvolvesproutsAdminFunction` | Lists public `client_document`-tagged assets; optional `language` query |
 | `/v1/admin/geographic-areas` | GET | Admin Group | `EvolvesproutsAdminFunction` | Geographic area lookup for address selection |
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/locations/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |
