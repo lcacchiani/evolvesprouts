@@ -130,6 +130,7 @@ class EventbriteSyncNestedStack extends cdk.NestedStack {
       functionName: name("EventbriteSyncProcessor"),
       handler: "lambda/eventbrite_sync_processor/handler.lambda_handler",
       timeout: cdk.Duration.seconds(60),
+      manageLogGroup: false,
       environment: {
         DATABASE_SECRET_ARN: props.databaseSecretArn,
         DATABASE_NAME: "evolvesprouts",
@@ -1271,6 +1272,15 @@ export class ApiStack extends cdk.Stack {
           "Optional Secrets Manager ARN for Eventbrite API token JSON payload ({\"token\":\"...\"}).",
       }
     );
+    const hasEventbriteTokenSecretArn = new cdk.CfnCondition(
+      this,
+      "HasEventbriteTokenSecretArn",
+      {
+        expression: cdk.Fn.conditionNot(
+          cdk.Fn.conditionEquals(eventbriteTokenSecret.valueAsString, "")
+        ),
+      }
+    );
     const eventbriteOrganizationId = new cdk.CfnParameter(
       this,
       "EventbriteOrganizationId",
@@ -1768,11 +1778,21 @@ export class ApiStack extends cdk.Stack {
     database.grantAdminUserSecretRead(eventbriteSync.processorFunction);
     database.grantConnect(eventbriteSync.processorFunction, "evolvesprouts_admin");
     awsProxyFunction.grantInvoke(eventbriteSync.processorFunction);
-    secretsmanager.Secret.fromSecretCompleteArn(
-      this,
-      "EventbriteTokenSecret",
-      eventbriteTokenSecret.valueAsString
-    ).grantRead(eventbriteSync.processorFunction);
+    const eventbriteTokenSecretArnForPolicy = cdk.Fn.conditionIf(
+      hasEventbriteTokenSecretArn.logicalId,
+      eventbriteTokenSecret.valueAsString,
+      cdk.Stack.of(this).formatArn({
+        service: "secretsmanager",
+        resource: "secret",
+        resourceName: "unused-eventbrite-token-secret",
+      })
+    ).toString();
+    eventbriteSync.processorFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        resources: [eventbriteTokenSecretArnForPolicy],
+      })
+    );
 
     // -------------------------------------------------------------------------
     // Inbound invoice email processing (SES + S3 + SNS + SQS)
