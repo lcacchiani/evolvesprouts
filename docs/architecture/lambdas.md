@@ -26,6 +26,7 @@ their primary responsibilities.
   `/v1/media-request`, `/v1/reservations`,
   `/v1/reservations/payment-intent`,
   `/v1/calendar/events`,
+  `/v1/discounts/validate`,
   `/v1/legacy/reservations`,
   `/v1/legacy/contact-us`,
   `/v1/legacy/discounts/validate`,
@@ -48,6 +49,8 @@ their primary responsibilities.
   `/v1/user/assets/*`,
   `/v1/assets/public/*`, and `/v1/assets/share/*`,
   plus public website proxy routes including
+  `/www/v1/discounts/validate` (native Aurora-backed discount validation;
+  same JSON contract as `/www/v1/legacy/discounts/validate`),
   `/www/v1/calendar/events` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
   when `max_capacity` is set, using the same enrollment statuses as capacity

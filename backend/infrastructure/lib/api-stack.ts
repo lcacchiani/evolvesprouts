@@ -2643,6 +2643,11 @@ export class ApiStack extends cdk.Stack {
         authorizationType: apigateway.AuthorizationType.NONE,
         apiKeyRequired: true,
       });
+    const publicDiscounts = v1.addResource("discounts");
+    publicDiscounts.addResource("validate").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
     const mailchimpWebhook = v1.addResource("mailchimp").addResource("webhook");
     const mailchimpWebhookPostMethod = mailchimpWebhook.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,

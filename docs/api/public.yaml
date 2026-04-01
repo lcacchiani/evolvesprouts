@@ -228,6 +228,70 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/discounts/validate:
+    post:
+      summary: Validate discount code (native)
+      description: |
+        Validates an admin-managed discount code against Aurora (`discount_codes`).
+        Request and successful response shapes match the legacy bridge
+        `POST /www/v1/legacy/discounts/validate` so clients can migrate off the
+        legacy upstream without changing JSON contracts.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountValidationRequest"
+      responses:
+        "200":
+          description: Discount validation response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountValidationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Code not found, inactive, expired, or fully used.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/discounts/validate:
+    post:
+      summary: Validate discount code (native, website proxy path)
+      description: Same as `POST /v1/discounts/validate` for same-origin calls from `public_www`.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountValidationRequest"
+      responses:
+        "200":
+          description: Discount validation response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountValidationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Code not found, inactive, expired, or fully used.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /www/v1/legacy/discounts/validate:
     post:
       summary: Validate discount code
