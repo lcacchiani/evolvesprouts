@@ -27,7 +27,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0019_eventbrite_sync"
-down_revision: Union[str, None] = "0018_geo_area_sovereign"
+down_revision: Union[str, None] = "0018_geo_area_sovereign_country"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

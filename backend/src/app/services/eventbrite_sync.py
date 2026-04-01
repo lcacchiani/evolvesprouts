@@ -26,6 +26,8 @@ from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+_DEFAULT_EVENTBRITE_API_BASE_URL = "https://www.eventbriteapi.com/v3"
+
 
 class EventbriteSyncError(Exception):
     """Raised when Eventbrite sync cannot complete."""
@@ -139,7 +141,7 @@ def _eventbrite_call(
     config: _EventbriteConfig,
     payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    base_url = os.getenv("EVENTBRITE_API_BASE_URL", "https://www.eventbriteapi.com/v3")
+    base_url = _eventbrite_api_base_url()
     try:
         return eventbrite_request(
             method=method,
@@ -153,8 +155,10 @@ def _eventbrite_call(
 
 
 def _event_url(event_id: str) -> str:
-    base_url = os.getenv("EVENTBRITE_API_BASE_URL", "https://www.eventbriteapi.com/v3")
-    return f"{base_url.rstrip('/')}/events/{event_id}/"
+    public_base_url = os.getenv("EVENTBRITE_PUBLIC_BASE_URL", "").strip()
+    if public_base_url:
+        return f"{public_base_url.rstrip('/')}/e/{event_id}"
+    return ""
 
 
 def _create_event(
@@ -303,7 +307,9 @@ def _extract_event_url(response: dict[str, Any]) -> str | None:
             if key == "resource_uri":
                 event_id = str(response.get("id") or "").strip()
                 if event_id:
-                    return _event_url(event_id)
+                    fallback_url = _event_url(event_id)
+                    if fallback_url:
+                        return fallback_url
                 continue
             return raw.strip()
     return None
@@ -350,7 +356,18 @@ def _resolve_currency(instance: Any) -> str:
         first_currency = str(instance.ticket_tiers[0].currency or "").strip().upper()
         if len(first_currency) == 3:
             return first_currency
-    return "HKD"
+    fallback = os.getenv("EVENTBRITE_DEFAULT_CURRENCY", "").strip().upper()
+    if len(fallback) == 3:
+        return fallback
+    raise EventbriteSyncError(
+        "Eventbrite currency is required in ticket tiers or EVENTBRITE_DEFAULT_CURRENCY"
+    )
+
+
+def _eventbrite_api_base_url() -> str:
+    return os.getenv(
+        "EVENTBRITE_API_BASE_URL", _DEFAULT_EVENTBRITE_API_BASE_URL
+    ).strip()
 
 
 def _extract_timezone_name(value: datetime) -> str | None:

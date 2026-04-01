@@ -11,8 +11,6 @@ from app.utils.retry import run_with_retry
 
 logger = get_logger(__name__)
 
-_BASE_URL = "https://www.eventbriteapi.com/v3"
-
 
 class EventbriteApiError(RuntimeError):
     """Raised when an Eventbrite API request fails."""

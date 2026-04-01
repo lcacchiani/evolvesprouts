@@ -18,17 +18,17 @@ Result: No changes required to ``seed_data.sql``.
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy import text
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0018_geo_area_sovereign"
+revision: str = "0018_geo_area_sovereign_country"
 down_revision: Union[str, None] = "0017_add_location_name"
-branch_labels: Union[str, tuple[str, ...], None] = None
-depends_on: Union[str, tuple[str, ...], None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
@@ -125,4 +125,24 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    conn = op.get_bind()
+    conn.execute(
+        text(
+            """
+            DELETE FROM geographic_areas
+            WHERE level = 'country'
+              AND upper(trim(code)) IN ('MO', 'TW')
+            """
+        )
+    )
+    conn.execute(
+        text(
+            """
+            DELETE FROM geographic_areas
+            WHERE level = 'country'
+              AND upper(trim(code)) = 'CN'
+              AND name = 'China'
+            """
+        )
+    )
     op.drop_column("geographic_areas", "sovereign_country_id")
