@@ -225,7 +225,7 @@ describe('assets-api', () => {
     );
   });
 
-  it('updates asset with PATCH and only changed fields', async () => {
+  it('updates asset with PATCH sending only keys present on the patch input', async () => {
     mockAdminApiRequest.mockResolvedValueOnce({
       data: {
         asset: {
@@ -246,28 +246,47 @@ describe('assets-api', () => {
       },
     });
 
-    const updated = await updateAdminAsset('asset-1', {
-      title: 'Infant guide',
-      contentLanguage: 'en',
-      assetType: 'document',
-      fileName: 'infant-guide.pdf',
-      contentType: 'application/pdf',
-      visibility: 'restricted',
-    });
+    const updated = await updateAdminAsset('asset-1', { contentLanguage: 'en' });
 
     expect(updated?.contentLanguage).toBe('en');
     expect(mockAdminApiRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         method: 'PATCH',
         endpointPath: '/v1/admin/assets/asset-1',
-        body: {
-          title: 'Infant guide',
-          content_language: 'en',
+        body: { content_language: 'en' },
+      })
+    );
+  });
+
+  it('skips PATCH when update patch is empty and returns current asset from GET', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        asset: {
+          id: 'asset-1',
+          title: 'Same',
+          description: null,
           asset_type: 'document',
-          file_name: 'infant-guide.pdf',
+          s3_key: 'assets/same.pdf',
+          file_name: 'same.pdf',
           content_type: 'application/pdf',
+          content_language: null,
           visibility: 'restricted',
+          created_by: null,
+          created_at: null,
+          updated_at: null,
+          tags: [],
         },
+      },
+    });
+
+    const asset = await updateAdminAsset('asset-1', {});
+
+    expect(asset?.title).toBe('Same');
+    expect(mockAdminApiRequest).toHaveBeenCalledTimes(1);
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'GET',
+        endpointPath: '/v1/admin/assets/asset-1',
       })
     );
   });

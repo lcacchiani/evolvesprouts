@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { getContentLanguageOptions } from '@/lib/format';
 
 import { Label } from '@/components/ui/label';
@@ -29,7 +31,7 @@ export function ContentLanguageSelect({
   'aria-label': ariaLabel,
   title,
 }: ContentLanguageSelectProps) {
-  const options = getContentLanguageOptions();
+  const options = useMemo(() => getContentLanguageOptions(), []);
 
   return (
     <div className='space-y-2'>

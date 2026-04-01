@@ -39,6 +39,12 @@ _MAX_MIME_TYPE_LENGTH = 127
 _MAX_RESOURCE_KEY_LENGTH = 64
 _MAX_CONTENT_LANGUAGE_LENGTH = 35
 _CONTENT_LANGUAGE_RE = re.compile(r"^[A-Za-z]{2,3}([_-][A-Za-z0-9]{2,8})*$")
+# Admin create/update: only tags exposed in the admin UI / client-resources filters.
+_ADMIN_ASSET_CONTENT_LANGUAGE_CANONICAL: dict[str, str] = {
+    "en": "en",
+    "zh-cn": "zh-CN",
+    "zh-hk": "zh-HK",
+}
 _MAX_PRINCIPAL_ID_LENGTH = 128
 _DEFAULT_PRESIGN_TTL_SECONDS = 900
 _MIN_PRESIGN_TTL_SECONDS = 60
@@ -211,6 +217,24 @@ def parse_optional_content_language(
     return normalized
 
 
+def parse_admin_asset_content_language(
+    body: Mapping[str, Any],
+    *field_names: str,
+) -> str | None:
+    """Parse content_language for admin asset writes; null or one of en, zh-CN, zh-HK."""
+    parsed = parse_optional_content_language(body, *field_names)
+    if parsed is None:
+        return None
+    key = parsed.replace("_", "-").lower()
+    canonical = _ADMIN_ASSET_CONTENT_LANGUAGE_CANONICAL.get(key)
+    if canonical is None:
+        raise ValidationError(
+            "content_language must be null or one of: en, zh-CN, zh-HK",
+            field="content_language",
+        )
+    return canonical
+
+
 def _parse_asset_core_fields_for_write(body: Mapping[str, Any]) -> dict[str, Any]:
     title = _required_text(body, "title", max_length=255)
     description = _optional_text(body, "description", max_length=5000)
@@ -224,7 +248,7 @@ def _parse_asset_core_fields_for_write(body: Mapping[str, Any]) -> dict[str, Any
     content_type = _optional_text(
         body, "content_type", "contentType", max_length=_MAX_MIME_TYPE_LENGTH
     )
-    content_language = parse_optional_content_language(
+    content_language = parse_admin_asset_content_language(
         body, "content_language", "contentLanguage"
     )
     visibility = parse_asset_visibility(
@@ -323,7 +347,7 @@ def parse_partial_update_asset_payload(event: Mapping[str, Any]) -> dict[str, An
             max_length=_MAX_MIME_TYPE_LENGTH,
         )
     if _has_any_field(body, "content_language", "contentLanguage"):
-        payload["content_language"] = parse_optional_content_language(
+        payload["content_language"] = parse_admin_asset_content_language(
             body, "content_language", "contentLanguage"
         )
         payload["content_language_specified"] = True

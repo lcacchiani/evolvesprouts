@@ -13,6 +13,7 @@ import type {
   CreatedAssetUpload,
   ListAdminAssetsInput,
   PaginatedList,
+  UpdateAdminAssetPatchInput,
   UpsertAdminAssetInput,
 } from '@/types/assets';
 import { ACCESS_GRANT_TYPES, ASSET_TYPES, ASSET_VISIBILITIES } from '@/types/assets';
@@ -279,7 +280,7 @@ function normalizeAssetInput(input: UpsertAdminAssetInput): ApiCreateAssetReques
   return body;
 }
 
-function normalizePartialAssetInput(input: UpsertAdminAssetInput): ApiPartialUpdateAssetRequest {
+function buildAdminAssetPatchBody(input: UpdateAdminAssetPatchInput): ApiPartialUpdateAssetRequest {
   const body: ApiPartialUpdateAssetRequest = {};
 
   if (input.title !== undefined) {
@@ -389,12 +390,16 @@ export async function createAdminAsset(
 
 export async function updateAdminAsset(
   assetId: string,
-  input: UpsertAdminAssetInput
+  input: UpdateAdminAssetPatchInput
 ): Promise<AdminAsset | null> {
+  const body = buildAdminAssetPatchBody(input);
+  if (Object.keys(body).length === 0) {
+    return getAdminAsset(assetId);
+  }
   const payload = await adminApiRequest<ApiAssetPayload>({
     endpointPath: `/v1/admin/assets/${assetId}`,
     method: 'PATCH',
-    body: normalizePartialAssetInput(input),
+    body,
   });
   return extractAsset(payload);
 }

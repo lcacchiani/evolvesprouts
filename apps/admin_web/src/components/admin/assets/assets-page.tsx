@@ -84,11 +84,7 @@ export function AssetsPage() {
           }}
           onUpdate={async (assetId, payload) => {
             try {
-              await updateAssetEntry(assetId, {
-                ...payload,
-                assetType: DEFAULT_ASSET_TYPE,
-                contentType: DEFAULT_CONTENT_TYPE,
-              });
+              await updateAssetEntry(assetId, payload);
             } catch {
               // The hook stores the actionable error state for UI display.
             }

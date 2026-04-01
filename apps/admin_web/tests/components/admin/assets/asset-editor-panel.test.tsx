@@ -151,32 +151,24 @@ describe('AssetEditorPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
 
     await waitFor(() => {
-      expect(onUpdate).toHaveBeenCalledWith('asset-1', {
-        title: 'Updated title',
-        description: 'Original description',
-        fileName: 'infant-guide.pdf',
-        resourceKey: null,
-        visibility: 'restricted',
-        contentLanguage: null,
-        clientTag: null,
-      });
+      expect(onUpdate).toHaveBeenCalledWith('asset-1', { title: 'Updated title' });
     });
   });
 
   it('submits client_tag when Client tag is selected on update', async () => {
     const user = userEvent.setup();
-    const assetWithClient = createAdminAssetFixture({
-      tags: [{ id: 't1', name: 'client_document', color: null }],
+    const assetWithoutClient = createAdminAssetFixture({
+      tags: [],
     });
-    const { onUpdate } = renderEditor({ selectedAsset: assetWithClient });
+    const { onUpdate } = renderEditor({ selectedAsset: assetWithoutClient });
 
+    await user.selectOptions(screen.getByLabelText('Tag'), CLIENT_DOCUMENT_ASSET_TAG);
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
 
     await waitFor(() => {
-      expect(onUpdate).toHaveBeenCalledWith(
-        'asset-1',
-        expect.objectContaining({ clientTag: CLIENT_DOCUMENT_ASSET_TAG })
-      );
+      expect(onUpdate).toHaveBeenCalledWith('asset-1', {
+        clientTag: CLIENT_DOCUMENT_ASSET_TAG,
+      });
     });
   });
 
@@ -189,12 +181,16 @@ describe('AssetEditorPanel', () => {
 
     expect(screen.getByLabelText('Tag (linked to expense; not editable)')).toBeDisabled();
 
+    const titleInput = screen.getByLabelText('Title *');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Expense-linked title');
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
 
     await waitFor(() => {
       expect(onUpdate).toHaveBeenCalled();
       const payload = onUpdate.mock.calls[0][1] as Record<string, unknown>;
       expect(payload).not.toHaveProperty('clientTag');
+      expect(Object.keys(payload)).toEqual(['title']);
     });
   });
 

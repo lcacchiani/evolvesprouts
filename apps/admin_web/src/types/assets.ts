@@ -101,6 +101,20 @@ export interface UpsertAdminAssetInput {
   clientTag?: ApiCreateAssetRequest['client_tag'];
 }
 
+/** Fields for `PATCH /v1/admin/assets/{id}` — omit keys that are unchanged. */
+export interface UpdateAdminAssetPatchInput {
+  title?: string;
+  description?: string | null;
+  assetType?: AssetType;
+  fileName?: string;
+  resourceKey?: string | null;
+  contentType?: string | null;
+  contentLanguage?: string | null;
+  visibility?: AssetVisibility;
+  /** Omit when the asset is expense-tagged (API forbids the field). */
+  clientTag?: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
+}
+
 export interface CreatedAssetUpload {
   uploadUrl: OptionalToNullable<ApiCreateAssetResponse['upload_url']>;
   uploadMethod: string;

@@ -2,9 +2,12 @@
 
 import { useMemo, useState, type FormEvent } from 'react';
 
-import type { AdminAsset, AssetVisibility } from '@/types/assets';
+import type { AdminAsset, AssetVisibility, UpdateAdminAssetPatchInput } from '@/types/assets';
 
-import { ADMIN_ASSET_CONTENT_LANGUAGE_TAGS, toTitleCase } from '@/lib/format';
+import {
+  matchAdminSelectableContentLanguage,
+  toTitleCase,
+} from '@/lib/format';
 import {
   ASSET_VISIBILITIES,
   CLIENT_DOCUMENT_ASSET_TAG,
@@ -45,18 +48,7 @@ interface AssetEditorPanelProps {
     },
     file: File
   ) => Promise<void>;
-  onUpdate: (
-    assetId: string,
-    payload: {
-      title: string;
-      description: string | null;
-      fileName: string;
-      resourceKey: string | null;
-      visibility: AssetVisibility;
-      contentLanguage: string | null;
-      clientTag?: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
-    }
-  ) => Promise<void>;
+  onUpdate: (assetId: string, payload: UpdateAdminAssetPatchInput) => Promise<void>;
   onStartCreate: () => void;
 }
 
@@ -87,17 +79,16 @@ function assetHasClientDocumentTag(asset: AdminAsset): boolean {
 }
 
 function toContentLanguageSelectValue(asset: AdminAsset): string {
-  const raw = asset.contentLanguage?.trim();
-  if (!raw) {
-    return '';
+  const match = matchAdminSelectableContentLanguage(asset.contentLanguage);
+  return match && match !== 'unrecognized' ? match : '';
+}
+
+function canonicalContentLanguageFromApi(value: string | null | undefined): string | null {
+  const match = matchAdminSelectableContentLanguage(value);
+  if (match === 'unrecognized') {
+    return null;
   }
-  const lower = raw.toLowerCase();
-  for (const tag of ADMIN_ASSET_CONTENT_LANGUAGE_TAGS) {
-    if (tag.toLowerCase() === lower) {
-      return tag;
-    }
-  }
-  return '';
+  return match;
 }
 
 function toFormState(asset: AdminAsset): AssetFormState {
@@ -181,38 +172,68 @@ export function AssetEditorPanel({
       }
     }
 
-    const contentLanguageTrimmed = formState.contentLanguage.trim();
-    const contentLanguage = contentLanguageTrimmed === '' ? null : contentLanguageTrimmed;
-
-    const core = {
-      title,
-      description: formState.description.trim() || null,
-      fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
-      resourceKey: null as string | null,
-      visibility: formState.visibility,
-      contentLanguage,
-    };
     const normalizedResourceKey = normalizeResourceKey(formState.resourceKey);
     if (formState.resourceKey.trim() && !normalizedResourceKey) {
       setFormError('Resource key must include letters or numbers.');
       return;
     }
-    core.resourceKey = normalizedResourceKey || null;
+    const resourceKey = normalizedResourceKey || null;
+
+    const contentLanguageTrimmed = formState.contentLanguage.trim();
+    const contentLanguage = contentLanguageTrimmed === '' ? null : contentLanguageTrimmed;
 
     const clientTagValue: typeof CLIENT_DOCUMENT_ASSET_TAG | null =
       formState.clientTag === CLIENT_DOCUMENT_ASSET_TAG ? CLIENT_DOCUMENT_ASSET_TAG : null;
 
     if (isEditMode && selectedAsset) {
-      await onUpdate(selectedAsset.id, {
-        ...core,
-        ...(isExpenseLinked
-          ? {}
-          : {
-              clientTag: clientTagValue,
-            }),
-      });
+      const storedLang = matchAdminSelectableContentLanguage(selectedAsset.contentLanguage);
+      if (storedLang === 'unrecognized') {
+        setFormError(
+          'This asset has a language value that is not supported in the admin list. Contact engineering before saving, or the value will be cleared.'
+        );
+        return;
+      }
+
+      const nextDescription = formState.description.trim() || null;
+      const patch: UpdateAdminAssetPatchInput = {};
+      if (title !== selectedAsset.title) {
+        patch.title = title;
+      }
+      if (nextDescription !== (selectedAsset.description ?? null)) {
+        patch.description = nextDescription;
+      }
+      if (resourceKey !== (selectedAsset.resourceKey ?? null)) {
+        patch.resourceKey = resourceKey;
+      }
+      if (formState.visibility !== selectedAsset.visibility) {
+        patch.visibility = formState.visibility;
+      }
+      const nextLang = contentLanguage;
+      const prevLangCanonical = canonicalContentLanguageFromApi(selectedAsset.contentLanguage);
+      if (nextLang !== prevLangCanonical) {
+        patch.contentLanguage = nextLang;
+      }
+      if (!isExpenseLinked) {
+        const hadClient = assetHasClientDocumentTag(selectedAsset);
+        const nextHasClient = clientTagValue === CLIENT_DOCUMENT_ASSET_TAG;
+        if (hadClient !== nextHasClient) {
+          patch.clientTag = clientTagValue;
+        }
+      }
+      if (Object.keys(patch).length > 0) {
+        await onUpdate(selectedAsset.id, patch);
+      }
       return;
     }
+
+    const core = {
+      title,
+      description: formState.description.trim() || null,
+      fileName: fileToUpload?.name || selectedAsset?.fileName || 'document.pdf',
+      resourceKey,
+      visibility: formState.visibility,
+      contentLanguage,
+    };
 
     if (!fileToUpload) {
       setFormError('Select a PDF file to upload.');
