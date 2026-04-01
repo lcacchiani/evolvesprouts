@@ -52,7 +52,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
     expect(screen.getByText(firstItem.description)).toBeInTheDocument();
     expect(screen.getByText(firstItem.format)).toBeInTheDocument();
 
-    const cta = screen.getByRole('button', { name: mediaFormContent.ctaLabel });
+    const cta = screen.getByRole('button', { name: firstItem.ctaLabel });
     expect(cta.className).toContain('es-btn--primary');
     expect(cta.className).toContain('es-btn--outline');
   });

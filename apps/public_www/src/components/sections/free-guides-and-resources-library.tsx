@@ -24,7 +24,8 @@ interface LibraryItem {
   format: string;
   categoryId: string;
   ctaLabel: string;
-  ctaHref: string;
+  /** Present for link-style tiles; gated/API resources omit this. */
+  ctaHref?: string;
 }
 
 function normalizeQuery(value: string): string {
@@ -83,8 +84,6 @@ export function FreeGuidesAndResourcesLibrary({
     return getVisibleItems(items, activeCategoryId, normalizedQuery);
   }, [items, activeCategoryId, normalizedQuery]);
 
-  const mediaCtaLabel =
-    mediaFormContent.ctaLabel ?? content.items[0]?.ctaLabel ?? '';
   const mediaResourceKey = mediaFormContent.resourceKey ?? '';
   const mediaFormFirstNameLabel = mediaFormContent.formFirstNameLabel;
   const mediaFormEmailLabel = mediaFormContent.formEmailLabel;
@@ -169,7 +168,7 @@ export function FreeGuidesAndResourcesLibrary({
                     </p>
                     {item.id === 'patience-free-guide' ? (
                       <MediaForm
-                        ctaLabel={mediaCtaLabel}
+                        ctaLabel={item.ctaLabel}
                         resourceKey={mediaResourceKey}
                         analyticsSectionId='free-guides-library'
                         formFirstNameLabel={mediaFormFirstNameLabel}
@@ -181,10 +180,19 @@ export function FreeGuidesAndResourcesLibrary({
                         ctaButtonClassName='es-btn--outline'
                         className='mt-6 w-full sm:w-fit'
                       />
+                    ) : item.ctaHref?.trim() ? (
+                      <ButtonPrimitive
+                        variant='primary'
+                        href={item.ctaHref.trim()}
+                        className='es-btn--outline mt-6 w-full sm:w-fit'
+                      >
+                        {item.ctaLabel}
+                      </ButtonPrimitive>
                     ) : (
                       <ButtonPrimitive
                         variant='primary'
-                        href={item.ctaHref}
+                        type='button'
+                        disabled
                         className='es-btn--outline mt-6 w-full sm:w-fit'
                       >
                         {item.ctaLabel}
