@@ -15,6 +15,7 @@ vi.mock('next/navigation', () => ({
 import {
   createDefaultLocaleRedirectPage,
   createLocaleAliasRedirectPage,
+  createNoIndexDefaultLocaleRedirectPage,
   createPlaceholderPage,
   createRootRedirectPage,
   getFooterLinkLabel,
@@ -33,6 +34,15 @@ describe('locale-page', () => {
       RedirectPage();
     }).toThrow('redirect:/en/about-us/');
     expect(redirectMock).toHaveBeenCalledWith('/en/about-us/');
+  });
+
+  it('creates a noindex default-locale redirect bundle', () => {
+    const bundle = createNoIndexDefaultLocaleRedirectPage('/media/download');
+    expect(bundle.metadata.robots).toEqual({ index: false, follow: false });
+    expect(() => {
+      bundle.default();
+    }).toThrow('redirect:/en/media/download/');
+    expect(redirectMock).toHaveBeenCalledWith('/en/media/download/');
   });
 
   it('creates a root redirect page to a fixed path', () => {

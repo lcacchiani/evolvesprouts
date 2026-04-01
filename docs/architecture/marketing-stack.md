@@ -378,9 +378,15 @@ analytics events using `trackMetaPixelEvent` from `src/lib/meta-pixel.ts`:
 | `sprouts-squad-community.tsx` | `community_signup_submit_success` | `Lead` | `content_name: 'community_signup'` |
 | `event-notification.tsx` | `community_signup_submit_success` | `Lead` | `content_name: 'event_notification'` |
 | `my-best-auntie-booking.tsx` | `booking_modal_open` | `InitiateCheckout` | `content_name: 'my_best_auntie'` |
-| `reservation-form.tsx` | `booking_submit_success` | `Schedule` | `content_name, value, currency` |
+| `events.tsx` | `booking_modal_open` | `InitiateCheckout` | `content_name: 'my_best_auntie'` or `'event_booking'` |
+| `reservation-form.tsx` | `booking_submit_success` | `Schedule` | `content_name` (prop), `value`, `currency` |
 | `whatsapp-contact-button.tsx` | `whatsapp_click` | `Contact` | `content_name: 'whatsapp'` |
 | `contact-us-form.tsx` (WhatsApp CTA) | `whatsapp_click` | `Contact` | `content_name: 'whatsapp'` |
+| `thank-you-modal.tsx` | (varies) | `Contact` | `content_name: 'whatsapp'` |
+| `links-hub.tsx` | `links_hub_click`, `whatsapp_click` | `ViewContent`, `Contact` | `content_name: 'my_best_auntie_course'`, `'contact_us'`, `'events'`, `'whatsapp'`, `'instagram'` |
+| `landing-page-booking-cta-action.tsx` | `landing_page_cta_click` | `InitiateCheckout` | `content_name: <landing page slug>` |
+
+Taxonomy and lint: `src/lib/meta-pixel-taxonomy.ts`, `npm run validate:meta-pixel-contract` (part of `npm run lint`).
 
 ##### Meta Pixel environment variables
 
