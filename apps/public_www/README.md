@@ -259,6 +259,9 @@ CSP generation derives `connect-src` API origins from
 legacy bridge routes and Stripe payment-intent initialization
 (`/v1/reservations/payment-intent`), and contributes to CSP `connect-src`
 origins when configured as an absolute URL.
+The injected CSP also allows Cloudflare Web Analytics (`static.cloudflareinsights.com`
+for `script-src` and `cloudflareinsights.com` for `connect-src`) when Cloudflare
+injects the beacon at the edge.
 Public website contact-us, discount validation, and reservation submission now
 use the legacy bridge routes:
 

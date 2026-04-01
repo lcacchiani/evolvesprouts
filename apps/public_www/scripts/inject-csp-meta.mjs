@@ -5,6 +5,10 @@ import { JSDOM } from 'jsdom';
 
 const BUILD_OUTPUT_DIRECTORY = resolve('out');
 const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
+// Cloudflare Web Analytics injects beacon.min.js from this host at the edge.
+const CLOUDFLARE_INSIGHTS_SCRIPT_ORIGIN = 'https://static.cloudflareinsights.com';
+// Beacon posts to this host (distinct from Turnstile / challenges.cloudflare.com).
+const CLOUDFLARE_INSIGHTS_CONNECT_ORIGIN = 'https://cloudflareinsights.com';
 const API_BASE_URL_ENV_NAME = 'NEXT_PUBLIC_API_BASE_URL';
 
 const GTM_SCRIPT_ORIGINS = ['https://www.googletagmanager.com'];
@@ -71,6 +75,7 @@ function buildCspDirectiveBase(hasGtm, hasMetaPixel, hasStripe) {
     "'self'",
     ...ADMIN_API_CONNECT_ORIGINS,
     TURNSTILE_ORIGIN,
+    CLOUDFLARE_INSIGHTS_CONNECT_ORIGIN,
   ];
   if (hasGtm) {
     connectSources.push(...GTM_CONNECT_ORIGINS);
@@ -243,6 +248,7 @@ function buildCspValue(html) {
   const scriptDirectiveSources = [
     "'self'",
     TURNSTILE_ORIGIN,
+    CLOUDFLARE_INSIGHTS_SCRIPT_ORIGIN,
     ...gtmScriptOrigins,
     ...metaPixelScriptOrigins,
     ...stripeScriptOrigins,
