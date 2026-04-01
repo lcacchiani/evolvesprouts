@@ -38,6 +38,10 @@ import {
   type ReservationPaymentIntentResponse,
 } from '@/lib/reservation-payments-data';
 import {
+  resolvePublicBookingPaymentOptionFlags,
+  type BookingPaymentOptionFlags,
+} from '@/lib/booking-payment-options';
+import {
   submitReservation,
   type ReservationPaymentMethodCode,
   type ReservationSubmissionPayload,
@@ -236,11 +240,11 @@ type PaymentMethodFlags = {
 };
 
 function resolvePaymentMethodFlags(
-  content: BookingPaymentModalContent,
+  flags: BookingPaymentOptionFlags,
 ): PaymentMethodFlags {
-  let fpsQr = content.paymentOptionsFpsQrEnabled !== false;
-  let bankTransfer = content.paymentOptionsBankTransferEnabled !== false;
-  let stripeCards = content.paymentOptionsStripeCardsEnabled !== false;
+  let fpsQr = flags.fpsQr;
+  let bankTransfer = flags.bankTransfer;
+  let stripeCards = flags.stripeCards;
   if (!fpsQr && !bankTransfer && !stripeCards) {
     fpsQr = true;
     bankTransfer = true;
@@ -433,11 +437,13 @@ export function BookingReservationForm({
     turnstileSiteKey,
   });
   const paymentMethodFlags = useMemo(() => {
-    return resolvePaymentMethodFlags(content);
-  }, [content]);
+    return resolvePaymentMethodFlags(resolvePublicBookingPaymentOptionFlags());
+  }, []);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethodOption>(
     () => {
-      return getDefaultPaymentMethod(resolvePaymentMethodFlags(content));
+      return getDefaultPaymentMethod(
+        resolvePaymentMethodFlags(resolvePublicBookingPaymentOptionFlags()),
+      );
     },
   );
   const showPaymentMethodPickers =
