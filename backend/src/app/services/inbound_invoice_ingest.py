@@ -222,6 +222,7 @@ def _store_expense_from_email(
                     file_name=attachment.file_name,
                     resource_key=None,
                     content_type=attachment.content_type,
+                    content_language=None,
                     visibility=AssetVisibility.RESTRICTED,
                     created_by=_SYSTEM_ACTOR,
                 )

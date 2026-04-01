@@ -149,6 +149,31 @@ class AssetRepository(BaseRepository[Asset]):
         statement = statement.order_by(Asset.id).limit(limit)
         return self._session.execute(statement).scalars().all()
 
+    def list_client_public_resources(
+        self,
+        *,
+        limit: int = 50,
+        cursor: UUID | None = None,
+        language: str | None = None,
+    ) -> Sequence[Asset]:
+        """List public assets tagged client_document for the public website."""
+        client_tag_ids = select(Tag.id).where(
+            func.lower(Tag.name) == CLIENT_DOCUMENT_TAG_NAME.lower()
+        )
+        tagged_asset_ids = select(AssetTag.asset_id).where(
+            AssetTag.tag_id.in_(client_tag_ids)
+        )
+        statement = select(Asset).where(
+            Asset.visibility == AssetVisibility.PUBLIC,
+            Asset.id.in_(tagged_asset_ids),
+        )
+        if language is not None:
+            statement = statement.where(Asset.content_language == language)
+        if cursor is not None:
+            statement = statement.where(Asset.id > cursor)
+        statement = statement.order_by(Asset.id).limit(limit)
+        return self._session.execute(statement).scalars().all()
+
     def list_accessible_assets(
         self,
         *,
@@ -222,6 +247,7 @@ class AssetRepository(BaseRepository[Asset]):
         file_name: str,
         resource_key: str | None,
         content_type: str | None,
+        content_language: str | None,
         visibility: AssetVisibility,
         created_by: str,
     ) -> Asset:
@@ -235,6 +261,7 @@ class AssetRepository(BaseRepository[Asset]):
             file_name=file_name,
             resource_key=resource_key,
             content_type=content_type,
+            content_language=content_language,
             visibility=visibility,
             created_by=created_by,
         )
@@ -278,6 +305,8 @@ class AssetRepository(BaseRepository[Asset]):
         resource_key: str | None = None,
         update_resource_key: bool = False,
         content_type: str | None = None,
+        content_language: str | None = None,
+        update_content_language: bool = False,
         visibility: AssetVisibility | None = None,
         s3_key: str | None = None,
     ) -> Asset:
@@ -294,6 +323,8 @@ class AssetRepository(BaseRepository[Asset]):
             asset.resource_key = resource_key
         if content_type is not None:
             asset.content_type = content_type
+        if update_content_language:
+            asset.content_language = content_language
         if visibility is not None:
             asset.visibility = visibility
         if s3_key is not None:

@@ -64,6 +64,7 @@ class Asset(Base):
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     resource_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     content_type: Mapped[str | None] = mapped_column(String(127), nullable=True)
+    content_language: Mapped[str | None] = mapped_column(String(35), nullable=True)
     visibility: Mapped[AssetVisibility] = mapped_column(
         Enum(
             AssetVisibility,

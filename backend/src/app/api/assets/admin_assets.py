@@ -160,6 +160,7 @@ def _create_asset(event: Mapping[str, Any], created_by: str) -> dict[str, Any]:
             file_name=payload["file_name"],
             resource_key=payload["resource_key"],
             content_type=payload["content_type"],
+            content_language=payload["content_language"],
             visibility=payload["visibility"],
             created_by=created_by,
         )
@@ -218,6 +219,9 @@ def _update_asset(
             resource_key=payload.get("resource_key"),
             update_resource_key=(not partial) or ("resource_key" in payload),
             content_type=payload.get("content_type"),
+            content_language=payload.get("content_language"),
+            update_content_language=(not partial)
+            or bool(payload.get("content_language_specified")),
             visibility=payload.get("visibility"),
         )
         if payload.get("client_tag_specified"):
