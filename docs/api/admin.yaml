@@ -2490,6 +2490,10 @@ components:
         content_type:
           type: string
           nullable: true
+        content_language:
+          type: string
+          nullable: true
+          description: BCP 47-style tag for the language of the file content (e.g. en, zh-HK).
         resource_key:
           type: string
           nullable: true
@@ -4075,6 +4079,13 @@ components:
           type: string
           maxLength: 127
           nullable: true
+        content_language:
+          type: string
+          maxLength: 35
+          nullable: true
+          description: >
+            BCP 47-style tag for the language of the file content (e.g. en, zh-HK).
+            Used by the public client-resources feed when filtering by `language`.
         visibility:
           type: string
           enum: [public, restricted]
@@ -4112,6 +4123,12 @@ components:
           type: string
           maxLength: 127
           nullable: true
+        content_language:
+          type: string
+          maxLength: 35
+          nullable: true
+          description: >
+            BCP 47-style tag for the language of the file content. Send null to clear.
         visibility:
           type: string
           enum: [public, restricted]

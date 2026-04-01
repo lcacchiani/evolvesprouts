@@ -335,10 +335,14 @@ function handler(event) {
   var request = event.request;
   var method = request.method || '';
   var uri = request.uri || '';
+  var q = uri.indexOf('?');
+  var pathOnly = q >= 0 ? uri.substring(0, q) : uri;
+  var query = q >= 0 ? uri.substring(q) : '';
 
   var allowlist = {
     'GET': {
-      '/www/v1/calendar/events': true
+      '/www/v1/calendar/events': true,
+      '/www/v1/client-resources': true
     },
     'POST': {
       '/www/v1/legacy/discounts/validate': true,
@@ -347,8 +351,8 @@ function handler(event) {
       '/www/v1/legacy/contact-us': true
     }
   };
-  if (allowlist[method] && allowlist[method][uri]) {
-    request.uri = uri.substring(4);
+  if (allowlist[method] && allowlist[method][pathOnly]) {
+    request.uri = pathOnly.substring(4) + query;
     return request;
   }
 

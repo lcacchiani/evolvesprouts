@@ -2613,6 +2613,10 @@ export class ApiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
+    v1.addResource("client-resources").addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
     const reservations = v1.addResource("reservations");
     reservations.addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,

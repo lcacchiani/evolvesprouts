@@ -60,6 +60,8 @@ Columns:
 - `file_name` (varchar(255), required) — original filename
 - `resource_key` (varchar(64), optional) — normalized key for media form mapping
 - `content_type` (varchar(127), optional) — MIME type
+- `content_language` (varchar(35), optional) — BCP 47-style tag for file content
+  (e.g. `en`, `zh-HK`); used when listing public client resources by language
 - `visibility` (enum `asset_visibility`, required) — access level
 - `created_by` (varchar(128), required) — Cognito sub of uploader
 - `created_at` (timestamptz, default `now()`)

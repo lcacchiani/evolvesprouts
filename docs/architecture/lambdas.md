@@ -51,7 +51,10 @@ their primary responsibilities.
   `/www/v1/calendar/events` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
   when `max_capacity` is set, using the same enrollment statuses as capacity
-  checks: registered, confirmed, completed)
+  checks: registered, confirmed, completed),
+  `/www/v1/client-resources` (lists public assets tagged `client_document`;
+  optional `language` query filters on `assets.content_language`; downloads
+  remain on `/v1/assets/public/{id}/download` with device attestation)
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
