@@ -24,7 +24,8 @@ interface LibraryItem {
   format: string;
   categoryId: string;
   ctaLabel: string;
-  ctaHref: string;
+  /** Present for link-style tiles; gated/API resources omit this. */
+  ctaHref?: string;
 }
 
 function normalizeQuery(value: string): string {
@@ -179,10 +180,19 @@ export function FreeGuidesAndResourcesLibrary({
                         ctaButtonClassName='es-btn--outline'
                         className='mt-6 w-full sm:w-fit'
                       />
+                    ) : item.ctaHref?.trim() ? (
+                      <ButtonPrimitive
+                        variant='primary'
+                        href={item.ctaHref.trim()}
+                        className='es-btn--outline mt-6 w-full sm:w-fit'
+                      >
+                        {item.ctaLabel}
+                      </ButtonPrimitive>
                     ) : (
                       <ButtonPrimitive
                         variant='primary'
-                        href={item.ctaHref}
+                        type='button'
+                        disabled
                         className='es-btn--outline mt-6 w-full sm:w-fit'
                       >
                         {item.ctaLabel}
