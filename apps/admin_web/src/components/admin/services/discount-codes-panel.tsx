@@ -296,7 +296,9 @@ export function DiscountCodesPanel({
                 <td className='px-4 py-3'>{row.code}</td>
                 <td className='px-4 py-3'>{formatEnumLabel(row.discountType)}</td>
                 <td className='px-4 py-3'>
-                  {row.discountValue} {row.currency ?? ''}
+                  {row.discountType === 'percentage'
+                    ? `${row.discountValue}%`
+                    : `${row.discountValue} ${row.currency ?? ''}`.trim()}
                 </td>
                 <td className='px-4 py-3'>
                   {row.currentUses}/{row.maxUses ?? '∞'}

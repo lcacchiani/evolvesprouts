@@ -175,7 +175,7 @@ What the runner validates:
   remapped to the target smoke origin) and fails on broken HTTP responses.
 - CTA API smoke:
   - `POST /www/v1/legacy/contact-us`
-  - `POST /www/v1/legacy/discounts/validate`
+  - `POST /www/v1/discounts/validate`
   - `POST /www/v1/media-request`
   - `POST /www/v1/legacy/reservations`
   - `POST /www/v1/reservations/payment-intent`
@@ -262,11 +262,11 @@ origins when configured as an absolute URL.
 The injected CSP also allows Cloudflare Web Analytics (`static.cloudflareinsights.com`
 for `script-src` and `cloudflareinsights.com` for `connect-src`) when Cloudflare
 injects the beacon at the edge.
-Public website contact-us, discount validation, and reservation submission now
-use the legacy bridge routes:
+Public website discount validation uses the native route
+`/v1/discounts/validate` (same JSON contract as the legacy bridge). Contact-us
+and reservation submission use the legacy bridge routes:
 
 - `/v1/legacy/contact-us`
-- `/v1/legacy/discounts/validate`
 - `/v1/legacy/reservations`
 Use Cloudflare Turnstile test key `1x00000000000000000000AA` for local-only
 testing.
