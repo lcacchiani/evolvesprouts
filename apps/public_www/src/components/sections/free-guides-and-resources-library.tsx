@@ -3,13 +3,18 @@
 import { useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { MediaForm } from '@/components/sections/media-form';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { FreeGuidesAndResourcesLibraryContent } from '@/content';
+import type {
+  FreeGuidesAndResourcesLibraryContent,
+  ResourcesContent,
+} from '@/content';
 
 interface FreeGuidesAndResourcesLibraryProps {
   content: FreeGuidesAndResourcesLibraryContent;
+  mediaFormContent: ResourcesContent;
 }
 
 interface LibraryItem {
@@ -64,6 +69,7 @@ function LibraryLensIcon() {
 
 export function FreeGuidesAndResourcesLibrary({
   content,
+  mediaFormContent,
 }: FreeGuidesAndResourcesLibraryProps) {
   const categories = content.categories;
   const items = content.items;
@@ -77,13 +83,28 @@ export function FreeGuidesAndResourcesLibrary({
     return getVisibleItems(items, activeCategoryId, normalizedQuery);
   }, [items, activeCategoryId, normalizedQuery]);
 
+  const mediaCtaLabel =
+    mediaFormContent.ctaLabel ?? content.items[0]?.ctaLabel ?? '';
+  const mediaResourceKey = mediaFormContent.resourceKey ?? '';
+  const mediaFormFirstNameLabel = mediaFormContent.formFirstNameLabel;
+  const mediaFormEmailLabel = mediaFormContent.formEmailLabel;
+  const mediaFormSubmitLabel = mediaFormContent.formSubmitLabel;
+  const mediaFormSuccessTitle = mediaFormContent.formSuccessTitle;
+  const mediaFormSuccessBody = mediaFormContent.formSuccessBody;
+  const mediaFormErrorMessage = mediaFormContent.formErrorMessage;
+
   return (
     <SectionShell
       id='free-guides-and-resources-library'
       ariaLabel={content.title}
       dataFigmaNode='free-guides-and-resources-library'
-      className='es-section-bg-overlay'
+      className='es-section-bg-overlay es-free-guides-and-resources-library-section'
     >
+      <div
+        aria-hidden='true'
+        className='es-course-highlights-overlay pointer-events-none absolute inset-0'
+      />
+
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
@@ -146,13 +167,28 @@ export function FreeGuidesAndResourcesLibrary({
                     <p className='es-section-body mt-3 flex-1 text-base leading-7'>
                       {item.description}
                     </p>
-                    <ButtonPrimitive
-                      variant='primary'
-                      href={item.ctaHref}
-                      className='es-btn--outline mt-6 w-full sm:w-fit'
-                    >
-                      {item.ctaLabel}
-                    </ButtonPrimitive>
+                    {item.id === 'patience-free-guide' ? (
+                      <MediaForm
+                        ctaLabel={mediaCtaLabel}
+                        resourceKey={mediaResourceKey}
+                        analyticsSectionId='free-guides-library'
+                        formFirstNameLabel={mediaFormFirstNameLabel}
+                        formEmailLabel={mediaFormEmailLabel}
+                        formSubmitLabel={mediaFormSubmitLabel}
+                        formSuccessTitle={mediaFormSuccessTitle}
+                        formSuccessBody={mediaFormSuccessBody}
+                        formErrorMessage={mediaFormErrorMessage}
+                        className='mt-6 w-full sm:w-fit'
+                      />
+                    ) : (
+                      <ButtonPrimitive
+                        variant='primary'
+                        href={item.ctaHref}
+                        className='es-btn--outline mt-6 w-full sm:w-fit'
+                      >
+                        {item.ctaLabel}
+                      </ButtonPrimitive>
+                    )}
                   </article>
                 </li>
               ))}

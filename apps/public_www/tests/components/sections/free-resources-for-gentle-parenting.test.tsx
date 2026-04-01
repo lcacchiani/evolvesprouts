@@ -34,7 +34,16 @@ function createResourcesContent(
 
 describe('Free resources for gentle parenting section', () => {
   it('uses center heading and split layout defaults', () => {
-    render(<FreeResourcesForGentleParenting content={enContent.resources} />);
+    const { container } = render(
+      <FreeResourcesForGentleParenting content={enContent.resources} />,
+    );
+
+    const section = container.querySelector('section[data-figma-node="resources"]');
+    expect(section?.className).toContain('es-section-bg-overlay');
+    expect(section?.className).toContain('es-free-resources-section');
+    expect(
+      container.querySelector('.es-course-highlights-overlay'),
+    ).not.toBeNull();
 
     const header = screen.getByTestId('free-resource-header');
     const layout = screen.getByTestId('free-resource-layout');

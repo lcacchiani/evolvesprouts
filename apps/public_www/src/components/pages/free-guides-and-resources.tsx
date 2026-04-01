@@ -22,6 +22,7 @@ export function FreeGuidesAndResourcesPage({
       <FreeResourcesForGentleParenting content={content.resources} />
       <FreeGuidesAndResourcesLibrary
         content={content.freeGuidesAndResources.library}
+        mediaFormContent={content.resources}
       />
       <FreeGuidesAndResourcesFaq content={content.freeGuidesAndResources.faq} />
       <SproutsSquadCommunity

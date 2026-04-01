@@ -14,6 +14,7 @@ describe('FreeGuidesAndResourcesHero', () => {
     );
     expect(section).not.toBeNull();
     expect(section?.id).toBe('free-guides-and-resources-hero');
+    expect(section?.className).toContain('es-free-guides-and-resources-hero-section');
 
     expect(
       screen.getByRole('region', { name: content.title }),
