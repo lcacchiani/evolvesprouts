@@ -94,7 +94,9 @@ def sync_memberships_from_body(
 
     fam_stmt = select(FamilyMember).where(FamilyMember.contact_id == contact_id)
     existing_fam = list(session.execute(fam_stmt).scalars().all())
-    org_stmt = select(OrganizationMember).where(OrganizationMember.contact_id == contact_id)
+    org_stmt = select(OrganizationMember).where(
+        OrganizationMember.contact_id == contact_id
+    )
     existing_org = list(session.execute(org_stmt).scalars().all())
 
     want_fam = family_ids[0] if family_ids else None
@@ -109,7 +111,9 @@ def sync_memberships_from_body(
     session.flush()
 
     if want_fam is not None:
-        assert_contact_can_join_family(session, contact_id=contact_id, family_id=want_fam)
+        assert_contact_can_join_family(
+            session, contact_id=contact_id, family_id=want_fam
+        )
         family = session.get(Family, want_fam)
         if family is None or family.archived_at is not None:
             raise ValidationError("family_id not found", field="family_ids")

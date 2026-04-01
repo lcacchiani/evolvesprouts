@@ -86,7 +86,9 @@ def create_contact(
         max_length=5000,
         required=False,
     )
-    date_of_birth = parse_optional_date(body.get("date_of_birth"), field="date_of_birth")
+    date_of_birth = parse_optional_date(
+        body.get("date_of_birth"), field="date_of_birth"
+    )
     location_id = parse_optional_uuid(body.get("location_id"), "location_id")
     tag_ids = parse_uuid_list(body.get("tag_ids"), "tag_ids")
     family_ids = parse_uuid_list(body.get("family_ids"), "family_ids")
@@ -345,6 +347,7 @@ def update_contact(
             {"contact": serialize_contact_summary(loaded)},
             event=event,
         )
+
 
 def _resolve_referral_contact_id_for_referral_source(
     *,

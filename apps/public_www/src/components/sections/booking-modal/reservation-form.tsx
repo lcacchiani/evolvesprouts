@@ -39,7 +39,7 @@ import {
 } from '@/lib/reservation-payments-data';
 import {
   resolvePublicBookingPaymentOptionFlags,
-  type BookingPaymentOptionFlags,
+  type PublicBookingPaymentOptionFlags,
 } from '@/lib/booking-payment-options';
 import {
   submitReservation,
@@ -240,11 +240,11 @@ type PaymentMethodFlags = {
 };
 
 function resolvePaymentMethodFlags(
-  flags: BookingPaymentOptionFlags,
+  flags: PublicBookingPaymentOptionFlags,
 ): PaymentMethodFlags {
-  let fpsQr = flags.fpsQr;
-  let bankTransfer = flags.bankTransfer;
-  let stripeCards = flags.stripeCards;
+  let fpsQr = flags.fpsQrEnabled;
+  let bankTransfer = flags.bankTransferEnabled;
+  let stripeCards = flags.stripeCardsEnabled;
   if (!fpsQr && !bankTransfer && !stripeCards) {
     fpsQr = true;
     bankTransfer = true;
