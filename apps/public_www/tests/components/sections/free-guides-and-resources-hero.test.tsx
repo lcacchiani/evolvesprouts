@@ -5,7 +5,7 @@ import { FreeGuidesAndResourcesHero } from '@/components/sections/free-guides-an
 import enContent from '@/content/en.json';
 
 describe('FreeGuidesAndResourcesHero', () => {
-  it('renders hero with h1, eyebrow, subtitle, and description', () => {
+  it('renders hero with h1, subtitle, and description', () => {
     const content = enContent.freeGuidesAndResources.hero;
     const { container } = render(<FreeGuidesAndResourcesHero content={content} />);
 
@@ -23,7 +23,6 @@ describe('FreeGuidesAndResourcesHero', () => {
       screen.getByRole('heading', { level: 1, name: content.title }),
     ).toBeInTheDocument();
 
-    expect(screen.getByText(content.eyebrow)).toBeInTheDocument();
     expect(screen.getByText(content.subtitle)).toBeInTheDocument();
     expect(screen.getByText(content.description)).toBeInTheDocument();
   });

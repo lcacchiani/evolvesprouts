@@ -54,11 +54,19 @@ describe('FreeGuidesAndResourcesPage', () => {
     expect(screen.getByTestId('free-guides-library')).toHaveTextContent(
       enContent.freeGuidesAndResources.library.title,
     );
+    expect(screen.getByTestId('free-guides-faq')).toHaveTextContent(
+      enContent.freeGuidesAndResources.faq.title,
+    );
     expect(screen.getByTestId('sprouts-squad')).toHaveTextContent(
       enContent.sproutsSquadCommunity.title,
     );
-    expect(screen.getByTestId('free-guides-faq')).toHaveTextContent(
-      enContent.freeGuidesAndResources.faq.title,
+
+    const layout = screen.getByTestId('page-layout');
+    const sectionOrder = Array.from(layout.children).map((node) =>
+      node.getAttribute('data-testid'),
+    );
+    expect(sectionOrder.indexOf('free-guides-faq')).toBeLessThan(
+      sectionOrder.indexOf('sprouts-squad'),
     );
   });
 });
