@@ -2,16 +2,6 @@
 
 import { useMemo, useState } from 'react';
 
-function contactEligibleForFamilyMember(
-  contact: { id: string; family_ids: string[]; organization_ids: string[] },
-  selectedFamilyId: string | null
-): boolean {
-  if (contact.family_ids.length === 0) {
-    return true;
-  }
-  return Boolean(selectedFamilyId && contact.family_ids.includes(selectedFamilyId));
-}
-
 import type { useAdminCrmFamilies } from '@/hooks/use-admin-crm-families';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
 import { Button } from '@/components/ui/button';
@@ -41,6 +31,16 @@ const FAMILY_ROLES: ApiSchemas['CrmFamilyRole'][] = [
   'guardian',
   'other',
 ];
+
+function contactEligibleForFamilyMember(
+  contact: { id: string; family_ids: string[]; organization_ids: string[] },
+  selectedFamilyId: string | null
+): boolean {
+  if (contact.family_ids.length === 0) {
+    return true;
+  }
+  return Boolean(selectedFamilyId && contact.family_ids.includes(selectedFamilyId));
+}
 
 export interface FamiliesPanelProps {
   families: ReturnType<typeof useAdminCrmFamilies>;

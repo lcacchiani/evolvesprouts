@@ -13,6 +13,9 @@ from app.db.models import (
     Organization,
     OrganizationMember,
 )
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 REFERRAL_CONTACT_METADATA_KEY = "referral_contact_id"
 
@@ -55,6 +58,7 @@ def serialize_contact_picker_row(contact: Contact) -> dict[str, Any]:
 
 
 def serialize_contact_summary(contact: Contact) -> dict[str, Any]:
+    logger.debug("Serializing contact summary", extra={"contact_id": str(contact.id)})
     family_ids = {str(m.family_id) for m in contact.family_members}
     organization_ids = {str(m.organization_id) for m in contact.organization_members}
     tags = sorted(

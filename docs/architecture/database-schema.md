@@ -365,6 +365,13 @@ Indexes:
 - `service_instances` stores dated offerings linked to a `services` template.
 - Template fields can be overridden per instance (`title`, `description`,
   `cover_image_s3_key`, `delivery_mode`).
+- Eventbrite sync metadata is stored on `service_instances` so DB remains source
+  of truth while tracking downstream publish state:
+  - `eventbrite_event_id`, `eventbrite_event_url`
+  - `eventbrite_sync_status` (`pending`, `syncing`, `synced`, `failed`)
+  - `eventbrite_last_synced_at`, `eventbrite_last_error`
+  - `eventbrite_last_payload_hash`, `eventbrite_ticket_class_map`,
+    `eventbrite_retry_count`
 - Scheduling/detail tables:
   - `instance_session_slots` (time blocks + optional location)
   - `training_instance_details`

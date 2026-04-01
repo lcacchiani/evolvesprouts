@@ -33,6 +33,7 @@ from app.db.models import (
 )
 from app.db.repositories import ServiceInstanceRepository, ServiceRepository
 from app.exceptions import NotFoundError, ValidationError
+from app.services.eventbrite_events import enqueue_eventbrite_instance_sync_by_id
 from app.utils import json_response
 from app.utils.logging import get_logger
 
@@ -257,6 +258,8 @@ def _create_instance(
         ]
         created = instance_repository.create_instance(instance, type_details, slots)
         session.commit()
+        if service.service_type == ServiceType.EVENT:
+            enqueue_eventbrite_instance_sync_by_id(created.id)
         with_details = instance_repository.get_by_id_with_details(created.id)
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(created.id))
@@ -354,6 +357,8 @@ def _update_instance(
 
         updated = instance_repository.update_instance(instance)
         session.commit()
+        if service.service_type == ServiceType.EVENT:
+            enqueue_eventbrite_instance_sync_by_id(updated.id)
         with_details = instance_repository.get_by_id_with_details(updated.id)
         if with_details is None:
             raise NotFoundError("ServiceInstance", str(updated.id))
@@ -385,6 +390,10 @@ def _delete_instance(
             raise NotFoundError("ServiceInstance", str(instance_id))
         repository.delete(instance)
         session.commit()
+        service_repository = ServiceRepository(session)
+        service = service_repository.get_by_id(service_id)
+        if service is not None and service.service_type == ServiceType.EVENT:
+            enqueue_eventbrite_instance_sync_by_id(instance_id)
         return json_response(204, {}, event=event)
 
 

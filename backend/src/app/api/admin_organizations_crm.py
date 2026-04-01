@@ -42,8 +42,10 @@ from app.db.models import (
 from app.db.repositories import OrganizationRepository
 from app.exceptions import DatabaseError, NotFoundError, ValidationError
 from app.utils import json_response
+from app.utils.logging import get_logger
 
 _DEFAULT_LIMIT = 25
+logger = get_logger(__name__)
 
 
 def handle_admin_organizations_crm_request(
@@ -52,6 +54,10 @@ def handle_admin_organizations_crm_request(
     path: str,
 ) -> dict[str, Any]:
     """Handle /v1/admin/organizations routes for CRM (excludes vendors)."""
+    logger.info(
+        "Handling admin CRM organizations route",
+        extra={"method": method, "path": path},
+    )
     parts = split_route_parts(path)
     if len(parts) < 2 or parts[0] != "admin" or parts[1] != "organizations":
         return json_response(404, {"error": "Not found"}, event=event)

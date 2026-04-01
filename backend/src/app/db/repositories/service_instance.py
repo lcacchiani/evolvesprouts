@@ -12,10 +12,12 @@ from app.db.models import (
     ConsultationInstanceDetails,
     Enrollment,
     EnrollmentStatus,
+    EventbriteSyncStatus,
     EventTicketTier,
     InstanceSessionSlot,
     InstanceStatus,
     Service,
+    ServiceStatus,
     ServiceInstance,
     ServiceType,
     TrainingInstanceDetails,
@@ -165,6 +167,69 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         )
         return self._session.execute(statement).scalar_one_or_none()
 
+    def list_event_instances_for_public_feed(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+    ) -> list[ServiceInstance]:
+        """List upcoming/past public event instances for calendar feed."""
+        statement = (
+            select(ServiceInstance)
+            .join(Service, ServiceInstance.service_id == Service.id)
+            .where(Service.service_type == ServiceType.EVENT)
+            .where(Service.status == ServiceStatus.PUBLISHED)
+            .where(ServiceInstance.status != InstanceStatus.CANCELLED)
+            .where(
+                ServiceInstance.status.in_(
+                    [
+                        InstanceStatus.SCHEDULED,
+                        InstanceStatus.OPEN,
+                        InstanceStatus.FULL,
+                        InstanceStatus.IN_PROGRESS,
+                        InstanceStatus.COMPLETED,
+                    ]
+                )
+            )
+            .where(
+                ServiceInstance.session_slots.any(
+                    InstanceSessionSlot.ends_at >= now - datetime.resolution
+                )
+            )
+            .options(
+                selectinload(ServiceInstance.session_slots),
+                selectinload(ServiceInstance.ticket_tiers),
+                joinedload(ServiceInstance.location),
+                joinedload(ServiceInstance.service),
+            )
+            .order_by(ServiceInstance.created_at.desc(), ServiceInstance.id.desc())
+            .limit(limit)
+        )
+        return list(self._session.execute(statement).unique().scalars().all())
+
+    def list_instances_pending_eventbrite_sync(
+        self, *, limit: int
+    ) -> list[ServiceInstance]:
+        """List Event-type instances that require Eventbrite sync work."""
+        statement = (
+            select(ServiceInstance)
+            .join(Service, ServiceInstance.service_id == Service.id)
+            .where(Service.service_type == ServiceType.EVENT)
+            .where(
+                ServiceInstance.eventbrite_sync_status.in_(
+                    [EventbriteSyncStatus.PENDING, EventbriteSyncStatus.FAILED]
+                )
+            )
+            .options(
+                joinedload(ServiceInstance.service),
+                selectinload(ServiceInstance.session_slots),
+                selectinload(ServiceInstance.ticket_tiers),
+            )
+            .order_by(ServiceInstance.updated_at.asc(), ServiceInstance.id.asc())
+            .limit(limit)
+        )
+        return list(self._session.execute(statement).unique().scalars().all())
+
     def create_instance(
         self,
         instance: ServiceInstance,
@@ -228,3 +293,25 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         )
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)
+
+    def list_event_instances_for_sync_reconciliation(
+        self,
+        *,
+        limit: int,
+    ) -> list[ServiceInstance]:
+        """Return Event instances ordered for periodic sync reconciliation."""
+        statement = (
+            select(ServiceInstance)
+            .join(Service, ServiceInstance.service_id == Service.id)
+            .where(Service.service_type == ServiceType.EVENT)
+            .where(ServiceInstance.status != InstanceStatus.CANCELLED)
+            .options(
+                joinedload(ServiceInstance.service),
+                joinedload(ServiceInstance.location),
+                selectinload(ServiceInstance.session_slots),
+                selectinload(ServiceInstance.ticket_tiers),
+            )
+            .order_by(ServiceInstance.updated_at.desc(), ServiceInstance.id.desc())
+            .limit(limit)
+        )
+        return list(self._session.execute(statement).unique().scalars().all())

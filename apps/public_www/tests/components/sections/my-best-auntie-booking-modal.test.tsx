@@ -183,10 +183,7 @@ const bookingSectionContent = {
 };
 const myBestAuntieModalContent = enContent.myBestAuntie.modal;
 const bookingModalContent = enContent.bookingModal.paymentModal;
-const bookingModalStripeEnabledContent = {
-  ...bookingModalContent,
-  paymentOptionsStripeCardsEnabled: true,
-};
+const bookingModalStripeEnabledContent = bookingModalContent;
 const thankYouModalContent = enContent.bookingModal.thankYouModal;
 const selectedCohort = bookingSectionContent.cohorts[0];
 if (!selectedCohort) {

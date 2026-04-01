@@ -66,6 +66,103 @@ class CdkInternalLambdaCheckovSuppression implements cdk.IAspect {
   }
 }
 
+interface EventbriteSyncNestedStackProps extends cdk.NestedStackProps {
+  resourcePrefix: string;
+  vpc: ec2.IVpc;
+  lambdaSecurityGroup: ec2.ISecurityGroup;
+  sharedLambdaEnvEncryptionKey: kms.IKey;
+  sharedLambdaLogEncryptionKey: kms.IKey;
+  sqsEncryptionKey: kms.IKey;
+  databaseSecretArn: string;
+  databaseProxyEndpoint: string;
+  awsProxyFunctionArn: string;
+  eventbriteApiBaseUrl: string;
+  eventbriteOrganizationId: string;
+  eventbriteTokenSecretArn: string;
+}
+
+class EventbriteSyncNestedStack extends cdk.NestedStack {
+  public readonly topic: sns.Topic;
+  public readonly queue: sqs.Queue;
+  public readonly deadLetterQueue: sqs.Queue;
+  public readonly processorFunction: lambda.Function;
+
+  public constructor(
+    scope: Construct,
+    id: string,
+    props: EventbriteSyncNestedStackProps
+  ) {
+    super(scope, id, props);
+
+    const name = (suffix: string) => `${props.resourcePrefix}-${suffix}`;
+    const lambdaFactory = new PythonLambdaFactory(this, {
+      vpc: props.vpc,
+      securityGroups: [props.lambdaSecurityGroup],
+      environmentEncryptionKey: props.sharedLambdaEnvEncryptionKey,
+      logEncryptionKey: props.sharedLambdaLogEncryptionKey,
+    });
+
+    this.deadLetterQueue = new sqs.Queue(this, "EventbriteSyncDLQ", {
+      queueName: name("eventbrite-sync-dlq"),
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: props.sqsEncryptionKey,
+    });
+
+    this.queue = new sqs.Queue(this, "EventbriteSyncQueue", {
+      queueName: name("eventbrite-sync-queue"),
+      visibilityTimeout: cdk.Duration.seconds(120),
+      deadLetterQueue: {
+        queue: this.deadLetterQueue,
+        maxReceiveCount: 3,
+      },
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: props.sqsEncryptionKey,
+    });
+
+    this.topic = new sns.Topic(this, "EventbriteSyncTopic", {
+      topicName: name("eventbrite-sync-events"),
+      masterKey: props.sqsEncryptionKey,
+    });
+    this.topic.addSubscription(new snsSubscriptions.SqsSubscription(this.queue));
+
+    this.processorFunction = lambdaFactory.create("EventbriteSyncProcessor", {
+      functionName: name("EventbriteSyncProcessor"),
+      handler: "lambda/eventbrite_sync_processor/handler.lambda_handler",
+      timeout: cdk.Duration.seconds(60),
+      environment: {
+        DATABASE_SECRET_ARN: props.databaseSecretArn,
+        DATABASE_NAME: "evolvesprouts",
+        DATABASE_USERNAME: "evolvesprouts_admin",
+        DATABASE_PROXY_ENDPOINT: props.databaseProxyEndpoint,
+        DATABASE_IAM_AUTH: "true",
+        AWS_PROXY_FUNCTION_ARN: props.awsProxyFunctionArn,
+        EVENTBRITE_API_BASE_URL: props.eventbriteApiBaseUrl,
+        EVENTBRITE_ORGANIZATION_ID: props.eventbriteOrganizationId,
+        EVENTBRITE_TOKEN_SECRET_ARN: props.eventbriteTokenSecretArn,
+      },
+    }).function;
+
+    this.processorFunction.addEventSource(
+      new lambdaEventSources.SqsEventSource(this.queue, {
+        batchSize: 1,
+      })
+    );
+
+    new cdk.aws_cloudwatch.Alarm(this, "EventbriteSyncDLQAlarm", {
+      alarmName: name("eventbrite-sync-dlq-alarm"),
+      alarmDescription:
+        "Eventbrite sync messages failed processing and landed in DLQ",
+      metric: this.deadLetterQueue.metricApproximateNumberOfMessagesVisible({
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+  }
+}
+
 export class ApiStack extends cdk.Stack {
   public constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -1163,6 +1260,35 @@ export class ApiStack extends cdk.Stack {
         ),
       }
     );
+    const eventbriteTokenSecret = new cdk.CfnParameter(
+      this,
+      "EventbriteTokenSecretArn",
+      {
+        type: "String",
+        default: "",
+        noEcho: true,
+        description:
+          "Optional Secrets Manager ARN for Eventbrite API token JSON payload ({\"token\":\"...\"}).",
+      }
+    );
+    const eventbriteOrganizationId = new cdk.CfnParameter(
+      this,
+      "EventbriteOrganizationId",
+      {
+        type: "String",
+        default: "",
+        description: "Optional Eventbrite organization ID for sync.",
+      }
+    );
+    const eventbriteApiBaseUrl = new cdk.CfnParameter(
+      this,
+      "EventbriteApiBaseUrl",
+      {
+        type: "String",
+        default: "https://www.eventbriteapi.com/v3",
+        description: "Base URL for Eventbrite API.",
+      }
+    );
 
     const assetDownloadPublicKey = new cloudfront.PublicKey(
       this,
@@ -1289,6 +1415,7 @@ export class ApiStack extends cdk.Stack {
       "https://api.stripe.com/v1/",
       `${legacyPublicApiBaseUrl.valueAsString}/v1/`,
       `${legacyPublicApiBaseUrl.valueAsString}v1/`,
+      eventbriteApiBaseUrl.valueAsString,
       openrouterChatCompletionsUrl.valueAsString,
     ];
 
@@ -1613,6 +1740,41 @@ export class ApiStack extends cdk.Stack {
     );
 
     // -------------------------------------------------------------------------
+    // Eventbrite sync messaging (nested stack to reduce root stack size)
+    // -------------------------------------------------------------------------
+    const eventbriteSync = new EventbriteSyncNestedStack(
+      this,
+      "EventbriteSync",
+      {
+        resourcePrefix,
+        vpc,
+        lambdaSecurityGroup,
+        sharedLambdaEnvEncryptionKey,
+        sharedLambdaLogEncryptionKey,
+        sqsEncryptionKey,
+        databaseSecretArn: database.adminUserSecret.secretArn,
+        databaseProxyEndpoint: database.proxy.endpoint,
+        awsProxyFunctionArn: awsProxyFunction.functionArn,
+        eventbriteApiBaseUrl: eventbriteApiBaseUrl.valueAsString,
+        eventbriteOrganizationId: eventbriteOrganizationId.valueAsString,
+        eventbriteTokenSecretArn: eventbriteTokenSecret.valueAsString,
+      }
+    );
+    eventbriteSync.topic.grantPublish(adminFunction);
+    adminFunction.addEnvironment(
+      "EVENTBRITE_SYNC_TOPIC_ARN",
+      eventbriteSync.topic.topicArn
+    );
+    database.grantAdminUserSecretRead(eventbriteSync.processorFunction);
+    database.grantConnect(eventbriteSync.processorFunction, "evolvesprouts_admin");
+    awsProxyFunction.grantInvoke(eventbriteSync.processorFunction);
+    secretsmanager.Secret.fromSecretCompleteArn(
+      this,
+      "EventbriteTokenSecret",
+      eventbriteTokenSecret.valueAsString
+    ).grantRead(eventbriteSync.processorFunction);
+
+    // -------------------------------------------------------------------------
     // Inbound invoice email processing (SES + S3 + SNS + SQS)
     // -------------------------------------------------------------------------
 
@@ -1692,21 +1854,6 @@ export class ApiStack extends cdk.Stack {
     );
     const inboundInvoiceReceiptRuleName = name("inbound-invoice-email-rule");
     const inboundInvoiceReceiptRuleSourceArn = `arn:${cdk.Aws.PARTITION}:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:receipt-rule-set/${inboundInvoiceReceiptRuleSetName}:receipt-rule/${inboundInvoiceReceiptRuleName}`;
-    const inboundInvoiceTopicPolicyResult = inboundInvoiceTopic.addToResourcePolicy(
-      new iam.PolicyStatement({
-        sid: "AllowSesInboundInvoicePublish",
-        effect: iam.Effect.ALLOW,
-        principals: [new iam.ServicePrincipal("ses.amazonaws.com")],
-        actions: ["sns:Publish"],
-        resources: [inboundInvoiceTopic.topicArn],
-        conditions: {
-          StringEquals: {
-            "AWS:SourceAccount": cdk.Aws.ACCOUNT_ID,
-            "AWS:SourceArn": inboundInvoiceReceiptRuleSourceArn,
-          },
-        },
-      })
-    );
     sqsEncryptionKey.addToResourcePolicy(
       new iam.PolicyStatement({
         sid: "AllowSesInboundInvoiceTopicEncryption",
@@ -1806,14 +1953,6 @@ export class ApiStack extends cdk.Stack {
     );
     if (assetsBucketPolicy) {
       inboundInvoiceReceiptRule.node.addDependency(assetsBucketPolicy);
-    }
-    if (
-      inboundInvoiceTopicPolicyResult.statementAdded &&
-      inboundInvoiceTopicPolicyResult.policyDependable
-    ) {
-      inboundInvoiceReceiptRule.node.addDependency(
-        inboundInvoiceTopicPolicyResult.policyDependable
-      );
     }
     const receiptRoleDefaultPolicy =
       inboundInvoiceReceiptRole.node.tryFindChild("DefaultPolicy");
@@ -2097,9 +2236,6 @@ export class ApiStack extends cdk.Stack {
           "service-role/AmazonAPIGatewayPushToCloudWatchLogs"
         ),
       ],
-    });
-    new apigateway.CfnAccount(this, "ApiGatewayAccount", {
-      cloudWatchRoleArn: apiGatewayLogRole.roleArn,
     });
 
     // -------------------------------------------------------------------------
@@ -2436,6 +2572,11 @@ export class ApiStack extends cdk.Stack {
 
     const mediaRequest = v1.addResource("media-request");
     mediaRequest.addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+    const calendar = v1.addResource("calendar");
+    calendar.addResource("events").addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
@@ -3181,6 +3322,18 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ExpenseParserDLQUrl", {
       value: expenseParserDLQ.queueUrl,
       description: "SQS dead letter queue URL for failed expense parser jobs",
+    });
+    new cdk.CfnOutput(this, "EventbriteSyncTopicArn", {
+      value: eventbriteSync.topic.topicArn,
+      description: "SNS topic ARN for Eventbrite sync events",
+    });
+    new cdk.CfnOutput(this, "EventbriteSyncQueueUrl", {
+      value: eventbriteSync.queue.queueUrl,
+      description: "SQS queue URL for Eventbrite sync processing",
+    });
+    new cdk.CfnOutput(this, "EventbriteSyncDLQUrl", {
+      value: eventbriteSync.deadLetterQueue.queueUrl,
+      description: "SQS dead letter queue URL for failed Eventbrite sync jobs",
     });
     new cdk.CfnOutput(this, "InboundInvoiceRecipientAddress", {
       value: inboundInvoiceRecipientAddress,

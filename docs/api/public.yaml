@@ -154,7 +154,10 @@ paths:
   /www/v1/calendar/events:
     get:
       summary: List public website events
-      description: Event feed consumed by `apps/public_www`.
+      description: |
+        Event feed consumed by `apps/public_www`.
+        Source of truth is the backend `service_instances` projection for
+        `service_type=event` services.
       security:
         - ApiKeyAuth: []
       responses:
@@ -163,7 +166,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventsResponse"
+                $ref: "#/components/schemas/PublicCalendarEventsResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -463,12 +466,91 @@ components:
         detail:
           type: string
           nullable: true
-    EventsResponse:
+    PublicCalendarEventDate:
       type: object
-      additionalProperties: true
-      description: |
-        Event payload consumed by `apps/public_www/src/lib/events-data.ts`.
-        The frontend normalizes multiple possible response shapes.
+      required:
+        - id
+        - start_datetime
+        - end_datetime
+      properties:
+        id:
+          type: string
+        start_datetime:
+          type: string
+          format: date-time
+        end_datetime:
+          type: string
+          format: date-time
+    PublicCalendarEvent:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - booking_status
+        - booking_system
+        - location
+        - dates
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [open, completed, cancelled]
+        booking_status:
+          type: string
+          enum: [open, fully_booked]
+        booking_system:
+          type: string
+        location:
+          type: string
+          enum: [virtual, physical]
+        location_name:
+          type: string
+          nullable: true
+        location_address:
+          type: string
+          nullable: true
+        location_url:
+          type: string
+        external_url:
+          type: string
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        dates:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicCalendarEventDate"
+    PublicCalendarEventsResponse:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicCalendarEvent"
     DiscountValidationRequest:
       type: object
       required:
