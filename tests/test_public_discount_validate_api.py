@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any
@@ -88,6 +89,66 @@ def test_public_discount_validate_returns_rule_for_percentage_code(
         "currency_code": None,
         "currency_symbol": None,
     }
+
+
+def test_public_discount_validate_returns_404_when_before_valid_from(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    row = SimpleNamespace(
+        id=uuid4(),
+        code="FUTURE",
+        description=None,
+        discount_type=DiscountType.PERCENTAGE,
+        discount_value=Decimal("5.00"),
+        currency=None,
+        active=True,
+        valid_from=datetime(2026, 6, 1, tzinfo=UTC),
+        valid_until=None,
+        max_uses=None,
+        current_uses=0,
+    )
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> Any:
+            return row
+
+    monkeypatch.setattr(public_discount_validate, "Session", _SessionCtx)
+    monkeypatch.setattr(public_discount_validate, "get_engine", lambda: object())
+    monkeypatch.setattr(
+        public_discount_validate,
+        "DiscountCodeRepository",
+        _FakeRepository,
+    )
+    monkeypatch.setattr(
+        public_discount_validate,
+        "datetime",
+        SimpleNamespace(now=lambda tz=None: datetime(2026, 1, 1, tzinfo=UTC)),
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "FUTURE"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 404
 
 
 def test_public_discount_validate_returns_404_when_missing(

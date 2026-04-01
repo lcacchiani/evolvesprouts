@@ -162,3 +162,29 @@ export function formatDateOnly(value: string | null): string {
 export function formatDateForInput(value: Date): string {
   return value.toISOString().slice(0, 10);
 }
+
+/** Map API ISO instant to `datetime-local` value in the browser's local timezone. */
+export function formatIsoForDatetimeLocalInput(iso: string | null): string {
+  if (!iso) {
+    return '';
+  }
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) {
+    return '';
+  }
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+}
+
+/** Parse `datetime-local` string as local wall time and return UTC ISO for the API. */
+export function parseDatetimeLocalToIsoUtc(local: string): string | null {
+  const trimmed = local.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed.toISOString();
+}

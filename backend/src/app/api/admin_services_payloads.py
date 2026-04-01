@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import datetime
 from typing import Any
 
 from app.api.admin_request import query_param
@@ -411,6 +412,19 @@ def parse_update_enrollment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     return payload
 
 
+def ensure_discount_validity_window(
+    valid_from: datetime | None,
+    valid_until: datetime | None,
+) -> None:
+    """Reject ranges where the end is strictly before the start."""
+    if valid_from is not None and valid_until is not None:
+        if valid_from > valid_until:
+            raise ValidationError(
+                "valid_until must be on or after valid_from",
+                field="valid_until",
+            )
+
+
 def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate discount-code create payload."""
     discount_type = parse_required_enum(
@@ -439,6 +453,7 @@ def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
         raise ValidationError(
             "currency is required for absolute discounts", field="currency"
         )
+    ensure_discount_validity_window(payload["valid_from"], payload["valid_until"])
     return payload
 
 

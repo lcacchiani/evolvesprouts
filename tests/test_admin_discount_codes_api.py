@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
+import pytest
+
 from app.api import admin_discount_codes
+from app.api.admin_services_payloads import ensure_discount_validity_window
+from app.exceptions import ValidationError
 
 
 def test_list_discount_codes_returns_repository_total_count(
@@ -79,3 +84,12 @@ def test_list_discount_codes_returns_repository_total_count(
     assert body["total_count"] == 17
     assert captured["list_kwargs"]["limit"] == 2
     assert captured["count_kwargs"]["search"] is None
+
+
+def test_ensure_discount_validity_window_rejects_inverted_range() -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        ensure_discount_validity_window(
+            datetime(2026, 2, 1, tzinfo=UTC),
+            datetime(2026, 1, 1, tzinfo=UTC),
+        )
+    assert exc_info.value.field == "valid_until"

@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDate, formatDateOnly, formatEnumLabel, getCurrencyOptions } from '@/lib/format';
+import {
+  formatDate,
+  formatDateOnly,
+  formatEnumLabel,
+  formatIsoForDatetimeLocalInput,
+  getCurrencyOptions,
+  parseDatetimeLocalToIsoUtc,
+} from '@/lib/format';
 
 describe('format helpers', () => {
   it('formats snake_case values into title case labels', () => {
@@ -38,5 +45,19 @@ describe('format helpers', () => {
     }).format(parsed);
     expect(formatDateOnly(iso)).toBe(expected);
     expect(formatDateOnly(null)).toBe('—');
+  });
+
+  it('maps API ISO instants to datetime-local strings and back for the API', () => {
+    expect(formatIsoForDatetimeLocalInput(null)).toBe('');
+    const iso = '2026-06-01T08:30:00.000Z';
+    const local = formatIsoForDatetimeLocalInput(iso);
+    expect(local).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    const back = parseDatetimeLocalToIsoUtc(local);
+    expect(back).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  });
+
+  it('returns null for empty datetime-local input', () => {
+    expect(parseDatetimeLocalToIsoUtc('')).toBeNull();
+    expect(parseDatetimeLocalToIsoUtc('   ')).toBeNull();
   });
 });
