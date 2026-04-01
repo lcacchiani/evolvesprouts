@@ -164,7 +164,7 @@ export function FreeGuidesAndResourcesLibrary({
                       {item.format}
                     </span>
                     <h3 className='es-type-subtitle mt-4'>{item.title}</h3>
-                    <p className='es-section-body mt-3 flex-1 text-base leading-7'>
+                    <p className='es-section-body mb-3 mt-3 flex-1 text-base leading-7'>
                       {item.description}
                     </p>
                     {item.id === 'patience-free-guide' ? (
@@ -178,6 +178,7 @@ export function FreeGuidesAndResourcesLibrary({
                         formSuccessTitle={mediaFormSuccessTitle}
                         formSuccessBody={mediaFormSuccessBody}
                         formErrorMessage={mediaFormErrorMessage}
+                        ctaButtonClassName='es-btn--outline'
                         className='mt-6 w-full sm:w-fit'
                       />
                     ) : (

@@ -54,7 +54,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
 
     const cta = screen.getByRole('button', { name: mediaFormContent.ctaLabel });
     expect(cta.className).toContain('es-btn--primary');
-    expect(cta.className).not.toContain('es-btn--outline');
+    expect(cta.className).toContain('es-btn--outline');
   });
 
   it('uses anchor CTA for non-guide library items', () => {
