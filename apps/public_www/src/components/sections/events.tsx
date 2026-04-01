@@ -21,6 +21,7 @@ import type {
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { sortUpcomingEvents } from '@/lib/events-data';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 
 const EventBookingModal = dynamic(
   () =>
@@ -131,7 +132,10 @@ export function Events({
       },
     });
     trackMetaPixelEvent('InitiateCheckout', {
-      content_name: nextBookingPayload.variant === 'event' ? 'event_booking' : 'my_best_auntie',
+      content_name:
+        nextBookingPayload.variant === 'event'
+          ? PIXEL_CONTENT_NAME.event_booking
+          : PIXEL_CONTENT_NAME.my_best_auntie,
     });
     const ecommercePrice = nextBookingPayload.variant === 'my-best-auntie'
       ? nextBookingPayload.selectedCohort.price
@@ -217,7 +221,7 @@ export function Events({
           selectedCohortDateLabel={activeBookingPayload.selectedCohortDateLabel}
           selectedAgeGroupLabel={activeBookingPayload.selectedAgeGroupLabel}
           analyticsSectionId='events-booking'
-          metaPixelContentName='my_best_auntie'
+          metaPixelContentName={PIXEL_CONTENT_NAME.my_best_auntie}
           captchaWidgetAction='events_mba_reservation_submit'
           onClose={() => {
             setActiveBookingEventId('');

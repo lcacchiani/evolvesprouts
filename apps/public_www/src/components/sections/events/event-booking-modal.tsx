@@ -19,6 +19,7 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import type {
   BookingTopicsFieldConfig,
   ReservationSummary,
@@ -128,7 +129,7 @@ export function EventBookingModal({
               topicsFieldConfig={topicsFieldConfig}
               descriptionId={dialogDescriptionId}
               analyticsSectionId='events-booking'
-              metaPixelContentName='event_booking'
+              metaPixelContentName={PIXEL_CONTENT_NAME.event_booking}
               captchaWidgetAction='event_reservation_submit'
               onSubmitReservation={onSubmitReservation}
             />

@@ -1,14 +1,19 @@
-type MetaPixelStandardEvent =
+import type { LandingPageSlug } from '@/lib/landing-pages';
+import type { MetaPixelStaticContentName } from '@/lib/meta-pixel-taxonomy';
+
+export type MetaPixelStandardEvent =
   | 'Lead'
   | 'Schedule'
   | 'Contact'
   | 'InitiateCheckout'
   | 'ViewContent';
 
+export type MetaPixelContentName = MetaPixelStaticContentName | LandingPageSlug;
+
 type MetaPixelParamValue = string | number | boolean;
 
-interface MetaPixelEventParams {
-  content_name?: string;
+export interface MetaPixelEventParams {
+  content_name?: MetaPixelContentName;
   content_category?: string;
   value?: number;
   currency?: string;
@@ -18,7 +23,7 @@ interface MetaPixelEventParams {
 type FbqFunction = (
   action: 'track',
   event: MetaPixelStandardEvent,
-  params?: MetaPixelEventParams,
+  params?: Record<string, MetaPixelParamValue>,
 ) => void;
 
 declare global {
@@ -40,7 +45,7 @@ export function trackMetaPixelEvent(
   }
 
   if (params) {
-    window.fbq!('track', event, params);
+    window.fbq!('track', event, params as Record<string, MetaPixelParamValue>);
   } else {
     window.fbq!('track', event);
   }

@@ -8,6 +8,7 @@ import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
@@ -174,7 +175,7 @@ export function MediaForm({
             resource_key: normalizedResourceKey,
           },
         });
-        trackMetaPixelEvent('Lead', { content_name: 'media_download' });
+        trackMetaPixelEvent('Lead', { content_name: PIXEL_CONTENT_NAME.media_download });
         markSubmissionSuccess();
         return;
       }
