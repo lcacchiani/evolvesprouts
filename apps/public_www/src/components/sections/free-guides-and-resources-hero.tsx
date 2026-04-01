@@ -21,7 +21,6 @@ export function FreeGuidesAndResourcesHero({
     >
       <SectionContainer>
         <SectionHeader
-          eyebrow={content.eyebrow}
           title={content.title}
           titleAs='h1'
           description={content.subtitle}

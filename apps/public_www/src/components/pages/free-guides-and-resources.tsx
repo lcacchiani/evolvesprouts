@@ -23,11 +23,11 @@ export function FreeGuidesAndResourcesPage({
       <FreeGuidesAndResourcesLibrary
         content={content.freeGuidesAndResources.library}
       />
+      <FreeGuidesAndResourcesFaq content={content.freeGuidesAndResources.faq} />
       <SproutsSquadCommunity
         content={content.sproutsSquadCommunity}
         commonCaptchaContent={content.common.captcha}
       />
-      <FreeGuidesAndResourcesFaq content={content.freeGuidesAndResources.faq} />
     </PageLayout>
   );
 }
