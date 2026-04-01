@@ -25,7 +25,18 @@ import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SmartLink } from '@/components/shared/smart-link';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
-import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import {
+  parseHexColorRgb,
+  resolveCssColorToken,
+  rgbaFromCssColor,
+} from '@/lib/css-token-utils';
+import {
+  SITE_PRIMARY_FONT_STACK,
+  STRIPE_APPEARANCE_CSS_VARS,
+  STRIPE_APPEARANCE_FALLBACK_HEX,
+} from '@/lib/design-tokens';
+import { trackMetaPixelEvent, type MetaPixelContentName } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { applyDiscount } from '@/components/sections/booking-modal/helpers';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import {
@@ -66,7 +77,7 @@ interface BookingReservationFormProps {
   topicsFieldConfig?: BookingTopicsFieldConfig;
   descriptionId: string;
   analyticsSectionId?: string;
-  metaPixelContentName?: string;
+  metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -88,64 +99,54 @@ const stripePromise = STRIPE_PUBLISHABLE_KEY.trim()
   ? loadStripe(STRIPE_PUBLISHABLE_KEY.trim())
   : null;
 
-const STRIPE_APPEARANCE_FALLBACKS = {
-  brandOrange: '#C84A16',
-  surfaceWhite: '#FFFFFF',
-  surfaceMuted: '#F8F8F8',
-  textHeading: '#333333',
-  textNeutralStrong: '#5A5A5A',
-  textPlaceholder: '#8A8A8A',
-  textDangerStrong: '#B42318',
-  borderInput: '#CAD6E5',
-} as const;
-
-function resolveCssColorToken(cssVariableName: string, fallbackHex: string): string {
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return fallbackHex;
-  }
-  const resolvedValue = window
-    .getComputedStyle(document.documentElement)
-    .getPropertyValue(cssVariableName)
-    .trim();
-  if (!resolvedValue) {
-    return fallbackHex;
-  }
-  return resolvedValue;
-}
-
 function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions['appearance']> {
+  const primaryRgbFallback = parseHexColorRgb(STRIPE_APPEARANCE_FALLBACK_HEX.brandOrange) ?? {
+    r: 200,
+    g: 74,
+    b: 22,
+  };
+  const dangerRgbFallback = parseHexColorRgb(STRIPE_APPEARANCE_FALLBACK_HEX.textDangerStrong) ?? {
+    r: 180,
+    g: 35,
+    b: 24,
+  };
+
   const colorPrimary = resolveCssColorToken(
-    '--es-color-brand-orange',
-    STRIPE_APPEARANCE_FALLBACKS.brandOrange,
+    STRIPE_APPEARANCE_CSS_VARS.brandOrange,
+    STRIPE_APPEARANCE_FALLBACK_HEX.brandOrange,
   );
   const colorBackground = resolveCssColorToken(
-    '--es-color-surface-white',
-    STRIPE_APPEARANCE_FALLBACKS.surfaceWhite,
+    STRIPE_APPEARANCE_CSS_VARS.surfaceWhite,
+    STRIPE_APPEARANCE_FALLBACK_HEX.surfaceWhite,
   );
   const colorBackgroundMuted = resolveCssColorToken(
-    '--es-color-surface-muted',
-    STRIPE_APPEARANCE_FALLBACKS.surfaceMuted,
+    STRIPE_APPEARANCE_CSS_VARS.surfaceMuted,
+    STRIPE_APPEARANCE_FALLBACK_HEX.surfaceMuted,
   );
   const colorText = resolveCssColorToken(
-    '--es-color-text-heading',
-    STRIPE_APPEARANCE_FALLBACKS.textHeading,
+    STRIPE_APPEARANCE_CSS_VARS.textHeading,
+    STRIPE_APPEARANCE_FALLBACK_HEX.textHeading,
   );
   const colorTextSecondary = resolveCssColorToken(
-    '--es-color-text-neutral-strong',
-    STRIPE_APPEARANCE_FALLBACKS.textNeutralStrong,
+    STRIPE_APPEARANCE_CSS_VARS.textNeutralStrong,
+    STRIPE_APPEARANCE_FALLBACK_HEX.textNeutralStrong,
   );
   const colorTextPlaceholder = resolveCssColorToken(
-    '--es-color-text-placeholder',
-    STRIPE_APPEARANCE_FALLBACKS.textPlaceholder,
+    STRIPE_APPEARANCE_CSS_VARS.textPlaceholder,
+    STRIPE_APPEARANCE_FALLBACK_HEX.textPlaceholder,
   );
   const colorDanger = resolveCssColorToken(
-    '--es-color-text-danger-strong',
-    STRIPE_APPEARANCE_FALLBACKS.textDangerStrong,
+    STRIPE_APPEARANCE_CSS_VARS.textDangerStrong,
+    STRIPE_APPEARANCE_FALLBACK_HEX.textDangerStrong,
   );
   const borderInput = resolveCssColorToken(
-    '--es-color-border-input',
-    STRIPE_APPEARANCE_FALLBACKS.borderInput,
+    STRIPE_APPEARANCE_CSS_VARS.borderInput,
+    STRIPE_APPEARANCE_FALLBACK_HEX.borderInput,
   );
+
+  const focusRingPrimary = rgbaFromCssColor(colorPrimary, 0.55, primaryRgbFallback);
+  const focusRingDanger = rgbaFromCssColor(colorDanger, 0.55, dangerRgbFallback);
+  const focusRingPrimaryStrong = rgbaFromCssColor(colorPrimary, 0.65, primaryRgbFallback);
 
   return {
     theme: 'stripe',
@@ -156,7 +157,7 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
       colorTextSecondary,
       colorTextPlaceholder,
       colorDanger,
-      fontFamily: 'Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontFamily: SITE_PRIMARY_FONT_STACK,
       fontSizeBase: '14px',
       borderRadius: '10px',
       spacingUnit: '4px',
@@ -176,11 +177,11 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
       },
       '.Input:focus': {
         borderColor: colorPrimary,
-        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingPrimary}`,
       },
       '.Input:focus-visible': {
         borderColor: colorPrimary,
-        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingPrimary}`,
       },
       '.Input--invalid': {
         borderColor: colorDanger,
@@ -188,7 +189,7 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
       },
       '.Input--invalid:focus': {
         borderColor: colorDanger,
-        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(180, 35, 24, 0.55)`,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingDanger}`,
       },
       '.Error': {
         color: colorDanger,
@@ -209,16 +210,16 @@ function getStripePaymentElementAppearance(): NonNullable<StripeElementsOptions[
       },
       '.Tab:focus': {
         borderColor: colorPrimary,
-        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingPrimary}`,
       },
       '.Tab:focus-visible': {
         borderColor: colorPrimary,
-        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px rgba(200, 74, 22, 0.55)`,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 3px ${focusRingPrimary}`,
       },
       '.Tab--selected': {
         backgroundColor: colorBackground,
         borderColor: colorPrimary,
-        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 2px rgba(200, 74, 22, 0.65)`,
+        boxShadow: `0 0 0 1px ${colorBackground}, 0 0 0 2px ${focusRingPrimaryStrong}`,
         color: colorText,
       },
       '.TabIcon': {
@@ -401,7 +402,7 @@ export function BookingReservationForm({
   topicsFieldConfig,
   descriptionId,
   analyticsSectionId = 'my-best-auntie-booking',
-  metaPixelContentName = 'my_best_auntie',
+  metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
   onSubmitReservation,
 }: BookingReservationFormProps) {

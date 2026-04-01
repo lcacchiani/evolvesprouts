@@ -31,6 +31,7 @@ import {
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -316,7 +317,7 @@ export function MyBestAuntieBooking({
           cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
         },
       });
-      trackMetaPixelEvent('InitiateCheckout', { content_name: 'my_best_auntie' });
+      trackMetaPixelEvent('InitiateCheckout', { content_name: PIXEL_CONTENT_NAME.my_best_auntie });
       trackEcommerceEvent('begin_checkout', {
         value: selectedCohort.price,
         items: [{
@@ -581,7 +582,7 @@ export function MyBestAuntieBooking({
                       cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
                     },
                   });
-                  trackMetaPixelEvent('InitiateCheckout', { content_name: 'my_best_auntie' });
+                  trackMetaPixelEvent('InitiateCheckout', { content_name: PIXEL_CONTENT_NAME.my_best_auntie });
                   trackEcommerceEvent('begin_checkout', {
                     value: selectedCohort.price,
                     items: [{

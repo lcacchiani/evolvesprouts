@@ -3,10 +3,14 @@
 import Image from 'next/image';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { SectionShell } from '@/components/sections/shared/section-shell';
+import type { LinksHubContent } from '@/content';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
-import type { LinksHubContent } from '@/content';
-import { SectionShell } from '@/components/sections/shared/section-shell';
+import {
+  type MetaPixelStaticContentName,
+  PIXEL_CONTENT_NAME,
+} from '@/lib/meta-pixel-taxonomy';
 
 const LOGO_SRC = '/images/evolvesprouts-logo.svg';
 const LOGO_SIZE = 72;
@@ -28,10 +32,10 @@ interface LinksHubProps {
 interface LinkItem {
   label: string;
   href: string;
-  trackingName: string;
+  trackingName: MetaPixelStaticContentName;
 }
 
-function trackLinkClick(contentName: string) {
+function trackLinkClick(contentName: MetaPixelStaticContentName) {
   trackAnalyticsEvent('links_hub_click', {
     sectionId: 'links-hub',
     ctaLocation: 'links_page',
@@ -52,17 +56,17 @@ export function LinksHub({
     {
       label: content.courseLabel,
       href: localizedCourseHref,
-      trackingName: 'my_best_auntie_course',
+      trackingName: PIXEL_CONTENT_NAME.my_best_auntie_course,
     },
     {
       label: content.contactLabel,
       href: localizedContactHref,
-      trackingName: 'contact_us',
+      trackingName: PIXEL_CONTENT_NAME.contact_us,
     },
     {
       label: content.eventsLabel,
       href: localizedEventsHref,
-      trackingName: 'events',
+      trackingName: PIXEL_CONTENT_NAME.events,
     },
   ];
 
@@ -110,12 +114,12 @@ export function LinksHub({
               openInNewTab
               className={`${HUB_BUTTON_CLASSNAME} es-btn--whatsapp-cta`}
               onClick={() => {
-                trackLinkClick('whatsapp');
+                trackLinkClick(PIXEL_CONTENT_NAME.whatsapp);
                 trackAnalyticsEvent('whatsapp_click', {
                   sectionId: 'links-hub',
                   ctaLocation: 'links_page',
                 });
-                trackMetaPixelEvent('Contact', { content_name: 'whatsapp' });
+                trackMetaPixelEvent('Contact', { content_name: PIXEL_CONTENT_NAME.whatsapp });
               }}
             >
               <span className='inline-flex items-center gap-2'>
@@ -136,7 +140,7 @@ export function LinksHub({
               variant='outline'
               openInNewTab
               className={HUB_BUTTON_CLASSNAME}
-              onClick={() => trackLinkClick('instagram')}
+              onClick={() => trackLinkClick(PIXEL_CONTENT_NAME.instagram)}
             >
               <span className='inline-flex items-center gap-2'>
                 <Image

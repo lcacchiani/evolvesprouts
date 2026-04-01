@@ -7,6 +7,7 @@ export const TOKEN_FALLBACK_HEX = {
   '--es-color-booking-highlight-icon': '#B42318',
   '--es-color-border-deep': '#564640',
   '--es-color-border-date': '#CAD6E5',
+  '--es-color-border-input': '#CAD6E5',
   '--es-color-surface-deep': '#3A1F23',
   '--es-color-surface-deep-1': '#483C34',
   '--es-color-surface-deep-2': '#40332A',
@@ -14,6 +15,7 @@ export const TOKEN_FALLBACK_HEX = {
   '--es-color-text-heading': '#333333',
   '--es-color-text-icon': '#3D3E3D',
   '--es-color-text-neutral-strong': '#5A5A5A',
+  '--es-color-text-danger-strong': '#B42318',
 } as const;
 
 export const HEADING_TEXT_COLOR =
@@ -33,3 +35,32 @@ export const TEXT_NEUTRAL_STRONG_COLOR = `var(--es-color-text-neutral-strong, ${
 export const HEADING_FONT_FAMILY =
   'var(--figma-fontfamilies-poppins, Poppins), sans-serif';
 export const BODY_FONT_FAMILY = 'var(--figma-fontfamilies-lato, Lato), sans-serif';
+
+/**
+ * Stripe Elements appearance: human-readable stack only (iframe cannot use host CSS variables).
+ */
+export const SITE_PRIMARY_FONT_STACK =
+  'Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+export const STRIPE_APPEARANCE_CSS_VARS = {
+  brandOrange: '--es-color-brand-orange',
+  surfaceWhite: '--es-color-surface-white',
+  surfaceMuted: '--es-color-surface-muted',
+  textHeading: '--es-color-text-heading',
+  textNeutralStrong: '--es-color-text-neutral-strong',
+  textPlaceholder: '--es-color-text-placeholder',
+  textDangerStrong: '--es-color-text-danger-strong',
+  borderInput: '--es-color-border-input',
+} as const;
+
+/** SSR fallbacks for Stripe; map each STRIPE_APPEARANCE_CSS_VARS entry to the matching TOKEN_FALLBACK_HEX key. */
+export const STRIPE_APPEARANCE_FALLBACK_HEX = {
+  brandOrange: TOKEN_FALLBACK_HEX['--es-color-brand-orange'],
+  surfaceWhite: TOKEN_FALLBACK_HEX['--es-color-surface-white'],
+  surfaceMuted: '#F8F8F8',
+  textHeading: TOKEN_FALLBACK_HEX['--es-color-text-heading'],
+  textNeutralStrong: TOKEN_FALLBACK_HEX['--es-color-text-neutral-strong'],
+  textPlaceholder: '#8A8A8A',
+  textDangerStrong: TOKEN_FALLBACK_HEX['--es-color-text-danger-strong'],
+  borderInput: TOKEN_FALLBACK_HEX['--es-color-border-input'],
+} as const;

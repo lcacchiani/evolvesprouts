@@ -19,6 +19,8 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
+import type { MetaPixelContentName } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import type {
   BookingPaymentModalContent,
@@ -43,7 +45,7 @@ interface MyBestAuntieBookingModalProps {
   selectedCohortDateLabel?: string;
   selectedAgeGroupLabel?: string;
   analyticsSectionId?: string;
-  metaPixelContentName?: string;
+  metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
@@ -57,7 +59,7 @@ export function MyBestAuntieBookingModal({
   selectedCohortDateLabel = '',
   selectedAgeGroupLabel = '',
   analyticsSectionId = 'my-best-auntie-booking',
-  metaPixelContentName = 'my_best_auntie',
+  metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
   captchaWidgetAction = 'mba_reservation_submit',
   onClose,
   onSubmitReservation,

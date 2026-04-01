@@ -44,6 +44,23 @@ const TESTIMONIAL_CONTROL_BUTTON_CLASSNAME = 'es-btn--control';
 const CLONE_SETTLE_DELAY_MS = 120;
 const AUTHOR_ANIM_DURATION_MS = 300;
 
+/** Legacy / CMS keys accepted alongside canonical locale JSON keys (`quote`, `author`, …). */
+const TESTIMONIAL_QUOTE_CANDIDATE_KEYS = [
+  'quote',
+  'testimonial',
+  'text',
+  'description',
+  'content',
+] as const;
+const TESTIMONIAL_AUTHOR_CANDIDATE_KEYS = ['author', 'name', 'parentName'] as const;
+const TESTIMONIAL_SERVICE_CANDIDATE_KEYS = ['service', 'subtitle', 'title'] as const;
+const TESTIMONIAL_IMAGE_CANDIDATE_KEYS = [
+  'mainImageSrc',
+  'slideImageSrc',
+  'imageSrc',
+  'image',
+] as const;
+
 function normalizeStory(item: unknown): NormalizedStory | null {
   if (typeof item === 'string') {
     const quote = readOptionalText(item);
@@ -55,21 +72,10 @@ function normalizeStory(item: unknown): NormalizedStory | null {
     return null;
   }
   const story: NormalizedStory = {
-    quote: readCandidateText(record, [
-      'quote',
-      'testimonial',
-      'text',
-      'description',
-      'content',
-    ]),
-    author: readCandidateText(record, ['author', 'name', 'parentName']),
-    service: readCandidateText(record, ['service', 'subtitle', 'title']),
-    mainImageSrc: readCandidateText(record, [
-      'mainImageSrc',
-      'slideImageSrc',
-      'imageSrc',
-      'image',
-    ]),
+    quote: readCandidateText(record, [...TESTIMONIAL_QUOTE_CANDIDATE_KEYS]),
+    author: readCandidateText(record, [...TESTIMONIAL_AUTHOR_CANDIDATE_KEYS]),
+    service: readCandidateText(record, [...TESTIMONIAL_SERVICE_CANDIDATE_KEYS]),
+    mainImageSrc: readCandidateText(record, [...TESTIMONIAL_IMAGE_CANDIDATE_KEYS]),
   };
 
   return Object.values(story).some(Boolean) ? story : null;

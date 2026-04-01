@@ -4,7 +4,8 @@ import type {
   Locale,
 } from '@/content';
 import easter2026MontessoriPlayCoachingWorkshop from '@/content/landing-pages/easter-2026-montessori-play-coaching-workshop.json';
-import { ROUTES } from '@/lib/routes';
+import { createDefaultLocaleRedirectPage } from '@/lib/locale-page';
+import { RESERVED_PATH_SEGMENTS } from '@/lib/routes';
 
 const LANDING_PAGES = {
   'easter-2026-montessori-play-coaching-workshop': easter2026MontessoriPlayCoachingWorkshop,
@@ -17,13 +18,10 @@ const LANDING_PAGE_SLUGS = Object.freeze(
 );
 
 function assertNoLandingPageRouteCollisions(): void {
-  const appRoutePathSet = new Set<string>(Object.values(ROUTES));
-
   for (const slug of LANDING_PAGE_SLUGS) {
-    const landingPagePath = buildLandingPagePath(slug);
-    if (appRoutePathSet.has(landingPagePath)) {
+    if (RESERVED_PATH_SEGMENTS.has(slug)) {
       throw new Error(
-        `Landing page slug "${slug}" collides with an existing app route.`,
+        `Landing page slug "${slug}" collides with a reserved path segment.`,
       );
     }
   }
@@ -41,6 +39,13 @@ export function isValidLandingPageSlug(slug: string): slug is LandingPageSlug {
 
 export function buildLandingPagePath(slug: LandingPageSlug | string): string {
   return `/${slug}`;
+}
+
+/**
+ * Root (non-locale) redirect for static export. A matching `src/app/<slug>/page.tsx` must still exist.
+ */
+export function createLandingPageRootRedirect(slug: LandingPageSlug) {
+  return createDefaultLocaleRedirectPage(buildLandingPagePath(slug));
 }
 
 export function getLandingPageContent(

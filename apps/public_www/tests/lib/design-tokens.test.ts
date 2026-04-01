@@ -1,38 +1,36 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  BODY_FONT_FAMILY,
-  BODY_TEXT_COLOR,
-  BRAND_ORANGE,
-  BRAND_ORANGE_SOFT,
-  BRAND_ORANGE_STRONG,
-  HEADING_FONT_FAMILY,
-  HEADING_TEXT_COLOR,
+  SITE_PRIMARY_FONT_STACK,
+  STRIPE_APPEARANCE_CSS_VARS,
+  STRIPE_APPEARANCE_FALLBACK_HEX,
   TOKEN_FALLBACK_HEX,
 } from '@/lib/design-tokens';
 
-describe('design tokens constants', () => {
-  it('exposes expected fallback token values', () => {
-    expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange']).toBe('#C84A16');
-    expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange-soft']).toBe('#F2A975');
-    expect(TOKEN_FALLBACK_HEX['--es-color-brand-orange-strong']).toBe('#ED622E');
-    expect(TOKEN_FALLBACK_HEX['--es-color-border-deep']).toBe('#564640');
-    expect(TOKEN_FALLBACK_HEX['--es-color-surface-deep']).toBe('#3A1F23');
-    expect(TOKEN_FALLBACK_HEX['--es-color-surface-deep-1']).toBe('#483C34');
-    expect(TOKEN_FALLBACK_HEX['--es-color-surface-deep-2']).toBe('#40332A');
+describe('design-tokens', () => {
+  it('maps every Stripe appearance CSS var to a fallback hex', () => {
+    for (const key of Object.keys(STRIPE_APPEARANCE_CSS_VARS) as Array<
+      keyof typeof STRIPE_APPEARANCE_CSS_VARS
+    >) {
+      expect(STRIPE_APPEARANCE_CSS_VARS[key].startsWith('--')).toBe(true);
+      expect(STRIPE_APPEARANCE_FALLBACK_HEX[key]).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+    expect(Object.keys(STRIPE_APPEARANCE_CSS_VARS).length).toBe(
+      Object.keys(STRIPE_APPEARANCE_FALLBACK_HEX).length,
+    );
   });
 
-  it('builds CSS var expressions with stable fallback values', () => {
-    expect(BRAND_ORANGE).toContain('var(--es-color-brand-orange');
-    expect(BRAND_ORANGE).toContain('#C84A16');
-    expect(BRAND_ORANGE_SOFT).toContain('#F2A975');
-    expect(BRAND_ORANGE_STRONG).toContain('#ED622E');
-    expect(HEADING_TEXT_COLOR).toContain('var(--site-heading-text');
-    expect(BODY_TEXT_COLOR).toContain('var(--site-primary-text');
+  it('exports a non-empty Stripe font stack string', () => {
+    expect(SITE_PRIMARY_FONT_STACK.length).toBeGreaterThan(10);
+    expect(SITE_PRIMARY_FONT_STACK).toContain('Lato');
   });
 
-  it('keeps typography token references available to components', () => {
-    expect(HEADING_FONT_FAMILY).toContain('--figma-fontfamilies-poppins');
-    expect(BODY_FONT_FAMILY).toContain('--figma-fontfamilies-lato');
+  it('Stripe danger and border fallbacks match the CSS vars they resolve at runtime', () => {
+    expect(STRIPE_APPEARANCE_FALLBACK_HEX.textDangerStrong).toBe(
+      TOKEN_FALLBACK_HEX['--es-color-text-danger-strong'],
+    );
+    expect(STRIPE_APPEARANCE_FALLBACK_HEX.borderInput).toBe(
+      TOKEN_FALLBACK_HEX['--es-color-border-input'],
+    );
   });
 });

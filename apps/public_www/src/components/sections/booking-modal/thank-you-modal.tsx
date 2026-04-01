@@ -33,6 +33,7 @@ import {
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { getHrefKind } from '@/lib/url-utils';
 
 const THANK_YOU_ICS_OUTLINE_BUTTON_CLASSNAME =
@@ -413,7 +414,7 @@ export function MyBestAuntieThankYouModal({
                     sectionId: 'booking-thank-you-modal',
                     ctaLocation: 'thank_you_follow_up',
                   });
-                  trackMetaPixelEvent('Contact', { content_name: 'whatsapp' });
+                  trackMetaPixelEvent('Contact', { content_name: PIXEL_CONTENT_NAME.whatsapp });
                 }}
               >
                 <span>{normalizedWhatsappLabel}</span>

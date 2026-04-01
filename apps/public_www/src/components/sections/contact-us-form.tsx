@@ -23,6 +23,7 @@ import { trackAnalyticsEvent } from '@/lib/analytics';
 import { CONTACT_US_API_PATH } from '@/lib/api-paths';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
+import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import { ServerSubmissionResult } from '@/lib/server-submission-result';
 import type { PublicSiteConfig } from '@/lib/site-config';
 import { isValidEmail, sanitizeSingleLineValue } from '@/lib/validation';
@@ -168,7 +169,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
             form_type: 'contact_us',
           },
         });
-        trackMetaPixelEvent('Lead', { content_name: 'contact_form' });
+        trackMetaPixelEvent('Lead', { content_name: PIXEL_CONTENT_NAME.contact_form });
         markSubmissionSuccess();
         return;
       }
@@ -223,7 +224,7 @@ export function ContactUsForm({ content, contactConfig }: ContactUsFormProps) {
                       sectionId: 'contact-us-form',
                       ctaLocation: 'contact_section',
                     });
-                    trackMetaPixelEvent('Contact', { content_name: 'whatsapp' });
+                    trackMetaPixelEvent('Contact', { content_name: PIXEL_CONTENT_NAME.whatsapp });
                   }}
                 >
                   <span>{content.contactMethodLinks.whatsapp}</span>

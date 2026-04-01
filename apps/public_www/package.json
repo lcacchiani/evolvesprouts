@@ -24,7 +24,8 @@
     "start": "next start",
     "validate:analytics-contract": "node ./scripts/validate-analytics-contract.mjs",
     "validate:analytics-governance": "node ./scripts/validate-analytics-governance.mjs",
-    "lint": "npm run validate:analytics-contract && npm run validate:analytics-governance && eslint --max-warnings=0 .",
+    "validate:meta-pixel-contract": "node ./scripts/validate-meta-pixel-contract.mjs",
+    "lint": "npm run validate:analytics-contract && npm run validate:analytics-governance && npm run validate:meta-pixel-contract && eslint --max-warnings=0 .",
     "test": "vitest run",
     "test:watch": "vitest",
     "audit:deps:prod": "npm audit --omit=dev --audit-level=high"
