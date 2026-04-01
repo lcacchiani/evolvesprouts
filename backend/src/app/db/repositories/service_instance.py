@@ -199,6 +199,7 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             .options(
                 selectinload(ServiceInstance.session_slots),
                 selectinload(ServiceInstance.ticket_tiers),
+                selectinload(ServiceInstance.enrollments),
                 joinedload(ServiceInstance.location),
                 joinedload(ServiceInstance.service),
             )

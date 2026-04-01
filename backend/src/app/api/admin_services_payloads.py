@@ -245,6 +245,8 @@ def parse_create_instance_payload(
     """Parse and validate service-instance creation payload."""
     return {
         "title": parse_optional_text(body.get("title"), max_length=255),
+        "slug": parse_optional_text(body.get("slug"), max_length=128),
+        "landing_page": parse_optional_text(body.get("landing_page"), max_length=255),
         "description": parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
         ),
@@ -285,6 +287,12 @@ def parse_update_instance_payload(
     payload: dict[str, Any] = {}
     if has_field(body, "title"):
         payload["title"] = parse_optional_text(body.get("title"), max_length=255)
+    if has_field(body, "slug"):
+        payload["slug"] = parse_optional_text(body.get("slug"), max_length=128)
+    if has_field(body, "landing_page"):
+        payload["landing_page"] = parse_optional_text(
+            body.get("landing_page"), max_length=255
+        )
     if has_field(body, "description"):
         payload["description"] = parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
