@@ -13,8 +13,11 @@ from app.db.engine import get_engine
 from app.db.models import Family, Organization, RelationshipType
 from app.exceptions import ValidationError
 from app.utils import json_response
+from app.utils.logging import get_logger
 
 _DEFAULT_LIMIT = 100
+
+logger = get_logger(__name__)
 
 
 def handle_admin_crm_picker_request(
@@ -23,6 +26,10 @@ def handle_admin_crm_picker_request(
     path: str,
 ) -> dict[str, Any]:
     """Handle GET /v1/admin/families/picker and GET /v1/admin/organizations/picker."""
+    logger.info(
+        "Handling admin CRM picker route",
+        extra={"method": method, "path": path},
+    )
     parts = split_route_parts(path)
     if len(parts) < 3 or parts[0] != "admin":
         return json_response(404, {"error": "Not found"}, event=event)

@@ -21,6 +21,9 @@ from app.db.models import (
     RelationshipType,
     Tag,
 )
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def parse_crm_limit(event: Mapping[str, Any], *, default: int = 25) -> int:
@@ -30,6 +33,7 @@ def parse_crm_limit(event: Mapping[str, Any], *, default: int = 25) -> int:
     try:
         parsed = int(raw)
     except (TypeError, ValueError) as exc:
+        logger.warning("Invalid CRM limit value", extra={"field": "limit"})
         raise ValidationError("limit must be an integer", field="limit") from exc
     if parsed < 1 or parsed > 100:
         raise ValidationError("limit must be between 1 and 100", field="limit")

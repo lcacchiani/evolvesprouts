@@ -14,6 +14,9 @@ from app.db.models import Service, ServiceInstance
 from app.db.models.enums import InstanceStatus
 from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import json_response
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def handle_public_events(
@@ -21,6 +24,7 @@ def handle_public_events(
     method: str,
 ) -> dict[str, Any]:
     """Handle GET /v1/calendar/events and /www/v1/calendar/events."""
+    logger.info("Handling public events feed request", extra={"method": method})
     if method != "GET":
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
