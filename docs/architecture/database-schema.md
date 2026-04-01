@@ -365,6 +365,8 @@ Indexes:
 - `service_instances` stores dated offerings linked to a `services` template.
 - Template fields can be overridden per instance (`title`, `description`,
   `cover_image_s3_key`, `delivery_mode`).
+- Optional public-site fields: `slug` (unique when set), `landing_page`
+  (marketing route key for the public website).
 - Eventbrite sync metadata is stored on `service_instances` so DB remains source
   of truth while tracking downstream publish state:
   - `eventbrite_event_id`, `eventbrite_event_url`

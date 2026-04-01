@@ -3760,6 +3760,8 @@ export interface components {
             /** Format: uuid */
             service_id: string;
             title?: string | null;
+            slug?: string | null;
+            landing_page?: string | null;
             description?: string | null;
             cover_image_s3_key?: string | null;
             status: components["schemas"]["InstanceStatus"];

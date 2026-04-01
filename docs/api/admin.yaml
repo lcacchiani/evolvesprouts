@@ -3294,6 +3294,12 @@ components:
         title:
           type: string
           nullable: true
+        slug:
+          type: string
+          nullable: true
+        landing_page:
+          type: string
+          nullable: true
         description:
           type: string
           nullable: true

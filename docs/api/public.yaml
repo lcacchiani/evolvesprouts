@@ -538,6 +538,18 @@ components:
           type: array
           items:
             type: string
+        slug:
+          type: string
+          nullable: true
+        landing_page:
+          type: string
+          nullable: true
+        spaces_total:
+          type: integer
+          nullable: true
+        spaces_left:
+          type: integer
+          nullable: true
         dates:
           type: array
           items:
