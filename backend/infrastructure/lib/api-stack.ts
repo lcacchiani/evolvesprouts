@@ -1511,6 +1511,7 @@ export class ApiStack extends cdk.Stack {
       this,
       "OpenRouterApiSecret",
       {
+        secretName: name("openrouter-api-secret"),
         description: "OpenRouter API key for invoice parsing",
         secretStringValue: cdk.SecretValue.unsafePlainText(
           openrouterApiKey.valueAsString
