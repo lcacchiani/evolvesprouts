@@ -750,6 +750,59 @@ Meta Commerce Manager, or potentially via the Catalog API
     ratio looks inauthentic. Unfollow non-strategic accounts to bring the
     ratio closer to 1:1 or lower.
 
+## External ad account access management
+
+The Meta Business API supports sharing ad account access with external Meta
+Business Managers through "agency" permissions. This is used to give third
+parties (consultants, agencies, partners) read-only access to ad performance
+analytics without exposing ad management or billing controls.
+
+### Permission levels
+
+| Tasks | Role equivalent | What it allows |
+|---|---|---|
+| `['ANALYZE']` | Reporting only | View ad performance data, download reports |
+| `['ADVERTISE', 'ANALYZE']` | General user | Above + create/edit ads (not billing) |
+| `['MANAGE', 'ADVERTISE', 'ANALYZE']` | Admin | Full ad account control including billing and permissions |
+
+For sharing analytics with external parties, **always use `ANALYZE` only** unless
+there is a specific business need for broader access.
+
+### API-based access management
+
+The `meta-ads-manage-access.py` script in
+`apps/public_www/marketing/scripts/` provides CLI commands for:
+
+- **`list`** — View all external businesses with agency access
+- **`grant <business_id>`** — Grant `ANALYZE` (read-only) access to an external
+  Meta Business Manager
+- **`revoke <business_id>`** — Remove agency access from an external business
+
+The script uses the same system user token as the assessment scripts
+(`EVOLVESPROUTS_META_SYSTEM_USER_ACCESS_TOKEN`). The system user must have
+`business_management` scope (already configured).
+
+### Manual alternative (Meta Business Suite)
+
+Access can also be managed through the Meta Business Suite UI:
+
+1. Go to [business.facebook.com/settings](https://business.facebook.com/settings)
+2. Navigate to **Accounts > Ad Accounts**
+3. Select the Evolve Sprouts ad account
+4. Click **Assign partner**
+5. Enter the external business's Business Manager ID
+6. Select **Reporting only** (maps to `ANALYZE`)
+7. Click **Save changes**
+
+### Security notes
+
+- Meta may require an **admin review** before agency access takes effect.
+  Approve at: https://business.facebook.com/settings/requests/admin_reviews
+- The external party needs their own Meta Business Manager account.
+- Granting `ANALYZE` only does **not** allow the external party to create,
+  edit, or manage ads, access billing, or modify account settings.
+- Review and revoke access when the engagement ends.
+
 ## Environment variables reference
 
 | Variable | Service | Purpose |

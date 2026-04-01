@@ -8,11 +8,12 @@ Evolve Sprouts marketing performance.
 ```
 marketing/
 ├── scripts/
-│   ├── google-ads-assessment.py   # Google Ads API (campaigns, keywords, ads)
-│   ├── meta-ads-assessment.py     # Meta Marketing API (campaigns, ad sets, ads)
-│   ├── ga4-assessment.py          # GA4 Data API (traffic, funnel, events)
-│   ├── ga4-create-audiences.py    # GA4 Admin API (create remarketing audiences)
-│   └── requirements.txt           # Python dependencies
+│   ├── google-ads-assessment.py      # Google Ads API (campaigns, keywords, ads)
+│   ├── meta-ads-assessment.py        # Meta Marketing API (campaigns, ad sets, ads)
+│   ├── meta-ads-manage-access.py     # Meta ad account external access management
+│   ├── ga4-assessment.py             # GA4 Data API (traffic, funnel, events)
+│   ├── ga4-create-audiences.py       # GA4 Admin API (create remarketing audiences)
+│   └── requirements.txt              # Python dependencies
 └── reports/
     └── ads-performance-assessment-YYYY-MM-DD.md
 ```
@@ -41,6 +42,8 @@ All scripts use Cursor Cloud Agent secrets (injected as env vars):
 
 ## Usage
 
+### Assessment scripts (read-only)
+
 Run from the `marketing/scripts/` directory or provide the full path:
 
 ```bash
@@ -48,6 +51,28 @@ python3 scripts/google-ads-assessment.py
 python3 scripts/meta-ads-assessment.py
 python3 scripts/ga4-assessment.py
 ```
+
+### Meta ad account external access management
+
+Grant an external Meta Business read-only access to ad analytics:
+
+```bash
+# List who currently has agency access
+python3 scripts/meta-ads-manage-access.py list
+
+# Grant read-only analytics access to an external business
+python3 scripts/meta-ads-manage-access.py grant <EXTERNAL_BUSINESS_ID>
+
+# Grant with broader permissions (e.g. advertise + analyze)
+python3 scripts/meta-ads-manage-access.py grant <EXTERNAL_BUSINESS_ID> --tasks ADVERTISE ANALYZE
+
+# Revoke access from an external business
+python3 scripts/meta-ads-manage-access.py revoke <EXTERNAL_BUSINESS_ID>
+```
+
+The external party must provide their **Meta Business Manager ID** (a numeric
+ID visible at business.facebook.com/settings). By default, only `ANALYZE`
+(reporting-only) access is granted.
 
 ### GA4 audience creation (requires temporary Editor access)
 
