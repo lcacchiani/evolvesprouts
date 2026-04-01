@@ -1,10 +1,11 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
+import { useMediaFormContext } from '@/components/sections/shared/media-form-context';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -30,7 +31,6 @@ interface MediaFormProps {
 }
 
 const MEDIA_REQUEST_API_PATH = '/v1/media-request';
-const MEDIA_FORM_ERROR_ID = 'media-form-error';
 const MAX_RESOURCE_KEY_LENGTH = 64;
 
 function normalizeResourceKey(value: string): string {
@@ -57,6 +57,13 @@ export function MediaForm({
   analyticsSectionId = 'media-form',
   onFormOpened,
 }: MediaFormProps) {
+  const mediaFormInstanceId = useId();
+  const firstNameInputId = `${mediaFormInstanceId}-media-first-name`;
+  const emailInputId = `${mediaFormInstanceId}-media-email`;
+  const formErrorId = `${mediaFormInstanceId}-media-form-error`;
+  const mediaFormPageContext = useMediaFormContext();
+  const hasPageLevelSubmission = mediaFormPageContext?.hasSubmitted ?? false;
+
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -176,6 +183,7 @@ export function MediaForm({
         });
         trackMetaPixelEvent('Lead', { content_name: 'media_download' });
         markSubmissionSuccess();
+        mediaFormPageContext?.markFormSubmitted();
         return;
       }
 
@@ -191,7 +199,7 @@ export function MediaForm({
     });
   }
 
-  if (hasSuccessfulSubmission) {
+  if (hasSuccessfulSubmission || hasPageLevelSubmission) {
     return (
       <div className={mergeClassNames('mt-auto max-w-[420px] rounded-xl bg-white p-5', className)}>
         <h4 className='text-xl font-bold es-text-heading'>{formSuccessTitle}</h4>
@@ -227,7 +235,7 @@ export function MediaForm({
       noValidate
     >
       <input
-        id='media-first-name'
+        id={firstNameInputId}
         type='text'
         autoComplete='given-name'
         value={firstName}
@@ -241,13 +249,13 @@ export function MediaForm({
         className={`es-form-input ${hasFirstNameError ? 'es-form-input-error' : ''}`}
         aria-label={formFirstNameLabel}
         aria-invalid={hasFirstNameError}
-        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
+        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
         required
         disabled={isSubmitting}
       />
 
       <input
-        id='media-email'
+        id={emailInputId}
         type='email'
         autoComplete='email'
         value={email}
@@ -261,7 +269,7 @@ export function MediaForm({
         className={`es-form-input ${hasEmailError ? 'es-form-input-error' : ''}`}
         aria-label={formEmailLabel}
         aria-invalid={hasEmailError}
-        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
+        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
         required
         disabled={isSubmitting}
       />
@@ -279,13 +287,13 @@ export function MediaForm({
         type='submit'
         className='w-full'
         disabled={isSubmitDisabled}
-        aria-describedby={shouldShowSubmitError ? MEDIA_FORM_ERROR_ID : undefined}
+        aria-describedby={shouldShowSubmitError ? formErrorId : undefined}
       >
         {isSubmitting ? `${formSubmitLabel}...` : formSubmitLabel}
       </ButtonPrimitive>
 
       {shouldShowSubmitError ? (
-        <p id={MEDIA_FORM_ERROR_ID} className='text-sm font-semibold es-text-danger-strong' role='alert'>
+        <p id={formErrorId} className='text-sm font-semibold es-text-danger-strong' role='alert'>
           {submitErrorMessage || formErrorMessage}
         </p>
       ) : null}
