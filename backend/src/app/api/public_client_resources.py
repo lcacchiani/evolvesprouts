@@ -9,12 +9,12 @@ from sqlalchemy.orm import Session
 
 from app.api.admin_request import query_param
 from app.api.assets.assets_common import (
+    normalize_path,
     paginate_response,
     parse_content_language_query_param,
     parse_cursor,
     parse_limit,
     serialize_public_client_resource,
-    split_route_parts,
 )
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
@@ -24,14 +24,28 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
+def _is_client_resources_list_path(path: str) -> bool:
+    """True for /vN/client-resources, /www/vN/client-resources, or /client-resources (stripped)."""
+    parts = [segment for segment in normalize_path(path).split("/") if segment]
+    if not parts or parts[-1] != "client-resources":
+        return False
+    if len(parts) == 1:
+        return True
+    if len(parts) == 2:
+        seg = parts[0]
+        return seg.startswith("v") and seg[1:].isdigit()
+    if len(parts) == 3:
+        return parts[0] == "www" and parts[1].startswith("v") and parts[1][1:].isdigit()
+    return False
+
+
 def handle_public_client_resources_request(
     event: Mapping[str, Any],
     method: str,
     path: str,
 ) -> dict[str, Any]:
     """Handle GET /v1/client-resources and /www/v1/client-resources."""
-    parts = split_route_parts(path)
-    if len(parts) != 1 or parts[0] != "client-resources":
+    if not _is_client_resources_list_path(path):
         return json_response(404, {"error": "Not found"}, event=event)
 
     logger.info(

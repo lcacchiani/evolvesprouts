@@ -9,7 +9,6 @@ from uuid import uuid4
 
 from app.api import public_events
 from app.db.models import ServiceType
-from app.db.models.enums import EnrollmentStatus
 
 
 def _instance_row(
@@ -18,7 +17,6 @@ def _instance_row(
     with_eventbrite_url: bool = False,
     delivery_mode_value: str = "in_person",
     max_capacity: int | None = 10,
-    enrollments: list[Any] | None = None,
     slug: str | None = "spring-workshop",
     landing_page: str | None = "spring-workshop",
 ) -> Any:
@@ -32,11 +30,6 @@ def _instance_row(
         event_details=SimpleNamespace(event_category=SimpleNamespace(value="workshop")),
         delivery_mode=SimpleNamespace(value=delivery_mode_value),
     )
-    if enrollments is None:
-        enrollments = [
-            SimpleNamespace(status=EnrollmentStatus.REGISTERED),
-            SimpleNamespace(status=EnrollmentStatus.CANCELLED),
-        ]
     return SimpleNamespace(
         id=uuid4(),
         title="Spring Workshop",
@@ -46,7 +39,6 @@ def _instance_row(
         status=status,
         service=service,
         max_capacity=max_capacity,
-        enrollments=enrollments,
         session_slots=[
             SimpleNamespace(
                 id=uuid4(),
@@ -106,6 +98,9 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
                 _instance_row(status=public_events.InstanceStatus.OPEN, with_eventbrite_url=True),
                 _instance_row(status=public_events.InstanceStatus.FULL),
             ]
+
+        def get_enrollment_count(self, instance_id: Any) -> int:
+            return 1
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
     monkeypatch.setattr(public_events, "get_engine", lambda: object())

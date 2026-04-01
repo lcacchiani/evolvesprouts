@@ -3301,6 +3301,9 @@ components:
         slug:
           type: string
           nullable: true
+          description: >
+            Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments
+            (e.g. spring-workshop). Stored normalized to lowercase.
         landing_page:
           type: string
           nullable: true

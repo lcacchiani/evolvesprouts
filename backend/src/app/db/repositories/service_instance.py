@@ -22,6 +22,7 @@ from app.db.models import (
     ServiceType,
     TrainingInstanceDetails,
 )
+from app.db.models.enums import CAPACITY_ENROLLMENT_STATUSES
 from app.db.repositories.base import BaseRepository
 
 InstanceDetails = (
@@ -199,7 +200,6 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
             .options(
                 selectinload(ServiceInstance.session_slots),
                 selectinload(ServiceInstance.ticket_tiers),
-                selectinload(ServiceInstance.enrollments),
                 joinedload(ServiceInstance.location),
                 joinedload(ServiceInstance.service),
             )
@@ -268,19 +268,11 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
         return self.update(instance)
 
     def get_enrollment_count(self, instance_id: UUID) -> int:
-        """Return active enrollment count for capacity checks."""
+        """Return enrollment count for capacity (same statuses as EnrollmentRepository)."""
         statement = (
             select(func.count(Enrollment.id))
             .where(Enrollment.instance_id == instance_id)
-            .where(
-                Enrollment.status.in_(
-                    [
-                        EnrollmentStatus.REGISTERED,
-                        EnrollmentStatus.CONFIRMED,
-                        EnrollmentStatus.COMPLETED,
-                    ]
-                )
-            )
+            .where(Enrollment.status.in_(CAPACITY_ENROLLMENT_STATUSES))
         )
         count = self._session.execute(statement).scalar_one_or_none()
         return int(count or 0)

@@ -38,6 +38,48 @@ def test_handle_public_client_resources_rejects_non_get(
     assert response["statusCode"] == 405
 
 
+def test_handle_public_client_resources_accepts_www_prefixed_path(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def list_client_public_resources(
+            self,
+            *,
+            limit: int,
+            cursor: Any,
+            language: str | None,
+        ) -> list[Any]:
+            return []
+
+    monkeypatch.setattr(public_client_resources, "Session", _SessionCtx)
+    monkeypatch.setattr(public_client_resources, "get_engine", lambda: object())
+    monkeypatch.setattr(public_client_resources, "AssetRepository", _FakeRepository)
+
+    response = public_client_resources.handle_public_client_resources_request(
+        api_gateway_event(method="GET", path="/www/v1/client-resources"),
+        "GET",
+        "/www/v1/client-resources",
+    )
+    assert response["statusCode"] == 200
+
+
 def test_handle_public_client_resources_invalid_language(
     api_gateway_event: Any,
 ) -> None:

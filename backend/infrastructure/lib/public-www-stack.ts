@@ -335,9 +335,6 @@ function handler(event) {
   var request = event.request;
   var method = request.method || '';
   var uri = request.uri || '';
-  var q = uri.indexOf('?');
-  var pathOnly = q >= 0 ? uri.substring(0, q) : uri;
-  var query = q >= 0 ? uri.substring(q) : '';
 
   var allowlist = {
     'GET': {
@@ -351,8 +348,8 @@ function handler(event) {
       '/www/v1/legacy/contact-us': true
     }
   };
-  if (allowlist[method] && allowlist[method][pathOnly]) {
-    request.uri = pathOnly.substring(4) + query;
+  if (allowlist[method] && allowlist[method][uri]) {
+    request.uri = uri.substring(4);
     return request;
   }
 

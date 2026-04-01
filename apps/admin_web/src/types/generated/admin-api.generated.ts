@@ -3762,6 +3762,7 @@ export interface components {
             /** Format: uuid */
             service_id: string;
             title?: string | null;
+            /** @description Optional URL-safe slug: lowercase letters, digits, and single hyphens between segments (e.g. spring-workshop). Stored normalized to lowercase. */
             slug?: string | null;
             landing_page?: string | null;
             description?: string | null;

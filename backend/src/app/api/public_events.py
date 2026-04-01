@@ -11,20 +11,12 @@ from sqlalchemy.orm import Session
 
 from app.db.engine import get_engine
 from app.db.models import Service, ServiceInstance
-from app.db.models.enums import EnrollmentStatus, InstanceStatus
+from app.db.models.enums import InstanceStatus
 from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.utils import json_response
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
-
-_CAPACITY_ENROLLMENT_STATUSES = frozenset(
-    {
-        EnrollmentStatus.REGISTERED,
-        EnrollmentStatus.CONFIRMED,
-        EnrollmentStatus.COMPLETED,
-    }
-)
 
 
 def handle_public_events(
@@ -63,10 +55,13 @@ def _fetch_event_instances(
         limit=100,
         now=now,
     )
-    return [_serialize_public_event(instance) for instance in rows]
+    return [_serialize_public_event(repository, instance) for instance in rows]
 
 
-def _serialize_public_event(instance: ServiceInstance) -> dict[str, Any]:
+def _serialize_public_event(
+    repository: ServiceInstanceRepository,
+    instance: ServiceInstance,
+) -> dict[str, Any]:
     service = instance.service
     title = instance.title if instance.title else service.title
     summary = instance.description if instance.description else service.description
@@ -127,18 +122,11 @@ def _serialize_public_event(instance: ServiceInstance) -> dict[str, Any]:
         payload["slug"] = instance.slug
     if instance.landing_page is not None:
         payload["landing_page"] = instance.landing_page
-    filled = _count_capacity_filled(instance)
     if instance.max_capacity is not None:
+        filled = repository.get_enrollment_count(instance.id)
         payload["spaces_total"] = instance.max_capacity
         payload["spaces_left"] = max(0, instance.max_capacity - filled)
     return payload
-
-
-def _count_capacity_filled(instance: ServiceInstance) -> int:
-    """Count enrollments that consume instance capacity (matches admin enrollment guard)."""
-    return sum(
-        1 for e in instance.enrollments if e.status in _CAPACITY_ENROLLMENT_STATUSES
-    )
 
 
 def _resolve_primary_ticket_price(

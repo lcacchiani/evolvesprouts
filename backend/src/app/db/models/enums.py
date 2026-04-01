@@ -259,6 +259,13 @@ class EnrollmentStatus(str, enum.Enum):
     COMPLETED = "completed"
 
 
+CAPACITY_ENROLLMENT_STATUSES: tuple[EnrollmentStatus, ...] = (
+    EnrollmentStatus.REGISTERED,
+    EnrollmentStatus.CONFIRMED,
+    EnrollmentStatus.COMPLETED,
+)
+
+
 class ExpenseStatus(str, enum.Enum):
     """Lifecycle status for admin-managed expense invoices."""
 

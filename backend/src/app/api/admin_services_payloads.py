@@ -6,7 +6,10 @@ from collections.abc import Mapping
 from typing import Any
 
 from app.api.admin_request import query_param
-from app.api.admin_validators import MAX_DESCRIPTION_LENGTH
+from app.api.admin_validators import (
+    MAX_DESCRIPTION_LENGTH,
+    parse_optional_service_instance_slug,
+)
 from app.api.admin_services_cursor import parse_created_cursor
 from app.api.admin_services_payload_utils import (
     has_any_field,
@@ -245,7 +248,7 @@ def parse_create_instance_payload(
     """Parse and validate service-instance creation payload."""
     return {
         "title": parse_optional_text(body.get("title"), max_length=255),
-        "slug": parse_optional_text(body.get("slug"), max_length=128),
+        "slug": parse_optional_service_instance_slug(body.get("slug")),
         "landing_page": parse_optional_text(body.get("landing_page"), max_length=255),
         "description": parse_optional_text(
             body.get("description"), max_length=MAX_DESCRIPTION_LENGTH
@@ -288,7 +291,7 @@ def parse_update_instance_payload(
     if has_field(body, "title"):
         payload["title"] = parse_optional_text(body.get("title"), max_length=255)
     if has_field(body, "slug"):
-        payload["slug"] = parse_optional_text(body.get("slug"), max_length=128)
+        payload["slug"] = parse_optional_service_instance_slug(body.get("slug"))
     if has_field(body, "landing_page"):
         payload["landing_page"] = parse_optional_text(
             body.get("landing_page"), max_length=255
