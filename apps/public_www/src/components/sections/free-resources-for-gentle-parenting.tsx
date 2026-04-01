@@ -3,7 +3,6 @@
 import { useState } from 'react';
 
 import { MediaForm } from '@/components/sections/media-form';
-import { useMediaFormContext } from '@/components/sections/shared/media-form-context';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -248,9 +247,6 @@ export function FreeResourcesForGentleParenting({
   content,
 }: FreeResourcesForGentleParentingProps) {
   const [hasOpenedMediaForm, setHasOpenedMediaForm] = useState(false);
-  const mediaFormPageContext = useMediaFormContext();
-  const hideChecklistForPageSubmission =
-    mediaFormPageContext?.hasSubmitted ?? false;
 
   const sectionConfig = readSectionConfig(content);
   const eyebrowLabel = readOptionalText(content.eyebrow) ?? content.title;
@@ -316,7 +312,7 @@ export function FreeResourcesForGentleParenting({
       formSuccessTitle={formSuccessTitle}
       formSuccessBody={formSuccessBody}
       formErrorMessage={formErrorMessage}
-      showChecklist={!hasOpenedMediaForm && !hideChecklistForPageSubmission}
+      showChecklist={!hasOpenedMediaForm}
       onFormOpened={() => {
         setHasOpenedMediaForm(true);
       }}

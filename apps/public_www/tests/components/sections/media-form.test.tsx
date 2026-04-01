@@ -265,6 +265,18 @@ describe('MediaForm', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('invokes onFormOpened when page-level submission auto-skips the form', () => {
+    const onFormOpened = vi.fn();
+    renderWithMediaFormProvider(
+      <>
+        <MarkPageMediaFormSubmitted />
+        <MediaForm {...mediaFormProps()} onFormOpened={onFormOpened} />
+      </>,
+    );
+
+    expect(onFormOpened).toHaveBeenCalledTimes(1);
+  });
+
   it('calls markFormSubmitted on successful submission so a second form shows success', async () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({ request });

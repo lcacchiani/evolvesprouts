@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
@@ -63,6 +63,7 @@ export function MediaForm({
   const formErrorId = `${mediaFormInstanceId}-media-form-error`;
   const mediaFormPageContext = useMediaFormContext();
   const hasPageLevelSubmission = mediaFormPageContext?.hasSubmitted ?? false;
+  const onFormOpenedRef = useRef(onFormOpened);
 
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
@@ -113,6 +114,17 @@ export function MediaForm({
       window.cancelAnimationFrame(animationFrameId);
     };
   }, [isFormVisible]);
+
+  useLayoutEffect(() => {
+    onFormOpenedRef.current = onFormOpened;
+  }, [onFormOpened]);
+
+  useLayoutEffect(() => {
+    if (!hasPageLevelSubmission) {
+      return;
+    }
+    onFormOpenedRef.current?.();
+  }, [hasPageLevelSubmission]);
 
   function handleOpenForm() {
     setIsFormFadingIn(false);

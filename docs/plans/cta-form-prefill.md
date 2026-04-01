@@ -36,7 +36,12 @@ renders its success state immediately instead of the CTA button.
 
 ## Files to create
 
-### 1. `apps/public_www/src/components/sections/shared/media-form-context.tsx`
+### 1. `apps/public_www/src/components/pages/free-guides-media-forms-boundary.tsx` (optional thin client wrapper)
+
+- `'use client'`; re-exports `MediaFormProvider` as `FreeGuidesMediaFormsBoundary`
+  so the page composition file does not import a client module directly.
+
+### 2. `apps/public_www/src/components/sections/shared/media-form-context.tsx`
 
 - `'use client'` component.
 - `MediaFormContext` via `createContext`.
@@ -50,7 +55,7 @@ renders its success state immediately instead of the CTA button.
 
 ## Files to modify
 
-### 2. `apps/public_www/src/components/sections/media-form.tsx`
+### 3. `apps/public_www/src/components/sections/media-form.tsx`
 
 **Changes:**
 
@@ -58,6 +63,10 @@ renders its success state immediately instead of the CTA button.
 - Read `hasSubmitted` from context (or `false` if context is `null`).
 - **On successful submission** (`markSubmissionSuccess` call site inside
   `handleSubmit`): also call `markFormSubmitted()` from context.
+- When auto-skipping due to page-level `hasSubmitted`, **`onFormOpened` is still
+  invoked once** (`useLayoutEffect` + ref) so parent sections (for example
+  checklist hide via `hasOpenedMediaForm`) stay consistent with an explicit CTA
+  open.
 - **Render logic change**: when `hasSubmitted` is `true` (set by another
   instance), return the success block (`formSuccessTitle` / `formSuccessBody`)
   immediately — same JSX as the existing `hasSuccessfulSubmission` branch.
@@ -74,21 +83,21 @@ renders its success state immediately instead of the CTA button.
 - **Fix duplicate error `id`**: make `MEDIA_FORM_ERROR_ID` unique per instance
   using the same `useId()` base.
 
-### 3. `apps/public_www/src/components/pages/free-guides-and-resources.tsx`
+### 4. `apps/public_www/src/components/pages/free-guides-and-resources.tsx`
 
 **Changes:**
 
-- Import `MediaFormProvider` from the new context module.
-- Wrap the page children (or at minimum `FreeResourcesForGentleParenting` +
-  `FreeGuidesAndResourcesLibrary`) with `<MediaFormProvider>`.
-- `FreeGuidesAndResourcesPage` is currently a server component. Since
-  `MediaFormProvider` is `'use client'`, it can be rendered as a child of the
-  server component wrapping client children — valid Next.js App Router
-  composition.
+- Wrap `FreeResourcesForGentleParenting` + `FreeGuidesAndResourcesLibrary` with
+  `<FreeGuidesMediaFormsBoundary>` from
+  `free-guides-media-forms-boundary.tsx` (a thin `'use client'` wrapper around
+  `MediaFormProvider`) so the page module stays a server component without
+  importing the provider directly.
+- `FreeGuidesAndResourcesPage` remains a server component; the boundary file
+  owns the explicit client entry.
 
 ## Test files to update / create
 
-### 4. `apps/public_www/tests/components/sections/media-form.test.tsx`
+### 5. `apps/public_www/tests/components/sections/media-form.test.tsx`
 
 **Changes:**
 
@@ -104,7 +113,7 @@ renders its success state immediately instead of the CTA button.
 - Existing tests continue to work (no provider → `useMediaFormContext()`
   returns `null` → falls back to current behavior).
 
-### 5. `apps/public_www/tests/components/sections/shared/media-form-context.test.tsx`
+### 6. `apps/public_www/tests/components/sections/shared/media-form-context.test.tsx`
 
 **New file:**
 
@@ -132,7 +141,7 @@ renders its success state immediately instead of the CTA button.
 | **Duplicate HTML IDs** | Fixed by switching to `useId()`. Two expanded forms on the same page will no longer share `id='media-first-name'` / `id='media-email'`. |
 | **PII persistence** | No storage APIs used. Data lives only in React state — cleared on navigation or refresh. |
 | **Library items with `ctaHref` links** | Not affected. Only items rendered via `MediaForm` (currently `patience-free-guide`) participate in the context. Link-based items are unchanged. |
-| **`FreeResourcesForGentleParenting` checklist hide** | The existing `hasOpenedMediaForm` logic hides the checklist when the user opens the form. When the form is auto-skipped (success shown directly), the checklist should also hide. Implemented by treating context `hasSubmitted` as hiding the checklist (derived condition: `!hasOpenedMediaForm && !hasSubmitted`), avoiding `useEffect` + `setState` (disallowed by `react-hooks/set-state-in-effect`). |
+| **`FreeResourcesForGentleParenting` checklist hide** | Checklist uses `showChecklist={!hasOpenedMediaForm}`. Auto-skip triggers `onFormOpened` from `MediaForm` so `hasOpenedMediaForm` becomes `true` without duplicating a second flag. |
 
 ## Validation checklist
 
