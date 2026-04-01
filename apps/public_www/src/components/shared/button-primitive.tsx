@@ -11,7 +11,6 @@ import type { HrefKind } from '@/lib/url-utils';
 
 export type ButtonPrimitiveVariant =
   | 'primary'
-  | 'primary-outline'
   | 'outline'
   | 'control'
   | 'pill'

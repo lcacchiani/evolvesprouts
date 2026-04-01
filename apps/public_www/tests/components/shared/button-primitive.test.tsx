@@ -39,13 +39,6 @@ describe('ButtonPrimitive', () => {
     expect(button.className).toContain('es-btn--outline');
   });
 
-  it('supports primary-outline variant', () => {
-    render(<ButtonPrimitive variant='primary-outline'>Outline primary</ButtonPrimitive>);
-
-    const button = screen.getByRole('button', { name: 'Outline primary' });
-    expect(button.className).toContain('es-btn--primary-outline');
-  });
-
   it('supports explicit submit button type', () => {
     render(
       <ButtonPrimitive variant='primary' type='submit'>

@@ -43,7 +43,8 @@ describe('FreeGuidesAndResourcesLibrary', () => {
     expect(screen.getByText(firstItem.format)).toBeInTheDocument();
 
     const cta = screen.getByRole('link', { name: firstItem.ctaLabel });
-    expect(cta.className).toContain('es-btn--primary-outline');
+    expect(cta.className).toContain('es-btn--primary');
+    expect(cta.className).toContain('es-btn--outline');
   });
 
   it('filters by search on title and description', () => {
