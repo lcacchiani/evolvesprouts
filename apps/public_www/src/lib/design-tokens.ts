@@ -7,6 +7,7 @@ export const TOKEN_FALLBACK_HEX = {
   '--es-color-booking-highlight-icon': '#B42318',
   '--es-color-border-deep': '#564640',
   '--es-color-border-date': '#CAD6E5',
+  '--es-color-border-input': '#CAD6E5',
   '--es-color-surface-deep': '#3A1F23',
   '--es-color-surface-deep-1': '#483C34',
   '--es-color-surface-deep-2': '#40332A',
@@ -14,6 +15,7 @@ export const TOKEN_FALLBACK_HEX = {
   '--es-color-text-heading': '#333333',
   '--es-color-text-icon': '#3D3E3D',
   '--es-color-text-neutral-strong': '#5A5A5A',
+  '--es-color-text-danger-strong': '#B42318',
 } as const;
 
 export const HEADING_TEXT_COLOR =
@@ -51,7 +53,7 @@ export const STRIPE_APPEARANCE_CSS_VARS = {
   borderInput: '--es-color-border-input',
 } as const;
 
-/** SSR fallbacks for Stripe; align with TOKEN_FALLBACK_HEX where the same token exists. */
+/** SSR fallbacks for Stripe; map each STRIPE_APPEARANCE_CSS_VARS entry to the matching TOKEN_FALLBACK_HEX key. */
 export const STRIPE_APPEARANCE_FALLBACK_HEX = {
   brandOrange: TOKEN_FALLBACK_HEX['--es-color-brand-orange'],
   surfaceWhite: TOKEN_FALLBACK_HEX['--es-color-surface-white'],
@@ -59,6 +61,6 @@ export const STRIPE_APPEARANCE_FALLBACK_HEX = {
   textHeading: TOKEN_FALLBACK_HEX['--es-color-text-heading'],
   textNeutralStrong: TOKEN_FALLBACK_HEX['--es-color-text-neutral-strong'],
   textPlaceholder: '#8A8A8A',
-  textDangerStrong: TOKEN_FALLBACK_HEX['--es-color-booking-highlight-icon'],
-  borderInput: TOKEN_FALLBACK_HEX['--es-color-border-date'],
+  textDangerStrong: TOKEN_FALLBACK_HEX['--es-color-text-danger-strong'],
+  borderInput: TOKEN_FALLBACK_HEX['--es-color-border-input'],
 } as const;

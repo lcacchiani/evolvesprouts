@@ -54,7 +54,29 @@ function unwrapObjectLiteral(initializer) {
   return ts.isObjectLiteralExpression(node) ? node : null;
 }
 
-function extractMetaPixelStaticContentNames(taxonomySourceText, errors) {
+const LANDING_SLUG_ALLOWED_EVENTS = new Set(['InitiateCheckout']);
+
+function extractStringLiteralsFromArrayLike(initializer) {
+  let node = initializer;
+  while (node && (ts.isAsExpression(node) || ts.isSatisfiesExpression(node))) {
+    node = node.expression;
+  }
+  if (!node || !ts.isArrayLiteralExpression(node)) {
+    return [];
+  }
+  const out = [];
+  for (const el of node.elements) {
+    if (ts.isStringLiteral(el) || ts.isNoSubstitutionTemplateLiteral(el)) {
+      out.push(el.text);
+    }
+  }
+  return out;
+}
+
+/**
+ * @returns {{ names: Set<string>, allowedEventsByName: Map<string, Set<string>> }}
+ */
+function extractMetaPixelTaxonomy(taxonomySourceText, errors) {
   const sourceFile = ts.createSourceFile(
     TAXONOMY_PATH,
     taxonomySourceText,
@@ -64,6 +86,8 @@ function extractMetaPixelStaticContentNames(taxonomySourceText, errors) {
   );
 
   const names = new Set();
+  const allowedEventsByName = new Map();
+
   function visit(node) {
     if (
       ts.isVariableDeclaration(node)
@@ -74,9 +98,26 @@ function extractMetaPixelStaticContentNames(taxonomySourceText, errors) {
       const objectLiteral = unwrapObjectLiteral(node.initializer);
       if (objectLiteral) {
         for (const prop of objectLiteral.properties) {
-          if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name)) {
-            names.add(prop.name.text);
+          if (!ts.isPropertyAssignment(prop) || !ts.isIdentifier(prop.name)) {
+            continue;
           }
+          const contentName = prop.name.text;
+          names.add(contentName);
+          const entryLiteral = unwrapObjectLiteral(prop.initializer);
+          let allowedList = [];
+          if (entryLiteral) {
+            for (const entryProp of entryLiteral.properties) {
+              if (
+                ts.isPropertyAssignment(entryProp)
+                && ts.isIdentifier(entryProp.name)
+                && entryProp.name.text === 'allowedEvents'
+              ) {
+                allowedList = extractStringLiteralsFromArrayLike(entryProp.initializer);
+                break;
+              }
+            }
+          }
+          allowedEventsByName.set(contentName, new Set(allowedList));
         }
       }
     }
@@ -88,7 +129,7 @@ function extractMetaPixelStaticContentNames(taxonomySourceText, errors) {
     errors.push('Could not parse META_PIXEL_CONTENT_NAMES keys from meta-pixel-taxonomy.ts.');
   }
 
-  return names;
+  return { names, allowedEventsByName };
 }
 
 function extractLandingPageSlugs(landingSourceText, errors) {
@@ -158,6 +199,27 @@ function isAllowedContentNameLiteral(value, staticNames, landingSlugs) {
   return staticNames.has(value) || landingSlugs.has(value);
 }
 
+function enforceEventAllowedForContentName({
+  contentNameKey,
+  eventName,
+  allowedEventsByName,
+  relPath,
+  sourceText,
+  expressionPos,
+  errors,
+}) {
+  const allowed = allowedEventsByName.get(contentNameKey);
+  if (!allowed || allowed.size === 0) {
+    return;
+  }
+  if (!allowed.has(eventName)) {
+    const lineNumber = getLineNumber(sourceText, expressionPos);
+    errors.push(
+      `${relPath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") content_name "${contentNameKey}" is only allowed with events: ${[...allowed].join(', ')}.`,
+    );
+  }
+}
+
 function validateContentNameExpression({
   expression,
   sourceFilePath,
@@ -165,6 +227,7 @@ function validateContentNameExpression({
   eventName,
   staticNames,
   landingSlugs,
+  allowedEventsByName,
   errors,
 }) {
   const relPath = path.relative(path.resolve(__dirname, '..'), sourceFilePath);
@@ -175,6 +238,23 @@ function validateContentNameExpression({
       const lineNumber = getLineNumber(sourceText, expression.pos);
       errors.push(
         `${relPath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") content_name "${value}" is not in META_PIXEL_CONTENT_NAMES or LANDING_PAGES.`,
+      );
+      return;
+    }
+    if (staticNames.has(value)) {
+      enforceEventAllowedForContentName({
+        contentNameKey: value,
+        eventName,
+        allowedEventsByName,
+        relPath,
+        sourceText,
+        expressionPos: expression.pos,
+        errors,
+      });
+    } else if (landingSlugs.has(value) && !LANDING_SLUG_ALLOWED_EVENTS.has(eventName)) {
+      const lineNumber = getLineNumber(sourceText, expression.pos);
+      errors.push(
+        `${relPath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") landing page content_name "${value}" is only allowed with events: ${[...LANDING_SLUG_ALLOWED_EVENTS].join(', ')}.`,
       );
     }
     return;
@@ -187,6 +267,15 @@ function validateContentNameExpression({
     && ts.isIdentifier(expression.name)
     && staticNames.has(expression.name.text)
   ) {
+    enforceEventAllowedForContentName({
+      contentNameKey: expression.name.text,
+      eventName,
+      allowedEventsByName,
+      relPath,
+      sourceText,
+      expressionPos: expression.pos,
+      errors,
+    });
     return;
   }
 
@@ -198,6 +287,7 @@ function validateContentNameExpression({
       eventName,
       staticNames,
       landingSlugs,
+      allowedEventsByName,
       errors,
     });
     validateContentNameExpression({
@@ -207,22 +297,37 @@ function validateContentNameExpression({
       eventName,
       staticNames,
       landingSlugs,
+      allowedEventsByName,
       errors,
     });
     return;
   }
 
   if (ts.isAsExpression(expression) && ts.isIdentifier(expression.expression)) {
+    // Landing page slug is typed as MetaPixelContentName; runtime values are registered LANDING_PAGES keys only.
     if (
       expression.expression.text === 'slug'
       && relPath.endsWith('landing-pages/shared/landing-page-booking-cta-action.tsx')
     ) {
+      if (!LANDING_SLUG_ALLOWED_EVENTS.has(eventName)) {
+        const lineNumber = getLineNumber(sourceText, expression.pos);
+        errors.push(
+          `${relPath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") dynamic landing slug content_name is only allowed with events: ${[...LANDING_SLUG_ALLOWED_EVENTS].join(', ')}.`,
+        );
+      }
       return;
     }
   }
 
   if (ts.isIdentifier(expression)) {
+    // Whitelist: variable is constrained by TypeScript at declaration (MetaPixelStaticContentName / MetaPixelContentName).
     if (expression.text === 'slug' && relPath.endsWith('landing-pages/shared/landing-page-booking-cta-action.tsx')) {
+      if (!LANDING_SLUG_ALLOWED_EVENTS.has(eventName)) {
+        const lineNumber = getLineNumber(sourceText, expression.pos);
+        errors.push(
+          `${relPath}:${lineNumber} ${TRACKER_FUNCTION_NAME}("${eventName}") dynamic landing slug content_name is only allowed with events: ${[...LANDING_SLUG_ALLOWED_EVENTS].join(', ')}.`,
+        );
+      }
       return;
     }
     if (expression.text === 'contentName' && relPath.endsWith('components/sections/links-hub.tsx')) {
@@ -250,6 +355,7 @@ function validateCall({
   sourceText,
   staticNames,
   landingSlugs,
+  allowedEventsByName,
   errors,
 }) {
   const eventNameNode = node.arguments[0];
@@ -283,12 +389,20 @@ function validateCall({
       eventName,
       staticNames,
       landingSlugs,
+      allowedEventsByName,
       errors,
     });
   }
 }
 
-function validateSourceFile(sourceFilePath, sourceText, staticNames, landingSlugs, errors) {
+function validateSourceFile(
+  sourceFilePath,
+  sourceText,
+  staticNames,
+  landingSlugs,
+  allowedEventsByName,
+  errors,
+) {
   const sourceFile = ts.createSourceFile(
     sourceFilePath,
     sourceText,
@@ -309,6 +423,7 @@ function validateSourceFile(sourceFilePath, sourceText, staticNames, landingSlug
         sourceText,
         staticNames,
         landingSlugs,
+        allowedEventsByName,
         errors,
       });
     }
@@ -322,13 +437,20 @@ async function main() {
   const errors = [];
   const taxonomyText = await readFile(TAXONOMY_PATH, 'utf8');
   const landingText = await readFile(LANDING_PAGES_PATH, 'utf8');
-  const staticNames = extractMetaPixelStaticContentNames(taxonomyText, errors);
+  const { names: staticNames, allowedEventsByName } = extractMetaPixelTaxonomy(taxonomyText, errors);
   const landingSlugs = extractLandingPageSlugs(landingText, errors);
 
   const sourceFiles = await collectSourceFiles(SRC_DIR);
   for (const sourceFile of sourceFiles) {
     const sourceText = await readFile(sourceFile, 'utf8');
-    validateSourceFile(sourceFile, sourceText, staticNames, landingSlugs, errors);
+    validateSourceFile(
+      sourceFile,
+      sourceText,
+      staticNames,
+      landingSlugs,
+      allowedEventsByName,
+      errors,
+    );
   }
 
   if (errors.length > 0) {

@@ -98,4 +98,25 @@ describe('landing-pages registry', () => {
       }
     }
   });
+
+  it('every static root app segment with page.tsx is reserved or a registered landing slug', () => {
+    const appDir = path.resolve(__dirname, '../../src/app');
+    const landingSlugSet = new Set(getAllLandingPageSlugs());
+    const entries = readdirSync(appDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith('[') || entry.name.startsWith('(')) {
+        continue;
+      }
+      const pageFile = path.join(appDir, entry.name, 'page.tsx');
+      if (!existsSync(pageFile)) {
+        continue;
+      }
+      const covered =
+        RESERVED_PATH_SEGMENTS.has(entry.name) || landingSlugSet.has(entry.name);
+      expect(
+        covered,
+        `Add "${entry.name}" to RESERVED_PATH_SEGMENTS in routes.ts or register it as a landing page slug.`,
+      ).toBe(true);
+    }
+  });
 });

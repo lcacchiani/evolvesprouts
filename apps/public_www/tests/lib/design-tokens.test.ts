@@ -4,6 +4,7 @@ import {
   SITE_PRIMARY_FONT_STACK,
   STRIPE_APPEARANCE_CSS_VARS,
   STRIPE_APPEARANCE_FALLBACK_HEX,
+  TOKEN_FALLBACK_HEX,
 } from '@/lib/design-tokens';
 
 describe('design-tokens', () => {
@@ -22,5 +23,14 @@ describe('design-tokens', () => {
   it('exports a non-empty Stripe font stack string', () => {
     expect(SITE_PRIMARY_FONT_STACK.length).toBeGreaterThan(10);
     expect(SITE_PRIMARY_FONT_STACK).toContain('Lato');
+  });
+
+  it('Stripe danger and border fallbacks match the CSS vars they resolve at runtime', () => {
+    expect(STRIPE_APPEARANCE_FALLBACK_HEX.textDangerStrong).toBe(
+      TOKEN_FALLBACK_HEX['--es-color-text-danger-strong'],
+    );
+    expect(STRIPE_APPEARANCE_FALLBACK_HEX.borderInput).toBe(
+      TOKEN_FALLBACK_HEX['--es-color-border-input'],
+    );
   });
 });

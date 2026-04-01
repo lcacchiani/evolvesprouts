@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ErrorPageContent } from '@/components/shared/error-page-content';
+import type { SiteContent } from '@/content';
 import enContent from '@/content/en.json';
 
 const mockedReportInternalError = vi.hoisted(() => vi.fn());
@@ -22,7 +23,7 @@ describe('ErrorPageContent', () => {
     render(
       <ErrorPageContent
         locale='en'
-        content={enContent}
+        content={enContent as SiteContent}
         error={error}
         reset={resetSpy}
         reportingContext='root-error-boundary'
