@@ -23,6 +23,8 @@ interface MediaFormProps {
   formErrorMessage: string;
   resourceKey?: string;
   className?: string;
+  /** Extra classes for the closed-state CTA (e.g. `es-btn--outline` for primary outline). */
+  ctaButtonClassName?: string;
   analyticsSectionId?: string;
   onFormOpened?: () => void;
 }
@@ -51,6 +53,7 @@ export function MediaForm({
   formErrorMessage,
   resourceKey,
   className,
+  ctaButtonClassName,
   analyticsSectionId = 'media-form',
   onFormOpened,
 }: MediaFormProps) {
@@ -201,7 +204,11 @@ export function MediaForm({
     return (
       <ButtonPrimitive
         variant='primary'
-        className={mergeClassNames('mt-auto w-full max-w-[360px]', className)}
+        className={mergeClassNames(
+          'mt-auto w-full max-w-[360px]',
+          ctaButtonClassName,
+          className,
+        )}
         onClick={handleOpenForm}
       >
         {ctaLabel}
