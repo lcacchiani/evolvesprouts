@@ -1080,11 +1080,18 @@ export class ApiStack extends cdk.Stack {
       })
     );
 
+    const sharedLambdaDlq = new sqs.Queue(this, "SharedLambdaDLQ", {
+      queueName: name("shared-lambda-dlq"),
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS_MANAGED,
+    });
+
     const lambdaFactory = new PythonLambdaFactory(this, {
       vpc,
       securityGroups: [lambdaSecurityGroup],
       environmentEncryptionKey: sharedLambdaEnvEncryptionKey,
       logEncryptionKey: sharedLambdaLogEncryptionKey,
+      deadLetterQueue: sharedLambdaDlq,
     });
 
     // Factory for Lambda functions that run outside VPC (for authorizers that
@@ -1092,6 +1099,7 @@ export class ApiStack extends cdk.Stack {
     const noVpcLambdaFactory = new PythonLambdaFactory(this, {
       environmentEncryptionKey: sharedLambdaEnvEncryptionKey,
       logEncryptionKey: sharedLambdaLogEncryptionKey,
+      deadLetterQueue: sharedLambdaDlq,
     });
 
     // Helper to create Lambda functions using the factory
