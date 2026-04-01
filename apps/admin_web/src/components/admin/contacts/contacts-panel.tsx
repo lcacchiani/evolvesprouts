@@ -671,6 +671,7 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
               <th className='px-4 py-3 font-semibold'>Email</th>
               <th className='px-4 py-3 font-semibold'>Type</th>
               <th className='px-4 py-3 font-semibold'>Status</th>
+              <th className='px-4 py-3 text-right font-semibold'>Operations</th>
             </tr>
           </AdminDataTableHead>
           <AdminDataTableBody>
@@ -688,6 +689,20 @@ export function ContactsPanel({ contacts, tags, locations, geographicAreas }: Co
                   <td className='px-4 py-3'>{row.email ?? '—'}</td>
                   <td className='px-4 py-3'>{formatEnumLabel(row.contact_type)}</td>
                   <td className='px-4 py-3'>{row.active ? 'Active' : 'Archived'}</td>
+                  <td className='px-4 py-3 text-right'>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='outline'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void updateContact(row.id, { active: !row.active });
+                      }}
+                      disabled={isSaving}
+                    >
+                      {row.active ? 'Archive' : 'Restore'}
+                    </Button>
+                  </td>
                 </tr>
               );
             })}

@@ -25,8 +25,10 @@ import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
+import { getAdminDefaultCurrencyCode } from '@/lib/config';
 
 type ApiSchemas = components['schemas'];
+const defaultCurrencyCode = getAdminDefaultCurrencyCode();
 
 export interface InstanceDetailPanelProps {
   instance: ServiceInstance | null;
@@ -72,7 +74,7 @@ function mergeServiceIntoTrainingForm(
     ...prev,
     pricingUnit: td.pricingUnit,
     defaultPrice: td.defaultPrice ?? '',
-    defaultCurrency: td.defaultCurrency ?? 'HKD',
+    defaultCurrency: td.defaultCurrency ?? defaultCurrencyCode,
   };
 }
 
@@ -118,7 +120,7 @@ export function InstanceDetailPanel({
       ? {
           pricingUnit: instance.trainingDetails?.pricingUnit ?? 'per_person',
           defaultPrice: instance.trainingDetails?.price ?? '',
-          defaultCurrency: instance.trainingDetails?.currency ?? 'HKD',
+          defaultCurrency: instance.trainingDetails?.currency ?? defaultCurrencyCode,
         }
       : DEFAULT_TRAINING_FORM
   );
@@ -139,7 +141,8 @@ export function InstanceDetailPanel({
           defaultHourlyRate: instance.consultationDetails?.price ?? '',
           defaultPackagePrice: '',
           defaultPackageSessions: instance.consultationDetails?.packageSessions?.toString() ?? '',
-          defaultCurrency: instance.consultationDetails?.currency ?? 'HKD',
+          defaultCurrency:
+            instance.consultationDetails?.currency ?? defaultCurrencyCode,
           calendlyUrl: instance.consultationDetails?.calendlyEventUrl ?? '',
         }
       : DEFAULT_CONSULTATION_FORM
@@ -210,7 +213,7 @@ export function InstanceDetailPanel({
       payload.training_details = {
         training_format: 'group',
         price: trainingForm.defaultPrice || '0',
-        currency: trainingForm.defaultCurrency || 'HKD',
+        currency: trainingForm.defaultCurrency || defaultCurrencyCode,
         pricing_unit: trainingForm.pricingUnit,
       };
     } else if (effectiveServiceType === 'event') {
@@ -219,7 +222,7 @@ export function InstanceDetailPanel({
           name: eventForm.eventCategory,
           description: null,
           price: '0',
-          currency: 'HKD',
+          currency: defaultCurrencyCode,
           max_quantity: null,
           sort_order: 0,
         },
@@ -228,7 +231,7 @@ export function InstanceDetailPanel({
       payload.consultation_details = {
         pricing_model: consultationForm.pricingModel,
         price: consultationForm.defaultHourlyRate || null,
-        currency: consultationForm.defaultCurrency || 'HKD',
+        currency: consultationForm.defaultCurrency || defaultCurrencyCode,
         package_sessions: consultationForm.defaultPackageSessions
           ? Number(consultationForm.defaultPackageSessions)
           : null,

@@ -2,16 +2,6 @@
 
 import { useMemo, useState } from 'react';
 
-function contactEligibleForOrgMember(
-  contact: { id: string; family_ids: string[]; organization_ids: string[] },
-  selectedOrgId: string | null
-): boolean {
-  if (contact.organization_ids.length === 0) {
-    return true;
-  }
-  return Boolean(selectedOrgId && contact.organization_ids.includes(selectedOrgId));
-}
-
 import type { useAdminCrmOrganizations } from '@/hooks/use-admin-crm-organizations';
 import { CrmTagPicker } from '@/components/admin/contacts/crm-tag-picker';
 import { Button } from '@/components/ui/button';
@@ -51,6 +41,16 @@ const ORG_ROLES: ApiSchemas['CrmOrganizationRole'][] = [
   'partner',
   'other',
 ];
+
+function contactEligibleForOrgMember(
+  contact: { id: string; family_ids: string[]; organization_ids: string[] },
+  selectedOrgId: string | null
+): boolean {
+  if (contact.organization_ids.length === 0) {
+    return true;
+  }
+  return Boolean(selectedOrgId && contact.organization_ids.includes(selectedOrgId));
+}
 
 export interface OrganizationsPanelProps {
   organizations: ReturnType<typeof useAdminCrmOrganizations>;
