@@ -22,7 +22,12 @@ import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { Label } from '@/components/ui/label';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { Select } from '@/components/ui/select';
-import { formatAssetTagDisplayName, formatDate, toTitleCase } from '@/lib/format';
+import {
+  formatAssetContentLanguageLabel,
+  formatAssetTagDisplayName,
+  formatDate,
+  toTitleCase,
+} from '@/lib/format';
 
 export interface AssetListPanelProps {
   assets: AdminAsset[];
@@ -161,11 +166,12 @@ export function AssetListPanel({
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[860px]'>
+        <AdminDataTable tableClassName='min-w-[920px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Title</th>
               <th className='px-4 py-3 font-semibold'>Tags</th>
+              <th className='px-4 py-3 font-semibold'>Language</th>
               <th className='px-4 py-3 font-semibold'>Visibility</th>
               <th className='px-4 py-3 font-semibold'>File</th>
               <th className='px-4 py-3 font-semibold'>Updated</th>
@@ -175,7 +181,7 @@ export function AssetListPanel({
           <AdminDataTableBody>
             {isLoadingAssets ? null : assets.length === 0 ? (
               <tr>
-                <td className='px-4 py-8 text-slate-600' colSpan={6}>
+                <td className='px-4 py-8 text-slate-600' colSpan={7}>
                   No assets found for the current filters.
                 </td>
               </tr>
@@ -226,6 +232,9 @@ export function AssetListPanel({
                           })}
                         </div>
                       )}
+                    </td>
+                    <td className='px-4 py-3 text-slate-700'>
+                      {formatAssetContentLanguageLabel(asset.contentLanguage)}
                     </td>
                     <td className='px-4 py-3 text-slate-700'>{toTitleCase(asset.visibility)}</td>
                     <td className='px-4 py-3 text-slate-700'>{asset.fileName || '—'}</td>

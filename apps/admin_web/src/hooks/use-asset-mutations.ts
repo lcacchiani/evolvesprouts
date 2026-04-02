@@ -8,7 +8,12 @@ import {
   updateAdminAsset,
   uploadFileToPresignedUrl,
 } from '@/lib/assets-api';
-import type { AdminAsset, CreatedAssetUpload, UpsertAdminAssetInput } from '@/types/assets';
+import type {
+  AdminAsset,
+  CreatedAssetUpload,
+  UpdateAdminAssetPatchInput,
+  UpsertAdminAssetInput,
+} from '@/types/assets';
 
 import { toErrorMessage } from './hook-errors';
 
@@ -28,7 +33,7 @@ export interface UseAssetMutationsReturn {
   uploadError: string;
   hasPendingUpload: boolean;
   createAssetEntry: (input: UpsertAdminAssetInput, file: File) => Promise<void>;
-  updateAssetEntry: (assetId: string, input: UpsertAdminAssetInput) => Promise<void>;
+  updateAssetEntry: (assetId: string, input: UpdateAdminAssetPatchInput) => Promise<void>;
   deleteAssetEntry: (assetId: string) => Promise<void>;
   retryPendingUpload: () => Promise<void>;
   resetMutationState: () => void;

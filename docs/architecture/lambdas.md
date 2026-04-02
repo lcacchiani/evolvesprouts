@@ -53,7 +53,9 @@ their primary responsibilities.
   when `max_capacity` is set, using the same enrollment statuses as capacity
   checks: registered, confirmed, completed),
   `/www/v1/client-resources` (lists public assets tagged `client_document`;
-  optional `language` query filters on `assets.content_language`; downloads
+  optional `language` query filters on `assets.content_language` using any valid
+  BCP 47-style tag; admin asset writes restrict `content_language` to `en`,
+  `zh-CN`, or `zh-HK`; downloads
   remain on `/v1/assets/public/{id}/download` with device attestation)
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,

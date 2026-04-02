@@ -86,8 +86,12 @@ describe('AssetListPanel', () => {
 
   it('renders table data and handles filter and load-more actions', async () => {
     const user = userEvent.setup();
-    const { onQueryChange, onLoadMore } = renderPanel();
+    const { onQueryChange, onLoadMore } = renderPanel({
+      assets: [createAdminAssetFixture({ ...FIXTURE_ASSET, contentLanguage: 'zh-HK' })],
+    });
 
+    expect(screen.getByRole('columnheader', { name: 'Language' })).toBeInTheDocument();
+    expect(screen.getByText('zh-HK Cantonese (Hong Kong)')).toBeInTheDocument();
     expect(screen.getByText('Infant Nutrition Guide')).toBeInTheDocument();
     await user.type(screen.getByLabelText('Search'), 'guide');
     expect(onQueryChange).toHaveBeenCalled();

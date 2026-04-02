@@ -61,7 +61,8 @@ Columns:
 - `resource_key` (varchar(64), optional) — normalized key for media form mapping
 - `content_type` (varchar(127), optional) — MIME type
 - `content_language` (varchar(35), optional) — BCP 47-style tag for file content
-  (e.g. `en`, `zh-HK`); used when listing public client resources by language
+  (e.g. `en`, `zh-HK`); admin create/update allow only `en`, `zh-CN`, and `zh-HK`;
+  public client-resources list filters accept any valid BCP 47-style tag
 - `visibility` (enum `asset_visibility`, required) — access level
 - `created_by` (varchar(128), required) — Cognito sub of uploader
 - `created_at` (timestamptz, default `now()`)

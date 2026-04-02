@@ -11,8 +11,10 @@ from app.api.admin_request import parse_cursor
 from app.api.assets.assets_common import (
     asset_links_expense_attachment,
     paginate_response,
+    parse_admin_asset_content_language,
     parse_admin_asset_list_filters,
     parse_create_asset_payload,
+    parse_optional_content_language,
     parse_partial_update_asset_payload,
     parse_update_asset_payload,
 )
@@ -237,6 +239,37 @@ def test_parse_partial_update_accepts_client_tag_only() -> None:
     payload = parse_partial_update_asset_payload(event)
     assert payload["client_tag_specified"] is True
     assert payload["client_tag"] == "client_document"
+
+
+def test_parse_optional_content_language_accepts_arbitrary_bcp47_for_public_query() -> None:
+    assert parse_optional_content_language({"language": "fr"}, "language") == "fr"
+
+
+def test_parse_admin_asset_content_language_allowlists_admin_writes() -> None:
+    assert parse_admin_asset_content_language({"content_language": "en"}, "content_language") == "en"
+    assert (
+        parse_admin_asset_content_language({"contentLanguage": "zh_HK"}, "contentLanguage")
+        == "zh-HK"
+    )
+    with pytest.raises(ValidationError, match="content_language must be null or one of"):
+        parse_admin_asset_content_language({"content_language": "fr"}, "content_language")
+
+
+def test_parse_create_asset_payload_rejects_disallowed_content_language() -> None:
+    event = {
+        "body": json.dumps(
+            {
+                "title": "Guide",
+                "file_name": "guide.pdf",
+                "asset_type": "document",
+                "visibility": "restricted",
+                "content_language": "de-AT",
+            }
+        ),
+        "isBase64Encoded": False,
+    }
+    with pytest.raises(ValidationError, match="content_language must be null or one of"):
+        parse_create_asset_payload(event)
 
 
 def test_asset_links_expense_attachment_detects_tag() -> None:
