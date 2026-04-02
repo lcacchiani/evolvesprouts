@@ -150,7 +150,9 @@ describe('services tables value formatting', () => {
     expect(within(tables[0] as HTMLElement).getByText('In Progress')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();
     expect(within(tables[1] as HTMLElement).getByText('10%')).toBeInTheDocument();
-    expect(screen.getByLabelText('Currency').tagName).toBe('SELECT');
+    const currencySelect = screen.getByLabelText('Currency');
+    expect(currencySelect.tagName).toBe('SELECT');
+    expect(currencySelect).toBeDisabled();
   });
 
   it('formats enum and date values in enrollment table rows', () => {
