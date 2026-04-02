@@ -4,11 +4,12 @@ import { localizePath } from '@/lib/locale-routing';
 export const ROUTES = {
   home: '/',
   about: '/about-us',
-  freeGuidesAndResources: '/free-guides-and-resources',
+  freeGuidesAndResources: '/services/free-guides-and-resources',
   contact: '/contact-us',
   events: '/events',
   mediaDownload: '/media/download',
   privacy: '/privacy',
+  servicesIndex: '/services',
   servicesConsultations: '/services/consultations',
   servicesMyBestAuntieTrainingCourse: '/services/my-best-auntie-training-course',
   servicesWorkshops: '/services/workshops',
@@ -19,6 +20,7 @@ export const ROUTES = {
 export type AppRoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
 export const PLACEHOLDER_ROUTE_PATHS: readonly AppRoutePath[] = [
+  ROUTES.servicesIndex,
   ROUTES.servicesWorkshops,
 ];
 
@@ -56,4 +58,5 @@ export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   ),
   'resources',
   'book',
+  'free-guides-and-resources',
 ]);

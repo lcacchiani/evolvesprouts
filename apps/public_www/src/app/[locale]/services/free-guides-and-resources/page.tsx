@@ -1,51 +1,51 @@
-import { ConsultationsPage } from '@/components/pages/consultations';
+import { FreeGuidesAndResourcesPage } from '@/components/pages/free-guides-and-resources';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
 import {
-  getFooterLinkLabel,
   getMenuLabel,
   type LocaleRouteProps,
   resolveLocalePageContext,
 } from '@/lib/locale-page';
 import { ROUTES } from '@/lib/routes';
 import { buildLocalizedMetadata } from '@/lib/seo';
-import { buildBreadcrumbSchema, buildFaqPageSchema } from '@/lib/structured-data';
+import {
+  buildBreadcrumbSchema,
+  buildFaqJsonLd,
+} from '@/lib/structured-data';
 
 export { generateLocaleStaticParams as generateStaticParams } from '@/lib/locale-page';
 
 export async function generateMetadata({ params }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const title = content.seo.consultations.title || getFooterLinkLabel(
-    content,
-    ROUTES.servicesConsultations,
-  );
-  const description = content.seo.consultations.description;
+  const title =
+    content.seo.freeGuidesAndResources.title ||
+    getMenuLabel(content, ROUTES.freeGuidesAndResources);
+  const description = content.seo.freeGuidesAndResources.description;
 
   return buildLocalizedMetadata({
     locale,
-    path: ROUTES.servicesConsultations,
+    path: ROUTES.freeGuidesAndResources,
     title,
     description,
     socialImage: {
-      url: content.seo.socialImages.consultations.url,
-      alt: content.seo.socialImages.consultations.alt,
+      url: content.seo.socialImages.freeGuidesAndResources.url,
+      alt: content.seo.socialImages.freeGuidesAndResources.alt,
     },
   });
 }
 
-export default async function ConsultationsRoutePage({
+export default async function FreeGuidesAndResourcesRoutePage({
   params,
 }: LocaleRouteProps) {
   const { locale, content } = await resolveLocalePageContext(params);
-  const pageTitle = content.seo.consultations.title || getFooterLinkLabel(
-    content,
-    ROUTES.servicesConsultations,
-  );
+  const pageTitle =
+    getMenuLabel(content, ROUTES.freeGuidesAndResources) ||
+    content.seo.freeGuidesAndResources.title;
 
   return (
     <>
-      <ConsultationsPage content={content} />
+      <FreeGuidesAndResourcesPage content={content} />
       <StructuredDataScript
-        id={`consultations-breadcrumb-jsonld-${locale}`}
+        id={`free-guides-and-resources-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({
           locale,
           items: [
@@ -59,14 +59,14 @@ export default async function ConsultationsRoutePage({
             },
             {
               name: pageTitle,
-              path: ROUTES.servicesConsultations,
+              path: ROUTES.freeGuidesAndResources,
             },
           ],
         })}
       />
       <StructuredDataScript
-        id={`consultations-faq-jsonld-${locale}`}
-        data={buildFaqPageSchema(content.faq)}
+        id={`free-guides-and-resources-faq-jsonld-${locale}`}
+        data={buildFaqJsonLd(content.freeGuidesAndResources.faq.cards)}
       />
     </>
   );
