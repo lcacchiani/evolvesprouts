@@ -148,8 +148,11 @@ describe('services tables value formatting', () => {
 
     const tables = screen.getAllByRole('table');
     expect(within(tables[0] as HTMLElement).getByText('In Progress')).toBeInTheDocument();
-    expect(within(tables[1] as HTMLElement).getByText('Percentage')).toBeInTheDocument();
-    expect(screen.getByLabelText('Currency').tagName).toBe('SELECT');
+    expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();
+    expect(within(tables[1] as HTMLElement).getByText('10%')).toBeInTheDocument();
+    const currencySelect = screen.getByLabelText('Currency');
+    expect(currencySelect.tagName).toBe('SELECT');
+    expect(currencySelect).toBeDisabled();
   });
 
   it('formats enum and date values in enrollment table rows', () => {

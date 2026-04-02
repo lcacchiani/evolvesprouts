@@ -889,8 +889,8 @@
     -webkit-mask-image: url('/images/faq-lens-icon.svg');
   }
 
-  .es-ui-icon-mask--events-loading-gear {
-    mask-image: url('/images/events-loading-gear-icon.svg');
-    -webkit-mask-image: url('/images/events-loading-gear-icon.svg');
+  .es-ui-icon-mask--loading-gear {
+    mask-image: url('/images/loading-gear-icon.svg');
+    -webkit-mask-image: url('/images/loading-gear-icon.svg');
   }
 }

@@ -92,6 +92,7 @@ export function CreateDiscountCodeDialog({
             id='discount-currency'
             value={currency}
             onChange={(event) => setCurrency(event.target.value)}
+            disabled={discountType === 'percentage'}
           >
             {currencyOptions.map((option) => (
               <option key={option.value} value={option.value}>

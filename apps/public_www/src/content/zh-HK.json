@@ -1330,6 +1330,7 @@
       "discountCodeLabel": "優惠碼",
       "discountCodePlaceholder": "輸入優惠碼",
       "applyDiscountLabel": "套用",
+      "applyDiscountLoadingLabel": "正在套用優惠碼",
       "invalidDiscountLabel": "優惠碼無效",
       "discountAppliedLabel": "優惠已套用",
       "priceBreakdownPriceLabel": "原價",

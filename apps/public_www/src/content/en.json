@@ -1330,6 +1330,7 @@
       "discountCodeLabel": "Discount code",
       "discountCodePlaceholder": "Enter code",
       "applyDiscountLabel": "Apply",
+      "applyDiscountLoadingLabel": "Applying discount code",
       "invalidDiscountLabel": "Invalid discount code",
       "discountAppliedLabel": "Discount applied",
       "priceBreakdownPriceLabel": "Price",
