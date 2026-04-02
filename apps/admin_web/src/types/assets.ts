@@ -4,6 +4,7 @@ type ApiSchemas = components['schemas'];
 type ApiAsset = ApiSchemas['Asset'];
 type ApiAssetGrant = ApiSchemas['AssetGrant'];
 type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
+type ApiPartialUpdateAssetRequest = ApiSchemas['PartialUpdateAssetRequest'];
 type ApiCreateAssetResponse = ApiSchemas['CreateAssetResponse'];
 type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
 
@@ -28,6 +29,11 @@ export const EXPENSE_ATTACHMENT_ASSET_TAG = 'expense_attachment' as const;
 
 /** Admin-assignable client-facing document tag (matches admin API `client_tag`). */
 export const CLIENT_DOCUMENT_ASSET_TAG = 'client_document' as const;
+
+/** Allowed `content_language` values for admin asset create/update (matches OpenAPI enum). */
+export type AdminAssetWriteContentLanguage = NonNullable<
+  Exclude<ApiCreateAssetRequest['content_language'], null | undefined>
+>;
 
 export type AdminAssetTag = {
   id: string;
@@ -109,7 +115,7 @@ export interface UpdateAdminAssetPatchInput {
   fileName?: string;
   resourceKey?: string | null;
   contentType?: string | null;
-  contentLanguage?: string | null;
+  contentLanguage?: OptionalToNullable<ApiPartialUpdateAssetRequest['content_language']>;
   visibility?: AssetVisibility;
   /** Omit when the asset is expense-tagged (API forbids the field). */
   clientTag?: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
