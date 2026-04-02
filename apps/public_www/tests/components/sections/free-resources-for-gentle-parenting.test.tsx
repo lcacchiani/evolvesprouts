@@ -1,13 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen } from '@testing-library/react';
-import { useLayoutEffect, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { FreeResourcesForGentleParenting } from '@/components/sections/free-resources-for-gentle-parenting';
-import {
-  MediaFormProvider,
-  useMediaFormContext,
-} from '@/components/sections/shared/media-form-context';
 import type { ResourcesContent } from '@/content';
 import enContent from '@/content/en.json';
 
@@ -35,23 +30,6 @@ function createResourcesContent(
   clonedContent.sectionConfig = sectionConfig;
 
   return clonedContent;
-}
-
-function MarkMediaFormPageSubmitted() {
-  const ctx = useMediaFormContext();
-  useLayoutEffect(() => {
-    ctx?.markFormSubmitted();
-  }, [ctx]);
-  return null;
-}
-
-function renderWithMediaFormSubmitted(children: ReactNode) {
-  return render(
-    <MediaFormProvider>
-      <MarkMediaFormPageSubmitted />
-      {children}
-    </MediaFormProvider>,
-  );
 }
 
 describe('Free resources for gentle parenting section', () => {
@@ -160,17 +138,6 @@ describe('Free resources for gentle parenting section', () => {
     expect(container.querySelector('ul')).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: enContent.resources.ctaLabel }));
     expect(container.querySelector('ul')).toBeNull();
-  });
-
-  it('hides the checklist when another MediaForm on the page already submitted', () => {
-    const { container } = renderWithMediaFormSubmitted(
-      <FreeResourcesForGentleParenting content={enContent.resources} />,
-    );
-
-    expect(container.querySelector('ul')).toBeNull();
-    expect(
-      screen.getByText(enContent.resources.formSuccessTitle),
-    ).toBeInTheDocument();
   });
 
   it('supports left heading alignment from locale config', () => {

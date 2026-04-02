@@ -1,11 +1,10 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { TurnstileCaptcha } from '@/components/shared/turnstile-captcha';
-import { useMediaFormContext } from '@/components/sections/shared/media-form-context';
 import { useFormSubmission } from '@/components/sections/shared/use-form-submission';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
@@ -62,9 +61,6 @@ export function MediaForm({
   const firstNameInputId = `${mediaFormInstanceId}-media-first-name`;
   const emailInputId = `${mediaFormInstanceId}-media-email`;
   const formErrorId = `${mediaFormInstanceId}-media-form-error`;
-  const mediaFormPageContext = useMediaFormContext();
-  const hasPageLevelSubmission = mediaFormPageContext?.hasSubmitted ?? false;
-  const onFormOpenedRef = useRef(onFormOpened);
 
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
   const crmApiClient = useMemo(() => createPublicCrmApiClient(), []);
@@ -115,17 +111,6 @@ export function MediaForm({
       window.cancelAnimationFrame(animationFrameId);
     };
   }, [isFormVisible]);
-
-  useLayoutEffect(() => {
-    onFormOpenedRef.current = onFormOpened;
-  }, [onFormOpened]);
-
-  useLayoutEffect(() => {
-    if (!hasPageLevelSubmission) {
-      return;
-    }
-    onFormOpenedRef.current?.();
-  }, [hasPageLevelSubmission]);
 
   function handleOpenForm() {
     setIsFormFadingIn(false);
@@ -196,7 +181,6 @@ export function MediaForm({
         });
         trackMetaPixelEvent('Lead', { content_name: PIXEL_CONTENT_NAME.media_download });
         markSubmissionSuccess();
-        mediaFormPageContext?.markFormSubmitted();
         return;
       }
 
@@ -212,7 +196,7 @@ export function MediaForm({
     });
   }
 
-  if (hasSuccessfulSubmission || hasPageLevelSubmission) {
+  if (hasSuccessfulSubmission) {
     return (
       <div className={mergeClassNames('mt-auto max-w-[420px] rounded-xl bg-white p-5', className)}>
         <h4 className='text-xl font-bold es-text-heading'>{formSuccessTitle}</h4>
