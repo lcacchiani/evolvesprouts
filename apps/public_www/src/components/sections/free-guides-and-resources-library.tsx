@@ -14,6 +14,7 @@ import type {
 } from '@/content';
 import {
   createPublicCrmApiClient,
+  isAbortRequestError,
   type CrmApiClient,
 } from '@/lib/crm-api-client';
 
@@ -94,6 +95,7 @@ function parseAssetRow(raw: unknown): LibraryAssetRow | null {
 
 async function fetchAllPublicFreeAssets(
   client: CrmApiClient,
+  signal: AbortSignal,
 ): Promise<LibraryAssetRow[]> {
   const collected: LibraryAssetRow[] = [];
   let cursor: string | undefined;
@@ -105,7 +107,7 @@ async function fetchAllPublicFreeAssets(
       searchParams.set('cursor', cursor);
     }
     const endpointPath = `/v1/assets/free?${searchParams.toString()}`;
-    const payload = await client.request({ endpointPath });
+    const payload = await client.request({ endpointPath, signal });
     const { items, nextCursor } = parseListPayload(payload);
     for (const raw of items) {
       const row = parseAssetRow(raw);
@@ -194,6 +196,10 @@ function getVisibleItems(
       return false;
     }
 
+    if (normalizedQuery === '') {
+      return true;
+    }
+
     const typeLabel =
       content.assetTypeLabels[entry.assetType] ?? entry.assetType;
     const langLabel = resolveLanguageBadgeLabel(
@@ -202,10 +208,6 @@ function getVisibleItems(
       languageLabelById,
     );
     const searchBlob = `${entry.title}\n${entry.description}\n${typeLabel}\n${langLabel}`;
-
-    if (normalizedQuery === '') {
-      return true;
-    }
 
     return searchBlob.toLowerCase().includes(normalizedQuery);
   });
@@ -225,9 +227,9 @@ export function FreeGuidesAndResourcesLibrary({
   mediaFormContent,
 }: FreeGuidesAndResourcesLibraryProps) {
   const languageFilters = content.languageFilters;
-  const categories = content.categories;
+  const assetTypeFilters = content.assetTypeFilters;
   const firstLanguageId = languageFilters[0]?.id ?? 'all';
-  const firstTypeId = categories[0]?.id ?? 'all';
+  const firstTypeId = assetTypeFilters[0]?.id ?? 'all';
 
   const [activeLanguageId, setActiveLanguageId] = useState(firstLanguageId);
   const [activeAssetTypeId, setActiveAssetTypeId] = useState(firstTypeId);
@@ -268,23 +270,31 @@ export function FreeGuidesAndResourcesLibrary({
       return;
     }
 
+    const controller = new AbortController();
     let cancelled = false;
 
-    fetchAllPublicFreeAssets(crmClient)
+    fetchAllPublicFreeAssets(crmClient, controller.signal)
       .then((rows) => {
-        if (!cancelled) {
-          setApiItems(rows);
-          setLoadState('idle');
+        if (cancelled) {
+          return;
         }
+        setApiItems(rows);
+        setLoadState('idle');
       })
-      .catch(() => {
-        if (!cancelled) {
-          setLoadState('error');
+      .catch((error) => {
+        if (
+          cancelled ||
+          controller.signal.aborted ||
+          isAbortRequestError(error)
+        ) {
+          return;
         }
+        setLoadState('error');
       });
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [crmClient]);
 
@@ -450,7 +460,7 @@ export function FreeGuidesAndResourcesLibrary({
 
           <div className='overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
             <div className='flex min-w-max snap-x snap-mandatory gap-2'>
-              {categories.map((entry) => {
+              {assetTypeFilters.map((entry) => {
                 const isActive = activeAssetTypeId === entry.id;
 
                 return (
@@ -472,7 +482,9 @@ export function FreeGuidesAndResourcesLibrary({
           </div>
         </div>
 
-        <div className='mt-10'>{listBody}</div>
+        <div className='mt-10' aria-live='polite'>
+          {listBody}
+        </div>
       </SectionContainer>
     </SectionShell>
   );

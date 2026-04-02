@@ -94,6 +94,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('/v1/assets/free?'),
       expect.objectContaining({
+        signal: expect.any(AbortSignal),
         headers: expect.objectContaining({
           'x-api-key': 'test-key',
         }),
@@ -207,11 +208,11 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       ).toBeInTheDocument();
     });
 
-    const pdfCategory = content.categories.find((c) => c.id === 'pdf');
-    if (!pdfCategory) {
-      throw new Error('Expected pdf category');
+    const pdfFilter = content.assetTypeFilters.find((c) => c.id === 'pdf');
+    if (!pdfFilter) {
+      throw new Error('Expected pdf asset type filter');
     }
-    fireEvent.click(screen.getByRole('button', { name: pdfCategory.label }));
+    fireEvent.click(screen.getByRole('button', { name: pdfFilter.label }));
 
     expect(
       screen.queryByRole('heading', { name: 'Patience Guide' }),
@@ -264,6 +265,117 @@ describe('FreeGuidesAndResourcesLibrary', () => {
 
     await waitFor(() => {
       expect(screen.getByText(content.loadErrorLabel)).toBeInTheDocument();
+    });
+  });
+
+  it('follows next_cursor and merges pages', async () => {
+    const secondItem = {
+      id: '33333333-3333-3333-3333-333333333333',
+      title: 'Second Page Guide',
+      description: 'From page two.',
+      asset_type: 'guide',
+      file_name: 'second.pdf',
+      resource_key: null,
+      content_language: 'en',
+      content_type: 'application/pdf',
+      updated_at: null,
+    };
+
+    let callIndex = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => {
+        callIndex += 1;
+        if (callIndex === 1) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            text: async () =>
+              JSON.stringify({
+                items: [sampleApiItems[0]],
+                next_cursor: secondItem.id,
+              }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              items: [secondItem],
+              next_cursor: null,
+            }),
+        });
+      }),
+    );
+
+    render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Second Page Guide' }),
+      ).toBeInTheDocument();
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(
+      String((fetch as ReturnType<typeof vi.fn>).mock.calls[1]?.[0]),
+    ).toContain(`cursor=${encodeURIComponent(secondItem.id)}`);
+  });
+
+  it('shows load error when fetch fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('network failure')),
+    );
+
+    render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(content.loadErrorLabel)).toBeInTheDocument();
+    });
+  });
+
+  it('shows empty API message when the list is empty', async () => {
+    mockFetchJsonResponse({ items: [], next_cursor: null });
+
+    render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(content.emptyApiLabel)).toBeInTheDocument();
+    });
+  });
+
+  it('exposes aria-live on the dynamic results region', async () => {
+    const { container } = render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    const liveRegion = container.querySelector('[aria-live="polite"]');
+    expect(liveRegion).not.toBeNull();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Patience Guide' }),
+      ).toBeInTheDocument();
     });
   });
 });

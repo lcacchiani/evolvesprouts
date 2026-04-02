@@ -764,7 +764,7 @@
         "pdf": "PDF",
         "document": "Document"
       },
-      "categories": [
+      "assetTypeFilters": [
         {
           "id": "all",
           "label": "All types"

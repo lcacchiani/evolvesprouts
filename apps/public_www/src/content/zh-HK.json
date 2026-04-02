@@ -764,7 +764,7 @@
         "pdf": "PDF",
         "document": "文件"
       },
-      "categories": [
+      "assetTypeFilters": [
         {
           "id": "all",
           "label": "全部類型"
