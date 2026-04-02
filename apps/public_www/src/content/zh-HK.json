@@ -180,7 +180,7 @@
     "formEmailLabel": "電郵",
     "formSubmitLabel": "把免費指南寄給我",
     "formSuccessTitle": "請查收你的電郵！",
-    "formSuccessBody": "我們已把下載連結寄到你的電郵。",
+    "formSuccessBody": "下載連結就在裡面。",
     "formErrorMessage": "暫時未能提交，請檢查資料後再試。",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
