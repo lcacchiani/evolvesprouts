@@ -51,6 +51,11 @@ updates:
       # Ignore major version updates - review manually
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # aws-cdk-lib bundles brace-expansion (inBundle) and Dependabot security
+      # jobs cannot patch bundled tarball contents, causing NoChangeError.
+      # backend/infrastructure/scripts/patch-bundled-aws-cdk-lib-deps.js applies
+      # brace-expansion >= 5.0.5 at install time.
+      - dependency-name: "brace-expansion"
       # aws-cdk-lib currently pins yaml@1.10.2 transitively; the 1.x patched
       # version (>=1.10.3) is not resolvable in Dependabot security jobs yet.
       - dependency-name: "yaml"
