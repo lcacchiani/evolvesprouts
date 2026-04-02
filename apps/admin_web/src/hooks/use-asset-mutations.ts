@@ -108,7 +108,7 @@ export function useAssetMutations({
   );
 
   const updateAssetEntry = useCallback(
-    async (assetId: string, input: UpsertAdminAssetInput) => {
+    async (assetId: string, input: UpdateAdminAssetPatchInput) => {
       setIsSavingAsset(true);
       setAssetMutationError('');
       setUploadState('idle');
