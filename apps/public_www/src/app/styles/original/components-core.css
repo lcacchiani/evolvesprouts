@@ -890,7 +890,7 @@
   }
 
   .es-ui-icon-mask--loading-gear {
-    mask-image: url('/images/events-loading-gear-icon.svg');
-    -webkit-mask-image: url('/images/events-loading-gear-icon.svg');
+    mask-image: url('/images/loading-gear-icon.svg');
+    -webkit-mask-image: url('/images/loading-gear-icon.svg');
   }
 }
