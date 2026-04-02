@@ -729,32 +729,61 @@
       "title": "Browse Our Free Resources",
       "searchPlaceholder": "Search resources...",
       "emptySearchResultsLabel": "No resources match your search.",
+      "loadingLabel": "Loading resources…",
+      "loadErrorLabel": "We could not load the resource list. Please try again later.",
+      "emptyApiLabel": "No resources are available yet.",
+      "languageBadgeTemplate": "{language}",
+      "nullLanguageLabel": "Any language",
+      "gatedCtaLabelTemplate": "Get {title}",
+      "unavailableCtaLabel": "Unavailable",
+      "languageFilters": [
+        {
+          "id": "all",
+          "label": "All languages"
+        },
+        {
+          "id": "en",
+          "label": "English"
+        },
+        {
+          "id": "zh-CN",
+          "label": "Chinese (Simplified)"
+        },
+        {
+          "id": "zh-HK",
+          "label": "Chinese (Hong Kong)"
+        },
+        {
+          "id": "unset",
+          "label": "Unspecified"
+        }
+      ],
+      "assetTypeLabels": {
+        "guide": "Guide",
+        "video": "Video",
+        "pdf": "PDF",
+        "document": "Document"
+      },
       "categories": [
         {
           "id": "all",
-          "label": "All Resources"
+          "label": "All types"
         },
         {
-          "id": "parenting-tips",
-          "label": "Parenting Tips"
+          "id": "guide",
+          "label": "Guide"
         },
         {
-          "id": "montessori",
-          "label": "Montessori"
+          "id": "video",
+          "label": "Video"
         },
         {
-          "id": "helper-training",
-          "label": "Helper Training"
-        }
-      ],
-      "items": [
+          "id": "pdf",
+          "label": "PDF"
+        },
         {
-          "id": "patience-free-guide",
-          "title": "4 Simple Ways to Teach Patience to Young Children",
-          "description": "Gentle strategies for busy parents — practical tips you can start using today.",
-          "format": "PDF Guide",
-          "categoryId": "parenting-tips",
-          "ctaLabel": "Get 4 Ways to Teach Patience"
+          "id": "document",
+          "label": "Document"
         }
       ]
     },
