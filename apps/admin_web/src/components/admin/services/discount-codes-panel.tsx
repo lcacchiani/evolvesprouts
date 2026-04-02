@@ -13,7 +13,10 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { isDiscountValidityRangeInverted } from '@/lib/discount-validity';
+import {
+  DISCOUNT_VALIDITY_RANGE_INVERTED_MESSAGE,
+  isDiscountValidityRangeInverted,
+} from '@/lib/discount-validity';
 import {
   formatDate,
   formatEnumLabel,
@@ -100,7 +103,7 @@ export function DiscountCodesPanel({
 
   const handleSubmit = async () => {
     if (isDiscountValidityRangeInverted(validFromLocal, validUntilLocal)) {
-      setValidityRangeError('Valid until must be on or after valid from.');
+      setValidityRangeError(DISCOUNT_VALIDITY_RANGE_INVERTED_MESSAGE);
       return;
     }
     setValidityRangeError('');
