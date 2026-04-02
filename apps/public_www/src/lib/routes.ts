@@ -9,6 +9,7 @@ export const ROUTES = {
   events: '/events',
   mediaDownload: '/media/download',
   privacy: '/privacy',
+  servicesIndex: '/services',
   servicesConsultations: '/services/consultations',
   servicesMyBestAuntieTrainingCourse: '/services/my-best-auntie-training-course',
   servicesWorkshops: '/services/workshops',
@@ -19,6 +20,7 @@ export const ROUTES = {
 export type AppRoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
 export const PLACEHOLDER_ROUTE_PATHS: readonly AppRoutePath[] = [
+  ROUTES.servicesIndex,
   ROUTES.servicesWorkshops,
 ];
 

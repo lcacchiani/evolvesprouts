@@ -54,6 +54,10 @@ export default async function FreeGuidesAndResourcesRoutePage({
               path: ROUTES.home,
             },
             {
+              name: content.footer.services.title,
+              path: ROUTES.servicesIndex,
+            },
+            {
               name: pageTitle,
               path: ROUTES.freeGuidesAndResources,
             },
