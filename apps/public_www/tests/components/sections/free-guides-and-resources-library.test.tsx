@@ -22,6 +22,15 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('next/image', () => ({
+  default: ({
+    alt,
+    ...props
+  }: { alt?: string } & Record<string, unknown>) => (
+    <img alt={alt ?? ''} {...props} />
+  ),
+}));
+
 vi.mock('@/components/shared/turnstile-captcha', () => ({
   TurnstileCaptcha: () => null,
 }));
@@ -190,6 +199,127 @@ describe('FreeGuidesAndResourcesLibrary', () => {
     expect(
       screen.queryByRole('heading', { name: 'Patience Guide' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('filters by search using language display name (not flag alt wording)', async () => {
+    render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Patience Guide' }),
+      ).toBeInTheDocument();
+    });
+
+    const search = screen.getByRole('textbox', {
+      name: content.searchPlaceholder,
+    });
+
+    const enFlag = content.languageFlags.find((f) => f.id === 'en');
+    if (!enFlag) {
+      throw new Error('Expected en language flag');
+    }
+
+    fireEvent.change(search, {
+      target: { value: enFlag.altLabel.toLowerCase() },
+    });
+    expect(
+      screen.getByRole('heading', { name: 'Patience Guide' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Helper PDF Pack' }),
+    ).not.toBeInTheDocument();
+
+    const zhHk = content.languageFlags.find((f) => f.id === 'zh-HK');
+    if (!zhHk) {
+      throw new Error('Expected zh-HK language flag');
+    }
+    fireEvent.change(search, {
+      target: { value: zhHk.altLabel.toLowerCase() },
+    });
+    expect(
+      screen.getByRole('heading', { name: 'Helper PDF Pack' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Patience Guide' }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(search, {
+      target: {
+        value: formatContentTemplate(content.flagAltTemplate, {
+          label: enFlag.altLabel,
+        }).toLowerCase(),
+      },
+    });
+    expect(screen.getByText(content.emptySearchResultsLabel)).toBeInTheDocument();
+  });
+
+  it('renders a text pill when content_language is null', async () => {
+    mockFetchJsonResponse({
+      items: [
+        {
+          title: 'Universal Tips',
+          description: 'For every family.',
+          asset_type: 'guide',
+          resource_key: null,
+          content_language: null,
+          updated_at: null,
+        },
+      ],
+      next_cursor: null,
+    });
+
+    render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Universal Tips' }),
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(content.nullLanguageLabel)).toBeInTheDocument();
+    expect(screen.queryAllByRole('img')).toHaveLength(0);
+  });
+
+  it('renders a text pill with raw tag when content_language is unknown', async () => {
+    mockFetchJsonResponse({
+      items: [
+        {
+          title: 'French-only resource',
+          description: 'Not in languageFlags.',
+          asset_type: 'document',
+          resource_key: null,
+          content_language: 'fr',
+          updated_at: null,
+        },
+      ],
+      next_cursor: null,
+    });
+
+    render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'French-only resource' }),
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('fr')).toBeInTheDocument();
+    expect(screen.queryAllByRole('img')).toHaveLength(0);
   });
 
   it('shows load error when the API client cannot be created', async () => {

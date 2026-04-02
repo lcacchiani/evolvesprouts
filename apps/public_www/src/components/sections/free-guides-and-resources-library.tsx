@@ -69,18 +69,6 @@ function parseListPayload(payload: unknown): {
   return { items, nextCursor };
 }
 
-function stableFingerprintForRow(raw: Record<string, unknown>): string {
-  const parts = [
-    typeof raw.title === 'string' ? raw.title : '',
-    typeof raw.description === 'string' ? raw.description : '',
-    typeof raw.asset_type === 'string' ? raw.asset_type : '',
-    typeof raw.resource_key === 'string' ? raw.resource_key : '',
-    typeof raw.content_language === 'string' ? raw.content_language : '',
-    typeof raw.updated_at === 'string' ? raw.updated_at : '',
-  ];
-  return parts.join('\u0000');
-}
-
 function parseAssetRow(raw: unknown, index: number): LibraryAssetRow | null {
   if (!isRecord(raw)) {
     return null;
@@ -96,9 +84,8 @@ function parseAssetRow(raw: unknown, index: number): LibraryAssetRow | null {
     typeof cl === 'string' && cl.trim() ? cl.trim() : null;
   const rk = raw.resource_key;
   const resourceKey = typeof rk === 'string' && rk.trim() ? rk.trim() : null;
-  const fingerprint = stableFingerprintForRow(raw);
   return {
-    listKey: `${fingerprint}\u0000${index}`,
+    listKey: `free-guides-library-item-${index}`,
     title,
     description,
     assetType: normalizeAssetType(raw.asset_type),
@@ -152,7 +139,7 @@ function buildLanguageFlagMap(
   return map;
 }
 
-function buildLanguageFlagAltLabelMap(
+function buildLanguageDisplayNameById(
   content: FreeGuidesAndResourcesLibraryContent,
 ): Map<string, string> {
   const map = new Map<string, string>();
@@ -162,17 +149,37 @@ function buildLanguageFlagAltLabelMap(
   return map;
 }
 
-function resolveLanguageFlagAlt(
+/** Accessibility alt for flag images (wraps `altLabel` with `flagAltTemplate`, e.g. "English flag"). */
+function accessibilityFlagAlt(
+  contentLanguage: string,
+  content: FreeGuidesAndResourcesLibraryContent,
+  languageDisplayNameById: Map<string, string>,
+): string {
+  const displayName = languageDisplayNameById.get(contentLanguage);
+  if (displayName) {
+    return formatContentTemplate(content.flagAltTemplate, { label: displayName });
+  }
+  return formatContentTemplate(content.languageBadgeTemplate, {
+    language: contentLanguage,
+  });
+}
+
+/**
+ * Human-readable language string included in the client-side search blob.
+ * Uses raw `altLabel` for known flags (e.g. "English"), not the wrapped alt text
+ * ("English flag"), so users match the language name rather than image description.
+ */
+function languageLabelForSearch(
   item: LibraryAssetRow,
   content: FreeGuidesAndResourcesLibraryContent,
-  flagAltLabelById: Map<string, string>,
+  languageDisplayNameById: Map<string, string>,
 ): string {
   if (item.contentLanguage === null) {
-    return content.nullLanguageFlagAlt;
+    return content.nullLanguageLabel;
   }
-  const mapped = flagAltLabelById.get(item.contentLanguage);
-  if (mapped) {
-    return formatContentTemplate(content.flagAltTemplate, { label: mapped });
+  const displayName = languageDisplayNameById.get(item.contentLanguage);
+  if (displayName) {
+    return displayName;
   }
   return formatContentTemplate(content.languageBadgeTemplate, {
     language: item.contentLanguage,
@@ -183,6 +190,7 @@ function getVisibleItems(
   items: readonly LibraryAssetRow[],
   normalizedQuery: string,
   content: FreeGuidesAndResourcesLibraryContent,
+  languageDisplayNameById: Map<string, string>,
 ): LibraryAssetRow[] {
   return items.filter((entry) => {
     if (normalizedQuery === '') {
@@ -191,26 +199,14 @@ function getVisibleItems(
 
     const typeLabel =
       content.assetTypeLabels[entry.assetType] ?? entry.assetType;
-    const langLabel =
-      entry.contentLanguage === null
-        ? content.nullLanguageLabel
-        : flagAltLabelByIdFromContent(entry.contentLanguage, content);
+    const langLabel = languageLabelForSearch(
+      entry,
+      content,
+      languageDisplayNameById,
+    );
     const searchBlob = `${entry.title}\n${entry.description}\n${typeLabel}\n${langLabel}`;
 
     return searchBlob.toLowerCase().includes(normalizedQuery);
-  });
-}
-
-function flagAltLabelByIdFromContent(
-  languageId: string,
-  content: FreeGuidesAndResourcesLibraryContent,
-): string {
-  const entry = content.languageFlags.find((f) => f.id === languageId);
-  if (entry) {
-    return entry.altLabel;
-  }
-  return formatContentTemplate(content.languageBadgeTemplate, {
-    language: languageId,
   });
 }
 
@@ -239,16 +235,21 @@ export function FreeGuidesAndResourcesLibrary({
     [content],
   );
 
-  const languageFlagAltLabelById = useMemo(
-    () => buildLanguageFlagAltLabelMap(content),
+  const languageDisplayNameById = useMemo(
+    () => buildLanguageDisplayNameById(content),
     [content],
   );
 
   const normalizedQuery = normalizeQuery(searchValue);
 
   const visibleItems = useMemo(() => {
-    return getVisibleItems(apiItems, normalizedQuery, content);
-  }, [apiItems, normalizedQuery, content]);
+    return getVisibleItems(
+      apiItems,
+      normalizedQuery,
+      content,
+      languageDisplayNameById,
+    );
+  }, [apiItems, normalizedQuery, content, languageDisplayNameById]);
 
   useEffect(() => {
     if (!crmClient) {
@@ -341,10 +342,18 @@ export function FreeGuidesAndResourcesLibrary({
           const flagSrc = item.contentLanguage
             ? languageFlagById.get(item.contentLanguage)
             : null;
-          const flagAlt = resolveLanguageFlagAlt(
+          const flagAlt =
+            flagSrc && item.contentLanguage
+              ? accessibilityFlagAlt(
+                  item.contentLanguage,
+                  content,
+                  languageDisplayNameById,
+                )
+              : '';
+          const languagePillLabel = languageLabelForSearch(
             item,
             content,
-            languageFlagAltLabelById,
+            languageDisplayNameById,
           );
           const gatedCtaLabel = formatContentTemplate(
             content.gatedCtaLabelTemplate,
@@ -370,11 +379,7 @@ export function FreeGuidesAndResourcesLibrary({
                     </span>
                   ) : (
                     <span className='es-bg-surface-muted inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold es-text-dim'>
-                      {item.contentLanguage === null
-                        ? content.nullLanguageLabel
-                        : formatContentTemplate(content.languageBadgeTemplate, {
-                            language: item.contentLanguage,
-                          })}
+                      {languagePillLabel}
                     </span>
                   )}
                 </div>
