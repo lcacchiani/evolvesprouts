@@ -654,14 +654,9 @@ components:
     PublicClientResource:
       type: object
       required:
-        - id
         - title
         - asset_type
-        - file_name
       properties:
-        id:
-          type: string
-          format: uuid
         title:
           type: string
         description:
@@ -670,8 +665,6 @@ components:
         asset_type:
           type: string
           enum: [guide, video, pdf, document]
-        file_name:
-          type: string
         resource_key:
           type: string
           nullable: true
@@ -679,9 +672,6 @@ components:
           type: string
           nullable: true
           description: BCP 47-style language tag for file content (e.g. en, zh-HK).
-        content_type:
-          type: string
-          nullable: true
         updated_at:
           type: string
           format: date-time
