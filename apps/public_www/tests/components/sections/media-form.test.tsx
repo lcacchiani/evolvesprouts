@@ -1,12 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { useLayoutEffect, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaForm } from '@/components/sections/media-form';
-import {
-  MediaFormProvider,
-  useMediaFormContext,
-} from '@/components/sections/shared/media-form-context';
 import enContent from '@/content/en.json';
 import { trackAnalyticsEvent } from '@/lib/analytics';
 import { createPublicCrmApiClient } from '@/lib/crm-api-client';
@@ -78,18 +73,6 @@ function mediaFormProps() {
 
 function renderMediaForm() {
   return render(<MediaForm {...mediaFormProps()} />);
-}
-
-function renderWithMediaFormProvider(ui: ReactNode) {
-  return render(<MediaFormProvider>{ui}</MediaFormProvider>);
-}
-
-function MarkPageMediaFormSubmitted() {
-  const ctx = useMediaFormContext();
-  useLayoutEffect(() => {
-    ctx?.markFormSubmitted();
-  }, [ctx]);
-  return null;
 }
 
 describe('MediaForm', () => {
@@ -249,39 +232,11 @@ describe('MediaForm', () => {
     expect(screen.getByText(enContent.resources.formErrorMessage)).toBeInTheDocument();
   });
 
-  it('skips form and shows success when context hasSubmitted is true', () => {
-    renderWithMediaFormProvider(
-      <>
-        <MarkPageMediaFormSubmitted />
-        <MediaForm {...mediaFormProps()} />
-      </>,
-    );
-
-    expect(
-      screen.getByText(enContent.resources.formSuccessTitle),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: enContent.resources.ctaLabel }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('invokes onFormOpened when page-level submission auto-skips the form', () => {
-    const onFormOpened = vi.fn();
-    renderWithMediaFormProvider(
-      <>
-        <MarkPageMediaFormSubmitted />
-        <MediaForm {...mediaFormProps()} onFormOpened={onFormOpened} />
-      </>,
-    );
-
-    expect(onFormOpened).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls markFormSubmitted on successful submission so a second form shows success', async () => {
+  it('shows success only on the MediaForm instance that submitted', async () => {
     const request = vi.fn().mockResolvedValue(null);
     mockedCreateCrmApiClient.mockReturnValue({ request });
 
-    renderWithMediaFormProvider(
+    render(
       <>
         <MediaForm {...mediaFormProps()} analyticsSectionId='form-a' />
         <MediaForm {...mediaFormProps()} analyticsSectionId='form-b' />
@@ -303,7 +258,11 @@ describe('MediaForm', () => {
 
     await waitFor(() => {
       const titles = screen.getAllByText(enContent.resources.formSuccessTitle);
-      expect(titles).toHaveLength(2);
+      expect(titles).toHaveLength(1);
     });
+
+    expect(
+      screen.getAllByRole('button', { name: enContent.resources.ctaLabel }),
+    ).toHaveLength(1);
   });
 });
