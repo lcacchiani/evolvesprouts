@@ -3414,7 +3414,7 @@ export interface components {
             s3_key: string;
             file_name: string;
             content_type?: string | null;
-            /** @description BCP 47-style tag for the language of the file content (e.g. en, zh-HK). */
+            /** @description BCP 47-style tag for the language of the file content. Admin create/update accepts only en, zh-CN, or zh-HK (null clears). Public list filters accept any valid BCP 47-style tag. */
             content_language?: string | null;
             /** @description Optional normalized key used to map public media submissions to this asset. */
             resource_key?: string | null;
@@ -4095,8 +4095,11 @@ export interface components {
             file_name: string;
             resource_key?: string | null;
             content_type?: string | null;
-            /** @description BCP 47-style tag for the language of the file content (e.g. en, zh-HK). Used by the public client-resources feed when filtering by `language`. */
-            content_language?: string | null;
+            /**
+             * @description BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN, or zh-HK. Used by the public client-resources feed when filtering by `language`.
+             * @enum {string|null}
+             */
+            content_language?: "en" | "zh-CN" | "zh-HK" | null;
             /** @enum {string} */
             visibility: "public" | "restricted";
             /**
@@ -4114,8 +4117,11 @@ export interface components {
             file_name?: string;
             resource_key?: string | null;
             content_type?: string | null;
-            /** @description BCP 47-style tag for the language of the file content. Send null to clear. */
-            content_language?: string | null;
+            /**
+             * @description BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN, or zh-HK. Send null to clear.
+             * @enum {string|null}
+             */
+            content_language?: "en" | "zh-CN" | "zh-HK" | null;
             /** @enum {string} */
             visibility?: "public" | "restricted";
             /**

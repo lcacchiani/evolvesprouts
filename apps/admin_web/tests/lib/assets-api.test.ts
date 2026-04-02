@@ -19,6 +19,7 @@ import {
   getUserAssetDownloadUrl,
   listAdminAssetGrants,
   listAdminAssets,
+  updateAdminAsset,
   uploadFileToPresignedUrl,
 } from '@/lib/assets-api';
 
@@ -40,6 +41,7 @@ describe('assets-api', () => {
             s3_key: 'assets/infant-guide.pdf',
             file_name: 'infant-guide.pdf',
             content_type: 'application/pdf',
+            content_language: null,
             visibility: 'restricted',
             created_by: 'admin@example.com',
             created_at: '2026-02-27T00:00:00.000Z',
@@ -68,6 +70,7 @@ describe('assets-api', () => {
       s3Key: 'assets/infant-guide.pdf',
       fileName: 'infant-guide.pdf',
       resourceKey: null,
+      contentLanguage: null,
       visibility: 'restricted',
     });
 
@@ -178,6 +181,114 @@ describe('assets-api', () => {
       uploadHeaders: { 'x-amz-acl': 'private' },
       expiresAt: '2026-02-28T00:00:00.000Z',
     });
+  });
+
+  it('creates asset with content_language when provided', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        asset: {
+          id: 'asset-3',
+          title: 'Guide',
+          description: null,
+          asset_type: 'document',
+          s3_key: 'assets/guide.pdf',
+          file_name: 'guide.pdf',
+          content_type: 'application/pdf',
+          content_language: 'zh-HK',
+          visibility: 'public',
+          created_by: null,
+          created_at: null,
+          updated_at: null,
+          tags: [],
+        },
+        upload_url: null,
+        upload_method: 'PUT',
+        upload_headers: {},
+        expires_at: null,
+      },
+    });
+
+    await createAdminAsset({
+      title: 'Guide',
+      description: null,
+      assetType: 'document',
+      fileName: 'guide.pdf',
+      contentType: 'application/pdf',
+      contentLanguage: 'zh-HK',
+      visibility: 'public',
+    });
+
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ content_language: 'zh-HK' }),
+      })
+    );
+  });
+
+  it('updates asset with PATCH sending only keys present on the patch input', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        asset: {
+          id: 'asset-1',
+          title: 'Infant guide',
+          description: null,
+          asset_type: 'document',
+          s3_key: 'assets/infant-guide.pdf',
+          file_name: 'infant-guide.pdf',
+          content_type: 'application/pdf',
+          content_language: 'en',
+          visibility: 'restricted',
+          created_by: null,
+          created_at: null,
+          updated_at: null,
+          tags: [],
+        },
+      },
+    });
+
+    const updated = await updateAdminAsset('asset-1', { contentLanguage: 'en' });
+
+    expect(updated?.contentLanguage).toBe('en');
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'PATCH',
+        endpointPath: '/v1/admin/assets/asset-1',
+        body: { content_language: 'en' },
+      })
+    );
+  });
+
+  it('skips PATCH when update patch is empty and returns current asset from GET', async () => {
+    mockAdminApiRequest.mockResolvedValueOnce({
+      data: {
+        asset: {
+          id: 'asset-1',
+          title: 'Same',
+          description: null,
+          asset_type: 'document',
+          s3_key: 'assets/same.pdf',
+          file_name: 'same.pdf',
+          content_type: 'application/pdf',
+          content_language: null,
+          visibility: 'restricted',
+          created_by: null,
+          created_at: null,
+          updated_at: null,
+          tags: [],
+        },
+      },
+    });
+
+    const asset = await updateAdminAsset('asset-1', {});
+
+    expect(asset?.title).toBe('Same');
+    expect(mockAdminApiRequest).toHaveBeenCalledTimes(1);
+    expect(mockAdminApiRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'GET',
+        endpointPath: '/v1/admin/assets/asset-1',
+      })
+    );
   });
 
   it('fetches user asset download URL', async () => {

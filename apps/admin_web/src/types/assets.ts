@@ -4,6 +4,7 @@ type ApiSchemas = components['schemas'];
 type ApiAsset = ApiSchemas['Asset'];
 type ApiAssetGrant = ApiSchemas['AssetGrant'];
 type ApiCreateAssetRequest = ApiSchemas['CreateAssetRequest'];
+type ApiPartialUpdateAssetRequest = ApiSchemas['PartialUpdateAssetRequest'];
 type ApiCreateAssetResponse = ApiSchemas['CreateAssetResponse'];
 type ApiCreateAssetGrantRequest = ApiSchemas['CreateAssetGrantRequest'];
 
@@ -29,6 +30,11 @@ export const EXPENSE_ATTACHMENT_ASSET_TAG = 'expense_attachment' as const;
 /** Admin-assignable client-facing document tag (matches admin API `client_tag`). */
 export const CLIENT_DOCUMENT_ASSET_TAG = 'client_document' as const;
 
+/** Allowed `content_language` values for admin asset create/update (matches OpenAPI enum). */
+export type AdminAssetWriteContentLanguage = NonNullable<
+  Exclude<ApiCreateAssetRequest['content_language'], null | undefined>
+>;
+
 export type AdminAssetTag = {
   id: string;
   name: string;
@@ -49,6 +55,7 @@ export interface AdminAsset {
   fileName: ApiAsset['file_name'];
   resourceKey: OptionalToNullable<ApiAsset['resource_key']>;
   contentType: OptionalToNullable<ApiAsset['content_type']>;
+  contentLanguage: OptionalToNullable<ApiAsset['content_language']>;
   visibility: AssetVisibility;
   tags: AdminAssetTag[];
   createdBy: OptionalToNullable<ApiAsset['created_by']>;
@@ -92,11 +99,26 @@ export interface UpsertAdminAssetInput {
   fileName: ApiCreateAssetRequest['file_name'];
   resourceKey?: OptionalToNullable<ApiCreateAssetRequest['resource_key']>;
   contentType?: OptionalToNullable<ApiCreateAssetRequest['content_type']>;
+  contentLanguage?: OptionalToNullable<ApiCreateAssetRequest['content_language']>;
   visibility: ApiCreateAssetRequest['visibility'];
   /**
    * Maps to API `client_tag`. Omit on update when the asset is expense-tagged (API forbids the field).
    */
   clientTag?: ApiCreateAssetRequest['client_tag'];
+}
+
+/** Fields for `PATCH /v1/admin/assets/{id}` — omit keys that are unchanged. */
+export interface UpdateAdminAssetPatchInput {
+  title?: string;
+  description?: string | null;
+  assetType?: AssetType;
+  fileName?: string;
+  resourceKey?: string | null;
+  contentType?: string | null;
+  contentLanguage?: OptionalToNullable<ApiPartialUpdateAssetRequest['content_language']>;
+  visibility?: AssetVisibility;
+  /** Omit when the asset is expense-tagged (API forbids the field). */
+  clientTag?: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
 }
 
 export interface CreatedAssetUpload {
