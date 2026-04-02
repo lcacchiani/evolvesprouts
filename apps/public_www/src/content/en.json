@@ -729,32 +729,61 @@
       "title": "Browse Our Free Resources",
       "searchPlaceholder": "Search resources...",
       "emptySearchResultsLabel": "No resources match your search.",
-      "categories": [
+      "loadingLabel": "Loading resources…",
+      "loadErrorLabel": "We could not load the resource list. Please try again later.",
+      "emptyApiLabel": "No resources are available yet.",
+      "languageBadgeTemplate": "{language}",
+      "nullLanguageLabel": "Any language",
+      "gatedCtaLabelTemplate": "Get {title}",
+      "unavailableCtaLabel": "Unavailable",
+      "languageFilters": [
         {
           "id": "all",
-          "label": "All Resources"
+          "label": "All languages"
         },
         {
-          "id": "parenting-tips",
-          "label": "Parenting Tips"
+          "id": "en",
+          "label": "English"
         },
         {
-          "id": "montessori",
-          "label": "Montessori"
+          "id": "zh-CN",
+          "label": "Chinese (Simplified)"
         },
         {
-          "id": "helper-training",
-          "label": "Helper Training"
+          "id": "zh-HK",
+          "label": "Chinese (Hong Kong)"
+        },
+        {
+          "id": "unset",
+          "label": "Unspecified"
         }
       ],
-      "items": [
+      "assetTypeLabels": {
+        "guide": "Guide",
+        "video": "Video",
+        "pdf": "PDF",
+        "document": "Document"
+      },
+      "assetTypeFilters": [
         {
-          "id": "patience-free-guide",
-          "title": "4 Simple Ways to Teach Patience to Young Children",
-          "description": "Gentle strategies for busy parents — practical tips you can start using today.",
-          "format": "PDF Guide",
-          "categoryId": "parenting-tips",
-          "ctaLabel": "Get 4 Ways to Teach Patience"
+          "id": "all",
+          "label": "All types"
+        },
+        {
+          "id": "guide",
+          "label": "Guide"
+        },
+        {
+          "id": "video",
+          "label": "Video"
+        },
+        {
+          "id": "pdf",
+          "label": "PDF"
+        },
+        {
+          "id": "document",
+          "label": "Document"
         }
       ]
     },

@@ -255,10 +255,12 @@ allowlist (for example
 switch to `/www` proxy routing on approved hosts.
 CSP generation derives `connect-src` API origins from
 `NEXT_PUBLIC_API_BASE_URL`.
-`NEXT_PUBLIC_API_BASE_URL` is used by public website API calls including
-legacy bridge routes and Stripe payment-intent initialization
-(`/v1/reservations/payment-intent`), and contributes to CSP `connect-src`
-origins when configured as an absolute URL.
+When set to an absolute URL, that same variable also determines which API
+origins are allowed in CSP `connect-src`.
+`NEXT_PUBLIC_API_BASE_URL` is used for public website API calls such as legacy
+bridge routes, Stripe payment-intent initialization
+(`/v1/reservations/payment-intent`), and the free guides resource library list
+(`GET /v1/assets/free`, same-origin as `/www/v1/assets/free` when proxied).
 The injected CSP also allows Cloudflare Web Analytics (`static.cloudflareinsights.com`
 for `script-src` and `cloudflareinsights.com` for `connect-src`) when Cloudflare
 injects the beacon at the edge.

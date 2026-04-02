@@ -729,32 +729,61 @@
       "title": "瀏覽我們的免費資源",
       "searchPlaceholder": "搜尋資源…",
       "emptySearchResultsLabel": "沒有符合你搜尋條件的資源。",
-      "categories": [
+      "loadingLabel": "正在載入資源…",
+      "loadErrorLabel": "暫時無法載入資源清單，請稍後再試。",
+      "emptyApiLabel": "暫時沒有可用資源。",
+      "languageBadgeTemplate": "{language}",
+      "nullLanguageLabel": "不限語言",
+      "gatedCtaLabelTemplate": "獲取 {title}",
+      "unavailableCtaLabel": "暫不可用",
+      "languageFilters": [
         {
           "id": "all",
-          "label": "全部資源"
+          "label": "全部語言"
         },
         {
-          "id": "parenting-tips",
-          "label": "育兒貼士"
+          "id": "en",
+          "label": "英文"
         },
         {
-          "id": "montessori",
-          "label": "蒙特梭利"
+          "id": "zh-CN",
+          "label": "中文（簡體）"
         },
         {
-          "id": "helper-training",
-          "label": "家傭培訓"
+          "id": "zh-HK",
+          "label": "中文（香港）"
+        },
+        {
+          "id": "unset",
+          "label": "未標示"
         }
       ],
-      "items": [
+      "assetTypeLabels": {
+        "guide": "指南",
+        "video": "影片",
+        "pdf": "PDF",
+        "document": "文件"
+      },
+      "assetTypeFilters": [
         {
-          "id": "patience-free-guide",
-          "title": "教孩子學習耐心的 4 個簡單方法",
-          "description": "送給忙碌家長的溫和策略——今日就可以開始實踐的小貼士。",
-          "format": "PDF 指南",
-          "categoryId": "parenting-tips",
-          "ctaLabel": "獲取 4 個耐心培養方法"
+          "id": "all",
+          "label": "全部類型"
+        },
+        {
+          "id": "guide",
+          "label": "指南"
+        },
+        {
+          "id": "video",
+          "label": "影片"
+        },
+        {
+          "id": "pdf",
+          "label": "PDF"
+        },
+        {
+          "id": "document",
+          "label": "文件"
         }
       ]
     },
