@@ -99,6 +99,15 @@ and DLQ support.
 - 14 day retention for investigation.
 - CloudWatch alarm triggers when messages appear.
 
+### Lambda dead letter queue: `evolvesprouts-eventbrite-sync-processor-lambda-dlq`
+
+- Holds payloads for **Lambda invocation failures** (for example unhandled exceptions
+  surfaced as failed async invokes) for `EventbriteSyncProcessor`.
+- Distinct from `evolvesprouts-eventbrite-sync-dlq`, which is the **SQS redrive**
+  target after repeated receive/delete cycles on the main queue.
+- 14 day retention; KMS encryption uses the same shared queue key as other Eventbrite
+  sync queues.
+
 ### Processor Lambda: `EventbriteSyncProcessor`
 
 - Triggered by `evolvesprouts-eventbrite-sync-queue`.
@@ -317,7 +326,8 @@ SQS retries or mailbox forwarding duplicates.
 | `ExpenseParserDLQUrl` | Dead letter queue URL for failed expense parser jobs |
 | `EventbriteSyncTopicArn` | SNS topic ARN for Eventbrite sync events |
 | `EventbriteSyncQueueUrl` | SQS queue URL for Eventbrite sync processing |
-| `EventbriteSyncDLQUrl` | Dead letter queue URL for failed Eventbrite sync jobs |
+| `EventbriteSyncDLQUrl` | Dead letter queue URL for failed Eventbrite sync jobs (SQS redrive) |
+| `EventbriteSyncProcessorLambdaDLQUrl` | Dead letter queue URL for failed EventbriteSyncProcessor Lambda invocations |
 | `InboundInvoiceRecipientAddress` | SES-managed recipient address for invoice automation |
 | `InboundInvoiceRawEmailPrefix` | Reserved object-key prefix for raw inbound invoice emails |
 | `InboundInvoiceTopicArn` | SNS topic ARN for inbound invoice email events |

@@ -348,7 +348,8 @@ API Lambda
     └─▶ SNS: evolvesprouts-eventbrite-sync-events
              └─▶ SQS: evolvesprouts-eventbrite-sync-queue
                        └─▶ EventbriteSyncProcessor Lambda
-                       └─▶ DLQ: evolvesprouts-eventbrite-sync-dlq
+                       └─▶ SQS DLQ: evolvesprouts-eventbrite-sync-dlq
+                       └─▶ Lambda DLQ: evolvesprouts-eventbrite-sync-processor-lambda-dlq
 
 SES inbound (inbound.evolvesprouts.com)
     │
