@@ -109,7 +109,7 @@ export interface UpdateAdminAssetPatchInput {
   fileName?: string;
   resourceKey?: string | null;
   contentType?: string | null;
-  contentLanguage?: string | null;
+  contentLanguage?: OptionalToNullable<ApiCreateAssetRequest['content_language']>;
   visibility?: AssetVisibility;
   /** Omit when the asset is expense-tagged (API forbids the field). */
   clientTag?: typeof CLIENT_DOCUMENT_ASSET_TAG | null;

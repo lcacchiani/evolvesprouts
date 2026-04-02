@@ -2,7 +2,12 @@
 
 import { useMemo, useState, type FormEvent } from 'react';
 
-import type { AdminAsset, AssetVisibility, UpdateAdminAssetPatchInput } from '@/types/assets';
+import type {
+  AdminAsset,
+  AssetVisibility,
+  UpdateAdminAssetPatchInput,
+  UpsertAdminAssetInput,
+} from '@/types/assets';
 
 import {
   matchAdminSelectableContentLanguage,
@@ -43,7 +48,7 @@ interface AssetEditorPanelProps {
       fileName: string;
       resourceKey: string | null;
       visibility: AssetVisibility;
-      contentLanguage: string | null;
+      contentLanguage: UpsertAdminAssetInput['contentLanguage'];
       clientTag: typeof CLIENT_DOCUMENT_ASSET_TAG | null;
     },
     file: File
@@ -179,8 +184,9 @@ export function AssetEditorPanel({
     }
     const resourceKey = normalizedResourceKey || null;
 
-    const contentLanguageTrimmed = formState.contentLanguage.trim();
-    const contentLanguage = contentLanguageTrimmed === '' ? null : contentLanguageTrimmed;
+    const nextCreateLanguage = matchAdminSelectableContentLanguage(formState.contentLanguage);
+    const contentLanguage: UpsertAdminAssetInput['contentLanguage'] =
+      nextCreateLanguage === 'unrecognized' ? null : nextCreateLanguage;
 
     const clientTagValue: typeof CLIENT_DOCUMENT_ASSET_TAG | null =
       formState.clientTag === CLIENT_DOCUMENT_ASSET_TAG ? CLIENT_DOCUMENT_ASSET_TAG : null;
