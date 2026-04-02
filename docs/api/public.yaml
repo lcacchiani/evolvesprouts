@@ -771,6 +771,13 @@ components:
           maxLength: 100
     DiscountRule:
       type: object
+      additionalProperties: false
+      required:
+        - code
+        - amount
+        - is_percentage
+        - currency_code
+        - currency_symbol
       properties:
         code:
           type: string
@@ -789,7 +796,12 @@ components:
           nullable: true
     DiscountValidationResponse:
       type: object
-      additionalProperties: true
+      additionalProperties: false
+      required:
+        - valid
+        - is_valid
+        - data
+        - discount
       properties:
         valid:
           type: boolean

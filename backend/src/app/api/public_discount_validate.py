@@ -16,6 +16,9 @@ from app.db.models import DiscountCode
 from app.db.models.enums import DiscountType
 from app.db.repositories import DiscountCodeRepository
 from app.utils import json_response
+from app.utils.logging import get_logger, mask_pii
+
+logger = get_logger(__name__)
 
 _MAX_CODE_LENGTH = 100
 
@@ -25,6 +28,10 @@ def handle_public_discount_validate(
     method: str,
 ) -> dict[str, Any]:
     """Validate a discount code; response shape matches legacy DiscountRule."""
+    logger.info(
+        "Handling public discount validate request",
+        extra={"method": method},
+    )
     if method != "POST":
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
@@ -37,6 +44,11 @@ def handle_public_discount_validate(
     )
     if code is None:
         return json_response(400, {"error": "code is required"}, event=event)
+
+    logger.info(
+        "Validating discount code",
+        extra={"code": mask_pii(code.strip().upper(), visible_chars=2)},
+    )
 
     with Session(get_engine()) as session:
         repository = DiscountCodeRepository(session)
@@ -64,7 +76,9 @@ def handle_public_discount_validate(
 def _is_usable_now(row: DiscountCode) -> bool:
     if not row.active:
         return False
-    now = datetime.now(UTC)
+    # Truncate to whole seconds so inclusive valid_until boundaries match values
+    # stored at second (or coarser) resolution — aligns with OpenAPI "both ends inclusive".
+    now = datetime.now(UTC).replace(microsecond=0)
     if row.valid_from is not None and row.valid_from > now:
         return False
     if row.valid_until is not None and row.valid_until < now:

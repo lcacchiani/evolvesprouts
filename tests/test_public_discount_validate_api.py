@@ -327,6 +327,69 @@ def test_public_discount_validate_returns_404_when_valid_until_passed(
     assert response["statusCode"] == 404
 
 
+def test_public_discount_validate_succeeds_when_now_has_microseconds_but_until_is_second_precision(
+    monkeypatch: Any,
+    api_gateway_event: Any,
+) -> None:
+    """Inclusive valid_until must not fail when DB stores whole seconds and now has μs."""
+    row = SimpleNamespace(
+        id=uuid4(),
+        code="US",
+        description=None,
+        discount_type=DiscountType.PERCENTAGE,
+        discount_value=Decimal("5.00"),
+        currency=None,
+        active=True,
+        valid_from=None,
+        valid_until=datetime(2026, 1, 2, 12, 0, 0, tzinfo=UTC),
+        max_uses=None,
+        current_uses=0,
+    )
+
+    class _FakeSession:
+        pass
+
+    class _SessionCtx:
+        def __init__(self, _engine: Any) -> None:
+            self._session = _FakeSession()
+
+        def __enter__(self) -> _FakeSession:
+            return self._session
+
+        def __exit__(self, *_args: Any) -> bool:
+            return False
+
+    class _FakeRepository:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_code(self, _code: str) -> Any:
+            return row
+
+    monkeypatch.setattr(public_discount_validate, "Session", _SessionCtx)
+    monkeypatch.setattr(public_discount_validate, "get_engine", lambda: object())
+    monkeypatch.setattr(
+        public_discount_validate,
+        "DiscountCodeRepository",
+        _FakeRepository,
+    )
+    monkeypatch.setattr(
+        public_discount_validate,
+        "datetime",
+        SimpleNamespace(
+            now=lambda tz=None: datetime(2026, 1, 2, 12, 0, 0, 123456, tzinfo=UTC)
+        ),
+    )
+
+    event = api_gateway_event(
+        method="POST",
+        path="/v1/discounts/validate",
+        body=json.dumps({"code": "US"}),
+    )
+    response = public_discount_validate.handle_public_discount_validate(event, "POST")
+    assert response["statusCode"] == 200
+
+
 def test_public_discount_validate_succeeds_on_valid_until_boundary(
     monkeypatch: Any,
     api_gateway_event: Any,

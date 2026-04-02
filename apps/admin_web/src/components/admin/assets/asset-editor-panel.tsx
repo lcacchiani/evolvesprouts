@@ -185,10 +185,15 @@ export function AssetEditorPanel({
     const resourceKey = normalizedResourceKey || null;
 
     const contentLanguageTrimmed = formState.contentLanguage.trim();
-    const contentLanguage: AdminAssetWriteContentLanguage | null =
-      contentLanguageTrimmed === ''
-        ? null
-        : (contentLanguageTrimmed as AdminAssetWriteContentLanguage);
+    let contentLanguage: AdminAssetWriteContentLanguage | null = null;
+    if (contentLanguageTrimmed !== '') {
+      const matched = matchAdminSelectableContentLanguage(contentLanguageTrimmed);
+      if (matched === 'unrecognized') {
+        setFormError('Invalid language selection.');
+        return;
+      }
+      contentLanguage = matched;
+    }
 
     const clientTagValue: typeof CLIENT_DOCUMENT_ASSET_TAG | null =
       formState.clientTag === CLIENT_DOCUMENT_ASSET_TAG ? CLIENT_DOCUMENT_ASSET_TAG : null;
