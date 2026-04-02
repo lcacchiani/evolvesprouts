@@ -204,6 +204,9 @@ def build_bundle(
 
     _copy_tree(source_root / "lambda", output_dir / "lambda")
     _copy_tree(source_root / "src", output_dir / "src")
+    shared_config = source_root.parent / "shared" / "config"
+    if shared_config.is_dir():
+        _copy_tree(shared_config, output_dir / "shared" / "config")
     _cleanup_bundle(output_dir)
 
 

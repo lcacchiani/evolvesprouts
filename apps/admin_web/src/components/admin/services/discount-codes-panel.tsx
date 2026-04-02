@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { isDiscountValidityRangeInverted } from '@/lib/discount-validity';
 import {
   formatDate,
   formatEnumLabel,
@@ -74,6 +75,7 @@ export function DiscountCodesPanel({
   const [active, setActive] = useState(true);
   const [validFromLocal, setValidFromLocal] = useState('');
   const [validUntilLocal, setValidUntilLocal] = useState('');
+  const [validityRangeError, setValidityRangeError] = useState('');
   const currencyOptions = getCurrencyOptions();
 
   const selectedCode = useMemo(
@@ -93,9 +95,15 @@ export function DiscountCodesPanel({
     setActive(true);
     setValidFromLocal('');
     setValidUntilLocal('');
+    setValidityRangeError('');
   };
 
   const handleSubmit = async () => {
+    if (isDiscountValidityRangeInverted(validFromLocal, validUntilLocal)) {
+      setValidityRangeError('Valid until must be on or after valid from.');
+      return;
+    }
+    setValidityRangeError('');
     const validFromIso = parseDatetimeLocalToIsoUtc(validFromLocal);
     const validUntilIso = parseDatetimeLocalToIsoUtc(validUntilLocal);
     const createPayload: ApiSchemas['CreateDiscountCodeRequest'] = {
@@ -145,6 +153,7 @@ export function DiscountCodesPanel({
     setActive(entry.active);
     setValidFromLocal(formatIsoForDatetimeLocalInput(entry.validFrom));
     setValidUntilLocal(formatIsoForDatetimeLocalInput(entry.validUntil));
+    setValidityRangeError('');
   };
 
   const handleDeleteCode = async (entry: DiscountCode) => {
@@ -178,7 +187,12 @@ export function DiscountCodesPanel({
             ) : null}
             <Button
               type='button'
-              disabled={isSaving || !code.trim() || !discountValue.trim()}
+              disabled={
+                isSaving ||
+                !code.trim() ||
+                !discountValue.trim() ||
+                isDiscountValidityRangeInverted(validFromLocal, validUntilLocal)
+              }
               onClick={() => void handleSubmit()}
             >
               {editorMode === 'create' ? 'Create code' : 'Update code'}
@@ -186,7 +200,7 @@ export function DiscountCodesPanel({
           </>
         }
       >
-        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'>
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
           <div>
             <Label htmlFor='discount-code'>Code</Label>
             <Input
@@ -211,28 +225,31 @@ export function DiscountCodesPanel({
             </Select>
           </div>
           <div>
-            <Label className='text-xs font-medium text-slate-600' htmlFor='discount-valid-from'>
-              Valid from
-            </Label>
+            <Label htmlFor='discount-valid-from'>Valid from</Label>
             <Input
               id='discount-valid-from'
               type='datetime-local'
               value={validFromLocal}
-              onChange={(event) => setValidFromLocal(event.target.value)}
+              onChange={(event) => {
+                setValidFromLocal(event.target.value);
+                setValidityRangeError('');
+              }}
             />
           </div>
           <div>
-            <Label className='text-xs font-medium text-slate-600' htmlFor='discount-valid-until'>
-              Valid until
-            </Label>
+            <Label htmlFor='discount-valid-until'>Valid until</Label>
             <Input
               id='discount-valid-until'
               type='datetime-local'
               value={validUntilLocal}
-              onChange={(event) => setValidUntilLocal(event.target.value)}
+              onChange={(event) => {
+                setValidUntilLocal(event.target.value);
+                setValidityRangeError('');
+              }}
             />
           </div>
         </div>
+        {validityRangeError ? <p className='text-sm text-red-600'>{validityRangeError}</p> : null}
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
           <div>
             <Label htmlFor='discount-value'>Value</Label>

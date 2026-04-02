@@ -2,6 +2,8 @@ import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 import type { LocationSummary } from '@/types/services';
 
+import adminSelectableCurrency from '@shared-config/admin-selectable-currency-codes.json';
+
 /** Short user-visible label for a location (venue name, address, or id). */
 export function formatLocationLabel(location: LocationSummary): string {
   const name = location.name?.trim();
@@ -79,14 +81,11 @@ const LOCAL_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
 
 const DEFAULT_CURRENCY_LABEL_HKD = 'Hong Kong Dollar';
 
-/** Fixed allowlist for admin currency dropdowns; default currency (env) is listed first. */
-const ADMIN_SELECTABLE_CURRENCY_CODES = ['HKD', 'USD', 'EUR', 'CNY', 'SGD'] as const;
+const ADMIN_SELECTABLE_CURRENCY_CODES = adminSelectableCurrency.codes as readonly string[];
 
 function getAdminSelectableCurrencyCodesOrdered(): string[] {
   const defaultCode = getAdminDefaultCurrencyCode();
-  const inAllowlist = ADMIN_SELECTABLE_CURRENCY_CODES.includes(
-    defaultCode as (typeof ADMIN_SELECTABLE_CURRENCY_CODES)[number]
-  );
+  const inAllowlist = ADMIN_SELECTABLE_CURRENCY_CODES.includes(defaultCode);
   if (inAllowlist) {
     return [defaultCode, ...ADMIN_SELECTABLE_CURRENCY_CODES.filter((c) => c !== defaultCode)];
   }
