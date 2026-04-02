@@ -721,6 +721,63 @@ describe('my-best-auntie booking modals footer content', () => {
     expect(within(priceBreakdown as HTMLDivElement).getByText('HK$8,100')).toBeInTheDocument();
   });
 
+  it('shows spinning gear on discount Apply while validation is pending', async () => {
+    mockedCreateCrmApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+    mockedCreatePublicApiClient.mockReturnValue({
+      request: vi.fn(),
+    });
+
+    let resolveValidation: (value: {
+      code: string;
+      type: 'percent';
+      value: number;
+    }) => void = () => {};
+    mockedValidateDiscountCode.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+    );
+
+    renderBookingModal();
+
+    const discountInput = screen.getByPlaceholderText(
+      bookingModalContent.discountCodePlaceholder,
+    ) as HTMLInputElement;
+    fireEvent.change(discountInput, {
+      target: {
+        value: 'SAVE10',
+      },
+    });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: bookingModalContent.applyDiscountLabel,
+      }),
+    );
+
+    expect(screen.getByTestId('booking-discount-apply-loading-gear')).toHaveClass('animate-spin');
+    expect(
+      screen.getByRole('button', {
+        name: bookingModalContent.applyDiscountLoadingLabel,
+      }),
+    ).toHaveAttribute('aria-busy', 'true');
+
+    resolveValidation({
+      code: 'SAVE10',
+      type: 'percent',
+      value: 10,
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(bookingModalContent.discountAppliedLabel),
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('booking-discount-apply-loading-gear')).toBeNull();
+  });
+
   it('submits reservation payload with required snake_case fields', async () => {
     const requestSpy = vi.fn().mockResolvedValue({ message: 'Reservation submitted' });
     const onSubmitReservation = vi.fn();
