@@ -102,14 +102,14 @@ _ROUTES: tuple[
         lambda event, method, _path: handle_public_discount_validate(event, method),
     ),
     (
-        "/v1/client-resources",
+        "/v1/assets/free",
         True,
         lambda event, method, path: handle_public_client_resources_request(
             event, method, path
         ),
     ),
     (
-        "/www/v1/client-resources",
+        "/www/v1/assets/free",
         True,
         lambda event, method, path: handle_public_client_resources_request(
             event, method, path

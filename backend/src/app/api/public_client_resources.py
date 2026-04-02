@@ -24,18 +24,18 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def _is_client_resources_list_path(path: str) -> bool:
-    """True for /vN/client-resources, /www/vN/client-resources, or /client-resources (stripped)."""
+def _is_free_assets_list_path(path: str) -> bool:
+    """True for /v1/assets/free and /www/v1/assets/free (normalized path)."""
     parts = [segment for segment in normalize_path(path).split("/") if segment]
-    if not parts or parts[-1] != "client-resources":
-        return False
-    if len(parts) == 1:
-        return True
-    if len(parts) == 2:
-        seg = parts[0]
-        return seg.startswith("v") and seg[1:].isdigit()
     if len(parts) == 3:
-        return parts[0] == "www" and parts[1].startswith("v") and parts[1][1:].isdigit()
+        return parts[0] == "v1" and parts[1] == "assets" and parts[2] == "free"
+    if len(parts) == 4:
+        return (
+            parts[0] == "www"
+            and parts[1] == "v1"
+            and parts[2] == "assets"
+            and parts[3] == "free"
+        )
     return False
 
 
@@ -44,8 +44,8 @@ def handle_public_client_resources_request(
     method: str,
     path: str,
 ) -> dict[str, Any]:
-    """Handle GET /v1/client-resources and /www/v1/client-resources."""
-    if not _is_client_resources_list_path(path):
+    """Handle GET /v1/assets/free and /www/v1/assets/free."""
+    if not _is_free_assets_list_path(path):
         return json_response(404, {"error": "Not found"}, event=event)
 
     logger.info(

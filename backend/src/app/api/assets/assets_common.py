@@ -39,7 +39,7 @@ _MAX_MIME_TYPE_LENGTH = 127
 _MAX_RESOURCE_KEY_LENGTH = 64
 _MAX_CONTENT_LANGUAGE_LENGTH = 35
 _CONTENT_LANGUAGE_RE = re.compile(r"^[A-Za-z]{2,3}([_-][A-Za-z0-9]{2,8})*$")
-# Admin create/update: only tags exposed in the admin UI / client-resources filters.
+# Admin create/update: only tags exposed in the admin UI / public free-assets list filters.
 _ADMIN_ASSET_CONTENT_LANGUAGE_CANONICAL: dict[str, str] = {
     "en": "en",
     "zh-cn": "zh-CN",

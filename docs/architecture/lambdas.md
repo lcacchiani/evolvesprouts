@@ -47,7 +47,7 @@ their primary responsibilities.
   `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
-  `/v1/assets/public/*`, and `/v1/assets/share/*`,
+  `/v1/assets/public/*`, `/v1/assets/share/*`, and `GET /v1/assets/free`,
   plus public website proxy routes including
   `/www/v1/discounts/validate` (native Aurora-backed discount validation;
   same JSON contract as `/www/v1/legacy/discounts/validate`),
@@ -55,7 +55,7 @@ their primary responsibilities.
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
   when `max_capacity` is set, using the same enrollment statuses as capacity
   checks: registered, confirmed, completed),
-  `/www/v1/client-resources` (lists public assets tagged `client_document`;
+  `/www/v1/assets/free` (lists public assets tagged `client_document`;
   optional `language` query filters on `assets.content_language` using any valid
   BCP 47-style tag; admin asset writes restrict `content_language` to `en`,
   `zh-CN`, or `zh-HK`; downloads
@@ -63,7 +63,7 @@ their primary responsibilities.
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
-  API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
+  API key for `/v1/assets/share/*` (injected by media CloudFront at origin) and `GET /v1/assets/free`
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
   `asset_type` scope; create/update accept optional `client_tag` for the

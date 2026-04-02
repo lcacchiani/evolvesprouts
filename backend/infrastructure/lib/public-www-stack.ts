@@ -339,7 +339,7 @@ function handler(event) {
   var allowlist = {
     'GET': {
       '/www/v1/calendar/events': true,
-      '/www/v1/client-resources': true
+      '/www/v1/assets/free': true
     },
     'POST': {
       '/www/v1/discounts/validate': true,

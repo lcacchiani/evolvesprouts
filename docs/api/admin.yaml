@@ -4091,7 +4091,7 @@ components:
           enum: [en, zh-CN, zh-HK]
           description: >
             BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN,
-            or zh-HK. Used by the public client-resources feed when filtering by `language`.
+            or zh-HK. Used by `GET /v1/assets/free` when filtering by `language`.
         visibility:
           type: string
           enum: [public, restricted]

@@ -31,9 +31,9 @@ def test_handle_public_client_resources_rejects_non_get(
     api_gateway_event: Any,
 ) -> None:
     response = public_client_resources.handle_public_client_resources_request(
-        api_gateway_event(method="POST", path="/v1/client-resources"),
+        api_gateway_event(method="POST", path="/v1/assets/free"),
         "POST",
-        "/v1/client-resources",
+        "/v1/assets/free",
     )
     assert response["statusCode"] == 405
 
@@ -73,9 +73,9 @@ def test_handle_public_client_resources_accepts_www_prefixed_path(
     monkeypatch.setattr(public_client_resources, "AssetRepository", _FakeRepository)
 
     response = public_client_resources.handle_public_client_resources_request(
-        api_gateway_event(method="GET", path="/www/v1/client-resources"),
+        api_gateway_event(method="GET", path="/www/v1/assets/free"),
         "GET",
-        "/www/v1/client-resources",
+        "/www/v1/assets/free",
     )
     assert response["statusCode"] == 200
 
@@ -87,11 +87,11 @@ def test_handle_public_client_resources_invalid_language(
         public_client_resources.handle_public_client_resources_request(
             api_gateway_event(
                 method="GET",
-                path="/v1/client-resources",
+                path="/v1/assets/free",
                 query_params={"language": "not valid!"},
             ),
             "GET",
-            "/v1/client-resources",
+            "/v1/assets/free",
         )
 
 
@@ -135,11 +135,11 @@ def test_handle_public_client_resources_lists_items(
     response = public_client_resources.handle_public_client_resources_request(
         api_gateway_event(
             method="GET",
-            path="/v1/client-resources",
+            path="/v1/assets/free",
             query_params={"language": "zh-HK", "limit": "25"},
         ),
         "GET",
-        "/v1/client-resources",
+        "/v1/assets/free",
     )
     assert response["statusCode"] == 200
     body = json.loads(response["body"])
