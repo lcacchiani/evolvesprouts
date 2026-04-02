@@ -67,7 +67,7 @@ def _instance_row(
 
 def test_handle_public_events_rejects_non_get(api_gateway_event: Any) -> None:
     response = public_events.handle_public_events(
-        api_gateway_event(method="POST", path="/v1/calendar/events"),
+        api_gateway_event(method="POST", path="/v1/calendar/public"),
         "POST",
     )
     assert response["statusCode"] == 405
@@ -107,7 +107,7 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
     monkeypatch.setattr(public_events, "ServiceInstanceRepository", _FakeRepository)
 
     response = public_events.handle_public_events(
-        api_gateway_event(method="GET", path="/v1/calendar/events"),
+        api_gateway_event(method="GET", path="/v1/calendar/public"),
         "GET",
     )
     assert response["statusCode"] == 200

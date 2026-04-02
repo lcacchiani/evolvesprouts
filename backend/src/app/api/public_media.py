@@ -33,7 +33,7 @@ def handle_media_request(
     event: Mapping[str, Any],
     method: str,
 ) -> dict[str, Any]:
-    """Handle media form submissions from the public website."""
+    """Handle POST /v1/assets/public/free/request (and /www/... website proxy path)."""
     if method != "POST":
         return json_response(405, {"error": "Method not allowed"}, event=event)
 

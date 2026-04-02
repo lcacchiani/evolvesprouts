@@ -45,7 +45,7 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/v1/user/assets/abc/download",
         "/v1/assets/share/token-123",
         "/v1/assets/public/abc/download",
-        "/v1/media-request",
+        "/v1/assets/public/free/request",
         "/v1/reservations",
         "/v1/reservations/payment-intent",
         "/v1/legacy/reservations",
@@ -57,7 +57,9 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/www/v1/legacy/contact-us",
         "/www/v1/legacy/discounts/validate",
         "/v1/mailchimp/webhook",
-        "/www/v1/media-request",
+        "/v1/calendar/public",
+        "/www/v1/calendar/public",
+        "/www/v1/assets/public/free/request",
         "/www/v1/reservations",
         "/www/v1/reservations/payment-intent",
     )
@@ -73,7 +75,10 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         _match_handler(event=event, method="POST", path="/v1/reservations/payment-intent")
         is not None
     )
-    assert _match_handler(event=event, method="POST", path="/v1/media-request") is not None
+    assert (
+        _match_handler(event=event, method="POST", path="/v1/assets/public/free/request")
+        is not None
+    )
     assert (
         _match_handler(event=event, method="POST", path="/v1/mailchimp/webhook")
         is not None
@@ -85,7 +90,9 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is not None
     )
     assert (
-        _match_handler(event=event, method="POST", path="/www/v1/media-request")
+        _match_handler(
+            event=event, method="POST", path="/www/v1/assets/public/free/request"
+        )
         is not None
     )
     assert (
@@ -134,7 +141,9 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is None
     )
     assert (
-        _match_handler(event=event, method="POST", path="/v1/media-request/extra")
+        _match_handler(
+            event=event, method="POST", path="/v1/assets/public/free/request/extra"
+        )
         is None
     )
     assert (
@@ -142,7 +151,9 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         is None
     )
     assert (
-        _match_handler(event=event, method="POST", path="/www/v1/media-request/extra")
+        _match_handler(
+            event=event, method="POST", path="/www/v1/assets/public/free/request/extra"
+        )
         is None
     )
     assert (
@@ -201,4 +212,6 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
 
 def test_requires_json_content_type_skips_mailchimp_webhook() -> None:
     assert _requires_json_content_type("/v1/mailchimp/webhook", "POST") is False
-    assert _requires_json_content_type("/v1/media-request", "POST") is True
+    assert (
+        _requires_json_content_type("/v1/assets/public/free/request", "POST") is True
+    )

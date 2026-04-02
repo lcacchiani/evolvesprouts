@@ -117,8 +117,8 @@ CloudFront distribution
         ├─▶ /www/v1/*: API Gateway (CRM API routes)
         │     └─▶ Viewer-request allowlist gates method/path pairs
         │
-        └─▶ /www/v1/media-request: API Gateway (media lead capture)
-              └─▶ Path rewrite: /www/v1/media-request → /v1/media-request
+        └─▶ /www/v1/assets/public/free/request: API Gateway (media lead capture)
+              └─▶ Path rewrite: /www/v1/assets/public/free/request → /v1/assets/public/free/request
 ```
 
 ### Stack: `evolvesprouts-public-www`
@@ -167,17 +167,17 @@ API Gateway (evolvesprouts-api)
   ├─▶ /v1/assets/public/* ──▶ AdminFunction (VPC)
   │     Authorization: DeviceAttestationAuthorizer + API Key
   │
-  ├─▶ /v1/media-request ────▶ AdminFunction (VPC) ──▶ SNS ──▶ SQS ──▶ MediaProcessor
+  ├─▶ /v1/assets/public/free/request ─▶ AdminFunction (VPC) ──▶ SNS ──▶ SQS ──▶ MediaProcessor
   │     Authorization: API Key + Turnstile
   │
-  ├─▶ /v1/calendar/events ─▶ AdminFunction (VPC)
+  ├─▶ /v1/calendar/public ─▶ AdminFunction (VPC)
   │
   ├─▶ /v1/mailchimp/webhook ▶ AdminFunction (VPC)
   │     Authorization: None (Mailchimp callback)
   │
   └─▶ /www/v1/* ────────────▶ AdminFunction (VPC)
        Authorization: API Key (via CloudFront origin header)
-       Routes: /www/v1/calendar/events, /www/v1/discounts/validate,
+       Routes: /www/v1/calendar/public, /www/v1/discounts/validate,
                /www/v1/reservations, /www/v1/reservations/payment-intent,
                /www/v1/contact-us
 ```

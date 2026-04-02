@@ -23,9 +23,9 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/media-request`, `/v1/reservations`,
+  `/v1/assets/public/free/request`, `/v1/reservations`,
   `/v1/reservations/payment-intent`,
-  `/v1/calendar/events`,
+  `/v1/calendar/public`,
   `/v1/discounts/validate`,
   `/v1/legacy/reservations`,
   `/v1/legacy/contact-us`,
@@ -51,7 +51,7 @@ their primary responsibilities.
   plus public website proxy routes including
   `/www/v1/discounts/validate` (native Aurora-backed discount validation;
   same JSON contract as `/www/v1/legacy/discounts/validate`),
-  `/www/v1/calendar/events` (event instances include optional `slug` and
+  `/www/v1/calendar/public` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
   when `max_capacity` is set, using the same enrollment statuses as capacity
   checks: registered, confirmed, completed),
@@ -86,7 +86,7 @@ their primary responsibilities.
   authentication for restricted share-link resolutions, PATCH partial metadata
   updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
   verification (via `AwsApiProxyFunction`) and SNS event publishing on
-  `/v1/media-request`, Mailchimp webhook ingestion and contact sync-status
+  `/v1/assets/public/free/request`, Mailchimp webhook ingestion and contact sync-status
   reconciliation on `/v1/mailchimp/webhook`, legacy public API bridge routing
   on `/v1/legacy/*` (proxying to upstream legacy endpoints via
   `AwsApiProxyFunction`), Stripe PaymentIntent creation for

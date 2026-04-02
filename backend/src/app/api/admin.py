@@ -82,12 +82,12 @@ _ROUTES: tuple[
         ),
     ),
     (
-        "/v1/calendar/events",
+        "/v1/calendar/public",
         True,
         lambda event, method, _path: handle_public_events(event, method),
     ),
     (
-        "/www/v1/calendar/events",
+        "/www/v1/calendar/public",
         True,
         lambda event, method, _path: handle_public_events(event, method),
     ),
@@ -146,19 +146,9 @@ _ROUTES: tuple[
         lambda event, method, _path: handle_legacy_discount_validate(event, method),
     ),
     (
-        "/v1/media-request",
-        True,
-        lambda event, method, _path: handle_media_request(event, method),
-    ),
-    (
         "/v1/mailchimp/webhook",
         True,
         lambda event, method, _path: handle_mailchimp_webhook(event, method),
-    ),
-    (
-        "/www/v1/media-request",
-        True,
-        lambda event, method, _path: handle_media_request(event, method),
     ),
     (
         "/v1/admin/geographic-areas",
@@ -233,6 +223,16 @@ _ROUTES: tuple[
     ("/v1/admin/assets", False, handle_admin_assets_request),
     ("/v1/user/assets", False, handle_user_assets_request),
     ("/v1/assets/share", False, handle_share_assets_request),
+    (
+        "/v1/assets/public/free/request",
+        True,
+        lambda event, method, _path: handle_media_request(event, method),
+    ),
+    (
+        "/www/v1/assets/public/free/request",
+        True,
+        lambda event, method, _path: handle_media_request(event, method),
+    ),
     ("/v1/assets/public", False, handle_public_assets_request),
 )
 
@@ -305,7 +305,14 @@ def _path_matches(path: str, route_path: str, *, exact: bool) -> bool:
     """Return whether a path matches a route path."""
     if exact:
         return path == route_path
-    return path == route_path or path.startswith(route_path + "/")
+    if path == route_path:
+        return True
+    if not path.startswith(route_path + "/"):
+        return False
+    # Keep /v1/assets/public/free/* for exact routes (media request POST).
+    if route_path == "/v1/assets/public" and path.startswith("/v1/assets/public/free/"):
+        return False
+    return True
 
 
 def _requires_json_content_type(path: str, method: str) -> bool:

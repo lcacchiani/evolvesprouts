@@ -79,9 +79,9 @@ the hostname resolved from `NEXT_PUBLIC_SITE_ORIGIN`.
 `evolvesprouts-public-www` CloudFront proxies `https://{www-domain}/www/*`
 to the host resolved from `PublicWwwApiBaseUrl` (derived from
 `NEXT_PUBLIC_API_BASE_URL`) with caching disabled for those requests.
-`POST /www/v1/media-request` is routed by a path-specific CloudFront behavior
+`POST /www/v1/assets/public/free/request` is routed by a path-specific CloudFront behavior
 to the execute-api origin resolved from `PublicWwwMediaRequestApiBaseUrl`, with
-URI rewrite to `/v1/media-request`.
+URI rewrite to `/v1/assets/public/free/request`.
 Set `NEXT_PUBLIC_API_BASE_URL` to `/www` in runtime client config to
 keep browser API calls same-origin and avoid cross-origin CORS preflight
 failures.
@@ -129,7 +129,7 @@ Workflow: `.github/workflows/smoke-public-www-staging.yml`
   - verifies CTA API endpoints:
     - `POST /www/v1/legacy/contact-us`
     - `POST /www/v1/discounts/validate`
-    - `POST /www/v1/media-request`
+    - `POST /www/v1/assets/public/free/request`
     - `POST /www/v1/legacy/reservations`
     - `POST /www/v1/reservations/payment-intent`
   - when same-origin `/www/*` checks return `404`, retries API checks through

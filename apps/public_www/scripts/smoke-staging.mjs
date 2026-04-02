@@ -47,7 +47,7 @@ Optional:
   ${SMOKE_MAX_PAGES_ENV}           Optional max number of discovered pages to check
   ${SMOKE_API_BASE_URL_ENV}  Optional API base URL fallback for /v1 endpoints
                                    Falls back to ${FALLBACK_API_BASE_URL_ENV} if unset.
-  ${SMOKE_MEDIA_API_BASE_URL_ENV}  Optional media API base URL fallback for /v1/media-request
+  ${SMOKE_MEDIA_API_BASE_URL_ENV}  Optional media API base URL fallback for /v1/assets/public/free/request
                                    Falls back to ${FALLBACK_MEDIA_API_BASE_URL_ENV} if unset.
 `);
 }
@@ -416,8 +416,8 @@ function buildApiCases(turnstileToken) {
     {
       name: 'media request CTA endpoint',
       method: 'POST',
-      proxyPath: '/www/v1/media-request',
-      directPath: '/v1/media-request',
+      proxyPath: '/www/v1/assets/public/free/request',
+      directPath: '/v1/assets/public/free/request',
       apiBaseType: 'media',
       body: {
         first_name: 'Smoke',

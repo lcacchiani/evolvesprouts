@@ -2604,13 +2604,8 @@ export class ApiStack extends cdk.Stack {
       sourceArn: api.arnForExecuteApi(),
     });
 
-    const mediaRequest = v1.addResource("media-request");
-    mediaRequest.addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
-      apiKeyRequired: true,
-    });
     const calendar = v1.addResource("calendar");
-    calendar.addResource("events").addMethod("GET", adminIntegration, {
+    calendar.addResource("public").addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
@@ -3101,6 +3096,12 @@ export class ApiStack extends cdk.Stack {
     publicAssetDownload.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: deviceAttestationAuthorizer,
+      apiKeyRequired: true,
+    });
+
+    const publicAssetFree = publicAssets.addResource("free");
+    publicAssetFree.addResource("request").addMethod("POST", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
 

@@ -29,7 +29,7 @@ import { isHttpHref } from '@/lib/url-utils';
 type EventStatus = 'open' | 'fully_booked';
 type EventsSource = 'content' | 'api';
 
-export const EVENTS_API_PATH = '/v1/calendar/events';
+export const EVENTS_API_PATH = '/v1/calendar/public';
 const EVENTS_SOURCE_ENV_NAME = 'NEXT_PUBLIC_EVENTS_SOURCE';
 const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
 const MAX_PAST_EVENTS = 5;

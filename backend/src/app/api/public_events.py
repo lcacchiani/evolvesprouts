@@ -23,7 +23,7 @@ def handle_public_events(
     event: Mapping[str, Any],
     method: str,
 ) -> dict[str, Any]:
-    """Handle GET /v1/calendar/events and /www/v1/calendar/events."""
+    """Handle GET /v1/calendar/public and /www/v1/calendar/public."""
     logger.info("Handling public events feed request", extra={"method": method})
     if method != "GET":
         return json_response(405, {"error": "Method not allowed"}, event=event)

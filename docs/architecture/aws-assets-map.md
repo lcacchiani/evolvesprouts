@@ -44,9 +44,9 @@ Public WWW CloudFront includes:
   query parameters pass through while preserving the API origin host header.
   - Viewer-request allowlist gates allowed public API method/path pairs
     (e.g. `/www/v1/reservations`).
-- Additional behavior: `www/v1/media-request` forwards to the execute-api
+- Additional behavior: `www/v1/assets/public/free/request` forwards to the execute-api
   host/path extracted from `PublicWwwMediaRequestApiBaseUrl` and rewrites
-  `/www/v1/media-request` to `/v1/media-request` before origin fetch.
+  `/www/v1/assets/public/free/request` to `/v1/assets/public/free/request` before origin fetch.
 - Response headers policy for browser hardening:
   `Strict-Transport-Security`, `X-Content-Type-Options`,
   `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`,
@@ -400,7 +400,8 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | Resource Path | Method | Authorization | Integration | Notes |
 |--------------|--------|---------------|-------------|-------|
 | `/health` | GET | IAM | `HealthCheckFunction` | Health check |
-| `/v1/media-request` | POST | None + API key | `EvolvesproutsAdminFunction` | Publishes `media_request.submitted` to SNS |
+| `/v1/assets/public/free/request` | POST | None + API key | `EvolvesproutsAdminFunction` | Publishes `media_request.submitted` to SNS |
+| `/v1/calendar/public` | GET | None + API key | `EvolvesproutsAdminFunction` | Public event feed for `service_type=event` instances |
 | `/v1/assets/free` | GET | None + API key | `EvolvesproutsAdminFunction` | Lists public `client_document`-tagged assets; optional `language` query |
 | `/v1/admin/geographic-areas` | GET | Admin Group | `EvolvesproutsAdminFunction` | Geographic area lookup for address selection |
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |

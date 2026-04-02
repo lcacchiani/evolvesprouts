@@ -247,9 +247,9 @@ Security model:
 - Only explicitly approved method+path pairs are forwarded.
   - Most `/www/*` routes use the API origin host resolved from
     `PublicWwwApiBaseUrl`.
-  - `POST /www/v1/media-request` uses the execute-api origin resolved from
+  - `POST /www/v1/assets/public/free/request` uses the execute-api origin resolved from
     `PublicWwwMediaRequestApiBaseUrl`, with a viewer-request URI rewrite to
-    `/v1/media-request`.
+    `/v1/assets/public/free/request`.
 - Requests that are not allowlisted are blocked at CloudFront with a `403`
   before reaching the API origin.
 - The policy is applied to both production and staging public website
@@ -273,7 +273,7 @@ Current allowlisted public website POST paths include:
 - `/www/v1/legacy/contact-us`
 - `/www/v1/discounts/validate`
 - `/www/v1/legacy/discounts/validate`
-- `/www/v1/media-request`
+- `/www/v1/assets/public/free/request`
 - `/www/v1/legacy/reservations`
 - `/www/v1/reservations/payment-intent`
 

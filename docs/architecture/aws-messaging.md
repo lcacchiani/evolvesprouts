@@ -114,7 +114,7 @@ responsive while decoupling downstream processing.
 
 ### SNS Topic: `evolvesprouts-media-events`
 
-- Receives media lead events from `POST /v1/media-request`.
+- Receives media lead events from `POST /v1/assets/public/free/request`.
 - Fans out to subscribed SQS queue.
 
 ### SQS Queue: `evolvesprouts-media-queue`
