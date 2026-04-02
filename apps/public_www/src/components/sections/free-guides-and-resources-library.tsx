@@ -365,11 +365,11 @@ export function FreeGuidesAndResourcesLibrary({
               <article className='flex h-full flex-col rounded-2xl border border-black/10 bg-white px-5 py-5 shadow-card sm:px-6 sm:py-6'>
                 <div className='flex flex-wrap items-center gap-2'>
                   {flagSrc ? (
-                    <span className='inline-flex h-4 w-[22px] shrink-0 items-center justify-center overflow-hidden'>
+                    <span className='inline-flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden'>
                       <Image
                         src={flagSrc}
                         alt={flagAlt}
-                        width={22}
+                        width={16}
                         height={16}
                         className='h-full w-full object-cover'
                       />
