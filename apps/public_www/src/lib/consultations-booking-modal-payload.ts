@@ -13,7 +13,6 @@ export function buildConsultationsBookingModalPayload(
   const tier = tierId === 'essentials' ? reservation.essentials : reservation.deepDive;
   const firstPart = tier.dateParts[0];
   const selectedDateStartTime = firstPart?.startDateTime?.trim() ?? '';
-  const directionHref = reservation.directionHref?.trim();
   const payload: ConsultationEventBookingModalPayload = {
     variant: 'event',
     bookingSystem: CONSULTATION_BOOKING_SYSTEM,
@@ -39,8 +38,5 @@ export function buildConsultationsBookingModalPayload(
       required: reservation.topicsField.required,
     },
   };
-  if (directionHref && directionHref !== '#') {
-    payload.directionHref = directionHref;
-  }
   return payload;
 }
