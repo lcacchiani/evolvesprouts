@@ -14,6 +14,16 @@ from app.utils.logging import get_logger, mask_email
 logger = get_logger(__name__)
 
 _api_key_cache: str | None = None
+# Cap error body length in logs (Mailchimp JSON is small; proxy errors may not be).
+_MAILCHIMP_ERROR_BODY_LOG_LIMIT = 2048
+
+
+def _error_body_for_log(body: str) -> str:
+    """Trim and truncate Mailchimp (or proxy) error bodies for structured logs."""
+    normalized = body.strip().replace("\r\n", "\n")
+    if len(normalized) <= _MAILCHIMP_ERROR_BODY_LOG_LIMIT:
+        return normalized
+    return f"{normalized[:_MAILCHIMP_ERROR_BODY_LOG_LIMIT]}...(truncated)"
 
 
 def _get_api_key() -> str:
@@ -144,6 +154,8 @@ def add_subscriber_with_tag(
             extra={
                 "status": member_status,
                 "lead_email": mask_email(normalized_email),
+                "mailchimp_step": "upsert_member",
+                "mailchimp_error_body": _error_body_for_log(member_body),
             },
         )
         raise MailchimpApiError(member_status, member_body)
@@ -167,6 +179,8 @@ def add_subscriber_with_tag(
             extra={
                 "status": tags_status,
                 "lead_email": mask_email(normalized_email),
+                "mailchimp_step": "apply_tags",
+                "mailchimp_error_body": _error_body_for_log(tags_body),
             },
         )
         raise MailchimpApiError(tags_status, tags_body)
