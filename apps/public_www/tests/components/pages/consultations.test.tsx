@@ -30,11 +30,6 @@ vi.mock('@/components/sections/consultations/consultations-comparison', () => ({
     <section data-testid='consultations-comparison'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/consultations/consultations-cta', () => ({
-  ConsultationsCta: ({ content }: { content: { title: string } }) => (
-    <section data-testid='consultations-cta'>{content.title}</section>
-  ),
-}));
 vi.mock('@/components/sections/faq', () => ({
   Faq: ({ content }: { content: { title: string } }) => (
     <section data-testid='faq'>{content.title}</section>
@@ -56,7 +51,6 @@ describe('ConsultationsPage', () => {
     expect(screen.getByTestId('consultations-how-it-works')).toBeInTheDocument();
     expect(screen.getByTestId('consultations-focus-details')).toBeInTheDocument();
     expect(screen.getByTestId('consultations-comparison')).toBeInTheDocument();
-    expect(screen.getByTestId('consultations-cta')).toBeInTheDocument();
     expect(screen.getByTestId('faq')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
 
@@ -81,11 +75,6 @@ describe('ConsultationsPage', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
       screen.getByTestId('consultations-comparison').compareDocumentPosition(
-        screen.getByTestId('consultations-cta'),
-      ),
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(
-      screen.getByTestId('consultations-cta').compareDocumentPosition(
         screen.getByTestId('faq'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);

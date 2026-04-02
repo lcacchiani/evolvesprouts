@@ -1184,7 +1184,7 @@
       "title": "一次性咨询服务",
       "subtitle": "还没准备好参加完整的9周课程？从这里开始。选择你的方向。选择你的级别。看看会有什么改变。",
       "ctaLabel": "预约免费家庭咨询",
-      "ctaHref": "#consultations-cta",
+      "ctaHref": "#free-intro-session",
       "imageAlt": "Evolve Sprouts 一次性咨询课程"
     },
     "howItWorks": {
@@ -1297,14 +1297,6 @@
         }
       ],
       "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动"
-    },
-    "cta": {
-      "title": "知道您需要什么？",
-      "primaryCtaLabel": "预约免费家庭咨询",
-      "primaryPrefillMessage": "你好，我想预约一次免费咨询，讨论哪种方向和级别最适合我的家庭。",
-      "secondaryDescription": "不确定哪种方向或级别适合？这正是咨询的目的。我们会在20分钟内一起找到答案。",
-      "secondaryCtaLabel": "通过WhatsApp联系我",
-      "secondaryPrefillMessage": "你好，我不确定哪种咨询方向或级别适合我的家庭。我们可以聊聊吗？"
     }
   },
   "bookingModal": {

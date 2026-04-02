@@ -42,7 +42,6 @@ const pageSectionFiles = [
   'consultations/consultations-how-it-works.tsx',
   'consultations/consultations-focus-details.tsx',
   'consultations/consultations-comparison.tsx',
-  'consultations/consultations-cta.tsx',
   'about-us-ida-coach.tsx',
   'sprouts-squad-community.tsx',
   'event-notification.tsx',

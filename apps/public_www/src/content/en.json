@@ -1184,7 +1184,7 @@
       "title": "One-Off Consultations",
       "subtitle": "Not ready for the full 9-week course? Start here. Pick your focus. Pick your level. See what changes.",
       "ctaLabel": "Book a Free Family Consultation",
-      "ctaHref": "#consultations-cta",
+      "ctaHref": "#free-intro-session",
       "imageAlt": "Evolve Sprouts one-off consultation session"
     },
     "howItWorks": {
@@ -1297,14 +1297,6 @@
         }
       ],
       "footnote": "Available for all three focus areas: Home Assessment · Auntie-Child · Parent-Child"
-    },
-    "cta": {
-      "title": "Know what you need?",
-      "primaryCtaLabel": "Book a Free Family Consultation",
-      "primaryPrefillMessage": "Hi, I'd like to book a free consultation to discuss which focus and level is right for my family.",
-      "secondaryDescription": "Not sure which focus or level is right? That's exactly what the consultation is for. We'll figure it out together in 20 minutes.",
-      "secondaryCtaLabel": "Message me on WhatsApp",
-      "secondaryPrefillMessage": "Hi, I'm not sure which consultation focus or level is right for my family. Can we chat?"
     }
   },
   "bookingModal": {
