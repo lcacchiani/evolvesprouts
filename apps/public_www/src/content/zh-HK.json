@@ -1235,7 +1235,82 @@
           ],
           "bestFor": "適合：希望我在改變真正發生時親臨現場的家庭 — 不僅是計劃，還有執行。"
         }
-      ]
+      ],
+      "reservationCta": {
+        "essentialsLabel": "預訂基礎版",
+        "deepDiveLabel": "預訂深入版"
+      },
+      "reservation": {
+        "modalTitle": "一次性諮詢",
+        "modalSubtitle": "選擇基礎版或深入版。付款後我們會確認上門安排。",
+        "selectedDateLabel": "諮詢套餐",
+        "locationName": "Evolve Sprouts",
+        "locationAddress": "上門服務（香港）",
+        "directionHref": "#",
+        "topicsField": {
+          "label": "諮詢方向、級別及其他需要說明的資訊",
+          "placeholder": "例如：家居評估、基礎版 — 孩子3歲，姨姨已工作2年",
+          "required": true
+        },
+        "essentials": {
+          "priceHkd": 2800,
+          "dateParts": [
+            {
+              "id": "assessment",
+              "startDateTime": "2026-06-01T02:00:00Z",
+              "endDateTime": "2026-06-01T03:00:00Z",
+              "descriptionTemplate": "60分鐘家居評估上門 — {price}"
+            },
+            {
+              "id": "report",
+              "startDateTime": "2026-06-08T02:00:00Z",
+              "endDateTime": "2026-06-08T02:30:00Z",
+              "descriptionTemplate": "書面報告交付（上門後1週內）— {price} 套餐"
+            },
+            {
+              "id": "follow-up",
+              "startDateTime": "2026-06-15T02:00:00Z",
+              "endDateTime": "2026-06-15T02:30:00Z",
+              "descriptionTemplate": "30分鐘跟進通話 — {price} 套餐"
+            }
+          ]
+        },
+        "deepDive": {
+          "priceHkd": 4800,
+          "dateParts": [
+            {
+              "id": "assessment",
+              "startDateTime": "2026-06-01T02:00:00Z",
+              "endDateTime": "2026-06-01T03:00:00Z",
+              "descriptionTemplate": "60分鐘家居評估上門 — {price}"
+            },
+            {
+              "id": "report",
+              "startDateTime": "2026-06-08T02:00:00Z",
+              "endDateTime": "2026-06-08T02:30:00Z",
+              "descriptionTemplate": "書面報告交付（上門後1週內）— {price} 套餐"
+            },
+            {
+              "id": "follow-up",
+              "startDateTime": "2026-06-15T02:00:00Z",
+              "endDateTime": "2026-06-15T02:30:00Z",
+              "descriptionTemplate": "30分鐘跟進通話 — {price} 套餐"
+            },
+            {
+              "id": "second-visit",
+              "startDateTime": "2026-06-22T02:00:00Z",
+              "endDateTime": "2026-06-22T03:00:00Z",
+              "descriptionTemplate": "第二次上門 — 實操指導（1週內）— {price} 套餐"
+            },
+            {
+              "id": "whatsapp",
+              "startDateTime": "2026-06-22T03:00:00Z",
+              "endDateTime": "2026-07-06T03:00:00Z",
+              "descriptionTemplate": "最後一次課程後2週WhatsApp支援 — {price} 套餐"
+            }
+          ]
+        }
+      }
     },
     "focusDetails": {
       "eyebrow": "方向詳情",

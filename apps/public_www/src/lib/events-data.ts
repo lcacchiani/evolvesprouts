@@ -35,6 +35,8 @@ const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
 const MAX_PAST_EVENTS = 5;
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const EVENT_BOOKING_SYSTEM = 'event-booking';
+/** Consultation one-off booking modal (same reservation API shape as events). */
+export const CONSULTATION_BOOKING_SYSTEM = 'consultation-booking';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
 
@@ -47,7 +49,7 @@ interface EventBookingDatePart {
 
 export interface EventBookingModalPayload {
   variant: 'event';
-  bookingSystem: typeof EVENT_BOOKING_SYSTEM;
+  bookingSystem: typeof EVENT_BOOKING_SYSTEM | typeof CONSULTATION_BOOKING_SYSTEM;
   title: string;
   subtitle: string;
   originalAmount: number;

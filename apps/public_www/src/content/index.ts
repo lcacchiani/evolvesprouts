@@ -51,6 +51,8 @@ export type MyBestAuntieDescriptionContent =
   SiteContent['myBestAuntie']['description'];
 export type ConsultationsHeroContent = SiteContent['consultations']['hero'];
 export type ConsultationBookingContent = SiteContent['consultations']['booking'];
+export type ConsultationBookingReservationContent =
+  SiteContent['consultations']['booking']['reservation'];
 export type ConsultationsFocusDetailsContent = SiteContent['consultations']['focusDetails'];
 export type ConsultationsComparisonContent = SiteContent['consultations']['comparison'];
 export type BookingModalContent = SiteContent['bookingModal'];

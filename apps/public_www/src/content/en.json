@@ -1235,7 +1235,82 @@
           ],
           "bestFor": "Best for: families who want me there when the changes actually happen — not just the plan, but the doing."
         }
-      ]
+      ],
+      "reservationCta": {
+        "essentialsLabel": "Reserve Essentials",
+        "deepDiveLabel": "Reserve Deep Dive"
+      },
+      "reservation": {
+        "modalTitle": "One-Off Consultation",
+        "modalSubtitle": "Choose Essentials or Deep Dive. We will confirm your visit after payment.",
+        "selectedDateLabel": "Consultation package",
+        "locationName": "Evolve Sprouts",
+        "locationAddress": "Your home (Hong Kong)",
+        "directionHref": "#",
+        "topicsField": {
+          "label": "Focus, level, and anything we should know",
+          "placeholder": "e.g. Home Assessment, Essentials — child is 3, helper has been with us 2 years",
+          "required": true
+        },
+        "essentials": {
+          "priceHkd": 2800,
+          "dateParts": [
+            {
+              "id": "assessment",
+              "startDateTime": "2026-06-01T02:00:00Z",
+              "endDateTime": "2026-06-01T03:00:00Z",
+              "descriptionTemplate": "60-minute home assessment visit — {price}"
+            },
+            {
+              "id": "report",
+              "startDateTime": "2026-06-08T02:00:00Z",
+              "endDateTime": "2026-06-08T02:30:00Z",
+              "descriptionTemplate": "Written report delivered (within 1 week of visit) — {price} package"
+            },
+            {
+              "id": "follow-up",
+              "startDateTime": "2026-06-15T02:00:00Z",
+              "endDateTime": "2026-06-15T02:30:00Z",
+              "descriptionTemplate": "30-minute follow-up call — {price} package"
+            }
+          ]
+        },
+        "deepDive": {
+          "priceHkd": 4800,
+          "dateParts": [
+            {
+              "id": "assessment",
+              "startDateTime": "2026-06-01T02:00:00Z",
+              "endDateTime": "2026-06-01T03:00:00Z",
+              "descriptionTemplate": "60-minute home assessment visit — {price}"
+            },
+            {
+              "id": "report",
+              "startDateTime": "2026-06-08T02:00:00Z",
+              "endDateTime": "2026-06-08T02:30:00Z",
+              "descriptionTemplate": "Written report delivered (within 1 week of visit) — {price} package"
+            },
+            {
+              "id": "follow-up",
+              "startDateTime": "2026-06-15T02:00:00Z",
+              "endDateTime": "2026-06-15T02:30:00Z",
+              "descriptionTemplate": "30-minute follow-up call — {price} package"
+            },
+            {
+              "id": "second-visit",
+              "startDateTime": "2026-06-22T02:00:00Z",
+              "endDateTime": "2026-06-22T03:00:00Z",
+              "descriptionTemplate": "Second visit — hands-on implementation (within 1 week) — {price} package"
+            },
+            {
+              "id": "whatsapp",
+              "startDateTime": "2026-06-22T03:00:00Z",
+              "endDateTime": "2026-07-06T03:00:00Z",
+              "descriptionTemplate": "2 weeks of WhatsApp support after the last session — {price} package"
+            }
+          ]
+        }
+      }
     },
     "focusDetails": {
       "eyebrow": "Focus Details",

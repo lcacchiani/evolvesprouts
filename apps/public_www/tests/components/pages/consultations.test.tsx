@@ -44,7 +44,7 @@ vi.mock('@/components/sections/free-intro-session', () => ({
 describe('ConsultationsPage', () => {
   it('assembles the consultations page with all sections in order', () => {
     const content = getContent('en');
-    render(<ConsultationsPage content={content} />);
+    render(<ConsultationsPage locale='en' content={content} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('consultations-hero')).toBeInTheDocument();
