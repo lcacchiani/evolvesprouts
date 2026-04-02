@@ -330,11 +330,10 @@ export function DiscountCodesPanel({
           </div>
         }
       >
-        <AdminDataTable tableClassName='min-w-[1040px]'>
+        <AdminDataTable tableClassName='min-w-[920px]'>
           <AdminDataTableHead>
             <tr>
               <th className='px-4 py-3 font-semibold'>Code</th>
-              <th className='px-4 py-3 font-semibold'>Type</th>
               <th className='px-4 py-3 font-semibold'>Valid from</th>
               <th className='px-4 py-3 font-semibold'>Valid until</th>
               <th className='px-4 py-3 font-semibold'>Value</th>
@@ -353,7 +352,6 @@ export function DiscountCodesPanel({
                 onClick={() => applyCodeSelection(row)}
               >
                 <td className='px-4 py-3'>{row.code}</td>
-                <td className='px-4 py-3'>{formatEnumLabel(row.discountType)}</td>
                 <td className='px-4 py-3'>{formatDate(row.validFrom)}</td>
                 <td className='px-4 py-3'>{formatDate(row.validUntil)}</td>
                 <td className='px-4 py-3'>

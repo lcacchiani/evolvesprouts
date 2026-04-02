@@ -148,7 +148,8 @@ describe('services tables value formatting', () => {
 
     const tables = screen.getAllByRole('table');
     expect(within(tables[0] as HTMLElement).getByText('In Progress')).toBeInTheDocument();
-    expect(within(tables[1] as HTMLElement).getByText('Percentage')).toBeInTheDocument();
+    expect(within(tables[1] as HTMLElement).getByText('SAVE10')).toBeInTheDocument();
+    expect(within(tables[1] as HTMLElement).getByText('10%')).toBeInTheDocument();
     expect(screen.getByLabelText('Currency').tagName).toBe('SELECT');
   });
 
