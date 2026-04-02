@@ -1,6 +1,6 @@
 # Evolve Sprouts
 
-Supporting Hong Kong families to educate children in positive education!
+Supporting Hong Kong families to raise their children through positive education!
 
 ## AI agent rules
 
