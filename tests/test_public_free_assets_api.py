@@ -149,3 +149,6 @@ def test_handle_public_free_assets_list_lists_items(
     assert item["content_language"] == "zh-HK"
     assert item["resource_key"] == "welcome-pack"
     assert "s3_key" not in item
+    assert "id" not in item
+    assert "file_name" not in item
+    assert "content_type" not in item

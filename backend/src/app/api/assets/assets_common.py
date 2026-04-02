@@ -571,14 +571,11 @@ def serialize_asset(asset: Asset) -> dict[str, Any]:
 def serialize_public_free_asset(asset: Asset) -> dict[str, Any]:
     """Serialize a public free-website asset for GET /v1/assets/free."""
     return {
-        "id": str(asset.id),
         "title": asset.title,
         "description": asset.description,
         "asset_type": asset.asset_type.value,
-        "file_name": asset.file_name,
         "resource_key": asset.resource_key,
         "content_language": asset.content_language,
-        "content_type": asset.content_type,
         "updated_at": asset.updated_at.isoformat() if asset.updated_at else None,
     }
 

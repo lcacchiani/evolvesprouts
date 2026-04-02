@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -28,7 +29,7 @@ const ASSET_TYPES = ['guide', 'video', 'pdf', 'document'] as const;
 type AssetType = (typeof ASSET_TYPES)[number];
 
 interface LibraryAssetRow {
-  id: string;
+  listKey: string;
   title: string;
   description: string;
   assetType: AssetType;
@@ -68,13 +69,12 @@ function parseListPayload(payload: unknown): {
   return { items, nextCursor };
 }
 
-function parseAssetRow(raw: unknown): LibraryAssetRow | null {
+function parseAssetRow(raw: unknown, index: number): LibraryAssetRow | null {
   if (!isRecord(raw)) {
     return null;
   }
-  const id = typeof raw.id === 'string' ? raw.id.trim() : '';
   const title = typeof raw.title === 'string' ? raw.title.trim() : '';
-  if (!id || !title) {
+  if (!title) {
     return null;
   }
   const description =
@@ -85,7 +85,7 @@ function parseAssetRow(raw: unknown): LibraryAssetRow | null {
   const rk = raw.resource_key;
   const resourceKey = typeof rk === 'string' && rk.trim() ? rk.trim() : null;
   return {
-    id,
+    listKey: `free-guides-library-item-${index}`,
     title,
     description,
     assetType: normalizeAssetType(raw.asset_type),
@@ -111,7 +111,7 @@ async function fetchAllPublicFreeAssets(
     const payload = await client.request({ endpointPath, signal });
     const { items, nextCursor } = parseListPayload(payload);
     for (const raw of items) {
-      const row = parseAssetRow(raw);
+      const row = parseAssetRow(raw, collected.length);
       if (row) {
         collected.push(row);
       }
@@ -129,52 +129,57 @@ function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
 }
 
-function matchesLanguageFilter(
-  item: LibraryAssetRow,
-  activeLanguageId: string,
-): boolean {
-  if (activeLanguageId === 'all') {
-    return true;
-  }
-  if (activeLanguageId === 'unset') {
-    return item.contentLanguage === null;
-  }
-  return item.contentLanguage === activeLanguageId;
-}
-
-function matchesAssetTypeFilter(
-  item: LibraryAssetRow,
-  activeTypeId: string,
-): boolean {
-  if (activeTypeId === 'all') {
-    return true;
-  }
-  return item.assetType === activeTypeId;
-}
-
-function buildLanguageLabelMap(
+function buildLanguageFlagMap(
   content: FreeGuidesAndResourcesLibraryContent,
 ): Map<string, string> {
   const map = new Map<string, string>();
-  for (const entry of content.languageFilters) {
-    if (entry.id !== 'all') {
-      map.set(entry.id, entry.label);
-    }
+  for (const entry of content.languageFlags) {
+    map.set(entry.id, entry.flagSrc);
   }
   return map;
 }
 
-function resolveLanguageBadgeLabel(
+function buildLanguageDisplayNameById(
+  content: FreeGuidesAndResourcesLibraryContent,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const entry of content.languageFlags) {
+    map.set(entry.id, entry.altLabel);
+  }
+  return map;
+}
+
+/** Accessibility alt for flag images (wraps `altLabel` with `flagAltTemplate`, e.g. "English flag"). */
+function accessibilityFlagAlt(
+  contentLanguage: string,
+  content: FreeGuidesAndResourcesLibraryContent,
+  languageDisplayNameById: Map<string, string>,
+): string {
+  const displayName = languageDisplayNameById.get(contentLanguage);
+  if (displayName) {
+    return formatContentTemplate(content.flagAltTemplate, { label: displayName });
+  }
+  return formatContentTemplate(content.languageBadgeTemplate, {
+    language: contentLanguage,
+  });
+}
+
+/**
+ * Human-readable language string included in the client-side search blob.
+ * Uses raw `altLabel` for known flags (e.g. "English"), not the wrapped alt text
+ * ("English flag"), so users match the language name rather than image description.
+ */
+function languageLabelForSearch(
   item: LibraryAssetRow,
   content: FreeGuidesAndResourcesLibraryContent,
-  languageLabelById: Map<string, string>,
+  languageDisplayNameById: Map<string, string>,
 ): string {
   if (item.contentLanguage === null) {
     return content.nullLanguageLabel;
   }
-  const mapped = languageLabelById.get(item.contentLanguage);
-  if (mapped) {
-    return mapped;
+  const displayName = languageDisplayNameById.get(item.contentLanguage);
+  if (displayName) {
+    return displayName;
   }
   return formatContentTemplate(content.languageBadgeTemplate, {
     language: item.contentLanguage,
@@ -183,30 +188,21 @@ function resolveLanguageBadgeLabel(
 
 function getVisibleItems(
   items: readonly LibraryAssetRow[],
-  activeLanguageId: string,
-  activeAssetTypeId: string,
   normalizedQuery: string,
   content: FreeGuidesAndResourcesLibraryContent,
-  languageLabelById: Map<string, string>,
+  languageDisplayNameById: Map<string, string>,
 ): LibraryAssetRow[] {
   return items.filter((entry) => {
-    if (!matchesLanguageFilter(entry, activeLanguageId)) {
-      return false;
-    }
-    if (!matchesAssetTypeFilter(entry, activeAssetTypeId)) {
-      return false;
-    }
-
     if (normalizedQuery === '') {
       return true;
     }
 
     const typeLabel =
       content.assetTypeLabels[entry.assetType] ?? entry.assetType;
-    const langLabel = resolveLanguageBadgeLabel(
+    const langLabel = languageLabelForSearch(
       entry,
       content,
-      languageLabelById,
+      languageDisplayNameById,
     );
     const searchBlob = `${entry.title}\n${entry.description}\n${typeLabel}\n${langLabel}`;
 
@@ -227,13 +223,6 @@ export function FreeGuidesAndResourcesLibrary({
   content,
   mediaFormContent,
 }: FreeGuidesAndResourcesLibraryProps) {
-  const languageFilters = content.languageFilters;
-  const assetTypeFilters = content.assetTypeFilters;
-  const firstLanguageId = languageFilters[0]?.id ?? 'all';
-  const firstTypeId = assetTypeFilters[0]?.id ?? 'all';
-
-  const [activeLanguageId, setActiveLanguageId] = useState(firstLanguageId);
-  const [activeAssetTypeId, setActiveAssetTypeId] = useState(firstTypeId);
   const [searchValue, setSearchValue] = useState('');
   const [apiItems, setApiItems] = useState<LibraryAssetRow[]>([]);
   const crmClient = useMemo(() => createPublicCrmApiClient(), []);
@@ -241,8 +230,13 @@ export function FreeGuidesAndResourcesLibrary({
     crmClient ? 'loading' : 'error',
   );
 
-  const languageLabelById = useMemo(
-    () => buildLanguageLabelMap(content),
+  const languageFlagById = useMemo(
+    () => buildLanguageFlagMap(content),
+    [content],
+  );
+
+  const languageDisplayNameById = useMemo(
+    () => buildLanguageDisplayNameById(content),
     [content],
   );
 
@@ -251,20 +245,11 @@ export function FreeGuidesAndResourcesLibrary({
   const visibleItems = useMemo(() => {
     return getVisibleItems(
       apiItems,
-      activeLanguageId,
-      activeAssetTypeId,
       normalizedQuery,
       content,
-      languageLabelById,
+      languageDisplayNameById,
     );
-  }, [
-    apiItems,
-    activeLanguageId,
-    activeAssetTypeId,
-    normalizedQuery,
-    content,
-    languageLabelById,
-  ]);
+  }, [apiItems, normalizedQuery, content, languageDisplayNameById]);
 
   useEffect(() => {
     if (!crmClient) {
@@ -354,10 +339,21 @@ export function FreeGuidesAndResourcesLibrary({
         {visibleItems.map((item) => {
           const formatLabel =
             content.assetTypeLabels[item.assetType] ?? item.assetType;
-          const languageBadge = resolveLanguageBadgeLabel(
+          const flagSrc = item.contentLanguage
+            ? languageFlagById.get(item.contentLanguage)
+            : null;
+          const flagAlt =
+            flagSrc && item.contentLanguage
+              ? accessibilityFlagAlt(
+                  item.contentLanguage,
+                  content,
+                  languageDisplayNameById,
+                )
+              : '';
+          const languagePillLabel = languageLabelForSearch(
             item,
             content,
-            languageLabelById,
+            languageDisplayNameById,
           );
           const gatedCtaLabel = formatContentTemplate(
             content.gatedCtaLabelTemplate,
@@ -365,15 +361,27 @@ export function FreeGuidesAndResourcesLibrary({
           );
 
           return (
-            <li key={item.id} className='h-full'>
+            <li key={item.listKey} className='h-full'>
               <article className='flex h-full flex-col rounded-2xl border border-black/10 bg-white px-5 py-5 shadow-card sm:px-6 sm:py-6'>
                 <div className='flex flex-wrap items-center gap-2'>
                   <span className='es-bg-surface-muted inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold es-text-dim'>
                     {formatLabel}
                   </span>
-                  <span className='es-bg-surface-muted inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold es-text-dim'>
-                    {languageBadge}
-                  </span>
+                  {flagSrc ? (
+                    <span className='es-bg-surface-muted inline-flex h-8 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-black/10'>
+                      <Image
+                        src={flagSrc}
+                        alt={flagAlt}
+                        width={44}
+                        height={32}
+                        className='h-full w-full object-cover'
+                      />
+                    </span>
+                  ) : (
+                    <span className='es-bg-surface-muted inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold es-text-dim'>
+                      {languagePillLabel}
+                    </span>
+                  )}
                 </div>
                 <h3 className='es-type-subtitle mt-4'>{item.title}</h3>
                 <p className='es-section-body mb-3 mt-3 flex-1 text-base leading-7'>
@@ -443,54 +451,6 @@ export function FreeGuidesAndResourcesLibrary({
             placeholder={content.searchPlaceholder}
             className='es-focus-ring w-full rounded-full es-bg-surface-neutral pl-8 pr-4 text-lg font-semibold tracking-[0.5px] es-text-dim outline-none es-text-placeholder sm:pl-9 sm:text-[22px]'
           />
-        </div>
-
-        <div className='mt-6 space-y-4'>
-          <div className='overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
-            <div className='flex min-w-max snap-x snap-mandatory gap-2'>
-              {languageFilters.map((entry) => {
-                const isActive = activeLanguageId === entry.id;
-
-                return (
-                  <ButtonPrimitive
-                    key={entry.id}
-                    variant='pill'
-                    state={isActive ? 'active' : 'inactive'}
-                    onClick={() => {
-                      setSearchValue('');
-                      setActiveLanguageId(entry.id);
-                    }}
-                    className='snap-start rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
-                  >
-                    {entry.label}
-                  </ButtonPrimitive>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className='overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'>
-            <div className='flex min-w-max snap-x snap-mandatory gap-2'>
-              {assetTypeFilters.map((entry) => {
-                const isActive = activeAssetTypeId === entry.id;
-
-                return (
-                  <ButtonPrimitive
-                    key={entry.id}
-                    variant='pill'
-                    state={isActive ? 'active' : 'inactive'}
-                    onClick={() => {
-                      setSearchValue('');
-                      setActiveAssetTypeId(entry.id);
-                    }}
-                    className='snap-start rounded-full px-[17px] py-[11px] text-[13px] font-semibold sm:px-[21px] sm:text-[17px]'
-                  >
-                    {entry.label}
-                  </ButtonPrimitive>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
         <div className='mt-10' aria-live='polite'>
