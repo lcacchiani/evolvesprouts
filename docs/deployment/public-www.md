@@ -128,7 +128,7 @@ Workflow: `.github/workflows/smoke-public-www-staging.yml`
     remapping)
   - verifies CTA API endpoints:
     - `POST /www/v1/legacy/contact-us`
-    - `POST /www/v1/legacy/discounts/validate`
+    - `POST /www/v1/discounts/validate`
     - `POST /www/v1/media-request`
     - `POST /www/v1/legacy/reservations`
     - `POST /www/v1/reservations/payment-intent`

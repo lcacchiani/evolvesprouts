@@ -51,6 +51,8 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/v1/legacy/reservations",
         "/v1/legacy/contact-us",
         "/v1/legacy/discounts/validate",
+        "/v1/discounts/validate",
+        "/www/v1/discounts/validate",
         "/www/v1/legacy/reservations",
         "/www/v1/legacy/contact-us",
         "/www/v1/legacy/discounts/validate",
@@ -98,6 +100,14 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
         _match_handler(
             event=event, method="POST", path="/v1/legacy/discounts/validate"
         )
+        is not None
+    )
+    assert (
+        _match_handler(event=event, method="POST", path="/v1/discounts/validate")
+        is not None
+    )
+    assert (
+        _match_handler(event=event, method="POST", path="/www/v1/discounts/validate")
         is not None
     )
     assert (
@@ -168,6 +178,16 @@ def test_match_handler_treats_exact_public_post_routes_as_exact_path_only() -> N
             event=event,
             method="POST",
             path="/www/v1/legacy/discounts/validate/extra",
+        )
+        is None
+    )
+    assert (
+        _match_handler(event=event, method="POST", path="/v1/discounts/validate/extra")
+        is None
+    )
+    assert (
+        _match_handler(
+            event=event, method="POST", path="/www/v1/discounts/validate/extra"
         )
         is None
     )

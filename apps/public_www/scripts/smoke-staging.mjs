@@ -403,8 +403,8 @@ function buildApiCases(turnstileToken) {
     {
       name: 'discount validate CTA endpoint',
       method: 'POST',
-      proxyPath: '/www/v1/legacy/discounts/validate',
-      directPath: '/v1/legacy/discounts/validate',
+      proxyPath: '/www/v1/discounts/validate',
+      directPath: '/v1/discounts/validate',
       apiBaseType: 'crm',
       body: {
         code: 'SMOKE-CHECK',

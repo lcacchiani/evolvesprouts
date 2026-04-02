@@ -271,6 +271,7 @@ Process to add a new public API path:
 Current allowlisted public website POST paths include:
 
 - `/www/v1/legacy/contact-us`
+- `/www/v1/discounts/validate`
 - `/www/v1/legacy/discounts/validate`
 - `/www/v1/media-request`
 - `/www/v1/legacy/reservations`

@@ -342,6 +342,7 @@ function handler(event) {
       '/www/v1/client-resources': true
     },
     'POST': {
+      '/www/v1/discounts/validate': true,
       '/www/v1/legacy/discounts/validate': true,
       '/www/v1/legacy/reservations': true,
       '/www/v1/reservations/payment-intent': true,

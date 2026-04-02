@@ -2,6 +2,8 @@ import { getAdminDefaultCurrencyCode } from '@/lib/config';
 import { CLIENT_DOCUMENT_ASSET_TAG, EXPENSE_ATTACHMENT_ASSET_TAG } from '@/types/assets';
 import type { LocationSummary } from '@/types/services';
 
+import adminSelectableCurrency from '@shared-config/admin-selectable-currency-codes.json';
+
 /** Short user-visible label for a location (venue name, address, or id). */
 export function formatLocationLabel(location: LocationSummary): string {
   const name = location.name?.trim();
@@ -79,14 +81,11 @@ const LOCAL_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
 
 const DEFAULT_CURRENCY_LABEL_HKD = 'Hong Kong Dollar';
 
-/** Fixed allowlist for admin currency dropdowns; default currency (env) is listed first. */
-const ADMIN_SELECTABLE_CURRENCY_CODES = ['HKD', 'USD', 'EUR', 'CNY', 'SGD'] as const;
+const ADMIN_SELECTABLE_CURRENCY_CODES = adminSelectableCurrency.codes as readonly string[];
 
 function getAdminSelectableCurrencyCodesOrdered(): string[] {
   const defaultCode = getAdminDefaultCurrencyCode();
-  const inAllowlist = ADMIN_SELECTABLE_CURRENCY_CODES.includes(
-    defaultCode as (typeof ADMIN_SELECTABLE_CURRENCY_CODES)[number]
-  );
+  const inAllowlist = ADMIN_SELECTABLE_CURRENCY_CODES.includes(defaultCode);
   if (inAllowlist) {
     return [defaultCode, ...ADMIN_SELECTABLE_CURRENCY_CODES.filter((c) => c !== defaultCode)];
   }
@@ -223,4 +222,30 @@ export function formatDateOnly(value: string | null): string {
 
 export function formatDateForInput(value: Date): string {
   return value.toISOString().slice(0, 10);
+}
+
+/** Map API ISO instant to `datetime-local` value in the browser's local timezone. */
+export function formatIsoForDatetimeLocalInput(iso: string | null): string {
+  if (!iso) {
+    return '';
+  }
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) {
+    return '';
+  }
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+}
+
+/** Parse `datetime-local` string as local wall time and return UTC ISO for the API. */
+export function parseDatetimeLocalToIsoUtc(local: string): string | null {
+  const trimmed = local.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed.toISOString();
 }

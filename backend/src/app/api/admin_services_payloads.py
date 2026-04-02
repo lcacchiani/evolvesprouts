@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import datetime
 from typing import Any
 
 from app.api.admin_request import query_param
@@ -411,11 +412,26 @@ def parse_update_enrollment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     return payload
 
 
+def ensure_discount_validity_window(
+    valid_from: datetime | None,
+    valid_until: datetime | None,
+) -> None:
+    """Reject ranges where the end is strictly before the start."""
+    if valid_from is not None and valid_until is not None:
+        if valid_from > valid_until:
+            raise ValidationError(
+                "valid_until must be on or after valid_from",
+                field="valid_until",
+            )
+
+
 def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     """Parse and validate discount-code create payload."""
     discount_type = parse_required_enum(
         body.get("discount_type"), DiscountType, "discount_type"
     )
+    valid_from = parse_optional_datetime(body.get("valid_from"), "valid_from")
+    valid_until = parse_optional_datetime(body.get("valid_until"), "valid_until")
     payload = {
         "code": parse_required_text(
             body.get("code"), "code", max_length=_MAX_CODE_LENGTH
@@ -428,8 +444,8 @@ def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
             body.get("discount_value"), "discount_value"
         ),
         "currency": parse_optional_currency(body.get("currency"), "currency"),
-        "valid_from": parse_optional_datetime(body.get("valid_from"), "valid_from"),
-        "valid_until": parse_optional_datetime(body.get("valid_until"), "valid_until"),
+        "valid_from": valid_from,
+        "valid_until": valid_until,
         "service_id": parse_optional_uuid(body.get("service_id"), "service_id"),
         "instance_id": parse_optional_uuid(body.get("instance_id"), "instance_id"),
         "max_uses": parse_optional_int(body.get("max_uses"), "max_uses", minimum=1),
@@ -439,6 +455,7 @@ def parse_create_discount_code_payload(body: Mapping[str, Any]) -> dict[str, Any
         raise ValidationError(
             "currency is required for absolute discounts", field="currency"
         )
+    ensure_discount_validity_window(valid_from, valid_until)
     return payload
 
 

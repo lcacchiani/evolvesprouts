@@ -9,6 +9,7 @@ on:
       - "apps/**"
       - "packages/**"
       - "backend/**"
+      - "shared/**"
   push:
     branches:
       - main
@@ -16,6 +17,7 @@ on:
       - "apps/**"
       - "packages/**"
       - "backend/**"
+      - "shared/**"
 
 jobs:
   test-public-www:
