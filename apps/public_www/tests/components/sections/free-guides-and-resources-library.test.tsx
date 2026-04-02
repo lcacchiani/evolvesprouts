@@ -152,6 +152,72 @@ describe('FreeGuidesAndResourcesLibrary', () => {
     });
   });
 
+  it('uses document CTA label for asset_type document', async () => {
+    mockFetchJsonResponse({
+      items: [
+        {
+          title: 'Sample Document',
+          description: 'Doc body text.',
+          asset_type: 'document',
+          resource_key: 'sample-doc',
+          content_language: 'en',
+          updated_at: null,
+        },
+      ],
+      next_cursor: null,
+    });
+
+    render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: content.gatedDocumentCtaLabel }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('hides card description after MediaForm CTA is clicked', async () => {
+    mockFetchJsonResponse({
+      items: [
+        {
+          title: 'Gated Doc',
+          description: 'This should hide after open.',
+          asset_type: 'document',
+          resource_key: 'gated-doc',
+          content_language: 'en',
+          updated_at: null,
+        },
+      ],
+      next_cursor: null,
+    });
+
+    render(
+      <FreeGuidesAndResourcesLibrary
+        content={content}
+        mediaFormContent={mediaFormContent}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: content.gatedDocumentCtaLabel }),
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('This should hide after open.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: content.gatedDocumentCtaLabel }));
+
+    expect(
+      screen.queryByText('This should hide after open.'),
+    ).not.toBeInTheDocument();
+  });
+
   it('disables CTA when resource_key is missing', async () => {
     render(
       <FreeGuidesAndResourcesLibrary

@@ -737,6 +737,7 @@
       "flagAltTemplate": "{label}旗帜",
       "nullLanguageFlagAlt": "不限语言",
       "gatedCtaLabelTemplate": "获取 {title}",
+      "gatedDocumentCtaLabel": "获取免费指南",
       "unavailableCtaLabel": "暂不可用",
       "languageFlags": [
         {
