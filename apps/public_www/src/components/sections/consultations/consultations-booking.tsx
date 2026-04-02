@@ -16,10 +16,7 @@ import type {
   ConsultationBookingContent,
   Locale,
 } from '@/content';
-import {
-  buildConsultationEventBookingPayload,
-  type ConsultationBookingTierId,
-} from '@/lib/consultations-booking-payload';
+import { buildConsultationsBookingModalPayload } from '@/lib/consultations-booking-modal-payload';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 
 const EventBookingModal = dynamic(
@@ -53,20 +50,15 @@ export function ConsultationBooking({
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
 }: ConsultationBookingProps) {
-  const [openTier, setOpenTier] = useState<ConsultationBookingTierId | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [thankYouSummary, setThankYouSummary] = useState<ReservationSummary | null>(
     null,
   );
   const [isThankYouOpen, setIsThankYouOpen] = useState(false);
 
-  const bookingPayload =
-    openTier !== null
-      ? buildConsultationEventBookingPayload(openTier, content.reservation, locale)
-      : null;
-
-  function handleOpen(tierId: ConsultationBookingTierId) {
-    setOpenTier(tierId);
-  }
+  const bookingPayload = isBookingModalOpen
+    ? buildConsultationsBookingModalPayload(content.reservation, locale)
+    : null;
 
   return (
     <>
@@ -150,28 +142,18 @@ export function ConsultationBooking({
 
           <div
             className={buildSectionSplitLayoutClassName(
-              'mt-12 flex flex-col gap-3 sm:flex-row sm:flex-wrap',
+              'mt-12 flex flex-col sm:flex-row',
             )}
           >
             <ButtonPrimitive
               type='button'
               variant='primary'
-              className='max-w-full sm:max-w-[320px]'
+              className='max-w-full sm:max-w-[360px]'
               onClick={() => {
-                handleOpen('essentials');
+                setIsBookingModalOpen(true);
               }}
             >
-              {content.reservationCta.essentialsLabel}
-            </ButtonPrimitive>
-            <ButtonPrimitive
-              type='button'
-              variant='primary'
-              className='es-btn--outline max-w-full sm:max-w-[320px]'
-              onClick={() => {
-                handleOpen('deepDive');
-              }}
-            >
-              {content.reservationCta.deepDiveLabel}
+              {content.reservation.ctaLabel}
             </ButtonPrimitive>
           </div>
         </SectionContainer>
@@ -186,10 +168,10 @@ export function ConsultationBooking({
           metaPixelContentName={PIXEL_CONTENT_NAME.consultation_booking}
           captchaWidgetAction='consultation_reservation_submit'
           onClose={() => {
-            setOpenTier(null);
+            setIsBookingModalOpen(false);
           }}
           onSubmitReservation={(summary) => {
-            setOpenTier(null);
+            setIsBookingModalOpen(false);
             setThankYouSummary(summary);
             setIsThankYouOpen(true);
           }}

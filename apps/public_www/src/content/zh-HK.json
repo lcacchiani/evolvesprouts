@@ -1236,11 +1236,9 @@
           "bestFor": "適合：希望我在改變真正發生時親臨現場的家庭 — 不僅是計劃，還有執行。"
         }
       ],
-      "reservationCta": {
-        "essentialsLabel": "預訂基礎版",
-        "deepDiveLabel": "預訂深入版"
-      },
       "reservation": {
+        "bookingTier": "essentials",
+        "ctaLabel": "預約諮詢",
         "modalTitle": "一次性諮詢",
         "modalSubtitle": "選擇基礎版或深入版。付款後我們會確認上門安排。",
         "selectedDateLabel": "諮詢套餐",

@@ -3,13 +3,13 @@ import { CONSULTATION_BOOKING_SYSTEM } from '@/lib/events-data';
 import type { ConsultationBookingReservationContent, Locale } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
 
-export type ConsultationBookingTierId = 'essentials' | 'deepDive';
+export type ConsultationsBookingModalTierId = 'essentials' | 'deepDive';
 
-export function buildConsultationEventBookingPayload(
-  tierId: ConsultationBookingTierId,
+export function buildConsultationsBookingModalPayload(
   reservation: ConsultationBookingReservationContent,
   locale: Locale,
 ): EventBookingModalPayload {
+  const tierId = reservation.bookingTier;
   const tier = tierId === 'essentials' ? reservation.essentials : reservation.deepDive;
   const firstPart = tier.dateParts[0];
   const selectedDateStartTime = firstPart?.startDateTime?.trim() ?? '';
