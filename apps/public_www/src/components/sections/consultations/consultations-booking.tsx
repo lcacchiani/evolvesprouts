@@ -13,7 +13,7 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type {
   BookingModalContent,
-  ConsultationBookingContent,
+  ConsultationsBookingContent,
   Locale,
 } from '@/content';
 import { buildConsultationsBookingModalPayload } from '@/lib/consultations-booking-modal-payload';
@@ -27,29 +27,29 @@ const EventBookingModal = dynamic(
   { ssr: false },
 );
 
-const MyBestAuntieThankYouModal = dynamic(
+const BookingThankYouModal = dynamic(
   () =>
-    import('@/components/sections/my-best-auntie/my-best-auntie-booking-modal').then(
-      (module) => module.MyBestAuntieThankYouModal,
+    import('@/components/sections/booking-modal/thank-you-modal').then(
+      (module) => module.BookingThankYouModal,
     ),
   { ssr: false },
 );
 
-interface ConsultationBookingProps {
+interface ConsultationsBookingProps {
   locale: Locale;
-  content: ConsultationBookingContent;
+  content: ConsultationsBookingContent;
   bookingModalContent: BookingModalContent;
   thankYouWhatsappHref?: string;
   thankYouWhatsappCtaLabel?: string;
 }
 
-export function ConsultationBooking({
+export function ConsultationsBooking({
   locale,
   content,
   bookingModalContent,
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
-}: ConsultationBookingProps) {
+}: ConsultationsBookingProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [thankYouSummary, setThankYouSummary] = useState<ReservationSummary | null>(
     null,
@@ -159,7 +159,7 @@ export function ConsultationBooking({
         </SectionContainer>
       </SectionShell>
 
-      {bookingPayload !== null ? (
+      {bookingPayload && (
         <EventBookingModal
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}
@@ -176,10 +176,10 @@ export function ConsultationBooking({
             setIsThankYouOpen(true);
           }}
         />
-      ) : null}
+      )}
 
-      {isThankYouOpen ? (
-        <MyBestAuntieThankYouModal
+      {isThankYouOpen && (
+        <BookingThankYouModal
           locale={locale}
           content={bookingModalContent.thankYouModal}
           summary={thankYouSummary}
@@ -190,7 +190,7 @@ export function ConsultationBooking({
             setIsThankYouOpen(false);
           }}
         />
-      ) : null}
+      )}
     </>
   );
 }

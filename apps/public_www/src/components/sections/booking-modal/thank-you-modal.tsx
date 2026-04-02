@@ -434,3 +434,7 @@ export function MyBestAuntieThankYouModal({
     </ModalOverlay>
   );
 }
+
+/** Alias for generic booking thank-you flows (events, consultations, etc.). */
+export { MyBestAuntieThankYouModal as BookingThankYouModal };
+export type BookingThankYouModalProps = MyBestAuntieThankYouModalProps;

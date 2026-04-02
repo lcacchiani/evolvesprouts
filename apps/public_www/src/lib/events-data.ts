@@ -47,9 +47,10 @@ interface EventBookingDatePart {
   description: string;
 }
 
-export interface EventBookingModalPayload {
+/** Calendar / landing-page event reservations (public events feed). */
+export interface EventCalendarBookingModalPayload {
   variant: 'event';
-  bookingSystem: typeof EVENT_BOOKING_SYSTEM | typeof CONSULTATION_BOOKING_SYSTEM;
+  bookingSystem: typeof EVENT_BOOKING_SYSTEM;
   title: string;
   subtitle: string;
   originalAmount: number;
@@ -62,6 +63,27 @@ export interface EventBookingModalPayload {
   /** From landing page JSON `cta.bookingTopicsField` when `landing_page` matches a registered page. */
   topicsFieldConfig?: BookingTopicsFieldConfig;
 }
+
+/** One-off consultations (same modal + API shape as calendar events, distinct booking_system). */
+export interface ConsultationEventBookingModalPayload {
+  variant: 'event';
+  bookingSystem: typeof CONSULTATION_BOOKING_SYSTEM;
+  title: string;
+  subtitle: string;
+  originalAmount: number;
+  locationName: string;
+  locationAddress: string;
+  /** Omit or empty: modal hides “Get directions”. */
+  directionHref?: string;
+  dateParts: EventBookingDatePart[];
+  selectedDateLabel: string;
+  selectedDateStartTime: string;
+  topicsFieldConfig?: BookingTopicsFieldConfig;
+}
+
+export type EventBookingModalPayload =
+  | EventCalendarBookingModalPayload
+  | ConsultationEventBookingModalPayload;
 
 interface MyBestAuntieEventCohortDate {
   id: string;
@@ -382,7 +404,7 @@ function buildEventBookingModalPayload(
   locationName: string | undefined,
   locationAddress: string | undefined,
   directionHref: string,
-): EventBookingModalPayload {
+): EventCalendarBookingModalPayload {
   const dateParts = resolveBookingDateParts(record, summary ?? '');
   const selectedDateStartTime = dateParts[0]?.startDateTime ?? '';
   const selectedDateLabel =

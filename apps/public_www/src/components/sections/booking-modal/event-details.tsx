@@ -3,6 +3,7 @@ import { renderQuotedDescriptionText } from '@/components/sections/shared/render
 import { SmartLink } from '@/components/shared/smart-link';
 import type { BookingPaymentModalContent, Locale } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
+import { getHrefKind } from '@/lib/url-utils';
 
 export interface BookingEventDetailPart {
   date: string;
@@ -20,7 +21,8 @@ interface BookingEventDetailsProps {
   originalAmount: number;
   venueName: string;
   venueAddress: string;
-  directionHref: string;
+  /** When missing or not an http(s) URL, the directions link is hidden (e.g. at-home services). */
+  directionHref?: string;
   detailsVariant?: 'event' | 'my-best-auntie';
 }
 
@@ -68,10 +70,11 @@ export function BookingEventDetails({
   originalAmount,
   venueName,
   venueAddress,
-  directionHref,
+  directionHref = '',
   detailsVariant = 'my-best-auntie',
 }: BookingEventDetailsProps) {
   const isEventDetailsVariant = detailsVariant === 'event';
+  const showDirectionsLink = getHrefKind(directionHref.trim()) === 'http';
   const eventScheduleRows = activePartRows
     .map((part) => part.date.trim())
     .filter((date): date is string => Boolean(date));
@@ -218,19 +221,21 @@ export function BookingEventDetails({
               <p className='mt-1 text-base font-semibold leading-6 es-text-heading'>
                 {venueAddress}
               </p>
-              <SmartLink
-                href={directionHref}
-                className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
-              >
-                {({ isExternalHttp }) => (
-                  <ExternalLinkInlineContent
-                    isExternalHttp={isExternalHttp}
-                    externalLabelClassName='es-link-external-label--direction'
-                  >
-                    {content.directionLabel}
-                  </ExternalLinkInlineContent>
-                )}
-              </SmartLink>
+              {showDirectionsLink ? (
+                <SmartLink
+                  href={directionHref.trim()}
+                  className='mt-3 inline-flex items-center text-base font-semibold leading-none es-text-heading'
+                >
+                  {({ isExternalHttp }) => (
+                    <ExternalLinkInlineContent
+                      isExternalHttp={isExternalHttp}
+                      externalLabelClassName='es-link-external-label--direction'
+                    >
+                      {content.directionLabel}
+                    </ExternalLinkInlineContent>
+                  )}
+                </SmartLink>
+              ) : null}
             </div>
           </div>
         </div>

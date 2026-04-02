@@ -16,7 +16,7 @@ vi.mock('@/components/sections/consultations/consultations-hero', () => ({
   ),
 }));
 vi.mock('@/components/sections/consultations/consultations-booking', () => ({
-  ConsultationBooking: ({ content }: { content: { title: string } }) => (
+  ConsultationsBooking: ({ content }: { content: { title: string } }) => (
     <section data-testid='consultations-booking'>{content.title}</section>
   ),
 }));

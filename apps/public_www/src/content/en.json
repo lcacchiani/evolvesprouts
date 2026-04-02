@@ -1240,11 +1240,10 @@
         "bookingTier": "essentials",
         "ctaLabel": "Reserve a consultation",
         "modalTitle": "One-Off Consultation",
-        "modalSubtitle": "Choose Essentials or Deep Dive. We will confirm your visit after payment.",
+        "modalSubtitle": "We will confirm your focus, level, and visit after payment.",
         "selectedDateLabel": "Consultation package",
         "locationName": "Evolve Sprouts",
         "locationAddress": "Your home (Hong Kong)",
-        "directionHref": "#",
         "topicsField": {
           "label": "Focus, level, and anything we should know",
           "placeholder": "e.g. Home Assessment, Essentials — child is 3, helper has been with us 2 years",

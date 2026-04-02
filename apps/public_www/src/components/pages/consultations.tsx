@@ -4,7 +4,7 @@ import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
 import { ConsultationsHero } from '@/components/sections/consultations/consultations-hero';
-import { ConsultationBooking } from '@/components/sections/consultations/consultations-booking';
+import { ConsultationsBooking } from '@/components/sections/consultations/consultations-booking';
 import { ConsultationsFocusDetails } from '@/components/sections/consultations/consultations-focus-details';
 import { ConsultationsComparison } from '@/components/sections/consultations/consultations-comparison';
 
@@ -23,7 +23,7 @@ export function ConsultationsPage({ locale, content }: ConsultationsPageProps) {
       footerContent={content.footer}
     >
       <ConsultationsHero content={consultations.hero} />
-      <ConsultationBooking
+      <ConsultationsBooking
         locale={locale}
         content={consultations.booking}
         bookingModalContent={content.bookingModal}

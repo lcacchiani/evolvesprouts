@@ -1,20 +1,20 @@
-import type { EventBookingModalPayload } from '@/lib/events-data';
+import type { ConsultationEventBookingModalPayload } from '@/lib/events-data';
 import { CONSULTATION_BOOKING_SYSTEM } from '@/lib/events-data';
-import type { ConsultationBookingReservationContent, Locale } from '@/content';
+import type { ConsultationsBookingReservationContent, Locale } from '@/content';
 import { formatCurrencyHkd } from '@/lib/format';
 
 export type ConsultationsBookingModalTierId = 'essentials' | 'deepDive';
 
 export function buildConsultationsBookingModalPayload(
-  reservation: ConsultationBookingReservationContent,
+  reservation: ConsultationsBookingReservationContent,
   locale: Locale,
-): EventBookingModalPayload {
+): ConsultationEventBookingModalPayload {
   const tierId = reservation.bookingTier;
   const tier = tierId === 'essentials' ? reservation.essentials : reservation.deepDive;
   const firstPart = tier.dateParts[0];
   const selectedDateStartTime = firstPart?.startDateTime?.trim() ?? '';
-
-  return {
+  const directionHref = reservation.directionHref?.trim();
+  const payload: ConsultationEventBookingModalPayload = {
     variant: 'event',
     bookingSystem: CONSULTATION_BOOKING_SYSTEM,
     title: reservation.modalTitle,
@@ -22,7 +22,6 @@ export function buildConsultationsBookingModalPayload(
     originalAmount: tier.priceHkd,
     locationName: reservation.locationName,
     locationAddress: reservation.locationAddress,
-    directionHref: reservation.directionHref,
     dateParts: tier.dateParts.map((part) => ({
       id: part.id,
       startDateTime: part.startDateTime,
@@ -40,4 +39,8 @@ export function buildConsultationsBookingModalPayload(
       required: reservation.topicsField.required,
     },
   };
+  if (directionHref && directionHref !== '#') {
+    payload.directionHref = directionHref;
+  }
+  return payload;
 }
