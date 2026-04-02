@@ -734,28 +734,25 @@
       "emptyApiLabel": "No resources are available yet.",
       "languageBadgeTemplate": "{language}",
       "nullLanguageLabel": "Any language",
+      "flagAltTemplate": "{label} flag",
+      "nullLanguageFlagAlt": "Any language",
       "gatedCtaLabelTemplate": "Get {title}",
       "unavailableCtaLabel": "Unavailable",
-      "languageFilters": [
-        {
-          "id": "all",
-          "label": "All languages"
-        },
+      "languageFlags": [
         {
           "id": "en",
-          "label": "English"
+          "flagSrc": "/images/flags/united-kingdom.svg",
+          "altLabel": "English"
         },
         {
           "id": "zh-CN",
-          "label": "Chinese (Simplified)"
+          "flagSrc": "/images/flags/china.svg",
+          "altLabel": "Chinese (Simplified)"
         },
         {
           "id": "zh-HK",
-          "label": "Chinese (Hong Kong)"
-        },
-        {
-          "id": "unset",
-          "label": "Unspecified"
+          "flagSrc": "/images/flags/hong-kong.svg",
+          "altLabel": "Chinese (Hong Kong)"
         }
       ],
       "assetTypeLabels": {
@@ -763,29 +760,7 @@
         "video": "Video",
         "pdf": "PDF",
         "document": "Document"
-      },
-      "assetTypeFilters": [
-        {
-          "id": "all",
-          "label": "All types"
-        },
-        {
-          "id": "guide",
-          "label": "Guide"
-        },
-        {
-          "id": "video",
-          "label": "Video"
-        },
-        {
-          "id": "pdf",
-          "label": "PDF"
-        },
-        {
-          "id": "document",
-          "label": "Document"
-        }
-      ]
+      }
     },
     "faq": {
       "title": "Frequently Asked Questions",

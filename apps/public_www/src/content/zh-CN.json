@@ -734,28 +734,25 @@
       "emptyApiLabel": "暂时没有可用资源。",
       "languageBadgeTemplate": "{language}",
       "nullLanguageLabel": "不限语言",
+      "flagAltTemplate": "{label}旗帜",
+      "nullLanguageFlagAlt": "不限语言",
       "gatedCtaLabelTemplate": "获取 {title}",
       "unavailableCtaLabel": "暂不可用",
-      "languageFilters": [
-        {
-          "id": "all",
-          "label": "全部语言"
-        },
+      "languageFlags": [
         {
           "id": "en",
-          "label": "英语"
+          "flagSrc": "/images/flags/united-kingdom.svg",
+          "altLabel": "英语"
         },
         {
           "id": "zh-CN",
-          "label": "中文（简体）"
+          "flagSrc": "/images/flags/china.svg",
+          "altLabel": "中文（简体）"
         },
         {
           "id": "zh-HK",
-          "label": "中文（香港）"
-        },
-        {
-          "id": "unset",
-          "label": "未标注"
+          "flagSrc": "/images/flags/hong-kong.svg",
+          "altLabel": "中文（香港）"
         }
       ],
       "assetTypeLabels": {
@@ -763,29 +760,7 @@
         "video": "视频",
         "pdf": "PDF",
         "document": "文档"
-      },
-      "assetTypeFilters": [
-        {
-          "id": "all",
-          "label": "全部类型"
-        },
-        {
-          "id": "guide",
-          "label": "指南"
-        },
-        {
-          "id": "video",
-          "label": "视频"
-        },
-        {
-          "id": "pdf",
-          "label": "PDF"
-        },
-        {
-          "id": "document",
-          "label": "文档"
-        }
-      ]
+      }
     },
     "faq": {
       "title": "常见问题",

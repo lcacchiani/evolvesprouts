@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { FreeGuidesAndResourcesLibrary } from '@/components/sections/free-guides-and-resources-library';
 import enContent from '@/content/en.json';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import { clearCrmApiGetCacheForTests } from '@/lib/crm-api-client';
 
 vi.mock('next/link', () => ({
@@ -27,25 +28,19 @@ vi.mock('@/components/shared/turnstile-captcha', () => ({
 
 const sampleApiItems = [
   {
-    id: '11111111-1111-1111-1111-111111111111',
     title: 'Patience Guide',
     description: 'Gentle strategies about patience for parents.',
     asset_type: 'guide',
-    file_name: 'patience.pdf',
     resource_key: 'patience-free-guide',
     content_language: 'en',
-    content_type: 'application/pdf',
     updated_at: null,
   },
   {
-    id: '22222222-2222-2222-2222-222222222222',
     title: 'Helper PDF Pack',
     description: 'Printable tips for helpers.',
     asset_type: 'pdf',
-    file_name: 'helpers.pdf',
     resource_key: null,
     content_language: 'zh-HK',
-    content_type: 'application/pdf',
     updated_at: null,
   },
 ];
@@ -119,6 +114,17 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       screen.getByRole('heading', { name: 'Patience Guide' }),
     ).toBeInTheDocument();
     expect(screen.getByText(sampleApiItems[1].description)).toBeInTheDocument();
+
+    const enFlag = content.languageFlags.find((f) => f.id === 'en');
+    if (!enFlag) {
+      throw new Error('Expected en language flag');
+    }
+    const enCardFlag = screen.getByRole('img', {
+      name: formatContentTemplate(content.flagAltTemplate, {
+        label: enFlag.altLabel,
+      }),
+    });
+    expect(enCardFlag).toHaveAttribute('src', enFlag.flagSrc);
   });
 
   it('renders MediaForm CTA when resource_key is set', async () => {
@@ -154,74 +160,6 @@ describe('FreeGuidesAndResourcesLibrary', () => {
       name: content.unavailableCtaLabel,
     });
     expect(disabled).toBeDisabled();
-  });
-
-  it('filters by language pills before asset type pills', async () => {
-    render(
-      <FreeGuidesAndResourcesLibrary
-        content={content}
-        mediaFormContent={mediaFormContent}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: 'Patience Guide' }),
-      ).toBeInTheDocument();
-    });
-
-    const zhHk = content.languageFilters.find((f) => f.id === 'zh-HK');
-    if (!zhHk) {
-      throw new Error('Expected zh-HK language filter');
-    }
-    fireEvent.click(screen.getByRole('button', { name: zhHk.label }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: 'Helper PDF Pack' }),
-      ).toBeInTheDocument();
-    });
-    expect(
-      screen.queryByRole('heading', { name: 'Patience Guide' }),
-    ).not.toBeInTheDocument();
-
-    const allLang = content.languageFilters.find((f) => f.id === 'all');
-    if (!allLang) {
-      throw new Error('Expected all languages filter');
-    }
-    fireEvent.click(screen.getByRole('button', { name: allLang.label }));
-
-    expect(
-      screen.getByRole('heading', { name: 'Patience Guide' }),
-    ).toBeInTheDocument();
-  });
-
-  it('filters by asset type', async () => {
-    render(
-      <FreeGuidesAndResourcesLibrary
-        content={content}
-        mediaFormContent={mediaFormContent}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: 'Patience Guide' }),
-      ).toBeInTheDocument();
-    });
-
-    const pdfFilter = content.assetTypeFilters.find((c) => c.id === 'pdf');
-    if (!pdfFilter) {
-      throw new Error('Expected pdf asset type filter');
-    }
-    fireEvent.click(screen.getByRole('button', { name: pdfFilter.label }));
-
-    expect(
-      screen.queryByRole('heading', { name: 'Patience Guide' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Helper PDF Pack' }),
-    ).toBeInTheDocument();
   });
 
   it('filters by search on title and description', async () => {
@@ -272,16 +210,15 @@ describe('FreeGuidesAndResourcesLibrary', () => {
 
   it('follows next_cursor and merges pages', async () => {
     const secondItem = {
-      id: '33333333-3333-3333-3333-333333333333',
       title: 'Second Page Guide',
       description: 'From page two.',
       asset_type: 'guide',
-      file_name: 'second.pdf',
       resource_key: null,
       content_language: 'en',
-      content_type: 'application/pdf',
       updated_at: null,
     };
+    const pageTwoCursor =
+      'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
     let callIndex = 0;
     vi.stubGlobal(
@@ -295,7 +232,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
             text: async () =>
               JSON.stringify({
                 items: [sampleApiItems[0]],
-                next_cursor: secondItem.id,
+                next_cursor: pageTwoCursor,
               }),
           });
         }
@@ -327,7 +264,7 @@ describe('FreeGuidesAndResourcesLibrary', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(
       String((fetch as ReturnType<typeof vi.fn>).mock.calls[1]?.[0]),
-    ).toContain(`cursor=${encodeURIComponent(secondItem.id)}`);
+    ).toContain(`cursor=${encodeURIComponent(pageTwoCursor)}`);
   });
 
   it('shows load error when fetch fails', async () => {

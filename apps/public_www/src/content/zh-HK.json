@@ -734,28 +734,25 @@
       "emptyApiLabel": "暫時沒有可用資源。",
       "languageBadgeTemplate": "{language}",
       "nullLanguageLabel": "不限語言",
+      "flagAltTemplate": "{label}旗幟",
+      "nullLanguageFlagAlt": "不限語言",
       "gatedCtaLabelTemplate": "獲取 {title}",
       "unavailableCtaLabel": "暫不可用",
-      "languageFilters": [
-        {
-          "id": "all",
-          "label": "全部語言"
-        },
+      "languageFlags": [
         {
           "id": "en",
-          "label": "英文"
+          "flagSrc": "/images/flags/united-kingdom.svg",
+          "altLabel": "英文"
         },
         {
           "id": "zh-CN",
-          "label": "中文（簡體）"
+          "flagSrc": "/images/flags/china.svg",
+          "altLabel": "中文（簡體）"
         },
         {
           "id": "zh-HK",
-          "label": "中文（香港）"
-        },
-        {
-          "id": "unset",
-          "label": "未標示"
+          "flagSrc": "/images/flags/hong-kong.svg",
+          "altLabel": "中文（香港）"
         }
       ],
       "assetTypeLabels": {
@@ -763,29 +760,7 @@
         "video": "影片",
         "pdf": "PDF",
         "document": "文件"
-      },
-      "assetTypeFilters": [
-        {
-          "id": "all",
-          "label": "全部類型"
-        },
-        {
-          "id": "guide",
-          "label": "指南"
-        },
-        {
-          "id": "video",
-          "label": "影片"
-        },
-        {
-          "id": "pdf",
-          "label": "PDF"
-        },
-        {
-          "id": "document",
-          "label": "文件"
-        }
-      ]
+      }
     },
     "faq": {
       "title": "常見問題",
