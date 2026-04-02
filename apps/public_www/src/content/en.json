@@ -180,7 +180,7 @@
     "formEmailLabel": "Email",
     "formSubmitLabel": "Send Me the Free Guide",
     "formSuccessTitle": "Check Your Email!",
-    "formSuccessBody": "Check your email for the download link!",
+    "formSuccessBody": "The download link is in there.",
     "formErrorMessage": "Unable to submit right now. Please check your details and try again.",
     "sectionConfig": {
       "_comment": "Template config for free resources section layout.",
