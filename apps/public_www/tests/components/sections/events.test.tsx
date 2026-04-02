@@ -111,7 +111,7 @@ describe('Events section', () => {
 
     expect(loadingStatus).toBeInTheDocument();
     expect(loadingGear).toHaveClass('animate-spin');
-    expect(loadingGear.getAttribute('class')).toContain('es-events-loading-gear');
+    expect(loadingGear.getAttribute('class')).toContain('es-loading-gear-icon');
     expect(loadingGear.getAttribute('style')).toBeNull();
     expect(screen.getByText(enContent.events.loadingLabel)).toBeInTheDocument();
   });

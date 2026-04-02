@@ -13,7 +13,7 @@ export function LoadingGearIcon({ className, testId }: LoadingGearIconProps) {
       data-testid={testId}
       aria-hidden
       className={[
-        'es-ui-icon-mask es-ui-icon-mask--events-loading-gear es-events-loading-gear inline-block h-7 w-7',
+        'es-ui-icon-mask es-ui-icon-mask--loading-gear es-loading-gear-icon inline-block h-7 w-7',
         className,
       ]
         .filter(Boolean)

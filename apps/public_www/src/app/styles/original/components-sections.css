@@ -1365,11 +1365,11 @@
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
-  .es-events-loading-gear {
+  .es-loading-gear-icon {
     color: var(--es-color-brand-orange-soft, #F2A975);
   }
 
-  .es-events-loading-bubble {
+  .es-loading-gear-bubble {
     background-color: var(--es-color-brand-peach-bg, #FFF0E5);
   }
 

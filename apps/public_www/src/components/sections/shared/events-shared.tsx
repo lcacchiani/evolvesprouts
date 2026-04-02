@@ -59,7 +59,7 @@ export function EventsLoadingState({ label, testId }: EventsLoadingStateProps) {
       <span
         role='status'
         aria-label={label}
-        className='inline-flex h-12 w-12 items-center justify-center rounded-full border es-border-soft es-events-loading-bubble'
+        className='inline-flex h-12 w-12 items-center justify-center rounded-full border es-border-soft es-loading-gear-bubble'
       >
         <LoadingGearIcon className='h-7 w-7 animate-spin' testId={testId} />
       </span>
