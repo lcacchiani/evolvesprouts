@@ -53,8 +53,8 @@ describe('crm-api-client', () => {
     expect(buildCrmApiUrl('https://api.evolvesprouts.com/www', '/v1/discounts')).toBe(
       '/www/v1/discounts',
     );
-    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www/', 'v1/calendar/events')).toBe(
-      '/www/v1/calendar/events',
+    expect(buildCrmApiUrl('https://api.evolvesprouts.com/www/', 'v1/calendar/public')).toBe(
+      '/www/v1/calendar/public',
     );
   });
 
@@ -212,12 +212,12 @@ describe('crm-api-client', () => {
     }
 
     const firstResponse = await client.request({
-      endpointPath: '/v1/calendar/events',
+      endpointPath: '/v1/calendar/public',
       method: 'GET',
     });
     vi.setSystemTime(new Date('2026-01-01T00:04:59.000Z'));
     const cachedResponse = await client.request({
-      endpointPath: '/v1/calendar/events',
+      endpointPath: '/v1/calendar/public',
       method: 'GET',
     });
 
@@ -226,7 +226,7 @@ describe('crm-api-client', () => {
 
     vi.setSystemTime(new Date('2026-01-01T00:05:00.001Z'));
     const refreshedResponse = await client.request({
-      endpointPath: '/v1/calendar/events',
+      endpointPath: '/v1/calendar/public',
       method: 'GET',
     });
 

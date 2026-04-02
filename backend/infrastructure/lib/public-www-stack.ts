@@ -338,8 +338,8 @@ function handler(event) {
 
   var allowlist = {
     'GET': {
-      '/www/v1/calendar/events': true,
-      '/www/v1/client-resources': true
+      '/www/v1/calendar/public': true,
+      '/www/v1/assets/free': true
     },
     'POST': {
       '/www/v1/discounts/validate': true,
@@ -372,7 +372,7 @@ function handler(event) {
       `${config.idPrefix}MediaRequestProxyFunction`,
       {
         comment:
-          "Allow /www/v1/media-request and rewrite path for execute-api origin.",
+          "Allow /www/v1/assets/free/request and rewrite path for execute-api origin.",
         runtime: cloudfront.FunctionRuntime.JS_2_0,
         code: cloudfront.FunctionCode.fromInline(`
 function handler(event) {
@@ -381,8 +381,8 @@ function handler(event) {
   var uri = request.uri || '';
   var isAllowedMethod = method === 'POST' || method === 'OPTIONS';
 
-  if (uri === '/www/v1/media-request' && isAllowedMethod) {
-    request.uri = '/v1/media-request';
+  if (uri === '/www/v1/assets/free/request' && isAllowedMethod) {
+    request.uri = '/v1/assets/free/request';
     return request;
   }
 
@@ -528,7 +528,7 @@ function handler(event) {
           ],
         },
         additionalBehaviors: {
-          "www/v1/media-request": {
+          "www/v1/assets/free/request": {
             origin: mediaRequestApiOrigin,
             viewerProtocolPolicy:
               cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,

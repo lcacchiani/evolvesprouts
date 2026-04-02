@@ -1,14 +1,16 @@
 openapi: 3.0.3
 info:
   title: Public API
-  version: 0.2.0
+  version: 0.2.3
   description: |
     Public endpoint contract.
 
     This spec covers:
     - Public asset endpoints exposed by the backend API stack
-      (`/v1/assets/public*`).
-    - Public client resource listing (`/v1/client-resources`, `/www/v1/client-resources`).
+      (`/v1/assets/public*`, `/v1/assets/share/*`, `/v1/assets/free`).
+    - Public free-asset listing for the website (`/v1/assets/free`, `/www/v1/assets/free`).
+    - Public calendar feed (`/v1/calendar/public`, `/www/v1/calendar/public`).
+    - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
     - Public website endpoints consumed by `apps/public_www`, exposed via the
       CloudFront `/www/*` proxy allowlist in
       `backend/infrastructure/lib/public-www-stack.ts`.
@@ -152,9 +154,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /v1/client-resources:
+  /v1/assets/free:
     get:
-      summary: List public client resources
+      summary: List public free website assets
       description: |
         Lists **public** assets tagged `client_document` for the public website.
         Optional `language` filters to assets whose `content_language` matches exactly
@@ -181,10 +183,10 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /www/v1/client-resources:
+  /www/v1/assets/free:
     get:
-      summary: List public client resources (website proxy path)
-      description: Same as `GET /v1/client-resources` for same-origin calls from `public_www`.
+      summary: List public free website assets (website proxy path)
+      description: Same as `GET /v1/assets/free` for same-origin calls from `public_www`.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -205,11 +207,34 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /www/v1/calendar/events:
+  /v1/calendar/public:
+    get:
+      summary: List public calendar events
+      description: |
+        Event feed for public consumers (direct API).
+        Source of truth is the backend `service_instances` projection for
+        `service_type=event` services.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Event list response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicCalendarEventsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /www/v1/calendar/public:
     get:
       summary: List public website events
       description: |
-        Event feed consumed by `apps/public_www`.
+        Same as `GET /v1/calendar/public` for same-origin calls from `public_www`.
         Source of truth is the backend `service_instances` projection for
         `service_type=event` services.
       security:
@@ -421,10 +446,45 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  /www/v1/media-request:
+  /v1/assets/free/request:
     post:
-      summary: Submit media request
-      description: Submit a media lead form from `public_www`.
+      summary: Submit media request (direct API path)
+      description: |
+        Submit a media lead form. Routed on the public website via CloudFront
+        as `POST /www/v1/assets/free/request` (execute-api origin).
+      security:
+        - ApiKeyAuth: []
+          TurnstileToken: []
+      parameters:
+        - $ref: "#/components/parameters/TurnstileTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaRequestSubmissionRequest"
+      responses:
+        "202":
+          description: Media request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationSubmissionAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/assets/free/request:
+    post:
+      summary: Submit media request (website proxy path)
+      description: Same as `POST /v1/assets/free/request` for same-origin calls from `public_www`.
       security:
         - ApiKeyAuth: []
           TurnstileToken: []

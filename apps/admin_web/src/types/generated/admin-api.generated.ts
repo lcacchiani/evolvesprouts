@@ -4096,7 +4096,7 @@ export interface components {
             resource_key?: string | null;
             content_type?: string | null;
             /**
-             * @description BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN, or zh-HK. Used by the public client-resources feed when filtering by `language`.
+             * @description BCP 47-style tag for the language of the file content. Admin writes allow only en, zh-CN, or zh-HK. Used by `GET /v1/assets/free` when filtering by `language`.
              * @enum {string|null}
              */
             content_language?: "en" | "zh-CN" | "zh-HK" | null;

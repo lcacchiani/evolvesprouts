@@ -176,7 +176,7 @@ What the runner validates:
 - CTA API smoke:
   - `POST /www/v1/legacy/contact-us`
   - `POST /www/v1/discounts/validate`
-  - `POST /www/v1/media-request`
+  - `POST /www/v1/assets/free/request`
   - `POST /www/v1/legacy/reservations`
   - `POST /www/v1/reservations/payment-intent`
 
@@ -195,7 +195,7 @@ Optional environment variables:
 - `SMOKE_CRM_API_BASE_URL` (optional API base fallback for `/v1/*` routes;
   falls back to `NEXT_PUBLIC_API_BASE_URL`)
 - `SMOKE_MEDIA_API_BASE_URL` (optional media API base fallback for
-  `/v1/media-request`; falls back to `NEXT_PUBLIC_API_BASE_URL`)
+  `/v1/assets/free/request`; falls back to `NEXT_PUBLIC_API_BASE_URL`)
 
 If a same-origin `/www/*` API smoke request returns `404`, the runner retries
 that request against the corresponding configured fallback API base before

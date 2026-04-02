@@ -7,7 +7,7 @@ from app.api.public_media import handle_media_request
 
 
 def test_media_request_rejects_non_post(api_gateway_event: Any) -> None:
-    event = api_gateway_event(method="GET", path="/v1/media-request")
+    event = api_gateway_event(method="GET", path="/v1/assets/free/request")
 
     response = handle_media_request(event, "GET")
 
@@ -18,7 +18,7 @@ def test_media_request_rejects_non_post(api_gateway_event: Any) -> None:
 def test_media_request_requires_turnstile_header(api_gateway_event: Any) -> None:
     event = api_gateway_event(
         method="POST",
-        path="/v1/media-request",
+        path="/v1/assets/free/request",
         body=json.dumps({"first_name": "Ida", "email": "ida@example.com"}),
     )
 
@@ -34,7 +34,7 @@ def test_media_request_rejects_failed_turnstile(
 ) -> None:
     event = api_gateway_event(
         method="POST",
-        path="/v1/media-request",
+        path="/v1/assets/free/request",
         body=json.dumps({"first_name": "Ida", "email": "ida@example.com"}),
         headers={"X-Turnstile-Token": "test-token"},
     )
@@ -55,7 +55,7 @@ def test_media_request_returns_500_without_topic(
 ) -> None:
     event = api_gateway_event(
         method="POST",
-        path="/v1/media-request",
+        path="/v1/assets/free/request",
         body=json.dumps({"first_name": "Ida", "email": "ida@example.com"}),
         headers={"X-Turnstile-Token": "test-token"},
     )
@@ -79,7 +79,7 @@ def test_media_request_publishes_to_sns(
 ) -> None:
     event = api_gateway_event(
         method="POST",
-        path="/v1/media-request",
+        path="/v1/assets/free/request",
         body=json.dumps(
             {
                 "first_name": " Ida ",

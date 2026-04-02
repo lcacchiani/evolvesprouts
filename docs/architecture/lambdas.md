@@ -23,9 +23,9 @@ their primary responsibilities.
 - Function: EvolvesproutsAdminFunction
 - Handler: backend/lambda/admin/handler.py
 - Trigger: API Gateway — currently wired for
-  `/v1/media-request`, `/v1/reservations`,
+  `/v1/assets/free/request`, `/v1/reservations`,
   `/v1/reservations/payment-intent`,
-  `/v1/calendar/events`,
+  `/v1/calendar/public`,
   `/v1/discounts/validate`,
   `/v1/legacy/reservations`,
   `/v1/legacy/contact-us`,
@@ -47,15 +47,15 @@ their primary responsibilities.
   `/v1/admin/vendors/*`,
   `/v1/admin/expenses/*`,
   `/v1/user/assets/*`,
-  `/v1/assets/public/*`, and `/v1/assets/share/*`,
+  `/v1/assets/public/*`, `/v1/assets/share/*`, and `GET /v1/assets/free`,
   plus public website proxy routes including
   `/www/v1/discounts/validate` (native Aurora-backed discount validation;
   same JSON contract as `/www/v1/legacy/discounts/validate`),
-  `/www/v1/calendar/events` (event instances include optional `slug` and
+  `/www/v1/calendar/public` (event instances include optional `slug` and
   `landing_page` from `service_instances`, and `spaces_total` / `spaces_left`
   when `max_capacity` is set, using the same enrollment statuses as capacity
   checks: registered, confirmed, completed),
-  `/www/v1/client-resources` (lists public assets tagged `client_document`;
+  `/www/v1/assets/free` (lists public assets tagged `client_document`;
   optional `language` query filters on `assets.content_language` using any valid
   BCP 47-style tag; admin asset writes restrict `content_language` to `en`,
   `zh-CN`, or `zh-HK`; downloads
@@ -63,7 +63,7 @@ their primary responsibilities.
 - Auth: Cognito JWT — admin group for `/v1/admin/*`,
   any authenticated user for `/v1/user/*`,
   device attestation + API key for `/v1/assets/public/*`,
-  API key for `/v1/assets/share/*` (injected by media CloudFront at origin)
+  API key for `/v1/assets/share/*` (injected by media CloudFront at origin) and `GET /v1/assets/free`
 - Purpose:   asset metadata CRUD (admin asset list returns `linked_tag_names` for tag
   filters and accepts `tag_name` for any tag linked to assets in the requested
   `asset_type` scope; create/update accept optional `client_tag` for the
@@ -86,7 +86,7 @@ their primary responsibilities.
   authentication for restricted share-link resolutions, PATCH partial metadata
   updates on `/v1/admin/assets/{id}`, media lead capture with Turnstile
   verification (via `AwsApiProxyFunction`) and SNS event publishing on
-  `/v1/media-request`, Mailchimp webhook ingestion and contact sync-status
+  `/v1/assets/free/request`, Mailchimp webhook ingestion and contact sync-status
   reconciliation on `/v1/mailchimp/webhook`, legacy public API bridge routing
   on `/v1/legacy/*` (proxying to upstream legacy endpoints via
   `AwsApiProxyFunction`), Stripe PaymentIntent creation for
