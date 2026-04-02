@@ -157,7 +157,7 @@ type ContentLanguageOption = {
 export function getContentLanguageOptions(): ContentLanguageOption[] {
   return ADMIN_ASSET_CONTENT_LANGUAGE_TAGS.map((tag) => ({
     value: tag,
-    label: `${tag} ${ADMIN_ASSET_CONTENT_LANGUAGE_LABELS[tag]}`,
+    label: ADMIN_ASSET_CONTENT_LANGUAGE_LABELS[tag],
   }));
 }
 
@@ -189,7 +189,7 @@ export function formatAssetContentLanguageLabel(value: string | null | undefined
   const lower = raw.toLowerCase();
   for (const tag of ADMIN_ASSET_CONTENT_LANGUAGE_TAGS) {
     if (tag.toLowerCase() === lower) {
-      return `${tag} ${ADMIN_ASSET_CONTENT_LANGUAGE_LABELS[tag]}`;
+      return ADMIN_ASSET_CONTENT_LANGUAGE_LABELS[tag];
     }
   }
   return raw;

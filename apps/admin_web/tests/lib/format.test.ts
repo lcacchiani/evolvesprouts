@@ -25,13 +25,13 @@ describe('format helpers', () => {
   it('exposes en, zh-CN, and zh-HK in content language options with fixed labels', () => {
     const options = getContentLanguageOptions();
     expect(options.map((o) => o.value)).toEqual(['en', 'zh-CN', 'zh-HK']);
-    expect(options.find((o) => o.value === 'en')?.label).toBe('en English');
-    expect(options.find((o) => o.value === 'zh-CN')?.label).toBe('zh-CN Mandarin (Simplified)');
-    expect(options.find((o) => o.value === 'zh-HK')?.label).toBe('zh-HK Cantonese (Hong Kong)');
+    expect(options.find((o) => o.value === 'en')?.label).toBe('English');
+    expect(options.find((o) => o.value === 'zh-CN')?.label).toBe('Mandarin (Simplified)');
+    expect(options.find((o) => o.value === 'zh-HK')?.label).toBe('Cantonese (Hong Kong)');
   });
 
   it('formats known content_language tags and shows raw values for unknown tags', () => {
-    expect(formatAssetContentLanguageLabel('en')).toBe('en English');
+    expect(formatAssetContentLanguageLabel('en')).toBe('English');
     expect(formatAssetContentLanguageLabel(null)).toBe('—');
     expect(formatAssetContentLanguageLabel('fr')).toBe('fr');
   });
