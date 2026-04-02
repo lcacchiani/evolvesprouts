@@ -1,20 +1,18 @@
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
-import type { ConsultationsHowItWorksContent } from '@/content';
+import type { ConsultationBookingContent } from '@/content';
 
-interface ConsultationsHowItWorksProps {
-  content: ConsultationsHowItWorksContent;
+interface ConsultationBookingProps {
+  content: ConsultationBookingContent;
 }
 
-export function ConsultationsHowItWorks({
-  content,
-}: ConsultationsHowItWorksProps) {
+export function ConsultationBooking({ content }: ConsultationBookingProps) {
   return (
     <SectionShell
-      id='consultations-how-it-works'
+      id='consultations-booking'
       ariaLabel={content.title}
-      dataFigmaNode='consultations-how-it-works'
+      dataFigmaNode='consultations-booking'
       className='es-section-bg-overlay'
     >
       <SectionContainer>

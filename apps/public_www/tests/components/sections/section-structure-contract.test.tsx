@@ -39,7 +39,7 @@ const pageSectionFiles = [
   'landing-pages/landing-page-faq.tsx',
   'landing-pages/landing-page-cta.tsx',
   'consultations/consultations-hero.tsx',
-  'consultations/consultations-how-it-works.tsx',
+  'consultations/consultations-booking.tsx',
   'consultations/consultations-focus-details.tsx',
   'consultations/consultations-comparison.tsx',
   'about-us-ida-coach.tsx',
