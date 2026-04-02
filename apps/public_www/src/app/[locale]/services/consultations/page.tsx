@@ -43,7 +43,7 @@ export default async function ConsultationsRoutePage({
 
   return (
     <>
-      <ConsultationsPage content={content} />
+      <ConsultationsPage locale={locale} content={content} />
       <StructuredDataScript
         id={`consultations-breadcrumb-jsonld-${locale}`}
         data={buildBreadcrumbSchema({

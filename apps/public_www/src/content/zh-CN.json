@@ -1184,10 +1184,10 @@
       "title": "一次性咨询服务",
       "subtitle": "还没准备好参加完整的9周课程？从这里开始。选择你的方向。选择你的级别。看看会有什么改变。",
       "ctaLabel": "预约免费家庭咨询",
-      "ctaHref": "#consultations-cta",
+      "ctaHref": "#consultations-booking",
       "imageAlt": "Evolve Sprouts 一次性咨询课程"
     },
-    "howItWorks": {
+    "booking": {
       "eyebrow": "如何运作",
       "title": "选择你的方向和级别",
       "step1Title": "第一步 — 选择你的方向",
@@ -1235,7 +1235,79 @@
           ],
           "bestFor": "适合：希望我在改变真正发生时亲临现场的家庭 — 不仅是计划，还有执行。"
         }
-      ]
+      ],
+      "reservation": {
+        "bookingTier": "essentials",
+        "ctaLabel": "预约咨询",
+        "modalTitle": "一次性咨询",
+        "modalSubtitle": "付款后我们将确认您的咨询方向、级别和上门安排。",
+        "selectedDateLabel": "咨询套餐",
+        "locationName": "Evolve Sprouts",
+        "locationAddress": "上门服务（香港）",
+        "topicsField": {
+          "label": "咨询方向、级别及其他需要说明的信息",
+          "placeholder": "例如：家居评估、基础版 — 孩子3岁，阿姨已工作2年",
+          "required": true
+        },
+        "essentials": {
+          "priceHkd": 2800,
+          "dateParts": [
+            {
+              "id": "assessment",
+              "startDateTime": "2026-06-01T02:00:00Z",
+              "endDateTime": "2026-06-01T03:00:00Z",
+              "descriptionTemplate": "60分钟家居评估上门 — {price}"
+            },
+            {
+              "id": "report",
+              "startDateTime": "2026-06-08T02:00:00Z",
+              "endDateTime": "2026-06-08T02:30:00Z",
+              "descriptionTemplate": "书面报告交付（上门后1周内）— {price} 套餐"
+            },
+            {
+              "id": "follow-up",
+              "startDateTime": "2026-06-15T02:00:00Z",
+              "endDateTime": "2026-06-15T02:30:00Z",
+              "descriptionTemplate": "30分钟跟进通话 — {price} 套餐"
+            }
+          ]
+        },
+        "deepDive": {
+          "priceHkd": 4800,
+          "dateParts": [
+            {
+              "id": "assessment",
+              "startDateTime": "2026-06-01T02:00:00Z",
+              "endDateTime": "2026-06-01T03:00:00Z",
+              "descriptionTemplate": "60分钟家居评估上门 — {price}"
+            },
+            {
+              "id": "report",
+              "startDateTime": "2026-06-08T02:00:00Z",
+              "endDateTime": "2026-06-08T02:30:00Z",
+              "descriptionTemplate": "书面报告交付（上门后1周内）— {price} 套餐"
+            },
+            {
+              "id": "follow-up",
+              "startDateTime": "2026-06-15T02:00:00Z",
+              "endDateTime": "2026-06-15T02:30:00Z",
+              "descriptionTemplate": "30分钟跟进通话 — {price} 套餐"
+            },
+            {
+              "id": "second-visit",
+              "startDateTime": "2026-06-22T02:00:00Z",
+              "endDateTime": "2026-06-22T03:00:00Z",
+              "descriptionTemplate": "第二次上门 — 实操指导（1周内）— {price} 套餐"
+            },
+            {
+              "id": "whatsapp",
+              "startDateTime": "2026-06-22T03:00:00Z",
+              "endDateTime": "2026-07-06T03:00:00Z",
+              "descriptionTemplate": "最后一次课程后2周WhatsApp支持 — {price} 套餐"
+            }
+          ]
+        }
+      }
     },
     "focusDetails": {
       "eyebrow": "方向详情",
@@ -1297,14 +1369,6 @@
         }
       ],
       "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动"
-    },
-    "cta": {
-      "title": "知道您需要什么？",
-      "primaryCtaLabel": "预约免费家庭咨询",
-      "primaryPrefillMessage": "你好，我想预约一次免费咨询，讨论哪种方向和级别最适合我的家庭。",
-      "secondaryDescription": "不确定哪种方向或级别适合？这正是咨询的目的。我们会在20分钟内一起找到答案。",
-      "secondaryCtaLabel": "通过WhatsApp联系我",
-      "secondaryPrefillMessage": "你好，我不确定哪种咨询方向或级别适合我的家庭。我们可以聊聊吗？"
     }
   },
   "bookingModal": {

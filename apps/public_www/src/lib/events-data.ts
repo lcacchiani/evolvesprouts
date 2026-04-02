@@ -35,6 +35,8 @@ const EVENTS_SOURCE_CONTENT: EventsSource = 'content';
 const MAX_PAST_EVENTS = 5;
 const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
 const EVENT_BOOKING_SYSTEM = 'event-booking';
+/** Consultation one-off booking modal (same reservation API shape as events). */
+export const CONSULTATION_BOOKING_SYSTEM = 'consultation-booking';
 const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MY_BEST_AUNTIE_BOOKING_HASH = 'my-best-auntie-booking';
 
@@ -45,7 +47,8 @@ interface EventBookingDatePart {
   description: string;
 }
 
-export interface EventBookingModalPayload {
+/** Calendar / landing-page event reservations (public events feed). */
+export interface EventCalendarBookingModalPayload {
   variant: 'event';
   bookingSystem: typeof EVENT_BOOKING_SYSTEM;
   title: string;
@@ -60,6 +63,27 @@ export interface EventBookingModalPayload {
   /** From landing page JSON `cta.bookingTopicsField` when `landing_page` matches a registered page. */
   topicsFieldConfig?: BookingTopicsFieldConfig;
 }
+
+/** One-off consultations (same modal + API shape as calendar events, distinct booking_system). */
+export interface ConsultationEventBookingModalPayload {
+  variant: 'event';
+  bookingSystem: typeof CONSULTATION_BOOKING_SYSTEM;
+  title: string;
+  subtitle: string;
+  originalAmount: number;
+  locationName: string;
+  locationAddress: string;
+  /** Omit or empty: modal hides “Get directions”. */
+  directionHref?: string;
+  dateParts: EventBookingDatePart[];
+  selectedDateLabel: string;
+  selectedDateStartTime: string;
+  topicsFieldConfig?: BookingTopicsFieldConfig;
+}
+
+export type EventBookingModalPayload =
+  | EventCalendarBookingModalPayload
+  | ConsultationEventBookingModalPayload;
 
 interface MyBestAuntieEventCohortDate {
   id: string;
@@ -380,7 +404,7 @@ function buildEventBookingModalPayload(
   locationName: string | undefined,
   locationAddress: string | undefined,
   directionHref: string,
-): EventBookingModalPayload {
+): EventCalendarBookingModalPayload {
   const dateParts = resolveBookingDateParts(record, summary ?? '');
   const selectedDateStartTime = dateParts[0]?.startDateTime ?? '';
   const selectedDateLabel =

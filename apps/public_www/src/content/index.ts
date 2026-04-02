@@ -50,10 +50,11 @@ export type MyBestAuntieBookingContent = SiteContent['myBestAuntie']['booking'];
 export type MyBestAuntieDescriptionContent =
   SiteContent['myBestAuntie']['description'];
 export type ConsultationsHeroContent = SiteContent['consultations']['hero'];
-export type ConsultationsHowItWorksContent = SiteContent['consultations']['howItWorks'];
+export type ConsultationsBookingContent = SiteContent['consultations']['booking'];
+export type ConsultationsBookingReservationContent =
+  SiteContent['consultations']['booking']['reservation'];
 export type ConsultationsFocusDetailsContent = SiteContent['consultations']['focusDetails'];
 export type ConsultationsComparisonContent = SiteContent['consultations']['comparison'];
-export type ConsultationsCtaContent = SiteContent['consultations']['cta'];
 export type BookingModalContent = SiteContent['bookingModal'];
 export type BookingPaymentModalContent = SiteContent['bookingModal']['paymentModal'];
 export type BookingThankYouModalContent = SiteContent['bookingModal']['thankYouModal'];

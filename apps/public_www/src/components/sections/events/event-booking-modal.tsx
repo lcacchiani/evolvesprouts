@@ -19,6 +19,7 @@ import {
   BookingEventDetails,
 } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
+import type { MetaPixelContentName } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import type {
   BookingTopicsFieldConfig,
@@ -38,6 +39,9 @@ interface EventBookingModalProps {
   paymentModalContent: BookingPaymentModalContent;
   bookingPayload: EventBookingModalPayload;
   topicsFieldConfig?: BookingTopicsFieldConfig;
+  analyticsSectionId?: string;
+  metaPixelContentName?: MetaPixelContentName;
+  captchaWidgetAction?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
 }
@@ -47,6 +51,9 @@ export function EventBookingModal({
   paymentModalContent,
   bookingPayload,
   topicsFieldConfig: topicsFieldConfigProp,
+  analyticsSectionId = 'events-booking',
+  metaPixelContentName = PIXEL_CONTENT_NAME.event_booking,
+  captchaWidgetAction = 'event_reservation_submit',
   onClose,
   onSubmitReservation,
 }: EventBookingModalProps) {
@@ -124,13 +131,13 @@ export function EventBookingModal({
               selectedCohortPrice={bookingPayload.originalAmount}
               venueName={bookingPayload.locationName}
               venueAddress={bookingPayload.locationAddress}
-              venueDirectionHref={bookingPayload.directionHref}
+              venueDirectionHref={bookingPayload.directionHref ?? ''}
               dateEndTime={bookingPayload.dateParts[0]?.endDateTime ?? ''}
               topicsFieldConfig={topicsFieldConfig}
               descriptionId={dialogDescriptionId}
-              analyticsSectionId='events-booking'
-              metaPixelContentName={PIXEL_CONTENT_NAME.event_booking}
-              captchaWidgetAction='event_reservation_submit'
+              analyticsSectionId={analyticsSectionId}
+              metaPixelContentName={metaPixelContentName}
+              captchaWidgetAction={captchaWidgetAction}
               onSubmitReservation={onSubmitReservation}
             />
           </div>

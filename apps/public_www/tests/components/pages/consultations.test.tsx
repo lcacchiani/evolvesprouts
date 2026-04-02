@@ -15,9 +15,9 @@ vi.mock('@/components/sections/consultations/consultations-hero', () => ({
     <section data-testid='consultations-hero'>{content.title}</section>
   ),
 }));
-vi.mock('@/components/sections/consultations/consultations-how-it-works', () => ({
-  ConsultationsHowItWorks: ({ content }: { content: { title: string } }) => (
-    <section data-testid='consultations-how-it-works'>{content.title}</section>
+vi.mock('@/components/sections/consultations/consultations-booking', () => ({
+  ConsultationsBooking: ({ content }: { content: { title: string } }) => (
+    <section data-testid='consultations-booking'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/consultations/consultations-focus-details', () => ({
@@ -28,11 +28,6 @@ vi.mock('@/components/sections/consultations/consultations-focus-details', () =>
 vi.mock('@/components/sections/consultations/consultations-comparison', () => ({
   ConsultationsComparison: ({ content }: { content: { title: string } }) => (
     <section data-testid='consultations-comparison'>{content.title}</section>
-  ),
-}));
-vi.mock('@/components/sections/consultations/consultations-cta', () => ({
-  ConsultationsCta: ({ content }: { content: { title: string } }) => (
-    <section data-testid='consultations-cta'>{content.title}</section>
   ),
 }));
 vi.mock('@/components/sections/faq', () => ({
@@ -49,14 +44,13 @@ vi.mock('@/components/sections/free-intro-session', () => ({
 describe('ConsultationsPage', () => {
   it('assembles the consultations page with all sections in order', () => {
     const content = getContent('en');
-    render(<ConsultationsPage content={content} />);
+    render(<ConsultationsPage locale='en' content={content} />);
 
     expect(screen.getByTestId('page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('consultations-hero')).toBeInTheDocument();
-    expect(screen.getByTestId('consultations-how-it-works')).toBeInTheDocument();
+    expect(screen.getByTestId('consultations-booking')).toBeInTheDocument();
     expect(screen.getByTestId('consultations-focus-details')).toBeInTheDocument();
     expect(screen.getByTestId('consultations-comparison')).toBeInTheDocument();
-    expect(screen.getByTestId('consultations-cta')).toBeInTheDocument();
     expect(screen.getByTestId('faq')).toBeInTheDocument();
     expect(screen.getByTestId('free-intro-session')).toBeInTheDocument();
 
@@ -66,11 +60,11 @@ describe('ConsultationsPage', () => {
     );
     expect(
       screen.getByTestId('consultations-hero').compareDocumentPosition(
-        screen.getByTestId('consultations-how-it-works'),
+        screen.getByTestId('consultations-booking'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
-      screen.getByTestId('consultations-how-it-works').compareDocumentPosition(
+      screen.getByTestId('consultations-booking').compareDocumentPosition(
         screen.getByTestId('consultations-focus-details'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
@@ -81,11 +75,6 @@ describe('ConsultationsPage', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
       screen.getByTestId('consultations-comparison').compareDocumentPosition(
-        screen.getByTestId('consultations-cta'),
-      ),
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(
-      screen.getByTestId('consultations-cta').compareDocumentPosition(
         screen.getByTestId('faq'),
       ),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);

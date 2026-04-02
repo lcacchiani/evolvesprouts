@@ -1184,10 +1184,10 @@
       "title": "One-Off Consultations",
       "subtitle": "Not ready for the full 9-week course? Start here. Pick your focus. Pick your level. See what changes.",
       "ctaLabel": "Book a Free Family Consultation",
-      "ctaHref": "#consultations-cta",
+      "ctaHref": "#consultations-booking",
       "imageAlt": "Evolve Sprouts one-off consultation session"
     },
-    "howItWorks": {
+    "booking": {
       "eyebrow": "How It Works",
       "title": "Choose Your Focus & Level",
       "step1Title": "Step 1 — Choose your focus",
@@ -1235,7 +1235,79 @@
           ],
           "bestFor": "Best for: families who want me there when the changes actually happen — not just the plan, but the doing."
         }
-      ]
+      ],
+      "reservation": {
+        "bookingTier": "essentials",
+        "ctaLabel": "Reserve a consultation",
+        "modalTitle": "One-Off Consultation",
+        "modalSubtitle": "We will confirm your focus, level, and visit after payment.",
+        "selectedDateLabel": "Consultation package",
+        "locationName": "Evolve Sprouts",
+        "locationAddress": "Your home (Hong Kong)",
+        "topicsField": {
+          "label": "Focus, level, and anything we should know",
+          "placeholder": "e.g. Home Assessment, Essentials — child is 3, helper has been with us 2 years",
+          "required": true
+        },
+        "essentials": {
+          "priceHkd": 2800,
+          "dateParts": [
+            {
+              "id": "assessment",
+              "startDateTime": "2026-06-01T02:00:00Z",
+              "endDateTime": "2026-06-01T03:00:00Z",
+              "descriptionTemplate": "60-minute home assessment visit — {price}"
+            },
+            {
+              "id": "report",
+              "startDateTime": "2026-06-08T02:00:00Z",
+              "endDateTime": "2026-06-08T02:30:00Z",
+              "descriptionTemplate": "Written report delivered (within 1 week of visit) — {price} package"
+            },
+            {
+              "id": "follow-up",
+              "startDateTime": "2026-06-15T02:00:00Z",
+              "endDateTime": "2026-06-15T02:30:00Z",
+              "descriptionTemplate": "30-minute follow-up call — {price} package"
+            }
+          ]
+        },
+        "deepDive": {
+          "priceHkd": 4800,
+          "dateParts": [
+            {
+              "id": "assessment",
+              "startDateTime": "2026-06-01T02:00:00Z",
+              "endDateTime": "2026-06-01T03:00:00Z",
+              "descriptionTemplate": "60-minute home assessment visit — {price}"
+            },
+            {
+              "id": "report",
+              "startDateTime": "2026-06-08T02:00:00Z",
+              "endDateTime": "2026-06-08T02:30:00Z",
+              "descriptionTemplate": "Written report delivered (within 1 week of visit) — {price} package"
+            },
+            {
+              "id": "follow-up",
+              "startDateTime": "2026-06-15T02:00:00Z",
+              "endDateTime": "2026-06-15T02:30:00Z",
+              "descriptionTemplate": "30-minute follow-up call — {price} package"
+            },
+            {
+              "id": "second-visit",
+              "startDateTime": "2026-06-22T02:00:00Z",
+              "endDateTime": "2026-06-22T03:00:00Z",
+              "descriptionTemplate": "Second visit — hands-on implementation (within 1 week) — {price} package"
+            },
+            {
+              "id": "whatsapp",
+              "startDateTime": "2026-06-22T03:00:00Z",
+              "endDateTime": "2026-07-06T03:00:00Z",
+              "descriptionTemplate": "2 weeks of WhatsApp support after the last session — {price} package"
+            }
+          ]
+        }
+      }
     },
     "focusDetails": {
       "eyebrow": "Focus Details",
@@ -1297,14 +1369,6 @@
         }
       ],
       "footnote": "Available for all three focus areas: Home Assessment · Auntie-Child · Parent-Child"
-    },
-    "cta": {
-      "title": "Know what you need?",
-      "primaryCtaLabel": "Book a Free Family Consultation",
-      "primaryPrefillMessage": "Hi, I'd like to book a free consultation to discuss which focus and level is right for my family.",
-      "secondaryDescription": "Not sure which focus or level is right? That's exactly what the consultation is for. We'll figure it out together in 20 minutes.",
-      "secondaryCtaLabel": "Message me on WhatsApp",
-      "secondaryPrefillMessage": "Hi, I'm not sure which consultation focus or level is right for my family. Can we chat?"
     }
   },
   "bookingModal": {

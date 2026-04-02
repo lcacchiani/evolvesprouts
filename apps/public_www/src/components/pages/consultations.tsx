@@ -1,48 +1,21 @@
-import type { SiteContent } from '@/content';
-import { buildWhatsappPrefilledHref } from '@/lib/site-config';
+import type { Locale, SiteContent } from '@/content';
+import { resolvePublicSiteConfig } from '@/lib/site-config';
 import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
 import { FreeIntroSession } from '@/components/sections/free-intro-session';
 import { ConsultationsHero } from '@/components/sections/consultations/consultations-hero';
-import { ConsultationsHowItWorks } from '@/components/sections/consultations/consultations-how-it-works';
+import { ConsultationsBooking } from '@/components/sections/consultations/consultations-booking';
 import { ConsultationsFocusDetails } from '@/components/sections/consultations/consultations-focus-details';
 import { ConsultationsComparison } from '@/components/sections/consultations/consultations-comparison';
-import { ConsultationsCta } from '@/components/sections/consultations/consultations-cta';
 
 interface ConsultationsPageProps {
+  locale: Locale;
   content: SiteContent;
 }
 
-function resolveCtaWhatsappHref(
-  baseWhatsappHref: string,
-  prefillMessage: string,
-  phoneNumber: string,
-  fallbackHref: string,
-): string {
-  return (
-    buildWhatsappPrefilledHref(baseWhatsappHref, prefillMessage, phoneNumber)
-    || fallbackHref
-  );
-}
-
-export function ConsultationsPage({ content }: ConsultationsPageProps) {
+export function ConsultationsPage({ locale, content }: ConsultationsPageProps) {
   const consultations = content.consultations;
-  const whatsappBaseHref = content.freeIntroSession.ctaHref;
-  const whatsappPhoneNumber = content.freeIntroSession.phoneNumber;
-
-  const primaryCtaHref = resolveCtaWhatsappHref(
-    whatsappBaseHref,
-    consultations.cta.primaryPrefillMessage,
-    whatsappPhoneNumber,
-    whatsappBaseHref,
-  );
-
-  const secondaryCtaHref = resolveCtaWhatsappHref(
-    whatsappBaseHref,
-    consultations.cta.secondaryPrefillMessage,
-    whatsappPhoneNumber,
-    whatsappBaseHref,
-  );
+  const publicSiteConfig = resolvePublicSiteConfig();
 
   return (
     <PageLayout
@@ -50,14 +23,15 @@ export function ConsultationsPage({ content }: ConsultationsPageProps) {
       footerContent={content.footer}
     >
       <ConsultationsHero content={consultations.hero} />
-      <ConsultationsHowItWorks content={consultations.howItWorks} />
+      <ConsultationsBooking
+        locale={locale}
+        content={consultations.booking}
+        bookingModalContent={content.bookingModal}
+        thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
+        thankYouWhatsappCtaLabel={content.contactUs.form.contactMethodLinks.whatsapp}
+      />
       <ConsultationsFocusDetails content={consultations.focusDetails} />
       <ConsultationsComparison content={consultations.comparison} />
-      <ConsultationsCta
-        content={consultations.cta}
-        resolvedPrimaryCtaHref={primaryCtaHref}
-        resolvedSecondaryCtaHref={secondaryCtaHref}
-      />
       <Faq content={content.faq} />
       <FreeIntroSession content={content.freeIntroSession} />
     </PageLayout>

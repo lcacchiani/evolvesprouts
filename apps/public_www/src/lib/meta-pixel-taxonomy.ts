@@ -32,6 +32,10 @@ export const META_PIXEL_CONTENT_NAMES = {
     label: 'Event booking',
     allowedEvents: ['InitiateCheckout', 'Schedule'] as const,
   },
+  consultation_booking: {
+    label: 'Consultation booking',
+    allowedEvents: ['InitiateCheckout', 'Schedule'] as const,
+  },
   my_best_auntie_course: {
     label: 'Links hub — course',
     allowedEvents: ['ViewContent'] as const,
@@ -61,6 +65,7 @@ export const PIXEL_CONTENT_NAME = {
   whatsapp: 'whatsapp',
   my_best_auntie: 'my_best_auntie',
   event_booking: 'event_booking',
+  consultation_booking: 'consultation_booking',
   my_best_auntie_course: 'my_best_auntie_course',
   contact_us: 'contact_us',
   events: 'events',

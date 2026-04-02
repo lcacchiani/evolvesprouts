@@ -17,7 +17,7 @@ export function ConsultationsHero({ content }: ConsultationsHeroProps) {
       id='consultations-hero'
       ariaLabel={content.title}
       dataFigmaNode='consultations-hero'
-      className='es-section-bg-overlay overflow-hidden pt-0 sm:pt-[60px]'
+      className='es-bg-surface-white overflow-hidden pt-0 sm:pt-[60px]'
     >
       <SectionContainer
         className={buildSectionSplitLayoutClassName(
