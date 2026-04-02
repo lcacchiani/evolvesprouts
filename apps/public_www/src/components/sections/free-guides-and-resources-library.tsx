@@ -364,16 +364,13 @@ export function FreeGuidesAndResourcesLibrary({
             <li key={item.listKey} className='h-full'>
               <article className='flex h-full flex-col rounded-2xl border border-black/10 bg-white px-5 py-5 shadow-card sm:px-6 sm:py-6'>
                 <div className='flex flex-wrap items-center gap-2'>
-                  <span className='es-bg-surface-muted inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold es-text-dim'>
-                    {formatLabel}
-                  </span>
                   {flagSrc ? (
-                    <span className='es-bg-surface-muted inline-flex h-8 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-black/10'>
+                    <span className='inline-flex h-4 w-[22px] shrink-0 items-center justify-center overflow-hidden'>
                       <Image
                         src={flagSrc}
                         alt={flagAlt}
-                        width={44}
-                        height={32}
+                        width={22}
+                        height={16}
                         className='h-full w-full object-cover'
                       />
                     </span>
@@ -382,6 +379,9 @@ export function FreeGuidesAndResourcesLibrary({
                       {languagePillLabel}
                     </span>
                   )}
+                  <span className='es-bg-surface-muted inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold es-text-dim'>
+                    {formatLabel}
+                  </span>
                 </div>
                 <h3 className='es-type-subtitle mt-4'>{item.title}</h3>
                 <p className='es-section-body mb-3 mt-3 flex-1 text-base leading-7'>
