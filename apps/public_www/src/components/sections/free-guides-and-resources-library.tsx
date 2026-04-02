@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
+import { LoadingGearIcon } from '@/components/shared/loading-gear-icon';
 import { MediaForm } from '@/components/sections/media-form';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -308,9 +309,19 @@ export function FreeGuidesAndResourcesLibrary({
   const listBody = (() => {
     if (loadState === 'loading') {
       return (
-        <p className='rounded-2xl border es-border-soft-alt es-bg-surface-soft px-5 py-6 text-center es-faq-answer'>
-          {content.loadingLabel}
-        </p>
+        <div className='flex flex-col items-center gap-3 rounded-2xl border es-border-soft-alt es-bg-surface-soft px-5 py-8 text-center sm:py-10'>
+          <span
+            role='status'
+            aria-label={content.loadingLabel}
+            className='inline-flex h-12 w-12 items-center justify-center rounded-full border es-border-soft es-loading-gear-bubble'
+          >
+            <LoadingGearIcon
+              className='h-7 w-7 animate-spin'
+              testId='free-guides-library-loading-gear'
+            />
+          </span>
+          <p className='es-faq-answer'>{content.loadingLabel}</p>
+        </div>
       );
     }
 

@@ -86,6 +86,8 @@ describe('FreeGuidesAndResourcesLibrary', () => {
     );
 
     expect(screen.getByText(content.loadingLabel)).toBeInTheDocument();
+    const loadingGear = screen.getByTestId('free-guides-library-loading-gear');
+    expect(loadingGear).toHaveClass('animate-spin');
 
     await waitFor(() => {
       expect(screen.queryByText(content.loadingLabel)).not.toBeInTheDocument();
