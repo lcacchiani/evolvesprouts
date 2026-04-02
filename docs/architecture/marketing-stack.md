@@ -450,7 +450,7 @@ manually through the Mailchimp dashboard.
 Website form submit
         │
         ▼
-  API Gateway (/v1/assets/public/free/request or /v1/contact-us)
+  API Gateway (/v1/assets/free/request or /v1/contact-us)
         │
         ▼
   Admin Lambda (backend/lambda/admin/handler.py)

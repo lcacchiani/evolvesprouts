@@ -117,8 +117,8 @@ CloudFront distribution
         ├─▶ /www/v1/*: API Gateway (CRM API routes)
         │     └─▶ Viewer-request allowlist gates method/path pairs
         │
-        └─▶ /www/v1/assets/public/free/request: API Gateway (media lead capture)
-              └─▶ Path rewrite: /www/v1/assets/public/free/request → /v1/assets/public/free/request
+        └─▶ /www/v1/assets/free/request: API Gateway (media lead capture)
+              └─▶ Path rewrite: /www/v1/assets/free/request → /v1/assets/free/request
 ```
 
 ### Stack: `evolvesprouts-public-www`
@@ -167,7 +167,7 @@ API Gateway (evolvesprouts-api)
   ├─▶ /v1/assets/public/* ──▶ AdminFunction (VPC)
   │     Authorization: DeviceAttestationAuthorizer + API Key
   │
-  ├─▶ /v1/assets/public/free/request ─▶ AdminFunction (VPC) ──▶ SNS ──▶ SQS ──▶ MediaProcessor
+  ├─▶ /v1/assets/free/request ─▶ AdminFunction (VPC) ──▶ SNS ──▶ SQS ──▶ MediaProcessor
   │     Authorization: API Key + Turnstile
   │
   ├─▶ /v1/calendar/public ─▶ AdminFunction (VPC)

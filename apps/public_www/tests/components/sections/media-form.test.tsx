@@ -178,7 +178,7 @@ describe('MediaForm', () => {
 
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith({
-        endpointPath: '/v1/assets/public/free/request',
+        endpointPath: '/v1/assets/free/request',
         method: 'POST',
         body: {
           first_name: 'Ida',

@@ -1,4 +1,4 @@
-"""Public client resources feed for the website."""
+"""Public free-asset listing (GET /v1/assets/free) for the website."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from app.api.assets.assets_common import (
     parse_content_language_query_param,
     parse_cursor,
     parse_limit,
-    serialize_public_client_resource,
+    serialize_public_free_asset,
 )
 from app.db.engine import get_engine
 from app.db.repositories.asset import AssetRepository
@@ -39,7 +39,7 @@ def _is_free_assets_list_path(path: str) -> bool:
     return False
 
 
-def handle_public_client_resources_request(
+def handle_public_free_assets_list_request(
     event: Mapping[str, Any],
     method: str,
     path: str,
@@ -49,7 +49,7 @@ def handle_public_client_resources_request(
         return json_response(404, {"error": "Not found"}, event=event)
 
     logger.info(
-        "Handling public client resources request",
+        "Handling public free assets list request",
         extra={"method": method, "path": path},
     )
     if method != "GET":
@@ -70,5 +70,5 @@ def handle_public_client_resources_request(
         items=rows,
         limit=limit,
         event=event,
-        serializer=serialize_public_client_resource,
+        serializer=serialize_public_free_asset,
     )

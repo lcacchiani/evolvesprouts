@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.api import public_client_resources
+from app.api import public_free_assets
 from app.db.models import AssetType, AssetVisibility
 from app.exceptions import ValidationError
 
@@ -27,10 +27,10 @@ def _asset_row(*, content_language: str | None = "en") -> Any:
     )
 
 
-def test_handle_public_client_resources_rejects_non_get(
+def test_handle_public_free_assets_list_rejects_non_get(
     api_gateway_event: Any,
 ) -> None:
-    response = public_client_resources.handle_public_client_resources_request(
+    response = public_free_assets.handle_public_free_assets_list_request(
         api_gateway_event(method="POST", path="/v1/assets/free"),
         "POST",
         "/v1/assets/free",
@@ -38,7 +38,7 @@ def test_handle_public_client_resources_rejects_non_get(
     assert response["statusCode"] == 405
 
 
-def test_handle_public_client_resources_accepts_www_prefixed_path(
+def test_handle_public_free_assets_list_accepts_www_prefixed_path(
     monkeypatch: Any,
     api_gateway_event: Any,
 ) -> None:
@@ -68,11 +68,11 @@ def test_handle_public_client_resources_accepts_www_prefixed_path(
         ) -> list[Any]:
             return []
 
-    monkeypatch.setattr(public_client_resources, "Session", _SessionCtx)
-    monkeypatch.setattr(public_client_resources, "get_engine", lambda: object())
-    monkeypatch.setattr(public_client_resources, "AssetRepository", _FakeRepository)
+    monkeypatch.setattr(public_free_assets, "Session", _SessionCtx)
+    monkeypatch.setattr(public_free_assets, "get_engine", lambda: object())
+    monkeypatch.setattr(public_free_assets, "AssetRepository", _FakeRepository)
 
-    response = public_client_resources.handle_public_client_resources_request(
+    response = public_free_assets.handle_public_free_assets_list_request(
         api_gateway_event(method="GET", path="/www/v1/assets/free"),
         "GET",
         "/www/v1/assets/free",
@@ -80,11 +80,11 @@ def test_handle_public_client_resources_accepts_www_prefixed_path(
     assert response["statusCode"] == 200
 
 
-def test_handle_public_client_resources_invalid_language(
+def test_handle_public_free_assets_list_invalid_language(
     api_gateway_event: Any,
 ) -> None:
     with pytest.raises(ValidationError):
-        public_client_resources.handle_public_client_resources_request(
+        public_free_assets.handle_public_free_assets_list_request(
             api_gateway_event(
                 method="GET",
                 path="/v1/assets/free",
@@ -95,7 +95,7 @@ def test_handle_public_client_resources_invalid_language(
         )
 
 
-def test_handle_public_client_resources_lists_items(
+def test_handle_public_free_assets_list_lists_items(
     monkeypatch: Any,
     api_gateway_event: Any,
 ) -> None:
@@ -128,11 +128,11 @@ def test_handle_public_client_resources_lists_items(
             assert language == "zh-HK"
             return [_asset_row(content_language="zh-HK")]
 
-    monkeypatch.setattr(public_client_resources, "Session", _SessionCtx)
-    monkeypatch.setattr(public_client_resources, "get_engine", lambda: object())
-    monkeypatch.setattr(public_client_resources, "AssetRepository", _FakeRepository)
+    monkeypatch.setattr(public_free_assets, "Session", _SessionCtx)
+    monkeypatch.setattr(public_free_assets, "get_engine", lambda: object())
+    monkeypatch.setattr(public_free_assets, "AssetRepository", _FakeRepository)
 
-    response = public_client_resources.handle_public_client_resources_request(
+    response = public_free_assets.handle_public_free_assets_list_request(
         api_gateway_event(
             method="GET",
             path="/v1/assets/free",

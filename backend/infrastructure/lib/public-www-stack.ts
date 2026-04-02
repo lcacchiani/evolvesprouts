@@ -372,7 +372,7 @@ function handler(event) {
       `${config.idPrefix}MediaRequestProxyFunction`,
       {
         comment:
-          "Allow /www/v1/assets/public/free/request and rewrite path for execute-api origin.",
+          "Allow /www/v1/assets/free/request and rewrite path for execute-api origin.",
         runtime: cloudfront.FunctionRuntime.JS_2_0,
         code: cloudfront.FunctionCode.fromInline(`
 function handler(event) {
@@ -381,8 +381,8 @@ function handler(event) {
   var uri = request.uri || '';
   var isAllowedMethod = method === 'POST' || method === 'OPTIONS';
 
-  if (uri === '/www/v1/assets/public/free/request' && isAllowedMethod) {
-    request.uri = '/v1/assets/public/free/request';
+  if (uri === '/www/v1/assets/free/request' && isAllowedMethod) {
+    request.uri = '/v1/assets/free/request';
     return request;
   }
 
@@ -528,7 +528,7 @@ function handler(event) {
           ],
         },
         additionalBehaviors: {
-          "www/v1/assets/public/free/request": {
+          "www/v1/assets/free/request": {
             origin: mediaRequestApiOrigin,
             viewerProtocolPolicy:
               cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,

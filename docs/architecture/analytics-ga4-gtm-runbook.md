@@ -8,7 +8,7 @@ flows and provides a step-by-step implementation guide.
 Applies to `apps/public_www` and current user journeys:
 
 - Contact form (`POST /v1/contact-us`)
-- Media request form (`POST /v1/assets/public/free/request`)
+- Media request form (`POST /v1/assets/free/request`)
 - Community / event signup forms (`POST /v1/contact-us` with prefilled message)
 - My Best Auntie booking flow (`POST /v1/reservations`)
 - WhatsApp CTAs (floating and section-level)
@@ -51,8 +51,8 @@ Canonical machine-readable contract:
 | `contact_form_submit_success` | `/v1/contact-us` success | `section_id`, `form_type='contact_us'` | Yes |
 | `contact_form_submit_error` | `/v1/contact-us` error | `section_id`, `form_type='contact_us'`, `error_type` | No |
 | `media_form_open` | Media CTA expands form | `section_id`, `resource_key` | No |
-| `media_form_submit_success` | `/v1/assets/public/free/request` success | `section_id`, `resource_key` | Yes |
-| `media_form_submit_error` | `/v1/assets/public/free/request` error | `section_id`, `resource_key`, `error_type` | No |
+| `media_form_submit_success` | `/v1/assets/free/request` success | `section_id`, `resource_key` | Yes |
+| `media_form_submit_error` | `/v1/assets/free/request` error | `section_id`, `resource_key`, `error_type` | No |
 | `community_signup_submit_success` | Sprouts/Event signup success | `section_id`, `form_type` | Yes |
 | `community_signup_submit_error` | Sprouts/Event signup error | `section_id`, `form_type`, `error_type` | No |
 | `booking_modal_open` | Booking modal opens | `section_id='my-best-auntie-booking'`, `age_group`, `cohort_label` | No |

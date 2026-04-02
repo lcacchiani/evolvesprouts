@@ -568,8 +568,8 @@ def serialize_asset(asset: Asset) -> dict[str, Any]:
     }
 
 
-def serialize_public_client_resource(asset: Asset) -> dict[str, Any]:
-    """Serialize a public client-facing asset for the website feed."""
+def serialize_public_free_asset(asset: Asset) -> dict[str, Any]:
+    """Serialize a public free-website asset for GET /v1/assets/free."""
     return {
         "id": str(asset.id),
         "title": asset.title,

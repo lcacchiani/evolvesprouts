@@ -3080,7 +3080,12 @@ export class ApiStack extends cdk.Stack {
 
     // Public asset routes (API key + device attestation)
     const assets = v1.addResource("assets");
-    assets.addResource("free").addMethod("GET", adminIntegration, {
+    const assetsFree = assets.addResource("free");
+    assetsFree.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+    assetsFree.addResource("request").addMethod("POST", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
@@ -3096,12 +3101,6 @@ export class ApiStack extends cdk.Stack {
     publicAssetDownload.addMethod("GET", adminIntegration, {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
       authorizer: deviceAttestationAuthorizer,
-      apiKeyRequired: true,
-    });
-
-    const publicAssetFree = publicAssets.addResource("free");
-    publicAssetFree.addResource("request").addMethod("POST", adminIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
       apiKeyRequired: true,
     });
 
