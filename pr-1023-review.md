@@ -1,70 +1,126 @@
 # Review: PR #1023 — cursor/public-endpoints-list-766e
 
 Assessment of branch `cursor/public-endpoints-list-766e` (PR #1023).
+Two commits, 30 files changed (+209 / -127 lines).
+
+## Rename map
+
+| Old path | New path |
+|----------|----------|
+| `GET /v1/client-resources` | `GET /v1/assets/free` |
+| `GET /www/v1/client-resources` | `GET /www/v1/assets/free` |
+| `POST /v1/media-request` | `POST /v1/assets/public/free/request` |
+| `POST /www/v1/media-request` | `POST /www/v1/assets/public/free/request` |
+| `GET /v1/calendar/events` | `GET /v1/calendar/public` |
+| `GET /www/v1/calendar/events` | `GET /www/v1/calendar/public` |
 
 ## Issues
 
-### 1. CRITICAL — Scope creep: PR bundles unrelated feature work with renames
+### 1. HIGH — `_path_matches` hardcoded exclusion is fragile
 
-PR title says "Rename public client-resources endpoints" but the branch also
-ships a new `POST /v1/discounts/validate` endpoint, discount validity window
-enforcement, shared currency config, admin UI datetime pickers, language-label
-format changes, and a reusable `LoadingGearIcon`. These should be separate PRs.
+The media-request handler moved from standalone `/v1/media-request` into the
+`/v1/assets/public/free/request` tree, which lives under the existing prefix
+route `/v1/assets/public` (exact=False). To prevent prefix-match from
+swallowing paths like `/v1/assets/public/free/...`, a hardcoded exclusion was
+added:
 
-### 2. HIGH — `_path_matches` hardcoded special-case is fragile
+```python
+if route_path == "/v1/assets/public" and path.startswith("/v1/assets/public/free/"):
+    return False
+```
 
-`backend/src/app/api/admin.py` line ~310 hardcodes a guard for
-`/v1/assets/public/free/` inside the generic path matcher. Only covers
-`/v1/assets/public`, not hypothetical `/www/v1/assets/public`. A
-precedence-based or explicit-route-priority approach would be more robust.
+This is brittle because:
+- It only guards `/v1/assets/public`, not the `/www/` variant (currently not a
+  prefix route, but if one is ever added it would silently break).
+- It couples the generic path matcher to a specific route name. If another
+  nested exact route is added under `/v1/assets/public/` in the future, the
+  same pattern must be repeated.
+- A more robust approach would be to iterate remaining exact routes to see if a
+  more-specific match exists before accepting a prefix match, or to place the
+  prefix route AFTER all its nested exact children and rely solely on
+  first-match-wins ordering (which is already the case here — but the
+  exclusion exists as belt-and-suspenders, and it's the suspenders that have
+  the fragility).
 
-### 3. HIGH — `public_discount_validate.py` has zero structured logging
+### 2. MEDIUM — No backward compatibility for removed paths
 
-Every other public handler uses `get_logger(__name__)` and logs at minimum the
-incoming request. The new discount-validate handler has no logger import and no
-log statements, violating the `.cursorrules` security/observability mandate.
+The old paths (`/v1/client-resources`, `/v1/media-request`,
+`/v1/calendar/events` and their `/www/` variants) are removed from CDK, the
+Lambda router, and the CloudFront allowlist in one step.
 
-### 4. MEDIUM — `_is_usable_now` boundary semantics vs OpenAPI docs
+Any external consumer, cached client, or in-flight request using the old paths
+will receive 404 immediately after deployment. There is no deprecation period,
+redirect, or dual-registration.
 
-OpenAPI says "on or before `valid_until`" (inclusive) but `datetime.now(UTC)` has
-microsecond precision, creating edge-case failures when `valid_until` is stored
-at second/minute resolution. Boundary contract should be documented or code
-should truncate to match.
+For purely internal endpoints this may be acceptable, but it should be a
+conscious deployment decision. Consider whether the old paths should remain
+temporarily with a redirect or alias.
 
-### 5. MEDIUM — `_resolve_config_path` traverses `here.parent` twice
+### 3. MEDIUM — CloudFront behavior key rename is a destructive infra change
 
-`(here.parent, *here.parents)` visits the same directory twice (harmless but
-sloppy).
+```typescript
+// Old
+"www/v1/media-request": { origin: mediaRequestApiOrigin, ... }
+// New
+"www/v1/assets/public/free/request": { origin: mediaRequestApiOrigin, ... }
+```
 
-### 6. MEDIUM — `lru_cache` on `_load_currency_config` has no invalidation path
+Changing the `additionalBehaviors` key causes CloudFront to delete the old
+behavior and create a new one during CDK deploy. During the transition window,
+media-request POST traffic through CloudFront may fail. This needs coordinated
+deployment (backend CDK first, then public_www config, and monitoring during
+the switchover).
 
-Tests that need to swap the config JSON have no clean way to clear the cache.
+### 4. MEDIUM — File and symbol names not updated to match new paths
 
-### 7. MEDIUM — `www/v1/reservations` possibly missing from CloudFront POST allowlist
+- `backend/src/app/api/public_client_resources.py` — still named
+  "client_resources" while the endpoint is now `/v1/assets/free`.
+- `handle_public_client_resources_request` function name.
+- `tests/test_public_client_resources_api.py` — same stale naming.
 
-The router defines `POST /www/v1/reservations` but the CloudFront allowlist only
-lists `/www/v1/legacy/reservations` and `/www/v1/reservations/payment-intent`.
+These work correctly but create a naming inconsistency between code artifacts
+and API paths. Could be deferred to a follow-up, but should be tracked.
 
-### 8. LOW — Admin web hardcodes discount validity error string in English
+### 5. LOW — Confusing double use of "free" in the asset path tree
 
-`discount-codes-panel.tsx` uses a literal
-`'Valid until must be on or after valid from.'` instead of a localizable
-constant.
+The CDK resource tree under `/v1/assets` now has:
 
-### 9. LOW — Unsafe `as` type assertion for `contentLanguage`
+```
+/v1/assets/free         (GET — list free website assets)
+/v1/assets/public/free  (subtree)
+  /request              (POST — media lead form)
+```
 
-`asset-editor-panel.tsx` casts `contentLanguageTrimmed as AdminAssetWriteContentLanguage`
-without runtime validation.
+"free" appears at two different tree depths with different meanings:
+- `/v1/assets/free` = free-to-access client documents
+- `/v1/assets/public/free/request` = request for free media assets
 
-### 10. LOW — OpenAPI `DiscountValidationResponse` uses `additionalProperties: true`
+This is not a bug, but the naming could confuse developers reading the API
+surface.
 
-For a new native endpoint, the response schema should be strict.
+### 6. LOW — OpenAPI version jumps from 0.2.0 to 0.2.2
 
-### 11. INFO — Smoke test now targets native discount endpoint
+Skips 0.2.1. Minor cosmetic issue but may confuse changelog consumers.
 
-Deployment ordering dependency: backend stack must be deployed before public-www
-smoke passes.
+### 7. INFO — OpenAPI adds `/v1/calendar/public` as a new documented path
 
-### 12. INFO — PR body references `test_public_assets_routes.py` not in the diff
+The old spec only documented `/www/v1/calendar/events` (the website proxy
+path). The rename also adds `GET /v1/calendar/public` as a new documented
+direct-API path. This is a documentation improvement, not just a rename.
 
-Should confirm this test file was actually executed.
+## What's done well
+
+- **Thorough coverage**: all 6 old paths are consistently renamed across CDK
+  API Gateway resources, CloudFront allowlist and media-request behavior,
+  Lambda router, handler docstrings, OpenAPI specs, 10 architecture docs,
+  README, smoke test script, frontend path constants, and all affected test
+  files.
+- **Router tests extended**: `test_admin_router.py` adds both positive and
+  negative path-match assertions for the new paths, including the
+  `/extra`-suffix rejection cases.
+- **`_is_free_assets_list_path` tightened**: the old version-flexible matching
+  (`/vN/client-resources`) is replaced with exact `/v1/assets/free` matching,
+  reducing unintended path acceptance.
+- **CDK resource tree is correct**: no AWS API Gateway resource name
+  collisions; `free` under `assets` and `free` under `public` are at different
+  tree levels and deploy cleanly.
