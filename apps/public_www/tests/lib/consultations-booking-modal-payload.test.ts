@@ -32,25 +32,21 @@ describe('buildConsultationsBookingModalPayload', () => {
     expect(payload.dateParts).toHaveLength(reservation.deepDive.dateParts.length);
   });
 
-  it('includes directionHref only for http(s) URLs', () => {
+  it('does not include directionHref in consultations payload', () => {
     const content = getContent('en');
     const base = content.consultations.booking.reservation;
-    const withHash: ConsultationsBookingReservationContent = {
+    const payload = buildConsultationsBookingModalPayload(base, 'en');
+    expect(payload.directionHref).toBeUndefined();
+
+    const withUnexpectedDirection: ConsultationsBookingReservationContent & {
+      directionHref: string;
+    } = {
       ...base,
-      directionHref: '#',
+      directionHref: 'https://maps.example.com/place',
     };
     expect(
-      buildConsultationsBookingModalPayload(withHash, 'en').directionHref,
+      buildConsultationsBookingModalPayload(withUnexpectedDirection, 'en').directionHref,
     ).toBeUndefined();
-
-    const mapsUrl = 'https://maps.example.com/place';
-    const withMaps: ConsultationsBookingReservationContent = {
-      ...base,
-      directionHref: mapsUrl,
-    };
-    expect(buildConsultationsBookingModalPayload(withMaps, 'en').directionHref).toBe(
-      mapsUrl,
-    );
   });
 
   it('interpolates price in descriptions for zh-CN and zh-HK', () => {
