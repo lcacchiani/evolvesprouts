@@ -737,6 +737,7 @@
       "flagAltTemplate": "{label} flag",
       "nullLanguageFlagAlt": "Any language",
       "gatedCtaLabelTemplate": "Get {title}",
+      "gatedDocumentCtaLabel": "Get the Free Guide",
       "unavailableCtaLabel": "Unavailable",
       "languageFlags": [
         {
@@ -759,7 +760,7 @@
         "guide": "Guide",
         "video": "Video",
         "pdf": "PDF",
-        "document": "Document"
+        "document": "PDF"
       }
     },
     "faq": {

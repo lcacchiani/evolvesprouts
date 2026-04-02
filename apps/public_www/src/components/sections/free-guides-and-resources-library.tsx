@@ -224,6 +224,9 @@ export function FreeGuidesAndResourcesLibrary({
   mediaFormContent,
 }: FreeGuidesAndResourcesLibraryProps) {
   const [searchValue, setSearchValue] = useState('');
+  const [formOpenedByListKey, setFormOpenedByListKey] = useState<
+    Record<string, boolean>
+  >({});
   const [apiItems, setApiItems] = useState<LibraryAssetRow[]>([]);
   const crmClient = useMemo(() => createPublicCrmApiClient(), []);
   const [loadState, setLoadState] = useState<'idle' | 'loading' | 'error'>(() =>
@@ -355,10 +358,13 @@ export function FreeGuidesAndResourcesLibrary({
             content,
             languageDisplayNameById,
           );
-          const gatedCtaLabel = formatContentTemplate(
-            content.gatedCtaLabelTemplate,
-            { title: item.title },
-          );
+          const gatedCtaLabel =
+            item.assetType === 'document'
+              ? content.gatedDocumentCtaLabel
+              : formatContentTemplate(content.gatedCtaLabelTemplate, {
+                  title: item.title,
+                });
+          const hideDescription = Boolean(formOpenedByListKey[item.listKey]);
 
           return (
             <li key={item.listKey} className='h-full'>
@@ -384,9 +390,13 @@ export function FreeGuidesAndResourcesLibrary({
                   </span>
                 </div>
                 <h3 className='es-type-subtitle mt-4'>{item.title}</h3>
-                <p className='es-section-body mb-3 mt-3 flex-1 text-base leading-7'>
-                  {item.description}
-                </p>
+                {item.description && !hideDescription ? (
+                  <p className='es-section-body mb-3 mt-3 flex-1 text-base leading-7'>
+                    {item.description}
+                  </p>
+                ) : item.description && hideDescription ? (
+                  <div className='mb-3 mt-3 flex-1' aria-hidden />
+                ) : null}
                 {item.resourceKey ? (
                   <MediaForm
                     ctaLabel={gatedCtaLabel}
@@ -400,6 +410,12 @@ export function FreeGuidesAndResourcesLibrary({
                     formErrorMessage={mediaFormErrorMessage}
                     ctaButtonClassName='es-btn--outline'
                     className='mt-6 w-full sm:w-fit'
+                    onFormOpened={() => {
+                      setFormOpenedByListKey((prev) => ({
+                        ...prev,
+                        [item.listKey]: true,
+                      }));
+                    }}
                   />
                 ) : (
                   <ButtonPrimitive
