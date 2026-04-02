@@ -4,7 +4,7 @@ import { localizePath } from '@/lib/locale-routing';
 export const ROUTES = {
   home: '/',
   about: '/about-us',
-  freeGuidesAndResources: '/free-guides-and-resources',
+  freeGuidesAndResources: '/services/free-guides-and-resources',
   contact: '/contact-us',
   events: '/events',
   mediaDownload: '/media/download',
@@ -56,4 +56,5 @@ export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   ),
   'resources',
   'book',
+  'free-guides-and-resources',
 ]);
