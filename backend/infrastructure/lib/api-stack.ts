@@ -66,6 +66,29 @@ class CdkInternalLambdaCheckovSuppression implements cdk.IAspect {
   }
 }
 
+/**
+ * IAM resource ARNs for SES SendEmail. When the domain is verified in SES,
+ * authorization may be evaluated against `identity/<domain>` even if the From
+ * address is a specific mailbox — include both the address and domain ARNs.
+ */
+function sesVerifiedAddressAndDomainIdentityArns(
+  stack: cdk.Stack,
+  verifiedFromEmailAddress: string
+): [string, string] {
+  const domainPart = cdk.Fn.select(1, cdk.Fn.split("@", verifiedFromEmailAddress));
+  const addressArn = stack.formatArn({
+    service: "ses",
+    resource: "identity",
+    resourceName: verifiedFromEmailAddress,
+  });
+  const domainArn = stack.formatArn({
+    service: "ses",
+    resource: "identity",
+    resourceName: domainPart,
+  });
+  return [addressArn, domainArn];
+}
+
 interface EventbriteSyncNestedStackProps extends cdk.NestedStackProps {
   resourcePrefix: string;
   vpc: ec2.IVpc;
@@ -1507,11 +1530,8 @@ export class ApiStack extends cdk.Stack {
     );
     awsProxyFunction.grantInvoke(adminFunction);
 
-    const sesSenderIdentityArn = cdk.Stack.of(this).formatArn({
-      service: "ses",
-      resource: "identity",
-      resourceName: sesSenderEmail.valueAsString,
-    });
+    const [sesSenderIdentityArn, sesSenderDomainIdentityArn] =
+      sesVerifiedAddressAndDomainIdentityArns(this, sesSenderEmail.valueAsString);
     const mailchimpApiSecret = secretsmanager.Secret.fromSecretCompleteArn(
       this,
       "MailchimpApiSecret",
@@ -1607,7 +1627,7 @@ export class ApiStack extends cdk.Stack {
     bookingRequestProcessor.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: [sesSenderIdentityArn],
+        resources: [sesSenderIdentityArn, sesSenderDomainIdentityArn],
       })
     );
 
@@ -1689,7 +1709,7 @@ export class ApiStack extends cdk.Stack {
     mediaRequestProcessor.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: [sesSenderIdentityArn],
+        resources: [sesSenderIdentityArn, sesSenderDomainIdentityArn],
       })
     );
     mailchimpApiSecret.grantRead(mediaRequestProcessor);
@@ -2124,15 +2144,12 @@ export class ApiStack extends cdk.Stack {
       }
     );
 
-    const sesIdentityArn = cdk.Stack.of(this).formatArn({
-      service: "ses",
-      resource: "identity",
-      resourceName: authEmailFromAddress.valueAsString,
-    });
+    const [sesAuthIdentityArn, sesAuthDomainIdentityArn] =
+      sesVerifiedAddressAndDomainIdentityArns(this, authEmailFromAddress.valueAsString);
     createAuthChallengeFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: [sesIdentityArn],
+        resources: [sesAuthIdentityArn, sesAuthDomainIdentityArn],
       })
     );
 
