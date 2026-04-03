@@ -181,7 +181,7 @@ Default share-link allowlist values are injected into
 | Interface Endpoint | `SecretsManagerEndpoint` | Secrets Manager | For DB secret access |
 | Interface Endpoint | `StsEndpoint` | STS | For IAM auth token generation |
 | Interface Endpoint | `CloudWatchLogsEndpoint` | CloudWatch Logs | For Lambda logging |
-| Interface Endpoint | `SesEndpoint` | SES | For email sending |
+| Interface Endpoint | `SesEndpoint` | SES API (`email`) | For boto3 `SendEmail` from in-VPC Lambdas (not SMTP) |
 | Interface Endpoint | `SnsEndpoint` | SNS | For notifications |
 | Interface Endpoint | `RdsEndpoint` | RDS | For IAM authentication tokens |
 | Interface Endpoint | `ApiGatewayEndpoint` | API Gateway | For API key rotation |

@@ -323,8 +323,10 @@ export class ApiStack extends cdk.Stack {
       // (ListUsers, AdminAddUserToGroup, etc.) are handled by a dedicated
       // Lambda that runs outside the VPC instead.
 
+      // SES API (com.amazonaws.region.email) for boto3 SendEmail — not SMTP
+      // (InterfaceVpcEndpointAwsService.SES / EMAIL_SMTP is email-smtp only).
       vpc.addInterfaceEndpoint("SesEndpoint", {
-        service: ec2.InterfaceVpcEndpointAwsService.SES,
+        service: ec2.InterfaceVpcEndpointAwsService.EMAIL,
         securityGroups: [endpointSecurityGroup],
       });
 
