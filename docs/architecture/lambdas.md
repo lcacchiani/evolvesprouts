@@ -127,6 +127,9 @@ their primary responsibilities.
 - Handler: backend/lambda/auth/create_auth_challenge/handler.py
 - Trigger: Cognito User Pool CREATE_AUTH_CHALLENGE
 - Purpose: generate OTP/magic link and send email
+- Permissions: SES `SendEmail` / `SendRawEmail` on the verified From address identity
+  and the derived domain identity ARN (`identity/<domain>` from `AuthEmailFromAddress`),
+  so sending still works when SES authorizes by domain verification
 
 ### Verify auth challenge
 - Function: AuthVerifyChallengeFunction
@@ -201,7 +204,8 @@ their primary responsibilities.
   notifications
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
-- Permissions: SES send email
+- Permissions: SES send email (verified sender address and derived domain identity
+  ARNs; see `sesVerifiedAddressAndDomainIdentityArns` in api-stack.ts)
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
     `DATABASE_PROXY_ENDPOINT`, `DATABASE_IAM_AUTH`
@@ -216,7 +220,8 @@ their primary responsibilities.
   and SES notification to sales/support
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
-- Permissions: SES send email, Secrets Manager read for Mailchimp API key,
+- Permissions: SES send email (verified sender address and derived domain identity
+  ARNs), Secrets Manager read for Mailchimp API key,
   Lambda invoke permission for `AwsApiProxyFunction`
 - Environment:
   - `DATABASE_SECRET_ARN`, `DATABASE_NAME`, `DATABASE_USERNAME`,
