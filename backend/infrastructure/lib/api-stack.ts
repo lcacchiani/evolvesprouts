@@ -85,6 +85,8 @@ class EventbriteSyncNestedStack extends cdk.NestedStack {
   public readonly topic: sns.Topic;
   public readonly queue: sqs.Queue;
   public readonly deadLetterQueue: sqs.Queue;
+  /** Lambda async DLQ for EventbriteSyncProcessor (distinct from SQS redrive DLQ). */
+  public readonly processorLambdaDlq: sqs.Queue;
   public readonly processorFunction: lambda.Function;
 
   public constructor(
@@ -126,11 +128,23 @@ class EventbriteSyncNestedStack extends cdk.NestedStack {
     });
     this.topic.addSubscription(new snsSubscriptions.SqsSubscription(this.queue));
 
+    this.processorLambdaDlq = new sqs.Queue(
+      this,
+      "EventbriteSyncProcessorLambdaDLQ",
+      {
+        queueName: name("eventbrite-sync-processor-lambda-dlq"),
+        retentionPeriod: cdk.Duration.days(14),
+        encryption: sqs.QueueEncryption.KMS,
+        encryptionMasterKey: props.sqsEncryptionKey,
+      }
+    );
+
     this.processorFunction = lambdaFactory.create("EventbriteSyncProcessor", {
       functionName: name("EventbriteSyncProcessor"),
       handler: "lambda/eventbrite_sync_processor/handler.lambda_handler",
       timeout: cdk.Duration.seconds(60),
       manageLogGroup: false,
+      deadLetterQueue: this.processorLambdaDlq,
       environment: {
         DATABASE_SECRET_ARN: props.databaseSecretArn,
         DATABASE_NAME: "evolvesprouts",
@@ -3377,6 +3391,11 @@ export class ApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "EventbriteSyncDLQUrl", {
       value: eventbriteSync.deadLetterQueue.queueUrl,
       description: "SQS dead letter queue URL for failed Eventbrite sync jobs",
+    });
+    new cdk.CfnOutput(this, "EventbriteSyncProcessorLambdaDLQUrl", {
+      value: eventbriteSync.processorLambdaDlq.queueUrl,
+      description:
+        "SQS dead letter queue URL for failed EventbriteSyncProcessor Lambda invocations",
     });
     new cdk.CfnOutput(this, "InboundInvoiceRecipientAddress", {
       value: inboundInvoiceRecipientAddress,

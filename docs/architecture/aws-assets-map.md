@@ -582,7 +582,8 @@ configured by stack custom resources (including retention and KMS association).
 | `ExpenseParserDLQUrl` | SQS DLQ URL | Failed expense parser messages |
 | `EventbriteSyncTopicArn` | SNS topic ARN | Eventbrite sync events topic (from nested stack `evolvesprouts-EventbriteSync`) |
 | `EventbriteSyncQueueUrl` | SQS queue URL | Eventbrite sync processing queue (from nested stack `evolvesprouts-EventbriteSync`) |
-| `EventbriteSyncDLQUrl` | SQS DLQ URL | Failed Eventbrite sync jobs (from nested stack `evolvesprouts-EventbriteSync`) |
+| `EventbriteSyncDLQUrl` | SQS DLQ URL | Failed Eventbrite sync jobs (SQS redrive; from nested stack `evolvesprouts-EventbriteSync`) |
+| `EventbriteSyncProcessorLambdaDLQUrl` | SQS queue URL | Failed `EventbriteSyncProcessor` Lambda invocations (from nested stack `evolvesprouts-EventbriteSync`) |
 | `InboundInvoiceRecipientAddress` | Email address | SES-managed inbound invoice mailbox |
 | `InboundInvoiceRawEmailPrefix` | S3 object-key prefix | Reserved prefix for raw inbound invoice emails inside `AssetsBucket` |
 | `InboundInvoiceTopicArn` | SNS topic ARN | Inbound invoice email events topic |
