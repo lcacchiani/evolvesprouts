@@ -105,7 +105,7 @@ class SalesLeadRepository(BaseRepository[SalesLead]):
                 selectinload(SalesLead.crm_notes),
             )
         )
-        return self._session.execute(statement).scalar_one_or_none()
+        return self._session.execute(statement).unique().scalar_one_or_none()
 
     def list_leads(
         self,
