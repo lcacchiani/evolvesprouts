@@ -526,6 +526,10 @@ Website form submit
 5. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
    subscription status changes (unsubscribe, bounce) back to the database.
 
+Repeat submissions for the same contact and guide still **refresh** the Mailchimp
+member (merge fields + tag) and **re-trigger** the Customer Journey when journey
+env vars are set, so download emails can fire again without creating a second sales lead.
+
 ### Monthly newsletter
 
 - Composed and sent manually via the Mailchimp dashboard

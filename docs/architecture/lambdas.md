@@ -215,7 +215,8 @@ their primary responsibilities.
 - Function: MediaRequestProcessor
 - Handler: backend/lambda/media_processor/handler.py
 - Trigger: SQS queue (`evolvesprouts-media-queue`)
-- Purpose: process media lead captures and fan out actions
+- Purpose: process media lead captures and fan out actions (including Mailchimp
+  journey re-trigger on repeat requests for the same contact + asset)
 - Actions: contact upsert in DB, idempotent sales lead creation, Mailchimp sync
   (merge fields + tag + optional Customer Journey trigger), and SES notification
   to sales/support

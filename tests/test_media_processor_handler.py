@@ -238,6 +238,13 @@ def test_process_message_uses_keyword_session_for_contact_tag(
         ),
     )
     monkeypatch.setattr(handler, "_ensure_contact_tag", _fake_ensure_contact_tag)
+    monkeypatch.setattr(
+        handler,
+        "_ensure_share_link_url_for_asset",
+        lambda **_: "https://media.example.com/v1/assets/share/TOKEN",
+    )
+    monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", lambda **_: True)
+    monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
 
     was_processed = handler._process_message(
         {
