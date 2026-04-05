@@ -26,6 +26,11 @@ from app.db.models import (
     SalesLeadEvent,
     Tag,
 )
+from app.api.assets.share_links import (
+    build_configured_share_asset_url,
+    generate_share_token,
+    resolve_default_allowed_domains,
+)
 from app.db.repositories.asset import AssetRepository
 from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
@@ -128,10 +133,16 @@ def _process_message(message: dict[str, Any]) -> bool:
             should_retry_sync = _should_retry_mailchimp_sync(contact)
             was_mailchimp_synced = False
             if should_retry_sync:
+                download_url = _ensure_share_link_url_for_asset(
+                    session=session, asset_id=asset_id
+                )
                 was_mailchimp_synced = _sync_contact_to_mailchimp(
                     contact=contact,
                     first_name=first_name,
                     tag_name=tag_name,
+                    merge_fields=_mailchimp_merge_fields_with_download_url(
+                        download_url
+                    ),
                 )
             logger.info(
                 "Skipping duplicate media lead",
@@ -173,21 +184,28 @@ def _process_message(message: dict[str, Any]) -> bool:
             contact_id=contact.id,
             tag_name=tag_name,
         )
+        download_url = _ensure_share_link_url_for_asset(
+            session=session, asset_id=asset_id
+        )
         was_mailchimp_synced = _sync_contact_to_mailchimp(
             contact=contact,
             first_name=first_name,
             tag_name=tag_name,
+            merge_fields=_mailchimp_merge_fields_with_download_url(download_url),
         )
         if was_mailchimp_synced:
+            mailchimp_meta: dict[str, object] = {
+                "provider": "mailchimp",
+                "resource_key": resource_key,
+                "tag_name": tag_name,
+            }
+            if download_url:
+                mailchimp_meta["mailchimp_download_url"] = download_url
             _create_sales_lead_event(
                 session=session,
                 lead_id=lead.id,
                 event_type=LeadEventType.EMAIL_SENT,
-                metadata={
-                    "provider": "mailchimp",
-                    "resource_key": resource_key,
-                    "tag_name": tag_name,
-                },
+                metadata=mailchimp_meta,
                 created_by=_SYSTEM_ACTOR,
             )
 
@@ -211,11 +229,58 @@ def _process_message(message: dict[str, Any]) -> bool:
         return True
 
 
+def _mailchimp_merge_fields_with_download_url(
+    download_url: str | None,
+) -> dict[str, str] | None:
+    """Map stable asset share URL into the configured Mailchimp merge field tag."""
+    if not download_url:
+        return None
+    tag = os.getenv("MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG", "").strip()
+    if not tag:
+        return None
+    return {tag: download_url}
+
+
+def _ensure_share_link_url_for_asset(
+    *,
+    session: Session,
+    asset_id: UUID,
+) -> str | None:
+    """Ensure an asset share link exists and return its public HTTPS URL."""
+    repository = AssetRepository(session)
+    share_link = repository.get_share_link(asset_id=asset_id)
+    if share_link is None:
+        try:
+            allowed_domains = resolve_default_allowed_domains()
+        except RuntimeError:
+            logger.warning(
+                "Share link defaults unavailable; cannot set Mailchimp download URL",
+                extra={"asset_id": str(asset_id)},
+            )
+            return None
+        share_link = repository.create_share_link(
+            asset_id=asset_id,
+            share_token=generate_share_token(),
+            allowed_domains=allowed_domains,
+            created_by=_SYSTEM_ACTOR,
+        )
+        session.flush()
+
+    url = build_configured_share_asset_url(share_token=share_link.share_token)
+    if not url:
+        logger.warning(
+            "ASSET_SHARE_LINK_BASE_URL is not set; Mailchimp download URL omitted",
+            extra={"asset_id": str(asset_id)},
+        )
+    return url
+
+
 def _sync_contact_to_mailchimp(
     *,
     contact: Contact,
     first_name: str,
     tag_name: str,
+    merge_fields: dict[str, str] | None = None,
 ) -> bool:
     if not contact.email:
         contact.mailchimp_status = MailchimpSyncStatus.FAILED
@@ -228,6 +293,7 @@ def _sync_contact_to_mailchimp(
             email=contact.email,
             first_name=first_name,
             tag_name=tag_name,
+            merge_fields=merge_fields,
             max_attempts=3,
             base_delay_seconds=1.0,
             should_retry=_is_retryable_mailchimp_exception,

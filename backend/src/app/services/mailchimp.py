@@ -105,8 +105,13 @@ def add_subscriber_with_tag(
     email: str,
     first_name: str,
     tag_name: str,
+    merge_fields: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Add or update a Mailchimp subscriber and apply a tag."""
+    """Add or update a Mailchimp subscriber and apply a tag.
+
+    Optional ``merge_fields`` are merged into the member payload (Mailchimp merge
+    field tags, e.g. FNAME, MMDLURL). Empty values are skipped.
+    """
     import os
 
     normalized_email = email.strip().lower()
@@ -129,6 +134,14 @@ def add_subscriber_with_tag(
     base_url = f"https://{server_prefix}.api.mailchimp.com/3.0"
     auth_header = f"Basic {_encode_auth(api_key)}"
 
+    merge_payload: dict[str, str] = {"FNAME": normalized_first_name}
+    if merge_fields:
+        for raw_key, raw_val in merge_fields.items():
+            key = str(raw_key).strip()
+            val = str(raw_val).strip()
+            if key and val:
+                merge_payload[key] = val
+
     member_url = f"{base_url}/lists/{list_id}/members/{subscriber_hash}"
     member_response = http_invoke(
         method="PUT",
@@ -141,7 +154,7 @@ def add_subscriber_with_tag(
             {
                 "email_address": normalized_email,
                 "status_if_new": "subscribed",
-                "merge_fields": {"FNAME": normalized_first_name},
+                "merge_fields": merge_payload,
             }
         ),
         timeout=15,

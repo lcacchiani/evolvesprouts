@@ -14,7 +14,8 @@ from app.exceptions import ValidationError
 
 _SHARE_TOKEN_BYTES = 24
 _SHARE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{24,128}$")
-_SHARE_PATH_PREFIX = "/v1/assets/share"
+SHARE_ASSET_PATH_PREFIX = "/v1/assets/share"
+_SHARE_PATH_PREFIX = SHARE_ASSET_PATH_PREFIX
 _MAX_ALLOWED_DOMAINS = 20
 _DOMAIN_RE = re.compile(
     r"^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+"
@@ -30,6 +31,14 @@ def generate_share_token() -> str:
 def is_valid_share_token(token: str) -> bool:
     """Return whether a token matches the accepted share-token format."""
     return bool(_SHARE_TOKEN_RE.fullmatch(token))
+
+
+def build_configured_share_asset_url(*, share_token: str) -> str | None:
+    """Build share URL when ``ASSET_SHARE_LINK_BASE_URL`` is set (no request context)."""
+    configured_base = os.getenv("ASSET_SHARE_LINK_BASE_URL", "").strip().rstrip("/")
+    if not configured_base:
+        return None
+    return f"{configured_base}{SHARE_ASSET_PATH_PREFIX}/{share_token}"
 
 
 def build_share_link_url(event: Mapping[str, Any], token: str) -> str:

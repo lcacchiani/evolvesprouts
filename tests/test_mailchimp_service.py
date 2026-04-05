@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import pytest
@@ -73,6 +74,31 @@ def test_mailchimp_logs_error_body_on_tag_apply_failure(monkeypatch: Any) -> Non
     extra = recorded[0][1]
     assert extra.get("mailchimp_step") == "apply_tags"
     assert "Forbidden" in extra.get("mailchimp_error_body", "")
+
+
+def test_mailchimp_member_payload_includes_merge_fields(monkeypatch: Any) -> None:
+    monkeypatch.setattr(mailchimp, "_api_key_cache", "fake-key-us12")
+    monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
+    captured: list[str] = []
+
+    def fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        if kwargs.get("method") == "PUT":
+            captured.append(str(kwargs.get("body") or ""))
+            return {"status": 200, "body": '{"id":"sub-1"}'}
+        return {"status": 200, "body": "{}"}
+
+    monkeypatch.setattr(mailchimp, "http_invoke", fake_http_invoke)
+    mailchimp.add_subscriber_with_tag(
+        email="a@example.com",
+        first_name="A",
+        tag_name="tag-one",
+        merge_fields={"MMDLURL": "https://example.com/v1/assets/share/TOKEN"},
+    )
+    assert len(captured) == 1
+    payload = json.loads(captured[0])
+    assert payload["merge_fields"]["FNAME"] == "A"
+    assert payload["merge_fields"]["MMDLURL"] == "https://example.com/v1/assets/share/TOKEN"
 
 
 def test_mailchimp_truncates_long_error_body_in_logs(monkeypatch: Any) -> None:
