@@ -758,6 +758,28 @@ export class ApiStack extends cdk.Stack {
           "empty disables sending the URL)",
       }
     );
+    const mailchimpMediaJourneyId = new cdk.CfnParameter(
+      this,
+      "MailchimpMediaJourneyId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp Customer Journey ID for POST .../customer-journeys/journeys/" +
+          "{id}/steps/{step_id}/actions/trigger after media signup (empty disables)",
+      }
+    );
+    const mailchimpMediaJourneyStepId = new cdk.CfnParameter(
+      this,
+      "MailchimpMediaJourneyStepId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp Customer Journey step ID paired with MailchimpMediaJourneyId " +
+          "(empty disables journey trigger)",
+      }
+    );
     const openrouterApiKey = new cdk.CfnParameter(
       this,
       "OpenRouterApiKey",
@@ -1717,6 +1739,8 @@ export class ApiStack extends cdk.Stack {
             `${publicWwwDomainName.valueAsString},${publicWwwStagingDomainName.valueAsString}`,
           MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG:
             mailchimpMediaDownloadMergeTag.valueAsString,
+          MAILCHIMP_MEDIA_JOURNEY_ID: mailchimpMediaJourneyId.valueAsString,
+          MAILCHIMP_MEDIA_JOURNEY_STEP_ID: mailchimpMediaJourneyStepId.valueAsString,
         },
       }
     );

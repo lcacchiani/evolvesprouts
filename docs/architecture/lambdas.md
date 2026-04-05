@@ -216,8 +216,9 @@ their primary responsibilities.
 - Handler: backend/lambda/media_processor/handler.py
 - Trigger: SQS queue (`evolvesprouts-media-queue`)
 - Purpose: process media lead captures and fan out actions
-- Actions: contact upsert in DB, idempotent sales lead creation, Mailchimp sync,
-  and SES notification to sales/support
+- Actions: contact upsert in DB, idempotent sales lead creation, Mailchimp sync
+  (merge fields + tag + optional Customer Journey trigger), and SES notification
+  to sales/support
 - DB access: RDS Proxy with IAM auth (`evolvesprouts_admin`)
 - VPC: Yes
 - Permissions: SES send email (verified sender address and derived domain identity
@@ -234,6 +235,8 @@ their primary responsibilities.
     (same host allowlist as admin for auto-created share links),
     `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional Mailchimp merge field for stable
     `/v1/assets/share/{token}` download URL)
+  - `MAILCHIMP_MEDIA_JOURNEY_ID`, `MAILCHIMP_MEDIA_JOURNEY_STEP_ID` (optional;
+    Customer Journey API trigger after successful member sync; empty disables)
 
 ### Expense parser processor
 - Function: ExpenseParserFunction

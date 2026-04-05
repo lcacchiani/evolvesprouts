@@ -101,6 +101,60 @@ def test_mailchimp_member_payload_includes_merge_fields(monkeypatch: Any) -> Non
     assert payload["merge_fields"]["MMDLURL"] == "https://example.com/v1/assets/share/TOKEN"
 
 
+def test_trigger_customer_journey_posts_correct_url_and_body(monkeypatch: Any) -> None:
+    monkeypatch.setattr(mailchimp, "_api_key_cache", "fake-key-us12")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
+    calls: list[dict[str, Any]] = []
+
+    def fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        calls.append(kwargs)
+        return {"status": 204, "body": ""}
+
+    monkeypatch.setattr(mailchimp, "http_invoke", fake_http_invoke)
+    mailchimp.trigger_customer_journey(
+        email="User@Example.com",
+        journey_id="4190",
+        step_id="29098",
+    )
+    assert len(calls) == 1
+    assert calls[0]["method"] == "POST"
+    assert calls[0]["url"] == (
+        "https://us12.api.mailchimp.com/3.0/customer-journeys/journeys/"
+        "4190/steps/29098/actions/trigger"
+    )
+    assert json.loads(calls[0]["body"]) == {"email_address": "user@example.com"}
+
+
+def test_trigger_customer_journey_logs_and_raises_on_failure(monkeypatch: Any) -> None:
+    monkeypatch.setattr(mailchimp, "_api_key_cache", "fake-key-us12")
+    monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
+    monkeypatch.setattr(
+        mailchimp,
+        "http_invoke",
+        lambda **_k: {
+            "status": 400,
+            "body": '{"title":"Bad Request","detail":"Journey is not sending"}',
+        },
+    )
+    recorded: list[tuple[str, dict[str, Any]]] = []
+
+    def capture_warning(msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any) -> None:
+        recorded.append((msg, extra or {}))
+
+    monkeypatch.setattr(mailchimp.logger, "warning", capture_warning)
+
+    with pytest.raises(mailchimp.MailchimpApiError):
+        mailchimp.trigger_customer_journey(
+            email="a@example.com",
+            journey_id="1",
+            step_id="2",
+        )
+
+    assert recorded[0][0] == "Mailchimp journey trigger failed"
+    assert recorded[0][1].get("mailchimp_step") == "trigger_journey"
+    assert "Journey is not sending" in recorded[0][1].get("mailchimp_error_body", "")
+
+
 def test_mailchimp_truncates_long_error_body_in_logs(monkeypatch: Any) -> None:
     monkeypatch.setattr(mailchimp, "_api_key_cache", "fake-key-us12")
     monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
