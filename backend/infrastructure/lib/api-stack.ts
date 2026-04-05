@@ -1699,6 +1699,8 @@ export class ApiStack extends cdk.Stack {
           AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
           ASSET_SHARE_LINK_BASE_URL:
             `https://${assetDownloadCustomDomainName.valueAsString}`,
+          ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS:
+            `${publicWwwDomainName.valueAsString},${publicWwwStagingDomainName.valueAsString}`,
           MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG:
             mailchimpMediaDownloadMergeTag.valueAsString,
         },

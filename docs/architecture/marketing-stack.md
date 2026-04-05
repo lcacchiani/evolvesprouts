@@ -494,6 +494,7 @@ Website form submit
 | `MAILCHIMP_LIST_ID` | Mailchimp audience/list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp data center (e.g., `us-12`) |
 | `ASSET_SHARE_LINK_BASE_URL` | HTTPS origin for stable share URLs (media processor; same as asset download domain) |
+| `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS` | Comma-separated hostnames for new share links (media processor; same as admin) |
 | `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` | Audience merge field **tag** for the download URL (empty disables) |
 
 #### Cursor Cloud Agent secrets (for API access outside AWS)

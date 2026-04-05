@@ -230,8 +230,10 @@ their primary responsibilities.
   - `MAILCHIMP_API_SECRET_ARN`, `MAILCHIMP_LIST_ID`,
     `MAILCHIMP_SERVER_PREFIX`
   - `MEDIA_DEFAULT_RESOURCE_KEY`, `AWS_PROXY_FUNCTION_ARN`
-  - `ASSET_SHARE_LINK_BASE_URL`, `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional
-    Mailchimp merge field for stable `/v1/assets/share/{token}` download URL)
+  - `ASSET_SHARE_LINK_BASE_URL`, `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS`
+    (same host allowlist as admin for auto-created share links),
+    `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional Mailchimp merge field for stable
+    `/v1/assets/share/{token}` download URL)
 
 ### Expense parser processor
 - Function: ExpenseParserFunction
