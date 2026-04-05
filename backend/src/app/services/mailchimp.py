@@ -201,6 +201,61 @@ def add_subscriber_with_tag(
     return _parse_json(member_body)
 
 
+def trigger_customer_journey(
+    *,
+    email: str,
+    journey_id: str,
+    step_id: str,
+) -> None:
+    """POST Mailchimp Customer Journey API to add a contact to a journey step.
+
+    Requires ``MAILCHIMP_SERVER_PREFIX``. Raises ``MailchimpApiError`` on non-2xx.
+    """
+    import os
+
+    normalized_email = email.strip().lower()
+    if not normalized_email:
+        raise ValueError("email is required")
+    jid = journey_id.strip()
+    sid = step_id.strip()
+    if not jid or not sid:
+        raise ValueError("journey_id and step_id are required")
+
+    server_prefix = os.getenv("MAILCHIMP_SERVER_PREFIX", "").strip()
+    if not server_prefix:
+        raise RuntimeError("MAILCHIMP_SERVER_PREFIX is not configured")
+
+    api_key = _get_api_key()
+    base_url = f"https://{server_prefix}.api.mailchimp.com/3.0"
+    auth_header = f"Basic {_encode_auth(api_key)}"
+    trigger_url = (
+        f"{base_url}/customer-journeys/journeys/{jid}/steps/{sid}/actions/trigger"
+    )
+    response = http_invoke(
+        method="POST",
+        url=trigger_url,
+        headers={
+            "Authorization": auth_header,
+            "Content-Type": "application/json",
+        },
+        body=json.dumps({"email_address": normalized_email}),
+        timeout=15,
+    )
+    status = _status_code(response)
+    body = _response_body(response)
+    if status < 200 or status >= 300:
+        logger.warning(
+            "Mailchimp journey trigger failed",
+            extra={
+                "status": status,
+                "lead_email": mask_email(normalized_email),
+                "mailchimp_step": "trigger_journey",
+                "mailchimp_error_body": _error_body_for_log(body),
+            },
+        )
+        raise MailchimpApiError(status, body)
+
+
 class MailchimpApiError(Exception):
     """Raised when Mailchimp API returns a non-success status."""
 

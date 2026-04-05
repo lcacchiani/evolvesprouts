@@ -35,7 +35,11 @@ from app.db.repositories.asset import AssetRepository
 from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.services.email import send_email
-from app.services.mailchimp import MailchimpApiError, add_subscriber_with_tag
+from app.services.mailchimp import (
+    MailchimpApiError,
+    add_subscriber_with_tag,
+    trigger_customer_journey,
+)
 from app.templates.media_lead import render_sales_notification_email
 from app.utils.logging import configure_logging, get_logger, mask_email
 from app.utils.retry import run_with_retry
@@ -193,11 +197,14 @@ def _process_message(message: dict[str, Any]) -> bool:
             tag_name=tag_name,
             merge_fields=_mailchimp_merge_fields_with_download_url(download_url),
         )
+        journey_triggered = False
         if was_mailchimp_synced:
+            journey_triggered = _trigger_mailchimp_journey(email=email)
             mailchimp_meta: dict[str, object] = {
                 "provider": "mailchimp",
                 "resource_key": resource_key,
                 "tag_name": tag_name,
+                "journey_triggered": journey_triggered,
             }
             if download_url:
                 mailchimp_meta["mailchimp_download_url"] = download_url
@@ -273,6 +280,41 @@ def _ensure_share_link_url_for_asset(
             extra={"asset_id": str(asset_id)},
         )
     return url
+
+
+def _trigger_mailchimp_journey(*, email: str) -> bool:
+    """POST Customer Journey trigger when journey/step env is configured."""
+    journey_id = os.getenv("MAILCHIMP_MEDIA_JOURNEY_ID", "").strip()
+    step_id = os.getenv("MAILCHIMP_MEDIA_JOURNEY_STEP_ID", "").strip()
+    if not journey_id or not step_id:
+        return False
+    try:
+        run_with_retry(
+            trigger_customer_journey,
+            email=email,
+            journey_id=journey_id,
+            step_id=step_id,
+            max_attempts=3,
+            base_delay_seconds=1.0,
+            should_retry=_is_retryable_mailchimp_exception,
+            logger=logger,
+            operation_name="mailchimp.trigger_customer_journey",
+        )
+        return True
+    except MailchimpApiError as exc:
+        logger.warning(
+            "Mailchimp journey trigger request failed",
+            extra={
+                "status": exc.status,
+                "lead_email": mask_email(email),
+            },
+        )
+    except Exception:
+        logger.exception(
+            "Mailchimp journey trigger failed unexpectedly",
+            extra={"lead_email": mask_email(email)},
+        )
+    return False
 
 
 def _sync_contact_to_mailchimp(

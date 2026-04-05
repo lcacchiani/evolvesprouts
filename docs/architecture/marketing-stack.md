@@ -496,6 +496,8 @@ Website form submit
 | `ASSET_SHARE_LINK_BASE_URL` | HTTPS origin for stable share URLs (media processor; same as asset download domain) |
 | `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS` | Comma-separated hostnames for new share links (media processor; same as admin) |
 | `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` | Audience merge field **tag** for the download URL (empty disables) |
+| `MAILCHIMP_MEDIA_JOURNEY_ID` | Customer Journey ID for explicit journey trigger after sync (empty disables) |
+| `MAILCHIMP_MEDIA_JOURNEY_STEP_ID` | Journey step ID for the trigger endpoint (empty disables) |
 
 #### Cursor Cloud Agent secrets (for API access outside AWS)
 
@@ -518,6 +520,8 @@ Website form submit
      Mailchimp with a tag identifying the form source (e.g.,
      `public-www-media-{resource_key}-requested`) and sets the download merge
      field when configured
+   - When journey env vars are set, calls the Customer Journey API trigger so
+     Mailchimp sends the download email without relying on tag-based automation timing
    - Sends an email notification to sales/support via SES
 5. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
    subscription status changes (unsubscribe, bounce) back to the database.
