@@ -373,15 +373,6 @@ def _is_retryable_mailchimp_exception(exc: Exception) -> bool:
     return isinstance(exc, (ConnectionError, TimeoutError))
 
 
-def _should_retry_mailchimp_sync(contact: Contact) -> bool:
-    if (
-        contact.mailchimp_status == MailchimpSyncStatus.SYNCED
-        and contact.mailchimp_subscriber_id
-    ):
-        return False
-    return True
-
-
 def _create_sales_lead_event(
     *,
     session: Session,
