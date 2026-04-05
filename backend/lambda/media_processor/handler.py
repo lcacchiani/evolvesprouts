@@ -134,20 +134,22 @@ def _process_message(message: dict[str, Any]) -> bool:
                 contact_id=contact.id,
                 tag_name=tag_name,
             )
-            should_retry_sync = _should_retry_mailchimp_sync(contact)
-            was_mailchimp_synced = False
-            if should_retry_sync:
-                download_url = _ensure_share_link_url_for_asset(
-                    session=session, asset_id=asset_id
-                )
-                was_mailchimp_synced = _sync_contact_to_mailchimp(
-                    contact=contact,
-                    first_name=first_name,
-                    tag_name=tag_name,
-                    merge_fields=_mailchimp_merge_fields_with_download_url(
-                        download_url
-                    ),
-                )
+            download_url = _ensure_share_link_url_for_asset(
+                session=session, asset_id=asset_id
+            )
+            # Refresh Mailchimp member (merge fields + tag) on every submit so
+            # MMDLURL stays current; then re-fire Customer Journey for duplicates.
+            was_mailchimp_synced = _sync_contact_to_mailchimp(
+                contact=contact,
+                first_name=first_name,
+                tag_name=tag_name,
+                merge_fields=_mailchimp_merge_fields_with_download_url(download_url),
+            )
+            journey_triggered = (
+                _trigger_mailchimp_journey(email=email)
+                if was_mailchimp_synced
+                else False
+            )
             logger.info(
                 "Skipping duplicate media lead",
                 extra={
@@ -155,8 +157,8 @@ def _process_message(message: dict[str, Any]) -> bool:
                     "lead_id": str(existing_lead.id),
                     "lead_email": mask_email(email),
                     "resource_key": resource_key,
-                    "mailchimp_sync_retried": should_retry_sync,
-                    "mailchimp_sync_result": was_mailchimp_synced,
+                    "mailchimp_synced": was_mailchimp_synced,
+                    "journey_triggered": journey_triggered,
                 },
             )
             session.commit()
@@ -369,15 +371,6 @@ def _is_retryable_mailchimp_exception(exc: Exception) -> bool:
     if isinstance(exc, MailchimpApiError):
         return exc.status == 429 or exc.status >= 500
     return isinstance(exc, (ConnectionError, TimeoutError))
-
-
-def _should_retry_mailchimp_sync(contact: Contact) -> bool:
-    if (
-        contact.mailchimp_status == MailchimpSyncStatus.SYNCED
-        and contact.mailchimp_subscriber_id
-    ):
-        return False
-    return True
 
 
 def _create_sales_lead_event(
