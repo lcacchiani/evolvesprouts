@@ -469,14 +469,19 @@ Website form submit
 #### Backend code
 
 - **Mailchimp service**: `backend/src/app/services/mailchimp.py`
-  - `add_subscriber_with_tag(email, first_name, tag_name)` — upserts a
-    subscriber in the configured audience and applies a tag
+  - `add_subscriber_with_tag(...)` — upserts a subscriber in the configured
+    audience, applies a tag, and optionally sets **merge fields** (e.g. a
+    stable **download share URL** for one automation email)
   - Uses `http_invoke` (AWS proxy) to call the Mailchimp API from within
     VPC
   - API key stored in AWS Secrets Manager (`MAILCHIMP_API_SECRET_ARN`)
 - **Media processor**: `backend/lambda/media_processor/handler.py`
   - Processes SQS messages from form submissions
-  - Calls Mailchimp to sync subscribers after DB operations
+  - Ensures an **asset share link** exists for the requested guide, builds
+    `https://{asset-download-domain}/v1/assets/share/{token}`, and passes it to
+    Mailchimp in the merge field named by `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG`
+    (CDK parameter; empty until you set it, e.g. `MMDLURL`). Create that **Text**
+    merge field in the audience and use `*|MMDLURL|*` (or your tag) in one journey email.
 - **Webhook handler**: `backend/src/app/api/public_mailchimp_webhook.py`
   - Receives Mailchimp webhook callbacks at `/v1/mailchimp/webhook`
   - Reconciles contact sync status in the database
@@ -488,6 +493,8 @@ Website form submit
 | `MAILCHIMP_API_SECRET_ARN` | AWS Secrets Manager ARN for the Mailchimp API key |
 | `MAILCHIMP_LIST_ID` | Mailchimp audience/list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp data center (e.g., `us-12`) |
+| `ASSET_SHARE_LINK_BASE_URL` | HTTPS origin for stable share URLs (media processor; same as asset download domain) |
+| `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` | Audience merge field **tag** for the download URL (empty disables) |
 
 #### Cursor Cloud Agent secrets (for API access outside AWS)
 
@@ -508,7 +515,8 @@ Website form submit
    - Creates a sales lead record
    - Calls `add_subscriber_with_tag` to add/update the subscriber in
      Mailchimp with a tag identifying the form source (e.g.,
-     `patience-free-guide`, `community-signup`, `event-notification`)
+     `public-www-media-{resource_key}-requested`) and sets the download merge
+     field when configured
    - Sends an email notification to sales/support via SES
 5. Mailchimp webhook callbacks (`/v1/mailchimp/webhook`) reconcile
    subscription status changes (unsubscribe, bounce) back to the database.

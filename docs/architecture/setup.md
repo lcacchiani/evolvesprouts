@@ -84,6 +84,7 @@ For the OIDC provider itself, add the same tags:
 - `CDK_PARAM_MAILCHIMP_LIST_ID`
 - `CDK_PARAM_MAILCHIMP_SERVER_PREFIX`
 - `CDK_PARAM_MEDIA_DEFAULT_RESOURCE_KEY`
+- `CDK_PARAM_MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional; set to e.g. `MMDLURL` after creating a matching Text merge field in Mailchimp)
 - `NEXT_PUBLIC_FPS_MERCHANT_NAME` (for Public WWW payment display)
 - `NEXT_PUBLIC_FPS_MOBILE_NUMBER` (for Public WWW payment display)
 - `NEXT_PUBLIC_GTM_ID` (optional GTM container ID)

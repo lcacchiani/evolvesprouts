@@ -291,6 +291,8 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_LIST_ID` | Mailchimp list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
 | `MEDIA_DEFAULT_RESOURCE_KEY` | Default resource key used when request payload omits `resource_key` |
+| `ASSET_SHARE_LINK_BASE_URL` | HTTPS base for `/v1/assets/share/{token}` (media processor; asset download domain) |
+| `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` | Mailchimp merge field tag for that share URL (e.g. `MMDLURL`; empty disables) |
 | `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for HTTP proxy calls |
 | `OPENROUTER_API_KEY_SECRET_ARN` | Existing secret ARN for OpenRouter API key |
 | `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |

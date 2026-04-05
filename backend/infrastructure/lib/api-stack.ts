@@ -732,6 +732,18 @@ export class ApiStack extends cdk.Stack {
           "Default media resource key used when media submissions omit resource_key",
       }
     );
+    const mailchimpMediaDownloadMergeTag = new cdk.CfnParameter(
+      this,
+      "MailchimpMediaDownloadMergeTag",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp audience merge field TAG for media download share URL " +
+          "(create a Text field in Mailchimp with this tag, e.g. MMDLURL; " +
+          "empty disables sending the URL)",
+      }
+    );
     const openrouterApiKey = new cdk.CfnParameter(
       this,
       "OpenRouterApiKey",
@@ -1685,6 +1697,10 @@ export class ApiStack extends cdk.Stack {
           MAILCHIMP_SERVER_PREFIX: mailchimpServerPrefix.valueAsString,
           MEDIA_DEFAULT_RESOURCE_KEY: mediaDefaultResourceKey.valueAsString,
           AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
+          ASSET_SHARE_LINK_BASE_URL:
+            `https://${assetDownloadCustomDomainName.valueAsString}`,
+          MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG:
+            mailchimpMediaDownloadMergeTag.valueAsString,
         },
       }
     );
