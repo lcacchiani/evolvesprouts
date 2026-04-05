@@ -758,25 +758,26 @@ export class ApiStack extends cdk.Stack {
           "empty disables sending the URL)",
       }
     );
-    const mailchimpMediaJourneyId = new cdk.CfnParameter(
+    const mailchimpFreeResourceJourneyId = new cdk.CfnParameter(
       this,
-      "MailchimpMediaJourneyId",
+      "MailchimpFreeResourceJourneyId",
       {
         type: "String",
         default: "",
         description:
           "Mailchimp Customer Journey ID for POST .../customer-journeys/journeys/" +
-          "{id}/steps/{step_id}/actions/trigger after media signup (empty disables)",
+          "{id}/steps/{step_id}/actions/trigger after free-resource form signup " +
+          "(empty disables)",
       }
     );
-    const mailchimpMediaJourneyStepId = new cdk.CfnParameter(
+    const mailchimpFreeResourceJourneyStepId = new cdk.CfnParameter(
       this,
-      "MailchimpMediaJourneyStepId",
+      "MailchimpFreeResourceJourneyStepId",
       {
         type: "String",
         default: "",
         description:
-          "Mailchimp Customer Journey step ID paired with MailchimpMediaJourneyId " +
+          "Mailchimp Customer Journey step ID paired with MailchimpFreeResourceJourneyId " +
           "(empty disables journey trigger)",
       }
     );
@@ -1739,8 +1740,10 @@ export class ApiStack extends cdk.Stack {
             `${publicWwwDomainName.valueAsString},${publicWwwStagingDomainName.valueAsString}`,
           MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG:
             mailchimpMediaDownloadMergeTag.valueAsString,
-          MAILCHIMP_MEDIA_JOURNEY_ID: mailchimpMediaJourneyId.valueAsString,
-          MAILCHIMP_MEDIA_JOURNEY_STEP_ID: mailchimpMediaJourneyStepId.valueAsString,
+          MAILCHIMP_FREE_RESOURCE_JOURNEY_ID:
+            mailchimpFreeResourceJourneyId.valueAsString,
+          MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID:
+            mailchimpFreeResourceJourneyStepId.valueAsString,
         },
       }
     );

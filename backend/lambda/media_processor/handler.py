@@ -286,8 +286,8 @@ def _ensure_share_link_url_for_asset(
 
 def _trigger_mailchimp_journey(*, email: str) -> bool:
     """POST Customer Journey trigger when journey/step env is configured."""
-    journey_id = os.getenv("MAILCHIMP_MEDIA_JOURNEY_ID", "").strip()
-    step_id = os.getenv("MAILCHIMP_MEDIA_JOURNEY_STEP_ID", "").strip()
+    journey_id = os.getenv("MAILCHIMP_FREE_RESOURCE_JOURNEY_ID", "").strip()
+    step_id = os.getenv("MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID", "").strip()
     if not journey_id or not step_id:
         return False
     try:
