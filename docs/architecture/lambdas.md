@@ -236,7 +236,7 @@ their primary responsibilities.
     (same host allowlist as admin for auto-created share links),
     `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` (optional Mailchimp merge field for stable
     `/v1/assets/share/{token}` download URL)
-  - `MAILCHIMP_MEDIA_JOURNEY_ID`, `MAILCHIMP_MEDIA_JOURNEY_STEP_ID` (optional;
+  - `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID`, `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` (optional;
     Customer Journey API trigger after successful member sync; empty disables)
 
 ### Expense parser processor
