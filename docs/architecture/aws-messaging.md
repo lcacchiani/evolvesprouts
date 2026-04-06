@@ -300,6 +300,11 @@ SQS retries or mailbox forwarding duplicates.
 | `MAILCHIMP_LIST_ID` | Mailchimp list ID |
 | `MAILCHIMP_SERVER_PREFIX` | Mailchimp server prefix (for example `us21`) |
 | `MEDIA_DEFAULT_RESOURCE_KEY` | Default resource key used when request payload omits `resource_key` |
+| `ASSET_SHARE_LINK_BASE_URL` | HTTPS base for `/v1/assets/share/{token}` (media processor; asset download domain) |
+| `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS` | Comma-separated Referer/Origin hostnames allowed for new share links (media processor; same value as admin) |
+| `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` | Mailchimp merge field tag for that share URL (e.g. `MMDLURL`; empty disables) |
+| `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` | Mailchimp Customer Journey ID for `.../journeys/{id}/steps/.../actions/trigger` (empty disables) |
+| `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` | Journey step ID paired with `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` (empty disables) |
 | `AWS_PROXY_FUNCTION_ARN` | Lambda ARN for HTTP proxy calls |
 | `OPENROUTER_API_KEY_SECRET_ARN` | Existing secret ARN for OpenRouter API key |
 | `OPENROUTER_CHAT_COMPLETIONS_URL` | OpenRouter chat completion URL |

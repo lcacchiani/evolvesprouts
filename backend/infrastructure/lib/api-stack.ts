@@ -746,6 +746,41 @@ export class ApiStack extends cdk.Stack {
           "Default media resource key used when media submissions omit resource_key",
       }
     );
+    const mailchimpMediaDownloadMergeTag = new cdk.CfnParameter(
+      this,
+      "MailchimpMediaDownloadMergeTag",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp audience merge field TAG for media download share URL " +
+          "(create a Text field in Mailchimp with this tag, e.g. MMDLURL; " +
+          "empty disables sending the URL)",
+      }
+    );
+    const mailchimpFreeResourceJourneyId = new cdk.CfnParameter(
+      this,
+      "MailchimpFreeResourceJourneyId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp Customer Journey ID for POST .../customer-journeys/journeys/" +
+          "{id}/steps/{step_id}/actions/trigger after free-resource form signup " +
+          "(empty disables)",
+      }
+    );
+    const mailchimpFreeResourceJourneyStepId = new cdk.CfnParameter(
+      this,
+      "MailchimpFreeResourceJourneyStepId",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Mailchimp Customer Journey step ID paired with MailchimpFreeResourceJourneyId " +
+          "(empty disables journey trigger)",
+      }
+    );
     const openrouterApiKey = new cdk.CfnParameter(
       this,
       "OpenRouterApiKey",
@@ -1699,6 +1734,16 @@ export class ApiStack extends cdk.Stack {
           MAILCHIMP_SERVER_PREFIX: mailchimpServerPrefix.valueAsString,
           MEDIA_DEFAULT_RESOURCE_KEY: mediaDefaultResourceKey.valueAsString,
           AWS_PROXY_FUNCTION_ARN: awsProxyFunction.functionArn,
+          ASSET_SHARE_LINK_BASE_URL:
+            `https://${assetDownloadCustomDomainName.valueAsString}`,
+          ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS:
+            `${publicWwwDomainName.valueAsString},${publicWwwStagingDomainName.valueAsString}`,
+          MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG:
+            mailchimpMediaDownloadMergeTag.valueAsString,
+          MAILCHIMP_FREE_RESOURCE_JOURNEY_ID:
+            mailchimpFreeResourceJourneyId.valueAsString,
+          MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID:
+            mailchimpFreeResourceJourneyStepId.valueAsString,
         },
       }
     );

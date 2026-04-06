@@ -135,37 +135,6 @@ def _patch_asset_repository(
     monkeypatch.setattr(handler, "AssetRepository", _FakeAssetRepository)
 
 
-def test_should_retry_mailchimp_sync_true_when_not_synced() -> None:
-    handler = _load_handler_module()
-    contact = _FakeContactForMailchimp(
-        mailchimp_status=MailchimpSyncStatus.FAILED,
-        mailchimp_subscriber_id=None,
-    )
-
-    assert handler._should_retry_mailchimp_sync(contact) is True
-
-
-def test_should_retry_mailchimp_sync_false_when_synced_with_subscriber_id() -> None:
-    handler = _load_handler_module()
-    contact = _FakeContactForMailchimp(
-        mailchimp_status=MailchimpSyncStatus.SYNCED,
-        mailchimp_subscriber_id="abc123",
-    )
-
-    assert handler._should_retry_mailchimp_sync(contact) is False
-
-
-class _FakeContactForMailchimp:
-    def __init__(
-        self,
-        *,
-        mailchimp_status: MailchimpSyncStatus,
-        mailchimp_subscriber_id: str | None,
-    ) -> None:
-        self.mailchimp_status = mailchimp_status
-        self.mailchimp_subscriber_id = mailchimp_subscriber_id
-
-
 def test_process_message_uses_keyword_session_for_contact_tag(
     monkeypatch: Any,
 ) -> None:
@@ -238,6 +207,13 @@ def test_process_message_uses_keyword_session_for_contact_tag(
         ),
     )
     monkeypatch.setattr(handler, "_ensure_contact_tag", _fake_ensure_contact_tag)
+    monkeypatch.setattr(
+        handler,
+        "_ensure_share_link_url_for_asset",
+        lambda **_: "https://media.example.com/v1/assets/share/TOKEN",
+    )
+    monkeypatch.setattr(handler, "_sync_contact_to_mailchimp", lambda **_: True)
+    monkeypatch.setattr(handler, "_trigger_mailchimp_journey", lambda **_: True)
 
     was_processed = handler._process_message(
         {
