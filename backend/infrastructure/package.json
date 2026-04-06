@@ -19,11 +19,11 @@
     "aws-cdk-lib": "^2.245.0",
     "brace-expansion": "5.0.5",
     "constructs": "^10.6.0",
-    "minimatch": "10.2.4",
+    "minimatch": "10.2.5",
     "yaml": "1.10.3"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "aws-cdk": "^2.1114.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
