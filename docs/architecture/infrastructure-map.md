@@ -381,9 +381,9 @@ CloudFront distribution
         ├─▶ Default: S3 (evolvesprouts-assets-*)
         │     └─▶ Signed URLs only (CloudFront key pair)
         │
-        └─▶ v1/assets/share/*: API Gateway
+        └─▶ v1/assets/share/*, v1/assets/email-download/*: API Gateway
               └─▶ AdminFunction (bearer-link resolver, 302 redirect)
-                    └─▶ Per-asset source-domain allowlist
+                    └─▶ Share path: per-asset source-domain allowlist
 ```
 
 | Resource | Purpose |

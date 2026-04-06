@@ -241,12 +241,14 @@ Constraints and indexes:
 - `inbound_emails_expense_id_idx` on `expense_id`
 - `set_updated_at()` trigger updates `updated_at` on write
 
-**Stable share links** (`/v1/assets/share/{token}`):
+**Stable share links** (tokens in `asset_share_links`; resolved via
+`/v1/assets/share/{token}` or `/v1/assets/email-download/{token}`):
 - A token in `asset_share_links.share_token` acts as a bearer capability.
 - Requests with a valid token resolve the asset and redirect to a fresh
   CloudFront-signed GET URL.
-- Requests are accepted only when Referer/Origin matches
-  `asset_share_links.allowed_domains`.
+- On `/v1/assets/share/{token}`, requests are accepted only when Referer/Origin
+  matches `asset_share_links.allowed_domains`. The email-download path skips
+  that check.
 - If the resolved asset has `visibility='restricted'`, the request must also
   include a valid Cognito bearer token.
 - Admin APIs can create/reuse, rotate, revoke, and update source-domain
