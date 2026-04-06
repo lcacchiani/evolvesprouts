@@ -2554,6 +2554,9 @@ export class ApiStack extends cdk.Stack {
           "/v1/assets/share/{token}/GET": {
             cachingEnabled: false,
           },
+          "/v1/assets/email-download/{token}/GET": {
+            cachingEnabled: false,
+          },
           "/v1/assets/public/{id}/download/GET": {
             cachingEnabled: false,
           },
@@ -3191,6 +3194,13 @@ export class ApiStack extends cdk.Stack {
       apiKeyRequired: true,
     });
 
+    const publicEmailDownloadAssets = assets.addResource("email-download");
+    const publicEmailDownloadByToken = publicEmailDownloadAssets.addResource("{token}");
+    publicEmailDownloadByToken.addMethod("GET", adminIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      apiKeyRequired: true,
+    });
+
     // Route media-domain share links to API Gateway.
     const assetShareApiOrigin = new origins.HttpOrigin(
       `${api.restApiId}.execute-api.${cdk.Stack.of(this).region}.${cdk.Stack.of(this).urlSuffix}`,
@@ -3208,6 +3218,17 @@ export class ApiStack extends cdk.Stack {
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
     });
+    assetDownloadDistribution.addBehavior(
+      "v1/assets/email-download/*",
+      assetShareApiOrigin,
+      {
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy:
+          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      }
+    );
 
     // ---------------------------------------------------------------------
     // Admin Bootstrap (Conditional)
