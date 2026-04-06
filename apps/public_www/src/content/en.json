@@ -1369,7 +1369,9 @@
           "deepDive": "2 weeks"
         }
       ],
-      "footnote": "Available for all three focus areas: Home Assessment · Auntie-Child · Parent-Child"
+      "footnote": "Available for all three focus areas: Home Assessment · Auntie-Child · Parent-Child",
+      "ctaLabel": "Book your consultation now!",
+      "ctaHref": "#consultations-booking"
     }
   },
   "bookingModal": {

@@ -1369,7 +1369,9 @@
           "deepDive": "2周"
         }
       ],
-      "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动"
+      "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动",
+      "ctaLabel": "立即预约咨询！",
+      "ctaHref": "#consultations-booking"
     }
   },
   "bookingModal": {

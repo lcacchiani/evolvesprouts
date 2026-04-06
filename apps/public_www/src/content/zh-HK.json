@@ -1369,7 +1369,9 @@
           "deepDive": "2週"
         }
       ],
-      "footnote": "三種方向均可選擇：家居評估 · 姨姨與孩子 · 親子互動"
+      "footnote": "三種方向均可選擇：家居評估 · 姨姨與孩子 · 親子互動",
+      "ctaLabel": "立即預約諮詢！",
+      "ctaHref": "#consultations-booking"
     }
   },
   "bookingModal": {
