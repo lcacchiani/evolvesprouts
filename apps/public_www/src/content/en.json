@@ -1195,19 +1195,19 @@
       "focusAreas": [
         {
           "id": "home-assessment",
-          "icon": "\uD83C\uDFE0",
+          "iconSrc": "/images/home.svg",
           "title": "Home Assessment",
           "description": "I look at your physical space — bedroom, kitchen, living room, play area — and show you what to change so your home supports your child's independence instead of limiting it."
         },
         {
           "id": "auntie-child",
-          "icon": "\uD83D\uDC76",
+          "iconSrc": "/images/auntie-child.svg",
           "title": "Auntie-Child",
           "description": "I observe how your helper interacts with your child in a specific area you choose — mealtimes, tantrums, sleep, play, transitions — and give her practical scripts she can use that same day."
         },
         {
           "id": "parent-child",
-          "icon": "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67",
+          "iconSrc": "/images/parent-child.svg",
           "title": "Parent-Child",
           "description": "I observe how you engage with your child — daily rhythms, routines, independence — and check if you and your helper are sending consistent messages."
         }

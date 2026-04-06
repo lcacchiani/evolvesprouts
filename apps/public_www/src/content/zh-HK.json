@@ -1195,19 +1195,19 @@
       "focusAreas": [
         {
           "id": "home-assessment",
-          "icon": "\uD83C\uDFE0",
+          "iconSrc": "/images/home.svg",
           "title": "家居評估",
           "description": "我會查看您的生活空間 — 睡房、廚房、客廳、遊戲區 — 並告訴您如何改變，讓家居支持孩子的獨立性，而不是限制它。"
         },
         {
           "id": "auntie-child",
-          "icon": "\uD83D\uDC76",
+          "iconSrc": "/images/auntie-child.svg",
           "title": "姨姨與孩子",
           "description": "我會觀察您的姨姨如何在您選擇的特定領域與孩子互動 — 用餐、發脾氣、睡眠、遊戲、過渡 — 並給她當天就能使用的實用腳本。"
         },
         {
           "id": "parent-child",
-          "icon": "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67",
+          "iconSrc": "/images/parent-child.svg",
           "title": "親子互動",
           "description": "我會觀察您如何與孩子互動 — 日常節奏、常規、獨立性 — 並檢查您和姨姨是否在傳達一致的訊息。"
         }
