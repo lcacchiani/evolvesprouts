@@ -143,6 +143,18 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # ESLint 10 major bump blocked until eslint-config-next ships native
+      # ESLint 10 support (tracked in Issue #402 / F-14). Remove these
+      # ignores once the upstream blocker clears.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-config-next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/compat"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript-eslint"
+        update-types: ["version-update:semver-major"]
 
   # NPM - Public website app
   - package-ecosystem: "npm"
@@ -162,3 +174,15 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # ESLint 10 major bump blocked until eslint-config-next ships native
+      # ESLint 10 support (tracked in Issue #402 / F-14). Remove these
+      # ignores once the upstream blocker clears.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-config-next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/compat"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript-eslint"
+        update-types: ["version-update:semver-major"]
