@@ -7,6 +7,7 @@ from collections.abc import Callable, Mapping
 
 from app.api.assets import (
     handle_admin_assets_request,
+    handle_email_download_request,
     handle_public_assets_request,
     handle_share_assets_request,
     handle_user_assets_request,
@@ -223,6 +224,7 @@ _ROUTES: tuple[
     ("/v1/admin/assets", False, handle_admin_assets_request),
     ("/v1/user/assets", False, handle_user_assets_request),
     ("/v1/assets/share", False, handle_share_assets_request),
+    ("/v1/assets/email-download", False, handle_email_download_request),
     (
         "/v1/assets/free/request",
         True,
