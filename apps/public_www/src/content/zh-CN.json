@@ -1195,19 +1195,19 @@
       "focusAreas": [
         {
           "id": "home-assessment",
-          "icon": "\uD83C\uDFE0",
+          "iconSrc": "/images/home.svg",
           "title": "家居评估",
           "description": "我会查看您的生活空间 — 卧室、厨房、客厅、游戏区 — 并告诉您如何改变，让家居支持孩子的独立性，而不是限制它。"
         },
         {
           "id": "auntie-child",
-          "icon": "\uD83D\uDC76",
+          "iconSrc": "/images/auntie-child.svg",
           "title": "阿姨与孩子",
           "description": "我会观察您的阿姨如何在您选择的特定领域与孩子互动 — 用餐、发脾气、睡眠、游戏、过渡 — 并给她当天就能使用的实用脚本。"
         },
         {
           "id": "parent-child",
-          "icon": "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67",
+          "iconSrc": "/images/parent-child.svg",
           "title": "亲子互动",
           "description": "我会观察您如何与孩子互动 — 日常节奏、常规、独立性 — 并检查您和阿姨是否在传达一致的信息。"
         }
@@ -1369,7 +1369,9 @@
           "deepDive": "2周"
         }
       ],
-      "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动"
+      "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动",
+      "ctaLabel": "立即预约咨询！",
+      "ctaHref": "#consultations-booking"
     }
   },
   "bookingModal": {

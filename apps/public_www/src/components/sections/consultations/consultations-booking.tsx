@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element -- static SVG icons from /public/images */
+
 'use client';
 
 import dynamic from 'next/dynamic';
@@ -81,9 +83,13 @@ export function ConsultationsBooking({
                   key={area.id}
                   className='rounded-3xl es-bg-surface-muted px-6 py-7 sm:px-8 sm:py-8'
                 >
-                  <span className='text-3xl' aria-hidden='true'>
-                    {area.icon}
-                  </span>
+                  <img
+                    src={area.iconSrc}
+                    alt=''
+                    width={40}
+                    height={40}
+                    className='h-10 w-10 shrink-0 object-contain'
+                  />
                   <h4 className='mt-3 text-lg font-bold es-text-heading'>
                     {area.title}
                   </h4>
