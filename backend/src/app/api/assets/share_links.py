@@ -15,6 +15,7 @@ from app.exceptions import ValidationError
 _SHARE_TOKEN_BYTES = 24
 _SHARE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{24,128}$")
 SHARE_ASSET_PATH_PREFIX = "/v1/assets/share"
+EMAIL_DOWNLOAD_PATH_PREFIX = "/v1/assets/email-download"
 _SHARE_PATH_PREFIX = SHARE_ASSET_PATH_PREFIX
 _MAX_ALLOWED_DOMAINS = 20
 _DOMAIN_RE = re.compile(
@@ -39,6 +40,14 @@ def build_configured_share_asset_url(*, share_token: str) -> str | None:
     if not configured_base:
         return None
     return f"{configured_base}{SHARE_ASSET_PATH_PREFIX}/{share_token}"
+
+
+def build_configured_email_download_url(*, share_token: str) -> str | None:
+    """Build email-download URL when ``ASSET_SHARE_LINK_BASE_URL`` is set."""
+    configured_base = os.getenv("ASSET_SHARE_LINK_BASE_URL", "").strip().rstrip("/")
+    if not configured_base:
+        return None
+    return f"{configured_base}{EMAIL_DOWNLOAD_PATH_PREFIX}/{share_token}"
 
 
 def build_share_link_url(event: Mapping[str, Any], token: str) -> str:

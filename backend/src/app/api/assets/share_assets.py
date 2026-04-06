@@ -37,10 +37,31 @@ def handle_share_assets_request(
     if method != "GET":
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
-    return _resolve_share_token(event, parts[2])
+    return _resolve_share_token(event, parts[2], require_source_domain=True)
 
 
-def _resolve_share_token(event: Mapping[str, Any], share_token: str) -> dict[str, Any]:
+def handle_email_download_request(
+    event: Mapping[str, Any],
+    method: str,
+    path: str,
+) -> dict[str, Any]:
+    """Handle /v1/assets/email-download/{token} (email links; no Referer/Origin check)."""
+    parts = split_route_parts(path)
+    if len(parts) != 3 or parts[0] != "assets" or parts[1] != "email-download":
+        return json_response(404, {"error": "Not found"}, event=event)
+
+    if method != "GET":
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    return _resolve_share_token(event, parts[2], require_source_domain=False)
+
+
+def _resolve_share_token(
+    event: Mapping[str, Any],
+    share_token: str,
+    *,
+    require_source_domain: bool,
+) -> dict[str, Any]:
     if not is_valid_share_token(share_token):
         return json_response(404, {"error": "Not found"}, event=event)
 
@@ -49,10 +70,11 @@ def _resolve_share_token(event: Mapping[str, Any], share_token: str) -> dict[str
         share_link = repository.get_share_link_by_token(token=share_token)
         if share_link is None:
             return json_response(404, {"error": "Not found"}, event=event)
-        source_domain = extract_request_source_domain(event)
-        allowed_domains = set(share_link.allowed_domains or [])
-        if not source_domain or source_domain not in allowed_domains:
-            return json_response(403, {"error": "Forbidden"}, event=event)
+        if require_source_domain:
+            source_domain = extract_request_source_domain(event)
+            allowed_domains = set(share_link.allowed_domains or [])
+            if not source_domain or source_domain not in allowed_domains:
+                return json_response(403, {"error": "Forbidden"}, event=event)
 
         asset = repository.get_by_id(share_link.asset_id)
         if asset is None:

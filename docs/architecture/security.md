@@ -331,8 +331,9 @@ Requirements:
 
 ### Asset share-link and download signing model
 
-- Stable share links (`/v1/assets/share/{token}`) are bearer links and must be
-  treated like secrets when shared externally.
+- Stable share links (`/v1/assets/share/{token}` and
+  `/v1/assets/email-download/{token}`) are bearer links and must be treated like
+  secrets when shared externally.
 - Share-link tokens are random URL-safe values persisted in
   `asset_share_links`; admin APIs support rotate, revoke, and per-asset
   source-domain allowlist updates to recover from leaks.
@@ -341,16 +342,18 @@ Requirements:
 - Share-token redirects and download-link JSON responses set strict no-store
   cache headers, and API Gateway stage caching is explicitly disabled for
   share/download GET routes to avoid stale signed-link responses.
-- Share-token resolution requires a request Referer/Origin domain that matches
-  the share link's `allowed_domains` policy, blocking direct address-bar opens
-  when no allowed source-domain signal is present.
+- Share-token resolution on `/v1/assets/share/{token}` requires a request
+  Referer/Origin domain that matches the share link's `allowed_domains` policy,
+  blocking direct address-bar opens when no allowed source-domain signal is
+  present. The email-oriented path `/v1/assets/email-download/{token}` skips that
+  check so links work from email clients without Referer.
 - When a share link resolves to an asset with `visibility=restricted`,
-  `Authorization: Bearer <JWT>` is required in addition to the source-domain
-  allowlist check.
+  `Authorization: Bearer <JWT>` is required (on both share and email-download
+  paths).
 - Admin-generated share links are built with `ASSET_SHARE_LINK_BASE_URL`
-  (`https://media.evolvesprouts.com`) and served through a CloudFront behavior
-  that forwards `v1/assets/share/*` to API Gateway and injects the
-  required `x-api-key` origin header.
+  (`https://media.evolvesprouts.com`) and served through CloudFront behaviors
+  that forward `v1/assets/share/*` and `v1/assets/email-download/*` to API
+  Gateway and inject the required `x-api-key` origin header.
 - The CloudFront signer private key must be stored in AWS Secrets Manager and
   loaded at runtime; never commit private keys in source control.
 - CloudFront distributions serving assets must restrict S3 origin access

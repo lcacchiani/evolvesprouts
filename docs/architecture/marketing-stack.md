@@ -478,7 +478,7 @@ Website form submit
 - **Media processor**: `backend/lambda/media_processor/handler.py`
   - Processes SQS messages from form submissions
   - Ensures an **asset share link** exists for the requested guide, builds
-    `https://{asset-download-domain}/v1/assets/share/{token}`, and passes it to
+    `https://{asset-download-domain}/v1/assets/email-download/{token}`, and passes it to
     Mailchimp in the merge field named by `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG`
     (CDK parameter; empty until you set it, e.g. `MMDLURL`). Create that **Text**
     merge field in the audience and use `*|MMDLURL|*` (or your tag) in one journey email.

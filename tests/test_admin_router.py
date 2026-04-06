@@ -44,6 +44,7 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/v1/admin/vendors/abc",
         "/v1/user/assets/abc/download",
         "/v1/assets/share/token-123",
+        "/v1/assets/email-download/token-456",
         "/v1/assets/public/abc/download",
         "/v1/assets/free/request",
         "/v1/reservations",

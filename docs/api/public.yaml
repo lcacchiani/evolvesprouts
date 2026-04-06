@@ -1,13 +1,14 @@
 openapi: 3.0.3
 info:
   title: Public API
-  version: 0.2.3
+  version: 0.2.4
   description: |
     Public endpoint contract.
 
     This spec covers:
     - Public asset endpoints exposed by the backend API stack
-      (`/v1/assets/public*`, `/v1/assets/share/*`, `/v1/assets/free`).
+      (`/v1/assets/public*`, `/v1/assets/share/*`, `/v1/assets/email-download/*`,
+      `/v1/assets/free`).
     - Public free-asset listing for the website (`/v1/assets/free`, `/www/v1/assets/free`).
     - Public calendar feed (`/v1/calendar/public`, `/www/v1/calendar/public`).
     - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
@@ -96,6 +97,37 @@ paths:
           $ref: "#/components/responses/NotFound"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "401":
+          description: Authentication required for restricted asset share links.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/assets/email-download/{token}:
+    parameters:
+      - $ref: "#/components/parameters/ShareToken"
+    get:
+      summary: Resolve stable asset share link for email
+      description: |
+        Same token resolution as `/v1/assets/share/{token}` but intended for
+        links opened from email clients: no Referer/Origin domain allowlist check.
+        API key is still required at API Gateway; CloudFront injects `x-api-key`.
+        If the linked asset is `restricted`, the request must include a valid
+        Cognito JWT in the `Authorization` header.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "302":
+          description: Redirect to signed download URL.
+          headers:
+            Location:
+              description: CloudFront-signed download URL.
+              schema:
+                type: string
+                format: uri
+        "404":
+          $ref: "#/components/responses/NotFound"
         "401":
           description: Authentication required for restricted asset share links.
           content:

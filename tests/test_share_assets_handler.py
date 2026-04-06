@@ -102,3 +102,133 @@ def test_handle_share_assets_request_forbidden_for_unapproved_source_domain(
         f"/v1/assets/share/{'B' * 24}",
     )
     assert response["statusCode"] == 403
+
+
+def test_handle_email_download_request_redirects_without_source_domain_check(
+    monkeypatch: Any,
+) -> None:
+    asset_id = uuid4()
+    share_link = _FakeShareLink(asset_id=asset_id, allowed_domains=["www.example.com"])
+    asset = _FakeAsset(
+        id=asset_id,
+        visibility=AssetVisibility.PUBLIC,
+        s3_key="assets/example.pdf",
+    )
+
+    class _Repo:
+        def get_share_link_by_token(self, token: str) -> _FakeShareLink:  # noqa: ARG002
+            return share_link
+
+        def get_by_id(self, _asset_id: UUID) -> _FakeAsset:
+            return asset
+
+    monkeypatch.setattr(share_assets, "Session", _FakeSession)
+    monkeypatch.setattr(share_assets, "get_engine", lambda: object())
+    monkeypatch.setattr(share_assets, "AssetRepository", lambda _session: _Repo())
+    monkeypatch.setattr(share_assets, "is_valid_share_token", lambda _token: True)
+    monkeypatch.setattr(
+        share_assets,
+        "generate_download_url",
+        lambda **_: {"download_url": "https://cdn.example.com/file.pdf"},
+    )
+
+    response = share_assets.handle_email_download_request(
+        {"headers": {}},
+        "GET",
+        f"/v1/assets/email-download/{'E' * 24}",
+    )
+    assert response["statusCode"] == 302
+    assert response["headers"]["Location"] == "https://cdn.example.com/file.pdf"
+
+
+def test_handle_email_download_request_returns_404_for_invalid_token(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setattr(share_assets, "is_valid_share_token", lambda _token: False)
+    response = share_assets.handle_email_download_request(
+        {"headers": {}},
+        "GET",
+        "/v1/assets/email-download/bad",
+    )
+    assert response["statusCode"] == 404
+
+
+def test_handle_email_download_request_returns_404_when_share_link_missing(
+    monkeypatch: Any,
+) -> None:
+    class _Repo:
+        def get_share_link_by_token(self, token: str) -> None:  # noqa: ARG002
+            return None
+
+    monkeypatch.setattr(share_assets, "Session", _FakeSession)
+    monkeypatch.setattr(share_assets, "get_engine", lambda: object())
+    monkeypatch.setattr(share_assets, "AssetRepository", lambda _session: _Repo())
+    monkeypatch.setattr(share_assets, "is_valid_share_token", lambda _token: True)
+
+    response = share_assets.handle_email_download_request(
+        {"headers": {}},
+        "GET",
+        f"/v1/assets/email-download/{'F' * 24}",
+    )
+    assert response["statusCode"] == 404
+
+
+def test_handle_email_download_request_returns_404_when_asset_missing(
+    monkeypatch: Any,
+) -> None:
+    share_link = _FakeShareLink(asset_id=uuid4(), allowed_domains=["www.example.com"])
+
+    class _Repo:
+        def get_share_link_by_token(self, token: str) -> _FakeShareLink:  # noqa: ARG002
+            return share_link
+
+        def get_by_id(self, _asset_id: UUID) -> None:
+            return None
+
+    monkeypatch.setattr(share_assets, "Session", _FakeSession)
+    monkeypatch.setattr(share_assets, "get_engine", lambda: object())
+    monkeypatch.setattr(share_assets, "AssetRepository", lambda _session: _Repo())
+    monkeypatch.setattr(share_assets, "is_valid_share_token", lambda _token: True)
+
+    response = share_assets.handle_email_download_request(
+        {"headers": {}},
+        "GET",
+        f"/v1/assets/email-download/{'G' * 24}",
+    )
+    assert response["statusCode"] == 404
+
+
+def test_handle_email_download_request_returns_401_for_restricted_without_jwt(
+    monkeypatch: Any,
+) -> None:
+    asset_id = uuid4()
+    share_link = _FakeShareLink(asset_id=asset_id, allowed_domains=["www.example.com"])
+    asset = _FakeAsset(
+        id=asset_id,
+        visibility=AssetVisibility.RESTRICTED,
+        s3_key="assets/example.pdf",
+    )
+
+    class _Repo:
+        def get_share_link_by_token(self, token: str) -> _FakeShareLink:  # noqa: ARG002
+            return share_link
+
+        def get_by_id(self, _asset_id: UUID) -> _FakeAsset:
+            return asset
+
+    monkeypatch.setattr(share_assets, "Session", _FakeSession)
+    monkeypatch.setattr(share_assets, "get_engine", lambda: object())
+    monkeypatch.setattr(share_assets, "AssetRepository", lambda _session: _Repo())
+    monkeypatch.setattr(share_assets, "is_valid_share_token", lambda _token: True)
+    monkeypatch.setattr(
+        share_assets,
+        "_is_restricted_share_request_authenticated",
+        lambda _event: False,
+    )
+
+    response = share_assets.handle_email_download_request(
+        {"headers": {}},
+        "GET",
+        f"/v1/assets/email-download/{'H' * 24}",
+    )
+    assert response["statusCode"] == 401

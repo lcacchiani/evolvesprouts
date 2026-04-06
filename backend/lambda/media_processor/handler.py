@@ -27,7 +27,7 @@ from app.db.models import (
     Tag,
 )
 from app.api.assets.share_links import (
-    build_configured_share_asset_url,
+    build_configured_email_download_url,
     generate_share_token,
     resolve_default_allowed_domains,
 )
@@ -275,7 +275,7 @@ def _ensure_share_link_url_for_asset(
         )
         session.flush()
 
-    url = build_configured_share_asset_url(share_token=share_link.share_token)
+    url = build_configured_email_download_url(share_token=share_link.share_token)
     if not url:
         logger.warning(
             "ASSET_SHARE_LINK_BASE_URL is not set; Mailchimp download URL omitted",

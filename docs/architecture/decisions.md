@@ -314,13 +314,16 @@ share URLs as database-backed bearer tokens.
 - Admin APIs create/reuse, rotate, and revoke each asset token.
 - Public route `/v1/assets/share/{token}` resolves the token and redirects to
   a fresh CloudFront-signed URL for the underlying S3 object.
-- API Gateway enforces an API key on `/v1/assets/share/{token}` and the media
-  CloudFront behavior injects `x-api-key` at origin so browser users do not
-  need to provide credentials directly.
-- Each share link stores an admin-managed `allowed_domains` list; resolution is
-  denied unless Referer/Origin matches one of the configured domains.
+- Public route `/v1/assets/email-download/{token}` uses the same token lookup and
+  redirect but omits the Referer/Origin allowlist check for email client flows.
+- API Gateway enforces an API key on these routes and the media CloudFront
+  behaviors inject `x-api-key` at origin so browser users do not need to
+  provide credentials directly.
+- Each share link stores an admin-managed `allowed_domains` list; resolution on
+  `/v1/assets/share/{token}` is denied unless Referer/Origin matches one of the
+  configured domains.
 - Share links that resolve to `restricted` assets also require a valid Cognito
-  JWT, preserving the "restricted means logged-in" rule.
+  JWT on both paths, preserving the "restricted means logged-in" rule.
 - CloudFront public key material is configured in infrastructure; matching
   private key material is stored in AWS Secrets Manager and loaded by Lambda.
 
