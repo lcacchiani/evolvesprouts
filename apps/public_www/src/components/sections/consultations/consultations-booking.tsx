@@ -148,7 +148,12 @@ export function ConsultationsBooking({
                         alt=''
                         width={40}
                         height={40}
-                        className='h-10 w-10 shrink-0 object-contain'
+                        className={mergeClassNames(
+                          'h-10 w-10 shrink-0 object-contain transition-[filter] duration-200',
+                          isSelected
+                            ? 'es-consultations-booking-selection-icon-active'
+                            : 'es-consultations-booking-selection-icon-inactive',
+                        )}
                       />
                     </div>
                     <h4 className='mt-3 text-lg font-bold es-text-heading'>
@@ -193,7 +198,12 @@ export function ConsultationsBooking({
                           alt=''
                           width={40}
                           height={40}
-                          className='h-10 w-10 shrink-0 object-contain'
+                          className={mergeClassNames(
+                            'h-10 w-10 shrink-0 object-contain transition-[filter] duration-200',
+                            isSelected
+                              ? 'es-consultations-booking-selection-icon-active'
+                              : 'es-consultations-booking-selection-icon-inactive',
+                          )}
                         />
                       </div>
                       <h4 className='text-lg font-bold es-text-heading'>
