@@ -164,7 +164,7 @@ export function ConsultationsBooking({
                         />
                       </span>
                     </div>
-                    <h4 className='mt-3 text-lg font-bold es-text-heading'>
+                    <h4 className='mt-5 text-lg font-bold es-text-heading'>
                       {area.title}
                     </h4>
                     <p className='mt-2 es-type-body es-text-dim'>
@@ -199,7 +199,7 @@ export function ConsultationsBooking({
                       'flex flex-col',
                     )}
                   >
-                    <div className='flex flex-col gap-2'>
+                    <div className='flex flex-col'>
                       <div className='flex justify-center'>
                         <span
                           aria-hidden='true'
@@ -219,7 +219,7 @@ export function ConsultationsBooking({
                           />
                         </span>
                       </div>
-                      <h4 className='text-lg font-bold es-text-heading'>
+                      <h4 className='mt-5 text-lg font-bold es-text-heading'>
                         {level.title}
                       </h4>
                     </div>
