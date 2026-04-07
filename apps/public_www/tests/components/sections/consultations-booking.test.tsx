@@ -17,7 +17,7 @@ describe('ConsultationsBooking', () => {
   it('renders focus area cards with SVG icons from content', () => {
     const booking = enContent.consultations.booking;
 
-    render(
+    const { container } = render(
       <ConsultationsBooking
         locale='en'
         content={booking}
@@ -27,10 +27,21 @@ describe('ConsultationsBooking', () => {
 
     expect(screen.getByRole('heading', { name: booking.title })).toBeInTheDocument();
 
+    const section = container.querySelector('#consultations-booking');
+    expect(section?.className).toContain('es-my-best-auntie-booking-section');
+
+    expect(
+      screen.getByRole('button', { name: booking.reservation.ctaLabel }),
+    ).toBeInTheDocument();
+
     for (const area of booking.focusAreas) {
       expect(screen.getByRole('heading', { name: area.title })).toBeInTheDocument();
       const icon = document.querySelector(`img[src="${area.iconSrc}"]`);
       expect(icon).not.toBeNull();
+    }
+
+    for (const level of booking.levels) {
+      expect(screen.getByRole('button', { name: level.title })).toBeInTheDocument();
     }
   });
 });

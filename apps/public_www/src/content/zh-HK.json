@@ -1239,7 +1239,7 @@
       ],
       "reservation": {
         "bookingTier": "essentials",
-        "ctaLabel": "預約諮詢",
+        "ctaLabel": "預約我的諮詢",
         "modalTitle": "一次性諮詢",
         "modalSubtitle": "付款後我們將確認您的諮詢方向、級別和上門安排。",
         "selectedDateLabel": "諮詢套餐",

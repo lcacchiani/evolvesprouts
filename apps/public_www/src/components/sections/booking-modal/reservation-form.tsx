@@ -75,6 +75,8 @@ interface BookingReservationFormProps {
   venueDirectionHref?: string;
   dateEndTime?: string;
   topicsFieldConfig?: BookingTopicsFieldConfig;
+  /** Initial value for the topics / notes textarea (e.g. consultation focus + level). */
+  topicsPrefill?: string;
   descriptionId: string;
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
@@ -400,6 +402,7 @@ export function BookingReservationForm({
   venueDirectionHref = '',
   dateEndTime = '',
   topicsFieldConfig,
+  topicsPrefill = '',
   descriptionId,
   analyticsSectionId = 'my-best-auntie-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.my_best_auntie,
@@ -411,7 +414,7 @@ export function BookingReservationForm({
   const [email, setEmail] = useState('');
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [phone, setPhone] = useState('');
-  const [interestedTopics, setInterestedTopics] = useState('');
+  const [interestedTopics, setInterestedTopics] = useState(() => topicsPrefill.trim());
   const [discountCode, setDiscountCode] = useState('');
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
@@ -461,6 +464,13 @@ export function BookingReservationForm({
       return getDefaultPaymentMethod(paymentMethodFlags);
     });
   }, [paymentMethodFlags]);
+
+  useEffect(() => {
+    const next = topicsPrefill.trim();
+    if (next) {
+      setInterestedTopics(next);
+    }
+  }, [topicsPrefill]);
 
   const [stripePaymentIntent, setStripePaymentIntent] =
     useState<ReservationPaymentIntentResponse | null>(null);
