@@ -248,8 +248,8 @@ export function ConsultationsBooking({
               variant='primary'
               className={mergeClassNames(
                 'max-w-full',
-                // 25% larger than default primary CTA from sm breakpoint up only
-                'sm:min-h-[60px] sm:max-w-[450px] sm:rounded-[13px] sm:px-[33px] sm:text-[20px] sm:leading-none',
+                // 25% wider than default primary max-width (360px) from sm up only
+                'sm:max-w-[450px]',
               )}
               onClick={() => {
                 setIsBookingModalOpen(true);
