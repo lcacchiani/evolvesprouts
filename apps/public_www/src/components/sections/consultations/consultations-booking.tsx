@@ -45,6 +45,9 @@ const BookingThankYouModal = dynamic(
 const FOCUS_LEVEL_CARD_CLASSNAME =
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-6 py-7 text-left sm:px-8 sm:py-8';
 
+const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
+  'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
+
 function mapLevelIdToBookingTier(levelId: string): ConsultationsBookingModalTierId {
   return levelId === 'deep-dive' ? 'deepDive' : 'essentials';
 }
@@ -143,18 +146,23 @@ export function ConsultationsBooking({
                     )}
                   >
                     <div className='flex justify-center'>
-                      <img
-                        src={area.iconSrc}
-                        alt=''
-                        width={40}
-                        height={40}
-                        className={mergeClassNames(
-                          'h-10 w-10 shrink-0 object-contain transition-[filter] duration-200',
-                          isSelected
-                            ? 'es-consultations-booking-selection-icon-active'
-                            : 'es-consultations-booking-selection-icon-inactive',
-                        )}
-                      />
+                      <span
+                        aria-hidden='true'
+                        className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                      >
+                        <img
+                          src={area.iconSrc}
+                          alt=''
+                          width={44}
+                          height={44}
+                          className={mergeClassNames(
+                            'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                            isSelected
+                              ? 'es-consultations-booking-selection-icon-active'
+                              : 'es-consultations-booking-selection-icon-inactive',
+                          )}
+                        />
+                      </span>
                     </div>
                     <h4 className='mt-3 text-lg font-bold es-text-heading'>
                       {area.title}
@@ -193,18 +201,23 @@ export function ConsultationsBooking({
                   >
                     <div className='flex flex-col gap-2'>
                       <div className='flex justify-center'>
-                        <img
-                          src={level.iconSrc}
-                          alt=''
-                          width={40}
-                          height={40}
-                          className={mergeClassNames(
-                            'h-10 w-10 shrink-0 object-contain transition-[filter] duration-200',
-                            isSelected
-                              ? 'es-consultations-booking-selection-icon-active'
-                              : 'es-consultations-booking-selection-icon-inactive',
-                          )}
-                        />
+                        <span
+                          aria-hidden='true'
+                          className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                        >
+                          <img
+                            src={level.iconSrc}
+                            alt=''
+                            width={44}
+                            height={44}
+                            className={mergeClassNames(
+                              'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                              isSelected
+                                ? 'es-consultations-booking-selection-icon-active'
+                                : 'es-consultations-booking-selection-icon-inactive',
+                            )}
+                          />
+                        </span>
                       </div>
                       <h4 className='text-lg font-bold es-text-heading'>
                         {level.title}
