@@ -205,11 +205,11 @@ export function ConsultationsBooking({
                         {level.includesLabel}
                       </p>
                     )}
-                    <ul className='mt-3 space-y-2'>
+                    <ul className='mt-3 list-none space-y-2 ps-0'>
                       {level.features.map((feature, index) => (
                         <li
                           key={`${level.id}-feature-${index}`}
-                          className='flex items-start gap-2 es-type-body es-text-dim'
+                          className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
                         >
                           <span
                             className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
