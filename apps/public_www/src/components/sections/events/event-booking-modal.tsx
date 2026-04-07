@@ -6,14 +6,7 @@ import {
   useRef,
 } from 'react';
 
-import {
-  OverlayDialogPanel,
-  OverlayScrollableBody,
-} from '@/components/shared/overlay-surface';
-import {
-  CloseButton,
-  ModalOverlay,
-} from '@/components/sections/booking-modal/shared';
+import { BookingFlowModalShell } from '@/components/sections/booking-modal/booking-flow-modal-shell';
 import {
   type BookingEventDetailPart,
   BookingEventDetails,
@@ -29,10 +22,7 @@ import type {
   BookingPaymentModalContent,
   Locale,
 } from '@/content';
-import {
-  CONSULTATION_BOOKING_SYSTEM,
-  type EventBookingModalPayload,
-} from '@/lib/events-data';
+import type { EventBookingModalPayload } from '@/lib/events-data';
 import { formatPartDateTimeLabel } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
@@ -84,73 +74,53 @@ export function EventBookingModal({
   }, [bookingPayload.dateParts, locale]);
 
   return (
-    <ModalOverlay
+    <BookingFlowModalShell
+      paymentModalContent={paymentModalContent}
+      modalPanelRef={modalPanelRef}
+      closeButtonRef={closeButtonRef}
+      dialogTitleId={dialogTitleId}
+      dialogDescriptionId={dialogDescriptionId}
       onClose={onClose}
-      overlayAriaLabel={paymentModalContent.closeOverlayLabel}
     >
-      <OverlayDialogPanel
-        panelRef={modalPanelRef}
-        ariaLabelledBy={dialogTitleId}
-        ariaDescribedBy={dialogDescriptionId}
-        tabIndex={-1}
-        className='es-my-best-auntie-booking-modal-panel overflow-visible'
-      >
-        <header className='flex justify-end px-4 pb-8 pt-6 sm:px-8 sm:pt-7'>
-          <CloseButton
-            label={paymentModalContent.closeLabel}
-            onClose={onClose}
-            buttonRef={closeButtonRef}
-          />
-        </header>
-        <OverlayScrollableBody className='pb-5 sm:pb-8'>
-          <div className='relative z-10 flex flex-col gap-8 pb-9 lg:flex-row lg:gap-10 lg:pb-[72px]'>
-            <BookingEventDetails
-              locale={locale}
-              headingId={dialogTitleId}
-              title={bookingPayload.title}
-              subtitle={bookingPayload.subtitle}
-              content={paymentModalContent}
-              activePartRows={activePartRows}
-              originalAmount={bookingPayload.originalAmount}
-              venueName={bookingPayload.locationName}
-              venueAddress={bookingPayload.locationAddress}
-              directionHref={bookingPayload.directionHref}
-              detailsVariant='event'
-            />
-            <BookingReservationForm
-              locale={locale}
-              content={paymentModalContent}
-              eventTitle={bookingPayload.title}
-              eventSubtitle={bookingPayload.subtitle}
-              courseSessions={bookingPayload.dateParts.map((part) => {
-                return {
-                  dateStartTime: part.startDateTime,
-                  dateEndTime: part.endDateTime,
-                };
-              })}
-              selectedAgeGroupLabel=''
-              selectedCohortDateLabel={bookingPayload.selectedDateLabel}
-              selectedDateStartTime={bookingPayload.selectedDateStartTime}
-              selectedCohortPrice={bookingPayload.originalAmount}
-              venueName={bookingPayload.locationName}
-              venueAddress={bookingPayload.locationAddress}
-              venueDirectionHref={bookingPayload.directionHref ?? ''}
-              dateEndTime={bookingPayload.dateParts[0]?.endDateTime ?? ''}
-              topicsFieldConfig={topicsFieldConfig}
-              topicsPrefill={
-                bookingPayload.bookingSystem === CONSULTATION_BOOKING_SYSTEM
-                  ? bookingPayload.topicsPrefill
-                  : undefined
-              }
-              descriptionId={dialogDescriptionId}
-              analyticsSectionId={analyticsSectionId}
-              metaPixelContentName={metaPixelContentName}
-              captchaWidgetAction={captchaWidgetAction}
-              onSubmitReservation={onSubmitReservation}
-            />
-          </div>
-        </OverlayScrollableBody>
-      </OverlayDialogPanel>
-    </ModalOverlay>
+      <BookingEventDetails
+        locale={locale}
+        headingId={dialogTitleId}
+        title={bookingPayload.title}
+        subtitle={bookingPayload.subtitle}
+        content={paymentModalContent}
+        activePartRows={activePartRows}
+        originalAmount={bookingPayload.originalAmount}
+        venueName={bookingPayload.locationName}
+        venueAddress={bookingPayload.locationAddress}
+        directionHref={bookingPayload.directionHref}
+        detailsVariant='event'
+      />
+      <BookingReservationForm
+        locale={locale}
+        content={paymentModalContent}
+        eventTitle={bookingPayload.title}
+        eventSubtitle={bookingPayload.subtitle}
+        courseSessions={bookingPayload.dateParts.map((part) => {
+          return {
+            dateStartTime: part.startDateTime,
+            dateEndTime: part.endDateTime,
+          };
+        })}
+        selectedAgeGroupLabel=''
+        selectedCohortDateLabel={bookingPayload.selectedDateLabel}
+        selectedDateStartTime={bookingPayload.selectedDateStartTime}
+        selectedCohortPrice={bookingPayload.originalAmount}
+        venueName={bookingPayload.locationName}
+        venueAddress={bookingPayload.locationAddress}
+        venueDirectionHref={bookingPayload.directionHref ?? ''}
+        dateEndTime={bookingPayload.dateParts[0]?.endDateTime ?? ''}
+        topicsFieldConfig={topicsFieldConfig}
+        descriptionId={dialogDescriptionId}
+        analyticsSectionId={analyticsSectionId}
+        metaPixelContentName={metaPixelContentName}
+        captchaWidgetAction={captchaWidgetAction}
+        onSubmitReservation={onSubmitReservation}
+      />
+    </BookingFlowModalShell>
   );
 }
