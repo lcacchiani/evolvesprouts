@@ -29,7 +29,10 @@ import type {
   BookingPaymentModalContent,
   Locale,
 } from '@/content';
-import type { EventBookingModalPayload } from '@/lib/events-data';
+import {
+  CONSULTATION_BOOKING_SYSTEM,
+  type EventBookingModalPayload,
+} from '@/lib/events-data';
 import { formatPartDateTimeLabel } from '@/lib/format';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
@@ -134,6 +137,11 @@ export function EventBookingModal({
               venueDirectionHref={bookingPayload.directionHref ?? ''}
               dateEndTime={bookingPayload.dateParts[0]?.endDateTime ?? ''}
               topicsFieldConfig={topicsFieldConfig}
+              topicsPrefill={
+                bookingPayload.bookingSystem === CONSULTATION_BOOKING_SYSTEM
+                  ? bookingPayload.topicsPrefill
+                  : undefined
+              }
               descriptionId={dialogDescriptionId}
               analyticsSectionId={analyticsSectionId}
               metaPixelContentName={metaPixelContentName}
