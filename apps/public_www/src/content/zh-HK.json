@@ -1191,7 +1191,7 @@
     "booking": {
       "eyebrow": "如何運作",
       "title": "選擇你的方向和級別",
-      "step1Title": "第一步 — 選擇你的方向",
+      "step1Title": "選擇你的方向：",
       "focusAreas": [
         {
           "id": "home-assessment",
@@ -1212,7 +1212,7 @@
           "description": "我會觀察您如何與孩子互動 — 日常節奏、常規、獨立性 — 並檢查您和姨姨是否在傳達一致的訊息。"
         }
       ],
-      "step2Title": "第二步 — 選擇你的級別",
+      "step2Title": "選擇你的級別：",
       "levels": [
         {
           "id": "essentials",
