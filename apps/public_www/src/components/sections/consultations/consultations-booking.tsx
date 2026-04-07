@@ -236,7 +236,11 @@ export function ConsultationsBooking({
             <ButtonPrimitive
               type='button'
               variant='primary'
-              className='max-w-full sm:max-w-[360px]'
+              className={mergeClassNames(
+                'max-w-full',
+                // 25% larger than default primary CTA from sm breakpoint up only
+                'sm:min-h-[60px] sm:max-w-[450px] sm:rounded-[13px] sm:px-[33px] sm:text-[20px] sm:leading-none',
+              )}
               onClick={() => {
                 setIsBookingModalOpen(true);
               }}
