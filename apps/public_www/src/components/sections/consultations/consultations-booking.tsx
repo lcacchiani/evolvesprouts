@@ -123,7 +123,7 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step1Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-3'>
+            <div className='mt-6 grid grid-cols-1 gap-6'>
               {content.focusAreas.map((area) => {
                 const isSelected = area.id === selectedFocusId;
                 return (
@@ -137,7 +137,10 @@ export function ConsultationsBooking({
                     onClick={() => {
                       setSelectedFocusId(area.id);
                     }}
-                    className={FOCUS_LEVEL_CARD_CLASSNAME}
+                    className={mergeClassNames(
+                      FOCUS_LEVEL_CARD_CLASSNAME,
+                      'flex flex-col',
+                    )}
                   >
                     <img
                       src={area.iconSrc}
@@ -162,7 +165,7 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step2Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
+            <div className='mt-6 grid grid-cols-1 gap-6'>
               {content.levels.map((level) => {
                 const isSelected = level.id === selectedLevelId;
                 return (
@@ -176,9 +179,12 @@ export function ConsultationsBooking({
                     onClick={() => {
                       setSelectedLevelId(level.id);
                     }}
-                    className={FOCUS_LEVEL_CARD_CLASSNAME}
+                    className={mergeClassNames(
+                      FOCUS_LEVEL_CARD_CLASSNAME,
+                      'flex flex-col',
+                    )}
                   >
-                    <div className='flex items-center gap-3'>
+                    <div className='flex flex-col gap-2'>
                       <span className='text-lg es-text-accent' aria-hidden='true'>
                         {level.badge}
                       </span>
