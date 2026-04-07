@@ -77,11 +77,11 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body'>
               {content.step1Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-3'>
+            <div className='mt-6 grid grid-cols-1 gap-6'>
               {content.focusAreas.map((area) => (
                 <article
                   key={area.id}
-                  className='rounded-3xl es-bg-surface-muted px-6 py-7 sm:px-8 sm:py-8'
+                  className='flex flex-col rounded-3xl es-bg-surface-muted px-6 py-7 sm:px-8 sm:py-8'
                 >
                   <img
                     src={area.iconSrc}
@@ -105,13 +105,13 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body'>
               {content.step2Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
+            <div className='mt-6 grid grid-cols-1 gap-6'>
               {content.levels.map((level) => (
                 <article
                   key={level.id}
-                  className='rounded-3xl border es-border-soft es-bg-surface-neutral px-6 py-7 sm:px-8 sm:py-8'
+                  className='flex flex-col rounded-3xl border es-border-soft es-bg-surface-neutral px-6 py-7 sm:px-8 sm:py-8'
                 >
-                  <div className='flex items-center gap-3'>
+                  <div className='flex flex-col gap-2'>
                     <span className='text-lg es-text-accent' aria-hidden='true'>
                       {level.badge}
                     </span>
