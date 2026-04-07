@@ -1421,7 +1421,19 @@
       "emailValidationError": "请输入有效的邮箱地址。",
       "submitErrorMessage": "暂时无法提交预约，请稍后重试。",
       "closeOverlayLabel": "关闭弹窗",
-      "fpsQrCodeLabel": "FPS 付款二维码"
+      "fpsQrCodeLabel": "FPS 付款二维码",
+      "consultationPicker": {
+        "amLabel": "上午",
+        "pmLabel": "下午",
+        "monthJoiner": " · ",
+        "weekdayShortMon": "一",
+        "weekdayShortTue": "二",
+        "weekdayShortWed": "三",
+        "weekdayShortThu": "四",
+        "weekdayShortFri": "五",
+        "datePickerLegend": "首选上门评估日期与时段",
+        "datePickerDayTemplate": "选择 {day} 日"
+      }
     },
     "thankYouModal": {
       "closeLabel": "关闭",

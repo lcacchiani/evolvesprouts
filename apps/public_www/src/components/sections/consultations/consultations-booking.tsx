@@ -25,11 +25,12 @@ import {
 } from '@/lib/consultations-booking-modal-payload';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
+import type { ConsultationBookingPickerContent } from '@/components/sections/consultations/consultation-booking-modal';
 
-const EventBookingModal = dynamic(
+const ConsultationBookingModal = dynamic(
   () =>
-    import('@/components/sections/events/event-booking-modal').then(
-      (module) => module.EventBookingModal,
+    import('@/components/sections/consultations/consultation-booking-modal').then(
+      (module) => module.ConsultationBookingModal,
     ),
   { ssr: false },
 );
@@ -55,6 +56,26 @@ const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
 
 function mapLevelIdToBookingTier(levelId: string): ConsultationsBookingModalTierId {
   return levelId === 'deep-dive' ? 'deepDive' : 'essentials';
+}
+
+function buildConsultationPickerContent(
+  paymentModal: BookingModalContent['paymentModal'],
+): ConsultationBookingPickerContent {
+  const p = paymentModal.consultationPicker;
+  return {
+    amLabel: p.amLabel,
+    pmLabel: p.pmLabel,
+    monthJoiner: p.monthJoiner,
+    weekdayShortLabels: [
+      p.weekdayShortMon,
+      p.weekdayShortTue,
+      p.weekdayShortWed,
+      p.weekdayShortThu,
+      p.weekdayShortFri,
+    ],
+    datePickerLegend: p.datePickerLegend,
+    datePickerDayTemplate: p.datePickerDayTemplate,
+  };
 }
 
 interface ConsultationsBookingProps {
@@ -108,6 +129,10 @@ export function ConsultationsBooking({
         selectionLabels,
       )
     : null;
+
+  const consultationPickerContent = useMemo(() => {
+    return buildConsultationPickerContent(bookingModalContent.paymentModal);
+  }, [bookingModalContent.paymentModal]);
 
   return (
     <>
@@ -275,11 +300,12 @@ export function ConsultationsBooking({
         </SectionContainer>
       </SectionShell>
 
-      {bookingPayload && (
-        <EventBookingModal
+      {bookingPayload ? (
+        <ConsultationBookingModal
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={bookingPayload}
+          pickerContent={consultationPickerContent}
           analyticsSectionId='consultations-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.consultation_booking}
           captchaWidgetAction='consultation_reservation_submit'
@@ -292,7 +318,7 @@ export function ConsultationsBooking({
             setIsThankYouOpen(true);
           }}
         />
-      )}
+      ) : null}
 
       {isThankYouOpen && (
         <BookingThankYouModal

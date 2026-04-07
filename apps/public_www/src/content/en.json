@@ -1421,7 +1421,19 @@
       "emailValidationError": "Please enter a valid email address.",
       "submitErrorMessage": "Unable to submit reservation right now. Please try again.",
       "closeOverlayLabel": "Close modal",
-      "fpsQrCodeLabel": "FPS payment QR code"
+      "fpsQrCodeLabel": "FPS payment QR code",
+      "consultationPicker": {
+        "amLabel": "AM",
+        "pmLabel": "PM",
+        "monthJoiner": " · ",
+        "weekdayShortMon": "Mon",
+        "weekdayShortTue": "Tue",
+        "weekdayShortWed": "Wed",
+        "weekdayShortThu": "Thu",
+        "weekdayShortFri": "Fri",
+        "datePickerLegend": "Preferred home visit date and time of day",
+        "datePickerDayTemplate": "Select day {day}"
+      }
     },
     "thankYouModal": {
       "closeLabel": "Close",
