@@ -248,7 +248,6 @@ export function ConsultationsBooking({
               variant='primary'
               className={mergeClassNames(
                 'max-w-full',
-                // 25% wider than default primary max-width (360px) from sm up only
                 'sm:max-w-[450px]',
               )}
               onClick={() => {
