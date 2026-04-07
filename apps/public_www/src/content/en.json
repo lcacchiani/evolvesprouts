@@ -1191,7 +1191,7 @@
     "booking": {
       "eyebrow": "How It Works",
       "title": "Choose Your Focus & Level",
-      "step1Title": "Step 1 — Choose your focus",
+      "step1Title": "Choose your focus",
       "focusAreas": [
         {
           "id": "home-assessment",
@@ -1212,7 +1212,7 @@
           "description": "I observe how you engage with your child — daily rhythms, routines, independence — and check if you and your helper are sending consistent messages."
         }
       ],
-      "step2Title": "Step 2 — Choose your level",
+      "step2Title": "Choose your level",
       "levels": [
         {
           "id": "essentials",
