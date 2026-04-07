@@ -123,7 +123,7 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step1Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6'>
+            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-3'>
               {content.focusAreas.map((area) => {
                 const isSelected = area.id === selectedFocusId;
                 return (
@@ -165,7 +165,7 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step2Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6'>
+            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
               {content.levels.map((level) => {
                 const isSelected = level.id === selectedLevelId;
                 return (
