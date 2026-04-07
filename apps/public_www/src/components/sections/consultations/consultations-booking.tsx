@@ -45,6 +45,11 @@ const BookingThankYouModal = dynamic(
 const FOCUS_LEVEL_CARD_CLASSNAME =
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-6 py-7 text-left sm:px-8 sm:py-8';
 
+const LEVEL_CARD_CLASSNAME = mergeClassNames(
+  FOCUS_LEVEL_CARD_CLASSNAME,
+  'flex flex-col items-stretch justify-start',
+);
+
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
   'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
 
@@ -164,7 +169,7 @@ export function ConsultationsBooking({
                         />
                       </span>
                     </div>
-                    <h4 className='mt-3 text-lg font-bold es-text-heading'>
+                    <h4 className='mt-5 text-lg font-bold es-text-heading'>
                       {area.title}
                     </h4>
                     <p className='mt-2 es-type-body es-text-dim'>
@@ -194,12 +199,9 @@ export function ConsultationsBooking({
                     onClick={() => {
                       setSelectedLevelId(level.id);
                     }}
-                    className={mergeClassNames(
-                      FOCUS_LEVEL_CARD_CLASSNAME,
-                      'flex flex-col',
-                    )}
+                    className={LEVEL_CARD_CLASSNAME}
                   >
-                    <div className='flex flex-col gap-2'>
+                    <div className='flex flex-col'>
                       <div className='flex justify-center'>
                         <span
                           aria-hidden='true'
@@ -219,7 +221,7 @@ export function ConsultationsBooking({
                           />
                         </span>
                       </div>
-                      <h4 className='text-lg font-bold es-text-heading'>
+                      <h4 className='mt-5 text-lg font-bold es-text-heading'>
                         {level.title}
                       </h4>
                     </div>
