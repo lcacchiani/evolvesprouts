@@ -20,10 +20,11 @@ import type {
 import type { ConsultationEventBookingModalPayload } from '@/lib/events-data';
 import {
   buildConsultationPickerWeeks,
-  collectDistinctHkYearMonthsFromYmds,
+  collectDistinctYearMonthsFromYmds,
   formatConsultationPickerMonthHeading,
   pickDefaultConsultationYmd,
   rebaseConsultationDateParts,
+  resolveDefaultDateTimeZone,
   type ConsultationDayPeriod,
 } from '@/lib/consultation-booking-slot';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
@@ -56,6 +57,7 @@ export interface ConsultationBookingPickerContent {
 function ConsultationDatePickerGrid({
   locale,
   content,
+  timeZone,
   selectedYmd,
   dayPeriod,
   onSelectYmd,
@@ -63,12 +65,13 @@ function ConsultationDatePickerGrid({
 }: {
   locale: Locale;
   content: ConsultationBookingPickerContent;
+  timeZone: string;
   selectedYmd: string;
   dayPeriod: ConsultationDayPeriod;
   onSelectYmd: (ymd: string) => void;
   onSelectPeriod: (period: ConsultationDayPeriod) => void;
 }) {
-  const weeks = useMemo(() => buildConsultationPickerWeeks(), []);
+  const weeks = useMemo(() => buildConsultationPickerWeeks(timeZone), [timeZone]);
 
   const monthHeading = useMemo(() => {
     const ymSet = new Set<string>();
@@ -77,9 +80,9 @@ function ConsultationDatePickerGrid({
         ymSet.add(cell.ymd);
       }
     }
-    const pairs = collectDistinctHkYearMonthsFromYmds([...ymSet]);
-    return formatConsultationPickerMonthHeading(pairs, locale, content.monthJoiner);
-  }, [weeks, locale, content.monthJoiner]);
+    const pairs = collectDistinctYearMonthsFromYmds([...ymSet]);
+    return formatConsultationPickerMonthHeading(pairs, locale, content.monthJoiner, timeZone);
+  }, [weeks, locale, content.monthJoiner, timeZone]);
 
   const periodGroupId = useId();
   const gridLabelId = useId();
@@ -219,7 +222,9 @@ export function ConsultationBookingModal({
   const dialogTitleId = useId();
   const dialogDescriptionId = useId();
 
-  const weeks = useMemo(() => buildConsultationPickerWeeks(), []);
+  const timeZone = useMemo(() => resolveDefaultDateTimeZone(), []);
+
+  const weeks = useMemo(() => buildConsultationPickerWeeks(timeZone), [timeZone]);
   const defaultYmd = useMemo(() => pickDefaultConsultationYmd(weeks), [weeks]);
 
   const [selectedYmd, setSelectedYmd] = useState(() => defaultYmd ?? '');
@@ -237,8 +242,13 @@ export function ConsultationBookingModal({
     if (!selectedYmd) {
       return bookingPayload.dateParts;
     }
-    return rebaseConsultationDateParts(bookingPayload.dateParts, selectedYmd, dayPeriod);
-  }, [bookingPayload.dateParts, selectedYmd, dayPeriod]);
+    return rebaseConsultationDateParts(
+      bookingPayload.dateParts,
+      selectedYmd,
+      dayPeriod,
+      timeZone,
+    );
+  }, [bookingPayload.dateParts, selectedYmd, dayPeriod, timeZone]);
 
   const selectedDateStartTime = rebasedParts[0]?.startDateTime ?? '';
 
@@ -246,6 +256,7 @@ export function ConsultationBookingModal({
     <ConsultationDatePickerGrid
       locale={locale}
       content={pickerContent}
+      timeZone={timeZone}
       selectedYmd={selectedYmd}
       dayPeriod={dayPeriod}
       onSelectYmd={setSelectedYmd}

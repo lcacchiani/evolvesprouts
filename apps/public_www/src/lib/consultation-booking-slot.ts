@@ -1,15 +1,12 @@
-import {
-  PUBLIC_SITE_IANA_TIMEZONE,
-  resolveDateTimeLocale,
-} from '@/lib/site-datetime';
+import { resolveDateTimeLocale } from '@/lib/site-datetime';
 
 import type { Locale } from '@/content';
 
 export type ConsultationDayPeriod = 'am' | 'pm';
 
-/** First home-visit slot in HKT (consultation booking picker). */
-export const CONSULTATION_SLOT_AM_HOUR_HKT = 9;
-export const CONSULTATION_SLOT_PM_HOUR_HKT = 14;
+/** First home-visit slot in the user's local (browser) calendar day. */
+export const CONSULTATION_SLOT_AM_HOUR_LOCAL = 9;
+export const CONSULTATION_SLOT_PM_HOUR_LOCAL = 14;
 
 const WEEKDAY_LONG_MONDAY_FIRST = [
   'Monday',
@@ -29,11 +26,11 @@ export interface ConsultationBookingDatePart {
 }
 
 export interface ConsultationPickerDayCell {
-  /** ISO-like calendar key `YYYY-MM-DD` in Asia/Hong_Kong. */
+  /** ISO-like calendar key `YYYY-MM-DD` in the given IANA timezone. */
   ymd: string;
   /** Day of month 1–31 for display. */
   dayOfMonth: number;
-  /** Disabled (before today in HKT). */
+  /** Disabled (before today in that timezone). */
   isDisabled: boolean;
 }
 
@@ -42,18 +39,18 @@ export interface ConsultationPickerWeekRow {
   days: ConsultationPickerDayCell[];
 }
 
-function hkYmdFromInstant(instant: Date): string {
+function ymdFromInstantInZone(instant: Date, timeZone: string): string {
   return new Intl.DateTimeFormat('en-CA', {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    timeZone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   }).format(instant);
 }
 
-function hkWeekdayMondayFirstIndex(instant: Date): number {
+function weekdayMondayFirstIndexInZone(instant: Date, timeZone: string): number {
   const long = new Intl.DateTimeFormat('en-US', {
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    timeZone,
     weekday: 'long',
   }).format(instant);
   const idx = WEEKDAY_LONG_MONDAY_FIRST.indexOf(
@@ -62,10 +59,10 @@ function hkWeekdayMondayFirstIndex(instant: Date): number {
   return idx >= 0 ? idx : 0;
 }
 
-function addCalendarDaysHk(ymd: string, deltaDays: number): string {
+function addCalendarDaysInZone(ymd: string, deltaDays: number, timeZone: string): string {
   const [y, m, d] = ymd.split('-').map(Number);
   const baseUtcMs = Date.UTC(y, m - 1, d, 12, 0, 0, 0);
-  return hkYmdFromInstant(new Date(baseUtcMs + deltaDays * 86400000));
+  return ymdFromInstantInZone(new Date(baseUtcMs + deltaDays * 86400000), timeZone);
 }
 
 function ymdToDayOfMonth(ymd: string): number {
@@ -74,27 +71,30 @@ function ymdToDayOfMonth(ymd: string): number {
 }
 
 /**
- * Monday of the week containing `instant`, measured in Hong Kong calendar dates.
+ * Monday of the week containing `instant`, in the given IANA timezone calendar.
  */
-export function getHkMondayOfWeekContaining(instant: Date): string {
-  const todayYmd = hkYmdFromInstant(instant);
-  const mondayIndex = hkWeekdayMondayFirstIndex(instant);
-  return addCalendarDaysHk(todayYmd, -mondayIndex);
+export function getMondayOfWeekContainingInZone(instant: Date, timeZone: string): string {
+  const todayYmd = ymdFromInstantInZone(instant, timeZone);
+  const mondayIndex = weekdayMondayFirstIndexInZone(instant, timeZone);
+  return addCalendarDaysInZone(todayYmd, -mondayIndex, timeZone);
 }
 
 /**
- * Four consecutive weeks (Mon–Fri only each week), starting at the Monday of the current HK week.
+ * Four consecutive weeks (Mon–Fri only each week), starting at the Monday of the current week in `timeZone`.
  */
-export function buildConsultationPickerWeeks(now: Date = new Date()): ConsultationPickerWeekRow[] {
-  const startMondayYmd = getHkMondayOfWeekContaining(now);
-  const todayYmd = hkYmdFromInstant(now);
+export function buildConsultationPickerWeeks(
+  timeZone: string,
+  now: Date = new Date(),
+): ConsultationPickerWeekRow[] {
+  const startMondayYmd = getMondayOfWeekContainingInZone(now, timeZone);
+  const todayYmd = ymdFromInstantInZone(now, timeZone);
   const weeks: ConsultationPickerWeekRow[] = [];
 
   for (let w = 0; w < 4; w += 1) {
-    const weekStart = addCalendarDaysHk(startMondayYmd, w * 7);
+    const weekStart = addCalendarDaysInZone(startMondayYmd, w * 7, timeZone);
     const days: ConsultationPickerDayCell[] = [];
     for (let d = 0; d < 5; d += 1) {
-      const ymd = addCalendarDaysHk(weekStart, d);
+      const ymd = addCalendarDaysInZone(weekStart, d, timeZone);
       days.push({
         ymd,
         dayOfMonth: ymdToDayOfMonth(ymd),
@@ -118,28 +118,101 @@ export function pickDefaultConsultationYmd(weeks: ConsultationPickerWeekRow[]): 
   return null;
 }
 
-export function hktWallClockToUtcIso(
+const zoneWallClockPartsFormatterCache = new Map<string, Intl.DateTimeFormat>();
+const zoneYmdFormatterCache = new Map<string, Intl.DateTimeFormat>();
+
+function getZoneWallClockPartsFormatter(timeZone: string): Intl.DateTimeFormat {
+  const cached = zoneWallClockPartsFormatterCache.get(timeZone);
+  if (cached) {
+    return cached;
+  }
+  const next = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour: 'numeric',
+    hour12: false,
+    minute: 'numeric',
+    second: 'numeric',
+  });
+  zoneWallClockPartsFormatterCache.set(timeZone, next);
+  return next;
+}
+
+function getZoneYmdFormatter(timeZone: string): Intl.DateTimeFormat {
+  const cached = zoneYmdFormatterCache.get(timeZone);
+  if (cached) {
+    return cached;
+  }
+  const next = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  zoneYmdFormatterCache.set(timeZone, next);
+  return next;
+}
+
+/**
+ * UTC instant for `ymd` at `hour`:`minute`:00 local wall time in `timeZone`.
+ */
+export function zoneWallClockYmdToUtcIso(
   ymd: string,
-  hourHkt: number,
-  minuteHkt: number,
+  hour: number,
+  minute: number,
+  timeZone: string,
 ): string {
   const [y, m, d] = ymd.split('-').map(Number);
-  const utcMs = Date.UTC(y, m - 1, d, hourHkt - 8, minuteHkt, 0, 0);
-  return new Date(utcMs).toISOString();
+  let guessUtcMs = Date.UTC(y, m - 1, d, 12, 0, 0, 0);
+  const ymdFormatter = getZoneYmdFormatter(timeZone);
+  const clockFormatter = getZoneWallClockPartsFormatter(timeZone);
+
+  for (let i = 0; i < 48; i += 1) {
+    const date = new Date(guessUtcMs);
+    const shownYmd = ymdFormatter.format(date);
+    if (shownYmd !== ymd) {
+      guessUtcMs += shownYmd < ymd ? 12 * 3600000 : -12 * 3600000;
+      continue;
+    }
+
+    const parts = clockFormatter.formatToParts(date);
+    const partHour = Number(parts.find((p) => p.type === 'hour')?.value ?? NaN);
+    const partMinute = Number(parts.find((p) => p.type === 'minute')?.value ?? NaN);
+    const partSecond = Number(parts.find((p) => p.type === 'second')?.value ?? NaN);
+    if (
+      !Number.isFinite(partHour) ||
+      !Number.isFinite(partMinute) ||
+      !Number.isFinite(partSecond)
+    ) {
+      break;
+    }
+
+    if (partHour === hour && partMinute === minute && partSecond === 0) {
+      return date.toISOString();
+    }
+
+    const wantMs = (hour * 60 + minute) * 60000;
+    const haveMs = (partHour * 60 + partMinute) * 60000 + partSecond * 1000;
+    guessUtcMs += wantMs - haveMs;
+  }
+
+  return new Date(guessUtcMs).toISOString();
 }
 
 export function resolveConsultationSlotStartIso(
   ymd: string,
   period: ConsultationDayPeriod,
+  timeZone: string,
 ): string {
-  const hour = period === 'am' ? CONSULTATION_SLOT_AM_HOUR_HKT : CONSULTATION_SLOT_PM_HOUR_HKT;
-  return hktWallClockToUtcIso(ymd, hour, 0);
+  const hour =
+    period === 'am' ? CONSULTATION_SLOT_AM_HOUR_LOCAL : CONSULTATION_SLOT_PM_HOUR_LOCAL;
+  return zoneWallClockYmdToUtcIso(ymd, hour, 0, timeZone);
 }
 
 export function rebaseConsultationDateParts(
   parts: ConsultationBookingDatePart[],
   selectedYmd: string,
   period: ConsultationDayPeriod,
+  timeZone: string,
 ): ConsultationBookingDatePart[] {
   if (parts.length === 0) {
     return parts;
@@ -151,7 +224,9 @@ export function rebaseConsultationDateParts(
     return parts;
   }
 
-  const newFirstStart = new Date(resolveConsultationSlotStartIso(selectedYmd, period)).getTime();
+  const newFirstStart = new Date(
+    resolveConsultationSlotStartIso(selectedYmd, period, timeZone),
+  ).getTime();
   const deltaMs = newFirstStart - originalFirstStart;
 
   return parts.map((part) => {
@@ -168,7 +243,7 @@ export function rebaseConsultationDateParts(
   });
 }
 
-export function collectDistinctHkYearMonthsFromYmds(ymds: string[]): { year: number; month: number }[] {
+export function collectDistinctYearMonthsFromYmds(ymds: string[]): { year: number; month: number }[] {
   const keys = new Set<string>();
   const out: { year: number; month: number }[] = [];
   for (const ymd of ymds) {
@@ -197,6 +272,7 @@ export function formatConsultationPickerMonthHeading(
   yearMonthPairs: { year: number; month: number }[],
   locale: Locale,
   joiner: string,
+  timeZone: string,
 ): string {
   if (yearMonthPairs.length === 0) {
     return '';
@@ -206,7 +282,7 @@ export function formatConsultationPickerMonthHeading(
   const fmt = new Intl.DateTimeFormat(intlLocale, {
     month: 'long',
     year: 'numeric',
-    timeZone: PUBLIC_SITE_IANA_TIMEZONE,
+    timeZone,
   });
 
   const labels = yearMonthPairs.map(({ year, month }) => {
@@ -214,4 +290,19 @@ export function formatConsultationPickerMonthHeading(
   });
 
   return labels.join(joiner);
+}
+
+/**
+ * Resolves the environment's default IANA timezone (browser: user's zone; Node: typically UTC).
+ */
+export function resolveDefaultDateTimeZone(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone?.trim();
+    if (tz) {
+      return tz;
+    }
+  } catch {
+    /* fall through */
+  }
+  return 'UTC';
 }

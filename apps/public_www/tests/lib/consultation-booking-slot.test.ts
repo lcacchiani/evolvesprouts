@@ -2,25 +2,27 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildConsultationPickerWeeks,
-  collectDistinctHkYearMonthsFromYmds,
-  CONSULTATION_SLOT_AM_HOUR_HKT,
-  CONSULTATION_SLOT_PM_HOUR_HKT,
+  collectDistinctYearMonthsFromYmds,
+  CONSULTATION_SLOT_AM_HOUR_LOCAL,
+  CONSULTATION_SLOT_PM_HOUR_LOCAL,
   formatConsultationPickerMonthHeading,
-  getHkMondayOfWeekContaining,
-  hktWallClockToUtcIso,
+  getMondayOfWeekContainingInZone,
   rebaseConsultationDateParts,
   resolveConsultationSlotStartIso,
+  zoneWallClockYmdToUtcIso,
 } from '@/lib/consultation-booking-slot';
 
+const HK = 'Asia/Hong_Kong';
+
 describe('consultation-booking-slot', () => {
-  it('getHkMondayOfWeekContaining returns Monday of current HK week', () => {
+  it('getMondayOfWeekContainingInZone returns Monday of current week in zone', () => {
     const tuesdayHk = new Date('2026-04-07T12:00:00+08:00');
-    expect(getHkMondayOfWeekContaining(tuesdayHk)).toBe('2026-04-06');
+    expect(getMondayOfWeekContainingInZone(tuesdayHk, HK)).toBe('2026-04-06');
   });
 
-  it('buildConsultationPickerWeeks lists Mon–Fri for four weeks and disables past HK dates', () => {
+  it('buildConsultationPickerWeeks lists Mon–Fri for four weeks and disables past dates in zone', () => {
     const tuesdayHk = new Date('2026-04-07T12:00:00+08:00');
-    const weeks = buildConsultationPickerWeeks(tuesdayHk);
+    const weeks = buildConsultationPickerWeeks(HK, tuesdayHk);
     expect(weeks).toHaveLength(4);
     for (const row of weeks) {
       expect(row.days).toHaveLength(5);
@@ -38,8 +40,8 @@ describe('consultation-booking-slot', () => {
     expect(weeks[0]?.days[1]?.isDisabled).toBe(false);
   });
 
-  it('collectDistinctHkYearMonthsFromYmds returns sorted unique months', () => {
-    const pairs = collectDistinctHkYearMonthsFromYmds([
+  it('collectDistinctYearMonthsFromYmds returns sorted unique months', () => {
+    const pairs = collectDistinctYearMonthsFromYmds([
       '2026-04-28',
       '2026-04-30',
       '2026-05-01',
@@ -58,21 +60,22 @@ describe('consultation-booking-slot', () => {
       ],
       'en',
       ' · ',
+      HK,
     );
     expect(label).toContain('·');
     expect(label.length).toBeGreaterThan(5);
   });
 
-  it('hktWallClockToUtcIso maps HKT wall time to UTC ISO', () => {
-    expect(hktWallClockToUtcIso('2026-04-07', 9, 0)).toBe('2026-04-07T01:00:00.000Z');
+  it('zoneWallClockYmdToUtcIso maps zone wall time to UTC ISO (Hong Kong)', () => {
+    expect(zoneWallClockYmdToUtcIso('2026-04-07', 9, 0, HK)).toBe('2026-04-07T01:00:00.000Z');
   });
 
-  it('resolveConsultationSlotStartIso uses AM/PM slot hours', () => {
-    expect(resolveConsultationSlotStartIso('2026-04-07', 'am')).toBe(
-      hktWallClockToUtcIso('2026-04-07', CONSULTATION_SLOT_AM_HOUR_HKT, 0),
+  it('resolveConsultationSlotStartIso uses AM/PM slot hours in zone', () => {
+    expect(resolveConsultationSlotStartIso('2026-04-07', 'am', HK)).toBe(
+      zoneWallClockYmdToUtcIso('2026-04-07', CONSULTATION_SLOT_AM_HOUR_LOCAL, 0, HK),
     );
-    expect(resolveConsultationSlotStartIso('2026-04-07', 'pm')).toBe(
-      hktWallClockToUtcIso('2026-04-07', CONSULTATION_SLOT_PM_HOUR_HKT, 0),
+    expect(resolveConsultationSlotStartIso('2026-04-07', 'pm', HK)).toBe(
+      zoneWallClockYmdToUtcIso('2026-04-07', CONSULTATION_SLOT_PM_HOUR_LOCAL, 0, HK),
     );
   });
 
@@ -91,7 +94,7 @@ describe('consultation-booking-slot', () => {
         description: 'second',
       },
     ];
-    const out = rebaseConsultationDateParts(parts, '2026-04-15', 'am');
+    const out = rebaseConsultationDateParts(parts, '2026-04-15', 'am', HK);
     const firstStart = new Date(out[0]!.startDateTime).getTime();
     const secondStart = new Date(out[1]!.startDateTime).getTime();
     expect(secondStart - firstStart).toBe(7 * 86400000);
