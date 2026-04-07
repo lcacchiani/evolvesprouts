@@ -42,6 +42,8 @@ describe('ConsultationsBooking', () => {
 
     for (const level of booking.levels) {
       expect(screen.getByRole('button', { name: level.title })).toBeInTheDocument();
+      const icon = document.querySelector(`img[src="${level.iconSrc}"]`);
+      expect(icon).not.toBeNull();
     }
   });
 });

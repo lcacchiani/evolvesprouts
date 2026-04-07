@@ -1216,7 +1216,7 @@
       "levels": [
         {
           "id": "essentials",
-          "badge": "✦",
+          "iconSrc": "/images/essentials.svg",
           "title": "Essentials",
           "features": [
             "60-minute assessment visit",
@@ -1227,7 +1227,7 @@
         },
         {
           "id": "deep-dive",
-          "badge": "✦✦",
+          "iconSrc": "/images/deep-dive.svg",
           "title": "Deep Dive",
           "includesLabel": "Everything in Essentials, plus:",
           "features": [

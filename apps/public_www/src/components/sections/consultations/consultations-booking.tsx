@@ -185,9 +185,13 @@ export function ConsultationsBooking({
                     )}
                   >
                     <div className='flex flex-col gap-2'>
-                      <span className='text-lg es-text-accent' aria-hidden='true'>
-                        {level.badge}
-                      </span>
+                      <img
+                        src={level.iconSrc}
+                        alt=''
+                        width={40}
+                        height={40}
+                        className='h-10 w-10 shrink-0 object-contain'
+                      />
                       <h4 className='text-lg font-bold es-text-heading'>
                         {level.title}
                       </h4>
