@@ -1216,7 +1216,7 @@
       "levels": [
         {
           "id": "essentials",
-          "badge": "✦",
+          "iconSrc": "/images/essentials.svg",
           "title": "基礎版",
           "features": [
             "60分鐘評估上門",
@@ -1227,7 +1227,7 @@
         },
         {
           "id": "deep-dive",
-          "badge": "✦✦",
+          "iconSrc": "/images/deep-dive.svg",
           "title": "深入版",
           "includesLabel": "包含基礎版全部內容，另加：",
           "features": [
