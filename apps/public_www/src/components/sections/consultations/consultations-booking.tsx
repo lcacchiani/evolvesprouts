@@ -142,13 +142,15 @@ export function ConsultationsBooking({
                       'flex flex-col',
                     )}
                   >
-                    <img
-                      src={area.iconSrc}
-                      alt=''
-                      width={40}
-                      height={40}
-                      className='h-10 w-10 shrink-0 object-contain'
-                    />
+                    <div className='flex justify-center'>
+                      <img
+                        src={area.iconSrc}
+                        alt=''
+                        width={40}
+                        height={40}
+                        className='h-10 w-10 shrink-0 object-contain'
+                      />
+                    </div>
                     <h4 className='mt-3 text-lg font-bold es-text-heading'>
                       {area.title}
                     </h4>
@@ -185,13 +187,15 @@ export function ConsultationsBooking({
                     )}
                   >
                     <div className='flex flex-col gap-2'>
-                      <img
-                        src={level.iconSrc}
-                        alt=''
-                        width={40}
-                        height={40}
-                        className='h-10 w-10 shrink-0 object-contain'
-                      />
+                      <div className='flex justify-center'>
+                        <img
+                          src={level.iconSrc}
+                          alt=''
+                          width={40}
+                          height={40}
+                          className='h-10 w-10 shrink-0 object-contain'
+                        />
+                      </div>
                       <h4 className='text-lg font-bold es-text-heading'>
                         {level.title}
                       </h4>
@@ -215,7 +219,7 @@ export function ConsultationsBooking({
                         </li>
                       ))}
                     </ul>
-                    <p className='mt-4 text-sm italic es-text-muted'>
+                    <p className='mt-4 text-sm italic es-type-body es-text-dim'>
                       {level.bestFor}
                     </p>
                   </ButtonPrimitive>
