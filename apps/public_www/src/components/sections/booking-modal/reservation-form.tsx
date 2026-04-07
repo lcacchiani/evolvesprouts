@@ -414,6 +414,7 @@ export function BookingReservationForm({
   const [isEmailTouched, setIsEmailTouched] = useState(false);
   const [phone, setPhone] = useState('');
   const [interestedTopics, setInterestedTopics] = useState(() => topicsPrefill.trim());
+  const lastAppliedTopicsPrefillRef = useRef(topicsPrefill.trim());
   const [discountCode, setDiscountCode] = useState('');
   const [discountRule, setDiscountRule] = useState<DiscountRule | null>(null);
   const [discountError, setDiscountError] = useState('');
@@ -466,9 +467,14 @@ export function BookingReservationForm({
 
   useEffect(() => {
     const next = topicsPrefill.trim();
-    if (next) {
-      setInterestedTopics(next);
+    if (!next) {
+      return;
     }
+    if (next === lastAppliedTopicsPrefillRef.current) {
+      return;
+    }
+    lastAppliedTopicsPrefillRef.current = next;
+    setInterestedTopics(next);
   }, [topicsPrefill]);
 
   const [stripePaymentIntent, setStripePaymentIntent] =

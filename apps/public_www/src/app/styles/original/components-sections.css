@@ -1132,6 +1132,7 @@
     background-color: rgba(16, 14, 11, 0.6);
   }
 
+  .es-booking-modal-panel,
   .es-my-best-auntie-booking-modal-panel {
     background-color: var(--es-color-surface-white, #FFFFFF);
   }

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ConsultationsBooking } from '@/components/sections/consultations/consultations-booking';
 import enContent from '@/content/en.json';
+import calendarAvailability from '@/content/calendar-availability.json';
 
 vi.mock('next/dynamic', () => ({
   default: () => {
@@ -22,6 +23,7 @@ describe('ConsultationsBooking', () => {
         locale='en'
         content={booking}
         bookingModalContent={enContent.bookingModal}
+        calendarAvailability={calendarAvailability}
       />,
     );
 

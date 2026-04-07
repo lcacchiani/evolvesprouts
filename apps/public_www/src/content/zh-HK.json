@@ -1421,7 +1421,20 @@
       "emailValidationError": "請輸入有效的電郵地址。",
       "submitErrorMessage": "暫時未能提交預約，請稍後再試。",
       "closeOverlayLabel": "關閉視窗",
-      "fpsQrCodeLabel": "FPS 付款二維碼"
+      "fpsQrCodeLabel": "FPS 付款二維碼",
+      "consultationPicker": {
+        "amLabel": "上午",
+        "pmLabel": "下午",
+        "monthJoiner": " · ",
+        "weekdayShortMon": "一",
+        "weekdayShortTue": "二",
+        "weekdayShortWed": "三",
+        "weekdayShortThu": "四",
+        "weekdayShortFri": "五",
+        "datePickerLegend": "首選上門評估日期與時段",
+        "datePickerDayTemplate": "選擇 {day} 日",
+        "datePickerUnavailableDayTemplate": "{day} 日不可選"
+      }
     },
     "thankYouModal": {
       "closeLabel": "關閉",

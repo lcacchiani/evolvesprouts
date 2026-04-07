@@ -1,4 +1,5 @@
 import type { Locale, SiteContent } from '@/content';
+import calendarAvailability from '@/content/calendar-availability.json';
 import { resolvePublicSiteConfig } from '@/lib/site-config';
 import { PageLayout } from '@/components/shared/page-layout';
 import { Faq } from '@/components/sections/faq';
@@ -27,6 +28,7 @@ export function ConsultationsPage({ locale, content }: ConsultationsPageProps) {
         locale={locale}
         content={consultations.booking}
         bookingModalContent={content.bookingModal}
+        calendarAvailability={calendarAvailability}
         thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
         thankYouWhatsappCtaLabel={content.contactUs.form.contactMethodLinks.whatsapp}
       />
