@@ -75,7 +75,6 @@ interface BookingReservationFormProps {
   venueDirectionHref?: string;
   dateEndTime?: string;
   topicsFieldConfig?: BookingTopicsFieldConfig;
-  /** Initial value for the topics / notes textarea (e.g. consultation focus + level). */
   topicsPrefill?: string;
   descriptionId: string;
   analyticsSectionId?: string;
