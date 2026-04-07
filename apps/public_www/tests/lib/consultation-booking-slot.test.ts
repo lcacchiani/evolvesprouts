@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 import { buildUnavailableSlotMap } from '@/lib/calendar-availability';
+
 import {
   buildConsultationPickerWeeks,
   collectDistinctYearMonthsFromYmds,
@@ -12,6 +20,7 @@ import {
   pickDefaultConsultationSelection,
   rebaseConsultationDateParts,
   resolveConsultationSlotStartIso,
+  resolveDefaultDateTimeZone,
   zoneWallClockYmdToUtcIso,
 } from '@/lib/consultation-booking-slot';
 
@@ -20,6 +29,14 @@ const HK = 'Asia/Hong_Kong';
 const emptyUnavailable = new Map<string, { am: boolean; pm: boolean }>();
 
 describe('consultation-booking-slot', () => {
+  it('resolveDefaultDateTimeZone falls back to UTC when Intl fails', () => {
+    const spy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
+      throw new Error('no intl');
+    });
+    expect(resolveDefaultDateTimeZone()).toBe('UTC');
+    spy.mockRestore();
+  });
+
   it('getMondayOfWeekContainingInZone returns Monday of current week in zone', () => {
     const tuesdayHk = new Date('2026-04-07T12:00:00+08:00');
     expect(getMondayOfWeekContainingInZone(tuesdayHk, HK)).toBe('2026-04-06');

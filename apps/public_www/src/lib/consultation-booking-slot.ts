@@ -63,6 +63,7 @@ function weekdayMondayFirstIndexInZone(instant: Date, timeZone: string): number 
 
 function addCalendarDaysInZone(ymd: string, deltaDays: number, timeZone: string): string {
   const [y, m, d] = ymd.split('-').map(Number);
+  // Noon UTC anchor avoids most DST boundary issues when stepping by whole days.
   const baseUtcMs = Date.UTC(y, m - 1, d, 12, 0, 0, 0);
   return ymdFromInstantInZone(new Date(baseUtcMs + deltaDays * 86400000), timeZone);
 }
@@ -155,17 +156,6 @@ export function buildConsultationPickerWeeks(
   return weeks;
 }
 
-export function pickDefaultConsultationYmd(weeks: ConsultationPickerWeekRow[]): string | null {
-  for (const row of weeks) {
-    for (const cell of row.days) {
-      if (!cell.isDisabled) {
-        return cell.ymd;
-      }
-    }
-  }
-  return null;
-}
-
 export function pickDefaultConsultationSelection(
   weeks: ConsultationPickerWeekRow[],
   unavailableByYmd: ConsultationUnavailableByYmd,
@@ -184,6 +174,10 @@ export function pickDefaultConsultationSelection(
   return null;
 }
 
+/**
+ * Cached formatters keyed by IANA zone. Safe for client-only usage (one user zone per tab).
+ * Do not import this module from server code without revisiting unbounded zone keys.
+ */
 const zoneWallClockPartsFormatterCache = new Map<string, Intl.DateTimeFormat>();
 const zoneYmdFormatterCache = new Map<string, Intl.DateTimeFormat>();
 
@@ -261,6 +255,7 @@ export function zoneWallClockYmdToUtcIso(
     guessUtcMs += wantMs - haveMs;
   }
 
+  // Non-convergence: spring-forward gap or unusual zone edge case. Callers use 9:00 / 14:00 only.
   return new Date(guessUtcMs).toISOString();
 }
 
@@ -368,7 +363,7 @@ export function resolveDefaultDateTimeZone(): string {
       return tz;
     }
   } catch {
-    /* fall through */
+    /* environments without full Intl support */
   }
   return 'UTC';
 }

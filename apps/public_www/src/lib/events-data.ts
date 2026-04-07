@@ -62,6 +62,8 @@ export interface EventCalendarBookingModalPayload {
   selectedDateStartTime: string;
   /** From landing page JSON `cta.bookingTopicsField` when `landing_page` matches a registered page. */
   topicsFieldConfig?: BookingTopicsFieldConfig;
+  /** Optional notes/topics prefill when opening via `EventBookingModal` (e.g. landing CTA). */
+  topicsPrefill?: string;
 }
 
 /** One-off consultations (same modal + API shape as calendar events, distinct booking_system). */

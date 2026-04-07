@@ -167,11 +167,7 @@ function ConsultationDatePickerGrid({
       <p className='sr-only' id={gridLabelId}>
         {content.datePickerLegend}
       </p>
-      <div
-        className='mt-6 overflow-x-auto'
-        role='grid'
-        aria-labelledby={gridLabelId}
-      >
+      <div className='mt-6 overflow-x-auto' aria-labelledby={gridLabelId}>
         <table className='w-full min-w-[280px] border-collapse text-center'>
           <thead>
             <tr>
@@ -188,7 +184,7 @@ function ConsultationDatePickerGrid({
           </thead>
           <tbody>
             {weeks.map((row, rowIndex) => (
-              <tr key={`w-${rowIndex}`} role='row'>
+              <tr key={`w-${rowIndex}`}>
                 {row.days.map((cell) => {
                   const isSelected = cell.ymd === selectedYmd;
                   const ariaDayLabel = cell.isDisabled
@@ -201,7 +197,7 @@ function ConsultationDatePickerGrid({
                         String(cell.dayOfMonth),
                       );
                   return (
-                    <td key={cell.ymd} className='p-1' role='gridcell'>
+                    <td key={cell.ymd} className='p-1'>
                       <button
                         type='button'
                         disabled={cell.isDisabled}

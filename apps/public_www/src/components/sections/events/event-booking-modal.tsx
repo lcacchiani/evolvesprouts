@@ -115,6 +115,7 @@ export function EventBookingModal({
         venueDirectionHref={bookingPayload.directionHref ?? ''}
         dateEndTime={bookingPayload.dateParts[0]?.endDateTime ?? ''}
         topicsFieldConfig={topicsFieldConfig}
+        topicsPrefill={bookingPayload.topicsPrefill}
         descriptionId={dialogDescriptionId}
         analyticsSectionId={analyticsSectionId}
         metaPixelContentName={metaPixelContentName}

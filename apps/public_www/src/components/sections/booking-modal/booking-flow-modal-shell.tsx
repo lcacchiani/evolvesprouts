@@ -42,7 +42,7 @@ export function BookingFlowModalShell({
         ariaLabelledBy={dialogTitleId}
         ariaDescribedBy={dialogDescriptionId}
         tabIndex={-1}
-        className='es-my-best-auntie-booking-modal-panel overflow-visible'
+        className='es-booking-modal-panel overflow-visible'
       >
         <header className='flex justify-end px-4 pb-8 pt-6 sm:px-8 sm:pt-7'>
           <CloseButton
