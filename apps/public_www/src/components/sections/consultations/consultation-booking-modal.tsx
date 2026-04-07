@@ -17,15 +17,20 @@ import type {
   BookingPaymentModalContent,
   Locale,
 } from '@/content';
+import type { CalendarAvailabilityPayload } from '@/lib/calendar-availability';
+import { buildUnavailableSlotMap } from '@/lib/calendar-availability';
 import type { ConsultationEventBookingModalPayload } from '@/lib/events-data';
 import {
   buildConsultationPickerWeeks,
   collectDistinctYearMonthsFromYmds,
+  firstSelectableConsultationPeriod,
   formatConsultationPickerMonthHeading,
-  pickDefaultConsultationYmd,
+  isConsultationPeriodBlocked,
+  pickDefaultConsultationSelection,
   rebaseConsultationDateParts,
   resolveDefaultDateTimeZone,
   type ConsultationDayPeriod,
+  type ConsultationUnavailableByYmd,
 } from '@/lib/consultation-booking-slot';
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
@@ -37,6 +42,8 @@ interface ConsultationBookingModalProps {
   bookingPayload: ConsultationEventBookingModalPayload;
   /** Picker labels (AM/PM, weekdays, aria). */
   pickerContent: ConsultationBookingPickerContent;
+  /** Unavailability list (from JSON now; API later). Dates are YYYY-MM-DD. */
+  calendarAvailability: CalendarAvailabilityPayload;
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
@@ -52,12 +59,15 @@ export interface ConsultationBookingPickerContent {
   datePickerLegend: string;
   /** Interpolate `{day}` with the calendar day of month (1–31). */
   datePickerDayTemplate: string;
+  /** Interpolate `{day}`; use when the day is unavailable (past or fully blocked). */
+  datePickerUnavailableDayTemplate: string;
 }
 
 function ConsultationDatePickerGrid({
   locale,
   content,
   timeZone,
+  unavailableByYmd,
   selectedYmd,
   dayPeriod,
   onSelectYmd,
@@ -66,12 +76,15 @@ function ConsultationDatePickerGrid({
   locale: Locale;
   content: ConsultationBookingPickerContent;
   timeZone: string;
+  unavailableByYmd: ConsultationUnavailableByYmd;
   selectedYmd: string;
   dayPeriod: ConsultationDayPeriod;
   onSelectYmd: (ymd: string) => void;
   onSelectPeriod: (period: ConsultationDayPeriod) => void;
 }) {
-  const weeks = useMemo(() => buildConsultationPickerWeeks(timeZone), [timeZone]);
+  const weeks = useMemo(() => {
+    return buildConsultationPickerWeeks(timeZone, unavailableByYmd);
+  }, [timeZone, unavailableByYmd]);
 
   const monthHeading = useMemo(() => {
     const ymSet = new Set<string>();
@@ -107,11 +120,17 @@ function ConsultationDatePickerGrid({
           >
             <button
               type='button'
+              disabled={
+                !selectedYmd ||
+                isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
+              }
               className={mergeClassNames(
                 'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-                dayPeriod === 'am'
-                  ? 'es-bg-surface es-text-heading shadow-sm'
-                  : 'es-text-body opacity-80',
+                !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
+                  ? 'cursor-not-allowed opacity-40'
+                  : dayPeriod === 'am'
+                    ? 'es-bg-surface es-text-heading shadow-sm'
+                    : 'es-text-body opacity-80',
               )}
               aria-pressed={dayPeriod === 'am'}
               onClick={() => {
@@ -122,11 +141,17 @@ function ConsultationDatePickerGrid({
             </button>
             <button
               type='button'
+              disabled={
+                !selectedYmd ||
+                isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
+              }
               className={mergeClassNames(
                 'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-                dayPeriod === 'pm'
-                  ? 'es-bg-surface es-text-heading shadow-sm'
-                  : 'es-text-body opacity-80',
+                !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
+                  ? 'cursor-not-allowed opacity-40'
+                  : dayPeriod === 'pm'
+                    ? 'es-bg-surface es-text-heading shadow-sm'
+                    : 'es-text-body opacity-80',
               )}
               aria-pressed={dayPeriod === 'pm'}
               onClick={() => {
@@ -166,16 +191,22 @@ function ConsultationDatePickerGrid({
               <tr key={`w-${rowIndex}`} role='row'>
                 {row.days.map((cell) => {
                   const isSelected = cell.ymd === selectedYmd;
+                  const ariaDayLabel = cell.isDisabled
+                    ? content.datePickerUnavailableDayTemplate.replace(
+                        '{day}',
+                        String(cell.dayOfMonth),
+                      )
+                    : content.datePickerDayTemplate.replace(
+                        '{day}',
+                        String(cell.dayOfMonth),
+                      );
                   return (
                     <td key={cell.ymd} className='p-1' role='gridcell'>
                       <button
                         type='button'
                         disabled={cell.isDisabled}
                         aria-pressed={isSelected}
-                        aria-label={content.datePickerDayTemplate.replace(
-                          '{day}',
-                          String(cell.dayOfMonth),
-                        )}
+                        aria-label={ariaDayLabel}
                         className={mergeClassNames(
                           'flex h-10 w-full min-w-[2.25rem] items-center justify-center rounded-lg text-base font-semibold transition-colors',
                           cell.isDisabled
@@ -210,6 +241,7 @@ export function ConsultationBookingModal({
   paymentModalContent,
   bookingPayload,
   pickerContent,
+  calendarAvailability,
   analyticsSectionId = 'consultations-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.consultation_booking,
   captchaWidgetAction = 'consultation_reservation_submit',
@@ -224,11 +256,36 @@ export function ConsultationBookingModal({
 
   const timeZone = useMemo(() => resolveDefaultDateTimeZone(), []);
 
-  const weeks = useMemo(() => buildConsultationPickerWeeks(timeZone), [timeZone]);
-  const defaultYmd = useMemo(() => pickDefaultConsultationYmd(weeks), [weeks]);
+  const unavailableByYmd = useMemo(() => {
+    return buildUnavailableSlotMap(calendarAvailability.unavailable_slots);
+  }, [calendarAvailability.unavailable_slots]);
 
-  const [selectedYmd, setSelectedYmd] = useState(() => defaultYmd ?? '');
-  const [dayPeriod, setDayPeriod] = useState<ConsultationDayPeriod>('am');
+  const defaultSelection = useMemo(() => {
+    const weeks = buildConsultationPickerWeeks(timeZone, unavailableByYmd);
+    return pickDefaultConsultationSelection(weeks, unavailableByYmd);
+  }, [timeZone, unavailableByYmd]);
+
+  const [pickerSelection, setPickerSelection] = useState<{
+    ymd: string;
+    period: ConsultationDayPeriod;
+  } | null>(null);
+
+  const selectedYmd = pickerSelection?.ymd ?? defaultSelection?.ymd ?? '';
+  const dayPeriod = pickerSelection?.period ?? defaultSelection?.period ?? 'am';
+
+  function handleSelectYmd(ymd: string) {
+    const period = firstSelectableConsultationPeriod(ymd, unavailableByYmd);
+    if (period) {
+      setPickerSelection({ ymd, period });
+    }
+  }
+
+  function handleSelectPeriod(period: ConsultationDayPeriod) {
+    if (!selectedYmd || isConsultationPeriodBlocked(selectedYmd, period, unavailableByYmd)) {
+      return;
+    }
+    setPickerSelection({ ymd: selectedYmd, period });
+  }
 
   useModalLockBody({ onEscape: onClose });
   useModalFocusManagement({
@@ -257,10 +314,11 @@ export function ConsultationBookingModal({
       locale={locale}
       content={pickerContent}
       timeZone={timeZone}
+      unavailableByYmd={unavailableByYmd}
       selectedYmd={selectedYmd}
       dayPeriod={dayPeriod}
-      onSelectYmd={setSelectedYmd}
-      onSelectPeriod={setDayPeriod}
+      onSelectYmd={handleSelectYmd}
+      onSelectPeriod={handleSelectPeriod}
     />
   );
 

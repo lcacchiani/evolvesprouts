@@ -30,7 +30,9 @@ export interface ConsultationPickerDayCell {
   ymd: string;
   /** Day of month 1–31 for display. */
   dayOfMonth: number;
-  /** Disabled (before today in that timezone). */
+  /** Before today in that timezone. */
+  isPast: boolean;
+  /** Disabled (past day, or both AM and PM blocked by availability). */
   isDisabled: boolean;
 }
 
@@ -70,6 +72,49 @@ function ymdToDayOfMonth(ymd: string): number {
   return Number.isFinite(day) ? day : 1;
 }
 
+export type ConsultationUnavailableByYmd = Map<string, { am: boolean; pm: boolean }>;
+
+export function isConsultationPeriodBlocked(
+  ymd: string,
+  period: ConsultationDayPeriod,
+  unavailableByYmd: ConsultationUnavailableByYmd,
+): boolean {
+  const row = unavailableByYmd.get(ymd);
+  if (!row) {
+    return false;
+  }
+  return period === 'am' ? row.am : row.pm;
+}
+
+/** True when both AM and PM are blocked, or the calendar date is in the past (caller passes `todayYmd`). */
+export function isConsultationPickerDayFullyBlocked(
+  ymd: string,
+  todayYmd: string,
+  unavailableByYmd: ConsultationUnavailableByYmd,
+): boolean {
+  if (ymd < todayYmd) {
+    return true;
+  }
+  const row = unavailableByYmd.get(ymd);
+  if (!row) {
+    return false;
+  }
+  return row.am && row.pm;
+}
+
+export function firstSelectableConsultationPeriod(
+  ymd: string,
+  unavailableByYmd: ConsultationUnavailableByYmd,
+): ConsultationDayPeriod | null {
+  if (isConsultationPeriodBlocked(ymd, 'am', unavailableByYmd)) {
+    if (isConsultationPeriodBlocked(ymd, 'pm', unavailableByYmd)) {
+      return null;
+    }
+    return 'pm';
+  }
+  return 'am';
+}
+
 /**
  * Monday of the week containing `instant`, in the given IANA timezone calendar.
  */
@@ -84,6 +129,7 @@ export function getMondayOfWeekContainingInZone(instant: Date, timeZone: string)
  */
 export function buildConsultationPickerWeeks(
   timeZone: string,
+  unavailableByYmd: ConsultationUnavailableByYmd,
   now: Date = new Date(),
 ): ConsultationPickerWeekRow[] {
   const startMondayYmd = getMondayOfWeekContainingInZone(now, timeZone);
@@ -95,10 +141,12 @@ export function buildConsultationPickerWeeks(
     const days: ConsultationPickerDayCell[] = [];
     for (let d = 0; d < 5; d += 1) {
       const ymd = addCalendarDaysInZone(weekStart, d, timeZone);
+      const isPast = ymd < todayYmd;
       days.push({
         ymd,
         dayOfMonth: ymdToDayOfMonth(ymd),
-        isDisabled: ymd < todayYmd,
+        isPast,
+        isDisabled: isConsultationPickerDayFullyBlocked(ymd, todayYmd, unavailableByYmd),
       });
     }
     weeks.push({ days });
@@ -112,6 +160,24 @@ export function pickDefaultConsultationYmd(weeks: ConsultationPickerWeekRow[]): 
     for (const cell of row.days) {
       if (!cell.isDisabled) {
         return cell.ymd;
+      }
+    }
+  }
+  return null;
+}
+
+export function pickDefaultConsultationSelection(
+  weeks: ConsultationPickerWeekRow[],
+  unavailableByYmd: ConsultationUnavailableByYmd,
+): { ymd: string; period: ConsultationDayPeriod } | null {
+  for (const row of weeks) {
+    for (const cell of row.days) {
+      if (cell.isDisabled) {
+        continue;
+      }
+      const period = firstSelectableConsultationPeriod(cell.ymd, unavailableByYmd);
+      if (period) {
+        return { ymd: cell.ymd, period };
       }
     }
   }

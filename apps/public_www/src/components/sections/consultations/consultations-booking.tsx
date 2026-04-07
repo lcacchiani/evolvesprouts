@@ -19,6 +19,7 @@ import type {
   ConsultationsBookingReservationContent,
   Locale,
 } from '@/content';
+import type { CalendarAvailabilityPayload } from '@/lib/calendar-availability';
 import {
   buildConsultationsBookingModalPayload,
   type ConsultationsBookingModalTierId,
@@ -75,6 +76,7 @@ function buildConsultationPickerContent(
     ],
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
+    datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,
   };
 }
 
@@ -82,6 +84,7 @@ interface ConsultationsBookingProps {
   locale: Locale;
   content: ConsultationsBookingContent;
   bookingModalContent: BookingModalContent;
+  calendarAvailability: CalendarAvailabilityPayload;
   thankYouWhatsappHref?: string;
   thankYouWhatsappCtaLabel?: string;
 }
@@ -90,6 +93,7 @@ export function ConsultationsBooking({
   locale,
   content,
   bookingModalContent,
+  calendarAvailability,
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
 }: ConsultationsBookingProps) {
@@ -305,6 +309,7 @@ export function ConsultationsBooking({
           locale={locale}
           paymentModalContent={bookingModalContent.paymentModal}
           bookingPayload={bookingPayload}
+          calendarAvailability={calendarAvailability}
           pickerContent={consultationPickerContent}
           analyticsSectionId='consultations-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.consultation_booking}

@@ -1,18 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
+import { buildUnavailableSlotMap } from '@/lib/calendar-availability';
 import {
   buildConsultationPickerWeeks,
   collectDistinctYearMonthsFromYmds,
   CONSULTATION_SLOT_AM_HOUR_LOCAL,
   CONSULTATION_SLOT_PM_HOUR_LOCAL,
+  firstSelectableConsultationPeriod,
   formatConsultationPickerMonthHeading,
   getMondayOfWeekContainingInZone,
+  pickDefaultConsultationSelection,
   rebaseConsultationDateParts,
   resolveConsultationSlotStartIso,
   zoneWallClockYmdToUtcIso,
 } from '@/lib/consultation-booking-slot';
 
 const HK = 'Asia/Hong_Kong';
+
+const emptyUnavailable = new Map<string, { am: boolean; pm: boolean }>();
 
 describe('consultation-booking-slot', () => {
   it('getMondayOfWeekContainingInZone returns Monday of current week in zone', () => {
@@ -22,7 +27,7 @@ describe('consultation-booking-slot', () => {
 
   it('buildConsultationPickerWeeks lists Mon–Fri for four weeks and disables past dates in zone', () => {
     const tuesdayHk = new Date('2026-04-07T12:00:00+08:00');
-    const weeks = buildConsultationPickerWeeks(HK, tuesdayHk);
+    const weeks = buildConsultationPickerWeeks(HK, emptyUnavailable, tuesdayHk);
     expect(weeks).toHaveLength(4);
     for (const row of weeks) {
       expect(row.days).toHaveLength(5);
@@ -36,8 +41,37 @@ describe('consultation-booking-slot', () => {
       '2026-04-10',
     ]);
 
+    expect(weeks[0]?.days[0]?.isPast).toBe(true);
     expect(weeks[0]?.days[0]?.isDisabled).toBe(true);
     expect(weeks[0]?.days[1]?.isDisabled).toBe(false);
+  });
+
+  it('disables a day when both am and pm are unavailable', () => {
+    const tuesdayHk = new Date('2026-04-07T12:00:00+08:00');
+    const map = buildUnavailableSlotMap([
+      { date: '2026-04-08', period: 'am' },
+      { date: '2026-04-08', period: 'pm' },
+    ]);
+    const weeks = buildConsultationPickerWeeks(HK, map, tuesdayHk);
+    const apr8 = weeks[0]?.days.find((c) => c.ymd === '2026-04-08');
+    expect(apr8?.isDisabled).toBe(true);
+  });
+
+  it('firstSelectableConsultationPeriod picks pm when only am is blocked', () => {
+    const map = buildUnavailableSlotMap([{ date: '2026-04-09', period: 'am' }]);
+    expect(firstSelectableConsultationPeriod('2026-04-09', map)).toBe('pm');
+    expect(firstSelectableConsultationPeriod('2026-04-10', map)).toBe('am');
+  });
+
+  it('pickDefaultConsultationSelection skips fully blocked days', () => {
+    const tuesdayHk = new Date('2026-04-07T12:00:00+08:00');
+    const map = buildUnavailableSlotMap([
+      { date: '2026-04-07', period: 'both' },
+      { date: '2026-04-08', period: 'both' },
+    ]);
+    const weeks = buildConsultationPickerWeeks(HK, map, tuesdayHk);
+    const sel = pickDefaultConsultationSelection(weeks, map);
+    expect(sel?.ymd).toBe('2026-04-09');
   });
 
   it('collectDistinctYearMonthsFromYmds returns sorted unique months', () => {

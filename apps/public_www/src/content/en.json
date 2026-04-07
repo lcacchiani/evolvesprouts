@@ -1432,7 +1432,8 @@
         "weekdayShortThu": "Thu",
         "weekdayShortFri": "Fri",
         "datePickerLegend": "Preferred home visit date and time of day",
-        "datePickerDayTemplate": "Select day {day}"
+        "datePickerDayTemplate": "Select day {day}",
+        "datePickerUnavailableDayTemplate": "Day {day} unavailable"
       }
     },
     "thankYouModal": {
