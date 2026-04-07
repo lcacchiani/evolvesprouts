@@ -5,14 +5,24 @@ import { formatCurrencyHkd } from '@/lib/format';
 
 export type ConsultationsBookingModalTierId = 'essentials' | 'deepDive';
 
+export interface ConsultationsBookingModalSelectionLabels {
+  focusLabel: string;
+  levelLabel: string;
+}
+
 export function buildConsultationsBookingModalPayload(
   reservation: ConsultationsBookingReservationContent,
   locale: Locale,
+  selection?: ConsultationsBookingModalSelectionLabels,
 ): ConsultationEventBookingModalPayload {
   const tierId = reservation.bookingTier;
   const tier = tierId === 'essentials' ? reservation.essentials : reservation.deepDive;
   const firstPart = tier.dateParts[0];
   const selectedDateStartTime = firstPart?.startDateTime?.trim() ?? '';
+  const topicsPrefill =
+    selection && selection.focusLabel.trim() && selection.levelLabel.trim()
+      ? `${selection.focusLabel.trim()} — ${selection.levelLabel.trim()}`
+      : undefined;
   const payload: ConsultationEventBookingModalPayload = {
     variant: 'event',
     bookingSystem: CONSULTATION_BOOKING_SYSTEM,
@@ -37,6 +47,7 @@ export function buildConsultationsBookingModalPayload(
       placeholder: reservation.topicsField.placeholder,
       required: reservation.topicsField.required,
     },
+    topicsPrefill,
   };
   return payload;
 }

@@ -79,6 +79,8 @@ export interface ConsultationEventBookingModalPayload {
   selectedDateLabel: string;
   selectedDateStartTime: string;
   topicsFieldConfig?: BookingTopicsFieldConfig;
+  /** Pre-fills the booking modal topics / notes field (consultations focus + level). */
+  topicsPrefill?: string;
 }
 
 export type EventBookingModalPayload =

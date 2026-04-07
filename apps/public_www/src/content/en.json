@@ -1239,7 +1239,7 @@
       ],
       "reservation": {
         "bookingTier": "essentials",
-        "ctaLabel": "Reserve a consultation",
+        "ctaLabel": "Reserve My Consultation",
         "modalTitle": "One-Off Consultation",
         "modalSubtitle": "We will confirm your focus, level, and visit after payment.",
         "selectedDateLabel": "Consultation package",
