@@ -74,7 +74,7 @@ export function ConsultationsBooking({
           <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
           <div className='mt-12'>
-            <h3 className='text-xl font-semibold es-type-body'>
+            <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step1Title}
             </h3>
             <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-3'>
@@ -102,7 +102,7 @@ export function ConsultationsBooking({
           </div>
 
           <div className='mt-12'>
-            <h3 className='text-xl font-semibold es-type-body'>
+            <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step2Title}
             </h3>
             <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -148,7 +148,7 @@ export function ConsultationsBooking({
 
           <div
             className={buildSectionSplitLayoutClassName(
-              'mt-12 flex flex-col sm:flex-row',
+              'mt-12 flex flex-col sm:flex-row md:justify-center',
             )}
           >
             <ButtonPrimitive
