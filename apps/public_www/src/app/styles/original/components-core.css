@@ -217,6 +217,10 @@
     background-color: var(--es-color-brand-orange);
   }
 
+  .es-bg-brand-orange-soft {
+    background-color: var(--es-color-brand-orange-soft);
+  }
+
   .es-bg-brand-strong {
     background-color: var(--es-color-text-brand-strong);
   }

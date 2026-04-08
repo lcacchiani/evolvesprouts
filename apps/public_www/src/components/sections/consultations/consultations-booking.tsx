@@ -106,6 +106,7 @@ function buildConsultationPickerContent(
 ): ConsultationBookingPickerContent {
   const p = paymentModal.consultationPicker;
   return {
+    pickDateTimeIntro: p.pickDateTimeIntro,
     amLabel: p.amLabel,
     pmLabel: p.pmLabel,
     monthJoiner: p.monthJoiner,

@@ -19,6 +19,7 @@ function buildPickerContent(
 ): ConsultationBookingPickerContent {
   const p = paymentModal.consultationPicker;
   return {
+    pickDateTimeIntro: p.pickDateTimeIntro,
     amLabel: p.amLabel,
     pmLabel: p.pmLabel,
     monthJoiner: p.monthJoiner,
@@ -43,6 +44,34 @@ describe('ConsultationBookingModal', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('shows pick intro, calendar icon, and highlighted selected slot summary for the default day', () => {
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+      { focusLabel: 'Home', levelLabel: 'Essentials' },
+    );
+
+    render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+      />,
+    );
+
+    expect(
+      screen.getByText(enContent.bookingModal.paymentModal.consultationPicker.pickDateTimeIntro),
+    ).toBeInTheDocument();
+
+    expect(screen.getByTestId('consultation-modal-selected-slot')).toBeInTheDocument();
+    const icon = screen.getByTestId('consultation-modal-selected-slot-calendar-icon');
+    expect(icon.className).toContain('es-mask-calendar-current');
   });
 
   it('selects PM when only the afternoon slot is available for that day', () => {

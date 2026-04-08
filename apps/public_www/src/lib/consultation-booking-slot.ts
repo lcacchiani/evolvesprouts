@@ -353,6 +353,32 @@ export function formatConsultationPickerMonthHeading(
   return labels.join(joiner);
 }
 
+/** Long weekday + calendar date in `timeZone`, plus chosen period label (e.g. AM/PM). */
+export function formatConsultationSelectedSlotSummary(
+  ymd: string,
+  period: ConsultationDayPeriod,
+  locale: Locale,
+  timeZone: string,
+  periodLabel: string,
+): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
+    return periodLabel;
+  }
+
+  const instant = new Date(Date.UTC(y, m - 1, d, 12, 0, 0, 0));
+  const intlLocale = resolveDateTimeLocale(locale);
+  const dateFormatter = new Intl.DateTimeFormat(intlLocale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone,
+  });
+
+  return `${dateFormatter.format(instant)} · ${periodLabel}`;
+}
+
 /**
  * Resolves the environment's default IANA timezone (browser: user's zone; Node: typically UTC).
  */

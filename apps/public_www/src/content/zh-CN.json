@@ -1443,6 +1443,7 @@
       "closeOverlayLabel": "关闭弹窗",
       "fpsQrCodeLabel": "FPS 付款二维码",
       "consultationPicker": {
+        "pickDateTimeIntro": "请选择适合您的日期和时段：",
         "amLabel": "上午",
         "pmLabel": "下午",
         "monthJoiner": " · ",

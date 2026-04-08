@@ -1443,6 +1443,7 @@
       "closeOverlayLabel": "Close modal",
       "fpsQrCodeLabel": "FPS payment QR code",
       "consultationPicker": {
+        "pickDateTimeIntro": "Pick a date and time that suits you:",
         "amLabel": "AM",
         "pmLabel": "PM",
         "monthJoiner": " · ",
