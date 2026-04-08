@@ -1343,31 +1343,38 @@
       "title": "基礎版 vs 深入版",
       "essentialsLabel": "基礎版",
       "deepDiveLabel": "深入版",
+      "includedAlt": "包含",
+      "notIncludedAlt": "不包含",
       "rows": [
         {
           "label": "評估上門",
-          "essentials": "60分鐘",
-          "deepDive": "60分鐘"
+          "detail": "60分鐘",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "書面報告",
-          "essentials": "1週內",
-          "deepDive": "1週內"
+          "detail": "1週內",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "跟進通話",
-          "essentials": "30分鐘",
-          "deepDive": "30分鐘"
+          "detail": "30分鐘",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "第二次上門（實操）",
-          "essentials": "—",
-          "deepDive": "60分鐘"
+          "detail": "60分鐘",
+          "essentials": false,
+          "deepDive": true
         },
         {
           "label": "WhatsApp 支援",
-          "essentials": "—",
-          "deepDive": "2週"
+          "detail": "2週",
+          "essentials": false,
+          "deepDive": true
         }
       ],
       "footnote": "三種方向均可選擇：家居評估 · 姨姨與孩子 · 親子互動",

@@ -1343,31 +1343,38 @@
       "title": "Essentials vs Deep Dive",
       "essentialsLabel": "Essentials",
       "deepDiveLabel": "Deep Dive",
+      "includedAlt": "Included",
+      "notIncludedAlt": "Not included",
       "rows": [
         {
           "label": "Assessment visit",
-          "essentials": "60 mins",
-          "deepDive": "60 mins"
+          "detail": "60 mins",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "Written report",
-          "essentials": "Within 1 week",
-          "deepDive": "Within 1 week"
+          "detail": "Within 1 week",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "Follow-up call",
-          "essentials": "30 mins",
-          "deepDive": "30 mins"
+          "detail": "30 mins",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "2nd visit (hands-on)",
-          "essentials": "—",
-          "deepDive": "60 mins"
+          "detail": "60 mins",
+          "essentials": false,
+          "deepDive": true
         },
         {
           "label": "WhatsApp support",
-          "essentials": "—",
-          "deepDive": "2 weeks"
+          "detail": "2 weeks",
+          "essentials": false,
+          "deepDive": true
         }
       ],
       "footnote": "Available for all three focus areas: Home Assessment · Auntie-Child · Parent-Child",
