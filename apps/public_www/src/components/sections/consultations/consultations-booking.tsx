@@ -61,6 +61,13 @@ const LEVEL_CARD_CLASSNAME = mergeClassNames(
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
   'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
 
+/** Keeps level-card headings on one row when icons sit in a shared-height band above. */
+const LEVEL_CARD_ICON_BAND_CLASSNAME =
+  'flex min-h-[84px] flex-none flex-col justify-center';
+
+const LEVEL_FEATURES_LIST_CLASSNAME = 'mt-3 list-none space-y-2 ps-0 text-left';
+const LEVEL_FEATURE_LINE_CLASSNAME = 'block ps-0 text-left es-type-body es-text-dim';
+
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
 
 /** ~8% narrower than prior w-[84vw] / sm:w-[68vw] for mobile carousel slides. */
@@ -389,7 +396,7 @@ export function ConsultationsBooking({
                               }}
                               className={mergeClassNames(LEVEL_CARD_CLASSNAME, 'min-h-0 flex-1')}
                             >
-                              <div className='flex flex-col'>
+                              <div className={LEVEL_CARD_ICON_BAND_CLASSNAME}>
                                 <div className='flex justify-center'>
                                   <span
                                     aria-hidden='true'
@@ -409,30 +416,26 @@ export function ConsultationsBooking({
                                     />
                                   </span>
                                 </div>
-                                <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                                  {level.title}
-                                </h4>
                               </div>
+                              <h4 className='mt-5 w-full text-left text-lg font-bold es-text-heading'>
+                                {level.title}
+                              </h4>
                               {'includesLabel' in level && level.includesLabel && (
-                                <p className='mt-3 text-sm font-medium es-text-dim'>
+                                <p className='mt-3 text-left text-sm font-medium es-text-dim'>
                                   {level.includesLabel}
                                 </p>
                               )}
-                              <ul className='mt-3 list-none space-y-2 ps-0'>
+                              <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
                                 {level.features.map((feature, index) => (
                                   <li
                                     key={`${level.id}-feature-${index}`}
-                                    className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
+                                    className={LEVEL_FEATURE_LINE_CLASSNAME}
                                   >
-                                    <span
-                                      className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
-                                      aria-hidden='true'
-                                    />
                                     {feature}
                                   </li>
                                 ))}
                               </ul>
-                              <p className='mt-4 text-sm italic es-type-body es-text-dim'>
+                              <p className='mt-4 text-left text-sm italic es-type-body es-text-dim'>
                                 {level.bestFor}
                               </p>
                             </ButtonPrimitive>
@@ -464,7 +467,7 @@ export function ConsultationsBooking({
                             }}
                             className={LEVEL_CARD_CLASSNAME}
                           >
-                            <div className='flex flex-col'>
+                            <div className={LEVEL_CARD_ICON_BAND_CLASSNAME}>
                               <div className='flex justify-center'>
                                 <span
                                   aria-hidden='true'
@@ -484,30 +487,26 @@ export function ConsultationsBooking({
                                   />
                                 </span>
                               </div>
-                              <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                                {level.title}
-                              </h4>
                             </div>
+                            <h4 className='mt-5 w-full text-left text-lg font-bold es-text-heading'>
+                              {level.title}
+                            </h4>
                             {'includesLabel' in level && level.includesLabel && (
-                              <p className='mt-3 text-sm font-medium es-text-dim'>
+                              <p className='mt-3 text-left text-sm font-medium es-text-dim'>
                                 {level.includesLabel}
                               </p>
                             )}
-                            <ul className='mt-3 list-none space-y-2 ps-0'>
+                            <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
                               {level.features.map((feature, index) => (
                                 <li
                                   key={`${level.id}-feature-${index}`}
-                                  className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
+                                  className={LEVEL_FEATURE_LINE_CLASSNAME}
                                 >
-                                  <span
-                                    className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
-                                    aria-hidden='true'
-                                  />
                                   {feature}
                                 </li>
                               ))}
                             </ul>
-                            <p className='mt-4 text-sm italic es-type-body es-text-dim'>
+                            <p className='mt-4 text-left text-sm italic es-type-body es-text-dim'>
                               {level.bestFor}
                             </p>
                           </ButtonPrimitive>
