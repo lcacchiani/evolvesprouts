@@ -1247,8 +1247,8 @@
         "modalTitle": "One-Off Consultation",
         "modalSubtitle": "We will confirm your focus, level, and visit after payment.",
         "selectedDateLabel": "Consultation package",
-        "locationName": "Evolve Sprouts",
-        "locationAddress": "Your home (Hong Kong)",
+        "locationName": "Your Home",
+        "locationAddress": "Hong Kong",
         "topicsField": {
           "label": "Focus, level, and anything we should know",
           "placeholder": "e.g. Home Assessment, Essentials — child is 3, helper has been with us 2 years",
