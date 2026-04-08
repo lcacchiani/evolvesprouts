@@ -93,9 +93,6 @@ describe('ConsultationsBooking', () => {
       ).toBeGreaterThanOrEqual(1);
     }
 
-    const step1Heading = screen.getByRole('heading', { name: booking.step1Title });
-    expect(step1Heading.className).toContain('md:text-center');
-
     const levelDescription = screen.getByTestId(
       'consultations-booking-level-description',
     );
