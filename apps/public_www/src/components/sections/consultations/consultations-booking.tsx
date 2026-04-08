@@ -53,18 +53,16 @@ const BookingThankYouModal = dynamic(
 const FOCUS_LEVEL_CARD_CLASSNAME =
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-6 py-7 text-left sm:px-8 sm:py-8';
 
-const LEVEL_CARD_CLASSNAME = mergeClassNames(
-  FOCUS_LEVEL_CARD_CLASSNAME,
-  'flex flex-col items-stretch justify-start',
-);
+const LEVEL_CARD_CLASSNAME = mergeClassNames(FOCUS_LEVEL_CARD_CLASSNAME, 'flex flex-col');
 
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
   'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
 
 const LEVEL_CARD_ICON_BAND_CLASSNAME =
-  'flex min-h-[84px] flex-none flex-col justify-center';
+  'flex min-h-[84px] w-full min-w-0 flex-none flex-col justify-center';
 
-const LEVEL_FEATURES_LIST_CLASSNAME = 'mt-3 list-none space-y-2 ps-0 text-left';
+const LEVEL_FEATURES_LIST_CLASSNAME =
+  'mt-3 w-full min-w-0 list-none space-y-2 ps-0 text-left';
 const LEVEL_FEATURE_LINE_CLASSNAME = 'block ps-0 text-left es-type-body es-text-dim';
 
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
