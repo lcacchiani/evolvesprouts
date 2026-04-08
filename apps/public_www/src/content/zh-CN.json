@@ -1247,8 +1247,8 @@
         "modalTitle": "一次性咨询",
         "modalSubtitle": "付款后我们将确认您的咨询方向、级别和上门安排。",
         "selectedDateLabel": "咨询套餐",
-        "locationName": "Evolve Sprouts",
-        "locationAddress": "上门服务（香港）",
+        "locationName": "您的家",
+        "locationAddress": "香港",
         "topicsField": {
           "label": "咨询方向、级别及其他需要说明的信息",
           "placeholder": "例如：家居评估、基础版 — 孩子3岁，阿姨已工作2年",
