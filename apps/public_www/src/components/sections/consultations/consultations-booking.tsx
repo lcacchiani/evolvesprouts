@@ -58,8 +58,8 @@ const LEVEL_CARD_CLASSNAME = mergeClassNames(FOCUS_LEVEL_CARD_CLASSNAME, 'flex f
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
   'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
 
-const LEVEL_CARD_ICON_BAND_CLASSNAME =
-  'flex min-h-[84px] w-full min-w-0 flex-none flex-col justify-center';
+const LEVEL_CARD_HEADER_ROW_CLASSNAME =
+  'flex w-full min-w-0 items-center gap-4 sm:gap-5';
 
 const LEVEL_FEATURES_LIST_CLASSNAME =
   'mt-3 w-full min-w-0 list-none space-y-2 ps-0 text-left';
@@ -397,30 +397,28 @@ export function ConsultationsBooking({
                                 'h-full min-h-0 flex-1',
                               )}
                             >
-                              <div className={LEVEL_CARD_ICON_BAND_CLASSNAME}>
-                                <div className='flex justify-center'>
-                                  <span
-                                    aria-hidden='true'
-                                    className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
-                                  >
-                                    <img
-                                      src={level.iconSrc}
-                                      alt=''
-                                      width={44}
-                                      height={44}
-                                      className={mergeClassNames(
-                                        'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
-                                        isSelected
-                                          ? 'es-consultations-booking-selection-icon-active'
-                                          : 'es-consultations-booking-selection-icon-inactive',
-                                      )}
-                                    />
-                                  </span>
-                                </div>
+                              <div className={LEVEL_CARD_HEADER_ROW_CLASSNAME}>
+                                <span
+                                  aria-hidden='true'
+                                  className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                                >
+                                  <img
+                                    src={level.iconSrc}
+                                    alt=''
+                                    width={44}
+                                    height={44}
+                                    className={mergeClassNames(
+                                      'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                      isSelected
+                                        ? 'es-consultations-booking-selection-icon-active'
+                                        : 'es-consultations-booking-selection-icon-inactive',
+                                    )}
+                                  />
+                                </span>
+                                <h4 className='min-w-0 flex-1 text-left text-lg font-bold es-text-heading'>
+                                  {level.title}
+                                </h4>
                               </div>
-                              <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                                {level.title}
-                              </h4>
                               {'includesLabel' in level && level.includesLabel && (
                                 <p className='mt-3 text-left text-sm font-medium es-text-dim'>
                                   {level.includesLabel}
@@ -471,30 +469,28 @@ export function ConsultationsBooking({
                               'h-full min-h-0',
                             )}
                           >
-                            <div className={LEVEL_CARD_ICON_BAND_CLASSNAME}>
-                              <div className='flex justify-center'>
-                                <span
-                                  aria-hidden='true'
-                                  className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
-                                >
-                                  <img
-                                    src={level.iconSrc}
-                                    alt=''
-                                    width={44}
-                                    height={44}
-                                    className={mergeClassNames(
-                                      'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
-                                      isSelected
-                                        ? 'es-consultations-booking-selection-icon-active'
-                                        : 'es-consultations-booking-selection-icon-inactive',
-                                    )}
-                                  />
-                                </span>
-                              </div>
+                            <div className={LEVEL_CARD_HEADER_ROW_CLASSNAME}>
+                              <span
+                                aria-hidden='true'
+                                className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                              >
+                                <img
+                                  src={level.iconSrc}
+                                  alt=''
+                                  width={44}
+                                  height={44}
+                                  className={mergeClassNames(
+                                    'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                    isSelected
+                                      ? 'es-consultations-booking-selection-icon-active'
+                                      : 'es-consultations-booking-selection-icon-inactive',
+                                  )}
+                                />
+                              </span>
+                              <h4 className='min-w-0 flex-1 text-left text-lg font-bold es-text-heading'>
+                                {level.title}
+                              </h4>
                             </div>
-                            <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                              {level.title}
-                            </h4>
                             {'includesLabel' in level && level.includesLabel && (
                               <p className='mt-3 text-left text-sm font-medium es-text-dim'>
                                 {level.includesLabel}
