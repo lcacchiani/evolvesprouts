@@ -63,16 +63,9 @@ const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
 
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
 
-function ConsultationBookingCarouselArrowIcon({ direction }: { direction: 'left' | 'right' }) {
-  const rotationClass = direction === 'left' ? 'rotate-180' : '';
-
-  return (
-    <span
-      aria-hidden
-      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 es-text-icon ${rotationClass}`}
-    />
-  );
-}
+/** ~8% narrower than prior w-[84vw] / sm:w-[68vw] for mobile carousel slides. */
+const MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME =
+  'flex h-full w-[77.28vw] max-w-[331px] shrink-0 snap-center sm:w-[62.56vw]';
 
 function mapLevelIdToBookingTier(levelId: string): ConsultationsBookingModalTierId {
   return levelId === 'deep-dive' ? 'deepDive' : 'essentials';
@@ -159,77 +152,21 @@ export function ConsultationsBooking({
     return buildConsultationPickerContent(bookingModalContent.paymentModal);
   }, [bookingModalContent.paymentModal]);
 
-  const focusCarouselScrollLabels = useMemo(() => {
-    const stepTitle = content.step1Title.replace(/:\s*$/, '');
-    return {
-      left: formatContentTemplate(content.scrollStepCarouselLeftAriaLabelTemplate, {
-        stepTitle,
-      }),
-      right: formatContentTemplate(content.scrollStepCarouselRightAriaLabelTemplate, {
-        stepTitle,
-      }),
-    };
-  }, [
-    content.scrollStepCarouselLeftAriaLabelTemplate,
-    content.scrollStepCarouselRightAriaLabelTemplate,
-    content.step1Title,
-  ]);
-
-  const levelCarouselScrollLabels = useMemo(() => {
-    const stepTitle = content.step2Title.replace(/:\s*$/, '');
-    return {
-      left: formatContentTemplate(content.scrollStepCarouselLeftAriaLabelTemplate, {
-        stepTitle,
-      }),
-      right: formatContentTemplate(content.scrollStepCarouselRightAriaLabelTemplate, {
-        stepTitle,
-      }),
-    };
-  }, [
-    content.scrollStepCarouselLeftAriaLabelTemplate,
-    content.scrollStepCarouselRightAriaLabelTemplate,
-    content.step2Title,
-  ]);
-
   const isMdUp = useMatchMedia(MD_UP_MEDIA_QUERY);
 
-  const {
-    carouselRef: focusCarouselRef,
-    hasNavigation: hasFocusCarouselNav,
-    canScrollPrevious: canScrollFocusPrev,
-    canScrollNext: canScrollFocusNext,
-    scrollByDirection: scrollFocusCarouselByDirection,
-  } = useHorizontalCarousel<HTMLDivElement>({
-    itemCount: content.focusAreas.length,
-    enabled: !isMdUp,
-    snapToItem: true,
-  });
+  const { carouselRef: focusCarouselRef, scrollByDirection: scrollFocusCarouselByDirection } =
+    useHorizontalCarousel<HTMLDivElement>({
+      itemCount: content.focusAreas.length,
+      enabled: !isMdUp,
+      snapToItem: true,
+    });
 
-  const {
-    carouselRef: levelCarouselRef,
-    hasNavigation: hasLevelCarouselNav,
-    canScrollPrevious: canScrollLevelPrev,
-    canScrollNext: canScrollLevelNext,
-    scrollByDirection: scrollLevelCarouselByDirection,
-  } = useHorizontalCarousel<HTMLDivElement>({
-    itemCount: content.levels.length,
-    enabled: !isMdUp,
-    snapToItem: true,
-  });
-
-  const scrollFocusCarousel = useCallback(
-    (direction: 'prev' | 'next') => {
-      scrollFocusCarouselByDirection(direction);
-    },
-    [scrollFocusCarouselByDirection],
-  );
-
-  const scrollLevelCarousel = useCallback(
-    (direction: 'prev' | 'next') => {
-      scrollLevelCarouselByDirection(direction);
-    },
-    [scrollLevelCarouselByDirection],
-  );
+  const { carouselRef: levelCarouselRef, scrollByDirection: scrollLevelCarouselByDirection } =
+    useHorizontalCarousel<HTMLDivElement>({
+      itemCount: content.levels.length,
+      enabled: !isMdUp,
+      snapToItem: true,
+    });
 
   const handleFocusCarouselKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
@@ -238,13 +175,13 @@ export function ConsultationsBooking({
       }
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        scrollFocusCarousel('prev');
+        scrollFocusCarouselByDirection('prev');
       } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-        scrollFocusCarousel('next');
+        scrollFocusCarouselByDirection('next');
       }
     },
-    [isMdUp, scrollFocusCarousel],
+    [isMdUp, scrollFocusCarouselByDirection],
   );
 
   const handleLevelCarouselKeyDown = useCallback(
@@ -254,13 +191,13 @@ export function ConsultationsBooking({
       }
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        scrollLevelCarousel('prev');
+        scrollLevelCarouselByDirection('prev');
       } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-        scrollLevelCarousel('next');
+        scrollLevelCarouselByDirection('next');
       }
     },
-    [isMdUp, scrollLevelCarousel],
+    [isMdUp, scrollLevelCarouselByDirection],
   );
 
   return (
@@ -306,7 +243,7 @@ export function ConsultationsBooking({
                         return (
                           <li
                             key={area.id}
-                            className='flex h-full w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw]'
+                            className={MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME}
                           >
                             <ButtonPrimitive
                               type='button'
@@ -353,34 +290,6 @@ export function ConsultationsBooking({
                       })}
                     </ul>
                   </CarouselTrack>
-
-                  {hasFocusCarouselNav && canScrollFocusPrev ? (
-                    <ButtonPrimitive
-                      type='button'
-                      variant='control'
-                      onClick={() => {
-                        scrollFocusCarousel('prev');
-                      }}
-                      aria-label={focusCarouselScrollLabels.left}
-                      className='absolute left-2 top-1/2 z-20 flex -translate-y-1/2'
-                    >
-                      <ConsultationBookingCarouselArrowIcon direction='left' />
-                    </ButtonPrimitive>
-                  ) : null}
-
-                  {hasFocusCarouselNav && canScrollFocusNext ? (
-                    <ButtonPrimitive
-                      type='button'
-                      variant='control'
-                      onClick={() => {
-                        scrollFocusCarousel('next');
-                      }}
-                      aria-label={focusCarouselScrollLabels.right}
-                      className='absolute right-2 top-1/2 z-20 flex -translate-y-1/2'
-                    >
-                      <ConsultationBookingCarouselArrowIcon direction='right' />
-                    </ButtonPrimitive>
-                  ) : null}
                 </div>
               ) : (
                 <div
@@ -467,7 +376,7 @@ export function ConsultationsBooking({
                         return (
                           <li
                             key={level.id}
-                            className='flex h-full w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw]'
+                            className={MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME}
                           >
                             <ButtonPrimitive
                               type='button'
@@ -532,34 +441,6 @@ export function ConsultationsBooking({
                       })}
                     </ul>
                   </CarouselTrack>
-
-                  {hasLevelCarouselNav && canScrollLevelPrev ? (
-                    <ButtonPrimitive
-                      type='button'
-                      variant='control'
-                      onClick={() => {
-                        scrollLevelCarousel('prev');
-                      }}
-                      aria-label={levelCarouselScrollLabels.left}
-                      className='absolute left-2 top-1/2 z-20 flex -translate-y-1/2'
-                    >
-                      <ConsultationBookingCarouselArrowIcon direction='left' />
-                    </ButtonPrimitive>
-                  ) : null}
-
-                  {hasLevelCarouselNav && canScrollLevelNext ? (
-                    <ButtonPrimitive
-                      type='button'
-                      variant='control'
-                      onClick={() => {
-                        scrollLevelCarousel('next');
-                      }}
-                      aria-label={levelCarouselScrollLabels.right}
-                      className='absolute right-2 top-1/2 z-20 flex -translate-y-1/2'
-                    >
-                      <ConsultationBookingCarouselArrowIcon direction='right' />
-                    </ButtonPrimitive>
-                  ) : null}
                 </div>
               ) : (
                 <div

@@ -1192,8 +1192,6 @@
     "booking": {
       "eyebrow": "How It Works",
       "title": "Choose Your Focus & Level",
-      "scrollStepCarouselLeftAriaLabelTemplate": "Scroll {stepTitle} left",
-      "scrollStepCarouselRightAriaLabelTemplate": "Scroll {stepTitle} right",
       "step1Title": "Choose your focus:",
       "focusAreas": [
         {

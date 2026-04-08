@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ConsultationsBooking } from '@/components/sections/consultations/consultations-booking';
@@ -107,7 +107,7 @@ describe('ConsultationsBooking', () => {
     expect(screen.queryByTestId('consultations-booking-level-carousel')).toBeNull();
   });
 
-  it('uses mobile carousel tracks with navigation and keyboard scrolling below md', async () => {
+  it('uses mobile carousel tracks with smaller slides and keyboard scrolling below md', () => {
     mockViewportMdUp(false);
     const booking = enContent.consultations.booking;
 
@@ -137,9 +137,11 @@ describe('ConsultationsBooking', () => {
     expect(focusCarousel.getAttribute('aria-roledescription')).toBe(
       enContent.common.accessibility.carouselRoleDescription,
     );
-    expect(focusCarousel.querySelectorAll(':scope > ul > li')).toHaveLength(
-      booking.focusAreas.length,
-    );
+    const focusSlides = focusCarousel.querySelectorAll(':scope > ul > li');
+    expect(focusSlides).toHaveLength(booking.focusAreas.length);
+    expect(focusSlides[0]?.className).toContain('w-[77.28vw]');
+    expect(focusSlides[0]?.className).toContain('max-w-[331px]');
+    expect(focusSlides[0]?.className).toContain('sm:w-[62.56vw]');
 
     const levelCarousel = screen.getByTestId('consultations-booking-level-carousel');
     expect(levelCarousel.className).toContain('snap-mandatory');
@@ -155,54 +157,6 @@ describe('ConsultationsBooking', () => {
 
     expect(screen.queryByTestId('consultations-booking-focus-grid')).toBeNull();
     expect(screen.queryByTestId('consultations-booking-level-grid')).toBeNull();
-
-    const setupScrollableTrack = (track: HTMLElement) => {
-      let scrollLeftValue = 0;
-      const maxScrollLeft = 500;
-      Object.defineProperty(track, 'clientWidth', {
-        configurable: true,
-        get: () => 320,
-      });
-      Object.defineProperty(track, 'scrollWidth', {
-        configurable: true,
-        get: () => 1200,
-      });
-      Object.defineProperty(track, 'scrollLeft', {
-        configurable: true,
-        get: () => scrollLeftValue,
-        set: (value: number) => {
-          scrollLeftValue = value;
-        },
-      });
-      Object.defineProperty(track, 'scrollTo', {
-        configurable: true,
-        value: ({ left }: { left: number }) => {
-          scrollLeftValue = Math.max(0, Math.min(maxScrollLeft, left));
-          track.dispatchEvent(new Event('scroll'));
-        },
-      });
-    };
-
-    setupScrollableTrack(focusCarousel);
-    setupScrollableTrack(levelCarousel);
-
-    fireEvent(window, new Event('resize'));
-
-    const focusStepTitle = booking.step1Title.replace(/:\s*$/, '');
-    const levelStepTitle = booking.step2Title.replace(/:\s*$/, '');
-    const focusScrollRightLabel = formatContentTemplate(
-      booking.scrollStepCarouselRightAriaLabelTemplate,
-      { stepTitle: focusStepTitle },
-    );
-    const levelScrollRightLabel = formatContentTemplate(
-      booking.scrollStepCarouselRightAriaLabelTemplate,
-      { stepTitle: levelStepTitle },
-    );
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(focusScrollRightLabel)).toBeInTheDocument();
-      expect(screen.getByLabelText(levelScrollRightLabel)).toBeInTheDocument();
-    });
 
     const deepDiveButton = screen.getByRole('button', { name: 'Deep Dive' });
     fireEvent.click(deepDiveButton);
