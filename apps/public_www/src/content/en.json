@@ -1184,6 +1184,7 @@
     "hero": {
       "title": "One-Off Consultations",
       "subtitle": "Not ready for the full 9-week course? Start here. Pick your focus. Pick your level. See what changes.",
+      "description": "Every family is different. In your consultation, we'll look at exactly what's not working at home and map out the simplest path forward — together.",
       "ctaLabel": "Book a Free Family Consultation",
       "ctaHref": "#consultations-booking",
       "imageAlt": "Evolve Sprouts one-off consultation session"
