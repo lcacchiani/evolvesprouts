@@ -233,7 +233,7 @@ export function ConsultationsBooking({
           />
 
           <div className='mt-12'>
-            <h3 className='text-xl font-semibold es-type-body md:text-center'>
+            <h3 className='text-xl font-semibold es-type-body'>
               {content.step1Title}
             </h3>
             <div className='relative mt-6'>
@@ -366,7 +366,7 @@ export function ConsultationsBooking({
           </div>
 
           <div className='mt-12'>
-            <h3 className='text-xl font-semibold es-type-body md:text-center'>
+            <h3 className='text-xl font-semibold es-type-body'>
               {content.step2Title}
             </h3>
             <div className='relative mt-6'>
