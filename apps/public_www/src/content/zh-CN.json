@@ -1315,23 +1315,30 @@
       "eyebrow": "方向详情",
       "title": "每个方向有何不同",
       "description": "结构相同。不同的是观察的视角。",
-      "essentialsLabel": "✦ 基础版",
-      "deepDiveLabel": "✦✦ 深入版",
+      "essentialsLabel": "基础版",
+      "deepDiveLabel": "深入版",
+      "essentialsIconSrc": "/images/essentials.svg",
+      "deepDiveIconSrc": "/images/deep-dive.svg",
+      "previousButtonAriaLabel": "上一组方向卡片",
+      "nextButtonAriaLabel": "下一组方向卡片",
       "areas": [
         {
           "id": "home-assessment",
+          "iconSrc": "/images/home.svg",
           "title": "家居评估",
           "essentials": "我会走遍您的空间，解释哪些有效、哪些无效，并给您一份按优先级排列的改变清单。",
           "deepDive": "我会再次上门，我们一起动手重新布置。我会向您的阿姨解释每个改变，让她理解其中的道理。"
         },
         {
           "id": "auntie-child",
+          "iconSrc": "/images/auntie-child.svg",
           "title": "阿姨与孩子",
           "essentials": "我们商定一个重点领域，我观察您的阿姨与孩子互动，然后给她2-3个每天可用的实用脚本。",
           "deepDive": "我会再次上门，观察她如何运用这些策略。我会实时指导，深入探讨，增强她的信心。"
         },
         {
           "id": "parent-child",
+          "iconSrc": "/images/parent-child.svg",
           "title": "亲子互动",
           "essentials": "我观察您如何与孩子互动，根据您的日常节奏指导蒙特梭利原则，并检查您与阿姨之间的一致性。",
           "deepDive": "我会再次上门，看看日常流程如何变化，哪些地方仍然困难，如果您和阿姨之间出现分歧，我会帮助重新对齐。"

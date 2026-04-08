@@ -21,7 +21,12 @@ vi.mock('@/components/sections/consultations/consultations-booking', () => ({
   ),
 }));
 vi.mock('@/components/sections/consultations/consultations-focus-details', () => ({
-  ConsultationsFocusDetails: ({ content }: { content: { title: string } }) => (
+  ConsultationsFocusDetails: ({
+    content,
+  }: {
+    content: { title: string };
+    commonAccessibility?: unknown;
+  }) => (
     <section data-testid='consultations-focus-details'>{content.title}</section>
   ),
 }));

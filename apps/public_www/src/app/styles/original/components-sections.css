@@ -415,6 +415,7 @@
   .es-course-highlights-section,
   .es-free-guides-and-resources-library-section,
   .es-my-best-auntie-description-section,
+  .es-consultations-focus-details-section,
   .es-my-history-section,
   .es-about-us-ida-coach-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
@@ -432,6 +433,7 @@
   }
 
   .es-my-best-auntie-description-section,
+  .es-consultations-focus-details-section,
   .es-my-history-section,
   .es-about-us-ida-coach-section {
     background-color: var(--es-color-surface-muted, #F8F8F8);
@@ -691,6 +693,50 @@
     font-size: 16px;
     font-weight: 400;
     line-height: 26px;
+  }
+
+  .es-consultations-focus-details-card {
+    background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-consultations-focus-details-icon--home-assessment {
+    mask-image: url('/images/home.svg');
+    -webkit-mask-image: url('/images/home.svg');
+  }
+
+  .es-consultations-focus-details-icon--auntie-child {
+    mask-image: url('/images/auntie-child.svg');
+    -webkit-mask-image: url('/images/auntie-child.svg');
+  }
+
+  .es-consultations-focus-details-icon--parent-child {
+    mask-image: url('/images/parent-child.svg');
+    -webkit-mask-image: url('/images/parent-child.svg');
+  }
+
+  .es-consultations-focus-details-card-title {
+    color: var(--site-heading-text);
+    font-family: var(--figma-fontfamilies-poppins, Poppins), sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 26px;
+    text-align: center;
+  }
+
+  .es-consultations-focus-details-card-body {
+    color: var(--site-primary-text);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
+  }
+
+  .es-consultations-focus-details-card-label {
+    color: var(--es-color-brand-orange, #c84a16);
+    font-family: var(--figma-fontfamilies-lato, Lato), sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
   }
 
   .es-landing-page-description-card {
