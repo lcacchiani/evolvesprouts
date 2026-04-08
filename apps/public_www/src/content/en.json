@@ -1214,7 +1214,7 @@
         }
       ],
       "step2Title": "Choose your level:",
-      "whatYouGetHeading": "What do you get:",
+      "whatYouGetHeading": "What you get:",
       "levels": [
         {
           "id": "essentials",

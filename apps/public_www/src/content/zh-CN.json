@@ -1214,7 +1214,7 @@
         }
       ],
       "step2Title": "选择你的级别：",
-      "whatYouGetHeading": "您将获得什么：",
+      "whatYouGetHeading": "您将获得：",
       "levels": [
         {
           "id": "essentials",
