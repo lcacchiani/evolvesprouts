@@ -1140,6 +1140,20 @@
     filter: none;
   }
 
+  @keyframes es-consultations-booking-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  #consultations-booking .es-consultations-booking-level-description-enter {
+    animation: es-consultations-booking-fade-in 300ms ease-out;
+  }
+
   .es-landing-page-cta-section {
     background-color: var(--figma-colors-frame-2147235259, #FFEEE3);
   }

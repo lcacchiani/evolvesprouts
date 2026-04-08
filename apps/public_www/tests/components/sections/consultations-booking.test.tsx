@@ -82,6 +82,8 @@ describe('ConsultationsBooking', () => {
     }
 
     const levelGrid = screen.getByTestId('consultations-booking-level-grid');
+    const levelSelectorList = levelGrid.querySelector(':scope > ul');
+    expect(levelSelectorList).not.toBeNull();
     for (const level of booking.levels) {
       expect(
         within(levelGrid).getByRole('button', { name: level.title }),
@@ -91,6 +93,31 @@ describe('ConsultationsBooking', () => {
       ).toBeGreaterThanOrEqual(1);
     }
 
+    const levelDescription = screen.getByTestId(
+      'consultations-booking-level-description',
+    );
+    const essentials = booking.levels[0];
+    expect(essentials).toBeDefined();
+    for (const feature of essentials!.features) {
+      expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
+    }
+    expect(
+      within(levelDescription).getByText(essentials!.bestFor),
+    ).toBeInTheDocument();
+
+    const deepDive = booking.levels[1];
+    expect(deepDive).toBeDefined();
+    fireEvent.click(within(levelGrid).getByRole('button', { name: deepDive!.title }));
+    expect(
+      within(levelDescription).getByText(deepDive!.includesLabel!),
+    ).toBeInTheDocument();
+    for (const feature of deepDive!.features) {
+      expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
+    }
+    expect(
+      within(levelDescription).getByText(deepDive!.bestFor),
+    ).toBeInTheDocument();
+
     expect(focusGrid.getAttribute('role')).toBe('group');
     expect(focusGrid.getAttribute('aria-label')).toBe(booking.step1Title);
     expect(focusGrid.querySelectorAll(':scope > ul > li')).toHaveLength(
@@ -99,7 +126,7 @@ describe('ConsultationsBooking', () => {
 
     expect(levelGrid.getAttribute('role')).toBe('group');
     expect(levelGrid.getAttribute('aria-label')).toBe(booking.step2Title);
-    expect(levelGrid.querySelectorAll(':scope > ul > li')).toHaveLength(
+    expect(levelSelectorList!.querySelectorAll(':scope > li')).toHaveLength(
       booking.levels.length,
     );
 
@@ -124,10 +151,6 @@ describe('ConsultationsBooking', () => {
       enContent.common.accessibility.carouselLabelTemplate,
       { title: booking.step1Title },
     );
-    const expectedLevelAriaLabel = formatContentTemplate(
-      enContent.common.accessibility.carouselLabelTemplate,
-      { title: booking.step2Title },
-    );
 
     const focusCarousel = screen.getByTestId('consultations-booking-focus-carousel');
     expect(focusCarousel.className).toContain('snap-mandatory');
@@ -143,26 +166,38 @@ describe('ConsultationsBooking', () => {
     expect(focusSlides[0]?.className).toContain('max-w-[331px]');
     expect(focusSlides[0]?.className).toContain('sm:w-[62.56vw]');
 
-    const levelCarousel = screen.getByTestId('consultations-booking-level-carousel');
-    expect(levelCarousel.className).toContain('snap-mandatory');
-    expect(levelCarousel.className).toContain('overflow-x-auto');
-    expect(levelCarousel.getAttribute('role')).toBe('region');
-    expect(levelCarousel.getAttribute('aria-label')).toBe(expectedLevelAriaLabel);
-    expect(levelCarousel.getAttribute('aria-roledescription')).toBe(
-      enContent.common.accessibility.carouselRoleDescription,
-    );
-    expect(levelCarousel.querySelectorAll(':scope > ul > li')).toHaveLength(
+    expect(screen.queryByTestId('consultations-booking-focus-grid')).toBeNull();
+    expect(screen.queryByTestId('consultations-booking-level-carousel')).toBeNull();
+
+    const levelGrid = screen.getByTestId('consultations-booking-level-grid');
+    expect(levelGrid.getAttribute('role')).toBe('group');
+    expect(levelGrid.getAttribute('aria-label')).toBe(booking.step2Title);
+    const levelSelectorList = levelGrid.querySelector(':scope > ul');
+    expect(levelSelectorList).not.toBeNull();
+    expect(levelSelectorList!.className).toContain('grid-cols-2');
+    expect(levelSelectorList!.querySelectorAll(':scope > li')).toHaveLength(
       booking.levels.length,
     );
 
-    expect(screen.queryByTestId('consultations-booking-focus-grid')).toBeNull();
-    expect(screen.queryByTestId('consultations-booking-level-grid')).toBeNull();
+    const levelDescription = screen.getByTestId(
+      'consultations-booking-level-description',
+    );
+    const essentials = booking.levels[0];
+    expect(essentials).toBeDefined();
+    for (const feature of essentials!.features) {
+      expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
+    }
+
+    const deepDive = booking.levels[1];
+    expect(deepDive).toBeDefined();
 
     const deepDiveButton = screen.getByRole('button', { name: 'Deep Dive' });
     fireEvent.click(deepDiveButton);
     expect(deepDiveButton.getAttribute('aria-pressed')).toBe('true');
+    expect(
+      within(levelDescription).getByText(deepDive!.includesLabel!),
+    ).toBeInTheDocument();
 
     fireEvent.keyDown(focusCarousel, { key: 'ArrowRight' });
-    fireEvent.keyDown(levelCarousel, { key: 'ArrowLeft' });
   });
 });

@@ -53,13 +53,13 @@ const BookingThankYouModal = dynamic(
 const FOCUS_LEVEL_CARD_CLASSNAME =
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-6 py-7 text-left sm:px-8 sm:py-8';
 
-const LEVEL_CARD_CLASSNAME = mergeClassNames(FOCUS_LEVEL_CARD_CLASSNAME, 'flex flex-col');
-
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
   'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
 
-const LEVEL_CARD_HEADER_ROW_CLASSNAME =
-  'flex w-full min-w-0 items-center gap-4 sm:gap-5';
+const LEVEL_COMPACT_SELECTOR_CLASSNAME = mergeClassNames(
+  'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-3 py-4 text-center sm:px-4 md:py-5',
+  'flex min-h-0 flex-col items-center justify-center gap-3',
+);
 
 const LEVEL_FEATURES_LIST_CLASSNAME =
   'mt-3 w-full min-w-0 list-none space-y-2 ps-0 text-left';
@@ -71,6 +71,34 @@ const MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME =
   'flex min-h-0 w-[77.28vw] max-w-[331px] shrink-0 flex-col self-stretch snap-center sm:w-[62.56vw]';
 
 const GRID_CARD_LI_CLASSNAME = 'flex min-h-0 flex-col';
+
+const LEVEL_COMPACT_LI_CLASSNAME =
+  'flex min-h-0 min-w-0 flex-col md:w-full';
+
+function ConsultationsBookingLevelDescription({
+  level,
+}: {
+  level: ConsultationsBookingContent['levels'][number];
+}) {
+  return (
+    <div className='text-left'>
+      {'includesLabel' in level && level.includesLabel ? (
+        <p className='text-sm font-medium es-text-dim'>{level.includesLabel}</p>
+      ) : null}
+      <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
+        {level.features.map((feature, index) => (
+          <li
+            key={`${level.id}-feature-${index}`}
+            className={LEVEL_FEATURE_LINE_CLASSNAME}
+          >
+            {feature}
+          </li>
+        ))}
+      </ul>
+      <p className='mt-4 text-sm italic es-type-body es-text-dim'>{level.bestFor}</p>
+    </div>
+  );
+}
 
 function mapLevelIdToBookingTier(levelId: string): ConsultationsBookingModalTierId {
   return levelId === 'deep-dive' ? 'deepDive' : 'essentials';
@@ -166,13 +194,6 @@ export function ConsultationsBooking({
       snapToItem: true,
     });
 
-  const { carouselRef: levelCarouselRef, scrollByDirection: scrollLevelCarouselByDirection } =
-    useHorizontalCarousel<HTMLDivElement>({
-      itemCount: content.levels.length,
-      enabled: !isMdUp,
-      snapToItem: true,
-    });
-
   const handleFocusCarouselKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
       if (isMdUp) {
@@ -189,21 +210,9 @@ export function ConsultationsBooking({
     [isMdUp, scrollFocusCarouselByDirection],
   );
 
-  const handleLevelCarouselKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLDivElement>) => {
-      if (isMdUp) {
-        return;
-      }
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        scrollLevelCarouselByDirection('prev');
-      } else if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        scrollLevelCarouselByDirection('next');
-      }
-    },
-    [isMdUp, scrollLevelCarouselByDirection],
-  );
+  const selectedLevel = useMemo(() => {
+    return content.levels.find((l) => l.id === selectedLevelId) ?? null;
+  }, [content.levels, selectedLevelId]);
 
   return (
     <>
@@ -361,161 +370,69 @@ export function ConsultationsBooking({
               {content.step2Title}
             </h3>
             <div className='relative mt-6'>
-              {!isMdUp ? (
-                <div className='relative'>
-                  <CarouselTrack
-                    carouselRef={levelCarouselRef}
-                    testId='consultations-booking-level-carousel'
-                    ariaLabel={formatContentTemplate(
-                      commonAccessibility.carouselLabelTemplate,
-                      { title: content.step2Title },
-                    )}
-                    ariaRoleDescription={commonAccessibility.carouselRoleDescription}
-                    className='pb-2 outline-none es-focus-ring'
-                    tabIndex={0}
-                    onKeyDown={handleLevelCarouselKeyDown}
-                  >
-                    <ul className='flex min-w-0 list-none items-stretch gap-6 ps-0'>
-                      {content.levels.map((level) => {
-                        const isSelected = level.id === selectedLevelId;
-                        return (
-                          <li
-                            key={level.id}
-                            className={MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME}
+              <div
+                role='group'
+                aria-label={content.step2Title}
+                data-testid='consultations-booking-level-grid'
+                className='flex flex-col gap-6 md:grid md:grid-cols-[auto_1fr] md:items-center md:gap-8'
+              >
+                <ul className='grid list-none grid-cols-2 gap-3 ps-0 sm:gap-4 md:flex md:flex-col md:gap-6'>
+                  {content.levels.map((level) => {
+                    const isSelected = level.id === selectedLevelId;
+                    return (
+                      <li key={level.id} className={LEVEL_COMPACT_LI_CLASSNAME}>
+                        <ButtonPrimitive
+                          type='button'
+                          variant='selection'
+                          state={isSelected ? 'active' : 'inactive'}
+                          aria-pressed={isSelected}
+                          aria-label={level.title}
+                          onClick={() => {
+                            setSelectedLevelId(level.id);
+                          }}
+                          className={LEVEL_COMPACT_SELECTOR_CLASSNAME}
+                        >
+                          <span
+                            aria-hidden='true'
+                            className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
                           >
-                            <ButtonPrimitive
-                              type='button'
-                              variant='selection'
-                              state={isSelected ? 'active' : 'inactive'}
-                              aria-pressed={isSelected}
-                              aria-label={level.title}
-                              onClick={() => {
-                                setSelectedLevelId(level.id);
-                              }}
+                            <img
+                              src={level.iconSrc}
+                              alt=''
+                              width={44}
+                              height={44}
                               className={mergeClassNames(
-                                LEVEL_CARD_CLASSNAME,
-                                'h-full min-h-0 flex-1',
+                                'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                isSelected
+                                  ? 'es-consultations-booking-selection-icon-active'
+                                  : 'es-consultations-booking-selection-icon-inactive',
                               )}
-                            >
-                              <div className={LEVEL_CARD_HEADER_ROW_CLASSNAME}>
-                                <span
-                                  aria-hidden='true'
-                                  className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
-                                >
-                                  <img
-                                    src={level.iconSrc}
-                                    alt=''
-                                    width={44}
-                                    height={44}
-                                    className={mergeClassNames(
-                                      'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
-                                      isSelected
-                                        ? 'es-consultations-booking-selection-icon-active'
-                                        : 'es-consultations-booking-selection-icon-inactive',
-                                    )}
-                                  />
-                                </span>
-                                <h4 className='min-w-0 flex-1 text-left text-lg font-bold es-text-heading'>
-                                  {level.title}
-                                </h4>
-                              </div>
-                              {'includesLabel' in level && level.includesLabel && (
-                                <p className='mt-3 text-left text-sm font-medium es-text-dim'>
-                                  {level.includesLabel}
-                                </p>
-                              )}
-                              <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
-                                {level.features.map((feature, index) => (
-                                  <li
-                                    key={`${level.id}-feature-${index}`}
-                                    className={LEVEL_FEATURE_LINE_CLASSNAME}
-                                  >
-                                    {feature}
-                                  </li>
-                                ))}
-                              </ul>
-                              <p className='mt-4 text-left text-sm italic es-type-body es-text-dim'>
-                                {level.bestFor}
-                              </p>
-                            </ButtonPrimitive>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </CarouselTrack>
-                </div>
-              ) : (
+                            />
+                          </span>
+                          <span className='max-w-full text-sm font-bold leading-tight es-text-heading sm:text-base md:text-lg'>
+                            {level.title}
+                          </span>
+                        </ButtonPrimitive>
+                      </li>
+                    );
+                  })}
+                </ul>
                 <div
-                  role='group'
-                  aria-label={content.step2Title}
-                  data-testid='consultations-booking-level-grid'
+                  className='min-w-0 md:min-h-0'
+                  aria-live='polite'
+                  aria-atomic='true'
+                  data-testid='consultations-booking-level-description'
                 >
-                  <ul className='grid list-none grid-cols-2 gap-6 ps-0'>
-                    {content.levels.map((level) => {
-                      const isSelected = level.id === selectedLevelId;
-                      return (
-                        <li key={level.id} className={GRID_CARD_LI_CLASSNAME}>
-                          <ButtonPrimitive
-                            type='button'
-                            variant='selection'
-                            state={isSelected ? 'active' : 'inactive'}
-                            aria-pressed={isSelected}
-                            aria-label={level.title}
-                            onClick={() => {
-                              setSelectedLevelId(level.id);
-                            }}
-                            className={mergeClassNames(
-                              LEVEL_CARD_CLASSNAME,
-                              'h-full min-h-0',
-                            )}
-                          >
-                            <div className={LEVEL_CARD_HEADER_ROW_CLASSNAME}>
-                              <span
-                                aria-hidden='true'
-                                className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
-                              >
-                                <img
-                                  src={level.iconSrc}
-                                  alt=''
-                                  width={44}
-                                  height={44}
-                                  className={mergeClassNames(
-                                    'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
-                                    isSelected
-                                      ? 'es-consultations-booking-selection-icon-active'
-                                      : 'es-consultations-booking-selection-icon-inactive',
-                                  )}
-                                />
-                              </span>
-                              <h4 className='min-w-0 flex-1 text-left text-lg font-bold es-text-heading'>
-                                {level.title}
-                              </h4>
-                            </div>
-                            {'includesLabel' in level && level.includesLabel && (
-                              <p className='mt-3 text-left text-sm font-medium es-text-dim'>
-                                {level.includesLabel}
-                              </p>
-                            )}
-                            <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
-                              {level.features.map((feature, index) => (
-                                <li
-                                  key={`${level.id}-feature-${index}`}
-                                  className={LEVEL_FEATURE_LINE_CLASSNAME}
-                                >
-                                  {feature}
-                                </li>
-                              ))}
-                            </ul>
-                            <p className='mt-4 text-left text-sm italic es-type-body es-text-dim'>
-                              {level.bestFor}
-                            </p>
-                          </ButtonPrimitive>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  {selectedLevel ? (
+                    <div
+                      key={selectedLevel.id}
+                      className='es-consultations-booking-level-description-enter'
+                    >
+                      <ConsultationsBookingLevelDescription level={selectedLevel} />
+                    </div>
+                  ) : null}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
