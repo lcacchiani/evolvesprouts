@@ -1321,6 +1321,8 @@
       "deepDiveIconSrc": "/images/deep-dive.svg",
       "previousButtonAriaLabel": "Previous focus area cards",
       "nextButtonAriaLabel": "Next focus area cards",
+      "ctaLabel": "Book your consultation now!",
+      "ctaHref": "#consultations-booking",
       "areas": [
         {
           "id": "home-assessment",

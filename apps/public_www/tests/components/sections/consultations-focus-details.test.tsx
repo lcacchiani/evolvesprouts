@@ -155,4 +155,12 @@ describe('ConsultationsFocusDetails section', () => {
       focusDetails.areas.length * 2,
     );
   });
+
+  it('renders a section CTA matching the consultations comparison booking link', () => {
+    render(<ConsultationsFocusDetails content={focusDetails} />);
+
+    const cta = screen.getByTestId('consultations-focus-details-cta');
+    expect(cta).toHaveAttribute('href', focusDetails.ctaHref);
+    expect(cta).toHaveTextContent(focusDetails.ctaLabel);
+  });
 });

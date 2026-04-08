@@ -1321,6 +1321,8 @@
       "deepDiveIconSrc": "/images/deep-dive.svg",
       "previousButtonAriaLabel": "上一组方向卡片",
       "nextButtonAriaLabel": "下一组方向卡片",
+      "ctaLabel": "立即预约咨询！",
+      "ctaHref": "#consultations-booking",
       "areas": [
         {
           "id": "home-assessment",
