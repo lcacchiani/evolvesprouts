@@ -6,6 +6,8 @@ type ScrollDirection = 'prev' | 'next';
 
 interface UseHorizontalCarouselOptions {
   itemCount: number;
+  /** When false, skips scroll/resize listeners and navigation state (carouselRef only). */
+  enabled?: boolean;
   minItemsForNavigation?: number;
   scrollThresholdPx?: number;
   scrollStepRatio?: number;
@@ -72,6 +74,7 @@ function resolveItemScrollPositions(container: HTMLElement): number[] {
 
 export function useHorizontalCarousel<T extends HTMLElement>({
   itemCount,
+  enabled = true,
   minItemsForNavigation = DEFAULT_MIN_ITEMS_FOR_NAVIGATION,
   scrollThresholdPx = DEFAULT_SCROLL_THRESHOLD_PX,
   scrollStepRatio = DEFAULT_SCROLL_STEP_RATIO,
@@ -85,13 +88,14 @@ export function useHorizontalCarousel<T extends HTMLElement>({
   const lastScrollLeftRef = useRef(-1);
   const loopSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loopCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasNavigation = itemCount > minItemsForNavigation;
+  const hasNavigation =
+    enabled && itemCount > minItemsForNavigation;
   const [canScrollPrevious, setCanScrollPrevious] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(hasNavigation);
 
   const updateNavigationState = useCallback(() => {
     const carouselElement = carouselRef.current;
-    if (!carouselElement || !hasNavigation) {
+    if (!enabled || !carouselElement || !hasNavigation) {
       setCanScrollPrevious(false);
       setCanScrollNext(false);
       return;
@@ -114,7 +118,7 @@ export function useHorizontalCarousel<T extends HTMLElement>({
     setCanScrollNext(
       carouselElement.scrollLeft < maxScrollLeft - scrollThresholdPx,
     );
-  }, [hasNavigation, loop, scrollThresholdPx]);
+  }, [enabled, hasNavigation, loop, scrollThresholdPx]);
 
   const teleportScroll = useCallback((element: HTMLElement, targetLeft: number) => {
     element.style.scrollSnapType = 'none';
@@ -136,6 +140,9 @@ export function useHorizontalCarousel<T extends HTMLElement>({
 
   const scrollByDirection = useCallback(
     (direction: ScrollDirection) => {
+      if (!enabled) {
+        return;
+      }
       const carouselElement = carouselRef.current;
       if (!carouselElement) {
         return;
@@ -226,11 +233,15 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       scrollThresholdPx,
       snapToItem,
       teleportScroll,
+      enabled,
     ],
   );
 
   const scrollItemIntoView = useCallback(
     (item: Element | null, behavior: ScrollBehavior = 'smooth') => {
+      if (!enabled) {
+        return;
+      }
       const container = carouselRef.current;
       if (!item || !container) {
         return;
@@ -259,10 +270,14 @@ export function useHorizontalCarousel<T extends HTMLElement>({
         });
       }
     },
-    [updateNavigationState],
+    [enabled, updateNavigationState],
   );
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const carouselElement = carouselRef.current;
     if (!carouselElement) {
       return;
@@ -350,13 +365,21 @@ export function useHorizontalCarousel<T extends HTMLElement>({
       carouselElement.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [beginLoopCooldown, itemCount, loop, scrollThresholdPx, teleportScroll, updateNavigationState]);
+  }, [
+    beginLoopCooldown,
+    enabled,
+    itemCount,
+    loop,
+    scrollThresholdPx,
+    teleportScroll,
+    updateNavigationState,
+  ]);
 
   return {
     carouselRef,
     hasNavigation,
-    canScrollPrevious,
-    canScrollNext,
+    canScrollPrevious: enabled && canScrollPrevious,
+    canScrollNext: enabled && canScrollNext,
     updateNavigationState,
     scrollByDirection,
     scrollItemIntoView,
