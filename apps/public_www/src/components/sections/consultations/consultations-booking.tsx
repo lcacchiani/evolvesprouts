@@ -7,10 +7,7 @@ import { useCallback, useMemo, useState, type KeyboardEvent } from 'react';
 
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
-import {
-  buildSectionSplitLayoutClassName,
-  SectionContainer,
-} from '@/components/sections/shared/section-container';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
@@ -448,18 +445,11 @@ export function ConsultationsBooking({
             </div>
           </div>
 
-          <div
-            className={buildSectionSplitLayoutClassName(
-              'mt-12 flex flex-col sm:flex-row md:justify-center',
-            )}
-          >
+          <div className='mt-12 flex justify-center'>
             <ButtonPrimitive
               type='button'
               variant='primary'
-              className={mergeClassNames(
-                'max-w-full',
-                'sm:max-w-[450px]',
-              )}
+              className='w-full max-w-[488px]'
               onClick={() => {
                 setIsBookingModalOpen(true);
               }}
