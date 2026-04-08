@@ -70,7 +70,9 @@ const LEVEL_FEATURE_LINE_CLASSNAME = 'block ps-0 text-left es-type-body es-text-
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
 
 const MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME =
-  'flex h-full w-[77.28vw] max-w-[331px] shrink-0 snap-center sm:w-[62.56vw]';
+  'flex h-full min-h-0 w-[77.28vw] max-w-[331px] shrink-0 flex-col snap-center sm:w-[62.56vw]';
+
+const GRID_CARD_LI_CLASSNAME = 'flex min-h-0 flex-col';
 
 function mapLevelIdToBookingTier(levelId: string): ConsultationsBookingModalTierId {
   return levelId === 'deep-dive' ? 'deepDive' : 'essentials';
@@ -261,7 +263,7 @@ export function ConsultationsBooking({
                               }}
                               className={mergeClassNames(
                                 FOCUS_LEVEL_CARD_CLASSNAME,
-                                'flex min-h-0 flex-1 flex-col',
+                                'flex h-full min-h-0 flex-1 flex-col',
                               )}
                             >
                               <div className='flex justify-center'>
@@ -306,7 +308,7 @@ export function ConsultationsBooking({
                     {content.focusAreas.map((area) => {
                       const isSelected = area.id === selectedFocusId;
                       return (
-                        <li key={area.id}>
+                        <li key={area.id} className={GRID_CARD_LI_CLASSNAME}>
                           <ButtonPrimitive
                             type='button'
                             variant='selection'
@@ -318,7 +320,7 @@ export function ConsultationsBooking({
                             }}
                             className={mergeClassNames(
                               FOCUS_LEVEL_CARD_CLASSNAME,
-                              'flex flex-col',
+                              'flex h-full min-h-0 flex-col',
                             )}
                           >
                             <div className='flex justify-center'>
@@ -392,7 +394,10 @@ export function ConsultationsBooking({
                               onClick={() => {
                                 setSelectedLevelId(level.id);
                               }}
-                              className={mergeClassNames(LEVEL_CARD_CLASSNAME, 'min-h-0 flex-1')}
+                              className={mergeClassNames(
+                                LEVEL_CARD_CLASSNAME,
+                                'h-full min-h-0 flex-1',
+                              )}
                             >
                               <div className={LEVEL_CARD_ICON_BAND_CLASSNAME}>
                                 <div className='flex justify-center'>
@@ -453,7 +458,7 @@ export function ConsultationsBooking({
                     {content.levels.map((level) => {
                       const isSelected = level.id === selectedLevelId;
                       return (
-                        <li key={level.id}>
+                        <li key={level.id} className={GRID_CARD_LI_CLASSNAME}>
                           <ButtonPrimitive
                             type='button'
                             variant='selection'
@@ -463,7 +468,10 @@ export function ConsultationsBooking({
                             onClick={() => {
                               setSelectedLevelId(level.id);
                             }}
-                            className={LEVEL_CARD_CLASSNAME}
+                            className={mergeClassNames(
+                              LEVEL_CARD_CLASSNAME,
+                              'h-full min-h-0',
+                            )}
                           >
                             <div className={LEVEL_CARD_ICON_BAND_CLASSNAME}>
                               <div className='flex justify-center'>
