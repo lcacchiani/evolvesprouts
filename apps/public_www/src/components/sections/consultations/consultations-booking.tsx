@@ -59,6 +59,7 @@ const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
 const LEVEL_COMPACT_SELECTOR_CLASSNAME = mergeClassNames(
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-3 py-4 text-center sm:px-4 md:py-5',
   'flex min-h-0 flex-col items-center justify-center gap-3',
+  'md:w-[calc((100%-3rem)/3)] md:flex-row md:items-center md:justify-start md:gap-[50px] md:px-8 md:py-8 md:text-left',
 );
 
 const LEVEL_FEATURES_LIST_CLASSNAME =
@@ -76,16 +77,15 @@ const LEVEL_COMPACT_LI_CLASSNAME =
   'flex min-h-0 min-w-0 flex-col md:w-full';
 
 function ConsultationsBookingLevelDescription({
+  whatYouGetHeading,
   level,
 }: {
+  whatYouGetHeading: string;
   level: ConsultationsBookingContent['levels'][number];
 }) {
   return (
     <div className='text-left'>
-      <h4 className='text-lg font-bold es-text-heading'>{level.title}</h4>
-      {'includesLabel' in level && level.includesLabel ? (
-        <p className='mt-3 text-sm font-medium es-text-dim'>{level.includesLabel}</p>
-      ) : null}
+      <h4 className='text-lg font-bold es-text-heading'>{whatYouGetHeading}</h4>
       <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
         {level.features.map((feature, index) => (
           <li
@@ -415,7 +415,7 @@ export function ConsultationsBooking({
                               )}
                             />
                           </span>
-                          <span className='w-full min-w-0 max-w-full break-words text-center text-sm font-bold leading-tight es-text-heading sm:text-base md:text-lg'>
+                          <span className='w-full min-w-0 max-w-full break-words text-center text-sm font-bold leading-tight es-text-heading sm:text-base md:w-auto md:max-w-none md:text-left md:text-lg'>
                             {level.title}
                           </span>
                         </ButtonPrimitive>
@@ -438,7 +438,10 @@ export function ConsultationsBooking({
                           : undefined
                       }
                     >
-                      <ConsultationsBookingLevelDescription level={selectedLevel} />
+                      <ConsultationsBookingLevelDescription
+                        whatYouGetHeading={content.whatYouGetHeading}
+                        level={selectedLevel}
+                      />
                     </div>
                   ) : null}
                 </div>
