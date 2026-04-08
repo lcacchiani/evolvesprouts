@@ -27,7 +27,7 @@ export function ConsultationsComparison({
           <table className='es-consultations-comparison-table w-full table-fixed border-collapse text-left'>
             <thead>
               <tr>
-                <th className='border-b es-border-soft pb-4 pr-2 align-bottom sm:pr-4'>
+                <th className='border-b es-border-soft pb-4 pr-2 align-bottom sm:pl-[50px] sm:pr-4'>
                   &nbsp;
                 </th>
                 <th className='border-b es-border-soft px-1 pb-4 align-bottom sm:px-3'>
@@ -63,7 +63,7 @@ export function ConsultationsComparison({
             <tbody>
               {content.rows.map((row) => (
                 <tr key={row.label}>
-                  <td className='border-b es-border-soft py-3 pr-2 align-top sm:py-4 sm:pr-4'>
+                  <td className='border-b es-border-soft py-3 pr-2 align-top sm:py-4 sm:pl-[50px] sm:pr-4'>
                     <div className='min-w-0'>
                       <div className='font-medium es-type-body es-text-heading'>
                         {row.label}
