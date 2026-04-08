@@ -5,6 +5,7 @@
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionContainer } from '@/components/sections/shared/section-container';
+import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import enContent from '@/content/en.json';
@@ -206,6 +207,16 @@ export function ConsultationsFocusDetails({
             ))}
           </ul>
         </CarouselTrack>
+
+        <div className='mt-8 flex justify-center sm:mt-10 lg:mt-11'>
+          <SectionCtaAnchor
+            href={content.ctaHref}
+            className='w-full max-w-[488px]'
+            data-testid='consultations-focus-details-cta'
+          >
+            {content.ctaLabel}
+          </SectionCtaAnchor>
+        </div>
       </SectionContainer>
     </SectionShell>
   );
