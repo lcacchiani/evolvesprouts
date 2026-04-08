@@ -58,14 +58,14 @@
 
   .es-consultations-comparison-table th:first-child,
   .es-consultations-comparison-table td:first-child {
-    width: 62%;
+    width: 49.6%;
   }
 
   .es-consultations-comparison-table th:nth-child(2),
   .es-consultations-comparison-table td:nth-child(2),
   .es-consultations-comparison-table th:nth-child(3),
   .es-consultations-comparison-table td:nth-child(3) {
-    width: 19%;
+    width: 25.2%;
   }
 
   .es-connect-card-title {
