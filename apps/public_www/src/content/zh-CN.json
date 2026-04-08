@@ -1343,31 +1343,38 @@
       "title": "基础版 vs 深入版",
       "essentialsLabel": "基础版",
       "deepDiveLabel": "深入版",
+      "includedAlt": "包含",
+      "notIncludedAlt": "不包含",
       "rows": [
         {
           "label": "评估上门",
-          "essentials": "60分钟",
-          "deepDive": "60分钟"
+          "detail": "60分钟",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "书面报告",
-          "essentials": "1周内",
-          "deepDive": "1周内"
+          "detail": "1周内",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "跟进通话",
-          "essentials": "30分钟",
-          "deepDive": "30分钟"
+          "detail": "30分钟",
+          "essentials": true,
+          "deepDive": true
         },
         {
           "label": "第二次上门（实操）",
-          "essentials": "—",
-          "deepDive": "60分钟"
+          "detail": "60分钟",
+          "essentials": false,
+          "deepDive": true
         },
         {
           "label": "WhatsApp 支持",
-          "essentials": "—",
-          "deepDive": "2周"
+          "detail": "2周",
+          "essentials": false,
+          "deepDive": true
         }
       ],
       "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动",

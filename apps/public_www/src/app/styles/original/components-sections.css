@@ -27,7 +27,8 @@
   .es-faq-section,
   .es-free-guides-and-resources-hero-section,
   .es-free-resources-section,
-  .es-my-best-auntie-outline-section {
+  .es-my-best-auntie-outline-section,
+  .es-consultations-comparison-section {
     --es-section-bg-image: url('/images/evolvesprouts-logo.svg');
     --es-section-bg-position: center -150px;
     --es-section-bg-size: 900px auto;
@@ -50,8 +51,21 @@
   }
 
   .es-free-resources-section,
-  .es-my-best-auntie-outline-section {
+  .es-my-best-auntie-outline-section,
+  .es-consultations-comparison-section {
     background-color: var(--figma-colors-desktop, #FFFFFF);
+  }
+
+  .es-consultations-comparison-table th:first-child,
+  .es-consultations-comparison-table td:first-child {
+    width: 62%;
+  }
+
+  .es-consultations-comparison-table th:nth-child(2),
+  .es-consultations-comparison-table td:nth-child(2),
+  .es-consultations-comparison-table th:nth-child(3),
+  .es-consultations-comparison-table td:nth-child(3) {
+    width: 19%;
   }
 
   .es-connect-card-title {
