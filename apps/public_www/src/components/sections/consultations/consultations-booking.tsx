@@ -61,7 +61,6 @@ const LEVEL_CARD_CLASSNAME = mergeClassNames(
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
   'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
 
-/** Keeps level-card headings on one row when icons sit in a shared-height band above. */
 const LEVEL_CARD_ICON_BAND_CLASSNAME =
   'flex min-h-[84px] flex-none flex-col justify-center';
 
@@ -70,7 +69,6 @@ const LEVEL_FEATURE_LINE_CLASSNAME = 'block ps-0 text-left es-type-body es-text-
 
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
 
-/** ~8% narrower than prior w-[84vw] / sm:w-[68vw] for mobile carousel slides. */
 const MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME =
   'flex h-full w-[77.28vw] max-w-[331px] shrink-0 snap-center sm:w-[62.56vw]';
 
