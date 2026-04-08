@@ -31,6 +31,7 @@ export function ConsultationsPage({ locale, content }: ConsultationsPageProps) {
         calendarAvailability={calendarAvailability}
         thankYouWhatsappHref={publicSiteConfig.whatsappUrl}
         thankYouWhatsappCtaLabel={content.contactUs.form.contactMethodLinks.whatsapp}
+        commonAccessibility={content.common.accessibility}
       />
       <ConsultationsFocusDetails content={consultations.focusDetails} />
       <ConsultationsComparison content={consultations.comparison} />

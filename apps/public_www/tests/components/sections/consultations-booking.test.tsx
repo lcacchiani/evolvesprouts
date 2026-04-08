@@ -47,5 +47,17 @@ describe('ConsultationsBooking', () => {
       const icon = document.querySelector(`img[src="${level.iconSrc}"]`);
       expect(icon).not.toBeNull();
     }
+
+    const focusCarousel = screen.getByTestId('consultations-booking-focus-carousel');
+    expect(focusCarousel.className).toContain('snap-mandatory');
+    expect(focusCarousel.className).toContain('overflow-x-auto');
+    expect(focusCarousel.getAttribute('role')).toBe('region');
+    expect(focusCarousel.getAttribute('aria-roledescription')).toBe(
+      enContent.common.accessibility.carouselRoleDescription,
+    );
+
+    const levelCarousel = screen.getByTestId('consultations-booking-level-carousel');
+    expect(levelCarousel.className).toContain('snap-mandatory');
+    expect(levelCarousel.className).toContain('overflow-x-auto');
   });
 });

@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { useMemo, useState } from 'react';
 
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -15,16 +16,20 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type {
   BookingModalContent,
+  CommonAccessibilityContent,
   ConsultationsBookingContent,
   ConsultationsBookingReservationContent,
   Locale,
 } from '@/content';
+import enContent from '@/content/en.json';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import type { CalendarAvailabilityPayload } from '@/lib/calendar-availability';
 import {
   buildConsultationsBookingModalPayload,
   type ConsultationsBookingModalTierId,
 } from '@/lib/consultations-booking-modal-payload';
 import { mergeClassNames } from '@/lib/class-name-utils';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import type { ConsultationBookingPickerContent } from '@/components/sections/consultations/consultation-booking-modal';
 
@@ -87,6 +92,7 @@ interface ConsultationsBookingProps {
   calendarAvailability: CalendarAvailabilityPayload;
   thankYouWhatsappHref?: string;
   thankYouWhatsappCtaLabel?: string;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 export function ConsultationsBooking({
@@ -96,6 +102,7 @@ export function ConsultationsBooking({
   calendarAvailability,
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
+  commonAccessibility = enContent.common.accessibility,
 }: ConsultationsBookingProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [thankYouSummary, setThankYouSummary] = useState<ReservationSummary | null>(
@@ -138,6 +145,13 @@ export function ConsultationsBooking({
     return buildConsultationPickerContent(bookingModalContent.paymentModal);
   }, [bookingModalContent.paymentModal]);
 
+  const { carouselRef: focusCarouselRef } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: content.focusAreas.length,
+  });
+  const { carouselRef: levelCarouselRef } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: content.levels.length,
+  });
+
   return (
     <>
       <SectionShell
@@ -160,53 +174,70 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step1Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-3'>
-              {content.focusAreas.map((area) => {
-                const isSelected = area.id === selectedFocusId;
-                return (
-                  <ButtonPrimitive
-                    key={area.id}
-                    type='button'
-                    variant='selection'
-                    state={isSelected ? 'active' : 'inactive'}
-                    aria-pressed={isSelected}
-                    aria-label={area.title}
-                    onClick={() => {
-                      setSelectedFocusId(area.id);
-                    }}
-                    className={mergeClassNames(
-                      FOCUS_LEVEL_CARD_CLASSNAME,
-                      'flex flex-col',
-                    )}
-                  >
-                    <div className='flex justify-center'>
-                      <span
-                        aria-hidden='true'
-                        className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+            <div className='relative mt-6'>
+              <CarouselTrack
+                carouselRef={focusCarouselRef}
+                testId='consultations-booking-focus-carousel'
+                ariaLabel={formatContentTemplate(
+                  commonAccessibility.carouselLabelTemplate,
+                  { title: content.step1Title },
+                )}
+                ariaRoleDescription={commonAccessibility.carouselRoleDescription}
+                className='pb-2 md:snap-none md:overflow-visible md:pb-0'
+              >
+                <ul className='flex min-w-0 list-none gap-6 ps-0 md:grid md:grid-cols-3 md:gap-6'>
+                  {content.focusAreas.map((area) => {
+                    const isSelected = area.id === selectedFocusId;
+                    return (
+                      <li
+                        key={area.id}
+                        className='w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw] md:w-auto md:max-w-none md:shrink md:snap-none'
                       >
-                        <img
-                          src={area.iconSrc}
-                          alt=''
-                          width={44}
-                          height={44}
+                        <ButtonPrimitive
+                          type='button'
+                          variant='selection'
+                          state={isSelected ? 'active' : 'inactive'}
+                          aria-pressed={isSelected}
+                          aria-label={area.title}
+                          onClick={() => {
+                            setSelectedFocusId(area.id);
+                          }}
                           className={mergeClassNames(
-                            'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
-                            isSelected
-                              ? 'es-consultations-booking-selection-icon-active'
-                              : 'es-consultations-booking-selection-icon-inactive',
+                            FOCUS_LEVEL_CARD_CLASSNAME,
+                            'flex flex-col',
                           )}
-                        />
-                      </span>
-                    </div>
-                    <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                      {area.title}
-                    </h4>
-                    <p className='mt-2 es-type-body es-text-dim'>
-                      {area.description}
-                    </p>
-                  </ButtonPrimitive>
-                );
-              })}
+                        >
+                          <div className='flex justify-center'>
+                            <span
+                              aria-hidden='true'
+                              className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                            >
+                              <img
+                                src={area.iconSrc}
+                                alt=''
+                                width={44}
+                                height={44}
+                                className={mergeClassNames(
+                                  'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                  isSelected
+                                    ? 'es-consultations-booking-selection-icon-active'
+                                    : 'es-consultations-booking-selection-icon-inactive',
+                                )}
+                              />
+                            </span>
+                          </div>
+                          <h4 className='mt-5 text-lg font-bold es-text-heading'>
+                            {area.title}
+                          </h4>
+                          <p className='mt-2 es-type-body es-text-dim'>
+                            {area.description}
+                          </p>
+                        </ButtonPrimitive>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CarouselTrack>
             </div>
           </div>
 
@@ -214,71 +245,88 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step2Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
-              {content.levels.map((level) => {
-                const isSelected = level.id === selectedLevelId;
-                return (
-                  <ButtonPrimitive
-                    key={level.id}
-                    type='button'
-                    variant='selection'
-                    state={isSelected ? 'active' : 'inactive'}
-                    aria-pressed={isSelected}
-                    aria-label={level.title}
-                    onClick={() => {
-                      setSelectedLevelId(level.id);
-                    }}
-                    className={LEVEL_CARD_CLASSNAME}
-                  >
-                    <div className='flex flex-col'>
-                      <div className='flex justify-center'>
-                        <span
-                          aria-hidden='true'
-                          className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+            <div className='relative mt-6'>
+              <CarouselTrack
+                carouselRef={levelCarouselRef}
+                testId='consultations-booking-level-carousel'
+                ariaLabel={formatContentTemplate(
+                  commonAccessibility.carouselLabelTemplate,
+                  { title: content.step2Title },
+                )}
+                ariaRoleDescription={commonAccessibility.carouselRoleDescription}
+                className='pb-2 md:snap-none md:overflow-visible md:pb-0'
+              >
+                <ul className='flex min-w-0 list-none gap-6 ps-0 md:grid md:grid-cols-2 md:gap-6'>
+                  {content.levels.map((level) => {
+                    const isSelected = level.id === selectedLevelId;
+                    return (
+                      <li
+                        key={level.id}
+                        className='w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw] md:w-auto md:max-w-none md:shrink md:snap-none'
+                      >
+                        <ButtonPrimitive
+                          type='button'
+                          variant='selection'
+                          state={isSelected ? 'active' : 'inactive'}
+                          aria-pressed={isSelected}
+                          aria-label={level.title}
+                          onClick={() => {
+                            setSelectedLevelId(level.id);
+                          }}
+                          className={LEVEL_CARD_CLASSNAME}
                         >
-                          <img
-                            src={level.iconSrc}
-                            alt=''
-                            width={44}
-                            height={44}
-                            className={mergeClassNames(
-                              'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
-                              isSelected
-                                ? 'es-consultations-booking-selection-icon-active'
-                                : 'es-consultations-booking-selection-icon-inactive',
-                            )}
-                          />
-                        </span>
-                      </div>
-                      <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                        {level.title}
-                      </h4>
-                    </div>
-                    {'includesLabel' in level && level.includesLabel && (
-                      <p className='mt-3 text-sm font-medium es-text-dim'>
-                        {level.includesLabel}
-                      </p>
-                    )}
-                    <ul className='mt-3 list-none space-y-2 ps-0'>
-                      {level.features.map((feature, index) => (
-                        <li
-                          key={`${level.id}-feature-${index}`}
-                          className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
-                        >
-                          <span
-                            className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
-                            aria-hidden='true'
-                          />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <p className='mt-4 text-sm italic es-type-body es-text-dim'>
-                      {level.bestFor}
-                    </p>
-                  </ButtonPrimitive>
-                );
-              })}
+                          <div className='flex flex-col'>
+                            <div className='flex justify-center'>
+                              <span
+                                aria-hidden='true'
+                                className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                              >
+                                <img
+                                  src={level.iconSrc}
+                                  alt=''
+                                  width={44}
+                                  height={44}
+                                  className={mergeClassNames(
+                                    'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                    isSelected
+                                      ? 'es-consultations-booking-selection-icon-active'
+                                      : 'es-consultations-booking-selection-icon-inactive',
+                                  )}
+                                />
+                              </span>
+                            </div>
+                            <h4 className='mt-5 text-lg font-bold es-text-heading'>
+                              {level.title}
+                            </h4>
+                          </div>
+                          {'includesLabel' in level && level.includesLabel && (
+                            <p className='mt-3 text-sm font-medium es-text-dim'>
+                              {level.includesLabel}
+                            </p>
+                          )}
+                          <ul className='mt-3 list-none space-y-2 ps-0'>
+                            {level.features.map((feature, index) => (
+                              <li
+                                key={`${level.id}-feature-${index}`}
+                                className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
+                              >
+                                <span
+                                  className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
+                                  aria-hidden='true'
+                                />
+                                {feature}
+                              </li>
+                            ))}
+                          </ul>
+                          <p className='mt-4 text-sm italic es-type-body es-text-dim'>
+                            {level.bestFor}
+                          </p>
+                        </ButtonPrimitive>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CarouselTrack>
             </div>
           </div>
 
