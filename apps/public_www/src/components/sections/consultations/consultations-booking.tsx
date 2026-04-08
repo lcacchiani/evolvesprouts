@@ -77,16 +77,15 @@ const LEVEL_COMPACT_LI_CLASSNAME =
   'flex min-h-0 min-w-0 flex-col md:w-full';
 
 function ConsultationsBookingLevelDescription({
+  whatYouGetHeading,
   level,
 }: {
+  whatYouGetHeading: string;
   level: ConsultationsBookingContent['levels'][number];
 }) {
   return (
     <div className='text-left'>
-      <h4 className='text-lg font-bold es-text-heading'>{level.title}</h4>
-      {'includesLabel' in level && level.includesLabel ? (
-        <p className='mt-3 text-sm font-medium es-text-dim'>{level.includesLabel}</p>
-      ) : null}
+      <h4 className='text-lg font-bold es-text-heading'>{whatYouGetHeading}</h4>
       <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
         {level.features.map((feature, index) => (
           <li
@@ -439,7 +438,10 @@ export function ConsultationsBooking({
                           : undefined
                       }
                     >
-                      <ConsultationsBookingLevelDescription level={selectedLevel} />
+                      <ConsultationsBookingLevelDescription
+                        whatYouGetHeading={content.whatYouGetHeading}
+                        level={selectedLevel}
+                      />
                     </div>
                   ) : null}
                 </div>

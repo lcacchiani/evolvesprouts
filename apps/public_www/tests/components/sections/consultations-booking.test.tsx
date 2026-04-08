@@ -99,7 +99,9 @@ describe('ConsultationsBooking', () => {
     const essentials = booking.levels[0];
     expect(essentials).toBeDefined();
     expect(
-      within(levelDescription).getByRole('heading', { name: essentials!.title }),
+      within(levelDescription).getByRole('heading', {
+        name: booking.whatYouGetHeading,
+      }),
     ).toBeInTheDocument();
     for (const feature of essentials!.features) {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
@@ -112,7 +114,9 @@ describe('ConsultationsBooking', () => {
     expect(deepDive).toBeDefined();
     fireEvent.click(within(levelGrid).getByRole('button', { name: deepDive!.title }));
     expect(
-      within(levelDescription).getByRole('heading', { name: deepDive!.title }),
+      within(levelDescription).getByRole('heading', {
+        name: booking.whatYouGetHeading,
+      }),
     ).toBeInTheDocument();
     for (const feature of deepDive!.features) {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
@@ -188,7 +192,9 @@ describe('ConsultationsBooking', () => {
     const essentials = booking.levels[0];
     expect(essentials).toBeDefined();
     expect(
-      within(levelDescription).getByRole('heading', { name: essentials!.title }),
+      within(levelDescription).getByRole('heading', {
+        name: booking.whatYouGetHeading,
+      }),
     ).toBeInTheDocument();
     for (const feature of essentials!.features) {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
@@ -201,7 +207,9 @@ describe('ConsultationsBooking', () => {
     fireEvent.click(deepDiveButton);
     expect(deepDiveButton.getAttribute('aria-pressed')).toBe('true');
     expect(
-      within(levelDescription).getByRole('heading', { name: deepDive!.title }),
+      within(levelDescription).getByRole('heading', {
+        name: booking.whatYouGetHeading,
+      }),
     ).toBeInTheDocument();
     for (const feature of deepDive!.features) {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
