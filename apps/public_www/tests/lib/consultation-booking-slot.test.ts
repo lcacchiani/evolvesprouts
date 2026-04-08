@@ -16,6 +16,7 @@ import {
   CONSULTATION_SLOT_PM_HOUR_LOCAL,
   firstSelectableConsultationPeriod,
   formatConsultationPickerMonthHeading,
+  formatConsultationSelectedSlotSummary,
   getMondayOfWeekContainingInZone,
   pickDefaultConsultationSelection,
   rebaseConsultationDateParts,
@@ -115,6 +116,20 @@ describe('consultation-booking-slot', () => {
     );
     expect(label).toContain('·');
     expect(label.length).toBeGreaterThan(5);
+  });
+
+  it('formatConsultationSelectedSlotSummary includes weekday, date in zone, and period label', () => {
+    const summary = formatConsultationSelectedSlotSummary(
+      '2026-04-09',
+      'am',
+      'en',
+      HK,
+      'AM',
+    );
+    expect(summary).toContain('AM');
+    expect(summary).toContain('Thursday');
+    expect(summary).toContain('April');
+    expect(summary).toContain('2026');
   });
 
   it('zoneWallClockYmdToUtcIso maps zone wall time to UTC ISO (Hong Kong)', () => {

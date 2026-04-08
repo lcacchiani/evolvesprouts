@@ -25,6 +25,7 @@ import {
   collectDistinctYearMonthsFromYmds,
   firstSelectableConsultationPeriod,
   formatConsultationPickerMonthHeading,
+  formatConsultationSelectedSlotSummary,
   isConsultationPeriodBlocked,
   pickDefaultConsultationSelection,
   rebaseConsultationDateParts,
@@ -52,6 +53,7 @@ interface ConsultationBookingModalProps {
 }
 
 export interface ConsultationBookingPickerContent {
+  pickDateTimeIntro: string;
   amLabel: string;
   pmLabel: string;
   monthJoiner: string;
@@ -100,75 +102,37 @@ function ConsultationDatePickerGrid({
   const periodGroupId = useId();
   const gridLabelId = useId();
 
+  const periodLabel = dayPeriod === 'am' ? content.amLabel : content.pmLabel;
+  const selectedSlotSummary =
+    selectedYmd.trim().length > 0
+      ? formatConsultationSelectedSlotSummary(
+          selectedYmd,
+          dayPeriod,
+          locale,
+          timeZone,
+          periodLabel,
+        )
+      : '';
+
   return (
-    <div data-consultation-date-picker='true'>
-      <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+    <div data-consultation-date-picker='true' className='flex flex-col gap-6'>
+      <p className='text-base font-semibold leading-6 es-text-heading'>
+        {content.pickDateTimeIntro}
+      </p>
+
+      <div>
         <p
           className='text-lg font-semibold leading-6 es-text-heading'
           aria-live='polite'
         >
           {monthHeading}
         </p>
-        <div className='flex shrink-0 flex-col gap-1'>
-          <span className='sr-only' id={periodGroupId}>
-            {content.datePickerLegend}
-          </span>
-          <div
-            className='inline-flex rounded-full border border-black/20 p-1 es-bg-surface-muted'
-            role='group'
-            aria-labelledby={periodGroupId}
-          >
-            <button
-              type='button'
-              disabled={
-                !selectedYmd ||
-                isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
-              }
-              className={mergeClassNames(
-                'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-                !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
-                  ? 'cursor-not-allowed opacity-40'
-                  : dayPeriod === 'am'
-                    ? 'es-bg-surface es-text-heading shadow-sm'
-                    : 'es-text-body opacity-80',
-              )}
-              aria-pressed={dayPeriod === 'am'}
-              onClick={() => {
-                onSelectPeriod('am');
-              }}
-            >
-              {content.amLabel}
-            </button>
-            <button
-              type='button'
-              disabled={
-                !selectedYmd ||
-                isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
-              }
-              className={mergeClassNames(
-                'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-                !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
-                  ? 'cursor-not-allowed opacity-40'
-                  : dayPeriod === 'pm'
-                    ? 'es-bg-surface es-text-heading shadow-sm'
-                    : 'es-text-body opacity-80',
-              )}
-              aria-pressed={dayPeriod === 'pm'}
-              onClick={() => {
-                onSelectPeriod('pm');
-              }}
-            >
-              {content.pmLabel}
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <p className='sr-only' id={gridLabelId}>
-        {content.datePickerLegend}
-      </p>
-      <div className='mt-6 overflow-x-auto' aria-labelledby={gridLabelId}>
-        <table className='w-full min-w-[280px] border-collapse text-center'>
+        <p className='sr-only' id={gridLabelId}>
+          {content.datePickerLegend}
+        </p>
+        <div className='mt-6 overflow-x-auto' aria-labelledby={gridLabelId}>
+          <table className='w-full min-w-[280px] border-collapse text-center'>
           <thead>
             <tr>
               {content.weekdayShortLabels.map((label) => (
@@ -209,7 +173,7 @@ function ConsultationDatePickerGrid({
                             ? 'cursor-not-allowed opacity-30'
                             : 'es-text-heading hover:es-bg-surface-muted',
                           isSelected && !cell.isDisabled
-                            ? 'border-2 border-current es-bg-surface'
+                            ? 'border-2 es-border-warm-2 es-bg-brand-orange-soft es-text-brand'
                             : 'border border-transparent',
                         )}
                         onClick={() => {
@@ -226,8 +190,81 @@ function ConsultationDatePickerGrid({
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
+
+      <div className='flex flex-col items-center gap-1'>
+        <span className='sr-only' id={periodGroupId}>
+          {content.datePickerLegend}
+        </span>
+        <div
+          className='inline-flex rounded-full border border-black/20 p-1 es-bg-surface-muted'
+          role='group'
+          aria-labelledby={periodGroupId}
+        >
+          <button
+            type='button'
+            disabled={
+              !selectedYmd ||
+              isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
+            }
+            className={mergeClassNames(
+              'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+              !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
+                ? 'cursor-not-allowed opacity-40'
+                : dayPeriod === 'am'
+                  ? 'es-bg-brand-orange-soft es-text-brand shadow-sm'
+                  : 'es-text-body opacity-80',
+            )}
+            aria-pressed={dayPeriod === 'am'}
+            onClick={() => {
+              onSelectPeriod('am');
+            }}
+          >
+            {content.amLabel}
+          </button>
+          <button
+            type='button'
+            disabled={
+              !selectedYmd ||
+              isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
+            }
+            className={mergeClassNames(
+              'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+              !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
+                ? 'cursor-not-allowed opacity-40'
+                : dayPeriod === 'pm'
+                  ? 'es-bg-brand-orange-soft es-text-brand shadow-sm'
+                  : 'es-text-body opacity-80',
+            )}
+            aria-pressed={dayPeriod === 'pm'}
+            onClick={() => {
+              onSelectPeriod('pm');
+            }}
+          >
+            {content.pmLabel}
+          </button>
+        </div>
+      </div>
+
+      {selectedSlotSummary ? (
+        <div
+          className='flex items-center gap-4'
+          data-testid='consultation-modal-selected-slot'
+        >
+          <span className='es-icon-circle-lg shrink-0'>
+            <span
+              data-testid='consultation-modal-selected-slot-calendar-icon'
+              className='es-mask-calendar-current h-[37px] w-[37px] shrink-0 text-black'
+              aria-hidden='true'
+            />
+          </span>
+          <p className='min-w-0 flex-1 rounded-lg border es-border-warm-2 es-bg-brand-orange-soft px-4 py-3 text-[17px] font-semibold leading-6 es-text-brand'>
+            {selectedSlotSummary}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
