@@ -376,7 +376,7 @@ export function ConsultationsBooking({
                 role='group'
                 aria-label={content.step2Title}
                 data-testid='consultations-booking-level-grid'
-                className='flex flex-col gap-6 md:grid md:grid-cols-2 md:gap-6'
+                className='flex flex-col gap-6 md:grid md:grid-cols-3 md:gap-6'
               >
                 <ul className='grid list-none grid-cols-2 gap-3 ps-0 sm:gap-4 md:flex md:flex-col md:gap-4'>
                   {content.levels.map((level) => {
@@ -423,7 +423,7 @@ export function ConsultationsBooking({
                   })}
                 </ul>
                 <div
-                  className='min-w-0 md:min-h-0'
+                  className='min-w-0 md:col-span-2 md:min-h-0'
                   aria-live='polite'
                   aria-atomic='true'
                   data-testid='consultations-booking-level-description'
