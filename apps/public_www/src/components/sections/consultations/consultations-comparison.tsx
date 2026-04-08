@@ -23,7 +23,7 @@ export function ConsultationsComparison({
       <SectionContainer>
         <SectionHeader eyebrow={content.eyebrow} title={content.title} />
 
-        <div className='mt-10'>
+        <div className='mx-auto mt-10 w-full max-w-[780px]'>
           <table className='es-consultations-comparison-table w-full table-fixed border-collapse text-left'>
             <thead>
               <tr>
