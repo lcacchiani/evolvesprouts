@@ -4,6 +4,7 @@ import {
   SectionContainer,
 } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
+import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ConsultationsHeroContent } from '@/content';
 
@@ -33,6 +34,9 @@ export function ConsultationsHero({ content }: ConsultationsHeroProps) {
             description={content.subtitle}
             descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
           />
+          <p className='mt-4 max-w-[720px] es-type-body'>
+            {renderQuotedDescriptionText(content.description)}
+          </p>
           <div className='mt-8'>
             <SectionCtaAnchor
               href={content.ctaHref}
