@@ -415,7 +415,7 @@ export function ConsultationsBooking({
                                   </span>
                                 </div>
                               </div>
-                              <h4 className='mt-5 w-full text-left text-lg font-bold es-text-heading'>
+                              <h4 className='mt-5 text-lg font-bold es-text-heading'>
                                 {level.title}
                               </h4>
                               {'includesLabel' in level && level.includesLabel && (
@@ -486,7 +486,7 @@ export function ConsultationsBooking({
                                 </span>
                               </div>
                             </div>
-                            <h4 className='mt-5 w-full text-left text-lg font-bold es-text-heading'>
+                            <h4 className='mt-5 text-lg font-bold es-text-heading'>
                               {level.title}
                             </h4>
                             {'includesLabel' in level && level.includesLabel && (
