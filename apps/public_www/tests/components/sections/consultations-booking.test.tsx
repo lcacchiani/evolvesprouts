@@ -114,9 +114,6 @@ describe('ConsultationsBooking', () => {
     expect(
       within(levelDescription).getByRole('heading', { name: deepDive!.title }),
     ).toBeInTheDocument();
-    expect(
-      within(levelDescription).getByText(deepDive!.includesLabel!),
-    ).toBeInTheDocument();
     for (const feature of deepDive!.features) {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
     }
@@ -206,9 +203,9 @@ describe('ConsultationsBooking', () => {
     expect(
       within(levelDescription).getByRole('heading', { name: deepDive!.title }),
     ).toBeInTheDocument();
-    expect(
-      within(levelDescription).getByText(deepDive!.includesLabel!),
-    ).toBeInTheDocument();
+    for (const feature of deepDive!.features) {
+      expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
+    }
 
     fireEvent.keyDown(focusCarousel, { key: 'ArrowRight' });
   });

@@ -59,6 +59,7 @@ const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
 const LEVEL_COMPACT_SELECTOR_CLASSNAME = mergeClassNames(
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-3 py-4 text-center sm:px-4 md:py-5',
   'flex min-h-0 flex-col items-center justify-center gap-3',
+  'md:w-[calc((100%-3rem)/3)] md:flex-row md:items-center md:justify-start md:gap-[50px] md:px-8 md:py-8 md:text-left',
 );
 
 const LEVEL_FEATURES_LIST_CLASSNAME =
@@ -415,7 +416,7 @@ export function ConsultationsBooking({
                               )}
                             />
                           </span>
-                          <span className='w-full min-w-0 max-w-full break-words text-center text-sm font-bold leading-tight es-text-heading sm:text-base md:text-lg'>
+                          <span className='w-full min-w-0 max-w-full break-words text-center text-sm font-bold leading-tight es-text-heading sm:text-base md:w-auto md:max-w-none md:text-left md:text-lg'>
                             {level.title}
                           </span>
                         </ButtonPrimitive>

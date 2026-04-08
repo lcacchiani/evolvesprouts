@@ -1230,8 +1230,10 @@
           "id": "deep-dive",
           "iconSrc": "/images/deep-dive.svg",
           "title": "深入版",
-          "includesLabel": "包含基础版全部内容，另加：",
           "features": [
+            "60分钟评估上门",
+            "书面报告及明确建议",
+            "30分钟跟进通话",
             "第二次上门，60分钟，实操指导",
             "最后一次课程后2周的WhatsApp支持"
           ],

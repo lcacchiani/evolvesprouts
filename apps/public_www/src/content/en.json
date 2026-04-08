@@ -1230,8 +1230,10 @@
           "id": "deep-dive",
           "iconSrc": "/images/deep-dive.svg",
           "title": "Deep Dive",
-          "includesLabel": "Everything in Essentials, plus:",
           "features": [
+            "60-minute assessment visit",
+            "Written report with clear recommendations",
+            "30-minute follow-up call",
             "Second visit, 60 minutes, hands-on implementation",
             "2 weeks of WhatsApp support after the last session"
           ],
