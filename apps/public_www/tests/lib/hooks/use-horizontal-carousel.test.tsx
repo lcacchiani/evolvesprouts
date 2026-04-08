@@ -6,6 +6,7 @@ import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
 interface HarnessProps {
   itemCount: number;
+  enabled?: boolean;
   minItemsForNavigation?: number;
   loop?: boolean;
   snapToItem?: boolean;
@@ -13,6 +14,7 @@ interface HarnessProps {
 
 function HookHarness({
   itemCount,
+  enabled,
   minItemsForNavigation,
   loop,
   snapToItem,
@@ -26,6 +28,7 @@ function HookHarness({
     scrollItemIntoView,
   } = useHorizontalCarousel<HTMLDivElement>({
     itemCount,
+    enabled,
     minItemsForNavigation,
     loop,
     snapToItem,
@@ -104,6 +107,12 @@ function defineTrackMetrics(track: HTMLElement, metrics: {
 }
 
 describe('useHorizontalCarousel', () => {
+  it('skips navigation wiring when enabled is false', () => {
+    render(<HookHarness itemCount={5} enabled={false} />);
+
+    expect(screen.getByTestId('state')).toHaveTextContent('false|false|false');
+  });
+
   it('disables navigation when item count does not pass the threshold', () => {
     render(<HookHarness itemCount={1} />);
 

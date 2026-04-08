@@ -3,9 +3,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type KeyboardEvent } from 'react';
 
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import {
   buildSectionSplitLayoutClassName,
   SectionContainer,
@@ -15,16 +16,21 @@ import { SectionShell } from '@/components/sections/shared/section-shell';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import type {
   BookingModalContent,
+  CommonAccessibilityContent,
   ConsultationsBookingContent,
   ConsultationsBookingReservationContent,
   Locale,
 } from '@/content';
+import enContent from '@/content/en.json';
+import { formatContentTemplate } from '@/content/content-field-utils';
 import type { CalendarAvailabilityPayload } from '@/lib/calendar-availability';
 import {
   buildConsultationsBookingModalPayload,
   type ConsultationsBookingModalTierId,
 } from '@/lib/consultations-booking-modal-payload';
 import { mergeClassNames } from '@/lib/class-name-utils';
+import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
+import { useMatchMedia } from '@/lib/hooks/use-match-media';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import type { ConsultationBookingPickerContent } from '@/components/sections/consultations/consultation-booking-modal';
 
@@ -54,6 +60,19 @@ const LEVEL_CARD_CLASSNAME = mergeClassNames(
 
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
   'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
+
+const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
+
+function ConsultationBookingCarouselArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+  const rotationClass = direction === 'left' ? 'rotate-180' : '';
+
+  return (
+    <span
+      aria-hidden
+      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 es-text-icon ${rotationClass}`}
+    />
+  );
+}
 
 function mapLevelIdToBookingTier(levelId: string): ConsultationsBookingModalTierId {
   return levelId === 'deep-dive' ? 'deepDive' : 'essentials';
@@ -87,6 +106,7 @@ interface ConsultationsBookingProps {
   calendarAvailability: CalendarAvailabilityPayload;
   thankYouWhatsappHref?: string;
   thankYouWhatsappCtaLabel?: string;
+  commonAccessibility?: CommonAccessibilityContent;
 }
 
 export function ConsultationsBooking({
@@ -96,6 +116,7 @@ export function ConsultationsBooking({
   calendarAvailability,
   thankYouWhatsappHref,
   thankYouWhatsappCtaLabel,
+  commonAccessibility = enContent.common.accessibility,
 }: ConsultationsBookingProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [thankYouSummary, setThankYouSummary] = useState<ReservationSummary | null>(
@@ -138,6 +159,110 @@ export function ConsultationsBooking({
     return buildConsultationPickerContent(bookingModalContent.paymentModal);
   }, [bookingModalContent.paymentModal]);
 
+  const focusCarouselScrollLabels = useMemo(() => {
+    const stepTitle = content.step1Title.replace(/:\s*$/, '');
+    return {
+      left: formatContentTemplate(content.scrollStepCarouselLeftAriaLabelTemplate, {
+        stepTitle,
+      }),
+      right: formatContentTemplate(content.scrollStepCarouselRightAriaLabelTemplate, {
+        stepTitle,
+      }),
+    };
+  }, [
+    content.scrollStepCarouselLeftAriaLabelTemplate,
+    content.scrollStepCarouselRightAriaLabelTemplate,
+    content.step1Title,
+  ]);
+
+  const levelCarouselScrollLabels = useMemo(() => {
+    const stepTitle = content.step2Title.replace(/:\s*$/, '');
+    return {
+      left: formatContentTemplate(content.scrollStepCarouselLeftAriaLabelTemplate, {
+        stepTitle,
+      }),
+      right: formatContentTemplate(content.scrollStepCarouselRightAriaLabelTemplate, {
+        stepTitle,
+      }),
+    };
+  }, [
+    content.scrollStepCarouselLeftAriaLabelTemplate,
+    content.scrollStepCarouselRightAriaLabelTemplate,
+    content.step2Title,
+  ]);
+
+  const isMdUp = useMatchMedia(MD_UP_MEDIA_QUERY);
+
+  const {
+    carouselRef: focusCarouselRef,
+    hasNavigation: hasFocusCarouselNav,
+    canScrollPrevious: canScrollFocusPrev,
+    canScrollNext: canScrollFocusNext,
+    scrollByDirection: scrollFocusCarouselByDirection,
+  } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: content.focusAreas.length,
+    enabled: !isMdUp,
+    snapToItem: true,
+  });
+
+  const {
+    carouselRef: levelCarouselRef,
+    hasNavigation: hasLevelCarouselNav,
+    canScrollPrevious: canScrollLevelPrev,
+    canScrollNext: canScrollLevelNext,
+    scrollByDirection: scrollLevelCarouselByDirection,
+  } = useHorizontalCarousel<HTMLDivElement>({
+    itemCount: content.levels.length,
+    enabled: !isMdUp,
+    snapToItem: true,
+  });
+
+  const scrollFocusCarousel = useCallback(
+    (direction: 'prev' | 'next') => {
+      scrollFocusCarouselByDirection(direction);
+    },
+    [scrollFocusCarouselByDirection],
+  );
+
+  const scrollLevelCarousel = useCallback(
+    (direction: 'prev' | 'next') => {
+      scrollLevelCarouselByDirection(direction);
+    },
+    [scrollLevelCarouselByDirection],
+  );
+
+  const handleFocusCarouselKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (isMdUp) {
+        return;
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        scrollFocusCarousel('prev');
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        scrollFocusCarousel('next');
+      }
+    },
+    [isMdUp, scrollFocusCarousel],
+  );
+
+  const handleLevelCarouselKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (isMdUp) {
+        return;
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        scrollLevelCarousel('prev');
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        scrollLevelCarousel('next');
+      }
+    },
+    [isMdUp, scrollLevelCarousel],
+  );
+
   return (
     <>
       <SectionShell
@@ -160,53 +285,160 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step1Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-3'>
-              {content.focusAreas.map((area) => {
-                const isSelected = area.id === selectedFocusId;
-                return (
-                  <ButtonPrimitive
-                    key={area.id}
-                    type='button'
-                    variant='selection'
-                    state={isSelected ? 'active' : 'inactive'}
-                    aria-pressed={isSelected}
-                    aria-label={area.title}
-                    onClick={() => {
-                      setSelectedFocusId(area.id);
-                    }}
-                    className={mergeClassNames(
-                      FOCUS_LEVEL_CARD_CLASSNAME,
-                      'flex flex-col',
+            <div className='relative mt-6'>
+              {!isMdUp ? (
+                <div className='relative'>
+                  <CarouselTrack
+                    carouselRef={focusCarouselRef}
+                    testId='consultations-booking-focus-carousel'
+                    ariaLabel={formatContentTemplate(
+                      commonAccessibility.carouselLabelTemplate,
+                      { title: content.step1Title },
                     )}
+                    ariaRoleDescription={commonAccessibility.carouselRoleDescription}
+                    className='pb-2 outline-none es-focus-ring'
+                    tabIndex={0}
+                    onKeyDown={handleFocusCarouselKeyDown}
                   >
-                    <div className='flex justify-center'>
-                      <span
-                        aria-hidden='true'
-                        className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
-                      >
-                        <img
-                          src={area.iconSrc}
-                          alt=''
-                          width={44}
-                          height={44}
-                          className={mergeClassNames(
-                            'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
-                            isSelected
-                              ? 'es-consultations-booking-selection-icon-active'
-                              : 'es-consultations-booking-selection-icon-inactive',
-                          )}
-                        />
-                      </span>
-                    </div>
-                    <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                      {area.title}
-                    </h4>
-                    <p className='mt-2 es-type-body es-text-dim'>
-                      {area.description}
-                    </p>
-                  </ButtonPrimitive>
-                );
-              })}
+                    <ul className='flex min-w-0 list-none items-stretch gap-6 ps-0'>
+                      {content.focusAreas.map((area) => {
+                        const isSelected = area.id === selectedFocusId;
+                        return (
+                          <li
+                            key={area.id}
+                            className='flex h-full w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw]'
+                          >
+                            <ButtonPrimitive
+                              type='button'
+                              variant='selection'
+                              state={isSelected ? 'active' : 'inactive'}
+                              aria-pressed={isSelected}
+                              aria-label={area.title}
+                              onClick={() => {
+                                setSelectedFocusId(area.id);
+                              }}
+                              className={mergeClassNames(
+                                FOCUS_LEVEL_CARD_CLASSNAME,
+                                'flex min-h-0 flex-1 flex-col',
+                              )}
+                            >
+                              <div className='flex justify-center'>
+                                <span
+                                  aria-hidden='true'
+                                  className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                                >
+                                  <img
+                                    src={area.iconSrc}
+                                    alt=''
+                                    width={44}
+                                    height={44}
+                                    className={mergeClassNames(
+                                      'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                      isSelected
+                                        ? 'es-consultations-booking-selection-icon-active'
+                                        : 'es-consultations-booking-selection-icon-inactive',
+                                    )}
+                                  />
+                                </span>
+                              </div>
+                              <h4 className='mt-5 text-lg font-bold es-text-heading'>
+                                {area.title}
+                              </h4>
+                              <p className='mt-2 es-type-body es-text-dim'>
+                                {area.description}
+                              </p>
+                            </ButtonPrimitive>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </CarouselTrack>
+
+                  {hasFocusCarouselNav && canScrollFocusPrev ? (
+                    <ButtonPrimitive
+                      type='button'
+                      variant='control'
+                      onClick={() => {
+                        scrollFocusCarousel('prev');
+                      }}
+                      aria-label={focusCarouselScrollLabels.left}
+                      className='absolute left-2 top-1/2 z-20 flex -translate-y-1/2'
+                    >
+                      <ConsultationBookingCarouselArrowIcon direction='left' />
+                    </ButtonPrimitive>
+                  ) : null}
+
+                  {hasFocusCarouselNav && canScrollFocusNext ? (
+                    <ButtonPrimitive
+                      type='button'
+                      variant='control'
+                      onClick={() => {
+                        scrollFocusCarousel('next');
+                      }}
+                      aria-label={focusCarouselScrollLabels.right}
+                      className='absolute right-2 top-1/2 z-20 flex -translate-y-1/2'
+                    >
+                      <ConsultationBookingCarouselArrowIcon direction='right' />
+                    </ButtonPrimitive>
+                  ) : null}
+                </div>
+              ) : (
+                <div
+                  role='group'
+                  aria-label={content.step1Title}
+                  data-testid='consultations-booking-focus-grid'
+                >
+                  <ul className='grid list-none grid-cols-3 gap-6 ps-0'>
+                    {content.focusAreas.map((area) => {
+                      const isSelected = area.id === selectedFocusId;
+                      return (
+                        <li key={area.id}>
+                          <ButtonPrimitive
+                            type='button'
+                            variant='selection'
+                            state={isSelected ? 'active' : 'inactive'}
+                            aria-pressed={isSelected}
+                            aria-label={area.title}
+                            onClick={() => {
+                              setSelectedFocusId(area.id);
+                            }}
+                            className={mergeClassNames(
+                              FOCUS_LEVEL_CARD_CLASSNAME,
+                              'flex flex-col',
+                            )}
+                          >
+                            <div className='flex justify-center'>
+                              <span
+                                aria-hidden='true'
+                                className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                              >
+                                <img
+                                  src={area.iconSrc}
+                                  alt=''
+                                  width={44}
+                                  height={44}
+                                  className={mergeClassNames(
+                                    'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                    isSelected
+                                      ? 'es-consultations-booking-selection-icon-active'
+                                      : 'es-consultations-booking-selection-icon-inactive',
+                                  )}
+                                />
+                              </span>
+                            </div>
+                            <h4 className='mt-5 text-lg font-bold es-text-heading'>
+                              {area.title}
+                            </h4>
+                            <p className='mt-2 es-type-body es-text-dim'>
+                              {area.description}
+                            </p>
+                          </ButtonPrimitive>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
@@ -214,71 +446,196 @@ export function ConsultationsBooking({
             <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step2Title}
             </h3>
-            <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
-              {content.levels.map((level) => {
-                const isSelected = level.id === selectedLevelId;
-                return (
-                  <ButtonPrimitive
-                    key={level.id}
-                    type='button'
-                    variant='selection'
-                    state={isSelected ? 'active' : 'inactive'}
-                    aria-pressed={isSelected}
-                    aria-label={level.title}
-                    onClick={() => {
-                      setSelectedLevelId(level.id);
-                    }}
-                    className={LEVEL_CARD_CLASSNAME}
-                  >
-                    <div className='flex flex-col'>
-                      <div className='flex justify-center'>
-                        <span
-                          aria-hidden='true'
-                          className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
-                        >
-                          <img
-                            src={level.iconSrc}
-                            alt=''
-                            width={44}
-                            height={44}
-                            className={mergeClassNames(
-                              'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
-                              isSelected
-                                ? 'es-consultations-booking-selection-icon-active'
-                                : 'es-consultations-booking-selection-icon-inactive',
-                            )}
-                          />
-                        </span>
-                      </div>
-                      <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                        {level.title}
-                      </h4>
-                    </div>
-                    {'includesLabel' in level && level.includesLabel && (
-                      <p className='mt-3 text-sm font-medium es-text-dim'>
-                        {level.includesLabel}
-                      </p>
+            <div className='relative mt-6'>
+              {!isMdUp ? (
+                <div className='relative'>
+                  <CarouselTrack
+                    carouselRef={levelCarouselRef}
+                    testId='consultations-booking-level-carousel'
+                    ariaLabel={formatContentTemplate(
+                      commonAccessibility.carouselLabelTemplate,
+                      { title: content.step2Title },
                     )}
-                    <ul className='mt-3 list-none space-y-2 ps-0'>
-                      {level.features.map((feature, index) => (
-                        <li
-                          key={`${level.id}-feature-${index}`}
-                          className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
-                        >
-                          <span
-                            className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
-                            aria-hidden='true'
-                          />
-                          {feature}
-                        </li>
-                      ))}
+                    ariaRoleDescription={commonAccessibility.carouselRoleDescription}
+                    className='pb-2 outline-none es-focus-ring'
+                    tabIndex={0}
+                    onKeyDown={handleLevelCarouselKeyDown}
+                  >
+                    <ul className='flex min-w-0 list-none items-stretch gap-6 ps-0'>
+                      {content.levels.map((level) => {
+                        const isSelected = level.id === selectedLevelId;
+                        return (
+                          <li
+                            key={level.id}
+                            className='flex h-full w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw]'
+                          >
+                            <ButtonPrimitive
+                              type='button'
+                              variant='selection'
+                              state={isSelected ? 'active' : 'inactive'}
+                              aria-pressed={isSelected}
+                              aria-label={level.title}
+                              onClick={() => {
+                                setSelectedLevelId(level.id);
+                              }}
+                              className={mergeClassNames(LEVEL_CARD_CLASSNAME, 'min-h-0 flex-1')}
+                            >
+                              <div className='flex flex-col'>
+                                <div className='flex justify-center'>
+                                  <span
+                                    aria-hidden='true'
+                                    className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                                  >
+                                    <img
+                                      src={level.iconSrc}
+                                      alt=''
+                                      width={44}
+                                      height={44}
+                                      className={mergeClassNames(
+                                        'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                        isSelected
+                                          ? 'es-consultations-booking-selection-icon-active'
+                                          : 'es-consultations-booking-selection-icon-inactive',
+                                      )}
+                                    />
+                                  </span>
+                                </div>
+                                <h4 className='mt-5 text-lg font-bold es-text-heading'>
+                                  {level.title}
+                                </h4>
+                              </div>
+                              {'includesLabel' in level && level.includesLabel && (
+                                <p className='mt-3 text-sm font-medium es-text-dim'>
+                                  {level.includesLabel}
+                                </p>
+                              )}
+                              <ul className='mt-3 list-none space-y-2 ps-0'>
+                                {level.features.map((feature, index) => (
+                                  <li
+                                    key={`${level.id}-feature-${index}`}
+                                    className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
+                                  >
+                                    <span
+                                      className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
+                                      aria-hidden='true'
+                                    />
+                                    {feature}
+                                  </li>
+                                ))}
+                              </ul>
+                              <p className='mt-4 text-sm italic es-type-body es-text-dim'>
+                                {level.bestFor}
+                              </p>
+                            </ButtonPrimitive>
+                          </li>
+                        );
+                      })}
                     </ul>
-                    <p className='mt-4 text-sm italic es-type-body es-text-dim'>
-                      {level.bestFor}
-                    </p>
-                  </ButtonPrimitive>
-                );
-              })}
+                  </CarouselTrack>
+
+                  {hasLevelCarouselNav && canScrollLevelPrev ? (
+                    <ButtonPrimitive
+                      type='button'
+                      variant='control'
+                      onClick={() => {
+                        scrollLevelCarousel('prev');
+                      }}
+                      aria-label={levelCarouselScrollLabels.left}
+                      className='absolute left-2 top-1/2 z-20 flex -translate-y-1/2'
+                    >
+                      <ConsultationBookingCarouselArrowIcon direction='left' />
+                    </ButtonPrimitive>
+                  ) : null}
+
+                  {hasLevelCarouselNav && canScrollLevelNext ? (
+                    <ButtonPrimitive
+                      type='button'
+                      variant='control'
+                      onClick={() => {
+                        scrollLevelCarousel('next');
+                      }}
+                      aria-label={levelCarouselScrollLabels.right}
+                      className='absolute right-2 top-1/2 z-20 flex -translate-y-1/2'
+                    >
+                      <ConsultationBookingCarouselArrowIcon direction='right' />
+                    </ButtonPrimitive>
+                  ) : null}
+                </div>
+              ) : (
+                <div
+                  role='group'
+                  aria-label={content.step2Title}
+                  data-testid='consultations-booking-level-grid'
+                >
+                  <ul className='grid list-none grid-cols-2 gap-6 ps-0'>
+                    {content.levels.map((level) => {
+                      const isSelected = level.id === selectedLevelId;
+                      return (
+                        <li key={level.id}>
+                          <ButtonPrimitive
+                            type='button'
+                            variant='selection'
+                            state={isSelected ? 'active' : 'inactive'}
+                            aria-pressed={isSelected}
+                            aria-label={level.title}
+                            onClick={() => {
+                              setSelectedLevelId(level.id);
+                            }}
+                            className={LEVEL_CARD_CLASSNAME}
+                          >
+                            <div className='flex flex-col'>
+                              <div className='flex justify-center'>
+                                <span
+                                  aria-hidden='true'
+                                  className={CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME}
+                                >
+                                  <img
+                                    src={level.iconSrc}
+                                    alt=''
+                                    width={44}
+                                    height={44}
+                                    className={mergeClassNames(
+                                      'h-11 w-11 shrink-0 object-contain transition-[filter] duration-200',
+                                      isSelected
+                                        ? 'es-consultations-booking-selection-icon-active'
+                                        : 'es-consultations-booking-selection-icon-inactive',
+                                    )}
+                                  />
+                                </span>
+                              </div>
+                              <h4 className='mt-5 text-lg font-bold es-text-heading'>
+                                {level.title}
+                              </h4>
+                            </div>
+                            {'includesLabel' in level && level.includesLabel && (
+                              <p className='mt-3 text-sm font-medium es-text-dim'>
+                                {level.includesLabel}
+                              </p>
+                            )}
+                            <ul className='mt-3 list-none space-y-2 ps-0'>
+                              {level.features.map((feature, index) => (
+                                <li
+                                  key={`${level.id}-feature-${index}`}
+                                  className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
+                                >
+                                  <span
+                                    className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
+                                    aria-hidden='true'
+                                  />
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                            <p className='mt-4 text-sm italic es-type-body es-text-dim'>
+                              {level.bestFor}
+                            </p>
+                          </ButtonPrimitive>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 

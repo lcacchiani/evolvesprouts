@@ -1192,6 +1192,8 @@
     "booking": {
       "eyebrow": "如何运作",
       "title": "选择你的方向和级别",
+      "scrollStepCarouselLeftAriaLabelTemplate": "向左滚动{stepTitle}",
+      "scrollStepCarouselRightAriaLabelTemplate": "向右滚动{stepTitle}",
       "step1Title": "选择你的方向：",
       "focusAreas": [
         {
