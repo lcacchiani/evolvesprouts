@@ -59,7 +59,7 @@ const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
 const LEVEL_COMPACT_SELECTOR_CLASSNAME = mergeClassNames(
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-3 py-4 text-center sm:px-4 md:py-5',
   'flex min-h-0 flex-col items-center justify-center gap-3',
-  'md:w-[calc((100%-3rem)/3)] md:flex-row md:items-center md:justify-start md:gap-[50px] md:px-8 md:py-8 md:text-left',
+  'md:flex-row md:items-center md:justify-start md:gap-[50px] md:px-8 md:py-8 md:text-left',
 );
 
 const LEVEL_FEATURES_LIST_CLASSNAME =
@@ -73,8 +73,7 @@ const MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME =
 
 const GRID_CARD_LI_CLASSNAME = 'flex min-h-0 flex-col';
 
-const LEVEL_COMPACT_LI_CLASSNAME =
-  'flex min-h-0 min-w-0 flex-col md:w-full';
+const LEVEL_COMPACT_LI_CLASSNAME = 'flex min-h-0 min-w-0 flex-col';
 
 function ConsultationsBookingLevelDescription({
   whatYouGetHeading,
@@ -377,9 +376,9 @@ export function ConsultationsBooking({
                 role='group'
                 aria-label={content.step2Title}
                 data-testid='consultations-booking-level-grid'
-                className='flex flex-col gap-6 md:grid md:grid-cols-[auto_1fr] md:items-center md:gap-8'
+                className='flex flex-col gap-6 md:grid md:grid-cols-3 md:gap-6'
               >
-                <ul className='grid list-none grid-cols-2 gap-3 ps-0 sm:gap-4 md:flex md:flex-col md:gap-6'>
+                <ul className='grid list-none grid-cols-2 gap-3 ps-0 sm:gap-4 md:contents'>
                   {content.levels.map((level) => {
                     const isSelected = level.id === selectedLevelId;
                     return (
@@ -424,7 +423,7 @@ export function ConsultationsBooking({
                   })}
                 </ul>
                 <div
-                  className='min-w-0 md:min-h-0'
+                  className='min-w-0 md:row-start-2 md:col-span-2 md:min-h-0'
                   aria-live='polite'
                   aria-atomic='true'
                   data-testid='consultations-booking-level-description'
