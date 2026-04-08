@@ -15,10 +15,23 @@ import type {
 import { formatContentTemplate } from '@/content/content-field-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 
+/** Matches My Best Auntie description: muted circle, no border or shadow. */
 const FOCUS_ICON_CIRCLE_CLASSNAME =
-  'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
+  'inline-flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-full es-bg-surface-muted';
 
 const FOCUS_ICON_TONES = ['green', 'blue', 'red'] as const;
+
+const FOCUS_ICON_MASK_FALLBACK = 'es-consultations-focus-details-icon--home-assessment';
+
+const focusIconMaskClassByAreaId: Record<string, string> = {
+  'home-assessment': 'es-consultations-focus-details-icon--home-assessment',
+  'auntie-child': 'es-consultations-focus-details-icon--auntie-child',
+  'parent-child': 'es-consultations-focus-details-icon--parent-child',
+};
+
+function readFocusIconMaskClass(areaId: string): string {
+  return focusIconMaskClassByAreaId[areaId] ?? FOCUS_ICON_MASK_FALLBACK;
+}
 
 interface ConsultationsFocusDetailsProps {
   content: ConsultationsFocusDetailsContent;
@@ -62,6 +75,9 @@ export function ConsultationsFocusDetails({
     snapToItem: true,
   });
 
+  const showCarouselControls =
+    hasMultipleCards && (canScrollPrevious || canScrollNext);
+
   return (
     <SectionShell
       id='consultations-focus-details'
@@ -82,7 +98,7 @@ export function ConsultationsFocusDetails({
             className='min-w-0 flex-1'
           />
 
-          {hasMultipleCards && (
+          {showCarouselControls && (
             <div
               data-testid='consultations-focus-details-controls'
               className='hidden gap-3 self-end md:flex md:self-auto md:pb-2'
@@ -129,20 +145,16 @@ export function ConsultationsFocusDetails({
                 className='w-[calc(88%-20px)] shrink-0 snap-center sm:w-[48%] md:w-[calc((100%-3rem)/3)] md:snap-start'
               >
                 <article
-                  className='flex h-full min-h-[520px] flex-col rounded-card-xl p-6 sm:p-8 es-consultations-focus-details-card'
+                  className='flex h-full flex-col rounded-card-xl p-6 sm:p-8 es-consultations-focus-details-card'
                 >
                   <div className='flex justify-center'>
                     <span
                       aria-hidden='true'
                       className={FOCUS_ICON_CIRCLE_CLASSNAME}
                     >
-                      <img
-                        src={area.iconSrc}
-                        alt=''
-                        width={44}
-                        height={44}
+                      <span
                         data-testid='consultations-focus-details-focus-icon'
-                        className={`h-11 w-11 shrink-0 object-contain es-consultations-focus-details-focus-icon-tone--${FOCUS_ICON_TONES[index % FOCUS_ICON_TONES.length]}`}
+                        className={`es-my-best-auntie-description-icon ${readFocusIconMaskClass(area.id)} es-my-best-auntie-description-icon-tone--${FOCUS_ICON_TONES[index % FOCUS_ICON_TONES.length]}`}
                       />
                     </span>
                   </div>

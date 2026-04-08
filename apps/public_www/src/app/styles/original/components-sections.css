@@ -699,19 +699,19 @@
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
-  .es-consultations-focus-details-focus-icon-tone--green {
-    filter: invert(52%) sepia(42%) saturate(456%) hue-rotate(63deg)
-      brightness(96%) contrast(92%);
+  .es-consultations-focus-details-icon--home-assessment {
+    mask-image: url('/images/home.svg');
+    -webkit-mask-image: url('/images/home.svg');
   }
 
-  .es-consultations-focus-details-focus-icon-tone--blue {
-    filter: invert(22%) sepia(58%) saturate(2000%) hue-rotate(186deg)
-      brightness(92%) contrast(96%);
+  .es-consultations-focus-details-icon--auntie-child {
+    mask-image: url('/images/auntie-child.svg');
+    -webkit-mask-image: url('/images/auntie-child.svg');
   }
 
-  .es-consultations-focus-details-focus-icon-tone--red {
-    filter: invert(22%) sepia(85%) saturate(3200%) hue-rotate(340deg)
-      brightness(92%) contrast(95%);
+  .es-consultations-focus-details-icon--parent-child {
+    mask-image: url('/images/parent-child.svg');
+    -webkit-mask-image: url('/images/parent-child.svg');
   }
 
   .es-consultations-focus-details-card-title {
@@ -720,6 +720,7 @@
     font-size: 20px;
     font-weight: 600;
     line-height: 26px;
+    text-align: center;
   }
 
   .es-consultations-focus-details-card-body {

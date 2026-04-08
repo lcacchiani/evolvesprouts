@@ -1,11 +1,29 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConsultationsFocusDetails } from '@/components/sections/consultations/consultations-focus-details';
 import enContent from '@/content/en.json';
 
+const mockUseHorizontalCarousel = vi.fn();
+
+vi.mock('@/lib/hooks/use-horizontal-carousel', () => ({
+  useHorizontalCarousel: () => mockUseHorizontalCarousel(),
+}));
+
 describe('ConsultationsFocusDetails section', () => {
   const focusDetails = enContent.consultations.focusDetails;
+
+  beforeEach(() => {
+    mockUseHorizontalCarousel.mockReturnValue({
+      carouselRef: { current: null },
+      hasNavigation: true,
+      canScrollPrevious: false,
+      canScrollNext: true,
+      updateNavigationState: vi.fn(),
+      scrollByDirection: vi.fn(),
+      scrollItemIntoView: vi.fn(),
+    });
+  });
 
   it('uses muted section background overlay classes', () => {
     render(<ConsultationsFocusDetails content={focusDetails} />);
@@ -42,6 +60,24 @@ describe('ConsultationsFocusDetails section', () => {
     expect(controls.parentElement).toBe(header);
     expect(controls.className).toContain('hidden');
     expect(controls.className).toContain('md:flex');
+  });
+
+  it('omits header carousel controls when the track cannot scroll in either direction', () => {
+    mockUseHorizontalCarousel.mockReturnValue({
+      carouselRef: { current: null },
+      hasNavigation: true,
+      canScrollPrevious: false,
+      canScrollNext: false,
+      updateNavigationState: vi.fn(),
+      scrollByDirection: vi.fn(),
+      scrollItemIntoView: vi.fn(),
+    });
+
+    render(<ConsultationsFocusDetails content={focusDetails} />);
+
+    expect(
+      screen.queryByTestId('consultations-focus-details-controls'),
+    ).not.toBeInTheDocument();
   });
 
   it('uses fixed 3-up desktop card sizing with start snap', () => {
@@ -83,7 +119,7 @@ describe('ConsultationsFocusDetails section', () => {
     expect(card.getByText(firstArea.deepDive)).toBeInTheDocument();
   });
 
-  it('renders focus area icons from content and cycles green-blue-red tones', () => {
+  it('renders focus area icons with CSS masks and My Best Auntie tone colours', () => {
     const { container } = render(<ConsultationsFocusDetails content={focusDetails} />);
 
     const focusIcons = container.querySelectorAll(
@@ -91,18 +127,20 @@ describe('ConsultationsFocusDetails section', () => {
     );
     expect(focusIcons).toHaveLength(focusDetails.areas.length);
 
-    focusDetails.areas.forEach((area, index) => {
-      const icon = focusIcons[index];
-      expect(icon).toHaveAttribute('src', area.iconSrc);
-    });
-
+    const expectedMaskClasses = [
+      'es-consultations-focus-details-icon--home-assessment',
+      'es-consultations-focus-details-icon--auntie-child',
+      'es-consultations-focus-details-icon--parent-child',
+    ];
     const expectedToneClasses = [
-      'es-consultations-focus-details-focus-icon-tone--green',
-      'es-consultations-focus-details-focus-icon-tone--blue',
-      'es-consultations-focus-details-focus-icon-tone--red',
+      'es-my-best-auntie-description-icon-tone--green',
+      'es-my-best-auntie-description-icon-tone--blue',
+      'es-my-best-auntie-description-icon-tone--red',
     ];
 
     focusIcons.forEach((icon, index) => {
+      expect(icon.className).toContain('es-my-best-auntie-description-icon');
+      expect(icon.className).toContain(expectedMaskClasses[index]);
       expect(icon.className).toContain(expectedToneClasses[index]);
     });
   });
