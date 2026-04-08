@@ -1315,23 +1315,30 @@
       "eyebrow": "Focus Details",
       "title": "What Makes Each Focus Different",
       "description": "The structure is the same. What changes is the lens.",
-      "essentialsLabel": "✦ Essentials",
-      "deepDiveLabel": "✦✦ Deep Dive",
+      "essentialsLabel": "Essentials",
+      "deepDiveLabel": "Deep Dive",
+      "essentialsIconSrc": "/images/essentials.svg",
+      "deepDiveIconSrc": "/images/deep-dive.svg",
+      "previousButtonAriaLabel": "Previous focus area cards",
+      "nextButtonAriaLabel": "Next focus area cards",
       "areas": [
         {
           "id": "home-assessment",
+          "iconSrc": "/images/home.svg",
           "title": "Home Assessment",
           "essentials": "I walk through your spaces, explain what works and what doesn't, and give you a prioritised list of changes.",
           "deepDive": "I come back and we physically reorganise together. I explain every change to your helper so she understands the reasoning."
         },
         {
           "id": "auntie-child",
+          "iconSrc": "/images/auntie-child.svg",
           "title": "Auntie-Child",
           "essentials": "We agree on a focus area, I observe your helper with your child, and I give her 2–3 practical scripts to use daily.",
           "deepDive": "I come back to see how she's applying the strategies. I coach in real time, go deeper, and build her confidence."
         },
         {
           "id": "parent-child",
+          "iconSrc": "/images/parent-child.svg",
           "title": "Parent-Child",
           "essentials": "I observe how you interact with your child, coach you on Montessori principles adapted to your daily rhythm, and check alignment with your helper.",
           "deepDive": "I come back to see how routines have shifted, what still feels hard, and re-align you and your helper if you've drifted apart."

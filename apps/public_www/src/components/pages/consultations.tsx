@@ -33,7 +33,10 @@ export function ConsultationsPage({ locale, content }: ConsultationsPageProps) {
         thankYouWhatsappCtaLabel={content.contactUs.form.contactMethodLinks.whatsapp}
         commonAccessibility={content.common.accessibility}
       />
-      <ConsultationsFocusDetails content={consultations.focusDetails} />
+      <ConsultationsFocusDetails
+        content={consultations.focusDetails}
+        commonAccessibility={content.common.accessibility}
+      />
       <ConsultationsComparison content={consultations.comparison} />
       <Faq content={content.faq} />
       <FreeIntroSession content={content.freeIntroSession} />
