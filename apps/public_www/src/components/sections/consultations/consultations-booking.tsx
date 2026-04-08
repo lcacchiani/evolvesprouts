@@ -50,7 +50,7 @@ const BookingThankYouModal = dynamic(
   { ssr: false },
 );
 
-const FOCUS_LEVEL_CARD_CLASSNAME =
+const FOCUS_CARD_CLASSNAME =
   'w-full rounded-3xl border es-border-soft es-bg-surface-neutral px-6 py-7 text-left sm:px-8 sm:py-8';
 
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
@@ -82,8 +82,9 @@ function ConsultationsBookingLevelDescription({
 }) {
   return (
     <div className='text-left'>
+      <h4 className='text-lg font-bold es-text-heading'>{level.title}</h4>
       {'includesLabel' in level && level.includesLabel ? (
-        <p className='text-sm font-medium es-text-dim'>{level.includesLabel}</p>
+        <p className='mt-3 text-sm font-medium es-text-dim'>{level.includesLabel}</p>
       ) : null}
       <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
         {level.features.map((feature, index) => (
@@ -156,6 +157,8 @@ export function ConsultationsBooking({
   const [selectedLevelId, setSelectedLevelId] = useState(
     () => content.levels[0]?.id ?? '',
   );
+  const [hasUserChangedLevelSelection, setHasUserChangedLevelSelection] =
+    useState(false);
 
   const reservationForModal: ConsultationsBookingReservationContent = useMemo(() => {
     return {
@@ -233,7 +236,7 @@ export function ConsultationsBooking({
           />
 
           <div className='mt-12'>
-            <h3 className='text-xl font-semibold es-type-body'>
+            <h3 className='text-xl font-semibold es-type-body md:text-center'>
               {content.step1Title}
             </h3>
             <div className='relative mt-6'>
@@ -269,7 +272,7 @@ export function ConsultationsBooking({
                                 setSelectedFocusId(area.id);
                               }}
                               className={mergeClassNames(
-                                FOCUS_LEVEL_CARD_CLASSNAME,
+                                FOCUS_CARD_CLASSNAME,
                                 'flex h-full min-h-0 flex-1 flex-col',
                               )}
                             >
@@ -326,7 +329,7 @@ export function ConsultationsBooking({
                               setSelectedFocusId(area.id);
                             }}
                             className={mergeClassNames(
-                              FOCUS_LEVEL_CARD_CLASSNAME,
+                              FOCUS_CARD_CLASSNAME,
                               'flex h-full min-h-0 flex-col',
                             )}
                           >
@@ -388,6 +391,9 @@ export function ConsultationsBooking({
                           aria-pressed={isSelected}
                           aria-label={level.title}
                           onClick={() => {
+                            if (level.id !== selectedLevelId) {
+                              setHasUserChangedLevelSelection(true);
+                            }
                             setSelectedLevelId(level.id);
                           }}
                           className={LEVEL_COMPACT_SELECTOR_CLASSNAME}
@@ -409,7 +415,7 @@ export function ConsultationsBooking({
                               )}
                             />
                           </span>
-                          <span className='max-w-full text-sm font-bold leading-tight es-text-heading sm:text-base md:text-lg'>
+                          <span className='w-full min-w-0 max-w-full break-words text-center text-sm font-bold leading-tight es-text-heading sm:text-base md:text-lg'>
                             {level.title}
                           </span>
                         </ButtonPrimitive>
@@ -426,7 +432,11 @@ export function ConsultationsBooking({
                   {selectedLevel ? (
                     <div
                       key={selectedLevel.id}
-                      className='es-consultations-booking-level-description-enter'
+                      className={
+                        hasUserChangedLevelSelection
+                          ? 'es-consultations-booking-level-description-enter'
+                          : undefined
+                      }
                     >
                       <ConsultationsBookingLevelDescription level={selectedLevel} />
                     </div>

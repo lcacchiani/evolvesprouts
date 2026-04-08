@@ -93,11 +93,17 @@ describe('ConsultationsBooking', () => {
       ).toBeGreaterThanOrEqual(1);
     }
 
+    const step1Heading = screen.getByRole('heading', { name: booking.step1Title });
+    expect(step1Heading.className).toContain('md:text-center');
+
     const levelDescription = screen.getByTestId(
       'consultations-booking-level-description',
     );
     const essentials = booking.levels[0];
     expect(essentials).toBeDefined();
+    expect(
+      within(levelDescription).getByRole('heading', { name: essentials!.title }),
+    ).toBeInTheDocument();
     for (const feature of essentials!.features) {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
     }
@@ -108,6 +114,9 @@ describe('ConsultationsBooking', () => {
     const deepDive = booking.levels[1];
     expect(deepDive).toBeDefined();
     fireEvent.click(within(levelGrid).getByRole('button', { name: deepDive!.title }));
+    expect(
+      within(levelDescription).getByRole('heading', { name: deepDive!.title }),
+    ).toBeInTheDocument();
     expect(
       within(levelDescription).getByText(deepDive!.includesLabel!),
     ).toBeInTheDocument();
@@ -184,6 +193,9 @@ describe('ConsultationsBooking', () => {
     );
     const essentials = booking.levels[0];
     expect(essentials).toBeDefined();
+    expect(
+      within(levelDescription).getByRole('heading', { name: essentials!.title }),
+    ).toBeInTheDocument();
     for (const feature of essentials!.features) {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
     }
@@ -194,6 +206,9 @@ describe('ConsultationsBooking', () => {
     const deepDiveButton = screen.getByRole('button', { name: 'Deep Dive' });
     fireEvent.click(deepDiveButton);
     expect(deepDiveButton.getAttribute('aria-pressed')).toBe('true');
+    expect(
+      within(levelDescription).getByRole('heading', { name: deepDive!.title }),
+    ).toBeInTheDocument();
     expect(
       within(levelDescription).getByText(deepDive!.includesLabel!),
     ).toBeInTheDocument();
