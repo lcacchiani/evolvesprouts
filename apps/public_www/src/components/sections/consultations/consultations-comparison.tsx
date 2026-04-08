@@ -77,8 +77,8 @@ export function ConsultationsComparison({
                     <img
                       src={
                         row.essentials
-                          ? '/images/comparison-check.svg'
-                          : '/images/comparison-cross.svg'
+                          ? '/images/check.svg'
+                          : '/images/cross.svg'
                       }
                       alt={
                         row.essentials
@@ -94,8 +94,8 @@ export function ConsultationsComparison({
                     <img
                       src={
                         row.deepDive
-                          ? '/images/comparison-check.svg'
-                          : '/images/comparison-cross.svg'
+                          ? '/images/check.svg'
+                          : '/images/cross.svg'
                       }
                       alt={
                         row.deepDive

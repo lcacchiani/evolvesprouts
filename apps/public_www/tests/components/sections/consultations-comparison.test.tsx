@@ -32,11 +32,11 @@ describe('ConsultationsComparison', () => {
       0,
     );
     expect(
-      document.querySelectorAll('img[src="/images/comparison-check.svg"]')
+      document.querySelectorAll('img[src="/images/check.svg"]')
         .length,
     ).toBe(expectedCheckCount);
     expect(
-      document.querySelectorAll('img[src="/images/comparison-cross.svg"]')
+      document.querySelectorAll('img[src="/images/cross.svg"]')
         .length,
     ).toBe(expectedCrossCount);
 
