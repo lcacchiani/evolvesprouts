@@ -68,7 +68,7 @@ const LEVEL_FEATURE_LINE_CLASSNAME = 'block ps-0 text-left es-type-body es-text-
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
 
 const MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME =
-  'flex h-full min-h-0 w-[77.28vw] max-w-[331px] shrink-0 flex-col snap-center sm:w-[62.56vw]';
+  'flex min-h-0 w-[77.28vw] max-w-[331px] shrink-0 flex-col self-stretch snap-center sm:w-[62.56vw]';
 
 const GRID_CARD_LI_CLASSNAME = 'flex min-h-0 flex-col';
 
