@@ -61,18 +61,16 @@ const LEVEL_CARD_CLASSNAME = mergeClassNames(
 const CONSULTATIONS_BOOKING_ICON_CIRCLE_CLASSNAME =
   'inline-flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full border es-border-soft es-bg-surface-muted shadow-[0_8px_24px_rgba(0,0,0,0.2)]';
 
+const LEVEL_CARD_ICON_BAND_CLASSNAME =
+  'flex min-h-[84px] flex-none flex-col justify-center';
+
+const LEVEL_FEATURES_LIST_CLASSNAME = 'mt-3 list-none space-y-2 ps-0 text-left';
+const LEVEL_FEATURE_LINE_CLASSNAME = 'block ps-0 text-left es-type-body es-text-dim';
+
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
 
-function ConsultationBookingCarouselArrowIcon({ direction }: { direction: 'left' | 'right' }) {
-  const rotationClass = direction === 'left' ? 'rotate-180' : '';
-
-  return (
-    <span
-      aria-hidden
-      className={`es-ui-icon-mask es-ui-icon-mask--chevron-right inline-block h-7 w-7 shrink-0 es-text-icon ${rotationClass}`}
-    />
-  );
-}
+const MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME =
+  'flex h-full w-[77.28vw] max-w-[331px] shrink-0 snap-center sm:w-[62.56vw]';
 
 function mapLevelIdToBookingTier(levelId: string): ConsultationsBookingModalTierId {
   return levelId === 'deep-dive' ? 'deepDive' : 'essentials';
@@ -159,77 +157,21 @@ export function ConsultationsBooking({
     return buildConsultationPickerContent(bookingModalContent.paymentModal);
   }, [bookingModalContent.paymentModal]);
 
-  const focusCarouselScrollLabels = useMemo(() => {
-    const stepTitle = content.step1Title.replace(/:\s*$/, '');
-    return {
-      left: formatContentTemplate(content.scrollStepCarouselLeftAriaLabelTemplate, {
-        stepTitle,
-      }),
-      right: formatContentTemplate(content.scrollStepCarouselRightAriaLabelTemplate, {
-        stepTitle,
-      }),
-    };
-  }, [
-    content.scrollStepCarouselLeftAriaLabelTemplate,
-    content.scrollStepCarouselRightAriaLabelTemplate,
-    content.step1Title,
-  ]);
-
-  const levelCarouselScrollLabels = useMemo(() => {
-    const stepTitle = content.step2Title.replace(/:\s*$/, '');
-    return {
-      left: formatContentTemplate(content.scrollStepCarouselLeftAriaLabelTemplate, {
-        stepTitle,
-      }),
-      right: formatContentTemplate(content.scrollStepCarouselRightAriaLabelTemplate, {
-        stepTitle,
-      }),
-    };
-  }, [
-    content.scrollStepCarouselLeftAriaLabelTemplate,
-    content.scrollStepCarouselRightAriaLabelTemplate,
-    content.step2Title,
-  ]);
-
   const isMdUp = useMatchMedia(MD_UP_MEDIA_QUERY);
 
-  const {
-    carouselRef: focusCarouselRef,
-    hasNavigation: hasFocusCarouselNav,
-    canScrollPrevious: canScrollFocusPrev,
-    canScrollNext: canScrollFocusNext,
-    scrollByDirection: scrollFocusCarouselByDirection,
-  } = useHorizontalCarousel<HTMLDivElement>({
-    itemCount: content.focusAreas.length,
-    enabled: !isMdUp,
-    snapToItem: true,
-  });
+  const { carouselRef: focusCarouselRef, scrollByDirection: scrollFocusCarouselByDirection } =
+    useHorizontalCarousel<HTMLDivElement>({
+      itemCount: content.focusAreas.length,
+      enabled: !isMdUp,
+      snapToItem: true,
+    });
 
-  const {
-    carouselRef: levelCarouselRef,
-    hasNavigation: hasLevelCarouselNav,
-    canScrollPrevious: canScrollLevelPrev,
-    canScrollNext: canScrollLevelNext,
-    scrollByDirection: scrollLevelCarouselByDirection,
-  } = useHorizontalCarousel<HTMLDivElement>({
-    itemCount: content.levels.length,
-    enabled: !isMdUp,
-    snapToItem: true,
-  });
-
-  const scrollFocusCarousel = useCallback(
-    (direction: 'prev' | 'next') => {
-      scrollFocusCarouselByDirection(direction);
-    },
-    [scrollFocusCarouselByDirection],
-  );
-
-  const scrollLevelCarousel = useCallback(
-    (direction: 'prev' | 'next') => {
-      scrollLevelCarouselByDirection(direction);
-    },
-    [scrollLevelCarouselByDirection],
-  );
+  const { carouselRef: levelCarouselRef, scrollByDirection: scrollLevelCarouselByDirection } =
+    useHorizontalCarousel<HTMLDivElement>({
+      itemCount: content.levels.length,
+      enabled: !isMdUp,
+      snapToItem: true,
+    });
 
   const handleFocusCarouselKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
@@ -238,13 +180,13 @@ export function ConsultationsBooking({
       }
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        scrollFocusCarousel('prev');
+        scrollFocusCarouselByDirection('prev');
       } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-        scrollFocusCarousel('next');
+        scrollFocusCarouselByDirection('next');
       }
     },
-    [isMdUp, scrollFocusCarousel],
+    [isMdUp, scrollFocusCarouselByDirection],
   );
 
   const handleLevelCarouselKeyDown = useCallback(
@@ -254,13 +196,13 @@ export function ConsultationsBooking({
       }
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        scrollLevelCarousel('prev');
+        scrollLevelCarouselByDirection('prev');
       } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-        scrollLevelCarousel('next');
+        scrollLevelCarouselByDirection('next');
       }
     },
-    [isMdUp, scrollLevelCarousel],
+    [isMdUp, scrollLevelCarouselByDirection],
   );
 
   return (
@@ -306,7 +248,7 @@ export function ConsultationsBooking({
                         return (
                           <li
                             key={area.id}
-                            className='flex h-full w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw]'
+                            className={MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME}
                           >
                             <ButtonPrimitive
                               type='button'
@@ -353,34 +295,6 @@ export function ConsultationsBooking({
                       })}
                     </ul>
                   </CarouselTrack>
-
-                  {hasFocusCarouselNav && canScrollFocusPrev ? (
-                    <ButtonPrimitive
-                      type='button'
-                      variant='control'
-                      onClick={() => {
-                        scrollFocusCarousel('prev');
-                      }}
-                      aria-label={focusCarouselScrollLabels.left}
-                      className='absolute left-2 top-1/2 z-20 flex -translate-y-1/2'
-                    >
-                      <ConsultationBookingCarouselArrowIcon direction='left' />
-                    </ButtonPrimitive>
-                  ) : null}
-
-                  {hasFocusCarouselNav && canScrollFocusNext ? (
-                    <ButtonPrimitive
-                      type='button'
-                      variant='control'
-                      onClick={() => {
-                        scrollFocusCarousel('next');
-                      }}
-                      aria-label={focusCarouselScrollLabels.right}
-                      className='absolute right-2 top-1/2 z-20 flex -translate-y-1/2'
-                    >
-                      <ConsultationBookingCarouselArrowIcon direction='right' />
-                    </ButtonPrimitive>
-                  ) : null}
                 </div>
               ) : (
                 <div
@@ -467,7 +381,7 @@ export function ConsultationsBooking({
                         return (
                           <li
                             key={level.id}
-                            className='flex h-full w-[84vw] max-w-[360px] shrink-0 snap-center sm:w-[68vw]'
+                            className={MOBILE_CAROUSEL_SLIDE_LI_CLASSNAME}
                           >
                             <ButtonPrimitive
                               type='button'
@@ -480,7 +394,7 @@ export function ConsultationsBooking({
                               }}
                               className={mergeClassNames(LEVEL_CARD_CLASSNAME, 'min-h-0 flex-1')}
                             >
-                              <div className='flex flex-col'>
+                              <div className={LEVEL_CARD_ICON_BAND_CLASSNAME}>
                                 <div className='flex justify-center'>
                                   <span
                                     aria-hidden='true'
@@ -500,30 +414,26 @@ export function ConsultationsBooking({
                                     />
                                   </span>
                                 </div>
-                                <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                                  {level.title}
-                                </h4>
                               </div>
+                              <h4 className='mt-5 w-full text-left text-lg font-bold es-text-heading'>
+                                {level.title}
+                              </h4>
                               {'includesLabel' in level && level.includesLabel && (
-                                <p className='mt-3 text-sm font-medium es-text-dim'>
+                                <p className='mt-3 text-left text-sm font-medium es-text-dim'>
                                   {level.includesLabel}
                                 </p>
                               )}
-                              <ul className='mt-3 list-none space-y-2 ps-0'>
+                              <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
                                 {level.features.map((feature, index) => (
                                   <li
                                     key={`${level.id}-feature-${index}`}
-                                    className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
+                                    className={LEVEL_FEATURE_LINE_CLASSNAME}
                                   >
-                                    <span
-                                      className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
-                                      aria-hidden='true'
-                                    />
                                     {feature}
                                   </li>
                                 ))}
                               </ul>
-                              <p className='mt-4 text-sm italic es-type-body es-text-dim'>
+                              <p className='mt-4 text-left text-sm italic es-type-body es-text-dim'>
                                 {level.bestFor}
                               </p>
                             </ButtonPrimitive>
@@ -532,34 +442,6 @@ export function ConsultationsBooking({
                       })}
                     </ul>
                   </CarouselTrack>
-
-                  {hasLevelCarouselNav && canScrollLevelPrev ? (
-                    <ButtonPrimitive
-                      type='button'
-                      variant='control'
-                      onClick={() => {
-                        scrollLevelCarousel('prev');
-                      }}
-                      aria-label={levelCarouselScrollLabels.left}
-                      className='absolute left-2 top-1/2 z-20 flex -translate-y-1/2'
-                    >
-                      <ConsultationBookingCarouselArrowIcon direction='left' />
-                    </ButtonPrimitive>
-                  ) : null}
-
-                  {hasLevelCarouselNav && canScrollLevelNext ? (
-                    <ButtonPrimitive
-                      type='button'
-                      variant='control'
-                      onClick={() => {
-                        scrollLevelCarousel('next');
-                      }}
-                      aria-label={levelCarouselScrollLabels.right}
-                      className='absolute right-2 top-1/2 z-20 flex -translate-y-1/2'
-                    >
-                      <ConsultationBookingCarouselArrowIcon direction='right' />
-                    </ButtonPrimitive>
-                  ) : null}
                 </div>
               ) : (
                 <div
@@ -583,7 +465,7 @@ export function ConsultationsBooking({
                             }}
                             className={LEVEL_CARD_CLASSNAME}
                           >
-                            <div className='flex flex-col'>
+                            <div className={LEVEL_CARD_ICON_BAND_CLASSNAME}>
                               <div className='flex justify-center'>
                                 <span
                                   aria-hidden='true'
@@ -603,30 +485,26 @@ export function ConsultationsBooking({
                                   />
                                 </span>
                               </div>
-                              <h4 className='mt-5 text-lg font-bold es-text-heading'>
-                                {level.title}
-                              </h4>
                             </div>
+                            <h4 className='mt-5 w-full text-left text-lg font-bold es-text-heading'>
+                              {level.title}
+                            </h4>
                             {'includesLabel' in level && level.includesLabel && (
-                              <p className='mt-3 text-sm font-medium es-text-dim'>
+                              <p className='mt-3 text-left text-sm font-medium es-text-dim'>
                                 {level.includesLabel}
                               </p>
                             )}
-                            <ul className='mt-3 list-none space-y-2 ps-0'>
+                            <ul className={LEVEL_FEATURES_LIST_CLASSNAME}>
                               {level.features.map((feature, index) => (
                                 <li
                                   key={`${level.id}-feature-${index}`}
-                                  className='flex items-start gap-2 ps-0 es-type-body es-text-dim'
+                                  className={LEVEL_FEATURE_LINE_CLASSNAME}
                                 >
-                                  <span
-                                    className='mt-1 inline-block h-2 w-2 shrink-0 rounded-full es-bg-accent'
-                                    aria-hidden='true'
-                                  />
                                   {feature}
                                 </li>
                               ))}
                             </ul>
-                            <p className='mt-4 text-sm italic es-type-body es-text-dim'>
+                            <p className='mt-4 text-left text-sm italic es-type-body es-text-dim'>
                               {level.bestFor}
                             </p>
                           </ButtonPrimitive>
