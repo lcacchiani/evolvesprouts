@@ -46,7 +46,7 @@ describe('ConsultationBookingModal', () => {
     vi.useRealTimers();
   });
 
-  it('shows pick intro, calendar icon, and highlighted selected slot summary for the default day', () => {
+  it('shows pick intro, calendar icon, and selected slot summary for the default day', () => {
     const bookingPayload = buildConsultationsBookingModalPayload(
       enContent.consultations.booking.reservation,
       'en',
@@ -71,7 +71,7 @@ describe('ConsultationBookingModal', () => {
 
     expect(screen.getByTestId('consultation-modal-selected-slot')).toBeInTheDocument();
     const icon = screen.getByTestId('consultation-modal-selected-slot-calendar-icon');
-    expect(icon.className).toContain('es-mask-calendar-current');
+    expect(icon.className).toContain('es-mask-calendar-danger');
   });
 
   it('selects PM when only the afternoon slot is available for that day', () => {

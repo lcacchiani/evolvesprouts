@@ -173,7 +173,7 @@ function ConsultationDatePickerGrid({
                             ? 'cursor-not-allowed opacity-30'
                             : 'es-text-heading hover:es-bg-surface-muted',
                           isSelected && !cell.isDisabled
-                            ? 'border-2 es-border-warm-2 es-bg-brand-orange-soft es-text-brand'
+                            ? 'border-2 es-border-warm-2 es-bg-brand-orange-soft'
                             : 'border border-transparent',
                         )}
                         onClick={() => {
@@ -214,7 +214,7 @@ function ConsultationDatePickerGrid({
               !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'am', unavailableByYmd)
                 ? 'cursor-not-allowed opacity-40'
                 : dayPeriod === 'am'
-                  ? 'es-bg-brand-orange-soft es-text-brand shadow-sm'
+                  ? 'es-bg-brand-orange-soft es-text-body opacity-80 shadow-sm'
                   : 'es-text-body opacity-80',
             )}
             aria-pressed={dayPeriod === 'am'}
@@ -235,7 +235,7 @@ function ConsultationDatePickerGrid({
               !selectedYmd || isConsultationPeriodBlocked(selectedYmd, 'pm', unavailableByYmd)
                 ? 'cursor-not-allowed opacity-40'
                 : dayPeriod === 'pm'
-                  ? 'es-bg-brand-orange-soft es-text-brand shadow-sm'
+                  ? 'es-bg-brand-orange-soft es-text-body opacity-80 shadow-sm'
                   : 'es-text-body opacity-80',
             )}
             aria-pressed={dayPeriod === 'pm'}
@@ -256,11 +256,11 @@ function ConsultationDatePickerGrid({
           <span className='es-icon-circle-lg shrink-0'>
             <span
               data-testid='consultation-modal-selected-slot-calendar-icon'
-              className='es-mask-calendar-current h-[37px] w-[37px] shrink-0 text-black'
+              className='es-mask-calendar-danger h-[37px] w-[37px] shrink-0'
               aria-hidden='true'
             />
           </span>
-          <p className='min-w-0 flex-1 rounded-lg border es-border-warm-2 es-bg-brand-orange-soft px-4 py-3 text-[17px] font-semibold leading-6 es-text-brand'>
+          <p className='min-w-0 flex-1 text-[17px] font-semibold leading-6 es-text-heading'>
             {selectedSlotSummary}
           </p>
         </div>
