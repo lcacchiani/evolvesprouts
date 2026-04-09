@@ -118,7 +118,7 @@ export default function RootLayout({
     >
       <body className='antialiased' suppressHydrationWarning>
         <Script src='/scripts/set-html-lang.js' strategy='beforeInteractive' />
-        <script src='/scripts/hide-css-sensitive-duplicates.js' defer />
+        <Script src='/scripts/hide-css-sensitive-duplicates.js' strategy='afterInteractive' />
         <a
           href='#main-content'
           className='sr-only fixed left-4 top-4 z-[80] rounded-md bg-black px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black'
@@ -131,7 +131,7 @@ export default function RootLayout({
         >
           {rootShellContent.environmentBadgeLabel}
         </div>
-        <script src='/scripts/show-staging-badge.js' defer />
+        <Script src='/scripts/show-staging-badge.js' strategy='afterInteractive' />
         <GoogleTagManager />
         <MetaPixel />
         {children}
