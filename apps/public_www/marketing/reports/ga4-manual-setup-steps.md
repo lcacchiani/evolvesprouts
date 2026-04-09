@@ -105,7 +105,74 @@ provider as a new referral source.
 
 ---
 
-## 4. GTM eCommerce Tags (for new eCommerce events)
+## 4. Custom Dimensions and Metrics
+
+Custom event parameters must be registered in GA4 before they appear in
+reports and explorations. The website pushes the following custom
+parameters via `dataLayer` events (see `src/lib/analytics-taxonomy.json`):
+
+### Custom dimensions (event-scoped)
+
+| Parameter name   | Display name       | Purpose |
+|------------------|--------------------|---------|
+| `section_id`     | Section ID         | UI section where the event fired (e.g. `consultations-booking`, `my-best-auntie-booking`, `events-booking`). **Primary discriminator** for telling booking flows apart. |
+| `cta_location`   | CTA Location       | Specific CTA trigger within the section. |
+| `page_locale`    | Page Locale        | Locale of the page at event time (e.g. `en`, `zh-HK`). |
+| `environment`    | Environment        | `prod` or `staging`. |
+| `form_type`      | Form Type          | Contact or signup form variant. |
+| `error_type`     | Error Type         | Error classification for failed submissions. |
+| `resource_key`   | Resource Key       | Identifier for the downloadable media guide. |
+| `age_group`      | Age Group          | Selected age group for booking events. |
+| `cohort_label`   | Cohort Label       | Selected cohort / date label for bookings. |
+| `cohort_date`    | Cohort Date        | Cohort start date (YYYY-MM-DD). |
+| `is_fully_booked`| Is Fully Booked    | Whether the selected cohort is fully booked. |
+| `payment_method` | Payment Method     | Selected payment method (fps_qr, bank_transfer, etc.). |
+| `discount_type`  | Discount Type      | Type of discount applied. |
+| `landing_page_slug` | Landing Page Slug | URL slug of the landing page. |
+| `content_name`   | Content Name       | Name of the content item clicked (links hub). |
+
+### Custom metrics (event-scoped)
+
+| Parameter name   | Display name       | Unit     |
+|------------------|--------------------|----------|
+| `total_amount`   | Total Amount       | Currency |
+| `discount_amount`| Discount Amount    | Standard |
+
+### Automated registration
+
+Run the Admin API script to register all dimensions and metrics:
+
+```bash
+python3 marketing/scripts/ga4-create-custom-dimensions.py
+```
+
+The script reads `analytics-taxonomy.json`, skips GA4 auto-collected
+parameters (`page_path`, `page_title`), and creates any missing custom
+dimensions/metrics. It is idempotent (safe to re-run).
+
+Requires `EVOLVESPROUTS_GA4_PROPERTY_ID` and
+`EVOLVESPROUTS_GOOGLE_SERVICE_ACCOUNT_JSON` environment variables and
+temporary Editor access on the GA4 property.
+
+### Distinguishing booking flows in GA4
+
+The `section_id` dimension is the key differentiator for all booking
+events (`booking_modal_open`, `booking_submit_success`,
+`booking_thank_you_view`, etc.):
+
+| Booking flow     | `section_id` value        |
+|------------------|---------------------------|
+| Consultations    | `consultations-booking`   |
+| My Best Auntie   | `my-best-auntie-booking`  |
+| Events           | `events-booking`          |
+| Landing pages    | varies per page slug      |
+
+Use `section_id` as a breakdown dimension in funnel explorations and
+standard reports to see consultations vs MBA vs events conversions.
+
+---
+
+## 5. GTM eCommerce Tags (for new eCommerce events)
 
 The codebase now pushes GA4 eCommerce events (`begin_checkout`,
 `add_payment_info`, `purchase`) to the dataLayer. GTM needs corresponding
