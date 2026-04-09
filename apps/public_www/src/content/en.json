@@ -117,7 +117,7 @@
       },
       "consultations": {
         "url": "/images/seo/evolvesprouts-og-default.png",
-        "alt": "Evolve Sprouts one-off Montessori consultations in Hong Kong"
+        "alt": "Evolve Sprouts Montessori family consultations in Hong Kong"
       },
       "freeGuidesAndResources": {
         "url": "/images/seo/evolvesprouts-og-default.png",
@@ -145,8 +145,8 @@
       "description": "Join Evolve Sprouts Montessori workshops, parent talks, and community events in Hong Kong. Practical sessions for families with children aged 0-6."
     },
     "consultations": {
-      "title": "One-Off Consultations — Montessori Family Support",
-      "description": "Not ready for the full 9-week course? Book a one-off Montessori consultation — home assessment, auntie-child, or parent-child focus — with Essentials or Deep Dive levels."
+      "title": "Family Consultations — Montessori & Positive Discipline Support",
+      "description": "Personalised Montessori family consultations and positive discipline support in Hong Kong — home assessment, auntie-child, or parent-child focus — with Essentials or Deep Dive levels."
     },
     "freeGuidesAndResources": {
       "title": "Free Parenting Guides & Resources",
@@ -1182,16 +1182,16 @@
   },
   "consultations": {
     "hero": {
-      "title": "One-Off Consultations",
-      "subtitle": "Not ready for the full 9-week course? Start here. Pick your focus. Pick your level. See what changes.",
+      "title": "Family Consultations",
+      "subtitle": "Personalised Montessori guidance and positive discipline support for your family. Pick your focus. Pick your level. See what changes.",
       "description": "Every family is different. In your consultation, we'll look at exactly what's not working at home and map out the simplest path forward — together.",
-      "ctaLabel": "Book a Free Family Consultation",
+      "ctaLabel": "Book a Family Consultation",
       "ctaHref": "#consultations-booking",
-      "imageAlt": "Evolve Sprouts one-off consultation session"
+      "imageAlt": "Evolve Sprouts family consultation session"
     },
     "booking": {
-      "eyebrow": "How It Works",
-      "title": "Choose Your Focus & Level",
+      "eyebrow": "Family Consultations",
+      "title": "Book Your Family Consultation",
       "step1Title": "Choose your focus:",
       "focusAreas": [
         {
@@ -1244,7 +1244,7 @@
       "reservation": {
         "bookingTier": "essentials",
         "ctaLabel": "Reserve My Consultation",
-        "modalTitle": "One-Off Consultation",
+        "modalTitle": "Family Consultation",
         "modalSubtitle": "We will confirm your focus, level, and visit after payment.",
         "modalFocusLabelTemplate": "{focus} focus",
         "upgradeToDeepDiveLabel": "Upgrade to Deep Dive for hands-on implementation",
