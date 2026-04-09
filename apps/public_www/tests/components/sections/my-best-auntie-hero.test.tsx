@@ -31,7 +31,7 @@ describe('MyBestAuntieHero', () => {
     expect(section.className).toContain('sm:pt-[60px]');
     expect(screen.getByText(content.subtitle)).toBeInTheDocument();
     expect(
-      screen.getByText(/A hands-on programme that gives your domestic helper/),
+      screen.getByText(/Your helper spends more waking hours with your child/),
     ).toBeInTheDocument();
 
     const ctaLink = screen.getByRole('link', { name: content.ctaLabel });
