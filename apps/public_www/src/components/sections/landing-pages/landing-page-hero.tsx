@@ -25,6 +25,7 @@ import type {
   EventBookingModalPayload,
   LandingPageHeroEventContent,
 } from '@/lib/events-data';
+import { resolveLandingPageHeroImageMaxWidthClass } from '@/lib/landing-page-hero-image';
 import {
   formatHeroFullDateLine,
   formatSiteTimeRange,
@@ -55,34 +56,6 @@ const KNOWN_PARTNER_LOGO_SOURCES: Readonly<Record<string, readonly string[]>> = 
   'baumhaus': ['/images/partners/baumhaus.webp'],
   'happy-baton': ['/images/partners/happy-baton.webp'],
 };
-const HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT: Readonly<Record<number, string>> = {
-  50: 'max-w-[50%]',
-  55: 'max-w-[55%]',
-  60: 'max-w-[60%]',
-  65: 'max-w-[65%]',
-  70: 'max-w-[70%]',
-  75: 'max-w-[75%]',
-  80: 'max-w-[80%]',
-  85: 'max-w-[85%]',
-  90: 'max-w-[90%]',
-  95: 'max-w-[95%]',
-  100: 'max-w-[100%]',
-  105: 'max-w-[105%]',
-  110: 'max-w-[110%]',
-  115: 'max-w-[115%]',
-  120: 'max-w-[120%]',
-};
-
-function resolveHeroImageMaxWidthClass(imageMaxWidthPercent: number | undefined): string {
-  if (typeof imageMaxWidthPercent !== 'number' || !Number.isFinite(imageMaxWidthPercent)) {
-    return HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[100];
-  }
-
-  const normalizedPercent = Math.round(imageMaxWidthPercent);
-  return HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[normalizedPercent]
-    ?? HERO_IMAGE_MAX_WIDTH_CLASS_BY_PERCENT[100];
-}
-
 function buildPartnerLogoSources(partner: string): string[] {
   const normalizedPartner = partner.trim().toLowerCase();
   if (!normalizedPartner) {
@@ -217,7 +190,7 @@ export function LandingPageHero({
   ariaLabel,
 }: LandingPageHeroProps) {
   const heroImageMaxWidthClassName = useMemo(
-    () => resolveHeroImageMaxWidthClass(content.imageMaxWidthPercent),
+    () => resolveLandingPageHeroImageMaxWidthClass(content.imageMaxWidthPercent),
     [content.imageMaxWidthPercent],
   );
   const chips = useMemo(
