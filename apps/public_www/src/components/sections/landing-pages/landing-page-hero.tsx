@@ -25,7 +25,7 @@ import type {
   EventBookingModalPayload,
   LandingPageHeroEventContent,
 } from '@/lib/events-data';
-import { resolveLandingPageHeroImageMaxWidthClass } from '@/lib/landing-page-hero-image';
+import { resolveHeroImageMaxWidthClass } from '@/lib/page-hero-image';
 import {
   formatHeroFullDateLine,
   formatSiteTimeRange,
@@ -190,8 +190,8 @@ export function LandingPageHero({
   ariaLabel,
 }: LandingPageHeroProps) {
   const heroImageMaxWidthClassName = useMemo(
-    () => resolveLandingPageHeroImageMaxWidthClass(content.imageMaxWidthPercent),
-    [content.imageMaxWidthPercent],
+    () => resolveHeroImageMaxWidthClass(content),
+    [content],
   );
   const chips = useMemo(
     () => buildHeroChips(eventContent, locale),

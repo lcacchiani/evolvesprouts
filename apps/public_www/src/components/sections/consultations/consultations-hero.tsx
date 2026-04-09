@@ -6,16 +6,14 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import type { ConsultationsHeroContent } from '@/content';
-import { resolveLandingPageHeroImageMaxWidthClass } from '@/lib/landing-page-hero-image';
+import { resolveHeroImageMaxWidthClass } from '@/lib/page-hero-image';
 
 interface ConsultationsHeroProps {
   content: ConsultationsHeroContent;
 }
 
 export function ConsultationsHero({ content }: ConsultationsHeroProps) {
-  const heroImageMaxWidthClassName = resolveLandingPageHeroImageMaxWidthClass(
-    content.imageMaxWidthPercent,
-  );
+  const heroImageMaxWidthClassName = resolveHeroImageMaxWidthClass(content);
 
   return (
     <SectionShell
