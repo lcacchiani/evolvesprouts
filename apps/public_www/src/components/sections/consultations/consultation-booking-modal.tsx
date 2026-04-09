@@ -36,6 +36,15 @@ import {
 import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
 import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 import { mergeClassNames } from '@/lib/class-name-utils';
+import { ButtonPrimitive } from '@/components/shared/button-primitive';
+
+export interface ConsultationBookingModalSelectionInfo {
+  focusLabel: string;
+  levelId: string;
+  levelFeatures: string[];
+  focusLabelFormatted: string;
+  upgradeToDeepDiveLabel: string;
+}
 
 interface ConsultationBookingModalProps {
   locale?: Locale;
@@ -45,11 +54,15 @@ interface ConsultationBookingModalProps {
   pickerContent: ConsultationBookingPickerContent;
   /** Unavailability list (from JSON now; API later). Dates are YYYY-MM-DD. */
   calendarAvailability: CalendarAvailabilityPayload;
+  /** Selection context: focus label, level features, upgrade label. */
+  selectionInfo?: ConsultationBookingModalSelectionInfo;
   analyticsSectionId?: string;
   metaPixelContentName?: MetaPixelContentName;
   captchaWidgetAction?: string;
   onClose: () => void;
   onSubmitReservation: (summary: ReservationSummary) => void;
+  /** Called when user clicks the "Upgrade to Deep Dive" CTA in the modal. */
+  onUpgradeToDeepDive?: () => void;
 }
 
 export interface ConsultationBookingPickerContent {
@@ -275,11 +288,13 @@ export function ConsultationBookingModal({
   bookingPayload,
   pickerContent,
   calendarAvailability,
+  selectionInfo,
   analyticsSectionId = 'consultations-booking',
   metaPixelContentName = PIXEL_CONTENT_NAME.consultation_booking,
   captchaWidgetAction = 'consultation_reservation_submit',
   onClose,
   onSubmitReservation,
+  onUpgradeToDeepDive,
 }: ConsultationBookingModalProps) {
   const topicsFieldConfig = bookingPayload.topicsFieldConfig;
   const modalPanelRef = useRef<HTMLElement | null>(null);
@@ -355,6 +370,35 @@ export function ConsultationBookingModal({
     />
   );
 
+  const subtitleSlot = selectionInfo ? (
+    <div className='mt-3'>
+      <p className='text-xl font-semibold leading-7 es-text-heading'>
+        {selectionInfo.focusLabelFormatted}
+      </p>
+      <ul className='mt-3 list-none space-y-2 ps-0'>
+        {selectionInfo.levelFeatures.map((feature, index) => (
+          <li
+            key={`modal-feature-${index}`}
+            className='block ps-0 text-base es-type-body es-text-dim'
+          >
+            {feature}
+          </li>
+        ))}
+      </ul>
+      {selectionInfo.levelId === 'essentials' && onUpgradeToDeepDive ? (
+        <div className='mt-5'>
+          <ButtonPrimitive
+            type='button'
+            variant='outline'
+            onClick={onUpgradeToDeepDive}
+          >
+            {selectionInfo.upgradeToDeepDiveLabel}
+          </ButtonPrimitive>
+        </div>
+      ) : null}
+    </div>
+  ) : undefined;
+
   return (
     <BookingFlowModalShell
       paymentModalContent={paymentModalContent}
@@ -377,6 +421,7 @@ export function ConsultationBookingModal({
         directionHref={bookingPayload.directionHref}
         detailsVariant='event'
         consultationScheduleSlot={pickerSlot}
+        subtitleSlot={subtitleSlot}
       />
       <BookingReservationForm
         locale={locale}
