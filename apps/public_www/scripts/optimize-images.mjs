@@ -13,7 +13,6 @@ const DEFAULT_WEBP_QUALITY = 82;
 
 const FILE_OVERRIDES = {
   'hero/child-hero.png': { width: 900, quality: 84 },
-  'hero/consultations-hero.png': { width: 1200, quality: 82 },
   'family.png': { width: 1400, quality: 82 },
   'sprouts-squad-community-bg.png': { width: 1600, quality: 80 },
   'community-badge.png': { width: 320, quality: 85 },
