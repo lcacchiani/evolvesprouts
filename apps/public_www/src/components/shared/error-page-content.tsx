@@ -34,7 +34,11 @@ export function ErrorPageContent({
   }, [error, locale, reportingContext]);
 
   return (
-    <main className='mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center gap-4 px-6 py-16 text-center'>
+    <main
+      id='main-content'
+      tabIndex={-1}
+      className='mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center gap-4 px-6 py-16 text-center'
+    >
       <h1 className='text-3xl font-semibold es-text-heading'>{content.whoops.title}</h1>
       <p className='max-w-xl text-base leading-7 es-text-body'>
         {renderQuotedDescriptionText(content.whoops.description)}

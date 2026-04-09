@@ -76,8 +76,12 @@ export function MediaDownloadRedirectPage({
 
   if (!hasValidToken) {
     return (
-      <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
-        <h1 className='text-3xl font-bold es-text-heading'>{copy.invalidTitle}</h1>
+      <main
+        id='main-content'
+        tabIndex={-1}
+        className='mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-16 text-center'
+      >
+        <h1 className='text-3xl font-semibold es-text-heading'>{copy.invalidTitle}</h1>
         <p className='mt-4 text-base leading-7 es-text-body'>
           {copy.invalidDescription}
         </p>
@@ -87,8 +91,12 @@ export function MediaDownloadRedirectPage({
 
   if (!normalizedShareBaseUrl) {
     return (
-      <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
-        <h1 className='text-3xl font-bold es-text-heading'>{copy.unavailableTitle}</h1>
+      <main
+        id='main-content'
+        tabIndex={-1}
+        className='mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-16 text-center'
+      >
+        <h1 className='text-3xl font-semibold es-text-heading'>{copy.unavailableTitle}</h1>
         <p className='mt-4 text-base leading-7 es-text-body'>
           {copy.unavailableDescription}
         </p>
@@ -97,9 +105,13 @@ export function MediaDownloadRedirectPage({
   }
 
   return (
-    <main className='mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center'>
+    <main
+      id='main-content'
+      tabIndex={-1}
+      className='mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-16 text-center'
+    >
       <div className='h-10 w-10 animate-spin rounded-full border-4 border-[color:var(--site-primary-soft,#EAD5C4)] border-t-[color:var(--site-primary,#D19253)]' />
-      <h1 className='mt-6 text-3xl font-bold es-text-heading'>{copy.preparingTitle}</h1>
+      <h1 className='mt-6 text-3xl font-semibold es-text-heading'>{copy.preparingTitle}</h1>
       <p className='mt-4 text-base leading-7 es-text-body'>
         {copy.preparingDescription}
       </p>
