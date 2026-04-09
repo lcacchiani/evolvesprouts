@@ -5,6 +5,8 @@ import { ConsultationsBooking } from '@/components/sections/consultations/consul
 import enContent from '@/content/en.json';
 import calendarAvailability from '@/content/calendar-availability.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
+import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 
 vi.mock('next/dynamic', () => ({
   default: () => {
@@ -14,6 +16,19 @@ vi.mock('next/dynamic', () => ({
     return MockDynamic;
   },
 }));
+
+vi.mock('@/lib/analytics', () => ({
+  trackAnalyticsEvent: vi.fn(),
+  trackEcommerceEvent: vi.fn(),
+}));
+
+vi.mock('@/lib/meta-pixel', () => ({
+  trackMetaPixelEvent: vi.fn(),
+}));
+
+const mockedTrackAnalyticsEvent = vi.mocked(trackAnalyticsEvent);
+const mockedTrackEcommerceEvent = vi.mocked(trackEcommerceEvent);
+const mockedTrackMetaPixelEvent = vi.mocked(trackMetaPixelEvent);
 
 const MD_UP_MEDIA_QUERY = '(min-width: 768px)';
 const originalMatchMedia = window.matchMedia;
@@ -36,6 +51,10 @@ function mockViewportMdUp(matches: boolean): void {
 }
 
 afterEach(() => {
+  mockedTrackAnalyticsEvent.mockReset();
+  mockedTrackEcommerceEvent.mockReset();
+  mockedTrackMetaPixelEvent.mockReset();
+
   if (originalMatchMedia) {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
@@ -215,5 +234,92 @@ describe('ConsultationsBooking', () => {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
     }
 
+  });
+
+  it('fires booking_modal_open, begin_checkout, and InitiateCheckout when CTA is clicked', () => {
+    mockViewportMdUp(true);
+    const booking = enContent.consultations.booking;
+    const essentialsTier = booking.reservation.essentials;
+
+    render(
+      <ConsultationsBooking
+        locale='en'
+        content={booking}
+        bookingModalContent={enContent.bookingModal}
+        calendarAvailability={calendarAvailability}
+      />,
+    );
+
+    const ctaButton = screen.getByRole('button', { name: booking.reservation.ctaLabel });
+    fireEvent.click(ctaButton);
+
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('booking_modal_open', {
+      sectionId: 'consultations-booking',
+      ctaLocation: 'booking_section',
+      params: {
+        age_group: '',
+        cohort_label: booking.levels[0]!.title,
+        cohort_date: essentialsTier.dateParts[0]?.startDateTime?.split('T')[0] ?? '',
+      },
+    });
+
+    expect(mockedTrackEcommerceEvent).toHaveBeenCalledWith('begin_checkout', {
+      value: essentialsTier.priceHkd,
+      items: [{
+        item_id: 'consultation-essentials',
+        item_name: booking.reservation.modalTitle,
+        item_category: booking.focusAreas[0]!.title,
+        price: essentialsTier.priceHkd,
+        quantity: 1,
+      }],
+    });
+
+    expect(mockedTrackMetaPixelEvent).toHaveBeenCalledWith('InitiateCheckout', {
+      content_name: 'consultation_booking',
+    });
+  });
+
+  it('fires begin_checkout with deep-dive tier when deep-dive level is selected', () => {
+    mockViewportMdUp(true);
+    const booking = enContent.consultations.booking;
+    const deepDiveTier = booking.reservation.deepDive;
+    const deepDiveLevel = booking.levels.find((l) => l.id === 'deep-dive');
+    expect(deepDiveLevel).toBeDefined();
+
+    render(
+      <ConsultationsBooking
+        locale='en'
+        content={booking}
+        bookingModalContent={enContent.bookingModal}
+        calendarAvailability={calendarAvailability}
+      />,
+    );
+
+    const levelGrid = screen.getByTestId('consultations-booking-level-grid');
+    fireEvent.click(within(levelGrid).getByRole('button', { name: deepDiveLevel!.title }));
+
+    const ctaButton = screen.getByRole('button', { name: booking.reservation.ctaLabel });
+    fireEvent.click(ctaButton);
+
+    expect(mockedTrackAnalyticsEvent).toHaveBeenCalledWith('booking_modal_open', {
+      sectionId: 'consultations-booking',
+      ctaLocation: 'booking_section',
+      params: {
+        age_group: '',
+        cohort_label: deepDiveLevel!.title,
+        cohort_date: deepDiveTier.dateParts[0]?.startDateTime?.split('T')[0] ?? '',
+      },
+    });
+
+    expect(mockedTrackEcommerceEvent).toHaveBeenCalledWith('begin_checkout', {
+      value: deepDiveTier.priceHkd,
+      items: [{
+        item_id: 'consultation-deep-dive',
+        item_name: booking.reservation.modalTitle,
+        item_category: booking.focusAreas[0]!.title,
+        price: deepDiveTier.priceHkd,
+        quantity: 1,
+      }],
+    });
   });
 });
