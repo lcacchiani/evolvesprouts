@@ -215,6 +215,5 @@ describe('ConsultationsBooking', () => {
       expect(within(levelDescription).getByText(feature)).toBeInTheDocument();
     }
 
-    fireEvent.keyDown(focusCarousel, { key: 'ArrowRight' });
   });
 });

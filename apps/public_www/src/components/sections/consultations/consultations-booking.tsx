@@ -3,7 +3,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useCallback, useMemo, useState, type KeyboardEvent } from 'react';
+import { useMemo, useState } from 'react';
 
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
@@ -187,28 +187,12 @@ export function ConsultationsBooking({
 
   const isMdUp = useMatchMedia(MD_UP_MEDIA_QUERY);
 
-  const { carouselRef: focusCarouselRef, scrollByDirection: scrollFocusCarouselByDirection } =
+  const { carouselRef: focusCarouselRef } =
     useHorizontalCarousel<HTMLDivElement>({
       itemCount: content.focusAreas.length,
       enabled: !isMdUp,
       snapToItem: true,
     });
-
-  const handleFocusCarouselKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLDivElement>) => {
-      if (isMdUp) {
-        return;
-      }
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        scrollFocusCarouselByDirection('prev');
-      } else if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        scrollFocusCarouselByDirection('next');
-      }
-    },
-    [isMdUp, scrollFocusCarouselByDirection],
-  );
 
   const selectedLevel = useMemo(() => {
     return content.levels.find((l) => l.id === selectedLevelId) ?? null;
@@ -247,9 +231,7 @@ export function ConsultationsBooking({
                       { title: content.step1Title },
                     )}
                     ariaRoleDescription={commonAccessibility.carouselRoleDescription}
-                    className='pb-2 outline-none es-focus-ring'
-                    tabIndex={0}
-                    onKeyDown={handleFocusCarouselKeyDown}
+                    className='pb-2'
                   >
                     <ul className='flex min-w-0 list-none items-stretch gap-6 ps-0'>
                       {content.focusAreas.map((area) => {
