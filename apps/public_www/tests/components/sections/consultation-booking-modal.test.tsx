@@ -174,7 +174,9 @@ describe('ConsultationBookingModal', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: upgradeLabel })).toBeInTheDocument();
+    const upgradeButton = screen.getByRole('button', { name: upgradeLabel });
+    expect(upgradeButton).toBeInTheDocument();
+    expect(upgradeButton).toHaveClass('es-btn--primary', 'es-btn--outline', 'max-w-[360px]');
     unmount();
 
     const deepDiveInfo: ConsultationBookingModalSelectionInfo = {
