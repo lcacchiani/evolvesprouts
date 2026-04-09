@@ -389,7 +389,8 @@ export function ConsultationBookingModal({
         <div className='mt-5'>
           <ButtonPrimitive
             type='button'
-            variant='outline'
+            variant='primary'
+            className='max-w-[360px] es-btn--outline'
             onClick={onUpgradeToDeepDive}
           >
             {selectionInfo.upgradeToDeepDiveLabel}
