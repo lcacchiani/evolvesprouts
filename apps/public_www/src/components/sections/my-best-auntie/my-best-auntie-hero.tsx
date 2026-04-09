@@ -1,10 +1,7 @@
 import Image from 'next/image';
 
 import { SectionCtaAnchor } from '@/components/sections/shared/section-cta-link';
-import {
-  buildSectionSplitLayoutClassName,
-  SectionContainer,
-} from '@/components/sections/shared/section-container';
+import { SectionContainer } from '@/components/sections/shared/section-container';
 import {
   HeroQuickFactChips,
   type HeroQuickFactChip,
@@ -101,43 +98,8 @@ export function MyBestAuntieHero({
       dataFigmaNode='my-best-auntie-hero'
       className='es-my-best-auntie-hero-section overflow-hidden pt-0 sm:pt-[60px]'
     >
-      <SectionContainer
-        className={buildSectionSplitLayoutClassName(
-          'es-section-split-layout--hero es-section-split-layout--my-best-auntie-hero items-center',
-        )}
-      >
-        <div className='relative max-w-[620px] lg:order-2 lg:pb-4 lg:pl-8'>
-          <div className='relative z-10'>
-            <SectionHeader
-              title={content.title}
-              titleAs='h1'
-              align='left'
-              titleClassName='max-w-[720px]'
-              description={content.subtitle}
-              descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
-            />
-            <HeroQuickFactChips
-              chips={heroChips}
-              className='mt-5'
-              data-testid='my-best-auntie-hero-quick-facts'
-            />
-            <p className='mt-4 max-w-[720px] es-type-body'>
-              {renderQuotedDescriptionText(description)}
-            </p>
-            <MicroTestimonial content={content} />
-            <div className='mt-8'>
-              <SectionCtaAnchor
-                href={content.ctaHref}
-                variant='primary'
-                className={MY_BEST_AUNTIE_HERO_CTA_CLASSNAME}
-              >
-                {content.ctaLabel}
-              </SectionCtaAnchor>
-            </div>
-          </div>
-        </div>
-
-        <div className='es-my-best-auntie-hero-image-wrap mx-auto w-full max-w-[500px] lg:order-1 lg:ml-0 lg:mr-auto'>
+      <SectionContainer className='es-mba-hero-grid'>
+        <div className='es-mba-hero-grid__image es-my-best-auntie-hero-image-wrap mx-auto w-full max-w-[500px] lg:ml-0 lg:mr-auto'>
           <Image
             src='/images/hero/my-best-auntie-hero.webp'
             alt={content.imageAlt}
@@ -146,6 +108,38 @@ export function MyBestAuntieHero({
             sizes='(max-width: 640px) 92vw, 500px'
             className='es-my-best-auntie-hero-image-flipped relative z-10 h-auto w-full'
           />
+        </div>
+
+        <div className='es-mba-hero-grid__heading'>
+          <SectionHeader
+            title={content.title}
+            titleAs='h1'
+            align='left'
+            titleClassName='max-w-[720px]'
+            description={content.subtitle}
+            descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
+          />
+        </div>
+
+        <div className='es-mba-hero-grid__body max-w-[720px]'>
+          <HeroQuickFactChips
+            chips={heroChips}
+            className='mt-5 lg:mt-0'
+            data-testid='my-best-auntie-hero-quick-facts'
+          />
+          <p className='mt-4 max-w-[720px] es-type-body'>
+            {renderQuotedDescriptionText(description)}
+          </p>
+          <MicroTestimonial content={content} />
+          <div className='mt-8'>
+            <SectionCtaAnchor
+              href={content.ctaHref}
+              variant='primary'
+              className={MY_BEST_AUNTIE_HERO_CTA_CLASSNAME}
+            >
+              {content.ctaLabel}
+            </SectionCtaAnchor>
+          </div>
         </div>
       </SectionContainer>
     </SectionShell>

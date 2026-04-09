@@ -145,10 +145,6 @@
       gap: 1.5rem;
     }
 
-    .es-section-split-layout--my-best-auntie-hero {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    }
-
     .es-section-split-layout--contact-us {
       gap: 2.25rem;
     }
@@ -896,6 +892,38 @@
 
   .es-my-best-auntie-hero-section {
     background-color: var(--es-color-surface-white, #FFFFFF);
+  }
+
+  .es-mba-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  @media (min-width: 1024px) {
+    .es-mba-hero-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      row-gap: 2.5rem;
+      column-gap: 2rem;
+    }
+
+    .es-mba-hero-grid__image {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: center;
+    }
+
+    .es-mba-hero-grid__heading {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: center;
+    }
+
+    .es-mba-hero-grid__body {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
   }
 
   .es-my-best-auntie-hero-image-wrap {
