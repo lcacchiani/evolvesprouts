@@ -24,9 +24,7 @@ describe('MyBestAuntieHero', () => {
     const heading = screen.getByRole('heading', { level: 1, name: content.title });
     expect(heading).toBeInTheDocument();
     const section = screen.getByRole('region', { name: content.title });
-    expect(
-      section.querySelector('.es-section-split-layout--my-best-auntie-hero'),
-    ).not.toBeNull();
+    expect(section.querySelector('.es-mba-hero-grid')).not.toBeNull();
     expect(section).toHaveClass(
       'es-my-best-auntie-hero-section',
     );
