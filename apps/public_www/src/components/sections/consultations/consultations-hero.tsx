@@ -30,7 +30,7 @@ export function ConsultationsHero({ content }: ConsultationsHeroProps) {
             align='left'
             titleClassName='max-w-[720px]'
             description={content.subtitle}
-            descriptionClassName='es-type-subtitle max-w-[720px]'
+            descriptionClassName='es-type-subtitle mt-4 max-w-[720px]'
           />
           <p className='max-w-[720px] es-type-body'>
             {renderQuotedDescriptionText(content.description)}
