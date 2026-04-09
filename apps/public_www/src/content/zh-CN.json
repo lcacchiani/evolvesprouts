@@ -17,7 +17,7 @@
         "href": "/services/my-best-auntie-training-course",
         "children": [
           {
-            "label": "家政助手培训课程",
+            "label": "My Best Auntie 课程",
             "href": "/services/my-best-auntie-training-course"
           },
           {
@@ -80,24 +80,24 @@
     "submenuToggleLabelTemplate": "切换{label}子菜单"
   },
   "hero": {
-    "title": "你的阿姨很爱你的孩子，但她需要工具，才能按你的方式养育他们。",
-    "highlightPhrase": "你的方式",
-    "subtitle": "不责备，不评判。只提供每个香港家庭都值得拥有的实用培训。",
-    "cta": "今天就培训你的阿姨",
+    "title": "和你孩子在一起时间最长的那个人，从来没有接受过养育孩子的培训。",
+    "highlightPhrase": "从来没有",
+    "subtitle": "这不是她的错。但你孩子的独立能力、自信心和情感发展，都取决于那些相处的时光。我们给她正确的工具。",
+    "cta": "了解课程如何运作",
     "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "你好，我想预约一次免费介绍通话！",
     "description": "深受全港家庭信赖。AMI 蒙特梭利认证。为真实生活而设计。",
-    "imageAlt": "面向香港家庭的蒙特梭利阿姨培训"
+    "imageAlt": "面向香港家庭的蒙特梭利儿童发展支持"
   },
   "seo": {
-    "fallbackTitle": "Evolve Sprouts | 香港家政助手育儿培训 | My Best Auntie 课程",
-    "fallbackDescription": "My Best Auntie 是香港领先的蒙特梭利家政助手培训课程——帮助你的阿姨成为自信、贴心的 0-6 岁儿童照护伙伴。",
+    "fallbackTitle": "Evolve Sprouts | 面向 0–6 岁儿童的蒙特梭利助手培训（香港）",
+    "fallbackDescription": "你的阿姨和孩子在一起的时间比任何人都长。My Best Auntie 是为期 9 周的蒙特梭利课程，让她拥有培养独立、自信、平和孩子的真正技能。",
     "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
-    "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利阿姨培训",
+    "defaultSocialImageAlt": "Evolve Sprouts 香港蒙特梭利儿童发展支持",
     "socialImages": {
       "home": {
         "url": "/images/seo/evolvesprouts-og-default.png",
-        "alt": "Evolve Sprouts 香港蒙特梭利阿姨培训"
+        "alt": "Evolve Sprouts 香港蒙特梭利儿童助手培训"
       },
       "about": {
         "url": "/images/seo/evolvesprouts-og-default.png",
@@ -105,7 +105,7 @@
       },
       "contact": {
         "url": "/images/seo/evolvesprouts-og-default.png",
-        "alt": "联系 Evolve Sprouts 获取香港蒙特梭利阿姨培训支持"
+        "alt": "联系 Evolve Sprouts 获取香港蒙特梭利儿童发展支持"
       },
       "events": {
         "url": "/images/seo/evolvesprouts-og-default.png",
@@ -125,20 +125,20 @@
       }
     },
     "home": {
-      "title": "Evolve Sprouts | 香港家政助手育儿培训 | My Best Auntie 课程",
-      "description": "My Best Auntie 是香港领先的蒙特梭利家政助手培训课程——帮助你的阿姨成为自信、贴心的 0-6 岁儿童照护伙伴。"
+      "title": "Evolve Sprouts | 面向 0–6 岁儿童的蒙特梭利助手培训（香港）",
+      "description": "你的阿姨和孩子在一起的时间比任何人都长。My Best Auntie 是为期 9 周的蒙特梭利课程，让她拥有培养独立、自信、平和孩子的真正技能。"
     },
     "trainingCourse": {
-      "title": "My Best Auntie — 蒙特梭利家政助手培训课程",
-      "description": "My Best Auntie 是一门专为香港家政助手设计的实操蒙特梭利育儿培训课程。涵盖日常流程、温和纪律与儿童主导策略，适合 0-6 岁儿童家庭。"
+      "title": "My Best Auntie — 改变孩子每日成长方式的 9 周课程",
+      "description": "一门面向香港家庭的实操蒙特梭利助手培训课程。通过日常流程、温和纪律与儿童主导策略，让孩子的主要照护者拥有真正的发展支持能力。"
     },
     "aboutUs": {
       "title": "关于我们",
-      "description": "认识 Evolve Sprouts 的创始人。以蒙特梭利认证为基础的家庭支持与家庭助手培训，专注于香港0-6岁儿童的实际成长需求。"
+      "description": "认识 Evolve Sprouts 的创始人。以蒙特梭利认证为基础的家庭支持，专注于帮助孩子身边的大人更好地陪伴 0-6 岁儿童成长。"
     },
     "contactUs": {
       "title": "联系我们",
-      "description": "联系 Evolve Sprouts，了解蒙特梭利阿姨培训、家庭咨询及活动详情。我们将在24-48小时内回复您。"
+      "description": "联系 Evolve Sprouts，了解蒙特梭利助手培训、家庭咨询及活动详情。我们将在24-48小时内回复您。"
     },
     "events": {
       "title": "活动",
@@ -146,19 +146,19 @@
     },
     "consultations": {
       "title": "家庭咨询服务 — 蒙特梭利与正面管教支持",
-      "description": "个性化蒙特梭利家庭咨询与正面管教支持（香港）— 家庭环境评估、阿姨与孩子互动或亲子互动方向 — 提供基础版和深入版两个级别。"
+      "description": "个性化蒙特梭利家庭咨询与正面管教支持（香港）— 家庭环境评估、照护者与孩子互动或亲子互动方向 — 提供基础版和深入版两个级别。"
     },
     "freeGuidesAndResources": {
-      "title": "免费育儿指南与资源",
-      "description": "获取 Evolve Sprouts 在香港提供的免费蒙特梭利育儿指南、家政助手小贴士与温和教养资源。"
+      "title": "免费育儿与儿童发展指南",
+      "description": "面向香港家长与家政助手的免费蒙特梭利实用指南——帮助 0-6 岁孩子建立独立性、情绪调节和自信心。"
     },
     "links": {
       "title": "链接",
       "description": "快速访问 Evolve Sprouts 课程、活动及联系方式。"
     },
-    "organizationDescription": "为香港0-6岁儿童家庭提供蒙特梭利导向的家庭支持与阿姨培训。",
+    "organizationDescription": "面向香港 0-6 岁儿童的蒙特梭利助手培训与家庭支持——通过专业的日常照护，培养独立自信的孩子。",
     "localBusinessName": "Evolve Sprouts",
-    "localBusinessDescription": "面向香港家庭的蒙特梭利阿姨培训与家长支持服务。",
+    "localBusinessDescription": "面向香港家庭的蒙特梭利助手培训与儿童发展支持。",
     "localBusinessAreaServed": "香港"
   },
   "whatsappContact": {
@@ -168,8 +168,8 @@
   "resources": {
     "eyebrow": "精选资源",
     "mediaBadgeLabel": "精选资源",
-    "title": "温和育儿免费资源",
-    "description": "访问我们的免费学习资料库。",
+    "title": "培养独立孩子的免费资源",
+    "description": "面向家长与阿姨的实用工具——帮助孩子培养独立性、耐心与情感成长。",
     "cardTitle": "免费指南：4 个教孩子学会耐心的简单方法",
     "cardDescription": "送给忙碌家长的温和实用策略",
     "mediaTitleLine1": "教孩子学会耐心",
@@ -203,21 +203,21 @@
   },
   "courseHighlights": {
     "eyebrow": "课程亮点",
-    "title": "为什么加入我们的课程",
-    "description": "当家庭真正想要改变时，会选择的家政助手育儿培训课程",
-    "ctaLabel": "立即开始—今天就培训阿姨",
+    "title": "你的孩子能收获什么",
+    "description": "一个为期 9 周的课程，通过孩子身边最重要的人，改变孩子每天的成长方式",
+    "ctaLabel": "了解课程如何运作",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "立即联系",
     "items": [
       {
         "id": "age-specific",
-        "title": "从照看者到专业引导者",
-        "description": "我们不只是训练你的阿姨照看孩子；更赋能她掌握引导孩子发展的能力。从打发无聊到激发好奇心、独立性，以及真正的学习热爱。"
+        "title": "从被管到成长：你的孩子学会自己主导",
+        "description": "你的孩子不再被「看着」，而是被「引导」。我们教会你的阿姨激发好奇心、独立性和真正的学习热爱——让你的孩子真正发展，而不只是打发时间。"
       },
       {
         "id": "small-group-learning",
         "title": "打造更平静、更快乐的家庭",
-        "description": "结束每天围绕作息的拉锯战。我们的方法教会你的阿姨为用餐、玩耍和休息建立可预期且积极的节奏，带来更少抗拒、更少情绪爆发，以及全家更从容的每一天。"
+        "description": "结束每天围绕作息的拉锯战。你的阿姨学会为用餐、玩耍和休息建立可预期且积极的节奏——带来更少抗拒、更少情绪爆发，全家更从容的每一天。"
       },
       {
         "id": "montessori-positive-discipline",
@@ -226,18 +226,18 @@
       },
       {
         "id": "ongoing-support",
-        "title": "投资你的安心感",
-        "description": "减轻你事无巨细管理育儿的心理负担。相信你的阿姨已与你的育儿价值观对齐，并掌握经过验证的方法，让你可以放松下来，享受家庭时光。"
+        "title": "你不在的时候，也能安心",
+        "description": "减轻事无巨细管理育儿的心理负担。确信阿姨已与你的育儿理念一致，并掌握经过验证的方法——让孩子每时每刻都能获得稳定、高质量的照护。"
       },
       {
         "id": "ready-to-use-tools",
-        "title": "赋能阿姨，升级你的家庭照护",
-        "description": "自信且有能力的阿姨，更可能长期留任。我们的培训投资她的成长，提升她的工作满足感和专业能力，并直接转化为你家庭更高质量、更稳定的照护。"
+        "title": "专业的照护者 = 更有能力的孩子",
+        "description": "当阿姨的专业能力与信心同步提升，你的孩子将获得更高质量的照护和更多稳定感。投资她的成长，就是直接投资孩子的未来。"
       },
       {
         "id": "guaranteed-confidence",
-        "title": "打造鼓励独立成长的家",
-        "description": "学习如何把居家空间改造成对孩子友好的独立环境。我们会教你的阿姨简单且有效的调整，让孩子更有能力，也更有成就感。"
+        "title": "一个为独立成长而设计的家",
+        "description": "我们教你的阿姨如何把家变成鼓励孩子自己动手的环境——让孩子自己去做、去尝试，并为自己感到骄傲。"
       }
     ],
     "scrollLeftAriaLabel": "向左滚动课程亮点",
@@ -247,33 +247,33 @@
   "realTalk": {
     "eyebrow": "真实对话",
     "title": "听起来熟悉吗？",
-    "description": "你的阿姨并没有做错什么。她只是按自己熟悉的方式在做。这个课程会给她更好的方法。",
-    "ctaLabel": "立即开始—今天就培训阿姨",
+    "description": "这些都不是她的错。她只是按自己知道的方式在做。但你的孩子正在从每一个这样的时刻中学习。这个课程给她更好的方法——让你的孩子也能获得更好的成长。",
+    "ctaLabel": "了解课程如何运作",
     "ctaHref": "/services/my-best-auntie-training-course",
     "items": [
       {
         "id": "ipad-when-crying",
-        "title": "他一哭，她马上把 iPad 递给他。"
+        "title": "他一哭，她就递 iPad。他正在学到：屏幕能解决一切情绪。"
       },
       {
         "id": "spoon-fed-at-three",
-        "title": "她还在喂他吃饭。他都三岁了。"
+        "title": "他三岁了，还没自己拿过勺子。他不是不行——是从来没有被给过机会。"
       },
       {
         "id": "monster-threat-at-meals",
-        "title": "她说：“你不吃，怪物就会来。”"
+        "title": "“你不吃，怪物就来了。”他不是在学吃饭，他是在学害怕。"
       },
       {
         "id": "no-shoes-independence",
-        "title": "她什么都替他们做。他们连自己的鞋都不会穿。"
+        "title": "每一双被代系的鞋带，都是一次他没能练习独立的时刻。"
       },
       {
         "id": "rules-change-when-i-leave",
-        "title": "她真的很好——但我一离开，规矩就变了。"
+        "title": "两套规矩，一个困惑的孩子。一致性才能让孩子感到安全。"
       },
       {
         "id": "picks-him-up-after-fall",
-        "title": "他一摔倒，还没来得及站起来，她就已经把他抱起来了。"
+        "title": "他摔了。还没来得及自己试着站起来，她已经抱起了他。他正在学到：自己做不到。"
       }
     ],
     "scrollLeftAriaLabel": "向左滚动真实对话",
@@ -333,7 +333,7 @@
   "contactUs": {
     "form": {
       "title": "让我们一起成长！",
-      "description": "你好！无论你想了解蒙特梭利理念、咨询我们的工作坊或培训课程，还是想分享关于儿童发展的想法，我们都非常欢迎。",
+      "description": "不确定孩子需要什么？想在做决定前了解更多？还是想聊聊家里的情况？我都在——不施压，不推销。",
       "contactMethodsTitle": "你可以这样联系我们：",
       "contactMethodLinks": {
         "whatsapp": "通过 WhatsApp"
@@ -473,8 +473,8 @@
     ],
     "questions": [
       {
-        "question": "我的阿姨在 My Best Auntie 课程中会学到什么？",
-        "answer": "你的阿姨将学到蒙特梭利日常实操技巧、不用威胁或贿赂的温和纪律方法、适合 0-6 岁孩子的活动，以及如何在香港小户型中培养孩子的独立性。课程包含小组课、家访和个性化辅导。",
+        "question": "我的孩子能从 My Best Auntie 课程中获得什么？",
+        "answer": "你孩子的照护者将学到蒙特梭利日常实操技巧、不用威胁或贿赂的温和纪律方法、适合 0-6 岁孩子的活动，以及如何在香港小户型中培养独立性。结果是：你的孩子通过日常时刻建立自信、情绪调节和真正的技能。课程包含小组课、家访和个性化辅导。",
         "labelIds": [
           "general"
         ]
@@ -523,14 +523,14 @@
       },
       {
         "question": "Evolve Sprouts 适合哪些家庭？",
-        "answer": "我们服务香港 0-6 岁孩子家庭，尤其适合与姨姨共同照护、或在高节奏城市生活中需要更清晰育儿系统的家庭。",
+        "answer": "我们服务香港 0-6 岁孩子家庭，尤其适合那些希望确保孩子的日常照护能真正支持发展的家庭——特别是当阿姨是工作时间里的主要照护者时。",
         "labelIds": [
           "general"
         ]
       },
       {
         "question": "蒙特梭利对婴幼儿家庭场景有什么实际意义？",
-        "answer": "蒙特梭利不只适用于教室。我们会教姨姨在家里建立对孩子友好的环境和可执行流程，从小培养独立能力。",
+        "answer": "蒙特梭利不只适用于教室。我们会教照护者在家里建立对孩子友好的环境和可执行流程，从小培养独立能力。",
         "labelIds": [
           "general",
           "discipline",
@@ -610,7 +610,7 @@
       },
       {
         "question": "你们提供哪些服务？",
-        "answer": "我们提供咨询、姨姨培训、家居环境指导与家长支持服务，内容会根据家庭情况定制。",
+        "answer": "我们提供 9 周助手培训课程、家庭咨询、家居环境指导与家长支持——所有服务都旨在改善你孩子每天的成长体验。",
         "labelIds": [
           "pricing"
         ]
@@ -645,7 +645,7 @@
       },
       {
         "question": "这些方法有依据吗？",
-        "answer": "我们的工作基于蒙特梭利原则、儿童发展研究，以及多年与香港家庭和姨姨协作的实践经验。",
+        "answer": "我们专注于每天真正陪伴你孩子的那个人。通过蒙特梭利原则与对香港家庭-阿姨协作场景的深入理解，我们在最关键的日常时刻中创造真正的改变——那些塑造孩子发展的时刻。",
         "labelIds": [
           "trust"
         ]
@@ -709,9 +709,9 @@
     "successMessage": "感谢你成为我们社区的一员！你将开始收到我们的每月电子通讯。"
   },
   "freeIntroSession": {
-    "title": "准备好给你的助手她需要的工具了吗？",
+    "title": "你不在的那些时间里，到底发生了什么？",
     "eventPageTitle": "还不确定？从这里开始",
-    "description": "预约一次 15 分钟免费介绍通话。无需承诺，只是聊聊你的家庭情况。",
+    "description": "预约一次 15 分钟免费通话。我们聊聊你的孩子、你的阿姨，以及这个课程是否适合你。无需承诺——只是一次交流。",
     "ctaLabel": "在 WhatsApp 预约免费介绍通话",
     "ctaHref": "{{WHATSAPP_URL}}",
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
@@ -720,9 +720,9 @@
   "freeGuidesAndResources": {
     "hero": {
       "eyebrow": "免费指南与资源",
-      "title": "免费育儿指南与资源",
-      "subtitle": "访问我们不断扩充的免费工具、指南与实用建议，面向香港家庭与家政助手。",
-      "description": "无论你在寻找温和教养灵感、蒙特梭利日常流程，还是适合家政助手的策略，这里都有可以立刻上手的资源。"
+      "title": "免费育儿与儿童发展指南",
+      "subtitle": "面向家长与阿姨的实用工具——帮助 0-6 岁孩子培养独立性、耐心与情感成长。",
+      "description": "无论你在寻找温和教养策略、蒙特梭利日常流程，还是可以与阿姨分享的资源，这里都有可以立刻上手的工具。"
     },
     "library": {
       "eyebrow": "资源库",
@@ -936,7 +936,7 @@
       "title": "服务",
       "items": [
         {
-          "label": "阿姨培训课程",
+          "label": "My Best Auntie 课程",
           "href": "/services/my-best-auntie-training-course"
         },
         {
@@ -1025,9 +1025,9 @@
   },
   "myBestAuntie": {
     "hero": {
-      "title": "My Best Auntie — 香港蒙特梭利家政助手育儿培训",
-      "subtitle": "香港领先的家政助手育儿培训课程——实操、蒙特梭利导向、专为真实生活设计。",
-      "description": "一门实操课程，帮助你的家政助手掌握蒙特梭利日常技能——用餐、游戏、过渡和独立能力培养。真实场景、真实话术、真实策略，从第一天起即可运用。无需任何育儿经验。",
+      "title": "My Best Auntie——改变孩子每天成长方式的 9 周课程",
+      "subtitle": "香港领先的家政助手培训课程——实操、蒙特梭利导向，围绕你孩子真实的发展需求而设计。",
+      "description": "你的阿姨和孩子在一起的时间比任何人都长。这个课程教会她实用的蒙特梭利技能：用餐、游戏、过渡与独立。真实场景、真实脚本、真实策略——从第一天就能用。无需任何经验基础。",
       "ctaLabel": "查看日期与价格",
       "ctaHref": "#my-best-auntie-booking",
       "imageAlt": "Evolve Sprouts 的 Ida De Gregorio",
@@ -1043,8 +1043,8 @@
     "outline": {
       "eyebrow": "课程大纲",
       "title": "My Best Auntie 课程大纲 — 由 Ida 设计",
-      "subtitle": "9周课程，改变你的家庭日常。",
-      "description": "系统化助手培训课程：小组课程 + 私人 1:1 指导。HK$9,000 起。",
+      "subtitle": "一个改变孩子每日成长方式的 9 周课程。",
+      "description": "结构化助手培训，包含小组课程 + 一对一私人辅导。你孩子的照护者在你家中、按你的日常流程学习实践。起步价 HK$9,000。",
       "ctaLabel": "立即预订名额！",
       "ctaHref": "#my-best-auntie-booking",
       "modules": [
@@ -1115,7 +1115,7 @@
     },
     "description": {
       "eyebrow": "课程亮点",
-      "title": "My Best Auntie 蒙特梭利助手培训课程包含哪些内容？",
+      "title": "My Best Auntie 课程包含什么？",
       "items": [
         {
           "icon": "training",
@@ -1205,7 +1205,7 @@
         {
           "id": "auntie-child",
           "iconSrc": "/images/auntie-child.svg",
-          "title": "阿姨与孩子",
+          "title": "照护者与孩子",
           "description": "我会观察您的阿姨如何在您选择的特定领域与孩子互动 — 用餐、发脾气、睡眠、游戏、过渡 — 并给她当天就能使用的实用脚本。"
         },
         {
@@ -1341,7 +1341,7 @@
         {
           "id": "auntie-child",
           "iconSrc": "/images/auntie-child.svg",
-          "title": "阿姨与孩子",
+          "title": "照护者与孩子",
           "essentials": "我们商定一个重点领域，我观察您的阿姨与孩子互动，然后给她2-3个每天可用的实用脚本。",
           "deepDive": "我会再次上门，观察她如何运用这些策略。我会实时指导，深入探讨，增强她的信心。"
         },
@@ -1393,7 +1393,7 @@
           "deepDive": true
         }
       ],
-      "footnote": "三种方向均可选择：家居评估 · 阿姨与孩子 · 亲子互动",
+      "footnote": "三种方向均可选择：家居评估 · 照护者与孩子 · 亲子互动",
       "ctaLabel": "立即预约咨询！",
       "ctaHref": "#consultations-booking"
     }
@@ -1487,7 +1487,7 @@
     "intro": {
       "title": "你好！我是 Ida——AMI 蒙特梭利教育者、两个孩子的妈妈，也是 Evolve Sprouts 的创始人。",
       "highlightPhrase": "Evolve Sprouts",
-      "description": "我离开教师职业，开始培训阿姨，让她们能以自信、独立与温暖的方式养育孩子。这份工作对我很个人——因为我也在经历和你一样的育儿旅程。",
+      "description": "我离开教师职涯，是因为我看到孩子的成长有多依赖家中发生的一切——而照顾他们的人得到的支持却太少。这份工作对我很个人——因为我也正在走着和你一样的育儿旅程。",
       "ctaLabel": "阅读我的故事",
       "ctaHref": "/about-us",
       "imageAlt": "Evolve Sprouts 的 Ida De Gregorio"
@@ -1521,14 +1521,14 @@
     },
     "whyUs": {
       "eyebrow": "为什么是我们",
-      "title": "养育孩子需要整个村庄，但你要慎重选择同行的人",
-      "description": "在香港，许多家庭都依靠家中阿姨协助照顾孩子，但她们很少接受儿童发展的正式训练。Evolve Sprouts 的存在，就是为了填补这个缺口：让你的阿姨具备所需的技能、表达方式和信心，按照你的价值观陪伴孩子成长。",
+      "title": "孩子最重要的成长阶段，由身边的人塑造",
+      "description": "在香港，你孩子最关键的早期成长，很大程度上由一个从未接受过儿童发展培训的人来塑造。这不是批评——这是一个系统性的缺口。Evolve Sprouts 的存在就是为了弥补它：让你的阿姨具备技能、语言和信心，按照独立性、情绪智商和你家庭的价值观来陪伴孩子成长。",
       "ctaLabel": "探索我们的工作坊",
       "ctaHref": "/services/workshops",
       "pillars": [
         {
-          "title": "为香港家庭量身设计的专项课程",
-          "description": "培训你的阿姨理解蒙特梭利原则、平静地与幼儿沟通，并按照你的价值观陪伴孩子成长。"
+          "title": "专为香港家庭真实生活而设",
+          "description": "你的阿姨学习蒙特梭利原则、平和沟通和适龄策略——让你的孩子在最关键的时间里获得稳定、高质量的引导。"
         },
         {
           "title": "专业指导",
@@ -1549,8 +1549,8 @@
         "eyebrow": "你的教练",
         "title": "Ida De Gregorio",
         "subtitle": "Evolve Sprouts 创始人",
-        "description": "Ida 是香港专注蒙特梭利启发式帮手培训的专家。她与全港家庭合作，帮助家长与帮手在同一套育儿方法上达成一致——从而带来更平静的家庭氛围、更顺畅的日常节奏，以及更独立的孩子。\n\n她的旗舰服务是 9-Week Helper Training Programme，循序渐进带领帮手掌握环境设置、引导方式与独立能力培养——并提供上门指导、每周挑战，以及面向帮手与家长的持续支持。",
-        "highlightedPhrase": "9-Week Helper Training Programme",
+        "description": "Ida 是香港专注蒙特梭利启发式助手培训的专家。她与全港家庭合作，确保每天陪伴你孩子的人有能力、有语言、有信心把这件事做好——从而带来更平静的家庭、更顺畅的日常和更独立的孩子。\n\n她的旗舰服务是 9 周 My Best Auntie 课程，按步骤带领阿姨掌握环境设置、引导方式与独立能力培养——并配合家访、每周挑战，以及同时支援家长与阿姨的持续跟进。",
+        "highlightedPhrase": "9 周 My Best Auntie 课程",
         "tags": [
           "AMI 蒙特梭利教育者（0–6）",
           "香港大学教育学硕士（M.Ed.）",

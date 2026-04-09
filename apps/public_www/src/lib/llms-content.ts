@@ -252,7 +252,7 @@ function buildSitePagesSection(): string {
     '/contact-us': 'Contact Us',
     '/privacy': 'Privacy Policy',
     '/terms': 'Terms and Conditions',
-    '/services/my-best-auntie-training-course': 'My Best Auntie — Montessori Helper Training Course',
+    '/services/my-best-auntie-training-course': 'My Best Auntie — 9 Weeks That Change How Your Child Is Raised Every Day',
   };
 
   return INDEXED_ROUTE_PATHS.map(

@@ -17,7 +17,7 @@
         "href": "/services/my-best-auntie-training-course",
         "children": [
           {
-            "label": "Helper Training Course",
+            "label": "My Best Auntie Programme",
             "href": "/services/my-best-auntie-training-course"
           },
           {
@@ -80,24 +80,24 @@
     "submenuToggleLabelTemplate": "Toggle {label} submenu"
   },
   "hero": {
-    "title": "Your auntie loves your child. But she needs the tools to raise them your way.",
-    "highlightPhrase": "your way",
-    "subtitle": "No blame. No judgment. Just the practical training every family in Hong Kong deserves.",
-    "cta": "Train your helper today",
+    "title": "The person who spends the most time with your child was never trained to raise one.",
+    "highlightPhrase": "never trained",
+    "subtitle": "It's not her fault. But your child's independence, confidence, and emotional growth depend on what happens in those hours. We give her the tools to get it right.",
+    "cta": "See how the programme works",
     "ctaHref": "/services/my-best-auntie-training-course",
     "ctaPrefillMessage": "Hi, I'd like to book a free intro call!",
     "description": "Trusted by families across Hong Kong. AMI Montessori-certified. Designed for real life.",
-    "imageAlt": "Montessori auntie training for Hong Kong families"
+    "imageAlt": "Montessori child development support for Hong Kong families"
   },
   "seo": {
-    "fallbackTitle": "Evolve Sprouts | Helper Childcare Training Hong Kong | My Best Auntie Course",
-    "fallbackDescription": "My Best Auntie is Hong Kong's leading Montessori-based training course for domestic helpers — helping your helper become a confident, caring childcare partner for children aged 0-6.",
+    "fallbackTitle": "Evolve Sprouts | Montessori Helper Training for Children Aged 0–6 in Hong Kong",
+    "fallbackDescription": "Your helper spends more waking hours with your child than anyone. My Best Auntie is the 9-week Montessori programme that gives her the skills to raise them with independence, confidence, and calm.",
     "defaultSocialImage": "/images/seo/evolvesprouts-og-default.png",
-    "defaultSocialImageAlt": "Evolve Sprouts Montessori auntie training in Hong Kong",
+    "defaultSocialImageAlt": "Evolve Sprouts Montessori child development support in Hong Kong",
     "socialImages": {
       "home": {
         "url": "/images/seo/evolvesprouts-og-default.png",
-        "alt": "Evolve Sprouts Montessori auntie training in Hong Kong"
+        "alt": "Evolve Sprouts Montessori helper training for children in Hong Kong"
       },
       "about": {
         "url": "/images/seo/evolvesprouts-og-default.png",
@@ -105,7 +105,7 @@
       },
       "contact": {
         "url": "/images/seo/evolvesprouts-og-default.png",
-        "alt": "Contact Evolve Sprouts for Montessori auntie training in Hong Kong"
+        "alt": "Contact Evolve Sprouts for Montessori child development support in Hong Kong"
       },
       "events": {
         "url": "/images/seo/evolvesprouts-og-default.png",
@@ -125,20 +125,20 @@
       }
     },
     "home": {
-      "title": "Evolve Sprouts | Helper Childcare Training Hong Kong | My Best Auntie Course",
-      "description": "My Best Auntie is Hong Kong's leading Montessori-based training course for domestic helpers — helping your helper become a confident, caring childcare partner for children aged 0-6."
+      "title": "Evolve Sprouts | Montessori Helper Training for Children Aged 0–6 in Hong Kong",
+      "description": "Your helper spends more waking hours with your child than anyone. My Best Auntie is the 9-week Montessori programme that gives her the skills to raise them with independence, confidence, and calm."
     },
     "trainingCourse": {
-      "title": "My Best Auntie — Montessori Helper Training Course",
-      "description": "My Best Auntie is a hands-on Montessori childcare training course for domestic helpers in Hong Kong. Practical routines, gentle discipline, and child-led strategies for families with children aged 0-6."
+      "title": "My Best Auntie — 9 Weeks That Change How Your Child Is Raised Every Day",
+      "description": "A hands-on Montessori helper training programme in Hong Kong. Practical routines, gentle discipline, and child-led strategies that give your child's primary caregiver the tools for real developmental support."
     },
     "aboutUs": {
       "title": "About Us",
-      "description": "Meet the founder behind Evolve Sprouts. Montessori-certified family support and domestic helper training rooted in hands-on experience with children aged 0-6 in Hong Kong."
+      "description": "Meet the founder behind Evolve Sprouts. Montessori-certified family support rooted in hands-on experience with children aged 0-6 in Hong Kong — helping the adults around your child raise them well."
     },
     "contactUs": {
       "title": "Contact Us",
-      "description": "Get in touch with Evolve Sprouts for Montessori auntie training, family consultations, and event enquiries in Hong Kong. We respond within 24-48 hours."
+      "description": "Get in touch with Evolve Sprouts for Montessori helper training, family consultations, and event enquiries in Hong Kong. We respond within 24-48 hours."
     },
     "events": {
       "title": "Events",
@@ -146,19 +146,19 @@
     },
     "consultations": {
       "title": "Family Consultations — Montessori & Positive Discipline Support",
-      "description": "Personalised Montessori family consultations and positive discipline support in Hong Kong — home assessment, auntie-child, or parent-child focus — with Essentials or Deep Dive levels."
+      "description": "Personalised Montessori family consultations and positive discipline support in Hong Kong — home assessment, caregiver-child, or parent-child focus — with Essentials or Deep Dive levels."
     },
     "freeGuidesAndResources": {
-      "title": "Free Parenting Guides & Resources",
-      "description": "Access free Montessori-inspired parenting guides, tips for helpers, and gentle discipline resources from Evolve Sprouts in Hong Kong."
+      "title": "Free Parenting & Child Development Guides",
+      "description": "Free Montessori-inspired guides for parents and helpers in Hong Kong — practical strategies for building independence, emotional regulation, and confidence in children aged 0-6."
     },
     "links": {
       "title": "Links",
       "description": "Quick links to Evolve Sprouts courses, events, and contact channels in Hong Kong."
     },
-    "organizationDescription": "Montessori-informed family support and auntie training for families with children aged 0-6 in Hong Kong.",
+    "organizationDescription": "Montessori-informed helper training and family support for children aged 0-6 in Hong Kong — raising independent, confident kids through skilled everyday caregiving.",
     "localBusinessName": "Evolve Sprouts",
-    "localBusinessDescription": "Montessori auntie training and parent support for families in Hong Kong.",
+    "localBusinessDescription": "Montessori helper training and child development support for families in Hong Kong.",
     "localBusinessAreaServed": "Hong Kong"
   },
   "whatsappContact": {
@@ -168,8 +168,8 @@
   "resources": {
     "eyebrow": "Highlighted Resource",
     "mediaBadgeLabel": "Highlighted Resource",
-    "title": "Free Resources for Gentle Parenting",
-    "description": "Access our library of free learning materials.",
+    "title": "Free Resources for Raising Independent Children",
+    "description": "Practical tools for parents and helpers — building independence, patience, and emotional growth.",
     "cardTitle": "Free Guide: 4 Simple Ways to Teach Patience to Young Children",
     "cardDescription": "Gentle Strategies for Busy Parents",
     "mediaTitleLine1": "Teach Patience",
@@ -203,21 +203,21 @@
   },
   "courseHighlights": {
     "eyebrow": "Course Highlights",
-    "title": "Why Join Our Courses",
-    "description": "The childcare course for helpers that serious families choose when they want real change",
-    "ctaLabel": "Get Started—Train Auntie Today",
+    "title": "What Your Child Gains",
+    "description": "A 9-week programme that transforms how your child is cared for every day — through the person who's there the most",
+    "ctaLabel": "See How the Programme Works",
     "ctaHref": "/services/my-best-auntie-training-course",
     "supportChipLabel": "Connect Now",
     "items": [
       {
         "id": "age-specific",
-        "title": "From Supervisor to Skilled Guide",
-        "description": "We don't just train your helper to watch your child; we empower her with the skills to guide their development. Shift from managing boredom to fostering curiosity, independence, and a genuine love for learning."
+        "title": "From Managed to Growing: Your Child Learns to Lead",
+        "description": "Your child stops being watched and starts being guided. We give your helper the skills to foster curiosity, independence, and a genuine love for learning — so your child develops, not just passes time."
       },
       {
         "id": "small-group-learning",
         "title": "Build a Calmer, Happier Home",
-        "description": "End the daily battles over routines. Our method teaches your helper to create predictable, positive rhythms for meals, play, and rest, leading to less resistance, fewer tantrums, and more peaceful days for everyone."
+        "description": "End the daily battles over routines. Your helper learns to create predictable, positive rhythms for meals, play, and rest — leading to less resistance, fewer tantrums, and more peaceful days for everyone."
       },
       {
         "id": "montessori-positive-discipline",
@@ -226,18 +226,18 @@
       },
       {
         "id": "ongoing-support",
-        "title": "Invest in Your Peace of Mind",
-        "description": "Reduce the mental load of micromanaging childcare. Trust that your helper is aligned with your parenting values and equipped with proven techniques, so you can relax and enjoy your family time."
+        "title": "Trust What's Happening When You're Not There",
+        "description": "Reduce the mental load of micromanaging childcare. Know that your helper is aligned with your parenting values and equipped with proven techniques, so your child gets consistent, quality care every hour of the day."
       },
       {
         "id": "ready-to-use-tools",
-        "title": "Empower Your Helper, Elevate Your Home",
-        "description": "A confident, skilled helper is a retained helper. Our training invests in her growth, boosting her job satisfaction and capability, which directly translates to higher quality care and stability for your family."
+        "title": "A Trained Caregiver Means a More Capable Child",
+        "description": "When your helper grows in skill and confidence, your child gets higher quality care and more stability. Investing in her development is investing directly in your child's."
       },
       {
         "id": "guaranteed-confidence",
-        "title": "Create a Home Designed for Independence",
-        "description": "Learn how to transform your living space into a child-friendly environment that encourages self-sufficiency. We show your helper simple, effective tweaks that make children capable and proud."
+        "title": "A Home Designed for Independence",
+        "description": "We show your helper how to transform your living space into an environment that encourages self-sufficiency — so your child practises doing things for themselves, and feels proud when they do."
       }
     ],
     "scrollLeftAriaLabel": "Scroll course highlights left",
@@ -247,33 +247,33 @@
   "realTalk": {
     "eyebrow": "Real Talk",
     "title": "Sound Familiar?",
-    "description": "Your helper isn't doing anything wrong. She's doing what she knows. This course gives her something better.",
-    "ctaLabel": "Get Started—Train Auntie Today",
+    "description": "None of this is her fault. She's doing what she knows. But your child is learning from every one of these moments. This programme gives her something better — so your child gets something better.",
+    "ctaLabel": "See How the Programme Works",
     "ctaHref": "/services/my-best-auntie-training-course",
     "items": [
       {
         "id": "ipad-when-crying",
-        "title": "She hands him the iPad the second he cries."
+        "title": "He cries, she hands him the iPad. He's learning that screens fix feelings."
       },
       {
         "id": "spoon-fed-at-three",
-        "title": "She still spoon-feeds him. He's three."
+        "title": "He's three and hasn't held his own spoon. He's not lazy — he was never given the chance."
       },
       {
         "id": "monster-threat-at-meals",
-        "title": "She says \"if you don't eat, the monster will come.\""
+        "title": "\"If you don't eat, the monster will come.\" He's not learning to eat. He's learning to fear."
       },
       {
         "id": "no-shoes-independence",
-        "title": "She does everything for them. They can't even put on their own shoes."
+        "title": "Every shoe tied for them is a moment of independence they didn't get to practise."
       },
       {
         "id": "rules-change-when-i-leave",
-        "title": "She's wonderful — but the moment I leave, the rules change."
+        "title": "Two sets of rules, one confused child. Consistency is how children feel safe."
       },
       {
         "id": "picks-him-up-after-fall",
-        "title": "He trips and before he can even stand up, she's already picked him up."
+        "title": "He falls. Before he can even try to get up, she's already there. He's learning he can't."
       }
     ],
     "scrollLeftAriaLabel": "Scroll real talk left",
@@ -333,7 +333,7 @@
   "contactUs": {
     "form": {
       "title": "Got a Question? Let's Talk",
-      "description": "Not sure if the course is right for your family? Want to know more before you commit? Or just need to talk through what's happening at home? I'm here - no pressure, no pitch.",
+      "description": "Not sure what your child needs? Want to know more before you commit? Or just need to talk through what's happening at home? I'm here — no pressure, no pitch.",
       "contactMethodsTitle": "Prefer WhatsApp? Most parents do. Message me directly and I'll reply within 24 hours.",
       "contactMethodLinks": {
         "whatsapp": "Message me on WhatsApp"
@@ -473,8 +473,8 @@
     ],
     "questions": [
       {
-        "question": "What will my helper learn in the My Best Auntie course?",
-        "answer": "Your helper will learn practical Montessori techniques for daily routines, gentle discipline without threats or bribes, age-appropriate activities for children aged 0-6, and how to foster independence in a small Hong Kong home. The course includes group sessions, home visits, and personalised coaching.",
+        "question": "What will my child gain from the My Best Auntie course?",
+        "answer": "Your child's caregiver will learn practical Montessori techniques for daily routines, gentle discipline without threats or bribes, age-appropriate activities for children aged 0-6, and how to foster independence in a small Hong Kong home. The result: your child builds confidence, emotional regulation, and real skills through everyday moments. The course includes group sessions, home visits, and personalised coaching.",
         "labelIds": [
           "general"
         ]
@@ -523,14 +523,14 @@
       },
       {
         "question": "Who is Evolve Sprouts for?",
-        "answer": "Evolve Sprouts supports families in Hong Kong with children aged 0-6, especially those working with helpers or navigating busy city life.",
+        "answer": "Evolve Sprouts is for families in Hong Kong with children aged 0-6 who want to make sure their child's daily care supports real development — especially when a helper is the primary caregiver during working hours.",
         "labelIds": [
           "general"
         ]
       },
       {
         "question": "How is Montessori relevant for infants and toddlers at home?",
-        "answer": "Montessori is not just for classrooms. We teach aunties to create child-friendly home environments and practical routines that build independence from infancy.",
+        "answer": "Montessori is not just for classrooms. We teach caregivers to create child-friendly home environments and practical routines that build independence from infancy.",
         "labelIds": [
           "general",
           "discipline",
@@ -610,7 +610,7 @@
       },
       {
         "question": "What services do you offer?",
-        "answer": "We offer consultation sessions, auntie training, home setup guidance, and parent support services tailored for families in Hong Kong.",
+        "answer": "We offer a 9-week helper training programme, family consultations, home setup guidance, and parent support — all designed to improve how your child is cared for every day.",
         "labelIds": [
           "pricing"
         ]
@@ -652,7 +652,7 @@
       },
       {
         "question": "What makes Evolve Sprouts different from other parenting coaches?",
-        "answer": "We combine Montessori-informed guidance with deep understanding of Hong Kong family-helper dynamics. Our approach is practical, respectful, and non-judgmental.",
+        "answer": "We focus on the person who's actually with your child every day. By combining Montessori-informed guidance with a deep understanding of Hong Kong family-helper dynamics, we create real change where it matters most — in the daily moments that shape your child's development.",
         "labelIds": [
           "trust"
         ]
@@ -709,9 +709,9 @@
     "successMessage": "Thank you for being part of our community! You will start receiving our monthly newsletters"
   },
   "freeIntroSession": {
-    "title": "Ready to give your helper the tools she needs?",
+    "title": "Wondering what's really happening in those hours you're not there?",
     "eventPageTitle": "Not sure yet? Start here",
-    "description": "Book a free 15-minute intro call. No commitment. Just a conversation about your family.",
+    "description": "Book a free 15-minute call. We'll talk about your child, your helper, and whether the programme is the right fit. No commitment — just a conversation.",
     "ctaLabel": "Book Free Intro Call on WhatsApp",
     "ctaHref": "{{WHATSAPP_URL}}",
     "phoneNumber": "{{BUSINESS_PHONE_NUMBER}}",
@@ -720,9 +720,9 @@
   "freeGuidesAndResources": {
     "hero": {
       "eyebrow": "Free Guides & Resources",
-      "title": "Free Parenting Guides & Resources",
-      "subtitle": "Access our growing library of free tools, guides, and practical tips for families and helpers in Hong Kong.",
-      "description": "Whether you're looking for gentle discipline ideas, Montessori-inspired routines, or helper-friendly strategies, you'll find resources you can use right away."
+      "title": "Free Parenting & Child Development Guides",
+      "subtitle": "Practical tools for parents and helpers — building independence, patience, and emotional growth in children aged 0-6.",
+      "description": "Whether you're looking for gentle discipline strategies, Montessori-inspired routines, or resources to share with your helper, you'll find tools you can use right away."
     },
     "library": {
       "eyebrow": "Resource Library",
@@ -936,7 +936,7 @@
       "title": "Services",
       "items": [
         {
-          "label": "Helper Training Course",
+          "label": "My Best Auntie Programme",
           "href": "/services/my-best-auntie-training-course"
         },
         {
@@ -1025,9 +1025,9 @@
   },
   "myBestAuntie": {
     "hero": {
-      "title": "My Best Auntie — Montessori Childcare Training for Helpers in Hong Kong",
-      "subtitle": "Hong Kong's leading domestic helper childcare training programme — practical, Montessori-based, and designed for real life.",
-      "description": "A hands-on programme that gives your domestic helper practical Montessori skills for everyday routines — meals, play, transitions, and independence. Real scenarios, real scripts, real strategies she can use from day one. No prior experience required.",
+      "title": "My Best Auntie — 9 Weeks That Change How Your Child Is Raised Every Day",
+      "subtitle": "Hong Kong's leading domestic helper training programme — practical, Montessori-based, and designed around your child's real developmental needs.",
+      "description": "Your helper spends more waking hours with your child than anyone. This programme gives her practical Montessori skills for everyday routines — meals, play, transitions, and independence. Real scenarios, real scripts, real strategies she can use from day one. No prior experience required.",
       "ctaLabel": "See dates & pricing",
       "ctaHref": "#my-best-auntie-booking",
       "imageAlt": "Ida De Gregorio from Evolve Sprouts",
@@ -1043,8 +1043,8 @@
     "outline": {
       "eyebrow": "Course Outline",
       "title": "My Best Auntie Course Outline — Designed by Ida",
-      "subtitle": "A 9-Week Programme That Changes Your Home.",
-      "description": "A structured helper training course: group sessions + private 1:1 coaching. Starting from HK$9,000.",
+      "subtitle": "A 9-Week Programme That Changes How Your Child Is Raised.",
+      "description": "Structured helper training with group sessions + private 1:1 coaching. Your child's caregiver learns by doing — in your home, with your routines. Starting from HK$9,000.",
       "ctaLabel": "Book your spot now!",
       "ctaHref": "#my-best-auntie-booking",
       "modules": [
@@ -1115,7 +1115,7 @@
     },
     "description": {
       "eyebrow": "Course Highlights",
-      "title": "What's Included in the My Best Auntie Montessori Helper Training Course?",
+      "title": "What's Included in the My Best Auntie Programme?",
       "items": [
         {
           "icon": "training",
@@ -1205,13 +1205,13 @@
         {
           "id": "auntie-child",
           "iconSrc": "/images/auntie-child.svg",
-          "title": "Auntie-Child",
+          "title": "Caregiver & Child",
           "description": "I observe how your helper interacts with your child in a specific area you choose — mealtimes, tantrums, sleep, play, transitions — and give her practical scripts she can use that same day."
         },
         {
           "id": "parent-child",
           "iconSrc": "/images/parent-child.svg",
-          "title": "Parent-Child",
+          "title": "Parent & Child",
           "description": "I observe how you engage with your child — daily rhythms, routines, independence — and check if you and your helper are sending consistent messages."
         }
       ],
@@ -1341,14 +1341,14 @@
         {
           "id": "auntie-child",
           "iconSrc": "/images/auntie-child.svg",
-          "title": "Auntie-Child",
+          "title": "Caregiver & Child",
           "essentials": "We agree on a focus area, I observe your helper with your child, and I give her 2–3 practical scripts to use daily.",
           "deepDive": "I come back to see how she's applying the strategies. I coach in real time, go deeper, and build her confidence."
         },
         {
           "id": "parent-child",
           "iconSrc": "/images/parent-child.svg",
-          "title": "Parent-Child",
+          "title": "Parent & Child",
           "essentials": "I observe how you interact with your child, coach you on Montessori principles adapted to your daily rhythm, and check alignment with your helper.",
           "deepDive": "I come back to see how routines have shifted, what still feels hard, and re-align you and your helper if you've drifted apart."
         }
@@ -1393,7 +1393,7 @@
           "deepDive": true
         }
       ],
-      "footnote": "Available for all three focus areas: Home Assessment · Auntie-Child · Parent-Child",
+      "footnote": "Available for all three focus areas: Home Assessment · Caregiver & Child · Parent & Child",
       "ctaLabel": "Book your consultation now!",
       "ctaHref": "#consultations-booking"
     }
@@ -1487,7 +1487,7 @@
     "intro": {
       "title": "Hello! I'm Ida — AMI Montessori educator, mum of two, and founder of Evolve Sprouts.",
       "highlightPhrase": "Evolve Sprouts",
-      "description": "I left a teacher career to train helpers to raise children with confidence, independence, and warmth. This work is personal to me — because I'm navigating the same journey you are.",
+      "description": "I left a teaching career because I saw how much children's growth depends on what happens at home — and how little support the people raising them actually get. This work is personal to me — because I'm navigating the same journey you are.",
       "ctaLabel": "Read my story",
       "ctaHref": "/about-us",
       "imageAlt": "Ida De Gregorio from Evolve Sprouts"
@@ -1521,14 +1521,14 @@
     },
     "whyUs": {
       "eyebrow": "Why Us",
-      "title": "It takes a village. But you need to choose yours carefully",
-      "description": "In Hong Kong, families often rely on domestic helpers for childcare — yet helpers rarely receive formal training in child development. Evolve Sprouts exists to bridge that gap: to give your helper the skills, language, and confidence to raise your children with your values.",
+      "title": "Your child's most formative years are shaped by the people around them",
+      "description": "In Hong Kong, your child's earliest years are largely shaped by someone who was never trained in child development. That's not a criticism — it's a systemic gap. Evolve Sprouts exists to close it: to give your helper the skills, language, and confidence to raise your child with independence, emotional intelligence, and your family's values.",
       "ctaLabel": "Explore our workshops",
       "ctaHref": "/services/workshops",
       "pillars": [
         {
-          "title": "A Specialised Course for Hong Kong Families",
-          "description": "Train your helper to understand Montessori principles, communicate calmly with toddlers, and raise your children with your values."
+          "title": "Built for How Hong Kong Families Actually Live",
+          "description": "Your helper learns Montessori principles, calm communication, and age-appropriate strategies — so your child gets consistent, quality guidance in the hours that matter most."
         },
         {
           "title": "Expert Guidance",
@@ -1549,8 +1549,8 @@
         "eyebrow": "Your coach",
         "title": "Ida De Gregorio",
         "subtitle": "Founder, Evolve Sprouts",
-        "description": "Ida is Hong Kong's specialist in Montessori-inspired helper training. She works with families across HK to align parents and helpers around a shared approach — one that leads to calmer homes, smoother routines, and more independent children.\n\nHer flagship offer is the 9-Week Helper Training Programme, which takes helpers step by step through environment, guidance, and independence — with home visits, weekly challenges, and ongoing support for both helper and parent.",
-        "highlightedPhrase": "9-Week Helper Training Programme",
+        "description": "Ida is Hong Kong's specialist in Montessori-inspired helper training. She works with families across HK to ensure the person raising your child every day has the skills, language, and confidence to do it well — leading to calmer homes, smoother routines, and more independent children.\n\nHer flagship offer is the 9-Week My Best Auntie Programme, which takes helpers step by step through environment, guidance, and independence — with home visits, weekly challenges, and ongoing support for both helper and parent.",
+        "highlightedPhrase": "9-Week My Best Auntie Programme",
         "tags": [
           "AMI Montessori Educator (0–6)",
           "M.Ed., HKU",
