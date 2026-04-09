@@ -103,7 +103,7 @@ export function MyBestAuntieHero({
     >
       <SectionContainer
         className={buildSectionSplitLayoutClassName(
-          'es-section-split-layout--hero items-center',
+          'es-section-split-layout--hero es-section-split-layout--my-best-auntie-hero items-center',
         )}
       >
         <div className='relative max-w-[620px] lg:order-2 lg:pb-4 lg:pl-8'>

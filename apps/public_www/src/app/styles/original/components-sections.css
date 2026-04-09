@@ -145,6 +145,10 @@
       gap: 1.5rem;
     }
 
+    .es-section-split-layout--my-best-auntie-hero {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    }
+
     .es-section-split-layout--contact-us {
       gap: 2.25rem;
     }
