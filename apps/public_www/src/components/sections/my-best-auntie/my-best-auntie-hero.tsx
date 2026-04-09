@@ -121,13 +121,13 @@ export function MyBestAuntieHero({
           />
         </div>
 
-        <div className='es-mba-hero-grid__body max-w-[720px]'>
+        <div className='es-mba-hero-grid__body'>
           <HeroQuickFactChips
             chips={heroChips}
             className='mt-5 lg:mt-0'
             data-testid='my-best-auntie-hero-quick-facts'
           />
-          <p className='mt-4 max-w-[720px] es-type-body'>
+          <p className='mt-4 es-type-body'>
             {renderQuotedDescriptionText(description)}
           </p>
           <MicroTestimonial content={content} />
