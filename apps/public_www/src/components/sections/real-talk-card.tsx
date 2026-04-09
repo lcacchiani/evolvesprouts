@@ -19,7 +19,7 @@ export function RealTalkCard({ title, tone }: RealTalkCardProps) {
         aria-hidden='true'
         className='es-testimonial-quote-icon relative z-10 h-6 w-6 sm:h-7 sm:w-7'
       />
-      <div className='relative z-10 mt-auto'>
+      <div className='relative z-10 mt-2 sm:mt-2.5'>
         <h3 className='text-balance es-real-talk-title'>{title}</h3>
       </div>
     </div>
