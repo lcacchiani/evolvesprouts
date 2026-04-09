@@ -955,6 +955,12 @@
     background-color: var(--es-color-surface-white, #FFFFFF);
   }
 
+  @media (min-width: 640px) {
+    .es-hero-section {
+      padding-top: 60px;
+    }
+  }
+
   .es-hero-frame-bg,
   .es-contact-us-left-decor {
     background-image: url('/images/evolvesprouts-logo.svg');
