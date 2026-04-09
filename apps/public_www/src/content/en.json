@@ -1246,6 +1246,8 @@
         "ctaLabel": "Reserve My Consultation",
         "modalTitle": "One-Off Consultation",
         "modalSubtitle": "We will confirm your focus, level, and visit after payment.",
+        "modalFocusLabelTemplate": "{focus} focus",
+        "upgradeToDeepDiveLabel": "Upgrade to Deep Dive for hands-on implementation",
         "selectedDateLabel": "Consultation package",
         "locationName": "Your Home",
         "locationAddress": "Hong Kong",

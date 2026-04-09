@@ -1246,6 +1246,8 @@
         "ctaLabel": "預約我的諮詢",
         "modalTitle": "一次性諮詢",
         "modalSubtitle": "付款後我們將確認您的諮詢方向、級別和上門安排。",
+        "modalFocusLabelTemplate": "{focus}方向",
+        "upgradeToDeepDiveLabel": "升級到深入版，獲得實操指導",
         "selectedDateLabel": "諮詢套餐",
         "locationName": "你屋企",
         "locationAddress": "香港",

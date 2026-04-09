@@ -2,7 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConsultationBookingModal } from '@/components/sections/consultations/consultation-booking-modal';
-import type { ConsultationBookingPickerContent } from '@/components/sections/consultations/consultation-booking-modal';
+import type {
+  ConsultationBookingPickerContent,
+  ConsultationBookingModalSelectionInfo,
+} from '@/components/sections/consultations/consultation-booking-modal';
 import enContent from '@/content/en.json';
 import { buildConsultationsBookingModalPayload } from '@/lib/consultations-booking-modal-payload';
 
@@ -103,5 +106,145 @@ describe('ConsultationBookingModal', () => {
 
     expect(pmButton).toHaveAttribute('aria-pressed', 'true');
     expect(amButton).toBeDisabled();
+  });
+
+  it('shows focus label and level features when selectionInfo is provided', () => {
+    const essentialsLevel = enContent.consultations.booking.levels[0];
+    const selectionInfo: ConsultationBookingModalSelectionInfo = {
+      focusLabel: 'Home Assessment',
+      levelId: 'essentials',
+      levelFeatures: essentialsLevel.features,
+      focusLabelFormatted: 'Home Assessment focus',
+      upgradeToDeepDiveLabel: enContent.consultations.booking.reservation.upgradeToDeepDiveLabel,
+    };
+
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+      { focusLabel: 'Home Assessment', levelLabel: 'Essentials' },
+    );
+
+    render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        selectionInfo={selectionInfo}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+        onUpgradeToDeepDive={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('Home Assessment focus')).toBeInTheDocument();
+    for (const feature of essentialsLevel.features) {
+      expect(screen.getByText(feature)).toBeInTheDocument();
+    }
+  });
+
+  it('shows upgrade button for essentials and hides for deep-dive', () => {
+    const upgradeLabel = enContent.consultations.booking.reservation.upgradeToDeepDiveLabel;
+    const essentialsInfo: ConsultationBookingModalSelectionInfo = {
+      focusLabel: 'Home Assessment',
+      levelId: 'essentials',
+      levelFeatures: enContent.consultations.booking.levels[0].features,
+      focusLabelFormatted: 'Home Assessment focus',
+      upgradeToDeepDiveLabel: upgradeLabel,
+    };
+
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+      { focusLabel: 'Home Assessment', levelLabel: 'Essentials' },
+    );
+
+    const { unmount } = render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        selectionInfo={essentialsInfo}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+        onUpgradeToDeepDive={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: upgradeLabel })).toBeInTheDocument();
+    unmount();
+
+    const deepDiveInfo: ConsultationBookingModalSelectionInfo = {
+      focusLabel: 'Home Assessment',
+      levelId: 'deep-dive',
+      levelFeatures: enContent.consultations.booking.levels[1].features,
+      focusLabelFormatted: 'Home Assessment focus',
+      upgradeToDeepDiveLabel: upgradeLabel,
+    };
+
+    const deepDiveReservation = {
+      ...enContent.consultations.booking.reservation,
+      bookingTier: 'deepDive' as const,
+    };
+
+    const deepDivePayload = buildConsultationsBookingModalPayload(
+      deepDiveReservation,
+      'en',
+      { focusLabel: 'Home Assessment', levelLabel: 'Deep Dive' },
+    );
+
+    render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={deepDivePayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        selectionInfo={deepDiveInfo}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+        onUpgradeToDeepDive={() => {}}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: upgradeLabel })).not.toBeInTheDocument();
+  });
+
+  it('calls onUpgradeToDeepDive when upgrade button is clicked', () => {
+    const onUpgrade = vi.fn();
+    const upgradeLabel = enContent.consultations.booking.reservation.upgradeToDeepDiveLabel;
+    const selectionInfo: ConsultationBookingModalSelectionInfo = {
+      focusLabel: 'Home Assessment',
+      levelId: 'essentials',
+      levelFeatures: enContent.consultations.booking.levels[0].features,
+      focusLabelFormatted: 'Home Assessment focus',
+      upgradeToDeepDiveLabel: upgradeLabel,
+    };
+
+    const bookingPayload = buildConsultationsBookingModalPayload(
+      enContent.consultations.booking.reservation,
+      'en',
+      { focusLabel: 'Home Assessment', levelLabel: 'Essentials' },
+    );
+
+    render(
+      <ConsultationBookingModal
+        locale='en'
+        paymentModalContent={enContent.bookingModal.paymentModal}
+        bookingPayload={bookingPayload}
+        pickerContent={buildPickerContent(enContent.bookingModal.paymentModal)}
+        calendarAvailability={{ unavailable_slots: [] }}
+        selectionInfo={selectionInfo}
+        onClose={() => {}}
+        onSubmitReservation={() => {}}
+        onUpgradeToDeepDive={onUpgrade}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: upgradeLabel }));
+    expect(onUpgrade).toHaveBeenCalledOnce();
   });
 });

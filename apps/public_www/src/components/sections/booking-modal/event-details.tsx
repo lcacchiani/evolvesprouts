@@ -28,6 +28,8 @@ interface BookingEventDetailsProps {
    * `detailsVariant='event'` for layout).
    */
   consultationScheduleSlot?: ReactNode;
+  /** When provided, replaces the plain-text subtitle paragraph with custom content. */
+  subtitleSlot?: ReactNode;
 }
 
 const PART_CHIP_TONES = ['blue', 'green', 'yellow'] as const;
@@ -77,6 +79,7 @@ export function BookingEventDetails({
   directionHref = '',
   detailsVariant = 'my-best-auntie',
   consultationScheduleSlot,
+  subtitleSlot,
 }: BookingEventDetailsProps) {
   const isEventDetailsVariant = detailsVariant === 'event';
   const eventScheduleRows = activePartRows
@@ -91,9 +94,11 @@ export function BookingEventDetails({
       >
         {title}
       </h2>
-      <p className='mt-3 text-xl leading-7 es-text-heading'>
-        {subtitle}
-      </p>
+      {subtitleSlot ?? (
+        <p className='mt-3 text-xl leading-7 es-text-heading'>
+          {subtitle}
+        </p>
+      )}
 
       {!isEventDetailsVariant ? (
         <section className='mt-8'>

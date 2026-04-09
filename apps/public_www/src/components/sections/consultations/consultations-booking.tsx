@@ -29,7 +29,10 @@ import { mergeClassNames } from '@/lib/class-name-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { useMatchMedia } from '@/lib/hooks/use-match-media';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
-import type { ConsultationBookingPickerContent } from '@/components/sections/consultations/consultation-booking-modal';
+import type {
+  ConsultationBookingPickerContent,
+  ConsultationBookingModalSelectionInfo,
+} from '@/components/sections/consultations/consultation-booking-modal';
 
 const ConsultationBookingModal = dynamic(
   () =>
@@ -180,6 +183,27 @@ export function ConsultationsBooking({
         selectionLabels,
       )
     : null;
+
+  const modalSelectionInfo: ConsultationBookingModalSelectionInfo | undefined =
+    useMemo(() => {
+      const focus = content.focusAreas.find((a) => a.id === selectedFocusId);
+      const level = content.levels.find((l) => l.id === selectedLevelId);
+      if (!focus || !level) return undefined;
+      return {
+        focusLabel: focus.title,
+        levelId: level.id,
+        levelFeatures: level.features,
+        focusLabelFormatted: formatContentTemplate(
+          content.reservation.modalFocusLabelTemplate,
+          { focus: focus.title },
+        ),
+        upgradeToDeepDiveLabel: content.reservation.upgradeToDeepDiveLabel,
+      };
+    }, [content.focusAreas, content.levels, content.reservation, selectedFocusId, selectedLevelId]);
+
+  function handleUpgradeToDeepDive() {
+    setSelectedLevelId('deep-dive');
+  }
 
   const consultationPickerContent = useMemo(() => {
     return buildConsultationPickerContent(bookingModalContent.paymentModal);
@@ -450,6 +474,7 @@ export function ConsultationsBooking({
           bookingPayload={bookingPayload}
           calendarAvailability={calendarAvailability}
           pickerContent={consultationPickerContent}
+          selectionInfo={modalSelectionInfo}
           analyticsSectionId='consultations-booking'
           metaPixelContentName={PIXEL_CONTENT_NAME.consultation_booking}
           captchaWidgetAction='consultation_reservation_submit'
@@ -461,6 +486,7 @@ export function ConsultationsBooking({
             setThankYouSummary(summary);
             setIsThankYouOpen(true);
           }}
+          onUpgradeToDeepDive={handleUpgradeToDeepDive}
         />
       ) : null}
 
