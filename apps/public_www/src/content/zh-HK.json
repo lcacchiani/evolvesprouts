@@ -1187,7 +1187,9 @@
       "description": "每個家庭的情況都不同。在諮詢中，我們會一起看清家裡具體哪裡不順，並規劃最簡單、可執行的下一步。",
       "ctaLabel": "預約家庭諮詢",
       "ctaHref": "#consultations-booking",
-      "imageAlt": "Evolve Sprouts 家庭諮詢服務"
+      "imageSrc": "/images/hero/consultations-hero.webp",
+      "imageAlt": "家長與孩子微笑擊掌",
+      "imageMaxWidthPercent": 90
     },
     "booking": {
       "eyebrow": "家庭諮詢",
