@@ -3,7 +3,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
@@ -20,6 +20,7 @@ import type {
 } from '@/content';
 import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
+import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import type { CalendarAvailabilityPayload } from '@/lib/calendar-availability';
 import {
   buildConsultationsBookingModalPayload,
@@ -28,6 +29,7 @@ import {
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { useMatchMedia } from '@/lib/hooks/use-match-media';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
 import type {
   ConsultationBookingPickerContent,
@@ -159,6 +161,23 @@ export function ConsultationsBooking({
   );
   const [hasUserChangedLevelSelection, setHasUserChangedLevelSelection] =
     useState(false);
+
+  useEffect(() => {
+    if (!isThankYouOpen || !thankYouSummary) {
+      return;
+    }
+
+    trackAnalyticsEvent('booking_thank_you_view', {
+      sectionId: 'consultations-booking',
+      ctaLocation: 'thank_you_modal',
+      params: {
+        payment_method: thankYouSummary.paymentMethod,
+        total_amount: thankYouSummary.totalAmount,
+        age_group: '',
+        cohort_date: thankYouSummary.dateStartTime?.split('T')[0] ?? '',
+      },
+    });
+  }, [isThankYouOpen, thankYouSummary]);
 
   const reservationForModal: ConsultationsBookingReservationContent = useMemo(() => {
     return {
@@ -458,6 +477,31 @@ export function ConsultationsBooking({
               variant='primary'
               className='w-full max-w-[488px]'
               onClick={() => {
+                const tier = selectedLevelId === 'deep-dive'
+                  ? content.reservation.deepDive
+                  : content.reservation.essentials;
+                trackAnalyticsEvent('booking_modal_open', {
+                  sectionId: 'consultations-booking',
+                  ctaLocation: 'booking_section',
+                  params: {
+                    age_group: '',
+                    cohort_label: selectionLabels.levelLabel,
+                    cohort_date: tier.dateParts[0]?.startDateTime?.split('T')[0] ?? '',
+                  },
+                });
+                trackMetaPixelEvent('InitiateCheckout', {
+                  content_name: PIXEL_CONTENT_NAME.consultation_booking,
+                });
+                trackEcommerceEvent('begin_checkout', {
+                  value: tier.priceHkd,
+                  items: [{
+                    item_id: `consultation-${selectedLevelId}`,
+                    item_name: content.reservation.modalTitle,
+                    item_category: selectionLabels.focusLabel,
+                    price: tier.priceHkd,
+                    quantity: 1,
+                  }],
+                });
                 setIsBookingModalOpen(true);
               }}
             >
