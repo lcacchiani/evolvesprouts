@@ -117,7 +117,7 @@
       },
       "consultations": {
         "url": "/images/seo/evolvesprouts-og-default.png",
-        "alt": "Evolve Sprouts 蒙特梭利一次性諮詢服務（香港）"
+        "alt": "Evolve Sprouts 蒙特梭利家庭諮詢服務（香港）"
       },
       "freeGuidesAndResources": {
         "url": "/images/seo/evolvesprouts-og-default.png",
@@ -145,8 +145,8 @@
       "description": "參加 Evolve Sprouts 在香港舉辦的蒙特梭利工作坊、家長講座及社區活動。為0-6歲兒童家庭量身打造的實用課程。"
     },
     "consultations": {
-      "title": "一次性諮詢服務 — 蒙特梭利家庭支援",
-      "description": "還未準備好參加9週課程？預約一次蒙特梭利諮詢 — 家居環境評估、姨姨與孩子互動或親子互動方向 — 提供基礎版和深入版兩個級別。"
+      "title": "家庭諮詢服務 — 蒙特梭利與正向管教支援",
+      "description": "個人化蒙特梭利家庭諮詢與正向管教支援（香港）— 家居環境評估、姨姨與孩子互動或親子互動方向 — 提供基礎版和深入版兩個級別。"
     },
     "freeGuidesAndResources": {
       "title": "免費育兒指南與資源",
@@ -1182,16 +1182,16 @@
   },
   "consultations": {
     "hero": {
-      "title": "一次性諮詢服務",
-      "subtitle": "還未準備好參加完整的9週課程？從這裡開始。選擇你的方向。選擇你的級別。看看會有什麼改變。",
+      "title": "家庭諮詢服務",
+      "subtitle": "為你的家庭度身訂造的蒙特梭利指導與正向管教支援。選擇你的方向。選擇你的級別。看看會有什麼改變。",
       "description": "每個家庭的情況都不同。在諮詢中，我們會一起看清家裡具體哪裡不順，並規劃最簡單、可執行的下一步。",
-      "ctaLabel": "預約免費家庭諮詢",
+      "ctaLabel": "預約家庭諮詢",
       "ctaHref": "#consultations-booking",
-      "imageAlt": "Evolve Sprouts 一次性諮詢課程"
+      "imageAlt": "Evolve Sprouts 家庭諮詢服務"
     },
     "booking": {
-      "eyebrow": "如何運作",
-      "title": "選擇你的方向和級別",
+      "eyebrow": "家庭諮詢",
+      "title": "預約你的家庭諮詢",
       "step1Title": "選擇你的方向：",
       "focusAreas": [
         {
@@ -1244,7 +1244,7 @@
       "reservation": {
         "bookingTier": "essentials",
         "ctaLabel": "預約我的諮詢",
-        "modalTitle": "一次性諮詢",
+        "modalTitle": "家庭諮詢",
         "modalSubtitle": "付款後我們將確認您的諮詢方向、級別和上門安排。",
         "modalFocusLabelTemplate": "{focus}方向",
         "upgradeToDeepDiveLabel": "升級到深入版，獲得實操指導",
