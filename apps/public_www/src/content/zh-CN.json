@@ -1187,8 +1187,8 @@
       "description": "每个家庭的情况都不同。在咨询中，我们会一起看清家里具体哪里不顺，并规划最简单、可执行的下一步。",
       "ctaLabel": "预约家庭咨询",
       "ctaHref": "#consultations-booking",
-      "imageSrc": "/images/hero/child-landing-hero.webp",
-      "imageAlt": "孩子专心玩蒙特梭利风格的玩具",
+      "imageSrc": "/images/hero/consultations-hero.webp",
+      "imageAlt": "家长与孩子微笑击掌",
       "imageMaxWidthPercent": 90
     },
     "booking": {

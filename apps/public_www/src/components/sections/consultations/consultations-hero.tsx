@@ -50,7 +50,7 @@ export function ConsultationsHero({ content }: ConsultationsHeroProps) {
             src={content.imageSrc}
             alt={content.imageAlt}
             width={1200}
-            height={900}
+            height={800}
             sizes='(max-width: 1024px) 120vw, 60vw'
             priority
             fetchPriority='high'

@@ -1187,8 +1187,8 @@
       "description": "Every family is different. In your consultation, we'll look at exactly what's not working at home and map out the simplest path forward — together.",
       "ctaLabel": "Book a Family Consultation",
       "ctaHref": "#consultations-booking",
-      "imageSrc": "/images/hero/child-landing-hero.webp",
-      "imageAlt": "Child busy playing with a Montessori-style toy",
+      "imageSrc": "/images/hero/consultations-hero.webp",
+      "imageAlt": "Parent and child smiling and high-fiving together",
       "imageMaxWidthPercent": 90
     },
     "booking": {
