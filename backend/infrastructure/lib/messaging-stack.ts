@@ -101,6 +101,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
         memorySize?: number;
         noVpc?: boolean;
         manageLogGroup?: boolean;
+        reservedConcurrentExecutions?: number;
       }
     ) => {
       const f = opts.noVpc ? noVpcLambdaFactory : lambdaFactory;
@@ -112,6 +113,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
         memorySize: opts.memorySize,
         securityGroups: opts.noVpc ? undefined : [props.lambdaSecurityGroup],
         manageLogGroup: opts.manageLogGroup,
+        reservedConcurrentExecutions: opts.reservedConcurrentExecutions,
       }).function;
     };
 
@@ -120,6 +122,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
         memorySize: 256,
         timeout: cdk.Duration.seconds(60),
         noVpc: true,
+        reservedConcurrentExecutions: 1,
       });
     sesTemplateManagerFunction.addToRolePolicy(
       new iam.PolicyStatement({
