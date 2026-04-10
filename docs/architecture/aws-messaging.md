@@ -6,6 +6,15 @@ Ticket submissions are processed asynchronously using SNS + SQS messaging. This 
 
 Most booking, media, and expense-parser pipelines (plus the SES template manager custom resource) are defined in a **nested CloudFormation stack** (`MessagingNestedStack` in `backend/infrastructure/lib/messaging-stack.ts`) so the root `evolvesprouts` stack stays under CloudFormation’s 500-resource limit. The shared `SqsEncryptionKey` KMS key remains in the root stack and is passed into that nested stack (and reused by inbound invoice queues in the root). Eventbrite sync uses a separate nested stack (`EventbriteSyncNestedStack` in `api-stack.ts`).
 
+### Two-phase deploy (named resources → nested stack)
+
+CloudFormation cannot move resources with fixed physical names (`queueName`, `topicName`, `functionName`) into a nested stack in one update without name collisions. Deploy in order:
+
+1. **Phase 1** (commit that strips those physical names from the root-stack messaging resources): the stack replaces them with auto-generated names, freeing the original names.
+2. **Phase 2** (nested `Messaging` stack): recreates the pipelines with the original explicit names inside the nested stack.
+
+Between phases, drain SQS queues and DLQs where possible; expect brief SNS topic ARN churn and possible failed media publishes during replacement.
+
 ## Architecture
 
 ```
