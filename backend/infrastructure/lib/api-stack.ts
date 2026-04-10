@@ -3512,4 +3512,3 @@ function parseOptionalBoolean(value: string | undefined): boolean | undefined {
   }
   throw new Error(`Invalid boolean value: ${value}`);
 }
-
