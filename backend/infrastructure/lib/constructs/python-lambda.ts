@@ -26,8 +26,13 @@ export function selectPrivateSubnets(_vpc: ec2.IVpc): ec2.SubnetSelection {
  * Properties for the PythonLambda construct.
  */
 export interface PythonLambdaProps {
-  /** Function name (required for standard /aws/lambda/ log group naming). */
-  functionName: string;
+  /**
+   * Physical Lambda function name. When omitted, CloudFormation assigns a unique
+   * generated name (useful for brief migration windows). A managed log group with
+   * KMS encryption requires an explicit name; omitting `functionName` while
+   * `manageLogGroup` is true is invalid.
+   */
+  functionName?: string;
   /** Handler path (e.g., "lambda/handler.lambda_handler"). */
   handler: string;
   /** Optional function description. */
@@ -154,6 +159,11 @@ export class PythonLambda extends Construct {
       });
 
     const manageLogGroup = props.manageLogGroup ?? true;
+    if (manageLogGroup && !props.functionName) {
+      throw new Error(
+        "PythonLambda: manageLogGroup requires functionName (fixed log group path /aws/lambda/{functionName})."
+      );
+    }
     const logEncryptionKey = manageLogGroup
       ? props.logEncryptionKey ?? this.createLogEncryptionKey()
       : undefined;
@@ -170,7 +180,7 @@ export class PythonLambda extends Construct {
     // COST OPTIMIZATION: Use ARM64 architecture for 20% cost savings
     // Graviton2 processors offer better price-performance ratio
     this.function = new lambda.Function(this, "Function", {
-      functionName: props.functionName,
+      ...(props.functionName ? { functionName: props.functionName } : {}),
       runtime: lambda.Runtime.PYTHON_3_12,
       architecture: lambda.Architecture.ARM_64,
       handler: props.handler,

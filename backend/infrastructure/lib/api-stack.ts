@@ -1228,19 +1228,27 @@ export class ApiStack extends cdk.Stack {
         // access (e.g., authorizers that fetch JWKS from Cognito)
         noVpc?: boolean;
         manageLogGroup?: boolean;
+        /** When true, omit physical functionName so CloudFormation can replace the function during two-phase nested-stack migration. */
+        omitFunctionName?: boolean;
       }
     ) => {
       const factory = props.noVpc ? noVpcLambdaFactory : lambdaFactory;
-      const pythonLambda = factory.create(id, {
-        functionName: name(id),
+      const baseProps = {
         handler: props.handler,
         environment: props.environment,
         timeout: props.timeout,
         extraCopyPaths: props.extraCopyPaths,
         securityGroups: props.noVpc ? undefined : (props.securityGroups ?? [lambdaSecurityGroup]),
         memorySize: props.memorySize,
-        manageLogGroup: props.manageLogGroup,
-      });
+        // Omitting physical functionName requires AWS-managed default log groups
+        // (PythonLambda cannot create a fixed /aws/lambda/{name} log group without a name).
+        manageLogGroup: props.omitFunctionName
+          ? false
+          : (props.manageLogGroup ?? true),
+      };
+      const pythonLambda = props.omitFunctionName
+        ? factory.create(id, baseProps)
+        : factory.create(id, { ...baseProps, functionName: name(id) });
       return pythonLambda.function;
     };
 
@@ -1619,6 +1627,7 @@ export class ApiStack extends cdk.Stack {
         memorySize: 256,
         timeout: cdk.Duration.seconds(60),
         noVpc: true,
+        omitFunctionName: true,
       }
     );
     sesTemplateManagerFunction.addToRolePolicy(
@@ -1676,14 +1685,12 @@ export class ApiStack extends cdk.Stack {
     ]);
 
     const bookingRequestDLQ = new sqs.Queue(this, "BookingRequestDLQ", {
-      queueName: name("booking-request-dlq"),
       retentionPeriod: cdk.Duration.days(14),
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
     const bookingRequestQueue = new sqs.Queue(this, "BookingRequestQueue", {
-      queueName: name("booking-request-queue"),
       visibilityTimeout: cdk.Duration.seconds(60),
       deadLetterQueue: {
         queue: bookingRequestDLQ,
@@ -1694,7 +1701,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     const bookingRequestTopic = new sns.Topic(this, "BookingRequestTopic", {
-      topicName: name("booking-request-events"),
       masterKey: sqsEncryptionKey,
     });
 
@@ -1713,6 +1719,7 @@ export class ApiStack extends cdk.Stack {
       {
         handler: "lambda/manager_request_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(10),
+        omitFunctionName: true,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -1742,7 +1749,6 @@ export class ApiStack extends cdk.Stack {
     );
 
     const dlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "BookingRequestDLQAlarm", {
-      alarmName: name("booking-request-dlq-alarm"),
       alarmDescription: "Booking request messages failed processing and landed in DLQ",
       metric: bookingRequestDLQ.metricApproximateNumberOfMessagesVisible({
         period: cdk.Duration.minutes(5),
@@ -1757,14 +1763,12 @@ export class ApiStack extends cdk.Stack {
     // -------------------------------------------------------------------------
 
     const mediaDLQ = new sqs.Queue(this, "MediaDLQ", {
-      queueName: name("media-dlq"),
       retentionPeriod: cdk.Duration.days(14),
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
     const mediaQueue = new sqs.Queue(this, "MediaQueue", {
-      queueName: name("media-queue"),
       visibilityTimeout: cdk.Duration.seconds(60),
       deadLetterQueue: {
         queue: mediaDLQ,
@@ -1775,7 +1779,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     const mediaTopic = new sns.Topic(this, "MediaTopic", {
-      topicName: name("media-events"),
       masterKey: sqsEncryptionKey,
     });
 
@@ -1790,6 +1793,7 @@ export class ApiStack extends cdk.Stack {
       {
         handler: "lambda/media_processor/handler.lambda_handler",
         timeout: cdk.Duration.seconds(30),
+        omitFunctionName: true,
         environment: {
           DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
           DATABASE_NAME: "evolvesprouts",
@@ -1850,7 +1854,6 @@ export class ApiStack extends cdk.Stack {
     );
 
     const mediaDlqAlarm = new cdk.aws_cloudwatch.Alarm(this, "MediaDLQAlarm", {
-      alarmName: name("media-dlq-alarm"),
       alarmDescription:
         "Media request messages failed processing and landed in DLQ",
       metric: mediaDLQ.metricApproximateNumberOfMessagesVisible({
@@ -1866,14 +1869,12 @@ export class ApiStack extends cdk.Stack {
     // -------------------------------------------------------------------------
 
     const expenseParserDLQ = new sqs.Queue(this, "ExpenseParserDLQ", {
-      queueName: name("expense-parser-dlq"),
       retentionPeriod: cdk.Duration.days(14),
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: sqsEncryptionKey,
     });
 
     const expenseParserQueue = new sqs.Queue(this, "ExpenseParserQueue", {
-      queueName: name("expense-parser-queue"),
       visibilityTimeout: cdk.Duration.seconds(180),
       deadLetterQueue: {
         queue: expenseParserDLQ,
@@ -1884,7 +1885,6 @@ export class ApiStack extends cdk.Stack {
     });
 
     const expenseParserTopic = new sns.Topic(this, "ExpenseParserTopic", {
-      topicName: name("expense-parser-events"),
       masterKey: sqsEncryptionKey,
     });
     expenseParserTopic.addSubscription(
@@ -1899,6 +1899,7 @@ export class ApiStack extends cdk.Stack {
     const expenseParserFunction = createPythonFunction("ExpenseParserFunction", {
       handler: "lambda/expense_parser/handler.lambda_handler",
       timeout: cdk.Duration.seconds(90),
+      omitFunctionName: true,
       environment: {
         DATABASE_SECRET_ARN: database.adminUserSecret.secretArn,
         DATABASE_NAME: "evolvesprouts",
@@ -1930,7 +1931,6 @@ export class ApiStack extends cdk.Stack {
       this,
       "ExpenseParserDLQAlarm",
       {
-        alarmName: name("expense-parser-dlq-alarm"),
         alarmDescription:
           "Expense parser messages failed processing and landed in DLQ",
         metric: expenseParserDLQ.metricApproximateNumberOfMessagesVisible({
