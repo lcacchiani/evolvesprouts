@@ -51,7 +51,12 @@ export interface PythonLambdaProps {
   extraCopyPaths?: string[];
   /** Custom code asset (overrides default bundling). */
   code?: lambda.Code;
-  /** Reserved concurrency limit. */
+  /**
+   * Reserved concurrency limit. Defaults to 25 when omitted. Set to ``-1``
+   * to omit ``ReservedConcurrentExecutions`` entirely (function draws from
+   * the unreserved account pool — useful during migration windows when the
+   * account concurrency budget is temporarily tight).
+   */
   reservedConcurrentExecutions?: number;
   /** KMS key to encrypt environment variables. */
   environmentEncryptionKey?: kms.IKey;
@@ -231,8 +236,9 @@ export class PythonLambda extends Construct {
       environmentEncryption: environmentEncryptionKey,
       deadLetterQueue,
       deadLetterQueueEnabled: true,
-      reservedConcurrentExecutions:
-        props.reservedConcurrentExecutions ?? 25,
+      ...(props.reservedConcurrentExecutions === -1
+        ? {}
+        : { reservedConcurrentExecutions: props.reservedConcurrentExecutions ?? 25 }),
       logGroup,
       environment: {
         PYTHONPATH: "/var/task/src",
