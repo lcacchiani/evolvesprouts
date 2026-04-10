@@ -345,6 +345,7 @@
       "messageLabel": "Your message",
       "messagePlaceholder": "Your message",
       "submitLabel": "Launch the Message!",
+      "submittingLabel": "Sending message…",
       "formDescription": "I reply personally within 24-48 hours. No bots, no templates — just me.",
       "successTitle": "Thank you for your message!",
       "successDescription": "We have received your message and will answer shortly.",
