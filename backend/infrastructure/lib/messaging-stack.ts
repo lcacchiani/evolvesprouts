@@ -4,8 +4,6 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as kms from "aws-cdk-lib/aws-kms";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sns from "aws-cdk-lib/aws-sns";
 import * as snsSubscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as sqs from "aws-cdk-lib/aws-sqs";
@@ -25,14 +23,13 @@ export interface MessagingNestedStackProps extends cdk.NestedStackProps {
   databaseSecretArn: string;
   databaseProxyEndpoint: string;
   awsProxyFunctionArn: string;
-  awsProxyFunction: lambda.IFunction;
   sesSenderIdentityArn: string;
   sesSenderDomainIdentityArn: string;
   sesAuthEmailIdentityArn: string;
   sesAuthEmailDomainIdentityArn: string;
-  mailchimpApiSecret: secretsmanager.ISecret;
-  assetsBucket: s3.IBucket;
-  openrouterApiSecret: secretsmanager.ISecret;
+  mailchimpApiSecretArn: string;
+  assetsBucketName: string;
+  openrouterApiSecretArn: string;
   sesSenderEmail: string;
   supportEmail: string;
   authEmailFromAddress: string;
@@ -262,7 +259,7 @@ export class MessagingNestedStack extends cdk.NestedStack {
           DATABASE_IAM_AUTH: "true",
           SES_SENDER_EMAIL: props.sesSenderEmail,
           SUPPORT_EMAIL: props.supportEmail,
-          MAILCHIMP_API_SECRET_ARN: props.mailchimpApiSecret.secretArn,
+          MAILCHIMP_API_SECRET_ARN: props.mailchimpApiSecretArn,
           MAILCHIMP_LIST_ID: props.mailchimpListId,
           MAILCHIMP_SERVER_PREFIX: props.mailchimpServerPrefix,
           MEDIA_DEFAULT_RESOURCE_KEY: props.mediaDefaultResourceKey,
@@ -293,8 +290,6 @@ export class MessagingNestedStack extends cdk.NestedStack {
         ],
       })
     );
-    props.mailchimpApiSecret.grantRead(this.mediaRequestProcessor);
-    props.awsProxyFunction.grantInvoke(this.mediaRequestProcessor);
 
     this.mediaRequestProcessor.addEventSource(
       new lambdaEventSources.SqsEventSource(this.mediaQueue, {
@@ -353,17 +348,14 @@ export class MessagingNestedStack extends cdk.NestedStack {
           DATABASE_USERNAME: "evolvesprouts_admin",
           DATABASE_PROXY_ENDPOINT: props.databaseProxyEndpoint,
           DATABASE_IAM_AUTH: "true",
-          ASSETS_BUCKET_NAME: props.assetsBucket.bucketName,
-          OPENROUTER_API_KEY_SECRET_ARN: props.openrouterApiSecret.secretArn,
+          ASSETS_BUCKET_NAME: props.assetsBucketName,
+          OPENROUTER_API_KEY_SECRET_ARN: props.openrouterApiSecretArn,
           OPENROUTER_CHAT_COMPLETIONS_URL: props.openrouterChatCompletionsUrl,
           OPENROUTER_MODEL: props.openrouterModel,
           OPENROUTER_MAX_FILE_BYTES: props.openrouterMaxFileBytes,
           AWS_PROXY_FUNCTION_ARN: props.awsProxyFunctionArn,
         },
       });
-    props.assetsBucket.grantRead(this.expenseParserFunction);
-    props.openrouterApiSecret.grantRead(this.expenseParserFunction);
-    props.awsProxyFunction.grantInvoke(this.expenseParserFunction);
 
     this.expenseParserFunction.addEventSource(
       new lambdaEventSources.SqsEventSource(this.expenseParserQueue, {

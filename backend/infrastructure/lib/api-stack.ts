@@ -1642,14 +1642,13 @@ export class ApiStack extends cdk.Stack {
       databaseSecretArn: database.adminUserSecret.secretArn,
       databaseProxyEndpoint: database.proxy.endpoint,
       awsProxyFunctionArn: awsProxyFunction.functionArn,
-      awsProxyFunction,
       sesSenderIdentityArn,
       sesSenderDomainIdentityArn,
       sesAuthEmailIdentityArn,
       sesAuthEmailDomainIdentityArn,
-      mailchimpApiSecret,
-      assetsBucket,
-      openrouterApiSecret,
+      mailchimpApiSecretArn: mailchimpApiSecret.secretArn,
+      assetsBucketName: assetsBucket.bucketName,
+      openrouterApiSecretArn: openrouterApiSecret.secretArn,
       sesSenderEmail: sesSenderEmail.valueAsString,
       supportEmail: supportEmail.valueAsString,
       authEmailFromAddress: authEmailFromAddress.valueAsString,
@@ -1691,6 +1690,11 @@ export class ApiStack extends cdk.Stack {
     database.grantConnect(messaging.mediaRequestProcessor, "evolvesprouts_admin");
     database.grantAdminUserSecretRead(messaging.expenseParserFunction);
     database.grantConnect(messaging.expenseParserFunction, "evolvesprouts_admin");
+    mailchimpApiSecret.grantRead(messaging.mediaRequestProcessor);
+    awsProxyFunction.grantInvoke(messaging.mediaRequestProcessor);
+    assetsBucket.grantRead(messaging.expenseParserFunction);
+    openrouterApiSecret.grantRead(messaging.expenseParserFunction);
+    awsProxyFunction.grantInvoke(messaging.expenseParserFunction);
 
     // -------------------------------------------------------------------------
     // Eventbrite sync messaging (nested stack to reduce root stack size)
